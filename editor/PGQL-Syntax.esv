@@ -1,21 +1,18 @@
-module GMQL-Syntax.generated
+module PGQL-Syntax
 
-language Syntax properties (static defaults)
-                                           
-  // Comment constructs:                   
+language
+                                                                   
   line comment                           : "//"
-  block comment                          : "/*" * "*/"
                                            
-  // Fences (used for matching,            
-  // inserting, indenting brackets):       
   fences                                 : [ ]
                                            ( )
                                            { }
                                            
-  // Automatic indent hints                
-  // (indent after these tokens):          
   indent after                           : "="
                                            ":"
+                                           "MATCH"
+                                           "Match"
+                                           "match"
                                            
   // Regular expression for identifiers:   
-  identifier lexical                     : "[A-Za-z0-9_]+"
+  // identifier lexical                     : "[A-Za-z0-9_]+"

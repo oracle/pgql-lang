@@ -19,7 +19,7 @@ imports
   check
   pp
 //  generate/-
-  editor/GMQL-Outliner
+  editor/PGQL-Outliner
 //  text-to-model/t2m
 //  text-to-model/GMQL-Graph
 //  text-to-model/m2t

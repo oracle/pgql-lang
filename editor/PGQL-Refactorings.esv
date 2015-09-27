@@ -1,6 +1,6 @@
-module GMQL-Refactorings
+module PGQL-Refactorings
 
-imports GMQL-Refactorings.generated
+imports PGQL-Refactorings.generated
 
 refactorings
 

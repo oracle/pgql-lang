@@ -1,10 +1,10 @@
-module editor/GMQL-Outliner
+module editor/PGQL-Outliner
 
 imports
   include/PGQL
   lib/runtime/editor/outline-library
   lib/runtime/editor/origins
-  editor/GMQL-Outliner.generated
+  editor/PGQL-Outliner.generated
 
 rules
   

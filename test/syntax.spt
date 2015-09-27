@@ -1,6 +1,6 @@
 module syntax
 
-language GMQL
+language PGQL
 
 test no-paths [[
 MATCH

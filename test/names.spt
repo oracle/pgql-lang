@@ -1,6 +1,6 @@
 module names
 
-language GMQL
+language PGQL
 
 
 test unresolved-var-1 [[

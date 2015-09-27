@@ -2,7 +2,7 @@ bin
 .cache
 include/
 editor/java/trans
-/editor/GMQL-Folding.generated.esv
+/editor/PGQL-Folding.generated.esv
 syntax/*generated.pp
 .settings/org.eclipse.jdt.core.prefs
 utils

@@ -1,5 +1,5 @@
 
-module GMQL.generated
+module PGQL.generated
 
 completions
   completion template Start : "Prologue InClause MatchClause SolutionModifier" =

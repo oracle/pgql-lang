@@ -1,4 +1,4 @@
-module editor/GMQL-Outliner.generated
+module editor/PGQL-Outliner.generated
 
 imports
   

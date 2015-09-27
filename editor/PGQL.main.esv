@@ -2,13 +2,13 @@ module PGQL.main
 
 imports
 
-	GMQL-Menus
-	GMQL-Colorer
-	GMQL-Completions
-	GMQL-Folding
-	GMQL-References
-	GMQL-Syntax
-	GMQL-Views
+	PGQL-Menus
+	PGQL-Colorer
+	PGQL-Completions
+	PGQL-Folding
+	PGQL-References
+	PGQL-Syntax
+	PGQL-Views
 
   // src-gen/completions/GMQL-esv
 

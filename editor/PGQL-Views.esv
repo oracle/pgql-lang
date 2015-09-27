@@ -1,4 +1,4 @@
-module GMQL-Views
+module PGQL-Views
 
 views
   
