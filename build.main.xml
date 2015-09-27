@@ -51,12 +51,12 @@
 	<import file="build.generated.xml" />
 
 	<!-- Main target -->
-	<target depends="spoofaximp.default.ctree" name="all" />
-	<target depends="generate-sources-ctree" name="generate-sources" />
-	<target depends="package-ctree" name="package" />
+	<target depends="spoofaximp.default.jar" name="all" />
+	<target depends="generate-sources-java" name="generate-sources" />
+	<target depends="package-java" name="package" />
 	
   <!-- Custom targets for incremental building -->
-  <target name="spoofaximp.default.ctree.sdf" depends="
+  <target name="spoofaximp.default.jar.sdf" depends="
                         call-onsave,
                         init,
                         sdf2table,
@@ -69,17 +69,17 @@
                         refresh,
                         sdf2imp.eclipse.load" />
 	
-  <target name="spoofaximp.default.ctree.str" depends="
+  <target name="spoofaximp.default.jar.str" depends="
                         stratego.ctree,
                         refresh,
                         sdf2imp.eclipse.load" />
   
-  <target name="spoofaximp.default.ctree.java" depends="
+  <target name="spoofaximp.default.jar.java" depends="
                         compile-java-files,
                         java.jar,
                         refresh,
                         sdf2imp.eclipse.load" />
 	
-  <target name="spoofaximp.default.ctree.none" />
+  <target name="spoofaximp.default.jar.none" />
 	
 </project>

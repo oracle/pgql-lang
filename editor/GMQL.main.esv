@@ -25,7 +25,7 @@ language General properties
   table         : include/GMQL.tbl
   start symbols : Start
   
-  provider      : include/gmql.ctree
+  provider      : include/gmql.jar
   provider      : include/gmql-java.jar
   
   observer      : editor-analyze
