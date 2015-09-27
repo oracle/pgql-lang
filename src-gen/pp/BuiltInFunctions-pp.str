@@ -10,7 +10,7 @@ imports
   src-gen/signatures/Keywords-sig
   src-gen/signatures/Names-sig
   src-gen/signatures/Expressions-sig
-  src-gen/signatures/GMQL-sig
+  src-gen/signatures/PGQL-sig
   src-gen/signatures/Literals-sig
 
 
@@ -18,7 +18,7 @@ imports
   src-gen/pp/Keywords-pp
   src-gen/pp/Names-pp
   src-gen/pp/Expressions-pp
-  src-gen/pp/GMQL-pp
+  src-gen/pp/PGQL-pp
   src-gen/pp/Literals-pp
 
 

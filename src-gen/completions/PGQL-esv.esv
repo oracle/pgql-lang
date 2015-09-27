@@ -1,5 +1,5 @@
 
-module src-gen/completions/GMQL-esv
+module src-gen/completions/PGQL-esv
 
 imports
   src-gen/completions/Layout-esv

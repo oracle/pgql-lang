@@ -4,7 +4,7 @@ imports
   src-gen/completions/Keywords-esv
   src-gen/completions/Names-esv
   src-gen/completions/Expressions-esv
-  src-gen/completions/GMQL-esv
+  src-gen/completions/PGQL-esv
   src-gen/completions/Literals-esv
 
 completions

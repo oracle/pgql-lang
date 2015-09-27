@@ -1,5 +1,5 @@
 
-module GMQL
+module PGQL
 imports Layout Keywords Names Literals Expressions Paths SolutionModifiers
 
 exports

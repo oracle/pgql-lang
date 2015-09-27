@@ -1,9 +1,9 @@
-module src-gen/pp/GMQL-pp
+module src-gen/pp/PGQL-pp
 
 imports
   libstratego-gpp
   runtime/tmpl/pp
-  src-gen/signatures/GMQL-sig
+  src-gen/signatures/PGQL-sig
 
 
 imports

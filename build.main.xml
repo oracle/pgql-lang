@@ -2,10 +2,10 @@
 <project default="all" name="GMQL">
 
 	<!-- Key input modules -->
-	<property name="sdfmodule" value="GMQL" />
+	<property name="sdfmodule" value="PGQL" />
 	<property name="ppmodule" value="${sdfmodule}-pp" />
 	<property name="sigmodule" value="${sdfmodule}-sig" />
-	<property name="metasdfmodule" value="Stratego-GMQL" />
+	<property name="metasdfmodule" value="Stratego-PGQL" />
 	<property name="esvmodule" value="GMQL" />
 	<property name="strmodule" value="pgql" />
 

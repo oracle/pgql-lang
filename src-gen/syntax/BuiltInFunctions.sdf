@@ -1,5 +1,5 @@
 module BuiltInFunctions
-imports Keywords Names Expressions GMQL Literals
+imports Keywords Names Expressions PGQL Literals
 
 exports
   context-free syntax
