@@ -21,7 +21,7 @@ language General properties
   description   : "Spoofax/IMP-generated editor for the GMQL language"
   url           : http://strategoxt.org
                   
-  extensions    : gmql
+  extensions    : pgql
   table         : include/GMQL.tbl
   start symbols : Start
   
