@@ -8,8 +8,8 @@
             description="GMQL"
             language="GMQL"
             derivedFrom="DynamicRoot"
-            validator="oracle.pgql.lang.GMQLValidator"
-            validatorClass="oracle.pgql.lang.GMQLValidator"
+            validator="oracle.pgql.lang.PGQLValidator"
+            validatorClass="oracle.pgql.lang.PGQLValidator"
       ></language>
    </extension>
    <extension
@@ -17,7 +17,7 @@
          name="GMQL Parser"
          point="org.eclipse.imp.runtime.parser">
       <parser
-            class="oracle.pgql.lang.GMQLParseController"
+            class="oracle.pgql.lang.PGQLParseController"
             language="GMQL">
       </parser>
    </extension>    

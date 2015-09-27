@@ -7,7 +7,7 @@
 	<property name="sigmodule" value="${sdfmodule}-sig" />
 	<property name="metasdfmodule" value="Stratego-GMQL" />
 	<property name="esvmodule" value="GMQL" />
-	<property name="strmodule" value="gmql" />
+	<property name="strmodule" value="pgql" />
 
 	<!-- Project directories -->
 	<property location="trans" name="trans" />

@@ -2,7 +2,7 @@ module text-to-model/m2t
 
 imports
   include/GMQL
-  gmql
+  pgql
   text-to-model/GMQL-Graph
   lib/runtime/editor/origins
   generate/util

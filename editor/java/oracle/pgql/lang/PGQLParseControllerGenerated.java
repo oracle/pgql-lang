@@ -12,7 +12,7 @@ import org.strategoxt.imp.runtime.dynamicloading.Descriptor;
 import org.strategoxt.imp.runtime.dynamicloading.DescriptorFactory;
 import org.strategoxt.imp.runtime.dynamicloading.DynamicParseController;
 
-public class GMQLParseControllerGenerated extends DynamicParseController 
+public class PGQLParseControllerGenerated extends DynamicParseController 
 { 
   public static final String LANGUAGE = new String("GMQL");
 
@@ -35,15 +35,15 @@ public class GMQLParseControllerGenerated extends DynamicParseController
 
   protected static synchronized void setDescriptor(Descriptor descriptor)
   { 
-    GMQLParseControllerGenerated.descriptor = descriptor;
+    PGQLParseControllerGenerated.descriptor = descriptor;
   }
 
   protected static void createDescriptor()
   { 
     try
     { 
-      InputStream descriptorStream = GMQLParseControllerGenerated.class.getResourceAsStream(DESCRIPTOR);
-      InputStream table = GMQLParseControllerGenerated.class.getResourceAsStream(TABLE);
+      InputStream descriptorStream = PGQLParseControllerGenerated.class.getResourceAsStream(DESCRIPTOR);
+      InputStream table = PGQLParseControllerGenerated.class.getResourceAsStream(TABLE);
       boolean filesystem = false;
       if(descriptorStream == null && new File("./" + DESCRIPTOR).exists())
       { 
@@ -60,7 +60,7 @@ public class GMQLParseControllerGenerated extends DynamicParseController
       if(table == null)
         throw new BadDescriptorException("Could not load parse table from " + TABLE + " (not found in plugin: " + getPluginLocation() + ")");
       descriptor = DescriptorFactory.load(descriptorStream, table, filesystem ? Path.fromPortableString("./") : null);
-      descriptor.setAttachmentProvider(GMQLParseControllerGenerated.class);
+      descriptor.setAttachmentProvider(PGQLParseControllerGenerated.class);
     }
     catch(BadDescriptorException exc)
     { 
@@ -78,7 +78,7 @@ public class GMQLParseControllerGenerated extends DynamicParseController
 
   private static String getPluginLocation()
   { 
-    return GMQLParseController.class.getProtectionDomain().getCodeSource().getLocation().getFile();
+    return PGQLParseController.class.getProtectionDomain().getCodeSource().getLocation().getFile();
   }
 
   @Override public IParseController getWrapped()
