@@ -1,7 +1,7 @@
 module editor/GMQL-Outliner
 
 imports
-  include/GMQL
+  include/PGQL
   lib/runtime/editor/outline-library
   lib/runtime/editor/origins
   editor/GMQL-Outliner.generated

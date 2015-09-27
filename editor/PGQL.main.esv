@@ -1,4 +1,4 @@
-module GMQL.main
+module PGQL.main
 
 imports
 
@@ -14,7 +14,7 @@ imports
 
 language General properties
                   
-  name          : GMQL
+  name          : PGQL
   id            : oracle.pgql.lang
   extends       : Root
                   
@@ -22,11 +22,11 @@ language General properties
   url           : http://strategoxt.org
                   
   extensions    : pgql
-  table         : include/GMQL.tbl
+  table         : include/PGQL.tbl
   start symbols : Start
   
-  provider      : include/gmql.jar
-  provider      : include/gmql-java.jar
+  provider      : include/pgql.jar
+  provider      : include/pgql-java.jar
   
   observer      : editor-analyze
   

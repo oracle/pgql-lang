@@ -1,12 +1,12 @@
 <?xml version="1.0" encoding="UTF-8" standalone="no"?>
-<project default="all" name="GMQL">
+<project default="all" name="PGQL">
 
 	<!-- Key input modules -->
 	<property name="sdfmodule" value="PGQL" />
 	<property name="ppmodule" value="${sdfmodule}-pp" />
 	<property name="sigmodule" value="${sdfmodule}-sig" />
 	<property name="metasdfmodule" value="Stratego-PGQL" />
-	<property name="esvmodule" value="GMQL" />
+	<property name="esvmodule" value="PGQL" />
 	<property name="strmodule" value="pgql" />
 
 	<!-- Project directories -->

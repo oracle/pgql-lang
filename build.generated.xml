@@ -316,15 +316,15 @@
 	<!-- Target to create library from generated signatures -->
     <target name="sig.lib" unless="pp.module.enabled">
         
-        <available file="${src-gen}/gmql/siglib/Main.java" property="sig-java.available" />
+        <available file="${src-gen}/pgql/siglib/Main.java" property="sig-java.available" />
         <antcall target="sig.lib.deletehelper" />
         
-        <mkdir dir="${src-gen}/gmql/siglib"/>
+        <mkdir dir="${src-gen}/pgql/siglib"/>
         
-        <strj input="${include}/${sdfmodule}.str" output="${src-gen}/gmql/siglib/Main.java" package="gmql.siglib" >
+        <strj input="${include}/${sdfmodule}.str" output="${src-gen}/pgql/siglib/Main.java" package="pgql.siglib" >
                     <strjargs> 
                         <arg value="--clean"/>
-                        <arg line="-la gmql.siglib -I &quot;${lib}&quot; --cache-dir &quot;${basedir}/.cache&quot;"/>
+                        <arg line="-la pgql.siglib -I &quot;${lib}&quot; --cache-dir &quot;${basedir}/.cache&quot;"/>
                         <arg value="--library"/>
                     </strjargs>
                     <str-deps>
@@ -332,29 +332,29 @@
                     </str-deps>
                 </strj>
                 
-        <mkdir dir="${build}/gmql/siglib"/>
+        <mkdir dir="${build}/pgql/siglib"/>
         
         <sequential>
-            <uptodate-mio input="${src-gen}/gmql/siglib/Main.java" output="${lib-gen}/${sdfmodule}-lib.jar" type="javac">
+            <uptodate-mio input="${src-gen}/pgql/siglib/Main.java" output="${lib-gen}/${sdfmodule}-lib.jar" type="javac">
                 <action>
-                    <javac debug="on" destdir="${build}" includes="gmql/siglib/**" source="1.7" srcdir="${src-gen}" target="1.7">
+                    <javac debug="on" destdir="${build}" includes="pgql/siglib/**" source="1.7" srcdir="${src-gen}" target="1.7">
                         <classpath>
                             <pathelement path="${strategominjar}${src-gen}${externaljarimport1}${externaljarimport2}${java.jar.classpath}" />
                         </classpath>
                     </javac>
                     <!-- copy imported terms -->
-                    <copy todir="${build}/gmql/siglib">
-                            <fileset dir="${src-gen}/gmql/siglib" excludes="**/*.java"/>
+                    <copy todir="${build}/pgql/siglib">
+                            <fileset dir="${src-gen}/pgql/siglib" excludes="**/*.java"/>
                     </copy>
-                    <copy file="${src-gen}/gmql/siglib/Main.rtree" tofile="${lib-gen}/${sdfmodule}-lib.rtree" />
-                    <jar basedir="${build}" destfile="${lib-gen}/${sdfmodule}-lib.tmp.jar" includes="gmql/siglib/**"/>
+                    <copy file="${src-gen}/pgql/siglib/Main.rtree" tofile="${lib-gen}/${sdfmodule}-lib.rtree" />
+                    <jar basedir="${build}" destfile="${lib-gen}/${sdfmodule}-lib.tmp.jar" includes="pgql/siglib/**"/>
                     <move file="${lib-gen}/${sdfmodule}-lib.tmp.jar" tofile="${lib-gen}/${sdfmodule}-lib.jar"/>
                     <delete>
-                        <fileset dir="${build}" includes="gmql/siglib/**"/>
+                        <fileset dir="${build}" includes="pgql/siglib/**"/>
                     </delete> 
                 </action>
                 <deps>
-                    <srcfiles dir="${src-gen}/gmql/siglib/" includes="**/*.java"/>
+                    <srcfiles dir="${src-gen}/pgql/siglib/" includes="**/*.java"/>
                 </deps>
             </uptodate-mio>
         </sequential>
@@ -363,24 +363,24 @@
     
     <target name="sig.lib.deletehelper" unless="sig-java.available">
         <delete>
-            <fileset dir="${src-gen}" includes="gmql/siglib/**"/>
-            <fileset dir="${build}" includes="gmql/siglib/**"/>
+            <fileset dir="${src-gen}" includes="pgql/siglib/**"/>
+            <fileset dir="${build}" includes="pgql/siglib/**"/>
         </delete>
     </target>
 	
 	<!-- Target to create jar from generated pp and signatures -->
 	<target name="pp.lib" if="pp.module.enabled">
 		
-		<available file="${src-gen}/gmql/pplib/Main.java" property="pp-java.available" />
+		<available file="${src-gen}/pgql/pplib/Main.java" property="pp-java.available" />
         <antcall target="pp.lib.deletehelper" />
         
-        <mkdir dir="${src-gen}/gmql/pplib"/>
+        <mkdir dir="${src-gen}/pgql/pplib"/>
         
-        <strj input="${pp}/${ppmodule}.str" output="${src-gen}/gmql/pplib/Main.java" package="gmql.pplib" >
+        <strj input="${pp}/${ppmodule}.str" output="${src-gen}/pgql/pplib/Main.java" package="pgql.pplib" >
                     <strjargs> 
                         <arg value="--clean"/>
                         <arg line=" --library -I &quot;${basedir}&quot; -la stratego-lib -la stratego-sglr -la stratego-gpp -la stratego-xtc -la stratego-aterm -la stratego-sdf -la strc" />
-                        <arg line="-la java-front ${java.jar.import} -la gmql.pplib" />
+                        <arg line="-la java-front ${java.jar.import} -la pgql.pplib" />
                         <arg line="-I &quot;${lib}&quot; -I &quot;${include}&quot; --cache-dir &quot;${basedir}/.cache&quot;" />
                         <arg value="--library"/>
                     </strjargs>
@@ -390,29 +390,29 @@
                     </str-deps>
                 </strj>
         
-        <mkdir dir="${build}/gmql/pplib"/>
+        <mkdir dir="${build}/pgql/pplib"/>
         
         <sequential>
-            <uptodate-mio input="${src-gen}/gmql/pplib/Main.java" output="${lib-gen}/${sdfmodule}-lib.jar" type="javac">
+            <uptodate-mio input="${src-gen}/pgql/pplib/Main.java" output="${lib-gen}/${sdfmodule}-lib.jar" type="javac">
                 <action>
-                    <javac debug="on" destdir="${build}" includes="gmql/pplib/**" source="1.7" srcdir="${src-gen}" target="1.7">
+                    <javac debug="on" destdir="${build}" includes="pgql/pplib/**" source="1.7" srcdir="${src-gen}" target="1.7">
                         <classpath>
                             <pathelement path="${strategominjar}${src-gen}${externaljarimport1}${externaljarimport2}${java.jar.classpath}" />
                         </classpath>
                     </javac>
                     <!-- copy imported terms -->
-                    <copy todir="${build}/gmql/pplib">
-                            <fileset dir="${src-gen}/gmql/pplib" excludes="**/*.java"/>
+                    <copy todir="${build}/pgql/pplib">
+                            <fileset dir="${src-gen}/pgql/pplib" excludes="**/*.java"/>
                     </copy>
-                    <copy file="${src-gen}/gmql/pplib/Main.rtree" tofile="${lib-gen}/${sdfmodule}-lib.rtree" />
-                    <jar basedir="${build}" destfile="${lib-gen}/${sdfmodule}-lib.tmp.jar" includes="gmql/pplib/**"/>
+                    <copy file="${src-gen}/pgql/pplib/Main.rtree" tofile="${lib-gen}/${sdfmodule}-lib.rtree" />
+                    <jar basedir="${build}" destfile="${lib-gen}/${sdfmodule}-lib.tmp.jar" includes="pgql/pplib/**"/>
                     <move file="${lib-gen}/${sdfmodule}-lib.tmp.jar" tofile="${lib-gen}/${sdfmodule}-lib.jar"/>
                     <delete>
-                        <fileset dir="${build}" includes="gmql/pplib/**"/>
+                        <fileset dir="${build}" includes="pgql/pplib/**"/>
                     </delete> 
                 </action>
                 <deps>
-                    <srcfiles dir="${src-gen}/gmql/pplib/" includes="**/*.java"/>
+                    <srcfiles dir="${src-gen}/pgql/pplib/" includes="**/*.java"/>
                 </deps>
             </uptodate-mio>
         </sequential>
@@ -421,8 +421,8 @@
 	
 	<target name="pp.lib.deletehelper" unless="pp-java.available">
         <delete>
-            <fileset dir="${src-gen}" includes="gmql/pplib/**"/>
-            <fileset dir="${build}" includes="gmql/pplib/**"/>
+            <fileset dir="${src-gen}" includes="pgql/pplib/**"/>
+            <fileset dir="${build}" includes="pgql/pplib/**"/>
         </delete>
     </target>
 	
@@ -790,8 +790,8 @@
         <delete file="${include}/${strmodule}.ctree.dep" failonerror="false" />
         <delete file="${include}/${strmodule}.jar" failonerror="false" />
         <delete dir="${src-gen}/trans" failonerror="false" />
-        <delete dir="${src-gen}/gmql/pplib" failonerror="false" />
-        <delete dir="${src-gen}/gmql/siglib" failonerror="false" />
+        <delete dir="${src-gen}/pgql/pplib" failonerror="false" />
+        <delete dir="${src-gen}/pgql/siglib" failonerror="false" />
         <delete file="${syntax}/${sdfmodule}.generated.esv" failonerror="false" />
         <delete file="${syntax}/${sdfmodule}.generated.pp" failonerror="false" />
         <delete file="${include}/${metasdfmodule}-Permissive.def" failonerror="false" />
