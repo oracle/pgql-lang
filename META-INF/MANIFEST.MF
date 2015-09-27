@@ -15,7 +15,7 @@ Require-Bundle: org.eclipse.jface.text,
  org.spoofax.terms,
  org.spoofax.interpreter.externaldeps
 Bundle-ActivationPolicy: lazy
-Bundle-Version: 0.0.1.qualifier
+Bundle-Version: 1.0.0.qualifier
 Bundle-Name: PGQL Plug-in
 Bundle-Activator: oracle.pgql.lang.Activator
 Bundle-ManifestVersion: 2
