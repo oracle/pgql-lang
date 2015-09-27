@@ -6,9 +6,9 @@ import org.osgi.framework.BundleContext;
 
 public class Activator extends PluginBase 
 { 
-  public static final String kPluginID = "GMQL";
+  public static final String kPluginID = "PGQL";
 
-  public static final String kLanguageName = "GMQL";
+  public static final String kLanguageName = "PGQL";
 
   protected static Activator sPlugin;
 

@@ -14,7 +14,7 @@ import org.strategoxt.imp.runtime.dynamicloading.DynamicParseController;
 
 public class PGQLParseControllerGenerated extends DynamicParseController 
 { 
-  public static final String LANGUAGE = new String("GMQL");
+  public static final String LANGUAGE = new String("PGQL");
 
   private static final String TABLE = "/include/" + LANGUAGE + ".tbl";
 
