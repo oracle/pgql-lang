@@ -1,0 +1,71 @@
+module Keywords
+exports
+  lexical syntax
+    [Ii] [Nn]                               -> IN       
+    [Mm] [Aa] [Tt] [Cc] [Hh]                -> MATCH    
+    [Oo] [Pp] [Tt] [Ii] [Oo] [Nn] [Aa] [Ll] -> OPTIONAL 
+    [Uu] [Nn] [Ii] [Oo] [Nn]                -> UNION    
+    [Ee] [Xx] [Pp] [Aa] [Nn] [Dd]           -> EXPAND   
+    [Oo] [Rr] [Dd] [Ee] [Rr]                -> ORDER    
+
+  lexical syntax
+    [Hh] [Aa] [Ss]                                              -> HAS          
+    [Ii] [Nn] [Dd] [Ee] [Gg] [Rr] [Ee] [Ee]                     -> INDEGREE     
+    [Oo] [Uu] [Tt] [Dd] [Ee] [Gg] [Rr] [Ee] [Ee]                -> OUTDEGREE    
+    [Ss] [Rr] [Cc]                                              -> SRC          
+    [Dd] [Ss] [Tt]                                              -> DST          
+    [Nn] [Oo] [Dd] [Ee] [Ss]                                    -> NODES        
+    [Ee] [Dd] [Gg] [Ee] [Ss]                                    -> EDGES        
+    [Ll] [Ee] [Nn] [Gg] [Tt] [Hh]                               -> LENGTH       
+    [Cc] [Oo] [Nn] [Tt] [Aa] [Ii] [Nn] [Ss]                     -> CONTAINS     
+    [Bb] [Ee] [Gg] [Ii] [Nn] [Ss] [Ww] [Ii] [Tt] [Hh]           -> BEGINSWITH   
+    [Ee] [Nn] [Dd] [Ss] [Ww] [Ii] [Tt] [Hh]                     -> ENDSWITH     
+    [Bb] [Ee] [Tt] [Ww] [Ee] [Ee] [Nn]                          -> BETWEEN      
+    [Hh] [Ee] [Aa] [Dd]                                         -> HEAD         
+    [Ll] [Aa] [ss] [Tt]                                         -> LAST         
+    [Ii] [Nn] [Ii] [Tt]                                         -> INIT         
+    [Tt] [Aa] [Ii] [Ll]                                         -> TAIL         
+    [Nn] [Oo] [Tt]                                              -> NOT          
+    [Nn] [Uu] [Ll] [Ll]                                         -> NULL         
+    [Ee] [Xx] [Ii] [Ss] [Tt] [Ss]                               -> EXISTS       
+    [Cc] [Aa] [Ss] [Ee]                                         -> CASE         
+    [Ww] [Hh] [Ee] [Nn]                                         -> WHEN         
+    [Tt] [Hh] [Ee] [Nn]                                         -> THEN         
+    [Ee] [Ll] [Ss] [Ee]                                         -> ELSE         
+    [Ee] [Nn] [Dd]                                              -> END          
+    [Cc] [Oo] [Uu] [Nn] [Tt]                                    -> COUNT        
+    [Ss] [Uu] [Mm]                                              -> SUM          
+    [Mm] [Ii] [Nn]                                              -> MIN          
+    [Mm] [Aa] [Xx]                                              -> MAX          
+    [Aa] [Vv] [Gg]                                              -> AVG          
+    [Gg] [Rr] [Oo] [Uu] [Pp] [\_] [Cc] [Oo] [Nn] [Cc] [Aa] [Tt] -> GROUP-CONCAT 
+
+  lexical syntax
+    [Hh] [Aa] [Vv] [Ii] [Nn] [Gg]           -> HAVING   
+    [Oo] [Rr] [Dd] [Ee] [Rr]                -> ORDER    
+    [Gg] [Rr] [Oo] [Uu] [Pp]                -> GROUP    
+    [Aa] [Ss] [Cc]                          -> ASC      
+    [Dd] [Ee] [Ss] [Cc]                     -> DESC     
+    [Bb] [Yy]                               -> BY       
+    [Dd] [Ii] [Ss] [Tt] [Ii] [Nn] [Cc] [Tt] -> DISTINCT 
+    [Rr] [Ee] [Dd] [Uu] [Cc] [Ee] [Dd]      -> REDUCED  
+    [Oo] [Ff] [Ff] [Ss] [Ee] [Tt]           -> OFFSET   
+    [Ll] [Ii] [Mm] [Ii] [Tt]                -> LIMIT    
+    [Ss] [Ee] [Ll] [Ee] [Cc] [Tt]           -> SELECT   
+    [Ff] [Oo] [Rr]                          -> FOR      
+    [Aa] [Ll] [Ll]                          -> ALL      
+    [Ee] [Aa] [Cc] [Hh]                     -> EACH     
+    [Ii] [Nn]                               -> IN       
+    [Nn] [Oo] [Dd] [Ee]                     -> NODE     
+    [Ee] [Dd] [Gg] [Ee]                     -> EDGE     
+    [Nn] [Oo] [Dd] [Ee] [Ss]                -> NODES    
+    [Ee] [Dd] [Gg] [Ee] [Ss]                -> EDGES    
+    [Ll] [Ii] [Ss] [Tt]                     -> LIST     
+    [Ff] [Rr] [Oo] [Mm]                     -> FROM     
+    [Ww] [Ii] [Tt] [Hh]                     -> WITH     
+
+  lexical syntax
+    [Ss] [Hh] [Oo] [Rr] [Tt] [Ee] [Ss] [Tt] -> SHORTEST 
+
+  lexical syntax
+    [Pp] [Rr] [Ee] [Ff] [Ii] [Xx] -> PREFIX 

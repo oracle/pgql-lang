@@ -1,0 +1,22 @@
+MATCH
+  {
+    MATCH
+      (person:Person@12345) -[:KNOWS]{1..2}-> (friend:Person)
+      person != friend
+    SELECT DISTINCT friend
+  }
+  NOT EXISTS {friend-[:IS_LOCATED_IN]->()-[:IS_PART_OF]->(countryX WITH ~name="INDIA")}
+  NOT EXISTS {friend-[:IS_LOCATED_IN]->()-[:IS_PART_OF]->(countryY WITH ~name="CHINA")}
+  {
+    MATCH
+      friend <-[:HAS_CREATOR]- (messageX WITH ~creationDate.between('2012-02-01'^^date, '2012-01-01'^^date))-[:IS_LOCATED_IN]-> (countryX:Country WITH ~name="INDIA")
+    SELECT cnt1 := COUNT(messageX)
+  }
+  {
+    MATCH
+      friend <-[:HAS_CREATOR]- (messageY WITH ~creationDate.between('2012-02-01'^^date, '2012-01-01'^^date)) -[:IS_LOCATED_IN]-> (countryY:Country WITH ~name="CHINA")
+    SELECT cnt2 := COUNT(messageY)
+  }
+SELECT friend.id, friend.firstName, friend.lastName, cnt1, cnt2, cnt1 + cnt2
+ORDER BY friend.id, cnt1 + cnt2
+LIMIT 20

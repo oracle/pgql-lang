@@ -1,0 +1,34 @@
+
+module GMQL.generated
+
+completions
+  completion template Start : "Prologue InClause MatchClause SolutionModifier" =
+    <Prologue:Prologue> "\n" <InClause:InClause> "\n" <MatchClause:MatchClause> "\n" (cursor) "\n" <SolutionModifier:SolutionModifier> (blank)  
+  completion template PrologueElem : "PREFIX IriRef" =
+    <PREFIX:PREFIX> " " <:PName-NS> " " <IriRef:IriRef>                                  
+  completion template MatchClause : "MATCH MatchElems" =
+    <MATCH:MATCH> "\n\t" <MatchElems:MatchElems> (blank)                               
+  completion template GroupOrUnionGraphPattern : "GroupGraphPattern " =
+    <GroupGraphPattern:GroupGraphPattern> "\n" (cursor) (blank)         
+  completion template GroupGraphPatternChild : "UNION GroupGraphPattern " =
+    <UNION:UNION> " " <GroupGraphPattern:GroupGraphPattern> "\n" (cursor) (blank)  
+  completion template GroupGraphPattern : "{ MatchElems }" =
+    "{\n\t" <MatchElems:MatchElems> "\n}" (blank)                                  
+  completion template MatchElem : "OPTIONAL GroupOrUnionGraphPattern" =
+    <OPTIONAL:OPTIONAL> " " <GroupOrUnionGraphPattern:GroupOrUnionGraphPattern>  
+  completion template Edge : "-->" =
+    "-" <:EdgeContents> "->"                                                                               
+  completion template Edge : "<--" =
+    "<-" <:EdgeContents> "-"                                                                               
+  completion template Edge : "--" =
+    "-" <:EdgeContents> "-"                                                                                 
+  completion template EdgeContents : "[EdgeID]" =
+    "[" <EdgeID:EdgeID> "]"                                                                   
+  completion template EdgeContents : "[Literal]" =
+    "[" <Literal:Literal> "]"                                                                
+  completion template EdgeContents : "[EdgeID@Literal]" =
+    "[" <EdgeID:EdgeID> "@" <Literal:Literal> "]"                                     
+  completion template InClause : "IN GRAPHNAME" =
+    <IN:IN> " " <GRAPHNAME:GRAPHNAME>                                                         
+  completion template OrderClause : "IN ORDER " =
+    <IN:IN> " " <ORDER:ORDER> " " <:NodeVarRef>                                               

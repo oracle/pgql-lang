@@ -1,0 +1,107 @@
+module names
+
+language GMQL
+
+
+test unresolved-var-1 [[
+SELECT z.birthday // Unresolved Var z
+WHERE
+  x --> y,
+  z.name =~ 'Jo' // Unresolved Var z
+]] 2 errors
+
+test unresolved-node-prop [[
+SELECT x.naem // Node property 'naem' does not exist
+WHERE
+  x --> y
+]] 1 error
+
+test unresolved-edge-prop [[
+SELECT e.craetoinDate // Edge property 'craetoinDate' does not exist
+WHERE
+  x -[e]-> y
+]] 1 errors
+
+test duplicate-edges [[
+SELECT *
+WHERE
+  x -[e]-> y -[e]-> z
+]] 2 errors // Duplicate Var e
+
+test not-exists [[
+SELECT z // variable z is not visible outside of the NOT EXISTS
+WHERE
+  x --> y,
+  NOT EXISTS { y --> z }
+]] 1 error
+
+// test subqueries-1 [[
+// SELECT year, y.name // variable year is visible, but y is not (it's not projected by the subselect)
+// WHERE
+//   (x WITH name =~ 'John'),
+//   {
+//     SELECT MIN(y.birthday.year()) AS year
+//     WHERE x --> y
+//   } 
+// ]] 1 error
+
+// test subqueries-2 [[
+// SELECT year, y.name // both variable year and variable y are visible
+// WHERE
+//   (x WITH name =~ 'John'),
+//   {
+//     SELECT y, MIN(y.birthday.year()) AS year
+//     WHERE x --> y
+//   }
+// ]] 0 errors
+
+/*
+test subqueries-3 [[
+MATCH
+  (x with name =~ 'John')
+  {
+    MATCH x --> y
+    SELECT * // this makes all the variables inside the subselect visible to the outside
+  }
+SELECT y.name // y is visible
+]] 0 errors
+
+test subqueries-4 [[
+MATCH
+  (x with name =~ 'John')
+  {
+    MATCH
+      {
+        MATCH x --> y --> z
+        SELECT z // only z is projected to the outside
+      }
+    SELECT * // only z is projected to the ouside
+  }
+SELECT y.name, z.name // z is visible but y is not
+]] 1 error
+
+// FIXME
+test subqueries-5 [[
+MATCH
+  (x:Person)
+  n1 := x.name
+  {
+    MATCH
+      x --> y
+    SELECT names := n1 + " " + y.name // variable n1 from the outer query is visible here
+  }
+SELECT *
+]] 0 errors
+*/
+
+test resolve-1 [[
+SELECT [[x]].name, [[y]].name
+WHERE
+  ([[x]] WITH name =~ 'John'),
+  {
+    SELECT *
+    WHERE x --> [[y]]
+  }
+]] resolve #1 to #3
+   resolve #2 to #4
+

@@ -1,0 +1,85 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<project default="all" name="GMQL">
+
+	<!-- Key input modules -->
+	<property name="sdfmodule" value="GMQL" />
+	<property name="ppmodule" value="${sdfmodule}-pp" />
+	<property name="sigmodule" value="${sdfmodule}-sig" />
+	<property name="metasdfmodule" value="Stratego-GMQL" />
+	<property name="esvmodule" value="GMQL" />
+	<property name="strmodule" value="gmql" />
+
+	<!-- Project directories -->
+	<property location="trans" name="trans" />
+	<property location="editor/java" name="src-gen" />
+	<property location="editor/java" name="src-dirs" />
+	<!-- 
+	<property location="editor/java:../com.oracle.greenmarl.gmql.graphical/src:../com.oracle.greenmarl.gmql.graphical.edit/src:../com.oracle.greenmarl.gmql.graphical.editor/src:../com.oracle.greenmarl.gmql.graphical.diagram/src" name="src-dirs" />
+	-->
+	<property location="src-gen/syntax" name="syntax" />
+	<property location="include" name="include" />
+	<property location="lib" name="lib" />
+	<property location="src-gen" name="sdf-src-gen" />
+	<property location="${sdf-src-gen}/pp" name="pp" />
+	<property location="${sdf-src-gen}/signatures" name="signatures" />
+	<property location="${include}" name="lib-gen" />
+	<property location="${syntax}" name="syntax.rel" relative="yes" />
+	<property location="${trans}" name="trans.rel" relative="yes" />
+	<property location="${include}" name="include.rel" relative="yes" />
+	<property location="${lib-gen}" name="lib-gen.rel" relative="yes" />
+	<property location="target/classes" name="build" />
+	<property location="bin/dist" name="dist" />
+
+	<!-- Imports -->
+	<property name="build.sdf.imports" value="" />
+	<property name="build.stratego.args" value=" --library -I &quot;${trans}&quot; -I &quot;${basedir}&quot; -la stratego-lib -la stratego-sglr -la stratego-gpp -la stratego-xtc -la stratego-aterm -la stratego-parallel" />
+
+	<!-- Optional: external .def and .jar locations
+    <property name="externaldef" location="syntax/${sdfmodule}.def"/>
+    <property name="externaljar" value="../lib.jar"/>
+    <property name="externaljarflags" value="-la org.lib"/>
+    -->
+
+	<!-- Environment configuration for command-line builds -->
+	<property name="nativepath" value="${eclipse.spoofaximp.nativeprefix}" />
+	<condition else="" property="build.strategoxt.sdf" value="${eclipse.spoofaximp.nativeprefix}">
+		<isset property="eclipse.spoofaximp.nativeprefix" />
+	</condition>
+	<property location="${user.home}/.nix-profile/bin" name="build.strategoxt.stratego" />
+
+	<!-- used for building inside of Eclipse -->
+	<import file="build.generated.xml" />
+
+	<!-- Main target -->
+	<target depends="spoofaximp.default.ctree" name="all" />
+	<target depends="generate-sources-ctree" name="generate-sources" />
+	<target depends="package-ctree" name="package" />
+	
+  <!-- Custom targets for incremental building -->
+  <target name="spoofaximp.default.ctree.sdf" depends="
+                        call-onsave,
+                        init,
+                        sdf2table,
+                        meta-sdf2table,
+                        ppgen,
+                        pppack,
+                        sdf2imp.eclipse,
+                        sdf2imp.standalone,
+                        sdf2parenthesize,
+                        refresh,
+                        sdf2imp.eclipse.load" />
+	
+  <target name="spoofaximp.default.ctree.str" depends="
+                        stratego.ctree,
+                        refresh,
+                        sdf2imp.eclipse.load" />
+  
+  <target name="spoofaximp.default.ctree.java" depends="
+                        compile-java-files,
+                        java.jar,
+                        refresh,
+                        sdf2imp.eclipse.load" />
+	
+  <target name="spoofaximp.default.ctree.none" />
+	
+</project>

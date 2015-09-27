@@ -1,0 +1,84 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project
+  xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd"
+  xmlns="http://maven.apache.org/POM/4.0.0"
+  xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+>
+  <modelVersion>4.0.0</modelVersion>
+  <artifactId>com.oracle.greenmarl.gmql.textual</artifactId>
+  <version>0.0.1-SNAPSHOT</version>
+  <packaging>eclipse-plugin</packaging>
+
+  <parent>
+    <groupId>org.metaborg</groupId>
+    <artifactId>org.metaborg.maven.parent.language</artifactId>
+    <version>1.4.1</version>
+    <relativePath/>
+  </parent>
+
+  <build>
+    <plugins>
+      <plugin>
+        <groupId>org.eclipse.tycho</groupId>
+        <artifactId>tycho-compiler-plugin</artifactId>
+        <version>${tycho-version}</version>
+        <configuration>
+          <extraClasspathElements>
+            <dependency>
+              <groupId>org.ow2.asm</groupId>
+              <artifactId>asm</artifactId>
+              <version>5.0_BETA</version>
+            </dependency>
+            <dependency>
+              <groupId>org.ow2.asm</groupId>
+              <artifactId>asm-analysis</artifactId>
+              <version>5.0_BETA</version>
+            </dependency>
+            <dependency>
+              <groupId>org.ow2.asm</groupId>
+              <artifactId>asm-commons</artifactId>
+              <version>5.0_BETA</version>
+            </dependency>
+            <dependency>
+              <groupId>org.ow2.asm</groupId>
+              <artifactId>asm-tree</artifactId>
+              <version>5.0_BETA</version>
+            </dependency>
+            <dependency>
+              <groupId>org.ow2.asm</groupId>
+              <artifactId>asm-xml</artifactId>
+              <version>5.0_BETA</version>
+            </dependency>
+          </extraClasspathElements>
+        </configuration>
+      </plugin>
+
+      <!-- Hack to prevent the src-gen folder from being cleaned. Since the build cannot run meta-languages such as SDF3, the
+        src-gen folder is committed to the git repository. The clean goal will clean the src-gen folder, temporarily renaming
+        it will prevent that. This hack overrides the spoofax-clean antrun execution from the parent POM. -->
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-antrun-plugin</artifactId>
+        <executions>
+          <execution>
+            <id>spoofax-clean</id>
+            <goals>
+              <goal>run</goal>
+            </goals>
+            <phase>clean</phase>
+            <configuration>
+              <target>
+                <move file="src-gen" tofile="src-gen-keep" />
+                <ant antfile="build.main.xml" inheritRefs="true">
+                  <target name="clean" />
+                </ant>
+                <move file="src-gen-keep" tofile="src-gen" />
+              </target>
+            </configuration>
+          </execution>
+        </executions>
+      </plugin>
+    </plugins>
+  </build>
+  
+</project>

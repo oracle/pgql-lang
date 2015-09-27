@@ -1,0 +1,42 @@
+module example-schema
+
+imports
+  
+  signatures
+  
+rules
+
+  /*
+   * Currently, the schema only defines the available node and edge properties.
+   * It does not define the classes and relations to which the properties belong.
+   * This means that the following error is not found (i.e. universities don't have a gender):
+   * 
+   *   MATCH (:Person) -[:studyAt]-> (:University with gender = 'female') SELECT *
+   */
+
+  example-schema = !Schema(
+    [
+      NodeProp("creationDate", "DateTime"),
+      NodeProp("firstName", "String"),
+      NodeProp("lastName", "String"),
+      NodeProp("gender", "String"),
+      NodeProp("birthday", "Date"),
+      NodeProp("email", "List<String>"),
+      NodeProp("speaks", "List<String>"),
+      NodeProp("browserUsed", "String"),
+      NodeProp("locationIP", "String"),
+      NodeProp("title", "String"),
+      NodeProp("name", "String"),
+      NodeProp("language", "List<String>"),
+      NodeProp("imageFile", "List<String>"),
+      NodeProp("content", "List<Text>"),
+      NodeProp("length", "32bitInteger")
+    ],
+    [
+      EdgeProp("creationDate", "DateTime"),
+      EdgeProp("joinDate", "DateTime"),
+      EdgeProp("classYear", "32bitInteger"),
+      EdgeProp("workFrom", "32bitInteger")
+    ]
+  )
+  

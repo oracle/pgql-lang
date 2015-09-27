@@ -1,0 +1,30 @@
+module src-gen/signatures/GMQL-sig
+
+imports
+  src-gen/signatures/Layout-sig
+  src-gen/signatures/Keywords-sig
+  src-gen/signatures/Names-sig
+  src-gen/signatures/Literals-sig
+  src-gen/signatures/Expressions-sig
+  src-gen/signatures/Paths-sig
+  src-gen/signatures/SolutionModifiers-sig
+
+
+signature
+  constructors
+                      : Query -> Start
+    Query             : SelectClause * Option(FromClause) * MatchClause * SolutionModifier -> Query
+    SelectClause      : Option(DistinctOrReduced) * SelectElems -> SelectClause
+    FromClause        : GRAPHNAME -> FromClause
+    GraphPattern      : List(MatchElem) -> MatchClause
+                      : GroupGraphPattern -> MatchElem
+                      : Path -> MatchElem
+    Constraint        : Exp -> MatchElem
+    Optional          : GroupGraphPattern -> MatchElem
+                      : UnionGraphPattern -> MatchElem
+                      : SubSelect -> MatchElem
+    GraphPattern      : List(MatchElem) * Option(VarAssign) -> GroupGraphPattern
+    UnionGraphPattern : SubSelect * UnionGraphPatternChild -> UnionGraphPattern
+    Union             : SubSelect * Option(UnionGraphPatternChild) -> UnionGraphPatternChild
+    SubSelect         : Query -> SubSelect
+    Expand            : VarDef * Exp -> MatchElem

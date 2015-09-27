@@ -1,0 +1,25 @@
+Manifest-Version: 1.0
+Export-Package: oracle.pgql.lang
+Require-Bundle: org.eclipse.jface.text,
+ org.eclipse.core.runtime,
+ org.eclipse.ui.editors,
+ org.eclipse.ui,
+ org.strategoxt.strj,
+ org.spoofax.jsglr,
+ org.eclipse.ui.workbench.texteditor,
+ org.eclipse.imp.runtime,
+ lpg.runtime,
+ org.eclipse.core.resources,
+ org.strategoxt.imp.runtime,
+ org.spoofax.interpreter.core,
+ org.spoofax.terms,
+ org.spoofax.interpreter.externaldeps
+Bundle-ActivationPolicy: lazy
+Bundle-Version: 0.0.1.qualifier
+Bundle-Name: GMQL Plug-in
+Bundle-Activator: oracle.pgql.lang.Activator
+Bundle-ManifestVersion: 2
+Import-Package: org.osgi.framework;version="1.3.0"
+Bundle-SymbolicName: oracle.pgql.lang;singleton:=true
+Bundle-RequiredExecutionEnvironment: JavaSE-1.7
+

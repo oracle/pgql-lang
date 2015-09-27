@@ -1,0 +1,53 @@
+module Literals
+imports Keywords
+
+exports
+  context-free syntax
+    NumericLiteral    -> Literal 
+    BooleanLiteral    -> Literal 
+    String            -> Literal 
+    LitCustomType     -> Literal 
+    NULL              -> Literal {cons("Null")}
+    AltLit "|" AltLit -> AltLit  {cons("AltLit"), left}
+    Literal           -> AltLit  
+    UnquotedString    -> AltLit  
+
+  context-free syntax
+    CONTENTCOMPLETE -> Literal {cons("COMPLETION-Literal")}
+    CONTENTCOMPLETE -> AltLit  {cons("COMPLETION-AltLit")}
+
+  context-free syntax
+    INTEGER                 -> NumericLiteral {cons("Integer")}
+    DECIMAL                 -> NumericLiteral {cons("Decimal")}
+    DOUBLE                  -> NumericLiteral {cons("Double")}
+    "true"                  -> BooleanLiteral {cons("True")}
+    "false"                 -> BooleanLiteral {cons("False")}
+    STRING                  -> String         {cons("String")}
+    UNQUOTED-STRING         -> UnquotedString {cons("String")}
+    String "^^" CUSTOM-TYPE -> LitCustomType  {cons("LitCustomType")}
+
+  context-free syntax
+    CONTENTCOMPLETE -> NumericLiteral {cons("COMPLETION-NumericLiteral")}
+    CONTENTCOMPLETE -> BooleanLiteral {cons("COMPLETION-BooleanLiteral")}
+    CONTENTCOMPLETE -> String         {cons("COMPLETION-String")}
+    CONTENTCOMPLETE -> UnquotedString {cons("COMPLETION-UnquotedString")}
+    CONTENTCOMPLETE -> LitCustomType  {cons("COMPLETION-LitCustomType")}
+
+  lexical syntax
+    [0-9]+                                                                         -> INTEGER         
+    [0-9]* "." [0-9]+                                                              -> DECIMAL         
+    ( [0-9]+ "." [0-9]* EXPONENT ) | ( "." [0-9]+ EXPONENT ) | ( [0-9]+ EXPONENT ) -> DOUBLE          
+    [eE] [\+\-]? [0-9]+                                                            -> EXPONENT        
+    STRING-LITERAL1 | STRING-LITERAL2                                              -> STRING          
+    "'" ( ~[\'\n\\] | ECHAR )* "'"                                                 -> STRING-LITERAL1 
+    "\"" ( ~[\"\n\\] | ECHAR )* "\""                                               -> STRING-LITERAL2 
+    "\\" [tbnrf\\\"\']                                                             -> ECHAR           
+    [a-zA-Z] [a-zA-Z0-9\_]*                                                        -> UNQUOTED-STRING 
+    [a-zA-Z] [a-zA-Z0-9\_]*                                                        -> CUSTOM-TYPE     
+
+  lexical restrictions
+    INTEGER -/- [0-9\.]
+    DECIMAL -/- [0-9]
+    DOUBLE -/- [0-9]
+    UNQUOTED-STRING -/- [a-zA-Z0-9\_]
+    CUSTOM-TYPE -/- [a-zA-Z0-9\_]

@@ -1,0 +1,22 @@
+MATCH
+  {
+    MATCH
+      (person:Person@12345) -[:KNOWS]{2..2}-> (friend:Person)
+      friend != person
+      NOT EXISTS { friend-[:KNOWS]-person }
+    SELECT DISTINCT friend
+  }
+  friend -[:IS_LOCATED_IN]-> (city:City)
+  (friend.birthday.month() = 1 AND friend.birthday.day() >= 21) OR (friend.birthday.month() = (1+1)%12 AND friend.birthday.day() < 22)
+  { MATCH
+       friend<-[:HAS_CREATOR]-(post:Post)-[:HAS_TAG]->(:Tag)<-[:HAS_INTEREST]-(person)
+    SELECT sameInterest := COUNT(post)
+  }
+  { MATCH
+       friend<-[:HAS_CREATOR]-(post:Post)-[:HAS_TAG]->(tag:Tag)
+       NOT EXISTS { tag <-[:HAS_INTEREST]- person}
+    SELECT diffInterest := COUNT(post)
+  }
+SELECT friend.id, friend.firstName, friend.lastName, friend.gender, city.name, sameInterest - diffInterest
+ORDER BY DESC(sameInterest - diffInterest), ASC(friend.id)
+LIMIT 10

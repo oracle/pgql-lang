@@ -1,0 +1,83 @@
+module src-gen/completions/Expressions-esv
+
+imports
+  src-gen/completions/Keywords-esv
+  src-gen/completions/Names-esv
+  src-gen/completions/Literals-esv
+  src-gen/completions/BuiltInFunctions-esv
+
+completions
+  completion template Exp : "(Exp)" =
+    "(" <Exp:Exp> ")"  
+  completion template Exp : "NOT Exp" =
+    "NOT " <Exp:Exp>  
+  completion template Exp : "!Exp" =
+    "!" <Exp:Exp>  
+  completion template Exp : "-Exp" =
+    "-" <Exp:Exp>  
+  completion template Exp : "Exp AND Exp" =
+    <Exp:Exp> " AND " <Exp:Exp>  
+  completion template Exp : "Exp OR Exp" =
+    <Exp:Exp> " OR " <Exp:Exp>  
+  completion template Exp : "Exp * Exp" =
+    <Exp:Exp> " * " <Exp:Exp>  
+  completion template Exp : "Exp + Exp" =
+    <Exp:Exp> " + " <Exp:Exp>  
+  completion template Exp : "Exp / Exp" =
+    <Exp:Exp> " / " <Exp:Exp>  
+  completion template Exp : "Exp % Exp" =
+    <Exp:Exp> " % " <Exp:Exp>  
+  completion template Exp : "Exp - Exp" =
+    <Exp:Exp> " - " <Exp:Exp>  
+  completion template Exp : "Exp = Exp" =
+    <Exp:Exp> " = " <Exp:Exp>  
+  completion template Exp : "Exp > Exp" =
+    <Exp:Exp> " > " <Exp:Exp>  
+  completion template Exp : "Exp < Exp" =
+    <Exp:Exp> " < " <Exp:Exp>  
+  completion template Exp : "Exp >= Exp" =
+    <Exp:Exp> " >= " <Exp:Exp>  
+  completion template Exp : "Exp <= Exp" =
+    <Exp:Exp> " <= " <Exp:Exp>  
+  completion template Exp : "Exp != Exp" =
+    <Exp:Exp> " != " <Exp:Exp>  
+  completion template Exp : "Exp =~ Exp" =
+    <Exp:Exp> " =~ " <Exp:Exp>  
+
+completions
+  completion template InlinedExp : "(InlinedExp)" =
+    "(" <InlinedExp:InlinedExp> ")"  
+  completion template InlinedExp : "NOT InlinedExp" =
+    "NOT " <InlinedExp:InlinedExp>  
+  completion template InlinedExp : "!InlinedExp" =
+    "!" <InlinedExp:InlinedExp>  
+  completion template InlinedExp : "-InlinedExp" =
+    "-" <InlinedExp:InlinedExp>  
+  completion template InlinedExp : "InlinedExp AND InlinedExp" =
+    <InlinedExp:InlinedExp> " AND " <InlinedExp:InlinedExp>  
+  completion template InlinedExp : "InlinedExp OR InlinedExp" =
+    <InlinedExp:InlinedExp> " OR " <InlinedExp:InlinedExp>  
+  completion template InlinedExp : "InlinedExp * InlinedExp" =
+    <InlinedExp:InlinedExp> " * " <InlinedExp:InlinedExp>  
+  completion template InlinedExp : "InlinedExp + InlinedExp" =
+    <InlinedExp:InlinedExp> " + " <InlinedExp:InlinedExp>  
+  completion template InlinedExp : "InlinedExp / InlinedExp" =
+    <InlinedExp:InlinedExp> " / " <InlinedExp:InlinedExp>  
+  completion template InlinedExp : "InlinedExp % InlinedExp" =
+    <InlinedExp:InlinedExp> " % " <InlinedExp:InlinedExp>  
+  completion template InlinedExp : "InlinedExp - InlinedExp" =
+    <InlinedExp:InlinedExp> " - " <InlinedExp:InlinedExp>  
+  completion template InlinedExp : "InlinedExp = InlinedExp" =
+    <InlinedExp:InlinedExp> " = " <InlinedExp:InlinedExp>  
+  completion template InlinedExp : "InlinedExp > InlinedExp" =
+    <InlinedExp:InlinedExp> " > " <InlinedExp:InlinedExp>  
+  completion template InlinedExp : "InlinedExp < InlinedExp" =
+    <InlinedExp:InlinedExp> " < " <InlinedExp:InlinedExp>  
+  completion template InlinedExp : "InlinedExp >= InlinedExp" =
+    <InlinedExp:InlinedExp> " >= " <InlinedExp:InlinedExp>  
+  completion template InlinedExp : "InlinedExp <= InlinedExp" =
+    <InlinedExp:InlinedExp> " <= " <InlinedExp:InlinedExp>  
+  completion template InlinedExp : "InlinedExp != InlinedExp" =
+    <InlinedExp:InlinedExp> " != " <InlinedExp:InlinedExp>  
+  completion template InlinedExp : "InlinedExp =~ InlinedExp" =
+    <InlinedExp:InlinedExp> " =~ " <InlinedExp:InlinedExp>  

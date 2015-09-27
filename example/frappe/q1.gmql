@@ -1,0 +1,4 @@
+in frappe
+match
+  (s:struct with short_name = 'cpumask') --> (f:field)
+select f.short_name, f.long_name

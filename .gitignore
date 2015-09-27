@@ -1,0 +1,15 @@
+bin
+.cache
+include/
+editor/java/trans
+/editor/GMQL-Folding.generated.esv
+syntax/*generated.pp
+.settings/org.eclipse.jdt.core.prefs
+utils
+lib/runtime
+lib/*.generated.str
+lib-refactoring/*.generated.str
+/include
+/bin
+*.jar
+/target/

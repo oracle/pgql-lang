@@ -1,0 +1,44 @@
+module Paths
+
+imports
+  
+  Keywords
+  Literals
+  Names
+  Expressions
+  BuiltInFunctions
+  
+context-free syntax
+
+  Path.Path = <<Node><{EdgeNode ""}*><VarAssign?>> {prefer}
+
+  Node.Node = <(<ElemContents>)>
+  Node.SimpleNode = <<VARNAME>>
+
+  EdgeNode.EdgeNode = < <Edge> <Node>>
+  Edge.EdgeOut = [-[EdgeContents?][PathLengthConstraints?]->]
+  Edge.EdgeIn = [<-[PathLengthConstraints?][EdgeContents?]-]
+  Edge.EdgeOut = [->]
+  Edge.EdgeIn = [<-]
+  Edge.EdgeNoDir = [-[EdgeContents?][PathLengthConstraints?]-] // should we support undirected edges?
+  EdgeContents.EdgeContents = <[<ElemContents>]>
+  PathLengthConstraints.PathLengthConstraints = <{<PathConstraint>}>
+  PathConstraint.PathLength = <<INTEGER?>..<INTEGER?>>
+  PathConstraint.Shortest = <shortest <Weighted?>>
+  PathConstraint.SomeShortest = <someShortest <Weighted?>>
+  PathConstraint.All = <ALL<WithInlinedConstraints?>>
+  PathConstraint.Any = <ANY<WithInlinedConstraints?>>
+  PathConstraint.AllShortest = <ALL SHORTEST<Weighted?><WithInlinedConstraints?>>
+  PathConstraint.AnyShortest = <ANY SHORTEST<Weighted?><WithInlinedConstraints?>>
+  Weighted.Weighted = < USING <InlinedExp>>
+  Weighted.Weighted = <<InlinedExp><VarAssign?>>
+
+context-free syntax
+
+  ElemContents.ElemContents = <<VARNAME?><Type?><Id?><WithInlinedConstraints?>> {prefer} // 'prefer' disambiguates 'match (X)': X can be a property reference or a variable. It should be a variable.
+  Type.Type = <:<ExpressionOrAltLit>>
+  Id.Id = <@<ExpressionOrAltLit>>
+  ExpressionOrAltLit = <<Exp>>
+  ExpressionOrAltLit = <<AltLit>> {prefer}
+  
+  WithInlinedConstraints.Constraint = < WITH <{InlinedExp ", "}+>>

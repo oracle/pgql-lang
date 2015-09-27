@@ -1,0 +1,10 @@
+module projections
+
+imports
+  
+  src-gen/signatures/-
+  signatures
+  
+rules
+  
+  get-name = collect-one(is-string + is-int)

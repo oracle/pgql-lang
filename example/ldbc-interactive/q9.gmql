@@ -1,0 +1,10 @@
+MATCH
+  {
+    MATCH (start:Person@12345) -[:KNOWS]{1..2}-> (friend:Person)
+    SELECT DISTINCT friend
+  }
+  friend <-[:HAS_CREATOR]- (message WITH ~creationDate < '2012-01-01'^^date)
+SELECT friend.id, friend.firstName, friend.lastName, message.id, content, message.creationDate,
+       content := CASE message.content WHEN NOT null THEN message.content ELSE message.imageFile END
+ORDER BY DESC(message.creationDate), ASC(message.id)
+LIMIT 10

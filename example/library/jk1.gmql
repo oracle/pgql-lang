@@ -1,0 +1,4 @@
+in libraryGraph
+match
+  (:Author with name = 'J.K. Rowling') -[:authorOf]-> (b:Book)
+select b.title

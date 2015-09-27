@@ -1,0 +1,220 @@
+module Expressions
+
+imports
+  
+  Keywords
+  Names
+  Literals
+  BuiltInFunctions
+  
+context-free syntax
+
+  Exp = <(<Exp>)> {bracket}
+  Exp = PropRef
+  Exp = VarRef
+  Exp = Literal
+  Exp = FunctionCall
+  
+  Exp.Not1 = <NOT <Exp>> {right}
+  Exp.Not2 = <!<Exp>> {right}
+  Exp.UMin = <-<Exp>> {right}
+
+  Exp.And = <<Exp> AND <Exp>> {left}
+  Exp.Or = <<Exp> OR <Exp>> {left}
+  Exp.Mul = <<Exp> * <Exp>> {left}
+  Exp.Add = <<Exp> + <Exp>> {left}
+  Exp.Div = <<Exp> / <Exp>> {left}
+  Exp.Mod = <<Exp> % <Exp>> {left}
+  Exp.Sub = <<Exp> - <Exp>> {left}
+  Exp.Eq = <<Exp> = <Exp>> {left}
+  Exp.Gt = [[Exp] > [Exp]] {left}
+  Exp.Lt = [[Exp] < [Exp]] {left}
+  Exp.Gte = [[Exp] >= [Exp]] {left}
+  Exp.Lte = [[Exp] <= [Exp]] {left}
+  Exp.Neq = [[Exp] != [Exp]] {left}
+  Exp.Regex = [[Exp] =~ [Exp]] {left, prefer}
+
+context-free syntax // disambiguation
+
+  MatchElem = VarRef {reject} // 'x' in 'WHERE x' should be parsed as a node
+  MatchElem = <(<Exp>)> {reject} // 'x' in 'WHERE (x)' should be parsed as a node
+
+context-free syntax
+
+  InlinedExp = <(<InlinedExp>)> {bracket}
+  InlinedExp = PropRef
+  InlinedExp = Literal {prefer}
+  InlinedExp = InlinedCall
+  
+  InlinedExp.SelfPropRef = <<Prop>>
+  
+  InlinedExp.Not1 = <NOT <InlinedExp>> {right}
+  InlinedExp.Not2 = <!<InlinedExp>> {right}
+  InlinedExp.UMin = <-<InlinedExp>> {right}
+
+  InlinedExp.And = <<InlinedExp> AND <InlinedExp>> {left}
+  InlinedExp.Or = <<InlinedExp> OR <InlinedExp>> {left}
+  InlinedExp.Mul = <<InlinedExp> * <InlinedExp>> {left}
+  InlinedExp.Add = <<InlinedExp> + <InlinedExp>> {left}
+  InlinedExp.Div = <<InlinedExp> / <InlinedExp>> {left}
+  InlinedExp.Mod = <<InlinedExp> % <InlinedExp>> {left}
+  InlinedExp.Sub = <<InlinedExp> - <InlinedExp>> {left}
+  InlinedExp.Eq = <<InlinedExp> = <InlinedExp>> {left}
+  InlinedExp.Gt = [[InlinedExp] > [InlinedExp]] {left}
+  InlinedExp.Lt = [[InlinedExp] < [InlinedExp]] {left}
+  InlinedExp.Gte = [[InlinedExp] >= [InlinedExp]] {left}
+  InlinedExp.Lte = [[InlinedExp] <= [InlinedExp]] {left}
+  InlinedExp.Neq = [[InlinedExp] != [InlinedExp]] {left}
+  InlinedExp.Regex = [[InlinedExp] =~ [InlinedExp]] {left, prefer}
+
+context-free priorities
+
+  {
+    right:
+      Exp.UMin
+      Exp.Not1
+      Exp.Not2
+  }
+  >
+ // all functioncalls should actually be in one block, but putting too many sorts in one block crashes SDF2table gen.
+  {
+    left:        
+      FunctionCall.Has
+      FunctionCall.InDegree
+      FunctionCall.OutDegree
+      FunctionCall.Src
+      FunctionCall.Dst
+  }
+  >
+  {
+    left:
+      FunctionCall.Nodes
+      FunctionCall.Edges
+      FunctionCall.Length
+      FunctionCall.Weight
+      FunctionCall.Head
+      FunctionCall.Last
+      FunctionCall.Init
+      FunctionCall.Tail
+  }
+  >
+  {
+    left:
+      FunctionCall.Contains
+      FunctionCall.BeginsWith
+      FunctionCall.EndsWith
+  }
+  >
+  {
+    left:
+      FunctionCall.Between
+      FunctionCall.Year
+      FunctionCall.Month
+      FunctionCall.Day
+      FunctionCall.Hours
+      FunctionCall.Minutes
+      FunctionCall.Seconds
+      FunctionCall.Timezone
+  }
+  >
+  {
+    left:
+      Exp.Mul
+      Exp.Div
+      Exp.Mod
+      Exp.Regex
+  }
+  >
+  {
+    left:
+      Exp.Add
+      Exp.Sub
+  }
+  >
+  {
+    left:
+      Exp.Gt
+      Exp.Lt
+      Exp.Gte
+      Exp.Lte
+  }
+  >
+  {
+    left:
+      Exp.Eq
+      Exp.Neq
+  }
+  >
+  {
+    left:
+      Exp.And
+  }
+  >
+  {
+    left:
+      Exp.Or
+  }
+
+context-free priorities
+ 
+  {
+    right:
+      InlinedExp.UMin
+      InlinedExp.Not1
+      InlinedExp.Not2
+  }
+  >
+  {
+    left:        
+      InlinedCall.Has
+      InlinedCall.InDegree
+      InlinedCall.OutDegree
+      InlinedCall.Src
+      InlinedCall.Dst
+  }
+  >
+  {
+    left:
+      InlinedCall.Nodes
+      InlinedCall.Edges
+      InlinedCall.Length
+      InlinedCall.Weight
+  }
+  >
+  {
+    left:
+      InlinedExp.Mul
+      InlinedExp.Div
+      InlinedExp.Mod
+      InlinedExp.Regex
+  }
+  >
+  {
+    left:
+      InlinedExp.Add
+      InlinedExp.Sub
+  }
+  >
+  {
+    left:
+      InlinedExp.Gt
+      InlinedExp.Lt
+      InlinedExp.Gte
+      InlinedExp.Lte
+  }
+  >
+  {
+    left:
+      InlinedExp.Eq
+      InlinedExp.Neq
+  }
+  >
+  {
+    left:
+      InlinedExp.And
+  }
+  >
+  {
+    left:
+      InlinedExp.Or
+  }

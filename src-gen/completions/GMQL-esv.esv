@@ -1,0 +1,33 @@
+
+module src-gen/completions/GMQL-esv
+
+imports
+  src-gen/completions/Layout-esv
+  src-gen/completions/Keywords-esv
+  src-gen/completions/Names-esv
+  src-gen/completions/Literals-esv
+  src-gen/completions/Expressions-esv
+  src-gen/completions/Paths-esv
+  src-gen/completions/SolutionModifiers-esv
+
+completions
+  completion template Query : "SelectClause MatchClause SolutionModifier" =
+    <SelectClause:SelectClause> "\n" (cursor) "\n" <MatchClause:MatchClause> "\n" <SolutionModifier:SolutionModifier> (blank)  
+  completion template SelectClause : "SELECT SelectElems" =
+    "SELECT " <:DistinctOrReduced> <SelectElems:SelectElems>       
+  completion template FromClause : "FROM GRAPHNAME" =
+    "FROM " <GRAPHNAME:GRAPHNAME>                                        
+  completion template MatchClause : "WHERE " =
+    "WHERE\n\t" (cursor) (blank)                                                
+  completion template MatchElem : "OPTIONAL GroupGraphPattern" =
+    "OPTIONAL " <GroupGraphPattern:GroupGraphPattern>         
+  completion template GroupGraphPattern : "{ }" =
+    "{\n\t" (cursor) "\n}" <:VarAssign> (blank)                              
+  completion template UnionGraphPattern : "SubSelect UnionGraphPatternChild" =
+    <SubSelect:SubSelect> "\n" <UnionGraphPatternChild:UnionGraphPatternChild> (blank)  
+  completion template UnionGraphPatternChild : "UNION SubSelect " =
+    "UNION " <SubSelect:SubSelect> "\n" (cursor) (blank)   
+  completion template SubSelect : "{ Query }" =
+    "{\n\t" <Query:Query> "\n}" (blank)                                        
+  completion template MatchElem : "EXPAND(VarDef : Exp)" =
+    "EXPAND(" <VarDef:VarDef> " : " <Exp:Exp> ")"                   

@@ -1,0 +1,51 @@
+
+module Paths
+imports Keywords Literals Names Expressions BuiltInFunctions
+
+exports
+  context-free syntax
+    Node EdgeNode* VarAssign?                          -> Path                  {cons("Path"), prefer}
+    "(" ElemContents ")"                               -> Node                  {cons("Node")}
+    VARNAME                                            -> Node                  {cons("SimpleNode")}
+    Edge Node                                          -> EdgeNode              {cons("EdgeNode")}
+    "-" EdgeContents? PathLengthConstraints? "->"      -> Edge                  {cons("EdgeOut")}
+    "<-" PathLengthConstraints? EdgeContents? "-"      -> Edge                  {cons("EdgeIn")}
+    "->"                                               -> Edge                  {cons("EdgeOut")}
+    "<-"                                               -> Edge                  {cons("EdgeIn")}
+    "-" EdgeContents? PathLengthConstraints? "-"       -> Edge                  {cons("EdgeNoDir")}
+    "[" ElemContents "]"                               -> EdgeContents          {cons("EdgeContents")}
+    "{" PathConstraint "}"                             -> PathLengthConstraints {cons("PathLengthConstraints")}
+    INTEGER? ".." INTEGER?                             -> PathConstraint        {cons("PathLength")}
+    "shortest" Weighted?                               -> PathConstraint        {cons("Shortest")}
+    "someShortest" Weighted?                           -> PathConstraint        {cons("SomeShortest")}
+    "ALL" WithInlinedConstraints?                      -> PathConstraint        {cons("All")}
+    "ANY" WithInlinedConstraints?                      -> PathConstraint        {cons("Any")}
+    "ALL" "SHORTEST" Weighted? WithInlinedConstraints? -> PathConstraint        {cons("AllShortest")}
+    "ANY" "SHORTEST" Weighted? WithInlinedConstraints? -> PathConstraint        {cons("AnyShortest")}
+    "USING" InlinedExp                                 -> Weighted              {cons("Weighted")}
+    InlinedExp VarAssign?                              -> Weighted              {cons("Weighted")}
+
+  context-free syntax
+    CONTENTCOMPLETE -> Path                  {cons("COMPLETION-Path")}
+    CONTENTCOMPLETE -> Node                  {cons("COMPLETION-Node")}
+    CONTENTCOMPLETE -> EdgeNode              {cons("COMPLETION-EdgeNode")}
+    CONTENTCOMPLETE -> Edge                  {cons("COMPLETION-Edge")}
+    CONTENTCOMPLETE -> EdgeContents          {cons("COMPLETION-EdgeContents")}
+    CONTENTCOMPLETE -> PathLengthConstraints {cons("COMPLETION-PathLengthConstraints")}
+    CONTENTCOMPLETE -> PathConstraint        {cons("COMPLETION-PathConstraint")}
+    CONTENTCOMPLETE -> Weighted              {cons("COMPLETION-Weighted")}
+
+  context-free syntax
+    VARNAME? Type? Id? WithInlinedConstraints? -> ElemContents           {cons("ElemContents"), prefer}
+    ":" ExpressionOrAltLit                     -> Type                   {cons("Type")}
+    "@" ExpressionOrAltLit                     -> Id                     {cons("Id")}
+    Exp                                        -> ExpressionOrAltLit     
+    AltLit                                     -> ExpressionOrAltLit     {prefer}
+    "WITH" {InlinedExp ","}+                   -> WithInlinedConstraints {cons("Constraint")}
+
+  context-free syntax
+    CONTENTCOMPLETE -> ElemContents           {cons("COMPLETION-ElemContents")}
+    CONTENTCOMPLETE -> Type                   {cons("COMPLETION-Type")}
+    CONTENTCOMPLETE -> Id                     {cons("COMPLETION-Id")}
+    CONTENTCOMPLETE -> ExpressionOrAltLit     {cons("COMPLETION-ExpressionOrAltLit")}
+    CONTENTCOMPLETE -> WithInlinedConstraints {cons("COMPLETION-WithInlinedConstraints")}

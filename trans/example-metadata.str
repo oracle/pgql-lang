@@ -1,0 +1,96 @@
+module example-metadata
+
+imports
+  
+  signatures
+
+rules 
+  
+  metadata = !Metadata(<nprop_names>, <nprop_types>, <eprop_names>, <eprop_types>, <indexed_nprops>, <opt_flags>)  
+  
+  nprops = ![
+// LUBM
+("http://www.w3.org/1999/02/22-rdf-syntax-ns#type", "GMTYPE_RO_STRING_SET"),
+("http://www.lehigh.edu/~zhp2/2004/0401/univ-bench.owl#emailAddress", "GMTYPE_STRING"),
+("http://www.lehigh.edu/~zhp2/2004/0401/univ-bench.owl#telephone", "GMTYPE_STRING"),
+("http://www.lehigh.edu/~zhp2/2004/0401/univ-bench.owl#name", "GMTYPE_STRING"),
+("http://www.lehigh.edu/~zhp2/2004/0401/univ-bench.owl#researchInterest", "GMTYPE_STRING"),
+("http://www.w3.org/2000/01/rdf-schema#label", "GMTYPE_STRING"),
+("http://www.w3.org/2000/01/rdf-schema#comment", "GMTYPE_STRING"),
+("http://www.w3.org/2002/07/owl#versionInfo", "GMTYPE_STRING"),
+
+// BSBM
+// ("http://www.w3.org/1999/02/22-rdf-syntax-ns#type", "GMTYPE_RO_STRING_SET"),
+("http://www.w3.org/2000/01/rdf-schema#comment", "GMTYPE_STRING"),
+("http://www4.wiwiss.fu-berlin.de/bizer/bsbm/v01/vocabulary/reviewDate", "GMTYPE_TIME"),
+("http://www4.wiwiss.fu-berlin.de/bizer/bsbm/v01/vocabulary/rating1", "GMTYPE_LONG"),
+("http://www.w3.org/2000/01/rdf-schema#label", "GMTYPE_STRING"),
+("http://www4.wiwiss.fu-berlin.de/bizer/bsbm/v01/vocabulary/rating2", "GMTYPE_LONG"),
+("http://www4.wiwiss.fu-berlin.de/bizer/bsbm/v01/vocabulary/rating4", "GMTYPE_LONG"),
+("http://www4.wiwiss.fu-berlin.de/bizer/bsbm/v01/vocabulary/deliveryDays", "GMTYPE_LONG"),
+("http://purl.org/dc/elements/1.1/title", "GMTYPE_STRING"),
+("http://www4.wiwiss.fu-berlin.de/bizer/bsbm/v01/vocabulary/validTo", "GMTYPE_TIME"),
+("http://www4.wiwiss.fu-berlin.de/bizer/bsbm/v01/vocabulary/validFrom", "GMTYPE_TIME"),
+("http://www4.wiwiss.fu-berlin.de/bizer/bsbm/v01/vocabulary/rating3", "GMTYPE_LONG"),
+("http://www.w3.org/2002/07/owl#versionInfo", "GMTYPE_STRING"),
+("http://www4.wiwiss.fu-berlin.de/bizer/bsbm/v01/vocabulary/productPropertyTextual2", "GMTYPE_STRING"),
+("http://www4.wiwiss.fu-berlin.de/bizer/bsbm/v01/vocabulary/productPropertyNumeric1", "GMTYPE_LONG"),
+("http://www4.wiwiss.fu-berlin.de/bizer/bsbm/v01/vocabulary/productPropertyNumeric2", "GMTYPE_LONG"),
+("http://www4.wiwiss.fu-berlin.de/bizer/bsbm/v01/vocabulary/productPropertyNumeric5", "GMTYPE_LONG"),
+("http://www4.wiwiss.fu-berlin.de/bizer/bsbm/v01/vocabulary/productPropertyTextual1", "GMTYPE_STRING"),
+("http://www4.wiwiss.fu-berlin.de/bizer/bsbm/v01/vocabulary/productPropertyTextual3", "GMTYPE_STRING"),
+("http://www4.wiwiss.fu-berlin.de/bizer/bsbm/v01/vocabulary/productPropertyNumeric4", "GMTYPE_LONG"),
+("http://www4.wiwiss.fu-berlin.de/bizer/bsbm/v01/vocabulary/productPropertyNumeric3", "GMTYPE_LONG"),
+("http://xmlns.com/foaf/0.1/name", "GMTYPE_STRING"),
+("http://xmlns.com/foaf/0.1/mbox_sha1sum", "GMTYPE_STRING"),
+("http://www4.wiwiss.fu-berlin.de/bizer/bsbm/v01/vocabulary/productPropertyTextual4", "GMTYPE_STRING"),
+("http://www4.wiwiss.fu-berlin.de/bizer/bsbm/v01/vocabulary/productPropertyTextual5", "GMTYPE_STRING"),
+("http://www4.wiwiss.fu-berlin.de/bizer/bsbm/v01/vocabulary/productPropertyTextual6", "GMTYPE_STRING"),
+("http://www4.wiwiss.fu-berlin.de/bizer/bsbm/v01/vocabulary/productPropertyNumeric6", "GMTYPE_LONG"),
+  
+// Heroes
+("name", "GMTYPE_STRING"),
+
+// Multigraph
+("ntype", "GMTYPE_INT"),
+
+// Frappe
+("type", "GMTYPE_INT"),
+("short_name", "GMTYPE_STRING"),
+("long_name", "GMTYPE_STRING"),
+
+// Library
+("title", "GMTYPE_STRING")
+  ]
+
+  eprops = ![
+// RDF
+("label", "GMTYPE_RO_STRING_SET"),
+
+// Multigraph
+("etype","GMTYPE_INT"),
+("field","GMTYPE_INT"),
+
+// Frappe
+("type", "GMTYPE_INT"),
+("use_file", "GMTYPE_INT"),
+("use_start_line", "GMTYPE_INT"),
+("use_start_col", "GMTYPE_INT"),
+("use_end_line", "GMTYPE_INT"),
+("use_end_col", "GMTYPE_INT"),
+("name_file", "GMTYPE_INT"),
+("name_start_line", "GMTYPE_INT"),
+("name_start_col", "GMTYPE_INT"),
+("name_end_line", "GMTYPE_INT"),
+("name_end_col", "GMTYPE_INT")
+  ]
+  
+  nprop_names = nprops; map(?(<id>, _))
+  nprop_types = nprops; map(?(_, <id>))
+  eprop_names = eprops; map(?(<id>, _))
+  eprop_types = eprops; map(?(_, <id>))
+  
+  indexed_nprops = !["NODE_KEY","http://www.w3.org/1999/02/22-rdf-syntax-ns#type"]
+    
+  opt_flags = !["EDGE_FIRST","NODE_TYPE_INDEX", "EDGE_NBOR_TYPE_INDEX"]
+  

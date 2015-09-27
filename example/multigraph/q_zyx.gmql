@@ -1,0 +1,13 @@
+in multiGraph
+match
+  X -[a]-> Y
+  X -[b]-> Z <-[c]- Y
+  X.ntype = 0
+  Y.ntype = 0
+  Z.ntype = 1
+  a.etype = 2
+  b.etype = 1
+  c.etype = 0
+in order Z, Y, X
+select
+  X, Y, Z

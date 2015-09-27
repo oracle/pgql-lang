@@ -1,0 +1,41 @@
+module src-gen/completions/SolutionModifiers-esv
+
+imports
+  src-gen/completions/Keywords-esv
+  src-gen/completions/Names-esv
+  src-gen/completions/Literals-esv
+  src-gen/completions/Expressions-esv
+
+completions
+  completion template ExpOrStarAsVar : "Star" =
+    <Star:Star> <:VarAssign>  
+  completion template Star : "*" =
+    "*"          
+  completion template DistinctOrReduced : "DISTINCT " =
+    "DISTINCT "  
+  completion template DistinctOrReduced : "REDUCED " =
+    "REDUCED "  
+  completion template UngroupClause : "UNGROUP ExpAsVar" =
+    "UNGROUP " <ExpAsVar:ExpAsVar>  
+  completion template GroupClause : "GROUP BY ExpAsVar" =
+    "GROUP BY " <ExpAsVar:ExpAsVar>  
+  completion template HavingClause : "HAVING Exp" =
+    "HAVING " <Exp:Exp>  
+  completion template OrderClause : "ORDER BY OrderElem" =
+    "ORDER BY " <OrderElem:OrderElem>  
+  completion template OrderElem : "ASC(Exp)" =
+    "ASC(" <Exp:Exp> ")"  
+  completion template OrderElem : "DESC(Exp)" =
+    "DESC(" <Exp:Exp> ")"  
+  completion template OrderElem : "Exp ASC" =
+    <Exp:Exp> " ASC"  
+  completion template OrderElem : "Exp DESC" =
+    <Exp:Exp> " DESC"  
+  completion template LimitOffsetClauses : "LimitClause " =
+    <LimitClause:LimitClause> " " <:OffsetClause>  
+  completion template LimitOffsetClauses : "OffsetClause " =
+    <OffsetClause:OffsetClause> " " <:LimitClause>  
+  completion template LimitClause : "LIMIT INTEGER" =
+    "LIMIT " <INTEGER:INTEGER>  
+  completion template OffsetClause : "OFFSET INTEGER" =
+    "OFFSET " <INTEGER:INTEGER>  

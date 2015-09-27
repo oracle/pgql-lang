@@ -1,0 +1,22 @@
+module pp
+
+imports
+
+  libstratego-gpp
+  lib/runtime/tmpl/pp
+  src-gen/pp/-
+
+rules
+  
+  pp-GMQL-string =
+    prettyprint-Start
+    ; !V([], <id>)
+    ; box2text-string(|120)
+      
+  pp-debug :
+    ast -> result
+    with
+       result := <pp-GMQL-string> ast
+    <+ <bottomup(try(not(is-string); not(is-list); not(pp-GMQL-string); debug(!"cannot pp ")))> ast
+    ;  result := ""
+

@@ -1,0 +1,73 @@
+module GMQL
+
+imports
+  
+  Layout
+  Keywords
+  Names
+  Literals
+  Expressions
+  Paths
+  SolutionModifiers
+
+context-free start-symbols
+
+  Start
+
+context-free syntax
+
+  Start = <<Query>>
+
+  Query.Query =
+    <
+      <SelectClause>
+      <FromClause?>
+      <MatchClause>
+      <SolutionModifier>
+    >
+    
+  // InClause.InClause = <IN <GRAPHNAME>>
+  
+  SelectClause.SelectClause = <SELECT <DistinctOrReduced?><SelectElems>>
+  
+  FromClause.FromClause = <FROM <GRAPHNAME>>
+  
+  MatchClause.GraphPattern = 
+    <
+      WHERE
+        <{MatchElem ",\n"}*>
+    >
+  
+  MatchElem = GroupGraphPattern  
+  MatchElem = Path // see Paths.sdf3
+  
+  MatchElem.Constraint = Exp {avoid} // see Expressions.sdf3. Note: 'avoid' disambiguates 'match (X.p1) select *' ('(X.p1)' can be a Constraint or a Node)
+  MatchElem.Optional = <OPTIONAL <GroupGraphPattern>>
+  MatchElem = UnionGraphPattern
+  MatchElem = SubSelect
+  // MatchElem.Var = <<VarAssign><Exp>> 
+
+  GroupGraphPattern.GraphPattern = <
+    {
+      <{MatchElem ",\n"}*>
+    }<VarAssign?>
+  >
+
+  UnionGraphPattern.UnionGraphPattern = <
+    <SubSelect>
+    <UnionGraphPatternChild>
+  >
+  UnionGraphPatternChild.Union = <
+    UNION <SubSelect>
+    <UnionGraphPatternChild?>
+  >
+
+  SubSelect.SubSelect = <
+    {
+      <Query>
+    }
+  >
+  
+  MatchElem.Expand = <EXPAND(<VarDef> : <Exp>)> {prefer}
+
+  // MatchingOrderHint.MatchingOrderHint = <IN ORDER <{NodeVarRef ", "}*>>

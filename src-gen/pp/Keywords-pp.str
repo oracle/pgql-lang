@@ -1,0 +1,376 @@
+module src-gen/pp/Keywords-pp
+
+imports
+  libstratego-gpp
+  runtime/tmpl/pp
+  src-gen/signatures/Keywords-sig
+
+
+strategies
+  prettyprint-IN =
+    ![S(<is-string>)]
+
+  prettyprint-MATCH =
+    ![S(<is-string>)]
+
+  prettyprint-OPTIONAL =
+    ![S(<is-string>)]
+
+  prettyprint-UNION =
+    ![S(<is-string>)]
+
+  prettyprint-EXPAND =
+    ![S(<is-string>)]
+
+  prettyprint-ORDER =
+    ![S(<is-string>)]
+
+  prettyprint-example =
+    prettyprint-IN
+
+  prettyprint-example =
+    prettyprint-MATCH
+
+  prettyprint-example =
+    prettyprint-OPTIONAL
+
+  prettyprint-example =
+    prettyprint-UNION
+
+  prettyprint-example =
+    prettyprint-EXPAND
+
+  prettyprint-example =
+    prettyprint-ORDER
+
+
+strategies
+  prettyprint-HAS =
+    ![S(<is-string>)]
+
+  prettyprint-INDEGREE =
+    ![S(<is-string>)]
+
+  prettyprint-OUTDEGREE =
+    ![S(<is-string>)]
+
+  prettyprint-SRC =
+    ![S(<is-string>)]
+
+  prettyprint-DST =
+    ![S(<is-string>)]
+
+  prettyprint-NODES =
+    ![S(<is-string>)]
+
+  prettyprint-EDGES =
+    ![S(<is-string>)]
+
+  prettyprint-LENGTH =
+    ![S(<is-string>)]
+
+  prettyprint-CONTAINS =
+    ![S(<is-string>)]
+
+  prettyprint-BEGINSWITH =
+    ![S(<is-string>)]
+
+  prettyprint-ENDSWITH =
+    ![S(<is-string>)]
+
+  prettyprint-BETWEEN =
+    ![S(<is-string>)]
+
+  prettyprint-HEAD =
+    ![S(<is-string>)]
+
+  prettyprint-LAST =
+    ![S(<is-string>)]
+
+  prettyprint-INIT =
+    ![S(<is-string>)]
+
+  prettyprint-TAIL =
+    ![S(<is-string>)]
+
+  prettyprint-NOT =
+    ![S(<is-string>)]
+
+  prettyprint-NULL =
+    ![S(<is-string>)]
+
+  prettyprint-EXISTS =
+    ![S(<is-string>)]
+
+  prettyprint-CASE =
+    ![S(<is-string>)]
+
+  prettyprint-WHEN =
+    ![S(<is-string>)]
+
+  prettyprint-THEN =
+    ![S(<is-string>)]
+
+  prettyprint-ELSE =
+    ![S(<is-string>)]
+
+  prettyprint-END =
+    ![S(<is-string>)]
+
+  prettyprint-COUNT =
+    ![S(<is-string>)]
+
+  prettyprint-SUM =
+    ![S(<is-string>)]
+
+  prettyprint-MIN =
+    ![S(<is-string>)]
+
+  prettyprint-MAX =
+    ![S(<is-string>)]
+
+  prettyprint-AVG =
+    ![S(<is-string>)]
+
+  prettyprint-GROUP-CONCAT =
+    ![S(<is-string>)]
+
+  prettyprint-example =
+    prettyprint-HAS
+
+  prettyprint-example =
+    prettyprint-INDEGREE
+
+  prettyprint-example =
+    prettyprint-OUTDEGREE
+
+  prettyprint-example =
+    prettyprint-SRC
+
+  prettyprint-example =
+    prettyprint-DST
+
+  prettyprint-example =
+    prettyprint-NODES
+
+  prettyprint-example =
+    prettyprint-EDGES
+
+  prettyprint-example =
+    prettyprint-LENGTH
+
+  prettyprint-example =
+    prettyprint-CONTAINS
+
+  prettyprint-example =
+    prettyprint-BEGINSWITH
+
+  prettyprint-example =
+    prettyprint-ENDSWITH
+
+  prettyprint-example =
+    prettyprint-BETWEEN
+
+  prettyprint-example =
+    prettyprint-HEAD
+
+  prettyprint-example =
+    prettyprint-LAST
+
+  prettyprint-example =
+    prettyprint-INIT
+
+  prettyprint-example =
+    prettyprint-TAIL
+
+  prettyprint-example =
+    prettyprint-NOT
+
+  prettyprint-example =
+    prettyprint-NULL
+
+  prettyprint-example =
+    prettyprint-EXISTS
+
+  prettyprint-example =
+    prettyprint-CASE
+
+  prettyprint-example =
+    prettyprint-WHEN
+
+  prettyprint-example =
+    prettyprint-THEN
+
+  prettyprint-example =
+    prettyprint-ELSE
+
+  prettyprint-example =
+    prettyprint-END
+
+  prettyprint-example =
+    prettyprint-COUNT
+
+  prettyprint-example =
+    prettyprint-SUM
+
+  prettyprint-example =
+    prettyprint-MIN
+
+  prettyprint-example =
+    prettyprint-MAX
+
+  prettyprint-example =
+    prettyprint-AVG
+
+  prettyprint-example =
+    prettyprint-GROUP-CONCAT
+
+
+strategies
+  prettyprint-HAVING =
+    ![S(<is-string>)]
+
+  prettyprint-ORDER =
+    ![S(<is-string>)]
+
+  prettyprint-GROUP =
+    ![S(<is-string>)]
+
+  prettyprint-ASC =
+    ![S(<is-string>)]
+
+  prettyprint-DESC =
+    ![S(<is-string>)]
+
+  prettyprint-BY =
+    ![S(<is-string>)]
+
+  prettyprint-DISTINCT =
+    ![S(<is-string>)]
+
+  prettyprint-REDUCED =
+    ![S(<is-string>)]
+
+  prettyprint-OFFSET =
+    ![S(<is-string>)]
+
+  prettyprint-LIMIT =
+    ![S(<is-string>)]
+
+  prettyprint-SELECT =
+    ![S(<is-string>)]
+
+  prettyprint-FOR =
+    ![S(<is-string>)]
+
+  prettyprint-ALL =
+    ![S(<is-string>)]
+
+  prettyprint-EACH =
+    ![S(<is-string>)]
+
+  prettyprint-IN =
+    ![S(<is-string>)]
+
+  prettyprint-NODE =
+    ![S(<is-string>)]
+
+  prettyprint-EDGE =
+    ![S(<is-string>)]
+
+  prettyprint-NODES =
+    ![S(<is-string>)]
+
+  prettyprint-EDGES =
+    ![S(<is-string>)]
+
+  prettyprint-LIST =
+    ![S(<is-string>)]
+
+  prettyprint-FROM =
+    ![S(<is-string>)]
+
+  prettyprint-WITH =
+    ![S(<is-string>)]
+
+  prettyprint-example =
+    prettyprint-HAVING
+
+  prettyprint-example =
+    prettyprint-ORDER
+
+  prettyprint-example =
+    prettyprint-GROUP
+
+  prettyprint-example =
+    prettyprint-ASC
+
+  prettyprint-example =
+    prettyprint-DESC
+
+  prettyprint-example =
+    prettyprint-BY
+
+  prettyprint-example =
+    prettyprint-DISTINCT
+
+  prettyprint-example =
+    prettyprint-REDUCED
+
+  prettyprint-example =
+    prettyprint-OFFSET
+
+  prettyprint-example =
+    prettyprint-LIMIT
+
+  prettyprint-example =
+    prettyprint-SELECT
+
+  prettyprint-example =
+    prettyprint-FOR
+
+  prettyprint-example =
+    prettyprint-ALL
+
+  prettyprint-example =
+    prettyprint-EACH
+
+  prettyprint-example =
+    prettyprint-IN
+
+  prettyprint-example =
+    prettyprint-NODE
+
+  prettyprint-example =
+    prettyprint-EDGE
+
+  prettyprint-example =
+    prettyprint-NODES
+
+  prettyprint-example =
+    prettyprint-EDGES
+
+  prettyprint-example =
+    prettyprint-LIST
+
+  prettyprint-example =
+    prettyprint-FROM
+
+  prettyprint-example =
+    prettyprint-WITH
+
+
+strategies
+  prettyprint-SHORTEST =
+    ![S(<is-string>)]
+
+  prettyprint-example =
+    prettyprint-SHORTEST
+
+
+strategies
+  prettyprint-PREFIX =
+    ![S(<is-string>)]
+
+  prettyprint-example =
+    prettyprint-PREFIX

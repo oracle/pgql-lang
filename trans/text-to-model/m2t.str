@@ -1,0 +1,210 @@
+module text-to-model/m2t
+
+imports
+  include/GMQL
+  gmql
+  text-to-model/GMQL-Graph
+  lib/runtime/editor/origins
+  generate/util
+  projections
+
+rules
+  
+  incremental-model-to-tree = id
+
+rules // shared rules for nodes and edges
+
+  rename-ref(|oldName, newName):
+    Ref(oldName) -> Ref(newName)
+    where
+      not ( "" := newName )
+  
+  remove-constraints(|name):
+    AST -> AST'
+    where
+      AST' := <
+        strip-annos;
+        oncetd(?WhereClause(<id>);
+        remove-all(constraint-has-ref(|name));
+        !WhereClause(<id>))> AST
+      
+  m2t-normalize:
+    Query(s, WhereClause(x), m, f) -> Query(s, WhereClause(x''), m, f)
+    where
+      x' := <flatten-list; make-set> x;
+      connectedNodes := <filter(?Path([_|[_|_]])); collect-om(?Node(_))> x';
+      disconnectedNodes := <collect-om(?Path([<id>]))> x';
+      pathsToRemove := <isect; map(!(Path([<id>])))> (connectedNodes, disconnectedNodes);
+      x'' := <diff> (x', pathsToRemove)
+  
+rules // nodes    
+  
+  SET:
+    (oldAST, _, Node(_), "name", oldValue, newValue) -> <m2t-normalize> newAST
+    where
+      not ( None() := oldValue );
+      oldAST' := <strip-annos> oldAST;
+      newValue' := <trim-whitespace> newValue;
+      newAST := <alltd(rename-node(|oldValue, newValue') + rename-ref(|oldValue, newValue'))> oldAST'
+      
+  rename-node(|oldName, newName): Node(oldName) -> Node(newName)
+  
+  SET:
+    (oldAST, _, Node(_, _, _), "name", "", newValue) -> <m2t-normalize> Query(s, WhereClause(x'), m, f)
+    where
+      Query(s, WhereClause(x), m, f) := <strip-annos> oldAST;
+      x' := <at-end(![Path([Node(newValue)])])> x
+  
+  REMOVE:
+    (oldAST, _, "nodes", oldValue) -> <m2t-normalize> newAST
+    where
+      newAST := <
+        strip-annos;
+        innermost(remove-node(|oldValue));
+        remove-constraints(|<get-name> oldValue)> oldAST
+
+  remove-node(|n):
+    Path(x) -> <flatten-list> [x1, x2]
+    where
+      (before, after) := <split-fetch(?n)> x;
+      x1 := <try(init); (?[] + !Path(<id>))> before;
+      x2:= <try(Tl); (?[] + !Path(<id>))> after
+
+  remove-node(|n):
+    Path(n) -> []
+
+rules // edges
+
+  SET:
+    (oldAST, _, e@Edge(_), "name", oldValue, newValue) -> newAST'
+    where
+      oldAST' := <strip-annos> oldAST;
+      newValue' := <trim-whitespace> newValue;
+      newAST := <alltd(rename-edge(|e, newValue') + rename-ref(|oldValue, newValue'))> oldAST';
+      newAST' := <"" := newValue'; !newAST; remove-constraints(|oldValue) + id> newAST
+
+  SET: // target of edge gets removed
+    (oldAST, _, e@Edge(_), "target", _, None()) -> oldAST
+  
+  ADD:
+    (oldAST, source, "edges", edge) -> newAST
+    where
+    	target := <m2t-get-target> edge;
+    	newAST := <SET> (oldAST, source, edge, "target", None(), target)
+    
+  SET: // new edge
+    (oldAST, source, newEdge, "target", None(), target) -> <m2t-normalize> Query(s, WhereClause(x'), m, f)
+    where
+      Query(s, WhereClause(x), m, f) := <strip-annos> oldAST;
+      if DirectedEdge(_,_,_) := newEdge
+      then edge := Edge(EdgeOut(None()))
+      else edge := Edge(EdgeNoDir(None()))
+      end;
+      path := Path([source, edge, target]);
+      x' := <at-end(![path])> x
+      
+  SET:
+    (oldAST, _, e@Edge(_), "target", oldValue, newValue) -> <m2t-normalize> newAST
+    where
+      not ( None() := oldValue );
+      not ( None() := newValue );
+      oldAST' := <strip-annos> oldAST;
+      p@Path(x) := <collect-one(?Path(_); oncetd(origin-equal(|e)))> oldAST';
+      (before, after) := <collect-one(split-fetch(origin-equal(|e)))> x;
+      if <Hd; strip-annos; ?oldValue> after
+      then path1 := <conc> (before, [e, newValue]); path2 := after
+      else path1 := before; path2 :=  <conc> ([newValue, e], after)
+      end;
+      newAST := <oncetd(origin-equal(|p); ![Path(path1), Path(path2)])> oldAST'
+
+  rename-edge(|origin-term, newName):
+    e -> e'
+    where
+      <origin-equal(|origin-term)> e;
+      if ("" := newName)
+      then term := None()
+      else term := EdgeID(newName)
+      end;
+      e' := <oncetd(<?None() + ?Some(_)> <id>; !term)> e
+
+  REMOVE:
+    (oldAST, _, "edges", oldValue) -> <m2t-normalize> newAST'
+    where
+      newAST := <oncetd(remove-edge(|oldValue))> oldAST;
+      newAST' := <try(remove-constraints(|<get-name> oldValue))> newAST
+
+  remove-edge(|e):
+    Path(x) -> [Path(before), Path(after)]
+    where
+      (before, after) := <split-fetch(origin-equal(|e))> x
+
+  m2t-get-target:
+  	edge -> Node(name)
+  	where
+  		<?DirectedEdge(_, name, _) + ?UndirectedEdge(_, name, _)> edge;
+  	  not ( None() := name + "" := name )
+  	
+rules // from clause
+  
+  SET:
+    (oldAST, _, FromClause(_), "fromExpression", _, newValue) -> newAST 
+    where
+      newAST := <oncetd(?FromClause(_); !FromClause(newValue))> oldAST
+
+rules // select clause
+  
+  SET:
+    (oldAST, _, SelectClause(_), "selectExpression", _, newValue) -> newAST 
+    where
+      newAST := <oncetd(m2t-to-SelectClause(|newValue))> oldAST
+
+  m2t-to-SelectClause(|newValue):
+    SelectClause(_) -> SelectClause(AllNodes())
+    where
+      "*" := newValue
+    
+  m2t-to-SelectClause(|newValue):
+    SelectClause(_) -> SelectClause(Refs(refs))
+    where
+      not ( "*" := newValue );
+      refs := <string-tokenize(|[',']); map(trim-whitespace; !Ref(<id>))> newValue
+
+rules // constraints
+  
+  SET:
+    (oldAST, _, n, "constraints", oldValue, newValue) -> newAST
+    where
+    	oldValue' := <conc-strings> (<get-name> n, ".", oldValue);
+      newValue' := <conc-strings> (<get-name> n, ".", newValue);
+      constraint := <parse-constraint> newValue';
+      newAST := <strip-annos; oncetd(?Constraint(_, _, _); origin-text; ?oldValue'; !constraint)> oldAST
+
+  SET:
+    (oldAST, _, n, "crossConstraint", oldValue, newValue) -> newAST
+    where
+      constraint := <parse-constraint> newValue;
+      newAST := <strip-annos; oncetd(?Constraint(_, _, _); origin-text; ?oldValue; !constraint)> oldAST
+  
+  parse-constraint:
+    string -> Constraint(<parse-operand> lo, <parse-operator> op, <parse-operand> ro)
+    where
+      [lo, op, ro] := <string-tokenize(|[' '])> string
+      
+  parse-operand:
+  	string -> Property(Ref(r), p)
+  	where
+  		[r, p] := <string-tokenize(|['.'])> string
+      
+  parse-operand:
+    string -> Value(string)
+    where
+      not ( <is-substring(!".")> string )
+  
+  parse-operator = ?"="; !Eq()
+  parse-operator = ?">"; !GT()
+  parse-operator = ?">="; !GTE()
+  parse-operator = ?"<"; !LT()
+  parse-operator = ?"<="; !LTE()
+  
+  get-target = ?edge; <?DirectedEdge(_, <id>) + ?UndirectedEdge(_, <id>)> edge
+   

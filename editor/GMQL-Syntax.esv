@@ -1,0 +1,18 @@
+module GMQL-Syntax
+
+language
+                                                                   
+  line comment                           : "//"
+                                           
+  fences                                 : [ ]
+                                           ( )
+                                           { }
+                                           
+  indent after                           : "="
+                                           ":"
+                                           "MATCH"
+                                           "Match"
+                                           "match"
+                                           
+  // Regular expression for identifiers:   
+  // identifier lexical                     : "[A-Za-z0-9_]+"

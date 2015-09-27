@@ -1,0 +1,20 @@
+module Layout
+exports
+  lexical syntax
+    [\t\ \n\r]             -> LAYOUT   
+    "//" ~[\n]* [\n] | Eof -> LAYOUT   
+                           -> Eof      
+    LongCom                -> LAYOUT   
+    "/*" CommChar* "*/"    -> LongCom  
+    ~[\*]                  -> CommChar 
+    Asterisk               -> CommChar 
+    "*"                    -> Asterisk 
+
+  lexical restrictions
+    Asterisk -/- [\/]
+    Eof -/- ~[]
+
+  context-free restrictions
+    LAYOUT? -/- [\ \t\n\r]
+    LAYOUT? -/- [\/] . [\*]
+    LAYOUT? -/- [\/] . [\/]

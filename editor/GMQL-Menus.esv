@@ -1,0 +1,70 @@
+module GMQL-Menus
+
+menus
+  
+//   menu: "Actions"
+//     
+//     submenu: "Connection"
+//       action: "Open"                      = connect-builder
+//       action: "Open (Through Gateway)"    = connect-through-gateway-builder
+//       action: "Close"                     = disconnect-builder
+//       separator
+//     end
+//     
+//     action: "Evaluate"                    = evaluate-and-visualize-builder
+//     
+//     action: "Remote Execute..."           = remote-exec-builder
+//     // action: "Kill"                        = kill-builder
+// 
+//     separator
+// 
+//     action: "Generate C++ (Intermediate)" = generate-cc-intermediate-builder (openeditor) (realtime) (source)
+//     action: "Generate C++"                = generate-cc-builder (openeditor) (realtime) (source)
+//     action: "Evaluate (Don't Visualize)"  = evaluate-builder (openeditor)
+//     action: "Visualize Output File"       = visualize-builder
+//         
+//     separator
+
+  menu: "Query"
+  
+   action: "Execute (PGX)"          = pgx-execute-builder
+   action: "Execute (Demo)"         = fake-execute-builder
+
+  menu: "Syntax"                       (openeditor)
+    
+    action: "Format"                 = editor-format (realtime) (source)
+    action: "Show abstract syntax"   = debug-show-aterm (realtime) (source)
+    action: "Print AST"              = print-ast (realtime) (source) (meta)
+    action: "Show normalized syntax" = normalize-builder (realtime) (source)
+    action: "Show analyzed syntax"   = debug-show-analyzed (meta)
+    
+    
+  menu: "Analysis"                   
+    
+    action: "Reset and reanalyze"  = debug-reanalyze  
+
+    submenu: "Show analysis"         (openeditor)
+      action: "Project"            = debug-project
+      action: "Partition"          = debug-partition
+    end
+    
+    submenu: "Show index"            (openeditor)
+      action: "Project"            = debug-index-project
+      action: "Project (resolved)" = debug-index-project-resolve
+      action: "Partition"          = debug-index-partition
+    end
+    
+    submenu: "Show tasks"            (openeditor)
+      action: "Project"            = debug-task-project
+      action: "Partition"          = debug-task-partition
+      action: "Selection"          = debug-task-selection
+    end
+
+  menu: "Diagram"                            (openeditor)
+    action : "Show diagram AST"            = ASTtext-to-ASTgraph-builder
+    action : "Show diagram AST (no annos)" = ASTtext-to-ASTgraph-no-annos-builder
+    action : "Show EMF model AST"          = ASTtext-to-model-builder
+
+  menu: "Generate"                           (openeditor) (realtime) (source)
+    action: "Generate C++ (abstract)"      = generate-cc-intermediate-builder
+    action: "Generate C++"                 = generate-cc-builder

@@ -1,0 +1,9 @@
+module normalizeForNaBL
+
+imports
+  
+  normalizedAST-sig
+
+rules
+  
+  normalizeForNaBL= id

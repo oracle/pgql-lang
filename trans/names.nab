@@ -1,0 +1,52 @@
+module names
+
+imports
+  
+  src-gen/signatures/-
+  signatures
+  
+namespaces
+  
+  Var
+  ReturnVar
+  Schema
+
+properties
+ 
+  data of Schema: t
+  
+binding rules
+
+  TopNode(_, _):
+    scopes Var, ReturnVar, Schema
+  
+  SubQueries(_):
+    scopes Var, ReturnVar
+
+  Node(n):
+    defines non-unique Var n of type NodeTy()
+  
+  Edge(_, e, _, _):
+    defines unique Var e of type EdgeTy()
+
+  // VarDef(v):
+  //   defines non-unique Var v
+  
+  PathDecl(p, _, _, _):
+    defines unique Var p of type PathTy()
+  
+  // ExpAsVar(v, _):
+  // 	defines non-unique ReturnVar v // in subsequent scope
+    
+  VarRef(v):
+    refers to Var v otherwise refers to ReturnVar v
+    
+  NodeVarRef(n):
+    refers to Var n of type NodeTy() // otherwise refers to ReturnVar n of type NodeTy()
+
+  ExistsFunc(_):
+    scopes Var, ReturnVar
+ 
+  m@Schema(_, _):
+    implicitly defines non-unique Schema "schema" of data m
+    

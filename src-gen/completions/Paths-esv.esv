@@ -1,0 +1,58 @@
+module src-gen/completions/Paths-esv
+
+imports
+  src-gen/completions/Keywords-esv
+  src-gen/completions/Literals-esv
+  src-gen/completions/Names-esv
+  src-gen/completions/Expressions-esv
+  src-gen/completions/BuiltInFunctions-esv
+
+completions
+  completion template Path : "Node" =
+    <Node:Node> <:EdgeNode> <:VarAssign>  
+  completion template Node : "(ElemContents)" =
+    "(" <ElemContents:ElemContents> ")"  
+  completion template EdgeNode : " Edge Node" =
+    " " <Edge:Edge> " " <Node:Node>  
+  completion template Edge : "-->" =
+    "-" <:EdgeContents> <:PathLengthConstraints> "->"  
+  completion template Edge : "<--" =
+    "<-" <:PathLengthConstraints> <:EdgeContents> "-"  
+  completion template Edge : "->" =
+    "->"              
+  completion template Edge : "<-" =
+    "<-"              
+  completion template Edge : "--" =
+    "-" <:EdgeContents> <:PathLengthConstraints> "-"  
+  completion template EdgeContents : "[ElemContents]" =
+    "[" <ElemContents:ElemContents> "]"  
+  completion template PathLengthConstraints : "{PathConstraint}" =
+    "{" <PathConstraint:PathConstraint> "}"  
+  completion template PathConstraint : ".." =
+    <:INTEGER> ".." <:INTEGER>  
+  completion template PathConstraint : "shortest " =
+    "shortest " <:Weighted>  
+  completion template PathConstraint : "someShortest " =
+    "someShortest " <:Weighted>  
+  completion template PathConstraint : "ALL" =
+    "ALL" <:WithInlinedConstraints>  
+  completion template PathConstraint : "ANY" =
+    "ANY" <:WithInlinedConstraints>  
+  completion template PathConstraint : "ALL SHORTEST" =
+    "ALL SHORTEST" <:Weighted> <:WithInlinedConstraints>  
+  completion template PathConstraint : "ANY SHORTEST" =
+    "ANY SHORTEST" <:Weighted> <:WithInlinedConstraints>  
+  completion template Weighted : " USING InlinedExp" =
+    " USING " <InlinedExp:InlinedExp>  
+  completion template Weighted : "InlinedExp" =
+    <InlinedExp:InlinedExp> <:VarAssign>  
+
+completions
+  completion template ElemContents : "" =
+    <:VARNAME> <:Type> <:Id> <:WithInlinedConstraints>  
+  completion template Type : ":ExpressionOrAltLit" =
+    ":" <ExpressionOrAltLit:ExpressionOrAltLit>  
+  completion template Id : "@ExpressionOrAltLit" =
+    "@" <ExpressionOrAltLit:ExpressionOrAltLit>  
+  completion template WithInlinedConstraints : " WITH InlinedExp" =
+    " WITH " <InlinedExp:InlinedExp>  

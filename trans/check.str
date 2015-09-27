@@ -1,0 +1,403 @@
+module check
+
+imports
+
+  src-gen/signatures/-
+  signatures
+  normalizedAST-sig
+  projections
+  // analysis
+  lib/runtime/nabl/-
+  lib/runtime/index/-
+  lib/runtime/task/-
+  lib/runtime/types/-
+  lib/runtime/properties/-
+  names
+
+rules
+
+  /**
+   * Error for duplicate nodes in matching order hint (IN ORDER clause).
+   */
+  nabl-constraint(|ctx):
+    OrderClause(nodeRefs) -> <fail>
+    where
+      e := <first-duplicate-elem> nodeRefs;
+      failtask := <task-create-fail(|ctx)>;
+      <task-create-error-on-failure(|ctx, failtask, "Node is already included in ordering")> e
+
+  first-duplicate-elem = first-duplicate-elem(|[])
+  
+  first-duplicate-elem(|visited):
+    elems -> <first-duplicate-elem(|visited')> elems'
+    where
+      not ( <elem> (<Hd> elems, visited) );
+      visited' := [<Hd> elems|visited];
+      elems' := <Tl> elems
+  
+  first-duplicate-elem(|visited):
+    elems -> e
+    where
+      e := <Hd> elems;
+      <elem> (e, visited)
+      
+rules
+  
+  /**
+  * Error for unreachable nodes in matching order hint (IN ORDER clause).
+  */
+/*
+  nabl-constraint(|ctx):
+    TopNode(ast, NODES, _) -> <fail>
+    where
+      ast' := <strip-annos> ast;
+      NODES' := <strip-annos> NODES;
+      nodes := <collect-one(?OrderClause(_, _, <id>)); map(get-name)> ast';
+      e := <Tl; get-first-unreachable-node(|NODES', [<Hd> nodes])> nodes;
+      <task-create-error(|ctx, "Node is not connected to any of the previously matched nodes")> e
+      
+  get-first-unreachable-node(|NODES, visited):
+    nodes -> <Tl; get-first-unreachable-node(|NODES, [n|visited])> nodes
+    where
+      n := <Hd> nodes;
+      <fetch-elem(eq-ignore-annos(|n))> <conc> (<get-neighbors(|NODES); map(get-name)> visited, visited)
+
+  get-first-unreachable-node(|NODES, visited):
+    nodes -> n
+    where
+      n := <Hd> nodes;
+      not ( <fetch-elem(eq-ignore-annos(|n))> <conc> (<get-neighbors(|NODES); map(get-name)> visited, visited) )
+*/
+rules
+  
+  /**
+  * Error for undefined node property.
+  */
+  nabl-constraint(|lang, ctx, uri*):
+    PropRef(VarRef(v), p) -> <fail>
+    where
+      not ( Id() := p ); // id is built-in
+      v-resolve-task := <nabl-create-collectdefs(|ctx)> v;
+      v-prop-task    := <prop-create-lookup(|ctx, Type())> v-resolve-task;
+      m-resolve-task := <nabl-use-candidate(|lang, ctx, uri*, "schema")> UseCandidate(NablNsSchema(), [], Current(), False(), []);
+      m-prop-task    := <prop-create-lookup(|ctx, NablProp_data())> m-resolve-task;
+      rewrite-task1 := <task-create-rewrite(|ctx, "VarIsNode")> v-prop-task;
+      rewrite-task2 := <task-create-rewrite(|ctx, "NodePropExists")> (m-prop-task, p);
+      <task-create-error-on-failure(|ctx, rewrite-task2, [v-resolve-task, v-prop-task, rewrite-task1], $[Node property '[p]' does not exist])> p
+
+  /**
+  * Error for undefined edge property.
+  */  
+  nabl-constraint(|lang, ctx, uri*):
+    PropRef(VarRef(v), p) -> <fail>
+    where
+      not ( Id() := p ); // id is built-in
+      v-resolve-task := <nabl-create-collectdefs(|ctx)> v;
+      v-prop-task    := <prop-create-lookup(|ctx, Type())> v-resolve-task;
+      m-resolve-task := <nabl-use-candidate(|lang, ctx, uri*, "schema")> UseCandidate(NablNsSchema(), [], Current(), False(), []);
+      m-prop-task    := <prop-create-lookup(|ctx, NablProp_data())> m-resolve-task;
+      rewrite-task1 := <task-create-rewrite(|ctx, "VarIsEdge")> v-prop-task;
+      rewrite-task2 := <task-create-rewrite(|ctx, "EdgePropExists")> (m-prop-task, p);
+      <task-create-error-on-failure(|ctx, rewrite-task2, [v-resolve-task, v-prop-task, rewrite-task1], $[Edge property '[p]' does not exist])> p
+
+  task-rewrite: ("VarIsNode", NodeTy()) -> <id>
+  task-rewrite: ("VarIsEdge", EdgeTy()) -> <id>
+  task-rewrite: ("VarIsPath", PathTy()) -> <id>
+      
+  task-rewrite:
+    ("NodePropExists", (Schema(nprops, _), p)) -> <id> 
+    where
+      <strip-annos; fetch-elem(?NodeProp(p, _))> nprops
+    
+  task-rewrite:
+    ("EdgePropExists", (Schema(_, eprops), p)) -> <id>
+    where
+      <strip-annos; fetch-elem(?EdgeProp(p, _))> eprops      
+
+rules // cross-constraints involving edges / paths
+  
+  nabl-constraint(|ctx):
+    Constraints(constraints) -> <fail>
+    where
+      <map(try(constraints-check(|ctx)))> constraints
+      
+  constraints-check(|ctx):
+    constraint -> <fail>
+    where
+      varRefs := <collect-om(?VarRef(_))> constraint;
+      <gt> (<length> varRefs, 1);
+      <alltd(cross-constraints-edges(|ctx) + cross-constraints-paths(|ctx))> constraint
+  
+  cross-constraints-edges(|ctx):
+    PropRef(VarRef(v), _) -> <fail>
+    where
+      fail; // disabled for now
+      var-is-edge := <var-is-edge(|ctx)> v;
+      <task-create-error-on-success(|ctx, var-is-edge, "Cross-constraints involving edges is not yet supported by PGX")> v
+
+  cross-constraints-paths(|ctx):
+    PropRef(VarRef(v), _) -> <fail>
+    where
+      var-is-path := <var-is-path(|ctx)> v;
+      <task-create-error-on-success(|ctx, var-is-path, "Cross-constraints that involve path variables is not yet supported by PGX")> v
+
+  var-is-edge(|ctx) = var-is-type(|ctx, "VarIsEdge")
+  var-is-node(|ctx) = var-is-type(|ctx, "VarIsNode")
+  var-is-path(|ctx) = var-is-type(|ctx, "VarIsPath")
+
+  var-is-type(|ctx, type):
+    v -> rewrite-task1
+    where
+      v-resolve-task := <nabl-create-collectdefs(|ctx)> v;
+      v-prop-task    := <prop-create-lookup(|ctx, Type())> v-resolve-task;
+      rewrite-task1  := <task-create-rewrite(|ctx, type)> v-prop-task
+
+rules
+  
+  nabl-constraint(|ctx):
+    s -> <fail>
+    where
+      <?Select(_, _, _, _, _, _)> s;
+      <alltd(return-type-edge(|ctx) + return-type-path(|ctx))> s
+  
+  return-type-edge(|ctx):
+    VarRef(v) -> <fail>
+    where
+      fail; // disabled for now
+      var-is-edge := <var-is-edge(|ctx)> v;
+      <task-create-error-on-success(|ctx, var-is-edge, "PGX does not yet support the use of edges in a solution modifier")> v
+  	
+  return-type-path(|ctx):
+    VarRef(v) -> <fail>
+    where
+      var-is-path := <var-is-path(|ctx)> v;
+      <task-create-error-on-success(|ctx, var-is-path, "PGX does not yet support the use of paths in a solution modifier")> v
+
+rules // subqueries
+  
+  nabl-constraint(|ctx):
+    SubQueries(queries)  -> <fail>
+    where
+      <map(subquery-limitiation(|ctx))> queries
+      
+  subquery-limitiation(|ctx):
+    e@Query(_, _, _, _) -> <id>
+    where
+      failtask := <task-create-fail(|ctx)>;
+      <task-create-error-on-failure(|ctx, failtask, "PGX does not yet support subqueries")> e
+
+rules // (NOT) EXISTS limitations
+  
+  constraints-check(|ctx):
+    e@ExistsFunc(_) -> <fail>
+    where
+      failtask := <task-create-fail(|ctx)>;
+      <task-create-error-on-failure(|ctx, failtask, "PGX does not yet support the EXISTS function")> e
+
+  constraints-check(|ctx):
+    constraint -> <fail>
+    where
+      not ( ?ExistsFunc(_) + ?Not(ExistsFunc(_)));
+      oncetd(?e@ExistsFunc(_));
+      failtask := <task-create-fail(|ctx)>;
+      <task-create-error-on-failure(|ctx, failtask, "PGX currently only supports top-level NOT EXISTS; the NOT EXISTS may not appear as part of a more complex expression")> e
+      
+  constraints-check(|ctx):
+    e@Not(ExistsFunc(GraphPattern(_, Edges(edges), _, _, _, _, _, _))) -> <fail>
+    where
+      <gt> (<length> edges, 1);
+      failtask := <task-create-fail(|ctx)>;
+      <task-create-error-on-failure(|ctx, failtask, "PGX currently only supports NOT EXISTS patterns with at most one edge")> e
+
+  nabl-constraint(|ctx):
+    Constraints(constraints) -> <fail>
+    where
+      notExists := <filter(?Not(ExistsFunc(_)))> constraints;
+      <gt> (<length> notExists, 1);
+      <Tl; map(task-create-error-on-failure(|ctx, <task-create-fail(|ctx)>, "PGX currently only handles queries with at most one NOT EXISTS patterns"))> notExists
+
+  nabl-constraint(|ctx):
+    GraphPattern(Nodes(nodes), _, Constraints(constraints), _, _, _, _, _) -> <fail>
+    where
+      notExists := <filter(?Not(ExistsFunc(_)))> constraints;
+      map(try(notExists-shares-variable-check(|ctx, nodes)))
+
+  notExists-shares-variable-check(|ctx, nodesOuterScope):
+    e@Not(ExistsFunc(GraphPattern(Nodes(nodes), _, _, _, _, _, _, _))) -> <fail>
+    where
+      not ( [] := <isect> (nodesOuterScope, nodes) );
+      failtask := <task-create-fail(|ctx)>;
+      <task-create-error-on-failure(|ctx, failtask, "PGX currently doesn't support NOT EXISTS patterns that do not share a node variable with the outer scope")> e
+  
+rules // DISTINCT limitation
+  
+  nabl-constraint(|ctx):
+    e@Distinct() -> <fail>
+    where
+      failtask := <task-create-fail(|ctx)>;
+      <task-create-error-on-failure(|ctx, failtask, "DISTINCT is not yet supported by PGX")> e
+
+rules // Path finding limitations
+   
+  nabl-constraint(|ctx):
+    e@Shortest(_) -> <fail>
+    where
+      failtask := <task-create-fail(|ctx)>;
+      <task-create-error-on-failure(|ctx, failtask, "Shortest path finding is not yet supported by PGX")> e
+  
+rules // Unsupported functions
+  
+  nabl-constraint(|ctx):
+    t -> <fail>
+    where
+      <?InDegree(_) + ?OutDegree(_)
+       + ?Src(_) + ?Dst(_)
+       + ?Nodes(_) + ?Edges(_) + ?Length(_)
+       + ?Head(_) + ?Last(_) + ?Init(_) + ?Tail(_)
+       + ?Contains(_, _, _) + ?BeginsWith(_, _, _) + ?EndsWith(_, _, _)
+       + ?Year(_) + ?Month(_) + ?Day(_) + ?Hours(_) + ?Minutes(_) + ?Seconds(_) + ?Timezone(_)
+       + ?Case(_, _, _)
+      > t;
+      funcName := <get-constructor> t;
+      failtask := <task-create-fail(|ctx)>;
+      <task-create-error-on-failure(|ctx, failtask, $[Function '[funcName]' is not yet supported by PGX])> t
+
+rules // Not a connected graph
+  
+  nabl-constraint(|ctx):
+    GraphPattern(Nodes(nodes), Edges(edges), _, _, _, _, _, _) -> <fail>
+    where
+      sorted-partitions := <strip-annos; partition(|edges); reverse; qsort(length-gt)> nodes;
+      biggest-partition := <Hd> sorted-partitions;
+      other-partitions := <Tl> sorted-partitions
+    with
+      <map(connected-pattern-constraint(|ctx, biggest-partition))> other-partitions
+
+  connected-pattern-constraint(|ctx, biggest-partition):
+    other-partition -> <id>
+    with
+      if 1 := <length> biggest-partition
+      then
+        m := $[Node [<Hd> other-partition] is not connected to node [<Hd> biggest-partition]]
+      else
+        if 1 := <length> other-partition
+        then m := $[Node [<Hd> other-partition] is not connected to nodes [<print-nodes> biggest-partition]]
+        else m := $[Nodes [<print-nodes> other-partition] are not connected to nodes [<print-nodes> biggest-partition]]
+        end
+      end;
+      <connected-pattern-constraint-helper(|ctx, m)> other-partition
+
+  connected-pattern-constraint-helper(|ctx, message):
+    node -> <id>
+    with
+      failtask := <task-create-fail(|ctx)>;
+      <task-create-error-on-failure(|ctx, failtask, message)> node
+
+  print-nodes = reverse; separate-by(|", "); concat-strings; !("{", <id>, "}"); conc-strings
+
+  length-gt = ?(l1, l2); !(<length> l1, <length> (l2)); gt
+
+  partition(|edges):
+    nodes -> partitions
+    with
+      nodes' := <map(?Node(<id>))> nodes;
+      if [] := nodes
+      then
+        partitions := []
+      else
+        someNode := <Hd; get-reachable-nodes(|edges)> nodes';
+        partitions := <partition-helper(|nodes', edges)> [someNode]
+      end
+      
+  partition-helper(|nodes, edges):
+    partitions -> partitions'
+    with
+      covered := <concat> partitions;
+      uncovered := <diff> (nodes, covered);
+      if [] := uncovered
+      then
+        partitions' := partitions
+      else
+        partition := <Hd; get-reachable-nodes(|edges)> uncovered;
+        partitions' := <partition-helper(|nodes, edges)> [partition|partitions]
+      end
+
+  get-reachable-nodes(|edges):
+    x -> result
+    with
+      nodes := <is-list <+ ![<id>]> x;
+      nodes' := <map(get-reachable-nodes-helper(|edges));  concat; make-set> nodes;
+      if <eq> (<length> nodes, <length> nodes')
+      then result := nodes'
+      else result := <get-reachable-nodes(|edges)> nodes'
+      end
+
+  get-reachable-nodes-helper(|edges):
+    node -> result
+    with
+      outNeighbors := <filter(?Edge(node, _, <id>, _))> edges;
+      inNeighbors := <filter(?Edge(<id>, _, node, _))> edges;
+      result := <conc> (outNeighbors, inNeighbors, [node])
+
+rules // data types
+  
+  nabl-constraint(|ctx):
+    LitCustomType(_, type) -> <fail>
+    where
+      not ( <?"date" + ?"dateTime"> type );
+      failtask := <task-create-fail(|ctx)>;
+      <task-create-error-on-failure(|ctx, failtask, "'date' or 'dateTime' expected")> type
+  
+  nabl-constraint(|ctx):
+    bool -> <fail>
+    where
+      <?True() + ?False()> bool;
+      failtask := <task-create-fail(|ctx)>;
+      <task-create-error-on-failure(|ctx, failtask, "PGX doesn't yet support boolean data type")> bool
+  
+  // nabl-constraint(|ctx):
+  //   e@UMin(_) -> <fail>
+  //   where
+  //     failtask := <task-create-fail(|ctx)>;
+  //     <task-create-error-on-failure(|ctx, failtask, "PGX doesn't yet support negative numbers")> e
+
+rules // GROUP BY
+  
+  nabl-constraint(|ctx):
+    select -> <fail>
+    where
+      Select(_, selectClause, groupClause, havingClause, orderClause, _) := <strip-annos> select;
+      not ( None() := groupClause )
+    with
+      expsInSelect := <?Vars(<id>); map(?ExpAsVar(_, <id>)); remove-all(is-aggregate)> selectClause;
+      aggregatesInSelect := <?Vars(<id>); map(?ExpAsVar(_, <id>)); filter(is-aggregate)> selectClause;
+      expsInGroupBy := <?Some(GroupClause(<id>)); collect-exps-for-groupBy> groupClause;
+      aggregatesInGroupBy := <?None(); ![] <+ ?Some(GroupClause(<id>)); map(?ExpAsVar(_, <id>)); filter(is-aggregate)> groupClause;
+      expsInHaving := []; // TODO
+      aggregatesInHaving := []; // TODO
+      expsInOrderBy := <?None(); ![] <+ ?Some(OrderClause(<id>)); map(?OrderByElem(<id>, _)); remove-all(is-aggregate)> orderClause;
+      aggregatesInOrderBy := <?None(); ![] <+ ?Some(OrderClause(<id>)); map(?OrderByElem(<id>, _)); filter(is-aggregate)> orderClause;
+      
+
+      expsInSelectButNotInGroupClause := <diff> (expsInSelect, expsInGroupBy);
+      <map(expsNotInGroupClause(|ctx))> expsInSelectButNotInGroupClause;
+      expsInOrderByButNotInGroupClause := <diff> (expsInOrderBy, expsInGroupBy);
+      <map(expsNotInGroupClause(|ctx))> expsInOrderByButNotInGroupClause
+      
+  expsNotInGroupClause(|ctx):
+    v -> <id>
+    with
+      failtask := <task-create-fail(|ctx)>;
+      <task-create-error-on-failure(|ctx, failtask, "Expression should be in GROUP BY or inside aggregation")> v
+
+  is-aggregate = ?COUNT(_, _) + ?MIN(_, _) + ?MAX(_, _) + ?SUM(_, _) + ?AVG(_, _) + ?GROUP-CONCAT(_, _, _)
+  
+  get-exp-in-aggregate = ?COUNT(_, <id>) + ?MIN(_, <id>) + ?MAX(_, <id>) + ?SUM(_, <id>) + ?AVG(_, <id>) + ?GROUP-CONCAT(_, <id>, _)
+  
+  collect-exps-for-groupBy:
+  	expAsVars -> <conc> (a, b)
+  	with
+  		a := <map(?ExpAsVar(<id>, _); !VarRef(<id>))> expAsVars;
+  		b := <map(?ExpAsVar(_, <id>)); remove-all(is-aggregate)> expAsVars
+  
+  

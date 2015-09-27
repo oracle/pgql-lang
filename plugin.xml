@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<?eclipse version="3.0"?>
+<plugin>
+   <extension
+         point="org.eclipse.imp.runtime.languageDescription">
+      <language
+            extensions="gmql"
+            description="GMQL"
+            language="GMQL"
+            derivedFrom="DynamicRoot"
+            validator="com.oracle.greenmarl.gmql.textual.GMQLValidator"
+            validatorClass="com.oracle.greenmarl.gmql.textual.GMQLValidator"
+      ></language>
+   </extension>
+   <extension
+         id="com.oracle.greenmarl.gmql.textual.parser"
+         name="GMQL Parser"
+         point="org.eclipse.imp.runtime.parser">
+      <parser
+            class="com.oracle.greenmarl.gmql.textual.GMQLParseController"
+            language="GMQL">
+      </parser>
+   </extension>    
+</plugin>

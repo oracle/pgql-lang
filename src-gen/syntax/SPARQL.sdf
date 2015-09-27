@@ -1,0 +1,40 @@
+module SPARQL
+imports Keywords
+
+exports
+  lexical syntax
+    ~[\ \t\n\r\<\{\?] ~[\ \t\n\r]* ~[\ \t\n\r\>\}]                                                                        -> IRIREF        
+    [a-zA-Z]                                                                                                              -> PN-CHARS-BASE 
+    PN-CHARS-BASE | "_"                                                                                                   -> PN-CHARS-U    
+    PN-CHARS-BASE | "-" | [0-9]                                                                                           -> PN-CHARS      
+    PN-CHARS-BASE ( ( PN-CHARS | "." )* PN-CHARS )?                                                                       -> PN-PREFIX     
+    PN-CHARS-U | ":" | [0-9] | PLX ( ( PN-CHARS | "." | ":" | PLX )* PN-CHARS | ":" | PLX )?                              -> PN-LOCAL      
+    PERCENT | PN-LOCAL-ESC                                                                                                -> PLX           
+    "%" HEX HEX                                                                                                           -> PERCENT       
+    [a-fA-F0-9]                                                                                                           -> HEX           
+    "\\" ESC-CHAR                                                                                                         -> PN-LOCAL-ESC  
+    "_" | "~" | "." | "-" | "!" | "$" | "&" | "'" | "(" | ")" | "*" | "+" | "," | ";" | "=" | "/" | "?" | "#" | "@" | "%" -> ESC-CHAR      
+
+  context-free syntax
+    IriRef                  -> Literal      
+    PrefixedName            -> Literal      
+    IriRef                  -> Prop         
+    PrefixedName            -> Prop         
+    "<" IRIREF ">"          -> IriRef       {cons("IriRef")}
+    PN-PREFIX? ":" PN-LOCAL -> PrefixedName {cons("PrefixedName")}
+    PN-PREFIX? ":"          -> PName-NS     {cons("NS")}
+
+  context-free syntax
+    CONTENTCOMPLETE -> Literal      {cons("COMPLETION-Literal")}
+    CONTENTCOMPLETE -> Prop         {cons("COMPLETION-Prop")}
+    CONTENTCOMPLETE -> IriRef       {cons("COMPLETION-IriRef")}
+    CONTENTCOMPLETE -> PrefixedName {cons("COMPLETION-PrefixedName")}
+    CONTENTCOMPLETE -> PName-NS     {cons("COMPLETION-PName-NS")}
+
+  context-free syntax
+    PrologueElem*           -> Prologue     {cons("Prologue")}
+    PREFIX PName-NS? IriRef -> PrologueElem {cons("PrefixDecl")}
+
+  context-free syntax
+    CONTENTCOMPLETE -> Prologue     {cons("COMPLETION-Prologue")}
+    CONTENTCOMPLETE -> PrologueElem {cons("COMPLETION-PrologueElem")}

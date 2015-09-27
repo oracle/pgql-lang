@@ -1,0 +1,193 @@
+module src-gen/pp/Names-pp
+
+imports
+  libstratego-gpp
+  runtime/tmpl/pp
+  src-gen/signatures/Names-sig
+
+
+imports
+  src-gen/signatures/Keywords-sig
+  src-gen/signatures/Literals-sig
+  src-gen/signatures/Expressions-sig
+
+
+imports
+  src-gen/pp/Keywords-pp
+  src-gen/pp/Literals-pp
+  src-gen/pp/Expressions-pp
+
+
+strategies
+  prettyprint-example =
+    prettyprint-VarDef
+
+  prettyprint-example =
+    prettyprint-VarRef
+
+  prettyprint-example =
+    prettyprint-ExpAsVar
+
+  prettyprint-example =
+    prettyprint-VarAssign
+
+  prettyprint-example =
+    prettyprint-NodeVarRef
+
+  prettyprint-example =
+    prettyprint-PropRef
+
+  prettyprint-example =
+    prettyprint-Var
+
+  prettyprint-example =
+    prettyprint-Prop
+
+  prettyprint-VarDef :
+    VarDef(t1__) -> [ H(
+                        [SOpt(HS(), "0")]
+                      , [t1__']
+                      )
+                    ]
+    with t1__' := <pp-one-Z(prettyprint-Var)> t1__
+
+  is-VarDef =
+    ?VarDef(_)
+
+  prettyprint-VarRef :
+    VarRef(t1__) -> [ H(
+                        [SOpt(HS(), "0")]
+                      , [t1__']
+                      )
+                    ]
+    with t1__' := <pp-one-Z(prettyprint-Var)> t1__
+
+  is-VarRef =
+    ?VarRef(_)
+
+  prettyprint-ExpAsVar :
+    ExpAsVar(t1__, t2__) -> [ H(
+                                [SOpt(HS(), "0")]
+                              , [t1__', t2__']
+                              )
+                            ]
+    with t1__' := <pp-one-Z(prettyprint-Exp)> t1__
+    with t2__' := <pp-option(pp-one-Z(prettyprint-VarAssign))> t2__
+
+  is-ExpAsVar =
+    ?ExpAsVar(_, _)
+
+  prettyprint-VarAssign :
+    VarAssign(t1__) -> [ H(
+                           [SOpt(HS(), "0")]
+                         , [S("AS "), t1__']
+                         )
+                       ]
+    with t1__' := <pp-one-Z(prettyprint-VarDef)> t1__
+
+  is-VarAssign =
+    ?VarAssign(_)
+
+  prettyprint-NodeVarRef :
+    NodeVarRef(t1__) -> [ H(
+                            [SOpt(HS(), "0")]
+                          , [t1__']
+                          )
+                        ]
+    with t1__' := <pp-one-Z(prettyprint-Var)> t1__
+
+  is-NodeVarRef =
+    ?NodeVarRef(_)
+
+  prettyprint-PropRef :
+    PropRef(t1__, t2__) -> [ H(
+                               [SOpt(HS(), "0")]
+                             , [t1__', S("."), t2__']
+                             )
+                           ]
+    with t1__' := <pp-one-Z(prettyprint-VarRef)> t1__
+    with t2__' := <pp-one-Z(prettyprint-Prop)> t2__
+
+  is-PropRef =
+    ?PropRef(_, _)
+
+  prettyprint-Var :
+    t1__ -> [ H(
+                [SOpt(HS(), "0")]
+              , [t1__']
+              )
+            ]
+    where not(is-Var)
+    where t1__' := <pp-one-Z(prettyprint-VARNAME)> t1__
+
+  prettyprint-Prop :
+    t1__ -> [ H(
+                [SOpt(HS(), "0")]
+              , [t1__']
+              )
+            ]
+    where not(is-Prop)
+    where t1__' := <pp-one-Z(prettyprint-PROPNAME)> t1__
+
+  prettyprint-Prop :
+    t1__ -> [ H(
+                [SOpt(HS(), "0")]
+              , [t1__']
+              )
+            ]
+    where not(is-Prop)
+    where t1__' := <pp-one-Z(prettyprint-STRING)> t1__
+
+  prettyprint-Prop :
+    Id() -> [ H(
+                [SOpt(HS(), "0")]
+              , [S("id")]
+              )
+            ]
+
+  is-Prop =
+    ?Id()
+
+  is-VarDef =
+    fail
+
+  is-VarRef =
+    fail
+
+  is-ExpAsVar =
+    fail
+
+  is-VarAssign =
+    fail
+
+  is-NodeVarRef =
+    fail
+
+  is-PropRef =
+    fail
+
+  is-Var =
+    fail
+
+  is-Prop =
+    fail
+
+
+strategies
+  prettyprint-GRAPHNAME =
+    ![S(<is-string>)]
+
+  prettyprint-VARNAME =
+    ![S(<is-string>)]
+
+  prettyprint-PROPNAME =
+    ![S(<is-string>)]
+
+  prettyprint-example =
+    prettyprint-GRAPHNAME
+
+  prettyprint-example =
+    prettyprint-VARNAME
+
+  prettyprint-example =
+    prettyprint-PROPNAME

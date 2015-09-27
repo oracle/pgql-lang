@@ -1,0 +1,286 @@
+module src-gen/pp/Literals-pp
+
+imports
+  libstratego-gpp
+  runtime/tmpl/pp
+  src-gen/signatures/Literals-sig
+
+
+imports
+  src-gen/signatures/Keywords-sig
+
+
+imports
+  src-gen/pp/Keywords-pp
+
+
+strategies
+  prettyprint-example =
+    prettyprint-Literal
+
+  prettyprint-example =
+    prettyprint-AltLit
+
+  prettyprint-Literal :
+    t1__ -> [ H(
+                [SOpt(HS(), "0")]
+              , [t1__']
+              )
+            ]
+    where not(is-Literal)
+    where t1__' := <pp-one-Z(prettyprint-NumericLiteral)> t1__
+
+  prettyprint-Literal :
+    t1__ -> [ H(
+                [SOpt(HS(), "0")]
+              , [t1__']
+              )
+            ]
+    where not(is-Literal)
+    where t1__' := <pp-one-Z(prettyprint-BooleanLiteral)> t1__
+
+  prettyprint-Literal :
+    t1__ -> [ H(
+                [SOpt(HS(), "0")]
+              , [t1__']
+              )
+            ]
+    where not(is-Literal)
+    where t1__' := <pp-one-Z(prettyprint-String)> t1__
+
+  prettyprint-Literal :
+    t1__ -> [ H(
+                [SOpt(HS(), "0")]
+              , [t1__']
+              )
+            ]
+    where not(is-Literal)
+    where t1__' := <pp-one-Z(prettyprint-LitCustomType)> t1__
+
+  prettyprint-Literal :
+    Null(t1__) -> [ H(
+                      [SOpt(HS(), "0")]
+                    , [t1__']
+                    )
+                  ]
+    with t1__' := <pp-one-Z(prettyprint-NULL)> t1__
+
+  is-Literal =
+    ?Null(_)
+
+  prettyprint-AltLit :
+    AltLit(t1__, t2__) -> [ H(
+                              [SOpt(HS(), "0")]
+                            , [t1__', S("|"), t2__']
+                            )
+                          ]
+    with t1__' := <pp-one-Z(prettyprint-AltLit)> t1__
+    with t2__' := <pp-one-Z(prettyprint-AltLit)> t2__
+
+  is-AltLit =
+    ?AltLit(_, _)
+
+  prettyprint-AltLit :
+    t1__ -> [ H(
+                [SOpt(HS(), "0")]
+              , [t1__']
+              )
+            ]
+    where not(is-AltLit)
+    where t1__' := <pp-one-Z(prettyprint-Literal)> t1__
+
+  prettyprint-AltLit :
+    t1__ -> [ H(
+                [SOpt(HS(), "0")]
+              , [t1__']
+              )
+            ]
+    where not(is-AltLit)
+    where t1__' := <pp-one-Z(prettyprint-UnquotedString)> t1__
+
+  is-Literal =
+    fail
+
+  is-AltLit =
+    fail
+
+
+strategies
+  prettyprint-example =
+    prettyprint-NumericLiteral
+
+  prettyprint-example =
+    prettyprint-BooleanLiteral
+
+  prettyprint-example =
+    prettyprint-String
+
+  prettyprint-example =
+    prettyprint-UnquotedString
+
+  prettyprint-example =
+    prettyprint-LitCustomType
+
+  prettyprint-NumericLiteral :
+    Integer(t1__) -> [ H(
+                         [SOpt(HS(), "0")]
+                       , [t1__']
+                       )
+                     ]
+    with t1__' := <pp-one-Z(prettyprint-INTEGER)> t1__
+
+  is-NumericLiteral =
+    ?Integer(_)
+
+  prettyprint-NumericLiteral :
+    Decimal(t1__) -> [ H(
+                         [SOpt(HS(), "0")]
+                       , [t1__']
+                       )
+                     ]
+    with t1__' := <pp-one-Z(prettyprint-DECIMAL)> t1__
+
+  is-NumericLiteral =
+    ?Decimal(_)
+
+  prettyprint-NumericLiteral :
+    Double(t1__) -> [ H(
+                        [SOpt(HS(), "0")]
+                      , [t1__']
+                      )
+                    ]
+    with t1__' := <pp-one-Z(prettyprint-DOUBLE)> t1__
+
+  is-NumericLiteral =
+    ?Double(_)
+
+  prettyprint-BooleanLiteral :
+    True() -> [ H(
+                  [SOpt(HS(), "0")]
+                , [S("true")]
+                )
+              ]
+
+  is-BooleanLiteral =
+    ?True()
+
+  prettyprint-BooleanLiteral :
+    False() -> [ H(
+                   [SOpt(HS(), "0")]
+                 , [S("false")]
+                 )
+               ]
+
+  is-BooleanLiteral =
+    ?False()
+
+  prettyprint-String :
+    String(t1__) -> [ H(
+                        [SOpt(HS(), "0")]
+                      , [t1__']
+                      )
+                    ]
+    with t1__' := <pp-one-Z(prettyprint-STRING)> t1__
+
+  is-String =
+    ?String(_)
+
+  prettyprint-UnquotedString :
+    String(t1__) -> [ H(
+                        [SOpt(HS(), "0")]
+                      , [t1__']
+                      )
+                    ]
+    with t1__' := <pp-one-Z(prettyprint-UNQUOTED-STRING)> t1__
+
+  is-UnquotedString =
+    ?String(_)
+
+  prettyprint-LitCustomType :
+    LitCustomType(t1__, t2__) -> [ H(
+                                     [SOpt(HS(), "0")]
+                                   , [t1__', S("^^"), t2__']
+                                   )
+                                 ]
+    with t1__' := <pp-one-Z(prettyprint-String)> t1__
+    with t2__' := <pp-one-Z(prettyprint-CUSTOM-TYPE)> t2__
+
+  is-LitCustomType =
+    ?LitCustomType(_, _)
+
+  is-NumericLiteral =
+    fail
+
+  is-BooleanLiteral =
+    fail
+
+  is-String =
+    fail
+
+  is-UnquotedString =
+    fail
+
+  is-LitCustomType =
+    fail
+
+
+strategies
+  prettyprint-INTEGER =
+    ![S(<is-string>)]
+
+  prettyprint-DECIMAL =
+    ![S(<is-string>)]
+
+  prettyprint-DOUBLE =
+    ![S(<is-string>)]
+
+  prettyprint-EXPONENT =
+    ![S(<is-string>)]
+
+  prettyprint-STRING =
+    ![S(<is-string>)]
+
+  prettyprint-STRING-LITERAL1 =
+    ![S(<is-string>)]
+
+  prettyprint-STRING-LITERAL2 =
+    ![S(<is-string>)]
+
+  prettyprint-ECHAR =
+    ![S(<is-string>)]
+
+  prettyprint-UNQUOTED-STRING =
+    ![S(<is-string>)]
+
+  prettyprint-CUSTOM-TYPE =
+    ![S(<is-string>)]
+
+  prettyprint-example =
+    prettyprint-INTEGER
+
+  prettyprint-example =
+    prettyprint-DECIMAL
+
+  prettyprint-example =
+    prettyprint-DOUBLE
+
+  prettyprint-example =
+    prettyprint-EXPONENT
+
+  prettyprint-example =
+    prettyprint-STRING
+
+  prettyprint-example =
+    prettyprint-STRING-LITERAL1
+
+  prettyprint-example =
+    prettyprint-STRING-LITERAL2
+
+  prettyprint-example =
+    prettyprint-ECHAR
+
+  prettyprint-example =
+    prettyprint-UNQUOTED-STRING
+
+  prettyprint-example =
+    prettyprint-CUSTOM-TYPE

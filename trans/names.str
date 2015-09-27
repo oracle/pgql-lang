@@ -1,0 +1,350 @@
+module names
+
+imports
+  lib/runtime/nabl/-
+  lib/runtime/task/-
+  lib/runtime/properties/-
+  lib/runtime/types/-
+  lib/runtime/relations/-
+  lib/runtime/editor/-
+  src-gen/signatures/-
+  signatures
+
+
+signature
+  constructors
+    NablNsVar       : Namespace
+    NablNsReturnVar : Namespace
+    NablNsSchema    : Namespace
+
+
+signature
+  constructors
+    NablProp_data : Property
+
+
+rules
+
+  nabl-custom-properties(add-properties) =
+    ![NablProp_data()] ; add-properties
+
+  data-is(|ctx__) =
+    nabl-prop-calc(|ctx__, [])
+
+  data-is(|ctx__, dep*) =
+    nabl-prop-calc(|ctx__, dep*)
+
+  data-task(|ctx__) =
+    get-or-create-property-task(|ctx__, NablProp_data())
+
+  data-list(|ctx__) =
+    nabl-prop-list(|ctx__, [])
+
+  data-list(|ctx__, dep*) =
+    nabl-prop-list(|ctx__, dep*)
+
+  data-lookup(|ctx__) =
+    nabl-prop-lookup(|NablProp_data(), ctx__, [])
+
+  data-lookup(|ctx__, dep*) =
+    nabl-prop-lookup(|NablProp_data(), ctx__, dep*)
+
+  data-match(|ctx__, expected) =
+    nabl-prop-match(
+    | NablProp_data()
+    , ctx__
+    , Eq()
+    , expected
+    )
+
+  data-match(|ctx__, relation, expected) =
+    nabl-prop-match(|NablProp_data(), ctx__, relation, expected)
+
+  create-data-task(|ctx__) =
+    fail
+
+  get-data(|) =
+    get-property(|NablProp_data())
+
+  store-data(|ctx__, prop) =
+    nabl-store-prop(
+    | ctx__
+    , Prop(NablProp_data(), prop, [])
+    )
+
+  create-property-task(|ctx__, kind):
+    term -> <create-data-task(|ctx__)> term
+    where NablProp_data() := kind
+
+
+rules
+
+  nabl-scoping-site =
+    ?TopNode(_, _)
+    ; nabl-scope(
+      | [NablNsVar(), NablNsReturnVar(), NablNsSchema()]
+      )
+
+  nabl-get-scope =
+    ?TopNode(_, _)
+    ; ![NablNsVar(), NablNsReturnVar(), NablNsSchema()]
+
+  nabl-scoping-site =
+    ?SubQueries(_)
+    ; nabl-scope(
+      | [NablNsVar(), NablNsReturnVar()]
+      )
+
+  nabl-get-scope =
+    ?SubQueries(_)
+    ; ![NablNsVar(), NablNsReturnVar()]
+
+  nabl-get-name :
+    Node(n) -> n
+
+  nabl-name-apply(s) =
+    Node(s)
+
+  nabl-def-site(child-uris__, sibl-uris__, implicits__|lang__, ctx__, uniques__, uri__, states__) =
+    ?Node(n)
+    ; origin-track-forced(
+        Node(
+          nabl-def(
+            ?c-uri1__
+          , ?s-uri1__
+          | lang__
+          , ctx__
+          , uniques__
+          , uri__
+          , uri__
+          , NablNsVar()
+          , NonUnique()
+          , Current()
+          , []
+          , []
+          )
+        )
+      |
+      )
+    ; match(child-uris__|c-uri1__)
+    ; match(sibl-uris__|s-uri1__)
+    ; match(implicits__|[])
+
+  nabl-prop-site(|lang__, ctx__, uris__, states__, implicits__) =
+    ?Node(n)
+    ; (where(id)
+       ; Node(
+           nabl-store-props(
+           | ctx__
+           , [Prop(Type(), NodeTy(), [])]
+           )
+         ))
+    ; fail
+
+  nabl-get-name :
+    Edge(_, e, _, _) -> e
+
+  nabl-name-apply(s) =
+    Edge(id, s, id, id)
+
+  nabl-def-site(child-uris__, sibl-uris__, implicits__|lang__, ctx__, uniques__, uri__, states__) =
+    ?Edge(_, e, _, _)
+    ; origin-track-forced(
+        Edge(
+          id
+        , nabl-def(
+            ?c-uri1__
+          , ?s-uri1__
+          | lang__
+          , ctx__
+          , uniques__
+          , uri__
+          , uri__
+          , NablNsVar()
+          , Unique()
+          , Current()
+          , []
+          , []
+          )
+        , id
+        , id
+        )
+      |
+      )
+    ; match(child-uris__|c-uri1__)
+    ; match(sibl-uris__|s-uri1__)
+    ; match(implicits__|[])
+
+  nabl-prop-site(|lang__, ctx__, uris__, states__, implicits__) =
+    ?Edge(_, e, _, _)
+    ; (where(id)
+       ; Edge(
+           id
+         , nabl-store-props(
+           | ctx__
+           , [Prop(Type(), EdgeTy(), [])]
+           )
+         , id
+         , id
+         ))
+    ; fail
+
+  nabl-get-name :
+    PathDecl(p, _, _, _) -> p
+
+  nabl-name-apply(s) =
+    PathDecl(s, id, id, id)
+
+  nabl-def-site(child-uris__, sibl-uris__, implicits__|lang__, ctx__, uniques__, uri__, states__) =
+    ?PathDecl(p, _, _, _)
+    ; origin-track-forced(
+        PathDecl(
+          nabl-def(
+            ?c-uri1__
+          , ?s-uri1__
+          | lang__
+          , ctx__
+          , uniques__
+          , uri__
+          , uri__
+          , NablNsVar()
+          , Unique()
+          , Current()
+          , []
+          , []
+          )
+        , id
+        , id
+        , id
+        )
+      |
+      )
+    ; match(child-uris__|c-uri1__)
+    ; match(sibl-uris__|s-uri1__)
+    ; match(implicits__|[])
+
+  nabl-prop-site(|lang__, ctx__, uris__, states__, implicits__) =
+    ?PathDecl(p, _, _, _)
+    ; (where(id)
+       ; PathDecl(
+           nabl-store-props(
+           | ctx__
+           , [Prop(Type(), PathTy(), [])]
+           )
+         , id
+         , id
+         , id
+         ))
+    ; fail
+
+  nabl-get-name :
+    VarRef(v) -> v
+
+  nabl-name-apply(s) =
+    VarRef(s)
+
+  nabl-use-site(|lang__, ctx__, uniques__, uris__, states__) =
+    ?VarRef(v)
+    ; origin-track-forced(
+        VarRef(
+          nabl-use(
+          | lang__
+          , ctx__
+          , uniques__
+          , uris__
+          , [ <{:
+                 id
+                 ; !UseCandidate(
+                      NablNsVar()
+                    , []
+                    , Current()
+                    , True()
+                    , []
+                    )
+               }>
+            , <{:
+                 id
+                 ; !UseCandidate(
+                      NablNsReturnVar()
+                    , []
+                    , Current()
+                    , True()
+                    , []
+                    )
+               }>
+            ]
+          )
+        )
+      |
+      )
+
+  nabl-get-name :
+    NodeVarRef(n) -> n
+
+  nabl-name-apply(s) =
+    NodeVarRef(s)
+
+  nabl-use-site(|lang__, ctx__, uniques__, uris__, states__) =
+    ?NodeVarRef(n)
+    ; origin-track-forced(
+        NodeVarRef(
+          nabl-use(
+          | lang__
+          , ctx__
+          , uniques__
+          , uris__
+          , [ <{:
+                 id
+                 ; !UseCandidate(
+                      NablNsVar()
+                    , [Prop(Type(), NodeTy(), [])]
+                    , Current()
+                    , True()
+                    , []
+                    )
+               }>
+            ]
+          )
+        )
+      |
+      )
+
+  nabl-scoping-site =
+    ?ExistsFunc(_)
+    ; nabl-scope(
+      | [NablNsVar(), NablNsReturnVar()]
+      )
+
+  nabl-get-scope =
+    ?ExistsFunc(_)
+    ; ![NablNsVar(), NablNsReturnVar()]
+
+  nabl-def-site(child-uris__, sibl-uris__, implicits__|lang__, ctx__, uniques__, uri__, states__) =
+    ?m@Schema(_, _)
+    ; where(i-1__ := <nabl-def(
+                        ?c-uri1__
+                      , ?s-uri1__
+                      | lang__
+                      , ctx__
+                      , uniques__
+                      , uri__
+                      , uri__
+                      , NablNsSchema()
+                      , NonUnique()
+                      , Current()
+                      , []
+                      , []
+                      )> "schema")
+    ; match(child-uris__|c-uri1__)
+    ; match(sibl-uris__|s-uri1__)
+    ; match(implicits__|[i-1__])
+
+  nabl-prop-site(|lang__, ctx__, uris__, states__, implicits__) =
+    ?m@Schema(_, _)
+    ; (where([i-1__] := implicits__)
+       ; where(id)
+       ; where(<nabl-store-props(
+                | ctx__
+                , [Prop(NablProp_data(), m, [])]
+                )> i-1__))
+    ; fail

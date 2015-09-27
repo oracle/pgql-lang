@@ -1,0 +1,4 @@
+SELECT x WHERE (x) -> y
+{
+  a -> b
+} AS c

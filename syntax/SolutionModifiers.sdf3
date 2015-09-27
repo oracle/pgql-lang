@@ -1,0 +1,44 @@
+module SolutionModifiers
+
+imports
+  
+  Keywords
+  Names
+  Literals
+  Expressions
+  
+context-free syntax
+
+  SolutionModifier.SolutionModifier = <
+      <UngroupClause?>
+      <GroupClause?>
+      <HavingClause?>
+      <OrderClause?>
+      <LimitOffsetClauses?>
+  >
+  
+  SelectElems.Vars = <<{ExpOrStarAsVar ", "}+>>
+  ExpOrStarAsVar.ExpAsVar = <<Star><VarAssign?>>
+  Star.Star = <*>
+  ExpOrStarAsVar = ExpAsVar
+  
+  DistinctOrReduced.Distinct = <DISTINCT >
+  DistinctOrReduced.Reduced = <REDUCED >
+  
+  UngroupClause.UngroupClase = <UNGROUP <{ExpAsVar ", "}+>>
+  GroupClause.GroupClause = <GROUP BY <{ExpAsVar ", "}+>>
+  
+  HavingClause.HavingClause = <HAVING <Exp+>>
+  
+  OrderClause.OrderClause = <ORDER BY <{OrderElem ", "}+>>
+  OrderElem = <<Exp>>
+  OrderElem.Asc1 = <ASC(<Exp>)>
+  OrderElem.Desc1 = <DESC(<Exp>)>
+  OrderElem.Asc2 = <<Exp> ASC>
+  OrderElem.Desc2 = <<Exp> DESC>
+
+  LimitOffsetClauses.LimitOffsetClauses = <<LimitClause> <OffsetClause?>>
+  LimitOffsetClauses.OffsetLimitClauses = <<OffsetClause> <LimitClause?>>
+  LimitClause.LimitClause = <LIMIT <INTEGER>>
+  OffsetClause.OffsetClause = <OFFSET <INTEGER>>
+  

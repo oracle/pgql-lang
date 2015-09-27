@@ -1,0 +1,53 @@
+module Literals
+
+imports
+  
+  Keywords
+
+context-free syntax
+
+  Literal = <<NumericLiteral>>
+  Literal = <<BooleanLiteral>>
+  Literal = <<String>>
+  Literal = <<LitCustomType>>
+  Literal.Null = <<NULL>>
+  
+  AltLit.AltLit = <<AltLit>|<AltLit>> {left}
+  AltLit = <<Literal>>
+  AltLit = <<UnquotedString>>
+  
+context-free syntax
+
+  NumericLiteral.Integer = <<INTEGER>>
+  NumericLiteral.Decimal = <<DECIMAL>>
+  NumericLiteral.Double = <<DOUBLE>>
+  
+  BooleanLiteral.True = <true>
+  BooleanLiteral.False = <false>
+  String.String = <<STRING>>
+  UnquotedString.String = <<UNQUOTED-STRING>>
+  LitCustomType.LitCustomType = <<String>^^<CUSTOM-TYPE>>
+
+lexical syntax
+
+  INTEGER = [0-9]+
+  DECIMAL = [0-9]* "." [0-9]+
+  DOUBLE = (([0-9]+ "." [0-9]* EXPONENT) | ("." [0-9]+ EXPONENT) | ([0-9]+ EXPONENT))
+  EXPONENT = [eE][\+\-]?[0-9]+
+
+  STRING = STRING-LITERAL1 | STRING-LITERAL2
+  STRING-LITERAL1 = "'" (~[\'\n\\] | ECHAR)* "'"
+  STRING-LITERAL2 = "\"" (~[\"\n\\] | ECHAR)* "\""
+  ECHAR = "\\" [tbnrf\\\"\']
+  
+  UNQUOTED-STRING = [a-zA-Z][a-zA-Z0-9\_]*
+  
+  CUSTOM-TYPE = [a-zA-Z][a-zA-Z0-9\_]*
+
+lexical restrictions // greedy matching
+
+  INTEGER         -/- [0-9\.]
+  DECIMAL         -/- [0-9]
+  DOUBLE          -/- [0-9]
+  UNQUOTED-STRING -/- [a-zA-Z0-9\_]
+  CUSTOM-TYPE     -/- [a-zA-Z0-9\_]

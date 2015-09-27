@@ -1,0 +1,93 @@
+module Keywords
+
+/*
+ * This file will be completely removed once support for case-insensitive keywords
+ * is brought back to Spoofax. See http://yellowgrass.org/issue/Spoofax/954
+ */
+
+lexical syntax
+
+  IN             = [Ii][Nn]
+  MATCH          = [Mm][Aa][Tt][Cc][Hh]
+  OPTIONAL       = [Oo][Pp][Tt][Ii][Oo][Nn][Aa][Ll]
+  UNION          = [Uu][Nn][Ii][Oo][Nn]
+  EXPAND         = [Ee][Xx][Pp][Aa][Nn][Dd]
+  ORDER          = [Oo][Rr][Dd][Ee][Rr]
+
+lexical syntax  // BuiltInCall
+
+  HAS            = [Hh][Aa][Ss]
+  
+  INDEGREE       = [Ii][Nn][Dd][Ee][Gg][Rr][Ee][Ee]
+  OUTDEGREE      = [Oo][Uu][Tt][Dd][Ee][Gg][Rr][Ee][Ee]
+  
+  SRC            = [Ss][Rr][Cc]
+  DST            = [Dd][Ss][Tt]
+  
+  NODES          = [Nn][Oo][Dd][Ee][Ss]
+  EDGES          = [Ee][Dd][Gg][Ee][Ss]
+  LENGTH         = [Ll][Ee][Nn][Gg][Tt][Hh]
+  
+  CONTAINS       = [Cc][Oo][Nn][Tt][Aa][Ii][Nn][Ss]
+  BEGINSWITH     = [Bb][Ee][Gg][Ii][Nn][Ss][Ww][Ii][Tt][Hh]
+  ENDSWITH       = [Ee][Nn][Dd][Ss][Ww][Ii][Tt][Hh]
+  
+  BETWEEN        = [Bb][Ee][Tt][Ww][Ee][Ee][Nn]
+
+  HEAD           = [Hh][Ee][Aa][Dd]
+  LAST           = [Ll][Aa][ss][Tt]
+  INIT           = [Ii][Nn][Ii][Tt]
+  TAIL           = [Tt][Aa][Ii][Ll]
+  
+  NOT            = [Nn][Oo][Tt]
+  NULL           = [Nn][Uu][Ll][Ll]
+  EXISTS         = [Ee][Xx][Ii][Ss][Tt][Ss]
+  CASE           = [Cc][Aa][Ss][Ee]
+  WHEN           = [Ww][Hh][Ee][Nn]
+  THEN           = [Tt][Hh][Ee][Nn]
+  ELSE           = [Ee][Ll][Ss][Ee]
+  END            = [Ee][Nn][Dd]
+
+  // Aggregates
+  COUNT          = [Cc][Oo][Uu][Nn][Tt]
+  SUM            = [Ss][Uu][Mm]
+  MIN            = [Mm][Ii][Nn]
+  MAX            = [Mm][Aa][Xx]
+  AVG            = [Aa][Vv][Gg]
+  GROUP-CONCAT   = [Gg][Rr][Oo][Uu][Pp][\_][Cc][Oo][Nn][Cc][Aa][Tt]
+
+lexical syntax // Solution modifiers
+
+  HAVING         = [Hh][Aa][Vv][Ii][Nn][Gg]
+  ORDER          = [Oo][Rr][Dd][Ee][Rr]
+  GROUP          = [Gg][Rr][Oo][Uu][Pp]
+  ASC            = [Aa][Ss][Cc]
+  DESC           = [Dd][Ee][Ss][Cc]
+  BY             = [Bb][Yy]
+  DISTINCT       = [Dd][Ii][Ss][Tt][Ii][Nn][Cc][Tt]
+  REDUCED        = [Rr][Ee][Dd][Uu][Cc][Ee][Dd]
+  OFFSET         = [Oo][Ff][Ff][Ss][Ee][Tt]
+  LIMIT          = [Ll][Ii][Mm][Ii][Tt]
+
+  SELECT         = [Ss][Ee][Ll][Ee][Cc][Tt]
+  
+  FOR            = [Ff][Oo][Rr]
+  ALL            = [Aa][Ll][Ll]
+  EACH           = [Ee][Aa][Cc][Hh]
+  IN             = [Ii][Nn]
+  NODE           = [Nn][Oo][Dd][Ee]
+  EDGE           = [Ee][Dd][Gg][Ee]
+  NODES          = [Nn][Oo][Dd][Ee][Ss]
+  EDGES          = [Ee][Dd][Gg][Ee][Ss]
+  LIST           = [Ll][Ii][Ss][Tt]
+  FROM           = [Ff][Rr][Oo][Mm]
+  WITH           = [Ww][Ii][Tt][Hh]
+  
+lexical syntax // Arbitrary-length paths
+
+  SHORTEST       = [Ss][Hh][Oo][Rr][Tt][Ee][Ss][Tt]
+
+lexical syntax // SPARQL
+
+  PREFIX         = [Pp][Rr][Ee][Ff][Ii][Xx]
+  

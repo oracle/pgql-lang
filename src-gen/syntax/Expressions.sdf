@@ -1,0 +1,175 @@
+module Expressions
+imports Keywords Names Literals BuiltInFunctions
+
+exports
+  context-free syntax
+    "(" Exp ")"   -> Exp {bracket}
+    PropRef       -> Exp 
+    VarRef        -> Exp 
+    Literal       -> Exp 
+    FunctionCall  -> Exp 
+    "NOT" Exp     -> Exp {cons("Not1"), right}
+    "!" Exp       -> Exp {cons("Not2"), right}
+    "-" Exp       -> Exp {cons("UMin"), right}
+    Exp "AND" Exp -> Exp {cons("And"), left}
+    Exp "OR" Exp  -> Exp {cons("Or"), left}
+    Exp "*" Exp   -> Exp {cons("Mul"), left}
+    Exp "+" Exp   -> Exp {cons("Add"), left}
+    Exp "/" Exp   -> Exp {cons("Div"), left}
+    Exp "%" Exp   -> Exp {cons("Mod"), left}
+    Exp "-" Exp   -> Exp {cons("Sub"), left}
+    Exp "=" Exp   -> Exp {cons("Eq"), left}
+    Exp ">" Exp   -> Exp {cons("Gt"), left}
+    Exp "<" Exp   -> Exp {cons("Lt"), left}
+    Exp ">=" Exp  -> Exp {cons("Gte"), left}
+    Exp "<=" Exp  -> Exp {cons("Lte"), left}
+    Exp "!=" Exp  -> Exp {cons("Neq"), left}
+    Exp "=~" Exp  -> Exp {cons("Regex"), left, prefer}
+
+  context-free syntax
+    CONTENTCOMPLETE -> Exp {cons("COMPLETION-Exp")}
+
+  context-free syntax
+    VarRef      -> MatchElem {reject}
+    "(" Exp ")" -> MatchElem {reject}
+
+  context-free syntax
+    CONTENTCOMPLETE -> MatchElem {cons("COMPLETION-MatchElem")}
+
+  context-free syntax
+    "(" InlinedExp ")"          -> InlinedExp {bracket}
+    PropRef                     -> InlinedExp 
+    Literal                     -> InlinedExp {prefer}
+    InlinedCall                 -> InlinedExp 
+    Prop                        -> InlinedExp {cons("SelfPropRef")}
+    "NOT" InlinedExp            -> InlinedExp {cons("Not1"), right}
+    "!" InlinedExp              -> InlinedExp {cons("Not2"), right}
+    "-" InlinedExp              -> InlinedExp {cons("UMin"), right}
+    InlinedExp "AND" InlinedExp -> InlinedExp {cons("And"), left}
+    InlinedExp "OR" InlinedExp  -> InlinedExp {cons("Or"), left}
+    InlinedExp "*" InlinedExp   -> InlinedExp {cons("Mul"), left}
+    InlinedExp "+" InlinedExp   -> InlinedExp {cons("Add"), left}
+    InlinedExp "/" InlinedExp   -> InlinedExp {cons("Div"), left}
+    InlinedExp "%" InlinedExp   -> InlinedExp {cons("Mod"), left}
+    InlinedExp "-" InlinedExp   -> InlinedExp {cons("Sub"), left}
+    InlinedExp "=" InlinedExp   -> InlinedExp {cons("Eq"), left}
+    InlinedExp ">" InlinedExp   -> InlinedExp {cons("Gt"), left}
+    InlinedExp "<" InlinedExp   -> InlinedExp {cons("Lt"), left}
+    InlinedExp ">=" InlinedExp  -> InlinedExp {cons("Gte"), left}
+    InlinedExp "<=" InlinedExp  -> InlinedExp {cons("Lte"), left}
+    InlinedExp "!=" InlinedExp  -> InlinedExp {cons("Neq"), left}
+    InlinedExp "=~" InlinedExp  -> InlinedExp {cons("Regex"), left, prefer}
+
+  context-free syntax
+    CONTENTCOMPLETE -> InlinedExp {cons("COMPLETION-InlinedExp")}
+
+  context-free priorities
+    {right:
+      "-" Exp -> Exp
+      "NOT" Exp -> Exp
+      "!" Exp -> Exp
+    } >
+    {left:
+      Exp "." "has" "(" {Prop ","}* ")" -> FunctionCall
+      Exp "." "inDegree" "()" -> FunctionCall
+      Exp "." "outDegree" "()" -> FunctionCall
+      Exp "." "src" "()" -> FunctionCall
+      Exp "." "dst" "()" -> FunctionCall
+    } >
+    {left:
+      Exp "." "nodes" "()" -> FunctionCall
+      Exp "." "edges" "()" -> FunctionCall
+      Exp "." "length" "()" -> FunctionCall
+      Exp "." "weight" "()" -> FunctionCall
+      Exp "." "head" "()" -> FunctionCall
+      Exp "." "last" "()" -> FunctionCall
+      Exp "." "init" "()" -> FunctionCall
+      Exp "." "tail" "()" -> FunctionCall
+    } >
+    {left:
+      Exp "." "contains" "(" Exp "," Exp ")" -> FunctionCall
+      Exp "." "beginsWith" "(" Exp "," Exp ")" -> FunctionCall
+      Exp "." "endWith" "(" Exp "," Exp ")" -> FunctionCall
+    } >
+    {left:
+      Exp "." "between" "(" Exp "," Exp ")" -> FunctionCall
+      Exp "." "year" "()" -> FunctionCall
+      Exp "." "month" "()" -> FunctionCall
+      Exp "." "day" "()" -> FunctionCall
+      Exp "." "hours" "()" -> FunctionCall
+      Exp "." "minutes" "()" -> FunctionCall
+      Exp "." "seconds" "()" -> FunctionCall
+      Exp "." "timezone" "()" -> FunctionCall
+    } >
+    {left:
+      Exp "*" Exp -> Exp
+      Exp "/" Exp -> Exp
+      Exp "%" Exp -> Exp
+      Exp "=~" Exp -> Exp
+    } >
+    {left:
+      Exp "+" Exp -> Exp
+      Exp "-" Exp -> Exp
+    } >
+    {left:
+      Exp ">" Exp -> Exp
+      Exp "<" Exp -> Exp
+      Exp ">=" Exp -> Exp
+      Exp "<=" Exp -> Exp
+    } >
+    {left:
+      Exp "=" Exp -> Exp
+      Exp "!=" Exp -> Exp
+    } >
+    {left:
+      Exp "AND" Exp -> Exp
+    } >
+    {left:
+      Exp "OR" Exp -> Exp
+    }
+
+  context-free priorities
+    {right:
+      "-" InlinedExp -> InlinedExp
+      "NOT" InlinedExp -> InlinedExp
+      "!" InlinedExp -> InlinedExp
+    } >
+    {left:
+      "has" "(" {Prop ","}* ")" -> InlinedCall
+      "inDegree" "()" -> InlinedCall
+      "outDegree" "()" -> InlinedCall
+      "src" "()" -> InlinedCall
+      "dst" "()" -> InlinedCall
+    } >
+    {left:
+      "nodes" "()" -> InlinedCall
+      "edges" "()" -> InlinedCall
+      "length" "()" -> InlinedCall
+      "weight" "()" -> InlinedCall
+    } >
+    {left:
+      InlinedExp "*" InlinedExp -> InlinedExp
+      InlinedExp "/" InlinedExp -> InlinedExp
+      InlinedExp "%" InlinedExp -> InlinedExp
+      InlinedExp "=~" InlinedExp -> InlinedExp
+    } >
+    {left:
+      InlinedExp "+" InlinedExp -> InlinedExp
+      InlinedExp "-" InlinedExp -> InlinedExp
+    } >
+    {left:
+      InlinedExp ">" InlinedExp -> InlinedExp
+      InlinedExp "<" InlinedExp -> InlinedExp
+      InlinedExp ">=" InlinedExp -> InlinedExp
+      InlinedExp "<=" InlinedExp -> InlinedExp
+    } >
+    {left:
+      InlinedExp "=" InlinedExp -> InlinedExp
+      InlinedExp "!=" InlinedExp -> InlinedExp
+    } >
+    {left:
+      InlinedExp "AND" InlinedExp -> InlinedExp
+    } >
+    {left:
+      InlinedExp "OR" InlinedExp -> InlinedExp
+    }

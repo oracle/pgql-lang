@@ -1,0 +1,8 @@
+module src-gen/signatures/Layout-sig
+
+signature
+  constructors
+     : String -> Eof
+     : String -> LongCom
+     : String -> CommChar
+     : String -> Asterisk

@@ -1,0 +1,37 @@
+
+module GMQL
+imports Layout Keywords Names Literals Expressions Paths SolutionModifiers
+
+exports
+  context-free start-symbols
+    Start
+
+  context-free syntax
+    Query                                                 -> Start                  
+    SelectClause FromClause? MatchClause SolutionModifier -> Query                  {cons("Query")}
+    "SELECT" DistinctOrReduced? SelectElems               -> SelectClause           {cons("SelectClause")}
+    "FROM" GRAPHNAME                                      -> FromClause             {cons("FromClause")}
+    "WHERE" {MatchElem ","}*                              -> MatchClause            {cons("GraphPattern")}
+    GroupGraphPattern                                     -> MatchElem              
+    Path                                                  -> MatchElem              
+    Exp                                                   -> MatchElem              {cons("Constraint"), avoid}
+    "OPTIONAL" GroupGraphPattern                          -> MatchElem              {cons("Optional")}
+    UnionGraphPattern                                     -> MatchElem              
+    SubSelect                                             -> MatchElem              
+    "{" {MatchElem ","}* "}" VarAssign?                   -> GroupGraphPattern      {cons("GraphPattern")}
+    SubSelect UnionGraphPatternChild                      -> UnionGraphPattern      {cons("UnionGraphPattern")}
+    "UNION" SubSelect UnionGraphPatternChild?             -> UnionGraphPatternChild {cons("Union")}
+    "{" Query "}"                                         -> SubSelect              {cons("SubSelect")}
+    "EXPAND" "(" VarDef ":" Exp ")"                       -> MatchElem              {cons("Expand"), prefer}
+
+  context-free syntax
+    CONTENTCOMPLETE -> Start                  {cons("COMPLETION-Start")}
+    CONTENTCOMPLETE -> Query                  {cons("COMPLETION-Query")}
+    CONTENTCOMPLETE -> SelectClause           {cons("COMPLETION-SelectClause")}
+    CONTENTCOMPLETE -> FromClause             {cons("COMPLETION-FromClause")}
+    CONTENTCOMPLETE -> MatchClause            {cons("COMPLETION-MatchClause")}
+    CONTENTCOMPLETE -> GroupGraphPattern      {cons("COMPLETION-GroupGraphPattern")}
+    CONTENTCOMPLETE -> UnionGraphPattern      {cons("COMPLETION-UnionGraphPattern")}
+    CONTENTCOMPLETE -> UnionGraphPatternChild {cons("COMPLETION-UnionGraphPatternChild")}
+    CONTENTCOMPLETE -> SubSelect              {cons("COMPLETION-SubSelect")}
+    CONTENTCOMPLETE -> MatchElem              {cons("COMPLETION-MatchElem")}

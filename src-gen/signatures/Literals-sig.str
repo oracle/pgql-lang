@@ -1,0 +1,38 @@
+module src-gen/signatures/Literals-sig
+
+imports
+  src-gen/signatures/Keywords-sig
+
+
+signature
+  constructors
+           : NumericLiteral -> Literal
+           : BooleanLiteral -> Literal
+           : String -> Literal
+           : LitCustomType -> Literal
+    Null   : NULL -> Literal
+    AltLit : AltLit * AltLit -> AltLit
+           : Literal -> AltLit
+           : UnquotedString -> AltLit
+
+  constructors
+    Integer       : INTEGER -> NumericLiteral
+    Decimal       : DECIMAL -> NumericLiteral
+    Double        : DOUBLE -> NumericLiteral
+    True          : BooleanLiteral
+    False         : BooleanLiteral
+    String        : STRING -> String
+    String        : UNQUOTED-STRING -> UnquotedString
+    LitCustomType : String * CUSTOM-TYPE -> LitCustomType
+
+  constructors
+     : String -> INTEGER
+     : String -> DECIMAL
+     : String -> DOUBLE
+     : String -> EXPONENT
+     : String -> STRING
+     : String -> STRING-LITERAL1
+     : String -> STRING-LITERAL2
+     : String -> ECHAR
+     : String -> UNQUOTED-STRING
+     : String -> CUSTOM-TYPE

@@ -1,0 +1,8 @@
+MATCH
+  (start:Person@12345) -[:KNOWS]-> (expert:Person) <-[:HAS_CREATOR]- (comment:Comment) -[:REPLY_OF]-> (post:Post) -[:HAS_TAG]-> (tag:Tag)
+  tag -[:HAS_TYPE]-> (tagClass:TagClass) -[:IS_SUBCLASS_OF]{..}-> (baseTagClass:TagClass)
+  (tagClass.name = 'TagClass' OR baseTagClass.name = 'TagClass')
+SELECT expert.id, expert.firstName, expert.lastName, COUNT(DISTINCT comment), GROUP_CONCAT(DISTINCT tag.name, "")
+GROUP BY expert.id, expert.firstName, expert.lastName
+ORDER BY COUNT(DISTINCT comment), expert.id
+LIMIT 10

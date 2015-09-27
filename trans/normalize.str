@@ -1,0 +1,243 @@
+module normalize
+
+imports
+  
+  src-gen/signatures/-
+  normalizedAST-sig
+  runtime/editor/origins
+  projections
+  // analysis
+  
+/*
+ * These transformations are shared by analysis, tree-to-model tranformation and code gen
+ */
+  
+rules
+  
+  normalize:
+    ast -> result
+    with
+      // schema' := <try(is-string; read-from-string)> schema;
+      
+      result := <
+        innermost(
+          norm-UMin +
+          norm-NOT +
+          norm-simpleNode +
+          norm-edgeContents
+        );
+        alltd(norm-string);
+        alltd(norm-has-prop);
+        alltd(name-unnamed-nodes-and-edges);
+        alltd(norm-propRef);
+        bottomup(try(
+          norm-UnionGraphPattern
+           // + norm-NOT-EXISTS
+           + norm-matchElems
+        ));
+        bottomup(try(norm-query))
+      > ast
+
+rules
+  
+  norm-UMin = ?UMin(Integer(string)); !Integer(<conc-strings> ("-", string))
+  norm-UMin = ?UMin(Decimal(string)); !Integer(<conc-strings> ("-", string))
+  norm-UMin = ?UMin(Double(string)); !Integer(<conc-strings> ("-", string))
+  
+  norm-NOT = ?Not1(<id>); !Not(<id>)
+  norm-NOT = ?Not2(<id>); !Not(<id>)
+  
+  norm-string = is-string; try(un-double-quote + un-single-quote)
+
+  
+rules
+  
+  norm-simpleNode = ?SimpleNode(<id>); !Node(ElemContents(Some(<id>), None(), None(), None()))  
+  norm-edgeContents = ?Some(EdgeContents(<id>))
+  
+  name-unnamed-nodes-and-edges = ?ElemContents(None(), type, id', constraints); !ElemContents(Some(<next-random-name>), type, id', constraints)
+  name-unnamed-nodes-and-edges = EdgeNoDir(?None(); name-unnamed-nodes-and-edges-helper, id) + 
+                                 EdgeOut(?None(); name-unnamed-nodes-and-edges-helper, id) +
+                                 EdgeIn(id, ?None(); name-unnamed-nodes-and-edges-helper)
+  name-unnamed-nodes-and-edges = ?EdgeOut(); !EdgeOut(<name-unnamed-nodes-and-edges-helper>, None()) +
+                                 ?EdgeIn(); !EdgeIn(None(), <name-unnamed-nodes-and-edges-helper>)
+  name-unnamed-nodes-and-edges-helper = !ElemContents(Some(<next-random-name>), None(), None(), None())
+  next-random-name = next-random; abs; write-to-string; !("unnamed", <id>); conc-strings
+  
+  norm-propRef = ?ElemContents(Some(varName), _, _, _); alltd(norm-propRef-helper(|varName))
+  norm-propRef-helper(|varName) = ?Has(props); !Has(varName, props) +
+                                  ?InDegree(); !InDegree(varName) +
+                                  ?OutDegree(); !OutDegree(varName) +
+                                  ?Src(); !Src(varName) +
+                                  ?Dst(); !Dst(varName)
+  norm-propRef-helper(|varName) = ?SelfPropRef(propName); !PropRef(VarRef(varName), propName)
+  
+rules
+  
+  norm-UnionGraphPattern:
+    UnionGraphPattern(ss, child) -> result
+    with
+      children := <get-UnionElems> child;
+      SubSelect(query) := ss;
+      unionElems := [UnionElem(query)|children];
+      result := Union(unionElems)
+
+  get-UnionElems:
+    None() -> []
+  
+  get-UnionElems:
+    x -> graphPatterns
+    where
+      Union(SubSelect(query), child) := x
+    with
+      children := <get-UnionElems> child;
+      graphPatterns := [UnionElem(query)|children]
+
+rules
+  
+  norm-matchElems:
+    GraphPattern(elems) -> GraphPattern(nodes, edges, constraints, optionals, unions, expands, subQueries, pathDecls)
+    with
+      paths := <filter(?Path(_, _, _))> elems;
+      inlined-constraints-for-nodes := <collect-om(?Node(<id>)); map(get-inlined-constraints(|Type())); concat> paths;
+      inlined-constraints-for-edges := <collect-om(?EdgeOut(<id>, _) + ?EdgeIn(_, <id>) + ?EdgeNoDir(<id>, _)); map(get-inlined-constraints(|Label())); concat> paths;
+      non-inlined-constraints := <filter(?Constraint(<id>))> elems;
+      constraints := <conc; flatten-list; !Constraints(<id>)> (inlined-constraints-for-nodes, inlined-constraints-for-edges, non-inlined-constraints);
+      // existsOrNot := <filter(?ExistsFunc(_) + ?Not(ExistsFunc(_)))> constraints;
+      // constraints' := <remove-all(?ExistsFunc(_) + ?Not(ExistsFunc(_)))> constraints;
+      paths' := <alltd(?ElemContents(Some(<id>), _, _, _))> paths;
+      nodes := <collect-om(?Node(_)); !Nodes(<id>)> paths';
+      edges := <get-edges; !Edges(<id>)> paths';
+      optionals := <filter(?Optional(_)); !Optionals(<id>)> elems;
+      unions := <filter(?Union(_)); !Unions(<id>)> elems;
+      expands := <filter(?Expand(_, _)); !Expands(<id>)> elems;
+      subQueries := <filter(?SubSelect(<id>)); !SubQueries(<id>)> elems;
+      pathDecls := <filter(?Path(_, _, Some(_)); to-path-decl); !PathDecls(<id>)> paths
+  
+  get-inlined-constraints(|typeOrLabel):
+    ElemContents(Some(varName), type, id', otherConstraint) -> [hasTypeOrLabel, hasId, otherConstraint']
+    with
+    	hasTypeOrLabel := <?Some(Type(<id>)); to-constraint(|varName, typeOrLabel) <+ ![]> type;
+    	hasId := <?Some(Id(<id>)); to-constraint(|varName, Id()) <+ ![]> id';
+    	otherConstraint' := <?Some(Constraint(<id>)) <+ ![]> otherConstraint
+  
+  to-constraint(|varName, x) = ?AltLit(_, _); innermost(altLit-to-or); alltd(not(?Or(_, _)); to-type-label-id-constraint(|varName, x))
+  to-constraint(|varName, x) = not(?AltLit(_, _)); to-type-label-id-constraint(|varName, x)
+  altLit-to-or = ?AltLit(a, b); !Or(a, b)
+  to-type-label-id-constraint(|varName, x) = where(Type() := x); !HasType(VarRef(varName), <id>)
+  to-type-label-id-constraint(|varName, x) = where(Label() := x); !HasLabel(VarRef(varName), <id>)
+  to-type-label-id-constraint(|varName, x) = where(Id() := x); !HasId(VarRef(varName), <id>)
+  
+  // base case: no paths
+  get-edges:
+    [] -> []
+  
+  // head is path with only one node => get neighbors for the other paths
+  get-edges:
+    [Path(_, [], _)|otherPaths] -> <get-edges> otherPaths
+  
+  // paths with more than one node
+  get-edges:
+    [Path(
+      Node(n1),
+      edgeNodes@[EdgeNode(e, Node(n2))|_],
+      _)
+    |otherPaths] -> <conc> ([edge], edgesPathTail, edgesTailPaths)
+    with
+      edge := <to-edge> (n1, e, n2);
+      edgesPathTail := <get-edges> edgeNodes;
+      edgesTailPaths := <get-edges> otherPaths
+  
+  // base case: only one edgeNode
+  get-edges:
+    [EdgeNode(_, _)] -> []
+    
+  // two or more edgeNodes
+  get-edges:
+    [EdgeNode(_, Node(n1)) | edgeNodes@[EdgeNode(e, Node(n2))|_]]
+    -> <conc> ([edge], edgesPathTail)
+    with
+      edge := <to-edge> (n1, e, n2);
+      edgesPathTail := <get-edges> edgeNodes
+  
+  to-edge:
+    (n1, e, n2) -> expansion
+    with
+      switch !e
+        case ?EdgeOut(name, lengthProps): expansion := Edge(n1, name, n2, lengthProps)
+        case ?EdgeIn(lengthProps, name): expansion := Edge(n2, name, n1, lengthProps)
+        case ?EdgeNoDir(name, lengthProps): expansion := Edge(n1, name, n2, lengthProps)
+        otherwise: fail
+      end
+  
+  to-path-decl:
+    p@Path(_, _, Some(VarAssign(VarDef(v)))) -> PathDecl(v, nodeNames, edgeNames, edgeDirs)
+    with
+      nodeNames := <collect-om(?Node(ElemContents(Some(<id>), _, _, _)), conc)> p;
+      edgeNames := <collect-om(?EdgeOut(ElemContents(Some(<id>), _, _, _), _) + ?EdgeIn(_, ElemContents(Some(<id>), _, _, _)) + ?EdgeNoDir(ElemContents(Some(<id>), _, _, _), _), conc)> p;
+      edgeDirs := <collect-om(?EdgeOut(_, _); !Out() + ?EdgeIn(_, _); !In() + ?EdgeNoDir(_, _); !NoDir(), conc)> p
+  
+rules
+  
+  norm-has-prop = ?Has(varRef, <id>); map(!Has(varRef, String(<id>)))
+
+rules
+  
+  norm-query:
+    Query(SelectClause(distinctOrReduced, selectElems), graphName, graphPattern, SolutionModifier(ungroupAs, groupBy, having, orderBy, limitOffsets)) -> Query(graphName, graphPattern, None(), select)
+    with
+    	expAsVars := <?Vars(<id>); map(norm-expAsVar)> selectElems;
+      // groupBy' := <replace-all-exp-with-var-from-SELECT(|expAsVars, False())> groupBy;
+      // orderBy' := <replace-all-exp-with-var-from-SELECT(|expAsVars, True())> orderBy;
+      orderBy' := <try(norm-orderBy)> orderBy;
+      limitOffsets' := <norm-limitOffsets> limitOffsets;
+      groupBy' := <alltd(norm-expAsVar)> groupBy;
+      select := Select(distinctOrReduced, Vars(expAsVars), groupBy', having, orderBy', limitOffsets')
+  
+  norm-expAsVar = ?ExpAsVar(term, Some(VarAssign(VarDef(v)))); !ExpAsVar(v, term)
+  norm-expAsVar = ?ExpAsVar(term, None()); !ExpAsVar(<origin-track-forced(origin-text)> term, term)
+
+  norm-orderBy:
+  	Some(OrderClause(elems)) -> Some(OrderClause(elems'))
+  	with
+  		elems' := <map(norm-orderByElem)> elems
+
+  norm-orderByElem =
+    ((?Desc1(<id>) + ?Desc1(<id>)); !OrderByElem(<id>, Desc())) <+
+    ((try(?Asc1(<id>) + ?Asc2(<id>))); !OrderByElem(<id>, Asc()))
+
+  // replace-all-exp-with-var-from-SELECT(|expAsVars, orderBy) = alltd(is-list; map(replace-one-exp-with-var-from-SELECT(|expAsVars, orderBy)))
+  // replace-one-exp-with-var-from-SELECT(|expAsVars, orderBy):
+  //   exp -> OrderElem(ordering, exp', var)
+  //   where
+  //   	True() := orderBy
+  //   with
+  //   	ordering := <(?Desc1(_) + ?Desc2(_)); !Desc() <+ !Asc()> exp;
+  //     exp' := <try(?Asc1(<id>) + ?Desc1(<id>) + ?Asc2(<id>) + ?Desc2(<id>))> exp;
+  //     if ExpAsVar(v, _) := <fetch-elem(?ExpAsVar(_, exp'))> expAsVars 
+  //     then var := Some(VarRef(v))
+  //     else var := None()
+  //     end
+
+  // replace-one-exp-with-var-from-SELECT(|expAsVars, orderBy):
+  //   exp -> GroupElem(exp, var)
+  //   where
+  //     False() := orderBy
+  //   with
+  //     if ExpAsVar(v, _) := <fetch-elem(?ExpAsVar(_, exp))> expAsVars 
+  //     then var := Some(VarRef(v))
+  //     else var := None()
+  //     end
+
+  get-vars-in-scope = collect(?VarDef(_) + scopes-var); filter(?VarDef(<id>); !VarRef(<id>))
+  scopes-var = ?GraphPattern(_, _, _, _, _, _, _, _) + ?ExistsFunc(ggp)// + ?NotExistsFunc(_, _, ggp)
+
+  norm-limitOffsets = ?None(); !LimitOffsetClauses(None(), None())
+  norm-limitOffsets = ?Some(LimitOffsetClauses(limitClause, offsetClause)); !LimitOffsetClauses(Some(limitClause), offsetClause)
+  norm-limitOffsets = ?Some(OffsetLimitClauses(offsetClause, limitClause)); !LimitOffsetClauses(limitClause, Some(offsetClause))
+  
+signature constructors // only used temporary, not in output term
+	
+	Label : Label
+	Type  : Type
+	

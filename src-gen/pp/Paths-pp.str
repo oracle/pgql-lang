@@ -1,0 +1,422 @@
+module src-gen/pp/Paths-pp
+
+imports
+  libstratego-gpp
+  runtime/tmpl/pp
+  src-gen/signatures/Paths-sig
+
+
+imports
+  src-gen/signatures/Keywords-sig
+  src-gen/signatures/Literals-sig
+  src-gen/signatures/Names-sig
+  src-gen/signatures/Expressions-sig
+  src-gen/signatures/BuiltInFunctions-sig
+
+
+imports
+  src-gen/pp/Keywords-pp
+  src-gen/pp/Literals-pp
+  src-gen/pp/Names-pp
+  src-gen/pp/Expressions-pp
+  src-gen/pp/BuiltInFunctions-pp
+
+
+strategies
+  prettyprint-example =
+    prettyprint-Path
+
+  prettyprint-example =
+    prettyprint-Node
+
+  prettyprint-example =
+    prettyprint-EdgeNode
+
+  prettyprint-example =
+    prettyprint-Edge
+
+  prettyprint-example =
+    prettyprint-EdgeContents
+
+  prettyprint-example =
+    prettyprint-PathLengthConstraints
+
+  prettyprint-example =
+    prettyprint-PathConstraint
+
+  prettyprint-example =
+    prettyprint-Weighted
+
+  prettyprint-Path :
+    Path(t1__, t2__, t3__) -> [ H(
+                                  [SOpt(HS(), "0")]
+                                , [t1__', t2__', t3__']
+                                )
+                              ]
+    with t1__' := <pp-one-Z(prettyprint-Node)> t1__
+    with t2__' := <pp-H-list(prettyprint-EdgeNode|"")> t2__
+    with t3__' := <pp-option(pp-one-Z(prettyprint-VarAssign))> t3__
+
+  is-Path =
+    ?Path(_, _, _)
+
+  prettyprint-Node :
+    Node(t1__) -> [ H(
+                      [SOpt(HS(), "0")]
+                    , [ S("(")
+                      , t1__'
+                      , S(")")
+                      ]
+                    )
+                  ]
+    with t1__' := <pp-one-Z(prettyprint-ElemContents)> t1__
+
+  is-Node =
+    ?Node(_)
+
+  prettyprint-Node :
+    SimpleNode(t1__) -> [ H(
+                            [SOpt(HS(), "0")]
+                          , [t1__']
+                          )
+                        ]
+    with t1__' := <pp-one-Z(prettyprint-VARNAME)> t1__
+
+  is-Node =
+    ?SimpleNode(_)
+
+  prettyprint-EdgeNode :
+    EdgeNode(t1__, t2__) -> [ H(
+                                [SOpt(HS(), "0")]
+                              , [ S(" ")
+                                , t1__'
+                                , S(" ")
+                                , t2__'
+                                ]
+                              )
+                            ]
+    with t1__' := <pp-one-Z(prettyprint-Edge)> t1__
+    with t2__' := <pp-one-Z(prettyprint-Node)> t2__
+
+  is-EdgeNode =
+    ?EdgeNode(_, _)
+
+  prettyprint-Edge :
+    EdgeOut(t1__, t2__) -> [ H(
+                               [SOpt(HS(), "0")]
+                             , [ S("-")
+                               , t1__'
+                               , t2__'
+                               , S("->")
+                               ]
+                             )
+                           ]
+    with t1__' := <pp-option(pp-one-Z(prettyprint-EdgeContents))> t1__
+    with t2__' := <pp-option(pp-one-Z(prettyprint-PathLengthConstraints))> t2__
+
+  is-Edge =
+    ?EdgeOut(_, _)
+
+  prettyprint-Edge :
+    EdgeIn(t1__, t2__) -> [ H(
+                              [SOpt(HS(), "0")]
+                            , [ S("<-")
+                              , t1__'
+                              , t2__'
+                              , S("-")
+                              ]
+                            )
+                          ]
+    with t1__' := <pp-option(pp-one-Z(prettyprint-PathLengthConstraints))> t1__
+    with t2__' := <pp-option(pp-one-Z(prettyprint-EdgeContents))> t2__
+
+  is-Edge =
+    ?EdgeIn(_, _)
+
+  prettyprint-Edge :
+    EdgeOut() -> [ H(
+                     [SOpt(HS(), "0")]
+                   , [S("->")]
+                   )
+                 ]
+
+  is-Edge =
+    ?EdgeOut()
+
+  prettyprint-Edge :
+    EdgeIn() -> [ H(
+                    [SOpt(HS(), "0")]
+                  , [S("<-")]
+                  )
+                ]
+
+  is-Edge =
+    ?EdgeIn()
+
+  prettyprint-Edge :
+    EdgeNoDir(t1__, t2__) -> [ H(
+                                 [SOpt(HS(), "0")]
+                               , [ S("-")
+                                 , t1__'
+                                 , t2__'
+                                 , S("-")
+                                 ]
+                               )
+                             ]
+    with t1__' := <pp-option(pp-one-Z(prettyprint-EdgeContents))> t1__
+    with t2__' := <pp-option(pp-one-Z(prettyprint-PathLengthConstraints))> t2__
+
+  is-Edge =
+    ?EdgeNoDir(_, _)
+
+  prettyprint-EdgeContents :
+    EdgeContents(t1__) -> [ H(
+                              [SOpt(HS(), "0")]
+                            , [ S("[")
+                              , t1__'
+                              , S("]")
+                              ]
+                            )
+                          ]
+    with t1__' := <pp-one-Z(prettyprint-ElemContents)> t1__
+
+  is-EdgeContents =
+    ?EdgeContents(_)
+
+  prettyprint-PathLengthConstraints :
+    PathLengthConstraints(t1__) -> [ H(
+                                       [SOpt(HS(), "0")]
+                                     , [ S("{")
+                                       , t1__'
+                                       , S("}")
+                                       ]
+                                     )
+                                   ]
+    with t1__' := <pp-one-Z(prettyprint-PathConstraint)> t1__
+
+  is-PathLengthConstraints =
+    ?PathLengthConstraints(_)
+
+  prettyprint-PathConstraint :
+    PathLength(t1__, t2__) -> [ H(
+                                  [SOpt(HS(), "0")]
+                                , [t1__', S(".."), t2__']
+                                )
+                              ]
+    with t1__' := <pp-option(pp-one-Z(prettyprint-INTEGER))> t1__
+    with t2__' := <pp-option(pp-one-Z(prettyprint-INTEGER))> t2__
+
+  is-PathConstraint =
+    ?PathLength(_, _)
+
+  prettyprint-PathConstraint :
+    Shortest(t1__) -> [ H(
+                          [SOpt(HS(), "0")]
+                        , [S("shortest "), t1__']
+                        )
+                      ]
+    with t1__' := <pp-option(pp-one-Z(prettyprint-Weighted))> t1__
+
+  is-PathConstraint =
+    ?Shortest(_)
+
+  prettyprint-PathConstraint :
+    SomeShortest(t1__) -> [ H(
+                              [SOpt(HS(), "0")]
+                            , [S("someShortest "), t1__']
+                            )
+                          ]
+    with t1__' := <pp-option(pp-one-Z(prettyprint-Weighted))> t1__
+
+  is-PathConstraint =
+    ?SomeShortest(_)
+
+  prettyprint-PathConstraint :
+    All(t1__) -> [ H(
+                     [SOpt(HS(), "0")]
+                   , [S("ALL"), t1__']
+                   )
+                 ]
+    with t1__' := <pp-option(pp-one-Z(prettyprint-WithInlinedConstraints))> t1__
+
+  is-PathConstraint =
+    ?All(_)
+
+  prettyprint-PathConstraint :
+    Any(t1__) -> [ H(
+                     [SOpt(HS(), "0")]
+                   , [S("ANY"), t1__']
+                   )
+                 ]
+    with t1__' := <pp-option(pp-one-Z(prettyprint-WithInlinedConstraints))> t1__
+
+  is-PathConstraint =
+    ?Any(_)
+
+  prettyprint-PathConstraint :
+    AllShortest(t1__, t2__) -> [ H(
+                                   [SOpt(HS(), "0")]
+                                 , [S("ALL SHORTEST"), t1__', t2__']
+                                 )
+                               ]
+    with t1__' := <pp-option(pp-one-Z(prettyprint-Weighted))> t1__
+    with t2__' := <pp-option(pp-one-Z(prettyprint-WithInlinedConstraints))> t2__
+
+  is-PathConstraint =
+    ?AllShortest(_, _)
+
+  prettyprint-PathConstraint :
+    AnyShortest(t1__, t2__) -> [ H(
+                                   [SOpt(HS(), "0")]
+                                 , [S("ANY SHORTEST"), t1__', t2__']
+                                 )
+                               ]
+    with t1__' := <pp-option(pp-one-Z(prettyprint-Weighted))> t1__
+    with t2__' := <pp-option(pp-one-Z(prettyprint-WithInlinedConstraints))> t2__
+
+  is-PathConstraint =
+    ?AnyShortest(_, _)
+
+  prettyprint-Weighted :
+    Weighted(t1__) -> [ H(
+                          [SOpt(HS(), "0")]
+                        , [S(" USING "), t1__']
+                        )
+                      ]
+    with t1__' := <pp-one-Z(prettyprint-InlinedExp)> t1__
+
+  is-Weighted =
+    ?Weighted(_)
+
+  prettyprint-Weighted :
+    Weighted(t1__, t2__) -> [ H(
+                                [SOpt(HS(), "0")]
+                              , [t1__', t2__']
+                              )
+                            ]
+    with t1__' := <pp-one-Z(prettyprint-InlinedExp)> t1__
+    with t2__' := <pp-option(pp-one-Z(prettyprint-VarAssign))> t2__
+
+  is-Weighted =
+    ?Weighted(_, _)
+
+  is-Path =
+    fail
+
+  is-Node =
+    fail
+
+  is-EdgeNode =
+    fail
+
+  is-Edge =
+    fail
+
+  is-EdgeContents =
+    fail
+
+  is-PathLengthConstraints =
+    fail
+
+  is-PathConstraint =
+    fail
+
+  is-Weighted =
+    fail
+
+
+strategies
+  prettyprint-example =
+    prettyprint-ElemContents
+
+  prettyprint-example =
+    prettyprint-Type
+
+  prettyprint-example =
+    prettyprint-Id
+
+  prettyprint-example =
+    prettyprint-ExpressionOrAltLit
+
+  prettyprint-example =
+    prettyprint-WithInlinedConstraints
+
+  prettyprint-ElemContents :
+    ElemContents(t1__, t2__, t3__, t4__) -> [ H(
+                                                [SOpt(HS(), "0")]
+                                              , [t1__', t2__', t3__', t4__']
+                                              )
+                                            ]
+    with t1__' := <pp-option(pp-one-Z(prettyprint-VARNAME))> t1__
+    with t2__' := <pp-option(pp-one-Z(prettyprint-Type))> t2__
+    with t3__' := <pp-option(pp-one-Z(prettyprint-Id))> t3__
+    with t4__' := <pp-option(pp-one-Z(prettyprint-WithInlinedConstraints))> t4__
+
+  is-ElemContents =
+    ?ElemContents(_, _, _, _)
+
+  prettyprint-Type :
+    Type(t1__) -> [ H(
+                      [SOpt(HS(), "0")]
+                    , [S(":"), t1__']
+                    )
+                  ]
+    with t1__' := <pp-one-Z(prettyprint-ExpressionOrAltLit)> t1__
+
+  is-Type =
+    ?Type(_)
+
+  prettyprint-Id :
+    Id(t1__) -> [ H(
+                    [SOpt(HS(), "0")]
+                  , [S("@"), t1__']
+                  )
+                ]
+    with t1__' := <pp-one-Z(prettyprint-ExpressionOrAltLit)> t1__
+
+  is-Id =
+    ?Id(_)
+
+  prettyprint-ExpressionOrAltLit :
+    t1__ -> [ H(
+                [SOpt(HS(), "0")]
+              , [t1__']
+              )
+            ]
+    where not(is-ExpressionOrAltLit)
+    where t1__' := <pp-one-Z(prettyprint-Exp)> t1__
+
+  prettyprint-ExpressionOrAltLit :
+    t1__ -> [ H(
+                [SOpt(HS(), "0")]
+              , [t1__']
+              )
+            ]
+    where not(is-ExpressionOrAltLit)
+    where t1__' := <pp-one-Z(prettyprint-AltLit)> t1__
+
+  prettyprint-WithInlinedConstraints :
+    Constraint(t1__) -> [ H(
+                            [SOpt(HS(), "0")]
+                          , [S(" WITH "), t1__']
+                          )
+                        ]
+    with t1__' := <pp-H-list(prettyprint-InlinedExp|", ")> t1__
+
+  is-WithInlinedConstraints =
+    ?Constraint(_)
+
+  is-ElemContents =
+    fail
+
+  is-Type =
+    fail
+
+  is-Id =
+    fail
+
+  is-ExpressionOrAltLit =
+    fail
+
+  is-WithInlinedConstraints =
+    fail

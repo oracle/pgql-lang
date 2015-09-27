@@ -1,0 +1,5 @@
+MATCH
+  (start:Person@12345) -[:HAS_CREATOR]- () <-[:REPLY_OF]- (comment:Comment) -[:HAS_CREATOR]-> (person:Person)
+SELECT person.id, person.firstName, person.lastName, comment.id, comment.creationDate, comment.content
+ORDER BY DESC(comment.creationDate), ASC(comment.id)
+LIMIT 10

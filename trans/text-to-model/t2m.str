@@ -1,0 +1,110 @@
+module text-to-model/t2m
+
+imports
+
+  text-to-model/GMQL-Graph
+  runtime/editor/-
+  runtime/modelware/-
+  runtime/nabl/-
+  runtime/index/-
+  src-gen/signatures/-
+  signatures
+  runtime/task/-
+  editor-common.generated
+  analysis
+
+
+imports
+  
+  runtime/modelware/signatures
+  runtime/nabl/-
+  runtime/index/-
+  runtime/editor/-
+
+rules
+
+  tree2model =
+    index-setup(|<language>, <project-path>);
+    task-setup(|<project-path>);
+    ?(<id>, _);
+    ASTtext-to-ASTgraph;
+    mw-tree2model
+  
+  ASTtext-to-ASTgraph =
+  	t2m-Query
+
+  disable-sync-diagram-to-text = id
+  
+rules
+  
+  t2m-Query:
+    TopNode(q@Query(_, i, MatchClause(_, NormalizedMatchElems(nodes, _, constraints, _, _)), _, s), _) -> Query(f', w', s', c', None())
+    with
+      f' := <origin-track-forced(t2m-InClause)> i;
+      w' := <origin-track-forced(t2m-MatchClause(|q))> nodes;
+      s' := <origin-track-forced(t2m-SelectClause)> s;
+      c' := <t2m-CrossConstraints> constraints
+  
+  t2m-InClause:
+    InClause(_, f) -> InClause(f, ""{Use(Def("match"))})
+  
+  // t2m-SelectClause:
+  //   SelectClause(_, _, _, Star()) -> SelectClause("*"{Def("select")})
+    
+  t2m-SelectClause:
+    selectClause -> SelectClause(selectClause'{Def("in")})
+    with
+      selectClause' := <origin-text; string-replace(|"SELECT AS TABLE", ""); string-replace(|"\n", " "); string-replace(|"  ", " "); string-replace(|"  ", " ")> selectClause
+  
+  t2m-MatchClause(|q):
+    nodes -> MatchClause(nodes', ""{Def("match"), Use(Def("in"))})
+    with
+      nodes' := <map(t2m-Node(|q))> nodes
+  
+  t2m-CrossConstraints:
+    q -> CrossConstraints(constraints)
+    with
+      constraints := <collect-om(?Constraint(_); t2m-is-cross-constraint; t2m-CrossConstraint)> q
+  
+  t2m-CrossConstraint = origin-track-forced(origin-text); !CrossConstraint(<id>)
+      
+  t2m-Node(|q):
+  	Node(name, neighbors-out, _) -> Node(name, edges', constraints')
+  	with
+  		edges' := <map(t2m-Edge(|q))> neighbors-out;
+  		constraints' := <t2m-constraints(|name)> q
+  		
+  t2m-Edge(|q):
+    Neighbor(t, e, Out()) -> DirectedEdge(name, t, constraints')
+  	with
+  		name := <t2m-edge-name> e;
+  		constraints' := <t2m-constraints(|e)> q
+  	
+  t2m-Edge(|q):
+    Neighbor(t, e, NoDir()) -> UndirectedEdge(name, t, constraints')
+    with
+      name := <t2m-edge-name> e;
+      constraints' := <t2m-constraints(|e)> q
+  
+  t2m-constraints(|name) = t2m-get-constraints-for(|name); map(origin-track-forced(fix-inlined <+ origin-text)); separate-by(|",\n"); concat-strings
+  
+  t2m-edge-name = is-substring(!"_"); !None() <+ !Some(<id>)
+  
+  t2m-def = ?t; !t{Def(t)}
+  t2m-ref = ?t; !t{Use(Def(t))}
+
+  fix-inlined = fail
+  // fix-inlined:
+  //   constraint -> constraint'
+  //   where
+  //     <origin-text; string-starts-with(|"[")> constraint
+  //   with
+  //     label := <?Constraint(ConditionalOrExpression([ConditionalAndExpression([RelationalExpression(_,RelationalExpressionChild(_,AdditiveExpression(MultiplicativeExpression(UnaryExpression(<id>)))))])]))> constraint;
+  //     constraint' := <conc-strings> ("label == ", <origin-text> label)
+
+
+  t2m-get-constraints-for(|name) = collect-om(?Constraint(_); t2m-is-constraint-for(|name); not(t2m-is-cross-constraint), conc)
+  t2m-get-cross-constraints = collect-om(?Constraint(_); t2m-is-cross-constraint)
+  t2m-is-constraint-for(|name) = oncetd(eq-ignore-annos(|VarRef(name)))
+  t2m-is-cross-constraint = ?c; collect-om(?VarRef(_)); length; !(<id>, 1); gt; !c
+

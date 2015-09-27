@@ -1,0 +1,14 @@
+module text-to-model/GMQL-Graph
+
+signature constructors
+  
+  Query            : FromClause * WhereClause * SelectClause * CrossConstraints * Result -> Query
+  FromClause       : Ref(WhereClause) -> Clause
+  WhereClause      : List(Node) * Ref(SelectClause) -> Clause
+  Node             : EString * List(Edge) * EString -> Node
+  DirectedEdge     : Opt(EString) * Ref(Node) * EString -> Edge
+  UndirectedEdge   : Opt(EString) * Ref(Node) * EString -> Edge
+  SelectClause     : EString -> Clause
+  CrossConstraints : List(CrossConstraint) -> CrossConstraints
+  CrossConstraint  : Estring -> CrossConstraint
+  

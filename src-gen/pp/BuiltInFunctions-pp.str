@@ -1,0 +1,706 @@
+module src-gen/pp/BuiltInFunctions-pp
+
+imports
+  libstratego-gpp
+  runtime/tmpl/pp
+  src-gen/signatures/BuiltInFunctions-sig
+
+
+imports
+  src-gen/signatures/Keywords-sig
+  src-gen/signatures/Names-sig
+  src-gen/signatures/Expressions-sig
+  src-gen/signatures/GMQL-sig
+  src-gen/signatures/Literals-sig
+
+
+imports
+  src-gen/pp/Keywords-pp
+  src-gen/pp/Names-pp
+  src-gen/pp/Expressions-pp
+  src-gen/pp/GMQL-pp
+  src-gen/pp/Literals-pp
+
+
+strategies
+  prettyprint-example =
+    prettyprint-InlinedCall
+
+  prettyprint-InlinedCall :
+    Has(t1__) -> [ H(
+                     [SOpt(HS(), "0")]
+                   , [ S("has(")
+                     , t1__'
+                     , S(")")
+                     ]
+                   )
+                 ]
+    with t1__' := <pp-H-list(prettyprint-Prop|", ")> t1__
+
+  is-InlinedCall =
+    ?Has(_)
+
+  prettyprint-InlinedCall :
+    InDegree() -> [ H(
+                      [SOpt(HS(), "0")]
+                    , [S("inDegree()")]
+                    )
+                  ]
+
+  is-InlinedCall =
+    ?InDegree()
+
+  prettyprint-InlinedCall :
+    OutDegree() -> [ H(
+                       [SOpt(HS(), "0")]
+                     , [S("outDegree()")]
+                     )
+                   ]
+
+  is-InlinedCall =
+    ?OutDegree()
+
+  prettyprint-InlinedCall :
+    Src() -> [ H(
+                 [SOpt(HS(), "0")]
+               , [S("src()")]
+               )
+             ]
+
+  is-InlinedCall =
+    ?Src()
+
+  prettyprint-InlinedCall :
+    Dst() -> [ H(
+                 [SOpt(HS(), "0")]
+               , [S("dst()")]
+               )
+             ]
+
+  is-InlinedCall =
+    ?Dst()
+
+  prettyprint-InlinedCall :
+    Nodes() -> [ H(
+                   [SOpt(HS(), "0")]
+                 , [S("nodes()")]
+                 )
+               ]
+
+  is-InlinedCall =
+    ?Nodes()
+
+  prettyprint-InlinedCall :
+    Edges() -> [ H(
+                   [SOpt(HS(), "0")]
+                 , [S("edges()")]
+                 )
+               ]
+
+  is-InlinedCall =
+    ?Edges()
+
+  prettyprint-InlinedCall :
+    Length() -> [ H(
+                    [SOpt(HS(), "0")]
+                  , [S("length()")]
+                  )
+                ]
+
+  is-InlinedCall =
+    ?Length()
+
+  prettyprint-InlinedCall :
+    Weight() -> [ H(
+                    [SOpt(HS(), "0")]
+                  , [S("weight()")]
+                  )
+                ]
+
+  is-InlinedCall =
+    ?Weight()
+
+  is-InlinedCall =
+    fail
+
+
+strategies
+  prettyprint-example =
+    prettyprint-FunctionCall
+
+  prettyprint-FunctionCall :
+    Has(t1__, t2__) -> [ H(
+                           [SOpt(HS(), "0")]
+                         , [ t1__'
+                           , S(". has(")
+                           , t2__'
+                           , S(")")
+                           ]
+                         )
+                       ]
+    with t1__' := <pp-one-Z(prettyprint-Exp)> t1__
+    with t2__' := <pp-H-list(prettyprint-Prop|", ")> t2__
+
+  is-FunctionCall =
+    ?Has(_, _)
+
+  is-FunctionCall =
+    fail
+
+
+strategies
+  prettyprint-example =
+    prettyprint-FunctionCall
+
+  prettyprint-FunctionCall :
+    InDegree(t1__) -> [ H(
+                          [SOpt(HS(), "0")]
+                        , [t1__', S(". inDegree()")]
+                        )
+                      ]
+    with t1__' := <pp-one-Z(prettyprint-Exp)> t1__
+
+  is-FunctionCall =
+    ?InDegree(_)
+
+  prettyprint-FunctionCall :
+    OutDegree(t1__) -> [ H(
+                           [SOpt(HS(), "0")]
+                         , [t1__', S(". outDegree()")]
+                         )
+                       ]
+    with t1__' := <pp-one-Z(prettyprint-Exp)> t1__
+
+  is-FunctionCall =
+    ?OutDegree(_)
+
+  is-FunctionCall =
+    fail
+
+
+strategies
+  prettyprint-example =
+    prettyprint-FunctionCall
+
+  prettyprint-FunctionCall :
+    Src(t1__) -> [ H(
+                     [SOpt(HS(), "0")]
+                   , [t1__', S(". src()")]
+                   )
+                 ]
+    with t1__' := <pp-one-Z(prettyprint-Exp)> t1__
+
+  is-FunctionCall =
+    ?Src(_)
+
+  prettyprint-FunctionCall :
+    Dst(t1__) -> [ H(
+                     [SOpt(HS(), "0")]
+                   , [t1__', S(". dst()")]
+                   )
+                 ]
+    with t1__' := <pp-one-Z(prettyprint-Exp)> t1__
+
+  is-FunctionCall =
+    ?Dst(_)
+
+  is-FunctionCall =
+    fail
+
+
+strategies
+  prettyprint-example =
+    prettyprint-FunctionCall
+
+  prettyprint-FunctionCall :
+    Nodes(t1__) -> [ H(
+                       [SOpt(HS(), "0")]
+                     , [t1__', S(". nodes()")]
+                     )
+                   ]
+    with t1__' := <pp-one-Z(prettyprint-Exp)> t1__
+
+  is-FunctionCall =
+    ?Nodes(_)
+
+  prettyprint-FunctionCall :
+    Edges(t1__) -> [ H(
+                       [SOpt(HS(), "0")]
+                     , [t1__', S(". edges()")]
+                     )
+                   ]
+    with t1__' := <pp-one-Z(prettyprint-Exp)> t1__
+
+  is-FunctionCall =
+    ?Edges(_)
+
+  prettyprint-FunctionCall :
+    Length(t1__) -> [ H(
+                        [SOpt(HS(), "0")]
+                      , [t1__', S(". length()")]
+                      )
+                    ]
+    with t1__' := <pp-one-Z(prettyprint-Exp)> t1__
+
+  is-FunctionCall =
+    ?Length(_)
+
+  prettyprint-FunctionCall :
+    Weight(t1__) -> [ H(
+                        [SOpt(HS(), "0")]
+                      , [t1__', S(". weight()")]
+                      )
+                    ]
+    with t1__' := <pp-one-Z(prettyprint-Exp)> t1__
+
+  is-FunctionCall =
+    ?Weight(_)
+
+  is-FunctionCall =
+    fail
+
+
+strategies
+  prettyprint-example =
+    prettyprint-FunctionCall
+
+  prettyprint-FunctionCall :
+    Head(t1__) -> [ H(
+                      [SOpt(HS(), "0")]
+                    , [t1__', S(". head()")]
+                    )
+                  ]
+    with t1__' := <pp-one-Z(prettyprint-Exp)> t1__
+
+  is-FunctionCall =
+    ?Head(_)
+
+  prettyprint-FunctionCall :
+    Last(t1__) -> [ H(
+                      [SOpt(HS(), "0")]
+                    , [t1__', S(". last()")]
+                    )
+                  ]
+    with t1__' := <pp-one-Z(prettyprint-Exp)> t1__
+
+  is-FunctionCall =
+    ?Last(_)
+
+  prettyprint-FunctionCall :
+    Init(t1__) -> [ H(
+                      [SOpt(HS(), "0")]
+                    , [t1__', S(". init()")]
+                    )
+                  ]
+    with t1__' := <pp-one-Z(prettyprint-Exp)> t1__
+
+  is-FunctionCall =
+    ?Init(_)
+
+  prettyprint-FunctionCall :
+    Tail(t1__) -> [ H(
+                      [SOpt(HS(), "0")]
+                    , [t1__', S(". tail()")]
+                    )
+                  ]
+    with t1__' := <pp-one-Z(prettyprint-Exp)> t1__
+
+  is-FunctionCall =
+    ?Tail(_)
+
+  is-FunctionCall =
+    fail
+
+
+strategies
+  prettyprint-example =
+    prettyprint-FunctionCall
+
+  prettyprint-FunctionCall :
+    Contains(t1__, t2__, t3__) -> [ H(
+                                      [SOpt(HS(), "0")]
+                                    , [ t1__'
+                                      , S(". contains(")
+                                      , t2__'
+                                      , S(", ")
+                                      , t3__'
+                                      , S(")")
+                                      ]
+                                    )
+                                  ]
+    with t1__' := <pp-one-Z(prettyprint-Exp)> t1__
+    with t2__' := <pp-one-Z(prettyprint-Exp)> t2__
+    with t3__' := <pp-one-Z(prettyprint-Exp)> t3__
+
+  is-FunctionCall =
+    ?Contains(_, _, _)
+
+  prettyprint-FunctionCall :
+    BeginsWith(t1__, t2__, t3__) -> [ H(
+                                        [SOpt(HS(), "0")]
+                                      , [ t1__'
+                                        , S(". beginsWith(")
+                                        , t2__'
+                                        , S(", ")
+                                        , t3__'
+                                        , S(")")
+                                        ]
+                                      )
+                                    ]
+    with t1__' := <pp-one-Z(prettyprint-Exp)> t1__
+    with t2__' := <pp-one-Z(prettyprint-Exp)> t2__
+    with t3__' := <pp-one-Z(prettyprint-Exp)> t3__
+
+  is-FunctionCall =
+    ?BeginsWith(_, _, _)
+
+  prettyprint-FunctionCall :
+    EndsWith(t1__, t2__, t3__) -> [ H(
+                                      [SOpt(HS(), "0")]
+                                    , [ t1__'
+                                      , S(". endWith(")
+                                      , t2__'
+                                      , S(", ")
+                                      , t3__'
+                                      , S(")")
+                                      ]
+                                    )
+                                  ]
+    with t1__' := <pp-one-Z(prettyprint-Exp)> t1__
+    with t2__' := <pp-one-Z(prettyprint-Exp)> t2__
+    with t3__' := <pp-one-Z(prettyprint-Exp)> t3__
+
+  is-FunctionCall =
+    ?EndsWith(_, _, _)
+
+  is-FunctionCall =
+    fail
+
+
+strategies
+  prettyprint-example =
+    prettyprint-FunctionCall
+
+  prettyprint-FunctionCall :
+    Between(t1__, t2__, t3__) -> [ H(
+                                     [SOpt(HS(), "0")]
+                                   , [ t1__'
+                                     , S(". between(")
+                                     , t2__'
+                                     , S(", ")
+                                     , t3__'
+                                     , S(")")
+                                     ]
+                                   )
+                                 ]
+    with t1__' := <pp-one-Z(prettyprint-Exp)> t1__
+    with t2__' := <pp-one-Z(prettyprint-Exp)> t2__
+    with t3__' := <pp-one-Z(prettyprint-Exp)> t3__
+
+  is-FunctionCall =
+    ?Between(_, _, _)
+
+  prettyprint-FunctionCall :
+    Year(t1__) -> [ H(
+                      [SOpt(HS(), "0")]
+                    , [t1__', S(". year()")]
+                    )
+                  ]
+    with t1__' := <pp-one-Z(prettyprint-Exp)> t1__
+
+  is-FunctionCall =
+    ?Year(_)
+
+  prettyprint-FunctionCall :
+    Month(t1__) -> [ H(
+                       [SOpt(HS(), "0")]
+                     , [t1__', S(". month()")]
+                     )
+                   ]
+    with t1__' := <pp-one-Z(prettyprint-Exp)> t1__
+
+  is-FunctionCall =
+    ?Month(_)
+
+  prettyprint-FunctionCall :
+    Day(t1__) -> [ H(
+                     [SOpt(HS(), "0")]
+                   , [t1__', S(". day()")]
+                   )
+                 ]
+    with t1__' := <pp-one-Z(prettyprint-Exp)> t1__
+
+  is-FunctionCall =
+    ?Day(_)
+
+  prettyprint-FunctionCall :
+    Hours(t1__) -> [ H(
+                       [SOpt(HS(), "0")]
+                     , [t1__', S(". hours()")]
+                     )
+                   ]
+    with t1__' := <pp-one-Z(prettyprint-Exp)> t1__
+
+  is-FunctionCall =
+    ?Hours(_)
+
+  prettyprint-FunctionCall :
+    Minutes(t1__) -> [ H(
+                         [SOpt(HS(), "0")]
+                       , [t1__', S(". minutes()")]
+                       )
+                     ]
+    with t1__' := <pp-one-Z(prettyprint-Exp)> t1__
+
+  is-FunctionCall =
+    ?Minutes(_)
+
+  prettyprint-FunctionCall :
+    Seconds(t1__) -> [ H(
+                         [SOpt(HS(), "0")]
+                       , [t1__', S(". seconds()")]
+                       )
+                     ]
+    with t1__' := <pp-one-Z(prettyprint-Exp)> t1__
+
+  is-FunctionCall =
+    ?Seconds(_)
+
+  prettyprint-FunctionCall :
+    Timezone(t1__) -> [ H(
+                          [SOpt(HS(), "0")]
+                        , [t1__', S(". timezone()")]
+                        )
+                      ]
+    with t1__' := <pp-one-Z(prettyprint-Exp)> t1__
+
+  is-FunctionCall =
+    ?Timezone(_)
+
+  is-FunctionCall =
+    fail
+
+
+strategies
+  prettyprint-example =
+    prettyprint-FunctionCall
+
+  prettyprint-example =
+    prettyprint-WhenThen
+
+  prettyprint-FunctionCall :
+    ExistsFunc(t1__) -> [ H(
+                            [SOpt(HS(), "0")]
+                          , [S("EXISTS "), t1__']
+                          )
+                        ]
+    with t1__' := <pp-one-Z(prettyprint-GroupGraphPattern)> t1__
+
+  is-FunctionCall =
+    ?ExistsFunc(_)
+
+  prettyprint-FunctionCall :
+    Case(t1__, t2__, t3__) -> [ H(
+                                  [SOpt(HS(), "0")]
+                                , [ S("CASE ")
+                                  , t1__'
+                                  , S(" ")
+                                  , t2__'
+                                  , S(" ELSE ")
+                                  , t3__'
+                                  , S(" END")
+                                  ]
+                                )
+                              ]
+    with t1__' := <pp-one-Z(prettyprint-Exp)> t1__
+    with t2__' := <pp-H-list(prettyprint-WhenThen|" ")> t2__
+    with t3__' := <pp-one-Z(prettyprint-Exp)> t3__
+
+  is-FunctionCall =
+    ?Case(_, _, _)
+
+  prettyprint-WhenThen :
+    WhenThen(t1__, t2__) -> [ H(
+                                [SOpt(HS(), "0")]
+                              , [ S("WHEN ")
+                                , t1__'
+                                , S(" THEN ")
+                                , t2__'
+                                ]
+                              )
+                            ]
+    with t1__' := <pp-one-Z(prettyprint-Exp)> t1__
+    with t2__' := <pp-one-Z(prettyprint-Exp)> t2__
+
+  is-WhenThen =
+    ?WhenThen(_, _)
+
+  is-FunctionCall =
+    fail
+
+  is-WhenThen =
+    fail
+
+
+strategies
+  prettyprint-example =
+    prettyprint-FunctionCall
+
+  prettyprint-example =
+    prettyprint-StarOrExp
+
+  prettyprint-example =
+    prettyprint-Group-Concat-Sep
+
+  prettyprint-example =
+    prettyprint-Distinct
+
+  prettyprint-FunctionCall :
+    COUNT(t1__, t2__) -> [ H(
+                             [SOpt(HS(), "0")]
+                           , [ S("COUNT(")
+                             , t1__'
+                             , t2__'
+                             , S(")")
+                             ]
+                           )
+                         ]
+    with t1__' := <pp-option(pp-one-Z(prettyprint-Distinct))> t1__
+    with t2__' := <pp-one-Z(prettyprint-StarOrExp)> t2__
+
+  is-FunctionCall =
+    ?COUNT(_, _)
+
+  prettyprint-FunctionCall :
+    MIN(t1__, t2__) -> [ H(
+                           [SOpt(HS(), "0")]
+                         , [ S("MIN(")
+                           , t1__'
+                           , t2__'
+                           , S(")")
+                           ]
+                         )
+                       ]
+    with t1__' := <pp-option(pp-one-Z(prettyprint-Distinct))> t1__
+    with t2__' := <pp-one-Z(prettyprint-Exp)> t2__
+
+  is-FunctionCall =
+    ?MIN(_, _)
+
+  prettyprint-FunctionCall :
+    MAX(t1__, t2__) -> [ H(
+                           [SOpt(HS(), "0")]
+                         , [ S("MAX(")
+                           , t1__'
+                           , t2__'
+                           , S(")")
+                           ]
+                         )
+                       ]
+    with t1__' := <pp-option(pp-one-Z(prettyprint-Distinct))> t1__
+    with t2__' := <pp-one-Z(prettyprint-Exp)> t2__
+
+  is-FunctionCall =
+    ?MAX(_, _)
+
+  prettyprint-FunctionCall :
+    SUM(t1__, t2__) -> [ H(
+                           [SOpt(HS(), "0")]
+                         , [ S("SUM(")
+                           , t1__'
+                           , t2__'
+                           , S(")")
+                           ]
+                         )
+                       ]
+    with t1__' := <pp-option(pp-one-Z(prettyprint-Distinct))> t1__
+    with t2__' := <pp-one-Z(prettyprint-Exp)> t2__
+
+  is-FunctionCall =
+    ?SUM(_, _)
+
+  prettyprint-FunctionCall :
+    AVG(t1__, t2__) -> [ H(
+                           [SOpt(HS(), "0")]
+                         , [ S("AVG(")
+                           , t1__'
+                           , t2__'
+                           , S(")")
+                           ]
+                         )
+                       ]
+    with t1__' := <pp-option(pp-one-Z(prettyprint-Distinct))> t1__
+    with t2__' := <pp-one-Z(prettyprint-Exp)> t2__
+
+  is-FunctionCall =
+    ?AVG(_, _)
+
+  prettyprint-FunctionCall :
+    GROUP-CONCAT(t1__, t2__, t3__) -> [ H(
+                                          [SOpt(HS(), "0")]
+                                        , [ S("GROUP_CONCAT(")
+                                          , t1__'
+                                          , t2__'
+                                          , t3__'
+                                          , S(")")
+                                          ]
+                                        )
+                                      ]
+    with t1__' := <pp-option(pp-one-Z(prettyprint-Distinct))> t1__
+    with t2__' := <pp-one-Z(prettyprint-Exp)> t2__
+    with t3__' := <pp-option(pp-one-Z(prettyprint-Group-Concat-Sep))> t3__
+
+  is-FunctionCall =
+    ?GROUP-CONCAT(_, _, _)
+
+  prettyprint-StarOrExp :
+    Star() -> [ H(
+                  [SOpt(HS(), "0")]
+                , [S("*")]
+                )
+              ]
+
+  is-StarOrExp =
+    ?Star()
+
+  prettyprint-StarOrExp :
+    t1__ -> [ H(
+                [SOpt(HS(), "0")]
+              , [t1__']
+              )
+            ]
+    where not(is-StarOrExp)
+    where t1__' := <pp-one-Z(prettyprint-Exp)> t1__
+
+  prettyprint-Group-Concat-Sep :
+    Sep(t1__) -> [ H(
+                     [SOpt(HS(), "0")]
+                   , [S(", "), t1__']
+                   )
+                 ]
+    with t1__' := <pp-one-Z(prettyprint-String)> t1__
+
+  is-Group-Concat-Sep =
+    ?Sep(_)
+
+  prettyprint-Distinct :
+    Distinct() -> [ H(
+                      [SOpt(HS(), "0")]
+                    , [S("DISTINCT")]
+                    )
+                  ]
+
+  is-Distinct =
+    ?Distinct()
+
+  is-FunctionCall =
+    fail
+
+  is-StarOrExp =
+    fail
+
+  is-Group-Concat-Sep =
+    fail
+
+  is-Distinct =
+    fail

@@ -1,0 +1,6 @@
+MATCH
+  (:Person@12345) -[:KNOWS]-(friend:Person) <-[:HAS_CREATOR]- (message:Post|Comment WITH ~creationDate <= '2010-01-01'^^date)
+SELECT friend.id, friend.firstName, friend.lastName, message.id, message.creationDate,
+       content := CASE message.content WHEN NOT null THEN message.content ELSE message.imageFile END 
+ORDER BY DESC(message.creationDate), ASC(message.id)
+LIMIT 10

@@ -1,0 +1,13 @@
+module editor/GMQL-Outliner.generated
+
+imports
+  
+  include/GMQL
+  lib/runtime/editor/outline-library
+
+rules
+  
+  to-outline-label = ?Has(<id>, _)
+  to-outline-label = ?GraphPattern(_, <id>)
+  to-outline-label = ?Path(<id>, _, _)
+  to-outline-label = ?Case(<id>, _, _)

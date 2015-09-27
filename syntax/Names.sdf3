@@ -1,0 +1,63 @@
+module Names
+
+imports
+
+  Keywords
+  Literals
+  Expressions
+  
+context-free syntax
+  
+  VarDef.VarDef = <<Var>>
+  VarRef.VarRef = <<Var>>
+  ExpAsVar.ExpAsVar = <<Exp><VarAssign?>>
+  VarAssign.VarAssign = <AS <VarDef>>
+  NodeVarRef.NodeVarRef = <<Var>>
+  PropRef.PropRef = <<VarRef>.<Prop>>
+
+  Var = <<VARNAME>>
+  
+  Prop = <<PROPNAME>>
+  Prop = <<STRING>>
+  Prop.Id = <id> {prefer}
+  
+lexical syntax
+  
+  GRAPHNAME = [a-zA-Z][a-zA-Z0-9\_]*
+  VARNAME   = [a-zA-Z][a-zA-Z0-9\_]*
+  PROPNAME  = [a-zA-Z][a-zA-Z0-9\_]*
+  
+lexical syntax // reserved keywords
+
+  VARNAME = "true" {reject}
+  VARNAME = "false" {reject}
+  VARNAME = "AND" {reject}
+  VARNAME = "OR" {reject}
+  VARNAME = [Mm][Aa][Tt][Cc][Hh] {reject}
+  VARNAME = [Ss][Ee][Ll][Ee][Cc][Tt] {reject}
+  VARNAME = [Ii][Nn] {reject}
+  VARNAME = [Oo][Rr][Dd][Ee][Rr] {reject}
+  VARNAME = [Ll][Ii][Mm][Ii][Tt] {reject}
+  VARNAME = [Hh][Aa][Ss] {reject}
+  VARNAME = [Uu][Nn][Ii][Oo][Nn] {reject}
+  VARNAME = [Nn][Oo][Tt] {reject}
+  VARNAME = [Rr][Ee][Gg][Ee][Xx] {reject}
+  VARNAME = [Oo][Pp][Tt][Ii][Oo][Nn][Aa][Ll] {reject}
+  VARNAME = [Aa][Nn][Dd] {reject}
+  VARNAME = [Ee][Xx][Pp][Aa][Nn][Dd] {reject}
+  VARNAME = [Nn][Uu][Ll][Ll] {reject}
+  VARNAME = "UNGROUP" {reject}
+  VARNAME = "GROUP" {reject}
+  VARNAME = "ORDER" {reject}
+  VARNAME = "DER" {reject}
+  VARNAME = "LIMIT" {reject}
+  VARNAME = "OFFSET" {reject}
+  VARNAME = "AS" {reject}
+  
+  PROPNAME = "has" {reject}
+  
+lexical restrictions // greedy matching
+
+  GRAPHNAME -/- [a-zA-Z0-9\_]
+  VARNAME   -/- [a-zA-Z0-9\_]
+  PROPNAME  -/- [a-zA-Z0-9\_\(]

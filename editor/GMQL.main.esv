@@ -1,0 +1,35 @@
+module GMQL.main
+
+imports
+
+	GMQL-Menus
+	GMQL-Colorer
+	GMQL-Completions
+	GMQL-Folding
+	GMQL-References
+	GMQL-Syntax
+	GMQL-Views
+
+  // src-gen/completions/GMQL-esv
+
+language General properties
+                  
+  name          : GMQL
+  id            : com.oracle.greenmarl.gmql.textual
+  extends       : Root
+                  
+  description   : "Spoofax/IMP-generated editor for the GMQL language"
+  url           : http://strategoxt.org
+                  
+  extensions    : gmql
+  table         : include/GMQL.tbl
+  start symbols : Start
+  
+  provider      : include/gmql.ctree
+  provider      : include/gmql-java.jar
+  
+  observer      : editor-analyze
+  
+  on save       : editor-save
+  
+  jvm opts      : -Xmx512m

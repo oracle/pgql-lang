@@ -1,0 +1,8 @@
+MATCH
+  (person:Person@12345) -[:HAS_CREATOR]-> (message) <-[like:LIKES]- (liker:Person)
+  OPTIONAL { liker-[know:KNOWS]-> person }
+SELECT liker.id, liker.firstName, liker.lastName, like.creationDate, lag := like.creationDate - message.creationDate,
+       isNew := CASE know WHEN NOT null THEN true ELSE false END,
+       content := CASE message.content WHEN NOT null THEN message.content ELSE message.imageFile END 
+ORDER BY like.creationDate
+LIMIT 10

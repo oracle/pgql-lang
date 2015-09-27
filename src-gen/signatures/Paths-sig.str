@@ -1,0 +1,40 @@
+module src-gen/signatures/Paths-sig
+
+imports
+  src-gen/signatures/Keywords-sig
+  src-gen/signatures/Literals-sig
+  src-gen/signatures/Names-sig
+  src-gen/signatures/Expressions-sig
+  src-gen/signatures/BuiltInFunctions-sig
+
+
+signature
+  constructors
+    Path                  : Node * List(EdgeNode) * Option(VarAssign) -> Path
+    Node                  : ElemContents -> Node
+    SimpleNode            : VARNAME -> Node
+    EdgeNode              : Edge * Node -> EdgeNode
+    EdgeOut               : Option(EdgeContents) * Option(PathLengthConstraints) -> Edge
+    EdgeIn                : Option(PathLengthConstraints) * Option(EdgeContents) -> Edge
+    EdgeOut               : Edge
+    EdgeIn                : Edge
+    EdgeNoDir             : Option(EdgeContents) * Option(PathLengthConstraints) -> Edge
+    EdgeContents          : ElemContents -> EdgeContents
+    PathLengthConstraints : PathConstraint -> PathLengthConstraints
+    PathLength            : Option(INTEGER) * Option(INTEGER) -> PathConstraint
+    Shortest              : Option(Weighted) -> PathConstraint
+    SomeShortest          : Option(Weighted) -> PathConstraint
+    All                   : Option(WithInlinedConstraints) -> PathConstraint
+    Any                   : Option(WithInlinedConstraints) -> PathConstraint
+    AllShortest           : Option(Weighted) * Option(WithInlinedConstraints) -> PathConstraint
+    AnyShortest           : Option(Weighted) * Option(WithInlinedConstraints) -> PathConstraint
+    Weighted              : InlinedExp -> Weighted
+    Weighted              : InlinedExp * Option(VarAssign) -> Weighted
+
+  constructors
+    ElemContents : Option(VARNAME) * Option(Type) * Option(Id) * Option(WithInlinedConstraints) -> ElemContents
+    Type         : ExpressionOrAltLit -> Type
+    Id           : ExpressionOrAltLit -> Id
+                 : Exp -> ExpressionOrAltLit
+                 : AltLit -> ExpressionOrAltLit
+    Constraint   : List(InlinedExp) -> WithInlinedConstraints

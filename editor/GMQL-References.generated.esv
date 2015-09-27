@@ -1,0 +1,19 @@
+
+module GMQL-References.generated
+
+references
+                                                                                          
+  // Reference resolving rules can specify the syntax constructors for which              
+  // a reference resolving function is available:                                         
+  //                                                                                      
+  //   reference FunctionCall : resolve-function-call                                     
+  //                                                                                      
+  // This defines that for each FunctionCall, resolve-function-call                       
+  // will retrieve the AST node that declares it.                                         
+  //                                                                                      
+  // Likewise, hover help can be specified as follows:                                    
+  //                                                                                      
+  //   hover FunctionCall : hover-help-function-call                                      
+  //                                                                                      
+  // Reference resolving uses the semantic provider defined in YourLanguage-Builders.esv  
+  // All semantic services may make use of the dynamic rules created by the observer.     

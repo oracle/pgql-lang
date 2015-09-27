@@ -1,0 +1,72 @@
+module src-gen/signatures/Keywords-sig
+
+signature
+  constructors
+     : String -> IN
+     : String -> MATCH
+     : String -> OPTIONAL
+     : String -> UNION
+     : String -> EXPAND
+     : String -> ORDER
+
+  constructors
+     : String -> HAS
+     : String -> INDEGREE
+     : String -> OUTDEGREE
+     : String -> SRC
+     : String -> DST
+     : String -> NODES
+     : String -> EDGES
+     : String -> LENGTH
+     : String -> CONTAINS
+     : String -> BEGINSWITH
+     : String -> ENDSWITH
+     : String -> BETWEEN
+     : String -> HEAD
+     : String -> LAST
+     : String -> INIT
+     : String -> TAIL
+     : String -> NOT
+     : String -> NULL
+     : String -> EXISTS
+     : String -> CASE
+     : String -> WHEN
+     : String -> THEN
+     : String -> ELSE
+     : String -> END
+     : String -> COUNT
+     : String -> SUM
+     : String -> MIN
+     : String -> MAX
+     : String -> AVG
+     : String -> GROUP-CONCAT
+
+  constructors
+     : String -> HAVING
+     : String -> ORDER
+     : String -> GROUP
+     : String -> ASC
+     : String -> DESC
+     : String -> BY
+     : String -> DISTINCT
+     : String -> REDUCED
+     : String -> OFFSET
+     : String -> LIMIT
+     : String -> SELECT
+     : String -> FOR
+     : String -> ALL
+     : String -> EACH
+     : String -> IN
+     : String -> NODE
+     : String -> EDGE
+     : String -> NODES
+     : String -> EDGES
+     : String -> LIST
+     : String -> FROM
+     : String -> WITH
+
+  constructors
+     : String -> SHORTEST
+
+  constructors
+     : String -> PREFIX
