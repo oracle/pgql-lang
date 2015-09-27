@@ -50,9 +50,9 @@
     <target name="package-ctree" depends="java.jar" />
 
 	<!-- Initialization -->
-	<available file="${src-gen}/com/oracle/greenmarl/gmql/textual/strategies/Main.java" property="java.jar.enabled" />
+	<available file="${src-gen}/oracle/pgql/lang/strategies/Main.java" property="java.jar.enabled" />
 	<available file="${pp}/${ppmodule}.str" property="pp.module.enabled" />
-	<condition property="java.jar.import" value="-la com.oracle.greenmarl.gmql.textual.strategies" else="">
+	<condition property="java.jar.import" value="-la oracle.pgql.lang.strategies" else="">
 		<isset property="java.jar.enabled" />
 	</condition>
 	<condition property="java.jar.classpath" value=":${include}/${strmodule}-java.jar" else="">
@@ -87,7 +87,7 @@
 	<condition property="src-dirs" value="${src-dirs}" else="${src-gen}">
 		<isset property="src-dirs" />
 	</condition>
-	 <condition property="javajar-includes" value="${javajar-includes}" else="com/oracle/greenmarl/gmql/textual/strategies/">
+	 <condition property="javajar-includes" value="${javajar-includes}" else="oracle/pgql/lang/strategies/">
     <isset property="javajar-includes" />
   </condition>
 

@@ -15,7 +15,7 @@ imports
 language General properties
                   
   name          : GMQL
-  id            : com.oracle.greenmarl.gmql.textual
+  id            : oracle.pgql.lang
   extends       : Root
                   
   description   : "Spoofax/IMP-generated editor for the GMQL language"

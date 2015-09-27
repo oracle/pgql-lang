@@ -8,16 +8,16 @@
             description="GMQL"
             language="GMQL"
             derivedFrom="DynamicRoot"
-            validator="com.oracle.greenmarl.gmql.textual.GMQLValidator"
-            validatorClass="com.oracle.greenmarl.gmql.textual.GMQLValidator"
+            validator="oracle.pgql.lang.GMQLValidator"
+            validatorClass="oracle.pgql.lang.GMQLValidator"
       ></language>
    </extension>
    <extension
-         id="com.oracle.greenmarl.gmql.textual.parser"
+         id="oracle.pgql.lang.parser"
          name="GMQL Parser"
          point="org.eclipse.imp.runtime.parser">
       <parser
-            class="com.oracle.greenmarl.gmql.textual.GMQLParseController"
+            class="oracle.pgql.lang.GMQLParseController"
             language="GMQL">
       </parser>
    </extension>    
