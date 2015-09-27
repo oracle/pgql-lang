@@ -8,7 +8,7 @@ imports
 
 rules
   
-  pp-GMQL-string =
+  pp-PGQL-string =
     prettyprint-Start
     ; !V([], <id>)
     ; box2text-string(|120)
@@ -16,7 +16,7 @@ rules
   pp-debug :
     ast -> result
     with
-       result := <pp-GMQL-string> ast
-    <+ <bottomup(try(not(is-string); not(is-list); not(pp-GMQL-string); debug(!"cannot pp ")))> ast
+       result := <pp-PGQL-string> ast
+    <+ <bottomup(try(not(is-string); not(is-list); not(pp-PGQL-string); debug(!"cannot pp ")))> ast
     ;  result := ""
 

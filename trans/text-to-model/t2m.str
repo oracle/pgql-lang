@@ -2,7 +2,7 @@ module text-to-model/t2m
 
 imports
 
-  text-to-model/GMQL-Graph
+  text-to-model/PGQL-Graph
   runtime/editor/-
   runtime/modelware/-
   runtime/nabl/-

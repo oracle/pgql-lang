@@ -1,9 +1,9 @@
 module text-to-model/m2t
 
 imports
-  include/GMQL
+  include/PGQL
   pgql
-  text-to-model/GMQL-Graph
+  text-to-model/PGQL-Graph
   lib/runtime/editor/origins
   generate/util
   projections

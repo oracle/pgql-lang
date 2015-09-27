@@ -21,7 +21,7 @@ imports
 //  generate/-
   editor/PGQL-Outliner
 //  text-to-model/t2m
-//  text-to-model/GMQL-Graph
+//  text-to-model/PGQL-Graph
 //  text-to-model/m2t
   signatures
 //  example-metadata
@@ -51,7 +51,7 @@ rules // Non-generated
   pretty-print-builder:
     (_, _, ast, path, project-path) -> (filename, result)
     with
-      filename := <guarantee-extension(|"pp.gmql")> path;
+      filename := <guarantee-extension(|"pp.pgql")> path;
       result   := <print-it-pretty> ast
   
   print-it-pretty:
@@ -180,9 +180,9 @@ rules // Analysis
   editor-analyze = analysis-default-editor
   
   analysis-single-default-interface =
-    analysis-single-default(normalize-gmql, id, id|<language>)
+    analysis-single-default(normalize-pgql, id, id|<language>)
   analysis-multiple-default-interface =
-    analysis-multiple-default(sunshine-parse-file <+ !(), normalize-gmql, id, id|<language>, <project-path>)
+    analysis-multiple-default(sunshine-parse-file <+ !(), normalize-pgql, id, id|<language>, <project-path>)
   
   sunshine-parse-file = prim("SSL_EXT_parse_file")
   
@@ -191,11 +191,11 @@ rules // Analysis
 rules
   
   // command-line
-  normalize-gmql =
+  normalize-pgql =
     ?TopNode(normalizedAst, schema); !TopNode(normalizedAst, <try(is-string; read-from-string)> schema); normalizeForNaBL
 
   // editor
-  normalize-gmql = 
+  normalize-pgql = 
     not(?TopNode(_, _)); try(normalize); !TopNode(<id>, <example-schema>); normalizeForNaBL
 
 rules // Editor services
@@ -210,12 +210,12 @@ rules // Editor services
 	// For references, this rule is invoked using the resolved term.
 	editor-hover:
 		(target, position, ast, path, project-path) ->
-			<get-editor-properties(pp-GMQL-string |<language>, project-path);properties-to-html>target
+			<get-editor-properties(pp-PGQL-string |<language>, project-path);properties-to-html>target
 
 	// Gathers the properties for the properties view.
 	editor-properties:
 		(target, position, ast, path, project-path) ->
-			<get-editor-properties(pp-GMQL-string |<language>, project-path)>target
+			<get-editor-properties(pp-PGQL-string |<language>, project-path)>target
 
 	// Completes an identifier when the user presses control-space
 	// (the completion identifier in the AST provides additional context information)

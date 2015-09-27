@@ -8,7 +8,7 @@ Language implementation:
  - Editor services: editor/*.esv
  
 Other:
- - Examples: example/**/.gmql
+ - Examples: example/**/.pgql
  - Tests: test/*.spt
  - Schema used for examples and tests: trans/example-schema.str
 
@@ -16,7 +16,7 @@ Other:
 Notes about the grammar
 =========================================
  - It includes layout information such that a pretty-printer and code completion templates can be generated.
- - GMQL keywords are defined as non-terminals, while they should be terminals. Non-terminals are really ugly (they show up in the AST, etc.).
+ - PGQL keywords are defined as non-terminals, while they should be terminals. Non-terminals are really ugly (they show up in the AST, etc.).
    However, the reason they are non-terminals is because we want allow for case-insensitive keywords, but native support for this has been 
    temporarily removed from Spoofax. Also see http://yellowgrass.org/issue/Spoofax/954
 
@@ -40,7 +40,7 @@ SELECT *
 =========================================
 Viewing the AST and the normalized AST
 =========================================
-Open a .gmql file (see /examples/). Then, using the menus in the menu toolbar:
+Open a .pgql file (see /examples/). Then, using the menus in the menu toolbar:
  - Syntax>Show abstract syntax
  - Syntax>Show normalized syntax
 

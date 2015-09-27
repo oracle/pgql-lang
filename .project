@@ -16,7 +16,7 @@
 			<arguments>
 				<dictionary>
 					<key>LaunchConfigHandle</key>
-					<value>&lt;project&gt;/.externalToolBuilders/GMQL build.main.xml.launch</value>
+					<value>&lt;project&gt;/.externalToolBuilders/PGQL build.main.xml.launch</value>
 				</dictionary>
 			</arguments>
 		</buildCommand>
@@ -26,7 +26,7 @@
 			<arguments>
 				<dictionary>
 					<key>LaunchConfigHandle</key>
-					<value>&lt;project&gt;/.externalToolBuilders/GMQL clean-project.xml.launch</value>
+					<value>&lt;project&gt;/.externalToolBuilders/PGQL clean-project.xml.launch</value>
 				</dictionary>
 			</arguments>
 		</buildCommand>
