@@ -203,7 +203,7 @@ rules
   		elems' := <map(norm-orderByElem)> elems
 
   norm-orderByElem =
-    ((?Desc1(<id>) + ?Desc1(<id>)); !OrderByElem(<id>, Desc())) <+
+    ((?Desc1(<id>) + ?Desc2(<id>)); !OrderByElem(<id>, Desc())) <+
     ((try(?Asc1(<id>) + ?Asc2(<id>))); !OrderByElem(<id>, Asc()))
 
   // replace-all-exp-with-var-from-SELECT(|expAsVars, orderBy) = alltd(is-list; map(replace-one-exp-with-var-from-SELECT(|expAsVars, orderBy)))
