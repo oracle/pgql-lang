@@ -12,7 +12,7 @@ exports
     VARNAME         -> Var        
     PROPNAME        -> Prop       
     STRING          -> Prop       
-    ID              -> Prop       {cons("Id"), prefer}
+    ID              -> Prop       {cons("Id2"), prefer}
 
   context-free syntax
     CONTENTCOMPLETE -> VarDef     {cons("COMPLETION-VarDef")}

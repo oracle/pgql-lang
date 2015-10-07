@@ -210,72 +210,78 @@ strategies
     ?PathLength(_, _)
 
   prettyprint-PathConstraint :
-    Shortest(t1__) -> [ H(
-                          [SOpt(HS(), "0")]
-                        , [S("shortest "), t1__']
-                        )
-                      ]
-    with t1__' := <pp-option(pp-one-Z(prettyprint-Weighted))> t1__
+    Shortest(t1__, t2__) -> [ H(
+                                [SOpt(HS(), "0")]
+                              , [t1__', S(" "), t2__']
+                              )
+                            ]
+    with t1__' := <pp-one-Z(prettyprint-SHORTEST)> t1__
+    with t2__' := <pp-option(pp-one-Z(prettyprint-Weighted))> t2__
 
   is-PathConstraint =
-    ?Shortest(_)
+    ?Shortest(_, _)
 
   prettyprint-PathConstraint :
-    SomeShortest(t1__) -> [ H(
-                              [SOpt(HS(), "0")]
-                            , [S("someShortest "), t1__']
-                            )
-                          ]
-    with t1__' := <pp-option(pp-one-Z(prettyprint-Weighted))> t1__
-
-  is-PathConstraint =
-    ?SomeShortest(_)
-
-  prettyprint-PathConstraint :
-    All(t1__) -> [ H(
-                     [SOpt(HS(), "0")]
-                   , [S("ALL"), t1__']
-                   )
-                 ]
-    with t1__' := <pp-option(pp-one-Z(prettyprint-WithInlinedConstraints))> t1__
-
-  is-PathConstraint =
-    ?All(_)
-
-  prettyprint-PathConstraint :
-    Any(t1__) -> [ H(
-                     [SOpt(HS(), "0")]
-                   , [S("ANY"), t1__']
-                   )
-                 ]
-    with t1__' := <pp-option(pp-one-Z(prettyprint-WithInlinedConstraints))> t1__
-
-  is-PathConstraint =
-    ?Any(_)
-
-  prettyprint-PathConstraint :
-    AllShortest(t1__, t2__) -> [ H(
-                                   [SOpt(HS(), "0")]
-                                 , [S("ALL SHORTEST"), t1__', t2__']
-                                 )
-                               ]
-    with t1__' := <pp-option(pp-one-Z(prettyprint-Weighted))> t1__
+    All(t1__, t2__) -> [ H(
+                           [SOpt(HS(), "0")]
+                         , [t1__', t2__']
+                         )
+                       ]
+    with t1__' := <pp-one-Z(prettyprint-ALL)> t1__
     with t2__' := <pp-option(pp-one-Z(prettyprint-WithInlinedConstraints))> t2__
 
   is-PathConstraint =
-    ?AllShortest(_, _)
+    ?All(_, _)
 
   prettyprint-PathConstraint :
-    AnyShortest(t1__, t2__) -> [ H(
-                                   [SOpt(HS(), "0")]
-                                 , [S("ANY SHORTEST"), t1__', t2__']
-                                 )
-                               ]
-    with t1__' := <pp-option(pp-one-Z(prettyprint-Weighted))> t1__
+    Any(t1__, t2__) -> [ H(
+                           [SOpt(HS(), "0")]
+                         , [t1__', t2__']
+                         )
+                       ]
+    with t1__' := <pp-one-Z(prettyprint-ANY)> t1__
     with t2__' := <pp-option(pp-one-Z(prettyprint-WithInlinedConstraints))> t2__
 
   is-PathConstraint =
-    ?AnyShortest(_, _)
+    ?Any(_, _)
+
+  prettyprint-PathConstraint :
+    AllShortest(t1__, t2__, t3__, t4__) -> [ H(
+                                               [SOpt(HS(), "0")]
+                                             , [ t1__'
+                                               , S(" ")
+                                               , t2__'
+                                               , t3__'
+                                               , t4__'
+                                               ]
+                                             )
+                                           ]
+    with t1__' := <pp-one-Z(prettyprint-ALL)> t1__
+    with t2__' := <pp-one-Z(prettyprint-SHORTEST)> t2__
+    with t3__' := <pp-option(pp-one-Z(prettyprint-Weighted))> t3__
+    with t4__' := <pp-option(pp-one-Z(prettyprint-WithInlinedConstraints))> t4__
+
+  is-PathConstraint =
+    ?AllShortest(_, _, _, _)
+
+  prettyprint-PathConstraint :
+    AnyShortest(t1__, t2__, t3__, t4__) -> [ H(
+                                               [SOpt(HS(), "0")]
+                                             , [ t1__'
+                                               , S(" ")
+                                               , t2__'
+                                               , t3__'
+                                               , t4__'
+                                               ]
+                                             )
+                                           ]
+    with t1__' := <pp-one-Z(prettyprint-ANY)> t1__
+    with t2__' := <pp-one-Z(prettyprint-SHORTEST)> t2__
+    with t3__' := <pp-option(pp-one-Z(prettyprint-Weighted))> t3__
+    with t4__' := <pp-option(pp-one-Z(prettyprint-WithInlinedConstraints))> t4__
+
+  is-PathConstraint =
+    ?AnyShortest(_, _, _, _)
 
   prettyprint-Weighted :
     Weighted(t1__) -> [ H(
@@ -396,15 +402,20 @@ strategies
     where t1__' := <pp-one-Z(prettyprint-AltLit)> t1__
 
   prettyprint-WithInlinedConstraints :
-    Constraint(t1__) -> [ H(
-                            [SOpt(HS(), "0")]
-                          , [S(" WITH "), t1__']
-                          )
-                        ]
-    with t1__' := <pp-H-list(prettyprint-InlinedExp|", ")> t1__
+    Constraint(t1__, t2__) -> [ H(
+                                  [SOpt(HS(), "0")]
+                                , [ S(" ")
+                                  , t1__'
+                                  , S(" ")
+                                  , t2__'
+                                  ]
+                                )
+                              ]
+    with t1__' := <pp-one-Z(prettyprint-WITH)> t1__
+    with t2__' := <pp-H-list(prettyprint-InlinedExp|", ")> t2__
 
   is-WithInlinedConstraints =
-    ?Constraint(_)
+    ?Constraint(_, _)
 
   is-ElemContents =
     fail

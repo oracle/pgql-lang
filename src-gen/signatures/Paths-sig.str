@@ -22,12 +22,11 @@ signature
     EdgeContents          : ElemContents -> EdgeContents
     PathLengthConstraints : PathConstraint -> PathLengthConstraints
     PathLength            : Option(INTEGER) * Option(INTEGER) -> PathConstraint
-    Shortest              : Option(Weighted) -> PathConstraint
-    SomeShortest          : Option(Weighted) -> PathConstraint
-    All                   : Option(WithInlinedConstraints) -> PathConstraint
-    Any                   : Option(WithInlinedConstraints) -> PathConstraint
-    AllShortest           : Option(Weighted) * Option(WithInlinedConstraints) -> PathConstraint
-    AnyShortest           : Option(Weighted) * Option(WithInlinedConstraints) -> PathConstraint
+    Shortest              : SHORTEST * Option(Weighted) -> PathConstraint
+    All                   : ALL * Option(WithInlinedConstraints) -> PathConstraint
+    Any                   : ANY * Option(WithInlinedConstraints) -> PathConstraint
+    AllShortest           : ALL * SHORTEST * Option(Weighted) * Option(WithInlinedConstraints) -> PathConstraint
+    AnyShortest           : ANY * SHORTEST * Option(Weighted) * Option(WithInlinedConstraints) -> PathConstraint
     Weighted              : InlinedExp -> Weighted
     Weighted              : InlinedExp * Option(VarAssign) -> Weighted
 
@@ -37,4 +36,4 @@ signature
     Id           : ExpressionOrAltLit -> Id
                  : Exp -> ExpressionOrAltLit
                  : AltLit -> ExpressionOrAltLit
-    Constraint   : List(InlinedExp) -> WithInlinedConstraints
+    Constraint   : WITH * List(InlinedExp) -> WithInlinedConstraints
