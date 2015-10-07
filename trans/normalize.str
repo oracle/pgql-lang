@@ -290,7 +290,7 @@ rules
   norm-case-insensitive: Distinct(_) -> Distinct()
   norm-case-insensitive: Reduced(_) -> Reduced()
   norm-case-insensitive: UngroupClase(_, a) -> UngroupClase(a)
-  norm-case-insensitive: GroupClause(_, _, a) -> UngroupClase(a)
+  norm-case-insensitive: GroupClause(_, _, a) -> GroupClause(a)
   norm-case-insensitive: HavingClause(_, a) -> HavingClause(a)
   norm-case-insensitive: OrderClause(_, _, a) -> OrderClause(a)
   norm-case-insensitive: LimitClause(_, a) -> LimitClause(a)
