@@ -24,12 +24,11 @@ context-free syntax
   EdgeContents.EdgeContents = <[<ElemContents>]>
   PathLengthConstraints.PathLengthConstraints = <{<PathConstraint>}>
   PathConstraint.PathLength = <<INTEGER?>..<INTEGER?>>
-  PathConstraint.Shortest = <shortest <Weighted?>>
-  PathConstraint.SomeShortest = <someShortest <Weighted?>>
-  PathConstraint.All = <ALL<WithInlinedConstraints?>>
-  PathConstraint.Any = <ANY<WithInlinedConstraints?>>
-  PathConstraint.AllShortest = <ALL SHORTEST<Weighted?><WithInlinedConstraints?>>
-  PathConstraint.AnyShortest = <ANY SHORTEST<Weighted?><WithInlinedConstraints?>>
+  PathConstraint.Shortest = <<SHORTEST> <Weighted?>>
+  PathConstraint.All = <<ALL><WithInlinedConstraints?>>
+  PathConstraint.Any = <<ANY><WithInlinedConstraints?>>
+  PathConstraint.AllShortest = <<ALL> <SHORTEST><Weighted?><WithInlinedConstraints?>>
+  PathConstraint.AnyShortest = <<ANY> <SHORTEST><Weighted?><WithInlinedConstraints?>>
   Weighted.Weighted = < USING <InlinedExp>>
   Weighted.Weighted = <<InlinedExp><VarAssign?>>
 
@@ -41,4 +40,4 @@ context-free syntax
   ExpressionOrAltLit = <<Exp>>
   ExpressionOrAltLit = <<AltLit>> {prefer}
   
-  WithInlinedConstraints.Constraint = < WITH <{InlinedExp ", "}+>>
+  WithInlinedConstraints.Constraint = < <WITH> <{InlinedExp ", "}+>>

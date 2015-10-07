@@ -10,79 +10,77 @@ imports
 
 context-free syntax // inlined function calls
 
-  InlinedCall.Has = <has(<{Prop ", "}*>)>
-  InlinedCall.InDegree  = <inDegree()>
-  InlinedCall.OutDegree = <outDegree()>
-  InlinedCall.Src = <src()>
-  InlinedCall.Dst = <dst()>
+  InlinedCall.Has = <<HAS>(<{Prop ", "}*>)>
+  InlinedCall.InDegree  = <<INDEGREE>()>
+  InlinedCall.OutDegree = <<OUTDEGREE>()>
+  InlinedCall.Src = <<SRC>()>
+  InlinedCall.Dst = <<DST>()>
   
-  InlinedCall.Nodes  = <nodes()>
-  InlinedCall.Edges  = <edges()>
-  InlinedCall.Length = <length()>
-  InlinedCall.Weight = <weight()>
+  InlinedCall.Nodes  = <<NODES>()>
+  InlinedCall.Edges  = <<EDGES>()>
+  InlinedCall.Length = <<LENGTH>()>
 
 context-free syntax // nodes/edges
 
-  FunctionCall.Has = <<Exp>. has(<{Prop ", "}*>)>
+  FunctionCall.Has = <<Exp>. <HAS>(<{Prop ", "}*>)>
   
 context-free syntax // nodes
 
-  FunctionCall.InDegree  = <<Exp>. inDegree()>
-  FunctionCall.OutDegree = <<Exp>. outDegree()>
+  FunctionCall.InDegree  = <<Exp>. <INDEGREE>()>
+  FunctionCall.OutDegree = <<Exp>. <OUTDEGREE>()>
   
 context-free syntax // edges
 
-  FunctionCall.Src = <<Exp>. src()>
-  FunctionCall.Dst = <<Exp>. dst()>
+  FunctionCall.Src = <<Exp>. <SRC>()>
+  FunctionCall.Dst = <<Exp>. <DST>()>
 
 context-free syntax // paths
 
-  FunctionCall.Nodes  = <<Exp>. nodes()>
-  FunctionCall.Edges  = <<Exp>. edges()>
-  FunctionCall.Length = <<Exp>. length()>
-  FunctionCall.Weight = <<Exp>. weight()>
+  FunctionCall.Nodes  = <<Exp>. <NODES>()>
+  FunctionCall.Edges  = <<Exp>. <EDGES>()>
+  FunctionCall.Length = <<Exp>. <LENGTH>()>
 
 context-free syntax // lists
   
-  FunctionCall.Head = <<Exp>. head()>
-  FunctionCall.Last = <<Exp>. last()>
-  FunctionCall.Init = <<Exp>. init()>
-  FunctionCall.Tail = <<Exp>. tail()>
+  FunctionCall.Head = <<Exp>. <HEAD>()>
+  FunctionCall.Last = <<Exp>. <LAST>()>
+  FunctionCall.Init = <<Exp>. <INIT>()>
+  FunctionCall.Tail = <<Exp>. <TAIL>()>
 
 context-free syntax // Strings
 
-  FunctionCall.Contains   = <<Exp>. contains(<Exp>, <Exp>)>
-  FunctionCall.BeginsWith = <<Exp>. beginsWith(<Exp>, <Exp>)>
-  FunctionCall.EndsWith   = <<Exp>. endWith(<Exp>, <Exp>)>
+  FunctionCall.Contains   = <<Exp>. <CONTAINS>(<Exp>, <Exp>)>
+  FunctionCall.BeginsWith = <<Exp>. <BEGINSWITH>(<Exp>, <Exp>)>
+  FunctionCall.EndsWith   = <<Exp>. <ENDSWITH>(<Exp>, <Exp>)>
 
 context-free syntax // Time
 
-  FunctionCall.Between = <<Exp>. between(<Exp>, <Exp>)>
-  FunctionCall.Year = <<Exp>. year()>
-  FunctionCall.Month = <<Exp>. month()>
-  FunctionCall.Day = <<Exp>. day()>
-  FunctionCall.Hours = <<Exp>. hours()>
-  FunctionCall.Minutes = <<Exp>. minutes()>
-  FunctionCall.Seconds = <<Exp>. seconds()>
-  FunctionCall.Timezone = <<Exp>. timezone()>
+  FunctionCall.Between = <<Exp>. <BETWEEN>(<Exp>, <Exp>)>
+  FunctionCall.Year = <<Exp>. <YEAR>()>
+  FunctionCall.Month = <<Exp>. <MONTH>()>
+  FunctionCall.Day = <<Exp>. <DAY>()>
+  FunctionCall.Hours = <<Exp>. <HOURS>()>
+  FunctionCall.Minutes = <<Exp>. <MINUTES>()>
+  FunctionCall.Seconds = <<Exp>. <SECONDS>()>
+  FunctionCall.Timezone = <<Exp>. <TIMEZONE>()>
 
 context-free syntax // EXISTS / NOT EXISTS / CASE
 
-  FunctionCall.ExistsFunc    = <EXISTS <GroupGraphPattern>>
-  FunctionCall.Case          = <CASE <Exp> <{WhenThen " "}+> ELSE <Exp> END>
-  WhenThen.WhenThen          = <WHEN <Exp> THEN <Exp>>
+  FunctionCall.ExistsFunc    = <<EXISTS> <GroupGraphPattern>>
+  FunctionCall.Case          = <<CASE> <Exp> <{WhenThen " "}+> <ELSE> <Exp> <END>>
+  WhenThen.WhenThen          = <<WHEN> <Exp> <THEN> <Exp>>
 
 context-free syntax // Aggregates
 
-  FunctionCall.COUNT        = <COUNT(<Distinct?><StarOrExp>)>
-  FunctionCall.MIN          = <MIN(<Distinct?><Exp>)>
-  FunctionCall.MAX          = <MAX(<Distinct?><Exp>)>
-  FunctionCall.SUM          = <SUM(<Distinct?><Exp>)>
-  FunctionCall.AVG          = <AVG(<Distinct?><Exp>)>
-  FunctionCall.GROUP-CONCAT = <GROUP_CONCAT(<Distinct?><Exp><Group-Concat-Sep?>)>
+  FunctionCall.COUNT        = <<COUNT>(<Distinct?><StarOrExp>)>
+  FunctionCall.MIN          = <<MIN>(<Distinct?><Exp>)>
+  FunctionCall.MAX          = <<MAX>(<Distinct?><Exp>)>
+  FunctionCall.SUM          = <<SUM>(<Distinct?><Exp>)>
+  FunctionCall.AVG          = <<AVG>(<Distinct?><Exp>)>
+  FunctionCall.GROUP-CONCAT = <<GROUP-CONCAT>(<Distinct?><Exp><Group-Concat-Sep?>)>
   
   StarOrExp.Star = <*>
   StarOrExp = <<Exp>>
   Group-Concat-Sep.Sep = <, <String>>
-  Distinct.Distinct = <DISTINCT>
+  Distinct.Distinct = DISTINCT
 

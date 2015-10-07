@@ -1,0 +1,71 @@
+module src-gen/signatures/BuiltInFunctions-sig
+
+imports
+  src-gen/signatures/Keywords-sig
+  src-gen/signatures/Names-sig
+  src-gen/signatures/Expressions-sig
+  src-gen/signatures/PGQL-sig
+  src-gen/signatures/Literals-sig
+
+
+signature
+  constructors
+    Has       : List(Prop) -> InlinedCall
+    InDegree  : InlinedCall
+    OutDegree : InlinedCall
+    Src       : InlinedCall
+    Dst       : InlinedCall
+    Nodes     : InlinedCall
+    Edges     : InlinedCall
+    Length    : InlinedCall
+
+  constructors
+    Has : Exp * List(Prop) -> FunctionCall
+
+  constructors
+    InDegree  : Exp -> FunctionCall
+    OutDegree : Exp -> FunctionCall
+
+  constructors
+    Src : Exp -> FunctionCall
+    Dst : Exp -> FunctionCall
+
+  constructors
+    Nodes  : Exp -> FunctionCall
+    Edges  : Exp -> FunctionCall
+    Length : Exp -> FunctionCall
+
+  constructors
+    Head : Exp -> FunctionCall
+    Last : Exp -> FunctionCall
+    Init : Exp -> FunctionCall
+    Tail : Exp -> FunctionCall
+
+  constructors
+    Contains   : Exp * Exp * Exp -> FunctionCall
+    BeginsWith : Exp * Exp * Exp -> FunctionCall
+    EndsWith   : Exp * Exp * Exp -> FunctionCall
+
+  constructors
+    Between  : Exp * Exp * Exp -> FunctionCall
+    Year     : Exp -> FunctionCall
+    Month    : Exp -> FunctionCall
+    Day      : Exp -> FunctionCall
+    Hours    : Exp -> FunctionCall
+    Minutes  : Exp -> FunctionCall
+    Seconds  : Exp -> FunctionCall
+    Timezone : Exp -> FunctionCall
+
+  constructors
+    ExistsFunc : GroupGraphPattern -> FunctionCall
+    Case       : Exp * List(WhenThen) * Exp -> FunctionCall
+    WhenThen   : Exp * Exp -> WhenThen
+
+  constructors
+    COUNT        : Option(Distinct) * StarOrExp -> FunctionCall
+    MIN          : Option(Distinct) * Exp -> FunctionCall
+    MAX          : Option(Distinct) * Exp -> FunctionCall
+    SUM          : Option(Distinct) * Exp -> FunctionCall
+    AVG          : Option(Distinct) * Exp -> FunctionCall
+    GROUP-CONCAT : Option(Distinct) * Exp * Option(Group-Concat-Sep) -> FunctionCall
+    Distinct     : Distinct

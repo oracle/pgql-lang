@@ -28,13 +28,13 @@ context-free syntax
     
   // InClause.InClause = <IN <GRAPHNAME>>
   
-  SelectClause.SelectClause = <SELECT <DistinctOrReduced?><SelectElems>>
+  SelectClause.SelectClause = <<SELECT> <DistinctOrReduced?><SelectElems>>
   
-  FromClause.FromClause = <FROM <GRAPHNAME>>
+  FromClause.FromClause = <<FROM> <GRAPHNAME>>
   
-  MatchClause.GraphPattern = 
+  MatchClause.GraphPattern1 = 
     <
-      WHERE
+      <WHERE>
         <{MatchElem ",\n"}*>
     >
   
@@ -42,7 +42,7 @@ context-free syntax
   MatchElem = Path // see Paths.sdf3
   
   MatchElem.Constraint = Exp {avoid} // see Expressions.sdf3. Note: 'avoid' disambiguates 'match (X.p1) select *' ('(X.p1)' can be a Constraint or a Node)
-  MatchElem.Optional = <OPTIONAL <GroupGraphPattern>>
+  MatchElem.Optional = <<OPTIONAL> <GroupGraphPattern>>
   MatchElem = UnionGraphPattern
   MatchElem = SubSelect
   // MatchElem.Var = <<VarAssign><Exp>> 
@@ -58,7 +58,7 @@ context-free syntax
     <UnionGraphPatternChild>
   >
   UnionGraphPatternChild.Union = <
-    UNION <SubSelect>
+    <UNION> <SubSelect>
     <UnionGraphPatternChild?>
   >
 
@@ -67,7 +67,3 @@ context-free syntax
       <Query>
     }
   >
-  
-  MatchElem.Expand = <EXPAND(<VarDef> : <Exp>)> {prefer}
-
-  // MatchingOrderHint.MatchingOrderHint = <IN ORDER <{NodeVarRef ", "}*>>

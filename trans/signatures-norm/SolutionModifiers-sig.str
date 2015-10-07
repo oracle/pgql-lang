@@ -1,0 +1,20 @@
+module src-gen/signatures/SolutionModifiers-sig
+
+imports
+  src-gen/signatures/Keywords-sig
+  src-gen/signatures/Names-sig
+  src-gen/signatures/Literals-sig
+  src-gen/signatures/Expressions-sig
+
+
+signature
+  constructors
+    ExpAsVar           : Star * Option(VarAssign) -> ExpOrStarAsVar
+    Distinct           : DistinctOrReduced
+    Reduced            : DistinctOrReduced
+    UngroupClase       : List(ExpAsVar) -> UngroupClause
+    GroupClause        : List(ExpAsVar) -> GroupClause
+    HavingClause       : List(Exp) -> HavingClause
+    OrderClause        : List(OrderElem) -> OrderClause
+    LimitClause        : INTEGER -> LimitClause
+    OffsetClause       : INTEGER -> OffsetClause

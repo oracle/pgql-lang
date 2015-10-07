@@ -15,7 +15,7 @@ context-free syntax
   Exp = Literal
   Exp = FunctionCall
   
-  Exp.Not1 = <NOT <Exp>> {right}
+  Exp.Not1 = <<NOT> <Exp>> {right}
   Exp.Not2 = <!<Exp>> {right}
   Exp.UMin = <-<Exp>> {right}
 
@@ -48,7 +48,7 @@ context-free syntax
   
   InlinedExp.SelfPropRef = <<Prop>>
   
-  InlinedExp.Not1 = <NOT <InlinedExp>> {right}
+  InlinedExp.Not1 = <<NOT> <InlinedExp>> {right}
   InlinedExp.Not2 = <!<InlinedExp>> {right}
   InlinedExp.UMin = <-<InlinedExp>> {right}
 
@@ -91,7 +91,6 @@ context-free priorities
       FunctionCall.Nodes
       FunctionCall.Edges
       FunctionCall.Length
-      FunctionCall.Weight
       FunctionCall.Head
       FunctionCall.Last
       FunctionCall.Init
@@ -148,11 +147,13 @@ context-free priorities
   {
     left:
       Exp.And
+      Exp.And2
   }
   >
   {
     left:
       Exp.Or
+      Exp.Or2
   }
 
 context-free priorities
@@ -178,7 +179,6 @@ context-free priorities
       InlinedCall.Nodes
       InlinedCall.Edges
       InlinedCall.Length
-      InlinedCall.Weight
   }
   >
   {
@@ -212,9 +212,18 @@ context-free priorities
   {
     left:
       InlinedExp.And
+      InlinedExp.And2
   }
   >
   {
     left:
       InlinedExp.Or
+      InlinedExp.Or2
   }
+
+context-free syntax // temporary
+ 
+  Exp.And2 = <<Exp> and <Exp>> {left}
+  Exp.Or2 = <<Exp> or <Exp>> {left}
+  InlinedExp.And2 = <<InlinedExp> AND <InlinedExp>> {left}
+  InlinedExp.Or2 = <<InlinedExp> OR <InlinedExp>> {left}

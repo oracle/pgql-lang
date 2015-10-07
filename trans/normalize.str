@@ -3,6 +3,7 @@ module normalize
 imports
   
   src-gen/signatures/-
+  signatures-norm/-
   normalizedAST-sig
   runtime/editor/origins
   projections
@@ -20,6 +21,7 @@ rules
       // schema' := <try(is-string; read-from-string)> schema;
       
       result := <
+      	bottomup(try(norm-case-insensitive));
         innermost(
           norm-UMin +
           norm-NOT +
@@ -44,7 +46,7 @@ rules
   norm-UMin = ?UMin(Decimal(string)); !Integer(<conc-strings> ("-", string))
   norm-UMin = ?UMin(Double(string)); !Integer(<conc-strings> ("-", string))
   
-  norm-NOT = ?Not1(<id>); !Not(<id>)
+  norm-NOT = ?Not1(_, <id>); !Not(<id>)
   norm-NOT = ?Not2(<id>); !Not(<id>)
   
   norm-string = is-string; try(un-double-quote + un-single-quote)
@@ -110,7 +112,7 @@ rules
       edges := <get-edges; !Edges(<id>)> paths';
       optionals := <filter(?Optional(_)); !Optionals(<id>)> elems;
       unions := <filter(?Union(_)); !Unions(<id>)> elems;
-      expands := <filter(?Expand(_, _)); !Expands(<id>)> elems;
+      expands := [];
       subQueries := <filter(?SubSelect(<id>)); !SubQueries(<id>)> elems;
       pathDecls := <filter(?Path(_, _, Some(_)); to-path-decl); !PathDecls(<id>)> paths
   
@@ -186,7 +188,7 @@ rules
   norm-query:
     Query(SelectClause(distinctOrReduced, selectElems), graphName, graphPattern, SolutionModifier(ungroupAs, groupBy, having, orderBy, limitOffsets)) -> Query(graphName, graphPattern, None(), select)
     with
-    	expAsVars := <?Vars(<id>); map(norm-expAsVar)> selectElems;
+      expAsVars := <?ExpAsVars(<id>); map(norm-expAsVar)> selectElems;
       // groupBy' := <replace-all-exp-with-var-from-SELECT(|expAsVars, False())> groupBy;
       // orderBy' := <replace-all-exp-with-var-from-SELECT(|expAsVars, True())> orderBy;
       orderBy' := <try(norm-orderBy)> orderBy;
@@ -203,8 +205,8 @@ rules
   		elems' := <map(norm-orderByElem)> elems
 
   norm-orderByElem =
-    ((?Desc1(<id>) + ?Desc2(<id>)); !OrderByElem(<id>, Desc())) <+
-    ((try(?Asc1(<id>) + ?Asc2(<id>))); !OrderByElem(<id>, Asc()))
+    ((?Desc1(_, <id>) + ?Desc2(<id>, _)); !OrderByElem(<id>, Desc())) <+
+    ((try(?Asc1(_, <id>) + ?Asc2(<id>, _))); !OrderByElem(<id>, Asc()))
 
   // replace-all-exp-with-var-from-SELECT(|expAsVars, orderBy) = alltd(is-list; map(replace-one-exp-with-var-from-SELECT(|expAsVars, orderBy)))
   // replace-one-exp-with-var-from-SELECT(|expAsVars, orderBy):
@@ -238,6 +240,60 @@ rules
   
 signature constructors // only used temporary, not in output term
 	
-	Label : Label
-	Type  : Type
+  Label : Label
+  Type  : Type
+  Vars  : a -> Vars
 	
+rules
+
+  norm-case-insensitive: Has(_, a) -> Has(a)
+  norm-case-insensitive: InDegree(_) -> InDegree()
+  norm-case-insensitive: OutDegree(_) -> OutDegree()
+  norm-case-insensitive: Src(_) -> Src()
+  norm-case-insensitive: Dst(_) -> Dst()
+  norm-case-insensitive: Nodes(_) -> Nodes()
+  norm-case-insensitive: Edges(_) -> Edges()
+  norm-case-insensitive: Length(_) -> Length()
+  norm-case-insensitive: Has(a, _, b) -> Has(a, b)
+  norm-case-insensitive: InDegree(a, _) -> InDegree(a)
+  norm-case-insensitive: OutDegree(a, _) -> OutDegree(a)
+  norm-case-insensitive: Src(a, _) -> Src(a)
+  norm-case-insensitive: Dst(a, _) -> Dst(a)
+  norm-case-insensitive: Nodes(a, _) -> Nodes(a)
+  norm-case-insensitive: Edges(a, _) -> Edges(a)
+  norm-case-insensitive: Length(a, _) -> Length(a)
+  norm-case-insensitive: Head(a, _) -> Head(a)
+  norm-case-insensitive: Last(a, _) -> Last(a)
+  norm-case-insensitive: Init(a, _) -> Init(a)
+  norm-case-insensitive: Tail(a, _) -> Tail(a)
+  // TODO: built-ins for Strings and Dates
+  norm-case-insensitive: COUNT(_, a, b) -> COUNT(a, b)
+  norm-case-insensitive: MIN(_, a, b) -> MIN(a, b)
+  norm-case-insensitive: MAX(_, a, b) -> MAX(a, b)
+  norm-case-insensitive: SUM(_, a, b) -> SUM(a, b)
+  norm-case-insensitive: AVG(_, a, b) -> AVG(a, b)
+  norm-case-insensitive: GROUP-CONCAT(_, a, b, c) -> GROUP-CONCAT(a, b, c)
+  norm-case-insensitive: Distinct(_) -> Distinct()
+  
+  norm-case-insensitive: VarAssign(_, a) -> VarAssign(a)
+  
+  // TODO: paths
+  norm-case-insensitive: VarAssign(a, _) -> VarAssign(a)
+  
+  norm-case-insensitive: GraphPattern1(_, a) -> GraphPattern(a)
+  norm-case-insensitive: SelectClause(_, a, b) -> SelectClause(a, b)
+  norm-case-insensitive: FromClause(_, a) -> FromClause(a)
+  norm-case-insensitive: Optional(_, a) -> Optional(a)
+  norm-case-insensitive: Union(_, a, b) -> Union(a, b)
+  norm-case-insensitive: Id(a) -> Id()
+  
+  norm-case-insensitive: Distinct(_) -> Distinct()
+  norm-case-insensitive: Reduced(_) -> Reduced()
+  norm-case-insensitive: UngroupClase(_, a) -> UngroupClase(a)
+  norm-case-insensitive: GroupClause(_, _, a) -> UngroupClase(a)
+  norm-case-insensitive: HavingClause(_, a) -> HavingClause(a)
+  norm-case-insensitive: OrderClause(_, _, a) -> OrderClause(a)
+  norm-case-insensitive: LimitClause(_, a) -> LimitClause(a)
+  norm-case-insensitive: OffsetClause(_, a) -> OffsetClause(a)
+  
+  

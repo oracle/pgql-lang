@@ -1,0 +1,22 @@
+module src-gen/signatures/PGQL-sig
+
+imports
+  src-gen/signatures/Layout-sig
+  src-gen/signatures/Keywords-sig
+  src-gen/signatures/Names-sig
+  src-gen/signatures/Literals-sig
+  src-gen/signatures/Expressions-sig
+  src-gen/signatures/Paths-sig
+  src-gen/signatures/SolutionModifiers-sig
+
+
+signature
+  constructors
+  	GraphPattern      : elems -> GraphPattern
+  	Id                : Id
+    SelectClause      : Option(DistinctOrReduced) * SelectElems -> SelectClause
+    FromClause        : GRAPHNAME -> FromClause
+    Optional          : GroupGraphPattern -> MatchElem
+                      : UnionGraphPattern -> MatchElem
+                      : SubSelect -> MatchElem
+    Union             : SubSelect * Option(UnionGraphPatternChild) -> UnionGraphPatternChild

@@ -1,0 +1,11 @@
+module src-gen/signatures/Names-sig
+
+imports
+  src-gen/signatures/Keywords-sig
+  src-gen/signatures/Literals-sig
+  src-gen/signatures/Expressions-sig
+
+
+signature
+  constructors
+    VarAssign   : VarDef -> ExpAsVar

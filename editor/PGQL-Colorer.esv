@@ -46,25 +46,17 @@ colorer // Data
   INTEGER              : darkblue
   DECIMAL              : darkblue
   DOUBLE               : darkblue
-  INTEGER-POSITIVE     : darkblue
-  DECIMAL-POSITIVE     : darkblue
-  DOUBLE-POSITIVE      : darkblue
-  INTEGER-NEGATIVE     : darkblue
-  DECIMAL-NEGATIVE     : darkblue
-  DOUBLE-NEGATIVE      : darkblue
   LitCustomType        : darkblue
-  IRIREF               : darkblue
-  PN-LOCAL             : darkblue
-  PN-PREFIX            : gray
   
 colorer // Keywords, can be removed once http://yellowgrass.org/issue/Spoofax/954 is fixed
 
-  IN             : 127 0 85 bold
-  MATCH          : 127 0 85 bold
+  SELECT         : 127 0 85 bold
+  WHERE          : 127 0 85 bold
   OPTIONAL       : 127 0 85 bold
   UNION          : 127 0 85 bold
-  EXPAND         : 127 0 85 bold
-  ORDER          : 127 0 85 bold
+  WITH           : 127 0 85 bold
+  AS             : 127 0 85 bold
+  ID             : 127 0 85 bold
 
   HAS            : 127 0 85 bold
   
@@ -130,5 +122,3 @@ colorer // Keywords, can be removed once http://yellowgrass.org/issue/Spoofax/95
   WITH           : 127 0 85 bold
   
   SHORTEST       : 127 0 85 bold
-  
-  PREFIX         : 127 0 85 bold

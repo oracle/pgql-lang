@@ -7,12 +7,13 @@ module Keywords
 
 lexical syntax
 
-  IN             = [Ii][Nn]
-  MATCH          = [Mm][Aa][Tt][Cc][Hh]
+  SELECT         = [Ss][Ee][Ll][Ee][Cc][Tt]
+  WHERE          = [Ww][Hh][Ee][Rr][Ee]
   OPTIONAL       = [Oo][Pp][Tt][Ii][Oo][Nn][Aa][Ll]
   UNION          = [Uu][Nn][Ii][Oo][Nn]
-  EXPAND         = [Ee][Xx][Pp][Aa][Nn][Dd]
-  ORDER          = [Oo][Rr][Dd][Ee][Rr]
+  WITH           = [Ww][Ii][Tt][Hh]
+  AS             = [Aa][Ss]
+  ID             = [Ii][Dd]
 
 lexical syntax  // BuiltInCall
 
@@ -33,6 +34,13 @@ lexical syntax  // BuiltInCall
   ENDSWITH       = [Ee][Nn][Dd][Ss][Ww][Ii][Tt][Hh]
   
   BETWEEN        = [Bb][Ee][Tt][Ww][Ee][Ee][Nn]
+  YEAR           = [Yy][Ee][Aa][Rr]
+  MONTH          = [Mm][Oo][Nn][Tt][Hh]
+  DAY            = [Dd][Aa][Yy]
+  HOURS          = [Hh][Oo][Uu][Rr][Ss]
+  MINUTES        = [Mm][Ii][Nn][Uu][Tt][Ee][Ss]
+  SECONDS        = [Ss][Ee][Cc][Oo][Nn][Dd][Ss]
+  TIMEZONE       = [Tt][Ii][Mm][Zz][Oo][Nn][Ee]
 
   HEAD           = [Hh][Ee][Aa][Dd]
   LAST           = [Ll][Aa][ss][Tt]
@@ -56,23 +64,30 @@ lexical syntax  // BuiltInCall
   AVG            = [Aa][Vv][Gg]
   GROUP-CONCAT   = [Gg][Rr][Oo][Uu][Pp][\_][Cc][Oo][Nn][Cc][Aa][Tt]
 
+  // EXISTS / NOT EXISTS / CASE
+  EXISTS         = [Ee][Xx][Ii][Ss][Tt][Ss]
+  CASE           = [Cc][Aa][Ss][Ee]
+  ELSE           = [Ee][Ll][Ss][Ee]
+  WHEN           = [Ww][Hh][Ee][Nn]
+  THEN           = [Tt][Hh][Ee][Nn]
+
 lexical syntax // Solution modifiers
 
-  HAVING         = [Hh][Aa][Vv][Ii][Nn][Gg]
-  ORDER          = [Oo][Rr][Dd][Ee][Rr]
   GROUP          = [Gg][Rr][Oo][Uu][Pp]
+  HAVING         = [Hh][Aa][Vv][Ii][Nn][Gg]
   ASC            = [Aa][Ss][Cc]
   DESC           = [Dd][Ee][Ss][Cc]
   BY             = [Bb][Yy]
+  ORDER          = [Oo][Rr][Dd][Ee][Rr]
   DISTINCT       = [Dd][Ii][Ss][Tt][Ii][Nn][Cc][Tt]
   REDUCED        = [Rr][Ee][Dd][Uu][Cc][Ee][Dd]
-  OFFSET         = [Oo][Ff][Ff][Ss][Ee][Tt]
+  UNGROUP        = [Uu][Nn][Gg][Rr][Oo][Uu][Pp]
   LIMIT          = [Ll][Ii][Mm][Ii][Tt]
-
-  SELECT         = [Ss][Ee][Ll][Ee][Cc][Tt]
+  OFFSET         = [Oo][Ff][Ff][Ss][Ee][Tt]
   
   FOR            = [Ff][Oo][Rr]
   ALL            = [Aa][Ll][Ll]
+  ANY            = [Aa][Nn][Yy]
   EACH           = [Ee][Aa][Cc][Hh]
   IN             = [Ii][Nn]
   NODE           = [Nn][Oo][Dd][Ee]
@@ -81,7 +96,6 @@ lexical syntax // Solution modifiers
   EDGES          = [Ee][Dd][Gg][Ee][Ss]
   LIST           = [Ll][Ii][Ss][Tt]
   FROM           = [Ff][Rr][Oo][Mm]
-  WITH           = [Ww][Ii][Tt][Hh]
   
 lexical syntax // Arbitrary-length paths
 
