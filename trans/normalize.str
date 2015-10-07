@@ -188,13 +188,13 @@ rules
   norm-query:
     Query(SelectClause(distinctOrReduced, selectElems), graphName, graphPattern, SolutionModifier(ungroupAs, groupBy, having, orderBy, limitOffsets)) -> Query(graphName, graphPattern, None(), select)
     with
-      expAsVars := <?ExpAsVars(<id>); map(norm-expAsVar)> selectElems;
+      expAsVars := <?Star() <+ ?ExpAsVars(<id>); map(norm-expAsVar); !Vars(<id>)> selectElems;
       // groupBy' := <replace-all-exp-with-var-from-SELECT(|expAsVars, False())> groupBy;
       // orderBy' := <replace-all-exp-with-var-from-SELECT(|expAsVars, True())> orderBy;
       orderBy' := <try(norm-orderBy)> orderBy;
       limitOffsets' := <norm-limitOffsets> limitOffsets;
       groupBy' := <alltd(norm-expAsVar)> groupBy;
-      select := Select(distinctOrReduced, Vars(expAsVars), groupBy', having, orderBy', limitOffsets')
+      select := Select(distinctOrReduced, expAsVars, groupBy', having, orderBy', limitOffsets')
   
   norm-expAsVar = ?ExpAsVar(term, Some(VarAssign(VarDef(v)))); !ExpAsVar(v, term)
   norm-expAsVar = ?ExpAsVar(term, None()); !ExpAsVar(<origin-track-forced(origin-text)> term, term)
@@ -286,6 +286,7 @@ rules
   norm-case-insensitive: Optional(_, a) -> Optional(a)
   norm-case-insensitive: Union(_, a, b) -> Union(a, b)
   norm-case-insensitive: Id2(_) -> Id()
+  norm-case-insensitive: Constraint(_, a) -> Constraint(a)
   
   norm-case-insensitive: Distinct(_) -> Distinct()
   norm-case-insensitive: Reduced(_) -> Reduced()
