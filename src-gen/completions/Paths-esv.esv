@@ -19,9 +19,9 @@ completions
   completion template Edge : "<--" =
     "<-" <:PathLengthConstraints> <:EdgeContents> "-"  
   completion template Edge : "->" =
-    "->"              
+    "->"                                 
   completion template Edge : "<-" =
-    "<-"              
+    "<-"                                 
   completion template Edge : "--" =
     "-" <:EdgeContents> <:PathLengthConstraints> "-"  
   completion template EdgeContents : "[ElemContents]" =
@@ -30,18 +30,16 @@ completions
     "{" <PathConstraint:PathConstraint> "}"  
   completion template PathConstraint : ".." =
     <:INTEGER> ".." <:INTEGER>  
-  completion template PathConstraint : "shortest " =
-    "shortest " <:Weighted>  
-  completion template PathConstraint : "someShortest " =
-    "someShortest " <:Weighted>  
+  completion template PathConstraint : "SHORTEST " =
+    <SHORTEST:SHORTEST> " " <:Weighted>  
   completion template PathConstraint : "ALL" =
-    "ALL" <:WithInlinedConstraints>  
+    <ALL:ALL> <:WithInlinedConstraints>  
   completion template PathConstraint : "ANY" =
-    "ANY" <:WithInlinedConstraints>  
+    <ANY:ANY> <:WithInlinedConstraints>  
   completion template PathConstraint : "ALL SHORTEST" =
-    "ALL SHORTEST" <:Weighted> <:WithInlinedConstraints>  
+    <ALL:ALL> " " <SHORTEST:SHORTEST> <:Weighted> <:WithInlinedConstraints>  
   completion template PathConstraint : "ANY SHORTEST" =
-    "ANY SHORTEST" <:Weighted> <:WithInlinedConstraints>  
+    <ANY:ANY> " " <SHORTEST:SHORTEST> <:Weighted> <:WithInlinedConstraints>  
   completion template Weighted : " USING InlinedExp" =
     " USING " <InlinedExp:InlinedExp>  
   completion template Weighted : "InlinedExp" =
@@ -55,4 +53,4 @@ completions
   completion template Id : "@ExpressionOrAltLit" =
     "@" <ExpressionOrAltLit:ExpressionOrAltLit>  
   completion template WithInlinedConstraints : " WITH InlinedExp" =
-    " WITH " <InlinedExp:InlinedExp>  
+    " " <WITH:WITH> " " <InlinedExp:InlinedExp>  

@@ -10,22 +10,20 @@ imports
 signature
   constructors
     SolutionModifier   : Option(UngroupClause) * Option(GroupClause) * Option(HavingClause) * Option(OrderClause) * Option(LimitOffsetClauses) -> SolutionModifier
-    Vars               : List(ExpOrStarAsVar) -> SelectElems
-    ExpAsVar           : Star * Option(VarAssign) -> ExpOrStarAsVar
-    Star               : Star
-                       : ExpAsVar -> ExpOrStarAsVar
-    Distinct           : DistinctOrReduced
-    Reduced            : DistinctOrReduced
-    UngroupClase       : List(ExpAsVar) -> UngroupClause
-    GroupClause        : List(ExpAsVar) -> GroupClause
-    HavingClause       : List(Exp) -> HavingClause
-    OrderClause        : List(OrderElem) -> OrderClause
+    ExpAsVars          : List(ExpAsVar) -> SelectElems
+    Star               : SelectElems
+    Distinct           : DISTINCT -> DistinctOrReduced
+    Reduced            : REDUCED -> DistinctOrReduced
+    UngroupClase       : UNGROUP * List(ExpAsVar) -> UngroupClause
+    GroupClause        : GROUP * BY * List(ExpAsVar) -> GroupClause
+    HavingClause       : HAVING * List(Exp) -> HavingClause
+    OrderClause        : ORDER * BY * List(OrderElem) -> OrderClause
                        : Exp -> OrderElem
-    Asc1               : Exp -> OrderElem
-    Desc1              : Exp -> OrderElem
-    Asc2               : Exp -> OrderElem
-    Desc2              : Exp -> OrderElem
+    Asc1               : ASC * Exp -> OrderElem
+    Desc1              : DESC * Exp -> OrderElem
+    Asc2               : Exp * ASC -> OrderElem
+    Desc2              : Exp * DESC -> OrderElem
     LimitOffsetClauses : LimitClause * Option(OffsetClause) -> LimitOffsetClauses
     OffsetLimitClauses : OffsetClause * Option(LimitClause) -> LimitOffsetClauses
-    LimitClause        : INTEGER -> LimitClause
-    OffsetClause       : INTEGER -> OffsetClause
+    LimitClause        : LIMIT * INTEGER -> LimitClause
+    OffsetClause       : OFFSET * INTEGER -> OffsetClause

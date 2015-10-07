@@ -11,13 +11,13 @@ signature
     VarDef     : Var -> VarDef
     VarRef     : Var -> VarRef
     ExpAsVar   : Exp * Option(VarAssign) -> ExpAsVar
-    VarAssign  : VarDef -> VarAssign
+    VarAssign  : AS * VarDef -> VarAssign
     NodeVarRef : Var -> NodeVarRef
     PropRef    : VarRef * Prop -> PropRef
                : VARNAME -> Var
                : PROPNAME -> Prop
                : STRING -> Prop
-    Id         : Prop
+    Id         : ID -> Prop
 
   constructors
      : String -> GRAPHNAME

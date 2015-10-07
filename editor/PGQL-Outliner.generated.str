@@ -7,7 +7,12 @@ imports
 
 rules
   
-  to-outline-label = ?Has(<id>, _)
-  to-outline-label = ?GraphPattern(_, <id>)
+  to-outline-label = ?Has(<id>, _, _)
   to-outline-label = ?Path(<id>, _, _)
-  to-outline-label = ?Case(<id>, _, _)
+  to-outline-label = ?Has(<id>, _)
+  to-outline-label = ?Case(<id>, _, _, _, _, _)
+  to-outline-label = ?GraphPattern1(<id>, _)
+  to-outline-label = ?UngroupClase(<id>, _)
+  to-outline-label = ?GroupClause(<id>, _, _)
+  to-outline-label = ?HavingClause(<id>, _)
+  to-outline-label = ?OrderClause(<id>, _, _)

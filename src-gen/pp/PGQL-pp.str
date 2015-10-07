@@ -48,6 +48,9 @@ strategies
     prettyprint-MatchClause
 
   prettyprint-example =
+    prettyprint-MatchElem
+
+  prettyprint-example =
     prettyprint-GroupGraphPattern
 
   prettyprint-example =
@@ -58,9 +61,6 @@ strategies
 
   prettyprint-example =
     prettyprint-SubSelect
-
-  prettyprint-example =
-    prettyprint-MatchElem
 
   prettyprint-Start :
     t1__ -> [ H(
@@ -98,40 +98,43 @@ strategies
     ?Query(_, _, _, _)
 
   prettyprint-SelectClause :
-    SelectClause(t1__, t2__) -> [ H(
-                                    [SOpt(HS(), "0")]
-                                  , [S("SELECT "), t1__', t2__']
-                                  )
-                                ]
-    with t1__' := <pp-option(pp-one-Z(prettyprint-DistinctOrReduced))> t1__
-    with t2__' := <pp-one-Z(prettyprint-SelectElems)> t2__
+    SelectClause(t1__, t2__, t3__) -> [ H(
+                                          [SOpt(HS(), "0")]
+                                        , [t1__', S(" "), t2__', t3__']
+                                        )
+                                      ]
+    with t1__' := <pp-one-Z(prettyprint-SELECT)> t1__
+    with t2__' := <pp-option(pp-one-Z(prettyprint-DistinctOrReduced))> t2__
+    with t3__' := <pp-one-Z(prettyprint-SelectElems)> t3__
 
   is-SelectClause =
-    ?SelectClause(_, _)
+    ?SelectClause(_, _, _)
 
   prettyprint-FromClause :
-    FromClause(t1__) -> [ H(
-                            [SOpt(HS(), "0")]
-                          , [S("FROM "), t1__']
-                          )
-                        ]
-    with t1__' := <pp-one-Z(prettyprint-GRAPHNAME)> t1__
+    FromClause(t1__, t2__) -> [ H(
+                                  [SOpt(HS(), "0")]
+                                , [t1__', S(" "), t2__']
+                                )
+                              ]
+    with t1__' := <pp-one-Z(prettyprint-FROM)> t1__
+    with t2__' := <pp-one-Z(prettyprint-GRAPHNAME)> t2__
 
   is-FromClause =
-    ?FromClause(_)
+    ?FromClause(_, _)
 
   prettyprint-MatchClause :
-    GraphPattern(t1__) -> [ H(
-                              [SOpt(HS(), "0")]
-                            , [S("WHERE")]
-                            )
-                          , t1__'
-                          ]
-    with t1__' := <pp-indent(|"2")> [ <pp-V-list(prettyprint-MatchElem|"0", ",")> t1__
+    GraphPattern1(t1__, t2__) -> [ H(
+                                     [SOpt(HS(), "0")]
+                                   , [t1__']
+                                   )
+                                 , t2__'
+                                 ]
+    with t1__' := <pp-one-Z(prettyprint-WHERE)> t1__
+    with t2__' := <pp-indent(|"2")> [ <pp-V-list(prettyprint-MatchElem|"0", ",")> t2__
                                     ]
 
   is-MatchClause =
-    ?GraphPattern(_)
+    ?GraphPattern1(_, _)
 
   prettyprint-MatchElem :
     t1__ -> [ H(
@@ -163,15 +166,16 @@ strategies
     ?Constraint(_)
 
   prettyprint-MatchElem :
-    Optional(t1__) -> [ H(
-                          [SOpt(HS(), "0")]
-                        , [S("OPTIONAL "), t1__']
-                        )
-                      ]
-    with t1__' := <pp-one-Z(prettyprint-GroupGraphPattern)> t1__
+    Optional(t1__, t2__) -> [ H(
+                                [SOpt(HS(), "0")]
+                              , [t1__', S(" "), t2__']
+                              )
+                            ]
+    with t1__' := <pp-one-Z(prettyprint-OPTIONAL)> t1__
+    with t2__' := <pp-one-Z(prettyprint-GroupGraphPattern)> t2__
 
   is-MatchElem =
-    ?Optional(_)
+    ?Optional(_, _)
 
   prettyprint-MatchElem :
     t1__ -> [ H(
@@ -226,20 +230,21 @@ strategies
     ?UnionGraphPattern(_, _)
 
   prettyprint-UnionGraphPatternChild :
-    Union(t1__, t2__) -> [ H(
-                             [SOpt(HS(), "0")]
-                           , [S("UNION "), t1__']
-                           )
-                         , H(
-                             [SOpt(HS(), "0")]
-                           , [t2__']
-                           )
-                         ]
-    with t1__' := <pp-one-Z(prettyprint-SubSelect)> t1__
-    with t2__' := <pp-option(pp-one-Z(prettyprint-UnionGraphPatternChild))> t2__
+    Union(t1__, t2__, t3__) -> [ H(
+                                   [SOpt(HS(), "0")]
+                                 , [t1__', S(" "), t2__']
+                                 )
+                               , H(
+                                   [SOpt(HS(), "0")]
+                                 , [t3__']
+                                 )
+                               ]
+    with t1__' := <pp-one-Z(prettyprint-UNION)> t1__
+    with t2__' := <pp-one-Z(prettyprint-SubSelect)> t2__
+    with t3__' := <pp-option(pp-one-Z(prettyprint-UnionGraphPatternChild))> t3__
 
   is-UnionGraphPatternChild =
-    ?Union(_, _)
+    ?Union(_, _, _)
 
   prettyprint-SubSelect :
     SubSelect(t1__) -> [ H(
@@ -257,23 +262,6 @@ strategies
   is-SubSelect =
     ?SubSelect(_)
 
-  prettyprint-MatchElem :
-    Expand(t1__, t2__) -> [ H(
-                              [SOpt(HS(), "0")]
-                            , [ S("EXPAND(")
-                              , t1__'
-                              , S(" : ")
-                              , t2__'
-                              , S(")")
-                              ]
-                            )
-                          ]
-    with t1__' := <pp-one-Z(prettyprint-VarDef)> t1__
-    with t2__' := <pp-one-Z(prettyprint-Exp)> t2__
-
-  is-MatchElem =
-    ?Expand(_, _)
-
   is-Start =
     fail
 
@@ -289,6 +277,9 @@ strategies
   is-MatchClause =
     fail
 
+  is-MatchElem =
+    fail
+
   is-GroupGraphPattern =
     fail
 
@@ -299,7 +290,4 @@ strategies
     fail
 
   is-SubSelect =
-    fail
-
-  is-MatchElem =
     fail

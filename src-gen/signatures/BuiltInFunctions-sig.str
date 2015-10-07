@@ -10,67 +10,65 @@ imports
 
 signature
   constructors
-    Has       : List(Prop) -> InlinedCall
-    InDegree  : InlinedCall
-    OutDegree : InlinedCall
-    Src       : InlinedCall
-    Dst       : InlinedCall
-    Nodes     : InlinedCall
-    Edges     : InlinedCall
-    Length    : InlinedCall
-    Weight    : InlinedCall
+    Has       : HAS * List(Prop) -> InlinedCall
+    InDegree  : INDEGREE -> InlinedCall
+    OutDegree : OUTDEGREE -> InlinedCall
+    Src       : SRC -> InlinedCall
+    Dst       : DST -> InlinedCall
+    Nodes     : NODES -> InlinedCall
+    Edges     : EDGES -> InlinedCall
+    Length    : LENGTH -> InlinedCall
 
   constructors
-    Has : Exp * List(Prop) -> FunctionCall
+    Has : Exp * HAS * List(Prop) -> FunctionCall
 
   constructors
-    InDegree  : Exp -> FunctionCall
-    OutDegree : Exp -> FunctionCall
+    InDegree  : Exp * INDEGREE -> FunctionCall
+    OutDegree : Exp * OUTDEGREE -> FunctionCall
 
   constructors
-    Src : Exp -> FunctionCall
-    Dst : Exp -> FunctionCall
+    Src : Exp * SRC -> FunctionCall
+    Dst : Exp * DST -> FunctionCall
 
   constructors
-    Nodes  : Exp -> FunctionCall
-    Edges  : Exp -> FunctionCall
-    Length : Exp -> FunctionCall
-    Weight : Exp -> FunctionCall
+    Nodes  : Exp * NODES -> FunctionCall
+    Edges  : Exp * EDGES -> FunctionCall
+    Length : Exp * LENGTH -> FunctionCall
 
   constructors
-    Head : Exp -> FunctionCall
-    Last : Exp -> FunctionCall
-    Init : Exp -> FunctionCall
-    Tail : Exp -> FunctionCall
+    Head : Exp * HEAD -> FunctionCall
+    Last : Exp * LAST -> FunctionCall
+    Init : Exp * INIT -> FunctionCall
+    Tail : Exp * TAIL -> FunctionCall
 
   constructors
-    Contains   : Exp * Exp * Exp -> FunctionCall
-    BeginsWith : Exp * Exp * Exp -> FunctionCall
-    EndsWith   : Exp * Exp * Exp -> FunctionCall
+    Contains   : Exp * CONTAINS * Exp * Exp -> FunctionCall
+    BeginsWith : Exp * BEGINSWITH * Exp * Exp -> FunctionCall
+    EndsWith   : Exp * ENDSWITH * Exp * Exp -> FunctionCall
 
   constructors
-    Between  : Exp * Exp * Exp -> FunctionCall
-    Year     : Exp -> FunctionCall
-    Month    : Exp -> FunctionCall
-    Day      : Exp -> FunctionCall
-    Hours    : Exp -> FunctionCall
-    Minutes  : Exp -> FunctionCall
-    Seconds  : Exp -> FunctionCall
-    Timezone : Exp -> FunctionCall
+    Between  : Exp * BETWEEN * Exp * Exp -> FunctionCall
+    Year     : Exp * YEAR -> FunctionCall
+    Month    : Exp * MONTH -> FunctionCall
+    Day      : Exp * DAY -> FunctionCall
+    Hours    : Exp * HOURS -> FunctionCall
+    Minutes  : Exp * MINUTES -> FunctionCall
+    Seconds  : Exp * SECONDS -> FunctionCall
+    Timezone : Exp * TIMEZONE -> FunctionCall
 
   constructors
-    ExistsFunc : GroupGraphPattern -> FunctionCall
-    Case       : Exp * List(WhenThen) * Exp -> FunctionCall
-    WhenThen   : Exp * Exp -> WhenThen
+    ExistsFunc : EXISTS * GroupGraphPattern -> FunctionCall
+    Case       : CASE * Exp * List(WhenThen) * ELSE * Exp * END -> FunctionCall
+    WhenThen   : WHEN * Exp * THEN * Exp -> WhenThen
 
   constructors
-    COUNT        : Option(Distinct) * StarOrExp -> FunctionCall
-    MIN          : Option(Distinct) * Exp -> FunctionCall
-    MAX          : Option(Distinct) * Exp -> FunctionCall
-    SUM          : Option(Distinct) * Exp -> FunctionCall
-    AVG          : Option(Distinct) * Exp -> FunctionCall
-    GROUP-CONCAT : Option(Distinct) * Exp * Option(Group-Concat-Sep) -> FunctionCall
+    COUNT        : COUNT * Option(Distinct) * StarOrExp -> FunctionCall
+    MIN          : MIN * Option(Distinct) * Exp -> FunctionCall
+    MAX          : MAX * Option(Distinct) * Exp -> FunctionCall
+    SUM          : SUM * Option(Distinct) * Exp -> FunctionCall
+    AVG          : AVG * Option(Distinct) * Exp -> FunctionCall
+    GROUP-CONCAT : GROUP-CONCAT * Option(Distinct) * Exp * Option(Group-Concat-Sep) -> FunctionCall
     Star         : StarOrExp
                  : Exp -> StarOrExp
     Sep          : String -> Group-Concat-Sep
-    Distinct     : Distinct
+    Distinct     : DISTINCT -> Distinct

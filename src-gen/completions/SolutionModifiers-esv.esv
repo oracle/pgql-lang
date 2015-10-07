@@ -7,35 +7,33 @@ imports
   src-gen/completions/Expressions-esv
 
 completions
-  completion template ExpOrStarAsVar : "Star" =
-    <Star:Star> <:VarAssign>  
-  completion template Star : "*" =
-    "*"          
+  completion template SelectElems : "*" =
+    "*"        
   completion template DistinctOrReduced : "DISTINCT " =
-    "DISTINCT "  
+    <DISTINCT:DISTINCT> " "  
   completion template DistinctOrReduced : "REDUCED " =
-    "REDUCED "  
+    <REDUCED:REDUCED> " "  
   completion template UngroupClause : "UNGROUP ExpAsVar" =
-    "UNGROUP " <ExpAsVar:ExpAsVar>  
+    <UNGROUP:UNGROUP> " " <ExpAsVar:ExpAsVar>  
   completion template GroupClause : "GROUP BY ExpAsVar" =
-    "GROUP BY " <ExpAsVar:ExpAsVar>  
+    <GROUP:GROUP> " " <BY:BY> " " <ExpAsVar:ExpAsVar>  
   completion template HavingClause : "HAVING Exp" =
-    "HAVING " <Exp:Exp>  
+    <HAVING:HAVING> " " <Exp:Exp>  
   completion template OrderClause : "ORDER BY OrderElem" =
-    "ORDER BY " <OrderElem:OrderElem>  
+    <ORDER:ORDER> " " <BY:BY> " " <OrderElem:OrderElem>  
   completion template OrderElem : "ASC(Exp)" =
-    "ASC(" <Exp:Exp> ")"  
+    <ASC:ASC> "(" <Exp:Exp> ")"  
   completion template OrderElem : "DESC(Exp)" =
-    "DESC(" <Exp:Exp> ")"  
+    <DESC:DESC> "(" <Exp:Exp> ")"  
   completion template OrderElem : "Exp ASC" =
-    <Exp:Exp> " ASC"  
+    <Exp:Exp> " " <ASC:ASC>  
   completion template OrderElem : "Exp DESC" =
-    <Exp:Exp> " DESC"  
+    <Exp:Exp> " " <DESC:DESC>  
   completion template LimitOffsetClauses : "LimitClause " =
     <LimitClause:LimitClause> " " <:OffsetClause>  
   completion template LimitOffsetClauses : "OffsetClause " =
     <OffsetClause:OffsetClause> " " <:LimitClause>  
   completion template LimitClause : "LIMIT INTEGER" =
-    "LIMIT " <INTEGER:INTEGER>  
+    <LIMIT:LIMIT> " " <INTEGER:INTEGER>  
   completion template OffsetClause : "OFFSET INTEGER" =
-    "OFFSET " <INTEGER:INTEGER>  
+    <OFFSET:OFFSET> " " <INTEGER:INTEGER>  

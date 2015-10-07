@@ -1,12 +1,13 @@
 module Keywords
 exports
   lexical syntax
-    [Ii] [Nn]                               -> IN       
-    [Mm] [Aa] [Tt] [Cc] [Hh]                -> MATCH    
+    [Ss] [Ee] [Ll] [Ee] [Cc] [Tt]           -> SELECT   
+    [Ww] [Hh] [Ee] [Rr] [Ee]                -> WHERE    
     [Oo] [Pp] [Tt] [Ii] [Oo] [Nn] [Aa] [Ll] -> OPTIONAL 
     [Uu] [Nn] [Ii] [Oo] [Nn]                -> UNION    
-    [Ee] [Xx] [Pp] [Aa] [Nn] [Dd]           -> EXPAND   
-    [Oo] [Rr] [Dd] [Ee] [Rr]                -> ORDER    
+    [Ww] [Ii] [Tt] [Hh]                     -> WITH     
+    [Aa] [Ss]                               -> AS       
+    [Ii] [Dd]                               -> ID       
 
   lexical syntax
     [Hh] [Aa] [Ss]                                              -> HAS          
@@ -21,6 +22,13 @@ exports
     [Bb] [Ee] [Gg] [Ii] [Nn] [Ss] [Ww] [Ii] [Tt] [Hh]           -> BEGINSWITH   
     [Ee] [Nn] [Dd] [Ss] [Ww] [Ii] [Tt] [Hh]                     -> ENDSWITH     
     [Bb] [Ee] [Tt] [Ww] [Ee] [Ee] [Nn]                          -> BETWEEN      
+    [Yy] [Ee] [Aa] [Rr]                                         -> YEAR         
+    [Mm] [Oo] [Nn] [Tt] [Hh]                                    -> MONTH        
+    [Dd] [Aa] [Yy]                                              -> DAY          
+    [Hh] [Oo] [Uu] [Rr] [Ss]                                    -> HOURS        
+    [Mm] [Ii] [Nn] [Uu] [Tt] [Ee] [Ss]                          -> MINUTES      
+    [Ss] [Ee] [Cc] [Oo] [Nn] [Dd] [Ss]                          -> SECONDS      
+    [Tt] [Ii] [Mm] [Zz] [Oo] [Nn] [Ee]                          -> TIMEZONE     
     [Hh] [Ee] [Aa] [Dd]                                         -> HEAD         
     [Ll] [Aa] [ss] [Tt]                                         -> LAST         
     [Ii] [Nn] [Ii] [Tt]                                         -> INIT         
@@ -39,21 +47,27 @@ exports
     [Mm] [Aa] [Xx]                                              -> MAX          
     [Aa] [Vv] [Gg]                                              -> AVG          
     [Gg] [Rr] [Oo] [Uu] [Pp] [\_] [Cc] [Oo] [Nn] [Cc] [Aa] [Tt] -> GROUP-CONCAT 
+    [Ee] [Xx] [Ii] [Ss] [Tt] [Ss]                               -> EXISTS       
+    [Cc] [Aa] [Ss] [Ee]                                         -> CASE         
+    [Ee] [Ll] [Ss] [Ee]                                         -> ELSE         
+    [Ww] [Hh] [Ee] [Nn]                                         -> WHEN         
+    [Tt] [Hh] [Ee] [Nn]                                         -> THEN         
 
   lexical syntax
-    [Hh] [Aa] [Vv] [Ii] [Nn] [Gg]           -> HAVING   
-    [Oo] [Rr] [Dd] [Ee] [Rr]                -> ORDER    
     [Gg] [Rr] [Oo] [Uu] [Pp]                -> GROUP    
+    [Hh] [Aa] [Vv] [Ii] [Nn] [Gg]           -> HAVING   
     [Aa] [Ss] [Cc]                          -> ASC      
     [Dd] [Ee] [Ss] [Cc]                     -> DESC     
     [Bb] [Yy]                               -> BY       
+    [Oo] [Rr] [Dd] [Ee] [Rr]                -> ORDER    
     [Dd] [Ii] [Ss] [Tt] [Ii] [Nn] [Cc] [Tt] -> DISTINCT 
     [Rr] [Ee] [Dd] [Uu] [Cc] [Ee] [Dd]      -> REDUCED  
-    [Oo] [Ff] [Ff] [Ss] [Ee] [Tt]           -> OFFSET   
+    [Uu] [Nn] [Gg] [Rr] [Oo] [Uu] [Pp]      -> UNGROUP  
     [Ll] [Ii] [Mm] [Ii] [Tt]                -> LIMIT    
-    [Ss] [Ee] [Ll] [Ee] [Cc] [Tt]           -> SELECT   
+    [Oo] [Ff] [Ff] [Ss] [Ee] [Tt]           -> OFFSET   
     [Ff] [Oo] [Rr]                          -> FOR      
     [Aa] [Ll] [Ll]                          -> ALL      
+    [Aa] [Nn] [Yy]                          -> ANY      
     [Ee] [Aa] [Cc] [Hh]                     -> EACH     
     [Ii] [Nn]                               -> IN       
     [Nn] [Oo] [Dd] [Ee]                     -> NODE     
@@ -62,7 +76,6 @@ exports
     [Ee] [Dd] [Gg] [Ee] [Ss]                -> EDGES    
     [Ll] [Ii] [Ss] [Tt]                     -> LIST     
     [Ff] [Rr] [Oo] [Mm]                     -> FROM     
-    [Ww] [Ii] [Tt] [Hh]                     -> WITH     
 
   lexical syntax
     [Ss] [Hh] [Oo] [Rr] [Tt] [Ee] [Ss] [Tt] -> SHORTEST 

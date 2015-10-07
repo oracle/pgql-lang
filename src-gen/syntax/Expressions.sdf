@@ -8,7 +8,7 @@ exports
     VarRef        -> Exp 
     Literal       -> Exp 
     FunctionCall  -> Exp 
-    "NOT" Exp     -> Exp {cons("Not1"), right}
+    NOT Exp       -> Exp {cons("Not1"), right}
     "!" Exp       -> Exp {cons("Not2"), right}
     "-" Exp       -> Exp {cons("UMin"), right}
     Exp "AND" Exp -> Exp {cons("And"), left}
@@ -42,7 +42,7 @@ exports
     Literal                     -> InlinedExp {prefer}
     InlinedCall                 -> InlinedExp 
     Prop                        -> InlinedExp {cons("SelfPropRef")}
-    "NOT" InlinedExp            -> InlinedExp {cons("Not1"), right}
+    NOT InlinedExp              -> InlinedExp {cons("Not1"), right}
     "!" InlinedExp              -> InlinedExp {cons("Not2"), right}
     "-" InlinedExp              -> InlinedExp {cons("UMin"), right}
     InlinedExp "AND" InlinedExp -> InlinedExp {cons("And"), left}
@@ -66,40 +66,39 @@ exports
   context-free priorities
     {right:
       "-" Exp -> Exp
-      "NOT" Exp -> Exp
+      NOT Exp -> Exp
       "!" Exp -> Exp
     } >
     {left:
-      Exp "." "has" "(" {Prop ","}* ")" -> FunctionCall
-      Exp "." "inDegree" "()" -> FunctionCall
-      Exp "." "outDegree" "()" -> FunctionCall
-      Exp "." "src" "()" -> FunctionCall
-      Exp "." "dst" "()" -> FunctionCall
+      Exp "." HAS "(" {Prop ","}* ")" -> FunctionCall
+      Exp "." INDEGREE "()" -> FunctionCall
+      Exp "." OUTDEGREE "()" -> FunctionCall
+      Exp "." SRC "()" -> FunctionCall
+      Exp "." DST "()" -> FunctionCall
     } >
     {left:
-      Exp "." "nodes" "()" -> FunctionCall
-      Exp "." "edges" "()" -> FunctionCall
-      Exp "." "length" "()" -> FunctionCall
-      Exp "." "weight" "()" -> FunctionCall
-      Exp "." "head" "()" -> FunctionCall
-      Exp "." "last" "()" -> FunctionCall
-      Exp "." "init" "()" -> FunctionCall
-      Exp "." "tail" "()" -> FunctionCall
+      Exp "." NODES "()" -> FunctionCall
+      Exp "." EDGES "()" -> FunctionCall
+      Exp "." LENGTH "()" -> FunctionCall
+      Exp "." HEAD "()" -> FunctionCall
+      Exp "." LAST "()" -> FunctionCall
+      Exp "." INIT "()" -> FunctionCall
+      Exp "." TAIL "()" -> FunctionCall
     } >
     {left:
-      Exp "." "contains" "(" Exp "," Exp ")" -> FunctionCall
-      Exp "." "beginsWith" "(" Exp "," Exp ")" -> FunctionCall
-      Exp "." "endWith" "(" Exp "," Exp ")" -> FunctionCall
+      Exp "." CONTAINS "(" Exp "," Exp ")" -> FunctionCall
+      Exp "." BEGINSWITH "(" Exp "," Exp ")" -> FunctionCall
+      Exp "." ENDSWITH "(" Exp "," Exp ")" -> FunctionCall
     } >
     {left:
-      Exp "." "between" "(" Exp "," Exp ")" -> FunctionCall
-      Exp "." "year" "()" -> FunctionCall
-      Exp "." "month" "()" -> FunctionCall
-      Exp "." "day" "()" -> FunctionCall
-      Exp "." "hours" "()" -> FunctionCall
-      Exp "." "minutes" "()" -> FunctionCall
-      Exp "." "seconds" "()" -> FunctionCall
-      Exp "." "timezone" "()" -> FunctionCall
+      Exp "." BETWEEN "(" Exp "," Exp ")" -> FunctionCall
+      Exp "." YEAR "()" -> FunctionCall
+      Exp "." MONTH "()" -> FunctionCall
+      Exp "." DAY "()" -> FunctionCall
+      Exp "." HOURS "()" -> FunctionCall
+      Exp "." MINUTES "()" -> FunctionCall
+      Exp "." SECONDS "()" -> FunctionCall
+      Exp "." TIMEZONE "()" -> FunctionCall
     } >
     {left:
       Exp "*" Exp -> Exp
@@ -123,29 +122,30 @@ exports
     } >
     {left:
       Exp "AND" Exp -> Exp
+      Exp "and" Exp -> Exp
     } >
     {left:
       Exp "OR" Exp -> Exp
+      Exp "or" Exp -> Exp
     }
 
   context-free priorities
     {right:
       "-" InlinedExp -> InlinedExp
-      "NOT" InlinedExp -> InlinedExp
+      NOT InlinedExp -> InlinedExp
       "!" InlinedExp -> InlinedExp
     } >
     {left:
-      "has" "(" {Prop ","}* ")" -> InlinedCall
-      "inDegree" "()" -> InlinedCall
-      "outDegree" "()" -> InlinedCall
-      "src" "()" -> InlinedCall
-      "dst" "()" -> InlinedCall
+      HAS "(" {Prop ","}* ")" -> InlinedCall
+      INDEGREE "()" -> InlinedCall
+      OUTDEGREE "()" -> InlinedCall
+      SRC "()" -> InlinedCall
+      DST "()" -> InlinedCall
     } >
     {left:
-      "nodes" "()" -> InlinedCall
-      "edges" "()" -> InlinedCall
-      "length" "()" -> InlinedCall
-      "weight" "()" -> InlinedCall
+      NODES "()" -> InlinedCall
+      EDGES "()" -> InlinedCall
+      LENGTH "()" -> InlinedCall
     } >
     {left:
       InlinedExp "*" InlinedExp -> InlinedExp
@@ -169,7 +169,19 @@ exports
     } >
     {left:
       InlinedExp "AND" InlinedExp -> InlinedExp
+      InlinedExp "AND" InlinedExp -> InlinedExp
     } >
     {left:
       InlinedExp "OR" InlinedExp -> InlinedExp
+      InlinedExp "OR" InlinedExp -> InlinedExp
     }
+
+  context-free syntax
+    Exp "and" Exp               -> Exp        {cons("And2"), left}
+    Exp "or" Exp                -> Exp        {cons("Or2"), left}
+    InlinedExp "AND" InlinedExp -> InlinedExp {cons("And2"), left}
+    InlinedExp "OR" InlinedExp  -> InlinedExp {cons("Or2"), left}
+
+  context-free syntax
+    CONTENTCOMPLETE -> Exp        {cons("COMPLETION-Exp")}
+    CONTENTCOMPLETE -> InlinedExp {cons("COMPLETION-InlinedExp")}

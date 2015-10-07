@@ -78,15 +78,16 @@ strategies
     ?ExpAsVar(_, _)
 
   prettyprint-VarAssign :
-    VarAssign(t1__) -> [ H(
-                           [SOpt(HS(), "0")]
-                         , [S("AS "), t1__']
-                         )
-                       ]
-    with t1__' := <pp-one-Z(prettyprint-VarDef)> t1__
+    VarAssign(t1__, t2__) -> [ H(
+                                 [SOpt(HS(), "0")]
+                               , [t1__', S(" "), t2__']
+                               )
+                             ]
+    with t1__' := <pp-one-Z(prettyprint-AS)> t1__
+    with t2__' := <pp-one-Z(prettyprint-VarDef)> t2__
 
   is-VarAssign =
-    ?VarAssign(_)
+    ?VarAssign(_, _)
 
   prettyprint-NodeVarRef :
     NodeVarRef(t1__) -> [ H(
@@ -139,14 +140,15 @@ strategies
     where t1__' := <pp-one-Z(prettyprint-STRING)> t1__
 
   prettyprint-Prop :
-    Id() -> [ H(
-                [SOpt(HS(), "0")]
-              , [S("id")]
-              )
-            ]
+    Id(t1__) -> [ H(
+                    [SOpt(HS(), "0")]
+                  , [t1__']
+                  )
+                ]
+    with t1__' := <pp-one-Z(prettyprint-ID)> t1__
 
   is-Prop =
-    ?Id()
+    ?Id(_)
 
   is-VarDef =
     fail

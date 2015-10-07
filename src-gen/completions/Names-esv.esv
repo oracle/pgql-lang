@@ -9,8 +9,6 @@ completions
   completion template ExpAsVar : "Exp" =
     <Exp:Exp> <:VarAssign>  
   completion template VarAssign : "AS VarDef" =
-    "AS " <VarDef:VarDef>  
+    <AS:AS> " " <VarDef:VarDef>  
   completion template PropRef : "VarRef.Prop" =
     <VarRef:VarRef> "." <Prop:Prop>  
-  completion template Prop : "id" =
-    "id"  

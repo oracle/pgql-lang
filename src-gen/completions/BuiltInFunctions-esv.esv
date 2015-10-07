@@ -1,3 +1,4 @@
+
 module src-gen/completions/BuiltInFunctions-esv
 
 imports
@@ -8,111 +9,105 @@ imports
   src-gen/completions/Literals-esv
 
 completions
-  completion template InlinedCall : "has()" =
-    "has(" <:Prop> ")"  
-  completion template InlinedCall : "inDegree()" =
-    "inDegree()"  
-  completion template InlinedCall : "outDegree()" =
-    "outDegree()"  
-  completion template InlinedCall : "src()" =
-    "src()"  
-  completion template InlinedCall : "dst()" =
-    "dst()"  
-  completion template InlinedCall : "nodes()" =
-    "nodes()"  
-  completion template InlinedCall : "edges()" =
-    "edges()"  
-  completion template InlinedCall : "length()" =
-    "length()"  
-  completion template InlinedCall : "weight()" =
-    "weight()"  
+  completion template InlinedCall : "HAS()" =
+    <HAS:HAS> "(" <:Prop> ")"  
+  completion template InlinedCall : "INDEGREE()" =
+    <INDEGREE:INDEGREE> "()"  
+  completion template InlinedCall : "OUTDEGREE()" =
+    <OUTDEGREE:OUTDEGREE> "()"  
+  completion template InlinedCall : "SRC()" =
+    <SRC:SRC> "()"  
+  completion template InlinedCall : "DST()" =
+    <DST:DST> "()"  
+  completion template InlinedCall : "NODES()" =
+    <NODES:NODES> "()"  
+  completion template InlinedCall : "EDGES()" =
+    <EDGES:EDGES> "()"  
+  completion template InlinedCall : "LENGTH()" =
+    <LENGTH:LENGTH> "()"  
 
 completions
-  completion template FunctionCall : "Exp. has()" =
-    <Exp:Exp> ". has(" <:Prop> ")"  
+  completion template FunctionCall : "Exp. HAS()" =
+    <Exp:Exp> ". " <HAS:HAS> "(" <:Prop> ")"  
 
 completions
-  completion template FunctionCall : "Exp. inDegree()" =
-    <Exp:Exp> ". inDegree()"  
-  completion template FunctionCall : "Exp. outDegree()" =
-    <Exp:Exp> ". outDegree()"  
+  completion template FunctionCall : "Exp. INDEGREE()" =
+    <Exp:Exp> ". " <INDEGREE:INDEGREE> "()"  
+  completion template FunctionCall : "Exp. OUTDEGREE()" =
+    <Exp:Exp> ". " <OUTDEGREE:OUTDEGREE> "()"  
 
 completions
-  completion template FunctionCall : "Exp. src()" =
-    <Exp:Exp> ". src()"  
-  completion template FunctionCall : "Exp. dst()" =
-    <Exp:Exp> ". dst()"  
+  completion template FunctionCall : "Exp. SRC()" =
+    <Exp:Exp> ". " <SRC:SRC> "()"  
+  completion template FunctionCall : "Exp. DST()" =
+    <Exp:Exp> ". " <DST:DST> "()"  
 
 completions
-  completion template FunctionCall : "Exp. nodes()" =
-    <Exp:Exp> ". nodes()"  
-  completion template FunctionCall : "Exp. edges()" =
-    <Exp:Exp> ". edges()"  
-  completion template FunctionCall : "Exp. length()" =
-    <Exp:Exp> ". length()"  
-  completion template FunctionCall : "Exp. weight()" =
-    <Exp:Exp> ". weight()"  
+  completion template FunctionCall : "Exp. NODES()" =
+    <Exp:Exp> ". " <NODES:NODES> "()"  
+  completion template FunctionCall : "Exp. EDGES()" =
+    <Exp:Exp> ". " <EDGES:EDGES> "()"  
+  completion template FunctionCall : "Exp. LENGTH()" =
+    <Exp:Exp> ". " <LENGTH:LENGTH> "()"  
 
 completions
-  completion template FunctionCall : "Exp. head()" =
-    <Exp:Exp> ". head()"  
-  completion template FunctionCall : "Exp. last()" =
-    <Exp:Exp> ". last()"  
-  completion template FunctionCall : "Exp. init()" =
-    <Exp:Exp> ". init()"  
-  completion template FunctionCall : "Exp. tail()" =
-    <Exp:Exp> ". tail()"  
+  completion template FunctionCall : "Exp. HEAD()" =
+    <Exp:Exp> ". " <HEAD:HEAD> "()"  
+  completion template FunctionCall : "Exp. LAST()" =
+    <Exp:Exp> ". " <LAST:LAST> "()"  
+  completion template FunctionCall : "Exp. INIT()" =
+    <Exp:Exp> ". " <INIT:INIT> "()"  
+  completion template FunctionCall : "Exp. TAIL()" =
+    <Exp:Exp> ". " <TAIL:TAIL> "()"  
 
 completions
-  completion template FunctionCall : "Exp. contains(Exp, Exp)" =
-    <Exp:Exp> ". contains(" <Exp:Exp> ", " <Exp:Exp> ")"  
-  completion template FunctionCall : "Exp. beginsWith(Exp, Exp)" =
-    <Exp:Exp> ". beginsWith(" <Exp:Exp> ", " <Exp:Exp> ")"  
-  completion template FunctionCall : "Exp. endWith(Exp, Exp)" =
-    <Exp:Exp> ". endWith(" <Exp:Exp> ", " <Exp:Exp> ")"  
+  completion template FunctionCall : "Exp. CONTAINS(Exp, Exp)" =
+    <Exp:Exp> ". " <CONTAINS:CONTAINS> "(" <Exp:Exp> ", " <Exp:Exp> ")"  
+  completion template FunctionCall : "Exp. BEGINSWITH(Exp, Exp)" =
+    <Exp:Exp> ". " <BEGINSWITH:BEGINSWITH> "(" <Exp:Exp> ", " <Exp:Exp> ")"  
+  completion template FunctionCall : "Exp. ENDSWITH(Exp, Exp)" =
+    <Exp:Exp> ". " <ENDSWITH:ENDSWITH> "(" <Exp:Exp> ", " <Exp:Exp> ")"  
 
 completions
-  completion template FunctionCall : "Exp. between(Exp, Exp)" =
-    <Exp:Exp> ". between(" <Exp:Exp> ", " <Exp:Exp> ")"  
-  completion template FunctionCall : "Exp. year()" =
-    <Exp:Exp> ". year()"  
-  completion template FunctionCall : "Exp. month()" =
-    <Exp:Exp> ". month()"  
-  completion template FunctionCall : "Exp. day()" =
-    <Exp:Exp> ". day()"  
-  completion template FunctionCall : "Exp. hours()" =
-    <Exp:Exp> ". hours()"  
-  completion template FunctionCall : "Exp. minutes()" =
-    <Exp:Exp> ". minutes()"  
-  completion template FunctionCall : "Exp. seconds()" =
-    <Exp:Exp> ". seconds()"  
-  completion template FunctionCall : "Exp. timezone()" =
-    <Exp:Exp> ". timezone()"  
+  completion template FunctionCall : "Exp. BETWEEN(Exp, Exp)" =
+    <Exp:Exp> ". " <BETWEEN:BETWEEN> "(" <Exp:Exp> ", " <Exp:Exp> ")"  
+  completion template FunctionCall : "Exp. YEAR()" =
+    <Exp:Exp> ". " <YEAR:YEAR> "()"  
+  completion template FunctionCall : "Exp. MONTH()" =
+    <Exp:Exp> ". " <MONTH:MONTH> "()"  
+  completion template FunctionCall : "Exp. DAY()" =
+    <Exp:Exp> ". " <DAY:DAY> "()"  
+  completion template FunctionCall : "Exp. HOURS()" =
+    <Exp:Exp> ". " <HOURS:HOURS> "()"  
+  completion template FunctionCall : "Exp. MINUTES()" =
+    <Exp:Exp> ". " <MINUTES:MINUTES> "()"  
+  completion template FunctionCall : "Exp. SECONDS()" =
+    <Exp:Exp> ". " <SECONDS:SECONDS> "()"  
+  completion template FunctionCall : "Exp. TIMEZONE()" =
+    <Exp:Exp> ". " <TIMEZONE:TIMEZONE> "()"  
 
 completions
   completion template FunctionCall : "EXISTS GroupGraphPattern" =
-    "EXISTS " <GroupGraphPattern:GroupGraphPattern>  
+    <EXISTS:EXISTS> " " <GroupGraphPattern:GroupGraphPattern>  
   completion template FunctionCall : "CASE Exp WhenThen ELSE Exp END" =
-    "CASE " <Exp:Exp> " " <WhenThen:WhenThen> " ELSE " <Exp:Exp> " END"  
+    <CASE:CASE> " " <Exp:Exp> " " <WhenThen:WhenThen> " " <ELSE:ELSE> " " <Exp:Exp> " " <END:END>  
   completion template WhenThen : "WHEN Exp THEN Exp" =
-    "WHEN " <Exp:Exp> " THEN " <Exp:Exp>  
+    <WHEN:WHEN> " " <Exp:Exp> " " <THEN:THEN> " " <Exp:Exp>  
 
 completions
   completion template FunctionCall : "COUNT(StarOrExp)" =
-    "COUNT(" <:Distinct> <StarOrExp:StarOrExp> ")"  
+    <COUNT:COUNT> "(" <:Distinct> <StarOrExp:StarOrExp> ")"  
   completion template FunctionCall : "MIN(Exp)" =
-    "MIN(" <:Distinct> <Exp:Exp> ")"  
+    <MIN:MIN> "(" <:Distinct> <Exp:Exp> ")"  
   completion template FunctionCall : "MAX(Exp)" =
-    "MAX(" <:Distinct> <Exp:Exp> ")"  
+    <MAX:MAX> "(" <:Distinct> <Exp:Exp> ")"  
   completion template FunctionCall : "SUM(Exp)" =
-    "SUM(" <:Distinct> <Exp:Exp> ")"  
+    <SUM:SUM> "(" <:Distinct> <Exp:Exp> ")"  
   completion template FunctionCall : "AVG(Exp)" =
-    "AVG(" <:Distinct> <Exp:Exp> ")"  
-  completion template FunctionCall : "GROUP_CONCAT(Exp)" =
-    "GROUP_CONCAT(" <:Distinct> <Exp:Exp> <:Group-Concat-Sep> ")"  
+    <AVG:AVG> "(" <:Distinct> <Exp:Exp> ")"  
+  completion template FunctionCall : "GROUP-CONCAT(Exp)" =
+    <GROUP-CONCAT:GROUP-CONCAT> "(" <:Distinct> <Exp:Exp> <:Group-Concat-Sep> ")"  
   completion template StarOrExp : "*" =
-    "*"                    
+    "*"                                    
   completion template Group-Concat-Sep : ", String" =
-    ", " <String:String>  
-  completion template Distinct : "DISTINCT" =
-    "DISTINCT"       
+    ", " <String:String>     

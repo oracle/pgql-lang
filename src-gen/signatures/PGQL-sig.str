@@ -14,17 +14,16 @@ signature
   constructors
                       : Query -> Start
     Query             : SelectClause * Option(FromClause) * MatchClause * SolutionModifier -> Query
-    SelectClause      : Option(DistinctOrReduced) * SelectElems -> SelectClause
-    FromClause        : GRAPHNAME -> FromClause
-    GraphPattern      : List(MatchElem) -> MatchClause
+    SelectClause      : SELECT * Option(DistinctOrReduced) * SelectElems -> SelectClause
+    FromClause        : FROM * GRAPHNAME -> FromClause
+    GraphPattern1     : WHERE * List(MatchElem) -> MatchClause
                       : GroupGraphPattern -> MatchElem
                       : Path -> MatchElem
     Constraint        : Exp -> MatchElem
-    Optional          : GroupGraphPattern -> MatchElem
+    Optional          : OPTIONAL * GroupGraphPattern -> MatchElem
                       : UnionGraphPattern -> MatchElem
                       : SubSelect -> MatchElem
     GraphPattern      : List(MatchElem) * Option(VarAssign) -> GroupGraphPattern
     UnionGraphPattern : SubSelect * UnionGraphPatternChild -> UnionGraphPattern
-    Union             : SubSelect * Option(UnionGraphPatternChild) -> UnionGraphPatternChild
+    Union             : UNION * SubSelect * Option(UnionGraphPatternChild) -> UnionGraphPatternChild
     SubSelect         : Query -> SubSelect
-    Expand            : VarDef * Exp -> MatchElem

@@ -6,13 +6,13 @@ exports
     Var             -> VarDef     {cons("VarDef")}
     Var             -> VarRef     {cons("VarRef")}
     Exp VarAssign?  -> ExpAsVar   {cons("ExpAsVar")}
-    "AS" VarDef     -> VarAssign  {cons("VarAssign")}
+    AS VarDef       -> VarAssign  {cons("VarAssign")}
     Var             -> NodeVarRef {cons("NodeVarRef")}
     VarRef "." Prop -> PropRef    {cons("PropRef")}
     VARNAME         -> Var        
     PROPNAME        -> Prop       
     STRING          -> Prop       
-    "id"            -> Prop       {cons("Id"), prefer}
+    ID              -> Prop       {cons("Id"), prefer}
 
   context-free syntax
     CONTENTCOMPLETE -> VarDef     {cons("COMPLETION-VarDef")}
@@ -30,31 +30,7 @@ exports
     [a-zA-Z] [a-zA-Z0-9\_]* -> PROPNAME  
 
   lexical syntax
-    "true"                                  -> VARNAME  {reject}
-    "false"                                 -> VARNAME  {reject}
-    "AND"                                   -> VARNAME  {reject}
-    "OR"                                    -> VARNAME  {reject}
-    [Mm] [Aa] [Tt] [Cc] [Hh]                -> VARNAME  {reject}
-    [Ss] [Ee] [Ll] [Ee] [Cc] [Tt]           -> VARNAME  {reject}
-    [Ii] [Nn]                               -> VARNAME  {reject}
-    [Oo] [Rr] [Dd] [Ee] [Rr]                -> VARNAME  {reject}
-    [Ll] [Ii] [Mm] [Ii] [Tt]                -> VARNAME  {reject}
-    [Hh] [Aa] [Ss]                          -> VARNAME  {reject}
-    [Uu] [Nn] [Ii] [Oo] [Nn]                -> VARNAME  {reject}
-    [Nn] [Oo] [Tt]                          -> VARNAME  {reject}
-    [Rr] [Ee] [Gg] [Ee] [Xx]                -> VARNAME  {reject}
-    [Oo] [Pp] [Tt] [Ii] [Oo] [Nn] [Aa] [Ll] -> VARNAME  {reject}
-    [Aa] [Nn] [Dd]                          -> VARNAME  {reject}
-    [Ee] [Xx] [Pp] [Aa] [Nn] [Dd]           -> VARNAME  {reject}
-    [Nn] [Uu] [Ll] [Ll]                     -> VARNAME  {reject}
-    "UNGROUP"                               -> VARNAME  {reject}
-    "GROUP"                                 -> VARNAME  {reject}
-    "ORDER"                                 -> VARNAME  {reject}
-    "DER"                                   -> VARNAME  {reject}
-    "LIMIT"                                 -> VARNAME  {reject}
-    "OFFSET"                                -> VARNAME  {reject}
-    "AS"                                    -> VARNAME  {reject}
-    "has"                                   -> PROPNAME {reject}
+    
 
   lexical restrictions
     GRAPHNAME -/- [a-zA-Z0-9\_]

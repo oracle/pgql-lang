@@ -7,10 +7,10 @@ imports
 
 
 strategies
-  prettyprint-IN =
+  prettyprint-SELECT =
     ![S(<is-string>)]
 
-  prettyprint-MATCH =
+  prettyprint-WHERE =
     ![S(<is-string>)]
 
   prettyprint-OPTIONAL =
@@ -19,17 +19,20 @@ strategies
   prettyprint-UNION =
     ![S(<is-string>)]
 
-  prettyprint-EXPAND =
+  prettyprint-WITH =
     ![S(<is-string>)]
 
-  prettyprint-ORDER =
+  prettyprint-AS =
+    ![S(<is-string>)]
+
+  prettyprint-ID =
     ![S(<is-string>)]
 
   prettyprint-example =
-    prettyprint-IN
+    prettyprint-SELECT
 
   prettyprint-example =
-    prettyprint-MATCH
+    prettyprint-WHERE
 
   prettyprint-example =
     prettyprint-OPTIONAL
@@ -38,10 +41,13 @@ strategies
     prettyprint-UNION
 
   prettyprint-example =
-    prettyprint-EXPAND
+    prettyprint-WITH
 
   prettyprint-example =
-    prettyprint-ORDER
+    prettyprint-AS
+
+  prettyprint-example =
+    prettyprint-ID
 
 
 strategies
@@ -81,6 +87,27 @@ strategies
   prettyprint-BETWEEN =
     ![S(<is-string>)]
 
+  prettyprint-YEAR =
+    ![S(<is-string>)]
+
+  prettyprint-MONTH =
+    ![S(<is-string>)]
+
+  prettyprint-DAY =
+    ![S(<is-string>)]
+
+  prettyprint-HOURS =
+    ![S(<is-string>)]
+
+  prettyprint-MINUTES =
+    ![S(<is-string>)]
+
+  prettyprint-SECONDS =
+    ![S(<is-string>)]
+
+  prettyprint-TIMEZONE =
+    ![S(<is-string>)]
+
   prettyprint-HEAD =
     ![S(<is-string>)]
 
@@ -97,21 +124,6 @@ strategies
     ![S(<is-string>)]
 
   prettyprint-NULL =
-    ![S(<is-string>)]
-
-  prettyprint-EXISTS =
-    ![S(<is-string>)]
-
-  prettyprint-CASE =
-    ![S(<is-string>)]
-
-  prettyprint-WHEN =
-    ![S(<is-string>)]
-
-  prettyprint-THEN =
-    ![S(<is-string>)]
-
-  prettyprint-ELSE =
     ![S(<is-string>)]
 
   prettyprint-END =
@@ -133,6 +145,21 @@ strategies
     ![S(<is-string>)]
 
   prettyprint-GROUP-CONCAT =
+    ![S(<is-string>)]
+
+  prettyprint-EXISTS =
+    ![S(<is-string>)]
+
+  prettyprint-CASE =
+    ![S(<is-string>)]
+
+  prettyprint-ELSE =
+    ![S(<is-string>)]
+
+  prettyprint-WHEN =
+    ![S(<is-string>)]
+
+  prettyprint-THEN =
     ![S(<is-string>)]
 
   prettyprint-example =
@@ -172,6 +199,27 @@ strategies
     prettyprint-BETWEEN
 
   prettyprint-example =
+    prettyprint-YEAR
+
+  prettyprint-example =
+    prettyprint-MONTH
+
+  prettyprint-example =
+    prettyprint-DAY
+
+  prettyprint-example =
+    prettyprint-HOURS
+
+  prettyprint-example =
+    prettyprint-MINUTES
+
+  prettyprint-example =
+    prettyprint-SECONDS
+
+  prettyprint-example =
+    prettyprint-TIMEZONE
+
+  prettyprint-example =
     prettyprint-HEAD
 
   prettyprint-example =
@@ -188,21 +236,6 @@ strategies
 
   prettyprint-example =
     prettyprint-NULL
-
-  prettyprint-example =
-    prettyprint-EXISTS
-
-  prettyprint-example =
-    prettyprint-CASE
-
-  prettyprint-example =
-    prettyprint-WHEN
-
-  prettyprint-example =
-    prettyprint-THEN
-
-  prettyprint-example =
-    prettyprint-ELSE
 
   prettyprint-example =
     prettyprint-END
@@ -225,15 +258,27 @@ strategies
   prettyprint-example =
     prettyprint-GROUP-CONCAT
 
+  prettyprint-example =
+    prettyprint-EXISTS
+
+  prettyprint-example =
+    prettyprint-CASE
+
+  prettyprint-example =
+    prettyprint-ELSE
+
+  prettyprint-example =
+    prettyprint-WHEN
+
+  prettyprint-example =
+    prettyprint-THEN
+
 
 strategies
-  prettyprint-HAVING =
-    ![S(<is-string>)]
-
-  prettyprint-ORDER =
-    ![S(<is-string>)]
-
   prettyprint-GROUP =
+    ![S(<is-string>)]
+
+  prettyprint-HAVING =
     ![S(<is-string>)]
 
   prettyprint-ASC =
@@ -245,25 +290,31 @@ strategies
   prettyprint-BY =
     ![S(<is-string>)]
 
+  prettyprint-ORDER =
+    ![S(<is-string>)]
+
   prettyprint-DISTINCT =
     ![S(<is-string>)]
 
   prettyprint-REDUCED =
     ![S(<is-string>)]
 
-  prettyprint-OFFSET =
+  prettyprint-UNGROUP =
     ![S(<is-string>)]
 
   prettyprint-LIMIT =
     ![S(<is-string>)]
 
-  prettyprint-SELECT =
+  prettyprint-OFFSET =
     ![S(<is-string>)]
 
   prettyprint-FOR =
     ![S(<is-string>)]
 
   prettyprint-ALL =
+    ![S(<is-string>)]
+
+  prettyprint-ANY =
     ![S(<is-string>)]
 
   prettyprint-EACH =
@@ -290,17 +341,11 @@ strategies
   prettyprint-FROM =
     ![S(<is-string>)]
 
-  prettyprint-WITH =
-    ![S(<is-string>)]
+  prettyprint-example =
+    prettyprint-GROUP
 
   prettyprint-example =
     prettyprint-HAVING
-
-  prettyprint-example =
-    prettyprint-ORDER
-
-  prettyprint-example =
-    prettyprint-GROUP
 
   prettyprint-example =
     prettyprint-ASC
@@ -312,25 +357,31 @@ strategies
     prettyprint-BY
 
   prettyprint-example =
+    prettyprint-ORDER
+
+  prettyprint-example =
     prettyprint-DISTINCT
 
   prettyprint-example =
     prettyprint-REDUCED
 
   prettyprint-example =
-    prettyprint-OFFSET
+    prettyprint-UNGROUP
 
   prettyprint-example =
     prettyprint-LIMIT
 
   prettyprint-example =
-    prettyprint-SELECT
+    prettyprint-OFFSET
 
   prettyprint-example =
     prettyprint-FOR
 
   prettyprint-example =
     prettyprint-ALL
+
+  prettyprint-example =
+    prettyprint-ANY
 
   prettyprint-example =
     prettyprint-EACH
@@ -355,9 +406,6 @@ strategies
 
   prettyprint-example =
     prettyprint-FROM
-
-  prettyprint-example =
-    prettyprint-WITH
 
 
 strategies

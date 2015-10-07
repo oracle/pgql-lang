@@ -2,12 +2,13 @@ module src-gen/signatures/Keywords-sig
 
 signature
   constructors
-     : String -> IN
-     : String -> MATCH
+     : String -> SELECT
+     : String -> WHERE
      : String -> OPTIONAL
      : String -> UNION
-     : String -> EXPAND
-     : String -> ORDER
+     : String -> WITH
+     : String -> AS
+     : String -> ID
 
   constructors
      : String -> HAS
@@ -22,17 +23,19 @@ signature
      : String -> BEGINSWITH
      : String -> ENDSWITH
      : String -> BETWEEN
+     : String -> YEAR
+     : String -> MONTH
+     : String -> DAY
+     : String -> HOURS
+     : String -> MINUTES
+     : String -> SECONDS
+     : String -> TIMEZONE
      : String -> HEAD
      : String -> LAST
      : String -> INIT
      : String -> TAIL
      : String -> NOT
      : String -> NULL
-     : String -> EXISTS
-     : String -> CASE
-     : String -> WHEN
-     : String -> THEN
-     : String -> ELSE
      : String -> END
      : String -> COUNT
      : String -> SUM
@@ -40,21 +43,27 @@ signature
      : String -> MAX
      : String -> AVG
      : String -> GROUP-CONCAT
+     : String -> EXISTS
+     : String -> CASE
+     : String -> ELSE
+     : String -> WHEN
+     : String -> THEN
 
   constructors
-     : String -> HAVING
-     : String -> ORDER
      : String -> GROUP
+     : String -> HAVING
      : String -> ASC
      : String -> DESC
      : String -> BY
+     : String -> ORDER
      : String -> DISTINCT
      : String -> REDUCED
-     : String -> OFFSET
+     : String -> UNGROUP
      : String -> LIMIT
-     : String -> SELECT
+     : String -> OFFSET
      : String -> FOR
      : String -> ALL
+     : String -> ANY
      : String -> EACH
      : String -> IN
      : String -> NODE
@@ -63,7 +72,6 @@ signature
      : String -> EDGES
      : String -> LIST
      : String -> FROM
-     : String -> WITH
 
   constructors
      : String -> SHORTEST

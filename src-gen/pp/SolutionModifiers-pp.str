@@ -28,12 +28,6 @@ strategies
     prettyprint-SelectElems
 
   prettyprint-example =
-    prettyprint-Star
-
-  prettyprint-example =
-    prettyprint-ExpOrStarAsVar
-
-  prettyprint-example =
     prettyprint-DistinctOrReduced
 
   prettyprint-example =
@@ -92,110 +86,107 @@ strategies
     ?SolutionModifier(_, _, _, _, _)
 
   prettyprint-SelectElems :
-    Vars(t1__) -> [ H(
-                      [SOpt(HS(), "0")]
-                    , [t1__']
-                    )
-                  ]
-    with t1__' := <pp-H-list(prettyprint-ExpOrStarAsVar|", ")> t1__
+    ExpAsVars(t1__) -> [ H(
+                           [SOpt(HS(), "0")]
+                         , [t1__']
+                         )
+                       ]
+    with t1__' := <pp-H-list(prettyprint-ExpAsVar|", ")> t1__
 
   is-SelectElems =
-    ?Vars(_)
+    ?ExpAsVars(_)
 
-  prettyprint-ExpOrStarAsVar :
-    ExpAsVar(t1__, t2__) -> [ H(
-                                [SOpt(HS(), "0")]
-                              , [t1__', t2__']
-                              )
-                            ]
-    with t1__' := <pp-one-Z(prettyprint-Star)> t1__
-    with t2__' := <pp-option(pp-one-Z(prettyprint-VarAssign))> t2__
-
-  is-ExpOrStarAsVar =
-    ?ExpAsVar(_, _)
-
-  prettyprint-Star :
+  prettyprint-SelectElems :
     Star() -> [ H(
                   [SOpt(HS(), "0")]
                 , [S("*")]
                 )
               ]
 
-  is-Star =
+  is-SelectElems =
     ?Star()
 
-  prettyprint-ExpOrStarAsVar :
-    t1__ -> [ H(
-                [SOpt(HS(), "0")]
-              , [t1__']
-              )
-            ]
-    where not(is-ExpOrStarAsVar)
-    where t1__' := <pp-one-Z(prettyprint-ExpAsVar)> t1__
-
   prettyprint-DistinctOrReduced :
-    Distinct() -> [ H(
-                      [SOpt(HS(), "0")]
-                    , [S("DISTINCT ")]
-                    )
-                  ]
+    Distinct(t1__) -> [ H(
+                          [SOpt(HS(), "0")]
+                        , [t1__', S(" ")]
+                        )
+                      ]
+    with t1__' := <pp-one-Z(prettyprint-DISTINCT)> t1__
 
   is-DistinctOrReduced =
-    ?Distinct()
+    ?Distinct(_)
 
   prettyprint-DistinctOrReduced :
-    Reduced() -> [ H(
-                     [SOpt(HS(), "0")]
-                   , [S("REDUCED ")]
-                   )
-                 ]
+    Reduced(t1__) -> [ H(
+                         [SOpt(HS(), "0")]
+                       , [t1__', S(" ")]
+                       )
+                     ]
+    with t1__' := <pp-one-Z(prettyprint-REDUCED)> t1__
 
   is-DistinctOrReduced =
-    ?Reduced()
+    ?Reduced(_)
 
   prettyprint-UngroupClause :
-    UngroupClase(t1__) -> [ H(
-                              [SOpt(HS(), "0")]
-                            , [S("UNGROUP "), t1__']
-                            )
-                          ]
-    with t1__' := <pp-H-list(prettyprint-ExpAsVar|", ")> t1__
+    UngroupClase(t1__, t2__) -> [ H(
+                                    [SOpt(HS(), "0")]
+                                  , [t1__', S(" "), t2__']
+                                  )
+                                ]
+    with t1__' := <pp-one-Z(prettyprint-UNGROUP)> t1__
+    with t2__' := <pp-H-list(prettyprint-ExpAsVar|", ")> t2__
 
   is-UngroupClause =
-    ?UngroupClase(_)
+    ?UngroupClase(_, _)
 
   prettyprint-GroupClause :
-    GroupClause(t1__) -> [ H(
-                             [SOpt(HS(), "0")]
-                           , [S("GROUP BY "), t1__']
-                           )
-                         ]
-    with t1__' := <pp-H-list(prettyprint-ExpAsVar|", ")> t1__
+    GroupClause(t1__, t2__, t3__) -> [ H(
+                                         [SOpt(HS(), "0")]
+                                       , [ t1__'
+                                         , S(" ")
+                                         , t2__'
+                                         , S(" ")
+                                         , t3__'
+                                         ]
+                                       )
+                                     ]
+    with t1__' := <pp-one-Z(prettyprint-GROUP)> t1__
+    with t2__' := <pp-one-Z(prettyprint-BY)> t2__
+    with t3__' := <pp-H-list(prettyprint-ExpAsVar|", ")> t3__
 
   is-GroupClause =
-    ?GroupClause(_)
+    ?GroupClause(_, _, _)
 
   prettyprint-HavingClause :
-    HavingClause(t1__) -> [ H(
-                              [SOpt(HS(), "0")]
-                            , [S("HAVING "), t1__']
-                            )
-                          ]
-    with t1__' := <pp-H-list(prettyprint-Exp)> t1__
+    HavingClause(t1__, t2__) -> [ H(
+                                    [SOpt(HS(), "0")]
+                                  , [t1__', S(" "), t2__']
+                                  )
+                                ]
+    with t1__' := <pp-one-Z(prettyprint-HAVING)> t1__
+    with t2__' := <pp-H-list(prettyprint-Exp)> t2__
 
   is-HavingClause =
-    ?HavingClause(_)
+    ?HavingClause(_, _)
 
   prettyprint-OrderClause :
-    OrderClause(t1__) -> [ H(
-                             [SOpt(HS(), "0")]
-                           , [S("ORDER BY "), t1__']
-                           )
-                         ]
-    with t1__' := <pp-H-list(prettyprint-OrderElem|", ")> t1__
+    OrderClause(t1__, t2__, t3__) -> [ H(
+                                         [SOpt(HS(), "0")]
+                                       , [ t1__'
+                                         , S(" ")
+                                         , t2__'
+                                         , S(" ")
+                                         , t3__'
+                                         ]
+                                       )
+                                     ]
+    with t1__' := <pp-one-Z(prettyprint-ORDER)> t1__
+    with t2__' := <pp-one-Z(prettyprint-BY)> t2__
+    with t3__' := <pp-H-list(prettyprint-OrderElem|", ")> t3__
 
   is-OrderClause =
-    ?OrderClause(_)
+    ?OrderClause(_, _, _)
 
   prettyprint-OrderElem :
     t1__ -> [ H(
@@ -207,54 +198,60 @@ strategies
     where t1__' := <pp-one-Z(prettyprint-Exp)> t1__
 
   prettyprint-OrderElem :
-    Asc1(t1__) -> [ H(
-                      [SOpt(HS(), "0")]
-                    , [ S("ASC(")
-                      , t1__'
-                      , S(")")
-                      ]
-                    )
-                  ]
-    with t1__' := <pp-one-Z(prettyprint-Exp)> t1__
+    Asc1(t1__, t2__) -> [ H(
+                            [SOpt(HS(), "0")]
+                          , [ t1__'
+                            , S("(")
+                            , t2__'
+                            , S(")")
+                            ]
+                          )
+                        ]
+    with t1__' := <pp-one-Z(prettyprint-ASC)> t1__
+    with t2__' := <pp-one-Z(prettyprint-Exp)> t2__
 
   is-OrderElem =
-    ?Asc1(_)
+    ?Asc1(_, _)
 
   prettyprint-OrderElem :
-    Desc1(t1__) -> [ H(
-                       [SOpt(HS(), "0")]
-                     , [ S("DESC(")
-                       , t1__'
-                       , S(")")
-                       ]
-                     )
-                   ]
-    with t1__' := <pp-one-Z(prettyprint-Exp)> t1__
+    Desc1(t1__, t2__) -> [ H(
+                             [SOpt(HS(), "0")]
+                           , [ t1__'
+                             , S("(")
+                             , t2__'
+                             , S(")")
+                             ]
+                           )
+                         ]
+    with t1__' := <pp-one-Z(prettyprint-DESC)> t1__
+    with t2__' := <pp-one-Z(prettyprint-Exp)> t2__
 
   is-OrderElem =
-    ?Desc1(_)
+    ?Desc1(_, _)
 
   prettyprint-OrderElem :
-    Asc2(t1__) -> [ H(
-                      [SOpt(HS(), "0")]
-                    , [t1__', S(" ASC")]
-                    )
-                  ]
+    Asc2(t1__, t2__) -> [ H(
+                            [SOpt(HS(), "0")]
+                          , [t1__', S(" "), t2__']
+                          )
+                        ]
     with t1__' := <pp-one-Z(prettyprint-Exp)> t1__
+    with t2__' := <pp-one-Z(prettyprint-ASC)> t2__
 
   is-OrderElem =
-    ?Asc2(_)
+    ?Asc2(_, _)
 
   prettyprint-OrderElem :
-    Desc2(t1__) -> [ H(
-                       [SOpt(HS(), "0")]
-                     , [t1__', S(" DESC")]
-                     )
-                   ]
+    Desc2(t1__, t2__) -> [ H(
+                             [SOpt(HS(), "0")]
+                           , [t1__', S(" "), t2__']
+                           )
+                         ]
     with t1__' := <pp-one-Z(prettyprint-Exp)> t1__
+    with t2__' := <pp-one-Z(prettyprint-DESC)> t2__
 
   is-OrderElem =
-    ?Desc2(_)
+    ?Desc2(_, _)
 
   prettyprint-LimitOffsetClauses :
     LimitOffsetClauses(t1__, t2__) -> [ H(
@@ -281,37 +278,33 @@ strategies
     ?OffsetLimitClauses(_, _)
 
   prettyprint-LimitClause :
-    LimitClause(t1__) -> [ H(
-                             [SOpt(HS(), "0")]
-                           , [S("LIMIT "), t1__']
-                           )
-                         ]
-    with t1__' := <pp-one-Z(prettyprint-INTEGER)> t1__
+    LimitClause(t1__, t2__) -> [ H(
+                                   [SOpt(HS(), "0")]
+                                 , [t1__', S(" "), t2__']
+                                 )
+                               ]
+    with t1__' := <pp-one-Z(prettyprint-LIMIT)> t1__
+    with t2__' := <pp-one-Z(prettyprint-INTEGER)> t2__
 
   is-LimitClause =
-    ?LimitClause(_)
+    ?LimitClause(_, _)
 
   prettyprint-OffsetClause :
-    OffsetClause(t1__) -> [ H(
-                              [SOpt(HS(), "0")]
-                            , [S("OFFSET "), t1__']
-                            )
-                          ]
-    with t1__' := <pp-one-Z(prettyprint-INTEGER)> t1__
+    OffsetClause(t1__, t2__) -> [ H(
+                                    [SOpt(HS(), "0")]
+                                  , [t1__', S(" "), t2__']
+                                  )
+                                ]
+    with t1__' := <pp-one-Z(prettyprint-OFFSET)> t1__
+    with t2__' := <pp-one-Z(prettyprint-INTEGER)> t2__
 
   is-OffsetClause =
-    ?OffsetClause(_)
+    ?OffsetClause(_, _)
 
   is-SolutionModifier =
     fail
 
   is-SelectElems =
-    fail
-
-  is-Star =
-    fail
-
-  is-ExpOrStarAsVar =
     fail
 
   is-DistinctOrReduced =

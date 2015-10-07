@@ -14,20 +14,18 @@ completions
   completion template Query : "SelectClause MatchClause SolutionModifier" =
     <SelectClause:SelectClause> "\n" (cursor) "\n" <MatchClause:MatchClause> "\n" <SolutionModifier:SolutionModifier> (blank)  
   completion template SelectClause : "SELECT SelectElems" =
-    "SELECT " <:DistinctOrReduced> <SelectElems:SelectElems>       
+    <SELECT:SELECT> " " <:DistinctOrReduced> <SelectElems:SelectElems>  
   completion template FromClause : "FROM GRAPHNAME" =
-    "FROM " <GRAPHNAME:GRAPHNAME>                                        
+    <FROM:FROM> " " <GRAPHNAME:GRAPHNAME>                                
   completion template MatchClause : "WHERE " =
-    "WHERE\n\t" (cursor) (blank)                                                
+    <WHERE:WHERE> "\n\t" (cursor) (blank)                                       
   completion template MatchElem : "OPTIONAL GroupGraphPattern" =
-    "OPTIONAL " <GroupGraphPattern:GroupGraphPattern>         
+    <OPTIONAL:OPTIONAL> " " <GroupGraphPattern:GroupGraphPattern>  
   completion template GroupGraphPattern : "{ }" =
     "{\n\t" (cursor) "\n}" <:VarAssign> (blank)                              
   completion template UnionGraphPattern : "SubSelect UnionGraphPatternChild" =
     <SubSelect:SubSelect> "\n" <UnionGraphPatternChild:UnionGraphPatternChild> (blank)  
   completion template UnionGraphPatternChild : "UNION SubSelect " =
-    "UNION " <SubSelect:SubSelect> "\n" (cursor) (blank)   
+    <UNION:UNION> " " <SubSelect:SubSelect> "\n" (cursor) (blank)  
   completion template SubSelect : "{ Query }" =
     "{\n\t" <Query:Query> "\n}" (blank)                                        
-  completion template MatchElem : "EXPAND(VarDef : Exp)" =
-    "EXPAND(" <VarDef:VarDef> " : " <Exp:Exp> ")"                   

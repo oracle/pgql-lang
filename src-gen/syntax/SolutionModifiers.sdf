@@ -5,31 +5,27 @@ imports Keywords Names Literals Expressions
 exports
   context-free syntax
     UngroupClause? GroupClause? HavingClause? OrderClause? LimitOffsetClauses? -> SolutionModifier   {cons("SolutionModifier")}
-    {ExpOrStarAsVar ","}+                                                      -> SelectElems        {cons("Vars")}
-    Star VarAssign?                                                            -> ExpOrStarAsVar     {cons("ExpAsVar")}
-    "*"                                                                        -> Star               {cons("Star")}
-    ExpAsVar                                                                   -> ExpOrStarAsVar     
-    "DISTINCT"                                                                 -> DistinctOrReduced  {cons("Distinct")}
-    "REDUCED"                                                                  -> DistinctOrReduced  {cons("Reduced")}
-    "UNGROUP" {ExpAsVar ","}+                                                  -> UngroupClause      {cons("UngroupClase")}
-    "GROUP" "BY" {ExpAsVar ","}+                                               -> GroupClause        {cons("GroupClause")}
-    "HAVING" Exp+                                                              -> HavingClause       {cons("HavingClause")}
-    "ORDER" "BY" {OrderElem ","}+                                              -> OrderClause        {cons("OrderClause")}
+    {ExpAsVar ","}+                                                            -> SelectElems        {cons("ExpAsVars")}
+    "*"                                                                        -> SelectElems        {cons("Star")}
+    DISTINCT                                                                   -> DistinctOrReduced  {cons("Distinct")}
+    REDUCED                                                                    -> DistinctOrReduced  {cons("Reduced")}
+    UNGROUP {ExpAsVar ","}+                                                    -> UngroupClause      {cons("UngroupClase")}
+    GROUP BY {ExpAsVar ","}+                                                   -> GroupClause        {cons("GroupClause")}
+    HAVING Exp+                                                                -> HavingClause       {cons("HavingClause")}
+    ORDER BY {OrderElem ","}+                                                  -> OrderClause        {cons("OrderClause")}
     Exp                                                                        -> OrderElem          
-    "ASC" "(" Exp ")"                                                          -> OrderElem          {cons("Asc1")}
-    "DESC" "(" Exp ")"                                                         -> OrderElem          {cons("Desc1")}
-    Exp "ASC"                                                                  -> OrderElem          {cons("Asc2")}
-    Exp "DESC"                                                                 -> OrderElem          {cons("Desc2")}
+    ASC "(" Exp ")"                                                            -> OrderElem          {cons("Asc1")}
+    DESC "(" Exp ")"                                                           -> OrderElem          {cons("Desc1")}
+    Exp ASC                                                                    -> OrderElem          {cons("Asc2")}
+    Exp DESC                                                                   -> OrderElem          {cons("Desc2")}
     LimitClause OffsetClause?                                                  -> LimitOffsetClauses {cons("LimitOffsetClauses")}
     OffsetClause LimitClause?                                                  -> LimitOffsetClauses {cons("OffsetLimitClauses")}
-    "LIMIT" INTEGER                                                            -> LimitClause        {cons("LimitClause")}
-    "OFFSET" INTEGER                                                           -> OffsetClause       {cons("OffsetClause")}
+    LIMIT INTEGER                                                              -> LimitClause        {cons("LimitClause")}
+    OFFSET INTEGER                                                             -> OffsetClause       {cons("OffsetClause")}
 
   context-free syntax
     CONTENTCOMPLETE -> SolutionModifier   {cons("COMPLETION-SolutionModifier")}
     CONTENTCOMPLETE -> SelectElems        {cons("COMPLETION-SelectElems")}
-    CONTENTCOMPLETE -> ExpOrStarAsVar     {cons("COMPLETION-ExpOrStarAsVar")}
-    CONTENTCOMPLETE -> Star               {cons("COMPLETION-Star")}
     CONTENTCOMPLETE -> DistinctOrReduced  {cons("COMPLETION-DistinctOrReduced")}
     CONTENTCOMPLETE -> UngroupClause      {cons("COMPLETION-UngroupClause")}
     CONTENTCOMPLETE -> GroupClause        {cons("COMPLETION-GroupClause")}

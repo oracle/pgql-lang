@@ -13,7 +13,7 @@ signature
           : VarRef -> Exp
           : Literal -> Exp
           : FunctionCall -> Exp
-    Not1  : Exp -> Exp
+    Not1  : NOT * Exp -> Exp
     Not2  : Exp -> Exp
     UMin  : Exp -> Exp
     And   : Exp * Exp -> Exp
@@ -36,7 +36,7 @@ signature
                 : Literal -> InlinedExp
                 : InlinedCall -> InlinedExp
     SelfPropRef : Prop -> InlinedExp
-    Not1        : InlinedExp -> InlinedExp
+    Not1        : NOT * InlinedExp -> InlinedExp
     Not2        : InlinedExp -> InlinedExp
     UMin        : InlinedExp -> InlinedExp
     And         : InlinedExp * InlinedExp -> InlinedExp
@@ -53,3 +53,9 @@ signature
     Lte         : InlinedExp * InlinedExp -> InlinedExp
     Neq         : InlinedExp * InlinedExp -> InlinedExp
     Regex       : InlinedExp * InlinedExp -> InlinedExp
+
+  constructors
+    And2 : Exp * Exp -> Exp
+    Or2  : Exp * Exp -> Exp
+    And2 : InlinedExp * InlinedExp -> InlinedExp
+    Or2  : InlinedExp * InlinedExp -> InlinedExp

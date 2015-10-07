@@ -72,15 +72,16 @@ strategies
     where t1__' := <pp-one-Z(prettyprint-FunctionCall)> t1__
 
   prettyprint-Exp :
-    Not1(t1__) -> [ H(
-                      [SOpt(HS(), "0")]
-                    , [S("NOT "), t1__']
-                    )
-                  ]
-    with t1__' := <pp-one-Z(prettyprint-Exp)> t1__
+    Not1(t1__, t2__) -> [ H(
+                            [SOpt(HS(), "0")]
+                          , [t1__', S(" "), t2__']
+                          )
+                        ]
+    with t1__' := <pp-one-Z(prettyprint-NOT)> t1__
+    with t2__' := <pp-one-Z(prettyprint-Exp)> t2__
 
   is-Exp =
-    ?Not1(_)
+    ?Not1(_, _)
 
   prettyprint-Exp :
     Not2(t1__) -> [ H(
@@ -330,15 +331,16 @@ strategies
     ?SelfPropRef(_)
 
   prettyprint-InlinedExp :
-    Not1(t1__) -> [ H(
-                      [SOpt(HS(), "0")]
-                    , [S("NOT "), t1__']
-                    )
-                  ]
-    with t1__' := <pp-one-Z(prettyprint-InlinedExp)> t1__
+    Not1(t1__, t2__) -> [ H(
+                            [SOpt(HS(), "0")]
+                          , [t1__', S(" "), t2__']
+                          )
+                        ]
+    with t1__' := <pp-one-Z(prettyprint-NOT)> t1__
+    with t2__' := <pp-one-Z(prettyprint-InlinedExp)> t2__
 
   is-InlinedExp =
-    ?Not1(_)
+    ?Not1(_, _)
 
   prettyprint-InlinedExp :
     Not2(t1__) -> [ H(
@@ -529,6 +531,68 @@ strategies
 
   is-InlinedExp =
     ?Regex(_, _)
+
+  is-InlinedExp =
+    fail
+
+
+strategies
+  prettyprint-example =
+    prettyprint-Exp
+
+  prettyprint-example =
+    prettyprint-InlinedExp
+
+  prettyprint-Exp :
+    And2(t1__, t2__) -> [ H(
+                            [SOpt(HS(), "0")]
+                          , [t1__', S(" and "), t2__']
+                          )
+                        ]
+    with t1__' := <pp-one-Z(prettyprint-Exp)> t1__
+    with t2__' := <pp-one-Z(prettyprint-Exp)> t2__
+
+  is-Exp =
+    ?And2(_, _)
+
+  prettyprint-Exp :
+    Or2(t1__, t2__) -> [ H(
+                           [SOpt(HS(), "0")]
+                         , [t1__', S(" or "), t2__']
+                         )
+                       ]
+    with t1__' := <pp-one-Z(prettyprint-Exp)> t1__
+    with t2__' := <pp-one-Z(prettyprint-Exp)> t2__
+
+  is-Exp =
+    ?Or2(_, _)
+
+  prettyprint-InlinedExp :
+    And2(t1__, t2__) -> [ H(
+                            [SOpt(HS(), "0")]
+                          , [t1__', S(" AND "), t2__']
+                          )
+                        ]
+    with t1__' := <pp-one-Z(prettyprint-InlinedExp)> t1__
+    with t2__' := <pp-one-Z(prettyprint-InlinedExp)> t2__
+
+  is-InlinedExp =
+    ?And2(_, _)
+
+  prettyprint-InlinedExp :
+    Or2(t1__, t2__) -> [ H(
+                           [SOpt(HS(), "0")]
+                         , [t1__', S(" OR "), t2__']
+                         )
+                       ]
+    with t1__' := <pp-one-Z(prettyprint-InlinedExp)> t1__
+    with t2__' := <pp-one-Z(prettyprint-InlinedExp)> t2__
+
+  is-InlinedExp =
+    ?Or2(_, _)
+
+  is-Exp =
+    fail
 
   is-InlinedExp =
     fail

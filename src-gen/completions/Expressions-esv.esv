@@ -10,7 +10,7 @@ completions
   completion template Exp : "(Exp)" =
     "(" <Exp:Exp> ")"  
   completion template Exp : "NOT Exp" =
-    "NOT " <Exp:Exp>  
+    <NOT:NOT> " " <Exp:Exp>  
   completion template Exp : "!Exp" =
     "!" <Exp:Exp>  
   completion template Exp : "-Exp" =
@@ -48,7 +48,7 @@ completions
   completion template InlinedExp : "(InlinedExp)" =
     "(" <InlinedExp:InlinedExp> ")"  
   completion template InlinedExp : "NOT InlinedExp" =
-    "NOT " <InlinedExp:InlinedExp>  
+    <NOT:NOT> " " <InlinedExp:InlinedExp>  
   completion template InlinedExp : "!InlinedExp" =
     "!" <InlinedExp:InlinedExp>  
   completion template InlinedExp : "-InlinedExp" =
@@ -81,3 +81,13 @@ completions
     <InlinedExp:InlinedExp> " != " <InlinedExp:InlinedExp>  
   completion template InlinedExp : "InlinedExp =~ InlinedExp" =
     <InlinedExp:InlinedExp> " =~ " <InlinedExp:InlinedExp>  
+
+completions
+  completion template Exp : "Exp and Exp" =
+    <Exp:Exp> " and " <Exp:Exp>  
+  completion template Exp : "Exp or Exp" =
+    <Exp:Exp> " or " <Exp:Exp>  
+  completion template InlinedExp : "InlinedExp AND InlinedExp" =
+    <InlinedExp:InlinedExp> " AND " <InlinedExp:InlinedExp>  
+  completion template InlinedExp : "InlinedExp OR InlinedExp" =
+    <InlinedExp:InlinedExp> " OR " <InlinedExp:InlinedExp>  
