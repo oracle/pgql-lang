@@ -285,7 +285,7 @@ rules
   norm-case-insensitive: FromClause(_, a) -> FromClause(a)
   norm-case-insensitive: Optional(_, a) -> Optional(a)
   norm-case-insensitive: Union(_, a, b) -> Union(a, b)
-  norm-case-insensitive: Id(a) -> Id()
+  norm-case-insensitive: Id2(_) -> Id()
   
   norm-case-insensitive: Distinct(_) -> Distinct()
   norm-case-insensitive: Reduced(_) -> Reduced()

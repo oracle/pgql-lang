@@ -3,6 +3,7 @@ module check
 imports
 
   src-gen/signatures/-
+  signatures-norm/-
   signatures
   normalizedAST-sig
   projections
@@ -239,11 +240,11 @@ rules // DISTINCT limitation
 
 rules // Path finding limitations
    
-  nabl-constraint(|ctx):
-    e@Shortest(_) -> <fail>
-    where
-      failtask := <task-create-fail(|ctx)>;
-      <task-create-error-on-failure(|ctx, failtask, "Shortest path finding is not yet supported by PGX")> e
+  // nabl-constraint(|ctx):
+  //   e@Shortest(_) -> <fail>
+  //   where
+  //     failtask := <task-create-fail(|ctx)>;
+  //     <task-create-error-on-failure(|ctx, failtask, "Shortest path finding is not yet supported by PGX")> e
   
 rules // Unsupported functions
   

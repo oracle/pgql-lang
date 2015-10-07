@@ -19,7 +19,7 @@ context-free syntax
   
   Prop = <<PROPNAME>>
   Prop = <<STRING>>
-  Prop.Id = ID {prefer}
+  Prop.Id2 = ID {prefer}
   
 lexical syntax
   
