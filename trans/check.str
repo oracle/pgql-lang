@@ -365,6 +365,22 @@ rules // data types
   //     failtask := <task-create-fail(|ctx)>;
   //     <task-create-error-on-failure(|ctx, failtask, "PGX doesn't yet support negative numbers")> e
 
+rules // Unresolved references
+  
+  nabl-check-disable-unresolved = id
+    
+  nabl-constraint(|ctx):
+    GroupRef(v) -> <fail>
+    where
+      resolve-task := <nabl-create-collectdefs(|ctx)> v;
+      <task-create-error-on-failure(|ctx, resolve-task, "Non-group key variable in SELECT")> v
+
+  nabl-constraint(|ctx):
+    VarRef(v) -> <fail>
+    where
+      resolve-task := <nabl-create-collectdefs(|ctx)> v;
+      <task-create-error-on-failure(|ctx, resolve-task, "Unresolved variable")> v
+
 rules // Aggregation
 	  
   nabl-constraint(|ctx):
