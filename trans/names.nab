@@ -32,8 +32,9 @@ binding rules
   PathDecl(p, _, _, _):
     defines unique Var p of type PathTy()
   
-  ExpAsVar(v, _):
-  	defines unique Var v
+  // In PGQL 0.9, expressions in the SELECT cannot refer to variables in the SELECT
+  // ExpAsVar(v, _):
+  // 	defines unique Var v
   	
   ExpAsGroupVar(v, _):
     defines unique GroupVar v

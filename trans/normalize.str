@@ -64,7 +64,7 @@ rules
   name-unnamed-nodes-and-edges = ?EdgeOut(); !EdgeOut(<name-unnamed-nodes-and-edges-helper>, None()) +
                                  ?EdgeIn(); !EdgeIn(None(), <name-unnamed-nodes-and-edges-helper>)
   name-unnamed-nodes-and-edges-helper = !ElemContents(Some(<next-random-name>), None(), None(), None())
-  next-random-name = next-random; abs; write-to-string; !(<UNNAMED-PREFIX>, <id>); conc-strings
+  next-random-name = next-random; abs; write-to-string; add-unnamed-prefix
   
   norm-propRef = ?ElemContents(Some(varName), _, _, _); alltd(norm-propRef-helper(|varName))
   norm-propRef-helper(|varName) = ?Has(props); !Has(varName, props) +
@@ -74,7 +74,7 @@ rules
                                   ?Dst(); !Dst(varName)
   norm-propRef-helper(|varName) = ?SelfPropRef(propName); !PropRef(VarRef(varName), propName)
   
-  UNNAMED-PREFIX = !"unnamed-"
+  add-unnamed-prefix = !("unnamed-", <id>); conc-strings
   
 rules
   
@@ -199,7 +199,7 @@ rules
       select := Select(distinctOrReduced, expAsVars, groupBy', having, orderBy', limitOffsets')
   
   norm-expAsVar = ?ExpAsVar(term, Some(VarAssign(VarDef(v)))); !ExpAsVar(v, term)
-  norm-expAsVar = ?ExpAsVar(term, None()); !ExpAsVar(<origin-track-forced(origin-text)> term, term)
+  norm-expAsVar = ?ExpAsVar(term, None()); !ExpAsVar(<origin-track-forced(origin-text); add-unnamed-prefix> term, term)
 
   norm-orderBy:
   	Some(OrderClause(elems)) -> Some(OrderClause(elems'))
