@@ -7,7 +7,6 @@ imports
   normalizedAST-sig
   runtime/editor/origins
   projections
-  // analysis
   
 /*
  * These transformations are shared by analysis, tree-to-model tranformation and code gen
@@ -191,8 +190,6 @@ rules
     Query(SelectClause(distinctOrReduced, selectElems), graphName, graphPattern, SolutionModifier(ungroupAs, groupBy, having, orderBy, limitOffsets)) -> Query(graphName, graphPattern, None(), select)
     with
       expAsVars := <?Star() <+ ?ExpAsVars(<id>); map(norm-expAsVar); !Vars(<id>)> selectElems;
-      // groupBy' := <replace-all-exp-with-var-from-SELECT(|expAsVars, False())> groupBy;
-      // orderBy' := <replace-all-exp-with-var-from-SELECT(|expAsVars, True())> orderBy;
       orderBy' := <try(norm-orderBy)> orderBy;
       limitOffsets' := <norm-limitOffsets> limitOffsets;
       groupBy' := <alltd(norm-expAsVar)> groupBy;
@@ -210,31 +207,8 @@ rules
     ((?Desc1(_, <id>) + ?Desc2(<id>, _)); !OrderByElem(<id>, Desc())) <+
     ((try(?Asc1(_, <id>) + ?Asc2(<id>, _))); !OrderByElem(<id>, Asc()))
 
-  // replace-all-exp-with-var-from-SELECT(|expAsVars, orderBy) = alltd(is-list; map(replace-one-exp-with-var-from-SELECT(|expAsVars, orderBy)))
-  // replace-one-exp-with-var-from-SELECT(|expAsVars, orderBy):
-  //   exp -> OrderElem(ordering, exp', var)
-  //   where
-  //   	True() := orderBy
-  //   with
-  //   	ordering := <(?Desc1(_) + ?Desc2(_)); !Desc() <+ !Asc()> exp;
-  //     exp' := <try(?Asc1(<id>) + ?Desc1(<id>) + ?Asc2(<id>) + ?Desc2(<id>))> exp;
-  //     if ExpAsVar(v, _) := <fetch-elem(?ExpAsVar(_, exp'))> expAsVars 
-  //     then var := Some(VarRef(v))
-  //     else var := None()
-  //     end
-
-  // replace-one-exp-with-var-from-SELECT(|expAsVars, orderBy):
-  //   exp -> GroupElem(exp, var)
-  //   where
-  //     False() := orderBy
-  //   with
-  //     if ExpAsVar(v, _) := <fetch-elem(?ExpAsVar(_, exp))> expAsVars 
-  //     then var := Some(VarRef(v))
-  //     else var := None()
-  //     end
-
   get-vars-in-scope = collect(?VarDef(_) + scopes-var); filter(?VarDef(<id>); !VarRef(<id>))
-  scopes-var = ?GraphPattern(_, _, _, _, _, _, _, _) + ?ExistsFunc(ggp)// + ?NotExistsFunc(_, _, ggp)
+  scopes-var = ?GraphPattern(_, _, _, _, _, _, _, _) + ?ExistsFunc(ggp)
 
   norm-limitOffsets = ?None(); !LimitOffsetClauses(None(), None())
   norm-limitOffsets = ?Some(LimitOffsetClauses(limitClause, offsetClause)); !LimitOffsetClauses(Some(limitClause), offsetClause)
