@@ -8,7 +8,7 @@ imports
 namespaces
   
   Var
-  ReturnVar
+  GroupVar
   Schema
 
 properties
@@ -18,10 +18,10 @@ properties
 binding rules
 
   TopNode(_, _):
-    scopes Var, ReturnVar, Schema
+    scopes Var, GroupVar, Schema
   
   SubQueries(_):
-    scopes Var, ReturnVar
+    scopes Var, GroupVar
 
   Node(n):
     defines non-unique Var n of type NodeTy()
@@ -29,23 +29,26 @@ binding rules
   Edge(_, e, _, _):
     defines unique Var e of type EdgeTy()
 
-  // VarDef(v):
-  //   defines non-unique Var v
-  
   PathDecl(p, _, _, _):
     defines unique Var p of type PathTy()
   
-  // ExpAsVar(v, _):
-  // 	defines non-unique ReturnVar v // in subsequent scope
+  ExpAsVar(v, _):
+  	defines unique Var v
+  	
+  ExpAsGroupVar(v, _):
+    defines unique GroupVar v
     
   VarRef(v):
-    refers to Var v otherwise refers to ReturnVar v
+    refers to Var v
+    
+  GroupRef(v):
+    refers to GroupVar v
     
   NodeVarRef(n):
-    refers to Var n of type NodeTy() // otherwise refers to ReturnVar n of type NodeTy()
+    refers to Var n of type NodeTy()
 
   ExistsFunc(_):
-    scopes Var, ReturnVar
+    scopes Var, GroupVar
  
   m@Schema(_, _):
     implicitly defines non-unique Schema "schema" of data m

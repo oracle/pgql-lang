@@ -47,6 +47,12 @@ rules // Non-generated
     with
       filename := <guarantee-extension(|"normalized.aterm")> path;
       result   := <normalize> ast
+      
+  nabl-input-builder:
+    (_, _, ast, path, project-path) -> (filename, result)
+    with
+      filename := <guarantee-extension(|"nabl.aterm")> path;
+      result   := <normalize-pgql> ast
 
   pretty-print-builder:
     (_, _, ast, path, project-path) -> (filename, result)

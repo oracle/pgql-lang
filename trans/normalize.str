@@ -64,7 +64,7 @@ rules
   name-unnamed-nodes-and-edges = ?EdgeOut(); !EdgeOut(<name-unnamed-nodes-and-edges-helper>, None()) +
                                  ?EdgeIn(); !EdgeIn(None(), <name-unnamed-nodes-and-edges-helper>)
   name-unnamed-nodes-and-edges-helper = !ElemContents(Some(<next-random-name>), None(), None(), None())
-  next-random-name = next-random; abs; write-to-string; !("unnamed-", <id>); conc-strings
+  next-random-name = next-random; abs; write-to-string; !(<UNNAMED-PREFIX>, <id>); conc-strings
   
   norm-propRef = ?ElemContents(Some(varName), _, _, _); alltd(norm-propRef-helper(|varName))
   norm-propRef-helper(|varName) = ?Has(props); !Has(varName, props) +
@@ -73,6 +73,8 @@ rules
                                   ?Src(); !Src(varName) +
                                   ?Dst(); !Dst(varName)
   norm-propRef-helper(|varName) = ?SelfPropRef(propName); !PropRef(VarRef(varName), propName)
+  
+  UNNAMED-PREFIX = !"unnamed-"
   
 rules
   

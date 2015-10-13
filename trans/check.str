@@ -6,6 +6,7 @@ imports
   signatures-norm/-
   signatures
   normalizedAST-sig
+  common
   projections
   // analysis
   lib/runtime/nabl/-
@@ -75,8 +76,9 @@ rules
   * Error for undefined node property.
   */
   nabl-constraint(|lang, ctx, uri*):
-    PropRef(VarRef(v), p) -> <fail>
+    PropRef(varOrGroupRef, p) -> <fail>
     where
+      <?VarRef(v) + ?GroupRef(v)> varOrGroupRef;
       not ( Id() := p ); // id is built-in
       v-resolve-task := <nabl-create-collectdefs(|ctx)> v;
       v-prop-task    := <prop-create-lookup(|ctx, Type())> v-resolve-task;
@@ -90,8 +92,9 @@ rules
   * Error for undefined edge property.
   */  
   nabl-constraint(|lang, ctx, uri*):
-    PropRef(VarRef(v), p) -> <fail>
+    PropRef(varOrGroupRef, p) -> <fail>
     where
+      <?VarRef(v) + ?GroupRef(v)> varOrGroupRef;
       not ( Id() := p ); // id is built-in
       v-resolve-task := <nabl-create-collectdefs(|ctx)> v;
       v-prop-task    := <prop-create-lookup(|ctx, Type())> v-resolve-task;
@@ -364,41 +367,39 @@ rules // data types
 
 rules // GROUP BY
   
-  nabl-constraint(|ctx):
-    select -> <fail>
-    where
-      Select(_, selectClause, groupClause, havingClause, orderClause, _) := <strip-annos> select;
-      not ( None() := groupClause )
-    with
-      expsInSelect := <?Vars(<id>); map(?ExpAsVar(_, <id>)); remove-all(is-aggregate)> selectClause;
-      aggregatesInSelect := <?Vars(<id>); map(?ExpAsVar(_, <id>)); filter(is-aggregate)> selectClause;
-      expsInGroupBy := <?Some(GroupClause(<id>)); collect-exps-for-groupBy> groupClause;
-      aggregatesInGroupBy := <?None(); ![] <+ ?Some(GroupClause(<id>)); map(?ExpAsVar(_, <id>)); filter(is-aggregate)> groupClause;
-      expsInHaving := []; // TODO
-      aggregatesInHaving := []; // TODO
-      expsInOrderBy := <?None(); ![] <+ ?Some(OrderClause(<id>)); map(?OrderByElem(<id>, _)); remove-all(is-aggregate)> orderClause;
-      aggregatesInOrderBy := <?None(); ![] <+ ?Some(OrderClause(<id>)); map(?OrderByElem(<id>, _)); filter(is-aggregate)> orderClause;
-      
-
-      expsInSelectButNotInGroupClause := <diff> (expsInSelect, expsInGroupBy);
-      <map(expsNotInGroupClause(|ctx))> expsInSelectButNotInGroupClause;
-      expsInOrderByButNotInGroupClause := <diff> (expsInOrderBy, expsInGroupBy);
-      <map(expsNotInGroupClause(|ctx))> expsInOrderByButNotInGroupClause
-      
-  expsNotInGroupClause(|ctx):
-    v -> <id>
-    with
-      failtask := <task-create-fail(|ctx)>;
-      <task-create-error-on-failure(|ctx, failtask, "Expression should be in GROUP BY or inside aggregation")> v
-
-  is-aggregate = ?COUNT(_, _) + ?MIN(_, _) + ?MAX(_, _) + ?SUM(_, _) + ?AVG(_, _) + ?GROUP-CONCAT(_, _, _)
-  
-  get-exp-in-aggregate = ?COUNT(_, <id>) + ?MIN(_, <id>) + ?MAX(_, <id>) + ?SUM(_, <id>) + ?AVG(_, <id>) + ?GROUP-CONCAT(_, <id>, _)
-  
-  collect-exps-for-groupBy:
-  	expAsVars -> <conc> (a, b)
-  	with
-  		a := <map(?ExpAsVar(<id>, _); !VarRef(<id>))> expAsVars;
-  		b := <map(?ExpAsVar(_, <id>)); remove-all(is-aggregate)> expAsVars
+//   nabl-constraint(|ctx):
+//     select -> <fail>
+//     where
+//       Select(_, selectClause, groupClause, havingClause, orderClause, _) := <strip-annos> select;
+//       not ( None() := groupClause )
+//     with
+//       expsInSelect := <?Vars(<id>); map(?ExpAsVar(_, <id>)); remove-all(is-aggregate)> selectClause;
+//       aggregatesInSelect := <?Vars(<id>); map(?ExpAsVar(_, <id>)); filter(is-aggregate)> selectClause;
+//       expsInGroupBy := <?Some(GroupClause(<id>)); collect-exps-for-groupBy> groupClause;
+//       aggregatesInGroupBy := <?None(); ![] <+ ?Some(GroupClause(<id>)); map(?ExpAsVar(_, <id>)); filter(is-aggregate)> groupClause;
+//       expsInHaving := []; // TODO
+//       aggregatesInHaving := []; // TODO
+//       expsInOrderBy := <?None(); ![] <+ ?Some(OrderClause(<id>)); map(?OrderByElem(<id>, _)); remove-all(is-aggregate)> orderClause;
+//       aggregatesInOrderBy := <?None(); ![] <+ ?Some(OrderClause(<id>)); map(?OrderByElem(<id>, _)); filter(is-aggregate)> orderClause;
+//       
+// 
+//       expsInSelectButNotInGroupClause := <diff> (expsInSelect, expsInGroupBy);
+//       <map(expsNotInGroupClause(|ctx))> expsInSelectButNotInGroupClause;
+//       expsInOrderByButNotInGroupClause := <diff> (expsInOrderBy, expsInGroupBy);
+//       <map(expsNotInGroupClause(|ctx))> expsInOrderByButNotInGroupClause
+//       
+//   expsNotInGroupClause(|ctx):
+//     v -> <id>
+//     with
+//       failtask := <task-create-fail(|ctx)>;
+//       <task-create-error-on-failure(|ctx, failtask, "Expression should be in GROUP BY or inside aggregation")> v
+//   
+//   get-exp-in-aggregate = ?COUNT(_, <id>) + ?MIN(_, <id>) + ?MAX(_, <id>) + ?SUM(_, <id>) + ?AVG(_, <id>) + ?GROUP-CONCAT(_, <id>, _)
+//   
+//   collect-exps-for-groupBy:
+//   	expAsVars -> <conc> (a, b)
+//   	with
+//   		a := <map(?ExpAsVar(<id>, _); !VarRef(<id>))> expAsVars;
+//   		b := <map(?ExpAsVar(_, <id>)); remove-all(is-aggregate)> expAsVars
   
   

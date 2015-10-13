@@ -37,3 +37,8 @@ signature constructors
   HasId                : VarRef * Exp -> Exp
 
   Not                  : Exp -> Exp
+  
+// for NaBL:
+
+  GroupRef             : Var -> GroupRef
+  ExpAsGroupVar        : Var * Exp -> ExpAsGroupVar

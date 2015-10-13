@@ -36,8 +36,8 @@ menus
     action: "Show abstract syntax"   = debug-show-aterm (realtime) (source)
     action: "Print AST"              = print-ast (realtime) (source) (meta)
     action: "Show normalized syntax" = normalize-builder (realtime) (source)
+    action: "Show NaBL input"        = nabl-input-builder (realtime) (source)
     action: "Show analyzed syntax"   = debug-show-analyzed (meta)
-    
     
   menu: "Analysis"                   
     

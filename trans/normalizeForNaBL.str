@@ -2,8 +2,30 @@ module normalizeForNaBL
 
 imports
   
+  src-gen/signatures/-
+  signatures-norm/-
+  signatures
   normalizedAST-sig
+  common
 
 rules
   
-  normalizeForNaBL= id
+  normalizeForNaBL = alltd(normalizeForNaBL-groupBy)
+  
+rules
+  
+  normalizeForNaBL-groupBy:
+    Query(fromClause, graphPattern, matchOrderHint, Select(distinctOrReduced, expAsVars, groupBy, having, orderBy, limitOffsets)) ->
+    Query(fromClause, graphPattern, matchOrderHint, Select(distinctOrReduced, expAsVars', groupBy', having, orderBy', limitOffsets))
+    where
+      Some(_) := groupBy
+    with
+      expAsVars' := <to-groupRefs> expAsVars;
+      orderBy' := <to-groupRefs> orderBy;
+      groupBy' := <to-groupDefs> groupBy
+      
+  to-groupRefs = alltd(is-aggregate <+ to-groupRef)
+  to-groupRef = ?VarRef(v); !GroupRef(v)
+  
+  to-groupDefs = alltd(to-groupDef)
+  to-groupDef = ?ExpAsVar(v, exp); !ExpAsGroupVar(v, exp)

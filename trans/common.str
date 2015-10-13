@@ -1,0 +1,12 @@
+module common
+
+imports
+  
+  src-gen/signatures/-
+  signatures-norm/-
+  signatures
+  normalizedAST-sig
+
+rules
+  
+  is-aggregate = ?COUNT(_, _) + ?MIN(_, _) + ?MAX(_, _) + ?SUM(_, _) + ?AVG(_, _) + ?GROUP-CONCAT(_, _, _)
