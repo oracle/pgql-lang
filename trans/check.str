@@ -444,4 +444,18 @@ rules // Aggregation
     with
       failtask := <task-create-fail(|ctx)>;
       <task-create-error-on-failure(|ctx, failtask, "Aggregation of group key not allowed")> v
-      
+
+  // SELECT * in combination with GROUP BY
+  nabl-constraint(|ctx):
+    Query(_, whereClause, _, Select(_, s@Star(), Some(groupClause), _, _, _)) -> <fail>
+    with
+      vars := <collect(get-name-of-var-def; not(string-starts-with(|<UNNAMED-PREFIX>)))> whereClause;
+      groupKeys := <collect(?ExpAsGroupVar(<id>, _))> groupClause
+    where
+      not ( [] := <strip-annos; diff> (vars, groupKeys) )
+    with
+      failtask := <task-create-fail(|ctx)>;
+      <task-create-error-on-failure(|ctx, failtask, "SELECT * only allowed in combination with GROUP BY if all variables in the WHERE clause are group keys")> s
+
+  get-name-of-var-def = ?Node(<id>) + ?Edge(<id>, _, _, _)
+  
