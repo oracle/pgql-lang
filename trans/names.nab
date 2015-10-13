@@ -8,6 +8,7 @@ imports
 namespaces
   
   Var
+  ReturnVar
   GroupVar
   Schema
 
@@ -18,10 +19,10 @@ properties
 binding rules
 
   TopNode(_, _):
-    scopes Var, GroupVar, Schema
+    scopes Var, ReturnVar, GroupVar, Schema
   
   SubQueries(_):
-    scopes Var, GroupVar
+    scopes Var, ReturnVar, GroupVar
 
   Node(n):
     defines non-unique Var n of type NodeTy()
@@ -32,15 +33,18 @@ binding rules
   PathDecl(p, _, _, _):
     defines unique Var p of type PathTy()
   
-  // In PGQL 0.9, expressions in the SELECT cannot refer to variables in the SELECT
-  // ExpAsVar(v, _):
-  // 	defines unique Var v
+  // In PGQL 0.9, in the SELECT, you cannot refer to variables previously defined in the select
+  ExpAsVar(v, _):
+  	defines unique ReturnVar v
   	
   ExpAsGroupVar(v, _):
     defines unique GroupVar v
     
   VarRef(v):
     refers to Var v
+    
+  VarRefInOrderby(v):
+    refers to Var v otherwise refers to ReturnVar v
     
   GroupRef(v):
     refers to GroupVar v
@@ -49,7 +53,7 @@ binding rules
     refers to Var n of type NodeTy()
 
   ExistsFunc(_):
-    scopes Var, GroupVar
+    scopes Var, ReturnVar, GroupVar
  
   m@Schema(_, _):
     implicitly defines non-unique Schema "schema" of data m

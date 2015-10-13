@@ -10,7 +10,7 @@ imports
 
 rules
   
-  normalizeForNaBL = alltd(normalizeForNaBL-groupBy)
+  normalizeForNaBL = alltd(normalizeForNaBL-groupBy); alltd(normalizeForNaBL-orderBy)
   
 rules
   
@@ -23,7 +23,9 @@ rules
       expAsVars' := <to-groupRefs> expAsVars;
       orderBy' := <to-groupRefs> orderBy;
       groupBy' := <to-groupDefs> groupBy
-      
+ 
+  normalizeForNaBL-orderBy = ?OrderClause(_); alltd(?VarRef(<id>); !VarRefInOrderby(<id>))
+ 
   to-groupRefs = alltd(is-aggregate <+ to-groupRef)
   to-groupRef = ?VarRef(v); !GroupRef(v)
   

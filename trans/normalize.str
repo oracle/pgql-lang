@@ -199,7 +199,7 @@ rules
       select := Select(distinctOrReduced, expAsVars, groupBy', having, orderBy', limitOffsets')
   
   norm-expAsVar = ?ExpAsVar(term, Some(VarAssign(VarDef(v)))); !ExpAsVar(v, term)
-  norm-expAsVar = ?ExpAsVar(term, None()); !ExpAsVar(<origin-track-forced(origin-text); add-unnamed-prefix> term, term)
+  norm-expAsVar = ?ExpAsVar(term, None()); !ExpAsVar(<origin-track-forced(origin-text)> term, term)
 
   norm-orderBy:
   	Some(OrderClause(elems)) -> Some(OrderClause(elems'))

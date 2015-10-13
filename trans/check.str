@@ -373,7 +373,7 @@ rules // Unresolved references
     GroupRef(v) -> <fail>
     where
       resolve-task := <nabl-create-collectdefs(|ctx)> v;
-      <task-create-error-on-failure(|ctx, resolve-task, "Non-group key variable in SELECT")> v
+      <task-create-error-on-failure(|ctx, resolve-task, "Non-group key variable")> v
 
   nabl-constraint(|ctx):
     VarRef(v) -> <fail>

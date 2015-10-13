@@ -41,4 +41,5 @@ signature constructors
 // for NaBL:
 
   GroupRef             : Var -> GroupRef
+  VarRefInOrderby      : Var -> VarRefInOrderby
   ExpAsGroupVar        : Var * Exp -> ExpAsGroupVar
