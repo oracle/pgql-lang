@@ -418,7 +418,6 @@ rules // Aggregation
 
   // Aggregation in ORDER BY with absence of GROUP BY
   nabl-constraint(|ctx):
-    
     Select(_, _, None(), _, Some(orderClause), _) -> <fail>
     with
       aggrsInOrderBy := <collect-om(is-aggregate, conc)> orderClause;
@@ -429,3 +428,20 @@ rules // Aggregation
     with
       failtask := <task-create-fail(|ctx)>;
       <task-create-error-on-failure(|ctx, failtask, "Aggregation in ORDER BY not allowed without GROUP BY")> v
+
+  // Aggregation of group key
+  nabl-constraint(|ctx):
+    Select(_, selectClause, Some(groupClause), _, Some(orderClause), _) -> <fail>
+    with
+      aggrs := <collect(is-aggregate)> (selectClause, orderClause);
+      varsInAggrs := <collect(?VarRef(<id>) + ?VarRefInOrderby(<id>))> aggrs;
+      groupKeys := <collect(?ExpAsGroupVar(<id>, _))> groupClause;
+      groupKeysInAggrs := <strip-annos; isect> (varsInAggrs, groupKeys);
+      <map(error-on-groupKey-in-aggr(|ctx))> groupKeysInAggrs
+      
+  error-on-groupKey-in-aggr(|ctx):
+    v -> <id>
+    with
+      failtask := <task-create-fail(|ctx)>;
+      <task-create-error-on-failure(|ctx, failtask, "Aggregation of group key not allowed")> v
+      
