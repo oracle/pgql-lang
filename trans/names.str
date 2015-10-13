@@ -13,9 +13,9 @@ imports
 
 signature
   constructors
-    NablNsVar       : Namespace
-    NablNsReturnVar : Namespace
-    NablNsSchema    : Namespace
+    NablNsVar      : Namespace
+    NablNsGroupVar : Namespace
+    NablNsSchema   : Namespace
 
 
 signature
@@ -82,22 +82,22 @@ rules
   nabl-scoping-site =
     ?TopNode(_, _)
     ; nabl-scope(
-      | [NablNsVar(), NablNsReturnVar(), NablNsSchema()]
+      | [NablNsVar(), NablNsGroupVar(), NablNsSchema()]
       )
 
   nabl-get-scope =
     ?TopNode(_, _)
-    ; ![NablNsVar(), NablNsReturnVar(), NablNsSchema()]
+    ; ![NablNsVar(), NablNsGroupVar(), NablNsSchema()]
 
   nabl-scoping-site =
     ?SubQueries(_)
     ; nabl-scope(
-      | [NablNsVar(), NablNsReturnVar()]
+      | [NablNsVar(), NablNsGroupVar()]
       )
 
   nabl-get-scope =
     ?SubQueries(_)
-    ; ![NablNsVar(), NablNsReturnVar()]
+    ; ![NablNsVar(), NablNsGroupVar()]
 
   nabl-get-name :
     Node(n) -> n
@@ -238,6 +238,70 @@ rules
     ; fail
 
   nabl-get-name :
+    ExpAsVar(v, _) -> v
+
+  nabl-name-apply(s) =
+    ExpAsVar(s, id)
+
+  nabl-def-site(child-uris__, sibl-uris__, implicits__|lang__, ctx__, uniques__, uri__, states__) =
+    ?ExpAsVar(v, _)
+    ; origin-track-forced(
+        ExpAsVar(
+          nabl-def(
+            ?c-uri1__
+          , ?s-uri1__
+          | lang__
+          , ctx__
+          , uniques__
+          , uri__
+          , uri__
+          , NablNsVar()
+          , Unique()
+          , Current()
+          , []
+          , []
+          )
+        , id
+        )
+      |
+      )
+    ; match(child-uris__|c-uri1__)
+    ; match(sibl-uris__|s-uri1__)
+    ; match(implicits__|[])
+
+  nabl-get-name :
+    ExpAsGroupVar(v, _) -> v
+
+  nabl-name-apply(s) =
+    ExpAsGroupVar(s, id)
+
+  nabl-def-site(child-uris__, sibl-uris__, implicits__|lang__, ctx__, uniques__, uri__, states__) =
+    ?ExpAsGroupVar(v, _)
+    ; origin-track-forced(
+        ExpAsGroupVar(
+          nabl-def(
+            ?c-uri1__
+          , ?s-uri1__
+          | lang__
+          , ctx__
+          , uniques__
+          , uri__
+          , uri__
+          , NablNsGroupVar()
+          , Unique()
+          , Current()
+          , []
+          , []
+          )
+        , id
+        )
+      |
+      )
+    ; match(child-uris__|c-uri1__)
+    ; match(sibl-uris__|s-uri1__)
+    ; match(implicits__|[])
+
+  nabl-get-name :
     VarRef(v) -> v
 
   nabl-name-apply(s) =
@@ -262,10 +326,31 @@ rules
                     , []
                     )
                }>
-            , <{:
+            ]
+          )
+        )
+      |
+      )
+
+  nabl-get-name :
+    GroupRef(v) -> v
+
+  nabl-name-apply(s) =
+    GroupRef(s)
+
+  nabl-use-site(|lang__, ctx__, uniques__, uris__, states__) =
+    ?GroupRef(v)
+    ; origin-track-forced(
+        GroupRef(
+          nabl-use(
+          | lang__
+          , ctx__
+          , uniques__
+          , uris__
+          , [ <{:
                  id
                  ; !UseCandidate(
-                      NablNsReturnVar()
+                      NablNsGroupVar()
                     , []
                     , Current()
                     , True()
@@ -312,12 +397,12 @@ rules
   nabl-scoping-site =
     ?ExistsFunc(_)
     ; nabl-scope(
-      | [NablNsVar(), NablNsReturnVar()]
+      | [NablNsVar(), NablNsGroupVar()]
       )
 
   nabl-get-scope =
     ?ExistsFunc(_)
-    ; ![NablNsVar(), NablNsReturnVar()]
+    ; ![NablNsVar(), NablNsGroupVar()]
 
   nabl-def-site(child-uris__, sibl-uris__, implicits__|lang__, ctx__, uniques__, uri__, states__) =
     ?m@Schema(_, _)
