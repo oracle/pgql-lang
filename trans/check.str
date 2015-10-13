@@ -158,6 +158,7 @@ rules // cross-constraints involving edges / paths
 
 rules
   
+  /*
   nabl-constraint(|ctx):
     s -> <fail>
     where
@@ -169,14 +170,15 @@ rules
     where
       fail; // disabled for now
       var-is-edge := <var-is-edge(|ctx)> v;
-      <task-create-error-on-success(|ctx, var-is-edge, "PGX does not yet support the use of edges in a solution modifier")> v
+      <task-create-error-on-success(|ctx, var-is-edge, "PGX 1.0 does not support the use of edges in a solution modifier")> v
   	
   return-type-path(|ctx):
     VarRef(v) -> <fail>
     where
       var-is-path := <var-is-path(|ctx)> v;
-      <task-create-error-on-success(|ctx, var-is-path, "PGX does not yet support the use of paths in a solution modifier")> v
-
+      <task-create-error-on-success(|ctx, var-is-path, "PGX 1.0 does not support the use of paths in a solution modifier")> v
+  */
+  
 rules // subqueries
   
   nabl-constraint(|ctx):
@@ -188,7 +190,7 @@ rules // subqueries
     e@Query(_, _, _, _) -> <id>
     where
       failtask := <task-create-fail(|ctx)>;
-      <task-create-error-on-failure(|ctx, failtask, "PGX does not yet support subqueries")> e
+      <task-create-error-on-failure(|ctx, failtask, "PGX 0.9 does not support subqueries")> e
 
 rules // (NOT) EXISTS limitations
   
@@ -196,29 +198,30 @@ rules // (NOT) EXISTS limitations
     e@ExistsFunc(_) -> <fail>
     where
       failtask := <task-create-fail(|ctx)>;
-      <task-create-error-on-failure(|ctx, failtask, "PGX does not yet support the EXISTS function")> e
+      <task-create-error-on-failure(|ctx, failtask, "PGX 0.9 does not support (NOT) EXISTS")> e
 
+/*
   constraints-check(|ctx):
     constraint -> <fail>
     where
       not ( ?ExistsFunc(_) + ?Not(ExistsFunc(_)));
       oncetd(?e@ExistsFunc(_));
       failtask := <task-create-fail(|ctx)>;
-      <task-create-error-on-failure(|ctx, failtask, "PGX currently only supports top-level NOT EXISTS; the NOT EXISTS may not appear as part of a more complex expression")> e
+      <task-create-error-on-failure(|ctx, failtask, "PGX 1.0 currently only supports top-level NOT EXISTS; the NOT EXISTS may not appear as part of a more complex expression")> e
       
   constraints-check(|ctx):
     e@Not(ExistsFunc(GraphPattern(_, Edges(edges), _, _, _, _, _, _))) -> <fail>
     where
       <gt> (<length> edges, 1);
       failtask := <task-create-fail(|ctx)>;
-      <task-create-error-on-failure(|ctx, failtask, "PGX currently only supports NOT EXISTS patterns with at most one edge")> e
+      <task-create-error-on-failure(|ctx, failtask, "PGX 1.0 currently only supports NOT EXISTS patterns with at most one edge")> e
 
   nabl-constraint(|ctx):
     Constraints(constraints) -> <fail>
     where
       notExists := <filter(?Not(ExistsFunc(_)))> constraints;
       <gt> (<length> notExists, 1);
-      <Tl; map(task-create-error-on-failure(|ctx, <task-create-fail(|ctx)>, "PGX currently only handles queries with at most one NOT EXISTS patterns"))> notExists
+      <Tl; map(task-create-error-on-failure(|ctx, <task-create-fail(|ctx)>, "PGX 1.0 currently only handles queries with at most one NOT EXISTS patterns"))> notExists
 
   nabl-constraint(|ctx):
     GraphPattern(Nodes(nodes), _, Constraints(constraints), _, _, _, _, _) -> <fail>
@@ -231,7 +234,8 @@ rules // (NOT) EXISTS limitations
     where
       not ( [] := <isect> (nodesOuterScope, nodes) );
       failtask := <task-create-fail(|ctx)>;
-      <task-create-error-on-failure(|ctx, failtask, "PGX currently doesn't support NOT EXISTS patterns that do not share a node variable with the outer scope")> e
+      <task-create-error-on-failure(|ctx, failtask, "PGX 1.0 does not support NOT EXISTS patterns that have no node variable in commont with the outer scope")> e
+  */
   
 rules // DISTINCT limitation
   
@@ -239,7 +243,7 @@ rules // DISTINCT limitation
     e@Distinct() -> <fail>
     where
       failtask := <task-create-fail(|ctx)>;
-      <task-create-error-on-failure(|ctx, failtask, "DISTINCT is not yet supported by PGX")> e
+      <task-create-error-on-failure(|ctx, failtask, "PGX 0.9 does not support DISTINCT")> e
 
 rules // Path finding limitations
    
@@ -289,7 +293,8 @@ rules // Not a connected graph
         else m := $[Nodes [<print-nodes> other-partition] are not connected to nodes [<print-nodes> biggest-partition]]
         end
       end;
-      <connected-pattern-constraint-helper(|ctx, m)> other-partition
+      m' := $<<m> (PGX 0.9 does not support disconnected patterns>;
+      <connected-pattern-constraint-helper(|ctx, m')> other-partition
 
   connected-pattern-constraint-helper(|ctx, message):
     node -> <id>
@@ -357,7 +362,7 @@ rules // data types
     where
       <?True() + ?False()> bool;
       failtask := <task-create-fail(|ctx)>;
-      <task-create-error-on-failure(|ctx, failtask, "PGX doesn't yet support boolean data type")> bool
+      <task-create-error-on-failure(|ctx, failtask, "PGX 0.9 does not support the boolean data type")> bool
   
   // nabl-constraint(|ctx):
   //   e@UMin(_) -> <fail>
@@ -382,7 +387,8 @@ rules // Unresolved references
       <task-create-error-on-failure(|ctx, resolve-task, "Unresolved variable")> v
 
 rules // Aggregation
-	  
+	
+	// Aggregation in GROUP BY
   nabl-constraint(|ctx):
     t@GroupClause(_) -> <fail>
     with
@@ -395,6 +401,7 @@ rules // Aggregation
       failtask := <task-create-fail(|ctx)>;
       <task-create-error-on-failure(|ctx, failtask, "Aggregation not allowed in GROUP BY")> v
   
+  // Nested aggregation
   nabl-constraint(|ctx):
     t -> <fail>
     where
@@ -402,7 +409,7 @@ rules // Aggregation
     with
       aggrsInAggr := <get-arguments; collect-om(is-aggregate, conc)> t;
       <map(error-on-aggr-in-aggr(|ctx))> aggrsInAggr
-  
+      
   error-on-aggr-in-aggr(|ctx):
   	v -> <id>
     with
