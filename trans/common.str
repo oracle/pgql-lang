@@ -10,3 +10,6 @@ imports
 rules
   
   is-aggregate = ?COUNT(_, _) + ?MIN(_, _) + ?MAX(_, _) + ?SUM(_, _) + ?AVG(_, _) + ?GROUP-CONCAT(_, _, _)
+    
+  UNNAMED-PREFIX = !"unnamed-"
+  add-unnamed-prefix = !(<UNNAMED-PREFIX>, <id>); conc-strings

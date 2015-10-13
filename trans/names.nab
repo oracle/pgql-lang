@@ -47,7 +47,7 @@ binding rules
     refers to Var v otherwise refers to ReturnVar v
     
   GroupRef(v):
-    refers to GroupVar v
+    refers to GroupVar v otherwise refers to ReturnVar v
     
   NodeVarRef(n):
     refers to Var n of type NodeTy()

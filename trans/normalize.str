@@ -73,8 +73,6 @@ rules
                                   ?Dst(); !Dst(varName)
   norm-propRef-helper(|varName) = ?SelfPropRef(propName); !PropRef(VarRef(varName), propName)
   
-  add-unnamed-prefix = !("unnamed-", <id>); conc-strings
-  
 rules
   
   norm-UnionGraphPattern:
