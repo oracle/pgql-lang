@@ -18,7 +18,9 @@ rules
     Query(fromClause, graphPattern, matchOrderHint, Select(distinctOrReduced, expAsVars, groupBy, having, orderBy, limitOffsets)) ->
     Query(fromClause, graphPattern, matchOrderHint, Select(distinctOrReduced, expAsVars', groupBy', having, orderBy', limitOffsets))
     where
-      Some(_) := groupBy
+      // if (1) there is a GROUP BY or (2) there are aggregates in the SELECT, then all variables
+      // in the SELECT and ORDER BY need to be group keys or need to be inside aggregates
+      !groupBy; ?Some(_) + !expAsVars; oncetd(is-aggregate)
     with
       expAsVars' := <to-groupRefs> expAsVars;
       orderBy' := <to-groupRefs> orderBy;

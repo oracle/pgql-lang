@@ -7,6 +7,7 @@ imports
   normalizedAST-sig
   runtime/editor/origins
   projections
+  common
   
 /*
  * These transformations are shared by analysis, tree-to-model tranformation and code gen

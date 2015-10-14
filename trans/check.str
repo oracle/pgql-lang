@@ -378,7 +378,7 @@ rules // Unresolved references
     GroupRef(v) -> <fail>
     where
       resolve-task := <nabl-create-collectdefs(|ctx)> v;
-      <task-create-error-on-failure(|ctx, resolve-task, "Non-group key variable")> v
+      <task-create-error-on-failure(|ctx, resolve-task, "Non-group key variable can only be used inside an aggregate")> v
 
   nabl-constraint(|ctx):
     VarRef(v) -> <fail>
@@ -415,19 +415,6 @@ rules // Aggregation
     with
       failtask := <task-create-fail(|ctx)>;
       <task-create-error-on-failure(|ctx, failtask, "Nested aggregation is not allowed")> v
-
-  // Aggregation in ORDER BY with absence of GROUP BY
-  nabl-constraint(|ctx):
-    Select(_, _, None(), _, Some(orderClause), _) -> <fail>
-    with
-      aggrsInOrderBy := <collect-om(is-aggregate, conc)> orderClause;
-      <map(error-on-aggr-in-orderBy(|ctx))> aggrsInOrderBy
-      
-  error-on-aggr-in-orderBy(|ctx):
-    v -> <id>
-    with
-      failtask := <task-create-fail(|ctx)>;
-      <task-create-error-on-failure(|ctx, failtask, "Aggregation in ORDER BY not allowed without GROUP BY")> v
 
   // Aggregation of group key
   nabl-constraint(|ctx):
