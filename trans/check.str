@@ -375,6 +375,7 @@ rules // data types
 rules // Unresolved references
   
   nabl-check-disable-unresolved = id
+  nabl-check-disable-duplicate(|uri, ns) = id
     
   nabl-constraint(|ctx):
     GroupRef(v) -> <fail>
@@ -387,6 +388,23 @@ rules // Unresolved references
     where
       resolve-task := <nabl-create-collectdefs(|ctx)> v;
       <task-create-error-on-failure(|ctx, resolve-task, "Unresolved variable")> v
+      
+  nabl-constraint(|ctx):
+    expAsVar -> <fail>
+    where
+    	if ExpAsVar(v, _) := expAsVar
+    	then
+        if <string-starts-with(|<UNNAMED-PREFIX>)> v
+        then msg := "Duplicate expression in SELECT"
+        else msg := "Duplicate variable" // edge, variable in SELECT/GROUP BY
+        end
+      else
+      	ExpAsGroupVar(v, _) := expAsVar;
+      	msg := "Duplicate expression in GROUP BY"
+      end;
+      uri := <nabl-uri; nabl-uri-parent> v;
+      resolve-task := <nabl-create-resolvedefs(|ctx, NablNsVar(), v, [])> uri;
+      <task-create-error-on-multiple(|ctx, resolve-task, msg)> v
 
 rules // Aggregation
 	
