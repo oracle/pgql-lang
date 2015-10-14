@@ -6,6 +6,7 @@ imports
   signatures-norm/-
   signatures
   normalizedAST-sig
+  normalizeForNaBL
   common
   projections
   // analysis
@@ -21,7 +22,7 @@ rules
   /**
    * Error for duplicate nodes in matching order hint (IN ORDER clause).
    */
-  nabl-constraint(|ctx):
+/*  nabl-constraint(|ctx):
     OrderClause(nodeRefs) -> <fail>
     where
       e := <first-duplicate-elem> nodeRefs;
@@ -42,6 +43,7 @@ rules
     where
       e := <Hd> elems;
       <elem> (e, visited)
+*/
       
 rules
   
@@ -421,7 +423,7 @@ rules // Aggregation
     Select(_, selectClause, Some(groupClause), _, Some(orderClause), _) -> <fail>
     with
       aggrs := <collect(is-aggregate)> (selectClause, orderClause);
-      varsInAggrs := <collect(?VarRef(<id>) + ?VarRefInOrderby(<id>))> aggrs;
+      varsInAggrs := <collect(?VarRef(<id>))> aggrs;
       groupKeys := <collect(?ExpAsGroupVar(<id>, _))> groupClause;
       groupKeysInAggrs := <strip-annos; isect> (varsInAggrs, groupKeys);
       <map(error-on-groupKey-in-aggr(|ctx))> groupKeysInAggrs

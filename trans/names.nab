@@ -42,17 +42,14 @@ binding rules
   // GroupVar and SelectVar are non-unique because we already do the uniqueness test using Var
   ExpAsGroupVar(v, _):
     defines non-unique GroupVar v
-    defines non-unique SelectVar v
     defines unique Var v
     
   VarRef(v):
     refers to Var v
     
-  VarRefInOrderby(v):
-    refers to Var v otherwise refers to SelectVar v
-    
   GroupRef(v):
-    refers to GroupVar v otherwise refers to SelectVar v
+    refers to GroupVar v
+      otherwise refers to SelectVar v // e.g. in [[SELECT AVG(n.age) as avgAge WHERE n ORDER BY avgAge]], avgAge in ORDER BY is a GroupRef and can only refer to SelectVar 
     
   NodeVarRef(n):
     refers to Var n of type NodeTy()
