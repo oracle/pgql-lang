@@ -2,3 +2,8 @@ module select
 
 language PGQL
 
+test Duplicate expression in SELECT allowed if at least one is named [[
+SELECT n.name, n.name AS nName
+WHERE
+  n
+]]

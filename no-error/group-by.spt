@@ -2,9 +2,59 @@ module group-by
 
 language PGQL
 
-test Aggregation of group key [[
+test Basic GROUP BY [[
+SELECT nName, n.name, AVG(n.age)
+WHERE
+  n
+GROUP BY n.name AS nName
+]]
+
+test SELECT * and GROUP BY [[
+SELECT *
+WHERE
+  n -[e]-> m
+GROUP BY n, e, m
+]]
+
+test SELECT * and GROUP BY [[
+SELECT *
+WHERE
+  n -> m
+GROUP BY n, m
+]]
+
+test Aggregation of group key 1 [[
 SELECT AVG(nAge)
 WHERE
   n
 GROUP BY n.age AS nAge
 ]]
+
+test Aggregation of group key 2 [[
+SELECT AVG(n.age)
+WHERE
+  n
+GROUP BY n.age
+]]
+
+test Aggregation of group key 3 [[
+SELECT nAge, AVG(nAge)
+WHERE
+  n
+GROUP BY n.age AS nAge
+]]
+
+test Aggregation of group key 3 [[
+SELECT n.age, AVG(n.age)
+WHERE
+  n
+GROUP BY n.age
+]]
+
+test Group variable but variable not used [[
+SELECT n.age
+WHERE
+  n
+GROUP BY n.age AS nAge
+]]
+

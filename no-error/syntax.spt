@@ -2,13 +2,12 @@ module syntax
 
 language PGQL
 
-
 test Case insensitive [[
-sElEcT AVG(n.age)
+sElEcT mAx(n.age), MiN(n.age), sUm(n.age)
 WhErE
   n
 gRoUp By n.name
-OrDeR bY AVG(n.age)
+OrDeR bY AvG(n.age)
 lImIt 10
 OfFsEt 5
 ]]
@@ -40,8 +39,8 @@ WHERE
 test Edges [[
 SELECT *
 WHERE
-  (n) -> () --> () -[e]-> () -[e WITH label = 'Knows']-> (),
-  (n) <- () <-- () <-[e]- () <-[e WITH label = 'Knows']- ()
+  (n) -> () --> () -[e1]-> () -[e2 WITH label = 'Knows']-> (),
+  (n) <- () <-- () <-[e3]- () <-[e4 WITH label = 'Knows']- ()
 ]]
 
 test Properties [[
