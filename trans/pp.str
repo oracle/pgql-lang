@@ -12,6 +12,11 @@ rules
     prettyprint-Start
     ; !V([], <id>)
     ; box2text-string(|120)
+
+  pp-expression =
+    prettyprint-Exp
+    ; !V([], <id>)
+    ; box2text-string(|120)
       
   pp-debug :
     ast -> result

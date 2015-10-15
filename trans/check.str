@@ -405,6 +405,13 @@ rules // Unresolved references
       resolve-task := <nabl-create-resolvedefs(|ctx, NablNsVar(), v, [])> uri;
       <task-create-error-on-multiple(|ctx, resolve-task, msg)> v
 
+  nabl-constraint(|ctx):
+    Edge(_, e, _, _) -> <fail>
+    where
+      uri := <nabl-uri; nabl-uri-parent> e;
+      resolve-task := <nabl-create-resolvedefs(|ctx, NablNsVar(), e, [])> uri;
+      <task-create-error-on-multiple(|ctx, resolve-task, "Duplicate edge variable")> e
+
 rules // Aggregation
 	
 	// Aggregation in GROUP BY
@@ -435,6 +442,7 @@ rules // Aggregation
       failtask := <task-create-fail(|ctx)>;
       <task-create-error-on-failure(|ctx, failtask, "Nested aggregation is not allowed")> v
 
+/*
   // Aggregation of group key
   nabl-constraint(|ctx):
     Select(_, selectClause, Some(groupClause), _, orderClause, _) -> <fail>
@@ -450,7 +458,7 @@ rules // Aggregation
     with
       failtask := <task-create-fail(|ctx)>;
       <task-create-error-on-failure(|ctx, failtask, "Aggregation of group key not allowed")> v
-
+*/
   // SELECT * in combination with GROUP BY
   nabl-constraint(|ctx):
     Query(_, whereClause, _, Select(_, s@Star(), Some(groupClause), _, _, _)) -> <fail>

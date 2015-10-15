@@ -16,6 +16,7 @@ rules
 
   example-schema = !Schema(
     [
+      // LDBC
       NodeProp("creationDate", "DateTime"),
       NodeProp("firstName", "String"),
       NodeProp("lastName", "String"),
@@ -30,13 +31,21 @@ rules
       NodeProp("language", "List<String>"),
       NodeProp("imageFile", "List<String>"),
       NodeProp("content", "List<Text>"),
-      NodeProp("length", "32bitInteger")
+      NodeProp("length", "32bitInteger"),
+      
+      // tests
+      NodeProp("type", "String"),
+      NodeProp("name", "String"),
+      NodeProp("age", "Int")
     ],
     [
       EdgeProp("creationDate", "DateTime"),
       EdgeProp("joinDate", "DateTime"),
       EdgeProp("classYear", "32bitInteger"),
-      EdgeProp("workFrom", "32bitInteger")
+      EdgeProp("workFrom", "32bitInteger"),
+      
+      // tests
+      EdgeProp("label", "String")
     ]
   )
   

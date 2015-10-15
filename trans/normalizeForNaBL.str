@@ -22,17 +22,20 @@ rules
       // in the SELECT and ORDER BY need to be group keys or need to be inside aggregates
       !groupBy; ?Some(_) + !expAsVars; oncetd(is-aggregate)
     with
-      expAsVars' := <to-groupRefs> expAsVars;
+      expAsVars' := <to-varOrGroupRefs> expAsVars;
       orderBy' := <to-groupRefs> orderBy;
       groupBy' := <to-groupDefs> groupBy
+  
+  to-varOrGroupRefs = alltd(is-aggregate <+ ?VarRef(<id>); !GroupRef(<id>))
  
-  to-groupRefs = alltd(is-aggregate <+ to-groupRef)
-  to-groupRef = ?VarRef(v); !GroupRef(v)
+  to-groupRefs = alltd(is-aggregate <+ ?VarRef(<id>); !SelectOrGroupRef(<id>))
   
   to-groupDefs = alltd(to-groupDef)
   to-groupDef = ?ExpAsVar(v, exp); !ExpAsGroupVar(v, exp)
   
 signature constructors
   
+  SelectOrGroupRef     : Var -> SelectOrGroupRef
   GroupRef             : Var -> GroupRef
   ExpAsGroupVar        : Var * Exp -> ExpAsGroupVar
+  

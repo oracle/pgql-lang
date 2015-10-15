@@ -8,6 +8,8 @@ imports
   runtime/editor/origins
   projections
   common
+  pp
+  editor-common.generated
   
 /*
  * These transformations are shared by analysis, tree-to-model tranformation and code gen
@@ -57,14 +59,13 @@ rules
   norm-simpleNode = ?SimpleNode(<id>); !Node(ElemContents(Some(<id>), None(), None(), None()))  
   norm-edgeContents = ?Some(EdgeContents(<id>))
   
-  name-unnamed-nodes-and-edges = ?ElemContents(None(), type, id', constraints); !ElemContents(Some(<next-random-name>), type, id', constraints)
+  name-unnamed-nodes-and-edges = ?ElemContents(None(), type, id', constraints); !ElemContents(Some(<add-random-prefix> ""), type, id', constraints)
   name-unnamed-nodes-and-edges = EdgeNoDir(?None(); name-unnamed-nodes-and-edges-helper, id) + 
                                  EdgeOut(?None(); name-unnamed-nodes-and-edges-helper, id) +
                                  EdgeIn(id, ?None(); name-unnamed-nodes-and-edges-helper)
   name-unnamed-nodes-and-edges = ?EdgeOut(); !EdgeOut(<name-unnamed-nodes-and-edges-helper>, None()) +
                                  ?EdgeIn(); !EdgeIn(None(), <name-unnamed-nodes-and-edges-helper>)
-  name-unnamed-nodes-and-edges-helper = !ElemContents(Some(<next-random-name>), None(), None(), None())
-  next-random-name = next-random; abs; write-to-string; add-unnamed-prefix
+  name-unnamed-nodes-and-edges-helper = !ElemContents(Some(<add-random-prefix> ""), None(), None(), None())
   
   norm-propRef = ?ElemContents(Some(varName), _, _, _); alltd(norm-propRef-helper(|varName))
   norm-propRef-helper(|varName) = ?Has(props); !Has(varName, props) +
@@ -188,26 +189,52 @@ rules
   norm-query:
     Query(SelectClause(distinctOrReduced, selectElems), graphName, graphPattern, SolutionModifier(ungroupAs, groupBy, having, orderBy, limitOffsets)) -> Query(graphName, graphPattern, None(), select)
     with
-      expAsVars := <?Star() <+ ?ExpAsVars(<id>); map(norm-expAsVar); !Vars(<id>)> selectElems;
-      orderBy' := <try(norm-orderBy)> orderBy;
-      limitOffsets' := <norm-limitOffsets> limitOffsets;
-      groupBy' := <alltd(norm-expAsVar)> groupBy;
-      select := Select(distinctOrReduced, expAsVars, groupBy', having, orderBy', limitOffsets')
-  
-  norm-expAsVar = ?ExpAsVar(term, Some(VarAssign(VarDef(v)))); !ExpAsVar(v, term)
-  norm-expAsVar = ?ExpAsVar(term, None()); !ExpAsVar(<origin-track-forced(origin-text); add-unnamed-prefix> term, term)
+      expAsGroupVars := <?Some(GroupClause(<id>)) <+ ![]> groupBy;
+      expAsGroupVars' := <map(norm-expAsGroupVar)> expAsGroupVars;
+      groupBy' := <?Some(_); !Some(GroupClause(expAsGroupVars')) <+ !None()> groupBy;
 
-  norm-orderBy:
+      projection := <?Star() <+ ?ExpAsVars(<id>)> selectElems;
+      expAsSelectVars := <try(?Star(); ![])> projection;
+      expAsSelectVars' := <map(norm-expAsSelectVar(|expAsGroupVars'))> expAsSelectVars;
+      projection' := <?Star() <+ !ExpAsVars(expAsSelectVars')> projection;
+      
+      allExpAsVars := <conc> (expAsSelectVars', expAsGroupVars');
+      orderByElems := <try(norm-orderBy(|allExpAsVars))> orderBy;
+
+      limitOffsets' := <norm-limitOffsets> limitOffsets;
+      select := Select(distinctOrReduced, Vars(projection'), groupBy', having, orderByElems, limitOffsets')
+  
+  norm-expAsGroupVar = ?ExpAsVar(term, Some(VarAssign(VarDef(v)))); !ExpAsVar(v, term)
+  norm-expAsGroupVar = ?ExpAsVar(term, None()); !ExpAsVar(<origin-track-forced(!term; origin-text; add-random-prefix)> term, term)
+  
+  norm-expAsSelectVar(|expAsGroupVars):
+    ExpAsVar(term, var) -> ExpAsVar(var', term')
+    with
+      if ExpAsVar(groupVar, _) := <fetch-elem(?ExpAsVar(_, term))> expAsGroupVars
+      then term' := VarRef(groupVar)
+      else term' := term
+      end;
+      if Some(VarAssign(VarDef(v))) := var
+      then var' := v
+      else var' := <origin-text; add-random-prefix> term
+      end
+
+  norm-orderBy(|allExpAsVars):
   	Some(OrderClause(elems)) -> Some(OrderClause(elems'))
   	with
-  		elems' := <map(norm-orderByElem)> elems
+  		elems' := <map(norm-orderBy-ordering); map(norm-orderBy-expression(|allExpAsVars))> elems
 
-  norm-orderByElem =
+  norm-orderBy-ordering =
     ((?Desc1(_, <id>) + ?Desc2(<id>, _)); !OrderByElem(<id>, Desc())) <+
     ((try(?Asc1(_, <id>) + ?Asc2(<id>, _))); !OrderByElem(<id>, Asc()))
 
-  get-vars-in-scope = collect(?VarDef(_) + scopes-var); filter(?VarDef(<id>); !VarRef(<id>))
-  scopes-var = ?GraphPattern(_, _, _, _, _, _, _, _) + ?ExistsFunc(ggp)
+  norm-orderBy-expression(|allExpAsVars):
+  	OrderByElem(exp, ordering) -> OrderByElem(exp', ordering)
+  	with
+  		if ExpAsVar(var, _) := <fetch-elem(?ExpAsVar(_, exp))> allExpAsVars
+  	  then exp' := VarRef(var)
+      else exp' := exp
+      end
 
   norm-limitOffsets = ?None(); !LimitOffsetClauses(None(), None())
   norm-limitOffsets = ?Some(LimitOffsetClauses(limitClause, offsetClause)); !LimitOffsetClauses(Some(limitClause), offsetClause)

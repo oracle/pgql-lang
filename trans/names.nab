@@ -10,6 +10,7 @@ namespaces
   Var
   SelectVar
   GroupVar
+  AnyVar
   Schema
 
 properties
@@ -19,35 +20,43 @@ properties
 binding rules
 
   TopNode(_, _):
-    scopes Var, SelectVar, GroupVar, Schema
+    scopes Var, SelectVar, GroupVar, AnyVar, Schema
   
   SubQueries(_):
-    scopes Var, SelectVar, GroupVar
+    scopes Var, SelectVar, GroupVar, AnyVar
 
   Node(n):
     defines non-unique Var n of type NodeTy()
+    // defines non-unique AnyVar n
   
   Edge(_, e, _, _):
     defines unique Var e of type EdgeTy()
+    // defines non-unique AnyVar e
 
   PathDecl(p, _, _, _):
     defines unique Var p of type PathTy()
+    // defines non-unique AnyVar p
   
   // SelectVar is non-unique because we already do the uniqueness test using Var
   // In PGQL 0.9, in the SELECT, you cannot refer to variables previously defined in the SELECT
   ExpAsVar(v, _):
   	defines non-unique SelectVar v
   	defines unique Var v
+  	// defines unique AnyVar v
   
-  // GroupVar and SelectVar are non-unique because we already do the uniqueness test using Var
+  // GroupVar is non-unique because we already do the uniqueness test using Var
   ExpAsGroupVar(v, _):
     defines non-unique GroupVar v
     defines unique Var v
+    // defines unique AnyVar v
     
   VarRef(v):
     refers to Var v
-    
+  
   GroupRef(v):
+    refers to GroupVar v
+      
+  SelectOrGroupRef(v):
     refers to GroupVar v
       otherwise refers to SelectVar v // e.g. in [[SELECT AVG(n.age) as avgAge WHERE n ORDER BY avgAge]], avgAge in ORDER BY is a GroupRef and can only refer to SelectVar 
     
@@ -55,7 +64,7 @@ binding rules
     refers to Var n of type NodeTy()
 
   ExistsFunc(_):
-    scopes Var, SelectVar, GroupVar
+    scopes Var, SelectVar, GroupVar, AnyVar
  
   m@Schema(_, _):
     implicitly defines non-unique Schema "schema" of data m
