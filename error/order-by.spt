@@ -1,0 +1,18 @@
+module order-by
+
+language PGQL
+
+test Order by non-group key 1 [[
+SELECT n.age
+WHERE
+  n
+GROUP BY n.age
+ORDER BY n.name
+]] / Non-group key variable can only be used inside an aggregate /
+
+test Nested aggregation [[
+SELECT AVG(n.age)
+WHERE
+  n
+ORDER BY AVG(MIN(n.age))
+]] / Nested aggregation is not allowed /

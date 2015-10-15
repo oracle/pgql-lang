@@ -1,0 +1,46 @@
+module order-by
+
+language PGQL
+
+test Order by nodes/edges [[
+SELECT *
+WHERE
+  n -[e]-> m
+ORDER BY n, e, m
+]]
+
+test Order by node/edge IDs [[
+SELECT *
+WHERE
+  n -[e]-> m
+ORDER BY n, e, m
+]]
+
+test Order by property [[
+SELECT *
+WHERE
+  n -[e]-> m
+ORDER BY n.age
+]]
+
+test Order by select key [[
+SELECT n.name AS nName
+WHERE
+  n -[e]-> m
+ORDER BY nName
+]]
+
+test Order by group key [[
+SELECT COUNT(*)
+WHERE
+  n -[e]-> m
+GROUP BY n.age AS nAge
+ORDER BY nAge
+]]
+
+test Duplicate expression in ORDER BY [[
+SELECT *
+WHERE
+  n
+ORDER BY n.name, n.name
+]]

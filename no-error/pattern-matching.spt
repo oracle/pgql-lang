@@ -1,0 +1,22 @@
+module pattern-matching
+
+language PGQL
+
+test Empty pattern [[
+SELECT *
+WHERE
+]]
+
+test Single node [[
+SELECT *
+WHERE
+  n
+]]
+
+test Multiple paths [[
+SELECT *
+WHERE
+  n1 -> n2,
+  n2 -> n3
+]]
+

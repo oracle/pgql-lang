@@ -1,0 +1,11 @@
+module syntax
+
+language PGQL
+
+test Select nothing [[
+SELECT
+WHERE
+  x
+]] parse fails
+
+

@@ -1,0 +1,66 @@
+module syntax
+
+language PGQL
+
+
+test Case insensitive [[
+sElEcT AVG(n.age)
+WhErE
+  n
+gRoUp By n.name
+OrDeR bY AVG(n.age)
+lImIt 10
+OfFsEt 5
+]]
+
+test Single node 1 [[
+SELECT *
+WHERE
+  n
+]]
+
+test Single node 2 [[
+SELECT *
+WHERE
+  ()
+]]
+
+test Single node 3 [[
+SELECT *
+WHERE
+  (n)
+]]
+
+test Single node 4 [[
+SELECT *
+WHERE
+  (n WITH age = 25)
+]]
+
+test Edges [[
+SELECT *
+WHERE
+  (n) -> () --> () -[e]-> () -[e WITH label = 'Knows']-> (),
+  (n) <- () <-- () <-[e]- () <-[e WITH label = 'Knows']- ()
+]]
+
+test Properties [[
+SELECT *
+WHERE
+  (n1 WITH age = 25) ->
+  (n2 WITH n2.'age' = 25) ->
+  (n3 WITH n2."age" = 25)
+]]
+
+test Strings [[
+SELECT *
+WHERE
+  (n1 WITH name = 'Single quotes \'\' and double quotes "" or \"\"') ->
+  (n2 WITH name = "Single quotes '' or \'\' and double quotes \"\"")
+]]
+
+test Numeric [[
+SELECT *
+WHERE
+  (n1 WITH age = 25 AND age = -25 AND age = 25.0 AND age = -25.0)
+]]

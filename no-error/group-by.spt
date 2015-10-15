@@ -1,0 +1,10 @@
+module group-by
+
+language PGQL
+
+test Aggregation of group key [[
+SELECT AVG(nAge)
+WHERE
+  n
+GROUP BY n.age AS nAge
+]]

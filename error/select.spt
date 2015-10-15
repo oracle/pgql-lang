@@ -1,0 +1,36 @@
+module select
+
+language PGQL
+
+test Duplicate expression in SELECT [[
+SELECT n.name, n.name
+WHERE
+  n
+]] / Duplicate expression in SELECT /
+
+test SELECT * but not all variables are group keys [[
+SELECT *
+WHERE
+  n
+GROUP BY n.name
+]] 1 error // / SELECT * only allowed in combination with GROUP BY if all variables in the WHERE clause are group keys /  SPT bug: cannot handle * in error message. TODO: file bug report
+
+test Select non-group key [[
+SELECT n.name
+WHERE
+  n
+GROUP BY n.age
+]] / Non-group key variable can only be used inside an aggregate /
+
+test Nested aggregation [[
+SELECT AVG(MIN(n.age))
+WHERE
+  n
+]] / Nested aggregation is not allowed /
+
+test Aggregation of group key [[
+SELECT AVG(nAge)
+WHERE
+  n
+GROUP BY n.age AS nAge
+]] / Aggregation of group key not allowed /
