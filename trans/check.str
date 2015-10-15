@@ -399,7 +399,7 @@ rules // Unresolved references
     where
     	if ExpAsVar(v, _) := expAsVar
     	then
-        if <string-starts-with(|<UNNAMED-PREFIX>)> v
+        if <string-starts-with(|<GENERATED-PREFIX>)> v
         then msg := "Duplicate expression in SELECT"
         else msg := "Duplicate variable" // edge, variable in SELECT/GROUP BY
         end
@@ -469,13 +469,13 @@ rules // Aggregation
   nabl-constraint(|ctx):
     Query(_, whereClause, _, Select(_, s@Star(), Some(groupClause), _, _, _)) -> <fail>
     with
-      vars := <collect(get-name-of-var-def; not(string-starts-with(|<UNNAMED-PREFIX>)))> whereClause;
-      groupKeys := <collect(?ExpAsGroupVar(<id>, _))> groupClause
+      vars := <collect(get-name-of-var-def; not(string-starts-with(|<GENERATED-PREFIX>)))> whereClause;
+      groupKeys := <collect(?ExpAsGroupVar(_, VarRef(<id>)))> groupClause
     where
       not ( [] := <strip-annos; diff> (vars, groupKeys) )
     with
       failtask := <task-create-fail(|ctx)>;
       <task-create-error-on-failure(|ctx, failtask, "SELECT * only allowed in combination with GROUP BY if all variables in the WHERE clause are group keys")> s
 
-  get-name-of-var-def = ?Node(<id>) + ?Edge(<id>, _, _, _)
+  get-name-of-var-def = ?Node(<id>) + ?Edge(_, <id>, _, _)
   

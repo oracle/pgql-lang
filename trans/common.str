@@ -11,9 +11,9 @@ rules
   
   is-aggregate = ?COUNT(_, _) + ?MIN(_, _) + ?MAX(_, _) + ?SUM(_, _) + ?AVG(_, _) + ?GROUP-CONCAT(_, _, _)
     
-  UNNAMED-PREFIX = !"GENERATED-"
-  add-random-prefix:
-  	name -> <conc-strings> (<UNNAMED-PREFIX>, random-number, name')
-  	with
-  		random-number := <next-random; abs; write-to-string>;
-  		name' := <?"" <+ !$[: [name]]> name
+  GENERATED-PREFIX = !"GENERATED-"
+  
+  random-name = !(<GENERATED-PREFIX>, <next-random; abs; write-to-string>); conc-strings
+  add-generated-prefix = !(<GENERATED-PREFIX>, <id>); conc-strings
+  add-random-prefix = !(<random-name>, "-", <id>); conc-strings
+  

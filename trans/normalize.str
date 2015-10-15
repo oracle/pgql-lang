@@ -59,13 +59,13 @@ rules
   norm-simpleNode = ?SimpleNode(<id>); !Node(ElemContents(Some(<id>), None(), None(), None()))  
   norm-edgeContents = ?Some(EdgeContents(<id>))
   
-  name-unnamed-nodes-and-edges = ?ElemContents(None(), type, id', constraints); !ElemContents(Some(<add-random-prefix> ""), type, id', constraints)
+  name-unnamed-nodes-and-edges = ?ElemContents(None(), type, id', constraints); !ElemContents(Some(<random-name>), type, id', constraints)
   name-unnamed-nodes-and-edges = EdgeNoDir(?None(); name-unnamed-nodes-and-edges-helper, id) + 
                                  EdgeOut(?None(); name-unnamed-nodes-and-edges-helper, id) +
                                  EdgeIn(id, ?None(); name-unnamed-nodes-and-edges-helper)
   name-unnamed-nodes-and-edges = ?EdgeOut(); !EdgeOut(<name-unnamed-nodes-and-edges-helper>, None()) +
                                  ?EdgeIn(); !EdgeIn(None(), <name-unnamed-nodes-and-edges-helper>)
-  name-unnamed-nodes-and-edges-helper = !ElemContents(Some(<add-random-prefix> ""), None(), None(), None())
+  name-unnamed-nodes-and-edges-helper = !ElemContents(Some(<random-name> ""), None(), None(), None())
   
   norm-propRef = ?ElemContents(Some(varName), _, _, _); alltd(norm-propRef-helper(|varName))
   norm-propRef-helper(|varName) = ?Has(props); !Has(varName, props) +
@@ -196,13 +196,13 @@ rules
       projection := <?Star() <+ ?ExpAsVars(<id>)> selectElems;
       expAsSelectVars := <try(?Star(); ![])> projection;
       expAsSelectVars' := <map(norm-expAsSelectVar(|expAsGroupVars'))> expAsSelectVars;
-      projection' := <?Star() <+ !ExpAsVars(expAsSelectVars')> projection;
+      projection' := <?Star() <+ !Vars(ExpAsVars(expAsSelectVars'))> projection;
       
       allExpAsVars := <conc> (expAsSelectVars', expAsGroupVars');
       orderByElems := <try(norm-orderBy(|allExpAsVars))> orderBy;
 
       limitOffsets' := <norm-limitOffsets> limitOffsets;
-      select := Select(distinctOrReduced, Vars(projection'), groupBy', having, orderByElems, limitOffsets')
+      select := Select(distinctOrReduced, projection', groupBy', having, orderByElems, limitOffsets')
   
   norm-expAsGroupVar = ?ExpAsVar(term, Some(VarAssign(VarDef(v)))); !ExpAsVar(v, term)
   norm-expAsGroupVar = ?ExpAsVar(term, None()); !ExpAsVar(<origin-track-forced(!term; origin-text; add-random-prefix)> term, term)
@@ -213,7 +213,7 @@ rules
       exp' := <replace-terms-with-varRef(|expAsGroupVars)> exp;
       if Some(VarAssign(VarDef(v))) := var
       then var' := v
-      else var' := <origin-text; add-random-prefix> exp
+      else var' := <origin-text; add-generated-prefix> exp
       end
   
   replace-terms-with-varRef(|expAsGroupVars) = !(expAsGroupVars, <id>); foldl(replace-terms-with-varRef)
