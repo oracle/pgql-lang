@@ -78,9 +78,9 @@ rules
   * Error for undefined node property.
   */
   nabl-constraint(|lang, ctx, uri*):
-    PropRef(varOrGroupRef, p) -> <fail>
+    PropRef(varRef, p) -> <fail>
     where
-      <?VarRef(v) + ?GroupRef(v)> varOrGroupRef;
+      <?VarRef(v) + ?GroupRef(v) + ?SelectOrGroupRef(v)> varRef;
       not ( Id() := p ); // id is built-in
       v-resolve-task := <nabl-create-collectdefs(|ctx)> v;
       v-prop-task    := <prop-create-lookup(|ctx, Type())> v-resolve-task;
@@ -94,9 +94,9 @@ rules
   * Error for undefined edge property.
   */  
   nabl-constraint(|lang, ctx, uri*):
-    PropRef(varOrGroupRef, p) -> <fail>
+    PropRef(varRef, p) -> <fail>
     where
-      <?VarRef(v) + ?GroupRef(v)> varOrGroupRef;
+      <?VarRef(v) + ?GroupRef(v) + ?SelectOrGroupRef(v)> varRef;
       not ( Id() := p ); // id is built-in
       v-resolve-task := <nabl-create-collectdefs(|ctx)> v;
       v-prop-task    := <prop-create-lookup(|ctx, Type())> v-resolve-task;
@@ -377,16 +377,22 @@ rules // Unresolved references
   nabl-check-disable-duplicate(|uri, ns) = id
     
   nabl-constraint(|ctx):
-    GroupRef(v) -> <fail>
-    where
-      resolve-task := <nabl-create-collectdefs(|ctx)> v;
-      <task-create-error-on-failure(|ctx, resolve-task, "Non-group key variable can only be used inside an aggregate")> v
-
-  nabl-constraint(|ctx):
     VarRef(v) -> <fail>
     where
       resolve-task := <nabl-create-collectdefs(|ctx)> v;
       <task-create-error-on-failure(|ctx, resolve-task, "Unresolved variable")> v
+      
+  nabl-constraint(|ctx):
+    GroupRef(v) -> <fail>
+    where
+      resolve-task := <nabl-create-collectdefs(|ctx)> v;
+      <task-create-error-on-failure(|ctx, resolve-task, "Non-group key variable in SELECT")> v
+      
+  nabl-constraint(|ctx):
+    SelectOrGroupRef(v) -> <fail>
+    where
+      resolve-task := <nabl-create-collectdefs(|ctx)> v;
+      <task-create-error-on-failure(|ctx, resolve-task, "Cannot order by non-group key variable without using aggregation")> v
       
   nabl-constraint(|ctx):
     expAsVar -> <fail>
