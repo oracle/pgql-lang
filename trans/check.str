@@ -295,8 +295,7 @@ rules // Not a connected graph
         else m := $[Nodes [<print-nodes> other-partition] are not connected to nodes [<print-nodes> biggest-partition]]
         end
       end;
-      m' := $<<m> (PGX 0.9 does not support disconnected patterns>;
-      <connected-pattern-constraint-helper(|ctx, m')> other-partition
+      <connected-pattern-constraint-helper(|ctx, m)> other-partition
 
   connected-pattern-constraint-helper(|ctx, message):
     node -> <id>
@@ -304,7 +303,7 @@ rules // Not a connected graph
       failtask := <task-create-fail(|ctx)>;
       <task-create-error-on-failure(|ctx, failtask, message)> node
 
-  print-nodes = reverse; separate-by(|", "); concat-strings; !("{", <id>, "}"); conc-strings
+  print-nodes = reverse; separate-by(|", "); concat-strings
 
   length-gt = ?(l1, l2); !(<length> l1, <length> (l2)); gt
 
@@ -438,7 +437,7 @@ rules // Aggregation
 
   // Aggregation of group key
   nabl-constraint(|ctx):
-    Select(_, selectClause, Some(groupClause), _, Some(orderClause), _) -> <fail>
+    Select(_, selectClause, Some(groupClause), _, orderClause, _) -> <fail>
     with
       aggrs := <collect(is-aggregate)> (selectClause, orderClause);
       varsInAggrs := <collect(?VarRef(<id>))> aggrs;
