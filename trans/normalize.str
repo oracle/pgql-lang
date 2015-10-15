@@ -208,16 +208,16 @@ rules
   norm-expAsGroupVar = ?ExpAsVar(term, None()); !ExpAsVar(<origin-track-forced(!term; origin-text; add-random-prefix)> term, term)
   
   norm-expAsSelectVar(|expAsGroupVars):
-    ExpAsVar(term, var) -> ExpAsVar(var', term')
+    ExpAsVar(exp, var) -> ExpAsVar(var', exp')
     with
-      if ExpAsVar(groupVar, _) := <fetch-elem(?ExpAsVar(_, term))> expAsGroupVars
-      then term' := VarRef(groupVar)
-      else term' := term
-      end;
+      exp' := <replace-terms-with-varRef(|expAsGroupVars)> exp;
       if Some(VarAssign(VarDef(v))) := var
       then var' := v
-      else var' := <origin-text; add-random-prefix> term
+      else var' := <origin-text; add-random-prefix> exp
       end
+  
+  replace-terms-with-varRef(|expAsGroupVars) = !(expAsGroupVars, <id>); foldl(replace-terms-with-varRef)
+  replace-terms-with-varRef = ?(ExpAsVar(var, term), <id>); alltd(is-aggregate + ?term; !VarRef(var))
 
   norm-orderBy(|allExpAsVars):
   	Some(OrderClause(elems)) -> Some(OrderClause(elems'))
@@ -231,10 +231,7 @@ rules
   norm-orderBy-expression(|allExpAsVars):
   	OrderByElem(exp, ordering) -> OrderByElem(exp', ordering)
   	with
-  		if ExpAsVar(var, _) := <fetch-elem(?ExpAsVar(_, exp))> allExpAsVars
-  	  then exp' := VarRef(var)
-      else exp' := exp
-      end
+  	  exp' := <replace-terms-with-varRef(|allExpAsVars)> exp
 
   norm-limitOffsets = ?None(); !LimitOffsetClauses(None(), None())
   norm-limitOffsets = ?Some(LimitOffsetClauses(limitClause, offsetClause)); !LimitOffsetClauses(Some(limitClause), offsetClause)
