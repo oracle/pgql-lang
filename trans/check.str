@@ -81,7 +81,6 @@ rules
     PropRef(varRef, p) -> <fail>
     where
       <?VarRef(v) + ?GroupRef(v) + ?SelectOrGroupRef(v)> varRef;
-      not ( Id() := p ); // id is built-in
       v-resolve-task := <nabl-create-collectdefs(|ctx)> v;
       v-prop-task    := <prop-create-lookup(|ctx, Type())> v-resolve-task;
       m-resolve-task := <nabl-use-candidate(|lang, ctx, uri*, "schema")> UseCandidate(NablNsSchema(), [], Current(), False(), []);
@@ -97,7 +96,6 @@ rules
     PropRef(varRef, p) -> <fail>
     where
       <?VarRef(v) + ?GroupRef(v) + ?SelectOrGroupRef(v)> varRef;
-      not ( Id() := p ); // id is built-in
       v-resolve-task := <nabl-create-collectdefs(|ctx)> v;
       v-prop-task    := <prop-create-lookup(|ctx, Type())> v-resolve-task;
       m-resolve-task := <nabl-use-candidate(|lang, ctx, uri*, "schema")> UseCandidate(NablNsSchema(), [], Current(), False(), []);

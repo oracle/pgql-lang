@@ -32,8 +32,4 @@ signature constructors
   Desc                 : Ordering
   LimitOffsetClauses   : Option(LimitClause) * Option(OffsetClause) -> LimitOffsetClauses
 
-  HasType              : VarRef * Exp -> Exp
-  HasLabel             : VarRef * Exp -> Exp
-  HasId                : VarRef * Exp -> Exp
-
   Not                  : Exp -> Exp

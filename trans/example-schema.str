@@ -36,7 +36,8 @@ rules
       // tests
       NodeProp("type", "String"),
       NodeProp("name", "String"),
-      NodeProp("age", "Int")
+      NodeProp("age", "Int"),
+      NodeProp("salary", "Double")
     ],
     [
       EdgeProp("creationDate", "DateTime"),
@@ -45,7 +46,8 @@ rules
       EdgeProp("workFrom", "32bitInteger"),
       
       // tests
-      EdgeProp("label", "String")
+      EdgeProp("label", "String"),
+      EdgeProp("weight", "Int")
     ]
   )
   

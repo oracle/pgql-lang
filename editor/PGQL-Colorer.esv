@@ -56,6 +56,7 @@ colorer // Keywords, can be removed once http://yellowgrass.org/issue/Spoofax/95
   UNION          : 127 0 85 bold
   WITH           : 127 0 85 bold
   AS             : 127 0 85 bold
+  LABEL          : 127 0 85 bold
   ID             : 127 0 85 bold
 
   HAS            : 127 0 85 bold

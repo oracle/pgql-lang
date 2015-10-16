@@ -12,7 +12,7 @@ context-free syntax
   Literal = <<LitCustomType>>
   Literal.Null = <<NULL>>
   
-  AltLit.AltLit = <<AltLit>|<AltLit>> {left}
+  AltLit.Or = <<AltLit>|<AltLit>> {left}
   AltLit = <<Literal>>
   AltLit = <<UnquotedString>>
   

@@ -10,6 +10,8 @@ imports
 
 context-free syntax // inlined function calls
 
+  InlinedCall.Label = <<LABEL>()>
+  InlinedCall.Id = <<ID>()>
   InlinedCall.Has = <<HAS>(<{Prop ", "}*>)>
   InlinedCall.InDegree  = <<INDEGREE>()>
   InlinedCall.OutDegree = <<OUTDEGREE>()>
@@ -22,6 +24,8 @@ context-free syntax // inlined function calls
 
 context-free syntax // nodes/edges
 
+  FunctionCall.Label = <<Exp>.<LABEL>()>
+  FunctionCall.Id = <<Exp>.<ID>()>
   FunctionCall.Has = <<Exp>. <HAS>(<{Prop ", "}*>)>
   
 context-free syntax // nodes

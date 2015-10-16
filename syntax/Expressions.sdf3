@@ -78,7 +78,9 @@ context-free priorities
   >
  // all functioncalls should actually be in one block, but putting too many sorts in one block crashes SDF2table gen.
   {
-    left:        
+    left:
+      FunctionCall.Label
+      FunctionCall.Id
       FunctionCall.Has
       FunctionCall.InDegree
       FunctionCall.OutDegree
@@ -166,7 +168,9 @@ context-free priorities
   }
   >
   {
-    left:        
+    left:
+      FunctionCall.Label
+      FunctionCall.Id
       InlinedCall.Has
       InlinedCall.InDegree
       InlinedCall.OutDegree

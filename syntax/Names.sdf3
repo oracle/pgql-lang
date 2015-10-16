@@ -19,13 +19,12 @@ context-free syntax
   
   Prop = <<PROPNAME>>
   Prop = <<STRING>>
-  Prop.Id2 = ID {prefer}
   
 lexical syntax
   
   GRAPHNAME = [a-zA-Z][a-zA-Z0-9\_]*
   VARNAME   = [a-zA-Z][a-zA-Z0-9\_]*
-  PROPNAME  = [a-zA-Z][a-zA-Z0-9\_]*
+  PROPNAME  = [a-zA-Z0-9\_]+
   
 lexical syntax // reserved keywords
 
@@ -59,4 +58,4 @@ lexical restrictions // greedy matching
 
   GRAPHNAME -/- [a-zA-Z0-9\_]
   VARNAME   -/- [a-zA-Z0-9\_]
-  PROPNAME  -/- [a-zA-Z0-9\_\(]
+  PROPNAME  -/- [a-zA-Z0-9\_]

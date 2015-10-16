@@ -34,9 +34,9 @@ context-free syntax
 
 context-free syntax
 
-  ElemContents.ElemContents = <<VARNAME?><Type?><Id?><WithInlinedConstraints?>> {prefer} // 'prefer' disambiguates 'match (X)': X can be a property reference or a variable. It should be a variable.
-  Type.Type = <:<ExpressionOrAltLit>>
-  Id.Id = <@<ExpressionOrAltLit>>
+  ElemContents.ElemContents = <<VARNAME?><Labels?><Ids?><WithInlinedConstraints?>> {prefer} // 'prefer' disambiguates 'match (X)': X can be a property reference or a variable. It should be a variable.
+  Labels.Labels = <:<ExpressionOrAltLit>>
+  Ids.Ids = <@<ExpressionOrAltLit>>
   ExpressionOrAltLit = <<Exp>>
   ExpressionOrAltLit = <<AltLit>> {prefer}
   
