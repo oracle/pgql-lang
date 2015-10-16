@@ -206,7 +206,7 @@ rules
       select := Select(distinctOrReduced, projection', groupBy', having, orderByElems, limitOffsets')
   
   norm-expAsGroupVar(|c) = ?ExpAsVar(term, Some(VarAssign(VarDef(v)))); !ExpAsVar(v, term)
-  norm-expAsGroupVar(|c) = ?ExpAsVar(term, None()); !ExpAsVar(<origin-track-forced(!term; origin-text; add-unique-suffix(|c))> term, term)
+  norm-expAsGroupVar(|c) = ?ExpAsVar(term, None()); !ExpAsVar(<origin-text; add-unique-suffix(|c)> term, term)
   
   norm-expAsSelectVar(|expAsGroupVars):
     ExpAsVar(exp, var) -> ExpAsVar(var', exp')
@@ -218,7 +218,9 @@ rules
       end
   
   replace-terms-with-varRef(|expAsGroupVars) = !(expAsGroupVars, <id>); foldl(replace-terms-with-varRef)
-  replace-terms-with-varRef = ?(ExpAsVar(var, term), <id>); alltd(is-aggregate + ?term; !VarRef(var))
+  replace-terms-with-varRef = ?(ExpAsVar(var, term), <id>); alltd(
+    is-aggregate; ?term; !VarRef(var) + // for ORDER BY
+    is-aggregate + ?term; !VarRef(var)) // for SELECT: never look into aggregates
 
   norm-orderBy(|allExpAsVars):
   	Some(OrderClause(elems)) -> Some(OrderClause(elems'))
