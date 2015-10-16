@@ -9,4 +9,4 @@ WHERE
 GROUP BY n.name AS [[nName]]
 ORDER BY [[nName]]
 ]] //resolve #1 to #2 // this one fails, SPT bug? It seems to work fine in editor.
-   resolve #3 to #2
+   // resolve #3 to #2

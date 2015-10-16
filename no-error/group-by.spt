@@ -2,11 +2,19 @@ module group-by
 
 language PGQL
 
-test Basic GROUP BY [[
+test Basic GROUP BY 1 [[
 SELECT nName, n.name, AVG(n.age)
 WHERE
   n
 GROUP BY n.name AS nName
+]]
+
+test Basic GROUP BY 2 [[
+SELECT x, x.age
+WHERE
+  x
+GROUP BY x
+ORDER BY x
 ]]
 
 test SELECT * and GROUP BY [[
