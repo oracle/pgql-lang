@@ -47,10 +47,10 @@ completions
 
 completions
   completion template ElemContents : "" =
-    <:VARNAME> <:Type> <:Id> <:WithInlinedConstraints>  
-  completion template Type : ":ExpressionOrAltLit" =
+    <:VARNAME> <:Labels> <:Ids> <:WithInlinedConstraints>  
+  completion template Labels : ":ExpressionOrAltLit" =
     ":" <ExpressionOrAltLit:ExpressionOrAltLit>  
-  completion template Id : "@ExpressionOrAltLit" =
+  completion template Ids : "@ExpressionOrAltLit" =
     "@" <ExpressionOrAltLit:ExpressionOrAltLit>  
   completion template WithInlinedConstraints : " WITH InlinedExp" =
     " " <WITH:WITH> " " <InlinedExp:InlinedExp>  

@@ -35,16 +35,16 @@ exports
     CONTENTCOMPLETE -> Weighted              {cons("COMPLETION-Weighted")}
 
   context-free syntax
-    VARNAME? Type? Id? WithInlinedConstraints? -> ElemContents           {cons("ElemContents"), prefer}
-    ":" ExpressionOrAltLit                     -> Type                   {cons("Type")}
-    "@" ExpressionOrAltLit                     -> Id                     {cons("Id")}
-    Exp                                        -> ExpressionOrAltLit     
-    AltLit                                     -> ExpressionOrAltLit     {prefer}
-    WITH {InlinedExp ","}+                     -> WithInlinedConstraints {cons("Constraint")}
+    VARNAME? Labels? Ids? WithInlinedConstraints? -> ElemContents           {cons("ElemContents"), prefer}
+    ":" ExpressionOrAltLit                        -> Labels                 {cons("Labels")}
+    "@" ExpressionOrAltLit                        -> Ids                    {cons("Ids")}
+    Exp                                           -> ExpressionOrAltLit     
+    AltLit                                        -> ExpressionOrAltLit     {prefer}
+    WITH {InlinedExp ","}+                        -> WithInlinedConstraints {cons("Constraint")}
 
   context-free syntax
     CONTENTCOMPLETE -> ElemContents           {cons("COMPLETION-ElemContents")}
-    CONTENTCOMPLETE -> Type                   {cons("COMPLETION-Type")}
-    CONTENTCOMPLETE -> Id                     {cons("COMPLETION-Id")}
+    CONTENTCOMPLETE -> Labels                 {cons("COMPLETION-Labels")}
+    CONTENTCOMPLETE -> Ids                    {cons("COMPLETION-Ids")}
     CONTENTCOMPLETE -> ExpressionOrAltLit     {cons("COMPLETION-ExpressionOrAltLit")}
     CONTENTCOMPLETE -> WithInlinedConstraints {cons("COMPLETION-WithInlinedConstraints")}

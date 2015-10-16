@@ -139,17 +139,6 @@ strategies
     where not(is-Prop)
     where t1__' := <pp-one-Z(prettyprint-STRING)> t1__
 
-  prettyprint-Prop :
-    Id2(t1__) -> [ H(
-                     [SOpt(HS(), "0")]
-                   , [t1__']
-                   )
-                 ]
-    with t1__' := <pp-one-Z(prettyprint-ID)> t1__
-
-  is-Prop =
-    ?Id2(_)
-
   is-VarDef =
     fail
 

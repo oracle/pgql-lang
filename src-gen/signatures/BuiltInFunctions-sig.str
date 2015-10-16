@@ -10,6 +10,8 @@ imports
 
 signature
   constructors
+    Label     : LABEL -> InlinedCall
+    Id        : ID -> InlinedCall
     Has       : HAS * List(Prop) -> InlinedCall
     InDegree  : INDEGREE -> InlinedCall
     OutDegree : OUTDEGREE -> InlinedCall
@@ -20,7 +22,9 @@ signature
     Length    : LENGTH -> InlinedCall
 
   constructors
-    Has : Exp * HAS * List(Prop) -> FunctionCall
+    Label : Exp * LABEL -> FunctionCall
+    Id    : Exp * ID -> FunctionCall
+    Has   : Exp * HAS * List(Prop) -> FunctionCall
 
   constructors
     InDegree  : Exp * INDEGREE -> FunctionCall

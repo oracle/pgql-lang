@@ -12,7 +12,6 @@ exports
     VARNAME         -> Var        
     PROPNAME        -> Prop       
     STRING          -> Prop       
-    ID              -> Prop       {cons("Id2"), prefer}
 
   context-free syntax
     CONTENTCOMPLETE -> VarDef     {cons("COMPLETION-VarDef")}
@@ -27,7 +26,7 @@ exports
   lexical syntax
     [a-zA-Z] [a-zA-Z0-9\_]* -> GRAPHNAME 
     [a-zA-Z] [a-zA-Z0-9\_]* -> VARNAME   
-    [a-zA-Z] [a-zA-Z0-9\_]* -> PROPNAME  
+    [a-zA-Z0-9\_]+          -> PROPNAME  
 
   lexical syntax
     
@@ -35,4 +34,4 @@ exports
   lexical restrictions
     GRAPHNAME -/- [a-zA-Z0-9\_]
     VARNAME -/- [a-zA-Z0-9\_]
-    PROPNAME -/- [a-zA-Z0-9\_\(]
+    PROPNAME -/- [a-zA-Z0-9\_]

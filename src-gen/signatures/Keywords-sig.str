@@ -9,6 +9,7 @@ signature
      : String -> WITH
      : String -> AS
      : String -> ID
+     : String -> LABEL
 
   constructors
      : String -> HAS

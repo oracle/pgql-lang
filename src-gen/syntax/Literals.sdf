@@ -8,7 +8,7 @@ exports
     String            -> Literal 
     LitCustomType     -> Literal 
     NULL              -> Literal {cons("Null")}
-    AltLit "|" AltLit -> AltLit  {cons("AltLit"), left}
+    AltLit "|" AltLit -> AltLit  {cons("Or"), left}
     Literal           -> AltLit  
     UnquotedString    -> AltLit  
 

@@ -8,6 +8,7 @@ exports
     [Ww] [Ii] [Tt] [Hh]                     -> WITH     
     [Aa] [Ss]                               -> AS       
     [Ii] [Dd]                               -> ID       
+    [Ll] [Aa] [Bb] [Ee] [Ll]                -> LABEL    
 
   lexical syntax
     [Hh] [Aa] [Ss]                                              -> HAS          

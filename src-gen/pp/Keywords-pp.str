@@ -28,6 +28,9 @@ strategies
   prettyprint-ID =
     ![S(<is-string>)]
 
+  prettyprint-LABEL =
+    ![S(<is-string>)]
+
   prettyprint-example =
     prettyprint-SELECT
 
@@ -48,6 +51,9 @@ strategies
 
   prettyprint-example =
     prettyprint-ID
+
+  prettyprint-example =
+    prettyprint-LABEL
 
 
 strategies

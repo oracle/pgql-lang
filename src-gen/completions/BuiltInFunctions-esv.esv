@@ -9,6 +9,10 @@ imports
   src-gen/completions/Literals-esv
 
 completions
+  completion template InlinedCall : "LABEL()" =
+    <LABEL:LABEL> "()"  
+  completion template InlinedCall : "ID()" =
+    <ID:ID> "()"  
   completion template InlinedCall : "HAS()" =
     <HAS:HAS> "(" <:Prop> ")"  
   completion template InlinedCall : "INDEGREE()" =
@@ -27,6 +31,10 @@ completions
     <LENGTH:LENGTH> "()"  
 
 completions
+  completion template FunctionCall : "Exp.LABEL()" =
+    <Exp:Exp> "." <LABEL:LABEL> "()"  
+  completion template FunctionCall : "Exp.ID()" =
+    <Exp:Exp> "." <ID:ID> "()"  
   completion template FunctionCall : "Exp. HAS()" =
     <Exp:Exp> ". " <HAS:HAS> "(" <:Prop> ")"  
 

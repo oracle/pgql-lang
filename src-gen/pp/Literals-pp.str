@@ -69,16 +69,16 @@ strategies
     ?Null(_)
 
   prettyprint-AltLit :
-    AltLit(t1__, t2__) -> [ H(
-                              [SOpt(HS(), "0")]
-                            , [t1__', S("|"), t2__']
-                            )
-                          ]
+    Or(t1__, t2__) -> [ H(
+                          [SOpt(HS(), "0")]
+                        , [t1__', S("|"), t2__']
+                        )
+                      ]
     with t1__' := <pp-one-Z(prettyprint-AltLit)> t1__
     with t2__' := <pp-one-Z(prettyprint-AltLit)> t2__
 
   is-AltLit =
-    ?AltLit(_, _)
+    ?Or(_, _)
 
   prettyprint-AltLit :
     t1__ -> [ H(

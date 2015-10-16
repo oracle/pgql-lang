@@ -31,9 +31,9 @@ signature
     Weighted              : InlinedExp * Option(VarAssign) -> Weighted
 
   constructors
-    ElemContents : Option(VARNAME) * Option(Type) * Option(Id) * Option(WithInlinedConstraints) -> ElemContents
-    Type         : ExpressionOrAltLit -> Type
-    Id           : ExpressionOrAltLit -> Id
+    ElemContents : Option(VARNAME) * Option(Labels) * Option(Ids) * Option(WithInlinedConstraints) -> ElemContents
+    Labels       : ExpressionOrAltLit -> Labels
+    Ids          : ExpressionOrAltLit -> Ids
                  : Exp -> ExpressionOrAltLit
                  : AltLit -> ExpressionOrAltLit
     Constraint   : WITH * List(InlinedExp) -> WithInlinedConstraints

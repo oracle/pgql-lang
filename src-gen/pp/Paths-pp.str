@@ -336,10 +336,10 @@ strategies
     prettyprint-ElemContents
 
   prettyprint-example =
-    prettyprint-Type
+    prettyprint-Labels
 
   prettyprint-example =
-    prettyprint-Id
+    prettyprint-Ids
 
   prettyprint-example =
     prettyprint-ExpressionOrAltLit
@@ -354,34 +354,34 @@ strategies
                                               )
                                             ]
     with t1__' := <pp-option(pp-one-Z(prettyprint-VARNAME))> t1__
-    with t2__' := <pp-option(pp-one-Z(prettyprint-Type))> t2__
-    with t3__' := <pp-option(pp-one-Z(prettyprint-Id))> t3__
+    with t2__' := <pp-option(pp-one-Z(prettyprint-Labels))> t2__
+    with t3__' := <pp-option(pp-one-Z(prettyprint-Ids))> t3__
     with t4__' := <pp-option(pp-one-Z(prettyprint-WithInlinedConstraints))> t4__
 
   is-ElemContents =
     ?ElemContents(_, _, _, _)
 
-  prettyprint-Type :
-    Type(t1__) -> [ H(
-                      [SOpt(HS(), "0")]
-                    , [S(":"), t1__']
-                    )
-                  ]
+  prettyprint-Labels :
+    Labels(t1__) -> [ H(
+                        [SOpt(HS(), "0")]
+                      , [S(":"), t1__']
+                      )
+                    ]
     with t1__' := <pp-one-Z(prettyprint-ExpressionOrAltLit)> t1__
 
-  is-Type =
-    ?Type(_)
+  is-Labels =
+    ?Labels(_)
 
-  prettyprint-Id :
-    Id(t1__) -> [ H(
-                    [SOpt(HS(), "0")]
-                  , [S("@"), t1__']
-                  )
-                ]
+  prettyprint-Ids :
+    Ids(t1__) -> [ H(
+                     [SOpt(HS(), "0")]
+                   , [S("@"), t1__']
+                   )
+                 ]
     with t1__' := <pp-one-Z(prettyprint-ExpressionOrAltLit)> t1__
 
-  is-Id =
-    ?Id(_)
+  is-Ids =
+    ?Ids(_)
 
   prettyprint-ExpressionOrAltLit :
     t1__ -> [ H(
@@ -420,10 +420,10 @@ strategies
   is-ElemContents =
     fail
 
-  is-Type =
+  is-Labels =
     fail
 
-  is-Id =
+  is-Ids =
     fail
 
   is-ExpressionOrAltLit =

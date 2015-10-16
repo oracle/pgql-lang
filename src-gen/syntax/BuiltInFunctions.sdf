@@ -3,6 +3,8 @@ imports Keywords Names Expressions PGQL Literals
 
 exports
   context-free syntax
+    LABEL "()"              -> InlinedCall {cons("Label")}
+    ID "()"                 -> InlinedCall {cons("Id")}
     HAS "(" {Prop ","}* ")" -> InlinedCall {cons("Has")}
     INDEGREE "()"           -> InlinedCall {cons("InDegree")}
     OUTDEGREE "()"          -> InlinedCall {cons("OutDegree")}
@@ -16,6 +18,8 @@ exports
     CONTENTCOMPLETE -> InlinedCall {cons("COMPLETION-InlinedCall")}
 
   context-free syntax
+    Exp "." LABEL "()"              -> FunctionCall {cons("Label")}
+    Exp "." ID "()"                 -> FunctionCall {cons("Id")}
     Exp "." HAS "(" {Prop ","}* ")" -> FunctionCall {cons("Has")}
 
   context-free syntax

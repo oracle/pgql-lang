@@ -70,6 +70,8 @@ exports
       "!" Exp -> Exp
     } >
     {left:
+      Exp "." LABEL "()" -> FunctionCall
+      Exp "." ID "()" -> FunctionCall
       Exp "." HAS "(" {Prop ","}* ")" -> FunctionCall
       Exp "." INDEGREE "()" -> FunctionCall
       Exp "." OUTDEGREE "()" -> FunctionCall
@@ -136,6 +138,8 @@ exports
       "!" InlinedExp -> InlinedExp
     } >
     {left:
+      Exp "." LABEL "()" -> FunctionCall
+      Exp "." ID "()" -> FunctionCall
       HAS "(" {Prop ","}* ")" -> InlinedCall
       INDEGREE "()" -> InlinedCall
       OUTDEGREE "()" -> InlinedCall

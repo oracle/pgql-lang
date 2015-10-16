@@ -27,6 +27,28 @@ strategies
     prettyprint-InlinedCall
 
   prettyprint-InlinedCall :
+    Label(t1__) -> [ H(
+                       [SOpt(HS(), "0")]
+                     , [t1__', S("()")]
+                     )
+                   ]
+    with t1__' := <pp-one-Z(prettyprint-LABEL)> t1__
+
+  is-InlinedCall =
+    ?Label(_)
+
+  prettyprint-InlinedCall :
+    Id(t1__) -> [ H(
+                    [SOpt(HS(), "0")]
+                  , [t1__', S("()")]
+                  )
+                ]
+    with t1__' := <pp-one-Z(prettyprint-ID)> t1__
+
+  is-InlinedCall =
+    ?Id(_)
+
+  prettyprint-InlinedCall :
     Has(t1__, t2__) -> [ H(
                            [SOpt(HS(), "0")]
                          , [ t1__'
@@ -126,6 +148,38 @@ strategies
 strategies
   prettyprint-example =
     prettyprint-FunctionCall
+
+  prettyprint-FunctionCall :
+    Label(t1__, t2__) -> [ H(
+                             [SOpt(HS(), "0")]
+                           , [ t1__'
+                             , S(".")
+                             , t2__'
+                             , S("()")
+                             ]
+                           )
+                         ]
+    with t1__' := <pp-one-Z(prettyprint-Exp)> t1__
+    with t2__' := <pp-one-Z(prettyprint-LABEL)> t2__
+
+  is-FunctionCall =
+    ?Label(_, _)
+
+  prettyprint-FunctionCall :
+    Id(t1__, t2__) -> [ H(
+                          [SOpt(HS(), "0")]
+                        , [ t1__'
+                          , S(".")
+                          , t2__'
+                          , S("()")
+                          ]
+                        )
+                      ]
+    with t1__' := <pp-one-Z(prettyprint-Exp)> t1__
+    with t2__' := <pp-one-Z(prettyprint-ID)> t2__
+
+  is-FunctionCall =
+    ?Id(_, _)
 
   prettyprint-FunctionCall :
     Has(t1__, t2__, t3__) -> [ H(

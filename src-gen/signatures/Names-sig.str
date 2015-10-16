@@ -17,7 +17,6 @@ signature
                : VARNAME -> Var
                : PROPNAME -> Prop
                : STRING -> Prop
-    Id2        : ID -> Prop
 
   constructors
      : String -> GRAPHNAME
