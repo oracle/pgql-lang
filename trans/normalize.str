@@ -10,6 +10,7 @@ imports
   common
   pp
   editor-common.generated
+  normalizeForNaBL
   
 /*
  * These transformations are shared by analysis, tree-to-model tranformation and code gen
@@ -198,7 +199,7 @@ rules
       expAsSelectVars' := <map(norm-expAsSelectVar(|expAsGroupVars'))> expAsSelectVars;
       projection' := <?Star() <+ !Vars(ExpAsVars(expAsSelectVars'))> projection;
       
-      allExpAsVars := <conc> (expAsGroupVars', expAsSelectVars');
+      allExpAsVars := <conc> (<remove-all(?ExpAsVar(_, <id>); not(is-aggregate))> expAsSelectVars', expAsGroupVars');
       orderByElems := <try(norm-orderBy(|allExpAsVars))> orderBy;
 
       limitOffsets' := <norm-limitOffsets> limitOffsets;
@@ -217,7 +218,7 @@ rules
       end
   
   replace-terms-with-varRef(|expAsGroupVars) = !(expAsGroupVars, <id>); foldl(replace-terms-with-varRef)
-  replace-terms-with-varRef = ?(ExpAsVar(var, term), <id>); alltd(is-aggregate + not(?VarRef(_)); ?term; !VarRef(var))
+  replace-terms-with-varRef = ?(ExpAsVar(var, term), <id>); alltd(is-aggregate + ?term; !VarRef(var))
 
   norm-orderBy(|allExpAsVars):
   	Some(OrderClause(elems)) -> Some(OrderClause(elems'))
