@@ -58,3 +58,10 @@ WHERE
 GROUP BY n.age AS nAge
 ]]
 
+test Duplicate expression in GROUP BY [[
+SELECT n.name
+WHERE
+  n
+GROUP BY n.name, n.name
+]]
+

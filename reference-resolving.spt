@@ -1,0 +1,12 @@
+module group-by
+
+language PGQL
+
+test Resolve to group key from SELECT and ORDER BY [[
+SELECT [[nName]], AVG(n.age)
+WHERE
+  n
+GROUP BY n.name AS [[nName]]
+ORDER BY [[nName]]
+]] //resolve #1 to #2 // this one fails, SPT bug? It seems to work fine in editor.
+   resolve #3 to #2

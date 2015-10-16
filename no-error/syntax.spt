@@ -2,7 +2,7 @@ module syntax
 
 language PGQL
 
-test Case insensitive [[
+test Case insensitivity [[
 sElEcT mAx(n.age), MiN(n.age), sUm(n.age)
 WhErE
   n
