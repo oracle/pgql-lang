@@ -27,6 +27,7 @@ imports
 //  example-metadata
   example-schema
   normalizeForNaBL
+  common
   
 rules // Non-generated
 

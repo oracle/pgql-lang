@@ -11,9 +11,8 @@ rules
   
   is-aggregate = ?COUNT(_, _) + ?MIN(_, _) + ?MAX(_, _) + ?SUM(_, _) + ?AVG(_, _) + ?GROUP-CONCAT(_, _, _)
     
-  GENERATED-PREFIX = !"GENERATED-"
-  
-  random-name = !(<GENERATED-PREFIX>, <next-random; abs; write-to-string>); conc-strings
-  add-generated-prefix = !(<GENERATED-PREFIX>, <id>); conc-strings
-  add-random-prefix = !(<random-name>, "-", <id>); conc-strings
+  GENERATED = !"<<generated>>"
+  add-generated-suffix = !(<id>, <GENERATED>); conc-strings
+  add-unique-suffix(|c) = !(<id>, <unique-name(|c)>); conc-strings
+  unique-name(|c) = !(<GENERATED>, "#", <next-counter; write-to-string> c); conc-strings
   
