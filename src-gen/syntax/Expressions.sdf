@@ -138,8 +138,8 @@ exports
       "!" InlinedExp -> InlinedExp
     } >
     {left:
-      Exp "." LABEL "()" -> FunctionCall
-      Exp "." ID "()" -> FunctionCall
+      LABEL "()" -> InlinedCall
+      ID "()" -> InlinedCall
       HAS "(" {Prop ","}* ")" -> InlinedCall
       INDEGREE "()" -> InlinedCall
       OUTDEGREE "()" -> InlinedCall
