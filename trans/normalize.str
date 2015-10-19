@@ -29,11 +29,13 @@ rules
           norm-UMin +
           norm-NOT +
           norm-simpleNode +
-          norm-edgeContents
+          norm-edgeContents +
+          norm-path-constraints
         );
         alltd(norm-string);
         alltd(norm-has-prop);
         alltd(name-unnamed-nodes-and-edges(|c));
+        alltd(norm-path-constraints);
         alltd(norm-propRef);
         bottomup(try(
           norm-UnionGraphPattern
@@ -53,7 +55,8 @@ rules
   norm-NOT = ?Not2(<id>); !Not(<id>)
   
   norm-string = is-string; try(un-double-quote + un-single-quote)
-
+  
+  norm-path-constraints = ?PathLengthConstraints(<id>)
   
 rules
   
@@ -76,7 +79,8 @@ rules
                                   ?Src(); !Src(VarRef(varName)) +
                                   ?Dst(); !Dst(VarRef(varName))
   norm-propRef-helper(|varName) = ?SelfPropRef(propName); !PropRef(VarRef(varName), propName)
-  
+
+
 rules
   
   norm-UnionGraphPattern:
