@@ -184,7 +184,10 @@ rules
   
 rules
   
-  norm-has-prop = ?Has(varRef, <id>); map(!Has(varRef, String(<id>)))
+  norm-has-prop = ?Has(varRef, <id>); map(!Has(varRef, String(<id>))); create-conjunct
+  
+  create-conjunct = !(<Tl>, <Hd>); foldl(create-OR)
+  create-OR = ?(exp1, exp2); !And(exp1, exp2)
 
 rules
   
