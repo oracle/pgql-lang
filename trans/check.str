@@ -258,8 +258,7 @@ rules // Unsupported functions
   nabl-constraint(|ctx):
     t -> <fail>
     where
-      <?InDegree(_) + ?OutDegree(_)
-       + ?Src(_) + ?Dst(_)
+      <?Src(_) + ?Dst(_)
        + ?Nodes(_) + ?Edges(_) + ?Length(_)
        + ?Head(_) + ?Last(_) + ?Init(_) + ?Tail(_)
        + ?Contains(_, _, _) + ?BeginsWith(_, _, _) + ?EndsWith(_, _, _)
