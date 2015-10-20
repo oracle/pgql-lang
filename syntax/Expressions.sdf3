@@ -169,8 +169,8 @@ context-free priorities
   >
   {
     left:
-      FunctionCall.Label
-      FunctionCall.Id
+      InlinedCall.Label
+      InlinedCall.Id
       InlinedCall.Has
       InlinedCall.InDegree
       InlinedCall.OutDegree

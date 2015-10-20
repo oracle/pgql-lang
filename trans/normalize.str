@@ -29,11 +29,13 @@ rules
           norm-UMin +
           norm-NOT +
           norm-simpleNode +
-          norm-edgeContents
+          norm-edgeContents +
+          norm-path-constraints
         );
         alltd(norm-string);
         alltd(norm-has-prop);
         alltd(name-unnamed-nodes-and-edges(|c));
+        alltd(norm-path-constraints);
         alltd(norm-propRef);
         bottomup(try(
           norm-UnionGraphPattern
@@ -53,7 +55,8 @@ rules
   norm-NOT = ?Not2(<id>); !Not(<id>)
   
   norm-string = is-string; try(un-double-quote + un-single-quote)
-
+  
+  norm-path-constraints = ?PathLengthConstraints(<id>)
   
 rules
   
@@ -69,14 +72,15 @@ rules
   name-unnamed-nodes-and-edges-helper(|c) = !ElemContents(Some(<unique-name(|c)> ""), None(), None(), None())
   
   norm-propRef = ?ElemContents(Some(varName), _, _, _); alltd(norm-propRef-helper(|varName))
-  norm-propRef-helper(|varName) = ?Id(); !Id(varName) + ?Label(); !Label(varName) +
-                                  ?Has(props); !Has(varName, props) +
-                                  ?InDegree(); !InDegree(varName) +
-                                  ?OutDegree(); !OutDegree(varName) +
-                                  ?Src(); !Src(varName) +
-                                  ?Dst(); !Dst(varName)
+  norm-propRef-helper(|varName) = ?Id(); !Id(VarRef(varName)) + ?Label(); !Label(VarRef(varName)) +
+                                  ?Has(props); !Has(VarRef(varName), props) +
+                                  ?InDegree(); !InDegree(VarRef(varName)) +
+                                  ?OutDegree(); !OutDegree(VarRef(varName)) +
+                                  ?Src(); !Src(VarRef(varName)) +
+                                  ?Dst(); !Dst(VarRef(varName))
   norm-propRef-helper(|varName) = ?SelfPropRef(propName); !PropRef(VarRef(varName), propName)
-  
+
+
 rules
   
   norm-UnionGraphPattern:
@@ -244,8 +248,8 @@ signature constructors // only used temporary, not in output term
 	
 rules
 
-  norm-case-insensitive: Label(a, _) -> Label(a)
-  norm-case-insensitive: Id(a, _) -> Id(a)
+  norm-case-insensitive: Label(a) -> Label()
+  norm-case-insensitive: Id(a) -> Id()
   norm-case-insensitive: Has(_, a) -> Has(a)
   norm-case-insensitive: InDegree(_) -> InDegree()
   norm-case-insensitive: OutDegree(_) -> OutDegree()
