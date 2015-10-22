@@ -60,7 +60,7 @@ rules
   
 rules
   
-  norm-singleNode = ?SingleNode(a, b, c, d); !Path(Node(ElemContents(a, b, c, Some(d))), [], None())
+  norm-singleNode = ?SingleNode(Some(ElemContents2(a, b, c, d))); !Path(Node(ElemContents(a, b, c, Some(d))), [], None())
   norm-singleNode = ?Constraint(VarRef(<id>)); !Path(SimpleNode(<id>), [], None()); oncetd(norm-singleNode)
   norm-singleNode =?SimpleNode(<id>); !Node(ElemContents(Some(<id>), None(), None(), None()))  
   norm-edgeContents = ?Some(EdgeContents(<id>))
