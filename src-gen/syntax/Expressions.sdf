@@ -30,13 +30,6 @@ exports
     CONTENTCOMPLETE -> Exp {cons("COMPLETION-Exp")}
 
   context-free syntax
-    VarRef      -> MatchElem {reject}
-    "(" Exp ")" -> MatchElem {reject}
-
-  context-free syntax
-    CONTENTCOMPLETE -> MatchElem {cons("COMPLETION-MatchElem")}
-
-  context-free syntax
     "(" InlinedExp ")"          -> InlinedExp {bracket}
     PropRef                     -> InlinedExp 
     Literal                     -> InlinedExp {prefer}

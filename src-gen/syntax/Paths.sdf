@@ -4,7 +4,7 @@ imports Keywords Literals Names Expressions BuiltInFunctions
 
 exports
   context-free syntax
-    Node EdgeNode* VarAssign?                      -> Path                  {cons("Path"), prefer}
+    Node EdgeNode+ VarAssign?                      -> Path                  {cons("Path")}
     "(" ElemContents ")"                           -> Node                  {cons("Node")}
     VARNAME                                        -> Node                  {cons("SimpleNode")}
     Edge Node                                      -> EdgeNode              {cons("EdgeNode")}

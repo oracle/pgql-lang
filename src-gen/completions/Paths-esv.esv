@@ -8,8 +8,8 @@ imports
   src-gen/completions/BuiltInFunctions-esv
 
 completions
-  completion template Path : "Node" =
-    <Node:Node> <:EdgeNode> <:VarAssign>  
+  completion template Path : "NodeEdgeNode" =
+    <Node:Node> <EdgeNode:EdgeNode> <:VarAssign>  
   completion template Node : "(ElemContents)" =
     "(" <ElemContents:ElemContents> ")"  
   completion template EdgeNode : " Edge Node" =
