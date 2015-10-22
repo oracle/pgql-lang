@@ -11,6 +11,7 @@ imports
 context-free syntax
 
   Path.Path = <<Node><{EdgeNode ""}+><VarAssign?>>
+  Path.SingleNode = <(<VARNAME?><Labels?><Ids?><WithInlinedConstraints>)>
 
   Node.Node = <(<ElemContents>)>
   Node.SimpleNode = <<VARNAME>>
@@ -34,7 +35,7 @@ context-free syntax
 
 context-free syntax
 
-  ElemContents.ElemContents = <<VARNAME?><Labels?><Ids?><WithInlinedConstraints?>> {prefer} // 'prefer' disambiguates 'match (X)': X can be a property reference or a variable. It should be a variable.
+  ElemContents.ElemContents = <<VARNAME?><Labels?><Ids?><WithInlinedConstraints?>>
   Labels.Labels = <:<ExpressionOrAltLit>>
   Ids.Ids = <@<ExpressionOrAltLit>>
   ExpressionOrAltLit = <<Exp>>
