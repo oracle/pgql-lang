@@ -34,11 +34,6 @@ context-free syntax
   Exp.Neq = [[Exp] != [Exp]] {left}
   Exp.Regex = [[Exp] =~ [Exp]] {left, prefer}
 
-context-free syntax // disambiguation
-
-  MatchElem = VarRef {reject} // 'x' in 'WHERE x' should be parsed as a node
-  MatchElem = <(<Exp>)> {reject} // 'x' in 'WHERE (x)' should be parsed as a node
-
 context-free syntax
 
   InlinedExp = <(<InlinedExp>)> {bracket}

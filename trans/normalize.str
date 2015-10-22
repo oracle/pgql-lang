@@ -46,7 +46,7 @@ rules
       > ast
 
 rules
-  
+
   norm-UMin = ?UMin(Integer(string)); !Integer(<conc-strings> ("-", string))
   norm-UMin = ?UMin(Decimal(string)); !Integer(<conc-strings> ("-", string))
   norm-UMin = ?UMin(Double(string)); !Integer(<conc-strings> ("-", string))
@@ -60,7 +60,8 @@ rules
   
 rules
   
-  norm-simpleNode = ?SimpleNode(<id>); !Node(ElemContents(Some(<id>), None(), None(), None()))  
+  norm-simpleNode = ?Constraint(VarRef(<id>)); !Path(SimpleNode(<id>), [], None()); oncetd(norm-simpleNode)
+  norm-simpleNode =?SimpleNode(<id>); !Node(ElemContents(Some(<id>), None(), None(), None()))  
   norm-edgeContents = ?Some(EdgeContents(<id>))
   
   name-unnamed-nodes-and-edges(|c) = ?ElemContents(None(), type, id', constraints); !ElemContents(Some(<unique-name(|c)>), type, id', constraints)

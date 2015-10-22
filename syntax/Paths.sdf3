@@ -10,7 +10,7 @@ imports
   
 context-free syntax
 
-  Path.Path = <<Node><{EdgeNode ""}*><VarAssign?>> {prefer}
+  Path.Path = <<Node><{EdgeNode ""}+><VarAssign?>>
 
   Node.Node = <(<ElemContents>)>
   Node.SimpleNode = <<VARNAME>>
