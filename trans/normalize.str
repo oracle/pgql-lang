@@ -6,7 +6,6 @@ imports
   signatures-norm/-
   normalizedAST-sig
   runtime/editor/origins
-  projections
   common
   pp
   editor-common.generated
@@ -297,7 +296,6 @@ rules
   norm-case-insensitive: Constraint(_, a) -> Constraint(a)
   
   norm-case-insensitive: Distinct(_) -> Distinct()
-  norm-case-insensitive: Reduced(_) -> Reduced()
   norm-case-insensitive: UngroupClase(_, a) -> UngroupClase(a)
   norm-case-insensitive: GroupClause(_, _, a) -> GroupClause(a)
   norm-case-insensitive: HavingClause(_, a) -> HavingClause(a)

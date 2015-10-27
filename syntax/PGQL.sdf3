@@ -28,7 +28,7 @@ context-free syntax
     
   // InClause.InClause = <IN <GRAPHNAME>>
   
-  SelectClause.SelectClause = <<SELECT> <DistinctOrReduced?><SelectElems>>
+  SelectClause.SelectClause = <<SELECT> <Distinct?><SelectElems>>
   
   FromClause.FromClause = <<FROM> <GRAPHNAME>>
   

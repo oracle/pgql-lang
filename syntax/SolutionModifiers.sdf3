@@ -20,11 +20,10 @@ context-free syntax
   SelectElems.ExpAsVars = <<{ExpAsVar ", "}+>>
   SelectElems.Star = <*>
   
-  DistinctOrReduced.Distinct = <<DISTINCT> >
-  DistinctOrReduced.Reduced = <<REDUCED> >
-  
   UngroupClause.UngroupClase = <<UNGROUP> <{ExpAsVar ", "}+>>
+  
   GroupClause.GroupClause = <<GROUP> <BY> <{ExpAsVar ", "}+>>
+  Distinct.Distinct = <<DISTINCT> >
   
   HavingClause.HavingClause = <<HAVING> <Exp+>>
   
@@ -39,4 +38,3 @@ context-free syntax
   LimitOffsetClauses.OffsetLimitClauses = <<OffsetClause> <LimitClause?>>
   LimitClause.LimitClause = <<LIMIT> <INTEGER>>
   OffsetClause.OffsetClause = <<OFFSET> <INTEGER>>
-  

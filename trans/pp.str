@@ -8,13 +8,15 @@ imports
 
 rules
   
+  print-it-pretty:
+    term -> text
+    where
+      text := <box2text-string(|100)> <!V([], <id>)> <prettyprint-example> term
+
+rules // generated code below
+
   pp-PGQL-string =
     prettyprint-Start
-    ; !V([], <id>)
-    ; box2text-string(|120)
-
-  pp-expression =
-    prettyprint-Exp
     ; !V([], <id>)
     ; box2text-string(|120)
       
@@ -24,4 +26,3 @@ rules
        result := <pp-PGQL-string> ast
     <+ <bottomup(try(not(is-string); not(is-list); not(pp-PGQL-string); debug(!"cannot pp ")))> ast
     ;  result := ""
-

@@ -1,23 +1,25 @@
 module Keywords
 
 /*
- * This file will be completely removed once support for case-insensitive keywords
- * is brought back to Spoofax. See http://yellowgrass.org/issue/Spoofax/954
+ * In the next Spoofax version, there will be support for case-insensitive keywords again,
+ * so specifying them ourselves (like we do here) won't be necessary anymore.
  */
 
 lexical syntax
 
   SELECT         = [Ss][Ee][Ll][Ee][Cc][Tt]
+  FROM           = [Ff][Rr][Oo][Mm]
   WHERE          = [Ww][Hh][Ee][Rr][Ee]
   OPTIONAL       = [Oo][Pp][Tt][Ii][Oo][Nn][Aa][Ll]
   UNION          = [Uu][Nn][Ii][Oo][Nn]
   WITH           = [Ww][Ii][Tt][Hh]
   AS             = [Aa][Ss]
-  ID             = [Ii][Dd]
-  LABEL          = [Ll][Aa][Bb][Ee][Ll]
+  NULL           = [Nn][Uu][Ll][Ll]
 
 lexical syntax  // BuiltInCall
 
+  ID             = [Ii][Dd]
+  LABEL          = [Ll][Aa][Bb][Ee][Ll]
   HAS            = [Hh][Aa][Ss]
   
   INDEGREE       = [Ii][Nn][Dd][Ee][Gg][Rr][Ee][Ee]
@@ -29,6 +31,11 @@ lexical syntax  // BuiltInCall
   NODES          = [Nn][Oo][Dd][Ee][Ss]
   EDGES          = [Ee][Dd][Gg][Ee][Ss]
   LENGTH         = [Ll][Ee][Nn][Gg][Tt][Hh]
+  
+  HEAD           = [Hh][Ee][Aa][Dd]
+  LAST           = [Ll][Aa][ss][Tt]
+  INIT           = [Ii][Nn][Ii][Tt]
+  TAIL           = [Tt][Aa][Ii][Ll]
   
   CONTAINS       = [Cc][Oo][Nn][Tt][Aa][Ii][Nn][Ss]
   BEGINSWITH     = [Bb][Ee][Gg][Ii][Nn][Ss][Ww][Ii][Tt][Hh]
@@ -43,13 +50,7 @@ lexical syntax  // BuiltInCall
   SECONDS        = [Ss][Ee][Cc][Oo][Nn][Dd][Ss]
   TIMEZONE       = [Tt][Ii][Mm][Zz][Oo][Nn][Ee]
 
-  HEAD           = [Hh][Ee][Aa][Dd]
-  LAST           = [Ll][Aa][ss][Tt]
-  INIT           = [Ii][Nn][Ii][Tt]
-  TAIL           = [Tt][Aa][Ii][Ll]
-  
   NOT            = [Nn][Oo][Tt]
-  NULL           = [Nn][Uu][Ll][Ll]
   EXISTS         = [Ee][Xx][Ii][Ss][Tt][Ss]
   CASE           = [Cc][Aa][Ss][Ee]
   WHEN           = [Ww][Hh][Ee][Nn]
@@ -65,12 +66,8 @@ lexical syntax  // BuiltInCall
   AVG            = [Aa][Vv][Gg]
   GROUP-CONCAT   = [Gg][Rr][Oo][Uu][Pp][\_][Cc][Oo][Nn][Cc][Aa][Tt]
 
-  // EXISTS / NOT EXISTS / CASE
+  // EXISTS
   EXISTS         = [Ee][Xx][Ii][Ss][Tt][Ss]
-  CASE           = [Cc][Aa][Ss][Ee]
-  ELSE           = [Ee][Ll][Ss][Ee]
-  WHEN           = [Ww][Hh][Ee][Nn]
-  THEN           = [Tt][Hh][Ee][Nn]
 
 lexical syntax // Solution modifiers
 
@@ -86,23 +83,8 @@ lexical syntax // Solution modifiers
   LIMIT          = [Ll][Ii][Mm][Ii][Tt]
   OFFSET         = [Oo][Ff][Ff][Ss][Ee][Tt]
   
-  FOR            = [Ff][Oo][Rr]
-  ALL            = [Aa][Ll][Ll]
-  ANY            = [Aa][Nn][Yy]
-  EACH           = [Ee][Aa][Cc][Hh]
-  IN             = [Ii][Nn]
-  NODE           = [Nn][Oo][Dd][Ee]
-  EDGE           = [Ee][Dd][Gg][Ee]
-  NODES          = [Nn][Oo][Dd][Ee][Ss]
-  EDGES          = [Ee][Dd][Gg][Ee][Ss]
-  LIST           = [Ll][Ii][Ss][Tt]
-  FROM           = [Ff][Rr][Oo][Mm]
-  
-lexical syntax // Arbitrary-length paths
+lexical syntax // Path query modifiers
 
   SHORTEST       = [Ss][Hh][Oo][Rr][Tt][Ee][Ss][Tt]
 
-lexical syntax // SPARQL
-
-  PREFIX         = [Pp][Rr][Ee][Ff][Ii][Xx]
   

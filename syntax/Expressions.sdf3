@@ -21,6 +21,12 @@ context-free syntax
 
   Exp.And = <<Exp> AND <Exp>> {left}
   Exp.Or = <<Exp> OR <Exp>> {left}
+  // temporary workaround until we switch to next Spoofax version
+  // which will support case-insensitive keywords:
+  Exp.And2 = <<Exp> and <Exp>> {left}
+  Exp.Or2 = <<Exp> or <Exp>> {left}
+  Exp.And3 = <<Exp> And <Exp>> {left}
+  Exp.Or3 = <<Exp> Or <Exp>> {left}
   Exp.Mul = <<Exp> * <Exp>> {left}
   Exp.Add = <<Exp> + <Exp>> {left}
   Exp.Div = <<Exp> / <Exp>> {left}
@@ -49,6 +55,12 @@ context-free syntax
 
   InlinedExp.And = <<InlinedExp> AND <InlinedExp>> {left}
   InlinedExp.Or = <<InlinedExp> OR <InlinedExp>> {left}
+  // temporary workaround until we switch to next Spoofax version
+  // which will support case-insensitive keywords:
+  InlinedExp.And2 = <<InlinedExp> and <InlinedExp>> {left}
+  InlinedExp.Or2 = <<InlinedExp> or <InlinedExp>> {left}
+  InlinedExp.And3 = <<InlinedExp> And <InlinedExp>> {left}
+  InlinedExp.Or3 = <<InlinedExp> Or <InlinedExp>> {left}
   InlinedExp.Mul = <<InlinedExp> * <InlinedExp>> {left}
   InlinedExp.Add = <<InlinedExp> + <InlinedExp>> {left}
   InlinedExp.Div = <<InlinedExp> / <InlinedExp>> {left}
@@ -61,168 +73,3 @@ context-free syntax
   InlinedExp.Lte = [[InlinedExp] <= [InlinedExp]] {left}
   InlinedExp.Neq = [[InlinedExp] != [InlinedExp]] {left}
   InlinedExp.Regex = [[InlinedExp] =~ [InlinedExp]] {left, prefer}
-
-context-free priorities
-
-  {
-    right:
-      Exp.UMin
-      Exp.Not1
-      Exp.Not2
-  }
-  >
- // all functioncalls should actually be in one block, but putting too many sorts in one block crashes SDF2table gen.
-  {
-    left:
-      FunctionCall.Label
-      FunctionCall.Id
-      FunctionCall.Has
-      FunctionCall.InDegree
-      FunctionCall.OutDegree
-      FunctionCall.Src
-      FunctionCall.Dst
-  }
-  >
-  {
-    left:
-      FunctionCall.Nodes
-      FunctionCall.Edges
-      FunctionCall.Length
-      FunctionCall.Head
-      FunctionCall.Last
-      FunctionCall.Init
-      FunctionCall.Tail
-  }
-  >
-  {
-    left:
-      FunctionCall.Contains
-      FunctionCall.BeginsWith
-      FunctionCall.EndsWith
-  }
-  >
-  {
-    left:
-      FunctionCall.Between
-      FunctionCall.Year
-      FunctionCall.Month
-      FunctionCall.Day
-      FunctionCall.Hours
-      FunctionCall.Minutes
-      FunctionCall.Seconds
-      FunctionCall.Timezone
-  }
-  >
-  {
-    left:
-      Exp.Mul
-      Exp.Div
-      Exp.Mod
-      Exp.Regex
-  }
-  >
-  {
-    left:
-      Exp.Add
-      Exp.Sub
-  }
-  >
-  {
-    left:
-      Exp.Gt
-      Exp.Lt
-      Exp.Gte
-      Exp.Lte
-  }
-  >
-  {
-    left:
-      Exp.Eq
-      Exp.Neq
-  }
-  >
-  {
-    left:
-      Exp.And
-      Exp.And2
-  }
-  >
-  {
-    left:
-      Exp.Or
-      Exp.Or2
-  }
-
-context-free priorities
- 
-  {
-    right:
-      InlinedExp.UMin
-      InlinedExp.Not1
-      InlinedExp.Not2
-  }
-  >
-  {
-    left:
-      InlinedCall.Label
-      InlinedCall.Id
-      InlinedCall.Has
-      InlinedCall.InDegree
-      InlinedCall.OutDegree
-      InlinedCall.Src
-      InlinedCall.Dst
-  }
-  >
-  {
-    left:
-      InlinedCall.Nodes
-      InlinedCall.Edges
-      InlinedCall.Length
-  }
-  >
-  {
-    left:
-      InlinedExp.Mul
-      InlinedExp.Div
-      InlinedExp.Mod
-      InlinedExp.Regex
-  }
-  >
-  {
-    left:
-      InlinedExp.Add
-      InlinedExp.Sub
-  }
-  >
-  {
-    left:
-      InlinedExp.Gt
-      InlinedExp.Lt
-      InlinedExp.Gte
-      InlinedExp.Lte
-  }
-  >
-  {
-    left:
-      InlinedExp.Eq
-      InlinedExp.Neq
-  }
-  >
-  {
-    left:
-      InlinedExp.And
-      InlinedExp.And2
-  }
-  >
-  {
-    left:
-      InlinedExp.Or
-      InlinedExp.Or2
-  }
-
-context-free syntax // temporary
- 
-  Exp.And2 = <<Exp> and <Exp>> {left}
-  Exp.Or2 = <<Exp> or <Exp>> {left}
-  InlinedExp.And2 = <<InlinedExp> AND <InlinedExp>> {left}
-  InlinedExp.Or2 = <<InlinedExp> OR <InlinedExp>> {left}

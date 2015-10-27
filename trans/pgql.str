@@ -18,30 +18,29 @@ imports
   names
   check
   pp
-//  generate/-
   editor/PGQL-Outliner
-//  text-to-model/t2m
-//  text-to-model/PGQL-Graph
-//  text-to-model/m2t
   signatures
-//  example-metadata
   example-schema
   normalizeForNaBL
   common
-  
-rules // Non-generated
 
-//   nabl-constraint(|ctx):
-//     e@"nama" -> <fail>
-//     where
-//       failtask := <task-create-fail(|ctx)>;
-//       <task-create-error-on-failure(|ctx, failtask, "The property 'nama' is undefined for nodes of type 'function'")> e
-// 
-//   nabl-constraint(|ctx):
-//     e@"25" -> <fail>
-//     where
-//       failtask := <task-create-fail(|ctx)>;
-//       <task-create-error-on-failure(|ctx, failtask, "Type mismatch: cannot convert from int to String")> e
+rules // Analysis
+  
+  editor-analyze = analysis-default-editor
+  
+  analysis-single-default-interface =
+    analysis-single-default(normalize-pgql, id, id|<language>)
+  analysis-multiple-default-interface =
+    analysis-multiple-default(sunshine-parse-file <+ !(), normalize-pgql, id, id|<language>, <project-path>)
+  
+  sunshine-parse-file = prim("SSL_EXT_parse_file")
+  
+  editor-save = analysis-save-default(|<language>)
+  parenthesize = fail
+  override-reconstruction = fail
+  resugar = fail
+  
+rules // Menu actions
 
   normalize-builder:
     (_, _, ast, path, project-path) -> (filename, result)
@@ -60,140 +59,6 @@ rules // Non-generated
     with
       filename := <guarantee-extension(|"pp.pgql")> path;
       result   := <print-it-pretty> ast
-  
-  print-it-pretty:
-    term -> text
-    where
-      text := <box2text-string(|100)> <!V([], <id>)> <prettyprint-example> term
-      
-  parenthesize = fail
-  override-reconstruction = fail
-  resugar = fail
-    
-  /*    
-  ASTtext-to-ASTgraph-builder:
-    (_, _, ast, path, project-path) -> (filename, result)
-    with
-      filename := <guarantee-extension(|"ASTgraph.aterm")> path;
-      result   := <ASTtext-to-ASTgraph> ast
-
-  ASTtext-to-ASTgraph-no-annos-builder:
-    (_, _, ast, path, project-path) -> (filename, result)
-    with
-      filename := <guarantee-extension(|"ASTgraph.aterm")> path;
-      result   := <ASTtext-to-ASTgraph; strip-annos> ast
-      
-  ASTtext-to-model-builder:
-    (selected, position, ast, path, project-path) -> (filename, result)
-    with
-      filename := <guarantee-extension(|"model.aterm")> path;
-      result   := <tree2model> (ast, None())
-
-  generate-cc-builder:
-    (selected, position, ast, path, project-path) -> (filename, result)
-    with
-      filename := <guarantee-extension(|"cc")> path;
-      result := <normalize; g-normalize; generate; to-cpp> TopNode(ast, <metadata>)
-  
-  generate-cc = strip-annos; g-normalize; generate; to-cpp
-
-  generate-cc-intermediate-builder:
-    (selected, position, ast, path, project-path) -> (filename, result)
-    with
-      filename := <guarantee-extension(|"cc.aterm")> path;
-      result := <normalize; g-normalize; generate> TopNode(ast, <metadata>)
-      
-  pgx-execute-builder:
-    (selected, position, TopNode(ast, _, _), path, project-path) -> None()
-    with
-      numVars := <collect-one(?Refs(<id>); length)> ast;
-      text := <origin-text> ast;
-      <foreign-call(|"SPARQL","hello")> (text, numVars)
-  */
-  // external prepare-for-result(|path, project-path)
-  // external eval-query(|project-path, path)
-  // external visualize(|path, project-path)
-  // external parse-output(|)
-  // external connect(|)
-  // external disconnect(|)
-  // external remote-exec(|)
-  // external kill-process(|)
-
-//   connect-builder:
-//     (selected, position, ast, path, project-path) -> None()
-//     where
-//     	<connect> 0
-// 
-//   connect-through-gateway-builder:
-//     (selected, position, ast, path, project-path) -> None()
-//     where
-//     	<connect> 1
-//     	
-//   disconnect-builder:
-//     (selected, position, ast, path, project-path) -> None()
-//     where
-//     	<disconnect> None()  
-// 
-//   remote-exec-builder:
-//     (selected, position, ast, path, project-path) -> None()
-//     where
-//     	<remote-exec> None()
-//     	
-//   kill-builder:
-//     (selected, position, ast, path, project-path) -> None()
-//     where
-//     	<kill-process> None()
-    	
-//   evaluate-builder:
-//     (selected, position, ast, path, project-path) -> result
-//     with
-//       out-file := <guarantee-extension(|"out")> path;
-//       out := <evaluate-helper> (ast, path, project-path);
-//       if (None() := out)
-//       then result := None()
-//       else result := (out-file, out)
-//       end
-// 
-//   evaluate-and-visualize-builder:
-//     (selected, position, ast, path, project-path) -> None()
-//     with
-//       prepare-for-result(|path, project-path);
-//       out-file := <guarantee-extension(|"out")> path;
-//       out := <evaluate-helper> (ast, path, project-path);
-//       <(parse-output <+ !None()); visualize(|path, project-path)> out
-//       
-//   evaluate-helper:
-//   	(ast, path, project-path) -> out
-//     where
-//       cc-file := <guarantee-extension(|"cc")> path;
-//       cc := <g-normalize; generate; to-cc> ast;
-//       handle := <fopen> (cc-file, "w");
-//       <fputs> (cc, handle);
-//       fclose;
-//       out := <eval-query(|project-path, <guarantee-extension(|"")> path)> cc
-
-  // visualize-builder:
-  //   (selected, position, ast, path, project-path) -> None()
-  //   with
-  //     prepare-for-result(|path, project-path);
-  //     out-file := <guarantee-extension(|"out")> path;
-  //     <((read-text-file; parse-output) <+ !None()); visualize(|path, project-path)> out-file
-
-
-//  fake-execute-builder = foreign-call(|"SPARQL","fake-execute-builder")
-
-rules // Analysis
-  
-  editor-analyze = analysis-default-editor
-  
-  analysis-single-default-interface =
-    analysis-single-default(normalize-pgql, id, id|<language>)
-  analysis-multiple-default-interface =
-    analysis-multiple-default(sunshine-parse-file <+ !(), normalize-pgql, id, id|<language>, <project-path>)
-  
-  sunshine-parse-file = prim("SSL_EXT_parse_file")
-  
-  editor-save = analysis-save-default(|<language>)
 
 rules
   
@@ -205,7 +70,7 @@ rules
   normalize-pgql = 
     not(?TopNode(_, _)); try(normalize); !TopNode(<id>, <example-schema>); normalizeForNaBL
 
-rules // Editor services
+rules // Editor services (this is generated code)
 	
 	// Resolves a reference when the user control-clicks or presses F3 in the editor.
 	editor-resolve:
@@ -244,7 +109,7 @@ rules // Editor services
     where
       outline := <simple-label-outline(to-outline-label)> ast
       
-rules // Debugging
+rules // Debugging (this is generated code)
 	
 	// Prints the abstract syntax ATerm of a selection.
 	debug-show-aterm:
