@@ -8,70 +8,16 @@ imports
   normalizedAST-sig
   normalizeForNaBL
   common
-  projections
-  // analysis
   lib/runtime/nabl/-
-  lib/runtime/index/-
   lib/runtime/task/-
   lib/runtime/types/-
   lib/runtime/properties/-
   names
 
 rules
-
-  /**
-   * Error for duplicate nodes in matching order hint (IN ORDER clause).
-   */
-/*  nabl-constraint(|ctx):
-    OrderClause(nodeRefs) -> <fail>
-    where
-      e := <first-duplicate-elem> nodeRefs;
-      failtask := <task-create-fail(|ctx)>;
-      <task-create-error-on-failure(|ctx, failtask, "Node is already included in ordering")> e
-
-  first-duplicate-elem = first-duplicate-elem(|[])
   
-  first-duplicate-elem(|visited):
-    elems -> <first-duplicate-elem(|visited')> elems'
-    where
-      not ( <elem> (<Hd> elems, visited) );
-      visited' := [<Hd> elems|visited];
-      elems' := <Tl> elems
+  PGQL_VERSION = !"0.9"
   
-  first-duplicate-elem(|visited):
-    elems -> e
-    where
-      e := <Hd> elems;
-      <elem> (e, visited)
-*/
-      
-rules
-  
-  /**
-  * Error for unreachable nodes in matching order hint (IN ORDER clause).
-  */
-/*
-  nabl-constraint(|ctx):
-    TopNode(ast, NODES, _) -> <fail>
-    where
-      ast' := <strip-annos> ast;
-      NODES' := <strip-annos> NODES;
-      nodes := <collect-one(?OrderClause(_, _, <id>)); map(get-name)> ast';
-      e := <Tl; get-first-unreachable-node(|NODES', [<Hd> nodes])> nodes;
-      <task-create-error(|ctx, "Node is not connected to any of the previously matched nodes")> e
-      
-  get-first-unreachable-node(|NODES, visited):
-    nodes -> <Tl; get-first-unreachable-node(|NODES, [n|visited])> nodes
-    where
-      n := <Hd> nodes;
-      <fetch-elem(eq-ignore-annos(|n))> <conc> (<get-neighbors(|NODES); map(get-name)> visited, visited)
-
-  get-first-unreachable-node(|NODES, visited):
-    nodes -> n
-    where
-      n := <Hd> nodes;
-      not ( <fetch-elem(eq-ignore-annos(|n))> <conc> (<get-neighbors(|NODES); map(get-name)> visited, visited) )
-*/
 rules
   
   /**
@@ -118,7 +64,7 @@ rules
     where
       <strip-annos; fetch-elem(?EdgeProp(p, _))> eprops      
 
-rules // cross-constraints involving edges / paths
+rules // cross-constraints involving paths
   
   nabl-constraint(|ctx):
     Constraints(constraints) -> <fail>
@@ -130,20 +76,13 @@ rules // cross-constraints involving edges / paths
     where
       varRefs := <collect-om(?VarRef(_))> constraint;
       <gt> (<length> varRefs, 1);
-      <alltd(cross-constraints-edges(|ctx) + cross-constraints-paths(|ctx))> constraint
+      <alltd(cross-constraints-paths(|ctx))> constraint
   
-  cross-constraints-edges(|ctx):
-    PropRef(VarRef(v), _) -> <fail>
-    where
-      fail; // disabled for now
-      var-is-edge := <var-is-edge(|ctx)> v;
-      <task-create-error-on-success(|ctx, var-is-edge, "Cross-constraints involving edges is not yet supported by PGX")> v
-
   cross-constraints-paths(|ctx):
     PropRef(VarRef(v), _) -> <fail>
     where
       var-is-path := <var-is-path(|ctx)> v;
-      <task-create-error-on-success(|ctx, var-is-path, "Cross-constraints that involve path variables is not yet supported by PGX")> v
+      <task-create-error-on-success(|ctx, var-is-path, $[PGQL [<PGQL_VERSION>] does not allow to use cross-constraints that include path variables])> v
 
   var-is-edge(|ctx) = var-is-type(|ctx, "VarIsEdge")
   var-is-node(|ctx) = var-is-type(|ctx, "VarIsNode")
@@ -156,29 +95,6 @@ rules // cross-constraints involving edges / paths
       v-prop-task    := <prop-create-lookup(|ctx, Type())> v-resolve-task;
       rewrite-task1  := <task-create-rewrite(|ctx, type)> v-prop-task
 
-rules
-  
-  /*
-  nabl-constraint(|ctx):
-    s -> <fail>
-    where
-      <?Select(_, _, _, _, _, _)> s;
-      <alltd(return-type-edge(|ctx) + return-type-path(|ctx))> s
-  
-  return-type-edge(|ctx):
-    VarRef(v) -> <fail>
-    where
-      fail; // disabled for now
-      var-is-edge := <var-is-edge(|ctx)> v;
-      <task-create-error-on-success(|ctx, var-is-edge, "PGX 1.0 does not support the use of edges in a solution modifier")> v
-  	
-  return-type-path(|ctx):
-    VarRef(v) -> <fail>
-    where
-      var-is-path := <var-is-path(|ctx)> v;
-      <task-create-error-on-success(|ctx, var-is-path, "PGX 1.0 does not support the use of paths in a solution modifier")> v
-  */
-  
 rules // subqueries
   
   nabl-constraint(|ctx):
@@ -190,7 +106,7 @@ rules // subqueries
     e@Query(_, _, _, _) -> <id>
     where
       failtask := <task-create-fail(|ctx)>;
-      <task-create-error-on-failure(|ctx, failtask, "PGX 0.9 does not support subqueries")> e
+      <task-create-error-on-failure(|ctx, failtask, $[PGQL [<PGQL_VERSION>] does not allow subqueries])> e
 
 rules // (NOT) EXISTS limitations
   
@@ -198,9 +114,11 @@ rules // (NOT) EXISTS limitations
     e@ExistsFunc(_) -> <fail>
     where
       failtask := <task-create-fail(|ctx)>;
-      <task-create-error-on-failure(|ctx, failtask, "PGX 0.9 does not support (NOT) EXISTS")> e
+      <task-create-error-on-failure(|ctx, failtask, $[PGQL [<PGQL_VERSION>] does not allow (NOT) EXISTS])> e
 
 /*
+  The following checks are for our C++ backend. I commented them out because they are not relevant for our Java backend.
+
   constraints-check(|ctx):
     constraint -> <fail>
     where
@@ -243,16 +161,8 @@ rules // DISTINCT limitation
     e@Distinct() -> <fail>
     where
       failtask := <task-create-fail(|ctx)>;
-      <task-create-error-on-failure(|ctx, failtask, "PGX 0.9 does not support DISTINCT")> e
+      <task-create-error-on-failure(|ctx, failtask, $[PGQL [<PGQL_VERSION>] does not allow use of DISTINCT])> e
 
-rules // Path finding limitations
-   
-  // nabl-constraint(|ctx):
-  //   e@Shortest(_) -> <fail>
-  //   where
-  //     failtask := <task-create-fail(|ctx)>;
-  //     <task-create-error-on-failure(|ctx, failtask, "Shortest path finding is not yet supported by PGX")> e
-  
 rules // Unsupported functions
   
   nabl-constraint(|ctx):
@@ -267,9 +177,9 @@ rules // Unsupported functions
       > t;
       funcName := <get-constructor> t;
       failtask := <task-create-fail(|ctx)>;
-      <task-create-error-on-failure(|ctx, failtask, $[Function '[funcName]' is not yet supported by PGX])> t
+      <task-create-error-on-failure(|ctx, failtask, $[No such function in PGQL [<PGQL_VERSION>]: '[funcName]'])> t
 
-rules // Not a connected graph
+rules // Not a connected graph, e.g. WHERE x -> y, x2 -> y2
   
   nabl-constraint(|ctx):
     GraphPattern(Nodes(nodes), Edges(edges), _, _, _, _, _, _) -> <fail>
@@ -351,23 +261,9 @@ rules // data types
   nabl-constraint(|ctx):
     LitCustomType(_, type) -> <fail>
     where
-      not ( <?"date" + ?"dateTime"> type );
       failtask := <task-create-fail(|ctx)>;
-      <task-create-error-on-failure(|ctx, failtask, "'date' or 'dateTime' expected")> type
+      <task-create-error-on-failure(|ctx, failtask, $[PGQL [<PGQL_VERSION>] does not support custom data types])> type
   
-  nabl-constraint(|ctx):
-    bool -> <fail>
-    where
-      <?True() + ?False()> bool;
-      failtask := <task-create-fail(|ctx)>;
-      <task-create-error-on-failure(|ctx, failtask, "PGX 0.9 does not support the boolean data type")> bool
-  
-  // nabl-constraint(|ctx):
-  //   e@UMin(_) -> <fail>
-  //   where
-  //     failtask := <task-create-fail(|ctx)>;
-  //     <task-create-error-on-failure(|ctx, failtask, "PGX doesn't yet support negative numbers")> e
-
 rules // Unresolved references
   
   nabl-check-disable-unresolved = id

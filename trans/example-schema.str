@@ -6,14 +6,6 @@ imports
   
 rules
 
-  /*
-   * Currently, the schema only defines the available node and edge properties.
-   * It does not define the classes and relations to which the properties belong.
-   * This means that the following error is not found (i.e. universities don't have a gender):
-   * 
-   *   MATCH (:Person) -[:studyAt]-> (:University with gender = 'female') SELECT *
-   */
-
   example-schema = !Schema(
     [
       // LDBC
@@ -33,19 +25,20 @@ rules
       NodeProp("content", "List<Text>"),
       NodeProp("length", "32bitInteger"),
       
-      // tests
+      // SPT tests
       NodeProp("type", "String"),
       NodeProp("name", "String"),
       NodeProp("age", "Int"),
       NodeProp("salary", "Double")
     ],
     [
+      // LDBC
       EdgeProp("creationDate", "DateTime"),
       EdgeProp("joinDate", "DateTime"),
       EdgeProp("classYear", "32bitInteger"),
       EdgeProp("workFrom", "32bitInteger"),
       
-      // tests
+      // SPT tests
       EdgeProp("label", "String"),
       EdgeProp("weight", "Int")
     ]
