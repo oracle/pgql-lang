@@ -1,4 +1,4 @@
-module normalizedAST-sig
+module sig-normalized
 
 /*
  * These signatures are for the normalized AST:

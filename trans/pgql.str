@@ -19,10 +19,10 @@ imports
   check
   pp
   editor/PGQL-Outliner
-  signatures
-  example-schema
-  normalizeForNaBL
   common
+  sig-nabl
+  trans-for-nabl
+  example-schema
 
 rules // Analysis
   
@@ -40,6 +40,16 @@ rules // Analysis
   override-reconstruction = fail
   resugar = fail
   
+rules
+  
+  // invoked by PGX engine
+  normalize-pgql =
+    ?TopNode(normalizedAst, schema); !TopNode(normalizedAst, <try(is-string; read-from-string)> schema); transForNaBL
+
+  // invoked by Spoofax editor
+  normalize-pgql = 
+    not(?TopNode(_, _)); try(normalize); !TopNode(<id>, <example-schema>); transForNaBL
+    
 rules // Menu actions
 
   normalize-builder:
@@ -59,16 +69,6 @@ rules // Menu actions
     with
       filename := <guarantee-extension(|"pp.pgql")> path;
       result   := <print-it-pretty> ast
-
-rules
-  
-  // command-line
-  normalize-pgql =
-    ?TopNode(normalizedAst, schema); !TopNode(normalizedAst, <try(is-string; read-from-string)> schema); normalizeForNaBL
-
-  // editor
-  normalize-pgql = 
-    not(?TopNode(_, _)); try(normalize); !TopNode(<id>, <example-schema>); normalizeForNaBL
 
 rules // Editor services (this is generated code)
 	

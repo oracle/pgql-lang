@@ -47,8 +47,13 @@ colorer // Data
   DECIMAL              : darkblue
   DOUBLE               : darkblue
   LitCustomType        : darkblue
-  
-colorer // Keywords, can be removed once http://yellowgrass.org/issue/Spoofax/954 is fixed
+
+/*
+ * In the next Spoofax version, there will be support for case-insensitive keywords again,
+ * so that the code below can be removed.
+ */
+
+colorer
 
   SELECT         : 127 0 85 bold
   WHERE          : 127 0 85 bold
@@ -56,9 +61,10 @@ colorer // Keywords, can be removed once http://yellowgrass.org/issue/Spoofax/95
   UNION          : 127 0 85 bold
   WITH           : 127 0 85 bold
   AS             : 127 0 85 bold
-  LABEL          : 127 0 85 bold
-  ID             : 127 0 85 bold
+  NULL           : 127 0 85 bold
 
+  ID             : 127 0 85 bold
+  LABEL          : 127 0 85 bold
   HAS            : 127 0 85 bold
   
   INDEGREE       : 127 0 85 bold
@@ -81,9 +87,15 @@ colorer // Keywords, can be removed once http://yellowgrass.org/issue/Spoofax/95
   ENDSWITH       : 127 0 85 bold
   
   BETWEEN        : 127 0 85 bold
+  YEAR           : 127 0 85 bold
+  MONTH          : 127 0 85 bold
+  DAY            : 127 0 85 bold
+  HOURS          : 127 0 85 bold
+  MINUTES        : 127 0 85 bold
+  SECONDS        : 127 0 85 bold
+  TIMEZONE       : 127 0 85 bold
   
   NOT            : 127 0 85 bold
-  NULL           : 127 0 85 bold
   EXISTS         : 127 0 85 bold
   CASE           : 127 0 85 bold
   WHEN           : 127 0 85 bold
@@ -98,28 +110,15 @@ colorer // Keywords, can be removed once http://yellowgrass.org/issue/Spoofax/95
   AVG            : 127 0 85 bold
   GROUP-CONCAT   : 127 0 85 bold
   
-  HAVING         : 127 0 85 bold
-  ORDER          : 127 0 85 bold
   GROUP          : 127 0 85 bold
+  HAVING         : 127 0 85 bold
   ASC            : 127 0 85 bold
   DESC           : 127 0 85 bold
   BY             : 127 0 85 bold
+  ORDER          : 127 0 85 bold
   DISTINCT       : 127 0 85 bold
-  REDUCED        : 127 0 85 bold
+  UNGROUP        : 127 0 85 bold
   OFFSET         : 127 0 85 bold
   LIMIT          : 127 0 85 bold
-  SELECT         : 127 0 85 bold
-  
-  FOR            : 127 0 85 bold
-  ALL            : 127 0 85 bold
-  IN             : 127 0 85 bold
-  NODE           : 127 0 85 bold
-  EDGE           : 127 0 85 bold
-  NODES          : 127 0 85 bold
-  EDGES          : 127 0 85 bold
-  LIST           : 127 0 85 bold
-  EACH           : 127 0 85 bold
-  FROM           : 127 0 85 bold
-  WITH           : 127 0 85 bold
   
   SHORTEST       : 127 0 85 bold

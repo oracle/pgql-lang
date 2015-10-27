@@ -1,21 +1,25 @@
-module signatures
+module sig-nabl
 
 signature constructors
   
   TopNode              : Query * Schema -> TopNode
 
-signature constructors // old
+signature constructors // schema
  
-  QueryPlusReturnVars  : Query * List(ReturnVar) -> QueryPlusReturnVars
   Schema : List(NodeProp) * List(EdgeProp) -> Schema
   NodeProp : name * type -> NodeProp
   EdgeProp : name * type -> EdgeProp
   
-signature constructors // Types
+signature constructors // types
   
   NodeTy : NodeTy
   EdgeTy : EdgeTy
   PathTy : PathTy
   NodePropTy : PropTy -> NodePropTy
   EdgePropTy : PropTy -> EdgePropTy
-  
+
+signature constructors // namespaces
+    
+  SelectOrGroupRef     : Var -> SelectOrGroupRef
+  GroupRef             : Var -> GroupRef
+  ExpAsGroupVar        : Var * Exp -> ExpAsGroupVar

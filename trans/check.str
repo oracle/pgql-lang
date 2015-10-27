@@ -4,9 +4,8 @@ imports
 
   src-gen/signatures/-
   signatures-norm/-
-  signatures
-  normalizedAST-sig
-  normalizeForNaBL
+  sig-normalized
+  sig-nabl
   common
   lib/runtime/nabl/-
   lib/runtime/task/-

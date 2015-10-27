@@ -4,12 +4,12 @@ imports
   
   src-gen/signatures/-
   signatures-norm/-
-  normalizedAST-sig
+  sig-normalized
+  sig-nabl
   runtime/editor/origins
   common
   pp
   editor-common.generated
-  normalizeForNaBL
   
 /*
  * These transformations are shared by analysis, tree-to-model tranformation and code gen
@@ -20,7 +20,6 @@ rules
   normalize:
     ast -> result
     with
-      // schema' := <try(is-string; read-from-string)> schema;
       c := <new-counter>;
       result := <
       	bottomup(try(norm-case-insensitive));
@@ -245,7 +244,10 @@ rules
   norm-limitOffsets = ?Some(LimitOffsetClauses(limitClause, offsetClause)); !LimitOffsetClauses(Some(limitClause), offsetClause)
   norm-limitOffsets = ?Some(OffsetLimitClauses(offsetClause, limitClause)); !LimitOffsetClauses(limitClause, Some(offsetClause))
   
-signature constructors // only used temporary, not in output term
+/*
+ * Code below is only temporary until the next verion of Spoofax is released that supports case-insensitive keywords.
+ */
+signature constructors
 	
   Vars  : a -> Vars
   Label : Exp

@@ -8,11 +8,4 @@ language
                                            ( )
                                            { }
                                            
-  indent after                           : "="
-                                           ":"
-                                           "MATCH"
-                                           "Match"
-                                           "match"
-                                           
-  // Regular expression for identifiers:   
-  // identifier lexical                     : "[A-Za-z0-9_]+"
+  // indent after                           : "{"

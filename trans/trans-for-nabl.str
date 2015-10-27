@@ -1,26 +1,24 @@
-module normalizeForNaBL
+module trans-for-nabl
 
 imports
   
   src-gen/signatures/-
-  signatures-norm/-
-  signatures
-  normalizedAST-sig
+  sig-normalized
+  sig-nabl
   common
-
+  
 /*
- * normalizeForNaBL is called after normalize. It's for extra 'normalization' required for NaBL.
- * The resulting tThese signatuers are for the normalized AST:
- *   PGQL -> PGQL AST -> PGQL norm. AST
+ * normalizeForNaBL is called after normalize. It's for extra transformations to get the AST in a shape that NaBL likes.
+ *   PGQL -> PGQL AST -> PGQL norm. AST -> PGQL AST for NaBL ==> NaBL
+ *                                      -> QueryGraph object ==> query planner
  */
-
 rules
   
-  normalizeForNaBL = alltd(normalizeForNaBL-groupBy)
+  transForNaBL = alltd(transForNaBL-groupBy)
   
 rules
   
-  normalizeForNaBL-groupBy:
+  transForNaBL-groupBy:
     Query(fromClause, graphPattern, matchOrderHint, Select(distinctOrReduced, expAsVars, groupBy, having, orderBy, limitOffsets)) ->
     Query(fromClause, graphPattern, matchOrderHint, Select(distinctOrReduced, expAsVars', groupBy', having, orderBy', limitOffsets))
     where
@@ -38,10 +36,3 @@ rules
   
   to-groupDefs = alltd(to-groupDef)
   to-groupDef = ?ExpAsVar(v, exp); !ExpAsGroupVar(v, exp)
-  
-signature constructors
-  
-  SelectOrGroupRef     : Var -> SelectOrGroupRef
-  GroupRef             : Var -> GroupRef
-  ExpAsGroupVar        : Var * Exp -> ExpAsGroupVar
-  
