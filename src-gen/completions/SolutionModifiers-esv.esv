@@ -9,14 +9,12 @@ imports
 completions
   completion template SelectElems : "*" =
     "*"        
-  completion template DistinctOrReduced : "DISTINCT " =
-    <DISTINCT:DISTINCT> " "  
-  completion template DistinctOrReduced : "REDUCED " =
-    <REDUCED:REDUCED> " "  
   completion template UngroupClause : "UNGROUP ExpAsVar" =
     <UNGROUP:UNGROUP> " " <ExpAsVar:ExpAsVar>  
   completion template GroupClause : "GROUP BY ExpAsVar" =
     <GROUP:GROUP> " " <BY:BY> " " <ExpAsVar:ExpAsVar>  
+  completion template Distinct : "DISTINCT " =
+    <DISTINCT:DISTINCT> " "  
   completion template HavingClause : "HAVING Exp" =
     <HAVING:HAVING> " " <Exp:Exp>  
   completion template OrderClause : "ORDER BY OrderElem" =

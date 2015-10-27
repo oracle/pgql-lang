@@ -14,7 +14,7 @@ signature
   constructors
                       : Query -> Start
     Query             : SelectClause * Option(FromClause) * MatchClause * SolutionModifier -> Query
-    SelectClause      : SELECT * Option(DistinctOrReduced) * SelectElems -> SelectClause
+    SelectClause      : SELECT * Option(Distinct) * SelectElems -> SelectClause
     FromClause        : FROM * GRAPHNAME -> FromClause
     GraphPattern1     : WHERE * List(MatchElem) -> MatchClause
                       : GroupGraphPattern -> MatchElem

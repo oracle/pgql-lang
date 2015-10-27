@@ -13,6 +13,10 @@ exports
     "-" Exp       -> Exp {cons("UMin"), right}
     Exp "AND" Exp -> Exp {cons("And"), left}
     Exp "OR" Exp  -> Exp {cons("Or"), left}
+    Exp "and" Exp -> Exp {cons("And2"), left}
+    Exp "or" Exp  -> Exp {cons("Or2"), left}
+    Exp "And" Exp -> Exp {cons("And3"), left}
+    Exp "Or" Exp  -> Exp {cons("Or3"), left}
     Exp "*" Exp   -> Exp {cons("Mul"), left}
     Exp "+" Exp   -> Exp {cons("Add"), left}
     Exp "/" Exp   -> Exp {cons("Div"), left}
@@ -40,6 +44,10 @@ exports
     "-" InlinedExp              -> InlinedExp {cons("UMin"), right}
     InlinedExp "AND" InlinedExp -> InlinedExp {cons("And"), left}
     InlinedExp "OR" InlinedExp  -> InlinedExp {cons("Or"), left}
+    InlinedExp "and" InlinedExp -> InlinedExp {cons("And2"), left}
+    InlinedExp "or" InlinedExp  -> InlinedExp {cons("Or2"), left}
+    InlinedExp "And" InlinedExp -> InlinedExp {cons("And3"), left}
+    InlinedExp "Or" InlinedExp  -> InlinedExp {cons("Or3"), left}
     InlinedExp "*" InlinedExp   -> InlinedExp {cons("Mul"), left}
     InlinedExp "+" InlinedExp   -> InlinedExp {cons("Add"), left}
     InlinedExp "/" InlinedExp   -> InlinedExp {cons("Div"), left}
@@ -54,131 +62,4 @@ exports
     InlinedExp "=~" InlinedExp  -> InlinedExp {cons("Regex"), left, prefer}
 
   context-free syntax
-    CONTENTCOMPLETE -> InlinedExp {cons("COMPLETION-InlinedExp")}
-
-  context-free priorities
-    {right:
-      "-" Exp -> Exp
-      NOT Exp -> Exp
-      "!" Exp -> Exp
-    } >
-    {left:
-      Exp "." LABEL "()" -> FunctionCall
-      Exp "." ID "()" -> FunctionCall
-      Exp "." HAS "(" {Prop ","}* ")" -> FunctionCall
-      Exp "." INDEGREE "()" -> FunctionCall
-      Exp "." OUTDEGREE "()" -> FunctionCall
-      Exp "." SRC "()" -> FunctionCall
-      Exp "." DST "()" -> FunctionCall
-    } >
-    {left:
-      Exp "." NODES "()" -> FunctionCall
-      Exp "." EDGES "()" -> FunctionCall
-      Exp "." LENGTH "()" -> FunctionCall
-      Exp "." HEAD "()" -> FunctionCall
-      Exp "." LAST "()" -> FunctionCall
-      Exp "." INIT "()" -> FunctionCall
-      Exp "." TAIL "()" -> FunctionCall
-    } >
-    {left:
-      Exp "." CONTAINS "(" Exp "," Exp ")" -> FunctionCall
-      Exp "." BEGINSWITH "(" Exp "," Exp ")" -> FunctionCall
-      Exp "." ENDSWITH "(" Exp "," Exp ")" -> FunctionCall
-    } >
-    {left:
-      Exp "." BETWEEN "(" Exp "," Exp ")" -> FunctionCall
-      Exp "." YEAR "()" -> FunctionCall
-      Exp "." MONTH "()" -> FunctionCall
-      Exp "." DAY "()" -> FunctionCall
-      Exp "." HOURS "()" -> FunctionCall
-      Exp "." MINUTES "()" -> FunctionCall
-      Exp "." SECONDS "()" -> FunctionCall
-      Exp "." TIMEZONE "()" -> FunctionCall
-    } >
-    {left:
-      Exp "*" Exp -> Exp
-      Exp "/" Exp -> Exp
-      Exp "%" Exp -> Exp
-      Exp "=~" Exp -> Exp
-    } >
-    {left:
-      Exp "+" Exp -> Exp
-      Exp "-" Exp -> Exp
-    } >
-    {left:
-      Exp ">" Exp -> Exp
-      Exp "<" Exp -> Exp
-      Exp ">=" Exp -> Exp
-      Exp "<=" Exp -> Exp
-    } >
-    {left:
-      Exp "=" Exp -> Exp
-      Exp "!=" Exp -> Exp
-    } >
-    {left:
-      Exp "AND" Exp -> Exp
-      Exp "and" Exp -> Exp
-    } >
-    {left:
-      Exp "OR" Exp -> Exp
-      Exp "or" Exp -> Exp
-    }
-
-  context-free priorities
-    {right:
-      "-" InlinedExp -> InlinedExp
-      NOT InlinedExp -> InlinedExp
-      "!" InlinedExp -> InlinedExp
-    } >
-    {left:
-      LABEL "()" -> InlinedCall
-      ID "()" -> InlinedCall
-      HAS "(" {Prop ","}* ")" -> InlinedCall
-      INDEGREE "()" -> InlinedCall
-      OUTDEGREE "()" -> InlinedCall
-      SRC "()" -> InlinedCall
-      DST "()" -> InlinedCall
-    } >
-    {left:
-      NODES "()" -> InlinedCall
-      EDGES "()" -> InlinedCall
-      LENGTH "()" -> InlinedCall
-    } >
-    {left:
-      InlinedExp "*" InlinedExp -> InlinedExp
-      InlinedExp "/" InlinedExp -> InlinedExp
-      InlinedExp "%" InlinedExp -> InlinedExp
-      InlinedExp "=~" InlinedExp -> InlinedExp
-    } >
-    {left:
-      InlinedExp "+" InlinedExp -> InlinedExp
-      InlinedExp "-" InlinedExp -> InlinedExp
-    } >
-    {left:
-      InlinedExp ">" InlinedExp -> InlinedExp
-      InlinedExp "<" InlinedExp -> InlinedExp
-      InlinedExp ">=" InlinedExp -> InlinedExp
-      InlinedExp "<=" InlinedExp -> InlinedExp
-    } >
-    {left:
-      InlinedExp "=" InlinedExp -> InlinedExp
-      InlinedExp "!=" InlinedExp -> InlinedExp
-    } >
-    {left:
-      InlinedExp "AND" InlinedExp -> InlinedExp
-      InlinedExp "AND" InlinedExp -> InlinedExp
-    } >
-    {left:
-      InlinedExp "OR" InlinedExp -> InlinedExp
-      InlinedExp "OR" InlinedExp -> InlinedExp
-    }
-
-  context-free syntax
-    Exp "and" Exp               -> Exp        {cons("And2"), left}
-    Exp "or" Exp                -> Exp        {cons("Or2"), left}
-    InlinedExp "AND" InlinedExp -> InlinedExp {cons("And2"), left}
-    InlinedExp "OR" InlinedExp  -> InlinedExp {cons("Or2"), left}
-
-  context-free syntax
-    CONTENTCOMPLETE -> Exp        {cons("COMPLETION-Exp")}
     CONTENTCOMPLETE -> InlinedExp {cons("COMPLETION-InlinedExp")}

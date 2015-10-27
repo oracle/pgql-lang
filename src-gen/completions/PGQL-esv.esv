@@ -14,7 +14,7 @@ completions
   completion template Query : "SelectClause MatchClause SolutionModifier" =
     <SelectClause:SelectClause> "\n" (cursor) "\n" <MatchClause:MatchClause> "\n" <SolutionModifier:SolutionModifier> (blank)  
   completion template SelectClause : "SELECT SelectElems" =
-    <SELECT:SELECT> " " <:DistinctOrReduced> <SelectElems:SelectElems>  
+    <SELECT:SELECT> " " <:Distinct> <SelectElems:SelectElems>      
   completion template FromClause : "FROM GRAPHNAME" =
     <FROM:FROM> " " <GRAPHNAME:GRAPHNAME>                                
   completion template MatchClause : "WHERE " =

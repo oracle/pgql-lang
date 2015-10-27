@@ -2,15 +2,17 @@ module Keywords
 exports
   lexical syntax
     [Ss] [Ee] [Ll] [Ee] [Cc] [Tt]           -> SELECT   
+    [Ff] [Rr] [Oo] [Mm]                     -> FROM     
     [Ww] [Hh] [Ee] [Rr] [Ee]                -> WHERE    
     [Oo] [Pp] [Tt] [Ii] [Oo] [Nn] [Aa] [Ll] -> OPTIONAL 
     [Uu] [Nn] [Ii] [Oo] [Nn]                -> UNION    
     [Ww] [Ii] [Tt] [Hh]                     -> WITH     
     [Aa] [Ss]                               -> AS       
-    [Ii] [Dd]                               -> ID       
-    [Ll] [Aa] [Bb] [Ee] [Ll]                -> LABEL    
+    [Nn] [Uu] [Ll] [Ll]                     -> NULL     
 
   lexical syntax
+    [Ii] [Dd]                                                   -> ID           
+    [Ll] [Aa] [Bb] [Ee] [Ll]                                    -> LABEL        
     [Hh] [Aa] [Ss]                                              -> HAS          
     [Ii] [Nn] [Dd] [Ee] [Gg] [Rr] [Ee] [Ee]                     -> INDEGREE     
     [Oo] [Uu] [Tt] [Dd] [Ee] [Gg] [Rr] [Ee] [Ee]                -> OUTDEGREE    
@@ -19,6 +21,10 @@ exports
     [Nn] [Oo] [Dd] [Ee] [Ss]                                    -> NODES        
     [Ee] [Dd] [Gg] [Ee] [Ss]                                    -> EDGES        
     [Ll] [Ee] [Nn] [Gg] [Tt] [Hh]                               -> LENGTH       
+    [Hh] [Ee] [Aa] [Dd]                                         -> HEAD         
+    [Ll] [Aa] [ss] [Tt]                                         -> LAST         
+    [Ii] [Nn] [Ii] [Tt]                                         -> INIT         
+    [Tt] [Aa] [Ii] [Ll]                                         -> TAIL         
     [Cc] [Oo] [Nn] [Tt] [Aa] [Ii] [Nn] [Ss]                     -> CONTAINS     
     [Bb] [Ee] [Gg] [Ii] [Nn] [Ss] [Ww] [Ii] [Tt] [Hh]           -> BEGINSWITH   
     [Ee] [Nn] [Dd] [Ss] [Ww] [Ii] [Tt] [Hh]                     -> ENDSWITH     
@@ -30,12 +36,7 @@ exports
     [Mm] [Ii] [Nn] [Uu] [Tt] [Ee] [Ss]                          -> MINUTES      
     [Ss] [Ee] [Cc] [Oo] [Nn] [Dd] [Ss]                          -> SECONDS      
     [Tt] [Ii] [Mm] [Zz] [Oo] [Nn] [Ee]                          -> TIMEZONE     
-    [Hh] [Ee] [Aa] [Dd]                                         -> HEAD         
-    [Ll] [Aa] [ss] [Tt]                                         -> LAST         
-    [Ii] [Nn] [Ii] [Tt]                                         -> INIT         
-    [Tt] [Aa] [Ii] [Ll]                                         -> TAIL         
     [Nn] [Oo] [Tt]                                              -> NOT          
-    [Nn] [Uu] [Ll] [Ll]                                         -> NULL         
     [Ee] [Xx] [Ii] [Ss] [Tt] [Ss]                               -> EXISTS       
     [Cc] [Aa] [Ss] [Ee]                                         -> CASE         
     [Ww] [Hh] [Ee] [Nn]                                         -> WHEN         
@@ -48,11 +49,6 @@ exports
     [Mm] [Aa] [Xx]                                              -> MAX          
     [Aa] [Vv] [Gg]                                              -> AVG          
     [Gg] [Rr] [Oo] [Uu] [Pp] [\_] [Cc] [Oo] [Nn] [Cc] [Aa] [Tt] -> GROUP-CONCAT 
-    [Ee] [Xx] [Ii] [Ss] [Tt] [Ss]                               -> EXISTS       
-    [Cc] [Aa] [Ss] [Ee]                                         -> CASE         
-    [Ee] [Ll] [Ss] [Ee]                                         -> ELSE         
-    [Ww] [Hh] [Ee] [Nn]                                         -> WHEN         
-    [Tt] [Hh] [Ee] [Nn]                                         -> THEN         
 
   lexical syntax
     [Gg] [Rr] [Oo] [Uu] [Pp]                -> GROUP    
@@ -62,24 +58,9 @@ exports
     [Bb] [Yy]                               -> BY       
     [Oo] [Rr] [Dd] [Ee] [Rr]                -> ORDER    
     [Dd] [Ii] [Ss] [Tt] [Ii] [Nn] [Cc] [Tt] -> DISTINCT 
-    [Rr] [Ee] [Dd] [Uu] [Cc] [Ee] [Dd]      -> REDUCED  
     [Uu] [Nn] [Gg] [Rr] [Oo] [Uu] [Pp]      -> UNGROUP  
     [Ll] [Ii] [Mm] [Ii] [Tt]                -> LIMIT    
     [Oo] [Ff] [Ff] [Ss] [Ee] [Tt]           -> OFFSET   
-    [Ff] [Oo] [Rr]                          -> FOR      
-    [Aa] [Ll] [Ll]                          -> ALL      
-    [Aa] [Nn] [Yy]                          -> ANY      
-    [Ee] [Aa] [Cc] [Hh]                     -> EACH     
-    [Ii] [Nn]                               -> IN       
-    [Nn] [Oo] [Dd] [Ee]                     -> NODE     
-    [Ee] [Dd] [Gg] [Ee]                     -> EDGE     
-    [Nn] [Oo] [Dd] [Ee] [Ss]                -> NODES    
-    [Ee] [Dd] [Gg] [Ee] [Ss]                -> EDGES    
-    [Ll] [Ii] [Ss] [Tt]                     -> LIST     
-    [Ff] [Rr] [Oo] [Mm]                     -> FROM     
 
   lexical syntax
     [Ss] [Hh] [Oo] [Rr] [Tt] [Ee] [Ss] [Tt] -> SHORTEST 
-
-  lexical syntax
-    [Pp] [Rr] [Ee] [Ff] [Ii] [Xx] -> PREFIX 

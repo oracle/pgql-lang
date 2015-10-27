@@ -18,6 +18,10 @@ signature
     UMin  : Exp -> Exp
     And   : Exp * Exp -> Exp
     Or    : Exp * Exp -> Exp
+    And2  : Exp * Exp -> Exp
+    Or2   : Exp * Exp -> Exp
+    And3  : Exp * Exp -> Exp
+    Or3   : Exp * Exp -> Exp
     Mul   : Exp * Exp -> Exp
     Add   : Exp * Exp -> Exp
     Div   : Exp * Exp -> Exp
@@ -41,6 +45,10 @@ signature
     UMin        : InlinedExp -> InlinedExp
     And         : InlinedExp * InlinedExp -> InlinedExp
     Or          : InlinedExp * InlinedExp -> InlinedExp
+    And2        : InlinedExp * InlinedExp -> InlinedExp
+    Or2         : InlinedExp * InlinedExp -> InlinedExp
+    And3        : InlinedExp * InlinedExp -> InlinedExp
+    Or3         : InlinedExp * InlinedExp -> InlinedExp
     Mul         : InlinedExp * InlinedExp -> InlinedExp
     Add         : InlinedExp * InlinedExp -> InlinedExp
     Div         : InlinedExp * InlinedExp -> InlinedExp
@@ -53,9 +61,3 @@ signature
     Lte         : InlinedExp * InlinedExp -> InlinedExp
     Neq         : InlinedExp * InlinedExp -> InlinedExp
     Regex       : InlinedExp * InlinedExp -> InlinedExp
-
-  constructors
-    And2 : Exp * Exp -> Exp
-    Or2  : Exp * Exp -> Exp
-    And2 : InlinedExp * InlinedExp -> InlinedExp
-    Or2  : InlinedExp * InlinedExp -> InlinedExp

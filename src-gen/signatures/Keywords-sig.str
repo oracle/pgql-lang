@@ -3,15 +3,17 @@ module src-gen/signatures/Keywords-sig
 signature
   constructors
      : String -> SELECT
+     : String -> FROM
      : String -> WHERE
      : String -> OPTIONAL
      : String -> UNION
      : String -> WITH
      : String -> AS
-     : String -> ID
-     : String -> LABEL
+     : String -> NULL
 
   constructors
+     : String -> ID
+     : String -> LABEL
      : String -> HAS
      : String -> INDEGREE
      : String -> OUTDEGREE
@@ -20,6 +22,10 @@ signature
      : String -> NODES
      : String -> EDGES
      : String -> LENGTH
+     : String -> HEAD
+     : String -> LAST
+     : String -> INIT
+     : String -> TAIL
      : String -> CONTAINS
      : String -> BEGINSWITH
      : String -> ENDSWITH
@@ -31,12 +37,12 @@ signature
      : String -> MINUTES
      : String -> SECONDS
      : String -> TIMEZONE
-     : String -> HEAD
-     : String -> LAST
-     : String -> INIT
-     : String -> TAIL
      : String -> NOT
-     : String -> NULL
+     : String -> EXISTS
+     : String -> CASE
+     : String -> WHEN
+     : String -> THEN
+     : String -> ELSE
      : String -> END
      : String -> COUNT
      : String -> SUM
@@ -44,11 +50,6 @@ signature
      : String -> MAX
      : String -> AVG
      : String -> GROUP-CONCAT
-     : String -> EXISTS
-     : String -> CASE
-     : String -> ELSE
-     : String -> WHEN
-     : String -> THEN
 
   constructors
      : String -> GROUP
@@ -58,24 +59,9 @@ signature
      : String -> BY
      : String -> ORDER
      : String -> DISTINCT
-     : String -> REDUCED
      : String -> UNGROUP
      : String -> LIMIT
      : String -> OFFSET
-     : String -> FOR
-     : String -> ALL
-     : String -> ANY
-     : String -> EACH
-     : String -> IN
-     : String -> NODE
-     : String -> EDGE
-     : String -> NODES
-     : String -> EDGES
-     : String -> LIST
-     : String -> FROM
 
   constructors
      : String -> SHORTEST
-
-  constructors
-     : String -> PREFIX

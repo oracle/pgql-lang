@@ -102,3 +102,124 @@ exports
     CONTENTCOMPLETE -> FunctionCall     {cons("COMPLETION-FunctionCall")}
     CONTENTCOMPLETE -> StarOrExp        {cons("COMPLETION-StarOrExp")}
     CONTENTCOMPLETE -> Group-Concat-Sep {cons("COMPLETION-Group-Concat-Sep")}
+
+  context-free priorities
+    {right:
+      "-" Exp -> Exp
+      NOT Exp -> Exp
+      "!" Exp -> Exp
+    } >
+    {left:
+      Exp "." LABEL "()" -> FunctionCall
+      Exp "." ID "()" -> FunctionCall
+      Exp "." HAS "(" {Prop ","}* ")" -> FunctionCall
+      Exp "." INDEGREE "()" -> FunctionCall
+      Exp "." OUTDEGREE "()" -> FunctionCall
+      Exp "." SRC "()" -> FunctionCall
+      Exp "." DST "()" -> FunctionCall
+    } >
+    {left:
+      Exp "." NODES "()" -> FunctionCall
+      Exp "." EDGES "()" -> FunctionCall
+      Exp "." LENGTH "()" -> FunctionCall
+      Exp "." HEAD "()" -> FunctionCall
+      Exp "." LAST "()" -> FunctionCall
+      Exp "." INIT "()" -> FunctionCall
+      Exp "." TAIL "()" -> FunctionCall
+    } >
+    {left:
+      Exp "." CONTAINS "(" Exp "," Exp ")" -> FunctionCall
+      Exp "." BEGINSWITH "(" Exp "," Exp ")" -> FunctionCall
+      Exp "." ENDSWITH "(" Exp "," Exp ")" -> FunctionCall
+    } >
+    {left:
+      Exp "." BETWEEN "(" Exp "," Exp ")" -> FunctionCall
+      Exp "." YEAR "()" -> FunctionCall
+      Exp "." MONTH "()" -> FunctionCall
+      Exp "." DAY "()" -> FunctionCall
+      Exp "." HOURS "()" -> FunctionCall
+      Exp "." MINUTES "()" -> FunctionCall
+      Exp "." SECONDS "()" -> FunctionCall
+      Exp "." TIMEZONE "()" -> FunctionCall
+    } >
+    {left:
+      Exp "*" Exp -> Exp
+      Exp "/" Exp -> Exp
+      Exp "%" Exp -> Exp
+      Exp "=~" Exp -> Exp
+    } >
+    {left:
+      Exp "+" Exp -> Exp
+      Exp "-" Exp -> Exp
+    } >
+    {left:
+      Exp ">" Exp -> Exp
+      Exp "<" Exp -> Exp
+      Exp ">=" Exp -> Exp
+      Exp "<=" Exp -> Exp
+    } >
+    {left:
+      Exp "=" Exp -> Exp
+      Exp "!=" Exp -> Exp
+    } >
+    {left:
+      Exp "AND" Exp -> Exp
+      Exp "and" Exp -> Exp
+      Exp "And" Exp -> Exp
+    } >
+    {left:
+      Exp "OR" Exp -> Exp
+      Exp "or" Exp -> Exp
+      Exp "Or" Exp -> Exp
+    }
+
+  context-free priorities
+    {right:
+      "-" InlinedExp -> InlinedExp
+      NOT InlinedExp -> InlinedExp
+      "!" InlinedExp -> InlinedExp
+    } >
+    {left:
+      LABEL "()" -> InlinedCall
+      ID "()" -> InlinedCall
+      HAS "(" {Prop ","}* ")" -> InlinedCall
+      INDEGREE "()" -> InlinedCall
+      OUTDEGREE "()" -> InlinedCall
+      SRC "()" -> InlinedCall
+      DST "()" -> InlinedCall
+    } >
+    {left:
+      NODES "()" -> InlinedCall
+      EDGES "()" -> InlinedCall
+      LENGTH "()" -> InlinedCall
+    } >
+    {left:
+      InlinedExp "*" InlinedExp -> InlinedExp
+      InlinedExp "/" InlinedExp -> InlinedExp
+      InlinedExp "%" InlinedExp -> InlinedExp
+      InlinedExp "=~" InlinedExp -> InlinedExp
+    } >
+    {left:
+      InlinedExp "+" InlinedExp -> InlinedExp
+      InlinedExp "-" InlinedExp -> InlinedExp
+    } >
+    {left:
+      InlinedExp ">" InlinedExp -> InlinedExp
+      InlinedExp "<" InlinedExp -> InlinedExp
+      InlinedExp ">=" InlinedExp -> InlinedExp
+      InlinedExp "<=" InlinedExp -> InlinedExp
+    } >
+    {left:
+      InlinedExp "=" InlinedExp -> InlinedExp
+      InlinedExp "!=" InlinedExp -> InlinedExp
+    } >
+    {left:
+      InlinedExp "AND" InlinedExp -> InlinedExp
+      InlinedExp "and" InlinedExp -> InlinedExp
+      InlinedExp "And" InlinedExp -> InlinedExp
+    } >
+    {left:
+      InlinedExp "OR" InlinedExp -> InlinedExp
+      InlinedExp "or" InlinedExp -> InlinedExp
+      InlinedExp "Or" InlinedExp -> InlinedExp
+    }

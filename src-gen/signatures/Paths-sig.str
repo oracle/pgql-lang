@@ -11,6 +11,7 @@ imports
 signature
   constructors
     Path                  : Node * List(EdgeNode) * Option(VarAssign) -> Path
+    SingleNode            : Option(ElemContents2) -> Path
     Node                  : ElemContents -> Node
     SimpleNode            : VARNAME -> Node
     EdgeNode              : Edge * Node -> EdgeNode
@@ -22,18 +23,12 @@ signature
     EdgeContents          : ElemContents -> EdgeContents
     PathLengthConstraints : PathConstraint -> PathLengthConstraints
     PathLength            : Option(INTEGER) * Option(INTEGER) -> PathConstraint
-    Shortest              : SHORTEST * Option(Weighted) -> PathConstraint
-    All                   : ALL * Option(WithInlinedConstraints) -> PathConstraint
-    Any                   : ANY * Option(WithInlinedConstraints) -> PathConstraint
-    AllShortest           : ALL * SHORTEST * Option(Weighted) * Option(WithInlinedConstraints) -> PathConstraint
-    AnyShortest           : ANY * SHORTEST * Option(Weighted) * Option(WithInlinedConstraints) -> PathConstraint
-    Weighted              : InlinedExp -> Weighted
-    Weighted              : InlinedExp * Option(VarAssign) -> Weighted
 
   constructors
-    ElemContents : Option(VARNAME) * Option(Labels) * Option(Ids) * Option(WithInlinedConstraints) -> ElemContents
-    Labels       : ExpressionOrAltLit -> Labels
-    Ids          : ExpressionOrAltLit -> Ids
-                 : Exp -> ExpressionOrAltLit
-                 : AltLit -> ExpressionOrAltLit
-    Constraint   : WITH * List(InlinedExp) -> WithInlinedConstraints
+    ElemContents  : Option(VARNAME) * Option(Labels) * Option(Ids) * Option(WithInlinedConstraints) -> ElemContents
+    ElemContents2 : Option(VARNAME) * Option(Labels) * Option(Ids) * WithInlinedConstraints -> ElemContents2
+    Labels        : ExpressionOrAltLit -> Labels
+    Ids           : ExpressionOrAltLit -> Ids
+                  : Exp -> ExpressionOrAltLit
+                  : AltLit -> ExpressionOrAltLit
+    Constraint    : WITH * List(InlinedExp) -> WithInlinedConstraints

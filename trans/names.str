@@ -8,7 +8,8 @@ imports
   lib/runtime/relations/-
   lib/runtime/editor/-
   src-gen/signatures/-
-  signatures
+  sig-normalized
+  sig-nabl
 
 
 signature
@@ -16,7 +17,6 @@ signature
     NablNsVar       : Namespace
     NablNsSelectVar : Namespace
     NablNsGroupVar  : Namespace
-    NablNsAnyVar    : Namespace
     NablNsSchema    : Namespace
 
 
@@ -87,7 +87,6 @@ rules
       | [ NablNsVar()
         , NablNsSelectVar()
         , NablNsGroupVar()
-        , NablNsAnyVar()
         , NablNsSchema()
         ]
       )
@@ -97,26 +96,7 @@ rules
     ; ![ NablNsVar()
        , NablNsSelectVar()
        , NablNsGroupVar()
-       , NablNsAnyVar()
        , NablNsSchema()
-       ]
-
-  nabl-scoping-site =
-    ?SubQueries(_)
-    ; nabl-scope(
-      | [ NablNsVar()
-        , NablNsSelectVar()
-        , NablNsGroupVar()
-        , NablNsAnyVar()
-        ]
-      )
-
-  nabl-get-scope =
-    ?SubQueries(_)
-    ; ![ NablNsVar()
-       , NablNsSelectVar()
-       , NablNsGroupVar()
-       , NablNsAnyVar()
        ]
 
   nabl-get-name :
@@ -486,20 +466,12 @@ rules
   nabl-scoping-site =
     ?ExistsFunc(_)
     ; nabl-scope(
-      | [ NablNsVar()
-        , NablNsSelectVar()
-        , NablNsGroupVar()
-        , NablNsAnyVar()
-        ]
+      | [NablNsVar(), NablNsSelectVar(), NablNsGroupVar()]
       )
 
   nabl-get-scope =
     ?ExistsFunc(_)
-    ; ![ NablNsVar()
-       , NablNsSelectVar()
-       , NablNsGroupVar()
-       , NablNsAnyVar()
-       ]
+    ; ![NablNsVar(), NablNsSelectVar(), NablNsGroupVar()]
 
   nabl-def-site(child-uris__, sibl-uris__, implicits__|lang__, ctx__, uniques__, uri__, states__) =
     ?m@Schema(_, _)

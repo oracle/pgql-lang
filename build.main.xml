@@ -70,9 +70,12 @@
                         sdf2imp.eclipse.load" />
 	
   <target name="spoofaximp.default.jar.str" depends="
-                        stratego.ctree,
-                        refresh,
-                        sdf2imp.eclipse.load" />
+  	                     stratego.jar.helper,
+  	                     compile-java-files,
+  	                     stratego.jar.makejar,
+  	                     java.jar,
+  	                     refresh,
+  	                     sdf2imp.eclipse.load" />
   
   <target name="spoofaximp.default.jar.java" depends="
                         compile-java-files,

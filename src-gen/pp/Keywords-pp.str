@@ -10,6 +10,9 @@ strategies
   prettyprint-SELECT =
     ![S(<is-string>)]
 
+  prettyprint-FROM =
+    ![S(<is-string>)]
+
   prettyprint-WHERE =
     ![S(<is-string>)]
 
@@ -25,14 +28,14 @@ strategies
   prettyprint-AS =
     ![S(<is-string>)]
 
-  prettyprint-ID =
-    ![S(<is-string>)]
-
-  prettyprint-LABEL =
+  prettyprint-NULL =
     ![S(<is-string>)]
 
   prettyprint-example =
     prettyprint-SELECT
+
+  prettyprint-example =
+    prettyprint-FROM
 
   prettyprint-example =
     prettyprint-WHERE
@@ -50,13 +53,16 @@ strategies
     prettyprint-AS
 
   prettyprint-example =
-    prettyprint-ID
-
-  prettyprint-example =
-    prettyprint-LABEL
+    prettyprint-NULL
 
 
 strategies
+  prettyprint-ID =
+    ![S(<is-string>)]
+
+  prettyprint-LABEL =
+    ![S(<is-string>)]
+
   prettyprint-HAS =
     ![S(<is-string>)]
 
@@ -79,6 +85,18 @@ strategies
     ![S(<is-string>)]
 
   prettyprint-LENGTH =
+    ![S(<is-string>)]
+
+  prettyprint-HEAD =
+    ![S(<is-string>)]
+
+  prettyprint-LAST =
+    ![S(<is-string>)]
+
+  prettyprint-INIT =
+    ![S(<is-string>)]
+
+  prettyprint-TAIL =
     ![S(<is-string>)]
 
   prettyprint-CONTAINS =
@@ -114,22 +132,22 @@ strategies
   prettyprint-TIMEZONE =
     ![S(<is-string>)]
 
-  prettyprint-HEAD =
-    ![S(<is-string>)]
-
-  prettyprint-LAST =
-    ![S(<is-string>)]
-
-  prettyprint-INIT =
-    ![S(<is-string>)]
-
-  prettyprint-TAIL =
-    ![S(<is-string>)]
-
   prettyprint-NOT =
     ![S(<is-string>)]
 
-  prettyprint-NULL =
+  prettyprint-EXISTS =
+    ![S(<is-string>)]
+
+  prettyprint-CASE =
+    ![S(<is-string>)]
+
+  prettyprint-WHEN =
+    ![S(<is-string>)]
+
+  prettyprint-THEN =
+    ![S(<is-string>)]
+
+  prettyprint-ELSE =
     ![S(<is-string>)]
 
   prettyprint-END =
@@ -153,20 +171,11 @@ strategies
   prettyprint-GROUP-CONCAT =
     ![S(<is-string>)]
 
-  prettyprint-EXISTS =
-    ![S(<is-string>)]
+  prettyprint-example =
+    prettyprint-ID
 
-  prettyprint-CASE =
-    ![S(<is-string>)]
-
-  prettyprint-ELSE =
-    ![S(<is-string>)]
-
-  prettyprint-WHEN =
-    ![S(<is-string>)]
-
-  prettyprint-THEN =
-    ![S(<is-string>)]
+  prettyprint-example =
+    prettyprint-LABEL
 
   prettyprint-example =
     prettyprint-HAS
@@ -191,6 +200,18 @@ strategies
 
   prettyprint-example =
     prettyprint-LENGTH
+
+  prettyprint-example =
+    prettyprint-HEAD
+
+  prettyprint-example =
+    prettyprint-LAST
+
+  prettyprint-example =
+    prettyprint-INIT
+
+  prettyprint-example =
+    prettyprint-TAIL
 
   prettyprint-example =
     prettyprint-CONTAINS
@@ -226,22 +247,22 @@ strategies
     prettyprint-TIMEZONE
 
   prettyprint-example =
-    prettyprint-HEAD
-
-  prettyprint-example =
-    prettyprint-LAST
-
-  prettyprint-example =
-    prettyprint-INIT
-
-  prettyprint-example =
-    prettyprint-TAIL
-
-  prettyprint-example =
     prettyprint-NOT
 
   prettyprint-example =
-    prettyprint-NULL
+    prettyprint-EXISTS
+
+  prettyprint-example =
+    prettyprint-CASE
+
+  prettyprint-example =
+    prettyprint-WHEN
+
+  prettyprint-example =
+    prettyprint-THEN
+
+  prettyprint-example =
+    prettyprint-ELSE
 
   prettyprint-example =
     prettyprint-END
@@ -263,21 +284,6 @@ strategies
 
   prettyprint-example =
     prettyprint-GROUP-CONCAT
-
-  prettyprint-example =
-    prettyprint-EXISTS
-
-  prettyprint-example =
-    prettyprint-CASE
-
-  prettyprint-example =
-    prettyprint-ELSE
-
-  prettyprint-example =
-    prettyprint-WHEN
-
-  prettyprint-example =
-    prettyprint-THEN
 
 
 strategies
@@ -302,9 +308,6 @@ strategies
   prettyprint-DISTINCT =
     ![S(<is-string>)]
 
-  prettyprint-REDUCED =
-    ![S(<is-string>)]
-
   prettyprint-UNGROUP =
     ![S(<is-string>)]
 
@@ -312,39 +315,6 @@ strategies
     ![S(<is-string>)]
 
   prettyprint-OFFSET =
-    ![S(<is-string>)]
-
-  prettyprint-FOR =
-    ![S(<is-string>)]
-
-  prettyprint-ALL =
-    ![S(<is-string>)]
-
-  prettyprint-ANY =
-    ![S(<is-string>)]
-
-  prettyprint-EACH =
-    ![S(<is-string>)]
-
-  prettyprint-IN =
-    ![S(<is-string>)]
-
-  prettyprint-NODE =
-    ![S(<is-string>)]
-
-  prettyprint-EDGE =
-    ![S(<is-string>)]
-
-  prettyprint-NODES =
-    ![S(<is-string>)]
-
-  prettyprint-EDGES =
-    ![S(<is-string>)]
-
-  prettyprint-LIST =
-    ![S(<is-string>)]
-
-  prettyprint-FROM =
     ![S(<is-string>)]
 
   prettyprint-example =
@@ -369,9 +339,6 @@ strategies
     prettyprint-DISTINCT
 
   prettyprint-example =
-    prettyprint-REDUCED
-
-  prettyprint-example =
     prettyprint-UNGROUP
 
   prettyprint-example =
@@ -380,39 +347,6 @@ strategies
   prettyprint-example =
     prettyprint-OFFSET
 
-  prettyprint-example =
-    prettyprint-FOR
-
-  prettyprint-example =
-    prettyprint-ALL
-
-  prettyprint-example =
-    prettyprint-ANY
-
-  prettyprint-example =
-    prettyprint-EACH
-
-  prettyprint-example =
-    prettyprint-IN
-
-  prettyprint-example =
-    prettyprint-NODE
-
-  prettyprint-example =
-    prettyprint-EDGE
-
-  prettyprint-example =
-    prettyprint-NODES
-
-  prettyprint-example =
-    prettyprint-EDGES
-
-  prettyprint-example =
-    prettyprint-LIST
-
-  prettyprint-example =
-    prettyprint-FROM
-
 
 strategies
   prettyprint-SHORTEST =
@@ -420,11 +354,3 @@ strategies
 
   prettyprint-example =
     prettyprint-SHORTEST
-
-
-strategies
-  prettyprint-PREFIX =
-    ![S(<is-string>)]
-
-  prettyprint-example =
-    prettyprint-PREFIX

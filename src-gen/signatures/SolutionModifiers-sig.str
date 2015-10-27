@@ -12,10 +12,9 @@ signature
     SolutionModifier   : Option(UngroupClause) * Option(GroupClause) * Option(HavingClause) * Option(OrderClause) * Option(LimitOffsetClauses) -> SolutionModifier
     ExpAsVars          : List(ExpAsVar) -> SelectElems
     Star               : SelectElems
-    Distinct           : DISTINCT -> DistinctOrReduced
-    Reduced            : REDUCED -> DistinctOrReduced
     UngroupClase       : UNGROUP * List(ExpAsVar) -> UngroupClause
     GroupClause        : GROUP * BY * List(ExpAsVar) -> GroupClause
+    Distinct           : DISTINCT -> Distinct
     HavingClause       : HAVING * List(Exp) -> HavingClause
     OrderClause        : ORDER * BY * List(OrderElem) -> OrderClause
                        : Exp -> OrderElem

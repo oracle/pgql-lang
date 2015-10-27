@@ -7,10 +7,9 @@ exports
     UngroupClause? GroupClause? HavingClause? OrderClause? LimitOffsetClauses? -> SolutionModifier   {cons("SolutionModifier")}
     {ExpAsVar ","}+                                                            -> SelectElems        {cons("ExpAsVars")}
     "*"                                                                        -> SelectElems        {cons("Star")}
-    DISTINCT                                                                   -> DistinctOrReduced  {cons("Distinct")}
-    REDUCED                                                                    -> DistinctOrReduced  {cons("Reduced")}
     UNGROUP {ExpAsVar ","}+                                                    -> UngroupClause      {cons("UngroupClase")}
     GROUP BY {ExpAsVar ","}+                                                   -> GroupClause        {cons("GroupClause")}
+    DISTINCT                                                                   -> Distinct           {cons("Distinct")}
     HAVING Exp+                                                                -> HavingClause       {cons("HavingClause")}
     ORDER BY {OrderElem ","}+                                                  -> OrderClause        {cons("OrderClause")}
     Exp                                                                        -> OrderElem          
@@ -26,9 +25,9 @@ exports
   context-free syntax
     CONTENTCOMPLETE -> SolutionModifier   {cons("COMPLETION-SolutionModifier")}
     CONTENTCOMPLETE -> SelectElems        {cons("COMPLETION-SelectElems")}
-    CONTENTCOMPLETE -> DistinctOrReduced  {cons("COMPLETION-DistinctOrReduced")}
     CONTENTCOMPLETE -> UngroupClause      {cons("COMPLETION-UngroupClause")}
     CONTENTCOMPLETE -> GroupClause        {cons("COMPLETION-GroupClause")}
+    CONTENTCOMPLETE -> Distinct           {cons("COMPLETION-Distinct")}
     CONTENTCOMPLETE -> HavingClause       {cons("COMPLETION-HavingClause")}
     CONTENTCOMPLETE -> OrderClause        {cons("COMPLETION-OrderClause")}
     CONTENTCOMPLETE -> OrderElem          {cons("COMPLETION-OrderElem")}

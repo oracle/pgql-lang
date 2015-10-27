@@ -9,7 +9,7 @@ exports
   context-free syntax
     Query                                                 -> Start                  
     SelectClause FromClause? MatchClause SolutionModifier -> Query                  {cons("Query")}
-    SELECT DistinctOrReduced? SelectElems                 -> SelectClause           {cons("SelectClause")}
+    SELECT Distinct? SelectElems                          -> SelectClause           {cons("SelectClause")}
     FROM GRAPHNAME                                        -> FromClause             {cons("FromClause")}
     WHERE {MatchElem ","}*                                -> MatchClause            {cons("GraphPattern1")}
     GroupGraphPattern                                     -> MatchElem              

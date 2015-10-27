@@ -1,3 +1,4 @@
+
 module src-gen/completions/Paths-esv
 
 imports
@@ -10,6 +11,8 @@ imports
 completions
   completion template Path : "NodeEdgeNode" =
     <Node:Node> <EdgeNode:EdgeNode> <:VarAssign>  
+  completion template Path : "()" =
+    "(" <:ElemContents2> ")"  
   completion template Node : "(ElemContents)" =
     "(" <ElemContents:ElemContents> ")"  
   completion template EdgeNode : " Edge Node" =
@@ -19,9 +22,9 @@ completions
   completion template Edge : "<--" =
     "<-" <:PathLengthConstraints> <:EdgeContents> "-"  
   completion template Edge : "->" =
-    "->"                                 
+    "->"           
   completion template Edge : "<-" =
-    "<-"                                 
+    "<-"           
   completion template Edge : "--" =
     "-" <:EdgeContents> <:PathLengthConstraints> "-"  
   completion template EdgeContents : "[ElemContents]" =
@@ -30,24 +33,12 @@ completions
     "{" <PathConstraint:PathConstraint> "}"  
   completion template PathConstraint : ".." =
     <:INTEGER> ".." <:INTEGER>  
-  completion template PathConstraint : "SHORTEST " =
-    <SHORTEST:SHORTEST> " " <:Weighted>  
-  completion template PathConstraint : "ALL" =
-    <ALL:ALL> <:WithInlinedConstraints>  
-  completion template PathConstraint : "ANY" =
-    <ANY:ANY> <:WithInlinedConstraints>  
-  completion template PathConstraint : "ALL SHORTEST" =
-    <ALL:ALL> " " <SHORTEST:SHORTEST> <:Weighted> <:WithInlinedConstraints>  
-  completion template PathConstraint : "ANY SHORTEST" =
-    <ANY:ANY> " " <SHORTEST:SHORTEST> <:Weighted> <:WithInlinedConstraints>  
-  completion template Weighted : " USING InlinedExp" =
-    " USING " <InlinedExp:InlinedExp>  
-  completion template Weighted : "InlinedExp" =
-    <InlinedExp:InlinedExp> <:VarAssign>  
 
 completions
   completion template ElemContents : "" =
     <:VARNAME> <:Labels> <:Ids> <:WithInlinedConstraints>  
+  completion template ElemContents2 : "WithInlinedConstraints" =
+    <:VARNAME> <:Labels> <:Ids> <WithInlinedConstraints:WithInlinedConstraints>  
   completion template Labels : ":ExpressionOrAltLit" =
     ":" <ExpressionOrAltLit:ExpressionOrAltLit>  
   completion template Ids : "@ExpressionOrAltLit" =

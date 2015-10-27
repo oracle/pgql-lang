@@ -104,7 +104,7 @@ strategies
                                         )
                                       ]
     with t1__' := <pp-one-Z(prettyprint-SELECT)> t1__
-    with t2__' := <pp-option(pp-one-Z(prettyprint-DistinctOrReduced))> t2__
+    with t2__' := <pp-option(pp-one-Z(prettyprint-Distinct))> t2__
     with t3__' := <pp-one-Z(prettyprint-SelectElems)> t3__
 
   is-SelectClause =

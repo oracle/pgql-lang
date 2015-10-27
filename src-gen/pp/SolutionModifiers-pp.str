@@ -28,13 +28,13 @@ strategies
     prettyprint-SelectElems
 
   prettyprint-example =
-    prettyprint-DistinctOrReduced
-
-  prettyprint-example =
     prettyprint-UngroupClause
 
   prettyprint-example =
     prettyprint-GroupClause
+
+  prettyprint-example =
+    prettyprint-Distinct
 
   prettyprint-example =
     prettyprint-HavingClause
@@ -106,28 +106,6 @@ strategies
   is-SelectElems =
     ?Star()
 
-  prettyprint-DistinctOrReduced :
-    Distinct(t1__) -> [ H(
-                          [SOpt(HS(), "0")]
-                        , [t1__', S(" ")]
-                        )
-                      ]
-    with t1__' := <pp-one-Z(prettyprint-DISTINCT)> t1__
-
-  is-DistinctOrReduced =
-    ?Distinct(_)
-
-  prettyprint-DistinctOrReduced :
-    Reduced(t1__) -> [ H(
-                         [SOpt(HS(), "0")]
-                       , [t1__', S(" ")]
-                       )
-                     ]
-    with t1__' := <pp-one-Z(prettyprint-REDUCED)> t1__
-
-  is-DistinctOrReduced =
-    ?Reduced(_)
-
   prettyprint-UngroupClause :
     UngroupClase(t1__, t2__) -> [ H(
                                     [SOpt(HS(), "0")]
@@ -157,6 +135,17 @@ strategies
 
   is-GroupClause =
     ?GroupClause(_, _, _)
+
+  prettyprint-Distinct :
+    Distinct(t1__) -> [ H(
+                          [SOpt(HS(), "0")]
+                        , [t1__', S(" ")]
+                        )
+                      ]
+    with t1__' := <pp-one-Z(prettyprint-DISTINCT)> t1__
+
+  is-Distinct =
+    ?Distinct(_)
 
   prettyprint-HavingClause :
     HavingClause(t1__, t2__) -> [ H(
@@ -307,13 +296,13 @@ strategies
   is-SelectElems =
     fail
 
-  is-DistinctOrReduced =
-    fail
-
   is-UngroupClause =
     fail
 
   is-GroupClause =
+    fail
+
+  is-Distinct =
     fail
 
   is-HavingClause =
