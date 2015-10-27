@@ -3,13 +3,20 @@ module group-by
 language PGQL
 
 test Basic GROUP BY 1 [[
-SELECT nName, n.name, AVG(n.age)
+SELECT n.age, COUNT(*), AVG(n.salary), MIN(n.salary), MAX(n.salary), SUM(n.salary)
 WHERE
   n
-GROUP BY n.name AS nName
+GROUP BY n.age
 ]]
 
 test Basic GROUP BY 2 [[
+SELECT n.age, COUNT(*), AVG(n.salary), MIN(n.salary), MAX(n.salary), SUM(n.salary)
+WHERE
+  n
+GROUP BY n.age
+]]
+
+test Basic GROUP BY 3 [[
 SELECT x, x.age
 WHERE
   x
