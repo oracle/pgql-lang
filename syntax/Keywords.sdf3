@@ -3,6 +3,8 @@ module Keywords
 /*
  * In the next Spoofax version, there will be support for case-insensitive keywords again,
  * so specifying them ourselves (like we do here) won't be necessary anymore.
+ *
+ * Not all keywords are used a.t.m.
  */
 
 lexical syntax
@@ -66,9 +68,6 @@ lexical syntax  // BuiltInCall
   AVG            = [Aa][Vv][Gg]
   GROUP-CONCAT   = [Gg][Rr][Oo][Uu][Pp][\_][Cc][Oo][Nn][Cc][Aa][Tt]
 
-  // EXISTS
-  EXISTS         = [Ee][Xx][Ii][Ss][Tt][Ss]
-
 lexical syntax // Solution modifiers
 
   GROUP          = [Gg][Rr][Oo][Uu][Pp]
@@ -78,7 +77,6 @@ lexical syntax // Solution modifiers
   BY             = [Bb][Yy]
   ORDER          = [Oo][Rr][Dd][Ee][Rr]
   DISTINCT       = [Dd][Ii][Ss][Tt][Ii][Nn][Cc][Tt]
-  REDUCED        = [Rr][Ee][Dd][Uu][Cc][Ee][Dd]
   UNGROUP        = [Uu][Nn][Gg][Rr][Oo][Uu][Pp]
   LIMIT          = [Ll][Ii][Mm][Ii][Tt]
   OFFSET         = [Oo][Ff][Ff][Ss][Ee][Tt]
