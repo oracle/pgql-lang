@@ -12,6 +12,7 @@ exports
     VARNAME         -> Var        
     PROPNAME        -> Prop       
     STRING          -> Prop       
+    "."             -> Dot        {cons("Dot")}
 
   context-free syntax
     CONTENTCOMPLETE -> VarDef     {cons("COMPLETION-VarDef")}
@@ -22,6 +23,7 @@ exports
     CONTENTCOMPLETE -> PropRef    {cons("COMPLETION-PropRef")}
     CONTENTCOMPLETE -> Var        {cons("COMPLETION-Var")}
     CONTENTCOMPLETE -> Prop       {cons("COMPLETION-Prop")}
+    CONTENTCOMPLETE -> Dot        {cons("COMPLETION-Dot")}
 
   lexical syntax
     [a-zA-Z] [a-zA-Z0-9\_]* -> GRAPHNAME 

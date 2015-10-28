@@ -26,122 +26,162 @@ strategies
   prettyprint-example =
     prettyprint-InlinedCall
 
+  prettyprint-example =
+    prettyprint-Obj
+
   prettyprint-InlinedCall :
-    Label(t1__) -> [ H(
-                       [SOpt(HS(), "0")]
-                     , [t1__', S("()")]
-                     )
-                   ]
-    with t1__' := <pp-one-Z(prettyprint-LABEL)> t1__
+    Label(t1__, t2__) -> [ H(
+                             [SOpt(HS(), "0")]
+                           , [t1__', t2__', S("()")]
+                           )
+                         ]
+    with t1__' := <pp-one-Z(prettyprint-Obj)> t1__
+    with t2__' := <pp-one-Z(prettyprint-LABEL)> t2__
 
   is-InlinedCall =
-    ?Label(_)
+    ?Label(_, _)
 
   prettyprint-InlinedCall :
-    Id(t1__) -> [ H(
-                    [SOpt(HS(), "0")]
-                  , [t1__', S("()")]
-                  )
-                ]
-    with t1__' := <pp-one-Z(prettyprint-ID)> t1__
-
-  is-InlinedCall =
-    ?Id(_)
-
-  prettyprint-InlinedCall :
-    Has(t1__, t2__) -> [ H(
-                           [SOpt(HS(), "0")]
-                         , [ t1__'
-                           , S("(")
-                           , t2__'
-                           , S(")")
-                           ]
-                         )
-                       ]
-    with t1__' := <pp-one-Z(prettyprint-HAS)> t1__
-    with t2__' := <pp-H-list(prettyprint-Prop|", ")> t2__
-
-  is-InlinedCall =
-    ?Has(_, _)
-
-  prettyprint-InlinedCall :
-    InDegree(t1__) -> [ H(
+    Id(t1__, t2__) -> [ H(
                           [SOpt(HS(), "0")]
-                        , [t1__', S("()")]
+                        , [t1__', t2__', S("()")]
                         )
                       ]
-    with t1__' := <pp-one-Z(prettyprint-INDEGREE)> t1__
+    with t1__' := <pp-one-Z(prettyprint-Obj)> t1__
+    with t2__' := <pp-one-Z(prettyprint-ID)> t2__
 
   is-InlinedCall =
-    ?InDegree(_)
+    ?Id(_, _)
 
   prettyprint-InlinedCall :
-    OutDegree(t1__) -> [ H(
+    Has(t1__, t2__, t3__) -> [ H(
+                                 [SOpt(HS(), "0")]
+                               , [ t1__'
+                                 , t2__'
+                                 , S("(")
+                                 , t3__'
+                                 , S(")")
+                                 ]
+                               )
+                             ]
+    with t1__' := <pp-one-Z(prettyprint-Obj)> t1__
+    with t2__' := <pp-one-Z(prettyprint-HAS)> t2__
+    with t3__' := <pp-H-list(prettyprint-Prop|", ")> t3__
+
+  is-InlinedCall =
+    ?Has(_, _, _)
+
+  prettyprint-InlinedCall :
+    InDegree(t1__, t2__) -> [ H(
+                                [SOpt(HS(), "0")]
+                              , [t1__', t2__', S("()")]
+                              )
+                            ]
+    with t1__' := <pp-one-Z(prettyprint-Obj)> t1__
+    with t2__' := <pp-one-Z(prettyprint-INDEGREE)> t2__
+
+  is-InlinedCall =
+    ?InDegree(_, _)
+
+  prettyprint-InlinedCall :
+    OutDegree(t1__, t2__) -> [ H(
+                                 [SOpt(HS(), "0")]
+                               , [t1__', t2__', S("()")]
+                               )
+                             ]
+    with t1__' := <pp-one-Z(prettyprint-Obj)> t1__
+    with t2__' := <pp-one-Z(prettyprint-OUTDEGREE)> t2__
+
+  is-InlinedCall =
+    ?OutDegree(_, _)
+
+  prettyprint-InlinedCall :
+    Src(t1__, t2__) -> [ H(
                            [SOpt(HS(), "0")]
-                         , [t1__', S("()")]
+                         , [t1__', t2__', S("()")]
                          )
                        ]
-    with t1__' := <pp-one-Z(prettyprint-OUTDEGREE)> t1__
+    with t1__' := <pp-one-Z(prettyprint-Obj)> t1__
+    with t2__' := <pp-one-Z(prettyprint-SRC)> t2__
 
   is-InlinedCall =
-    ?OutDegree(_)
+    ?Src(_, _)
 
   prettyprint-InlinedCall :
-    Src(t1__) -> [ H(
+    Dst(t1__, t2__) -> [ H(
+                           [SOpt(HS(), "0")]
+                         , [t1__', t2__', S("()")]
+                         )
+                       ]
+    with t1__' := <pp-one-Z(prettyprint-Obj)> t1__
+    with t2__' := <pp-one-Z(prettyprint-DST)> t2__
+
+  is-InlinedCall =
+    ?Dst(_, _)
+
+  prettyprint-InlinedCall :
+    Nodes(t1__, t2__) -> [ H(
+                             [SOpt(HS(), "0")]
+                           , [t1__', t2__', S("()")]
+                           )
+                         ]
+    with t1__' := <pp-one-Z(prettyprint-Obj)> t1__
+    with t2__' := <pp-one-Z(prettyprint-NODES)> t2__
+
+  is-InlinedCall =
+    ?Nodes(_, _)
+
+  prettyprint-InlinedCall :
+    Edges(t1__, t2__) -> [ H(
+                             [SOpt(HS(), "0")]
+                           , [t1__', t2__', S("()")]
+                           )
+                         ]
+    with t1__' := <pp-one-Z(prettyprint-Obj)> t1__
+    with t2__' := <pp-one-Z(prettyprint-EDGES)> t2__
+
+  is-InlinedCall =
+    ?Edges(_, _)
+
+  prettyprint-InlinedCall :
+    Length(t1__, t2__) -> [ H(
+                              [SOpt(HS(), "0")]
+                            , [t1__', t2__', S("()")]
+                            )
+                          ]
+    with t1__' := <pp-one-Z(prettyprint-Obj)> t1__
+    with t2__' := <pp-one-Z(prettyprint-LENGTH)> t2__
+
+  is-InlinedCall =
+    ?Length(_, _)
+
+  prettyprint-Obj :
+    Obj(t1__, t2__) -> [ H(
+                           [SOpt(HS(), "0")]
+                         , [t1__', t2__']
+                         )
+                       ]
+    with t1__' := <pp-one-Z(prettyprint-VarRef)> t1__
+    with t2__' := <pp-one-Z(prettyprint-Dot)> t2__
+
+  is-Obj =
+    ?Obj(_, _)
+
+  prettyprint-Obj :
+    Obj(t1__) -> [ H(
                      [SOpt(HS(), "0")]
-                   , [t1__', S("()")]
+                   , [t1__']
                    )
                  ]
-    with t1__' := <pp-one-Z(prettyprint-SRC)> t1__
+    with t1__' := <pp-option(pp-one-Z(prettyprint-Dot))> t1__
+
+  is-Obj =
+    ?Obj(_)
 
   is-InlinedCall =
-    ?Src(_)
+    fail
 
-  prettyprint-InlinedCall :
-    Dst(t1__) -> [ H(
-                     [SOpt(HS(), "0")]
-                   , [t1__', S("()")]
-                   )
-                 ]
-    with t1__' := <pp-one-Z(prettyprint-DST)> t1__
-
-  is-InlinedCall =
-    ?Dst(_)
-
-  prettyprint-InlinedCall :
-    Nodes(t1__) -> [ H(
-                       [SOpt(HS(), "0")]
-                     , [t1__', S("()")]
-                     )
-                   ]
-    with t1__' := <pp-one-Z(prettyprint-NODES)> t1__
-
-  is-InlinedCall =
-    ?Nodes(_)
-
-  prettyprint-InlinedCall :
-    Edges(t1__) -> [ H(
-                       [SOpt(HS(), "0")]
-                     , [t1__', S("()")]
-                     )
-                   ]
-    with t1__' := <pp-one-Z(prettyprint-EDGES)> t1__
-
-  is-InlinedCall =
-    ?Edges(_)
-
-  prettyprint-InlinedCall :
-    Length(t1__) -> [ H(
-                        [SOpt(HS(), "0")]
-                      , [t1__', S("()")]
-                      )
-                    ]
-    with t1__' := <pp-one-Z(prettyprint-LENGTH)> t1__
-
-  is-InlinedCall =
-    ?Length(_)
-
-  is-InlinedCall =
+  is-Obj =
     fail
 
 

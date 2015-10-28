@@ -40,6 +40,7 @@ signature
                 : Literal -> InlinedExp
                 : InlinedCall -> InlinedExp
     SelfPropRef : Prop -> InlinedExp
+    SelfPropRef : Dot * Prop -> InlinedExp
     Not1        : NOT * InlinedExp -> InlinedExp
     Not2        : InlinedExp -> InlinedExp
     UMin        : InlinedExp -> InlinedExp

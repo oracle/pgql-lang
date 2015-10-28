@@ -39,6 +39,7 @@ exports
     Literal                     -> InlinedExp {prefer}
     InlinedCall                 -> InlinedExp 
     Prop                        -> InlinedExp {cons("SelfPropRef")}
+    Dot Prop                    -> InlinedExp {cons("SelfPropRef")}
     NOT InlinedExp              -> InlinedExp {cons("Not1"), right}
     "!" InlinedExp              -> InlinedExp {cons("Not2"), right}
     "-" InlinedExp              -> InlinedExp {cons("UMin"), right}

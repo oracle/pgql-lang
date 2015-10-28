@@ -9,26 +9,28 @@ imports
   src-gen/completions/Literals-esv
 
 completions
-  completion template InlinedCall : "LABEL()" =
-    <LABEL:LABEL> "()"  
-  completion template InlinedCall : "ID()" =
-    <ID:ID> "()"  
-  completion template InlinedCall : "HAS()" =
-    <HAS:HAS> "(" <:Prop> ")"  
-  completion template InlinedCall : "INDEGREE()" =
-    <INDEGREE:INDEGREE> "()"  
-  completion template InlinedCall : "OUTDEGREE()" =
-    <OUTDEGREE:OUTDEGREE> "()"  
-  completion template InlinedCall : "SRC()" =
-    <SRC:SRC> "()"  
-  completion template InlinedCall : "DST()" =
-    <DST:DST> "()"  
-  completion template InlinedCall : "NODES()" =
-    <NODES:NODES> "()"  
-  completion template InlinedCall : "EDGES()" =
-    <EDGES:EDGES> "()"  
-  completion template InlinedCall : "LENGTH()" =
-    <LENGTH:LENGTH> "()"  
+  completion template InlinedCall : "ObjLABEL()" =
+    <Obj:Obj> <LABEL:LABEL> "()"  
+  completion template InlinedCall : "ObjID()" =
+    <Obj:Obj> <ID:ID> "()"  
+  completion template InlinedCall : "ObjHAS()" =
+    <Obj:Obj> <HAS:HAS> "(" <:Prop> ")"  
+  completion template InlinedCall : "ObjINDEGREE()" =
+    <Obj:Obj> <INDEGREE:INDEGREE> "()"  
+  completion template InlinedCall : "ObjOUTDEGREE()" =
+    <Obj:Obj> <OUTDEGREE:OUTDEGREE> "()"  
+  completion template InlinedCall : "ObjSRC()" =
+    <Obj:Obj> <SRC:SRC> "()"  
+  completion template InlinedCall : "ObjDST()" =
+    <Obj:Obj> <DST:DST> "()"  
+  completion template InlinedCall : "ObjNODES()" =
+    <Obj:Obj> <NODES:NODES> "()"  
+  completion template InlinedCall : "ObjEDGES()" =
+    <Obj:Obj> <EDGES:EDGES> "()"  
+  completion template InlinedCall : "ObjLENGTH()" =
+    <Obj:Obj> <LENGTH:LENGTH> "()"  
+  completion template Obj : "VarRefDot" =
+    <VarRef:VarRef> <Dot:Dot>  
 
 completions
   completion template FunctionCall : "Exp.LABEL()" =

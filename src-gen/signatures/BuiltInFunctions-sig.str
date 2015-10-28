@@ -10,16 +10,18 @@ imports
 
 signature
   constructors
-    Label     : LABEL -> InlinedCall
-    Id        : ID -> InlinedCall
-    Has       : HAS * List(Prop) -> InlinedCall
-    InDegree  : INDEGREE -> InlinedCall
-    OutDegree : OUTDEGREE -> InlinedCall
-    Src       : SRC -> InlinedCall
-    Dst       : DST -> InlinedCall
-    Nodes     : NODES -> InlinedCall
-    Edges     : EDGES -> InlinedCall
-    Length    : LENGTH -> InlinedCall
+    Label     : Obj * LABEL -> InlinedCall
+    Id        : Obj * ID -> InlinedCall
+    Has       : Obj * HAS * List(Prop) -> InlinedCall
+    InDegree  : Obj * INDEGREE -> InlinedCall
+    OutDegree : Obj * OUTDEGREE -> InlinedCall
+    Src       : Obj * SRC -> InlinedCall
+    Dst       : Obj * DST -> InlinedCall
+    Nodes     : Obj * NODES -> InlinedCall
+    Edges     : Obj * EDGES -> InlinedCall
+    Length    : Obj * LENGTH -> InlinedCall
+    Obj       : VarRef * Dot -> Obj
+    Obj       : Option(Dot) -> Obj
 
   constructors
     Label : Exp * LABEL -> FunctionCall

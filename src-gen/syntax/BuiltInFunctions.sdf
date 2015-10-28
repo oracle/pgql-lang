@@ -3,19 +3,22 @@ imports Keywords Names Expressions PGQL Literals
 
 exports
   context-free syntax
-    LABEL "()"              -> InlinedCall {cons("Label")}
-    ID "()"                 -> InlinedCall {cons("Id")}
-    HAS "(" {Prop ","}* ")" -> InlinedCall {cons("Has")}
-    INDEGREE "()"           -> InlinedCall {cons("InDegree")}
-    OUTDEGREE "()"          -> InlinedCall {cons("OutDegree")}
-    SRC "()"                -> InlinedCall {cons("Src")}
-    DST "()"                -> InlinedCall {cons("Dst")}
-    NODES "()"              -> InlinedCall {cons("Nodes")}
-    EDGES "()"              -> InlinedCall {cons("Edges")}
-    LENGTH "()"             -> InlinedCall {cons("Length")}
+    Obj LABEL "()"              -> InlinedCall {cons("Label")}
+    Obj ID "()"                 -> InlinedCall {cons("Id")}
+    Obj HAS "(" {Prop ","}* ")" -> InlinedCall {cons("Has")}
+    Obj INDEGREE "()"           -> InlinedCall {cons("InDegree")}
+    Obj OUTDEGREE "()"          -> InlinedCall {cons("OutDegree")}
+    Obj SRC "()"                -> InlinedCall {cons("Src")}
+    Obj DST "()"                -> InlinedCall {cons("Dst")}
+    Obj NODES "()"              -> InlinedCall {cons("Nodes")}
+    Obj EDGES "()"              -> InlinedCall {cons("Edges")}
+    Obj LENGTH "()"             -> InlinedCall {cons("Length")}
+    VarRef Dot                  -> Obj         {cons("Obj")}
+    Dot?                        -> Obj         {cons("Obj")}
 
   context-free syntax
     CONTENTCOMPLETE -> InlinedCall {cons("COMPLETION-InlinedCall")}
+    CONTENTCOMPLETE -> Obj         {cons("COMPLETION-Obj")}
 
   context-free syntax
     Exp "." LABEL "()"              -> FunctionCall {cons("Label")}
@@ -180,18 +183,18 @@ exports
       "!" InlinedExp -> InlinedExp
     } >
     {left:
-      LABEL "()" -> InlinedCall
-      ID "()" -> InlinedCall
-      HAS "(" {Prop ","}* ")" -> InlinedCall
-      INDEGREE "()" -> InlinedCall
-      OUTDEGREE "()" -> InlinedCall
-      SRC "()" -> InlinedCall
-      DST "()" -> InlinedCall
+      Obj LABEL "()" -> InlinedCall
+      Obj ID "()" -> InlinedCall
+      Obj HAS "(" {Prop ","}* ")" -> InlinedCall
+      Obj INDEGREE "()" -> InlinedCall
+      Obj OUTDEGREE "()" -> InlinedCall
+      Obj SRC "()" -> InlinedCall
+      Obj DST "()" -> InlinedCall
     } >
     {left:
-      NODES "()" -> InlinedCall
-      EDGES "()" -> InlinedCall
-      LENGTH "()" -> InlinedCall
+      Obj NODES "()" -> InlinedCall
+      Obj EDGES "()" -> InlinedCall
+      Obj LENGTH "()" -> InlinedCall
     } >
     {left:
       InlinedExp "*" InlinedExp -> InlinedExp

@@ -55,6 +55,8 @@ completions
 completions
   completion template InlinedExp : "(InlinedExp)" =
     "(" <InlinedExp:InlinedExp> ")"  
+  completion template InlinedExp : "DotProp" =
+    <Dot:Dot> <Prop:Prop>  
   completion template InlinedExp : "NOT InlinedExp" =
     <NOT:NOT> " " <InlinedExp:InlinedExp>  
   completion template InlinedExp : "!InlinedExp" =

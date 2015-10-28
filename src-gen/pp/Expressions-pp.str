@@ -379,6 +379,18 @@ strategies
     ?SelfPropRef(_)
 
   prettyprint-InlinedExp :
+    SelfPropRef(t1__, t2__) -> [ H(
+                                   [SOpt(HS(), "0")]
+                                 , [t1__', t2__']
+                                 )
+                               ]
+    with t1__' := <pp-one-Z(prettyprint-Dot)> t1__
+    with t2__' := <pp-one-Z(prettyprint-Prop)> t2__
+
+  is-InlinedExp =
+    ?SelfPropRef(_, _)
+
+  prettyprint-InlinedExp :
     Not1(t1__, t2__) -> [ H(
                             [SOpt(HS(), "0")]
                           , [t1__', S(" "), t2__']

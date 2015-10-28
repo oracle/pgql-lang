@@ -51,7 +51,7 @@
 	<import file="build.generated.xml" />
 
 	<!-- Main target -->
-	<target depends="spoofaximp.default.jar" name="all" />
+	<target depends="spoofaximp.default.jar.str" name="all" />
 	<target depends="generate-sources-java" name="generate-sources" />
 	<target depends="package-java" name="package" />
 	
@@ -70,11 +70,12 @@
                         sdf2imp.eclipse.load" />
 	
   <target name="spoofaximp.default.jar.str" depends="
-  	                     stratego.jar.helper,
-  	                     compile-java-files,
-  	                     stratego.jar.makejar,
-  	                     java.jar,
-  	                     refresh,
+                         stratego.aster,
+                         stratego.jar.helper,
+                         compile-java-files,
+                         stratego.jar.makejar,
+                         java.jar,
+                         refresh,
   	                     sdf2imp.eclipse.load" />
   
   <target name="spoofaximp.default.jar.java" depends="

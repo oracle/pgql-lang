@@ -12,3 +12,5 @@ completions
     <AS:AS> " " <VarDef:VarDef>  
   completion template PropRef : "VarRef.Prop" =
     <VarRef:VarRef> "." <Prop:Prop>  
+  completion template Dot : "." =
+    "."  

@@ -43,6 +43,9 @@ strategies
   prettyprint-example =
     prettyprint-Prop
 
+  prettyprint-example =
+    prettyprint-Dot
+
   prettyprint-VarDef :
     VarDef(t1__) -> [ H(
                         [SOpt(HS(), "0")]
@@ -139,6 +142,16 @@ strategies
     where not(is-Prop)
     where t1__' := <pp-one-Z(prettyprint-STRING)> t1__
 
+  prettyprint-Dot :
+    Dot() -> [ H(
+                 [SOpt(HS(), "0")]
+               , [S(".")]
+               )
+             ]
+
+  is-Dot =
+    ?Dot()
+
   is-VarDef =
     fail
 
@@ -161,6 +174,9 @@ strategies
     fail
 
   is-Prop =
+    fail
+
+  is-Dot =
     fail
 
 

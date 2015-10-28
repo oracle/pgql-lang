@@ -17,6 +17,7 @@ signature
                : VARNAME -> Var
                : PROPNAME -> Prop
                : STRING -> Prop
+    Dot        : Dot
 
   constructors
      : String -> GRAPHNAME
