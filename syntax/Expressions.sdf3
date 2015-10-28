@@ -48,6 +48,7 @@ context-free syntax
   InlinedExp = InlinedCall
   
   InlinedExp.SelfPropRef = <<Prop>>
+  InlinedExp.SelfPropRef = <<Dot><Prop>>
   
   InlinedExp.Not1 = <<NOT> <InlinedExp>> {right}
   InlinedExp.Not2 = <!<InlinedExp>> {right}

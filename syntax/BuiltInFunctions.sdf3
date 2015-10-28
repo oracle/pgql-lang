@@ -10,17 +10,20 @@ imports
 
 context-free syntax // inlined function calls
 
-  InlinedCall.Label = <<LABEL>()>
-  InlinedCall.Id = <<ID>()>
-  InlinedCall.Has = <<HAS>(<{Prop ", "}*>)>
-  InlinedCall.InDegree  = <<INDEGREE>()>
-  InlinedCall.OutDegree = <<OUTDEGREE>()>
-  InlinedCall.Src = <<SRC>()>
-  InlinedCall.Dst = <<DST>()>
+  InlinedCall.Label = <<Obj><LABEL>()>
+  InlinedCall.Id = <<Obj><ID>()>
+  InlinedCall.Has = <<Obj><HAS>(<{Prop ", "}*>)>
+  InlinedCall.InDegree  = <<Obj><INDEGREE>()>
+  InlinedCall.OutDegree = <<Obj><OUTDEGREE>()>
+  InlinedCall.Src = <<Obj><SRC>()>
+  InlinedCall.Dst = <<Obj><DST>()>
   
-  InlinedCall.Nodes  = <<NODES>()>
-  InlinedCall.Edges  = <<EDGES>()>
-  InlinedCall.Length = <<LENGTH>()>
+  InlinedCall.Nodes  = <<Obj><NODES>()>
+  InlinedCall.Edges  = <<Obj><EDGES>()>
+  InlinedCall.Length = <<Obj><LENGTH>()>
+
+  Obj.Obj = <<VarRef><Dot>>
+  Obj.Obj = <<Dot?>>
 
 context-free syntax // nodes/edges
 

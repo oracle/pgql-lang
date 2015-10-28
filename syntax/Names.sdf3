@@ -19,6 +19,7 @@ context-free syntax
   
   Prop = <<PROPNAME>>
   Prop = <<STRING>>
+  Dot.Dot = <.>
   
 lexical syntax
   

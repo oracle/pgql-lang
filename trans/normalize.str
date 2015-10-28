@@ -77,8 +77,9 @@ rules
                                   ?InDegree(); !InDegree(VarRef(varName)) +
                                   ?OutDegree(); !OutDegree(VarRef(varName)) +
                                   ?Src(); !Src(VarRef(varName)) +
-                                  ?Dst(); !Dst(VarRef(varName))
-  norm-propRef-helper(|varName) = ?SelfPropRef(propName); !PropRef(VarRef(varName), propName)
+                                  ?Dst(); !Dst(VarRef(varName)) +
+                                  ?Obj(dot); !VarRef(varName) + ?Obj(varRef, dot); !varRef
+  norm-propRef-helper(|varName) = (?SelfPropRef(propName) + ?SelfPropRef(dot, propName)); !PropRef(VarRef(varName), propName)
 
 
 rules
@@ -251,19 +252,12 @@ signature constructors
 	
   Vars  : a -> Vars
   Label : Exp
+  Id : Exp -> Id
 	
 rules
 
-  norm-case-insensitive: Label(a) -> Label()
-  norm-case-insensitive: Id(a) -> Id()
-  norm-case-insensitive: Has(_, a) -> Has(a)
-  norm-case-insensitive: InDegree(_) -> InDegree()
-  norm-case-insensitive: OutDegree(_) -> OutDegree()
-  norm-case-insensitive: Src(_) -> Src()
-  norm-case-insensitive: Dst(_) -> Dst()
-  norm-case-insensitive: Nodes(_) -> Nodes()
-  norm-case-insensitive: Edges(_) -> Edges()
-  norm-case-insensitive: Length(_) -> Length()
+  norm-case-insensitive: Label(a, _) -> Label(a)
+  norm-case-insensitive: Id(a, _) -> Id(a)
   norm-case-insensitive: Has(a, _, b) -> Has(a, b)
   norm-case-insensitive: InDegree(a, _) -> InDegree(a)
   norm-case-insensitive: OutDegree(a, _) -> OutDegree(a)
