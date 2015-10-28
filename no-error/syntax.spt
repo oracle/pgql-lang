@@ -46,9 +46,25 @@ WHERE
 test Properties [[
 SELECT *
 WHERE
-  (n1 WITH age = 25) ->
-  (n2 WITH n2.'age' = 25) ->
-  (n3 WITH n2."age" = 25)
+  (n WITH age = 25),
+  (n WITH .age = 25),
+  (n WITH .'age' = 25),
+  (n WITH ."age" = 25),
+  (n WITH n.age = 25),
+  (n WITH n.'age' = 25),
+  (n WITH n."age" = 25),
+  n.age = 25,
+  n.'age' = 25,
+  n."age" = 25
+]]
+
+test Built-in function calls [[
+SELECT n.inDegree()
+WHERE
+  (n WITH inDegree() > 3),
+  (n WITH .inDegree() > 3),
+  (n WITH inDegree() > 3),
+  n.inDegree() > 3
 ]]
 
 test Strings [[

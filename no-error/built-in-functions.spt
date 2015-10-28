@@ -1,0 +1,19 @@
+module group-by
+
+language PGQL
+
+test id() [[
+SELECT x.id() WHERE (x WITH id() < 3)
+]]
+
+test inDegree() [[
+SELECT x.inDegree() WHERE (x WITH inDegree() > 3)
+]]
+
+test outDegree() [[
+SELECT x.outDegree() WHERE (x WITH outDegree() > 3)
+]]
+
+test has(prop1, prop2, ...) [[
+SELECT x.name, x.age WHERE (x WITH has(name, age))
+]]
