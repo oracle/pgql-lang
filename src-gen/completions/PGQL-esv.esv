@@ -17,8 +17,8 @@ completions
     <SELECT:SELECT> " " <:Distinct> <SelectElems:SelectElems>      
   completion template FromClause : "FROM GRAPHNAME" =
     <FROM:FROM> " " <GRAPHNAME:GRAPHNAME>                                
-  completion template MatchClause : "WHERE " =
-    <WHERE:WHERE> "\n\t" (cursor) (blank)                                       
+  completion template MatchClause : "WHERE MatchElem" =
+    <WHERE:WHERE> "\n\t" <MatchElem:MatchElem> (blank)                 
   completion template MatchElem : "OPTIONAL GroupGraphPattern" =
     <OPTIONAL:OPTIONAL> " " <GroupGraphPattern:GroupGraphPattern>  
   completion template GroupGraphPattern : "{ }" =

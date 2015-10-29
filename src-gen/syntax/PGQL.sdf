@@ -11,7 +11,7 @@ exports
     SelectClause FromClause? MatchClause SolutionModifier -> Query                  {cons("Query")}
     SELECT Distinct? SelectElems                          -> SelectClause           {cons("SelectClause")}
     FROM GRAPHNAME                                        -> FromClause             {cons("FromClause")}
-    WHERE {MatchElem ","}*                                -> MatchClause            {cons("GraphPattern1")}
+    WHERE {MatchElem ","}+                                -> MatchClause            {cons("GraphPattern1")}
     GroupGraphPattern                                     -> MatchElem              
     Path                                                  -> MatchElem              
     Exp                                                   -> MatchElem              {cons("Constraint"), avoid}
