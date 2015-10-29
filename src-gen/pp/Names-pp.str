@@ -190,6 +190,9 @@ strategies
   prettyprint-PROPNAME =
     ![S(<is-string>)]
 
+  prettyprint-NAME =
+    ![S(<is-string>)]
+
   prettyprint-example =
     prettyprint-GRAPHNAME
 
@@ -198,3 +201,6 @@ strategies
 
   prettyprint-example =
     prettyprint-PROPNAME
+
+  prettyprint-example =
+    prettyprint-NAME

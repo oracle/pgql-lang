@@ -23,3 +23,4 @@ signature
      : String -> GRAPHNAME
      : String -> VARNAME
      : String -> PROPNAME
+     : String -> NAME

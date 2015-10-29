@@ -26,14 +26,28 @@ exports
     CONTENTCOMPLETE -> Dot        {cons("COMPLETION-Dot")}
 
   lexical syntax
-    [a-zA-Z] [a-zA-Z0-9\_]* -> GRAPHNAME 
-    [a-zA-Z] [a-zA-Z0-9\_]* -> VARNAME   
-    [a-zA-Z0-9\_]+          -> PROPNAME  
+    NAME                    -> GRAPHNAME 
+    NAME                    -> VARNAME   
+    NAME                    -> PROPNAME  
+    [a-zA-Z] [a-zA-Z0-9\_]* -> NAME      
 
   lexical syntax
-    
+    [Ss] [Ee] [Ll] [Ee] [Cc] [Tt] -> NAME {reject}
+    [Ww] [Hh] [Ee] [Rr] [Ee]      -> NAME {reject}
+    [Aa] [Ss]                     -> NAME {reject}
+    [Ww] [Ii] [Tt] [Hh]           -> NAME {reject}
+    [Oo] [Rr] [Dd] [Ee] [Rr]      -> NAME {reject}
+    [Gg] [Rr] [Oo] [Uu] [Pp]      -> NAME {reject}
+    [Bb] [Yy]                     -> NAME {reject}
+    [Aa] [Ss] [Cc]                -> NAME {reject}
+    [Dd] [Ee] [Ss] [Cc]           -> NAME {reject}
+    [Ll] [Ii] [Mm] [Ii] [Tt]      -> NAME {reject}
+    [Oo] [Ff] [Ff] [Ss] [Ee] [Tt] -> NAME {reject}
+    [Aa] [Nn] [Dd]                -> NAME {reject}
+    [Oo] [Rr]                     -> NAME {reject}
+    [Tt] [Rr] [Uu] [Ee]           -> NAME {reject}
+    [Ff] [Aa] [Ll] [Ss] [Ee]      -> NAME {reject}
+    [Nn] [Uu] [Ll] [Ll]           -> NAME {reject}
 
   lexical restrictions
-    GRAPHNAME -/- [a-zA-Z0-9\_]
-    VARNAME -/- [a-zA-Z0-9\_]
-    PROPNAME -/- [a-zA-Z0-9\_]
+    NAME -/- [a-zA-Z0-9\_]
