@@ -24,18 +24,25 @@ GROUP BY x
 ORDER BY x
 ]]
 
-test SELECT * and GROUP BY [[
+test SELECT * and GROUP BY 1 [[
 SELECT *
 WHERE
   n -[e]-> m
 GROUP BY n, e, m
 ]]
 
-test SELECT * and GROUP BY [[
+test SELECT * and GROUP BY 2 [[
 SELECT *
 WHERE
   n -> m
 GROUP BY n, m
+]]
+
+test SELECT * and GROUP BY 3 [[
+SELECT *
+WHERE
+  n -> m
+GROUP BY n
 ]]
 
 test Aggregation of group key 1 [[

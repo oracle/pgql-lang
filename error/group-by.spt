@@ -2,6 +2,13 @@ module group-by
 
 language PGQL
 
+test Duplicate variable [[
+SELECT nName
+WHERE
+  n
+GROUP BY n.name AS nName, n.name AS nName
+]] / Duplicate variable definition /
+
 test Select non-group key 1 [[
 SELECT n.name
 WHERE

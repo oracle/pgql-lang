@@ -2,12 +2,11 @@ module select
 
 language PGQL
 
-test Duplicate expression in SELECT [[
-SELECT n.name, n.name
+test Duplicate variable [[
+SELECT n.name AS nName, n.name AS nName
 WHERE
   n
-]] / Duplicate expression in SELECT /
-
+]] / Duplicate variable definition /
 
 test Nested aggregation [[
 SELECT AVG(MIN(n.age))
