@@ -207,7 +207,7 @@ rules
 
       projection := <?Star() <+ ?ExpAsVars(<id>)> selectElems;
       expAsSelectVars := <try(?Star(); ![])> projection;
-      expAsSelectVars' := <map(norm-expAsSelectVar(|expAsGroupVars'))> expAsSelectVars;
+      expAsSelectVars' := <map(norm-expAsSelectVar(|expAsGroupVars', c))> expAsSelectVars;
       projection' := <?Star() <+ !Vars(ExpAsVars(expAsSelectVars'))> projection;
       
       allExpAsVars := <conc> (<remove-all(?ExpAsVar(_, <id>); not(is-aggregate))> expAsSelectVars', expAsGroupVars');
@@ -219,13 +219,13 @@ rules
   norm-expAsGroupVar(|c) = ?ExpAsVar(term, Some(VarAssign(VarDef(v)))); !ExpAsVar(v, term)
   norm-expAsGroupVar(|c) = ?ExpAsVar(term, None()); !ExpAsVar(<origin-text; add-unique-suffix(|c)> term, term)
   
-  norm-expAsSelectVar(|expAsGroupVars):
+  norm-expAsSelectVar(|expAsGroupVars, c):
     ExpAsVar(exp, var) -> ExpAsVar(var', exp')
     with
       exp' := <replace-terms-with-varRef(|expAsGroupVars)> exp;
       if Some(VarAssign(VarDef(v))) := var
       then var' := v
-      else var' := <origin-text; add-generated-suffix> exp
+      else var' := <origin-text; add-unique-suffix(|c)> exp
       end
   
   replace-terms-with-varRef(|expAsGroupVars) = !(expAsGroupVars, <id>); foldl(replace-terms-with-varRef)

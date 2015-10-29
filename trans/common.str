@@ -12,7 +12,7 @@ rules
   is-aggregate = ?COUNT(_, _) + ?MIN(_, _) + ?MAX(_, _) + ?SUM(_, _) + ?AVG(_, _) + ?GROUP-CONCAT(_, _, _)
     
   GENERATED = !"<<generated>>"
-  add-generated-suffix = !(<id>, <GENERATED>); conc-strings
+  // add-generated-suffix = !(<id>, <GENERATED>); conc-strings
   add-unique-suffix(|c) = !(<id>, <unique-name(|c)>); conc-strings
   unique-name(|c) = !(<GENERATED>, "#", <next-counter; write-to-string> c); conc-strings
   

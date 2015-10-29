@@ -289,19 +289,20 @@ rules // Unresolved references
   nabl-constraint(|ctx):
     expAsVar -> <fail>
     where
-    	if ExpAsVar(v, _) := expAsVar
-    	then
-        if <is-substring(GENERATED)> v
-        then msg := "Duplicate expression in SELECT"
-        else msg := "Duplicate variable" // edge, variable in SELECT/GROUP BY
-        end
-      else
-      	ExpAsGroupVar(v, _) := expAsVar;
-      	msg := "Duplicate expression in GROUP BY"
-      end;
+      <?ExpAsVar(v, _) + ?ExpAsGroupVar(v, _)> expAsVar;
+    	// if ExpAsVar(v, _) := expAsVar
+    	// then
+     //    if <is-substring(GENERATED)> v
+     //    then msg := "Duplicate expression in SELECT"
+     //    else msg := "Duplicate variable"
+     //    end
+     //  else
+     //  	ExpAsGroupVar(v, _) := expAsVar;
+     //  	msg := "Duplicate variable"
+     //  end;
       uri := <nabl-uri; nabl-uri-parent> v;
       resolve-task := <nabl-create-resolvedefs(|ctx, NablNsVar(), v, [])> uri;
-      <task-create-error-on-multiple(|ctx, resolve-task, msg)> v
+      <task-create-error-on-multiple(|ctx, resolve-task, "Duplicate variable definition")> v
 
   nabl-constraint(|ctx):
     Edge(_, e, _, _) -> <fail>
