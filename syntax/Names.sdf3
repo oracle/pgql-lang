@@ -23,40 +23,30 @@ context-free syntax
   
 lexical syntax
   
-  GRAPHNAME = [a-zA-Z][a-zA-Z0-9\_]*
-  VARNAME   = [a-zA-Z][a-zA-Z0-9\_]*
-  PROPNAME  = [a-zA-Z0-9\_]+
+  GRAPHNAME = NAME
+  VARNAME   = NAME
+  PROPNAME  = NAME
+  NAME      = [a-zA-Z][a-zA-Z0-9\_]*
   
 lexical syntax // reserved keywords
 
-  // VARNAME = "AND" {reject}
-  // VARNAME = "OR" {reject}
-  // VARNAME = "and" {reject}
-  // VARNAME = "or" {reject}
-  // VARNAME = [Mm][Aa][Tt][Cc][Hh] {reject}
-  // VARNAME = [Ss][Ee][Ll][Ee][Cc][Tt] {reject}
-  // VARNAME = [Ii][Nn] {reject}
-  // VARNAME = [Oo][Rr][Dd][Ee][Rr] {reject}
-  // VARNAME = [Ll][Ii][Mm][Ii][Tt] {reject}
-  // VARNAME = [Hh][Aa][Ss] {reject}
-  // VARNAME = [Uu][Nn][Ii][Oo][Nn] {reject}
-  // VARNAME = [Nn][Oo][Tt] {reject}
-  // VARNAME = [Rr][Ee][Gg][Ee][Xx] {reject}
-  // VARNAME = [Oo][Pp][Tt][Ii][Oo][Nn][Aa][Ll] {reject}
-  // VARNAME = [Aa][Nn][Dd] {reject}
-  // VARNAME = [Ee][Xx][Pp][Aa][Nn][Dd] {reject}
-  // VARNAME = [Nn][Uu][Ll][Ll] {reject}
-  // VARNAME = [Gg][Rr][Oo][Uu][Pp] {reject}
-  // VARNAME = [Oo][Rr][Dd][Ee][Rr] {reject}
-  // VARNAME = [Dd][Ee][Rr] {reject}
-  // VARNAME = [Ll][Ii][Mm][Ii][Tt] {reject}
-  // VARNAME = [Oo][Ff][Ff][Ss][Ee][Tt] {reject}
-  // VARNAME = [Aa][Ss] {reject}
-  // 
-  // PROPNAME = "has" {reject}
+  NAME = [Ss][Ee][Ll][Ee][Cc][Tt] {reject}
+  NAME = [Ww][Hh][Ee][Rr][Ee] {reject}
+  NAME = [Aa][Ss] {reject}
+  NAME = [Ww][Ii][Tt][Hh] {reject}
+  NAME = [Oo][Rr][Dd][Ee][Rr] {reject}
+  NAME = [Gg][Rr][Oo][Uu][Pp] {reject}
+  NAME = [Bb][Yy] {reject}
+  NAME = [Aa][Ss][Cc] {reject}
+  NAME = [Dd][Ee][Ss][Cc] {reject}
+  NAME = [Ll][Ii][Mm][Ii][Tt] {reject}
+  NAME = [Oo][Ff][Ff][Ss][Ee][Tt] {reject}
+  NAME = [Aa][Nn][Dd] {reject}
+  NAME = [Oo][Rr] {reject}
+  NAME = [Tt][Rr][Uu][Ee] {reject}
+  NAME = [Ff][Aa][Ll][Ss][Ee] {reject}
+  NAME = [Nn][Uu][Ll][Ll] {reject}
   
 lexical restrictions // greedy matching
 
-  GRAPHNAME -/- [a-zA-Z0-9\_]
-  VARNAME   -/- [a-zA-Z0-9\_]
-  PROPNAME  -/- [a-zA-Z0-9\_]
+  NAME -/- [a-zA-Z0-9\_]
