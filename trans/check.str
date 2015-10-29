@@ -16,52 +16,52 @@ imports
 rules
   
   PGQL_VERSION = !"0.9"
-  
-rules
-  
-  /**
-  * Error for undefined node property.
-  */
-  nabl-constraint(|lang, ctx, uri*):
-    PropRef(varRef, p) -> <fail>
-    where
-      <?VarRef(v) + ?GroupRef(v) + ?SelectOrGroupRef(v)> varRef;
-      v-resolve-task := <nabl-create-collectdefs(|ctx)> v;
-      v-prop-task    := <prop-create-lookup(|ctx, Type())> v-resolve-task;
-      m-resolve-task := <nabl-use-candidate(|lang, ctx, uri*, "schema")> UseCandidate(NablNsSchema(), [], Current(), False(), []);
-      m-prop-task    := <prop-create-lookup(|ctx, NablProp_data())> m-resolve-task;
-      rewrite-task1 := <task-create-rewrite(|ctx, "VarIsNode")> v-prop-task;
-      rewrite-task2 := <task-create-rewrite(|ctx, "NodePropExists")> (m-prop-task, p);
-      <task-create-error-on-failure(|ctx, rewrite-task2, [v-resolve-task, v-prop-task, rewrite-task1], $[Node property '[p]' does not exist])> p
-
-  /**
-  * Error for undefined edge property.
-  */  
-  nabl-constraint(|lang, ctx, uri*):
-    PropRef(varRef, p) -> <fail>
-    where
-      <?VarRef(v) + ?GroupRef(v) + ?SelectOrGroupRef(v)> varRef;
-      v-resolve-task := <nabl-create-collectdefs(|ctx)> v;
-      v-prop-task    := <prop-create-lookup(|ctx, Type())> v-resolve-task;
-      m-resolve-task := <nabl-use-candidate(|lang, ctx, uri*, "schema")> UseCandidate(NablNsSchema(), [], Current(), False(), []);
-      m-prop-task    := <prop-create-lookup(|ctx, NablProp_data())> m-resolve-task;
-      rewrite-task1 := <task-create-rewrite(|ctx, "VarIsEdge")> v-prop-task;
-      rewrite-task2 := <task-create-rewrite(|ctx, "EdgePropExists")> (m-prop-task, p);
-      <task-create-error-on-failure(|ctx, rewrite-task2, [v-resolve-task, v-prop-task, rewrite-task1], $[Edge property '[p]' does not exist])> p
-
-  task-rewrite: ("VarIsNode", NodeTy()) -> <id>
-  task-rewrite: ("VarIsEdge", EdgeTy()) -> <id>
-  task-rewrite: ("VarIsPath", PathTy()) -> <id>
-      
-  task-rewrite:
-    ("NodePropExists", (Schema(nprops, _), p)) -> <id> 
-    where
-      <strip-annos; fetch-elem(?NodeProp(p, _))> nprops
-    
-  task-rewrite:
-    ("EdgePropExists", (Schema(_, eprops), p)) -> <id>
-    where
-      <strip-annos; fetch-elem(?EdgeProp(p, _))> eprops      
+ 
+// rules
+//   
+//   /**
+//   * Error for undefined node property.
+//   */
+//   nabl-constraint(|lang, ctx, uri*):
+//     PropRef(varRef, p) -> <fail>
+//     where
+//       <?VarRef(v) + ?GroupRef(v) + ?SelectOrGroupRef(v)> varRef;
+//       v-resolve-task := <nabl-create-collectdefs(|ctx)> v;
+//       v-prop-task    := <prop-create-lookup(|ctx, Type())> v-resolve-task;
+//       m-resolve-task := <nabl-use-candidate(|lang, ctx, uri*, "schema")> UseCandidate(NablNsSchema(), [], Current(), False(), []);
+//       m-prop-task    := <prop-create-lookup(|ctx, NablProp_data())> m-resolve-task;
+//       rewrite-task1 := <task-create-rewrite(|ctx, "VarIsNode")> v-prop-task;
+//       rewrite-task2 := <task-create-rewrite(|ctx, "NodePropExists")> (m-prop-task, p);
+//       <task-create-error-on-failure(|ctx, rewrite-task2, [v-resolve-task, v-prop-task, rewrite-task1], $[Node property '[p]' does not exist])> p
+// 
+//   /**
+//   * Error for undefined edge property.
+//   */  
+//   nabl-constraint(|lang, ctx, uri*):
+//     PropRef(varRef, p) -> <fail>
+//     where
+//       <?VarRef(v) + ?GroupRef(v) + ?SelectOrGroupRef(v)> varRef;
+//       v-resolve-task := <nabl-create-collectdefs(|ctx)> v;
+//       v-prop-task    := <prop-create-lookup(|ctx, Type())> v-resolve-task;
+//       m-resolve-task := <nabl-use-candidate(|lang, ctx, uri*, "schema")> UseCandidate(NablNsSchema(), [], Current(), False(), []);
+//       m-prop-task    := <prop-create-lookup(|ctx, NablProp_data())> m-resolve-task;
+//       rewrite-task1 := <task-create-rewrite(|ctx, "VarIsEdge")> v-prop-task;
+//       rewrite-task2 := <task-create-rewrite(|ctx, "EdgePropExists")> (m-prop-task, p);
+//       <task-create-error-on-failure(|ctx, rewrite-task2, [v-resolve-task, v-prop-task, rewrite-task1], $[Edge property '[p]' does not exist])> p
+// 
+//   task-rewrite: ("VarIsNode", NodeTy()) -> <id>
+//   task-rewrite: ("VarIsEdge", EdgeTy()) -> <id>
+//   task-rewrite: ("VarIsPath", PathTy()) -> <id>
+//       
+//   task-rewrite:
+//     ("NodePropExists", (Schema(nprops, _), p)) -> <id> 
+//     where
+//       <strip-annos; fetch-elem(?NodeProp(p, _))> nprops
+//     
+//   task-rewrite:
+//     ("EdgePropExists", (Schema(_, eprops), p)) -> <id>
+//     where
+//       <strip-annos; fetch-elem(?EdgeProp(p, _))> eprops      
 
 rules // cross-constraints involving paths
   
@@ -340,34 +340,17 @@ rules // Aggregation
       failtask := <task-create-fail(|ctx)>;
       <task-create-error-on-failure(|ctx, failtask, "Nested aggregation is not allowed")> v
 
-/*
-  // Aggregation of group key
-  nabl-constraint(|ctx):
-    Select(_, selectClause, Some(groupClause), _, orderClause, _) -> <fail>
-    with
-      aggrs := <collect(is-aggregate)> (selectClause, orderClause);
-      varsInAggrs := <collect(?VarRef(<id>))> aggrs;
-      groupKeys := <collect(?ExpAsGroupVar(<id>, _))> groupClause;
-      groupKeysInAggrs := <strip-annos; isect> (varsInAggrs, groupKeys);
-      <map(error-on-groupKey-in-aggr(|ctx))> groupKeysInAggrs
-      
-  error-on-groupKey-in-aggr(|ctx):
-    v -> <id>
-    with
-      failtask := <task-create-fail(|ctx)>;
-      <task-create-error-on-failure(|ctx, failtask, "Aggregation of group key not allowed")> v
-*/
   // SELECT * in combination with GROUP BY
-  nabl-constraint(|ctx):
-    Query(_, whereClause, _, Select(_, s@Star(), Some(groupClause), _, _, _)) -> <fail>
-    with
-      vars := <collect(get-name-of-var-def; not(is-substring(GENERATED)))> whereClause;
-      groupKeys := <collect(?ExpAsGroupVar(_, VarRef(<id>)))> groupClause
-    where
-      not ( [] := <strip-annos; diff> (vars, groupKeys) )
-    with
-      failtask := <task-create-fail(|ctx)>;
-      <task-create-error-on-failure(|ctx, failtask, "SELECT * only allowed in combination with GROUP BY if all variables in the WHERE clause are group keys")> s
+  // nabl-constraint(|ctx):
+  //   Query(_, whereClause, _, Select(_, s@Star(), Some(groupClause), _, _, _)) -> <fail>
+  //   with
+  //     vars := <collect(get-name-of-var-def; not(is-substring(GENERATED)))> whereClause;
+  //     groupKeys := <collect(?ExpAsGroupVar(_, VarRef(<id>)))> groupClause
+  //   where
+  //     not ( [] := <strip-annos; diff> (vars, groupKeys) )
+  //   with
+  //     failtask := <task-create-fail(|ctx)>;
+  //     <task-create-error-on-failure(|ctx, failtask, "SELECT * only allowed in combination with GROUP BY if all variables in the WHERE clause are group keys")> s
 
   get-name-of-var-def = ?Node(<id>) + ?Edge(_, <id>, _, _)
   
