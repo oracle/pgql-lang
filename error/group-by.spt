@@ -2,20 +2,6 @@ module group-by
 
 language PGQL
 
-test SELECT * but not all variables are group keys 1 [[
-SELECT *
-WHERE
-  n
-GROUP BY n.name
-]] 1 error // / SELECT * only allowed in combination with GROUP BY if all variables in the WHERE clause are group keys /  SPT bug: cannot handle * in error message. TODO: file bug report
-
-test SELECT * but not all variables are group keys 2 [[
-SELECT *
-WHERE
-  n -[e]-> m
-GROUP BY n, m
-]] 1 error // / SELECT * only allowed in combination with GROUP BY if all variables in the WHERE clause are group keys /  SPT bug: cannot handle * in error message. TODO: file bug report
-
 test Select non-group key 1 [[
 SELECT n.name
 WHERE
