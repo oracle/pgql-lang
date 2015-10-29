@@ -50,9 +50,6 @@ WHERE
   (n WITH .age = 25),
   (n WITH .'age' = 25),
   (n WITH ."age" = 25),
-  (n WITH n.age = 25),
-  (n WITH n.'age' = 25),
-  (n WITH n."age" = 25),
   n.age = 25,
   n.'age' = 25,
   n."age" = 25
@@ -63,7 +60,6 @@ SELECT n.inDegree()
 WHERE
   (n WITH inDegree() > 3),
   (n WITH .inDegree() > 3),
-  (n WITH inDegree() > 3),
   n.inDegree() > 3
 ]]
 
