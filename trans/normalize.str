@@ -10,6 +10,7 @@ imports
   common
   pp
   editor-common.generated
+  check
   
 /*
  * These transformations are shared by analysis, tree-to-model tranformation and code gen
@@ -34,7 +35,7 @@ rules
         alltd(norm-has-prop);
         alltd(name-unnamed-nodes-and-edges(|c));
         alltd(norm-path-constraints);
-        alltd(norm-propRef);
+        alltd(norm-inlined-references);
         bottomup(try(
           norm-UnionGraphPattern
            // + norm-NOT-EXISTS
@@ -71,16 +72,21 @@ rules
                                  ?EdgeIn(); !EdgeIn(None(), <name-unnamed-nodes-and-edges-helper(|c)>)
   name-unnamed-nodes-and-edges-helper(|c) = !ElemContents(Some(<unique-name(|c)> ""), None(), None(), None())
   
-  norm-propRef = ?ElemContents(Some(varName), _, _, _); alltd(norm-propRef-helper(|varName))
-  norm-propRef-helper(|varName) = ?Id(); !Id(VarRef(varName)) + ?Label(); !Label(VarRef(varName)) +
-                                  ?Has(props); !Has(VarRef(varName), props) +
-                                  ?InDegree(); !InDegree(VarRef(varName)) +
-                                  ?OutDegree(); !OutDegree(VarRef(varName)) +
-                                  ?Src(); !Src(VarRef(varName)) +
-                                  ?Dst(); !Dst(VarRef(varName)) +
-                                  ?Obj(dot); !VarRef(varName) + ?Obj(varRef, dot); !varRef
-  norm-propRef-helper(|varName) = (?SelfPropRef(propName) + ?SelfPropRef(dot, propName)); !PropRef(VarRef(varName), propName)
-
+  norm-inlined-references = ?ElemContents(Some(varName), _, _, _); alltd(norm-inlined-reference(|varName))
+  norm-inlined-reference(|varName) =
+      ?Id(); !Id(VarRef(varName)) + ?Label(); !Label(VarRef(varName)) +
+      ?Has(props); !Has(VarRef(varName), props) +
+      ?InDegree(); !InDegree(VarRef(varName)) +
+      ?OutDegree(); !OutDegree(VarRef(varName)) +
+      ?Src(); !Src(VarRef(varName)) +
+      ?Dst(); !Dst(VarRef(varName)) +
+      ?Obj(dot); !VarRef(varName) +
+      (?Obj(VarRef(v), dot) + ?PropRef(VarRef(v), _));
+          if <eq> (v, varName)
+          then !ReferenceInInlinedConstraint(v)
+          else !CrossReferenceInInlinedConstraint()
+          end +
+      (?SelfPropRef(propName) + ?SelfPropRef(dot, propName)); !PropRef(VarRef(varName), propName)
 
 rules
   

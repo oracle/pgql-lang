@@ -354,3 +354,22 @@ rules // Aggregation
 
   get-name-of-var-def = ?Node(<id>) + ?Edge(_, <id>, _, _)
   
+rules // in-lined constraints
+  
+  nabl-constraint(|ctx):
+    ReferenceInInlinedConstraint(v) -> <fail>
+    with
+      failtask := <task-create-fail(|ctx)>;
+      <task-create-error-on-failure(|ctx, failtask, $['[v]' should be omitted here])> v
+  
+  nabl-constraint(|ctx):
+    t@CrossReferenceInInlinedConstraint() -> <fail>
+    with
+      failtask := <task-create-fail(|ctx)>;
+      <task-create-error-on-failure(|ctx, failtask,  "In-lined constraint may not access other variables")> t
+      
+signature constructors
+  
+  ReferenceInInlinedConstraint : var -> ReferenceInInlinedConstraint
+  CrossReferenceInInlinedConstraint : CrossReferenceInInlinedConstraint
+  
