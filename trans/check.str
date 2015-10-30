@@ -271,7 +271,7 @@ rules // Unresolved references
     SelectOrGroupRef(v) -> <fail>
     where
       resolve-task := <nabl-create-collectdefs(|ctx)> v;
-      <task-create-error-on-failure(|ctx, resolve-task, "Cannot order by non-group key variable without using aggregation")> v
+      <task-create-error-on-failure(|ctx, resolve-task, "Cannot order by non-group key variable: use aggregation")> v
       
   nabl-constraint(|ctx):
     expAsVar -> <fail>
@@ -347,10 +347,24 @@ rules
       <batch-generate-errors(|ctx, "Only simple expressions allowed here: variable, property access or function call")> exps;
       aggregations := <collect-om(is-aggregate, conc)> t;
       <batch-generate-errors(|ctx, "Aggregation not allowed in GROUP BY")> aggregations
-      
+  
   not-supported-expressions = collect-om(is-aggregate <+ is-function <+ is-expression <+ is-literal, conc); remove-all(is-aggregate + is-function)
   not-supported-expressions-in-aggregration = collect-om(is-aggregate, conc); collect-om(is-expression <+ is-literal, conc)
   
+  nabl-constraint(|ctx):
+    Query(_, _, _, Select(_, Vars(vars), groupClause, _, Some(orderClause), _)) -> <fail>
+    where
+      None() := groupClause;
+      [] := <collect(is-aggregate)> vars // there are no aggregations in the SELECT
+    with
+      aggregations := <collect-om(is-aggregate, conc)> orderClause;
+      <batch-generate-errors(|ctx, "Aggregation in ORDER BY only allowed if SELECT constains aggregations, or, in combination with GROUP BY")> aggregations
+
+  nabl-constraint(|ctx):
+    NeedsToBeAnAggregation(exp) -> <fail>
+    with
+      <generate-error(|ctx, "Aggregation expected here since SELECT has an aggregation")> exp
+
   // Nested aggregation
   nabl-constraint(|ctx):
     t -> <fail>

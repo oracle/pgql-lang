@@ -258,12 +258,6 @@ rules
 /*
  * Code below is only temporary until the next verion of Spoofax is released that supports case-insensitive keywords.
  */
-signature constructors
-	
-  Vars  : a -> Vars
-  Label : Exp
-  Id : Exp -> Id
-	
 rules
 
   norm-case-insensitive: Label(a, _) -> Label(a)

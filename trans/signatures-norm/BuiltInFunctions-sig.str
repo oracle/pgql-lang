@@ -10,8 +10,12 @@ imports
 
 signature
   constructors
+    
+    Vars  : a -> Vars
+  
     Id        : Exp -> Id
     Label     : Exp -> Label
+    Label     : Label
     Has       : List(Prop) -> InlinedCall
     InDegree  : InlinedCall
     OutDegree : InlinedCall
