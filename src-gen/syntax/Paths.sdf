@@ -5,7 +5,7 @@ imports Keywords Literals Names Expressions BuiltInFunctions
 exports
   context-free syntax
     Node EdgeNode+ VarAssign?                     -> Path                  {cons("Path")}
-    "(" ElemContents2? ")"                        -> Path                  {cons("SingleNode")}
+    "(" NoExpression? ")"                         -> Path                  {cons("SingleNode")}
     "(" ElemContents ")"                          -> Node                  {cons("Node")}
     VARNAME                                       -> Node                  {cons("SimpleNode")}
     Edge Node                                     -> EdgeNode              {cons("EdgeNode")}
@@ -29,17 +29,16 @@ exports
 
   context-free syntax
     VARNAME? Labels? Ids? WithInlinedConstraints? -> ElemContents           {cons("ElemContents")}
-    VARNAME? Labels? Ids? WithInlinedConstraints  -> ElemContents2          {cons("ElemContents2")}
-    ":" ExpressionOrAltLit                        -> Labels                 {cons("Labels")}
-    "@" ExpressionOrAltLit                        -> Ids                    {cons("Ids")}
-    Exp                                           -> ExpressionOrAltLit     
-    AltLit                                        -> ExpressionOrAltLit     {prefer}
+    VARNAME? Labels Ids? WithInlinedConstraints?  -> NoExpression           {cons("ElemContents1"), prefer}
+    VARNAME? Labels? Ids WithInlinedConstraints?  -> NoExpression           {cons("ElemContents2")}
+    VARNAME? Labels? Ids? WithInlinedConstraints  -> NoExpression           {cons("ElemContents3"), avoid}
+    ":" AltLit                                    -> Labels                 {cons("Labels")}
+    "@" AltLit                                    -> Ids                    {cons("Ids")}
     WITH {InlinedExp ","}+                        -> WithInlinedConstraints {cons("Constraint")}
 
   context-free syntax
     CONTENTCOMPLETE -> ElemContents           {cons("COMPLETION-ElemContents")}
-    CONTENTCOMPLETE -> ElemContents2          {cons("COMPLETION-ElemContents2")}
+    CONTENTCOMPLETE -> NoExpression           {cons("COMPLETION-NoExpression")}
     CONTENTCOMPLETE -> Labels                 {cons("COMPLETION-Labels")}
     CONTENTCOMPLETE -> Ids                    {cons("COMPLETION-Ids")}
-    CONTENTCOMPLETE -> ExpressionOrAltLit     {cons("COMPLETION-ExpressionOrAltLit")}
     CONTENTCOMPLETE -> WithInlinedConstraints {cons("COMPLETION-WithInlinedConstraints")}

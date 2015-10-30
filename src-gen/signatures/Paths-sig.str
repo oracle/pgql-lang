@@ -11,7 +11,7 @@ imports
 signature
   constructors
     Path                  : Node * List(EdgeNode) * Option(VarAssign) -> Path
-    SingleNode            : Option(ElemContents2) -> Path
+    SingleNode            : Option(NoExpression) -> Path
     Node                  : ElemContents -> Node
     SimpleNode            : VARNAME -> Node
     EdgeNode              : Edge * Node -> EdgeNode
@@ -26,9 +26,9 @@ signature
 
   constructors
     ElemContents  : Option(VARNAME) * Option(Labels) * Option(Ids) * Option(WithInlinedConstraints) -> ElemContents
-    ElemContents2 : Option(VARNAME) * Option(Labels) * Option(Ids) * WithInlinedConstraints -> ElemContents2
-    Labels        : ExpressionOrAltLit -> Labels
-    Ids           : ExpressionOrAltLit -> Ids
-                  : Exp -> ExpressionOrAltLit
-                  : AltLit -> ExpressionOrAltLit
+    ElemContents1 : Option(VARNAME) * Labels * Option(Ids) * Option(WithInlinedConstraints) -> NoExpression
+    ElemContents2 : Option(VARNAME) * Option(Labels) * Ids * Option(WithInlinedConstraints) -> NoExpression
+    ElemContents3 : Option(VARNAME) * Option(Labels) * Option(Ids) * WithInlinedConstraints -> NoExpression
+    Labels        : AltLit -> Labels
+    Ids           : AltLit -> Ids
     Constraint    : WITH * List(InlinedExp) -> WithInlinedConstraints

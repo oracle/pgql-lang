@@ -66,7 +66,7 @@ strategies
                             ]
                           )
                         ]
-    with t1__' := <pp-option(pp-one-Z(prettyprint-ElemContents2))> t1__
+    with t1__' := <pp-option(pp-one-Z(prettyprint-NoExpression))> t1__
 
   is-Path =
     ?SingleNode(_)
@@ -247,16 +247,13 @@ strategies
     prettyprint-ElemContents
 
   prettyprint-example =
-    prettyprint-ElemContents2
+    prettyprint-NoExpression
 
   prettyprint-example =
     prettyprint-Labels
 
   prettyprint-example =
     prettyprint-Ids
-
-  prettyprint-example =
-    prettyprint-ExpressionOrAltLit
 
   prettyprint-example =
     prettyprint-WithInlinedConstraints
@@ -275,8 +272,36 @@ strategies
   is-ElemContents =
     ?ElemContents(_, _, _, _)
 
-  prettyprint-ElemContents2 :
+  prettyprint-NoExpression :
+    ElemContents1(t1__, t2__, t3__, t4__) -> [ H(
+                                                 [SOpt(HS(), "0")]
+                                               , [t1__', t2__', t3__', t4__']
+                                               )
+                                             ]
+    with t1__' := <pp-option(pp-one-Z(prettyprint-VARNAME))> t1__
+    with t2__' := <pp-one-Z(prettyprint-Labels)> t2__
+    with t3__' := <pp-option(pp-one-Z(prettyprint-Ids))> t3__
+    with t4__' := <pp-option(pp-one-Z(prettyprint-WithInlinedConstraints))> t4__
+
+  is-NoExpression =
+    ?ElemContents1(_, _, _, _)
+
+  prettyprint-NoExpression :
     ElemContents2(t1__, t2__, t3__, t4__) -> [ H(
+                                                 [SOpt(HS(), "0")]
+                                               , [t1__', t2__', t3__', t4__']
+                                               )
+                                             ]
+    with t1__' := <pp-option(pp-one-Z(prettyprint-VARNAME))> t1__
+    with t2__' := <pp-option(pp-one-Z(prettyprint-Labels))> t2__
+    with t3__' := <pp-one-Z(prettyprint-Ids)> t3__
+    with t4__' := <pp-option(pp-one-Z(prettyprint-WithInlinedConstraints))> t4__
+
+  is-NoExpression =
+    ?ElemContents2(_, _, _, _)
+
+  prettyprint-NoExpression :
+    ElemContents3(t1__, t2__, t3__, t4__) -> [ H(
                                                  [SOpt(HS(), "0")]
                                                , [t1__', t2__', t3__', t4__']
                                                )
@@ -286,8 +311,8 @@ strategies
     with t3__' := <pp-option(pp-one-Z(prettyprint-Ids))> t3__
     with t4__' := <pp-one-Z(prettyprint-WithInlinedConstraints)> t4__
 
-  is-ElemContents2 =
-    ?ElemContents2(_, _, _, _)
+  is-NoExpression =
+    ?ElemContents3(_, _, _, _)
 
   prettyprint-Labels :
     Labels(t1__) -> [ H(
@@ -295,7 +320,7 @@ strategies
                       , [S(":"), t1__']
                       )
                     ]
-    with t1__' := <pp-one-Z(prettyprint-ExpressionOrAltLit)> t1__
+    with t1__' := <pp-one-Z(prettyprint-AltLit)> t1__
 
   is-Labels =
     ?Labels(_)
@@ -306,28 +331,10 @@ strategies
                    , [S("@"), t1__']
                    )
                  ]
-    with t1__' := <pp-one-Z(prettyprint-ExpressionOrAltLit)> t1__
+    with t1__' := <pp-one-Z(prettyprint-AltLit)> t1__
 
   is-Ids =
     ?Ids(_)
-
-  prettyprint-ExpressionOrAltLit :
-    t1__ -> [ H(
-                [SOpt(HS(), "0")]
-              , [t1__']
-              )
-            ]
-    where not(is-ExpressionOrAltLit)
-    where t1__' := <pp-one-Z(prettyprint-Exp)> t1__
-
-  prettyprint-ExpressionOrAltLit :
-    t1__ -> [ H(
-                [SOpt(HS(), "0")]
-              , [t1__']
-              )
-            ]
-    where not(is-ExpressionOrAltLit)
-    where t1__' := <pp-one-Z(prettyprint-AltLit)> t1__
 
   prettyprint-WithInlinedConstraints :
     Constraint(t1__, t2__) -> [ H(
@@ -348,16 +355,13 @@ strategies
   is-ElemContents =
     fail
 
-  is-ElemContents2 =
+  is-NoExpression =
     fail
 
   is-Labels =
     fail
 
   is-Ids =
-    fail
-
-  is-ExpressionOrAltLit =
     fail
 
   is-WithInlinedConstraints =

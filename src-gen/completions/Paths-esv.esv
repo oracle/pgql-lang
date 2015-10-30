@@ -12,7 +12,7 @@ completions
   completion template Path : "NodeEdgeNode" =
     <Node:Node> <EdgeNode:EdgeNode> <:VarAssign>  
   completion template Path : "()" =
-    "(" <:ElemContents2> ")"  
+    "(" <:NoExpression> ")"  
   completion template Node : "(ElemContents)" =
     "(" <ElemContents:ElemContents> ")"  
   completion template EdgeNode : " Edge Node" =
@@ -37,11 +37,15 @@ completions
 completions
   completion template ElemContents : "" =
     <:VARNAME> <:Labels> <:Ids> <:WithInlinedConstraints>  
-  completion template ElemContents2 : "WithInlinedConstraints" =
+  completion template NoExpression : "Labels" =
+    <:VARNAME> <Labels:Labels> <:Ids> <:WithInlinedConstraints>  
+  completion template NoExpression : "Ids" =
+    <:VARNAME> <:Labels> <Ids:Ids> <:WithInlinedConstraints>  
+  completion template NoExpression : "WithInlinedConstraints" =
     <:VARNAME> <:Labels> <:Ids> <WithInlinedConstraints:WithInlinedConstraints>  
-  completion template Labels : ":ExpressionOrAltLit" =
-    ":" <ExpressionOrAltLit:ExpressionOrAltLit>  
-  completion template Ids : "@ExpressionOrAltLit" =
-    "@" <ExpressionOrAltLit:ExpressionOrAltLit>  
+  completion template Labels : ":AltLit" =
+    ":" <AltLit:AltLit>               
+  completion template Ids : "@AltLit" =
+    "@" <AltLit:AltLit>                  
   completion template WithInlinedConstraints : " WITH InlinedExp" =
     " " <WITH:WITH> " " <InlinedExp:InlinedExp>  
