@@ -9,6 +9,8 @@ exports
     [Ww] [Ii] [Tt] [Hh]                     -> WITH     
     [Aa] [Ss]                               -> AS       
     [Nn] [Uu] [Ll] [Ll]                     -> NULL     
+    [Tt] [Rr] [Uu] [Ee]                     -> TRUE     
+    [Ff] [Aa] [Ll] [Ss] [Ee]                -> FALSE    
 
   lexical syntax
     [Ii] [Dd]                                                   -> ID           

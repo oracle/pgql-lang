@@ -57,17 +57,6 @@ strategies
     where not(is-Literal)
     where t1__' := <pp-one-Z(prettyprint-LitCustomType)> t1__
 
-  prettyprint-Literal :
-    Null(t1__) -> [ H(
-                      [SOpt(HS(), "0")]
-                    , [t1__']
-                    )
-                  ]
-    with t1__' := <pp-one-Z(prettyprint-NULL)> t1__
-
-  is-Literal =
-    ?Null(_)
-
   prettyprint-AltLit :
     Or(t1__, t2__) -> [ H(
                           [SOpt(HS(), "0")]
@@ -110,9 +99,6 @@ strategies
     prettyprint-NumericLiteral
 
   prettyprint-example =
-    prettyprint-BooleanLiteral
-
-  prettyprint-example =
     prettyprint-String
 
   prettyprint-example =
@@ -120,6 +106,12 @@ strategies
 
   prettyprint-example =
     prettyprint-LitCustomType
+
+  prettyprint-example =
+    prettyprint-BooleanLiteral
+
+  prettyprint-example =
+    prettyprint-Literal
 
   prettyprint-NumericLiteral :
     Integer(t1__) -> [ H(
@@ -153,26 +145,6 @@ strategies
 
   is-NumericLiteral =
     ?Double(_)
-
-  prettyprint-BooleanLiteral :
-    True() -> [ H(
-                  [SOpt(HS(), "0")]
-                , [S("true")]
-                )
-              ]
-
-  is-BooleanLiteral =
-    ?True()
-
-  prettyprint-BooleanLiteral :
-    False() -> [ H(
-                   [SOpt(HS(), "0")]
-                 , [S("false")]
-                 )
-               ]
-
-  is-BooleanLiteral =
-    ?False()
 
   prettyprint-String :
     String(t1__) -> [ H(
@@ -208,10 +180,40 @@ strategies
   is-LitCustomType =
     ?LitCustomType(_, _)
 
-  is-NumericLiteral =
-    fail
+  prettyprint-BooleanLiteral :
+    True(t1__) -> [ H(
+                      [SOpt(HS(), "0")]
+                    , [t1__']
+                    )
+                  ]
+    with t1__' := <pp-one-Z(prettyprint-TRUE)> t1__
 
   is-BooleanLiteral =
+    ?True(_)
+
+  prettyprint-BooleanLiteral :
+    False(t1__) -> [ H(
+                       [SOpt(HS(), "0")]
+                     , [t1__']
+                     )
+                   ]
+    with t1__' := <pp-one-Z(prettyprint-FALSE)> t1__
+
+  is-BooleanLiteral =
+    ?False(_)
+
+  prettyprint-Literal :
+    Null(t1__) -> [ H(
+                      [SOpt(HS(), "0")]
+                    , [t1__']
+                    )
+                  ]
+    with t1__' := <pp-one-Z(prettyprint-NULL)> t1__
+
+  is-Literal =
+    ?Null(_)
+
+  is-NumericLiteral =
     fail
 
   is-String =
@@ -221,6 +223,12 @@ strategies
     fail
 
   is-LitCustomType =
+    fail
+
+  is-BooleanLiteral =
+    fail
+
+  is-Literal =
     fail
 
 

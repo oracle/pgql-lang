@@ -6,24 +6,24 @@ imports
 
 signature
   constructors
-         : NumericLiteral -> Literal
-         : BooleanLiteral -> Literal
-         : String -> Literal
-         : LitCustomType -> Literal
-    Null : NULL -> Literal
-    Or   : AltLit * AltLit -> AltLit
-         : Literal -> AltLit
-         : UnquotedString -> AltLit
+       : NumericLiteral -> Literal
+       : BooleanLiteral -> Literal
+       : String -> Literal
+       : LitCustomType -> Literal
+    Or : AltLit * AltLit -> AltLit
+       : Literal -> AltLit
+       : UnquotedString -> AltLit
 
   constructors
     Integer       : INTEGER -> NumericLiteral
     Decimal       : DECIMAL -> NumericLiteral
     Double        : DOUBLE -> NumericLiteral
-    True          : BooleanLiteral
-    False         : BooleanLiteral
     String        : STRING -> String
     String        : UNQUOTED-STRING -> UnquotedString
     LitCustomType : String * CUSTOM-TYPE -> LitCustomType
+    True          : TRUE -> BooleanLiteral
+    False         : FALSE -> BooleanLiteral
+    Null          : NULL -> Literal
 
   constructors
      : String -> INTEGER

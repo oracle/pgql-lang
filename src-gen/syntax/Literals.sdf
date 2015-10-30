@@ -7,31 +7,26 @@ exports
     BooleanLiteral    -> Literal 
     String            -> Literal 
     LitCustomType     -> Literal 
-    NULL              -> Literal {cons("Null")}
     AltLit "|" AltLit -> AltLit  {cons("Or"), left}
     Literal           -> AltLit  
     UnquotedString    -> AltLit  
 
   context-free syntax
-    CONTENTCOMPLETE -> Literal {cons("COMPLETION-Literal")}
-    CONTENTCOMPLETE -> AltLit  {cons("COMPLETION-AltLit")}
+    CONTENTCOMPLETE -> AltLit {cons("COMPLETION-AltLit")}
 
   context-free syntax
     INTEGER                 -> NumericLiteral {cons("Integer")}
     DECIMAL                 -> NumericLiteral {cons("Decimal")}
     DOUBLE                  -> NumericLiteral {cons("Double")}
-    "true"                  -> BooleanLiteral {cons("True")}
-    "false"                 -> BooleanLiteral {cons("False")}
     STRING                  -> String         {cons("String")}
     UNQUOTED-STRING         -> UnquotedString {cons("String")}
     String "^^" CUSTOM-TYPE -> LitCustomType  {cons("LitCustomType")}
+    TRUE                    -> BooleanLiteral {cons("True")}
+    FALSE                   -> BooleanLiteral {cons("False")}
+    NULL                    -> Literal        {cons("Null")}
 
   context-free syntax
-    CONTENTCOMPLETE -> NumericLiteral {cons("COMPLETION-NumericLiteral")}
-    CONTENTCOMPLETE -> BooleanLiteral {cons("COMPLETION-BooleanLiteral")}
-    CONTENTCOMPLETE -> String         {cons("COMPLETION-String")}
-    CONTENTCOMPLETE -> UnquotedString {cons("COMPLETION-UnquotedString")}
-    CONTENTCOMPLETE -> LitCustomType  {cons("COMPLETION-LitCustomType")}
+    CONTENTCOMPLETE -> LitCustomType {cons("COMPLETION-LitCustomType")}
 
   lexical syntax
     [0-9]+                                                                         -> INTEGER         

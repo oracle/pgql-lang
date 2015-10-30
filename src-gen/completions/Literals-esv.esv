@@ -8,9 +8,5 @@ completions
     <AltLit:AltLit> "|" <AltLit:AltLit>  
 
 completions
-  completion template BooleanLiteral : "true" =
-    "true"  
-  completion template BooleanLiteral : "false" =
-    "false"  
   completion template LitCustomType : "String^^CUSTOM-TYPE" =
     <String:String> "^^" <CUSTOM-TYPE:CUSTOM-TYPE>  

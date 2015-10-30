@@ -31,6 +31,12 @@ strategies
   prettyprint-NULL =
     ![S(<is-string>)]
 
+  prettyprint-TRUE =
+    ![S(<is-string>)]
+
+  prettyprint-FALSE =
+    ![S(<is-string>)]
+
   prettyprint-example =
     prettyprint-SELECT
 
@@ -54,6 +60,12 @@ strategies
 
   prettyprint-example =
     prettyprint-NULL
+
+  prettyprint-example =
+    prettyprint-TRUE
+
+  prettyprint-example =
+    prettyprint-FALSE
 
 
 strategies

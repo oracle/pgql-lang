@@ -10,6 +10,8 @@ signature
      : String -> WITH
      : String -> AS
      : String -> NULL
+     : String -> TRUE
+     : String -> FALSE
 
   constructors
      : String -> ID
