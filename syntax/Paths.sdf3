@@ -11,7 +11,7 @@ imports
 context-free syntax
 
   Path.Path = <<Node><{EdgeNode ""}+><VarAssign?>>
-  Path.SingleNode = <(<ElemContents2?>)>
+  Path.SingleNode = <(<NoExpression?>)>
 
   Node.Node = <(<ElemContents>)>
   Node.SimpleNode = <<VARNAME>>
@@ -36,10 +36,10 @@ context-free syntax
 context-free syntax
 
   ElemContents.ElemContents =   <<VARNAME?><Labels?><Ids?><WithInlinedConstraints?>>
-  ElemContents2.ElemContents2 = <<VARNAME?><Labels?><Ids?><WithInlinedConstraints>> // TODO: document
-  Labels.Labels = <:<ExpressionOrAltLit>>
-  Ids.Ids = <@<ExpressionOrAltLit>>
-  ExpressionOrAltLit = <<Exp>>
-  ExpressionOrAltLit = <<AltLit>> {prefer}
+  NoExpression.ElemContents1 = <<VARNAME?><Labels><Ids?><WithInlinedConstraints?>> {prefer}
+  NoExpression.ElemContents2 = <<VARNAME?><Labels?><Ids><WithInlinedConstraints?>>
+  NoExpression.ElemContents3 = <<VARNAME?><Labels?><Ids?><WithInlinedConstraints>> {avoid}
+  Labels.Labels = <:<AltLit>>
+  Ids.Ids = <@<AltLit>>
   
   WithInlinedConstraints.Constraint = < <WITH> <{InlinedExp ", "}+>>
