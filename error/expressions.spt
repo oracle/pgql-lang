@@ -1,0 +1,129 @@
+module select
+
+language PGQL
+
+test Simple expressions 1 [[
+SELECT n.age + 3
+WHERE
+  n
+]] / Only simple expressions allowed here: variable, property access, aggregation or function call /
+
+test Simple expressions 2 [[
+SELECT true
+WHERE
+  n
+]] / Only simple expressions allowed here: variable, property access, aggregation or function call /
+
+test Simple expressions 3 [[
+SELECT null
+WHERE
+  n
+]] / Only simple expressions allowed here: variable, property access, aggregation or function call /
+
+test Simple expressions 4 [[
+SELECT *
+WHERE
+  n
+GROUP BY n.age - 3
+]] / Only simple expressions allowed here: variable, property access or function call /
+
+test Simple expressions 5 [[
+SELECT *
+WHERE
+  n
+GROUP BY 7
+]] / Only simple expressions allowed here: variable, property access or function call /
+
+test Simple expressions 6 [[
+SELECT *
+WHERE
+  n
+GROUP BY null
+]] / Only simple expressions allowed here: variable, property access or function call /
+
+test Simple expressions 7 [[
+SELECT n
+WHERE
+  n
+ORDER BY n.age * 3
+]] / Only simple expressions allowed here: variable, property access, aggregation or function call /
+
+test Simple expressions 8 [[
+SELECT n
+WHERE
+  n
+ORDER BY true
+]] / Only simple expressions allowed here: variable, property access, aggregation or function call /
+
+test Simple expressions 9 [[
+SELECT n
+WHERE
+  n
+ORDER BY null
+]] / Only simple expressions allowed here: variable, property access, aggregation or function call /
+
+test Nested aggregation 1 [[
+SELECT AVG(MIN(n.age))
+WHERE
+  n
+]] / Nested aggregation is not allowed /
+
+test Nested aggregation 2 [[
+SELECT AVG(n.age)
+WHERE
+  n
+ORDER BY AVG(MIN(n.age))
+]] / Nested aggregation is not allowed /
+
+test Aggregation in GROUP BY 1 [[
+SELECT avgAge
+WHERE
+  n
+GROUP BY AVG(n.age) AS avgAge
+]] / Aggregation not allowed in GROUP BY /
+
+test Aggregation in GROUP BY 2 [[
+SELECT avgAge
+WHERE
+  n
+GROUP BY AVG(MIN(n.age)) AS avgAge
+]] / Aggregation not allowed in GROUP BY /
+
+test Simple expressions in aggregation 1 [[
+SELECT AVG(n.age / 3)
+WHERE
+  n
+]] / Only simple expressions allowed here: variable, property access or function call /
+
+test Simple expressions in aggregation 2 [[
+SELECT AVG(true)
+WHERE
+  n
+]] / Only simple expressions allowed here: variable, property access or function call /
+
+test Simple expressions in aggregation 3 [[
+SELECT AVG(null)
+WHERE
+  n
+]] / Only simple expressions allowed here: variable, property access or function call /
+
+test Simple expressions in aggregation 4 [[
+SELECT AVG(n.age)
+WHERE
+  n
+ORDER BY AVG(n.age % 3)
+]] / Only simple expressions allowed here: variable, property access or function call /
+
+test Simple expressions in aggregation 5 [[
+SELECT AVG(n.age)
+WHERE
+  n
+ORDER BY AVG(true)
+]] / Only simple expressions allowed here: variable, property access or function call /
+
+test Simple expressions in aggregation 6 [[
+SELECT AVG(n.age)
+WHERE
+  n
+ORDER BY AVG(true)
+]] / Only simple expressions allowed here: variable, property access or function call /

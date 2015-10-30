@@ -2,10 +2,46 @@ module pattern-matching
 
 language PGQL
 
-test Single node [[
+test Single node 1 [[
 SELECT *
 WHERE
   n
+]]
+
+test Single node 2 [[
+SELECT *
+WHERE
+  (n)
+]]
+
+test Single node 3 [[
+SELECT *
+WHERE
+  (n@3)
+]]
+
+test Single node 4 [[
+SELECT *
+WHERE
+  (n WITH name = 'John')
+]]
+
+test Single node 5 [[
+SELECT *
+WHERE
+  (WITH name = 'John')
+]]
+
+test Single node 6 [[
+SELECT *
+WHERE
+  (n@3 WITH name = 'John')
+]]
+
+test Single node 7 [[
+SELECT *
+WHERE
+  ()
 ]]
 
 test Multiple paths [[

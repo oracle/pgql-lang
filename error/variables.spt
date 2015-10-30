@@ -1,0 +1,67 @@
+module variables
+
+language PGQL
+
+test Unresolved variable 1 [[
+SELECT n2
+WHERE
+  n
+]] / Unresolved variable /
+
+test Unresolved variable 2 [[
+SELECT n
+WHERE
+  n
+GROUP BY n2
+]] / Unresolved variable /
+
+test Unresolved variable 3 [[
+SELECT n
+WHERE
+  n
+ORDER BY n2
+]] / Unresolved variable /
+
+test Duplicate variable 1 [[
+SELECT n.name AS nName, n.name AS nName
+WHERE
+  n
+]] / Duplicate variable definition /
+
+test Duplicate variable 2 [[
+SELECT nName
+WHERE
+  n
+GROUP BY n.name AS nName, n.name AS nName
+]] / Duplicate variable definition /
+
+test Select non-group key 1 [[
+SELECT n.name
+WHERE
+  n
+GROUP BY n.age
+]] / Non-group key variable in SELECT /
+
+test Select non-group key 2 [[
+SELECT n
+WHERE
+  n
+GROUP BY n.age
+]] / Non-group key variable in SELECT /
+
+test Order by non-group key 1 [[
+SELECT n.age
+WHERE
+  n
+GROUP BY n.age
+ORDER BY n.name
+]] / Cannot order by non-group key variable without using aggregation /
+
+test Order by non-group key 2 [[
+SELECT n.age
+WHERE
+  n
+GROUP BY n.age
+ORDER BY n
+]] / Cannot order by non-group key variable without using aggregation /
+

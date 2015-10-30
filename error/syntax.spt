@@ -26,27 +26,3 @@ WHERE
   n
 ORDER BY
 ]] parse fails
-
-test Inlined cross-referece 1 [[
-SELECT *
-WHERE
-  (n WITH age = m.age) -> m
-]] / In-lined constraint may not access other variables /
-
-test Inlined cross-referece 2 [[
-SELECT *
-WHERE
-  (n WITH age = m.inDegree()) -> m
-]] / In-lined constraint may not access other variables /
-
-test Inlined constraint with var.prop [[
-SELECT *
-WHERE
-  (n WITH n.age = 25)
-]] / 'n' should be omitted here /
-
-test Inlined constraint with var.exp [[
-SELECT *
-WHERE
-  (n WITH n.inDegree() = 25)
-]] / 'n' should be omitted here /

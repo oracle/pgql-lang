@@ -1,0 +1,23 @@
+module select
+
+language PGQL
+
+test Duplicate select expression allowed [[
+SELECT n.name, n.name
+WHERE
+  n
+]]
+
+test Duplicate group expression allowed [[
+SELECT n.name
+WHERE
+  n
+GROUP BY n.name, n.name
+]]
+
+test Duplicate order expression allowed [[
+SELECT n
+WHERE
+  n
+ORDER BY n.name, n.name
+]]

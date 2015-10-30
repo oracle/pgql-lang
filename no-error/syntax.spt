@@ -5,35 +5,11 @@ language PGQL
 test Case insensitivity [[
 sElEcT mAx(n.age), MiN(n.age), sUm(n.age)
 WhErE
-  n
+  n, TrUe Or FaLsE And NuLl
 gRoUp By n.name
 OrDeR bY AvG(n.age)
 lImIt 10
 OfFsEt 5
-]]
-
-test Single node 1 [[
-SELECT *
-WHERE
-  n
-]]
-
-test Single node 2 [[
-SELECT *
-WHERE
-  ()
-]]
-
-test Single node 3 [[
-SELECT *
-WHERE
-  (n)
-]]
-
-test Single node 4 [[
-SELECT *
-WHERE
-  (n WITH age = 25)
 ]]
 
 test Edges [[
@@ -73,5 +49,5 @@ WHERE
 test Numeric [[
 SELECT *
 WHERE
-  (n1 WITH age = 25 AND age = -25 AND age = 25.0 AND age = -25.0)
+  (n1 WITH age = 25 AND age > -25 AND age = 25.0 AND age > -25.0)
 ]]
