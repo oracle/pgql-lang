@@ -12,16 +12,16 @@ namespaces
   SelectVar // var defined in SELECT
   GroupVar  // var defined in GROUP BY
 
-  Schema
+  // Schema
 
-properties
- 
-  data of Schema: t
+// properties
+//  
+//   data of Schema: t
   
 binding rules
 
   TopNode(_, _):
-    scopes Var, SelectVar, GroupVar, Schema
+    scopes Var, SelectVar, GroupVar //, Schema
   
   Node(n):
     defines non-unique Var n of type NodeTy()
@@ -55,8 +55,8 @@ binding rules
   NodeVarRef(n):
     refers to Var n of type NodeTy()
 
-  ExistsFunc(_):
-    scopes Var, SelectVar, GroupVar
+  // ExistsFunc(_):
+  //   scopes Var, SelectVar, GroupVar
  
-  m@Schema(_, _):
-    implicitly defines non-unique Schema "schema" of data m
+  // m@Schema(_, _):
+  //   implicitly defines non-unique Schema "schema" of data m

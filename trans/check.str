@@ -13,9 +13,7 @@ imports
   lib/runtime/properties/-
   names
 
-rules
-  
-// rules
+// rules // We no longer check for schema-consistency since we do dynamic typing. I commented out this code in case we want to bring it back sometime.
 //   
 //   /**
 //   * Error for undefined node property.
@@ -250,7 +248,7 @@ rules // data types
     with
       <generate-error(|ctx, $[Custom data types are not supported])> type
   
-rules // Unresolved references
+rules // Unresolved/duplicate variables
   
   nabl-check-disable-unresolved = id
   nabl-check-disable-duplicate(|uri, ns) = id
@@ -258,45 +256,18 @@ rules // Unresolved references
   nabl-constraint(|ctx):
     VarRef(v) -> <fail>
     where
-      resolve-task := <nabl-create-collectdefs(|ctx)> v;
-      <task-create-error-on-failure(|ctx, resolve-task, "Unresolved variable")> v
-      
-  nabl-constraint(|ctx):
-    GroupRef(v) -> <fail>
-    where
-      resolve-task := <nabl-create-collectdefs(|ctx)> v;
-      <task-create-error-on-failure(|ctx, resolve-task, "Non-group key variable in SELECT")> v
-      
-  nabl-constraint(|ctx):
-    SelectOrGroupRef(v) -> <fail>
-    where
-      resolve-task := <nabl-create-collectdefs(|ctx)> v;
-      <task-create-error-on-failure(|ctx, resolve-task, "Cannot order by non-group key variable: use aggregation")> v
+    	<generate-error-on-unresolved(|ctx, "Unresolved variable")> v
       
   nabl-constraint(|ctx):
     expAsVar -> <fail>
     where
       <?ExpAsVar(v, _) + ?ExpAsGroupVar(v, _)> expAsVar;
-    	// if ExpAsVar(v, _) := expAsVar
-    	// then
-     //    if <is-substring(GENERATED)> v
-     //    then msg := "Duplicate expression in SELECT"
-     //    else msg := "Duplicate variable"
-     //    end
-     //  else
-     //  	ExpAsGroupVar(v, _) := expAsVar;
-     //  	msg := "Duplicate variable"
-     //  end;
-      uri := <nabl-uri; nabl-uri-parent> v;
-      resolve-task := <nabl-create-resolvedefs(|ctx, NablNsVar(), v, [])> uri;
-      <task-create-error-on-multiple(|ctx, resolve-task, "Duplicate variable definition")> v
+      <generate-error-on-duplicate(|ctx, NablNsVar(), "Duplicate variable definition")> v
 
   nabl-constraint(|ctx):
     Edge(_, e, _, _) -> <fail>
     where
-      uri := <nabl-uri; nabl-uri-parent> e;
-      resolve-task := <nabl-create-resolvedefs(|ctx, NablNsVar(), e, [])> uri;
-      <task-create-error-on-multiple(|ctx, resolve-task, "Duplicate edge variable")> e
+      <generate-error-on-duplicate(|ctx, NablNsVar(), "Duplicate edge variable")> e
 
 rules
       
@@ -328,25 +299,25 @@ rules // in-lined constraints
 
 rules
 
-  // expressions in SELECT, ORDER BY
+  // expressions in SELECT, ORDER BY need to be simple
   nabl-constraint(|ctx):
     t -> <fail>
     where
       <?ExpAsVars(_) + ?OrderClause(_)> t
     with
       exps := <not-supported-expressions> t;
-      <batch-generate-errors(|ctx, "Only simple expressions allowed here: variable, property access, aggregation or function call")> exps;
+      <batch-generate-error(|ctx, "Only simple expressions allowed here: variable, property access, aggregation or function call")> exps;
       expsInAggr := <not-supported-expressions-in-aggregration> t;
-      <batch-generate-errors(|ctx, "Only simple expressions allowed here: variable, property access or function call")> expsInAggr
+      <batch-generate-error(|ctx, "Only simple expressions allowed here: variable, property access or function call")> expsInAggr
 
- // expressions in GROUP BY
+ // expressions in GROUP BY need to be simple
   nabl-constraint(|ctx):
     t@GroupClause(_) -> <fail>
     with
       exps := <not-supported-expressions> t;
-      <batch-generate-errors(|ctx, "Only simple expressions allowed here: variable, property access or function call")> exps;
+      <batch-generate-error(|ctx, "Only simple expressions allowed here: variable, property access or function call")> exps;
       aggregations := <collect-om(is-aggregate, conc)> t;
-      <batch-generate-errors(|ctx, "Aggregation not allowed in GROUP BY")> aggregations
+      <batch-generate-error(|ctx, "Aggregation not allowed in GROUP BY")> aggregations
   
   not-supported-expressions = collect-om(is-aggregate <+ is-function <+ is-expression <+ is-literal, conc); remove-all(is-aggregate + is-function)
   not-supported-expressions-in-aggregration = collect-om(is-aggregate, conc); collect-om(is-expression <+ is-literal, conc)
@@ -358,21 +329,26 @@ rules
       [] := <collect(is-aggregate)> vars // there are no aggregations in the SELECT
     with
       aggregations := <collect-om(is-aggregate, conc)> orderClause;
-      <batch-generate-errors(|ctx, "Aggregation in ORDER BY only allowed if SELECT constains aggregations, or, in combination with GROUP BY")> aggregations
+      <batch-generate-error(|ctx, "Aggregation in ORDER BY only allowed if SELECT constains aggregations, or, in combination with GROUP BY")> aggregations
 
   nabl-constraint(|ctx):
-    NeedsToBeAnAggregation(exp) -> <fail>
-    with
-      <generate-error(|ctx, "Aggregation expected here since SELECT has an aggregation")> exp
+    Query(_, _, _, Select(_, Vars(select-exps), group-by, _, order-by, _)) -> <fail>
+    with group-refs := <collect-om(?GroupRef(<id>), conc)> select-exps
+    	 ; select-or-group-refs := <collect-om(?SelectOrGroupRef(<id>), conc)> order-by
+    	 ; if None() := group-by
+    	     then <batch-generate-error-on-unresolved(|ctx, "Aggregation expected here since SELECT has other aggregation")> group-refs // error in SELECT
+    	        ; <batch-generate-error-on-unresolved(|ctx, "Aggregation expected here since SELECT has aggregation")> select-or-group-refs // error in ORDER BY
+    	     else <batch-generate-error-on-unresolved(|ctx, "Non-group key variable in SELECT")> group-refs // error in SELECT
+              ; <batch-generate-error-on-unresolved(|ctx, "Cannot order by non-group key variable: use aggregation")> select-or-group-refs // error in ORDER BY
+    	   end
 
-  // Nested aggregation
   nabl-constraint(|ctx):
     t -> <fail>
     where
       <is-aggregate> t
     with
       aggrsInAggr := <get-arguments; collect-om(is-aggregate, conc)> t;
-      <batch-generate-errors(|ctx, "Nested aggregation is not allowed")> aggrsInAggr  
+      <batch-generate-error(|ctx, "Nested aggregation is not allowed")> aggrsInAggr  
   
   nabl-constraint(|ctx):
     t@Regex(_, _) -> <fail>
@@ -391,13 +367,28 @@ rules
 
 rules // helper rules
 
-  batch-generate-errors(|ctx, m) = map(generate-error(|ctx, m))
+  batch-generate-error(|ctx, m) = map(generate-error(|ctx, m))
     
   generate-error(|ctx, m):
     t -> <id>
     with
       failtask := <task-create-fail(|ctx)>;
       <task-create-error-on-failure(|ctx, failtask, m)> t
+
+  batch-generate-error-on-unresolved(|ctx, m) = map(generate-error-on-unresolved(|ctx, m))
+
+  generate-error-on-unresolved(|ctx, m):
+  	v -> <id>
+  	with
+  	  resolve-task := <nabl-create-collectdefs(|ctx)> v;
+      <task-create-error-on-failure(|ctx, resolve-task, m)> v
+
+  generate-error-on-duplicate(|ctx, namespace, m):
+    v -> <id>
+    with
+      uri := <nabl-uri; nabl-uri-parent> v;
+      resolve-task := <nabl-create-resolvedefs(|ctx, NablNsVar(), v, [])> uri;
+      <task-create-error-on-multiple(|ctx, resolve-task, m)> v
       
 signature constructors
   
