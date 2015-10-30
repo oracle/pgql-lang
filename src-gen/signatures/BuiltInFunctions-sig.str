@@ -63,18 +63,12 @@ signature
     Timezone : Exp * TIMEZONE -> FunctionCall
 
   constructors
-    ExistsFunc : EXISTS * GroupGraphPattern -> FunctionCall
-    Case       : CASE * Exp * List(WhenThen) * ELSE * Exp * END -> FunctionCall
-    WhenThen   : WHEN * Exp * THEN * Exp -> WhenThen
-
-  constructors
-    COUNT        : COUNT * Option(Distinct) * StarOrExp -> FunctionCall
-    MIN          : MIN * Option(Distinct) * Exp -> FunctionCall
-    MAX          : MAX * Option(Distinct) * Exp -> FunctionCall
-    SUM          : SUM * Option(Distinct) * Exp -> FunctionCall
-    AVG          : AVG * Option(Distinct) * Exp -> FunctionCall
-    GROUP-CONCAT : GROUP-CONCAT * Option(Distinct) * Exp * Option(Group-Concat-Sep) -> FunctionCall
-    Star         : StarOrExp
-                 : Exp -> StarOrExp
-    Sep          : String -> Group-Concat-Sep
-    Distinct     : DISTINCT -> Distinct
+    COUNT    : COUNT * Option(Distinct) * StarOrExp -> FunctionCall
+    MIN      : MIN * Option(Distinct) * Exp -> FunctionCall
+    MAX      : MAX * Option(Distinct) * Exp -> FunctionCall
+    SUM      : SUM * Option(Distinct) * Exp -> FunctionCall
+    AVG      : AVG * Option(Distinct) * Exp -> FunctionCall
+    Star     : StarOrExp
+             : Exp -> StarOrExp
+    Sep      : String -> Group-Concat-Sep
+    Distinct : DISTINCT -> Distinct

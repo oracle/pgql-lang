@@ -81,25 +81,15 @@ exports
     CONTENTCOMPLETE -> FunctionCall {cons("COMPLETION-FunctionCall")}
 
   context-free syntax
-    EXISTS GroupGraphPattern        -> FunctionCall {cons("ExistsFunc")}
-    CASE Exp WhenThen+ ELSE Exp END -> FunctionCall {cons("Case")}
-    WHEN Exp THEN Exp               -> WhenThen     {cons("WhenThen")}
-
-  context-free syntax
-    CONTENTCOMPLETE -> FunctionCall {cons("COMPLETION-FunctionCall")}
-    CONTENTCOMPLETE -> WhenThen     {cons("COMPLETION-WhenThen")}
-
-  context-free syntax
-    COUNT "(" Distinct? StarOrExp ")"                    -> FunctionCall     {cons("COUNT")}
-    MIN "(" Distinct? Exp ")"                            -> FunctionCall     {cons("MIN")}
-    MAX "(" Distinct? Exp ")"                            -> FunctionCall     {cons("MAX")}
-    SUM "(" Distinct? Exp ")"                            -> FunctionCall     {cons("SUM")}
-    AVG "(" Distinct? Exp ")"                            -> FunctionCall     {cons("AVG")}
-    GROUP-CONCAT "(" Distinct? Exp Group-Concat-Sep? ")" -> FunctionCall     {cons("GROUP-CONCAT")}
-    "*"                                                  -> StarOrExp        {cons("Star")}
-    Exp                                                  -> StarOrExp        
-    "," String                                           -> Group-Concat-Sep {cons("Sep")}
-    DISTINCT                                             -> Distinct         {cons("Distinct")}
+    COUNT "(" Distinct? StarOrExp ")" -> FunctionCall     {cons("COUNT")}
+    MIN "(" Distinct? Exp ")"         -> FunctionCall     {cons("MIN")}
+    MAX "(" Distinct? Exp ")"         -> FunctionCall     {cons("MAX")}
+    SUM "(" Distinct? Exp ")"         -> FunctionCall     {cons("SUM")}
+    AVG "(" Distinct? Exp ")"         -> FunctionCall     {cons("AVG")}
+    "*"                               -> StarOrExp        {cons("Star")}
+    Exp                               -> StarOrExp        
+    "," String                        -> Group-Concat-Sep {cons("Sep")}
+    DISTINCT                          -> Distinct         {cons("Distinct")}
 
   context-free syntax
     CONTENTCOMPLETE -> FunctionCall     {cons("COMPLETION-FunctionCall")}

@@ -19,13 +19,3 @@ completions
     <FROM:FROM> " " <GRAPHNAME:GRAPHNAME>                                
   completion template MatchClause : "WHERE MatchElem" =
     <WHERE:WHERE> "\n\t" <MatchElem:MatchElem> (blank)                 
-  completion template MatchElem : "OPTIONAL GroupGraphPattern" =
-    <OPTIONAL:OPTIONAL> " " <GroupGraphPattern:GroupGraphPattern>  
-  completion template GroupGraphPattern : "{ }" =
-    "{\n\t" (cursor) "\n}" <:VarAssign> (blank)                              
-  completion template UnionGraphPattern : "SubSelect UnionGraphPatternChild" =
-    <SubSelect:SubSelect> "\n" <UnionGraphPatternChild:UnionGraphPatternChild> (blank)  
-  completion template UnionGraphPatternChild : "UNION SubSelect " =
-    <UNION:UNION> " " <SubSelect:SubSelect> "\n" (cursor) (blank)  
-  completion template SubSelect : "{ Query }" =
-    "{\n\t" <Query:Query> "\n}" (blank)                                        

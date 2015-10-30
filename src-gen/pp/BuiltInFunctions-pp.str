@@ -673,80 +673,6 @@ strategies
     prettyprint-FunctionCall
 
   prettyprint-example =
-    prettyprint-WhenThen
-
-  prettyprint-FunctionCall :
-    ExistsFunc(t1__, t2__) -> [ H(
-                                  [SOpt(HS(), "0")]
-                                , [t1__', S(" "), t2__']
-                                )
-                              ]
-    with t1__' := <pp-one-Z(prettyprint-EXISTS)> t1__
-    with t2__' := <pp-one-Z(prettyprint-GroupGraphPattern)> t2__
-
-  is-FunctionCall =
-    ?ExistsFunc(_, _)
-
-  prettyprint-FunctionCall :
-    Case(t1__, t2__, t3__, t4__, t5__, t6__) -> [ H(
-                                                    [SOpt(HS(), "0")]
-                                                  , [ t1__'
-                                                    , S(" ")
-                                                    , t2__'
-                                                    , S(" ")
-                                                    , t3__'
-                                                    , S(" ")
-                                                    , t4__'
-                                                    , S(" ")
-                                                    , t5__'
-                                                    , S(" ")
-                                                    , t6__'
-                                                    ]
-                                                  )
-                                                ]
-    with t1__' := <pp-one-Z(prettyprint-CASE)> t1__
-    with t2__' := <pp-one-Z(prettyprint-Exp)> t2__
-    with t3__' := <pp-H-list(prettyprint-WhenThen|" ")> t3__
-    with t4__' := <pp-one-Z(prettyprint-ELSE)> t4__
-    with t5__' := <pp-one-Z(prettyprint-Exp)> t5__
-    with t6__' := <pp-one-Z(prettyprint-END)> t6__
-
-  is-FunctionCall =
-    ?Case(_, _, _, _, _, _)
-
-  prettyprint-WhenThen :
-    WhenThen(t1__, t2__, t3__, t4__) -> [ H(
-                                            [SOpt(HS(), "0")]
-                                          , [ t1__'
-                                            , S(" ")
-                                            , t2__'
-                                            , S(" ")
-                                            , t3__'
-                                            , S(" ")
-                                            , t4__'
-                                            ]
-                                          )
-                                        ]
-    with t1__' := <pp-one-Z(prettyprint-WHEN)> t1__
-    with t2__' := <pp-one-Z(prettyprint-Exp)> t2__
-    with t3__' := <pp-one-Z(prettyprint-THEN)> t3__
-    with t4__' := <pp-one-Z(prettyprint-Exp)> t4__
-
-  is-WhenThen =
-    ?WhenThen(_, _, _, _)
-
-  is-FunctionCall =
-    fail
-
-  is-WhenThen =
-    fail
-
-
-strategies
-  prettyprint-example =
-    prettyprint-FunctionCall
-
-  prettyprint-example =
     prettyprint-StarOrExp
 
   prettyprint-example =
@@ -844,26 +770,6 @@ strategies
 
   is-FunctionCall =
     ?AVG(_, _, _)
-
-  prettyprint-FunctionCall :
-    GROUP-CONCAT(t1__, t2__, t3__, t4__) -> [ H(
-                                                [SOpt(HS(), "0")]
-                                              , [ t1__'
-                                                , S("(")
-                                                , t2__'
-                                                , t3__'
-                                                , t4__'
-                                                , S(")")
-                                                ]
-                                              )
-                                            ]
-    with t1__' := <pp-one-Z(prettyprint-GROUP-CONCAT)> t1__
-    with t2__' := <pp-option(pp-one-Z(prettyprint-Distinct))> t2__
-    with t3__' := <pp-one-Z(prettyprint-Exp)> t3__
-    with t4__' := <pp-option(pp-one-Z(prettyprint-Group-Concat-Sep))> t4__
-
-  is-FunctionCall =
-    ?GROUP-CONCAT(_, _, _, _)
 
   prettyprint-StarOrExp :
     Star() -> [ H(

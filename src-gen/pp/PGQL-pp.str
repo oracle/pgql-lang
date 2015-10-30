@@ -50,18 +50,6 @@ strategies
   prettyprint-example =
     prettyprint-MatchElem
 
-  prettyprint-example =
-    prettyprint-GroupGraphPattern
-
-  prettyprint-example =
-    prettyprint-UnionGraphPattern
-
-  prettyprint-example =
-    prettyprint-UnionGraphPatternChild
-
-  prettyprint-example =
-    prettyprint-SubSelect
-
   prettyprint-Start :
     t1__ -> [ H(
                 [SOpt(HS(), "0")]
@@ -143,15 +131,6 @@ strategies
               )
             ]
     where not(is-MatchElem)
-    where t1__' := <pp-one-Z(prettyprint-GroupGraphPattern)> t1__
-
-  prettyprint-MatchElem :
-    t1__ -> [ H(
-                [SOpt(HS(), "0")]
-              , [t1__']
-              )
-            ]
-    where not(is-MatchElem)
     where t1__' := <pp-one-Z(prettyprint-Path)> t1__
 
   prettyprint-MatchElem :
@@ -164,103 +143,6 @@ strategies
 
   is-MatchElem =
     ?Constraint(_)
-
-  prettyprint-MatchElem :
-    Optional(t1__, t2__) -> [ H(
-                                [SOpt(HS(), "0")]
-                              , [t1__', S(" "), t2__']
-                              )
-                            ]
-    with t1__' := <pp-one-Z(prettyprint-OPTIONAL)> t1__
-    with t2__' := <pp-one-Z(prettyprint-GroupGraphPattern)> t2__
-
-  is-MatchElem =
-    ?Optional(_, _)
-
-  prettyprint-MatchElem :
-    t1__ -> [ H(
-                [SOpt(HS(), "0")]
-              , [t1__']
-              )
-            ]
-    where not(is-MatchElem)
-    where t1__' := <pp-one-Z(prettyprint-UnionGraphPattern)> t1__
-
-  prettyprint-MatchElem :
-    t1__ -> [ H(
-                [SOpt(HS(), "0")]
-              , [t1__']
-              )
-            ]
-    where not(is-MatchElem)
-    where t1__' := <pp-one-Z(prettyprint-SubSelect)> t1__
-
-  prettyprint-GroupGraphPattern :
-    GraphPattern(t1__, t2__) -> [ H(
-                                    [SOpt(HS(), "0")]
-                                  , [S("{")]
-                                  )
-                                , t1__'
-                                , H(
-                                    [SOpt(HS(), "0")]
-                                  , [S("}"), t2__']
-                                  )
-                                ]
-    with t1__' := <pp-indent(|"2")> [ <pp-V-list(prettyprint-MatchElem|"0", ",")> t1__
-                                    ]
-    with t2__' := <pp-option(pp-one-Z(prettyprint-VarAssign))> t2__
-
-  is-GroupGraphPattern =
-    ?GraphPattern(_, _)
-
-  prettyprint-UnionGraphPattern :
-    UnionGraphPattern(t1__, t2__) -> [ H(
-                                         [SOpt(HS(), "0")]
-                                       , [t1__']
-                                       )
-                                     , H(
-                                         [SOpt(HS(), "0")]
-                                       , [t2__']
-                                       )
-                                     ]
-    with t1__' := <pp-one-Z(prettyprint-SubSelect)> t1__
-    with t2__' := <pp-one-Z(prettyprint-UnionGraphPatternChild)> t2__
-
-  is-UnionGraphPattern =
-    ?UnionGraphPattern(_, _)
-
-  prettyprint-UnionGraphPatternChild :
-    Union(t1__, t2__, t3__) -> [ H(
-                                   [SOpt(HS(), "0")]
-                                 , [t1__', S(" "), t2__']
-                                 )
-                               , H(
-                                   [SOpt(HS(), "0")]
-                                 , [t3__']
-                                 )
-                               ]
-    with t1__' := <pp-one-Z(prettyprint-UNION)> t1__
-    with t2__' := <pp-one-Z(prettyprint-SubSelect)> t2__
-    with t3__' := <pp-option(pp-one-Z(prettyprint-UnionGraphPatternChild))> t3__
-
-  is-UnionGraphPatternChild =
-    ?Union(_, _, _)
-
-  prettyprint-SubSelect :
-    SubSelect(t1__) -> [ H(
-                           [SOpt(HS(), "0")]
-                         , [S("{")]
-                         )
-                       , t1__'
-                       , H(
-                           [SOpt(HS(), "0")]
-                         , [S("}")]
-                         )
-                       ]
-    with t1__' := <pp-indent(|"2")> [<pp-one-Z(prettyprint-Query)> t1__]
-
-  is-SubSelect =
-    ?SubSelect(_)
 
   is-Start =
     fail
@@ -278,16 +160,4 @@ strategies
     fail
 
   is-MatchElem =
-    fail
-
-  is-GroupGraphPattern =
-    fail
-
-  is-UnionGraphPattern =
-    fail
-
-  is-UnionGraphPatternChild =
-    fail
-
-  is-SubSelect =
     fail

@@ -1,4 +1,3 @@
-
 module src-gen/completions/BuiltInFunctions-esv
 
 imports
@@ -97,14 +96,6 @@ completions
     <Exp:Exp> ". " <TIMEZONE:TIMEZONE> "()"  
 
 completions
-  completion template FunctionCall : "EXISTS GroupGraphPattern" =
-    <EXISTS:EXISTS> " " <GroupGraphPattern:GroupGraphPattern>  
-  completion template FunctionCall : "CASE Exp WhenThen ELSE Exp END" =
-    <CASE:CASE> " " <Exp:Exp> " " <WhenThen:WhenThen> " " <ELSE:ELSE> " " <Exp:Exp> " " <END:END>  
-  completion template WhenThen : "WHEN Exp THEN Exp" =
-    <WHEN:WHEN> " " <Exp:Exp> " " <THEN:THEN> " " <Exp:Exp>  
-
-completions
   completion template FunctionCall : "COUNT(StarOrExp)" =
     <COUNT:COUNT> "(" <:Distinct> <StarOrExp:StarOrExp> ")"  
   completion template FunctionCall : "MIN(Exp)" =
@@ -115,9 +106,7 @@ completions
     <SUM:SUM> "(" <:Distinct> <Exp:Exp> ")"  
   completion template FunctionCall : "AVG(Exp)" =
     <AVG:AVG> "(" <:Distinct> <Exp:Exp> ")"  
-  completion template FunctionCall : "GROUP-CONCAT(Exp)" =
-    <GROUP-CONCAT:GROUP-CONCAT> "(" <:Distinct> <Exp:Exp> <:Group-Concat-Sep> ")"  
   completion template StarOrExp : "*" =
-    "*"                                    
+    "*"              
   completion template Group-Concat-Sep : ", String" =
-    ", " <String:String>     
+    ", " <String:String>  

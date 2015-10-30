@@ -12,18 +12,10 @@ imports
 
 signature
   constructors
-                      : Query -> Start
-    Query             : SelectClause * Option(FromClause) * MatchClause * SolutionModifier -> Query
-    SelectClause      : SELECT * Option(Distinct) * SelectElems -> SelectClause
-    FromClause        : FROM * GRAPHNAME -> FromClause
-    GraphPattern1     : WHERE * List(MatchElem) -> MatchClause
-                      : GroupGraphPattern -> MatchElem
-                      : Path -> MatchElem
-    Constraint        : Exp -> MatchElem
-    Optional          : OPTIONAL * GroupGraphPattern -> MatchElem
-                      : UnionGraphPattern -> MatchElem
-                      : SubSelect -> MatchElem
-    GraphPattern      : List(MatchElem) * Option(VarAssign) -> GroupGraphPattern
-    UnionGraphPattern : SubSelect * UnionGraphPatternChild -> UnionGraphPattern
-    Union             : UNION * SubSelect * Option(UnionGraphPatternChild) -> UnionGraphPatternChild
-    SubSelect         : Query -> SubSelect
+                  : Query -> Start
+    Query         : SelectClause * Option(FromClause) * MatchClause * SolutionModifier -> Query
+    SelectClause  : SELECT * Option(Distinct) * SelectElems -> SelectClause
+    FromClause    : FROM * GRAPHNAME -> FromClause
+    GraphPattern1 : WHERE * List(MatchElem) -> MatchClause
+                  : Path -> MatchElem
+    Constraint    : Exp -> MatchElem
