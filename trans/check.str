@@ -170,8 +170,7 @@ rules // Unsupported functions
        + ?Case(_, _, _)
       > t;
       funcName := <get-constructor> t;
-      failtask := <task-create-fail(|ctx)>;
-      <task-create-error-on-failure(|ctx, failtask, $[No such function: '[funcName]'])> t
+      <generate-error(|ctx, $[No such function: '[funcName]'])> t
 
 rules // Not a connected graph, e.g. WHERE x -> y, x2 -> y2
   
@@ -196,13 +195,7 @@ rules // Not a connected graph, e.g. WHERE x -> y, x2 -> y2
         else m := $[Nodes [<print-nodes> other-partition] are not connected to nodes [<print-nodes> biggest-partition]]
         end
       end;
-      <connected-pattern-constraint-helper(|ctx, m)> other-partition
-
-  connected-pattern-constraint-helper(|ctx, message):
-    node -> <id>
-    with
-      failtask := <task-create-fail(|ctx)>;
-      <task-create-error-on-failure(|ctx, failtask, message)> node
+      <generate-error(|ctx, m)> other-partition
 
   print-nodes = reverse; separate-by(|", "); concat-strings
 
