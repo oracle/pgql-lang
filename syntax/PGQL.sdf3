@@ -38,15 +38,19 @@ context-free syntax
         <{MatchElem ",\n"}+>
     >
   
-  MatchElem = GroupGraphPattern  
   MatchElem = Path // see Paths.sdf3
   
   MatchElem.Constraint = Exp {avoid} // see Expressions.sdf3. Note: 'avoid' disambiguates 'match (X.p1) select *' ('(X.p1)' can be a Constraint or a Node)
-  MatchElem.Optional = <<OPTIONAL> <GroupGraphPattern>>
+
+/* Not supported in PGQL 0.9:
+
   MatchElem = UnionGraphPattern
   MatchElem = SubSelect
   // MatchElem.Var = <<VarAssign><Exp>> 
 
+  MatchElem = GroupGraphPattern
+  MatchElem.Optional = <<OPTIONAL> <GroupGraphPattern>>
+    
   GroupGraphPattern.GraphPattern = <
     {
       <{MatchElem ",\n"}*>
@@ -67,3 +71,5 @@ context-free syntax
       <Query>
     }
   >
+
+*/

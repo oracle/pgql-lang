@@ -71,11 +71,13 @@ context-free syntax // Time
   FunctionCall.Seconds = <<Exp>. <SECONDS>()>
   FunctionCall.Timezone = <<Exp>. <TIMEZONE>()>
 
+/* PGQL 1.0
 context-free syntax // EXISTS / NOT EXISTS / CASE
 
   FunctionCall.ExistsFunc    = <<EXISTS> <GroupGraphPattern>>
   FunctionCall.Case          = <<CASE> <Exp> <{WhenThen " "}+> <ELSE> <Exp> <END>>
   WhenThen.WhenThen          = <<WHEN> <Exp> <THEN> <Exp>>
+*/
 
 context-free syntax // Aggregates
 
@@ -84,7 +86,7 @@ context-free syntax // Aggregates
   FunctionCall.MAX          = <<MAX>(<Distinct?><Exp>)>
   FunctionCall.SUM          = <<SUM>(<Distinct?><Exp>)>
   FunctionCall.AVG          = <<AVG>(<Distinct?><Exp>)>
-  FunctionCall.GROUP-CONCAT = <<GROUP-CONCAT>(<Distinct?><Exp><Group-Concat-Sep?>)>
+//  FunctionCall.GROUP-CONCAT = <<GROUP-CONCAT>(<Distinct?><Exp><Group-Concat-Sep?>)> // PGQL 1.0
   
   StarOrExp.Star = <*>
   StarOrExp = <<Exp>>

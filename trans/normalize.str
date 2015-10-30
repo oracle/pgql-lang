@@ -37,9 +37,9 @@ rules
         alltd(norm-path-constraints);
         alltd(norm-inlined-references);
         bottomup(try(
-          norm-UnionGraphPattern
-           // + norm-NOT-EXISTS
-           + norm-matchElems
+           // norm-UnionGraphPattern +
+           // norm-NOT-EXISTS +
+           norm-matchElems
         ));
         bottomup(try(norm-query(|c)))
       > ast
@@ -90,6 +90,7 @@ rules
           end +
       (?SelfPropRef(propName) + ?SelfPropRef(dot, propName)); !PropRef(VarRef(varName), propName)
 
+/* PGQL 1.0
 rules
   
   norm-UnionGraphPattern:
@@ -110,6 +111,7 @@ rules
     with
       children := <get-UnionElems> child;
       graphPatterns := [UnionElem(query)|children]
+*/
 
 rules
   
@@ -128,8 +130,8 @@ rules
       edges := <get-edges; !Edges(<id>)> paths';
       optionals := <filter(?Optional(_)); !Optionals(<id>)> elems;
       unions := <filter(?Union(_)); !Unions(<id>)> elems;
-      expands := [];
-      subQueries := <filter(?SubSelect(<id>)); !SubQueries(<id>)> elems;
+      expands := []; // TODO: remove
+      subQueries := [];//<filter(?SubSelect(<id>)); !SubQueries(<id>)> elems; PGQL 1.0
       pathDecls := <filter(?Path(_, _, Some(_)); to-path-decl); !PathDecls(<id>)> paths
   
   get-inlined-constraints:
@@ -284,7 +286,7 @@ rules
   norm-case-insensitive: MAX(_, a, b) -> MAX(a, b)
   norm-case-insensitive: SUM(_, a, b) -> SUM(a, b)
   norm-case-insensitive: AVG(_, a, b) -> AVG(a, b)
-  norm-case-insensitive: GROUP-CONCAT(_, a, b, c) -> GROUP-CONCAT(a, b, c)
+  // norm-case-insensitive: GROUP-CONCAT(_, a, b, c) -> GROUP-CONCAT(a, b, c)
   norm-case-insensitive: Distinct(_) -> Distinct()
   norm-case-insensitive: True(_) -> True()
   norm-case-insensitive: False(_) -> False()
@@ -298,8 +300,8 @@ rules
   norm-case-insensitive: GraphPattern1(_, a) -> GraphPattern(a)
   norm-case-insensitive: SelectClause(_, a, b) -> SelectClause(a, b)
   norm-case-insensitive: FromClause(_, a) -> FromClause(a)
-  norm-case-insensitive: Optional(_, a) -> Optional(a)
-  norm-case-insensitive: Union(_, a, b) -> Union(a, b)
+  // norm-case-insensitive: Optional(_, a) -> Optional(a)
+  // norm-case-insensitive: Union(_, a, b) -> Union(a, b)
   norm-case-insensitive: Constraint(_, a) -> Constraint(a)
   
   norm-case-insensitive: Distinct(_) -> Distinct()

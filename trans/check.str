@@ -15,8 +15,6 @@ imports
 
 rules
   
-  PGQL_VERSION = !"0.9"
- 
 // rules
 //   
 //   /**
@@ -81,7 +79,7 @@ rules // cross-constraints involving paths
     PropRef(VarRef(v), _) -> <fail>
     where
       var-is-path := <var-is-path(|ctx)> v;
-      <task-create-error-on-success(|ctx, var-is-path, $[PGQL [<PGQL_VERSION>] does not allow to use cross-constraints that include path variables])> v
+      <task-create-error-on-success(|ctx, var-is-path, $[Cross-constraints involving path variables not supported])> v
 
   var-is-edge(|ctx) = var-is-type(|ctx, "VarIsEdge")
   var-is-node(|ctx) = var-is-type(|ctx, "VarIsNode")
@@ -104,16 +102,14 @@ rules // subqueries
   subquery-limitiation(|ctx):
     e@Query(_, _, _, _) -> <id>
     where
-      failtask := <task-create-fail(|ctx)>;
-      <task-create-error-on-failure(|ctx, failtask, $[PGQL [<PGQL_VERSION>] does not allow subqueries])> e
+      <generate-error(|ctx, $[Subqueries are not supported])> e
 
 rules // (NOT) EXISTS limitations
   
   constraints-check(|ctx):
     e@ExistsFunc(_) -> <fail>
     where
-      failtask := <task-create-fail(|ctx)>;
-      <task-create-error-on-failure(|ctx, failtask, $[PGQL [<PGQL_VERSION>] does not allow (NOT) EXISTS])> e
+      <generate-error(|ctx,$[(NOT) EXISTS is not supported])> e
 
 /*
   The following checks are for our C++ backend. I commented them out because they are not relevant for our Java backend.
@@ -159,7 +155,7 @@ rules // DISTINCT limitation
   nabl-constraint(|ctx):
     e@Distinct() -> <fail>
     with
-      <generate-error(|ctx, $[PGQL [<PGQL_VERSION>] does not allow use of DISTINCT])> e
+      <generate-error(|ctx, $[DISTINCT is not supported])> e
 
 rules // Unsupported functions
   
@@ -175,7 +171,7 @@ rules // Unsupported functions
       > t;
       funcName := <get-constructor> t;
       failtask := <task-create-fail(|ctx)>;
-      <task-create-error-on-failure(|ctx, failtask, $[No such function in PGQL [<PGQL_VERSION>]: '[funcName]'])> t
+      <task-create-error-on-failure(|ctx, failtask, $[No such function: '[funcName]'])> t
 
 rules // Not a connected graph, e.g. WHERE x -> y, x2 -> y2
   
@@ -259,7 +255,7 @@ rules // data types
   nabl-constraint(|ctx):
     LitCustomType(_, type) -> <fail>
     with
-      <generate-error(|ctx, $[PGQL [<PGQL_VERSION>] does not support custom data types])> type
+      <generate-error(|ctx, $[Custom data types are not supported])> type
   
 rules // Unresolved references
   
@@ -346,16 +342,16 @@ rules
       <?ExpAsVars(_) + ?OrderClause(_)> t
     with
       exps := <not-supported-expressions> t;
-      <batch-generate-errors(|ctx, "Only simple expressions allowed here (variable, property access, aggregation or function call)")> exps;
+      <batch-generate-errors(|ctx, "Only simple expressions allowed here: variable, property access, aggregation or function call")> exps;
       expsInAggr := <not-supported-expressions-in-aggregration> t;
-      <batch-generate-errors(|ctx, "Only simple expressions allowed here (variable, property access or function call)")> expsInAggr
+      <batch-generate-errors(|ctx, "Only simple expressions allowed here: variable, property access or function call")> expsInAggr
 
  // expressions in GROUP BY
   nabl-constraint(|ctx):
     t@GroupClause(_) -> <fail>
     with
       exps := <not-supported-expressions> t;
-      <batch-generate-errors(|ctx, "Only simple expressions allowed here (variable, property access or function call)")> exps;
+      <batch-generate-errors(|ctx, "Only simple expressions allowed here: variable, property access or function call")> exps;
       aggregations := <collect-om(is-aggregate, conc)> t;
       <batch-generate-errors(|ctx, "Aggregation not allowed in GROUP BY")> aggregations
       
@@ -374,12 +370,17 @@ rules
   nabl-constraint(|ctx):
     t@Regex(_, _) -> <fail>
     with
-      <generate-error(|ctx, $[PGQL [<PGQL_VERSION>] does not support regular expressions])> t
+      <generate-error(|ctx, $[Regular expression matching is not supported])> t
       
   nabl-constraint(|ctx):
     PathDecl(v, _, _, _) -> <fail>
     with
-      <generate-error(|ctx, $[PGQL [<PGQL_VERSION>] does not support path variables])> v
+      <generate-error(|ctx, $[Path variables are not supported])> v
+
+  nabl-constraint(|ctx):
+    t@PathLength(_, _) -> <fail>
+    with
+      <generate-error(|ctx, $[Path queries are not supported])> t
 
 rules // helper rules
 
