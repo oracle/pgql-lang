@@ -38,6 +38,34 @@ GROUP BY n.age AS nAge
 ORDER BY nAge
 ]]
 
+test Order by aggregation 1 [[
+SELECT AVG(n.age) AS avgAge
+WHERE
+  n
+ORDER BY avgAge
+]]
+
+test Order by aggregation 2 [[
+SELECT AVG(n.age)
+WHERE
+  n
+ORDER BY AVG(n.age)
+]]
+
+test Order by aggregation 3 [[
+SELECT AVG(n.age)
+WHERE
+  n
+ORDER BY COUNT(*)
+]]
+
+test Order by aggregation 4 [[
+SELECT COUNT(*)
+WHERE
+  n
+ORDER BY AVG(n.age)
+]]
+
 test Duplicate expression in ORDER BY [[
 SELECT *
 WHERE
