@@ -158,9 +158,8 @@ rules // DISTINCT limitation
   
   nabl-constraint(|ctx):
     e@Distinct() -> <fail>
-    where
-      failtask := <task-create-fail(|ctx)>;
-      <task-create-error-on-failure(|ctx, failtask, $[PGQL [<PGQL_VERSION>] does not allow use of DISTINCT])> e
+    with
+      <generate-error(|ctx, $[PGQL [<PGQL_VERSION>] does not allow use of DISTINCT])> e
 
 rules // Unsupported functions
   
@@ -259,9 +258,8 @@ rules // data types
   
   nabl-constraint(|ctx):
     LitCustomType(_, type) -> <fail>
-    where
-      failtask := <task-create-fail(|ctx)>;
-      <task-create-error-on-failure(|ctx, failtask, $[PGQL [<PGQL_VERSION>] does not support custom data types])> type
+    with
+      <generate-error(|ctx, $[PGQL [<PGQL_VERSION>] does not support custom data types])> type
   
 rules // Unresolved references
   
@@ -311,36 +309,8 @@ rules // Unresolved references
       resolve-task := <nabl-create-resolvedefs(|ctx, NablNsVar(), e, [])> uri;
       <task-create-error-on-multiple(|ctx, resolve-task, "Duplicate edge variable")> e
 
-rules // Aggregation
-	
-	// Aggregation in GROUP BY
-  nabl-constraint(|ctx):
-    t@GroupClause(_) -> <fail>
-    with
-      aggrsInGroupBy := <collect-om(is-aggregate, conc)> t;
-      <map(error-on-aggr-in-groupBy(|ctx))> aggrsInGroupBy
+rules
       
-  error-on-aggr-in-groupBy(|ctx):
-    v -> <id>
-    with
-      failtask := <task-create-fail(|ctx)>;
-      <task-create-error-on-failure(|ctx, failtask, "Aggregation not allowed in GROUP BY")> v
-  
-  // Nested aggregation
-  nabl-constraint(|ctx):
-    t -> <fail>
-    where
-    	<is-aggregate> t
-    with
-      aggrsInAggr := <get-arguments; collect-om(is-aggregate, conc)> t;
-      <map(error-on-aggr-in-aggr(|ctx))> aggrsInAggr
-      
-  error-on-aggr-in-aggr(|ctx):
-  	v -> <id>
-    with
-      failtask := <task-create-fail(|ctx)>;
-      <task-create-error-on-failure(|ctx, failtask, "Nested aggregation is not allowed")> v
-
   // SELECT * in combination with GROUP BY
   // nabl-constraint(|ctx):
   //   Query(_, whereClause, _, Select(_, s@Star(), Some(groupClause), _, _, _)) -> <fail>
@@ -360,14 +330,66 @@ rules // in-lined constraints
   nabl-constraint(|ctx):
     ReferenceInInlinedConstraint(v) -> <fail>
     with
-      failtask := <task-create-fail(|ctx)>;
-      <task-create-error-on-failure(|ctx, failtask, $['[v]' should be omitted here])> v
+      <generate-error(|ctx, $['[v]' should be omitted here])> v
   
   nabl-constraint(|ctx):
     t@CrossReferenceInInlinedConstraint() -> <fail>
     with
+      <generate-error(|ctx, "In-lined constraint may not access other variables")> t
+
+rules
+
+  // expressions in SELECT, ORDER BY
+  nabl-constraint(|ctx):
+    t -> <fail>
+    where
+      <?ExpAsVars(_) + ?OrderClause(_)> t
+    with
+      exps := <not-supported-expressions> t;
+      <batch-generate-errors(|ctx, "Only simple expressions allowed here (variable, property access, aggregation or function call)")> exps;
+      expsInAggr := <not-supported-expressions-in-aggregration> t;
+      <batch-generate-errors(|ctx, "Only simple expressions allowed here (variable, property access or function call)")> expsInAggr
+
+ // expressions in GROUP BY
+  nabl-constraint(|ctx):
+    t@GroupClause(_) -> <fail>
+    with
+      exps := <not-supported-expressions> t;
+      <batch-generate-errors(|ctx, "Only simple expressions allowed here (variable, property access or function call)")> exps;
+      aggregations := <collect-om(is-aggregate, conc)> t;
+      <batch-generate-errors(|ctx, "Aggregation not allowed in GROUP BY")> aggregations
+      
+  not-supported-expressions = collect-om(is-aggregate <+ is-function <+ is-expression <+ is-literal, conc); remove-all(is-aggregate + is-function)
+  not-supported-expressions-in-aggregration = collect-om(is-aggregate, conc); collect-om(is-expression <+ is-literal, conc)
+  
+  // Nested aggregation
+  nabl-constraint(|ctx):
+    t -> <fail>
+    where
+      <is-aggregate> t
+    with
+      aggrsInAggr := <get-arguments; collect-om(is-aggregate, conc)> t;
+      <batch-generate-errors(|ctx, "Nested aggregation is not allowed")> aggrsInAggr  
+  
+  nabl-constraint(|ctx):
+    t@Regex(_, _) -> <fail>
+    with
+      <generate-error(|ctx, $[PGQL [<PGQL_VERSION>] does not support regular expressions])> t
+      
+  nabl-constraint(|ctx):
+    PathDecl(v, _, _, _) -> <fail>
+    with
+      <generate-error(|ctx, $[PGQL [<PGQL_VERSION>] does not support path variables])> v
+
+rules // helper rules
+
+  batch-generate-errors(|ctx, m) = map(generate-error(|ctx, m))
+    
+  generate-error(|ctx, m):
+    t -> <id>
+    with
       failtask := <task-create-fail(|ctx)>;
-      <task-create-error-on-failure(|ctx, failtask,  "In-lined constraint may not access other variables")> t
+      <task-create-error-on-failure(|ctx, failtask, m)> t
       
 signature constructors
   

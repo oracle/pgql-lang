@@ -62,6 +62,8 @@ colorer
   WITH           : 127 0 85 bold
   AS             : 127 0 85 bold
   NULL           : 127 0 85 bold
+  TRUE           : 127 0 85 bold
+  FALSE          : 127 0 85 bold
 
   ID             : 127 0 85 bold
   LABEL          : 127 0 85 bold

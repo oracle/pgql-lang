@@ -284,6 +284,9 @@ rules
   norm-case-insensitive: AVG(_, a, b) -> AVG(a, b)
   norm-case-insensitive: GROUP-CONCAT(_, a, b, c) -> GROUP-CONCAT(a, b, c)
   norm-case-insensitive: Distinct(_) -> Distinct()
+  norm-case-insensitive: True(_) -> True()
+  norm-case-insensitive: False(_) -> False()
+  norm-case-insensitive: Null(_) -> Null()
   
   norm-case-insensitive: VarAssign(_, a) -> VarAssign(a)
   

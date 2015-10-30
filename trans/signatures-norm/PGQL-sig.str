@@ -20,3 +20,6 @@ signature
                       : UnionGraphPattern -> MatchElem
                       : SubSelect -> MatchElem
     Union             : SubSelect * Option(UnionGraphPatternChild) -> UnionGraphPatternChild
+    Null : Null
+    True : True
+    False : False
