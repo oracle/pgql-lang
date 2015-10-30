@@ -6,27 +6,26 @@ imports
 
 context-free syntax
 
-  Literal = <<NumericLiteral>>
-  Literal = <<BooleanLiteral>>
-  Literal = <<String>>
-  Literal = <<LitCustomType>>
-  Literal.Null = <<NULL>>
+  Literal = NumericLiteral
+  Literal = BooleanLiteral
+  Literal = String
+  Literal = LitCustomType
   
   AltLit.Or = <<AltLit>|<AltLit>> {left}
-  AltLit = <<Literal>>
-  AltLit = <<UnquotedString>>
+  AltLit = Literal
+  AltLit = UnquotedString
   
 context-free syntax
 
-  NumericLiteral.Integer = <<INTEGER>>
-  NumericLiteral.Decimal = <<DECIMAL>>
-  NumericLiteral.Double = <<DOUBLE>>
-  
-  BooleanLiteral.True = <true>
-  BooleanLiteral.False = <false>
-  String.String = <<STRING>>
-  UnquotedString.String = <<UNQUOTED-STRING>>
+  NumericLiteral.Integer = INTEGER
+  NumericLiteral.Decimal = DECIMAL
+  NumericLiteral.Double = DOUBLE
+  String.String = STRING
+  UnquotedString.String = UNQUOTED-STRING
   LitCustomType.LitCustomType = <<String>^^<CUSTOM-TYPE>>
+  BooleanLiteral.True = TRUE
+  BooleanLiteral.False = FALSE
+  Literal.Null = NULL
 
 lexical syntax
 

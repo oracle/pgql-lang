@@ -17,6 +17,8 @@ lexical syntax
   WITH           = [Ww][Ii][Tt][Hh]
   AS             = [Aa][Ss]
   NULL           = [Nn][Uu][Ll][Ll]
+  TRUE           = [Tt][Rr][Uu][Ee]
+  FALSE          = [Ff][Aa][Ll][Ss][Ee]
 
 lexical syntax  // BuiltInCall
 
