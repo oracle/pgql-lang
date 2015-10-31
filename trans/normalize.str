@@ -209,10 +209,10 @@ rules
       expAsGroupVars' := <map(norm-expAsGroupVar(|c))> expAsGroupVars;
       groupBy' := <?Some(_); !Some(GroupClause(expAsGroupVars')) <+ !None()> groupBy;
 
-      projection := <?Star() <+ ?ExpAsVars(<id>)> selectElems;
-      expAsSelectVars := <try(?Star(); ![])> projection;
-      expAsSelectVars' := <map(norm-expAsSelectVar(|expAsGroupVars', c))> expAsSelectVars;
-      projection' := <?Star() <+ !Vars(ExpAsVars(expAsSelectVars'))> projection;
+      expAsSelectVars := <?ExpAsVars(<id>); map(replace-terms-with-varRef(|expAsGroupVars')) <+
+                          norm-select-star(|graphPattern, expAsGroupVars')> selectElems;
+      expAsSelectVars' := <map(name-select-expression(|c))> expAsSelectVars;
+      projection' := Vars(ExpAsVars(expAsSelectVars'));
       
       allExpAsVars := <conc> (<remove-all(?ExpAsVar(_, <id>); not(is-aggregate))> expAsSelectVars', expAsGroupVars');
       orderByElems := <try(norm-orderBy(|allExpAsVars))> orderBy;
@@ -220,19 +220,30 @@ rules
       limitOffsets' := <norm-limitOffsets> limitOffsets;
       select := Select(distinctOrReduced, projection', groupBy', having, orderByElems, limitOffsets')
   
+  norm-select-star(|graphPattern, group-exps):
+    Star() -> expAsSelectVars
+    with if [] := group-exps
+           then vars := <collect((?Node(<id>) + ?Edge(_, <id>, _, _)); not(is-substring(GENERATED)))> graphPattern
+           else vars := <map(?ExpAsVar(<id>, _))> group-exps
+         end
+       ; expAsSelectVars := <map(!ExpAsVar(VarRef(<id>), None()))> vars
+  
   norm-expAsGroupVar(|c) = ?ExpAsVar(term, Some(VarAssign(VarDef(v)))); !ExpAsVar(v, term)
   norm-expAsGroupVar(|c) = ?ExpAsVar(term, None()); !ExpAsVar(<origin-text; add-unique-suffix(|c)> term, term)
-  
-  norm-expAsSelectVar(|expAsGroupVars, c):
-    ExpAsVar(exp, var) -> ExpAsVar(var', exp')
-    with
-      exp' := <replace-terms-with-varRef(|expAsGroupVars)> exp;
-      if Some(VarAssign(VarDef(v))) := var
-      then var' := v
-      else var' := <origin-text; add-unique-suffix(|c)> exp
-      end
-  
-  replace-terms-with-varRef(|expAsGroupVars) = !(expAsGroupVars, <id>); foldl(replace-terms-with-varRef)
+
+  norm-select-expression(|group-expressions):
+    ExpAsVar(exp, var) -> ExpAsVar(exp', var)
+    with exp' := <replace-terms-with-varRef(|group-expressions)> exp
+      
+  name-select-expression(|c): ExpAsVar(exp, Some(VarAssign(VarDef(v)))) -> ExpAsVar(v, exp)
+  name-select-expression(|c):
+    ExpAsVar(exp, None()) -> ExpAsVar(v, exp)
+    with v := <(origin-text <+ ?VarRef(<id>)); add-unique-suffix(|c)> exp
+
+  replace-terms-with-varRef(|expressions):
+    exp -> exp'
+    with exp' := <foldl(replace-terms-with-varRef)> (expressions, exp)
+
   replace-terms-with-varRef = ?(ExpAsVar(var, term), <id>); alltd(
     is-aggregate; ?term; !VarRef(var) + // for ORDER BY
     is-aggregate + ?term; !VarRef(var)) // for SELECT: never look into aggregates
@@ -240,16 +251,16 @@ rules
   norm-orderBy(|allExpAsVars):
   	Some(OrderClause(elems)) -> Some(OrderClause(elems'))
   	with
-  		elems' := <map(norm-orderBy-ordering); map(norm-orderBy-expression(|allExpAsVars))> elems
+  		elems' := <map(norm-orderBy-ordering); map(norm-order-expression(|allExpAsVars))> elems
 
   norm-orderBy-ordering =
     ((?Desc1(_, <id>) + ?Desc2(<id>, _)); !OrderByElem(<id>, Desc())) <+
     ((try(?Asc1(_, <id>) + ?Asc2(<id>, _))); !OrderByElem(<id>, Asc()))
 
-  norm-orderBy-expression(|allExpAsVars):
+  norm-order-expression(|group-and-select-expressions):
   	OrderByElem(exp, ordering) -> OrderByElem(exp', ordering)
   	with
-  	  exp' := <replace-terms-with-varRef(|allExpAsVars)> exp
+  	  exp' := <replace-terms-with-varRef(|group-and-select-expressions)> exp
 
   norm-limitOffsets = ?None(); !LimitOffsetClauses(None(), None())
   norm-limitOffsets = ?Some(LimitOffsetClauses(limitClause, offsetClause)); !LimitOffsetClauses(Some(limitClause), offsetClause)

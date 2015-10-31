@@ -23,7 +23,3 @@ signature constructors // namespaces
   SelectOrGroupRef     : Var -> SelectOrGroupRef
   GroupRef             : Var -> GroupRef
   ExpAsGroupVar        : Var * Exp -> ExpAsGroupVar
-  
-signature constructors // errors
-  
-  NeedsToBeAnAggregation : Exp -> NeedsToBeAnAggregation

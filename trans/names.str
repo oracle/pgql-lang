@@ -17,66 +17,17 @@ signature
     NablNsVar       : Namespace
     NablNsSelectVar : Namespace
     NablNsGroupVar  : Namespace
-    NablNsSchema    : Namespace
 
 
 signature
   constructors
-    NablProp_data : Property
+    
 
 
 rules
 
   nabl-custom-properties(add-properties) =
-    ![NablProp_data()] ; add-properties
-
-  data-is(|ctx__) =
-    nabl-prop-calc(|ctx__, [])
-
-  data-is(|ctx__, dep*) =
-    nabl-prop-calc(|ctx__, dep*)
-
-  data-task(|ctx__) =
-    get-or-create-property-task(|ctx__, NablProp_data())
-
-  data-list(|ctx__) =
-    nabl-prop-list(|ctx__, [])
-
-  data-list(|ctx__, dep*) =
-    nabl-prop-list(|ctx__, dep*)
-
-  data-lookup(|ctx__) =
-    nabl-prop-lookup(|NablProp_data(), ctx__, [])
-
-  data-lookup(|ctx__, dep*) =
-    nabl-prop-lookup(|NablProp_data(), ctx__, dep*)
-
-  data-match(|ctx__, expected) =
-    nabl-prop-match(
-    | NablProp_data()
-    , ctx__
-    , Eq()
-    , expected
-    )
-
-  data-match(|ctx__, relation, expected) =
-    nabl-prop-match(|NablProp_data(), ctx__, relation, expected)
-
-  create-data-task(|ctx__) =
-    fail
-
-  get-data(|) =
-    get-property(|NablProp_data())
-
-  store-data(|ctx__, prop) =
-    nabl-store-prop(
-    | ctx__
-    , Prop(NablProp_data(), prop, [])
-    )
-
-  create-property-task(|ctx__, kind):
-    term -> <create-data-task(|ctx__)> term
-    where NablProp_data() := kind
+    ![] ; add-properties
 
 
 rules
@@ -84,20 +35,12 @@ rules
   nabl-scoping-site =
     ?TopNode(_, _)
     ; nabl-scope(
-      | [ NablNsVar()
-        , NablNsSelectVar()
-        , NablNsGroupVar()
-        , NablNsSchema()
-        ]
+      | [NablNsVar(), NablNsSelectVar(), NablNsGroupVar()]
       )
 
   nabl-get-scope =
     ?TopNode(_, _)
-    ; ![ NablNsVar()
-       , NablNsSelectVar()
-       , NablNsGroupVar()
-       , NablNsSchema()
-       ]
+    ; ![NablNsVar(), NablNsSelectVar(), NablNsGroupVar()]
 
   nabl-get-name :
     Node(n) -> n
@@ -462,43 +405,3 @@ rules
         )
       |
       )
-
-  nabl-scoping-site =
-    ?ExistsFunc(_)
-    ; nabl-scope(
-      | [NablNsVar(), NablNsSelectVar(), NablNsGroupVar()]
-      )
-
-  nabl-get-scope =
-    ?ExistsFunc(_)
-    ; ![NablNsVar(), NablNsSelectVar(), NablNsGroupVar()]
-
-  nabl-def-site(child-uris__, sibl-uris__, implicits__|lang__, ctx__, uniques__, uri__, states__) =
-    ?m@Schema(_, _)
-    ; where(i-1__ := <nabl-def(
-                        ?c-uri1__
-                      , ?s-uri1__
-                      | lang__
-                      , ctx__
-                      , uniques__
-                      , uri__
-                      , uri__
-                      , NablNsSchema()
-                      , NonUnique()
-                      , Current()
-                      , []
-                      , []
-                      )> "schema")
-    ; match(child-uris__|c-uri1__)
-    ; match(sibl-uris__|s-uri1__)
-    ; match(implicits__|[i-1__])
-
-  nabl-prop-site(|lang__, ctx__, uris__, states__, implicits__) =
-    ?m@Schema(_, _)
-    ; (where([i-1__] := implicits__)
-       ; where(id)
-       ; where(<nabl-store-props(
-                | ctx__
-                , [Prop(NablProp_data(), m, [])]
-                )> i-1__))
-    ; fail

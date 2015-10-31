@@ -18,32 +18,19 @@ rules
   
 rules
 
-  // if there is a GROUP BY then all variables in the SELECT need to be group keys or need to be inside aggregates
+  // if there is a GROUP BY or aggregation in SELECT then all variables in the SELECT need to be group keys or need to be inside aggregates
   transForNaBL-grouping:
     Query(fromClause, graphPattern, matchOrderHint, Select(distinctOrReduced, expAsVars, groupBy, having, orderBy, limitOffsets)) ->
     Query(fromClause, graphPattern, matchOrderHint, Select(distinctOrReduced, expAsVars', groupBy', having, orderBy', limitOffsets))
     where
-      !groupBy; ?Some(_)
+      (!groupBy; ?Some(_)) + (!expAsVars; oncetd(is-aggregate))
     with
       expAsVars' := <to-varOrGroupRefs> expAsVars;
       orderBy' := <to-groupRefs> orderBy;
       groupBy' := <to-groupDefs> groupBy
 
-  // no GROUP BY but aggregations in SELECT
-  transForNaBL-grouping:
-    Query(fromClause, graphPattern, matchOrderHint, Select(distinctOrReduced, expAsVars, groupBy, having, orderBy, limitOffsets)) ->
-    Query(fromClause, graphPattern, matchOrderHint, Select(distinctOrReduced, expAsVars', groupBy, having, orderBy', limitOffsets))
-    where
-      !groupBy; ?None(); !expAsVars; oncetd(is-aggregate)
-    with
-      expAsVars' := <create-errors-on-non-aggregations> expAsVars;
-      orderBy' := <create-errors-on-non-aggregations> orderBy
-      
   to-varOrGroupRefs = alltd(is-aggregate <+ ?VarRef(<id>); !GroupRef(<id>))
   to-groupRefs = alltd(is-aggregate <+ ?VarRef(<id>); !SelectOrGroupRef(<id>))
-  create-errors-on-non-aggregations = alltd(
-      (?ExpAsVar(_, <id>) + ?OrderByElem(<id>, _));
-      not(is-aggregate); !NeedsToBeAnAggregation(<id>))
   
   to-groupDefs = alltd(to-groupDef)
   to-groupDef = ?ExpAsVar(v, exp); !ExpAsGroupVar(v, exp)
