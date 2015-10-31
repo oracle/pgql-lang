@@ -80,7 +80,7 @@ WHERE
 GROUP BY n.age AS nAge
 ]]
 
-test Duplicate expression in GROUP BY [[
+test Duplicate expression in GROUP BY is fine [[
 SELECT n.name
 WHERE
   n

@@ -26,7 +26,7 @@ test Duplicate edge variable [[
 SELECT *
 WHERE
   () -[e]-> () -[e]-> ()
-]] / Duplicate variable definition /
+]] / Duplicate edge variable /
 
 test Duplicate variable IN SELECT [[
 SELECT n.name AS nName, n.name AS nName
