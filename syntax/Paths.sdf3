@@ -24,7 +24,7 @@ context-free syntax
   Edge.EdgeNoDir = [-[EdgeContents?][PathLengthConstraints?]-] // should we support undirected edges?
   EdgeContents.EdgeContents = <[<ElemContents>]>
   PathLengthConstraints.PathLengthConstraints = <{<PathConstraint>}>
-  PathConstraint.PathLength = <<INTEGER?>..<INTEGER?>>
+  PathConstraint.PathLength = <<PATHLENGTH?>..<PATHLENGTH?>>
   // PathConstraint.Shortest = <<SHORTEST> <Weighted?>>
   // PathConstraint.All = <<ALL><WithInlinedConstraints?>>
   // PathConstraint.Any = <<ANY><WithInlinedConstraints?>>

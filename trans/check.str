@@ -360,10 +360,10 @@ rules
     with
       <generate-error(|ctx, $[Path variables are not supported])> v
 
-  nabl-constraint(|ctx):
-    t@PathLength(_, _) -> <fail>
-    with
-      <generate-error(|ctx, $[Path queries are not supported])> t
+  // nabl-constraint(|ctx):
+  //   t@PathLength(_, _) -> <fail>
+  //   with
+  //     <generate-error(|ctx, $[Path queries are not supported])> t
 
 rules // helper rules
 
