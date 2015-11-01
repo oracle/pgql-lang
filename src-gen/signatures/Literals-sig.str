@@ -36,3 +36,4 @@ signature
      : String -> ECHAR
      : String -> UNQUOTED-STRING
      : String -> CUSTOM-TYPE
+     : String -> PATHLENGTH

@@ -214,8 +214,8 @@ strategies
                                 , [t1__', S(".."), t2__']
                                 )
                               ]
-    with t1__' := <pp-option(pp-one-Z(prettyprint-INTEGER))> t1__
-    with t2__' := <pp-option(pp-one-Z(prettyprint-INTEGER))> t2__
+    with t1__' := <pp-option(pp-one-Z(prettyprint-PATHLENGTH))> t1__
+    with t2__' := <pp-option(pp-one-Z(prettyprint-PATHLENGTH))> t2__
 
   is-PathConstraint =
     ?PathLength(_, _)

@@ -39,10 +39,12 @@ exports
     "\\" [tbnrf\\\"\']                                                             -> ECHAR           
     [a-zA-Z] [a-zA-Z0-9\_]*                                                        -> UNQUOTED-STRING 
     [a-zA-Z] [a-zA-Z0-9\_]*                                                        -> CUSTOM-TYPE     
+    [0-9]+                                                                         -> PATHLENGTH      
 
   lexical restrictions
     INTEGER -/- [0-9\.]
-    DECIMAL -/- [0-9]
+    DECIMAL -/- [0-9\.]
     DOUBLE -/- [0-9]
     UNQUOTED-STRING -/- [a-zA-Z0-9\_]
     CUSTOM-TYPE -/- [a-zA-Z0-9\_]
+    PATHLENGTH -/- [0-9]

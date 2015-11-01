@@ -16,7 +16,7 @@ exports
     "-" EdgeContents? PathLengthConstraints? "-"  -> Edge                  {cons("EdgeNoDir")}
     "[" ElemContents "]"                          -> EdgeContents          {cons("EdgeContents")}
     "{" PathConstraint "}"                        -> PathLengthConstraints {cons("PathLengthConstraints")}
-    INTEGER? ".." INTEGER?                        -> PathConstraint        {cons("PathLength")}
+    PATHLENGTH? ".." PATHLENGTH?                  -> PathConstraint        {cons("PathLength")}
 
   context-free syntax
     CONTENTCOMPLETE -> Path                  {cons("COMPLETION-Path")}

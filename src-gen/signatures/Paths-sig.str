@@ -22,7 +22,7 @@ signature
     EdgeNoDir             : Option(EdgeContents) * Option(PathLengthConstraints) -> Edge
     EdgeContents          : ElemContents -> EdgeContents
     PathLengthConstraints : PathConstraint -> PathLengthConstraints
-    PathLength            : Option(INTEGER) * Option(INTEGER) -> PathConstraint
+    PathLength            : Option(PATHLENGTH) * Option(PATHLENGTH) -> PathConstraint
 
   constructors
     ElemContents  : Option(VARNAME) * Option(Labels) * Option(Ids) * Option(WithInlinedConstraints) -> ElemContents

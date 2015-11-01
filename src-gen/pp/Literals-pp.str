@@ -263,6 +263,9 @@ strategies
   prettyprint-CUSTOM-TYPE =
     ![S(<is-string>)]
 
+  prettyprint-PATHLENGTH =
+    ![S(<is-string>)]
+
   prettyprint-example =
     prettyprint-INTEGER
 
@@ -292,3 +295,6 @@ strategies
 
   prettyprint-example =
     prettyprint-CUSTOM-TYPE
+
+  prettyprint-example =
+    prettyprint-PATHLENGTH

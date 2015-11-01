@@ -32,7 +32,7 @@ completions
   completion template PathLengthConstraints : "{PathConstraint}" =
     "{" <PathConstraint:PathConstraint> "}"  
   completion template PathConstraint : ".." =
-    <:INTEGER> ".." <:INTEGER>  
+    <:PATHLENGTH> ".." <:PATHLENGTH>  
 
 completions
   completion template ElemContents : "" =
