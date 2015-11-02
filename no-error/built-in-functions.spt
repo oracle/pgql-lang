@@ -2,18 +2,39 @@ module group-by
 
 language PGQL
 
-test id() [[
-SELECT x.id() WHERE (x WITH id() < 3)
+test id() 1 [[
+SELECT x.id() WHERE (x WITH id() < 4)
+]]
+
+test id() 2 [[
+SELECT x.id() WHERE (x@3)
 ]]
 
 test inDegree() [[
-SELECT x.inDegree() WHERE (x WITH inDegree() > 3)
+SELECT x.name, x.inDegree() WHERE (x WITH inDegree() = 2)
 ]]
 
 test outDegree() [[
-SELECT x.outDegree() WHERE (x WITH outDegree() > 3)
+SELECT x.name, x.outDegree() WHERE (x WITH outDegree() = 2)
 ]]
 
 test has(prop1, prop2, ...) [[
-SELECT x.name, x.age WHERE (x WITH has(name, age))
+SELECT x.name, x.age, x.has('name'), x.has('not-exists')
+WHERE (x WITH name = 'Mary', has('age', 'salary'))
 ]]
+
+test inDegree() on edge 1 [[
+SELECT e.inDegree() WHERE x -[e]-> y
+]] // returns null for each row
+
+test inDegree() on edge 2 [[
+SELECT x WHERE x -[e WITH inDegree() > 3]-> y
+]] // returns zero results
+
+test has(prop1, prop2, ...) with double quoted and unquoted property names [[
+SELECT x.name, x.age, x.salary WHERE (x WITH name = 'Mary', has("age", salary))
+]]
+
+test has(prop1, prop2, ...) with property that doesn't exsits [[
+SELECT x.name, x.age, x.salary WHERE (x WITH name = 'Mary', has('prop-not-exists'))
+]] // return zero results
