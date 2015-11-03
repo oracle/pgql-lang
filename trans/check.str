@@ -354,7 +354,8 @@ rules
     t@Regex(_, _) -> <fail>
     with
       <generate-error(|ctx, $[Regular expression matching is not supported])> t
-      
+
+/*
   nabl-constraint(|ctx):
     PathDecl(v, _, _, _) -> <fail>
     with
@@ -369,6 +370,7 @@ rules
     t@Label(_) -> <fail>
     with
       <generate-error(|ctx, $[Labels are not supported])> t
+*/
 
 rules // helper rules
 
