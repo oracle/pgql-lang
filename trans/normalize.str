@@ -319,4 +319,5 @@ rules
 
   norm-case-insensitive: And2(a, b) -> And(a, b)
   norm-case-insensitive: And3(a, b) -> And(a, b)  
-
+  norm-case-insensitive: Or2(a, b) -> Or(a, b)
+  norm-case-insensitive: Or3(a, b) -> Or(a, b)
