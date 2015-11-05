@@ -1,7 +1,0 @@
-MATCH
-  p := (person1@1) -[:KNOWS]{allShortest()}-> (person2@2)
-  { MATCH EXPAND (e : p.edges()) (@e.dst())<-[:HAS_CREATOR]-(:Comment)-[:REPLY_OF]->(:Post)-[:HAS_CREATOR]->(@e.src()) SELECT c1 := COUNT(*) }
-  { MATCH EXPAND (e : p.edges()) (@e.src())<-[:HAS_CREATOR]-(:Comment)-[:REPLY_OF]->(:Post)-[:HAS_CREATOR]->(@e.dst()) SELECT c2 := COUNT(*) }
-  { MATCH EXPAND (e : p.edges()) (@e.dst())-[:HAS_CREATOR]-(:Comment)-[:REPLY_OF]-(:Comment)-[:HAS_CREATOR]-(@e.src()) SELECT c3 := COUNT(*) }
-SELECT p, weight := SUM(c1 + c2 + c3*0.5)
-ORDER BY DESC(weight)

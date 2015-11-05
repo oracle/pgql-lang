@@ -1,5 +1,0 @@
-in frappe
-match
-  p := (:function with name = 'decompress_kernel') -[:calls]{1..}-> f -[:calls with w.use_end_line < head().use_start_line]{..}-> (:function with name = 'scroll')
-  f -[w:writes]-> (:global with name = 'malloc_ptr')
-select p

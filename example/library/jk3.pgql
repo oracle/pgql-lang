@@ -1,4 +1,0 @@
-in libraryGraph
-match
-  (b:Book with publicationDate >= 01/01/2015)
-select b.title

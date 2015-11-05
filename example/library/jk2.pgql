@@ -1,5 +1,0 @@
-in libraryGraph
-match
-  (a:Author) -[:authorOf]-> (b:Book with publicationDate >= 01/01/2015)
-  not exists { a -[:authorOf]-> (:Book with publicationDate < 01/01/2000) }
-select a.name, b.title
