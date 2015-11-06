@@ -12,85 +12,6 @@ imports
   lib/runtime/types/-
   lib/runtime/properties/-
   names  
-
-rules // cross-constraints involving paths
-  
-  nabl-constraint(|ctx):
-    Constraints(constraints) -> <fail>
-    where
-      <map(try(constraints-check(|ctx)))> constraints
-      
-  constraints-check(|ctx):
-    constraint -> <fail>
-    where
-      varRefs := <collect-om(?VarRef(_))> constraint;
-      <gt> (<length> varRefs, 1);
-      <alltd(cross-constraints-paths(|ctx))> constraint
-  
-  cross-constraints-paths(|ctx):
-    PropRef(VarRef(v), _) -> <fail>
-    where
-      var-is-path := <var-is-path(|ctx)> v;
-      <task-create-error-on-success(|ctx, var-is-path, $[Cross-constraints involving path variables not supported])> v
-
-  var-is-edge(|ctx) = var-is-type(|ctx, "VarIsEdge")
-  var-is-node(|ctx) = var-is-type(|ctx, "VarIsNode")
-  var-is-path(|ctx) = var-is-type(|ctx, "VarIsPath")
-
-  var-is-type(|ctx, type):
-    v -> rewrite-task1
-    where
-      v-resolve-task := <nabl-create-collectdefs(|ctx)> v;
-      v-prop-task    := <prop-create-lookup(|ctx, Type())> v-resolve-task;
-      rewrite-task1  := <task-create-rewrite(|ctx, type)> v-prop-task
-
-rules // subqueries
-  
-  nabl-constraint(|ctx):
-    SubQueries(queries)  -> <fail>
-    where
-      <map(subquery-limitiation(|ctx))> queries
-      
-  subquery-limitiation(|ctx):
-    e@Query(_, _, _, _) -> <id>
-    where
-      <generate-error(|ctx, $[Subqueries are not supported])> e
-
-rules // (NOT) EXISTS limitations
-  
-  constraints-check(|ctx):
-    e@ExistsFunc(_) -> <fail>
-    where
-      <generate-error(|ctx,$[(NOT) EXISTS is not supported])> e
-  
-rules // DISTINCT limitation
-  
-  nabl-constraint(|ctx):
-    e@Distinct() -> <fail>
-    with
-      <generate-error(|ctx, $[DISTINCT is not supported])> e
-
-rules // Unsupported functions
-  
-  nabl-constraint(|ctx):
-    t -> <fail>
-    where
-      <?Src(_) + ?Dst(_)
-       + ?Nodes(_) + ?Edges(_) + ?Length(_)
-       + ?Head(_) + ?Last(_) + ?Init(_) + ?Tail(_)
-       + ?Contains(_, _, _) + ?BeginsWith(_, _, _) + ?EndsWith(_, _, _)
-       + ?Year(_) + ?Month(_) + ?Day(_) + ?Hours(_) + ?Minutes(_) + ?Seconds(_) + ?Timezone(_)
-       + ?Case(_, _, _)
-      > t;
-      funcName := <get-constructor> t;
-      <generate-error(|ctx, $[No such function: '[funcName]'])> t
-
-rules // data types
-  
-  nabl-constraint(|ctx):
-    LitCustomType(_, type) -> <fail>
-    with
-      <generate-error(|ctx, $[Custom data types are not supported])> type
   
 rules // Unresolved/duplicate variables
   
@@ -209,7 +130,7 @@ signature constructors
   CrossReferenceInInlinedConstraint : CrossReferenceInInlinedConstraint
 
 rules // future PGQL versions
-
+  
   nabl-constraint(|ctx):
     t@Regex(_, _) -> <fail>
     with
@@ -232,7 +153,76 @@ rules // future PGQL versions
       <generate-error(|ctx, $[Labels are not supported])> t
 */
 
+  nabl-constraint(|ctx):
+    SubQueries(queries)  -> <fail>
+    where
+      <map(subquery-limitiation(|ctx))> queries
+      
+  subquery-limitiation(|ctx):
+    e@Query(_, _, _, _) -> <id>
+    where
+      <generate-error(|ctx, $[Subqueries are not supported])> e
+
+  constraints-check(|ctx):
+    e@ExistsFunc(_) -> <fail>
+    where
+      <generate-error(|ctx,$[(NOT) EXISTS is not supported])> e
+  
+  nabl-constraint(|ctx):
+    e@Distinct() -> <fail>
+    with
+      <generate-error(|ctx, $[DISTINCT is not supported])> e
+
+  nabl-constraint(|ctx):
+    t -> <fail>
+    where
+      <?Src(_) + ?Dst(_)
+       + ?Nodes(_) + ?Edges(_) + ?Length(_)
+       + ?Head(_) + ?Last(_) + ?Init(_) + ?Tail(_)
+       + ?Contains(_, _, _) + ?BeginsWith(_, _, _) + ?EndsWith(_, _, _)
+       + ?Year(_) + ?Month(_) + ?Day(_) + ?Hours(_) + ?Minutes(_) + ?Seconds(_) + ?Timezone(_)
+       + ?Case(_, _, _)
+      > t;
+      funcName := <get-constructor> t;
+      <generate-error(|ctx, $[No such function: '[funcName]'])> t
+
+  nabl-constraint(|ctx):
+    LitCustomType(_, type) -> <fail>
+    with
+      <generate-error(|ctx, $[Custom data types are not supported])> type
+      
 rules // Oracle PGX specific (TODO: remove this from the project)
+
+rules // cross-constraints involving paths
+  
+  nabl-constraint(|ctx):
+    Constraints(constraints) -> <fail>
+    where
+      <map(try(constraints-check(|ctx)))> constraints
+      
+  constraints-check(|ctx):
+    constraint -> <fail>
+    where
+      varRefs := <collect-om(?VarRef(_))> constraint;
+      <gt> (<length> varRefs, 1);
+      <alltd(cross-constraints-paths(|ctx))> constraint
+  
+  cross-constraints-paths(|ctx):
+    PropRef(VarRef(v), _) -> <fail>
+    where
+      var-is-path := <var-is-path(|ctx)> v;
+      <task-create-error-on-success(|ctx, var-is-path, $[Cross-constraints involving path variables not supported])> v
+
+  var-is-edge(|ctx) = var-is-type(|ctx, "VarIsEdge")
+  var-is-node(|ctx) = var-is-type(|ctx, "VarIsNode")
+  var-is-path(|ctx) = var-is-type(|ctx, "VarIsPath")
+
+  var-is-type(|ctx, type):
+    v -> rewrite-task1
+    where
+      v-resolve-task := <nabl-create-collectdefs(|ctx)> v;
+      v-prop-task    := <prop-create-lookup(|ctx, Type())> v-resolve-task;
+      rewrite-task1  := <task-create-rewrite(|ctx, type)> v-prop-task
 
 rules // Not a connected graph, e.g. WHERE x -> y, x2 -> y2
   

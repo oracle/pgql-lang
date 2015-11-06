@@ -28,9 +28,9 @@ rules // Analysis
   editor-analyze = analysis-default-editor
   
   analysis-single-default-interface =
-    analysis-single-default(normalize-pgql, id, id|<language>)
+    analysis-single-default(normalize-for-error-checking, id, id|<language>)
   analysis-multiple-default-interface =
-    analysis-multiple-default(sunshine-parse-file <+ !(), normalize-pgql, id, id|<language>, <project-path>)
+    analysis-multiple-default(sunshine-parse-file <+ !(), normalize-for-error-checking, id, id|<language>, <project-path>)
   
   sunshine-parse-file = prim("SSL_EXT_parse_file")
   
@@ -41,7 +41,9 @@ rules // Analysis
   
 rules
 
-  normalize-pgql = try(normalize); transForNaBL
+  normalize = normalize-before; normalize-after
+
+  normalize-for-error-checking = try(normalize-before); transForNaBL
 
 rules // Menu actions
 
@@ -55,7 +57,7 @@ rules // Menu actions
     (_, _, ast, path, project-path) -> (filename, result)
     with
       filename := <guarantee-extension(|"nabl.aterm")> path;
-      result   := <normalize-pgql> ast
+      result   := <normalize-for-error-checking> ast
 
   pretty-print-builder:
     (_, _, ast, path, project-path) -> (filename, result)
