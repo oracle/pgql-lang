@@ -2,9 +2,9 @@ module syntax
 
 language PGQL
 
-test Offset no limit [[
+test Limit [[
 SELECT n.name
 WHERE n
-ORDER BY n.age
-OFFSET 4
+ORDER BY n.name
+LIMIT 1
 ]]
