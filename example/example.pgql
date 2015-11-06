@@ -1,6 +1,6 @@
-SELECT m.name, m.age
+SELECT person.name, person.age
 WHERE
-  (n WITH name = 'Carl') -[e WITH label = 'likes']-> (m),
-  n.age > m.age + 2
-ORDER BY m.name
-
+  (m WITH name = 'Mario') -[WITH label = 'likes']-> (person),
+  (l WITH name = 'Luigi') -[WITH label = 'likes']-> (person),
+  person.age < m.age - 2
+ORDER BY person.name
