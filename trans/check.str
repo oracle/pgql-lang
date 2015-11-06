@@ -210,11 +210,6 @@ signature constructors
 
 rules // future PGQL versions
 
-    nabl-constraint(|ctx):
-      t@OffsetClause(_) -> <fail>
-      with
-      <generate-error(|ctx, $[OFFSET clause is not supported])> t
-
   nabl-constraint(|ctx):
     t@Regex(_, _) -> <fail>
     with
