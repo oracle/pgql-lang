@@ -8,7 +8,7 @@ WhErE
   n, TrUe Or FaLsE And NuLl
 gRoUp By n.name
 OrDeR bY AvG(n.age)
-lImIt 10
+lImIt 1
 ]]
 
 test Edges [[
