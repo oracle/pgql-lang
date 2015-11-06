@@ -1,4 +1,0 @@
-in libraryGraph
-match
-  p := (:function with name = 'decompress_kernel') -[:calls]->..> (:function with name = 'malloc')
-select p

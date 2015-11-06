@@ -1,8 +1,0 @@
-MATCH
-  (:Person@12345)-[:KNOWS]-> (friend:Person)
-  friend <-[:HAS_CREATOR]- (post:Post WITH ~creationDate.between('2012-01-01'^^date, '2012-02-01'^^date)) -[:HAS_TAG]-> (tag:Tag)
-  NOT EXISTS { (tag) <-[:HAS_TAG]-(oldPost:Post WITH ~creationDate < '2012-01-01'^^date) }
-SELECT tag.name, COUNT(post)
-GROUP BY tag.name
-ORDER BY DESC(COUNT(post)), ASC(tag.name)
-LIMIT 10

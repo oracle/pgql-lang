@@ -8,9 +8,7 @@ Language implementation:
  - Editor services: editor/*.esv
  
 Other:
- - Examples: example/**/.pgql
- - Tests: test/*.spt
- - Schema used for examples and tests: trans/example-schema.str
+ - Examples: example/*.pgql
 
 =========================================
 Notes about the grammar
@@ -25,17 +23,17 @@ Notes about the AST normalizer
 =========================================
 This is what is does (by example): for the following two 'equivalent' queries, it rewrites their ASTs (which have a completely different structure) into the same "normalized" AST (ASTs not shown here):
 
-MATCH
+SELECT *
+WHERE
   x@8374 -[e1 WITH prop1 > 3]-> y
   y -[e2]-> (z:Function)
-SELECT *
 
-MATCH
+SELECT *
+WHERE
   z <-[e2]- y <-[e1]- x
   e1.prop1 > 3
   z.type = Function
   x.id = 8374
-SELECT *
 
 =========================================
 Viewing the AST and the normalized AST
@@ -51,10 +49,9 @@ Setting things up
 Summary: Install Spoofax, import the project and build it.
 
 Spoofax installation:
- - for installation instructions, see http://metaborg.org/download/.
- - use the following update site URL: http://metaborg.org/spoofax/spoofax-1-4-0/.
-   currently this points to the same download as http://download.spoofax.org/update/stable/, but this may change in the future. 
- - don't forget to fix eclipse.ini.
+ - for installation instructions, see http://metaborg.org/download/
+ - use the following update site URL: http://download.spoofax.org/update/stable/
+ - don't forget to fix eclipse.ini
 
 Importing the project:
  - File>Import...>General>Existing Projects Into Workspace
@@ -65,8 +62,4 @@ Building the project:
 =========================================
 Notes about Spoofax version
 =========================================
-The project is based on Spoofax 1.4, which is much less stable and less fast than the new alpha1 release that has been built from the ground up: http://metaborg.org/spoofax/new-spoofax-plugin-alpha1-release/
-However, we will stick with this version until the new version supports:
- - SPT testing
- - editor service: reference resolution
- - editor service: content completion
+The project is based on Spoofax 1.4.1. A new version of Spoofax with many improvements is in beta stage, but we'll stick with 1.4.1 until the new Spoofax supports SPT testing.

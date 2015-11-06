@@ -22,7 +22,6 @@ imports
   common
   sig-nabl
   trans-for-nabl
-  example-schema
 
 rules // Analysis
   
@@ -41,15 +40,9 @@ rules // Analysis
   resugar = fail
   
 rules
-  
-  // invoked by PGX engine
-  normalize-pgql =
-    ?TopNode(normalizedAst, schema); !TopNode(normalizedAst, <try(is-string; read-from-string)> schema); transForNaBL
 
-  // invoked by Spoofax editor
-  normalize-pgql = 
-    not(?TopNode(_, _)); try(normalize); !TopNode(<id>, <example-schema>); transForNaBL
-    
+  normalize-pgql = try(normalize); transForNaBL
+
 rules // Menu actions
 
   normalize-builder:
