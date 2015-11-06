@@ -11,53 +11,7 @@ imports
   lib/runtime/task/-
   lib/runtime/types/-
   lib/runtime/properties/-
-  names
-
-// rules // We no longer check for schema-consistency since we do dynamic typing. I commented out this code in case we want to bring it back sometime.
-//   
-//   /**
-//   * Error for undefined node property.
-//   */
-//   nabl-constraint(|lang, ctx, uri*):
-//     PropRef(varRef, p) -> <fail>
-//     where
-//       <?VarRef(v) + ?GroupRef(v) + ?SelectOrGroupRef(v)> varRef;
-//       v-resolve-task := <nabl-create-collectdefs(|ctx)> v;
-//       v-prop-task    := <prop-create-lookup(|ctx, Type())> v-resolve-task;
-//       m-resolve-task := <nabl-use-candidate(|lang, ctx, uri*, "schema")> UseCandidate(NablNsSchema(), [], Current(), False(), []);
-//       m-prop-task    := <prop-create-lookup(|ctx, NablProp_data())> m-resolve-task;
-//       rewrite-task1 := <task-create-rewrite(|ctx, "VarIsNode")> v-prop-task;
-//       rewrite-task2 := <task-create-rewrite(|ctx, "NodePropExists")> (m-prop-task, p);
-//       <task-create-error-on-failure(|ctx, rewrite-task2, [v-resolve-task, v-prop-task, rewrite-task1], $[Node property '[p]' does not exist])> p
-// 
-//   /**
-//   * Error for undefined edge property.
-//   */  
-//   nabl-constraint(|lang, ctx, uri*):
-//     PropRef(varRef, p) -> <fail>
-//     where
-//       <?VarRef(v) + ?GroupRef(v) + ?SelectOrGroupRef(v)> varRef;
-//       v-resolve-task := <nabl-create-collectdefs(|ctx)> v;
-//       v-prop-task    := <prop-create-lookup(|ctx, Type())> v-resolve-task;
-//       m-resolve-task := <nabl-use-candidate(|lang, ctx, uri*, "schema")> UseCandidate(NablNsSchema(), [], Current(), False(), []);
-//       m-prop-task    := <prop-create-lookup(|ctx, NablProp_data())> m-resolve-task;
-//       rewrite-task1 := <task-create-rewrite(|ctx, "VarIsEdge")> v-prop-task;
-//       rewrite-task2 := <task-create-rewrite(|ctx, "EdgePropExists")> (m-prop-task, p);
-//       <task-create-error-on-failure(|ctx, rewrite-task2, [v-resolve-task, v-prop-task, rewrite-task1], $[Edge property '[p]' does not exist])> p
-// 
-//   task-rewrite: ("VarIsNode", NodeTy()) -> <id>
-//   task-rewrite: ("VarIsEdge", EdgeTy()) -> <id>
-//   task-rewrite: ("VarIsPath", PathTy()) -> <id>
-//       
-//   task-rewrite:
-//     ("NodePropExists", (Schema(nprops, _), p)) -> <id> 
-//     where
-//       <strip-annos; fetch-elem(?NodeProp(p, _))> nprops
-//     
-//   task-rewrite:
-//     ("EdgePropExists", (Schema(_, eprops), p)) -> <id>
-//     where
-//       <strip-annos; fetch-elem(?EdgeProp(p, _))> eprops      
+  names  
 
 rules // cross-constraints involving paths
   
@@ -108,45 +62,6 @@ rules // (NOT) EXISTS limitations
     e@ExistsFunc(_) -> <fail>
     where
       <generate-error(|ctx,$[(NOT) EXISTS is not supported])> e
-
-/*
-  The following checks are for our C++ backend. I commented them out because they are not relevant for our Java backend.
-
-  constraints-check(|ctx):
-    constraint -> <fail>
-    where
-      not ( ?ExistsFunc(_) + ?Not(ExistsFunc(_)));
-      oncetd(?e@ExistsFunc(_));
-      failtask := <task-create-fail(|ctx)>;
-      <task-create-error-on-failure(|ctx, failtask, "PGX 1.0 currently only supports top-level NOT EXISTS; the NOT EXISTS may not appear as part of a more complex expression")> e
-      
-  constraints-check(|ctx):
-    e@Not(ExistsFunc(GraphPattern(_, Edges(edges), _, _, _, _, _, _))) -> <fail>
-    where
-      <gt> (<length> edges, 1);
-      failtask := <task-create-fail(|ctx)>;
-      <task-create-error-on-failure(|ctx, failtask, "PGX 1.0 currently only supports NOT EXISTS patterns with at most one edge")> e
-
-  nabl-constraint(|ctx):
-    Constraints(constraints) -> <fail>
-    where
-      notExists := <filter(?Not(ExistsFunc(_)))> constraints;
-      <gt> (<length> notExists, 1);
-      <Tl; map(task-create-error-on-failure(|ctx, <task-create-fail(|ctx)>, "PGX 1.0 currently only handles queries with at most one NOT EXISTS patterns"))> notExists
-
-  nabl-constraint(|ctx):
-    GraphPattern(Nodes(nodes), _, Constraints(constraints), _, _, _, _, _) -> <fail>
-    where
-      notExists := <filter(?Not(ExistsFunc(_)))> constraints;
-      map(try(notExists-shares-variable-check(|ctx, nodes)))
-
-  notExists-shares-variable-check(|ctx, nodesOuterScope):
-    e@Not(ExistsFunc(GraphPattern(Nodes(nodes), _, _, _, _, _, _, _))) -> <fail>
-    where
-      not ( [] := <isect> (nodesOuterScope, nodes) );
-      failtask := <task-create-fail(|ctx)>;
-      <task-create-error-on-failure(|ctx, failtask, "PGX 1.0 does not support NOT EXISTS patterns that have no node variable in commont with the outer scope")> e
-  */
   
 rules // DISTINCT limitation
   
@@ -169,6 +84,153 @@ rules // Unsupported functions
       > t;
       funcName := <get-constructor> t;
       <generate-error(|ctx, $[No such function: '[funcName]'])> t
+
+rules // data types
+  
+  nabl-constraint(|ctx):
+    LitCustomType(_, type) -> <fail>
+    with
+      <generate-error(|ctx, $[Custom data types are not supported])> type
+  
+rules // Unresolved/duplicate variables
+  
+  nabl-check-disable-unresolved = id
+  nabl-check-disable-duplicate(|uri, ns) = id
+    
+  nabl-constraint(|ctx):
+    VarRef(v) -> <fail>
+    where
+    	<generate-error-on-unresolved(|ctx, "Unresolved variable")> v
+      
+  nabl-constraint(|ctx):
+    expAsVar -> <fail>
+    where
+      <?ExpAsVar(v, _) + ?ExpAsGroupVar(v, _)> expAsVar;
+      <generate-error-on-duplicate(|ctx, NablNsVar(), "Duplicate variable definition")> v
+
+  nabl-constraint(|ctx):
+    Edge(_, e, _, _) -> <fail>
+    where
+      <generate-error-on-duplicate(|ctx, NablNsVar(), "Duplicate edge variable")> e
+
+rules // in-lined constraints
+  
+  nabl-constraint(|ctx):
+    ReferenceInInlinedConstraint(v) -> <fail>
+    with
+      <generate-error(|ctx, $['[v]' should be omitted here])> v
+  
+  nabl-constraint(|ctx):
+    t@CrossReferenceInInlinedConstraint() -> <fail>
+    with
+      <generate-error(|ctx, "In-lined constraint may not access other variables")> t
+
+rules
+
+  // expressions in SELECT, ORDER BY need to be simple
+  nabl-constraint(|ctx):
+    t -> <fail>
+    where
+      <?ExpAsVars(_) + ?OrderClause(_)> t
+    with
+      exps := <not-supported-expressions> t;
+      <batch-generate-error(|ctx, "Only simple expressions allowed here: variable, property access, aggregation or function call")> exps;
+      expsInAggr := <not-supported-expressions-in-aggregration> t;
+      <batch-generate-error(|ctx, "Only simple expressions allowed here: variable, property access or function call")> expsInAggr
+
+ // expressions in GROUP BY need to be simple
+  nabl-constraint(|ctx):
+    t@GroupClause(_) -> <fail>
+    with
+      exps := <not-supported-expressions> t;
+      <batch-generate-error(|ctx, "Only simple expressions allowed here: variable, property access or function call")> exps;
+      aggregations := <collect-om(is-aggregate, conc)> t;
+      <batch-generate-error(|ctx, "Aggregation not allowed in GROUP BY")> aggregations
+  
+  not-supported-expressions = collect-om(is-aggregate <+ is-function <+ is-expression <+ is-literal, conc); remove-all(is-aggregate + is-function)
+  not-supported-expressions-in-aggregration = collect-om(is-aggregate, conc); collect-om(is-expression <+ is-literal, conc)
+  
+  nabl-constraint(|ctx):
+    Query(_, _, _, Select(_, Vars(vars), groupClause, _, Some(orderClause), _)) -> <fail>
+    where
+      None() := groupClause;
+      [] := <collect(is-aggregate)> vars // there are no aggregations in the SELECT
+    with
+      aggregations := <collect-om(is-aggregate, conc)> orderClause;
+      <batch-generate-error(|ctx, "Aggregation in ORDER BY only allowed if SELECT constains aggregations, or, in combination with GROUP BY")> aggregations
+
+  nabl-constraint(|ctx):
+    Query(_, _, _, Select(_, Vars(select-exps), group-by, _, order-by, _)) -> <fail>
+    with group-refs := <collect-om(?GroupRef(<id>), conc)> select-exps
+    	 ; select-or-group-refs := <collect-om(?SelectOrGroupRef(<id>), conc)> order-by
+    	 ; if None() := group-by
+    	     then <batch-generate-error-on-unresolved(|ctx, "Aggregation expected here since SELECT has other aggregation")> group-refs // error in SELECT
+    	        ; <batch-generate-error-on-unresolved(|ctx, "Aggregation expected here since SELECT has aggregation")> select-or-group-refs // error in ORDER BY
+    	     else <batch-generate-error-on-unresolved(|ctx, "Non-group key variable in SELECT")> group-refs // error in SELECT
+              ; <batch-generate-error-on-unresolved(|ctx, "Cannot order by non-group key variable: use aggregation")> select-or-group-refs // error in ORDER BY
+    	   end
+
+  nabl-constraint(|ctx):
+    t -> <fail>
+    where
+      <is-aggregate> t
+    with
+      aggrsInAggr := <get-arguments; collect-om(is-aggregate, conc)> t;
+      <batch-generate-error(|ctx, "Nested aggregation is not allowed")> aggrsInAggr  
+
+rules // helper rules
+
+  batch-generate-error(|ctx, m) = map(generate-error(|ctx, m))
+    
+  generate-error(|ctx, m):
+    t -> <id>
+    with
+      failtask := <task-create-fail(|ctx)>;
+      <task-create-error-on-failure(|ctx, failtask, m)> t
+
+  batch-generate-error-on-unresolved(|ctx, m) = map(generate-error-on-unresolved(|ctx, m))
+
+  generate-error-on-unresolved(|ctx, m):
+  	v -> <id>
+  	with
+  	  resolve-task := <nabl-create-collectdefs(|ctx)> v;
+      <task-create-error-on-failure(|ctx, resolve-task, m)> v
+
+  generate-error-on-duplicate(|ctx, namespace, m):
+    v -> <id>
+    with
+      uri := <nabl-uri; nabl-uri-parent> v;
+      resolve-task := <nabl-create-resolvedefs(|ctx, NablNsVar(), v, [])> uri;
+      <task-create-error-on-multiple(|ctx, resolve-task, m)> v
+      
+signature constructors
+  
+  ReferenceInInlinedConstraint : var -> ReferenceInInlinedConstraint
+  CrossReferenceInInlinedConstraint : CrossReferenceInInlinedConstraint
+
+rules // future PGQL versions
+
+  nabl-constraint(|ctx):
+    t@Regex(_, _) -> <fail>
+    with
+      <generate-error(|ctx, $[Regular expression matching is not supported])> t
+      
+  nabl-constraint(|ctx):
+    PathDecl(v, _, _, _) -> <fail>
+    with
+      <generate-error(|ctx, $[Path variables are not supported])> v
+
+  nabl-constraint(|ctx):
+    t@PathLength(_, _) -> <fail>
+    with
+      <generate-error(|ctx, $[Path queries are not supported])> t
+            
+  nabl-constraint(|ctx):
+    t@Label(_) -> <fail>
+    with
+      <generate-error(|ctx, $[Labels are not supported])> t
+
+rules // Oracle PGX specific (TODO: remove this from the project)
 
 rules // Not a connected graph, e.g. WHERE x -> y, x2 -> y2
   
@@ -241,162 +303,3 @@ rules // Not a connected graph, e.g. WHERE x -> y, x2 -> y2
       inNeighbors := <filter(?Edge(<id>, _, node, _))> edges;
       result := <conc> (outNeighbors, inNeighbors, [node])
 
-rules // data types
-  
-  nabl-constraint(|ctx):
-    LitCustomType(_, type) -> <fail>
-    with
-      <generate-error(|ctx, $[Custom data types are not supported])> type
-  
-rules // Unresolved/duplicate variables
-  
-  nabl-check-disable-unresolved = id
-  nabl-check-disable-duplicate(|uri, ns) = id
-    
-  nabl-constraint(|ctx):
-    VarRef(v) -> <fail>
-    where
-    	<generate-error-on-unresolved(|ctx, "Unresolved variable")> v
-      
-  nabl-constraint(|ctx):
-    expAsVar -> <fail>
-    where
-      <?ExpAsVar(v, _) + ?ExpAsGroupVar(v, _)> expAsVar;
-      <generate-error-on-duplicate(|ctx, NablNsVar(), "Duplicate variable definition")> v
-
-  nabl-constraint(|ctx):
-    Edge(_, e, _, _) -> <fail>
-    where
-      <generate-error-on-duplicate(|ctx, NablNsVar(), "Duplicate edge variable")> e
-
-rules
-      
-  // SELECT * in combination with GROUP BY
-  // nabl-constraint(|ctx):
-  //   Query(_, whereClause, _, Select(_, s@Star(), Some(groupClause), _, _, _)) -> <fail>
-  //   with
-  //     vars := <collect(get-name-of-var-def; not(is-substring(GENERATED)))> whereClause;
-  //     groupKeys := <collect(?ExpAsGroupVar(_, VarRef(<id>)))> groupClause
-  //   where
-  //     not ( [] := <strip-annos; diff> (vars, groupKeys) )
-  //   with
-  //     failtask := <task-create-fail(|ctx)>;
-  //     <task-create-error-on-failure(|ctx, failtask, "SELECT * only allowed in combination with GROUP BY if all variables in the WHERE clause are group keys")> s
-
-  get-name-of-var-def = ?Node(<id>) + ?Edge(_, <id>, _, _)
-  
-rules // in-lined constraints
-  
-  nabl-constraint(|ctx):
-    ReferenceInInlinedConstraint(v) -> <fail>
-    with
-      <generate-error(|ctx, $['[v]' should be omitted here])> v
-  
-  nabl-constraint(|ctx):
-    t@CrossReferenceInInlinedConstraint() -> <fail>
-    with
-      <generate-error(|ctx, "In-lined constraint may not access other variables")> t
-
-rules
-
-  // expressions in SELECT, ORDER BY need to be simple
-  nabl-constraint(|ctx):
-    t -> <fail>
-    where
-      <?ExpAsVars(_) + ?OrderClause(_)> t
-    with
-      exps := <not-supported-expressions> t;
-      <batch-generate-error(|ctx, "Only simple expressions allowed here: variable, property access, aggregation or function call")> exps;
-      expsInAggr := <not-supported-expressions-in-aggregration> t;
-      <batch-generate-error(|ctx, "Only simple expressions allowed here: variable, property access or function call")> expsInAggr
-
- // expressions in GROUP BY need to be simple
-  nabl-constraint(|ctx):
-    t@GroupClause(_) -> <fail>
-    with
-      exps := <not-supported-expressions> t;
-      <batch-generate-error(|ctx, "Only simple expressions allowed here: variable, property access or function call")> exps;
-      aggregations := <collect-om(is-aggregate, conc)> t;
-      <batch-generate-error(|ctx, "Aggregation not allowed in GROUP BY")> aggregations
-  
-  not-supported-expressions = collect-om(is-aggregate <+ is-function <+ is-expression <+ is-literal, conc); remove-all(is-aggregate + is-function)
-  not-supported-expressions-in-aggregration = collect-om(is-aggregate, conc); collect-om(is-expression <+ is-literal, conc)
-  
-  nabl-constraint(|ctx):
-    Query(_, _, _, Select(_, Vars(vars), groupClause, _, Some(orderClause), _)) -> <fail>
-    where
-      None() := groupClause;
-      [] := <collect(is-aggregate)> vars // there are no aggregations in the SELECT
-    with
-      aggregations := <collect-om(is-aggregate, conc)> orderClause;
-      <batch-generate-error(|ctx, "Aggregation in ORDER BY only allowed if SELECT constains aggregations, or, in combination with GROUP BY")> aggregations
-
-  nabl-constraint(|ctx):
-    Query(_, _, _, Select(_, Vars(select-exps), group-by, _, order-by, _)) -> <fail>
-    with group-refs := <collect-om(?GroupRef(<id>), conc)> select-exps
-    	 ; select-or-group-refs := <collect-om(?SelectOrGroupRef(<id>), conc)> order-by
-    	 ; if None() := group-by
-    	     then <batch-generate-error-on-unresolved(|ctx, "Aggregation expected here since SELECT has other aggregation")> group-refs // error in SELECT
-    	        ; <batch-generate-error-on-unresolved(|ctx, "Aggregation expected here since SELECT has aggregation")> select-or-group-refs // error in ORDER BY
-    	     else <batch-generate-error-on-unresolved(|ctx, "Non-group key variable in SELECT")> group-refs // error in SELECT
-              ; <batch-generate-error-on-unresolved(|ctx, "Cannot order by non-group key variable: use aggregation")> select-or-group-refs // error in ORDER BY
-    	   end
-
-  nabl-constraint(|ctx):
-    t -> <fail>
-    where
-      <is-aggregate> t
-    with
-      aggrsInAggr := <get-arguments; collect-om(is-aggregate, conc)> t;
-      <batch-generate-error(|ctx, "Nested aggregation is not allowed")> aggrsInAggr  
-  
-  nabl-constraint(|ctx):
-    t@Regex(_, _) -> <fail>
-    with
-      <generate-error(|ctx, $[Regular expression matching is not supported])> t
-      
-  nabl-constraint(|ctx):
-    PathDecl(v, _, _, _) -> <fail>
-    with
-      <generate-error(|ctx, $[Path variables are not supported])> v
-
-  nabl-constraint(|ctx):
-    t@PathLength(_, _) -> <fail>
-    with
-      <generate-error(|ctx, $[Path queries are not supported])> t
-            
-  nabl-constraint(|ctx):
-    t@Label(_) -> <fail>
-    with
-      <generate-error(|ctx, $[Labels are not supported])> t
-
-rules // helper rules
-
-  batch-generate-error(|ctx, m) = map(generate-error(|ctx, m))
-    
-  generate-error(|ctx, m):
-    t -> <id>
-    with
-      failtask := <task-create-fail(|ctx)>;
-      <task-create-error-on-failure(|ctx, failtask, m)> t
-
-  batch-generate-error-on-unresolved(|ctx, m) = map(generate-error-on-unresolved(|ctx, m))
-
-  generate-error-on-unresolved(|ctx, m):
-  	v -> <id>
-  	with
-  	  resolve-task := <nabl-create-collectdefs(|ctx)> v;
-      <task-create-error-on-failure(|ctx, resolve-task, m)> v
-
-  generate-error-on-duplicate(|ctx, namespace, m):
-    v -> <id>
-    with
-      uri := <nabl-uri; nabl-uri-parent> v;
-      resolve-task := <nabl-create-resolvedefs(|ctx, NablNsVar(), v, [])> uri;
-      <task-create-error-on-multiple(|ctx, resolve-task, m)> v
-      
-signature constructors
-  
-  ReferenceInInlinedConstraint : var -> ReferenceInInlinedConstraint
-  CrossReferenceInInlinedConstraint : CrossReferenceInInlinedConstraint
-  

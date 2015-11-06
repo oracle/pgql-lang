@@ -11,12 +11,6 @@ namespaces
   Var       // var defined in WHERE
   SelectVar // var defined in SELECT
   GroupVar  // var defined in GROUP BY
-
-  // Schema
-
-// properties
-//  
-//   data of Schema: t
   
 binding rules
 
@@ -54,9 +48,3 @@ binding rules
     
   NodeVarRef(n):
     refers to Var n of type NodeTy()
-
-  // ExistsFunc(_):
-  //   scopes Var, SelectVar, GroupVar
- 
-  // m@Schema(_, _):
-  //   implicitly defines non-unique Schema "schema" of data m
