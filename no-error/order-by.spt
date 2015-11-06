@@ -2,18 +2,18 @@ module order-by
 
 language PGQL
 
-test Order by nodes/edges [[
-SELECT *
+test Order by node edge [[
+SELECT n.name, e.label, m.name
 WHERE
   n -[e]-> m
-ORDER BY n, e, m
+ORDER BY n, e
 ]]
 
-test Order by node/edge IDs [[
+test Order by node ID edge ID [[
 SELECT *
 WHERE
   n -[e]-> m
-ORDER BY n, e, m
+ORDER BY n.id(), e.id()
 ]]
 
 test Order by property [[
@@ -23,14 +23,21 @@ WHERE
 ORDER BY n.age
 ]]
 
-test Order by select key [[
+test Order by select key 1 [[
 SELECT n.name AS nName
 WHERE
   n -[e]-> m
 ORDER BY nName
 ]]
 
-test Order by group key [[
+test Order by select key 2 [[
+SELECT n.name AS nName
+WHERE
+  n -[e]-> m
+ORDER BY n.name
+]]
+
+test Order by group key 1 [[
 SELECT COUNT(*)
 WHERE
   n -[e]-> m
@@ -38,32 +45,72 @@ GROUP BY n.age AS nAge
 ORDER BY nAge
 ]]
 
-test Order by aggregation 1 [[
+test Order by group key 2 [[
+SELECT COUNT(*)
+WHERE
+  n -[e]-> m
+GROUP BY n.age
+ORDER BY n.age
+]]
+
+test Order by aggregation from SELECT 1 [[
 SELECT AVG(n.age) AS avgAge
 WHERE
   n
 ORDER BY avgAge
 ]]
 
-test Order by aggregation 2 [[
+test Order by aggregation from SELECT 2 [[
 SELECT AVG(n.age)
 WHERE
   n
 ORDER BY AVG(n.age)
 ]]
 
-test Order by aggregation 3 [[
+test Order by aggregation from SELECT 3 [[
+SELECT AVG(n.age) AS avgAge
+WHERE
+  n
+GROUP BY n.name
+ORDER BY avgAge
+]]
+
+test Order by aggregation from SELECT 4 [[
+SELECT AVG(n.age)
+WHERE
+  n
+GROUP BY n.name
+ORDER BY AVG(n.age)
+]]
+
+test Order by aggregation not in SELECT 1 [[
 SELECT AVG(n.age)
 WHERE
   n
 ORDER BY COUNT(*)
 ]]
 
-test Order by aggregation 4 [[
+test Order by aggregation not in SELECT 2 [[
 SELECT COUNT(*)
 WHERE
   n
 ORDER BY AVG(n.age)
+]]
+
+test Order by aggregation not in SELECT 3 [[
+SELECT COUNT(*)
+WHERE
+  n
+GROUP BY n.age
+ORDER BY AVG(n.salary)
+]]
+
+test Order by aggregation not in SELECT 4 [[
+SELECT AVG(n.salary)
+WHERE
+  n
+GROUP BY n.age
+ORDER BY COUNT(*)
 ]]
 
 test Duplicate expression in ORDER BY is fine [[

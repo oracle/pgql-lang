@@ -1,0 +1,10 @@
+module syntax
+
+language PGQL
+
+test Offset no limit [[
+SELECT n.name
+WHERE n
+ORDER BY n.age
+OFFSET 4
+]]
