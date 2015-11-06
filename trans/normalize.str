@@ -268,7 +268,7 @@ rules
 
 rules // normalization after error checking
   
-  normalize-after = oncetd(norm-order-by-aggr-in-select-no-groupBy)
+  normalize-after = alltd(norm-order-by-aggr-in-select-no-groupBy)
 
   norm-order-by-aggr-in-select-no-groupBy:
   	Select(distinct, select, groupBy, having, orderByElems, limitOffsets) ->
