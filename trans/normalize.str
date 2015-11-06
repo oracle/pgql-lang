@@ -18,7 +18,7 @@ imports
   
 rules
   
-  normalize:
+  normalize-before:
     ast -> result
     with
       c := <new-counter>;
@@ -265,7 +265,18 @@ rules
   norm-limitOffsets = ?None(); !LimitOffsetClauses(None(), None())
   norm-limitOffsets = ?Some(LimitOffsetClauses(limitClause, offsetClause)); !LimitOffsetClauses(Some(limitClause), offsetClause)
   norm-limitOffsets = ?Some(OffsetLimitClauses(offsetClause, limitClause)); !LimitOffsetClauses(limitClause, Some(offsetClause))
+
+rules // normalization after error checking
   
+  normalize-after = oncetd(norm-order-by-aggr-in-select-no-groupBy)
+
+  norm-order-by-aggr-in-select-no-groupBy:
+  	Select(distinct, select, groupBy, having, orderByElems, limitOffsets) ->
+    Select(distinct, select, groupBy, having, None(), limitOffsets)
+    where
+    	None() := groupBy;
+    	<oncetd(is-aggregate)> select
+
 /*
  * Code below is only temporary until the next verion of Spoofax is released that supports case-insensitive keywords.
  */
