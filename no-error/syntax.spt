@@ -9,7 +9,6 @@ WhErE
 gRoUp By n.name
 OrDeR bY AvG(n.age)
 lImIt 10
-OfFsEt 5
 ]]
 
 test Edges [[

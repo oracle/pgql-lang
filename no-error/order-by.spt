@@ -6,14 +6,14 @@ test Order by node edge [[
 SELECT n.name, e.label, m.name
 WHERE
   n -[e]-> m
-ORDER BY n, e
+ORDER BY n, e, m
 ]]
 
 test Order by node ID edge ID [[
-SELECT *
+SELECT n.name, e.label, m.name
 WHERE
   n -[e]-> m
-ORDER BY n.id(), e.id()
+ORDER BY n.id(), e.id(), m.id()
 ]]
 
 test Order by property [[
