@@ -23,6 +23,7 @@ signature
     EdgeContents          : ElemContents -> EdgeContents
     PathLengthConstraints : PathConstraint -> PathLengthConstraints
     PathLength            : Option(PATHLENGTH) * Option(PATHLENGTH) -> PathConstraint
+    Shortest              : SHORTEST -> PathConstraint
 
   constructors
     ElemContents  : Option(VARNAME) * Option(Labels) * Option(Ids) * Option(WithInlinedConstraints) -> ElemContents
