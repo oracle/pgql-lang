@@ -25,7 +25,7 @@ context-free syntax
   EdgeContents.EdgeContents = <[<ElemContents>]>
   PathLengthConstraints.PathLengthConstraints = <{<PathConstraint>}>
   PathConstraint.PathLength = <<PATHLENGTH?>..<PATHLENGTH?>>
-  // PathConstraint.Shortest = <<SHORTEST> <Weighted?>>
+  PathConstraint.Shortest = SHORTEST
   // PathConstraint.All = <<ALL><WithInlinedConstraints?>>
   // PathConstraint.Any = <<ANY><WithInlinedConstraints?>>
   // PathConstraint.AllShortest = <<ALL> <SHORTEST><Weighted?><WithInlinedConstraints?>>
