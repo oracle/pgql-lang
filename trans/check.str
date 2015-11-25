@@ -130,13 +130,13 @@ signature constructors
   CrossReferenceInInlinedConstraint : CrossReferenceInInlinedConstraint
 
 rules // future PGQL versions
-  
+
+/*  
   nabl-constraint(|ctx):
     t@Regex(_, _) -> <fail>
     with
-      <generate-error(|ctx, $[Regular expression matching is not supported])> t
-      
-/*      
+      <generate-error(|ctx, $[Regular expression matching is not supported])> t   
+     
   nabl-constraint(|ctx):
     PathDecl(v, _, _, _) -> <fail>
     with
