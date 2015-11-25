@@ -220,6 +220,17 @@ strategies
   is-PathConstraint =
     ?PathLength(_, _)
 
+  prettyprint-PathConstraint :
+    Shortest(t1__) -> [ H(
+                          [SOpt(HS(), "0")]
+                        , [t1__']
+                        )
+                      ]
+    with t1__' := <pp-one-Z(prettyprint-SHORTEST)> t1__
+
+  is-PathConstraint =
+    ?Shortest(_)
+
   is-Path =
     fail
 
