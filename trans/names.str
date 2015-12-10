@@ -33,13 +33,13 @@ rules
 rules
 
   nabl-scoping-site =
-    ?TopNode(_, _)
+    ?Query(_, _, _, _)
     ; nabl-scope(
       | [NablNsVar(), NablNsSelectVar(), NablNsGroupVar()]
       )
 
   nabl-get-scope =
-    ?TopNode(_, _)
+    ?Query(_, _, _, _)
     ; ![NablNsVar(), NablNsSelectVar(), NablNsGroupVar()]
 
   nabl-get-name :

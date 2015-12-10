@@ -14,8 +14,8 @@ namespaces
   
 binding rules
 
-  TopNode(_, _):
-    scopes Var, SelectVar, GroupVar //, Schema
+  Query(_, _, _, _):
+    scopes Var, SelectVar, GroupVar
   
   Node(n):
     defines non-unique Var n of type NodeTy()
