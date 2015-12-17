@@ -1,0 +1,9 @@
+{
+    "has_order_by": false,
+    "expect_exception": null,
+    "results": [
+        [
+            { "type": "long", "value": "2" }
+        ]
+    ]
+}
