@@ -119,8 +119,8 @@ rules
     GraphPattern(elems) -> GraphPattern(nodes, edges, constraints, optionals, unions, expands, subQueries, pathDecls)
     with
       paths := <filter(?Path(_, _, _))> elems;
-      inlined-constraints-for-nodes := <collect-om(?Node(<id>)); map(get-inlined-constraints); concat> paths;
-      inlined-constraints-for-edges := <collect-om(?EdgeOut(<id>, _) + ?EdgeIn(_, <id>) + ?EdgeNoDir(<id>, _)); map(get-inlined-constraints); concat> paths;
+      inlined-constraints-for-nodes := <collect-om(?Node(<id>)); map(get-inlined-constraints(|"node")); concat> paths;
+      inlined-constraints-for-edges := <collect-om(?EdgeOut(<id>, _) + ?EdgeIn(_, <id>)); map(get-inlined-constraints(|"edge")); concat> paths;
       non-inlined-constraints := <filter(?Constraint(<id>))> elems;
       constraints := <conc; flatten-list; !Constraints(<id>)> (inlined-constraints-for-nodes, inlined-constraints-for-edges, non-inlined-constraints);
       // existsOrNot := <filter(?ExistsFunc(_) + ?Not(ExistsFunc(_)))> constraints;
@@ -134,14 +134,22 @@ rules
       subQueries := [];//<filter(?SubSelect(<id>)); !SubQueries(<id>)> elems; PGQL 1.0
       pathDecls := <filter(?Path(_, _, Some(_)); to-path-decl); !PathDecls(<id>)> paths
   
-  get-inlined-constraints:
+  get-inlined-constraints(|nodeOrEdge):
     ElemContents(Some(var), label, id', otherConstraint) -> [labels, identifiers, otherConstraint']
     with
-      labels := <?Some(Labels(<id>)); to-label-constraints(|var) <+ ![]> label;
+      labels := <?Some(Labels(<id>)); to-label-constraints(|var, nodeOrEdge) <+ ![]> label;
     	identifiers := <?Some(Ids(<id>)); to-id-constraints(|var) <+ ![]> id';
     	otherConstraint' := <?Some(Constraint(<id>)) <+ ![]> otherConstraint
   
-  to-label-constraints(|var) = bottomup(try(is-literal; !Eq(<origin-track-forced(!Label(VarRef(var)))> <id>, <id>)))
+  to-label-constraints(|var, nodeOrEdge):
+    labels -> result
+    with
+      if "node" := nodeOrEdge
+      then result := <to-labels-contains-expressions(|var)> labels
+      else result := <to-label-equals-expressions(|var)> labels
+      end
+  to-labels-contains-expressions(|var) = bottomup(try(is-literal; !Contains(<origin-track-forced(!Labels(VarRef(var)))> <id>, <id>)))
+  to-label-equals-expressions(|var) = bottomup(try(is-literal; !Eq(<origin-track-forced(!Label(VarRef(var)))> <id>, <id>)))
   to-id-constraints(|var) = bottomup(try(is-literal; !Eq(Id(VarRef(var)), <id>)))
   
   // base case: no paths

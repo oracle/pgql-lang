@@ -35,3 +35,11 @@ signature constructors
   LimitOffsetClauses   : Option(LimitClause) * Option(OffsetClause) -> LimitOffsetClauses
 
   Not                  : Exp -> Exp
+
+  Contains             : Exp * Exp -> Exp
+
+  PathQuery            : PathFindingType * Option(VARNAME) * Option(PathLength) -> PathQuery
+  AnyPath              : PathFindingType
+  AllPaths             : PathFindingType
+  AnyShortestPath      : PathFindingType
+  AllShortestPaths     : PathFindingType
