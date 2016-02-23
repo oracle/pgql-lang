@@ -76,12 +76,11 @@ rules
   
   norm-inlined-references = ?ElemContents(Some(varName), _, _, _); alltd(norm-inlined-reference(|varName))
   norm-inlined-reference(|varName) =
-      ?Id(); !Id(VarRef(varName)) + ?Label(); !Label(VarRef(varName)) +
+      ?Id(); !Id(VarRef(varName)) +
+      ?Label(); !Label(VarRef(varName)) +
       ?Has(props); !Has(VarRef(varName), props) +
       ?InDegree(); !InDegree(VarRef(varName)) +
       ?OutDegree(); !OutDegree(VarRef(varName)) +
-      ?Src(); !Src(VarRef(varName)) +
-      ?Dst(); !Dst(VarRef(varName)) +
       ?Obj(dot); !VarRef(varName) +
       (?Obj(VarRef(v), dot) + ?PropRef(VarRef(v), _));
           if <eq> (v, varName)
@@ -291,19 +290,12 @@ rules // normalization after error checking
 rules
 
   norm-case-insensitive: Label(a, _) -> Label(a)
+  norm-case-insensitive: Labels(a, _) -> Labels(a)
   norm-case-insensitive: Id(a, _) -> Id(a)
+  norm-case-insensitive: HasLabel(a, _, b) -> HasLabel(a, b)
   norm-case-insensitive: Has(a, _, b) -> Has(a, b)
   norm-case-insensitive: InDegree(a, _) -> InDegree(a)
   norm-case-insensitive: OutDegree(a, _) -> OutDegree(a)
-  norm-case-insensitive: Src(a, _) -> Src(a)
-  norm-case-insensitive: Dst(a, _) -> Dst(a)
-  norm-case-insensitive: Nodes(a, _) -> Nodes(a)
-  norm-case-insensitive: Edges(a, _) -> Edges(a)
-  norm-case-insensitive: Length(a, _) -> Length(a)
-  norm-case-insensitive: Head(a, _) -> Head(a)
-  norm-case-insensitive: Last(a, _) -> Last(a)
-  norm-case-insensitive: Init(a, _) -> Init(a)
-  norm-case-insensitive: Tail(a, _) -> Tail(a)
   // TODO: built-ins for Strings and Dates
   norm-case-insensitive: COUNT(_, a, b) -> COUNT(a, b)
   norm-case-insensitive: MIN(_, a, b) -> MIN(a, b)

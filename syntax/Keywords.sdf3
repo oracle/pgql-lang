@@ -24,6 +24,8 @@ lexical syntax  // BuiltInCall
 
   ID             = [Ii][Dd]
   LABEL          = [Ll][Aa][Bb][Ee][Ll]
+  LABELS         = [Ll][Aa][Bb][Ee][Ll][Ss]
+  HASLABEL       = [H][Aa][Ss][Ll][Aa][Bb][Ee][Ll]
   HAS            = [Hh][Aa][Ss]
   
   INDEGREE       = [Ii][Nn][Dd][Ee][Gg][Rr][Ee][Ee]

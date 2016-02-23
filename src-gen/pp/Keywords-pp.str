@@ -75,6 +75,12 @@ strategies
   prettyprint-LABEL =
     ![S(<is-string>)]
 
+  prettyprint-LABELS =
+    ![S(<is-string>)]
+
+  prettyprint-HASLABEL =
+    ![S(<is-string>)]
+
   prettyprint-HAS =
     ![S(<is-string>)]
 
@@ -188,6 +194,12 @@ strategies
 
   prettyprint-example =
     prettyprint-LABEL
+
+  prettyprint-example =
+    prettyprint-LABELS
+
+  prettyprint-example =
+    prettyprint-HASLABEL
 
   prettyprint-example =
     prettyprint-HAS

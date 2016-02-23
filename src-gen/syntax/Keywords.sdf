@@ -15,6 +15,8 @@ exports
   lexical syntax
     [Ii] [Dd]                                                   -> ID           
     [Ll] [Aa] [Bb] [Ee] [Ll]                                    -> LABEL        
+    [Ll] [Aa] [Bb] [Ee] [Ll] [Ss]                               -> LABELS       
+    [H] [Aa] [Ss] [Ll] [Aa] [Bb] [Ee] [Ll]                      -> HASLABEL     
     [Hh] [Aa] [Ss]                                              -> HAS          
     [Ii] [Nn] [Dd] [Ee] [Gg] [Rr] [Ee] [Ee]                     -> INDEGREE     
     [Oo] [Uu] [Tt] [Dd] [Ee] [Gg] [Rr] [Ee] [Ee]                -> OUTDEGREE    

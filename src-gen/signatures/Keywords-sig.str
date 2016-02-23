@@ -16,6 +16,8 @@ signature
   constructors
      : String -> ID
      : String -> LABEL
+     : String -> LABELS
+     : String -> HASLABEL
      : String -> HAS
      : String -> INDEGREE
      : String -> OUTDEGREE

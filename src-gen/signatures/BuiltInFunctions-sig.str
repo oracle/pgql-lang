@@ -11,6 +11,8 @@ imports
 signature
   constructors
     Label     : Obj * LABEL -> InlinedCall
+    Labels    : Obj * LABELS -> InlinedCall
+    HasLabel  : Obj * HASLABEL * Exp -> InlinedCall
     Id        : Obj * ID -> InlinedCall
     Has       : Obj * HAS * List(Prop) -> InlinedCall
     InDegree  : Obj * INDEGREE -> InlinedCall
@@ -24,9 +26,11 @@ signature
     Obj       : Option(Dot) -> Obj
 
   constructors
-    Label : Exp * LABEL -> FunctionCall
-    Id    : Exp * ID -> FunctionCall
-    Has   : Exp * HAS * List(Prop) -> FunctionCall
+    Label    : Exp * LABEL -> FunctionCall
+    Labels   : Exp * LABELS -> FunctionCall
+    HasLabel : Exp * HASLABEL * Exp -> FunctionCall
+    Id       : Exp * ID -> FunctionCall
+    Has      : Exp * HAS * List(Prop) -> FunctionCall
 
   constructors
     InDegree  : Exp * INDEGREE -> FunctionCall
@@ -35,22 +39,6 @@ signature
   constructors
     Src : Exp * SRC -> FunctionCall
     Dst : Exp * DST -> FunctionCall
-
-  constructors
-    Nodes  : Exp * NODES -> FunctionCall
-    Edges  : Exp * EDGES -> FunctionCall
-    Length : Exp * LENGTH -> FunctionCall
-
-  constructors
-    Head : Exp * HEAD -> FunctionCall
-    Last : Exp * LAST -> FunctionCall
-    Init : Exp * INIT -> FunctionCall
-    Tail : Exp * TAIL -> FunctionCall
-
-  constructors
-    Contains   : Exp * CONTAINS * Exp * Exp -> FunctionCall
-    BeginsWith : Exp * BEGINSWITH * Exp * Exp -> FunctionCall
-    EndsWith   : Exp * ENDSWITH * Exp * Exp -> FunctionCall
 
   constructors
     Between  : Exp * BETWEEN * Exp * Exp -> FunctionCall

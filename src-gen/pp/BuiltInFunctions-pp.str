@@ -42,6 +42,36 @@ strategies
     ?Label(_, _)
 
   prettyprint-InlinedCall :
+    Labels(t1__, t2__) -> [ H(
+                              [SOpt(HS(), "0")]
+                            , [t1__', t2__', S("()")]
+                            )
+                          ]
+    with t1__' := <pp-one-Z(prettyprint-Obj)> t1__
+    with t2__' := <pp-one-Z(prettyprint-LABELS)> t2__
+
+  is-InlinedCall =
+    ?Labels(_, _)
+
+  prettyprint-InlinedCall :
+    HasLabel(t1__, t2__, t3__) -> [ H(
+                                      [SOpt(HS(), "0")]
+                                    , [ t1__'
+                                      , t2__'
+                                      , S("(")
+                                      , t3__'
+                                      , S(")")
+                                      ]
+                                    )
+                                  ]
+    with t1__' := <pp-one-Z(prettyprint-Obj)> t1__
+    with t2__' := <pp-one-Z(prettyprint-HASLABEL)> t2__
+    with t3__' := <pp-one-Z(prettyprint-Exp)> t3__
+
+  is-InlinedCall =
+    ?HasLabel(_, _, _)
+
+  prettyprint-InlinedCall :
     Id(t1__, t2__) -> [ H(
                           [SOpt(HS(), "0")]
                         , [t1__', t2__', S("()")]
@@ -206,6 +236,41 @@ strategies
     ?Label(_, _)
 
   prettyprint-FunctionCall :
+    Labels(t1__, t2__) -> [ H(
+                              [SOpt(HS(), "0")]
+                            , [ t1__'
+                              , S(".")
+                              , t2__'
+                              , S("()")
+                              ]
+                            )
+                          ]
+    with t1__' := <pp-one-Z(prettyprint-Exp)> t1__
+    with t2__' := <pp-one-Z(prettyprint-LABELS)> t2__
+
+  is-FunctionCall =
+    ?Labels(_, _)
+
+  prettyprint-FunctionCall :
+    HasLabel(t1__, t2__, t3__) -> [ H(
+                                      [SOpt(HS(), "0")]
+                                    , [ t1__'
+                                      , S(".")
+                                      , t2__'
+                                      , S("(")
+                                      , t3__'
+                                      , S(")")
+                                      ]
+                                    )
+                                  ]
+    with t1__' := <pp-one-Z(prettyprint-Exp)> t1__
+    with t2__' := <pp-one-Z(prettyprint-HASLABEL)> t2__
+    with t3__' := <pp-one-Z(prettyprint-Exp)> t3__
+
+  is-FunctionCall =
+    ?HasLabel(_, _, _)
+
+  prettyprint-FunctionCall :
     Id(t1__, t2__) -> [ H(
                           [SOpt(HS(), "0")]
                         , [ t1__'
@@ -319,208 +384,6 @@ strategies
 
   is-FunctionCall =
     ?Dst(_, _)
-
-  is-FunctionCall =
-    fail
-
-
-strategies
-  prettyprint-example =
-    prettyprint-FunctionCall
-
-  prettyprint-FunctionCall :
-    Nodes(t1__, t2__) -> [ H(
-                             [SOpt(HS(), "0")]
-                           , [ t1__'
-                             , S(". ")
-                             , t2__'
-                             , S("()")
-                             ]
-                           )
-                         ]
-    with t1__' := <pp-one-Z(prettyprint-Exp)> t1__
-    with t2__' := <pp-one-Z(prettyprint-NODES)> t2__
-
-  is-FunctionCall =
-    ?Nodes(_, _)
-
-  prettyprint-FunctionCall :
-    Edges(t1__, t2__) -> [ H(
-                             [SOpt(HS(), "0")]
-                           , [ t1__'
-                             , S(". ")
-                             , t2__'
-                             , S("()")
-                             ]
-                           )
-                         ]
-    with t1__' := <pp-one-Z(prettyprint-Exp)> t1__
-    with t2__' := <pp-one-Z(prettyprint-EDGES)> t2__
-
-  is-FunctionCall =
-    ?Edges(_, _)
-
-  prettyprint-FunctionCall :
-    Length(t1__, t2__) -> [ H(
-                              [SOpt(HS(), "0")]
-                            , [ t1__'
-                              , S(". ")
-                              , t2__'
-                              , S("()")
-                              ]
-                            )
-                          ]
-    with t1__' := <pp-one-Z(prettyprint-Exp)> t1__
-    with t2__' := <pp-one-Z(prettyprint-LENGTH)> t2__
-
-  is-FunctionCall =
-    ?Length(_, _)
-
-  is-FunctionCall =
-    fail
-
-
-strategies
-  prettyprint-example =
-    prettyprint-FunctionCall
-
-  prettyprint-FunctionCall :
-    Head(t1__, t2__) -> [ H(
-                            [SOpt(HS(), "0")]
-                          , [ t1__'
-                            , S(". ")
-                            , t2__'
-                            , S("()")
-                            ]
-                          )
-                        ]
-    with t1__' := <pp-one-Z(prettyprint-Exp)> t1__
-    with t2__' := <pp-one-Z(prettyprint-HEAD)> t2__
-
-  is-FunctionCall =
-    ?Head(_, _)
-
-  prettyprint-FunctionCall :
-    Last(t1__, t2__) -> [ H(
-                            [SOpt(HS(), "0")]
-                          , [ t1__'
-                            , S(". ")
-                            , t2__'
-                            , S("()")
-                            ]
-                          )
-                        ]
-    with t1__' := <pp-one-Z(prettyprint-Exp)> t1__
-    with t2__' := <pp-one-Z(prettyprint-LAST)> t2__
-
-  is-FunctionCall =
-    ?Last(_, _)
-
-  prettyprint-FunctionCall :
-    Init(t1__, t2__) -> [ H(
-                            [SOpt(HS(), "0")]
-                          , [ t1__'
-                            , S(". ")
-                            , t2__'
-                            , S("()")
-                            ]
-                          )
-                        ]
-    with t1__' := <pp-one-Z(prettyprint-Exp)> t1__
-    with t2__' := <pp-one-Z(prettyprint-INIT)> t2__
-
-  is-FunctionCall =
-    ?Init(_, _)
-
-  prettyprint-FunctionCall :
-    Tail(t1__, t2__) -> [ H(
-                            [SOpt(HS(), "0")]
-                          , [ t1__'
-                            , S(". ")
-                            , t2__'
-                            , S("()")
-                            ]
-                          )
-                        ]
-    with t1__' := <pp-one-Z(prettyprint-Exp)> t1__
-    with t2__' := <pp-one-Z(prettyprint-TAIL)> t2__
-
-  is-FunctionCall =
-    ?Tail(_, _)
-
-  is-FunctionCall =
-    fail
-
-
-strategies
-  prettyprint-example =
-    prettyprint-FunctionCall
-
-  prettyprint-FunctionCall :
-    Contains(t1__, t2__, t3__, t4__) -> [ H(
-                                            [SOpt(HS(), "0")]
-                                          , [ t1__'
-                                            , S(". ")
-                                            , t2__'
-                                            , S("(")
-                                            , t3__'
-                                            , S(", ")
-                                            , t4__'
-                                            , S(")")
-                                            ]
-                                          )
-                                        ]
-    with t1__' := <pp-one-Z(prettyprint-Exp)> t1__
-    with t2__' := <pp-one-Z(prettyprint-CONTAINS)> t2__
-    with t3__' := <pp-one-Z(prettyprint-Exp)> t3__
-    with t4__' := <pp-one-Z(prettyprint-Exp)> t4__
-
-  is-FunctionCall =
-    ?Contains(_, _, _, _)
-
-  prettyprint-FunctionCall :
-    BeginsWith(t1__, t2__, t3__, t4__) -> [ H(
-                                              [SOpt(HS(), "0")]
-                                            , [ t1__'
-                                              , S(". ")
-                                              , t2__'
-                                              , S("(")
-                                              , t3__'
-                                              , S(", ")
-                                              , t4__'
-                                              , S(")")
-                                              ]
-                                            )
-                                          ]
-    with t1__' := <pp-one-Z(prettyprint-Exp)> t1__
-    with t2__' := <pp-one-Z(prettyprint-BEGINSWITH)> t2__
-    with t3__' := <pp-one-Z(prettyprint-Exp)> t3__
-    with t4__' := <pp-one-Z(prettyprint-Exp)> t4__
-
-  is-FunctionCall =
-    ?BeginsWith(_, _, _, _)
-
-  prettyprint-FunctionCall :
-    EndsWith(t1__, t2__, t3__, t4__) -> [ H(
-                                            [SOpt(HS(), "0")]
-                                          , [ t1__'
-                                            , S(". ")
-                                            , t2__'
-                                            , S("(")
-                                            , t3__'
-                                            , S(", ")
-                                            , t4__'
-                                            , S(")")
-                                            ]
-                                          )
-                                        ]
-    with t1__' := <pp-one-Z(prettyprint-Exp)> t1__
-    with t2__' := <pp-one-Z(prettyprint-ENDSWITH)> t2__
-    with t3__' := <pp-one-Z(prettyprint-Exp)> t3__
-    with t4__' := <pp-one-Z(prettyprint-Exp)> t4__
-
-  is-FunctionCall =
-    ?EndsWith(_, _, _, _)
 
   is-FunctionCall =
     fail

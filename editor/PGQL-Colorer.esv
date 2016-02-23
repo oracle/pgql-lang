@@ -67,6 +67,8 @@ colorer
 
   ID             : 127 0 85 bold
   LABEL          : 127 0 85 bold
+  LABELS         : 127 0 85 bold
+  HASLABEL       : 127 0 85 bold
   HAS            : 127 0 85 bold
   
   INDEGREE       : 127 0 85 bold

@@ -4,6 +4,8 @@ imports Keywords Names Expressions PGQL Literals
 exports
   context-free syntax
     Obj LABEL "()"              -> InlinedCall {cons("Label")}
+    Obj LABELS "()"             -> InlinedCall {cons("Labels")}
+    Obj HASLABEL "(" Exp ")"    -> InlinedCall {cons("HasLabel")}
     Obj ID "()"                 -> InlinedCall {cons("Id")}
     Obj HAS "(" {Prop ","}* ")" -> InlinedCall {cons("Has")}
     Obj INDEGREE "()"           -> InlinedCall {cons("InDegree")}
@@ -22,6 +24,8 @@ exports
 
   context-free syntax
     Exp "." LABEL "()"              -> FunctionCall {cons("Label")}
+    Exp "." LABELS "()"             -> FunctionCall {cons("Labels")}
+    Exp "." HASLABEL "(" Exp ")"    -> FunctionCall {cons("HasLabel")}
     Exp "." ID "()"                 -> FunctionCall {cons("Id")}
     Exp "." HAS "(" {Prop ","}* ")" -> FunctionCall {cons("Has")}
 
@@ -38,31 +42,6 @@ exports
   context-free syntax
     Exp "." SRC "()" -> FunctionCall {cons("Src")}
     Exp "." DST "()" -> FunctionCall {cons("Dst")}
-
-  context-free syntax
-    CONTENTCOMPLETE -> FunctionCall {cons("COMPLETION-FunctionCall")}
-
-  context-free syntax
-    Exp "." NODES "()"  -> FunctionCall {cons("Nodes")}
-    Exp "." EDGES "()"  -> FunctionCall {cons("Edges")}
-    Exp "." LENGTH "()" -> FunctionCall {cons("Length")}
-
-  context-free syntax
-    CONTENTCOMPLETE -> FunctionCall {cons("COMPLETION-FunctionCall")}
-
-  context-free syntax
-    Exp "." HEAD "()" -> FunctionCall {cons("Head")}
-    Exp "." LAST "()" -> FunctionCall {cons("Last")}
-    Exp "." INIT "()" -> FunctionCall {cons("Init")}
-    Exp "." TAIL "()" -> FunctionCall {cons("Tail")}
-
-  context-free syntax
-    CONTENTCOMPLETE -> FunctionCall {cons("COMPLETION-FunctionCall")}
-
-  context-free syntax
-    Exp "." CONTAINS "(" Exp "," Exp ")"   -> FunctionCall {cons("Contains")}
-    Exp "." BEGINSWITH "(" Exp "," Exp ")" -> FunctionCall {cons("BeginsWith")}
-    Exp "." ENDSWITH "(" Exp "," Exp ")"   -> FunctionCall {cons("EndsWith")}
 
   context-free syntax
     CONTENTCOMPLETE -> FunctionCall {cons("COMPLETION-FunctionCall")}
@@ -104,26 +83,14 @@ exports
     } >
     {left:
       Exp "." LABEL "()" -> FunctionCall
+      Exp "." LABELS "()" -> FunctionCall
+      Exp "." HASLABEL "(" Exp ")" -> FunctionCall
       Exp "." ID "()" -> FunctionCall
       Exp "." HAS "(" {Prop ","}* ")" -> FunctionCall
       Exp "." INDEGREE "()" -> FunctionCall
       Exp "." OUTDEGREE "()" -> FunctionCall
       Exp "." SRC "()" -> FunctionCall
       Exp "." DST "()" -> FunctionCall
-    } >
-    {left:
-      Exp "." NODES "()" -> FunctionCall
-      Exp "." EDGES "()" -> FunctionCall
-      Exp "." LENGTH "()" -> FunctionCall
-      Exp "." HEAD "()" -> FunctionCall
-      Exp "." LAST "()" -> FunctionCall
-      Exp "." INIT "()" -> FunctionCall
-      Exp "." TAIL "()" -> FunctionCall
-    } >
-    {left:
-      Exp "." CONTAINS "(" Exp "," Exp ")" -> FunctionCall
-      Exp "." BEGINSWITH "(" Exp "," Exp ")" -> FunctionCall
-      Exp "." ENDSWITH "(" Exp "," Exp ")" -> FunctionCall
     } >
     {left:
       Exp "." BETWEEN "(" Exp "," Exp ")" -> FunctionCall
@@ -174,6 +141,8 @@ exports
     } >
     {left:
       Obj LABEL "()" -> InlinedCall
+      Obj LABELS "()" -> InlinedCall
+      Obj HASLABEL "(" Exp ")" -> InlinedCall
       Obj ID "()" -> InlinedCall
       Obj HAS "(" {Prop ","}* ")" -> InlinedCall
       Obj INDEGREE "()" -> InlinedCall

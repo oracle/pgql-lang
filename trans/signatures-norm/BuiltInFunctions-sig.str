@@ -16,6 +16,7 @@ signature
     Id        : Exp -> Id
     Label     : Exp -> Label
     Label     : Label
+    HasLabel  : Exp * Exp -> HasLabel
     Has       : List(Prop) -> InlinedCall
     InDegree  : InlinedCall
     OutDegree : InlinedCall

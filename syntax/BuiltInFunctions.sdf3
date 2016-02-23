@@ -11,6 +11,8 @@ imports
 context-free syntax // inlined function calls
 
   InlinedCall.Label = <<Obj><LABEL>()>
+  InlinedCall.Labels = <<Obj><LABELS>()>
+  InlinedCall.HasLabel = <<Obj><HASLABEL>(<Exp>)>
   InlinedCall.Id = <<Obj><ID>()>
   InlinedCall.Has = <<Obj><HAS>(<{Prop ", "}*>)>
   InlinedCall.InDegree  = <<Obj><INDEGREE>()>
@@ -28,6 +30,8 @@ context-free syntax // inlined function calls
 context-free syntax // nodes/edges
 
   FunctionCall.Label = <<Exp>.<LABEL>()>
+  FunctionCall.Labels = <<Exp>.<LABELS>()>
+  FunctionCall.HasLabel = <<Exp>.<HASLABEL>(<Exp>)>
   FunctionCall.Id = <<Exp>.<ID>()>
   FunctionCall.Has = <<Exp>. <HAS>(<{Prop ", "}*>)>
   
@@ -41,6 +45,7 @@ context-free syntax // edges
   FunctionCall.Src = <<Exp>. <SRC>()>
   FunctionCall.Dst = <<Exp>. <DST>()>
 
+/* PGQL 1.0
 context-free syntax // paths
 
   FunctionCall.Nodes  = <<Exp>. <NODES>()>
@@ -59,6 +64,7 @@ context-free syntax // Strings
   FunctionCall.Contains   = <<Exp>. <CONTAINS>(<Exp>, <Exp>)>
   FunctionCall.BeginsWith = <<Exp>. <BEGINSWITH>(<Exp>, <Exp>)>
   FunctionCall.EndsWith   = <<Exp>. <ENDSWITH>(<Exp>, <Exp>)>
+*/
 
 context-free syntax // Time
 
@@ -107,30 +113,14 @@ context-free priorities
   {
     left:
       FunctionCall.Label
+      FunctionCall.Labels
+      FunctionCall.HasLabel
       FunctionCall.Id
       FunctionCall.Has
       FunctionCall.InDegree
       FunctionCall.OutDegree
       FunctionCall.Src
       FunctionCall.Dst
-  }
-  >
-  {
-    left:
-      FunctionCall.Nodes
-      FunctionCall.Edges
-      FunctionCall.Length
-      FunctionCall.Head
-      FunctionCall.Last
-      FunctionCall.Init
-      FunctionCall.Tail
-  }
-  >
-  {
-    left:
-      FunctionCall.Contains
-      FunctionCall.BeginsWith
-      FunctionCall.EndsWith
   }
   >
   {
@@ -199,6 +189,8 @@ context-free priorities
   {
     left:
       InlinedCall.Label
+      InlinedCall.Labels
+      InlinedCall.HasLabel
       InlinedCall.Id
       InlinedCall.Has
       InlinedCall.InDegree
