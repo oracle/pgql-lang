@@ -121,7 +121,8 @@ exports
     {left:
       Exp "=" Exp -> Exp
       Exp "!=" Exp -> Exp
-    } >
+    } .
+    ,
     {left:
       Exp "AND" Exp -> Exp
       Exp "and" Exp -> Exp
