@@ -144,10 +144,10 @@ rules
     labels -> result
     with
       if "node" := nodeOrEdge
-      then result := <to-labels-contains-expressions(|var)> labels
+      then result := <to-hasLabel-expressions(|var)> labels
       else result := <to-label-equals-expressions(|var)> labels
       end
-  to-labels-contains-expressions(|var) = bottomup(try(is-literal; !Contains(<origin-track-forced(!Labels(VarRef(var)))> <id>, <id>)))
+  to-hasLabel-expressions(|var) = bottomup(try(is-literal; !HasLabel(<origin-track-forced(!VarRef(var))> <id>, <id>)))
   to-label-equals-expressions(|var) = bottomup(try(is-literal; !Eq(<origin-track-forced(!Label(VarRef(var)))> <id>, <id>)))
   to-id-constraints(|var) = bottomup(try(is-literal; !Eq(Id(VarRef(var)), <id>)))
   
@@ -291,8 +291,8 @@ rules
 
   norm-case-insensitive: Label(a, _) -> Label(a)
   norm-case-insensitive: Labels(a, _) -> Labels(a)
-  norm-case-insensitive: Id(a, _) -> Id(a)
   norm-case-insensitive: HasLabel(a, _, b) -> HasLabel(a, b)
+  norm-case-insensitive: Id(a, _) -> Id(a)
   norm-case-insensitive: Has(a, _, b) -> Has(a, b)
   norm-case-insensitive: InDegree(a, _) -> InDegree(a)
   norm-case-insensitive: OutDegree(a, _) -> OutDegree(a)
