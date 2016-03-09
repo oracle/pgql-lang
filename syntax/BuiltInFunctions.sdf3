@@ -161,7 +161,7 @@ context-free priorities
     left:
       Exp.Eq
       Exp.Neq
-  }m.dss("d")
+  }
   >
   {
     left:

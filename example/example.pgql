@@ -1,6 +1,3 @@
-SELECT person.name, person.age
+SELECT *
 WHERE
-  (m WITH name = 'Mario') -[WITH label = 'likes']-> (person),
-  (l WITH name = 'Luigi') -[WITH label = 'likes']-> (person),
-  person.age < m.age - 2
-ORDER BY person.name
+  (n) -[e]-> (m), n.hasLabel("vertexLabel") AND e.hasLabel("edgeLabel")
