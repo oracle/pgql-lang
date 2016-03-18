@@ -36,12 +36,6 @@ public interface QueryExpression {
     public String toString() {
       return getExpType() + "(" + exp + ")";
     }
-    
-    @Override
-    public void accept(ExpressionVisitor v) {
-      v.visit(this);
-      v.visit(exp);
-    }
   }
 
   public static abstract class BinaryExpression implements QueryExpression {
@@ -57,13 +51,6 @@ public interface QueryExpression {
     @Override
     public String toString() {
       return getExpType() + "(" + exp1 + ", " + exp2 + ")";
-    }
-    
-    @Override
-    public void accept(ExpressionVisitor v) {
-      v.visit(this);
-      v.visit(exp1);
-      v.visit(exp2);
     }
   }
 
@@ -84,14 +71,6 @@ public interface QueryExpression {
     public String toString() {
       return getExpType() + "(" + exp1 + ", " + exp2 + ", " + exp3 + ")";
     }
-    
-    @Override
-    public void accept(ExpressionVisitor v) {
-      v.visit(this);
-      v.visit(exp1);
-      v.visit(exp2);
-      v.visit(exp3);
-    }
   }
 
   public interface ArithmeticExpression extends QueryExpression {
@@ -105,6 +84,13 @@ public interface QueryExpression {
       public ExpressionType getExpType() {
         return ExpressionType.Sub;
       }
+      
+      @Override
+      public void accept(ExpressionVisitor v) {
+        v.visit(this);
+        exp1.accept(v);
+        exp2.accept(v);
+      }
     }
 
     class Add extends BinaryExpression {
@@ -115,6 +101,13 @@ public interface QueryExpression {
       @Override
       public ExpressionType getExpType() {
         return ExpressionType.Add;
+      }
+      
+      @Override
+      public void accept(ExpressionVisitor v) {
+        v.visit(this);
+        exp1.accept(v);
+        exp2.accept(v);
       }
     }
 
@@ -127,6 +120,13 @@ public interface QueryExpression {
       public ExpressionType getExpType() {
         return ExpressionType.Mul;
       }
+      
+      @Override
+      public void accept(ExpressionVisitor v) {
+        v.visit(this);
+        exp1.accept(v);
+        exp2.accept(v);
+      }
     }
 
     class Div extends BinaryExpression {
@@ -137,6 +137,13 @@ public interface QueryExpression {
       @Override
       public ExpressionType getExpType() {
         return ExpressionType.Div;
+      }
+      
+      @Override
+      public void accept(ExpressionVisitor v) {
+        v.visit(this);
+        exp1.accept(v);
+        exp2.accept(v);
       }
     }
 
@@ -149,6 +156,13 @@ public interface QueryExpression {
       public ExpressionType getExpType() {
         return ExpressionType.Mod;
       }
+      
+      @Override
+      public void accept(ExpressionVisitor v) {
+        v.visit(this);
+        exp1.accept(v);
+        exp2.accept(v);
+      }
     }
 
     class UMin extends UnaryExpression {
@@ -159,6 +173,12 @@ public interface QueryExpression {
       @Override
       public ExpressionType getExpType() {
         return ExpressionType.UMin;
+      }
+      
+      @Override
+      public void accept(ExpressionVisitor v) {
+        v.visit(this);
+        exp.accept(v);
       }
     }
   }
@@ -174,6 +194,14 @@ public interface QueryExpression {
       public ExpressionType getExpType() {
         return ExpressionType.And;
       }
+      
+      @Override
+      public void accept(ExpressionVisitor v) {
+        v.visit(this);
+        exp1.accept(v);
+        exp2.accept(v);
+      }
+
     }
 
     class Or extends BinaryExpression {
@@ -185,6 +213,14 @@ public interface QueryExpression {
       public ExpressionType getExpType() {
         return ExpressionType.Or;
       }
+      
+      @Override
+      public void accept(ExpressionVisitor v) {
+        v.visit(this);
+        exp1.accept(v);
+        exp2.accept(v);
+      }
+
     }
 
     class Not extends UnaryExpression {
@@ -195,6 +231,12 @@ public interface QueryExpression {
       @Override
       public ExpressionType getExpType() {
         return ExpressionType.Not;
+      }
+      
+      @Override
+      public void accept(ExpressionVisitor v) {
+        v.visit(this);
+        exp.accept(v);
       }
     }
   }
@@ -210,6 +252,14 @@ public interface QueryExpression {
       public ExpressionType getExpType() {
         return ExpressionType.Equal;
       }
+      
+      @Override
+      public void accept(ExpressionVisitor v) {
+        v.visit(this);
+        exp1.accept(v);
+        exp2.accept(v);
+      }
+
     }
 
     class NotEqual extends BinaryExpression {
@@ -221,6 +271,14 @@ public interface QueryExpression {
       public ExpressionType getExpType() {
         return ExpressionType.NotEqual;
       }
+      
+      @Override
+      public void accept(ExpressionVisitor v) {
+        v.visit(this);
+        exp1.accept(v);
+        exp2.accept(v);
+      }
+
     }
 
     class Greater extends BinaryExpression {
@@ -232,6 +290,14 @@ public interface QueryExpression {
       public ExpressionType getExpType() {
         return ExpressionType.Greater;
       }
+      
+      @Override
+      public void accept(ExpressionVisitor v) {
+        v.visit(this);
+        exp1.accept(v);
+        exp2.accept(v);
+      }
+
     }
 
     class GreaterEqual extends BinaryExpression {
@@ -243,6 +309,14 @@ public interface QueryExpression {
       public ExpressionType getExpType() {
         return ExpressionType.GreaterEqual;
       }
+      
+      @Override
+      public void accept(ExpressionVisitor v) {
+        v.visit(this);
+        exp1.accept(v);
+        exp2.accept(v);
+      }
+
     }
 
     class Less extends BinaryExpression {
@@ -254,6 +328,14 @@ public interface QueryExpression {
       public ExpressionType getExpType() {
         return ExpressionType.Less;
       }
+      
+      @Override
+      public void accept(ExpressionVisitor v) {
+        v.visit(this);
+        exp1.accept(v);
+        exp2.accept(v);
+      }
+
     }
 
     class LessEqual extends BinaryExpression {
@@ -265,6 +347,14 @@ public interface QueryExpression {
       public ExpressionType getExpType() {
         return ExpressionType.LessEqual;
       }
+      
+      @Override
+      public void accept(ExpressionVisitor v) {
+        v.visit(this);
+        exp1.accept(v);
+        exp2.accept(v);
+      }
+
     }
   }
 
@@ -274,11 +364,6 @@ public interface QueryExpression {
 
     public Constant(T val) {
       this.val = val;
-    }
-    
-    @Override
-    public void accept(ExpressionVisitor v) {
-      v.visit(this);
     }
 
     public static class ConstInteger extends Constant<Long> {
@@ -290,6 +375,11 @@ public interface QueryExpression {
       public ExpressionType getExpType() {
         return ExpressionType.ConstInteger;
       }
+      
+      @Override
+      public void accept(ExpressionVisitor v) {
+        v.visit(this);
+      }
     }
 
     public static class ConstDecimal extends Constant<Double> {
@@ -300,6 +390,11 @@ public interface QueryExpression {
       @Override
       public ExpressionType getExpType() {
         return ExpressionType.ConstDecimal;
+      }
+      
+      @Override
+      public void accept(ExpressionVisitor v) {
+        v.visit(this);
       }
     }
 
@@ -317,6 +412,11 @@ public interface QueryExpression {
       public String toString() {
         return "'" + val + "'";
       }
+      
+      @Override
+      public void accept(ExpressionVisitor v) {
+        v.visit(this);
+      }
     }
 
     public static class ConstBoolean extends Constant<Boolean> {
@@ -328,6 +428,11 @@ public interface QueryExpression {
       @Override
       public ExpressionType getExpType() {
         return ExpressionType.ConstBoolean;
+      }
+      
+      @Override
+      public void accept(ExpressionVisitor v) {
+        v.visit(this);
       }
     }
 
@@ -409,6 +514,13 @@ public interface QueryExpression {
       public ExpressionType getExpType() {
         return ExpressionType.Regex;
       }
+      
+      @Override
+      public void accept(ExpressionVisitor v) {
+        v.visit(this);
+        exp1.accept(v);
+        exp2.accept(v);
+      }
     }
 
     class Id extends UnaryExpression {
@@ -426,6 +538,12 @@ public interface QueryExpression {
       public ExpressionType getExpType() {
         return ExpressionType.Id;
       }
+      
+      @Override
+      public void accept(ExpressionVisitor v) {
+        v.visit(this);
+        exp.accept(v);
+      }
     }
 
     class EdgeLabel extends UnaryExpression {
@@ -437,6 +555,12 @@ public interface QueryExpression {
       @Override
       public ExpressionType getExpType() {
         return ExpressionType.EdgeLabel;
+      }
+      
+      @Override
+      public void accept(ExpressionVisitor v) {
+        v.visit(this);
+        exp.accept(v);
       }
     }
 
@@ -450,6 +574,12 @@ public interface QueryExpression {
       public ExpressionType getExpType() {
         return ExpressionType.VertexLabels;
       }
+      
+      @Override
+      public void accept(ExpressionVisitor v) {
+        v.visit(this);
+        exp.accept(v);
+      }
     }
 
     class HasLabel extends BinaryExpression {
@@ -461,6 +591,13 @@ public interface QueryExpression {
       @Override
       public ExpressionType getExpType() {
         return ExpressionType.HasLabel;
+      }
+      
+      @Override
+      public void accept(ExpressionVisitor v) {
+        v.visit(this);
+        exp1.accept(v);
+        exp2.accept(v);
       }
     }
 
@@ -480,6 +617,13 @@ public interface QueryExpression {
       public ExpressionType getExpType() {
         return ExpressionType.HasProp;
       }
+      
+      @Override
+      public void accept(ExpressionVisitor v) {
+        v.visit(this);
+        exp1.accept(v);
+        exp2.accept(v);
+      }
     }
 
     class InDegree extends UnaryExpression {
@@ -491,6 +635,12 @@ public interface QueryExpression {
       public ExpressionType getExpType() {
         return ExpressionType.InDegree;
       }
+      
+      @Override
+      public void accept(ExpressionVisitor v) {
+        v.visit(this);
+        exp.accept(v);
+      }
     }
 
     class OutDegree extends UnaryExpression {
@@ -501,6 +651,12 @@ public interface QueryExpression {
       @Override
       public ExpressionType getExpType() {
         return ExpressionType.OutDegree;
+      }
+      
+      @Override
+      public void accept(ExpressionVisitor v) {
+        v.visit(this);
+        exp.accept(v);
       }
     }
   }
@@ -517,6 +673,12 @@ public interface QueryExpression {
       public ExpressionType getExpType() {
         return ExpressionType.Aggr_count;
       }
+      
+      @Override
+      public void accept(ExpressionVisitor v) {
+        v.visit(this);
+        exp.accept(v);
+      }
     }
 
     class AggrMin extends UnaryExpression implements Aggregation {
@@ -528,6 +690,12 @@ public interface QueryExpression {
       @Override
       public ExpressionType getExpType() {
         return ExpressionType.Aggr_min;
+      }
+      
+      @Override
+      public void accept(ExpressionVisitor v) {
+        v.visit(this);
+        exp.accept(v);
       }
     }
 
@@ -541,6 +709,12 @@ public interface QueryExpression {
       public ExpressionType getExpType() {
         return ExpressionType.Aggr_max;
       }
+      
+      @Override
+      public void accept(ExpressionVisitor v) {
+        v.visit(this);
+        exp.accept(v);
+      }
     }
 
     class AggrSum extends UnaryExpression implements Aggregation {
@@ -553,6 +727,12 @@ public interface QueryExpression {
       public ExpressionType getExpType() {
         return ExpressionType.Aggr_sum;
       }
+      
+      @Override
+      public void accept(ExpressionVisitor v) {
+        v.visit(this);
+        exp.accept(v);
+      }
     }
 
     class AggrAvg extends UnaryExpression implements Aggregation {
@@ -564,6 +744,12 @@ public interface QueryExpression {
       @Override
       public ExpressionType getExpType() {
         return ExpressionType.Aggr_avg;
+      }
+      
+      @Override
+      public void accept(ExpressionVisitor v) {
+        v.visit(this);
+        exp.accept(v);
       }
     }
 
