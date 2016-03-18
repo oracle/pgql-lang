@@ -9,7 +9,7 @@ import java.util.Set;
 public abstract class QueryExpression {
 
   public enum ExpressionType {
-    ConstNumber, ConstDecimal, ConstString, ConstBoolean, ConstNull, // constants
+    ConstInteger, ConstDecimal, ConstString, ConstBoolean, ConstNull, // constants
     Sub, Add, Mul, Div, Mod, UMin, // arithmetic expressions
     And, Or, Not, // logical expressions
     Equal, NotEqual, Greater, GreaterEqual, Less, LessEqual, // relational expressions
@@ -275,14 +275,14 @@ public abstract class QueryExpression {
       this.val = val;
     }
 
-    public static class ConstNumber extends Constant<Long> {
-      public ConstNumber(long val) {
+    public static class ConstInteger extends Constant<Long> {
+      public ConstInteger(long val) {
         super(val);
       }
 
       @Override
       public ExpressionType getExpType() {
-        return ExpressionType.ConstNumber;
+        return ExpressionType.ConstInteger;
       }
     }
 
