@@ -75,7 +75,7 @@ public interface QueryExpression {
 
   public interface ArithmeticExpression extends QueryExpression {
 
-    class Sub extends BinaryExpression {
+    class Sub extends BinaryExpression implements ArithmeticExpression {
       public Sub(QueryExpression exp1, QueryExpression exp2) {
         super(exp1, exp2);
       }
@@ -93,7 +93,7 @@ public interface QueryExpression {
       }
     }
 
-    class Add extends BinaryExpression {
+    class Add extends BinaryExpression implements ArithmeticExpression {
       public Add(QueryExpression exp1, QueryExpression exp2) {
         super(exp1, exp2);
       }
@@ -111,7 +111,7 @@ public interface QueryExpression {
       }
     }
 
-    class Mul extends BinaryExpression {
+    class Mul extends BinaryExpression implements ArithmeticExpression {
       public Mul(QueryExpression exp1, QueryExpression exp2) {
         super(exp1, exp2);
       }
@@ -129,7 +129,7 @@ public interface QueryExpression {
       }
     }
 
-    class Div extends BinaryExpression {
+    class Div extends BinaryExpression implements ArithmeticExpression {
       public Div(QueryExpression exp1, QueryExpression exp2) {
         super(exp1, exp2);
       }
@@ -147,7 +147,7 @@ public interface QueryExpression {
       }
     }
 
-    class Mod extends BinaryExpression {
+    class Mod extends BinaryExpression implements ArithmeticExpression {
       public Mod(QueryExpression exp1, QueryExpression exp2) {
         super(exp1, exp2);
       }
@@ -165,7 +165,7 @@ public interface QueryExpression {
       }
     }
 
-    class UMin extends UnaryExpression {
+    class UMin extends UnaryExpression implements ArithmeticExpression {
       public UMin(QueryExpression exp) {
         super(exp);
       }
@@ -185,7 +185,7 @@ public interface QueryExpression {
 
   public interface LogicalExpression extends QueryExpression {
 
-    class And extends BinaryExpression {
+    class And extends BinaryExpression implements LogicalExpression {
       public And(QueryExpression exp1, QueryExpression exp2) {
         super(exp1, exp2);
       }
@@ -204,7 +204,7 @@ public interface QueryExpression {
 
     }
 
-    class Or extends BinaryExpression {
+    class Or extends BinaryExpression implements LogicalExpression {
       public Or(QueryExpression exp1, QueryExpression exp2) {
         super(exp1, exp2);
       }
@@ -223,7 +223,7 @@ public interface QueryExpression {
 
     }
 
-    class Not extends UnaryExpression {
+    class Not extends UnaryExpression implements LogicalExpression {
       public Not(QueryExpression exp) {
         super(exp);
       }
@@ -243,7 +243,7 @@ public interface QueryExpression {
 
   public interface RelationalExpression extends QueryExpression {
 
-    class Equal extends BinaryExpression {
+    class Equal extends BinaryExpression implements RelationalExpression {
       public Equal(QueryExpression exp1, QueryExpression exp2) {
         super(exp1, exp2);
       }
@@ -262,7 +262,7 @@ public interface QueryExpression {
 
     }
 
-    class NotEqual extends BinaryExpression {
+    class NotEqual extends BinaryExpression implements RelationalExpression {
       public NotEqual(QueryExpression exp1, QueryExpression exp2) {
         super(exp1, exp2);
       }
@@ -281,7 +281,7 @@ public interface QueryExpression {
 
     }
 
-    class Greater extends BinaryExpression {
+    class Greater extends BinaryExpression implements RelationalExpression {
       public Greater(QueryExpression exp1, QueryExpression exp2) {
         super(exp1, exp2);
       }
@@ -300,7 +300,7 @@ public interface QueryExpression {
 
     }
 
-    class GreaterEqual extends BinaryExpression {
+    class GreaterEqual extends BinaryExpression implements RelationalExpression {
       public GreaterEqual(QueryExpression exp1, QueryExpression exp2) {
         super(exp1, exp2);
       }
@@ -319,7 +319,7 @@ public interface QueryExpression {
 
     }
 
-    class Less extends BinaryExpression {
+    class Less extends BinaryExpression implements RelationalExpression {
       public Less(QueryExpression exp1, QueryExpression exp2) {
         super(exp1, exp2);
       }
@@ -338,7 +338,7 @@ public interface QueryExpression {
 
     }
 
-    class LessEqual extends BinaryExpression {
+    class LessEqual extends BinaryExpression implements RelationalExpression {
       public LessEqual(QueryExpression exp1, QueryExpression exp2) {
         super(exp1, exp2);
       }
@@ -505,7 +505,7 @@ public interface QueryExpression {
 
   public interface Function extends QueryExpression {
 
-    class Regex extends BinaryExpression {
+    class Regex extends BinaryExpression implements Function {
       public Regex(QueryExpression exp1, QueryExpression exp2) {
         super(exp1, exp2);
       }
@@ -523,7 +523,7 @@ public interface QueryExpression {
       }
     }
 
-    class Id extends UnaryExpression {
+    class Id extends UnaryExpression implements Function {
 
       /**
        * Identifier of a node/edge
@@ -546,7 +546,7 @@ public interface QueryExpression {
       }
     }
 
-    class EdgeLabel extends UnaryExpression {
+    class EdgeLabel extends UnaryExpression implements Function {
 
       public EdgeLabel(QueryExpression exp) {
         super(exp);
@@ -564,7 +564,7 @@ public interface QueryExpression {
       }
     }
 
-    class VertexLabels extends UnaryExpression {
+    class VertexLabels extends UnaryExpression implements Function {
 
       public VertexLabels(QueryExpression exp) {
         super(exp);
@@ -582,7 +582,7 @@ public interface QueryExpression {
       }
     }
 
-    class HasLabel extends BinaryExpression {
+    class HasLabel extends BinaryExpression implements Function {
 
       public HasLabel(QueryExpression exp1, QueryExpression exp2) {
         super(exp1, exp2);
@@ -601,7 +601,7 @@ public interface QueryExpression {
       }
     }
 
-    class HasProp extends BinaryExpression {
+    class HasProp extends BinaryExpression implements Function {
 
       /**
        * Whether a node/edge has a property.
@@ -626,7 +626,7 @@ public interface QueryExpression {
       }
     }
 
-    class InDegree extends UnaryExpression {
+    class InDegree extends UnaryExpression implements Function {
       public InDegree(QueryExpression exp) {
         super(exp);
       }
@@ -643,7 +643,7 @@ public interface QueryExpression {
       }
     }
 
-    class OutDegree extends UnaryExpression {
+    class OutDegree extends UnaryExpression implements Function {
       public OutDegree(QueryExpression exp) {
         super(exp);
       }
