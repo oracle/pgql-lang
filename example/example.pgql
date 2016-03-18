@@ -1,3 +1,4 @@
-SELECT *
+SELECT AVG(e.name)
 WHERE
-  (n) -[e]-> (m), n.hasLabel("vertexLabel") AND e.hasLabel("edgeLabel")
+  (n) -[e]-> (m)
+order by e.name
