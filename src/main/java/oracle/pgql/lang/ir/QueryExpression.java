@@ -3,10 +3,7 @@
  */
 package oracle.pgql.lang.ir;
 
-import java.util.HashSet;
-import java.util.Set;
-
-public abstract class QueryExpression {
+public interface QueryExpression {
 
   public enum ExpressionType {
     ConstInteger, ConstDecimal, ConstString, ConstBoolean, ConstNull, // constants
@@ -23,34 +20,31 @@ public abstract class QueryExpression {
     EdgeLabel // edge
   }
 
-  protected final Set<QueryVar> variables;
+  public ExpressionType getExpType();
 
-  public abstract ExpressionType getExpType();
+  public void accept(ExpressionVisitor v);
 
-  protected QueryExpression() {
-    variables = new HashSet<>();
-  }
-
-  public Set<QueryVar> getVariables() {
-    return variables;
-  }
-
-  public static abstract class UnaryExpression extends QueryExpression {
+  public static abstract class UnaryExpression implements QueryExpression {
 
     public final QueryExpression exp;
 
     public UnaryExpression(QueryExpression exp) {
       this.exp = exp;
-      variables.addAll(exp.getVariables());
     }
 
     @Override
     public String toString() {
       return getExpType() + "(" + exp + ")";
     }
+    
+    @Override
+    public void accept(ExpressionVisitor v) {
+      v.visit(this);
+      v.visit(exp);
+    }
   }
 
-  public static abstract class BinaryExpression extends QueryExpression {
+  public static abstract class BinaryExpression implements QueryExpression {
 
     public final QueryExpression exp1;
     public final QueryExpression exp2;
@@ -58,19 +52,23 @@ public abstract class QueryExpression {
     public BinaryExpression(QueryExpression exp1, QueryExpression exp2) {
       this.exp1 = exp1;
       this.exp2 = exp2;
-      variables.addAll(exp1.getVariables());
-      variables.addAll(exp2.getVariables());
     }
 
     @Override
     public String toString() {
       return getExpType() + "(" + exp1 + ", " + exp2 + ")";
     }
-
+    
+    @Override
+    public void accept(ExpressionVisitor v) {
+      v.visit(this);
+      v.visit(exp1);
+      v.visit(exp2);
+    }
   }
 
   // not yet used, but there will be built-in functions in the future that will need it
-  public static abstract class TernaryExpression extends QueryExpression {
+  public static abstract class TernaryExpression implements QueryExpression {
 
     public final QueryExpression exp1;
     public final QueryExpression exp2;
@@ -80,20 +78,23 @@ public abstract class QueryExpression {
       this.exp1 = exp1;
       this.exp2 = exp2;
       this.exp3 = exp3;
-      variables.addAll(exp1.getVariables());
-      variables.addAll(exp2.getVariables());
-      variables.addAll(exp3.getVariables());
-
     }
 
     @Override
     public String toString() {
       return getExpType() + "(" + exp1 + ", " + exp2 + ", " + exp3 + ")";
     }
-
+    
+    @Override
+    public void accept(ExpressionVisitor v) {
+      v.visit(this);
+      v.visit(exp1);
+      v.visit(exp2);
+      v.visit(exp3);
+    }
   }
 
-  public interface ArithmeticExpression {
+  public interface ArithmeticExpression extends QueryExpression {
 
     class Sub extends BinaryExpression {
       public Sub(QueryExpression exp1, QueryExpression exp2) {
@@ -162,7 +163,7 @@ public abstract class QueryExpression {
     }
   }
 
-  public interface LogicalExpression {
+  public interface LogicalExpression extends QueryExpression {
 
     class And extends BinaryExpression {
       public And(QueryExpression exp1, QueryExpression exp2) {
@@ -198,7 +199,7 @@ public abstract class QueryExpression {
     }
   }
 
-  public interface RelationalExpression {
+  public interface RelationalExpression extends QueryExpression {
 
     class Equal extends BinaryExpression {
       public Equal(QueryExpression exp1, QueryExpression exp2) {
@@ -267,12 +268,17 @@ public abstract class QueryExpression {
     }
   }
 
-  public static abstract class Constant<T> extends QueryExpression {
+  public static abstract class Constant<T> implements QueryExpression {
 
     public final T val;
 
     public Constant(T val) {
       this.val = val;
+    }
+    
+    @Override
+    public void accept(ExpressionVisitor v) {
+      v.visit(this);
     }
 
     public static class ConstInteger extends Constant<Long> {
@@ -331,20 +337,24 @@ public abstract class QueryExpression {
     }
   }
 
-  public static class ConstantNull extends QueryExpression {
+  public static class ConstNull implements QueryExpression {
 
     @Override
     public ExpressionType getExpType() {
       return ExpressionType.ConstNull;
     }
+    
+    @Override
+    public void accept(ExpressionVisitor v) {
+      v.visit(this);
+    }
   }
 
-  public static class VarRef extends QueryExpression {
+  public static class VarRef implements QueryExpression {
     public final QueryVar var;
 
     public VarRef(QueryVar var) {
       this.var = var;
-      variables.add(var);
     }
 
     @Override
@@ -356,16 +366,20 @@ public abstract class QueryExpression {
     public String toString() {
       return var.name;
     }
+    
+    @Override
+    public void accept(ExpressionVisitor v) {
+      v.visit(this);
+    }
   }
 
-  public static class PropAccess extends QueryExpression {
+  public static class PropAccess implements QueryExpression {
     public final QueryVar var;
     public final String propname;
 
     public PropAccess(QueryVar var, String propname) {
       this.var = var;
       this.propname = propname;
-      variables.add(var);
     }
 
     @Override
@@ -377,9 +391,14 @@ public abstract class QueryExpression {
     public String toString() {
       return var.name + "." + propname;
     }
+    
+    @Override
+    public void accept(ExpressionVisitor v) {
+      v.visit(this);
+    }
   }
 
-  public interface Function {
+  public interface Function extends QueryExpression {
 
     class Regex extends BinaryExpression {
       public Regex(QueryExpression exp1, QueryExpression exp2) {
@@ -486,7 +505,7 @@ public abstract class QueryExpression {
     }
   }
 
-  public interface Aggregation {
+  public interface Aggregation extends QueryExpression {
 
     class AggrCount extends UnaryExpression implements Aggregation {
 
@@ -548,7 +567,7 @@ public abstract class QueryExpression {
       }
     }
 
-    class Star extends QueryExpression {
+    class Star implements QueryExpression {
 
       @Override
       public ExpressionType getExpType() {
@@ -558,6 +577,11 @@ public abstract class QueryExpression {
       @Override
       public String toString() {
         return "*";
+      }
+
+      @Override
+      public void accept(ExpressionVisitor v) {
+        v.visit(this);
       }
     }
   }
