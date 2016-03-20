@@ -40,7 +40,7 @@ import oracle.pgql.lang.ir.QueryExpression.RelationalExpression.LessEqual;
 import oracle.pgql.lang.ir.QueryExpression.RelationalExpression.NotEqual;
 import oracle.pgql.lang.ir.QueryExpression.VarRef;
 
-public abstract class AbstractTopDownExpressionVisitor implements ExpressionVisitor {
+public abstract class AbstractExpressionVisitor implements ExpressionVisitor {
 
   @Override
   public void visit(ConstInteger constInteger) {
