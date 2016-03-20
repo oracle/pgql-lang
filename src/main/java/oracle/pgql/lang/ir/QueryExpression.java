@@ -88,8 +88,6 @@ public interface QueryExpression {
       @Override
       public void accept(ExpressionVisitor v) {
         v.visit(this);
-        exp1.accept(v);
-        exp2.accept(v);
       }
     }
 
@@ -106,8 +104,6 @@ public interface QueryExpression {
       @Override
       public void accept(ExpressionVisitor v) {
         v.visit(this);
-        exp1.accept(v);
-        exp2.accept(v);
       }
     }
 
@@ -124,8 +120,6 @@ public interface QueryExpression {
       @Override
       public void accept(ExpressionVisitor v) {
         v.visit(this);
-        exp1.accept(v);
-        exp2.accept(v);
       }
     }
 
@@ -142,8 +136,6 @@ public interface QueryExpression {
       @Override
       public void accept(ExpressionVisitor v) {
         v.visit(this);
-        exp1.accept(v);
-        exp2.accept(v);
       }
     }
 
@@ -160,8 +152,6 @@ public interface QueryExpression {
       @Override
       public void accept(ExpressionVisitor v) {
         v.visit(this);
-        exp1.accept(v);
-        exp2.accept(v);
       }
     }
 
@@ -178,7 +168,6 @@ public interface QueryExpression {
       @Override
       public void accept(ExpressionVisitor v) {
         v.visit(this);
-        exp.accept(v);
       }
     }
   }
@@ -198,8 +187,6 @@ public interface QueryExpression {
       @Override
       public void accept(ExpressionVisitor v) {
         v.visit(this);
-        exp1.accept(v);
-        exp2.accept(v);
       }
 
     }
@@ -217,8 +204,6 @@ public interface QueryExpression {
       @Override
       public void accept(ExpressionVisitor v) {
         v.visit(this);
-        exp1.accept(v);
-        exp2.accept(v);
       }
 
     }
@@ -236,7 +221,6 @@ public interface QueryExpression {
       @Override
       public void accept(ExpressionVisitor v) {
         v.visit(this);
-        exp.accept(v);
       }
     }
   }
@@ -256,8 +240,6 @@ public interface QueryExpression {
       @Override
       public void accept(ExpressionVisitor v) {
         v.visit(this);
-        exp1.accept(v);
-        exp2.accept(v);
       }
 
     }
@@ -275,8 +257,6 @@ public interface QueryExpression {
       @Override
       public void accept(ExpressionVisitor v) {
         v.visit(this);
-        exp1.accept(v);
-        exp2.accept(v);
       }
 
     }
@@ -294,8 +274,6 @@ public interface QueryExpression {
       @Override
       public void accept(ExpressionVisitor v) {
         v.visit(this);
-        exp1.accept(v);
-        exp2.accept(v);
       }
 
     }
@@ -313,8 +291,6 @@ public interface QueryExpression {
       @Override
       public void accept(ExpressionVisitor v) {
         v.visit(this);
-        exp1.accept(v);
-        exp2.accept(v);
       }
 
     }
@@ -332,8 +308,6 @@ public interface QueryExpression {
       @Override
       public void accept(ExpressionVisitor v) {
         v.visit(this);
-        exp1.accept(v);
-        exp2.accept(v);
       }
 
     }
@@ -351,8 +325,6 @@ public interface QueryExpression {
       @Override
       public void accept(ExpressionVisitor v) {
         v.visit(this);
-        exp1.accept(v);
-        exp2.accept(v);
       }
 
     }
@@ -518,8 +490,6 @@ public interface QueryExpression {
       @Override
       public void accept(ExpressionVisitor v) {
         v.visit(this);
-        exp1.accept(v);
-        exp2.accept(v);
       }
     }
 
@@ -542,7 +512,6 @@ public interface QueryExpression {
       @Override
       public void accept(ExpressionVisitor v) {
         v.visit(this);
-        exp.accept(v);
       }
     }
 
@@ -560,7 +529,6 @@ public interface QueryExpression {
       @Override
       public void accept(ExpressionVisitor v) {
         v.visit(this);
-        exp.accept(v);
       }
     }
 
@@ -578,7 +546,6 @@ public interface QueryExpression {
       @Override
       public void accept(ExpressionVisitor v) {
         v.visit(this);
-        exp.accept(v);
       }
     }
 
@@ -596,8 +563,6 @@ public interface QueryExpression {
       @Override
       public void accept(ExpressionVisitor v) {
         v.visit(this);
-        exp1.accept(v);
-        exp2.accept(v);
       }
     }
 
@@ -621,8 +586,6 @@ public interface QueryExpression {
       @Override
       public void accept(ExpressionVisitor v) {
         v.visit(this);
-        exp1.accept(v);
-        exp2.accept(v);
       }
     }
 
@@ -639,7 +602,6 @@ public interface QueryExpression {
       @Override
       public void accept(ExpressionVisitor v) {
         v.visit(this);
-        exp.accept(v);
       }
     }
 
@@ -656,7 +618,6 @@ public interface QueryExpression {
       @Override
       public void accept(ExpressionVisitor v) {
         v.visit(this);
-        exp.accept(v);
       }
     }
   }
@@ -677,7 +638,6 @@ public interface QueryExpression {
       @Override
       public void accept(ExpressionVisitor v) {
         v.visit(this);
-        exp.accept(v);
       }
     }
 
@@ -695,7 +655,6 @@ public interface QueryExpression {
       @Override
       public void accept(ExpressionVisitor v) {
         v.visit(this);
-        exp.accept(v);
       }
     }
 
@@ -713,7 +672,6 @@ public interface QueryExpression {
       @Override
       public void accept(ExpressionVisitor v) {
         v.visit(this);
-        exp.accept(v);
       }
     }
 
@@ -731,7 +689,6 @@ public interface QueryExpression {
       @Override
       public void accept(ExpressionVisitor v) {
         v.visit(this);
-        exp.accept(v);
       }
     }
 
@@ -749,7 +706,6 @@ public interface QueryExpression {
       @Override
       public void accept(ExpressionVisitor v) {
         v.visit(this);
-        exp.accept(v);
       }
     }
 
