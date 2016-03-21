@@ -1,3 +1,6 @@
+/**
+ * Copyright (C) 2013 - 2016 Oracle and/or its affiliates. All rights reserved.
+ */
 package oracle.pgql.lang.ir;
 
 import oracle.pgql.lang.ir.QueryExpression.ConstNull;
