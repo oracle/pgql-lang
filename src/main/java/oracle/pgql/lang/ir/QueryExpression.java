@@ -6,18 +6,18 @@ package oracle.pgql.lang.ir;
 public interface QueryExpression {
 
   public enum ExpressionType {
-    ConstInteger, ConstDecimal, ConstString, ConstBoolean, ConstNull, // constants
-    Sub, Add, Mul, Div, Mod, UMin, // arithmetic expressions
-    And, Or, Not, // logical expressions
-    Equal, NotEqual, Greater, GreaterEqual, Less, LessEqual, // relational expressions
-    Aggr_count, Aggr_min, Aggr_max, Aggr_sum, Aggr_avg, // aggregates
-    VarRef, Star, // other
+    INTEGER, DECIMAL, STRING, BOOLEAN, NULL, // constants
+    SUB, ADD, MUL, DIV, MOD, UMIN, // arithmetic expressions
+    AND, OR, NOT, // logical expressions
+    EQUAL, NOT_EQUAL, GREATER, GREATER_EQUAL, LESS, LESS_EQUAL, // relational expressions
+    AGGR_COUNT, AGGR_MIN, AGGR_MAX, AGGR_SUM, AGGR_AVG, // aggregates
+    VARREF, STAR, // other
 
     // functions:
-    Regex, // String
-    Id, PropAccess, HasProp, HasLabel, // vertex/edges     note: HasProp will be removed in future version (replaced by 'x.prop != NULL')
-    VertexLabels, InDegree, OutDegree, // vertex
-    EdgeLabel // edge
+    REGEX, // String
+    ID, PROP_ACCESS, HAS_PROP, HAS_LABEL, // vertex/edges     note: HasProp will be removed in future version (replaced by 'x.prop != NULL')
+    VERTEX_LABELS, INDEGREE, OUTDEGREE, // vertex
+    EDGE_LABEL // edge
   }
 
   public ExpressionType getExpType();
@@ -82,7 +82,7 @@ public interface QueryExpression {
 
       @Override
       public ExpressionType getExpType() {
-        return ExpressionType.Sub;
+        return ExpressionType.SUB;
       }
       
       @Override
@@ -98,7 +98,7 @@ public interface QueryExpression {
 
       @Override
       public ExpressionType getExpType() {
-        return ExpressionType.Add;
+        return ExpressionType.ADD;
       }
       
       @Override
@@ -114,7 +114,7 @@ public interface QueryExpression {
 
       @Override
       public ExpressionType getExpType() {
-        return ExpressionType.Mul;
+        return ExpressionType.MUL;
       }
       
       @Override
@@ -130,7 +130,7 @@ public interface QueryExpression {
 
       @Override
       public ExpressionType getExpType() {
-        return ExpressionType.Div;
+        return ExpressionType.DIV;
       }
       
       @Override
@@ -146,7 +146,7 @@ public interface QueryExpression {
 
       @Override
       public ExpressionType getExpType() {
-        return ExpressionType.Mod;
+        return ExpressionType.MOD;
       }
       
       @Override
@@ -162,7 +162,7 @@ public interface QueryExpression {
 
       @Override
       public ExpressionType getExpType() {
-        return ExpressionType.UMin;
+        return ExpressionType.UMIN;
       }
       
       @Override
@@ -181,7 +181,7 @@ public interface QueryExpression {
 
       @Override
       public ExpressionType getExpType() {
-        return ExpressionType.And;
+        return ExpressionType.AND;
       }
       
       @Override
@@ -198,7 +198,7 @@ public interface QueryExpression {
 
       @Override
       public ExpressionType getExpType() {
-        return ExpressionType.Or;
+        return ExpressionType.OR;
       }
       
       @Override
@@ -215,7 +215,7 @@ public interface QueryExpression {
 
       @Override
       public ExpressionType getExpType() {
-        return ExpressionType.Not;
+        return ExpressionType.NOT;
       }
       
       @Override
@@ -234,7 +234,7 @@ public interface QueryExpression {
 
       @Override
       public ExpressionType getExpType() {
-        return ExpressionType.Equal;
+        return ExpressionType.EQUAL;
       }
       
       @Override
@@ -251,7 +251,7 @@ public interface QueryExpression {
 
       @Override
       public ExpressionType getExpType() {
-        return ExpressionType.NotEqual;
+        return ExpressionType.NOT_EQUAL;
       }
       
       @Override
@@ -268,7 +268,7 @@ public interface QueryExpression {
 
       @Override
       public ExpressionType getExpType() {
-        return ExpressionType.Greater;
+        return ExpressionType.GREATER;
       }
       
       @Override
@@ -285,7 +285,7 @@ public interface QueryExpression {
 
       @Override
       public ExpressionType getExpType() {
-        return ExpressionType.GreaterEqual;
+        return ExpressionType.GREATER_EQUAL;
       }
       
       @Override
@@ -302,7 +302,7 @@ public interface QueryExpression {
 
       @Override
       public ExpressionType getExpType() {
-        return ExpressionType.Less;
+        return ExpressionType.LESS;
       }
       
       @Override
@@ -319,7 +319,7 @@ public interface QueryExpression {
 
       @Override
       public ExpressionType getExpType() {
-        return ExpressionType.LessEqual;
+        return ExpressionType.LESS_EQUAL;
       }
       
       @Override
@@ -345,7 +345,7 @@ public interface QueryExpression {
 
       @Override
       public ExpressionType getExpType() {
-        return ExpressionType.ConstInteger;
+        return ExpressionType.INTEGER;
       }
       
       @Override
@@ -361,7 +361,7 @@ public interface QueryExpression {
 
       @Override
       public ExpressionType getExpType() {
-        return ExpressionType.ConstDecimal;
+        return ExpressionType.DECIMAL;
       }
       
       @Override
@@ -377,7 +377,7 @@ public interface QueryExpression {
 
       @Override
       public ExpressionType getExpType() {
-        return ExpressionType.ConstString;
+        return ExpressionType.STRING;
       }
 
       @Override
@@ -399,7 +399,7 @@ public interface QueryExpression {
 
       @Override
       public ExpressionType getExpType() {
-        return ExpressionType.ConstBoolean;
+        return ExpressionType.BOOLEAN;
       }
       
       @Override
@@ -418,7 +418,7 @@ public interface QueryExpression {
 
     @Override
     public ExpressionType getExpType() {
-      return ExpressionType.ConstNull;
+      return ExpressionType.NULL;
     }
     
     @Override
@@ -436,7 +436,7 @@ public interface QueryExpression {
 
     @Override
     public ExpressionType getExpType() {
-      return ExpressionType.VarRef;
+      return ExpressionType.VARREF;
     }
 
     @Override
@@ -461,7 +461,7 @@ public interface QueryExpression {
 
     @Override
     public ExpressionType getExpType() {
-      return ExpressionType.PropAccess;
+      return ExpressionType.PROP_ACCESS;
     }
 
     @Override
@@ -484,7 +484,7 @@ public interface QueryExpression {
 
       @Override
       public ExpressionType getExpType() {
-        return ExpressionType.Regex;
+        return ExpressionType.REGEX;
       }
       
       @Override
@@ -506,7 +506,7 @@ public interface QueryExpression {
 
       @Override
       public ExpressionType getExpType() {
-        return ExpressionType.Id;
+        return ExpressionType.ID;
       }
       
       @Override
@@ -523,7 +523,7 @@ public interface QueryExpression {
 
       @Override
       public ExpressionType getExpType() {
-        return ExpressionType.EdgeLabel;
+        return ExpressionType.EDGE_LABEL;
       }
       
       @Override
@@ -540,7 +540,7 @@ public interface QueryExpression {
 
       @Override
       public ExpressionType getExpType() {
-        return ExpressionType.VertexLabels;
+        return ExpressionType.VERTEX_LABELS;
       }
       
       @Override
@@ -557,7 +557,7 @@ public interface QueryExpression {
 
       @Override
       public ExpressionType getExpType() {
-        return ExpressionType.HasLabel;
+        return ExpressionType.HAS_LABEL;
       }
       
       @Override
@@ -580,7 +580,7 @@ public interface QueryExpression {
 
       @Override
       public ExpressionType getExpType() {
-        return ExpressionType.HasProp;
+        return ExpressionType.HAS_PROP;
       }
       
       @Override
@@ -596,7 +596,7 @@ public interface QueryExpression {
 
       @Override
       public ExpressionType getExpType() {
-        return ExpressionType.InDegree;
+        return ExpressionType.INDEGREE;
       }
       
       @Override
@@ -612,7 +612,7 @@ public interface QueryExpression {
 
       @Override
       public ExpressionType getExpType() {
-        return ExpressionType.OutDegree;
+        return ExpressionType.OUTDEGREE;
       }
       
       @Override
@@ -632,7 +632,7 @@ public interface QueryExpression {
 
       @Override
       public ExpressionType getExpType() {
-        return ExpressionType.Aggr_count;
+        return ExpressionType.AGGR_COUNT;
       }
       
       @Override
@@ -649,7 +649,7 @@ public interface QueryExpression {
 
       @Override
       public ExpressionType getExpType() {
-        return ExpressionType.Aggr_min;
+        return ExpressionType.AGGR_MIN;
       }
       
       @Override
@@ -666,7 +666,7 @@ public interface QueryExpression {
 
       @Override
       public ExpressionType getExpType() {
-        return ExpressionType.Aggr_max;
+        return ExpressionType.AGGR_MAX;
       }
       
       @Override
@@ -683,7 +683,7 @@ public interface QueryExpression {
 
       @Override
       public ExpressionType getExpType() {
-        return ExpressionType.Aggr_sum;
+        return ExpressionType.AGGR_SUM;
       }
       
       @Override
@@ -700,7 +700,7 @@ public interface QueryExpression {
 
       @Override
       public ExpressionType getExpType() {
-        return ExpressionType.Aggr_avg;
+        return ExpressionType.AGGR_AVG;
       }
       
       @Override
@@ -713,7 +713,7 @@ public interface QueryExpression {
 
       @Override
       public ExpressionType getExpType() {
-        return ExpressionType.Star;
+        return ExpressionType.STAR;
       }
 
       @Override
