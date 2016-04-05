@@ -23,14 +23,6 @@ SELECT x.name, x.age, x.has('name'), x.has('not-exists')
 WHERE (x WITH name = 'Mary', has('age', 'salary'))
 ]]
 
-test inDegree() on edge 1 [[
-SELECT e.inDegree() WHERE x -[e]-> y
-]] // returns null for each row
-
-test inDegree() on edge 2 [[
-SELECT x WHERE x -[e WITH inDegree() > 3]-> y
-]] // returns zero results
-
 test has(prop1, prop2, ...) with double quoted and unquoted property names [[
 SELECT x.name, x.age, x.salary WHERE (x WITH name = 'Mary', has("age", salary))
 ]]

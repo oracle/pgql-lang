@@ -1,0 +1,11 @@
+module group-by
+
+language PGQL
+
+test inDegree() on edge 1 [[
+SELECT e.inDegree() WHERE x -[e]-> y
+]] / Function is only defined for vertices /
+
+test inDegree() on edge 2 [[
+SELECT x WHERE x -[e WITH inDegree() > 3]-> y
+]] / Function is only defined for vertices /
