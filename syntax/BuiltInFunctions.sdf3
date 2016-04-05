@@ -10,17 +10,17 @@ imports
 
 context-free syntax // inlined function calls
 
-  InlinedExp.Label = <<Obj><LABEL>()>
-  InlinedExp.Labels = <<Obj><LABELS>()>
-  InlinedExp.HasLabel = <<Obj><HASLABEL>(<Exp>)>
-  InlinedExp.Id = <<Obj><ID>()>
-  InlinedExp.Has = <<Obj><HAS>(<{Prop ", "}*>)>
-  InlinedExp.InDegree  = <<Obj><INDEGREE>()>
-  InlinedExp.OutDegree = <<Obj><OUTDEGREE>()>
+  InlinedCall.Label = <<Obj><LABEL>()>
+  InlinedCall.Labels = <<Obj><LABELS>()>
+  InlinedCall.HasLabel = <<Obj><HASLABEL>(<Exp>)>
+  InlinedCall.Id = <<Obj><ID>()>
+  InlinedCall.Has = <<Obj><HAS>(<{Prop ", "}*>)>
+  InlinedCall.InDegree  = <<Obj><INDEGREE>()>
+  InlinedCall.OutDegree = <<Obj><OUTDEGREE>()>
   
-  InlinedExp.Nodes  = <<Obj><NODES>()>
-  InlinedExp.Edges  = <<Obj><EDGES>()>
-  InlinedExp.Length = <<Obj><LENGTH>()>
+  InlinedCall.Nodes  = <<Obj><NODES>()>
+  InlinedCall.Edges  = <<Obj><EDGES>()>
+  InlinedCall.Length = <<Obj><LENGTH>()>
 
   Obj.Obj = <<VarRef><Dot>>
   Obj.Obj = <<Dot?>>
@@ -159,20 +159,20 @@ context-free priorities
   >
   {
     left:
-      InlinedExp.Label
-      InlinedExp.Labels
-      InlinedExp.HasLabel
-      InlinedExp.Id
-      InlinedExp.Has
-      InlinedExp.InDegree
-      InlinedExp.OutDegree
+      InlinedCall.Label
+      InlinedCall.Labels
+      InlinedCall.HasLabel
+      InlinedCall.Id
+      InlinedCall.Has
+      InlinedCall.InDegree
+      InlinedCall.OutDegree
   }
   >
   {
     left:
-      InlinedExp.Nodes
-      InlinedExp.Edges
-      InlinedExp.Length
+      InlinedCall.Nodes
+      InlinedCall.Edges
+      InlinedCall.Length
   }
   >
   {
