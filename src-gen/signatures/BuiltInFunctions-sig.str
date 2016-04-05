@@ -17,8 +17,6 @@ signature
     Has       : Obj * HAS * List(Prop) -> InlinedCall
     InDegree  : Obj * INDEGREE -> InlinedCall
     OutDegree : Obj * OUTDEGREE -> InlinedCall
-    Src       : Obj * SRC -> InlinedCall
-    Dst       : Obj * DST -> InlinedCall
     Nodes     : Obj * NODES -> InlinedCall
     Edges     : Obj * EDGES -> InlinedCall
     Length    : Obj * LENGTH -> InlinedCall
@@ -35,20 +33,6 @@ signature
   constructors
     InDegree  : Exp * INDEGREE -> FunctionCall
     OutDegree : Exp * OUTDEGREE -> FunctionCall
-
-  constructors
-    Src : Exp * SRC -> FunctionCall
-    Dst : Exp * DST -> FunctionCall
-
-  constructors
-    Between  : Exp * BETWEEN * Exp * Exp -> FunctionCall
-    Year     : Exp * YEAR -> FunctionCall
-    Month    : Exp * MONTH -> FunctionCall
-    Day      : Exp * DAY -> FunctionCall
-    Hours    : Exp * HOURS -> FunctionCall
-    Minutes  : Exp * MINUTES -> FunctionCall
-    Seconds  : Exp * SECONDS -> FunctionCall
-    Timezone : Exp * TIMEZONE -> FunctionCall
 
   constructors
     COUNT    : COUNT * Option(Distinct) * StarOrExp -> FunctionCall

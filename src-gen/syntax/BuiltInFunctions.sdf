@@ -10,8 +10,6 @@ exports
     Obj HAS "(" {Prop ","}* ")" -> InlinedCall {cons("Has")}
     Obj INDEGREE "()"           -> InlinedCall {cons("InDegree")}
     Obj OUTDEGREE "()"          -> InlinedCall {cons("OutDegree")}
-    Obj SRC "()"                -> InlinedCall {cons("Src")}
-    Obj DST "()"                -> InlinedCall {cons("Dst")}
     Obj NODES "()"              -> InlinedCall {cons("Nodes")}
     Obj EDGES "()"              -> InlinedCall {cons("Edges")}
     Obj LENGTH "()"             -> InlinedCall {cons("Length")}
@@ -40,26 +38,6 @@ exports
     CONTENTCOMPLETE -> FunctionCall {cons("COMPLETION-FunctionCall")}
 
   context-free syntax
-    Exp "." SRC "()" -> FunctionCall {cons("Src")}
-    Exp "." DST "()" -> FunctionCall {cons("Dst")}
-
-  context-free syntax
-    CONTENTCOMPLETE -> FunctionCall {cons("COMPLETION-FunctionCall")}
-
-  context-free syntax
-    Exp "." BETWEEN "(" Exp "," Exp ")" -> FunctionCall {cons("Between")}
-    Exp "." YEAR "()"                   -> FunctionCall {cons("Year")}
-    Exp "." MONTH "()"                  -> FunctionCall {cons("Month")}
-    Exp "." DAY "()"                    -> FunctionCall {cons("Day")}
-    Exp "." HOURS "()"                  -> FunctionCall {cons("Hours")}
-    Exp "." MINUTES "()"                -> FunctionCall {cons("Minutes")}
-    Exp "." SECONDS "()"                -> FunctionCall {cons("Seconds")}
-    Exp "." TIMEZONE "()"               -> FunctionCall {cons("Timezone")}
-
-  context-free syntax
-    CONTENTCOMPLETE -> FunctionCall {cons("COMPLETION-FunctionCall")}
-
-  context-free syntax
     COUNT "(" Distinct? StarOrExp ")" -> FunctionCall     {cons("COUNT")}
     MIN "(" Distinct? Exp ")"         -> FunctionCall     {cons("MIN")}
     MAX "(" Distinct? Exp ")"         -> FunctionCall     {cons("MAX")}
@@ -76,7 +54,7 @@ exports
     CONTENTCOMPLETE -> Group-Concat-Sep {cons("COMPLETION-Group-Concat-Sep")}
 
   context-free priorities
-    {right:
+    {left:
       "-" Exp -> Exp
       NOT Exp -> Exp
       "!" Exp -> Exp
@@ -89,18 +67,6 @@ exports
       Exp "." HAS "(" {Prop ","}* ")" -> FunctionCall
       Exp "." INDEGREE "()" -> FunctionCall
       Exp "." OUTDEGREE "()" -> FunctionCall
-      Exp "." SRC "()" -> FunctionCall
-      Exp "." DST "()" -> FunctionCall
-    } >
-    {left:
-      Exp "." BETWEEN "(" Exp "," Exp ")" -> FunctionCall
-      Exp "." YEAR "()" -> FunctionCall
-      Exp "." MONTH "()" -> FunctionCall
-      Exp "." DAY "()" -> FunctionCall
-      Exp "." HOURS "()" -> FunctionCall
-      Exp "." MINUTES "()" -> FunctionCall
-      Exp "." SECONDS "()" -> FunctionCall
-      Exp "." TIMEZONE "()" -> FunctionCall
     } >
     {left:
       Exp "*" Exp -> Exp
@@ -134,7 +100,7 @@ exports
     }
 
   context-free priorities
-    {right:
+    {left:
       "-" InlinedExp -> InlinedExp
       NOT InlinedExp -> InlinedExp
       "!" InlinedExp -> InlinedExp
@@ -147,8 +113,6 @@ exports
       Obj HAS "(" {Prop ","}* ")" -> InlinedCall
       Obj INDEGREE "()" -> InlinedCall
       Obj OUTDEGREE "()" -> InlinedCall
-      Obj SRC "()" -> InlinedCall
-      Obj DST "()" -> InlinedCall
     } >
     {left:
       Obj NODES "()" -> InlinedCall

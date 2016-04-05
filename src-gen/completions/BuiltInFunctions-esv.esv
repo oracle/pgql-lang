@@ -22,10 +22,6 @@ completions
     <Obj:Obj> <INDEGREE:INDEGREE> "()"  
   completion template InlinedCall : "ObjOUTDEGREE()" =
     <Obj:Obj> <OUTDEGREE:OUTDEGREE> "()"  
-  completion template InlinedCall : "ObjSRC()" =
-    <Obj:Obj> <SRC:SRC> "()"  
-  completion template InlinedCall : "ObjDST()" =
-    <Obj:Obj> <DST:DST> "()"  
   completion template InlinedCall : "ObjNODES()" =
     <Obj:Obj> <NODES:NODES> "()"  
   completion template InlinedCall : "ObjEDGES()" =
@@ -52,30 +48,6 @@ completions
     <Exp:Exp> ". " <INDEGREE:INDEGREE> "()"  
   completion template FunctionCall : "Exp. OUTDEGREE()" =
     <Exp:Exp> ". " <OUTDEGREE:OUTDEGREE> "()"  
-
-completions
-  completion template FunctionCall : "Exp. SRC()" =
-    <Exp:Exp> ". " <SRC:SRC> "()"  
-  completion template FunctionCall : "Exp. DST()" =
-    <Exp:Exp> ". " <DST:DST> "()"  
-
-completions
-  completion template FunctionCall : "Exp. BETWEEN(Exp, Exp)" =
-    <Exp:Exp> ". " <BETWEEN:BETWEEN> "(" <Exp:Exp> ", " <Exp:Exp> ")"  
-  completion template FunctionCall : "Exp. YEAR()" =
-    <Exp:Exp> ". " <YEAR:YEAR> "()"  
-  completion template FunctionCall : "Exp. MONTH()" =
-    <Exp:Exp> ". " <MONTH:MONTH> "()"  
-  completion template FunctionCall : "Exp. DAY()" =
-    <Exp:Exp> ". " <DAY:DAY> "()"  
-  completion template FunctionCall : "Exp. HOURS()" =
-    <Exp:Exp> ". " <HOURS:HOURS> "()"  
-  completion template FunctionCall : "Exp. MINUTES()" =
-    <Exp:Exp> ". " <MINUTES:MINUTES> "()"  
-  completion template FunctionCall : "Exp. SECONDS()" =
-    <Exp:Exp> ". " <SECONDS:SECONDS> "()"  
-  completion template FunctionCall : "Exp. TIMEZONE()" =
-    <Exp:Exp> ". " <TIMEZONE:TIMEZONE> "()"  
 
 completions
   completion template FunctionCall : "COUNT(StarOrExp)" =

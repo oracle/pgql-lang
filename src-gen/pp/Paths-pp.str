@@ -164,22 +164,6 @@ strategies
   is-Edge =
     ?EdgeIn()
 
-  prettyprint-Edge :
-    EdgeNoDir(t1__, t2__) -> [ H(
-                                 [SOpt(HS(), "0")]
-                               , [ S("-")
-                                 , t1__'
-                                 , t2__'
-                                 , S("-")
-                                 ]
-                               )
-                             ]
-    with t1__' := <pp-option(pp-one-Z(prettyprint-EdgeContents))> t1__
-    with t2__' := <pp-option(pp-one-Z(prettyprint-PathLengthConstraints))> t2__
-
-  is-Edge =
-    ?EdgeNoDir(_, _)
-
   prettyprint-EdgeContents :
     EdgeContents(t1__) -> [ H(
                               [SOpt(HS(), "0")]

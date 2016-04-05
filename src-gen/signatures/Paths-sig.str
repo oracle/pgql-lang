@@ -19,7 +19,6 @@ signature
     EdgeIn                : Option(PathLengthConstraints) * Option(EdgeContents) -> Edge
     EdgeOut               : Edge
     EdgeIn                : Edge
-    EdgeNoDir             : Option(EdgeContents) * Option(PathLengthConstraints) -> Edge
     EdgeContents          : ElemContents -> EdgeContents
     PathLengthConstraints : PathConstraint -> PathLengthConstraints
     PathLength            : Option(PATHLENGTH) * Option(PATHLENGTH) -> PathConstraint

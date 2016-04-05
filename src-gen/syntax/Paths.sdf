@@ -13,7 +13,6 @@ exports
     "<-" PathLengthConstraints? EdgeContents? "-" -> Edge                  {cons("EdgeIn")}
     "->"                                          -> Edge                  {cons("EdgeOut")}
     "<-"                                          -> Edge                  {cons("EdgeIn")}
-    "-" EdgeContents? PathLengthConstraints? "-"  -> Edge                  {cons("EdgeNoDir")}
     "[" ElemContents "]"                          -> EdgeContents          {cons("EdgeContents")}
     "{" PathConstraint "}"                        -> PathLengthConstraints {cons("PathLengthConstraints")}
     PATHLENGTH? ".." PATHLENGTH?                  -> PathConstraint        {cons("PathLength")}
