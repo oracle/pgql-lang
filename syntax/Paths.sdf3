@@ -21,18 +21,10 @@ context-free syntax
   Edge.EdgeIn = [<-[PathLengthConstraints?][EdgeContents?]-]
   Edge.EdgeOut = [->]
   Edge.EdgeIn = [<-]
-  Edge.EdgeNoDir = [-[EdgeContents?][PathLengthConstraints?]-] // should we support undirected edges?
   EdgeContents.EdgeContents = <[<ElemContents>]>
   PathLengthConstraints.PathLengthConstraints = <{<PathConstraint>}>
   PathConstraint.PathLength = <<PATHLENGTH?>..<PATHLENGTH?>>
   PathConstraint.Shortest = SHORTEST
-  // PathConstraint.Shortest = <<SHORTEST> <Weighted?>>
-  // PathConstraint.All = <<ALL><WithInlinedConstraints?>>
-  // PathConstraint.Any = <<ANY><WithInlinedConstraints?>>
-  // PathConstraint.AllShortest = <<ALL> <SHORTEST><Weighted?><WithInlinedConstraints?>>
-  // PathConstraint.AnyShortest = <<ANY> <SHORTEST><Weighted?><WithInlinedConstraints?>>
-  // Weighted.Weighted = < USING <InlinedExp>>
-  // Weighted.Weighted = <<InlinedExp><VarAssign?>>
 
 context-free syntax
 

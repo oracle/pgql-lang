@@ -131,12 +131,6 @@ signature constructors
 
 rules // future PGQL versions
 
-/*  
-  nabl-constraint(|ctx):
-    t@Regex(_, _) -> <fail>
-    with
-      <generate-error(|ctx, $[Regular expression matching is not supported])> t   
-     
   nabl-constraint(|ctx):
     PathDecl(v, _, _, _) -> <fail>
     with
@@ -146,12 +140,6 @@ rules // future PGQL versions
     t@PathLength(_, _) -> <fail>
     with
       <generate-error(|ctx, $[Path queries are not supported])> t
-            
-  nabl-constraint(|ctx):
-    t@Label(_) -> <fail>
-    with
-      <generate-error(|ctx, $[Labels are not supported])> t
-*/
 
   nabl-constraint(|ctx):
     SubQueries(queries)  -> <fail>
@@ -192,6 +180,8 @@ rules // future PGQL versions
       <generate-error(|ctx, $[Custom data types are not supported])> type
       
 rules // Oracle PGX specific (TODO: remove this from the project)
+  
+  
 
 rules // cross-constraints involving paths
   

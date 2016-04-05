@@ -67,7 +67,7 @@ rules
   norm-edgeContents = ?Some(EdgeContents(<id>))
   
   name-unnamed-nodes-and-edges(|c) = ?ElemContents(None(), type, id', constraints); !ElemContents(Some(<unique-name(|c)>), type, id', constraints)
-  name-unnamed-nodes-and-edges(|c) = EdgeNoDir(?None(); name-unnamed-nodes-and-edges-helper(|c), id) + 
+  name-unnamed-nodes-and-edges(|c) =
                                  EdgeOut(?None(); name-unnamed-nodes-and-edges-helper(|c), id) +
                                  EdgeIn(id, ?None(); name-unnamed-nodes-and-edges-helper(|c))
   name-unnamed-nodes-and-edges(|c) = ?EdgeOut(); !EdgeOut(<name-unnamed-nodes-and-edges-helper(|c)>, None()) +
@@ -189,7 +189,6 @@ rules
       switch !e
         case ?EdgeOut(name, lengthProps): expansion := Edge(n1, name, n2, lengthProps)
         case ?EdgeIn(lengthProps, name): expansion := Edge(n2, name, n1, lengthProps)
-        case ?EdgeNoDir(name, lengthProps): expansion := Edge(n1, name, n2, lengthProps)
         otherwise: fail
       end
   
@@ -197,8 +196,8 @@ rules
     p@Path(_, _, Some(VarAssign(VarDef(v)))) -> PathDecl(v, nodeNames, edgeNames, edgeDirs)
     with
       nodeNames := <collect-om(?Node(ElemContents(Some(<id>), _, _, _)), conc)> p;
-      edgeNames := <collect-om(?EdgeOut(ElemContents(Some(<id>), _, _, _), _) + ?EdgeIn(_, ElemContents(Some(<id>), _, _, _)) + ?EdgeNoDir(ElemContents(Some(<id>), _, _, _), _), conc)> p;
-      edgeDirs := <collect-om(?EdgeOut(_, _); !Out() + ?EdgeIn(_, _); !In() + ?EdgeNoDir(_, _); !NoDir(), conc)> p
+      edgeNames := <collect-om(?EdgeOut(ElemContents(Some(<id>), _, _, _), _) + ?EdgeIn(_, ElemContents(Some(<id>), _, _, _)), conc)> p;
+      edgeDirs := <collect-om(?EdgeOut(_, _); !Out() + ?EdgeIn(_, _); !In())> p
   
 rules
   
