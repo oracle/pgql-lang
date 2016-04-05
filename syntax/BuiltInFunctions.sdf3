@@ -17,8 +17,6 @@ context-free syntax // inlined function calls
   InlinedCall.Has = <<Obj><HAS>(<{Prop ", "}*>)>
   InlinedCall.InDegree  = <<Obj><INDEGREE>()>
   InlinedCall.OutDegree = <<Obj><OUTDEGREE>()>
-  InlinedCall.Src = <<Obj><SRC>()>
-  InlinedCall.Dst = <<Obj><DST>()>
   
   InlinedCall.Nodes  = <<Obj><NODES>()>
   InlinedCall.Edges  = <<Obj><EDGES>()>
@@ -40,11 +38,6 @@ context-free syntax // nodes
   FunctionCall.InDegree  = <<Exp>. <INDEGREE>()>
   FunctionCall.OutDegree = <<Exp>. <OUTDEGREE>()>
   
-context-free syntax // edges
-
-  FunctionCall.Src = <<Exp>. <SRC>()>
-  FunctionCall.Dst = <<Exp>. <DST>()>
-
 /* PGQL 1.0
 context-free syntax // paths
 
@@ -52,19 +45,11 @@ context-free syntax // paths
   FunctionCall.Edges  = <<Exp>. <EDGES>()>
   FunctionCall.Length = <<Exp>. <LENGTH>()>
 
-context-free syntax // lists
-  
-  FunctionCall.Head = <<Exp>. <HEAD>()>
-  FunctionCall.Last = <<Exp>. <LAST>()>
-  FunctionCall.Init = <<Exp>. <INIT>()>
-  FunctionCall.Tail = <<Exp>. <TAIL>()>
-
 context-free syntax // Strings
 
   FunctionCall.Contains   = <<Exp>. <CONTAINS>(<Exp>, <Exp>)>
   FunctionCall.BeginsWith = <<Exp>. <BEGINSWITH>(<Exp>, <Exp>)>
   FunctionCall.EndsWith   = <<Exp>. <ENDSWITH>(<Exp>, <Exp>)>
-*/
 
 context-free syntax // Time
 
@@ -77,7 +62,7 @@ context-free syntax // Time
   FunctionCall.Seconds = <<Exp>. <SECONDS>()>
   FunctionCall.Timezone = <<Exp>. <TIMEZONE>()>
 
-/* PGQL 1.0
+
 context-free syntax // EXISTS / NOT EXISTS / CASE
 
   FunctionCall.ExistsFunc    = <<EXISTS> <GroupGraphPattern>>
@@ -119,20 +104,6 @@ context-free priorities
       FunctionCall.Has
       FunctionCall.InDegree
       FunctionCall.OutDegree
-      FunctionCall.Src
-      FunctionCall.Dst
-  }
-  >
-  {
-    left:
-      FunctionCall.Between
-      FunctionCall.Year
-      FunctionCall.Month
-      FunctionCall.Day
-      FunctionCall.Hours
-      FunctionCall.Minutes
-      FunctionCall.Seconds
-      FunctionCall.Timezone
   }
   >
   {
@@ -195,8 +166,6 @@ context-free priorities
       InlinedCall.Has
       InlinedCall.InDegree
       InlinedCall.OutDegree
-      InlinedCall.Src
-      InlinedCall.Dst
   }
   >
   {

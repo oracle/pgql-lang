@@ -181,7 +181,31 @@ rules // future PGQL versions
       
 rules // Oracle PGX specific (TODO: remove this from the project)
   
-  
+  nabl-constraint(|ctx):
+    t -> <fail>
+    where
+      <?InDegree(exp) + ?OutDegree(exp) + ?Labels(exp)> t;
+      message := $[Vertex variable expected here];
+      if VarRef(v) := exp
+      then
+        rewrite-task := <var-is-node(|ctx)> exp;
+        <task-create-error-on-failure(|ctx, rewrite-task, message)> v
+      else
+        <generate-error(|ctx, message)> exp
+      end 
+      
+  nabl-constraint(|ctx):
+    t -> <fail>
+    where
+      <?Label(exp)> t;
+      message := $[Edge variable expected here];
+      if VarRef(v) := exp
+      then
+        rewrite-task := <var-is-edge(|ctx)> exp;
+        <task-create-error-on-failure(|ctx, rewrite-task, message)> v
+      else
+        <generate-error(|ctx, message)> exp
+      end 
 
 rules // cross-constraints involving paths
   
@@ -213,6 +237,10 @@ rules // cross-constraints involving paths
       v-resolve-task := <nabl-create-collectdefs(|ctx)> v;
       v-prop-task    := <prop-create-lookup(|ctx, Type())> v-resolve-task;
       rewrite-task1  := <task-create-rewrite(|ctx, type)> v-prop-task
+      
+  task-rewrite: ("VarIsNode", NodeTy()) -> <id>
+  task-rewrite: ("VarIsEdge", EdgeTy()) -> <id>
+  task-rewrite: ("VarIsPath", PathTy()) -> <id>
 
 rules // Not a connected graph, e.g. WHERE x -> y, x2 -> y2
   
