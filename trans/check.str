@@ -185,26 +185,26 @@ rules // Oracle PGX specific (TODO: remove this from the project)
     t -> <fail>
     where
       <?InDegree(exp) + ?OutDegree(exp) + ?Labels(exp)> t;
-      message := $[Vertex variable expected here];
+      message := $[Function is only defined for vertices];
       if VarRef(v) := exp
       then
         rewrite-task := <var-is-node(|ctx)> exp;
-        <task-create-error-on-failure(|ctx, rewrite-task, message)> v
+        <task-create-error-on-failure(|ctx, rewrite-task, message)> t
       else
-        <generate-error(|ctx, message)> exp
+        <generate-error(|ctx, message)> t
       end 
       
   nabl-constraint(|ctx):
     t -> <fail>
     where
       <?Label(exp)> t;
-      message := $[Edge variable expected here];
+      message := $[Function is only defined for edges];
       if VarRef(v) := exp
       then
         rewrite-task := <var-is-edge(|ctx)> exp;
-        <task-create-error-on-failure(|ctx, rewrite-task, message)> v
+        <task-create-error-on-failure(|ctx, rewrite-task, message)> t
       else
-        <generate-error(|ctx, message)> exp
+        <generate-error(|ctx, message)> t
       end 
 
 rules // cross-constraints involving paths
