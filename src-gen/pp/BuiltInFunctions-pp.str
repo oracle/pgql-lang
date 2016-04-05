@@ -193,9 +193,9 @@ strategies
 
 strategies
   prettyprint-example =
-    prettyprint-FunctionCall
+    prettyprint-Exp
 
-  prettyprint-FunctionCall :
+  prettyprint-Exp :
     Label(t1__, t2__) -> [ H(
                              [SOpt(HS(), "0")]
                            , [ t1__'
@@ -208,10 +208,10 @@ strategies
     with t1__' := <pp-one-Z(prettyprint-Exp)> t1__
     with t2__' := <pp-one-Z(prettyprint-LABEL)> t2__
 
-  is-FunctionCall =
+  is-Exp =
     ?Label(_, _)
 
-  prettyprint-FunctionCall :
+  prettyprint-Exp :
     Labels(t1__, t2__) -> [ H(
                               [SOpt(HS(), "0")]
                             , [ t1__'
@@ -224,10 +224,10 @@ strategies
     with t1__' := <pp-one-Z(prettyprint-Exp)> t1__
     with t2__' := <pp-one-Z(prettyprint-LABELS)> t2__
 
-  is-FunctionCall =
+  is-Exp =
     ?Labels(_, _)
 
-  prettyprint-FunctionCall :
+  prettyprint-Exp :
     HasLabel(t1__, t2__, t3__) -> [ H(
                                       [SOpt(HS(), "0")]
                                     , [ t1__'
@@ -243,10 +243,10 @@ strategies
     with t2__' := <pp-one-Z(prettyprint-HASLABEL)> t2__
     with t3__' := <pp-one-Z(prettyprint-Exp)> t3__
 
-  is-FunctionCall =
+  is-Exp =
     ?HasLabel(_, _, _)
 
-  prettyprint-FunctionCall :
+  prettyprint-Exp :
     Id(t1__, t2__) -> [ H(
                           [SOpt(HS(), "0")]
                         , [ t1__'
@@ -259,10 +259,10 @@ strategies
     with t1__' := <pp-one-Z(prettyprint-Exp)> t1__
     with t2__' := <pp-one-Z(prettyprint-ID)> t2__
 
-  is-FunctionCall =
+  is-Exp =
     ?Id(_, _)
 
-  prettyprint-FunctionCall :
+  prettyprint-Exp :
     Has(t1__, t2__, t3__) -> [ H(
                                  [SOpt(HS(), "0")]
                                , [ t1__'
@@ -278,18 +278,18 @@ strategies
     with t2__' := <pp-one-Z(prettyprint-HAS)> t2__
     with t3__' := <pp-H-list(prettyprint-Prop|", ")> t3__
 
-  is-FunctionCall =
+  is-Exp =
     ?Has(_, _, _)
 
-  is-FunctionCall =
+  is-Exp =
     fail
 
 
 strategies
   prettyprint-example =
-    prettyprint-FunctionCall
+    prettyprint-Exp
 
-  prettyprint-FunctionCall :
+  prettyprint-Exp :
     InDegree(t1__, t2__) -> [ H(
                                 [SOpt(HS(), "0")]
                               , [ t1__'
@@ -302,10 +302,10 @@ strategies
     with t1__' := <pp-one-Z(prettyprint-Exp)> t1__
     with t2__' := <pp-one-Z(prettyprint-INDEGREE)> t2__
 
-  is-FunctionCall =
+  is-Exp =
     ?InDegree(_, _)
 
-  prettyprint-FunctionCall :
+  prettyprint-Exp :
     OutDegree(t1__, t2__) -> [ H(
                                  [SOpt(HS(), "0")]
                                , [ t1__'
@@ -318,16 +318,16 @@ strategies
     with t1__' := <pp-one-Z(prettyprint-Exp)> t1__
     with t2__' := <pp-one-Z(prettyprint-OUTDEGREE)> t2__
 
-  is-FunctionCall =
+  is-Exp =
     ?OutDegree(_, _)
 
-  is-FunctionCall =
+  is-Exp =
     fail
 
 
 strategies
   prettyprint-example =
-    prettyprint-FunctionCall
+    prettyprint-Exp
 
   prettyprint-example =
     prettyprint-StarOrExp
@@ -338,7 +338,7 @@ strategies
   prettyprint-example =
     prettyprint-Distinct
 
-  prettyprint-FunctionCall :
+  prettyprint-Exp :
     COUNT(t1__, t2__, t3__) -> [ H(
                                    [SOpt(HS(), "0")]
                                  , [ t1__'
@@ -353,10 +353,10 @@ strategies
     with t2__' := <pp-option(pp-one-Z(prettyprint-Distinct))> t2__
     with t3__' := <pp-one-Z(prettyprint-StarOrExp)> t3__
 
-  is-FunctionCall =
+  is-Exp =
     ?COUNT(_, _, _)
 
-  prettyprint-FunctionCall :
+  prettyprint-Exp :
     MIN(t1__, t2__, t3__) -> [ H(
                                  [SOpt(HS(), "0")]
                                , [ t1__'
@@ -371,10 +371,10 @@ strategies
     with t2__' := <pp-option(pp-one-Z(prettyprint-Distinct))> t2__
     with t3__' := <pp-one-Z(prettyprint-Exp)> t3__
 
-  is-FunctionCall =
+  is-Exp =
     ?MIN(_, _, _)
 
-  prettyprint-FunctionCall :
+  prettyprint-Exp :
     MAX(t1__, t2__, t3__) -> [ H(
                                  [SOpt(HS(), "0")]
                                , [ t1__'
@@ -389,10 +389,10 @@ strategies
     with t2__' := <pp-option(pp-one-Z(prettyprint-Distinct))> t2__
     with t3__' := <pp-one-Z(prettyprint-Exp)> t3__
 
-  is-FunctionCall =
+  is-Exp =
     ?MAX(_, _, _)
 
-  prettyprint-FunctionCall :
+  prettyprint-Exp :
     SUM(t1__, t2__, t3__) -> [ H(
                                  [SOpt(HS(), "0")]
                                , [ t1__'
@@ -407,10 +407,10 @@ strategies
     with t2__' := <pp-option(pp-one-Z(prettyprint-Distinct))> t2__
     with t3__' := <pp-one-Z(prettyprint-Exp)> t3__
 
-  is-FunctionCall =
+  is-Exp =
     ?SUM(_, _, _)
 
-  prettyprint-FunctionCall :
+  prettyprint-Exp :
     AVG(t1__, t2__, t3__) -> [ H(
                                  [SOpt(HS(), "0")]
                                , [ t1__'
@@ -425,7 +425,7 @@ strategies
     with t2__' := <pp-option(pp-one-Z(prettyprint-Distinct))> t2__
     with t3__' := <pp-one-Z(prettyprint-Exp)> t3__
 
-  is-FunctionCall =
+  is-Exp =
     ?AVG(_, _, _)
 
   prettyprint-StarOrExp :
@@ -469,7 +469,7 @@ strategies
   is-Distinct =
     ?Distinct(_)
 
-  is-FunctionCall =
+  is-Exp =
     fail
 
   is-StarOrExp =

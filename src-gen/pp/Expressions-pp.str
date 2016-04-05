@@ -63,15 +63,6 @@ strategies
     where t1__' := <pp-one-Z(prettyprint-Literal)> t1__
 
   prettyprint-Exp :
-    t1__ -> [ H(
-                [SOpt(HS(), "0")]
-              , [t1__']
-              )
-            ]
-    where not(is-Exp)
-    where t1__' := <pp-one-Z(prettyprint-FunctionCall)> t1__
-
-  prettyprint-Exp :
     Not1(t1__, t2__) -> [ H(
                             [SOpt(HS(), "0")]
                           , [t1__', S(" "), t2__']

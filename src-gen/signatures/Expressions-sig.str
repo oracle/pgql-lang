@@ -12,7 +12,6 @@ signature
           : PropRef -> Exp
           : VarRef -> Exp
           : Literal -> Exp
-          : FunctionCall -> Exp
     Not1  : NOT * Exp -> Exp
     Not2  : Exp -> Exp
     UMin  : Exp -> Exp

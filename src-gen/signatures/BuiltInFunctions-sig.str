@@ -24,22 +24,22 @@ signature
     Obj       : Option(Dot) -> Obj
 
   constructors
-    Label    : Exp * LABEL -> FunctionCall
-    Labels   : Exp * LABELS -> FunctionCall
-    HasLabel : Exp * HASLABEL * Exp -> FunctionCall
-    Id       : Exp * ID -> FunctionCall
-    Has      : Exp * HAS * List(Prop) -> FunctionCall
+    Label    : Exp * LABEL -> Exp
+    Labels   : Exp * LABELS -> Exp
+    HasLabel : Exp * HASLABEL * Exp -> Exp
+    Id       : Exp * ID -> Exp
+    Has      : Exp * HAS * List(Prop) -> Exp
 
   constructors
-    InDegree  : Exp * INDEGREE -> FunctionCall
-    OutDegree : Exp * OUTDEGREE -> FunctionCall
+    InDegree  : Exp * INDEGREE -> Exp
+    OutDegree : Exp * OUTDEGREE -> Exp
 
   constructors
-    COUNT    : COUNT * Option(Distinct) * StarOrExp -> FunctionCall
-    MIN      : MIN * Option(Distinct) * Exp -> FunctionCall
-    MAX      : MAX * Option(Distinct) * Exp -> FunctionCall
-    SUM      : SUM * Option(Distinct) * Exp -> FunctionCall
-    AVG      : AVG * Option(Distinct) * Exp -> FunctionCall
+    COUNT    : COUNT * Option(Distinct) * StarOrExp -> Exp
+    MIN      : MIN * Option(Distinct) * Exp -> Exp
+    MAX      : MAX * Option(Distinct) * Exp -> Exp
+    SUM      : SUM * Option(Distinct) * Exp -> Exp
+    AVG      : AVG * Option(Distinct) * Exp -> Exp
     Star     : StarOrExp
              : Exp -> StarOrExp
     Sep      : String -> Group-Concat-Sep

@@ -32,33 +32,33 @@ completions
     <VarRef:VarRef> <Dot:Dot>  
 
 completions
-  completion template FunctionCall : "Exp.LABEL()" =
+  completion template Exp : "Exp.LABEL()" =
     <Exp:Exp> "." <LABEL:LABEL> "()"  
-  completion template FunctionCall : "Exp.LABELS()" =
+  completion template Exp : "Exp.LABELS()" =
     <Exp:Exp> "." <LABELS:LABELS> "()"  
-  completion template FunctionCall : "Exp.HASLABEL(Exp)" =
+  completion template Exp : "Exp.HASLABEL(Exp)" =
     <Exp:Exp> "." <HASLABEL:HASLABEL> "(" <Exp:Exp> ")"  
-  completion template FunctionCall : "Exp.ID()" =
+  completion template Exp : "Exp.ID()" =
     <Exp:Exp> "." <ID:ID> "()"  
-  completion template FunctionCall : "Exp. HAS()" =
+  completion template Exp : "Exp. HAS()" =
     <Exp:Exp> ". " <HAS:HAS> "(" <:Prop> ")"  
 
 completions
-  completion template FunctionCall : "Exp. INDEGREE()" =
+  completion template Exp : "Exp. INDEGREE()" =
     <Exp:Exp> ". " <INDEGREE:INDEGREE> "()"  
-  completion template FunctionCall : "Exp. OUTDEGREE()" =
+  completion template Exp : "Exp. OUTDEGREE()" =
     <Exp:Exp> ". " <OUTDEGREE:OUTDEGREE> "()"  
 
 completions
-  completion template FunctionCall : "COUNT(StarOrExp)" =
+  completion template Exp : "COUNT(StarOrExp)" =
     <COUNT:COUNT> "(" <:Distinct> <StarOrExp:StarOrExp> ")"  
-  completion template FunctionCall : "MIN(Exp)" =
+  completion template Exp : "MIN(Exp)" =
     <MIN:MIN> "(" <:Distinct> <Exp:Exp> ")"  
-  completion template FunctionCall : "MAX(Exp)" =
+  completion template Exp : "MAX(Exp)" =
     <MAX:MAX> "(" <:Distinct> <Exp:Exp> ")"  
-  completion template FunctionCall : "SUM(Exp)" =
+  completion template Exp : "SUM(Exp)" =
     <SUM:SUM> "(" <:Distinct> <Exp:Exp> ")"  
-  completion template FunctionCall : "AVG(Exp)" =
+  completion template Exp : "AVG(Exp)" =
     <AVG:AVG> "(" <:Distinct> <Exp:Exp> ")"  
   completion template StarOrExp : "*" =
     "*"              

@@ -17,7 +17,6 @@ signature
   constructors
     Integer       : INTEGER -> NumericLiteral
     Decimal       : DECIMAL -> NumericLiteral
-    Double        : DOUBLE -> NumericLiteral
     String        : STRING -> String
     String        : UNQUOTED-STRING -> UnquotedString
     LitCustomType : String * CUSTOM-TYPE -> LitCustomType
@@ -28,7 +27,6 @@ signature
   constructors
      : String -> INTEGER
      : String -> DECIMAL
-     : String -> DOUBLE
      : String -> EXPONENT
      : String -> STRING
      : String -> STRING-LITERAL1

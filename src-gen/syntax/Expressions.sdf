@@ -7,7 +7,6 @@ exports
     PropRef       -> Exp 
     VarRef        -> Exp 
     Literal       -> Exp 
-    FunctionCall  -> Exp 
     NOT Exp       -> Exp {cons("Not1"), right}
     "!" Exp       -> Exp {cons("Not2"), right}
     "-" Exp       -> Exp {cons("UMin"), right}

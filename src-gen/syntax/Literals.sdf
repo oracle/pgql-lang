@@ -17,7 +17,6 @@ exports
   context-free syntax
     INTEGER                 -> NumericLiteral {cons("Integer")}
     DECIMAL                 -> NumericLiteral {cons("Decimal")}
-    DOUBLE                  -> NumericLiteral {cons("Double")}
     STRING                  -> String         {cons("String")}
     UNQUOTED-STRING         -> UnquotedString {cons("String")}
     String "^^" CUSTOM-TYPE -> LitCustomType  {cons("LitCustomType")}
@@ -29,22 +28,20 @@ exports
     CONTENTCOMPLETE -> LitCustomType {cons("COMPLETION-LitCustomType")}
 
   lexical syntax
-    [0-9]+                                                                         -> INTEGER         
-    [0-9]* "." [0-9]+                                                              -> DECIMAL         
-    ( [0-9]+ "." [0-9]* EXPONENT ) | ( "." [0-9]+ EXPONENT ) | ( [0-9]+ EXPONENT ) -> DOUBLE          
-    [eE] [\+\-]? [0-9]+                                                            -> EXPONENT        
-    STRING-LITERAL1 | STRING-LITERAL2                                              -> STRING          
-    "'" ( ~[\'\n\\] | ECHAR )* "'"                                                 -> STRING-LITERAL1 
-    "\"" ( ~[\"\n\\] | ECHAR )* "\""                                               -> STRING-LITERAL2 
-    "\\" [tbnrf\\\"\']                                                             -> ECHAR           
-    [a-zA-Z] [a-zA-Z0-9\_]*                                                        -> UNQUOTED-STRING 
-    [a-zA-Z] [a-zA-Z0-9\_]*                                                        -> CUSTOM-TYPE     
-    [0-9]+                                                                         -> PATHLENGTH      
+    [0-9]+                            -> INTEGER         
+    [0-9]* "." [0-9]+                 -> DECIMAL         
+    [eE] [\+\-]? [0-9]+               -> EXPONENT        
+    STRING-LITERAL1 | STRING-LITERAL2 -> STRING          
+    "'" ( ~[\'\n\\] | ECHAR )* "'"    -> STRING-LITERAL1 
+    "\"" ( ~[\"\n\\] | ECHAR )* "\""  -> STRING-LITERAL2 
+    "\\" [tbnrf\\\"\']                -> ECHAR           
+    [a-zA-Z] [a-zA-Z0-9\_]*           -> UNQUOTED-STRING 
+    [a-zA-Z] [a-zA-Z0-9\_]*           -> CUSTOM-TYPE     
+    [0-9]+                            -> PATHLENGTH      
 
   lexical restrictions
     INTEGER -/- [0-9\.]
     DECIMAL -/- [0-9\.]
-    DOUBLE -/- [0-9]
     UNQUOTED-STRING -/- [a-zA-Z0-9\_]
     CUSTOM-TYPE -/- [a-zA-Z0-9\_]
     PATHLENGTH -/- [0-9]

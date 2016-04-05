@@ -135,17 +135,6 @@ strategies
   is-NumericLiteral =
     ?Decimal(_)
 
-  prettyprint-NumericLiteral :
-    Double(t1__) -> [ H(
-                        [SOpt(HS(), "0")]
-                      , [t1__']
-                      )
-                    ]
-    with t1__' := <pp-one-Z(prettyprint-DOUBLE)> t1__
-
-  is-NumericLiteral =
-    ?Double(_)
-
   prettyprint-String :
     String(t1__) -> [ H(
                         [SOpt(HS(), "0")]
@@ -239,9 +228,6 @@ strategies
   prettyprint-DECIMAL =
     ![S(<is-string>)]
 
-  prettyprint-DOUBLE =
-    ![S(<is-string>)]
-
   prettyprint-EXPONENT =
     ![S(<is-string>)]
 
@@ -271,9 +257,6 @@ strategies
 
   prettyprint-example =
     prettyprint-DECIMAL
-
-  prettyprint-example =
-    prettyprint-DOUBLE
 
   prettyprint-example =
     prettyprint-EXPONENT

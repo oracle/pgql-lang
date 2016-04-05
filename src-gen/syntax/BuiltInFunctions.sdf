@@ -21,52 +21,52 @@ exports
     CONTENTCOMPLETE -> Obj         {cons("COMPLETION-Obj")}
 
   context-free syntax
-    Exp "." LABEL "()"              -> FunctionCall {cons("Label")}
-    Exp "." LABELS "()"             -> FunctionCall {cons("Labels")}
-    Exp "." HASLABEL "(" Exp ")"    -> FunctionCall {cons("HasLabel")}
-    Exp "." ID "()"                 -> FunctionCall {cons("Id")}
-    Exp "." HAS "(" {Prop ","}* ")" -> FunctionCall {cons("Has")}
+    Exp "." LABEL "()"              -> Exp {cons("Label")}
+    Exp "." LABELS "()"             -> Exp {cons("Labels")}
+    Exp "." HASLABEL "(" Exp ")"    -> Exp {cons("HasLabel")}
+    Exp "." ID "()"                 -> Exp {cons("Id")}
+    Exp "." HAS "(" {Prop ","}* ")" -> Exp {cons("Has")}
 
   context-free syntax
-    CONTENTCOMPLETE -> FunctionCall {cons("COMPLETION-FunctionCall")}
+    CONTENTCOMPLETE -> Exp {cons("COMPLETION-Exp")}
 
   context-free syntax
-    Exp "." INDEGREE "()"  -> FunctionCall {cons("InDegree")}
-    Exp "." OUTDEGREE "()" -> FunctionCall {cons("OutDegree")}
+    Exp "." INDEGREE "()"  -> Exp {cons("InDegree")}
+    Exp "." OUTDEGREE "()" -> Exp {cons("OutDegree")}
 
   context-free syntax
-    CONTENTCOMPLETE -> FunctionCall {cons("COMPLETION-FunctionCall")}
+    CONTENTCOMPLETE -> Exp {cons("COMPLETION-Exp")}
 
   context-free syntax
-    COUNT "(" Distinct? StarOrExp ")" -> FunctionCall     {cons("COUNT")}
-    MIN "(" Distinct? Exp ")"         -> FunctionCall     {cons("MIN")}
-    MAX "(" Distinct? Exp ")"         -> FunctionCall     {cons("MAX")}
-    SUM "(" Distinct? Exp ")"         -> FunctionCall     {cons("SUM")}
-    AVG "(" Distinct? Exp ")"         -> FunctionCall     {cons("AVG")}
+    COUNT "(" Distinct? StarOrExp ")" -> Exp              {cons("COUNT")}
+    MIN "(" Distinct? Exp ")"         -> Exp              {cons("MIN")}
+    MAX "(" Distinct? Exp ")"         -> Exp              {cons("MAX")}
+    SUM "(" Distinct? Exp ")"         -> Exp              {cons("SUM")}
+    AVG "(" Distinct? Exp ")"         -> Exp              {cons("AVG")}
     "*"                               -> StarOrExp        {cons("Star")}
     Exp                               -> StarOrExp        
     "," String                        -> Group-Concat-Sep {cons("Sep")}
     DISTINCT                          -> Distinct         {cons("Distinct")}
 
   context-free syntax
-    CONTENTCOMPLETE -> FunctionCall     {cons("COMPLETION-FunctionCall")}
+    CONTENTCOMPLETE -> Exp              {cons("COMPLETION-Exp")}
     CONTENTCOMPLETE -> StarOrExp        {cons("COMPLETION-StarOrExp")}
     CONTENTCOMPLETE -> Group-Concat-Sep {cons("COMPLETION-Group-Concat-Sep")}
 
   context-free priorities
-    {left:
+    {right:
       "-" Exp -> Exp
       NOT Exp -> Exp
       "!" Exp -> Exp
     } >
     {left:
-      Exp "." LABEL "()" -> FunctionCall
-      Exp "." LABELS "()" -> FunctionCall
-      Exp "." HASLABEL "(" Exp ")" -> FunctionCall
-      Exp "." ID "()" -> FunctionCall
-      Exp "." HAS "(" {Prop ","}* ")" -> FunctionCall
-      Exp "." INDEGREE "()" -> FunctionCall
-      Exp "." OUTDEGREE "()" -> FunctionCall
+      Exp "." LABEL "()" -> Exp
+      Exp "." LABELS "()" -> Exp
+      Exp "." HASLABEL "(" Exp ")" -> Exp
+      Exp "." ID "()" -> Exp
+      Exp "." HAS "(" {Prop ","}* ")" -> Exp
+      Exp "." INDEGREE "()" -> Exp
+      Exp "." OUTDEGREE "()" -> Exp
     } >
     {left:
       Exp "*" Exp -> Exp
@@ -100,7 +100,7 @@ exports
     }
 
   context-free priorities
-    {left:
+    {right:
       "-" InlinedExp -> InlinedExp
       NOT InlinedExp -> InlinedExp
       "!" InlinedExp -> InlinedExp
