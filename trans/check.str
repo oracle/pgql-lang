@@ -205,7 +205,21 @@ rules // Oracle PGX specific (TODO: remove this from the project)
         <task-create-error-on-failure(|ctx, rewrite-task, message)> t
       else
         <generate-error(|ctx, message)> t
-      end 
+      end
+      
+  nabl-constraint(|ctx):
+    t -> <fail>
+    where
+      <?Has(exp, _) + ?HasLabel(exp, _)> t;
+      not ( VarRef(_) := exp );
+      <generate-error(|ctx, "Function is only defined for vertices and edges")> t
+
+  nabl-constraint(|ctx):
+    t -> <fail>
+    where
+      <?Has(_, exp) + ?HasLabel(_, exp)> t;
+      not ( String(_) := exp );
+      <generate-error(|ctx, "String expected")> exp
 
 rules // cross-constraints involving paths
   
