@@ -24,8 +24,8 @@ rules
       c := <new-counter>;
       result := <
       	bottomup(try(norm-case-insensitive));
+      	alltd(norm-UMin);
         innermost(
-          norm-UMin +
           norm-NOT +
           norm-singleNode +
           norm-edgeContents +
@@ -46,9 +46,7 @@ rules
 
 rules
 
-  norm-UMin = ?UMin(Integer(string)); !Integer(<conc-strings> ("-", string))
-  norm-UMin = ?UMin(Decimal(string)); !Integer(<conc-strings> ("-", string))
-  norm-UMin = ?UMin(Double(string)); !Integer(<conc-strings> ("-", string))
+  norm-UMin = ?UMin(Decimal(string)); !Decimal(<conc-strings> ("-", string))
   
   norm-NOT = ?Not1(_, <id>); !Not(<id>)
   norm-NOT = ?Not2(<id>); !Not(<id>)
