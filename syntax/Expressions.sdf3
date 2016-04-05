@@ -13,7 +13,6 @@ context-free syntax
   Exp = PropRef
   Exp = VarRef
   Exp = Literal
-  Exp = FunctionCall
   
   Exp.Not1 = <<NOT> <Exp>> {right}
   Exp.Not2 = <!<Exp>> {right}
@@ -45,7 +44,6 @@ context-free syntax
   InlinedExp = <(<InlinedExp>)> {bracket}
   InlinedExp = PropRef
   InlinedExp = Literal {prefer}
-  InlinedExp = InlinedCall
   
   InlinedExp.SelfPropRef = <<Prop>>
   InlinedExp.SelfPropRef = <<Dot><Prop>>
