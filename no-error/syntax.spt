@@ -5,7 +5,7 @@ language PGQL
 test Case insensitivity [[
 sElEcT mAx(n.age), MiN(n.age), sUm(n.age)
 WhErE
-  n, TrUe Or FaLsE And NuLl
+  n, TrUe Or FaLsE And n.married
 gRoUp By n.name
 OrDeR bY AvG(n.age)
 lImIt 1

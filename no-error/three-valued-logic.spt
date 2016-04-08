@@ -18,6 +18,7 @@ test NULL equals NULL 1 [[
 SELECT n.name WHERE (n WITH prop_not_exists = prop_not_exists)
 ]]
 
-test NULL equals NULL 2 [[
-SELECT n.name WHERE (n), NULL = NULL
-]]
+// Constraints without variables not supported for the moment
+// test NULL equals NULL 2 [[
+// SELECT n.name WHERE (n), NULL = NULL
+// ]]
