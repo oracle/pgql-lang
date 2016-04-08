@@ -191,7 +191,7 @@ rules // Oracle PGX specific (TODO: remove this from the project)
         rewrite-task := <var-is-node(|ctx)> exp;
         <task-create-error-on-failure(|ctx, rewrite-task, message)> t
       else
-        <generate-error(|ctx, message)> t
+        <not(?GroupRef(_)); !t; generate-error(|ctx, message)> exp
       end 
       
   nabl-constraint(|ctx):
@@ -204,14 +204,14 @@ rules // Oracle PGX specific (TODO: remove this from the project)
         rewrite-task := <var-is-edge(|ctx)> exp;
         <task-create-error-on-failure(|ctx, rewrite-task, message)> t
       else
-        <generate-error(|ctx, message)> t
+        <not(?GroupRef(_)); !t; generate-error(|ctx, message)> exp
       end
       
   nabl-constraint(|ctx):
     t -> <fail>
     where
       <?Has(exp, _) + ?HasLabel(exp, _)> t;
-      not ( VarRef(_) := exp );
+      not ( <?VarRef(_) + ?GroupRef(_)> exp );
       <generate-error(|ctx, "Function is only defined for vertices and edges")> t
 
   nabl-constraint(|ctx):
