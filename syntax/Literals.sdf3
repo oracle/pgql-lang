@@ -53,3 +53,9 @@ lexical restrictions // greedy matching
   UNQUOTED-STRING -/- [a-zA-Z0-9\_]
   CUSTOM-TYPE     -/- [a-zA-Z0-9\_]
   PATHLENGTH      -/- [0-9]  // whereas a normal INT cannot be followed by a dot, a PATHLENGTH can (e.g {1..5})
+
+lexical syntax
+
+  UNQUOTED-STRING = [Tt][Rr][Uu][Ee] {reject}
+  UNQUOTED-STRING = [Ff][Aa][Ll][Ss][Ee] {reject}
+  UNQUOTED-STRING = [Nn][Uu][Ll][Ll] {reject}
