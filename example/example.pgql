@@ -1,4 +1,6 @@
-SELECT AVG(e.name)
+SELECT person.name, person.age
 WHERE
-  (n) -[e]-> (m)
-order by e.name
+  (m WITH name = 'Mario') -[WITH label = 'likes']-> (person),
+  (l WITH name = 'Luigi') -[WITH label = 'likes']-> (person),
+  person.age < m.age - 2
+ORDER BY person.name

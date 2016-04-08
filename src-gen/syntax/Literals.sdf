@@ -45,3 +45,8 @@ exports
     UNQUOTED-STRING -/- [a-zA-Z0-9\_]
     CUSTOM-TYPE -/- [a-zA-Z0-9\_]
     PATHLENGTH -/- [0-9]
+
+  lexical syntax
+    [Tt] [Rr] [Uu] [Ee]      -> UNQUOTED-STRING {reject}
+    [Ff] [Aa] [Ll] [Ss] [Ee] -> UNQUOTED-STRING {reject}
+    [Nn] [Uu] [Ll] [Ll]      -> UNQUOTED-STRING {reject}
