@@ -32,13 +32,18 @@ GROUP BY n.age
 ORDER BY n
 ]] / Cannot order by non-group key variable: use aggregation /
 
-test Aggregation expected 1 [[
+test Aggregation expected in SELECT 1 [[
 SELECT AVG(n.age), n
 WHERE
   n
 ]] / Aggregation expected here since SELECT has other aggregation /
 
-test Aggregation expected 1 [[
+test Aggregation expected in SELECT 2 [[
+SELECT n.labels(), COUNT(*)
+WHERE n
+]] / Aggregation expected here since SELECT has other aggregation /
+
+test Aggregation expected in ORDER BY [[
 SELECT AVG(n.age)
 WHERE
   n
