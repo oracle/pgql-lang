@@ -221,6 +221,14 @@ rules // Oracle PGX specific (TODO: remove this from the project)
       not ( String(_) := exp );
       <generate-error(|ctx, "String expected")> exp
 
+rules // expressions
+  
+  nabl-constraint(|ctx):
+    Regex(_, exp) -> <fail>
+    where
+      not ( String(_) := exp);
+      <generate-error(|ctx, "String expected")> exp
+
 rules // cross-constraints involving paths
   
   nabl-constraint(|ctx):
