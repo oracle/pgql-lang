@@ -69,7 +69,7 @@ rules
       <batch-generate-error(|ctx, "Aggregation not allowed in GROUP BY")> aggregations
   
   not-supported-expressions = collect-om(is-aggregate <+ is-function <+ is-expression <+ is-literal, conc); remove-all(is-aggregate + is-function)
-  not-supported-expressions-in-aggregration = collect-om(is-aggregate, conc); collect-om(is-expression <+ is-literal, conc)
+  not-supported-expressions-in-aggregration = collect-om(get-exp-from-aggregation, conc); filter(is-expression <+ is-literal)
   
   nabl-constraint(|ctx):
     Query(_, _, _, Select(_, Vars(vars), groupClause, _, Some(orderClause), _)) -> <fail>
