@@ -229,6 +229,12 @@ rules // expressions
       not ( String(_) := exp);
       <generate-error(|ctx, "String expected")> exp
 
+  nabl-constraint(|ctx):
+    Constraints(constraints) -> <fail>
+    where
+      constraintsWithoutVarRef := <remove-all(oncetd(?VarRef(_)))> constraints;
+      <batch-generate-error(|ctx, "Constraint should include at least one variable")> constraintsWithoutVarRef
+
 rules // cross-constraints involving paths
   
   nabl-constraint(|ctx):
