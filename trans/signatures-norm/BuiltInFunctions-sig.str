@@ -4,7 +4,7 @@ imports
   src-gen/signatures/Keywords-sig
   src-gen/signatures/Names-sig
   src-gen/signatures/Expressions-sig
-  src-gen/signatures/PGQL-sig
+  src-gen/signatures/pgql-lang-sig
   src-gen/signatures/Literals-sig
 
 

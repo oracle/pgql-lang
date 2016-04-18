@@ -5,80 +5,71 @@
   xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
 >
   <modelVersion>4.0.0</modelVersion>
-  <artifactId>oracle.pgql.lang</artifactId>
+  <groupId>oracle.pgql.lang</groupId>
+  <artifactId>pgqllang</artifactId>
   <version>1.0.0-SNAPSHOT</version>
-  <packaging>eclipse-plugin</packaging>
+  <packaging>spoofax-language</packaging>
 
   <parent>
-    <groupId>org.metaborg</groupId>
-    <artifactId>org.metaborg.maven.parent.language</artifactId>
-    <version>1.4.1</version>
-    <relativePath/>
+  <groupId>org.metaborg</groupId>
+  <artifactId>parent.language</artifactId>
+  <version>2.0.0-beta1</version>
   </parent>
-
-  <build>
-    <plugins>
-      <plugin>
-        <groupId>org.eclipse.tycho</groupId>
-        <artifactId>tycho-compiler-plugin</artifactId>
-        <version>${tycho-version}</version>
-        <configuration>
-          <extraClasspathElements>
-            <dependency>
-              <groupId>org.ow2.asm</groupId>
-              <artifactId>asm</artifactId>
-              <version>5.0_BETA</version>
-            </dependency>
-            <dependency>
-              <groupId>org.ow2.asm</groupId>
-              <artifactId>asm-analysis</artifactId>
-              <version>5.0_BETA</version>
-            </dependency>
-            <dependency>
-              <groupId>org.ow2.asm</groupId>
-              <artifactId>asm-commons</artifactId>
-              <version>5.0_BETA</version>
-            </dependency>
-            <dependency>
-              <groupId>org.ow2.asm</groupId>
-              <artifactId>asm-tree</artifactId>
-              <version>5.0_BETA</version>
-            </dependency>
-            <dependency>
-              <groupId>org.ow2.asm</groupId>
-              <artifactId>asm-xml</artifactId>
-              <version>5.0_BETA</version>
-            </dependency>
-          </extraClasspathElements>
-        </configuration>
-      </plugin>
-
-      <!-- Hack to prevent the src-gen folder from being cleaned. Since the build cannot run meta-languages such as SDF3, the
-        src-gen folder is committed to the git repository. The clean goal will clean the src-gen folder, temporarily renaming
-        it will prevent that. This hack overrides the spoofax-clean antrun execution from the parent POM. -->
-      <plugin>
-        <groupId>org.apache.maven.plugins</groupId>
-        <artifactId>maven-antrun-plugin</artifactId>
-        <executions>
-          <execution>
-            <id>spoofax-clean</id>
-            <goals>
-              <goal>run</goal>
-            </goals>
-            <phase>clean</phase>
-            <configuration>
-              <target>
-                <move file="src-gen" tofile="src-gen-keep" />
-                <ant antfile="build.main.xml" inheritRefs="true">
-                  <target name="clean" />
-                </ant>
-                <move file="src-gen-keep" tofile="src-gen" />
-              </target>
-            </configuration>
-          </execution>
-        </executions>
-      </plugin>
-    </plugins>
-  </build>
   
+  <repositories>
+    <repository>
+      <id>metaborg-release-repo</id>
+      <url>http://artifacts.metaborg.org/content/repositories/releases/</url>
+      <releases>
+        <enabled>true</enabled>
+      </releases>
+      <snapshots>
+        <enabled>false</enabled>
+      </snapshots>
+    </repository>
+    <repository>
+      <id>metaborg-snapshot-repo</id>
+      <url>http://artifacts.metaborg.org/content/repositories/snapshots/</url>
+      <releases>
+        <enabled>false</enabled>
+      </releases>
+      <snapshots>
+        <enabled>true</enabled>
+      </snapshots>
+    </repository>
+    <repository>
+      <id>spoofax-eclipse-repo</id>
+      <url>http://download.spoofax.org/update/nightly/</url>
+      <layout>p2</layout>
+      <releases>
+        <enabled>false</enabled>
+      </releases>
+      <snapshots>
+        <enabled>false</enabled>
+      </snapshots>
+    </repository>
+  </repositories>
+  
+  <pluginRepositories>
+    <pluginRepository>
+      <id>metaborg-release-repo</id>
+      <url>http://artifacts.metaborg.org/content/repositories/releases/</url>
+      <releases>
+        <enabled>true</enabled>
+      </releases>
+      <snapshots>
+        <enabled>false</enabled>
+      </snapshots>
+    </pluginRepository>
+    <pluginRepository>
+      <id>metaborg-snapshot-repo</id>
+      <url>http://artifacts.metaborg.org/content/repositories/snapshots/</url>
+      <releases>
+        <enabled>false</enabled>
+      </releases>
+      <snapshots>
+        <enabled>true</enabled>
+      </snapshots>
+    </pluginRepository>
+  </pluginRepositories>
 </project>

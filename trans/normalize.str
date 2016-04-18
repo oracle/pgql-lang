@@ -3,13 +3,12 @@ module normalize
 imports
   
   src-gen/signatures/-
+  src-gen/stratego/-
   signatures-norm/-
   sig-normalized
   sig-nabl
-  runtime/editor/origins
   common
   pp
-  editor-common.generated
   check
   
 /*

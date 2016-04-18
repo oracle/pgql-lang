@@ -7,11 +7,7 @@ imports
   sig-normalized
   sig-nabl
   common
-  lib/runtime/nabl/-
-  lib/runtime/task/-
-  lib/runtime/types/-
-  lib/runtime/properties/-
-  names  
+  src-gen/names/-
   
 rules // Unresolved/duplicate variables
   
@@ -164,8 +160,7 @@ rules // future PGQL versions
   nabl-constraint(|ctx):
     t -> <fail>
     where
-      <?Src(_) + ?Dst(_)
-       + ?Nodes(_) + ?Edges(_) + ?Length(_)
+      <?Length(_)
        + ?Head(_) + ?Last(_) + ?Init(_) + ?Tail(_)
        + ?Contains(_, _, _) + ?BeginsWith(_, _, _) + ?EndsWith(_, _, _)
        + ?Year(_) + ?Month(_) + ?Day(_) + ?Hours(_) + ?Minutes(_) + ?Seconds(_) + ?Timezone(_)

@@ -5,7 +5,7 @@ imports
   Keywords
   Names
   Expressions
-  PGQL
+  pgql-lang
   Literals
 
 context-free syntax // inlined function calls
