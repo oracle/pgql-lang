@@ -19,6 +19,7 @@ rules
       result := <
       	alltd(norm-UMin);
         innermost(
+          norm-NOT +
           norm-singleNode +
           norm-simpleNode +
           norm-edgeContents +
@@ -38,6 +39,9 @@ rules
 rules
 
   norm-UMin = ?UMin(Decimal(string)); !Decimal(<conc-strings> ("-", string))
+  
+  norm-NOT = ?Not1(<id>); !Not(<id>)
+  norm-NOT = ?Not2(<id>); !Not(<id>)
   
   norm-string = is-string; try(un-double-quote + un-single-quote)
   
