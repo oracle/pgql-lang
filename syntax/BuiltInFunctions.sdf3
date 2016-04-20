@@ -38,7 +38,7 @@ context-free syntax // Aggregates
   Exp.COUNT        = <count(<Distinct?><StarOrExp>)> {case-insensitive}
   Exp.MIN          = <min(<Distinct?><Exp>)> {case-insensitive}
   Exp.MAX          = <max(<Distinct?><Exp>)> {case-insensitive}
-  Exp.SUM          = <sum<Distinct?><Exp>)> {case-insensitive}
+  Exp.SUM          = <sum(<Distinct?><Exp>)> {case-insensitive}
   Exp.AVG          = <avg(<Distinct?><Exp>)> {case-insensitive}
   
   StarOrExp.Star = <*>
