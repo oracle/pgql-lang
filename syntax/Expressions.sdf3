@@ -2,7 +2,6 @@ module Expressions
 
 imports
   
-  Keywords
   Names
   Literals
   BuiltInFunctions
@@ -14,18 +13,12 @@ context-free syntax
   Exp = VarRef
   Exp = Literal
   
-  Exp.Not1 = <<NOT> <Exp>> {right}
+  Exp.Not1 = <not <Exp>> {right, case-insensitive}
   Exp.Not2 = <!<Exp>> {right}
   Exp.UMin = <-<Exp>> {right}
 
-  Exp.And = <<Exp> AND <Exp>> {left}
-  Exp.Or = <<Exp> OR <Exp>> {left}
-  // temporary workaround until we switch to next Spoofax version
-  // which will support case-insensitive keywords:
-  Exp.And2 = <<Exp> and <Exp>> {left}
-  Exp.Or2 = <<Exp> or <Exp>> {left}
-  Exp.And3 = <<Exp> And <Exp>> {left}
-  Exp.Or3 = <<Exp> Or <Exp>> {left}
+  Exp.And = <<Exp> and <Exp>> {left, case-insensitive}
+  Exp.Or = <<Exp> or <Exp>> {left, case-insensitive}
   Exp.Mul = <<Exp> * <Exp>> {left}
   Exp.Add = <<Exp> + <Exp>> {left}
   Exp.Div = <<Exp> / <Exp>> {left}
@@ -49,18 +42,12 @@ context-free syntax
   InlinedExp.SelfPropRef = <<Prop>>
   InlinedExp.SelfPropRef = <<Dot><Prop>>
   
-  InlinedExp.Not1 = <<NOT> <InlinedExp>> {right}
+  InlinedExp.Not1 = <not <InlinedExp>> {right, case-insensitive}
   InlinedExp.Not2 = <!<InlinedExp>> {right}
   InlinedExp.UMin = <-<InlinedExp>> {right}
 
-  InlinedExp.And = <<InlinedExp> AND <InlinedExp>> {left}
-  InlinedExp.Or = <<InlinedExp> OR <InlinedExp>> {left}
-  // temporary workaround until we switch to next Spoofax version
-  // which will support case-insensitive keywords:
-  InlinedExp.And2 = <<InlinedExp> and <InlinedExp>> {left}
-  InlinedExp.Or2 = <<InlinedExp> or <InlinedExp>> {left}
-  InlinedExp.And3 = <<InlinedExp> And <InlinedExp>> {left}
-  InlinedExp.Or3 = <<InlinedExp> Or <InlinedExp>> {left}
+  InlinedExp.And = <<InlinedExp> and <InlinedExp>> {left, case-insensitive}
+  InlinedExp.Or = <<InlinedExp> or <InlinedExp>> {left, case-insensitive}
   InlinedExp.Mul = <<InlinedExp> * <InlinedExp>> {left}
   InlinedExp.Add = <<InlinedExp> + <InlinedExp>> {left}
   InlinedExp.Div = <<InlinedExp> / <InlinedExp>> {left}

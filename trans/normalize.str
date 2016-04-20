@@ -4,16 +4,11 @@ imports
   
   src-gen/signatures/-
   src-gen/stratego/-
-  signatures-norm/-
   sig-normalized
   sig-nabl
   common
   pp
   check
-  
-/*
- * These transformations are shared by analysis, tree-to-model tranformation and code gen
- */
   
 rules
   
@@ -22,10 +17,8 @@ rules
     with
       c := <new-counter>;
       result := <
-      	bottomup(try(norm-case-insensitive));
       	alltd(norm-UMin);
         innermost(
-          norm-NOT +
           norm-singleNode +
           norm-simpleNode +
           norm-edgeContents +
@@ -37,8 +30,6 @@ rules
         alltd(norm-path-constraints);
         alltd(norm-inlined-references);
         bottomup(try(
-           // norm-UnionGraphPattern +
-           // norm-NOT-EXISTS +
            norm-matchElems
         ));
         bottomup(try(norm-query(|c)))
@@ -47,9 +38,6 @@ rules
 rules
 
   norm-UMin = ?UMin(Decimal(string)); !Decimal(<conc-strings> ("-", string))
-  
-  norm-NOT = ?Not1(_, <id>); !Not(<id>)
-  norm-NOT = ?Not2(<id>); !Not(<id>)
   
   norm-string = is-string; try(un-double-quote + un-single-quote)
   
@@ -77,11 +65,6 @@ rules
   
   norm-inlined-references = ?ElemContents(Some(varName), _, _, _); alltd(norm-inlined-reference(|varName))
   norm-inlined-reference(|varName) =
-      ?Id(); !Id(VarRef(varName)) +
-      ?Label(); !Label(VarRef(varName)) +
-      ?Has(props); !Has(VarRef(varName), props) +
-      ?InDegree(); !InDegree(VarRef(varName)) +
-      ?OutDegree(); !OutDegree(VarRef(varName)) +
       ?Obj(dot); !VarRef(varName) +
       (?Obj(VarRef(v), dot) + ?PropRef(VarRef(v), _));
           if <eq> (v, varName)
@@ -89,29 +72,6 @@ rules
           else !CrossReferenceInInlinedConstraint()
           end +
       (?SelfPropRef(propName) + ?SelfPropRef(dot, propName)); !PropRef(VarRef(varName), propName)
-
-/* PGQL 1.0
-rules
-  
-  norm-UnionGraphPattern:
-    UnionGraphPattern(ss, child) -> result
-    with
-      children := <get-UnionElems> child;
-      SubSelect(query) := ss;
-      unionElems := [UnionElem(query)|children];
-      result := Union(unionElems)
-
-  get-UnionElems:
-    None() -> []
-  
-  get-UnionElems:
-    x -> graphPatterns
-    where
-      Union(SubSelect(query), child) := x
-    with
-      children := <get-UnionElems> child;
-      graphPatterns := [UnionElem(query)|children]
-*/
 
 rules
   
@@ -128,11 +88,11 @@ rules
       paths' := <alltd(?ElemContents(Some(<id>), _, _, _))> paths;
       nodes := <collect-om(?Node(_)); !Nodes(<id>)> paths';
       edges := <get-edges; !Edges(<id>)> paths';
-      optionals := <filter(?Optional(_)); !Optionals(<id>)> elems;
-      unions := <filter(?Union(_)); !Unions(<id>)> elems;
+      optionals := []; // TODO: remove
+      unions := []; // TODO: remove
       expands := []; // TODO: remove
-      subQueries := [];//<filter(?SubSelect(<id>)); !SubQueries(<id>)> elems; PGQL 1.0
-      pathDecls := <filter(?Path(_, _, Some(_)); to-path-decl); !PathDecls(<id>)> paths
+      subQueries := []; // TODO: remove
+      pathDecls := [] // TODO: remove
   
   get-inlined-constraints(|nodeOrEdge):
     ElemContents(Some(var), label, id', otherConstraint) -> [labels, identifiers, otherConstraint']
@@ -192,13 +152,6 @@ rules
         case ?EdgeIn(lengthProps, name): expansion := Edge(n2, name, n1, lengthProps)
         otherwise: fail
       end
-  
-  to-path-decl:
-    p@Path(_, _, Some(VarAssign(VarDef(v)))) -> PathDecl(v, nodeNames, edgeNames, edgeDirs)
-    with
-      nodeNames := <collect-om(?Node(ElemContents(Some(<id>), _, _, _)), conc)> p;
-      edgeNames := <collect-om(?EdgeOut(ElemContents(Some(<id>), _, _, _), _) + ?EdgeIn(_, ElemContents(Some(<id>), _, _, _)), conc)> p;
-      edgeDirs := <collect-om(?EdgeOut(_, _); !Out() + ?EdgeIn(_, _); !In())> p
   
 rules
   
@@ -261,8 +214,8 @@ rules
   		elems' := <map(norm-orderBy-ordering); map(norm-order-expression(|allExpAsVars))> elems
 
   norm-orderBy-ordering =
-    ((?Desc1(_, <id>) + ?Desc2(<id>, _)); !OrderByElem(<id>, Desc())) <+
-    ((try(?Asc1(_, <id>) + ?Asc2(<id>, _))); !OrderByElem(<id>, Asc()))
+    ((?Desc1(<id>) + ?Desc2(<id>)); !OrderByElem(<id>, Desc())) <+
+    ((try(?Asc1(<id>) + ?Asc2(<id>))); !OrderByElem(<id>, Asc()))
 
   norm-order-expression(|group-and-select-expressions):
   	OrderByElem(exp, ordering) -> OrderByElem(exp', ordering)
@@ -283,52 +236,3 @@ rules // normalization after error checking
     where
     	None() := groupBy;
     	<oncetd(is-aggregate)> select
-
-/*
- * Code below is only temporary until the next verion of Spoofax is released that supports case-insensitive keywords.
- */
-rules
-
-  norm-case-insensitive: Label(a, _) -> Label(a)
-  norm-case-insensitive: Labels(a, _) -> Labels(a)
-  norm-case-insensitive: HasLabel(a, _, b) -> HasLabel(a, b)
-  norm-case-insensitive: Id(a, _) -> Id(a)
-  norm-case-insensitive: Has(a, _, b) -> Has(a, b)
-  norm-case-insensitive: InDegree(a, _) -> InDegree(a)
-  norm-case-insensitive: OutDegree(a, _) -> OutDegree(a)
-  // TODO: built-ins for Strings and Dates
-  norm-case-insensitive: COUNT(_, a, b) -> COUNT(a, b)
-  norm-case-insensitive: MIN(_, a, b) -> MIN(a, b)
-  norm-case-insensitive: MAX(_, a, b) -> MAX(a, b)
-  norm-case-insensitive: SUM(_, a, b) -> SUM(a, b)
-  norm-case-insensitive: AVG(_, a, b) -> AVG(a, b)
-  // norm-case-insensitive: GROUP-CONCAT(_, a, b, c) -> GROUP-CONCAT(a, b, c)
-  norm-case-insensitive: Distinct(_) -> Distinct()
-  norm-case-insensitive: True(_) -> True()
-  norm-case-insensitive: False(_) -> False()
-  norm-case-insensitive: Null(_) -> Null()
-  
-  norm-case-insensitive: VarAssign(_, a) -> VarAssign(a)
-  
-  // TODO: paths
-  norm-case-insensitive: VarAssign(a, _) -> VarAssign(a)
-  
-  norm-case-insensitive: GraphPattern1(_, a) -> GraphPattern(a)
-  norm-case-insensitive: SelectClause(_, a, b) -> SelectClause(a, b)
-  norm-case-insensitive: FromClause(_, a) -> FromClause(a)
-  // norm-case-insensitive: Optional(_, a) -> Optional(a)
-  // norm-case-insensitive: Union(_, a, b) -> Union(a, b)
-  norm-case-insensitive: Constraint(_, a) -> Constraint(a)
-  
-  norm-case-insensitive: Distinct(_) -> Distinct()
-  norm-case-insensitive: UngroupClase(_, a) -> UngroupClase(a)
-  norm-case-insensitive: GroupClause(_, _, a) -> GroupClause(a)
-  norm-case-insensitive: HavingClause(_, a) -> HavingClause(a)
-  norm-case-insensitive: OrderClause(_, _, a) -> OrderClause(a)
-  norm-case-insensitive: LimitClause(_, a) -> LimitClause(a)
-  norm-case-insensitive: OffsetClause(_, a) -> OffsetClause(a)
-
-  norm-case-insensitive: And2(a, b) -> And(a, b)
-  norm-case-insensitive: And3(a, b) -> And(a, b)  
-  norm-case-insensitive: Or2(a, b) -> Or(a, b)
-  norm-case-insensitive: Or3(a, b) -> Or(a, b)

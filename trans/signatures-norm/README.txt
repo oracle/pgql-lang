@@ -1,1 +1,0 @@
-signatures-norm is only temporary code and will be gone once Spoofax support case-insensitive keywords again.

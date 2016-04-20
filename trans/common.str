@@ -3,16 +3,15 @@ module common
 imports
   
   src-gen/signatures/-
-  signatures-norm/-
   sig-normalized
 
 rules
   
   is-literal = ?Integer(_) + ?Decimal(_) + ?String(_) + ?True() + ?False() + ?Null()
-  is-aggregate = ?COUNT(_, _) + ?MIN(_, _) + ?MAX(_, _) + ?SUM(_, _) + ?AVG(_, _) + ?GROUP-CONCAT(_, _, _)
+  is-aggregate = ?COUNT(_, _) + ?MIN(_, _) + ?MAX(_, _) + ?SUM(_, _) + ?AVG(_, _)
   is-expression = ?Not(_) + ?And(_, _) + ?Or(_, _) + ?Mul(_, _) + ?Add(_, _) + ?Div(_, _) + ?Mod(_, _) +
         ?Sub(_, _) + ?Eq(_, _) + ?Lt(_, _) + ?Gte(_, _) + ?Lte(_, _) + ?Neq(_, _) + ?Regex(_, _)
-  is-function = ?Id(_) + ?Label(_) + ?Has(_, _) + ?InDegree() + ?OutDegree() + ?HasLabel(_, _)
+  is-function = ?Id(_) + ?Label(_) + ?Has(_, _) + ?InDegree(_) + ?OutDegree(_) + ?HasLabel(_, _)
   
   get-exp-from-aggregation = ?COUNT(_, <id>) + ?MIN(_, <id>) + ?MAX(_, <id>) + ?SUM(_, <id>) + ?AVG(_, <id>)
   

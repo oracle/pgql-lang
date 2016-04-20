@@ -2,7 +2,6 @@ module Paths
 
 imports
   
-  Keywords
   Literals
   Names
   Expressions
@@ -24,7 +23,7 @@ context-free syntax
   EdgeContents.EdgeContents = <[<ElemContents>]>
   PathLengthConstraints.PathLengthConstraints = <{<PathConstraint>}>
   PathConstraint.PathLength = <<PATHLENGTH?>..<PATHLENGTH?>>
-  PathConstraint.Shortest = SHORTEST
+  PathConstraint.Shortest = <shortest> {case-insensitive}
 
 context-free syntax
 
@@ -35,4 +34,4 @@ context-free syntax
   Labels.Labels = <:<AltLit>>
   Ids.Ids = <@<AltLit>>
   
-  WithInlinedConstraints.Constraint = < <WITH> <{InlinedExp ", "}+>>
+  WithInlinedConstraints.Constraint = < with <{InlinedExp ", "}+>> {case-insensitive}

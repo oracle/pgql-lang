@@ -23,9 +23,6 @@ binding rules
   Edge(_, e, _, _):
     defines unique Var e of type EdgeTy()
 
-  PathDecl(p, _, _, _):
-    defines unique Var p of type PathTy()
-  
   // Note 1: SelectVar is non-unique because we already do the uniqueness test using Var
   // Note 2: In PGQL 0.9, in the SELECT, you cannot refer to variables previously defined in the SELECT
   ExpAsVar(v, _):

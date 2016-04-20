@@ -3,7 +3,6 @@ module check
 imports
 
   src-gen/signatures/-
-  signatures-norm/-
   sig-normalized
   sig-nabl
   common
@@ -128,46 +127,15 @@ signature constructors
 rules // future PGQL versions
 
   nabl-constraint(|ctx):
-    PathDecl(v, _, _, _) -> <fail>
-    with
-      <generate-error(|ctx, $[Path variables are not supported])> v
-
-  nabl-constraint(|ctx):
     t@PathLength(_, _) -> <fail>
     with
       <generate-error(|ctx, $[Path queries are not supported])> t
 
-  nabl-constraint(|ctx):
-    SubQueries(queries)  -> <fail>
-    where
-      <map(subquery-limitiation(|ctx))> queries
-      
-  subquery-limitiation(|ctx):
-    e@Query(_, _, _, _) -> <id>
-    where
-      <generate-error(|ctx, $[Subqueries are not supported])> e
-
-  constraints-check(|ctx):
-    e@ExistsFunc(_) -> <fail>
-    where
-      <generate-error(|ctx,$[(NOT) EXISTS is not supported])> e
   
   nabl-constraint(|ctx):
     e@Distinct() -> <fail>
     with
       <generate-error(|ctx, $[DISTINCT is not supported])> e
-
-  nabl-constraint(|ctx):
-    t -> <fail>
-    where
-      <?Length(_)
-       + ?Head(_) + ?Last(_) + ?Init(_) + ?Tail(_)
-       + ?Contains(_, _, _) + ?BeginsWith(_, _, _) + ?EndsWith(_, _, _)
-       + ?Year(_) + ?Month(_) + ?Day(_) + ?Hours(_) + ?Minutes(_) + ?Seconds(_) + ?Timezone(_)
-       + ?Case(_, _, _)
-      > t;
-      funcName := <get-constructor> t;
-      <generate-error(|ctx, $[No such function: '[funcName]'])> t
 
   nabl-constraint(|ctx):
     LitCustomType(_, type) -> <fail>

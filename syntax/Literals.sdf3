@@ -1,9 +1,5 @@
 module Literals
 
-imports
-  
-  Keywords
-
 context-free syntax
 
   Literal = NumericLiteral
@@ -23,9 +19,9 @@ context-free syntax
   String.String = STRING
   UnquotedString.String = UNQUOTED-STRING
   LitCustomType.LitCustomType = <<String>^^<CUSTOM-TYPE>>
-  BooleanLiteral.True = TRUE
-  BooleanLiteral.False = FALSE
-  Literal.Null = NULL
+  BooleanLiteral.True = <true> {case-insensitive}
+  BooleanLiteral.False = <false> {case-insensitive}
+  Literal.Null = <null> {case-insensitive}
 
 lexical syntax
 

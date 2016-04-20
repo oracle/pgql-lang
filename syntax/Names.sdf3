@@ -2,7 +2,6 @@ module Names
 
 imports
 
-  Keywords
   Literals
   Expressions
   
@@ -11,14 +10,14 @@ context-free syntax
   VarDef.VarDef = <<Var>>
   VarRef.VarRef = <<Var>>
   ExpAsVar.ExpAsVar = <<Exp><VarAssign?>>
-  VarAssign.VarAssign = <<AS> <VarDef>>
+  VarAssign.VarAssign = <as <VarDef>> {case-insensitive}
   NodeVarRef.NodeVarRef = <<Var>>
   PropRef.PropRef = <<VarRef>.<Prop>>
 
-  Var = <<VARNAME>>
+  Var = VARNAME
   
-  Prop = <<PROPNAME>>
-  Prop = <<STRING>>
+  Prop = PROPNAME
+  Prop = STRING
   Dot.Dot = <.>
   
 lexical syntax

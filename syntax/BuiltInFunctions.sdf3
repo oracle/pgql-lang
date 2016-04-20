@@ -2,7 +2,6 @@ module BuiltInFunctions
 
 imports
   
-  Keywords
   Names
   Expressions
   pgql-lang
@@ -10,79 +9,42 @@ imports
 
 context-free syntax // inlined function calls
 
-  InlinedCall.Label = <<Obj><LABEL>()>
-  InlinedCall.Labels = <<Obj><LABELS>()>
-  InlinedCall.HasLabel = <<Obj><HASLABEL>(<Exp>)>
-  InlinedCall.Id = <<Obj><ID>()>
-  InlinedCall.Has = <<Obj><HAS>(<{Prop ", "}*>)>
-  InlinedCall.InDegree  = <<Obj><INDEGREE>()>
-  InlinedCall.OutDegree = <<Obj><OUTDEGREE>()>
+  InlinedCall.Label = <<Obj>label()> {case-insensitive}
+  InlinedCall.Labels = <<Obj>labels()> {case-insensitive}
+  InlinedCall.HasLabel = <<Obj>hasLabel(<Exp>)> {case-insensitive}
+  InlinedCall.Id = <<Obj>id()> {case-insensitive}
+  InlinedCall.Has = <<Obj>has(<{Prop ", "}*>)> {case-insensitive}
+  InlinedCall.InDegree  = <<Obj>inDegree()> {case-insensitive}
+  InlinedCall.OutDegree = <<Obj>outDegree()> {case-insensitive}
   
-  InlinedCall.Nodes  = <<Obj><NODES>()>
-  InlinedCall.Edges  = <<Obj><EDGES>()>
-  InlinedCall.Length = <<Obj><LENGTH>()>
-
   Obj.Obj = <<VarRef><Dot>>
   Obj.Obj = <<Dot?>>
 
 context-free syntax // nodes/edges
 
-  Exp.Label = <<Exp>.<LABEL>()>
-  Exp.Labels = <<Exp>.<LABELS>()>
-  Exp.HasLabel = <<Exp>.<HASLABEL>(<Exp>)>
-  Exp.Id = <<Exp>.<ID>()>
-  Exp.Has = <<Exp>. <HAS>(<{Prop ", "}*>)>
+  Exp.Label = <<Exp>. label()> {case-insensitive}
+  Exp.Labels = <<Exp>. labels()> {case-insensitive}
+  Exp.HasLabel = <<Exp>. hasLabel(<Exp>)> {case-insensitive}
+  Exp.Id = <<Exp>. id()> {case-insensitive}
+  Exp.Has = <<Exp>. has(<{Prop ", "}*>)> {case-insensitive}
   
 context-free syntax // nodes
 
-  Exp.InDegree  = <<Exp>. <INDEGREE>()>
-  Exp.OutDegree = <<Exp>. <OUTDEGREE>()>
+  Exp.InDegree  = <<Exp>. inDegree()> {case-insensitive}
+  Exp.OutDegree = <<Exp>. outDegree()> {case-insensitive}
   
-/* PGQL 1.0
-context-free syntax // paths
-
-  Exp.Nodes  = <<Exp>. <NODES>()>
-  Exp.Edges  = <<Exp>. <EDGES>()>
-  Exp.Length = <<Exp>. <LENGTH>()>
-
-context-free syntax // Strings
-
-  Exp.Contains   = <<Exp>. <CONTAINS>(<Exp>, <Exp>)>
-  Exp.BeginsWith = <<Exp>. <BEGINSWITH>(<Exp>, <Exp>)>
-  Exp.EndsWith   = <<Exp>. <ENDSWITH>(<Exp>, <Exp>)>
-
-context-free syntax // Time
-
-  Exp.Between = <<Exp>. <BETWEEN>(<Exp>, <Exp>)>
-  Exp.Year = <<Exp>. <YEAR>()>
-  Exp.Month = <<Exp>. <MONTH>()>
-  Exp.Day = <<Exp>. <DAY>()>
-  Exp.Hours = <<Exp>. <HOURS>()>
-  Exp.Minutes = <<Exp>. <MINUTES>()>
-  Exp.Seconds = <<Exp>. <SECONDS>()>
-  Exp.Timezone = <<Exp>. <TIMEZONE>()>
-
-
-context-free syntax // EXISTS / NOT EXISTS / CASE
-
-  Exp.ExistsFunc    = <<EXISTS> <GroupGraphPattern>>
-  Exp.Case          = <<CASE> <Exp> <{WhenThen " "}+> <ELSE> <Exp> <END>>
-  WhenThen.WhenThen          = <<WHEN> <Exp> <THEN> <Exp>>
-*/
-
 context-free syntax // Aggregates
 
-  Exp.COUNT        = <<COUNT>(<Distinct?><StarOrExp>)>
-  Exp.MIN          = <<MIN>(<Distinct?><Exp>)>
-  Exp.MAX          = <<MAX>(<Distinct?><Exp>)>
-  Exp.SUM          = <<SUM>(<Distinct?><Exp>)>
-  Exp.AVG          = <<AVG>(<Distinct?><Exp>)>
-//  Exp.GROUP-CONCAT = <<GROUP-CONCAT>(<Distinct?><Exp><Group-Concat-Sep?>)> // PGQL 1.0
+  Exp.COUNT        = <count(<Distinct?><StarOrExp>)> {case-insensitive}
+  Exp.MIN          = <min(<Distinct?><Exp>)> {case-insensitive}
+  Exp.MAX          = <max(<Distinct?><Exp>)> {case-insensitive}
+  Exp.SUM          = <sum<Distinct?><Exp>)> {case-insensitive}
+  Exp.AVG          = <avg(<Distinct?><Exp>)> {case-insensitive}
   
   StarOrExp.Star = <*>
   StarOrExp = <<Exp>>
   Group-Concat-Sep.Sep = <, <String>>
-  Distinct.Distinct = DISTINCT
+  Distinct.Distinct = <distinct> {case-insensitive}
 
 context-free priorities
 
@@ -137,15 +99,11 @@ context-free priorities
   {
     left:
       Exp.And
-      Exp.And2
-      Exp.And3
   }
   >
   {
     left:
       Exp.Or
-      Exp.Or2
-      Exp.Or3
   }
 
 context-free priorities
@@ -166,13 +124,6 @@ context-free priorities
       InlinedCall.Has
       InlinedCall.InDegree
       InlinedCall.OutDegree
-  }
-  >
-  {
-    left:
-      InlinedCall.Nodes
-      InlinedCall.Edges
-      InlinedCall.Length
   }
   >
   {
@@ -206,13 +157,9 @@ context-free priorities
   {
     left:
       InlinedExp.And
-      InlinedExp.And2
-      InlinedExp.And3
   }
   >
   {
     left:
       InlinedExp.Or
-      InlinedExp.Or2
-      InlinedExp.Or3
   }

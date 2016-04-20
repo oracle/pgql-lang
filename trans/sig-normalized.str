@@ -13,19 +13,11 @@ signature constructors
   Edges                : List(Edge) -> Edges
   Edge                 : fromNode * edge * toNode * pathLengthConstraints -> Edge
   Constraints          : List(Exp) -> Constraints
-  Optionals            : List(Optional) -> Optionals
-  Optional             : GraphPattern -> Optional
-  Unions               : List(Union) -> Unions
-  Union                : List(UnionElem) -> Union
-  UnionElem            : GraphPattern -> UnionElem
-  Expands              : List(Expand) -> Expands
-  SubQueries           : List(Query) -> SubQueries
-  PathDecls            : List(PathDecl) -> PathDecls
-  PathDecl             : VarDef * nodeNames * edgeNames * List(EdgeDir) -> PathDecl
   In                   : EdgeDir
   Out                  : EdgeDir
   NoDir                : EdgeDir
 
+  Vars                 : List(Var) -> Vars
   ExpAsVar             : VarDef * Exp -> ExpAsVar
   OrderClause          : List(OrderElem) -> OrderClause
   GroupClause          : List(GroupElem) -> GroupClause
