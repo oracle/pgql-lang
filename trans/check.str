@@ -2,11 +2,11 @@ module check
 
 imports
 
-  src-gen/signatures/-
+  signatures/-
   sig-normalized
   sig-nabl
   common
-  src-gen/names/-
+  names/-
   
 rules // Unresolved/duplicate variables
   

@@ -2,7 +2,7 @@ module trans-for-nabl
 
 imports
   
-  src-gen/signatures/-
+  signatures/-
   sig-normalized
   sig-nabl
   common

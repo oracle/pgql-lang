@@ -12,7 +12,7 @@ imports
   runtime/analysis/-
   runtime/editor/-
   
-  src-gen/names/-
+  names/-
   
   pp
   trans-for-nabl

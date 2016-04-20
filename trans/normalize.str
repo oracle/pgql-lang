@@ -2,8 +2,8 @@ module normalize
 
 imports
   
-  src-gen/signatures/-
-  src-gen/stratego/-
+  signatures/-
+  stratego/-
   sig-normalized
   sig-nabl
   common

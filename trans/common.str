@@ -2,7 +2,7 @@ module common
 
 imports
   
-  src-gen/signatures/-
+  signatures/-
   sig-normalized
 
 rules

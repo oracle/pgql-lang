@@ -2,7 +2,7 @@ module names
 
 imports
   
-  src-gen/signatures/-
+  signatures/-
   sig-normalized
   sig-nabl
   
