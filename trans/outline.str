@@ -1,0 +1,16 @@
+module outline
+
+imports
+  
+  signatures/pgql-lang-sig
+  runtime/editor/outline-library
+  runtime/editor/origins
+
+rules
+  
+  editor-outline:
+    (_, _, ast, path, project-path) -> outline
+    where
+      outline := <simple-label-outline(to-outline-label)> ast
+  
+  to-outline-label = fail

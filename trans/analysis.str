@@ -1,0 +1,64 @@
+module analysis
+
+imports
+  
+  stratego/metaborg
+  
+  runtime/index/-
+  runtime/nabl/-
+  runtime/properties/-
+  runtime/types/-
+  runtime/task/-
+  runtime/analysis/-
+  runtime/editor/-
+  
+  names/-
+  
+  pp
+  trans-for-nabl
+  normalize
+
+rules // Analysis
+
+  editor-analyze = analyze-all(normalize-before, trans-for-nabl, id|<language>)
+
+rules // Editor services
+
+  editor-resolve:
+    (node, _, _, _, project-path) -> definition
+    where
+      definition := <analysis-resolve(|<language>, project-path)> node
+
+  editor-hover:
+    (node, _, _, _, project-path) -> label
+    where
+      label := <get-editor-properties(pp-partial-pgql-lang-string|<language>, project-path); properties-to-html> node
+
+rules // Debugging
+  
+  debug-show-analyzed:
+    (_, _, ast, path, _) -> (filename, result)
+    with
+      filename := <guarantee-extension(|"analyzed.aterm")> path;
+      result   := ast
+  
+  debug-index-project =
+    analysis-debug-index-project(|<language>)
+  debug-index-project-resolve = 
+    analysis-debug-index-project-resolve(|<language>)
+  debug-index-partition =
+    analysis-debug-index-partition(|<language>)
+
+  debug-task-project =
+    analysis-debug-task-project(|<language>)
+  debug-task-partition =
+    analysis-debug-task-partition(|<language>)
+  debug-task-selection =
+    analysis-debug-task-selection(|<language>)
+  debug-index-partition-resolve =
+    analysis-debug-index-partition-resolve(|<language>)
+    
+  debug-project =
+    analysis-debug-project(|<language>)
+  debug-partition =
+    analysis-debug-partition(|<language>)

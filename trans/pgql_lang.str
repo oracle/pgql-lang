@@ -1,0 +1,16 @@
+module pgql_lang
+
+imports
+  
+  completion
+  pp
+  outline
+  analysis
+
+rules // Debugging
+  
+  debug-show-aterm:
+    (node, _, _, path, project-path) -> (filename, result)
+    with
+      filename := <guarantee-extension(|"aterm")> path
+    ; result   := node
