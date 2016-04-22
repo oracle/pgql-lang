@@ -1,8 +1,5 @@
-/.cache
-/bin
-/src-gen
-/target
-
+/target/
 /.classpath
 /.project
 /.settings
+

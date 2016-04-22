@@ -1,75 +1,39 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<project
-  xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd"
-  xmlns="http://maven.apache.org/POM/4.0.0"
-  xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
->
+<project xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd" xmlns="http://maven.apache.org/POM/4.0.0"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
   <modelVersion>4.0.0</modelVersion>
-  <groupId>oracle.pgql.lang</groupId>
-  <artifactId>pgqllang</artifactId>
-  <version>1.0.0-SNAPSHOT</version>
-  <packaging>spoofax-language</packaging>
+  <groupId>oracle.pgx</groupId>
+  <artifactId>pgql-lang</artifactId>
+  <version>2016.04.22</version>
 
-  <parent>
-  <groupId>org.metaborg</groupId>
-  <artifactId>parent.language</artifactId>
-  <version>2.0.0-beta1</version>
-  </parent>
-  
+  <dependencies>
+    <dependency>
+      <groupId>oracle.pgx</groupId>
+      <artifactId>querygraph-ir</artifactId>
+      <version>2016.04.05</version>
+      <scope>compile</scope>
+    </dependency>
+    <dependency>
+      <groupId>org.metaborg</groupId>
+      <artifactId>org.metaborg.spoofax.core</artifactId>
+      <version>2.0.0-beta1</version>
+    </dependency>
+    <dependency>
+      <groupId>ch.qos.logback</groupId>
+      <artifactId>logback-classic</artifactId>
+      <version>1.1.2</version>
+    </dependency>
+  </dependencies>
+
   <repositories>
     <repository>
-      <id>metaborg-release-repo</id>
+      <id>metaborgRepo</id>
       <url>http://artifacts.metaborg.org/content/repositories/releases/</url>
-      <releases>
-        <enabled>true</enabled>
-      </releases>
-      <snapshots>
-        <enabled>false</enabled>
-      </snapshots>
-    </repository>
-    <repository>
-      <id>metaborg-snapshot-repo</id>
-      <url>http://artifacts.metaborg.org/content/repositories/snapshots/</url>
-      <releases>
-        <enabled>false</enabled>
-      </releases>
-      <snapshots>
-        <enabled>true</enabled>
-      </snapshots>
-    </repository>
-    <repository>
-      <id>spoofax-eclipse-repo</id>
-      <url>http://download.spoofax.org/update/nightly/</url>
-      <layout>p2</layout>
-      <releases>
-        <enabled>false</enabled>
-      </releases>
-      <snapshots>
-        <enabled>false</enabled>
-      </snapshots>
     </repository>
   </repositories>
-  
-  <pluginRepositories>
-    <pluginRepository>
-      <id>metaborg-release-repo</id>
-      <url>http://artifacts.metaborg.org/content/repositories/releases/</url>
-      <releases>
-        <enabled>true</enabled>
-      </releases>
-      <snapshots>
-        <enabled>false</enabled>
-      </snapshots>
-    </pluginRepository>
-    <pluginRepository>
-      <id>metaborg-snapshot-repo</id>
-      <url>http://artifacts.metaborg.org/content/repositories/snapshots/</url>
-      <releases>
-        <enabled>false</enabled>
-      </releases>
-      <snapshots>
-        <enabled>true</enabled>
-      </snapshots>
-    </pluginRepository>
-  </pluginRepositories>
+
+  <properties>
+    <maven.compiler.source>1.7</maven.compiler.source>
+    <maven.compiler.target>1.7</maven.compiler.target>
+  </properties>
 </project>
