@@ -40,9 +40,9 @@ import org.slf4j.LoggerFactory;
 
 import oracle.pgql.lang.ir.QueryGraph;
 
-public class Compiler {
+public class Pgql {
 
-  private static final Logger LOG = LoggerFactory.getLogger(Compiler.class);
+  private static final Logger LOG = LoggerFactory.getLogger(Pgql.class);
 
   private final Spoofax spoofax;
   private final ILanguageImpl pgqlLang;
@@ -52,11 +52,11 @@ public class Compiler {
   /**
    * Loads PGQL Spoofax binaries if not done already.
    */
-  public Compiler() throws CompileException {
+  public Pgql() throws PgqlException {
     try {
       spoofax = new Spoofax();
-      String jarLocation = URLDecoder
-          .decode(Compiler.class.getProtectionDomain().getCodeSource().getLocation().getPath(), "UTF-8");
+      String jarLocation = URLDecoder.decode(Pgql.class.getProtectionDomain().getCodeSource().getLocation().getPath(),
+          "UTF-8");
       FileObject jarFile = spoofax.resourceService.resolve("jar:" + jarLocation + "!/");
       assert (jarFile.exists());
       Iterable<ILanguageDiscoveryRequest> requests = spoofax.languageDiscoveryService.request(jarFile);
@@ -66,7 +66,7 @@ public class Compiler {
       assert (pgqlLang != null);
       dummyProjectDir = VFS.getManager().resolveFile("ram://pgql/");
     } catch (MetaborgException | IOException e) {
-      throw new CompileException("Failed to initialize PGQL", e);
+      throw new PgqlException("Failed to initialize PGQL", e);
     }
 
     final LanguageIdentifier id = pgqlLang.id();
@@ -91,7 +91,7 @@ public class Compiler {
     });
   }
 
-  public Compilation compile(String queryString) throws CompileException {
+  public QueryGraph parse(String queryString) throws PgqlException {
     FileObject dummyFile = null;
     try {
       String randomFileName = UUID.randomUUID().toString() + ".pgql";
@@ -104,29 +104,23 @@ public class Compiler {
       ISpoofaxInputUnit input = spoofax.unitService.inputUnit(dummyFile, queryString, pgqlLang, null);
       ISpoofaxParseUnit parseResult = spoofax.syntaxService.parse(input);
 
-      String prettyMessages = null;
-      boolean queryValid = parseResult.success();
-      QueryGraph queryGraph = null;
-      if (!queryValid) {
-        prettyMessages = getMessages(parseResult.messages(), queryString);
-      } else {
-        IContext context = spoofax.contextService.get(dummyFile, dummyProject, pgqlLang);
-        ISpoofaxAnalyzeUnit analysisResult = null;
-        try (IClosableLock lock = context.write()) {
-          analysisResult = spoofax.analysisService.analyze(parseResult, context).result();
-        }
-
-        queryValid = analysisResult.success();
-        if (queryValid) {
-          queryGraph = SpoofaxAstToQueryGraph.translate(analysisResult.ast());
-        } else {
-          prettyMessages = getMessages(analysisResult.messages(), queryString);
-        }
+      if (!parseResult.success()) {
+        throw new PgqlException(getMessages(parseResult.messages(), queryString));
       }
 
-      return new Compilation(queryString, queryValid, prettyMessages, queryGraph);
+      IContext context = spoofax.contextService.get(dummyFile, dummyProject, pgqlLang);
+      ISpoofaxAnalyzeUnit analysisResult = null;
+      try (IClosableLock lock = context.write()) {
+        analysisResult = spoofax.analysisService.analyze(parseResult, context).result();
+      }
+
+      if (!analysisResult.success()) {
+        throw new PgqlException(getMessages(analysisResult.messages(), queryString));
+      }
+
+      return PgqlSpoofaxAstToQueryGraph.translate(analysisResult.ast());
     } catch (IOException | ParseException | AnalysisException | ContextException e) {
-      throw new CompileException("Failed to parse PGQL query", e);
+      throw new PgqlException("Failed to parse PGQL query", e);
     } finally {
       quietlyDelete(dummyFile);
     }
