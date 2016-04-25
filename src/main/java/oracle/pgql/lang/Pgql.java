@@ -51,9 +51,6 @@ public class Pgql {
 
   /**
    * Loads PGQL Spoofax binaries if not done already.
-   * 
-   * @throws PgqlException
-   *           If something went wrong while initializing PGQL.
    */
   public Pgql() throws PgqlException {
     try {
@@ -94,13 +91,6 @@ public class Pgql {
     });
   }
 
-  /**
-   * @param queryString
-   *          the query to parse
-   * @return the abstract query representation
-   * @throws PgqlException
-   *           When the query is malformed.
-   */
   public QueryGraph parse(String queryString) throws PgqlException {
     FileObject dummyFile = null;
     try {
