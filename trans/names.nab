@@ -3,8 +3,6 @@ module names
 imports
   
   signatures/-
-  sig-normalized
-  sig-nabl
   
 namespaces
   
