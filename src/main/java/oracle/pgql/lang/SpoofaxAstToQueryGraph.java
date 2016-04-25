@@ -19,7 +19,7 @@ import org.spoofax.interpreter.terms.IStrategoAppl;
 import org.spoofax.interpreter.terms.IStrategoString;
 import org.spoofax.interpreter.terms.IStrategoTerm;
 
-public class PgqlSpoofaxAstToQueryGraph {
+public class SpoofaxAstToQueryGraph {
 
   private static final int POS_SELECT = 3;
   private static final int POS_PROJECTION = 1;
@@ -52,7 +52,7 @@ public class PgqlSpoofaxAstToQueryGraph {
   private static final int POS_PROPREF_VARNAME = 0;
   private static final int POS_PROPREF_PROPNAME = 1;
 
-  public static QueryGraph translate(IStrategoTerm ast) throws PgqlException {
+  public static QueryGraph translate(IStrategoTerm ast) throws CompileException {
 
     // WHERE
     IStrategoTerm graphPatternT = ast.getSubterm(POS_WHERE);
@@ -104,7 +104,7 @@ public class PgqlSpoofaxAstToQueryGraph {
   }
 
   private static List<QueryExpression> getQueryExpressions(IStrategoTerm constraintsT, Map<String, QueryVar> varmap)
-      throws PgqlException {
+      throws CompileException {
     List<QueryExpression> constraints = new ArrayList<>(constraintsT.getSubtermCount());
     for (IStrategoTerm constraintT : constraintsT) {
       QueryExpression exp = translateExp(constraintT, varmap);
@@ -157,7 +157,7 @@ public class PgqlSpoofaxAstToQueryGraph {
   }
 
   private static List<ExpAsVar> getGroupByElems(Map<String, QueryVar> varmap, IStrategoTerm groupByT)
-      throws PgqlException {
+      throws CompileException {
     if (!isNone(groupByT)) { // has GROUP BY
       IStrategoTerm groupByElemsT = getList(groupByT);
       return getExpAsVars(varmap, groupByElemsT);
@@ -166,12 +166,12 @@ public class PgqlSpoofaxAstToQueryGraph {
   }
 
   private static List<ExpAsVar> getSelectElems(Map<String, QueryVar> varmap, IStrategoTerm projectionT)
-      throws PgqlException {
+      throws CompileException {
     return getExpAsVars(varmap, getList(projectionT));
   }
 
   private static List<ExpAsVar> getExpAsVars(Map<String, QueryVar> varmap, IStrategoTerm expAsVarsT)
-      throws PgqlException {
+      throws CompileException {
     List<ExpAsVar> expAsVars = new ArrayList<>(expAsVarsT.getSubtermCount());
     for (IStrategoTerm expAsVarT : expAsVarsT) {
       String varName = getString(expAsVarT.getSubterm(POS_EXPASVAR_VAR));
@@ -185,7 +185,7 @@ public class PgqlSpoofaxAstToQueryGraph {
   }
 
   private static List<OrderByElem> getOrderByElems(Map<String, QueryVar> varmap, IStrategoTerm orderByT)
-      throws PgqlException {
+      throws CompileException {
     List<OrderByElem> orderByElems = new ArrayList<>();
     if (!isNone(orderByT)) { // has ORDER BY
       IStrategoTerm orderByElemsT = getList(orderByT);
@@ -207,7 +207,7 @@ public class PgqlSpoofaxAstToQueryGraph {
     return offset;
   }
 
-  private static QueryExpression translateExp(IStrategoTerm t, Map<String, QueryVar> varmap) throws PgqlException {
+  private static QueryExpression translateExp(IStrategoTerm t, Map<String, QueryVar> varmap) throws CompileException {
     String cons = ((IStrategoAppl) t).getConstructor().getName();
 
     switch (cons) {
@@ -274,7 +274,7 @@ public class PgqlSpoofaxAstToQueryGraph {
           long l = Long.parseLong(getString(t));
           return new QueryExpression.Constant.ConstInteger(l);
         } catch (NumberFormatException e) {
-          throw new PgqlException(getString(t) + " is too large to be represented as Long");
+          throw new CompileException(getString(t) + " is too large to be represented as Long");
         }
       case "Decimal":
         double d = Double.parseDouble(getString(t));
@@ -294,14 +294,14 @@ public class PgqlSpoofaxAstToQueryGraph {
         String varName = getString(t);
         QueryVar var = varmap.get(varName);
         if (var == null) {
-          throw new PgqlException("Variable " + varName + " undefined");
+          throw new CompileException("Variable " + varName + " undefined");
         }
         return new QueryExpression.VarRef(var);
       case "PropRef":
         varName = getString(t.getSubterm(POS_PROPREF_VARNAME));
         var = varmap.get(varName);
         if (var == null) {
-          throw new PgqlException("Variable " + varName + " undefined");
+          throw new CompileException("Variable " + varName + " undefined");
         }
         String propname = getString(t.getSubterm(POS_PROPREF_PROPNAME));
         return new QueryExpression.PropAccess(var, propname);
