@@ -1,0 +1,9 @@
+module select
+
+language PGQL
+
+test In-lined expression, no variable name [[
+SELECT m.name
+WHERE
+  (WITH name = 'Heather') -[WITH label = 'dislikes']-> (m)
+]]

@@ -1,0 +1,30 @@
+module select
+
+language PGQL
+
+test Nested aggregation 1 [[
+SELECT AVG(MIN(n.age))
+WHERE
+  n
+]] / Nested aggregation is not allowed /
+
+test Nested aggregation 2 [[
+SELECT AVG(n.age)
+WHERE
+  n
+ORDER BY AVG(MIN(n.age))
+]] / Nested aggregation is not allowed /
+
+test Aggregation in GROUP BY 1 [[
+SELECT avgAge
+WHERE
+  n
+GROUP BY AVG(n.age) AS avgAge
+]] / Aggregation not allowed in GROUP BY /
+
+test Aggregation in GROUP BY 2 [[
+SELECT avgAge
+WHERE
+  n
+GROUP BY AVG(MIN(n.age)) AS avgAge
+]] / Aggregation not allowed in GROUP BY /

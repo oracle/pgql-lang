@@ -1,0 +1,10 @@
+module syntax
+
+language PGQL
+
+test Limit [[
+SELECT n.name
+WHERE n
+ORDER BY n.name
+LIMIT 1
+]]

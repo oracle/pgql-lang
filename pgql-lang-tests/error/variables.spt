@@ -1,0 +1,42 @@
+module variables
+
+language PGQL
+
+test Unresolved variable in SELECT [[
+SELECT n2
+WHERE
+  n
+]] / Unresolved variable /
+
+test Unresolved variable in GROUP BY [[
+SELECT n
+WHERE
+  n
+GROUP BY n2
+]] / Unresolved variable /
+
+test Unresolved variable in ORDER BY [[
+SELECT n
+WHERE
+  n
+ORDER BY n2
+]] / Unresolved variable /
+
+test Duplicate edge variable [[
+SELECT *
+WHERE
+  () -[e]-> () -[e]-> ()
+]] / Duplicate edge variable /
+
+test Duplicate variable IN SELECT [[
+SELECT n.name AS nName, n.name AS nName
+WHERE
+  n
+]] / Duplicate variable definition /
+
+test Duplicate variable in GROUP BY [[
+SELECT nName
+WHERE
+  n
+GROUP BY n.name AS nName, n.name AS nName
+]] / Duplicate variable definition /

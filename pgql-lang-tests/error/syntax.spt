@@ -1,0 +1,28 @@
+module syntax
+
+language PGQL
+
+test Empty SELECT [[
+SELECT
+WHERE
+  x
+]] parse fails
+
+test Empty WHERE [[
+SELECT *
+WHERE
+]] parse fails
+
+test Empty GROUP BY [[
+SELECT *
+WHERE
+  n
+GROUP BY
+]] parse fails
+
+test Empty ORDER BY [[
+SELECT *
+WHERE
+  n
+ORDER BY
+]] parse fails
