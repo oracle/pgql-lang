@@ -1,0 +1,27 @@
+module Syntax
+
+imports 
+
+  editor/Colorer.generated
+  completion/colorer/pgql-lang-cc-esv
+
+language
+
+  table         : target/metaborg/sdf.tbl
+  start symbols : Start
+
+  line comment  : "//"
+  block comment : "/*" * "*/"
+  fences        : [ ] ( ) { }
+
+menus
+  
+  menu: "Syntax" (openeditor)
+    
+    action: "Format"          = editor-format (source)
+    action: "Show parsed AST" = debug-show-aterm (source)
+
+views
+  
+  outline view: editor-outline (source)
+    expand to level: 3

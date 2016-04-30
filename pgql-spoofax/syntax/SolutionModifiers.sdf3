@@ -1,0 +1,39 @@
+module SolutionModifiers
+
+imports
+  
+  Names
+  Literals
+  Expressions
+  
+context-free syntax
+
+  SolutionModifier.SolutionModifier = <
+      <UngroupClause?>
+      <GroupClause?>
+      <HavingClause?>
+      <OrderClause?>
+      <LimitOffsetClauses?>
+  >
+  
+  SelectElems.ExpAsVars = <<{ExpAsVar ", "}+>>
+  SelectElems.Star = <*>
+  
+  UngroupClause.UngroupClase = <ungroup <{ExpAsVar ", "}+>> {case-insensitive}
+  
+  GroupClause.GroupClause = <group by <{ExpAsVar ", "}+>> {case-insensitive}
+  Distinct.Distinct = <distinct > {case-insensitive}
+  
+  HavingClause.HavingClause = <having <Exp+>> {case-insensitive}
+  
+  OrderClause.OrderClause = <order by <{OrderElem ", "}+>> {case-insensitive}
+  OrderElem = <<Exp>>
+  OrderElem.Asc1 = <asc(<Exp>)> {case-insensitive}
+  OrderElem.Desc1 = <desc(<Exp>)> {case-insensitive}
+  OrderElem.Asc2 = <<Exp> asc> {case-insensitive}
+  OrderElem.Desc2 = <<Exp> desc> {case-insensitive}
+
+  LimitOffsetClauses.LimitOffsetClauses = <<LimitClause> <OffsetClause?>>
+  LimitOffsetClauses.OffsetLimitClauses = <<OffsetClause> <LimitClause?>>
+  LimitClause.LimitClause = <limit <INTEGER>> {case-insensitive}
+  OffsetClause.OffsetClause = <offset <INTEGER>> {case-insensitive}

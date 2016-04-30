@@ -1,0 +1,42 @@
+module pp
+
+imports
+
+  libstratego-gpp
+  runtime/refactoring/-
+  pp/pgql-lang-parenthesize
+  pp/pgql-lang-pp
+
+rules
+
+  editor-format:
+    (node, _, ast, path, project-path) -> (filename, result)
+    with
+      ext      := <get-extension> path
+    ; filename := <guarantee-extension(|$[pp.[ext]])> path
+    ; result   := <pp-debug> node
+
+rules
+  
+  pp-pgql-lang-string =
+    parenthesize-pgql-lang
+    ; prettyprint-pgql-lang-start-symbols
+    ; !V([], <id>)
+    ; box2text-string(|120)
+      
+  pp-partial-pgql-lang-string =
+    parenthesize-pgql-lang
+    ; prettyprint-pgql-lang
+    ; !V([], <id>)
+    ; box2text-string(|120)
+      
+  pp-debug :
+    ast -> result
+    with
+       result := <pp-pgql-lang-string> ast
+    <+ <bottomup(try(not(is-string); not(is-list); not(pp-pgql-lang-string); debug(!"cannot pp ")))> ast
+    ;  result := ""
+
+rules
+  
+  construct-textual-change = construct-textual-change(pp-partial-pgql-lang-string, parenthesize, override-reconstruction, resugar)

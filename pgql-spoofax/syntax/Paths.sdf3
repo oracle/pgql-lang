@@ -1,0 +1,37 @@
+module Paths
+
+imports
+  
+  Literals
+  Names
+  Expressions
+  BuiltInFunctions
+  
+context-free syntax
+
+  Path.Path = <<Node><{EdgeNode ""}+><VarAssign?>>
+  Path.SingleNode = <(<NoExpression?>)>
+
+  Node.Node = <(<ElemContents>)>
+  Node.SimpleNode = <<VARNAME>>
+
+  EdgeNode.EdgeNode = < <Edge> <Node>>
+  Edge.EdgeOut = [-[EdgeContents?][PathLengthConstraints?]->]
+  Edge.EdgeIn = [<-[PathLengthConstraints?][EdgeContents?]-]
+  Edge.EdgeOut = [->]
+  Edge.EdgeIn = [<-]
+  EdgeContents.EdgeContents = <[<ElemContents>]>
+  PathLengthConstraints.PathLengthConstraints = <{<PathConstraint>}>
+  PathConstraint.PathLength = <<PATHLENGTH?>..<PATHLENGTH?>>
+  PathConstraint.Shortest = <shortest> {case-insensitive}
+
+context-free syntax
+
+  ElemContents.ElemContents =   <<VARNAME?><Labels?><Ids?><WithInlinedConstraints?>>
+  NoExpression.ElemContents1 = <<VARNAME?><Labels><Ids?><WithInlinedConstraints?>> {prefer}
+  NoExpression.ElemContents2 = <<VARNAME?><Labels?><Ids><WithInlinedConstraints?>>
+  NoExpression.ElemContents3 = <<VARNAME?><Labels?><Ids?><WithInlinedConstraints>> {avoid}
+  Labels.Labels = <:<AltLit>>
+  Ids.Ids = <@<AltLit>>
+  
+  WithInlinedConstraints.Constraint = < with <{InlinedExp ", "}+>> {case-insensitive}

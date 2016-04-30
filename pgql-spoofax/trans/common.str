@@ -1,0 +1,22 @@
+module common
+
+imports
+  
+  signatures/-
+  sig-normalized
+
+rules
+  
+  is-literal = ?Integer(_) + ?Decimal(_) + ?String(_) + ?True() + ?False() + ?Null()
+  is-aggregate = ?COUNT(_, _) + ?MIN(_, _) + ?MAX(_, _) + ?SUM(_, _) + ?AVG(_, _)
+  is-expression = ?Not(_) + ?And(_, _) + ?Or(_, _) + ?Mul(_, _) + ?Add(_, _) + ?Div(_, _) + ?Mod(_, _) +
+        ?Sub(_, _) + ?Eq(_, _) + ?Lt(_, _) + ?Gte(_, _) + ?Lte(_, _) + ?Neq(_, _) + ?Regex(_, _)
+  is-function = ?Id(_) + ?Label(_) + ?Has(_, _) + ?InDegree(_) + ?OutDegree(_) + ?HasLabel(_, _)
+  
+  get-exp-from-aggregation = ?COUNT(_, <id>) + ?MIN(_, <id>) + ?MAX(_, <id>) + ?SUM(_, <id>) + ?AVG(_, <id>)
+  
+  GENERATED = !"<<generated>>"
+  // add-generated-suffix = !(<id>, <GENERATED>); conc-strings
+  add-unique-suffix(|c) = !(<id>, <unique-name(|c)>); conc-strings
+  unique-name(|c) = !(<GENERATED>, "#", <next-counter; write-to-string> c); conc-strings
+  
