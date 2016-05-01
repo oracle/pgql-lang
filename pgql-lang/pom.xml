@@ -4,7 +4,7 @@
   <modelVersion>4.0.0</modelVersion>
   <groupId>oracle.pgx</groupId>
   <artifactId>pgql-lang</artifactId>
-  <version>2016.04.25-10</version>
+  <version>2016.05.01</version>
 
   <dependencies>
     <dependency>
@@ -36,4 +36,54 @@
     <maven.compiler.source>1.7</maven.compiler.source>
     <maven.compiler.target>1.7</maven.compiler.target>
   </properties>
+
+  <build>
+    <resources>
+      <resource>
+        <directory>target</directory>
+        <includes>
+          <include>pgql-lang-0.9.5.spoofax-language</include>
+        </includes>
+      </resource>
+    </resources>
+    <plugins>
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-dependency-plugin</artifactId>
+        <executions>
+          <execution>
+            <id>copy-dependency</id>
+            <phase>compile</phase>
+            <goals>
+            <goal>copy</goal>
+            </goals>
+            <configuration>
+            <artifactItems>
+              <artifactItem>
+                <groupId>oracle.pgql.lang</groupId>
+                <artifactId>pgql-lang</artifactId>
+                <version>0.9.5</version>
+                <type>spoofax-language</type>
+                <overWrite>true</overWrite>
+                <outputDirectory>target</outputDirectory>
+              </artifactItem>
+            </artifactItems>
+            </configuration>
+          </execution>
+        </executions>
+      </plugin>
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-jar-plugin</artifactId>
+        <configuration>
+          <archive>
+            <manifest>
+              <addDefaultImplementationEntries>true</addDefaultImplementationEntries>
+            </manifest>
+          </archive>
+        </configuration>
+      </plugin>
+    </plugins>
+  </build>
+
 </project>
