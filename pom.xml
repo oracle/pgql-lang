@@ -4,7 +4,7 @@
   <modelVersion>4.0.0</modelVersion>
   <groupId>oracle.pgx</groupId>
   <artifactId>pgql-lang-parent</artifactId>
-  <version>2016.04.30</version>
+  <version>0.9.5</version>
 
   <packaging>pom</packaging>
 
