@@ -42,7 +42,7 @@
       <resource>
         <directory>target</directory>
         <includes>
-          <include>pgql-lang-0.9.5.spoofax-language</include>
+          <include>pgqllang-0.9.5.spoofax-language</include>
         </includes>
       </resource>
     </resources>
@@ -61,7 +61,7 @@
             <artifactItems>
               <artifactItem>
                 <groupId>oracle.pgql.lang</groupId>
-                <artifactId>pgql-lang</artifactId>
+                <artifactId>pgqllang</artifactId>
                 <version>0.9.5</version>
                 <type>spoofax-language</type>
                 <overWrite>true</overWrite>

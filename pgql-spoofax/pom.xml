@@ -32,7 +32,7 @@
             <configuration>
               <artifacts>
                 <artifact>
-                  <file>target/pgql-lang-0.9.5.spoofax-language</file>
+                  <file>target/pgqllang-0.9.5.spoofax-language</file>
                   <type>spoofax-language</type>
                 </artifact>
               </artifacts>
