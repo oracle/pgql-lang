@@ -5,16 +5,16 @@ package oracle.pgql.lang;
 
 import oracle.pgql.lang.ir.QueryGraph;
 
-public class Compilation {
+public class PgqlResult {
 
   private final String queryString;
-  private final String messages;
+  private final String errorMessages;
   private final boolean queryValid;
   private final QueryGraph queryGraph;
 
-  public Compilation(String queryString, boolean queryValid, String messages, QueryGraph queryGraph) {
+  public PgqlResult(String queryString, boolean queryValid, String messages, QueryGraph queryGraph) {
     this.queryString = queryString;
-    this.messages = messages;
+    this.errorMessages = messages;
     this.queryValid = queryValid;
     this.queryGraph = queryGraph;
   }
@@ -36,8 +36,8 @@ public class Compilation {
   /**
    * @return a String with error messages if the query is not valid (see {@link #isQueryValid()}); null otherwise
    */
-  public String getMessages() {
-    return messages;
+  public String getErrorMessages() {
+    return errorMessages;
   }
 
   /**

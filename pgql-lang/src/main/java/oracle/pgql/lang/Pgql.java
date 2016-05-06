@@ -40,9 +40,9 @@ import org.slf4j.LoggerFactory;
 
 import oracle.pgql.lang.ir.QueryGraph;
 
-public class Compiler {
+public class Pgql {
 
-  private static final Logger LOG = LoggerFactory.getLogger(Compiler.class);
+  private static final Logger LOG = LoggerFactory.getLogger(Pgql.class);
   private static final String SPOOFAX_BINARY = "pgqllang-0.9.5.spoofax-language";
 
   private final Spoofax spoofax;
@@ -53,11 +53,11 @@ public class Compiler {
   /**
    * Loads PGQL Spoofax binaries if not done already.
    */
-  public Compiler() throws CompileException {
+  public Pgql() throws PgqlException {
     try {
       spoofax = new Spoofax();
       String jarLocation = URLDecoder
-          .decode(Compiler.class.getProtectionDomain().getCodeSource().getLocation().getPath(), "UTF-8");
+          .decode(Pgql.class.getProtectionDomain().getCodeSource().getLocation().getPath(), "UTF-8");
       FileObject jarFile = spoofax.resourceService.resolve("jar:" + jarLocation + "!/" + SPOOFAX_BINARY);
       assert (jarFile.exists());
       FileObject spoofaxBinary = VFS.getManager().createFileSystem("jar", jarFile);
@@ -69,7 +69,7 @@ public class Compiler {
       assert (pgqlLang != null);
       dummyProjectDir = VFS.getManager().resolveFile("ram://pgql/");
     } catch (MetaborgException | IOException e) {
-      throw new CompileException("Failed to initialize PGQL", e);
+      throw new PgqlException("Failed to initialize PGQL", e);
     }
 
     final LanguageIdentifier id = pgqlLang.id();
@@ -94,7 +94,7 @@ public class Compiler {
     });
   }
 
-  public Compilation compile(String queryString) throws CompileException {
+  public PgqlResult parse(String queryString) throws PgqlException {
     FileObject dummyFile = null;
     try {
       String randomFileName = UUID.randomUUID().toString() + ".pgql";
@@ -127,9 +127,9 @@ public class Compiler {
         }
       }
 
-      return new Compilation(queryString, queryValid, prettyMessages, queryGraph);
+      return new PgqlResult(queryString, queryValid, prettyMessages, queryGraph);
     } catch (IOException | ParseException | AnalysisException | ContextException e) {
-      throw new CompileException("Failed to parse PGQL query", e);
+      throw new PgqlException("Failed to parse PGQL query", e);
     } finally {
       quietlyDelete(dummyFile);
     }
