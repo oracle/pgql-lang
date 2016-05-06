@@ -3,7 +3,7 @@
  */
 package oracle.pgql.lang.ir;
 
-public abstract class QueryVar {
+public abstract class QueryVariable {
 
   /**
    * Constant String used for variable names to indicated that they were generated.
@@ -13,9 +13,13 @@ public abstract class QueryVar {
    */
   public static final String GENERATED_NAME_SUBSTR = "<<generated>>";
 
-  public final String name;
+  protected final String name;
 
-  public QueryVar(String name) {
+  public QueryVariable(String name) {
     this.name = name;
+  }
+  
+  public String getName() {
+    return name;
   }
 }

@@ -3,20 +3,20 @@
  */
 package oracle.pgql.lang;
 
-import oracle.pgql.lang.ir.QueryGraph;
+import oracle.pgql.lang.ir.GraphQuery;
 
 public class PgqlResult {
 
   private final String queryString;
   private final String errorMessages;
   private final boolean queryValid;
-  private final QueryGraph queryGraph;
+  private final GraphQuery graphQuery;
 
-  public PgqlResult(String queryString, boolean queryValid, String messages, QueryGraph queryGraph) {
+  public PgqlResult(String queryString, boolean queryValid, String messages, GraphQuery graphQuery) {
     this.queryString = queryString;
     this.errorMessages = messages;
     this.queryValid = queryValid;
-    this.queryGraph = queryGraph;
+    this.graphQuery = graphQuery;
   }
 
   /**
@@ -41,9 +41,9 @@ public class PgqlResult {
   }
 
   /**
-   * @return a QueryGraph object if the query is valid; null otherwise
+   * @return a GraphQuery object if the query is valid; null otherwise
    */
-  public QueryGraph getQueryGraph() {
-    return queryGraph;
+  public GraphQuery getGraphQuery() {
+    return graphQuery;
   }
 }

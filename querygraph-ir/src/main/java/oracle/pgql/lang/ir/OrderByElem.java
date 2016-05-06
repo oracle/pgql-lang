@@ -5,8 +5,17 @@ package oracle.pgql.lang.ir;
 
 public class OrderByElem {
 
-  public final QueryExpression exp;
-  public final boolean ascending;
+  private final QueryExpression exp;
+  
+  private final boolean ascending;
+
+  public QueryExpression getExp() {
+    return exp;
+  }
+
+  public boolean isAscending() {
+    return ascending;
+  }
 
   public OrderByElem(QueryExpression exp, boolean ascending) {
     this.exp = exp;

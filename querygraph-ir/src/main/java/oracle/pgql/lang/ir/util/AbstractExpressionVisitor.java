@@ -1,7 +1,7 @@
 /**
  * Copyright (C) 2013 - 2016 Oracle and/or its affiliates. All rights reserved.
  */
-package oracle.pgql.lang.ir;
+package oracle.pgql.lang.ir.util;
 
 import oracle.pgql.lang.ir.QueryExpression.Aggregation.AggrAvg;
 import oracle.pgql.lang.ir.QueryExpression.Aggregation.AggrCount;
@@ -15,6 +15,7 @@ import oracle.pgql.lang.ir.QueryExpression.ArithmeticExpression.Mod;
 import oracle.pgql.lang.ir.QueryExpression.ArithmeticExpression.Mul;
 import oracle.pgql.lang.ir.QueryExpression.ArithmeticExpression.Sub;
 import oracle.pgql.lang.ir.QueryExpression.ArithmeticExpression.UMin;
+import oracle.pgql.lang.ir.QueryExpressionVisitor;
 import oracle.pgql.lang.ir.QueryExpression.ConstNull;
 import oracle.pgql.lang.ir.QueryExpression.Constant.ConstBoolean;
 import oracle.pgql.lang.ir.QueryExpression.Constant.ConstDecimal;
@@ -31,7 +32,7 @@ import oracle.pgql.lang.ir.QueryExpression.Function.VertexLabels;
 import oracle.pgql.lang.ir.QueryExpression.LogicalExpression.And;
 import oracle.pgql.lang.ir.QueryExpression.LogicalExpression.Not;
 import oracle.pgql.lang.ir.QueryExpression.LogicalExpression.Or;
-import oracle.pgql.lang.ir.QueryExpression.PropAccess;
+import oracle.pgql.lang.ir.QueryExpression.PropertyAccess;
 import oracle.pgql.lang.ir.QueryExpression.RelationalExpression.Equal;
 import oracle.pgql.lang.ir.QueryExpression.RelationalExpression.Greater;
 import oracle.pgql.lang.ir.QueryExpression.RelationalExpression.GreaterEqual;
@@ -40,7 +41,7 @@ import oracle.pgql.lang.ir.QueryExpression.RelationalExpression.LessEqual;
 import oracle.pgql.lang.ir.QueryExpression.RelationalExpression.NotEqual;
 import oracle.pgql.lang.ir.QueryExpression.VarRef;
 
-public abstract class AbstractExpressionVisitor implements ExpressionVisitor {
+public abstract class AbstractExpressionVisitor implements QueryExpressionVisitor {
 
   @Override
   public void visit(ConstInteger constInteger) {
@@ -195,7 +196,7 @@ public abstract class AbstractExpressionVisitor implements ExpressionVisitor {
   }
 
   @Override
-  public void visit(PropAccess propAccess) {
+  public void visit(PropertyAccess propAccess) {
   }
 
   @Override

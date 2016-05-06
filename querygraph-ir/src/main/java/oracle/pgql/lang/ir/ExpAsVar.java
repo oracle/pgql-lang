@@ -3,15 +3,19 @@
  */
 package oracle.pgql.lang.ir;
 
-public class ExpAsVar extends QueryVar {
+public class ExpAsVar extends QueryVariable {
 
-  public final QueryExpression exp;
+  private final QueryExpression exp;
 
   public ExpAsVar(QueryExpression exp, String name) {
     super(name);
     this.exp = exp;
   }
 
+  public QueryExpression getExp() {
+    return exp;
+  }
+  
   @Override
   public String toString() {
     return exp + " AS " + name;

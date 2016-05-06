@@ -38,7 +38,7 @@ import org.metaborg.util.concurrent.IClosableLock;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import oracle.pgql.lang.ir.QueryGraph;
+import oracle.pgql.lang.ir.GraphQuery;
 
 public class Pgql {
 
@@ -109,7 +109,7 @@ public class Pgql {
 
       String prettyMessages = null;
       boolean queryValid = parseResult.success();
-      QueryGraph queryGraph = null;
+      GraphQuery queryGraph = null;
       if (!queryValid) {
         prettyMessages = getMessages(parseResult.messages(), queryString);
       } else {

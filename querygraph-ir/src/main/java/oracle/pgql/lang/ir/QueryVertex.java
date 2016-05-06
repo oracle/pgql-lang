@@ -3,7 +3,7 @@
  */
 package oracle.pgql.lang.ir;
 
-public class QueryVertex extends QueryVar {
+public class QueryVertex extends QueryVariable {
 
   public QueryVertex(String name) {
     super(name);

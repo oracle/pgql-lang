@@ -22,11 +22,11 @@ public interface QueryExpression {
 
   public ExpressionType getExpType();
 
-  public void accept(ExpressionVisitor v);
+  public void accept(QueryExpressionVisitor v);
 
   public static abstract class UnaryExpression implements QueryExpression {
 
-    public final QueryExpression exp;
+    private final QueryExpression exp;
 
     public UnaryExpression(QueryExpression exp) {
       this.exp = exp;
@@ -36,12 +36,16 @@ public interface QueryExpression {
     public String toString() {
       return getExpType() + "(" + exp + ")";
     }
+    
+    public QueryExpression getExp() {
+      return exp;
+    }
   }
 
   public static abstract class BinaryExpression implements QueryExpression {
 
-    public final QueryExpression exp1;
-    public final QueryExpression exp2;
+    private final QueryExpression exp1;
+    private final QueryExpression exp2;
 
     public BinaryExpression(QueryExpression exp1, QueryExpression exp2) {
       this.exp1 = exp1;
@@ -52,14 +56,22 @@ public interface QueryExpression {
     public String toString() {
       return getExpType() + "(" + exp1 + ", " + exp2 + ")";
     }
+    
+    public QueryExpression getExp1() {
+      return exp1;
+    }
+    
+    public QueryExpression getExp2() {
+      return exp2;
+    }
   }
 
   // not yet used, but there will be built-in functions in the future that will need it
   public static abstract class TernaryExpression implements QueryExpression {
 
-    public final QueryExpression exp1;
-    public final QueryExpression exp2;
-    public final QueryExpression exp3;
+    private final QueryExpression exp1;
+    private final QueryExpression exp2;
+    private final QueryExpression exp3;
 
     public TernaryExpression(QueryExpression exp1, QueryExpression exp2, QueryExpression exp3) {
       this.exp1 = exp1;
@@ -70,6 +82,18 @@ public interface QueryExpression {
     @Override
     public String toString() {
       return getExpType() + "(" + exp1 + ", " + exp2 + ", " + exp3 + ")";
+    }
+    
+    public QueryExpression getExp1() {
+      return exp1;
+    }
+    
+    public QueryExpression getExp2() {
+      return exp2;
+    }
+    
+    public QueryExpression getExp3() {
+      return exp3;
     }
   }
 
@@ -86,7 +110,7 @@ public interface QueryExpression {
       }
       
       @Override
-      public void accept(ExpressionVisitor v) {
+      public void accept(QueryExpressionVisitor v) {
         v.visit(this);
       }
     }
@@ -102,7 +126,7 @@ public interface QueryExpression {
       }
       
       @Override
-      public void accept(ExpressionVisitor v) {
+      public void accept(QueryExpressionVisitor v) {
         v.visit(this);
       }
     }
@@ -118,7 +142,7 @@ public interface QueryExpression {
       }
       
       @Override
-      public void accept(ExpressionVisitor v) {
+      public void accept(QueryExpressionVisitor v) {
         v.visit(this);
       }
     }
@@ -134,7 +158,7 @@ public interface QueryExpression {
       }
       
       @Override
-      public void accept(ExpressionVisitor v) {
+      public void accept(QueryExpressionVisitor v) {
         v.visit(this);
       }
     }
@@ -150,7 +174,7 @@ public interface QueryExpression {
       }
       
       @Override
-      public void accept(ExpressionVisitor v) {
+      public void accept(QueryExpressionVisitor v) {
         v.visit(this);
       }
     }
@@ -166,7 +190,7 @@ public interface QueryExpression {
       }
       
       @Override
-      public void accept(ExpressionVisitor v) {
+      public void accept(QueryExpressionVisitor v) {
         v.visit(this);
       }
     }
@@ -185,7 +209,7 @@ public interface QueryExpression {
       }
       
       @Override
-      public void accept(ExpressionVisitor v) {
+      public void accept(QueryExpressionVisitor v) {
         v.visit(this);
       }
 
@@ -202,7 +226,7 @@ public interface QueryExpression {
       }
       
       @Override
-      public void accept(ExpressionVisitor v) {
+      public void accept(QueryExpressionVisitor v) {
         v.visit(this);
       }
 
@@ -219,7 +243,7 @@ public interface QueryExpression {
       }
       
       @Override
-      public void accept(ExpressionVisitor v) {
+      public void accept(QueryExpressionVisitor v) {
         v.visit(this);
       }
     }
@@ -238,7 +262,7 @@ public interface QueryExpression {
       }
       
       @Override
-      public void accept(ExpressionVisitor v) {
+      public void accept(QueryExpressionVisitor v) {
         v.visit(this);
       }
 
@@ -255,7 +279,7 @@ public interface QueryExpression {
       }
       
       @Override
-      public void accept(ExpressionVisitor v) {
+      public void accept(QueryExpressionVisitor v) {
         v.visit(this);
       }
 
@@ -272,7 +296,7 @@ public interface QueryExpression {
       }
       
       @Override
-      public void accept(ExpressionVisitor v) {
+      public void accept(QueryExpressionVisitor v) {
         v.visit(this);
       }
 
@@ -289,7 +313,7 @@ public interface QueryExpression {
       }
       
       @Override
-      public void accept(ExpressionVisitor v) {
+      public void accept(QueryExpressionVisitor v) {
         v.visit(this);
       }
 
@@ -306,7 +330,7 @@ public interface QueryExpression {
       }
       
       @Override
-      public void accept(ExpressionVisitor v) {
+      public void accept(QueryExpressionVisitor v) {
         v.visit(this);
       }
 
@@ -323,7 +347,7 @@ public interface QueryExpression {
       }
       
       @Override
-      public void accept(ExpressionVisitor v) {
+      public void accept(QueryExpressionVisitor v) {
         v.visit(this);
       }
 
@@ -332,10 +356,14 @@ public interface QueryExpression {
 
   public static abstract class Constant<T> implements QueryExpression {
 
-    public final T val;
+    private final T value;
 
-    public Constant(T val) {
-      this.val = val;
+    public Constant(T value) {
+      this.value = value;
+    }
+    
+    public T getValue() {
+      return value;
     }
 
     public static class ConstInteger extends Constant<Long> {
@@ -349,7 +377,7 @@ public interface QueryExpression {
       }
       
       @Override
-      public void accept(ExpressionVisitor v) {
+      public void accept(QueryExpressionVisitor v) {
         v.visit(this);
       }
     }
@@ -365,7 +393,7 @@ public interface QueryExpression {
       }
       
       @Override
-      public void accept(ExpressionVisitor v) {
+      public void accept(QueryExpressionVisitor v) {
         v.visit(this);
       }
     }
@@ -382,11 +410,11 @@ public interface QueryExpression {
 
       @Override
       public String toString() {
-        return "'" + val + "'";
+        return "'" + value + "'";
       }
       
       @Override
-      public void accept(ExpressionVisitor v) {
+      public void accept(QueryExpressionVisitor v) {
         v.visit(this);
       }
     }
@@ -403,14 +431,14 @@ public interface QueryExpression {
       }
       
       @Override
-      public void accept(ExpressionVisitor v) {
+      public void accept(QueryExpressionVisitor v) {
         v.visit(this);
       }
     }
 
     @Override
     public String toString() {
-      return val.toString();
+      return value.toString();
     }
   }
 
@@ -422,16 +450,20 @@ public interface QueryExpression {
     }
     
     @Override
-    public void accept(ExpressionVisitor v) {
+    public void accept(QueryExpressionVisitor v) {
       v.visit(this);
     }
   }
 
   public static class VarRef implements QueryExpression {
-    public final QueryVar var;
+    private final QueryVariable variable;
 
-    public VarRef(QueryVar var) {
-      this.var = var;
+    public VarRef(QueryVariable variable) {
+      this.variable = variable;
+    }
+    
+    public QueryVariable getVariable() {
+      return variable;
     }
 
     @Override
@@ -441,24 +473,32 @@ public interface QueryExpression {
 
     @Override
     public String toString() {
-      return var.name;
+      return variable.name;
     }
     
     @Override
-    public void accept(ExpressionVisitor v) {
+    public void accept(QueryExpressionVisitor v) {
       v.visit(this);
     }
   }
 
-  public static class PropAccess implements QueryExpression {
-    public final QueryVar var;
-    public final String propname;
+  public static class PropertyAccess implements QueryExpression {
+    private final QueryVariable variable;
+    private final String propertyName;
 
-    public PropAccess(QueryVar var, String propname) {
-      this.var = var;
-      this.propname = propname;
+    public PropertyAccess(QueryVariable variable, String propertyName) {
+      this.variable = variable;
+      this.propertyName = propertyName;
     }
 
+    public QueryVariable getVariable() {
+      return variable;
+    }
+    
+    public String getPropertyName() {
+      return propertyName;
+    }
+    
     @Override
     public ExpressionType getExpType() {
       return ExpressionType.PROP_ACCESS;
@@ -466,11 +506,11 @@ public interface QueryExpression {
 
     @Override
     public String toString() {
-      return var.name + "." + propname;
+      return variable.name + "." + propertyName;
     }
     
     @Override
-    public void accept(ExpressionVisitor v) {
+    public void accept(QueryExpressionVisitor v) {
       v.visit(this);
     }
   }
@@ -488,7 +528,7 @@ public interface QueryExpression {
       }
       
       @Override
-      public void accept(ExpressionVisitor v) {
+      public void accept(QueryExpressionVisitor v) {
         v.visit(this);
       }
     }
@@ -510,7 +550,7 @@ public interface QueryExpression {
       }
       
       @Override
-      public void accept(ExpressionVisitor v) {
+      public void accept(QueryExpressionVisitor v) {
         v.visit(this);
       }
     }
@@ -527,7 +567,7 @@ public interface QueryExpression {
       }
       
       @Override
-      public void accept(ExpressionVisitor v) {
+      public void accept(QueryExpressionVisitor v) {
         v.visit(this);
       }
     }
@@ -544,7 +584,7 @@ public interface QueryExpression {
       }
       
       @Override
-      public void accept(ExpressionVisitor v) {
+      public void accept(QueryExpressionVisitor v) {
         v.visit(this);
       }
     }
@@ -561,7 +601,7 @@ public interface QueryExpression {
       }
       
       @Override
-      public void accept(ExpressionVisitor v) {
+      public void accept(QueryExpressionVisitor v) {
         v.visit(this);
       }
     }
@@ -584,7 +624,7 @@ public interface QueryExpression {
       }
       
       @Override
-      public void accept(ExpressionVisitor v) {
+      public void accept(QueryExpressionVisitor v) {
         v.visit(this);
       }
     }
@@ -600,7 +640,7 @@ public interface QueryExpression {
       }
       
       @Override
-      public void accept(ExpressionVisitor v) {
+      public void accept(QueryExpressionVisitor v) {
         v.visit(this);
       }
     }
@@ -616,7 +656,7 @@ public interface QueryExpression {
       }
       
       @Override
-      public void accept(ExpressionVisitor v) {
+      public void accept(QueryExpressionVisitor v) {
         v.visit(this);
       }
     }
@@ -636,7 +676,7 @@ public interface QueryExpression {
       }
       
       @Override
-      public void accept(ExpressionVisitor v) {
+      public void accept(QueryExpressionVisitor v) {
         v.visit(this);
       }
     }
@@ -653,7 +693,7 @@ public interface QueryExpression {
       }
       
       @Override
-      public void accept(ExpressionVisitor v) {
+      public void accept(QueryExpressionVisitor v) {
         v.visit(this);
       }
     }
@@ -670,7 +710,7 @@ public interface QueryExpression {
       }
       
       @Override
-      public void accept(ExpressionVisitor v) {
+      public void accept(QueryExpressionVisitor v) {
         v.visit(this);
       }
     }
@@ -687,7 +727,7 @@ public interface QueryExpression {
       }
       
       @Override
-      public void accept(ExpressionVisitor v) {
+      public void accept(QueryExpressionVisitor v) {
         v.visit(this);
       }
     }
@@ -704,7 +744,7 @@ public interface QueryExpression {
       }
       
       @Override
-      public void accept(ExpressionVisitor v) {
+      public void accept(QueryExpressionVisitor v) {
         v.visit(this);
       }
     }
@@ -722,7 +762,7 @@ public interface QueryExpression {
       }
 
       @Override
-      public void accept(ExpressionVisitor v) {
+      public void accept(QueryExpressionVisitor v) {
         v.visit(this);
       }
     }
