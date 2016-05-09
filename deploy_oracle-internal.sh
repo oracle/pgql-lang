@@ -1,7 +1,7 @@
 #!/bin/bash
 set -e
 
-VERSION=2016.05.05-2
+VERSION=2016.05.09
 GROUP=oracle.pgx
 REPO=http://artifactory-slc.oraclecorp.com/artifactory/simple/labs-pgx-release-local
 REPO_ID=labs-pgx-release-local
@@ -18,10 +18,10 @@ mvn deploy:deploy-file \
 
 mvn deploy:deploy-file \
         -DgroupId=oracle.pgx \
-        -DartifactId=querygraph-ir \
+        -DartifactId=graph-query-ir \
         -Dversion=$VERSION \
         -Dpackaging=jar \
-        -Dfile=querygraph-ir/target/querygraph-ir-$VERSION.jar \
-        -DpomFile=querygraph-ir/pom.xml \
+        -Dfile=graph-query-ir/target/graph-query-ir-$VERSION.jar \
+        -DpomFile=graph-query-ir/pom.xml \
         -Durl=$REPO \
         -DrepositoryId=$REPO_ID
