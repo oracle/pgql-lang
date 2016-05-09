@@ -356,7 +356,7 @@ public interface QueryExpression {
 
   public static abstract class Constant<T> implements QueryExpression {
 
-    private final T value;
+    protected final T value;
 
     public Constant(T value) {
       this.value = value;
