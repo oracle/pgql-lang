@@ -3,8 +3,8 @@
     xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
   <modelVersion>4.0.0</modelVersion>
   <groupId>oracle.pgx</groupId>
-  <artifactId>querygraph-ir</artifactId>
-  <version>2016.05.05-2</version>
+  <artifactId>graph-query-ir</artifactId>
+  <version>2016.05.09</version>
   <packaging>jar</packaging>
   <distributionManagement>
     <repository>

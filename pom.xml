@@ -9,7 +9,7 @@
   <packaging>pom</packaging>
 
   <modules>
-    <module>querygraph-ir</module>
+    <module>graph-query-ir</module>
     <module>pgql-lang</module>
   </modules>
 
