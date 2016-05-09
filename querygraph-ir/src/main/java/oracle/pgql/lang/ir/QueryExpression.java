@@ -15,7 +15,7 @@ public interface QueryExpression {
 
     // functions:
     REGEX, // String
-    ID, PROP_ACCESS, HAS_PROP, HAS_LABEL, // vertex/edges     note: HasProp will be removed in future version (replaced by 'x.prop != NULL')
+    ID, PROP_ACCESS, HAS_PROP, HAS_LABEL, // vertex/edges     note: HasProp/HasLabel will be removed in future version (replaced by 'x.prop != NULL')
     VERTEX_LABELS, INDEGREE, OUTDEGREE, // vertex
     EDGE_LABEL // edge
   }

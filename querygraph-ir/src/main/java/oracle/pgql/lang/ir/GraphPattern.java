@@ -58,6 +58,14 @@ public class GraphPattern {
     for (QueryExpression e : constraints) {
       result += "\n    " + e;
     }
+    result += "\n  Reachability queries:";
+    for (ReachabilityQuery q : reachabilityQueries) {
+      result += "\n    " + q;
+    }
+    result += "\n  Path finding queries:";
+    for (PathFindingQuery q : pathFindingQueries) {
+      result += "\n    " + q;
+    }
     
     return result;
   }

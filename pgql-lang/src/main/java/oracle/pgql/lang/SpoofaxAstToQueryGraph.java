@@ -4,17 +4,22 @@
 package oracle.pgql.lang;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 import oracle.pgql.lang.ir.ExpAsVar;
 import oracle.pgql.lang.ir.OrderByElem;
+import oracle.pgql.lang.ir.PathFindingQuery;
 import oracle.pgql.lang.ir.QueryEdge;
 import oracle.pgql.lang.ir.QueryExpression;
 import oracle.pgql.lang.ir.GraphPattern;
 import oracle.pgql.lang.ir.GraphQuery;
 import oracle.pgql.lang.ir.QueryVertex;
+import oracle.pgql.lang.ir.ReachabilityQuery;
 import oracle.pgql.lang.ir.QueryVariable;
 import org.spoofax.interpreter.terms.IStrategoAppl;
 import org.spoofax.interpreter.terms.IStrategoString;
@@ -58,18 +63,19 @@ public class SpoofaxAstToQueryGraph {
     // nodes
     IStrategoTerm verticesT = getList(graphPatternT.getSubterm(POS_NODES));
     Map<String, QueryVariable> varmap = new HashMap<>(); // map from variable name to variable
-    List<QueryVertex> vertices = getQueryVertexs(verticesT, varmap);
+    Set<QueryVertex> vertices = getQueryVertexs(verticesT, varmap);
 
     // edges
     IStrategoTerm edgesT = getList(graphPatternT.getSubterm(POS_EDGES));
-    List<QueryEdge> edges = getQueryEdges(edgesT, varmap);
+    Set<QueryEdge> edges = getQueryEdges(edgesT, varmap);
 
     // constraints
     IStrategoTerm constraintsT = getList(graphPatternT.getSubterm(POS_CONSTRAINTS));
-    List<QueryExpression> constraints = getQueryExpressions(constraintsT, varmap);
+    Set<QueryExpression> constraints = getQueryExpressions(constraintsT, varmap);
 
     IStrategoTerm selectT = ast.getSubterm(POS_SELECT);
-    GraphPattern graphPattern = new GraphPattern(vertices, edges, constraints);
+    GraphPattern graphPattern = new GraphPattern(vertices, edges, constraints,
+        Collections.<ReachabilityQuery>emptySet(), Collections.<PathFindingQuery>emptySet());
 
     // GROUP BY
     IStrategoTerm groupByT = selectT.getSubterm(POS_GROUPBY);
@@ -91,8 +97,8 @@ public class SpoofaxAstToQueryGraph {
     return new GraphQuery(selectElems, graphPattern, groupByElems, orderByElems, limit, offset);
   }
 
-  private static List<QueryVertex> getQueryVertexs(IStrategoTerm nodesT, Map<String, QueryVariable> varmap) {
-    List<QueryVertex> nodes = new ArrayList<>(nodesT.getSubtermCount());
+  private static Set<QueryVertex> getQueryVertexs(IStrategoTerm nodesT, Map<String, QueryVariable> varmap) {
+    Set<QueryVertex> nodes = new HashSet<>(nodesT.getSubtermCount());
     for (IStrategoTerm nodeT : nodesT) {
       String nodeName = getString(nodeT);
       QueryVertex node = new QueryVertex(nodeName);
@@ -102,9 +108,9 @@ public class SpoofaxAstToQueryGraph {
     return nodes;
   }
 
-  private static List<QueryExpression> getQueryExpressions(IStrategoTerm constraintsT, Map<String, QueryVariable> varmap)
+  private static Set<QueryExpression> getQueryExpressions(IStrategoTerm constraintsT, Map<String, QueryVariable> varmap)
       throws PgqlException {
-    List<QueryExpression> constraints = new ArrayList<>(constraintsT.getSubtermCount());
+    Set<QueryExpression> constraints = new HashSet<>(constraintsT.getSubtermCount());
     for (IStrategoTerm constraintT : constraintsT) {
       QueryExpression exp = translateExp(constraintT, varmap);
       constraints.add(exp);
@@ -112,8 +118,8 @@ public class SpoofaxAstToQueryGraph {
     return constraints;
   }
 
-  private static List<QueryEdge> getQueryEdges(IStrategoTerm edgesT, Map<String, QueryVariable> varmap) {
-    List<QueryEdge> edges = new ArrayList<>(edgesT.getSubtermCount());
+  private static Set<QueryEdge> getQueryEdges(IStrategoTerm edgesT, Map<String, QueryVariable> varmap) {
+    Set<QueryEdge> edges = new HashSet<>(edgesT.getSubtermCount());
     for (IStrategoTerm edgeT : edgesT) {
       String name = getString(edgeT.getSubterm(POS_EDGE_NAME));
       String srcName = getString(edgeT.getSubterm(POS_EDGE_SRC));
@@ -346,13 +352,5 @@ public class SpoofaxAstToQueryGraph {
   // helper method
   private static boolean isNone(IStrategoTerm t) {
     return ((IStrategoAppl) t).getConstructor().getName().equals("None");
-  }
-
-  // helper method
-  private static IStrategoTerm getSome(IStrategoTerm t) {
-    if (((IStrategoAppl) t).getConstructor().getName().equals("Some")) {
-      return t.getSubterm(0);
-    }
-    return null;
   }
 }
