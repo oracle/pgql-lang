@@ -20,7 +20,9 @@ imports
 
 rules // Analysis
 
-  editor-analyze = analyze-all(normalize-before, trans-for-nabl, id|<language>)
+  editor-analyze = analyze-all(normalize-before; ?normalized-ast, trans-for-nabl, id|<language>);
+    ?Result([FileResult(f,ast,_,x,y,z)],a, b, c, d);
+    !Result([FileResult(f,ast,normalized-ast,x,y,z)],a, b, c, d)
 
 rules // Editor services
 
