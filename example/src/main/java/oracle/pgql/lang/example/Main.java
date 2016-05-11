@@ -13,7 +13,7 @@ public class Main {
 
     Pgql pgql = new Pgql();
 
-    // parse query and print query graph
+    // parse query and print graph query
     PgqlResult result1 = pgql.parse("SELECT n WHERE (n) -[e]-> (m)");
     System.out.println(result1.getGraphQuery());
 
