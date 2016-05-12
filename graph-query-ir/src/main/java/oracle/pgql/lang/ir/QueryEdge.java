@@ -14,6 +14,11 @@ public class QueryEdge extends QueryVariable implements VertexPairConnection {
     this.src = src;
     this.dst = dst;
   }
+  
+  public QueryEdge(QueryVertex src, QueryVertex dst) {
+    this.src = src;
+    this.dst = dst;
+  }
 
   @Override
   public QueryVertex getSrc() {

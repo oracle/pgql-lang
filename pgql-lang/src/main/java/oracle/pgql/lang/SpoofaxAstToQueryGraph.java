@@ -30,6 +30,8 @@ import org.spoofax.interpreter.terms.IStrategoTerm;
 
 public class SpoofaxAstToQueryGraph {
 
+  private static final String GENERATED_VAR_SUBSTR = "<<generated>>";
+
   private static final int POS_SELECT = 3;
   private static final int POS_PROJECTION = 1;
 
@@ -66,7 +68,7 @@ public class SpoofaxAstToQueryGraph {
     // nodes
     IStrategoTerm verticesT = getList(graphPatternT.getSubterm(POS_NODES));
     Map<String, QueryVariable> varmap = new HashMap<>(); // map from variable name to variable
-    Set<QueryVertex> vertices = getQueryVertexs(verticesT, varmap);
+    Set<QueryVertex> vertices = getQueryVertices(verticesT, varmap);
 
     // edges
     IStrategoTerm edgesT = getList(graphPatternT.getSubterm(POS_EDGES));
@@ -78,7 +80,7 @@ public class SpoofaxAstToQueryGraph {
 
     IStrategoTerm selectT = ast.getSubterm(POS_SELECT);
     GraphPattern graphPattern = new GraphPattern(vertices, edges, constraints,
-        Collections.<ReachabilityQuery>emptySet(), Collections.<PathFindingQuery>emptySet());
+        Collections.<ReachabilityQuery> emptySet(), Collections.<PathFindingQuery> emptySet());
 
     // GROUP BY
     IStrategoTerm groupByT = selectT.getSubterm(POS_GROUPBY);
@@ -103,11 +105,11 @@ public class SpoofaxAstToQueryGraph {
     return new GraphQuery(projection, graphPattern, groupBy, orderBy, limit, offset);
   }
 
-  private static Set<QueryVertex> getQueryVertexs(IStrategoTerm nodesT, Map<String, QueryVariable> varmap) {
+  private static Set<QueryVertex> getQueryVertices(IStrategoTerm nodesT, Map<String, QueryVariable> varmap) {
     Set<QueryVertex> nodes = new HashSet<>(nodesT.getSubtermCount());
     for (IStrategoTerm nodeT : nodesT) {
       String nodeName = getString(nodeT);
-      QueryVertex node = new QueryVertex(nodeName);
+      QueryVertex node = nodeName.contains(GENERATED_VAR_SUBSTR) ? new QueryVertex() : new QueryVertex(nodeName);
       nodes.add(node);
       varmap.put(nodeName, node);
     }
@@ -133,7 +135,8 @@ public class SpoofaxAstToQueryGraph {
 
       QueryVertex src = (QueryVertex) varmap.get(srcName);
       QueryVertex dst = (QueryVertex) varmap.get(dstName);
-      QueryEdge edge = new QueryEdge(name, src, dst);
+
+      QueryEdge edge = name.contains(GENERATED_VAR_SUBSTR) ? new QueryEdge(src, dst) : new QueryEdge(name, src, dst);
 
       edges.add(edge);
       varmap.put(name, edge);
@@ -162,7 +165,12 @@ public class SpoofaxAstToQueryGraph {
       String varName = getString(expAsVarT.getSubterm(POS_EXPASVAR_VAR));
       QueryExpression exp = translateExp(expAsVarT.getSubterm(POS_EXPASVAR_EXP), varmap);
 
-      ExpAsVar expAsVar = new ExpAsVar(exp, varName);
+      ExpAsVar expAsVar;
+      if (varName.contains(GENERATED_VAR_SUBSTR)) {
+        expAsVar = new ExpAsVar(exp, varName.replaceFirst(GENERATED_VAR_SUBSTR + ".*", ""), true);
+      } else {
+        expAsVar = new ExpAsVar(exp, varName, false);
+      }
       expAsVars.add(expAsVar);
       varmap.put(varName, expAsVar);
     }

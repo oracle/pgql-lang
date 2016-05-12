@@ -9,6 +9,10 @@ public class QueryVertex extends QueryVariable {
     super(name);
   }
   
+  public QueryVertex() {
+    super();
+  }
+  
   @Override
   public VariableType getVariableType() {
     return VariableType.VERTEX;

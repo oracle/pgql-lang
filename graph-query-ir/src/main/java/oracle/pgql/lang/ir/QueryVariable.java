@@ -3,8 +3,12 @@
  */
 package oracle.pgql.lang.ir;
 
+import java.util.Random;
+
 public abstract class QueryVariable {
 
+  private static final Random random = new Random();
+  
   public enum VariableType {
     VERTEX,
     EDGE,
@@ -12,22 +16,29 @@ public abstract class QueryVariable {
     EXP_AS_VAR
   }
   
-  /**
-   * Constant String used for variable names to indicated that they were generated.
-   * 
-   * For example, for query "SELECT COUNT(*) WHERE () -> ()" there will be two generated
-   * vertex names and one generate edge name, since the names are not provided by the user.
-   */
-  public static final String GENERATED_NAME_SUBSTR = "<<generated>>";
-
+  protected final boolean anonymous;
+  
   protected final String name;
 
-  public QueryVariable(String name) {
+  public QueryVariable(String name, boolean anonymous) {
     this.name = name;
+    this.anonymous = anonymous;
+  }
+  
+  public QueryVariable(String name) {
+    this(name, false);
+  }
+  
+  public QueryVariable() {
+    this("anonymous" + random.nextLong(), true);
   }
   
   public String getName() {
     return name;
+  }
+  
+  public boolean isAnonymous() {
+    return anonymous;
   }
   
   public abstract VariableType getVariableType();
