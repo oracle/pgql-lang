@@ -31,11 +31,6 @@ public interface QueryExpression {
     public UnaryExpression(QueryExpression exp) {
       this.exp = exp;
     }
-
-    @Override
-    public String toString() {
-      return getExpType() + "(" + exp + ")";
-    }
     
     public QueryExpression getExp() {
       return exp;
@@ -50,11 +45,6 @@ public interface QueryExpression {
     public BinaryExpression(QueryExpression exp1, QueryExpression exp2) {
       this.exp1 = exp1;
       this.exp2 = exp2;
-    }
-
-    @Override
-    public String toString() {
-      return getExpType() + "(" + exp1 + ", " + exp2 + ")";
     }
     
     public QueryExpression getExp1() {
@@ -77,11 +67,6 @@ public interface QueryExpression {
       this.exp1 = exp1;
       this.exp2 = exp2;
       this.exp3 = exp3;
-    }
-
-    @Override
-    public String toString() {
-      return getExpType() + "(" + exp1 + ", " + exp2 + ", " + exp3 + ")";
     }
     
     public QueryExpression getExp1() {
@@ -110,6 +95,11 @@ public interface QueryExpression {
       }
       
       @Override
+      public String toString() {
+        return "(" + getExp1() + " - " + getExp2() + ")";
+      }
+      
+      @Override
       public void accept(QueryExpressionVisitor v) {
         v.visit(this);
       }
@@ -123,6 +113,11 @@ public interface QueryExpression {
       @Override
       public ExpressionType getExpType() {
         return ExpressionType.ADD;
+      }    
+      
+      @Override
+      public String toString() {
+        return "(" + getExp1() + " + " + getExp2() + ")";
       }
       
       @Override
@@ -142,6 +137,11 @@ public interface QueryExpression {
       }
       
       @Override
+      public String toString() {
+        return "(" + getExp1() + " * " + getExp2() + ")";
+      }
+      
+      @Override
       public void accept(QueryExpressionVisitor v) {
         v.visit(this);
       }
@@ -155,6 +155,11 @@ public interface QueryExpression {
       @Override
       public ExpressionType getExpType() {
         return ExpressionType.DIV;
+      }
+      
+      @Override
+      public String toString() {
+        return "(" + getExp1() + " / " + getExp2() + ")";
       }
       
       @Override
@@ -174,6 +179,11 @@ public interface QueryExpression {
       }
       
       @Override
+      public String toString() {
+        return "(" + getExp1() + " % " + getExp2() + ")";
+      }
+      
+      @Override
       public void accept(QueryExpressionVisitor v) {
         v.visit(this);
       }
@@ -187,6 +197,10 @@ public interface QueryExpression {
       @Override
       public ExpressionType getExpType() {
         return ExpressionType.UMIN;
+      }
+      @Override
+      public String toString() {
+        return "-(" + getExp() + ")";
       }
       
       @Override
@@ -207,12 +221,16 @@ public interface QueryExpression {
       public ExpressionType getExpType() {
         return ExpressionType.AND;
       }
+
+      @Override
+      public String toString() {
+        return "(" + getExp1() + " AND " + getExp2() + ")";
+      }
       
       @Override
       public void accept(QueryExpressionVisitor v) {
         v.visit(this);
       }
-
     }
 
     class Or extends BinaryExpression implements LogicalExpression {
@@ -224,12 +242,16 @@ public interface QueryExpression {
       public ExpressionType getExpType() {
         return ExpressionType.OR;
       }
+
+      @Override
+      public String toString() {
+        return "(" + getExp1() + " OR " + getExp2() + ")";
+      }
       
       @Override
       public void accept(QueryExpressionVisitor v) {
         v.visit(this);
       }
-
     }
 
     class Not extends UnaryExpression implements LogicalExpression {
@@ -240,6 +262,11 @@ public interface QueryExpression {
       @Override
       public ExpressionType getExpType() {
         return ExpressionType.NOT;
+      }
+      
+      @Override
+      public String toString() {
+        return "NOT(" + getExp() + ")";
       }
       
       @Override
@@ -262,10 +289,14 @@ public interface QueryExpression {
       }
       
       @Override
+      public String toString() {
+        return "(" + getExp1() + " = " + getExp2() + ")";
+      }
+      
+      @Override
       public void accept(QueryExpressionVisitor v) {
         v.visit(this);
       }
-
     }
 
     class NotEqual extends BinaryExpression implements RelationalExpression {
@@ -277,12 +308,16 @@ public interface QueryExpression {
       public ExpressionType getExpType() {
         return ExpressionType.NOT_EQUAL;
       }
+
+      @Override
+      public String toString() {
+        return "(" + getExp1() + " != " + getExp2() + ")";
+      }
       
       @Override
       public void accept(QueryExpressionVisitor v) {
         v.visit(this);
       }
-
     }
 
     class Greater extends BinaryExpression implements RelationalExpression {
@@ -294,12 +329,16 @@ public interface QueryExpression {
       public ExpressionType getExpType() {
         return ExpressionType.GREATER;
       }
+
+      @Override
+      public String toString() {
+        return "(" + getExp1() + " > " + getExp2() + ")";
+      }
       
       @Override
       public void accept(QueryExpressionVisitor v) {
         v.visit(this);
       }
-
     }
 
     class GreaterEqual extends BinaryExpression implements RelationalExpression {
@@ -311,12 +350,16 @@ public interface QueryExpression {
       public ExpressionType getExpType() {
         return ExpressionType.GREATER_EQUAL;
       }
+
+      @Override
+      public String toString() {
+        return "(" + getExp1() + " >= " + getExp2() + ")";
+      }
       
       @Override
       public void accept(QueryExpressionVisitor v) {
         v.visit(this);
       }
-
     }
 
     class Less extends BinaryExpression implements RelationalExpression {
@@ -328,12 +371,16 @@ public interface QueryExpression {
       public ExpressionType getExpType() {
         return ExpressionType.LESS;
       }
+
+      @Override
+      public String toString() {
+        return "(" + getExp1() + " < " + getExp2() + ")";
+      }
       
       @Override
       public void accept(QueryExpressionVisitor v) {
         v.visit(this);
       }
-
     }
 
     class LessEqual extends BinaryExpression implements RelationalExpression {
@@ -345,12 +392,16 @@ public interface QueryExpression {
       public ExpressionType getExpType() {
         return ExpressionType.LESS_EQUAL;
       }
+
+      @Override
+      public String toString() {
+        return "(" + getExp1() + " <= " + getExp2() + ")";
+      }
       
       @Override
       public void accept(QueryExpressionVisitor v) {
         v.visit(this);
       }
-
     }
   }
 
@@ -366,6 +417,11 @@ public interface QueryExpression {
       return value;
     }
 
+    @Override
+    public String toString() {
+      return value.toString();
+    }
+    
     public static class ConstInteger extends Constant<Long> {
       public ConstInteger(long val) {
         super(val);
@@ -435,11 +491,6 @@ public interface QueryExpression {
         v.visit(this);
       }
     }
-
-    @Override
-    public String toString() {
-      return value.toString();
-    }
   }
 
   public static class ConstNull implements QueryExpression {
@@ -447,6 +498,11 @@ public interface QueryExpression {
     @Override
     public ExpressionType getExpType() {
       return ExpressionType.NULL;
+    }
+
+    @Override
+    public String toString() {
+      return "NULL";
     }
     
     @Override
@@ -506,7 +562,7 @@ public interface QueryExpression {
 
     @Override
     public String toString() {
-      return variable.name + "." + propertyName;
+      return variable + "." + propertyName;
     }
     
     @Override
@@ -525,6 +581,11 @@ public interface QueryExpression {
       @Override
       public ExpressionType getExpType() {
         return ExpressionType.REGEX;
+      }
+
+      @Override
+      public String toString() {
+        return "(" + getExp1() + "=~" + getExp2() + ")";
       }
       
       @Override
@@ -548,6 +609,11 @@ public interface QueryExpression {
       public ExpressionType getExpType() {
         return ExpressionType.ID;
       }
+
+      @Override
+      public String toString() {
+        return getExp() + ".id()";
+      }
       
       @Override
       public void accept(QueryExpressionVisitor v) {
@@ -564,6 +630,12 @@ public interface QueryExpression {
       @Override
       public ExpressionType getExpType() {
         return ExpressionType.EDGE_LABEL;
+      }
+
+
+      @Override
+      public String toString() {
+        return getExp() + ".label()";
       }
       
       @Override
@@ -582,6 +654,11 @@ public interface QueryExpression {
       public ExpressionType getExpType() {
         return ExpressionType.VERTEX_LABELS;
       }
+
+      @Override
+      public String toString() {
+        return getExp() + ".labels()";
+      }
       
       @Override
       public void accept(QueryExpressionVisitor v) {
@@ -598,6 +675,11 @@ public interface QueryExpression {
       @Override
       public ExpressionType getExpType() {
         return ExpressionType.HAS_LABEL;
+      }
+
+      @Override
+      public String toString() {
+        return getExp1() + ".hasLabel(" + getExp2() + ")";
       }
       
       @Override
@@ -622,6 +704,11 @@ public interface QueryExpression {
       public ExpressionType getExpType() {
         return ExpressionType.HAS_PROP;
       }
+
+      @Override
+      public String toString() {
+        return getExp1() + ".has(" + getExp2() + ")";
+      }
       
       @Override
       public void accept(QueryExpressionVisitor v) {
@@ -638,6 +725,11 @@ public interface QueryExpression {
       public ExpressionType getExpType() {
         return ExpressionType.INDEGREE;
       }
+
+      @Override
+      public String toString() {
+        return getExp() + ".indegree()";
+      }
       
       @Override
       public void accept(QueryExpressionVisitor v) {
@@ -653,6 +745,11 @@ public interface QueryExpression {
       @Override
       public ExpressionType getExpType() {
         return ExpressionType.OUTDEGREE;
+      }
+
+      @Override
+      public String toString() {
+        return getExp() + ".outdegree()";
       }
       
       @Override
@@ -674,6 +771,11 @@ public interface QueryExpression {
       public ExpressionType getExpType() {
         return ExpressionType.AGGR_COUNT;
       }
+
+      @Override
+      public String toString() {
+        return "COUNT(" + getExp() + ")";
+      }
       
       @Override
       public void accept(QueryExpressionVisitor v) {
@@ -690,6 +792,11 @@ public interface QueryExpression {
       @Override
       public ExpressionType getExpType() {
         return ExpressionType.AGGR_MIN;
+      }
+
+      @Override
+      public String toString() {
+        return "MIN(" + getExp() + ")";
       }
       
       @Override
@@ -708,6 +815,11 @@ public interface QueryExpression {
       public ExpressionType getExpType() {
         return ExpressionType.AGGR_MAX;
       }
+
+      @Override
+      public String toString() {
+        return "MAX(" + getExp() + ")";
+      }
       
       @Override
       public void accept(QueryExpressionVisitor v) {
@@ -725,6 +837,11 @@ public interface QueryExpression {
       public ExpressionType getExpType() {
         return ExpressionType.AGGR_SUM;
       }
+
+      @Override
+      public String toString() {
+        return "SUM(" + getExp() + ")";
+      }
       
       @Override
       public void accept(QueryExpressionVisitor v) {
@@ -741,6 +858,11 @@ public interface QueryExpression {
       @Override
       public ExpressionType getExpType() {
         return ExpressionType.AGGR_AVG;
+      }
+
+      @Override
+      public String toString() {
+        return "AVG(" + getExp() + ")";
       }
       
       @Override

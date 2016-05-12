@@ -1,5 +1,7 @@
 package oracle.pgql.lang.ir;
 
+import oracle.pgql.lang.ir.QueryVariable.VariableType;
+
 public class PathFindingQuery extends QueryVariable implements VertexPairConnection {
  
   private final QueryVertex src;
@@ -38,7 +40,13 @@ public class PathFindingQuery extends QueryVariable implements VertexPairConnect
   }
 
   @Override
-  public ConnectionType getType() {
+  public ConnectionType getConnectionType() {
     return ConnectionType.PATH_FINDING_QUERY;
+  }
+
+
+  @Override
+  public VariableType getVariableType() {
+    return VariableType.PATH;
   }
 }

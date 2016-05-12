@@ -5,6 +5,13 @@ package oracle.pgql.lang.ir;
 
 public abstract class QueryVariable {
 
+  public enum VariableType {
+    VERTEX,
+    EDGE,
+    PATH,
+    EXP_AS_VAR
+  }
+  
   /**
    * Constant String used for variable names to indicated that they were generated.
    * 
@@ -22,4 +29,6 @@ public abstract class QueryVariable {
   public String getName() {
     return name;
   }
+  
+  public abstract VariableType getVariableType();
 }

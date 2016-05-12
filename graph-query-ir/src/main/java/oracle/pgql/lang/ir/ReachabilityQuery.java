@@ -29,7 +29,7 @@ public class ReachabilityQuery implements VertexPairConnection {
   }
 
   @Override
-  public ConnectionType getType() {
+  public ConnectionType getConnectionType() {
     return ConnectionType.REACHABILITY_QUERY;
   }
 }

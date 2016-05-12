@@ -1,7 +1,6 @@
 package oracle.pgql.lang.ir;
 
 public interface VertexPairConnection {
-
   
   public enum ConnectionType {
     EDGE,
@@ -13,5 +12,5 @@ public interface VertexPairConnection {
 
   public QueryVertex getDst();
   
-  public ConnectionType getType();
+  public ConnectionType getConnectionType();
 }

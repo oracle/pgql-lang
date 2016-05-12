@@ -20,4 +20,9 @@ public class ExpAsVar extends QueryVariable {
   public String toString() {
     return exp + " AS " + name;
   }
+
+  @Override
+  public VariableType getVariableType() {
+    return VariableType.EXP_AS_VAR;
+  }
 }

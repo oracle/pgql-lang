@@ -3,17 +3,15 @@
  */
 package oracle.pgql.lang.ir;
 
-import java.util.List;
-
 public class GraphQuery {
 
-  private final List<ExpAsVar> select;
+  private final Projection projection;
 
   private final GraphPattern graphPattern;
 
-  private final List<ExpAsVar> groupBy;
+  private final GroupBy groupBy;
   
-  private final List<OrderByElem> orderBy;
+  private final OrderBy orderBy;
   
   private final long limit;
   
@@ -22,29 +20,29 @@ public class GraphQuery {
   /**
    * Constructor
    */
-  public GraphQuery(List<ExpAsVar> selectElems, GraphPattern graphPattern, List<ExpAsVar> groupByElems,
-      List<OrderByElem> orderByElems, long limit, long offset) {
-    this.select = selectElems;
+  public GraphQuery(Projection projection, GraphPattern graphPattern, GroupBy groupBy,
+      OrderBy orderBy, long limit, long offset) {
+    this.projection = projection;
     this.graphPattern = graphPattern;
-    this.groupBy = groupByElems;
-    this.orderBy = orderByElems;
+    this.groupBy = groupBy;
+    this.orderBy = orderBy;
     this.limit = limit;
     this.offset = offset;
   }
 
-  public List<ExpAsVar> getSelect() {
-    return select;
+  public Projection getProjection() {
+    return projection;
   }
 
   public GraphPattern getGraphPattern() {
     return graphPattern;
   }
 
-  public List<ExpAsVar> getGroupBy() {
+  public GroupBy getGroupBy() {
     return groupBy;
   }
 
-  public List<OrderByElem> getOrderBy() {
+  public OrderBy getOrderBy() {
     return orderBy;
   }
 
@@ -58,22 +56,19 @@ public class GraphQuery {
 
   @Override
   public String toString() {
-    String result = "Query:";
-    result += "\n  Projection:";
-    for (ExpAsVar e : select) {
-      result += "\n    " + e;
+    String result = projection + "\n" + graphPattern;
+    if (groupBy.getElements().isEmpty() == false) {
+      result += "\n" + groupBy;
     }
-    System.out.println(graphPattern);
-    result += "\n  GroupBy:";
-    for (ExpAsVar e : groupBy) {
-      result += "\n    " + e;
+    if (orderBy.getElements().isEmpty() == false) {
+      result += "\n" + orderBy;
     }
-    result += "\n  OrderBy:";
-    for (OrderByElem e : orderBy) {
-      result += "\n    " + e;
+    if (limit > -1) {
+      result += "\nLIMIT " + limit;
     }
-    result += "\n  Limit:\n    " + limit;
-    result += "\n  Offset:\n    " + offset;
+    if (offset > -1) {
+      result += "\nOFFSET " + offset;
+    }
     return result;
   }
 }

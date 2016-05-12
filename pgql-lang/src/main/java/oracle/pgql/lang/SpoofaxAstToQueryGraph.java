@@ -14,10 +14,13 @@ import java.util.Set;
 import oracle.pgql.lang.ir.ExpAsVar;
 import oracle.pgql.lang.ir.OrderByElem;
 import oracle.pgql.lang.ir.PathFindingQuery;
+import oracle.pgql.lang.ir.Projection;
 import oracle.pgql.lang.ir.QueryEdge;
 import oracle.pgql.lang.ir.QueryExpression;
 import oracle.pgql.lang.ir.GraphPattern;
 import oracle.pgql.lang.ir.GraphQuery;
+import oracle.pgql.lang.ir.GroupBy;
+import oracle.pgql.lang.ir.OrderBy;
 import oracle.pgql.lang.ir.QueryVertex;
 import oracle.pgql.lang.ir.ReachabilityQuery;
 import oracle.pgql.lang.ir.QueryVariable;
@@ -80,21 +83,24 @@ public class SpoofaxAstToQueryGraph {
     // GROUP BY
     IStrategoTerm groupByT = selectT.getSubterm(POS_GROUPBY);
     List<ExpAsVar> groupByElems = getGroupByElems(varmap, groupByT);
+    GroupBy groupBy = new GroupBy(groupByElems);
 
     // SELECT
     IStrategoTerm projectionT = selectT.getSubterm(POS_PROJECTION);
     List<ExpAsVar> selectElems = getSelectElems(varmap, projectionT);
+    Projection projection = new Projection(selectElems);
 
     // ORDER BY
     IStrategoTerm orderByT = selectT.getSubterm(POS_ORDERBY);
     List<OrderByElem> orderByElems = getOrderByElems(varmap, orderByT);
+    OrderBy orderBy = new OrderBy(orderByElems);
 
     // LIMIT OFFSET
     IStrategoTerm limitOffsetT = selectT.getSubterm(POS_LIMITOFFSET);
     long limit = getLimitOrOffset(limitOffsetT.getSubterm(POS_LIMIT));
     long offset = getLimitOrOffset(limitOffsetT.getSubterm(POS_OFFSET));
 
-    return new GraphQuery(selectElems, graphPattern, groupByElems, orderByElems, limit, offset);
+    return new GraphQuery(projection, graphPattern, groupBy, orderBy, limit, offset);
   }
 
   private static Set<QueryVertex> getQueryVertexs(IStrategoTerm nodesT, Map<String, QueryVariable> varmap) {

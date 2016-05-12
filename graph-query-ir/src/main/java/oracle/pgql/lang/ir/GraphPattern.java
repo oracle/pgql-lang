@@ -1,5 +1,7 @@
 package oracle.pgql.lang.ir;
 
+import java.util.HashSet;
+import java.util.Iterator;
 import java.util.Set;
 
 public class GraphPattern {
@@ -46,27 +48,18 @@ public class GraphPattern {
 
   @Override
   public String toString() {
-    String result = "\n  Vertices:";
-    for (QueryVertex n : vertices) {
-      result += "\n    " + n;
-    }
-    result += "\n  Edges:";
-    for (QueryEdge e : edges) {
-      result += "\n    " + e;
-    }
-    result += "\n  Constraints:";
-    for (QueryExpression e : constraints) {
-      result += "\n    " + e;
-    }
-    result += "\n  Reachability queries:";
-    for (ReachabilityQuery q : reachabilityQueries) {
-      result += "\n    " + q;
-    }
-    result += "\n  Path finding queries:";
-    for (PathFindingQuery q : pathFindingQueries) {
-      result += "\n    " + q;
-    }
+    Set<Object> elements = new HashSet<>();
+    elements.addAll(edges);
+    elements.addAll(constraints);
     
+    String result = "WHERE\n";
+    Iterator<Object> it = elements.iterator();
+    if (it.hasNext()) {
+      result += "  " + it.next();
+      if (it.hasNext()) {
+        result += ",\n";
+      }
+    }
     return result;
   }
 }
