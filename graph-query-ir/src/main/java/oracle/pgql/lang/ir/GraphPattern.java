@@ -54,7 +54,7 @@ public class GraphPattern {
     
     String result = "WHERE\n";
     Iterator<Object> it = elements.iterator();
-    if (it.hasNext()) {
+    while (it.hasNext()) {
       result += "  " + it.next();
       if (it.hasNext()) {
         result += ",\n";

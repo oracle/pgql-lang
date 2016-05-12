@@ -19,7 +19,7 @@ public class Projection {
   public String toString() {
     String result = "SELECT ";
     Iterator<ExpAsVar> it = elements.iterator();
-    if (it.hasNext()) {
+    while (it.hasNext()) {
       result += it.next();
       if (it.hasNext()) {
         result += ", ";

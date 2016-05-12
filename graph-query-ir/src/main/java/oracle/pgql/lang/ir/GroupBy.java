@@ -19,7 +19,7 @@ public class GroupBy {
   public String toString() {
     String result = "GROUP BY ";
     Iterator<ExpAsVar> it = elements.iterator();
-    if (it.hasNext()) {
+    while (it.hasNext()) {
       result += it.next();
       if (it.hasNext()) {
         result += ", ";

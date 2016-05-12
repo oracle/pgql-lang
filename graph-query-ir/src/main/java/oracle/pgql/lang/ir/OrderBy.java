@@ -19,7 +19,7 @@ public class OrderBy {
   public String toString() {
     String result = "ORDER BY ";
     Iterator<OrderByElem> it = elements.iterator();
-    if (it.hasNext()) {
+    while (it.hasNext()) {
       result += it.next();
       if (it.hasNext()) {
         result += ", ";
