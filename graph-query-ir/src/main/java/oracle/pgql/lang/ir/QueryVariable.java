@@ -30,7 +30,7 @@ public abstract class QueryVariable {
   }
   
   public QueryVariable() {
-    this("anonymous" + random.nextLong(), true);
+    this("anonymous" + Math.abs(random.nextLong()), true);
   }
   
   public String getName() {

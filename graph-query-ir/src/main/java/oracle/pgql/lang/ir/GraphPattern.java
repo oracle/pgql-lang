@@ -5,17 +5,17 @@ import java.util.Iterator;
 import java.util.Set;
 
 public class GraphPattern {
-  
+
   private final Set<QueryVertex> vertices;
-  
+
   private final Set<QueryEdge> edges;
-  
+
   private final Set<QueryExpression> constraints;
-  
+
   private final Set<ReachabilityQuery> reachabilityQueries;
 
   private final Set<PathFindingQuery> pathFindingQueries;
-  
+
   public GraphPattern(Set<QueryVertex> vertices, Set<QueryEdge> edges, Set<QueryExpression> constraints,
       Set<ReachabilityQuery> reachabilityQueries, Set<PathFindingQuery> pathFindingQueries) {
     this.vertices = vertices;
@@ -24,7 +24,7 @@ public class GraphPattern {
     this.reachabilityQueries = reachabilityQueries;
     this.pathFindingQueries = pathFindingQueries;
   }
-  
+
   public Set<QueryVertex> getVertices() {
     return vertices;
   }
@@ -32,7 +32,6 @@ public class GraphPattern {
   public Set<QueryEdge> getEdges() {
     return edges;
   }
-
 
   public Set<QueryExpression> getConstraints() {
     return constraints;
@@ -48,15 +47,38 @@ public class GraphPattern {
 
   @Override
   public String toString() {
-    Set<Object> elements = new HashSet<>();
-    elements.addAll(edges);
-    elements.addAll(constraints);
-    
     String result = "WHERE\n";
-    Iterator<Object> it = elements.iterator();
+
+    Iterator<QueryVertex> it = vertices.iterator();
     while (it.hasNext()) {
       result += "  " + it.next();
       if (it.hasNext()) {
+        result += ", ";
+      }
+    }
+    
+    if (edges.isEmpty() && constraints.isEmpty())
+      result += "\n";
+    else {
+      result += ",\n";
+    }
+
+    Iterator<QueryEdge> it2 = edges.iterator();
+    while (it2.hasNext()) {
+      result += "  " + it2.next();
+      if (it2.hasNext()) {
+        result += ",\n";
+      }
+    }
+    
+    if (edges.isEmpty() == false && constraints.isEmpty() == false) {
+      result += ",\n";
+    }
+
+    Iterator<QueryExpression> it3 = constraints.iterator();
+    while (it3.hasNext()) {
+      result += "  " + it3.next();
+      if (it3.hasNext()) {
         result += ",\n";
       }
     }
