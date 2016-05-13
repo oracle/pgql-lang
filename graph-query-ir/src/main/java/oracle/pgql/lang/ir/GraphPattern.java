@@ -84,7 +84,7 @@ public class GraphPattern {
       }
     }
     
-    if (vertexStrings.isEmpty() == false) {
+    if (edges.isEmpty() == false && vertexStrings.isEmpty() == false) {
       result += ",\n";
     }
     
