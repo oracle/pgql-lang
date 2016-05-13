@@ -529,7 +529,7 @@ public interface QueryExpression {
 
     @Override
     public String toString() {
-      return variable.name;
+      return variable.isAnonymous() ? "" : variable.name;
     }
     
     @Override
@@ -562,7 +562,7 @@ public interface QueryExpression {
 
     @Override
     public String toString() {
-      return variable + "." + propertyName;
+      return (variable.isAnonymous() ? "" : variable.name) + "." + propertyName;
     }
     
     @Override

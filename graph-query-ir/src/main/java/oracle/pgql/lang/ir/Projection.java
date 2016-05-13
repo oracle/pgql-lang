@@ -19,7 +19,7 @@ public class Projection {
   public String toString() {
     String result = "SELECT ";
     if (elements.isEmpty()) {
-      throw new UnsupportedOperationException("Can't print query with no output columns");
+      result += "*";
     } else {
       Iterator<ExpAsVar> it = elements.iterator();
       while (it.hasNext()) {
