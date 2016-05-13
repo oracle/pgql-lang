@@ -1,5 +1,6 @@
 package oracle.pgql.lang.ir;
 
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.Set;
@@ -51,29 +52,48 @@ public class GraphPattern {
 
     Set<QueryExpression> constraints = new HashSet<>(this.constraints);
     
-    Iterator<QueryVertex> it = vertices.iterator();
-    while (it.hasNext()) {
-      QueryVertex vertex = it.next();
-      result += "  (";
-      result += toStringHelperForInlinedConstraints(constraints, vertex);
-      result += ")";
-      if (it.hasNext()) {
-        result += ",\n";
-      }
-    }
-    
-    if (edges.isEmpty() == false) {
-      result += ",\n";
+    HashMap<QueryVertex, String> vertexStrings = new HashMap<>();
+    for (QueryVertex vertex : vertices) {
+      String vertexString = "(";
+      vertexString += toStringHelperForInlinedConstraints(constraints, vertex);
+      vertexString += ")";
+      vertexStrings.put(vertex, vertexString);
     }
     
     Iterator<QueryEdge> it2 = edges.iterator();
     while (it2.hasNext()) {
       QueryEdge edge = it2.next();
-      result += "  " + edge.getSrc().getName() + " -[";
+      result += "  ";
+      if (vertexStrings.containsKey(edge.getSrc())) {
+        result += vertexStrings.get(edge.getSrc());
+        vertexStrings.remove(edge.getSrc());
+      } else {
+        result += edge.isAnonymous() ? "()" : edge.getSrc().name;
+      }
+      result += " -[";
       result += toStringHelperForInlinedConstraints(constraints, edge);
-      result += "]-> " + edge.getDst().getName();
+      result += "]-> ";
+      if (vertexStrings.containsKey(edge.getDst())) {
+        result += vertexStrings.get(edge.getDst());
+        vertexStrings.remove(edge.getDst());
+      } else {
+        result += edge.isAnonymous() ? "()" : edge.getDst().name;
+      }
       if (it2.hasNext()) {
         result += ",\n";
+      }
+    }
+    
+    if (vertexStrings.isEmpty() == false) {
+      result += ",\n";
+    }
+    
+    Iterator<String> it = vertexStrings.values().iterator();
+    while (it.hasNext()) {
+      String vertexString = it.next();
+      result += vertexString;
+      if (it.hasNext()) {
+        vertexString += ",\n";
       }
     }
     
@@ -81,10 +101,10 @@ public class GraphPattern {
       result += ",\n";
     }
     
-    Iterator<QueryExpression> it3 = constraints.iterator();
-    while (it3.hasNext()) {
-      result += "  " + it3.next();
-      if (it3.hasNext()) {
+    Iterator<QueryExpression> it4 = constraints.iterator();
+    while (it4.hasNext()) {
+      result += "  " + it4.next();
+      if (it4.hasNext()) {
         result += ",\n";
       }
     }
