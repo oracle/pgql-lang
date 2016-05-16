@@ -108,7 +108,6 @@ public class GraphPattern {
         result += ",\n";
       }
     }
-    result += "\n";
     return result;
   }
   
