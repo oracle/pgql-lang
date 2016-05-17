@@ -1,4 +1,4 @@
-module Paths
+module GraphPattern
 
 imports
   
@@ -6,7 +6,19 @@ imports
   Names
   Expressions
   BuiltInFunctions
+
+context-free syntax
+
+  GraphPattern.GraphPattern = 
+    <
+      where
+        <{PatternElem ",\n"}+>
+    > {case-insensitive}
   
+  PatternElem = Path
+  
+  PatternElem.Constraint = Exp {avoid} // see Expressions.sdf3. Note: 'avoid' disambiguates 'match (X.p1) select *' ('(X.p1)' can be a Constraint or a Node)
+
 context-free syntax
 
   Path.Path = <<Node><{EdgeNode ""}+><VarAssign?>>

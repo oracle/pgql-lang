@@ -13,7 +13,6 @@ import java.util.Set;
 
 import oracle.pgql.lang.ir.ExpAsVar;
 import oracle.pgql.lang.ir.OrderByElem;
-import oracle.pgql.lang.ir.PathFindingQuery;
 import oracle.pgql.lang.ir.Projection;
 import oracle.pgql.lang.ir.QueryEdge;
 import oracle.pgql.lang.ir.QueryExpression;
@@ -22,7 +21,7 @@ import oracle.pgql.lang.ir.GraphQuery;
 import oracle.pgql.lang.ir.GroupBy;
 import oracle.pgql.lang.ir.OrderBy;
 import oracle.pgql.lang.ir.QueryVertex;
-import oracle.pgql.lang.ir.ReachabilityQuery;
+import oracle.pgql.lang.ir.PathPattern;
 import oracle.pgql.lang.ir.QueryVariable;
 import org.spoofax.interpreter.terms.IStrategoAppl;
 import org.spoofax.interpreter.terms.IStrategoString;
@@ -79,8 +78,8 @@ public class SpoofaxAstToQueryGraph {
     Set<QueryExpression> constraints = getQueryExpressions(constraintsT, varmap);
 
     IStrategoTerm selectT = ast.getSubterm(POS_SELECT);
-    GraphPattern graphPattern = new GraphPattern(vertices, edges, constraints,
-        Collections.<ReachabilityQuery> emptySet(), Collections.<PathFindingQuery> emptySet());
+    GraphPattern graphPattern = new GraphPattern(vertices, edges, Collections.<PathPattern>emptySet(),
+        constraints);
 
     // GROUP BY
     IStrategoTerm groupByT = selectT.getSubterm(POS_GROUPBY);

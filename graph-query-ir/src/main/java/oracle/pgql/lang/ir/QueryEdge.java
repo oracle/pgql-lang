@@ -31,11 +31,6 @@ public class QueryEdge extends QueryVariable implements VertexPairConnection {
   }
 
   @Override
-  public ConnectionType getConnectionType() {
-     return ConnectionType.EDGE;
-  }
-
-  @Override
   public VariableType getVariableType() {
     return VariableType.EDGE;
   }
