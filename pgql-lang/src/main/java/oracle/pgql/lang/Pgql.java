@@ -43,7 +43,6 @@ import oracle.pgql.lang.ir.GraphQuery;
 public class Pgql {
 
   private static final Logger LOG = LoggerFactory.getLogger(Pgql.class);
-  private static final String SPOOFAX_BINARY = "pgqllang-0.9.5.spoofax-language";
 
   private final Spoofax spoofax;
   private final ILanguageImpl pgqlLang;
@@ -58,11 +57,9 @@ public class Pgql {
       spoofax = new Spoofax();
       String jarLocation = URLDecoder
           .decode(Pgql.class.getProtectionDomain().getCodeSource().getLocation().getPath(), "UTF-8");
-      FileObject jarFile = spoofax.resourceService.resolve("jar:" + jarLocation + "!/" + SPOOFAX_BINARY);
+      FileObject jarFile = spoofax.resourceService.resolve("jar:" + jarLocation + "!/");
       assert (jarFile.exists());
-      FileObject spoofaxBinary = VFS.getManager().createFileSystem("jar", jarFile);
-      assert (spoofaxBinary.exists());
-      Iterable<ILanguageDiscoveryRequest> requests = spoofax.languageDiscoveryService.request(spoofaxBinary);
+      Iterable<ILanguageDiscoveryRequest> requests = spoofax.languageDiscoveryService.request(jarFile);
       Iterable<ILanguageComponent> components = spoofax.languageDiscoveryService.discover(requests);
       Set<ILanguageImpl> implementations = LanguageUtils.toImpls(components);
       pgqlLang = LanguageUtils.active(implementations);
