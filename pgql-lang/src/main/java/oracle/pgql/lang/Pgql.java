@@ -3,18 +3,22 @@
  */
 package oracle.pgql.lang;
 
+import java.io.File;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.net.URLDecoder;
 import java.util.Collection;
 import java.util.HashSet;
 import java.util.Iterator;
+import java.util.Random;
 import java.util.Set;
 import java.util.UUID;
 
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.vfs2.FileObject;
 import org.apache.commons.vfs2.VFS;
+import org.apache.commons.vfs2.impl.DefaultFileReplicator;
+import org.apache.commons.vfs2.impl.DefaultFileSystemManager;
 import org.metaborg.core.MetaborgException;
 import org.metaborg.core.analysis.AnalysisException;
 import org.metaborg.core.config.IProjectConfig;
@@ -55,9 +59,16 @@ public class Pgql {
   public Pgql() throws PgqlException {
     try {
       spoofax = new Spoofax();
+
+      // temporary workaround for http://yellowgrass.org/issue/SpoofaxWithCore/110 
+      String baseTmpDir = System.getProperty("java.io.tmpdir");
+      File tempDir = new File(baseTmpDir, "vfs_cache" + new Random().nextLong()).getAbsoluteFile();
+      final DefaultFileReplicator replicator = new DefaultFileReplicator(tempDir);
+      ((DefaultFileSystemManager) VFS.getManager()).setReplicator(replicator);
+      
       String jarLocation = URLDecoder
           .decode(Pgql.class.getProtectionDomain().getCodeSource().getLocation().getPath(), "UTF-8");
-      FileObject jarFile = spoofax.resourceService.resolve("jar:" + jarLocation + "!/");
+      FileObject jarFile = VFS.getManager().resolveFile("jar:" + jarLocation + "!/");
       assert (jarFile.exists());
       Iterable<ILanguageDiscoveryRequest> requests = spoofax.languageDiscoveryService.request(jarFile);
       Iterable<ILanguageComponent> components = spoofax.languageDiscoveryService.discover(requests);
@@ -65,6 +76,8 @@ public class Pgql {
       pgqlLang = LanguageUtils.active(implementations);
       assert (pgqlLang != null);
       dummyProjectDir = VFS.getManager().resolveFile("ram://pgql/");
+      
+      tempDir.delete();
     } catch (MetaborgException | IOException e) {
       throw new PgqlException("Failed to initialize PGQL", e);
     }
