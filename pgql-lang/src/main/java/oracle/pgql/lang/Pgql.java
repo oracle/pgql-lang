@@ -61,8 +61,8 @@ public class Pgql {
     String baseTmpDir = System.getProperty("java.io.tmpdir");
     File tempDir = new File(baseTmpDir, "vfs_cache" + new Random().nextLong()).getAbsoluteFile();
     try {
-      // temporary workaround for http://yellowgrass.org/issue/SpoofaxWithCore/110
-      final DefaultFileReplicator replicator = new DefaultFileReplicator(tempDir);
+      // temporary workaround for http://yellowgrass.org/issue/SpoofaxWithCore/113
+      DefaultFileReplicator replicator = new DefaultFileReplicator(tempDir);
       ((DefaultFileSystemManager) VFS.getManager()).setReplicator(replicator);
       String jarLocation = URLDecoder.decode(Pgql.class.getProtectionDomain().getCodeSource().getLocation().getPath(),
           "UTF-8");
