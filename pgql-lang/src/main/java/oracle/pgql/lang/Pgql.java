@@ -14,6 +14,7 @@ import java.util.Random;
 import java.util.Set;
 import java.util.UUID;
 
+import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.vfs2.FileObject;
 import org.apache.commons.vfs2.VFS;
@@ -52,56 +53,61 @@ public class Pgql {
   private final ILanguageImpl pgqlLang;
   private final FileObject dummyProjectDir;
   private final IProject dummyProject;
-  
+
   /**
    * Loads PGQL Spoofax binaries if not done already.
    */
   public Pgql() throws PgqlException {
+    String baseTmpDir = System.getProperty("java.io.tmpdir");
+    File tempDir = new File(baseTmpDir, "vfs_cache" + new Random().nextLong()).getAbsoluteFile();
     try {
-      spoofax = new Spoofax();
-
-      // temporary workaround for http://yellowgrass.org/issue/SpoofaxWithCore/110 
-      String baseTmpDir = System.getProperty("java.io.tmpdir");
-      File tempDir = new File(baseTmpDir, "vfs_cache" + new Random().nextLong()).getAbsoluteFile();
+      // temporary workaround for http://yellowgrass.org/issue/SpoofaxWithCore/110
       final DefaultFileReplicator replicator = new DefaultFileReplicator(tempDir);
       ((DefaultFileSystemManager) VFS.getManager()).setReplicator(replicator);
-      
-      String jarLocation = URLDecoder
-          .decode(Pgql.class.getProtectionDomain().getCodeSource().getLocation().getPath(), "UTF-8");
+      String jarLocation = URLDecoder.decode(Pgql.class.getProtectionDomain().getCodeSource().getLocation().getPath(),
+          "UTF-8");
       FileObject jarFile = VFS.getManager().resolveFile("jar:" + jarLocation + "!/");
       assert (jarFile.exists());
+      
+      spoofax = new Spoofax();
       Iterable<ILanguageDiscoveryRequest> requests = spoofax.languageDiscoveryService.request(jarFile);
       Iterable<ILanguageComponent> components = spoofax.languageDiscoveryService.discover(requests);
       Set<ILanguageImpl> implementations = LanguageUtils.toImpls(components);
       pgqlLang = LanguageUtils.active(implementations);
       assert (pgqlLang != null);
       dummyProjectDir = VFS.getManager().resolveFile("ram://pgql/");
-      
-      tempDir.delete();
+
+      final LanguageIdentifier id = pgqlLang.id();
+      dummyProject = new Project(dummyProjectDir, new IProjectConfig() {
+
+        @Override
+        public Collection<LanguageIdentifier> sourceDeps() {
+          Set<LanguageIdentifier> sourceDeps = new HashSet<>();
+          sourceDeps.add(id);
+          return sourceDeps;
+        }
+
+        @Override
+        public Collection<LanguageIdentifier> javaDeps() {
+          return new HashSet<>();
+        }
+
+        @Override
+        public Collection<LanguageIdentifier> compileDeps() {
+          return new HashSet<>();
+        }
+      });
+
+      parse("select * where ()"); // make Spoofax initialize the language
     } catch (MetaborgException | IOException e) {
       throw new PgqlException("Failed to initialize PGQL", e);
+    } finally {
+      try {
+        FileUtils.deleteDirectory(tempDir);
+      } catch (IOException e) {
+        LOG.warn("failed to delete temporary directory: " + tempDir.getAbsolutePath());
+      }
     }
-
-    final LanguageIdentifier id = pgqlLang.id();
-    dummyProject = new Project(dummyProjectDir, new IProjectConfig() {
-
-      @Override
-      public Collection<LanguageIdentifier> sourceDeps() {
-        Set<LanguageIdentifier> sourceDeps = new HashSet<>();
-        sourceDeps.add(id);
-        return sourceDeps;
-      }
-
-      @Override
-      public Collection<LanguageIdentifier> javaDeps() {
-        return new HashSet<>();
-      }
-
-      @Override
-      public Collection<LanguageIdentifier> compileDeps() {
-        return new HashSet<>();
-      }
-    });
   }
 
   public PgqlResult parse(String queryString) throws PgqlException {
@@ -183,7 +189,9 @@ public class Pgql {
   private static String getMessage(IMessage message, String sourceText) {
     StringBuilder sb = new StringBuilder();
     sb.append(message.severity());
-    sb.append(" at line " + message.region().startRow() + ":");
+    if (message.region() != null) { // null when query string is empty (e.g. "")
+      sb.append(" at line " + message.region().startRow() + ":");
+    }
 
     String affectedSourceText = null;
     try {
