@@ -29,22 +29,22 @@ lexical syntax
   
 lexical syntax // reserved keywords
 
-  NAME = [Ss][Ee][Ll][Ee][Cc][Tt] {reject}
-  NAME = [Ww][Hh][Ee][Rr][Ee] {reject}
-  NAME = [Aa][Ss] {reject}
-  NAME = [Ww][Ii][Tt][Hh] {reject}
-  NAME = [Oo][Rr][Dd][Ee][Rr] {reject}
-  NAME = [Gg][Rr][Oo][Uu][Pp] {reject}
-  NAME = [Bb][Yy] {reject}
-  NAME = [Aa][Ss][Cc] {reject}
-  NAME = [Dd][Ee][Ss][Cc] {reject}
-  NAME = [Ll][Ii][Mm][Ii][Tt] {reject}
-  NAME = [Oo][Ff][Ff][Ss][Ee][Tt] {reject}
-  NAME = [Aa][Nn][Dd] {reject}
-  NAME = [Oo][Rr] {reject}
-  NAME = [Tt][Rr][Uu][Ee] {reject}
-  NAME = [Ff][Aa][Ll][Ss][Ee] {reject}
-  NAME = [Nn][Uu][Ll][Ll] {reject}
+  NAME = 'select' {reject}
+  NAME = 'where' {reject}
+  NAME = 'as' {reject}
+  NAME = 'with' {reject}
+  NAME = 'order' {reject}
+  NAME = 'group' {reject}
+  NAME = 'by' {reject}
+  NAME = 'asc' {reject}
+  NAME = 'desc' {reject}
+  NAME = 'limit' {reject}
+  NAME = 'offset' {reject}
+  NAME = 'and' {reject}
+  NAME = 'or' {reject}
+  NAME = 'true' {reject}
+  NAME = 'false' {reject}
+  NAME = 'null' {reject}
   
 lexical restrictions // greedy matching
 
