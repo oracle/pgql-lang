@@ -55,8 +55,6 @@ context-free priorities
       Exp.Not2
   }
   >
- // all function calls should actually be in one block, but placing
- // too many sorts in one block crashes SDF2table gen. (Spoofax bug)
   {
     left:
       Exp.Label
