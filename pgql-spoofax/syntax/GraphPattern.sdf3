@@ -17,7 +17,7 @@ context-free syntax
   
   PatternElem = Path
   
-  PatternElem.Constraint = Exp {avoid} // see Expressions.sdf3. Note: 'avoid' disambiguates 'match (X.p1) select *' ('(X.p1)' can be a Constraint or a Node)
+  PatternElem.Constraint = Exp {avoid} // see Expressions.sdf3. Note: 'avoid' disambiguates 'select * where (X.p1)' ('(X.p1)' can be a Constraint or a Node)
 
 context-free syntax
 
@@ -27,15 +27,16 @@ context-free syntax
   Node.Node = <(<ElemContents>)>
   Node.SimpleNode = <<VARNAME>>
 
-  EdgeNode.EdgeNode = < <Edge> <Node>>
-  Edge.EdgeOut = [-[EdgeContents?][PathLengthConstraints?]->]
-  Edge.EdgeIn = [<-[PathLengthConstraints?][EdgeContents?]-]
-  Edge.EdgeOut = [->]
-  Edge.EdgeIn = [<-]
+  EdgeNode.EdgeNode = < <Connection> <Node>>
+  Connection.OutConn = [-[EdgeContents?]->]
+  Connection.InConn = [<-[EdgeContents?]-]
+  Connection.OutEdge = [->]
+  Connection.InEdge = [<-]
+  
   EdgeContents.EdgeContents = <[<ElemContents>]>
-  PathLengthConstraints.PathLengthConstraints = <{<PathConstraint>}>
-  PathConstraint.PathLength = <<PATHLENGTH?>..<PATHLENGTH?>>
-  PathConstraint.Shortest = <shortest> {case-insensitive}
+  EdgeContents.PathQuery = </:<PATHPATTERNNAME>/>
+  
+  KleeneStar.KleeneStar = <*>
 
 context-free syntax
 

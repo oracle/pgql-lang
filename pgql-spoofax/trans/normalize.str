@@ -22,13 +22,11 @@ rules
           norm-NOT +
           norm-singleNode +
           norm-simpleNode +
-          norm-edgeContents +
-          norm-path-constraints
+          norm-edgeContents
         );
         alltd(norm-string);
         alltd(norm-has-prop);
         alltd(name-unnamed-nodes-and-edges(|c));
-        alltd(norm-path-constraints);
         alltd(norm-inlined-references);
         bottomup(try(
            norm-matchElems
@@ -45,8 +43,6 @@ rules
   
   norm-string = is-string; try(un-double-quote + un-single-quote)
   
-  norm-path-constraints = ?PathLengthConstraints(<id>)
-  
 rules
   
   norm-singleNode = ?SingleNode(Some(ElemContents1(a, b, c, d))); !Path(Node(ElemContents(a, Some(b), c, d)), [], None())
@@ -61,10 +57,10 @@ rules
   
   name-unnamed-nodes-and-edges(|c) = ?ElemContents(None(), type, id', constraints); !ElemContents(Some(<unique-name(|c)>), type, id', constraints)
   name-unnamed-nodes-and-edges(|c) =
-                                 EdgeOut(?None(); name-unnamed-nodes-and-edges-helper(|c), id) +
-                                 EdgeIn(id, ?None(); name-unnamed-nodes-and-edges-helper(|c))
-  name-unnamed-nodes-and-edges(|c) = ?EdgeOut(); !EdgeOut(<name-unnamed-nodes-and-edges-helper(|c)>, None()) +
-                                 ?EdgeIn(); !EdgeIn(None(), <name-unnamed-nodes-and-edges-helper(|c)>)
+                                 OutConn(?None(); name-unnamed-nodes-and-edges-helper(|c)) +
+                                 InConn(?None(); name-unnamed-nodes-and-edges-helper(|c))
+  name-unnamed-nodes-and-edges(|c) = ?OutEdge(); !OutConn(<name-unnamed-nodes-and-edges-helper(|c)>) +
+                                 ?InEdge(); !InConn(<name-unnamed-nodes-and-edges-helper(|c)>)
   name-unnamed-nodes-and-edges-helper(|c) = !ElemContents(Some(<unique-name(|c)> ""), None(), None(), None())
   
   norm-inlined-references = ?ElemContents(Some(varName), _, _, _); alltd(norm-inlined-reference(|varName))
@@ -84,7 +80,7 @@ rules
     with
       paths := <filter(?Path(_, _, _))> elems;
       inlined-constraints-for-nodes := <collect-om(?Node(<id>)); map(get-inlined-constraints(|"node")); concat> paths;
-      inlined-constraints-for-edges := <collect-om(?EdgeOut(<id>, _) + ?EdgeIn(_, <id>)); map(get-inlined-constraints(|"edge")); concat> paths;
+      inlined-constraints-for-edges := <collect-om(?OutConn(<id>) + ?InConn(<id>)); map(get-inlined-constraints(|"edge")); concat> paths;
       non-inlined-constraints := <filter(?Constraint(<id>))> elems;
       constraints := <conc; flatten-list; !Constraints(<id>)> (inlined-constraints-for-nodes, inlined-constraints-for-edges, non-inlined-constraints);
       // existsOrNot := <filter(?ExistsFunc(_) + ?Not(ExistsFunc(_)))> constraints;
@@ -152,8 +148,8 @@ rules
     (n1, e, n2) -> expansion
     with
       switch !e
-        case ?EdgeOut(name, lengthProps): expansion := Edge(n1, name, n2, lengthProps)
-        case ?EdgeIn(lengthProps, name): expansion := Edge(n2, name, n1, lengthProps)
+        case ?OutConn(name): expansion := Edge(n1, name, n2)
+        case ?InConn(name): expansion := Edge(n2, name, n1)
         otherwise: fail
       end
   
@@ -167,7 +163,7 @@ rules
 rules
   
   norm-query(|c):
-    Query(SelectClause(distinctOrReduced, selectElems), graphName, graphPattern, SolutionModifier(ungroupAs, groupBy, having, orderBy, limitOffsets)) -> Query(graphName, graphPattern, None(), select)
+    Query(_, SelectClause(distinctOrReduced, selectElems), graphName, graphPattern, SolutionModifier(ungroupAs, groupBy, having, orderBy, limitOffsets)) -> Query(graphName, graphPattern, None(), select)
     with
       expAsGroupVars := <?Some(GroupClause(<id>)) <+ ![]> groupBy;
       expAsGroupVars' := <map(norm-expAsGroupVar(|c))> expAsGroupVars;
@@ -187,7 +183,7 @@ rules
   norm-select-star(|graphPattern, group-exps):
     Star() -> expAsSelectVars
     with if [] := group-exps
-           then vars := <collect((?Node(<id>) + ?Edge(_, <id>, _, _)); not(is-substring(GENERATED)))> graphPattern
+           then vars := <collect((?Node(<id>) + ?Edge(_, <id>, _)); not(is-substring(GENERATED)))> graphPattern
            else vars := <map(?ExpAsVar(<id>, _))> group-exps
          end
        ; expAsSelectVars := <map(!ExpAsVar(VarRef(<id>), None()))> vars

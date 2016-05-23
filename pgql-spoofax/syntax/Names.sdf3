@@ -22,13 +22,15 @@ context-free syntax
   
 lexical syntax
   
-  GRAPHNAME = NAME
-  VARNAME   = NAME
-  PROPNAME  = NAME
-  NAME      = [a-zA-Z][a-zA-Z0-9\_]*
+  GRAPHNAME       = NAME
+  VARNAME         = NAME
+  PROPNAME        = NAME
+  PATHPATTERNNAME = NAME
+  NAME            = [a-zA-Z][a-zA-Z0-9\_]*
   
 lexical syntax // reserved keywords
 
+  NAME = 'path' {reject}
   NAME = 'select' {reject}
   NAME = 'where' {reject}
   NAME = 'as' {reject}

@@ -18,6 +18,7 @@ context-free syntax
 
   Query.Query =
     <
+      <{PathPattern "\n"}*>
       <SelectClause>
       <FromClause?>
       <GraphPattern>
@@ -27,3 +28,5 @@ context-free syntax
   SelectClause.SelectClause = <select <Distinct?><SelectElems>> {case-insensitive}
   
   FromClause.FromClause = <from <GRAPHNAME>> {case-insensitive}
+
+  PathPattern.PathPattern = <path <PATHPATTERNNAME> := <Path>> {case-insensitive}

@@ -5,13 +5,14 @@ module sig-normalized
  *   PGQL -> PGQL AST -> PGQL norm. AST
  */
 signature constructors
-    
+  
+  Query                : a * b * c * d -> Query
   GraphPattern         : List(Node) * List(Edge) * List(constraint) * List(Optional) * List(Union) * List(Expand) * List(SubQuery) * List(PathVar) -> GraphPattern
   Select               : Option(distinctOrReduced) * List(expAsVars) * groupBy * having * orderBy * limitOffsets -> Select
   Nodes                : List(Node) -> Nodes
   Node                 : Var -> Node
   Edges                : List(Edge) -> Edges
-  Edge                 : fromNode * edge * toNode * pathLengthConstraints -> Edge
+  Edge                 : fromNode * edge * toNode -> Edge
   Constraints          : List(Exp) -> Constraints
   In                   : EdgeDir
   Out                  : EdgeDir
@@ -29,9 +30,3 @@ signature constructors
   Not                  : Exp -> Exp
 
   Contains             : Exp * Exp -> Exp
-
-  PathQuery            : PathFindingType * Option(VARNAME) * Option(PathLength) -> PathQuery
-  AnyPath              : PathFindingType
-  AllPaths             : PathFindingType
-  AnyShortestPath      : PathFindingType
-  AllShortestPaths     : PathFindingType
