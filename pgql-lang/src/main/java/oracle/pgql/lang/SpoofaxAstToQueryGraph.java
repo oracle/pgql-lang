@@ -35,12 +35,15 @@ public class SpoofaxAstToQueryGraph {
   private static final int POS_PROJECTION = 1;
 
   private static final int POS_WHERE = 1;
+  
   private static final int POS_NODES = 0;
   private static final int POS_EDGES = 1;
+  private static final int POS_PATH = 2;
+  private static final int POS_CONSTRAINTS = 3;
+  
   private static final int POS_EDGE_NAME = 1;
   private static final int POS_EDGE_SRC = 0;
   private static final int POS_EDGE_DST = 2;
-  private static final int POS_CONSTRAINTS = 2;
 
   private static final int POS_GROUPBY = 2;
   private static final int POS_ORDERBY = 4;

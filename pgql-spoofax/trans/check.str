@@ -235,7 +235,7 @@ rules // cross-constraints involving paths
 rules // Not a connected graph, e.g. WHERE x -> y, x2 -> y2
   
   nabl-constraint(|ctx):
-    GraphPattern(Nodes(nodes), Edges(edges), _, _, _, _, _, _) -> <fail>
+    GraphPattern(Nodes(nodes), Edges(edges), _, _) -> <fail>
     where
       sorted-partitions := <strip-annos; partition(|edges); reverse; qsort(length-gt)> nodes;
       biggest-partition := <Hd> sorted-partitions;

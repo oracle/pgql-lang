@@ -37,7 +37,13 @@ rules // Editor services
       label := <get-editor-properties(pp-partial-pgql-lang-string|<language>, project-path); properties-to-html> node
 
 rules // Debugging
-  
+
+  debug-show-normalized:
+    (_, _, ast, path, _) -> (filename, result)
+    with
+      filename := <guarantee-extension(|"normalized.aterm")> path;
+      result   := <normalize-before> ast
+
   debug-show-analyzed:
     (_, _, ast, path, _) -> (filename, result)
     with

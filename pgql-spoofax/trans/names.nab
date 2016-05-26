@@ -9,17 +9,22 @@ namespaces
   Var       // var defined in WHERE
   SelectVar // var defined in SELECT
   GroupVar  // var defined in GROUP BY
+  PathPattern
   
 binding rules
 
   Query(_, _, _, _, _):
     scopes Var, SelectVar, GroupVar
-  
+
   Node(n):
     defines non-unique Var n of type NodeTy()
-  
+
   Edge(_, e, _):
     defines unique Var e of type EdgeTy()
+
+  Path(_, _, pathPattern, _, p):
+    defines unique Var p of type PathTy()
+//    refers to PathPattern pathPattern
 
   // Note 1: SelectVar is non-unique because we already do the uniqueness test using Var
   // Note 2: In PGQL 0.9, in the SELECT, you cannot refer to variables previously defined in the SELECT

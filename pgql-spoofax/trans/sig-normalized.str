@@ -7,12 +7,14 @@ module sig-normalized
 signature constructors
   
   Query                : a * b * c * d -> Query
-  GraphPattern         : List(Node) * List(Edge) * List(constraint) * List(Optional) * List(Union) * List(Expand) * List(SubQuery) * List(PathVar) -> GraphPattern
+  GraphPattern         : Nodes * Edges * Paths * Constraints -> GraphPattern
   Select               : Option(distinctOrReduced) * List(expAsVars) * groupBy * having * orderBy * limitOffsets -> Select
   Nodes                : List(Node) -> Nodes
   Node                 : Var -> Node
   Edges                : List(Edge) -> Edges
-  Edge                 : fromNode * edge * toNode -> Edge
+  Edge                 : src * name * dst -> Edge
+  Paths                : List(Path) -> Paths
+  Path                 : src * dst * pathPatternName * kleeneStar * pathName -> Path
   Constraints          : List(Exp) -> Constraints
   In                   : EdgeDir
   Out                  : EdgeDir

@@ -76,23 +76,18 @@ rules
 rules
   
   norm-matchElems:
-    GraphPattern(elems) -> GraphPattern(nodes, edges, constraints, optionals, unions, expands, subQueries, pathDecls)
+    GraphPattern(elems) -> GraphPattern(nodes, edges, paths'', constraints)
     with
       paths := <filter(?Path(_, _, _))> elems;
       inlined-constraints-for-nodes := <collect-om(?Node(<id>)); map(get-inlined-constraints(|"node")); concat> paths;
-      inlined-constraints-for-edges := <collect-om(?OutConn(<id>) + ?InConn(<id>)); map(get-inlined-constraints(|"edge")); concat> paths;
+      inlined-constraints-for-edges := <collect-om(?OutConn(<id>) + ?InConn(<id>)); filter(get-inlined-constraints(|"edge")); concat> paths;
       non-inlined-constraints := <filter(?Constraint(<id>))> elems;
       constraints := <conc; flatten-list; !Constraints(<id>)> (inlined-constraints-for-nodes, inlined-constraints-for-edges, non-inlined-constraints);
-      // existsOrNot := <filter(?ExistsFunc(_) + ?Not(ExistsFunc(_)))> constraints;
-      // constraints' := <remove-all(?ExistsFunc(_) + ?Not(ExistsFunc(_)))> constraints;
-      paths' := <alltd(?ElemContents(Some(<id>), _, _, _))> paths;
+      paths' := <alltd(?ElemContents(Some(<id>), None(), None(), None()))> paths;
       nodes := <collect-om(?Node(_)); !Nodes(<id>)> paths';
-      edges := <get-edges; !Edges(<id>)> paths';
-      optionals := []; // TODO: remove
-      unions := []; // TODO: remove
-      expands := []; // TODO: remove
-      subQueries := []; // TODO: remove
-      pathDecls := [] // TODO: remove
+      connections := <get-edges> paths';
+      edges := <filter(?Edge(_, _, _)); !Edges(<id>)> connections;
+      paths'' := <filter(?Path(_, _, _, _, _)); !Paths(<id>)> connections
   
   get-inlined-constraints(|nodeOrEdge):
     ElemContents(Some(var), label, id', otherConstraint) -> [labels, identifiers, otherConstraint']
@@ -148,8 +143,19 @@ rules
     (n1, e, n2) -> expansion
     with
       switch !e
-        case ?OutConn(name): expansion := Edge(n1, name, n2)
-        case ?InConn(name): expansion := Edge(n2, name, n1)
+        case ?OutConn(edgeOrPath):
+          src := n1;
+          dst := n2
+        case ?InConn(edgeOrPath):
+          src := n2;
+          dst := n1
+        otherwise: fail
+      end;
+      switch !edgeOrPath
+        case is-string:
+          expansion := Edge(src, edgeOrPath, dst)
+        case ?Some(Path(pathName, pathPatternName, kleeneStar)):
+          expansion := Path(src, dst, pathPatternName, kleeneStar, pathName)
         otherwise: fail
       end
   
@@ -163,7 +169,7 @@ rules
 rules
   
   norm-query(|c):
-    Query(_, SelectClause(distinctOrReduced, selectElems), graphName, graphPattern, SolutionModifier(ungroupAs, groupBy, having, orderBy, limitOffsets)) -> Query(graphName, graphPattern, None(), select)
+    Query(pathPatterns, SelectClause(distinctOrReduced, selectElems), graphName, graphPattern, SolutionModifier(ungroupAs, groupBy, having, orderBy, limitOffsets)) -> Query(graphName, graphPattern, None(), select)
     with
       expAsGroupVars := <?Some(GroupClause(<id>)) <+ ![]> groupBy;
       expAsGroupVars' := <map(norm-expAsGroupVar(|c))> expAsGroupVars;
