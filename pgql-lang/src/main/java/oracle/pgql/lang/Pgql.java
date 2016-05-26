@@ -96,6 +96,11 @@ public class Pgql {
         public Collection<LanguageIdentifier> compileDeps() {
           return new HashSet<>();
         }
+
+        @Override
+        public String metaborgVersion() {
+          return null;
+        }
       });
 
       parse("select * where ()"); // make Spoofax initialize the language
