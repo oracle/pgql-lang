@@ -3,31 +3,14 @@
  */
 package oracle.pgql.lang.ir;
 
-public class QueryEdge extends QueryVariable implements VertexPairConnection {
-
-  private final QueryVertex src;
-  
-  private final QueryVertex dst;
-
-  public QueryEdge(String name, QueryVertex src, QueryVertex dst) {
-    super(name);
-    this.src = src;
-    this.dst = dst;
-  }
+public class QueryEdge extends VertexPairConnection {
   
   public QueryEdge(QueryVertex src, QueryVertex dst) {
-    this.src = src;
-    this.dst = dst;
+    super(src, dst);
   }
 
-  @Override
-  public QueryVertex getSrc() {
-    return src;
-  }
-
-  @Override
-  public QueryVertex getDst() {
-    return dst;
+  public QueryEdge(QueryVertex src, QueryVertex dst, String name) {
+    super(src, dst, name);
   }
 
   @Override
@@ -37,6 +20,6 @@ public class QueryEdge extends QueryVariable implements VertexPairConnection {
   
   @Override
   public String toString() {
-    return src + "-[" + getName() + "]->" + dst;
+    return getSrc() + "-[" + getName() + "]->" + getDst();
   }
 }

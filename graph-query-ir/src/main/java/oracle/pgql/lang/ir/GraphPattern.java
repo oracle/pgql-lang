@@ -5,21 +5,20 @@ import java.util.HashSet;
 import java.util.Iterator;
 import java.util.Set;
 
+import oracle.pgql.lang.ir.QueryVariable.VariableType;
+
 public class GraphPattern {
 
   private final Set<QueryVertex> vertices;
 
-  private final Set<QueryEdge> edges;
-
-  private final Set<PathPattern> paths;
+  private final Set<VertexPairConnection> connections;
 
   private final Set<QueryExpression> constraints;
 
-  public GraphPattern(Set<QueryVertex> vertices, Set<QueryEdge> edges, Set<PathPattern> paths,
+  public GraphPattern(Set<QueryVertex> vertices, Set<VertexPairConnection> connections,
       Set<QueryExpression> constraints) {
     this.vertices = vertices;
-    this.edges = edges;
-    this.paths = paths;
+    this.connections = connections;
     this.constraints = constraints;
   }
 
@@ -27,14 +26,10 @@ public class GraphPattern {
     return vertices;
   }
 
-  public Set<QueryEdge> getEdges() {
-    return edges;
+  public Set<VertexPairConnection> getConnections() {
+    return connections;
   }
-
-  public Set<PathPattern> getPaths() {
-    return paths;
-  }
-
+  
   public Set<QueryExpression> getConstraints() {
     return constraints;
   }
@@ -44,7 +39,7 @@ public class GraphPattern {
     String result = "WHERE\n";
 
     Set<QueryExpression> constraints = new HashSet<>(this.constraints);
-    
+
     HashMap<QueryVertex, String> vertexStrings = new HashMap<>();
     for (QueryVertex vertex : vertices) {
       String vertexString = "(";
@@ -52,10 +47,16 @@ public class GraphPattern {
       vertexString += ")";
       vertexStrings.put(vertex, vertexString);
     }
-    
-    Iterator<QueryEdge> it2 = edges.iterator();
+
+    Iterator<VertexPairConnection> it2 = connections.iterator();
     while (it2.hasNext()) {
-      QueryEdge edge = it2.next();
+      VertexPairConnection connection = it2.next();
+      if (connection.getVariableType() == VariableType.PATH) {
+        result += "  // no toString() defined for paths yet"; // TODO
+        continue;
+      }
+      
+      QueryEdge edge = (QueryEdge) connection;
       result += "  ";
       if (vertexStrings.containsKey(edge.getSrc())) {
         result += vertexStrings.get(edge.getSrc());
@@ -76,11 +77,11 @@ public class GraphPattern {
         result += ",\n";
       }
     }
-    
-    if (edges.isEmpty() == false && vertexStrings.isEmpty() == false) {
+
+    if (connections.isEmpty() == false && vertexStrings.isEmpty() == false) {
       result += ",\n";
     }
-    
+
     Iterator<String> it = vertexStrings.values().iterator();
     while (it.hasNext()) {
       String vertexString = it.next();
@@ -89,11 +90,11 @@ public class GraphPattern {
         vertexString += ",\n";
       }
     }
-    
+
     if (constraints.isEmpty() == false) {
       result += ",\n";
     }
-    
+
     Iterator<QueryExpression> it4 = constraints.iterator();
     while (it4.hasNext()) {
       result += "  " + it4.next();
@@ -103,9 +104,8 @@ public class GraphPattern {
     }
     return result;
   }
-  
-  private String toStringHelperForInlinedConstraints(Set<QueryExpression> constraints,
-      QueryVariable variable) {
+
+  private String toStringHelperForInlinedConstraints(Set<QueryExpression> constraints, QueryVariable variable) {
     if (variable.isAnonymous() == false) {
       return variable.name;
     }

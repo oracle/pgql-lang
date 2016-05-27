@@ -4,7 +4,6 @@
 package oracle.pgql.lang;
 
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
@@ -21,7 +20,8 @@ import oracle.pgql.lang.ir.GraphQuery;
 import oracle.pgql.lang.ir.GroupBy;
 import oracle.pgql.lang.ir.OrderBy;
 import oracle.pgql.lang.ir.QueryVertex;
-import oracle.pgql.lang.ir.PathPattern;
+import oracle.pgql.lang.ir.VertexPairConnection;
+import oracle.pgql.lang.ir.QueryPath;
 import oracle.pgql.lang.ir.QueryVariable;
 import org.spoofax.interpreter.terms.IStrategoAppl;
 import org.spoofax.interpreter.terms.IStrategoString;
@@ -33,26 +33,31 @@ public class SpoofaxAstToQueryGraph {
 
   private static final int POS_PATH_PATTERNS = 0;
   private static final int POS_PROJECTION = 1;
-  private static final int POS_FROM = 2;
+  private static final int POS_FROM = 2; // not yet parsed
   private static final int POS_WHERE = 3;
   private static final int POS_GROUPBY = 4;
   private static final int POS_ORDERBY = 5;
   private static final int POS_LIMITOFFSET = 6;
-  
+
   private static final int POS_PATH_PATTERN_NAME = 0;
-  private static final int POS_PATH_PATTERN_NODES = 1;  
-  private static final int POS_PATH_PATTERN_CONNECTIONS = 2;  
-  private static final int POS_PATH_PATTERN_CONSTRAINTS = 3; 
-  
-  private static final int POS_NODES = 0;
+  private static final int POS_PATH_PATTERN_VERTICES = 1;
+  private static final int POS_PATH_PATTERN_CONNECTIONS = 2;
+  private static final int POS_PATH_PATTERN_CONSTRAINTS = 3;
+
+  private static final int POS_VERTICES = 0;
   private static final int POS_EDGES = 1;
   private static final int POS_PATHS = 2;
   private static final int POS_CONSTRAINTS = 3;
-  
-  private static final int POS_EDGE_NAME = 1;
+
   private static final int POS_EDGE_SRC = 0;
   private static final int POS_EDGE_DST = 2;
+  private static final int POS_EDGE_NAME = 1;
 
+  private static final int POS_PATH_SRC = 0;
+  private static final int POS_PATH_DST = 1;
+  private static final int POS_PATH_PATH_PATTERN = 2;
+  private static final int POS_PATH_KLEENE_STAR = 3;
+  private static final int POS_PATH_NAME = 4;
 
   private static final int POS_ORDERBY_EXP = 0;
   private static final int POS_ORDERBY_ORDERING = 1;
@@ -64,30 +69,44 @@ public class SpoofaxAstToQueryGraph {
   private static final int POS_BINARY_EXP_LEFT = 0;
   private static final int POS_BINARY_EXP_RIGHT = 1;
   private static final int POS_UNARY_EXP = 0;
-  private static final int POS_AGGREGATE_EXP = 1; // FIXME: do we support e.g. AVG(DISTINCT x) ? (parser does)
+  private static final int POS_AGGREGATE_EXP = 1;
   private static final int POS_PROPREF_VARNAME = 0;
   private static final int POS_PROPREF_PROPNAME = 1;
 
   public static GraphQuery translate(IStrategoTerm ast) throws PgqlException {
 
+    // path patterns
+    IStrategoTerm pathPatternsT = getList(ast.getSubterm(POS_PATH_PATTERNS));
+    Map<String, IStrategoTerm> pathPatternMap = getPathPatterns(pathPatternsT); // map from path pattern name to path
+                                                                                // pattern term
+
     // WHERE
     IStrategoTerm graphPatternT = ast.getSubterm(POS_WHERE);
 
-    // nodes
-    IStrategoTerm verticesT = getList(graphPatternT.getSubterm(POS_NODES));
+    // vertices
+    IStrategoTerm verticesT = getList(graphPatternT.getSubterm(POS_VERTICES));
     Map<String, QueryVariable> varmap = new HashMap<>(); // map from variable name to variable
     Set<QueryVertex> vertices = getQueryVertices(verticesT, varmap);
 
     // edges
     IStrategoTerm edgesT = getList(graphPatternT.getSubterm(POS_EDGES));
-    Set<QueryEdge> edges = getQueryEdges(edgesT, varmap);
+    Set<QueryEdge> edges = new HashSet<>(getQueryEdges(edgesT, varmap));
 
+    // paths
+    IStrategoTerm pathsT = getList(graphPatternT.getSubterm(POS_PATHS));
+    Set<QueryPath> paths = getPaths(pathsT, pathPatternMap);
+
+    // connections
+    Set<VertexPairConnection> connections = new HashSet<>();
+    connections.addAll(edges);
+    connections.addAll(paths);
+    
     // constraints
     IStrategoTerm constraintsT = getList(graphPatternT.getSubterm(POS_CONSTRAINTS));
     Set<QueryExpression> constraints = getQueryExpressions(constraintsT, varmap);
 
-    GraphPattern graphPattern = new GraphPattern(vertices, edges, Collections.<PathPattern>emptySet(),
-        constraints);
+    // graph pattern
+    GraphPattern graphPattern = new GraphPattern(vertices, connections, constraints);
 
     // GROUP BY
     IStrategoTerm groupByT = ast.getSubterm(POS_GROUPBY);
@@ -112,15 +131,24 @@ public class SpoofaxAstToQueryGraph {
     return new GraphQuery(projection, graphPattern, groupBy, orderBy, limit, offset);
   }
 
-  private static Set<QueryVertex> getQueryVertices(IStrategoTerm nodesT, Map<String, QueryVariable> varmap) {
-    Set<QueryVertex> nodes = new HashSet<>(nodesT.getSubtermCount());
-    for (IStrategoTerm nodeT : nodesT) {
-      String nodeName = getString(nodeT);
-      QueryVertex node = nodeName.contains(GENERATED_VAR_SUBSTR) ? new QueryVertex() : new QueryVertex(nodeName);
-      nodes.add(node);
-      varmap.put(nodeName, node);
+  private static Map<String, IStrategoTerm> getPathPatterns(IStrategoTerm pathPatternsT) {
+    Map<String, IStrategoTerm> result = new HashMap<>();
+    for (IStrategoTerm pathPatternT : pathPatternsT) {
+      String name = getString(pathPatternT.getSubterm(POS_PATH_PATTERN_NAME));
+      result.put(name, pathPatternT);
     }
-    return nodes;
+    return result;
+  }
+
+  private static Set<QueryVertex> getQueryVertices(IStrategoTerm verticesT, Map<String, QueryVariable> varmap) {
+    Set<QueryVertex> vertices = new HashSet<>(verticesT.getSubtermCount());
+    for (IStrategoTerm vertexT : verticesT) {
+      String vertexName = getString(vertexT);
+      QueryVertex vertex = vertexName.contains(GENERATED_VAR_SUBSTR) ? new QueryVertex() : new QueryVertex(vertexName);
+      vertices.add(vertex);
+      varmap.put(vertexName, vertex);
+    }
+    return vertices;
   }
 
   private static Set<QueryExpression> getQueryExpressions(IStrategoTerm constraintsT, Map<String, QueryVariable> varmap)
@@ -133,8 +161,8 @@ public class SpoofaxAstToQueryGraph {
     return constraints;
   }
 
-  private static Set<QueryEdge> getQueryEdges(IStrategoTerm edgesT, Map<String, QueryVariable> varmap) {
-    Set<QueryEdge> edges = new HashSet<>(edgesT.getSubtermCount());
+  private static List<QueryEdge> getQueryEdges(IStrategoTerm edgesT, Map<String, QueryVariable> varmap) {
+    List<QueryEdge> edges = new ArrayList<>(edgesT.getSubtermCount());
     for (IStrategoTerm edgeT : edgesT) {
       String name = getString(edgeT.getSubterm(POS_EDGE_NAME));
       String srcName = getString(edgeT.getSubterm(POS_EDGE_SRC));
@@ -143,12 +171,55 @@ public class SpoofaxAstToQueryGraph {
       QueryVertex src = (QueryVertex) varmap.get(srcName);
       QueryVertex dst = (QueryVertex) varmap.get(dstName);
 
-      QueryEdge edge = name.contains(GENERATED_VAR_SUBSTR) ? new QueryEdge(src, dst) : new QueryEdge(name, src, dst);
+      QueryEdge edge = name.contains(GENERATED_VAR_SUBSTR) ? new QueryEdge(src, dst) : new QueryEdge(src, dst, name);
 
       edges.add(edge);
       varmap.put(name, edge);
     }
     return edges;
+  }
+
+  private static Set<QueryPath> getPaths(IStrategoTerm pathsT, Map<String, IStrategoTerm> pathPatternMap)
+      throws PgqlException {
+    Set<QueryPath> result = new HashSet<>();
+
+    // for now, assume every RPQ has a Kleene star and that there is no nested Kleene star
+    for (IStrategoTerm pathT : pathsT) {
+
+      String pathPatternName = getString(pathT.getSubterm(POS_PATH_PATH_PATTERN));
+      IStrategoTerm pathPatternT = pathPatternMap.get(pathPatternName);
+
+      // vertices
+      IStrategoTerm verticesT = getList(pathPatternT.getSubterm(POS_PATH_PATTERN_VERTICES));
+      Map<String, QueryVariable> varmap = new HashMap<>(); // map from variable name to variable
+      Set<QueryVertex> vertices = getQueryVertices(verticesT, varmap);
+
+      // edges
+      IStrategoTerm edgesT = getList(pathPatternT.getSubterm(POS_PATH_PATTERN_CONNECTIONS));
+      List<QueryEdge> edges = getQueryEdges(edgesT, varmap);
+      List<VertexPairConnection> connections = new ArrayList<>();
+      connections.addAll(edges);
+
+      // constraints
+      IStrategoTerm constraintsT = getList(pathPatternT.getSubterm(POS_PATH_PATTERN_CONSTRAINTS));
+      Set<QueryExpression> constraints = getQueryExpressions(constraintsT, varmap);
+
+      String srcName = getString(pathT.getSubterm(POS_PATH_SRC));
+      String dstName = getString(pathT.getSubterm(POS_PATH_DST));
+      System.out.println(pathT.getSubterm(POS_PATH_NAME));
+      System.out.println(pathT);
+      String name = getString(pathT.getSubterm(POS_PATH_NAME));
+      QueryVertex src = (QueryVertex) varmap.get(srcName);
+      QueryVertex dst = (QueryVertex) varmap.get(dstName);
+
+      QueryPath pathPattern = name.contains(GENERATED_VAR_SUBSTR)
+          ? new QueryPath(src, dst, vertices, connections, constraints)
+          : new QueryPath(src, dst, vertices, connections, constraints, name);
+
+      result.add(pathPattern);
+    }
+
+    return result;
   }
 
   private static List<ExpAsVar> getGroupByElems(Map<String, QueryVariable> varmap, IStrategoTerm groupByT)
