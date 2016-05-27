@@ -6,8 +6,8 @@ module sig-normalized
  */
 signature constructors
   
-  PathPatterns         : List(PathPattern)
-  PathPattern          : Nodes * Connections * Constraints -> PathPattern
+  PathPatterns         : List(PathPattern) -> PathPatterns
+  PathPattern          : name * Nodes * Connections * Constraints -> PathPattern
   Query                : pathPatterns * projection * inputGraph * graphPattern * groupBy * orderByElems * limitOffsets -> Query
   GraphPattern         : Nodes * Edges * Paths * Constraints -> GraphPattern
   Select               : Option(distinctOrReduced) * List(expAsVars) * groupBy * having * orderBy * limitOffsets -> Select
