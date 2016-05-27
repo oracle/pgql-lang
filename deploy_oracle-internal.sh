@@ -1,7 +1,7 @@
 #!/bin/bash
 set -e
 
-VERSION=2016.05.27-7
+VERSION=2016.05.27-10
 GROUP=oracle.pgx
 REPO=http://artifactory-slc.oraclecorp.com/artifactory/simple/labs-pgx-release-local
 REPO_ID=labs-pgx-release-local

@@ -94,13 +94,13 @@ public class SpoofaxAstToQueryGraph {
 
     // paths
     IStrategoTerm pathsT = getList(graphPatternT.getSubterm(POS_PATHS));
-    Set<QueryPath> paths = getPaths(pathsT, pathPatternMap);
+    Set<QueryPath> paths = getPaths(pathsT, pathPatternMap, varmap);
 
     // connections
     Set<VertexPairConnection> connections = new HashSet<>();
     connections.addAll(edges);
     connections.addAll(paths);
-    
+
     // constraints
     IStrategoTerm constraintsT = getList(graphPatternT.getSubterm(POS_CONSTRAINTS));
     Set<QueryExpression> constraints = getQueryExpressions(constraintsT, varmap);
@@ -179,8 +179,8 @@ public class SpoofaxAstToQueryGraph {
     return edges;
   }
 
-  private static Set<QueryPath> getPaths(IStrategoTerm pathsT, Map<String, IStrategoTerm> pathPatternMap)
-      throws PgqlException {
+  private static Set<QueryPath> getPaths(IStrategoTerm pathsT, Map<String, IStrategoTerm> pathPatternMap,
+      Map<String, QueryVariable> varmap) throws PgqlException {
     Set<QueryPath> result = new HashSet<>();
 
     // for now, assume every RPQ has a Kleene star and that there is no nested Kleene star
@@ -191,23 +191,21 @@ public class SpoofaxAstToQueryGraph {
 
       // vertices
       IStrategoTerm verticesT = getList(pathPatternT.getSubterm(POS_PATH_PATTERN_VERTICES));
-      Map<String, QueryVariable> varmap = new HashMap<>(); // map from variable name to variable
-      Set<QueryVertex> vertices = getQueryVertices(verticesT, varmap);
+      Map<String, QueryVariable> pathPatternVarmap = new HashMap<>(); // map from variable name to variable
+      Set<QueryVertex> vertices = getQueryVertices(verticesT, pathPatternVarmap);
 
       // edges
       IStrategoTerm edgesT = getList(pathPatternT.getSubterm(POS_PATH_PATTERN_CONNECTIONS));
-      List<QueryEdge> edges = getQueryEdges(edgesT, varmap);
+      List<QueryEdge> edges = getQueryEdges(edgesT, pathPatternVarmap);
       List<VertexPairConnection> connections = new ArrayList<>();
       connections.addAll(edges);
 
       // constraints
       IStrategoTerm constraintsT = getList(pathPatternT.getSubterm(POS_PATH_PATTERN_CONSTRAINTS));
-      Set<QueryExpression> constraints = getQueryExpressions(constraintsT, varmap);
+      Set<QueryExpression> constraints = getQueryExpressions(constraintsT, pathPatternVarmap);
 
       String srcName = getString(pathT.getSubterm(POS_PATH_SRC));
       String dstName = getString(pathT.getSubterm(POS_PATH_DST));
-      System.out.println(pathT.getSubterm(POS_PATH_NAME));
-      System.out.println(pathT);
       String name = getString(pathT.getSubterm(POS_PATH_NAME));
       QueryVertex src = (QueryVertex) varmap.get(srcName);
       QueryVertex dst = (QueryVertex) varmap.get(dstName);
