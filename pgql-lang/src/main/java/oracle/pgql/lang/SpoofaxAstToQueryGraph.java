@@ -39,6 +39,11 @@ public class SpoofaxAstToQueryGraph {
   private static final int POS_ORDERBY = 5;
   private static final int POS_LIMITOFFSET = 6;
   
+  private static final int POS_PATH_PATTERN_NAME = 0;
+  private static final int POS_PATH_PATTERN_NODES = 1;  
+  private static final int POS_PATH_PATTERN_CONNECTIONS = 2;  
+  private static final int POS_PATH_PATTERN_CONSTRAINTS = 3; 
+  
   private static final int POS_NODES = 0;
   private static final int POS_EDGES = 1;
   private static final int POS_PATHS = 2;

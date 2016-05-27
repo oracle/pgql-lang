@@ -26,10 +26,8 @@ binding rules
   Edge(_, e, _):
     defines unique Var e of type EdgeTy()
 
-  Path(_, _, _, _, Some(p)):
+  Path(_, _, pathPattern, _, p):
     defines unique Var p of type PathTy()
-
-  Path(_, _, pathPattern, _, _):
     refers to PathPattern pathPattern
 
   // Note 1: SelectVar is non-unique because we already do the uniqueness test using Var

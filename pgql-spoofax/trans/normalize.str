@@ -26,7 +26,7 @@ rules
         );
         alltd(norm-string);
         alltd(norm-has-prop);
-        alltd(name-unnamed-nodes-and-edges(|c));
+        alltd(name-unnamed-elems(|c));
         alltd(norm-inlined-references);
         bottomup(try(
            norm-matchElems
@@ -55,23 +55,22 @@ rules
   
   norm-edgeContents = ?Some(EdgeContents(<id>))
   
-  name-unnamed-nodes-and-edges(|c) = ?ElemContents(None(), type, id', constraints); !ElemContents(Some(<unique-name(|c)>), type, id', constraints)
-  name-unnamed-nodes-and-edges(|c) =
-                                 OutConn(?None(); name-unnamed-nodes-and-edges-helper(|c)) +
-                                 InConn(?None(); name-unnamed-nodes-and-edges-helper(|c))
-  name-unnamed-nodes-and-edges(|c) = ?OutEdge(); !OutConn(<name-unnamed-nodes-and-edges-helper(|c)>) +
-                                 ?InEdge(); !InConn(<name-unnamed-nodes-and-edges-helper(|c)>)
-  name-unnamed-nodes-and-edges-helper(|c) = !ElemContents(Some(<unique-name(|c)> ""), None(), None(), None())
+  name-unnamed-elems(|c) = ?ElemContents(None(), type, id', constraints); !ElemContents(Some(<unique-name(|c)>), type, id', constraints)
+  name-unnamed-elems(|c) = OutConn(?None(); name-unnamed-elems-helper(|c)) +
+                           InConn(?None(); name-unnamed-elems-helper(|c))
+  name-unnamed-elems(|c) = ?OutEdge(); !OutConn(<name-unnamed-elems-helper(|c)>) +
+                           ?InEdge(); !InConn(<name-unnamed-elems-helper(|c)>) +
+                           ?Path(None(), pathPatternRef, kleeneStar); !Path(Some(<unique-name(|c)> ""), pathPatternRef, kleeneStar)
+  name-unnamed-elems-helper(|c) = !ElemContents(Some(<unique-name(|c)> ""), None(), None(), None())
   
   norm-inlined-references = ?ElemContents(Some(varName), _, _, _); alltd(norm-inlined-reference(|varName))
   norm-inlined-reference(|varName) =
-      ?Obj(dot); !VarRef(varName) +
-      (?Obj(VarRef(v), dot) + ?PropRef(VarRef(v), _));
-          if <eq> (v, varName)
-          then !ReferenceInInlinedConstraint(v)
-          else !CrossReferenceInInlinedConstraint()
-          end +
-      (?SelfPropRef(propName) + ?SelfPropRef(dot, propName)); !PropRef(VarRef(varName), propName)
+    ?Obj(dot); !VarRef(varName) + (?Obj(VarRef(v), dot) + ?PropRef(VarRef(v), _));
+    if <eq> (v, varName)
+    then !ReferenceInInlinedConstraint(v)
+    else !CrossReferenceInInlinedConstraint()
+    end +
+    (?SelfPropRef(propName) + ?SelfPropRef(dot, propName)); !PropRef(VarRef(varName), propName)
 
 rules
   
@@ -164,7 +163,7 @@ rules
       switch !edgeOrPath
         case is-string:
           expansion := Edge(src, edgeOrPath, dst)
-        case ?Some(Path(pathName, pathPatternName, kleeneStar)):
+        case ?Some(Path(Some(pathName), pathPatternName, kleeneStar)):
           expansion := Path(src, dst, pathPatternName, kleeneStar, pathName)
         otherwise: fail
       end

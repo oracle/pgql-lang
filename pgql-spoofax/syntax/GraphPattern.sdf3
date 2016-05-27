@@ -34,7 +34,7 @@ context-free syntax
   Connection.InEdge = [<-]
   
   EdgeContents.EdgeContents = <[<ElemContents>]>
-  EdgeContents.Path = <<VARNAME?>/:<PATHPATTERNNAME><KleeneStar?>/>
+  EdgeContents.Path = </<VARNAME?>:<PATHPATTERNNAME><KleeneStar?>/>
   KleeneStar.KleeneStar = <*>
 
 context-free syntax
