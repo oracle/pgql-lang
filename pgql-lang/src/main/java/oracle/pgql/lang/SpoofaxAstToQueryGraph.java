@@ -31,25 +31,26 @@ public class SpoofaxAstToQueryGraph {
 
   private static final String GENERATED_VAR_SUBSTR = "<<generated>>";
 
-  private static final int POS_SELECT = 3;
+  private static final int POS_PATH_PATTERNS = 0;
   private static final int POS_PROJECTION = 1;
-
-  private static final int POS_WHERE = 1;
+  private static final int POS_FROM = 2;
+  private static final int POS_WHERE = 3;
+  private static final int POS_GROUPBY = 4;
+  private static final int POS_ORDERBY = 5;
+  private static final int POS_LIMITOFFSET = 6;
   
   private static final int POS_NODES = 0;
   private static final int POS_EDGES = 1;
-  private static final int POS_PATH = 2;
+  private static final int POS_PATHS = 2;
   private static final int POS_CONSTRAINTS = 3;
   
   private static final int POS_EDGE_NAME = 1;
   private static final int POS_EDGE_SRC = 0;
   private static final int POS_EDGE_DST = 2;
 
-  private static final int POS_GROUPBY = 2;
-  private static final int POS_ORDERBY = 4;
+
   private static final int POS_ORDERBY_EXP = 0;
   private static final int POS_ORDERBY_ORDERING = 1;
-  private static final int POS_LIMITOFFSET = 5;
   private static final int POS_LIMIT = 0;
   private static final int POS_OFFSET = 1;
 
@@ -80,27 +81,26 @@ public class SpoofaxAstToQueryGraph {
     IStrategoTerm constraintsT = getList(graphPatternT.getSubterm(POS_CONSTRAINTS));
     Set<QueryExpression> constraints = getQueryExpressions(constraintsT, varmap);
 
-    IStrategoTerm selectT = ast.getSubterm(POS_SELECT);
     GraphPattern graphPattern = new GraphPattern(vertices, edges, Collections.<PathPattern>emptySet(),
         constraints);
 
     // GROUP BY
-    IStrategoTerm groupByT = selectT.getSubterm(POS_GROUPBY);
+    IStrategoTerm groupByT = ast.getSubterm(POS_GROUPBY);
     List<ExpAsVar> groupByElems = getGroupByElems(varmap, groupByT);
     GroupBy groupBy = new GroupBy(groupByElems);
 
     // SELECT
-    IStrategoTerm projectionT = selectT.getSubterm(POS_PROJECTION);
+    IStrategoTerm projectionT = ast.getSubterm(POS_PROJECTION);
     List<ExpAsVar> selectElems = getSelectElems(varmap, projectionT);
     Projection projection = new Projection(selectElems);
 
     // ORDER BY
-    IStrategoTerm orderByT = selectT.getSubterm(POS_ORDERBY);
+    IStrategoTerm orderByT = ast.getSubterm(POS_ORDERBY);
     List<OrderByElem> orderByElems = getOrderByElems(varmap, orderByT);
     OrderBy orderBy = new OrderBy(orderByElems);
 
     // LIMIT OFFSET
-    IStrategoTerm limitOffsetT = selectT.getSubterm(POS_LIMITOFFSET);
+    IStrategoTerm limitOffsetT = ast.getSubterm(POS_LIMITOFFSET);
     long limit = getLimitOrOffset(limitOffsetT.getSubterm(POS_LIMIT));
     long offset = getLimitOrOffset(limitOffsetT.getSubterm(POS_OFFSET));
 

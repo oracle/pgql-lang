@@ -83,7 +83,7 @@ rules
       inlined-constraints-for-edges := <collect-om(?OutConn(<id>) + ?InConn(<id>)); filter(get-inlined-constraints(|"edge")); concat> paths;
       non-inlined-constraints := <filter(?Constraint(<id>))> elems;
       constraints := <conc; flatten-list; !Constraints(<id>)> (inlined-constraints-for-nodes, inlined-constraints-for-edges, non-inlined-constraints);
-      paths' := <alltd(?ElemContents(Some(<id>), None(), None(), None()))> paths;
+      paths' := <alltd(?ElemContents(Some(<id>), _, _, _))> paths;
       nodes := <collect-om(?Node(_)); !Nodes(<id>)> paths';
       connections := <get-edges> paths';
       edges := <filter(?Edge(_, _, _)); !Edges(<id>)> connections;
@@ -169,7 +169,7 @@ rules
 rules
   
   norm-query(|c):
-    Query(pathPatterns, SelectClause(distinctOrReduced, selectElems), graphName, graphPattern, SolutionModifier(ungroupAs, groupBy, having, orderBy, limitOffsets)) -> Query(graphName, graphPattern, None(), select)
+    Query(pathPatterns, SelectClause(distinctOrReduced, selectElems), graphName, graphPattern, SolutionModifier(ungroupAs, groupBy, having, orderBy, limitOffsets)) -> Query(pathPatterns, projection', graphName, graphPattern, groupBy', orderByElems, limitOffsets')
     with
       expAsGroupVars := <?Some(GroupClause(<id>)) <+ ![]> groupBy;
       expAsGroupVars' := <map(norm-expAsGroupVar(|c))> expAsGroupVars;
@@ -183,8 +183,7 @@ rules
       allExpAsVars := <conc> (<remove-all(?ExpAsVar(_, <id>); not(is-aggregate))> expAsSelectVars', expAsGroupVars');
       orderByElems := <try(norm-orderBy(|allExpAsVars))> orderBy;
 
-      limitOffsets' := <norm-limitOffsets> limitOffsets;
-      select := Select(distinctOrReduced, projection', groupBy', having, orderByElems, limitOffsets')
+      limitOffsets' := <norm-limitOffsets> limitOffsets
   
   norm-select-star(|graphPattern, group-exps):
     Star() -> expAsSelectVars

@@ -20,8 +20,8 @@ rules
 
   // if there is a GROUP BY or aggregation in SELECT then all variables in the SELECT need to be group keys or need to be inside aggregates
   trans-for-nabl-grouping:
-    Query(fromClause, graphPattern, matchOrderHint, Select(distinctOrReduced, expAsVars, groupBy, having, orderBy, limitOffsets)) ->
-    Query(fromClause, graphPattern, matchOrderHint, Select(distinctOrReduced, expAsVars', groupBy', having, orderBy', limitOffsets))
+    Query(pathPatterns, expAsVars, fromClause, graphPattern, groupBy, orderBy, limitOffsets) ->
+    Query(pathPatterns, expAsVars', fromClause, graphPattern, groupBy', orderBy', limitOffsets)
     where
       (!groupBy; ?Some(_)) + (!expAsVars; oncetd(is-aggregate))
     with

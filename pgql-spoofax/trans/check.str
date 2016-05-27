@@ -67,7 +67,7 @@ rules
   not-supported-expressions-in-aggregration = collect-om(get-exp-from-aggregation, conc); filter(is-expression <+ is-literal)
   
   nabl-constraint(|ctx):
-    Query(_, _, _, Select(_, Vars(vars), groupClause, _, Some(orderClause), _)) -> <fail>
+    Query(_, Vars(vars), _, _, groupClause, Some(orderClause), _) -> <fail>
     where
       None() := groupClause;
       [] := <collect(is-aggregate)> vars // there are no aggregations in the SELECT
@@ -76,7 +76,7 @@ rules
       <batch-generate-error(|ctx, "Aggregation in ORDER BY only allowed if SELECT constains aggregations, or, in combination with GROUP BY")> aggregations
 
   nabl-constraint(|ctx):
-    Query(_, _, _, Select(_, Vars(select-exps), group-by, _, order-by, _)) -> <fail>
+    Query(_, Vars(select-exps), _, _, group-by, order-by, _) -> <fail>
     with group-refs := <collect-om(?GroupRef(<id>), conc)> select-exps
     	 ; select-or-group-refs := <collect-om(?SelectOrGroupRef(<id>), conc)> order-by
     	 ; if None() := group-by
@@ -235,9 +235,10 @@ rules // cross-constraints involving paths
 rules // Not a connected graph, e.g. WHERE x -> y, x2 -> y2
   
   nabl-constraint(|ctx):
-    GraphPattern(Nodes(nodes), Edges(edges), _, _) -> <fail>
+    GraphPattern(Nodes(nodes), Edges(edges), Paths(paths), _) -> <fail>
     where
-      sorted-partitions := <strip-annos; partition(|edges); reverse; qsort(length-gt)> nodes;
+      connections := <conc> (edges, paths);
+      sorted-partitions := <strip-annos; partition(|connections); reverse; qsort(length-gt)> nodes;
       biggest-partition := <Hd> sorted-partitions;
       other-partitions := <Tl> sorted-partitions
     with
@@ -248,11 +249,11 @@ rules // Not a connected graph, e.g. WHERE x -> y, x2 -> y2
     with
       if 1 := <length> biggest-partition
       then
-        m := $[Node [<Hd> other-partition] is not connected to node [<Hd> biggest-partition]]
+        m := $[Vertex [<Hd> other-partition] is not connected to vertex [<Hd> biggest-partition]]
       else
         if 1 := <length> other-partition
-        then m := $[Node [<Hd> other-partition] is not connected to nodes [<print-nodes> biggest-partition]]
-        else m := $[Nodes [<print-nodes> other-partition] are not connected to nodes [<print-nodes> biggest-partition]]
+        then m := $[Vertex [<Hd> other-partition] is not connected to vertices [<print-nodes> biggest-partition]]
+        else m := $[Vertices [<print-nodes> other-partition] are not connected to vertices [<print-nodes> biggest-partition]]
         end
       end;
       <generate-error(|ctx, m)> other-partition
@@ -261,7 +262,7 @@ rules // Not a connected graph, e.g. WHERE x -> y, x2 -> y2
 
   length-gt = ?(l1, l2); !(<length> l1, <length> (l2)); gt
 
-  partition(|edges):
+  partition(|connections):
     nodes -> partitions
     with
       nodes' := <map(?Node(<id>))> nodes;
@@ -269,11 +270,11 @@ rules // Not a connected graph, e.g. WHERE x -> y, x2 -> y2
       then
         partitions := []
       else
-        someNode := <Hd; get-reachable-nodes(|edges)> nodes';
-        partitions := <partition-helper(|nodes', edges)> [someNode]
+        someNode := <Hd; get-reachable-nodes(|connections)> nodes';
+        partitions := <partition-helper(|nodes', connections)> [someNode]
       end
       
-  partition-helper(|nodes, edges):
+  partition-helper(|nodes, connections):
     partitions -> partitions'
     with
       covered := <concat> partitions;
@@ -282,24 +283,24 @@ rules // Not a connected graph, e.g. WHERE x -> y, x2 -> y2
       then
         partitions' := partitions
       else
-        partition := <Hd; get-reachable-nodes(|edges)> uncovered;
-        partitions' := <partition-helper(|nodes, edges)> [partition|partitions]
+        partition := <Hd; get-reachable-nodes(|connections)> uncovered;
+        partitions' := <partition-helper(|nodes, connections)> [partition|partitions]
       end
 
-  get-reachable-nodes(|edges):
+  get-reachable-nodes(|connections):
     x -> result
     with
       nodes := <is-list <+ ![<id>]> x;
-      nodes' := <map(get-reachable-nodes-helper(|edges));  concat; make-set> nodes;
+      nodes' := <map(get-reachable-nodes-helper(|connections));  concat; make-set> nodes;
       if <eq> (<length> nodes, <length> nodes')
       then result := nodes'
-      else result := <get-reachable-nodes(|edges)> nodes'
+      else result := <get-reachable-nodes(|connections)> nodes'
       end
 
-  get-reachable-nodes-helper(|edges):
+  get-reachable-nodes-helper(|connections):
     node -> result
     with
-      outNeighbors := <filter(?Edge(node, _, <id>))> edges;
-      inNeighbors := <filter(?Edge(<id>, _, node))> edges;
+      outNeighbors := <filter(?Edge(node, _, <id>) + ?Path(node, <id>, _, _, _))> connections;
+      inNeighbors := <filter(?Edge(<id>, _, node) + ?Path(<id>, node, _, _, _))> connections;
       result := <conc> (outNeighbors, inNeighbors, [node])
 
