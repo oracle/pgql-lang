@@ -5,35 +5,44 @@ import java.util.Set;
 
 public class QueryPath extends VertexPairConnection {
 
-  private final Set<QueryVertex> vertices;
+  public enum Direction {
+    OUTGOING,
+    INCOMING
+  }
+
+  private final List<QueryVertex> vertices;
 
   private final List<VertexPairConnection> connections;
+
+  private final List<Direction> directions;
 
   private final Set<QueryExpression> constraints;
 
   /**
    * Reachability query
    */
-  public QueryPath(QueryVertex src, QueryVertex dst, Set<QueryVertex> vertices,
-      List<VertexPairConnection> connections, Set<QueryExpression> constraints) {
+  public QueryPath(QueryVertex src, QueryVertex dst, List<QueryVertex> vertices, List<VertexPairConnection> connections, List<Direction> directions,
+      Set<QueryExpression> constraints) {
     super(src, dst);
     this.vertices = vertices;
     this.connections = connections;
+    this.directions = directions;
     this.constraints = constraints;
   }
 
   /**
    * Path finding query
    */
-  public QueryPath(QueryVertex src, QueryVertex dst, Set<QueryVertex> vertices,
-      List<VertexPairConnection> connections, Set<QueryExpression> constraints, String name) {
+  public QueryPath(QueryVertex src, QueryVertex dst, List<QueryVertex> vertices, List<VertexPairConnection> connections, List<Direction> directions,
+      Set<QueryExpression> constraints, String name) {
     super(src, dst, name);
     this.vertices = vertices;
     this.connections = connections;
+    this.directions = directions;
     this.constraints = constraints;
   }
 
-  public Set<QueryVertex> getVertices() {
+  public List<QueryVertex> getVertices() {
     return vertices;
   }
 
@@ -41,6 +50,10 @@ public class QueryPath extends VertexPairConnection {
     return connections;
   }
   
+  public List<Direction> getDirection() {
+    return directions;
+  }
+
   public Set<QueryExpression> getConstraints() {
     return constraints;
   }

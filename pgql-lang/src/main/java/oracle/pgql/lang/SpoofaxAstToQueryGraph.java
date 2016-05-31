@@ -6,6 +6,7 @@ package oracle.pgql.lang;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -21,6 +22,7 @@ import oracle.pgql.lang.ir.GroupBy;
 import oracle.pgql.lang.ir.OrderBy;
 import oracle.pgql.lang.ir.QueryVertex;
 import oracle.pgql.lang.ir.VertexPairConnection;
+import oracle.pgql.lang.ir.QueryPath.Direction;
 import oracle.pgql.lang.ir.QueryPath;
 import oracle.pgql.lang.ir.QueryVariable;
 import org.spoofax.interpreter.terms.IStrategoAppl;
@@ -192,8 +194,9 @@ public class SpoofaxAstToQueryGraph {
       // vertices
       IStrategoTerm verticesT = getList(pathPatternT.getSubterm(POS_PATH_PATTERN_VERTICES));
       Map<String, QueryVariable> pathPatternVarmap = new HashMap<>(); // map from variable name to variable
-      Set<QueryVertex> vertices = getQueryVertices(verticesT, pathPatternVarmap);
-
+      Set<QueryVertex> verticesSet = getQueryVertices(verticesT, pathPatternVarmap);
+      List<QueryVertex> verticesList = new ArrayList<>(verticesSet);
+      
       // edges
       IStrategoTerm edgesT = getList(pathPatternT.getSubterm(POS_PATH_PATTERN_CONNECTIONS));
       List<QueryEdge> edges = getQueryEdges(edgesT, pathPatternVarmap);
@@ -209,10 +212,20 @@ public class SpoofaxAstToQueryGraph {
       String name = getString(pathT.getSubterm(POS_PATH_NAME));
       QueryVertex src = (QueryVertex) varmap.get(srcName);
       QueryVertex dst = (QueryVertex) varmap.get(dstName);
+      
+      List<Direction> directions = new ArrayList<Direction>();
+      Iterator<QueryVertex> it = verticesList.iterator();
+      for (VertexPairConnection connection : connections) {
+        if (connection.getSrc() == it.next()) {
+          directions.add(Direction.OUTGOING);
+        } else {
+          directions.add(Direction.INCOMING);
+        }
+      }
 
       QueryPath pathPattern = name.contains(GENERATED_VAR_SUBSTR)
-          ? new QueryPath(src, dst, vertices, connections, constraints)
-          : new QueryPath(src, dst, vertices, connections, constraints, name);
+          ? new QueryPath(src, dst, verticesList, connections, directions, constraints)
+          : new QueryPath(src, dst, verticesList, connections, directions, constraints, name);
 
       result.add(pathPattern);
     }
