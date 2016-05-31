@@ -4,7 +4,7 @@
   <modelVersion>4.0.0</modelVersion>
   <groupId>oracle.pgx</groupId>
   <artifactId>graph-query-ir</artifactId>
-  <version>2016.05.31</version>
+  <version>0.9-SNAPSHOT</version>
   <packaging>jar</packaging>
   <distributionManagement>
     <repository>
