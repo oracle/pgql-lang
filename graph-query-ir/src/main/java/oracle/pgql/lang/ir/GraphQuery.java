@@ -56,7 +56,7 @@ public class GraphQuery {
 
   @Override
   public String toString() {
-    String result = projection + "\n" + graphPattern;
+    String result = graphPattern.printPathPatterns() + projection + "\n" + graphPattern;
     if (groupBy.getElements().isEmpty() == false) {
       result += "\n" + groupBy;
     }

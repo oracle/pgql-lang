@@ -95,7 +95,7 @@ rules
       inlined-constraints-for-edges := <collect-om(?OutConn(<id>) + ?InConn(<id>)); filter(get-inlined-constraints(|"edge")); concat> path;
       constraints := <conc; flatten-list; !Constraints(<id>)> (inlined-constraints-for-nodes, inlined-constraints-for-edges);
       path' := <alltd(?ElemContents(Some(<id>), _, _, _))> path;
-      nodes := <collect-om(?Node(_)); !Nodes(<id>)> path';
+      nodes := <collect-om(?Node(_), conc); !Nodes(<id>)> path';
       connections := <get-edges> [path']
   
   get-inlined-constraints(|nodeOrEdge):
