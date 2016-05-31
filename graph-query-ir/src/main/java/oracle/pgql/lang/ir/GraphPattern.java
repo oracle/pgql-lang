@@ -62,7 +62,8 @@ public class GraphPattern {
         result += vertexStrings.get(edge.getSrc());
         vertexStrings.remove(edge.getSrc());
       } else {
-        result += edge.isAnonymous() ? "()" : edge.getSrc().name;
+        QueryVertex src = edge.getSrc();
+        result += src.isAnonymous() ? "()" : src.name;
       }
       result += " -[";
       result += toStringHelperForInlinedConstraints(constraints, edge);
@@ -71,7 +72,8 @@ public class GraphPattern {
         result += vertexStrings.get(edge.getDst());
         vertexStrings.remove(edge.getDst());
       } else {
-        result += edge.isAnonymous() ? "()" : edge.getDst().name;
+        QueryVertex dst = edge.getDst();
+        result += dst.isAnonymous() ? "()" : dst.name;
       }
       if (it2.hasNext()) {
         result += ",\n";
