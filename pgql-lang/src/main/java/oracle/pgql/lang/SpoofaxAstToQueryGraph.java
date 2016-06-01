@@ -195,8 +195,6 @@ public class SpoofaxAstToQueryGraph {
       IStrategoTerm verticesT = getList(pathPatternT.getSubterm(POS_PATH_PATTERN_VERTICES));
       Map<String, QueryVariable> pathPatternVarmap = new HashMap<>(); // map from variable name to variable
       List<QueryVertex> vertices = getQueryVertices(verticesT, pathPatternVarmap);
-      System.out.println(verticesT);
-      System.out.println(vertices);
 
       // edges
       IStrategoTerm edgesT = getList(pathPatternT.getSubterm(POS_PATH_PATTERN_CONNECTIONS));
