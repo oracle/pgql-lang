@@ -6,7 +6,6 @@ package oracle.pgql.lang;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
-import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -89,7 +88,7 @@ public class SpoofaxAstToQueryGraph {
     // vertices
     IStrategoTerm verticesT = getList(graphPatternT.getSubterm(POS_VERTICES));
     Map<String, QueryVariable> varmap = new HashMap<>(); // map from variable name to variable
-    Set<QueryVertex> vertices = getQueryVertices(verticesT, varmap);
+    Set<QueryVertex> vertices = new HashSet<>(getQueryVertices(verticesT, varmap));
 
     // edges
     IStrategoTerm edgesT = getList(graphPatternT.getSubterm(POS_EDGES));
@@ -143,8 +142,8 @@ public class SpoofaxAstToQueryGraph {
     return result;
   }
 
-  private static Set<QueryVertex> getQueryVertices(IStrategoTerm verticesT, Map<String, QueryVariable> varmap) {
-    Set<QueryVertex> vertices = new HashSet<>(verticesT.getSubtermCount());
+  private static List<QueryVertex> getQueryVertices(IStrategoTerm verticesT, Map<String, QueryVariable> varmap) {
+    List<QueryVertex> vertices = new ArrayList<>(verticesT.getSubtermCount());
     for (IStrategoTerm vertexT : verticesT) {
       String vertexName = getString(vertexT);
       QueryVertex vertex = vertexName.contains(GENERATED_VAR_SUBSTR) ? new QueryVertex() : new QueryVertex(vertexName);
@@ -195,8 +194,9 @@ public class SpoofaxAstToQueryGraph {
       // vertices
       IStrategoTerm verticesT = getList(pathPatternT.getSubterm(POS_PATH_PATTERN_VERTICES));
       Map<String, QueryVariable> pathPatternVarmap = new HashMap<>(); // map from variable name to variable
-      Set<QueryVertex> verticesSet = getQueryVertices(verticesT, pathPatternVarmap);
-      List<QueryVertex> verticesList = new ArrayList<>(verticesSet);
+      List<QueryVertex> vertices = getQueryVertices(verticesT, pathPatternVarmap);
+      System.out.println(verticesT);
+      System.out.println(vertices);
 
       // edges
       IStrategoTerm edgesT = getList(pathPatternT.getSubterm(POS_PATH_PATTERN_CONNECTIONS));
@@ -222,8 +222,8 @@ public class SpoofaxAstToQueryGraph {
       }
 
       QueryPath pathPattern = name.contains(GENERATED_VAR_SUBSTR)
-          ? new QueryPath(src, dst, verticesList, connections, directions, constraints)
-          : new QueryPath(src, dst, verticesList, connections, directions, constraints, name);
+          ? new QueryPath(src, dst, vertices, connections, directions, constraints)
+          : new QueryPath(src, dst, vertices, connections, directions, constraints, name);
 
       result.add(pathPattern);
     }
