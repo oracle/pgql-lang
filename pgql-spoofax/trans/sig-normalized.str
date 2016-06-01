@@ -14,13 +14,12 @@ signature constructors
   Nodes                : List(Node) -> Nodes
   Node                 : Var -> Node
   Edges                : List(Edge) -> Edges
-  Edge                 : src * name * dst -> Edge
+  Edge                 : src * name * dst * Direction -> Edge
   Paths                : List(Path) -> Paths
   Path                 : src * dst * pathPatternName * kleeneStar * pathName -> Path
   Constraints          : List(Exp) -> Constraints
-  In                   : EdgeDir
-  Out                  : EdgeDir
-  NoDir                : EdgeDir
+  Incoming             : Direction
+  Outgoing             : Direction
 
   Vars                 : List(Var) -> Vars
   ExpAsVar             : VarDef * Exp -> ExpAsVar

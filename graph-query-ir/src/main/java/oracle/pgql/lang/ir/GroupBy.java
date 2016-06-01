@@ -1,7 +1,8 @@
 package oracle.pgql.lang.ir;
 
-import java.util.Iterator;
 import java.util.List;
+
+import static oracle.pgql.lang.ir.PgqlUtils.printPgqlString;
 
 public class GroupBy {
 
@@ -17,14 +18,6 @@ public class GroupBy {
   
   @Override
   public String toString() {
-    String result = "GROUP BY ";
-    Iterator<ExpAsVar> it = elements.iterator();
-    while (it.hasNext()) {
-      result += it.next();
-      if (it.hasNext()) {
-        result += ", ";
-      }
-    }
-    return result;
+    return printPgqlString(this);
   }
 }

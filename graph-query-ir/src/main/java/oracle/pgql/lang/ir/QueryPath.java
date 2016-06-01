@@ -50,7 +50,7 @@ public class QueryPath extends VertexPairConnection {
     return connections;
   }
   
-  public List<Direction> getDirection() {
+  public List<Direction> getDirections() {
     return directions;
   }
 

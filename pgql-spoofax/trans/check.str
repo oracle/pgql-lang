@@ -30,7 +30,7 @@ rules // Unresolved/duplicate variables
       <generate-error-on-duplicate(|ctx, NablNsVar(), "Duplicate variable definition")> v
 
   nabl-constraint(|ctx):
-    Edge(_, e, _) -> <fail>
+    Edge(_, e, _, _) -> <fail>
     where
       <generate-error-on-duplicate(|ctx, NablNsVar(), "Duplicate edge variable")> e
 
@@ -305,7 +305,7 @@ rules // Not a connected graph, e.g. WHERE x -> y, x2 -> y2
   get-reachable-nodes-helper(|connections):
     node -> result
     with
-      outNeighbors := <filter(?Edge(node, _, <id>) + ?Path(node, <id>, _, _, _))> connections;
-      inNeighbors := <filter(?Edge(<id>, _, node) + ?Path(<id>, node, _, _, _))> connections;
+      outNeighbors := <filter(?Edge(node, _, <id>, _) + ?Path(node, <id>, _, _, _))> connections;
+      inNeighbors := <filter(?Edge(<id>, _, node, _) + ?Path(<id>, node, _, _, _))> connections;
       result := <conc> (outNeighbors, inNeighbors, [node])
 

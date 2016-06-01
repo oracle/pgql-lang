@@ -3,6 +3,8 @@
  */
 package oracle.pgql.lang.ir;
 
+import static oracle.pgql.lang.ir.PgqlUtils.printPgqlString;
+
 public class ExpAsVar extends QueryVariable {
 
   private final QueryExpression exp;
@@ -24,7 +26,7 @@ public class ExpAsVar extends QueryVariable {
   
   @Override
   public String toString() {
-    return anonymous ? exp.toString() : exp + " AS " + name;
+    return printPgqlString(this);
   }
 
   @Override

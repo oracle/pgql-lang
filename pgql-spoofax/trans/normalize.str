@@ -85,7 +85,7 @@ rules
       paths' := <alltd(?ElemContents(Some(<id>), _, _, _))> paths;
       nodes := <collect-om(?Node(_)); !Nodes(<id>)> paths';
       connections := <get-edges> paths';
-      edges := <filter(?Edge(_, _, _)); !Edges(<id>)> connections;
+      edges := <filter(?Edge(_, _, _, _)); !Edges(<id>)> connections;
       paths'' := <filter(?Path(_, _, _, _, _)); !Paths(<id>)> connections
   
   norm-path-pattern:
@@ -154,15 +154,17 @@ rules
       switch !e
         case ?OutConn(edgeOrPath):
           src := n1;
-          dst := n2
+          dst := n2;
+          dir := Outgoing()
         case ?InConn(edgeOrPath):
           src := n2;
-          dst := n1
+          dst := n1;
+          dir := Incoming()
         otherwise: fail
       end;
       switch !edgeOrPath
         case is-string:
-          expansion := Edge(src, edgeOrPath, dst)
+          expansion := Edge(src, edgeOrPath, dst, dir)
         case ?Some(Path(Some(pathName), pathPatternName, kleeneStar)):
           expansion := Path(src, dst, pathPatternName, kleeneStar, pathName)
         otherwise: fail
@@ -199,7 +201,7 @@ rules
   norm-select-star(|graphPattern, group-exps):
     Star() -> expAsSelectVars
     with if [] := group-exps
-           then vars := <collect((?Node(<id>) + ?Edge(_, <id>, _)); not(is-substring(GENERATED)))> graphPattern
+           then vars := <collect((?Node(<id>) + ?Edge(_, <id>, _, _)); not(is-substring(GENERATED)))> graphPattern
            else vars := <map(?ExpAsVar(<id>, _))> group-exps
          end
        ; expAsSelectVars := <map(!ExpAsVar(VarRef(<id>), None()))> vars

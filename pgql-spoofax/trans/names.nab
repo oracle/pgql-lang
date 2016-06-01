@@ -23,7 +23,7 @@ binding rules
   Node(n):
     defines non-unique Var n of type NodeTy()
 
-  Edge(_, e, _):
+  Edge(_, e, _, _):
     defines unique Var e of type EdgeTy()
 
   Path(_, _, pathPattern, _, p):

@@ -3,6 +3,8 @@
  */
 package oracle.pgql.lang.ir;
 
+import static oracle.pgql.lang.ir.PgqlUtils.printPgqlString;
+
 public class OrderByElem {
 
   private final QueryExpression exp;
@@ -24,6 +26,6 @@ public class OrderByElem {
 
   @Override
   public String toString() {
-    return (ascending ? "ASC" : "DESC") + "(" + exp + ")";
+    return printPgqlString(this);
   }
 }

@@ -1,7 +1,8 @@
 package oracle.pgql.lang.ir;
 
-import java.util.Iterator;
 import java.util.List;
+
+import static oracle.pgql.lang.ir.PgqlUtils.printPgqlString;
 
 public class Projection {
 
@@ -17,18 +18,6 @@ public class Projection {
 
   @Override
   public String toString() {
-    String result = "SELECT ";
-    if (elements.isEmpty()) {
-      result += "*";
-    } else {
-      Iterator<ExpAsVar> it = elements.iterator();
-      while (it.hasNext()) {
-        result += it.next();
-        if (it.hasNext()) {
-          result += ", ";
-        }
-      }
-    }
-    return result;
+    return printPgqlString(this);
   }
 }

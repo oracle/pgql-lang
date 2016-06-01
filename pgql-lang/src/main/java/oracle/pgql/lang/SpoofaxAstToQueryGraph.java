@@ -54,6 +54,7 @@ public class SpoofaxAstToQueryGraph {
   private static final int POS_EDGE_SRC = 0;
   private static final int POS_EDGE_DST = 2;
   private static final int POS_EDGE_NAME = 1;
+  private static final int POS_EDGE_DIRECTION = 3;
 
   private static final int POS_PATH_SRC = 0;
   private static final int POS_PATH_DST = 1;
@@ -196,7 +197,7 @@ public class SpoofaxAstToQueryGraph {
       Map<String, QueryVariable> pathPatternVarmap = new HashMap<>(); // map from variable name to variable
       Set<QueryVertex> verticesSet = getQueryVertices(verticesT, pathPatternVarmap);
       List<QueryVertex> verticesList = new ArrayList<>(verticesSet);
-      
+
       // edges
       IStrategoTerm edgesT = getList(pathPatternT.getSubterm(POS_PATH_PATTERN_CONNECTIONS));
       List<QueryEdge> edges = getQueryEdges(edgesT, pathPatternVarmap);
@@ -212,15 +213,12 @@ public class SpoofaxAstToQueryGraph {
       String name = getString(pathT.getSubterm(POS_PATH_NAME));
       QueryVertex src = (QueryVertex) varmap.get(srcName);
       QueryVertex dst = (QueryVertex) varmap.get(dstName);
-      
+
       List<Direction> directions = new ArrayList<Direction>();
-      Iterator<QueryVertex> it = verticesList.iterator();
-      for (VertexPairConnection connection : connections) {
-        if (connection.getSrc() == it.next()) {
-          directions.add(Direction.OUTGOING);
-        } else {
-          directions.add(Direction.INCOMING);
-        }
+      for (IStrategoTerm edgeT : edgesT) {
+        Direction direction = ((IStrategoAppl) edgeT.getSubterm(POS_EDGE_DIRECTION)).getConstructor().getName()
+            .equals("Outgoing") ? Direction.OUTGOING : Direction.INCOMING;
+        directions.add(direction);
       }
 
       QueryPath pathPattern = name.contains(GENERATED_VAR_SUBSTR)

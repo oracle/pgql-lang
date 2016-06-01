@@ -3,6 +3,8 @@
  */
 package oracle.pgql.lang.ir;
 
+import static oracle.pgql.lang.ir.PgqlUtils.printPgqlString;
+
 public class GraphQuery {
 
   private final Projection projection;
@@ -56,19 +58,6 @@ public class GraphQuery {
 
   @Override
   public String toString() {
-    String result = graphPattern.printPathPatterns() + projection + "\n" + graphPattern;
-    if (groupBy.getElements().isEmpty() == false) {
-      result += "\n" + groupBy;
-    }
-    if (orderBy.getElements().isEmpty() == false) {
-      result += "\n" + orderBy;
-    }
-    if (limit > -1) {
-      result += "\nLIMIT " + limit;
-    }
-    if (offset > -1) {
-      result += "\nOFFSET " + offset;
-    }
-    return result;
+    return printPgqlString(this);
   }
 }

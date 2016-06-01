@@ -1,6 +1,10 @@
 package oracle.pgql.lang.ir;
 
+import java.util.Collection;
+import java.util.HashMap;
 import java.util.HashSet;
+import java.util.Iterator;
+import java.util.Map;
 import java.util.Set;
 
 import oracle.pgql.lang.ir.QueryExpression.ConstNull;
@@ -39,11 +43,14 @@ import oracle.pgql.lang.ir.QueryExpression.RelationalExpression.GreaterEqual;
 import oracle.pgql.lang.ir.QueryExpression.RelationalExpression.Less;
 import oracle.pgql.lang.ir.QueryExpression.RelationalExpression.LessEqual;
 import oracle.pgql.lang.ir.QueryExpression.RelationalExpression.NotEqual;
+import oracle.pgql.lang.ir.QueryPath.Direction;
+import oracle.pgql.lang.ir.QueryVariable.VariableType;
 
 public class PgqlUtils {
 
   /**
-   * @param exp a query expression
+   * @param exp
+   *          a query expression
    * @return the set of variables used in the query expression
    */
   public static Set<QueryVariable> getVariables(QueryExpression exp) {
@@ -243,4 +250,235 @@ public class PgqlUtils {
     return result;
   }
 
+  public static String printPgqlString(GraphQuery graphQuery) {
+    GraphPattern graphPattern = graphQuery.getGraphPattern();
+    String result = printPathPatterns(graphPattern) + graphQuery.getProjection() + "\n" + graphPattern;
+    GroupBy groupBy = graphQuery.getGroupBy();
+    if (groupBy.getElements().isEmpty() == false) {
+      result += "\n" + groupBy;
+    }
+    OrderBy orderBy = graphQuery.getOrderBy();
+    if (orderBy.getElements().isEmpty() == false) {
+      result += "\n" + orderBy;
+    }
+    long limit = graphQuery.getLimit();
+    if (limit > -1) {
+      result += "\nLIMIT " + limit;
+    }
+    long offset = graphQuery.getOffset();
+    if (offset > -1) {
+      result += "\nOFFSET " + offset;
+    }
+    return result;
+  }
+  
+  public static String printPgqlString(Projection projection) {
+    String result = "SELECT ";
+    if (projection.getElements().isEmpty()) {
+      result += "*";
+    } else {
+      Iterator<ExpAsVar> it = projection.getElements().iterator();
+      while (it.hasNext()) {
+        result += it.next();
+        if (it.hasNext()) {
+          result += ", ";
+        }
+      }
+    }
+    return result;
+  }
+
+  public static String printPgqlString(ExpAsVar expAsVar) {
+    return expAsVar.isAnonymous() ? expAsVar.getExp().toString() : expAsVar.getExp() + " AS " + expAsVar.getName();
+  }
+
+  public static String printPgqlString(GraphPattern graphPattern) {
+    String result = "WHERE\n";
+
+    Set<QueryExpression> constraints = new HashSet<>(graphPattern.getConstraints());
+
+    Map<QueryVertex, String> vertexStrings = getStringsForVerticesWithInlinedConstraints(graphPattern.getVertices(),
+        constraints);
+
+    Iterator<VertexPairConnection> it2 = graphPattern.getConnections().iterator();
+    int pathCounter = 0;
+    while (it2.hasNext()) {
+      VertexPairConnection connection = it2.next();
+
+      result += "  ";
+      result += printVertex(connection.getSrc(), vertexStrings);
+
+      switch (connection.getVariableType()) {
+        case EDGE:
+          QueryEdge edge = (QueryEdge) connection;
+          result += " -[";
+          result += printInlinedConstraints(constraints, edge);
+          result += "]-> ";
+          break;
+        case PATH:
+          result += " -/:type";
+          result += pathCounter;
+          result += "*/-> ";
+          break;
+        default:
+          break;
+      }
+
+      result += printVertex(connection.getDst(), vertexStrings);
+
+      if (it2.hasNext()) {
+        result += ",\n";
+      }
+    }
+
+    if (graphPattern.getConnections().isEmpty() == false && vertexStrings.isEmpty() == false) {
+      result += ",\n";
+    }
+
+    Iterator<String> it = vertexStrings.values().iterator();
+    while (it.hasNext()) {
+      String vertexString = it.next();
+      result += vertexString;
+      if (it.hasNext()) {
+        vertexString += ",\n";
+      }
+    }
+
+    if (constraints.isEmpty() == false) {
+      result += ",\n";
+    }
+
+    Iterator<QueryExpression> it4 = constraints.iterator();
+    while (it4.hasNext()) {
+      result += "  " + it4.next();
+      if (it4.hasNext()) {
+        result += ",\n";
+      }
+    }
+    return result;
+  }
+
+  private static String printVertex(QueryVertex vertex,
+      Map<QueryVertex, String> stringForVerticesWithInlinedConstraints) {
+    if (stringForVerticesWithInlinedConstraints.containsKey(vertex)) {
+      String result = stringForVerticesWithInlinedConstraints.get(vertex);
+      stringForVerticesWithInlinedConstraints.remove(vertex);
+      return result;
+    } else {
+      return vertex.isAnonymous() ? "()" : vertex.name;
+    }
+  }
+
+  private static HashMap<QueryVertex, String> getStringsForVerticesWithInlinedConstraints(
+      Collection<QueryVertex> vertices, Set<QueryExpression> constraints) {
+    HashMap<QueryVertex, String> result = new HashMap<>();
+    for (QueryVertex vertex : vertices) {
+      String vertexString = "(";
+      vertexString += printInlinedConstraints(constraints, vertex);
+      vertexString += ")";
+      result.put(vertex, vertexString);
+    }
+    return result;
+  }
+
+  private static String printInlinedConstraints(Set<QueryExpression> constraints, QueryVariable variable) {
+    if (variable.isAnonymous() == false) {
+      return variable.name;
+    }
+
+    String result = "";
+    Set<QueryExpression> constraintsForVariable = new HashSet<>();
+    for (QueryExpression exp : constraints) {
+      Set<QueryVariable> varsInExp = PgqlUtils.getVariables(exp);
+      if (varsInExp.size() == 1 && varsInExp.contains(variable)) {
+        constraintsForVariable.add(exp);
+      }
+    }
+    if (constraintsForVariable.size() >= 1) {
+      constraints.removeAll(constraintsForVariable);
+      result += "WITH ";
+      Iterator<QueryExpression> it = constraintsForVariable.iterator();
+      while (it.hasNext()) {
+        result += it.next();
+        if (it.hasNext()) {
+          result += ", ";
+        }
+      }
+    }
+    return result;
+  }
+
+  private static String printPathPatterns(GraphPattern graphPattern) {
+    String result = "";
+    int counter = 0;
+
+    for (VertexPairConnection connection : graphPattern.getConnections()) {
+      if (connection.getVariableType() == VariableType.PATH) {
+        QueryPath path = (QueryPath) connection;
+        result += "PATH type" + counter++ + " := ";
+
+        Set<QueryExpression> constraints = new HashSet<>(path.getConstraints());
+
+        Map<QueryVertex, String> vertexStrings = getStringsForVerticesWithInlinedConstraints(path.getVertices(),
+            constraints);
+
+        Iterator<Direction> directionsIt = path.getDirections().iterator();
+        Iterator<QueryVertex> verticesIt = path.getVertices().iterator();
+
+        QueryVertex vertex = verticesIt.next();
+        result += printVertex(vertex, vertexStrings);
+        for (VertexPairConnection connection2 : path.getConnections()) {
+          Direction direction = directionsIt.next();
+
+          switch (connection2.getVariableType()) {
+            case EDGE:
+              QueryEdge edge = (QueryEdge) connection2;
+              result += direction == Direction.OUTGOING ? " -[" : " <-[";
+              result += printInlinedConstraints(constraints, edge);
+              result += direction == Direction.OUTGOING ? "]-> " : "]- ";
+              break;
+            case PATH:
+              throw new UnsupportedOperationException("nested Kleene star not yet supported");
+            default:
+              throw new UnsupportedOperationException("variable type not supported: " + connection2.getVariableType());
+          }
+
+          vertex = verticesIt.next();
+          result += printVertex(vertex, vertexStrings);
+        }
+
+        result += "\n";
+      }
+    }
+
+    return result;
+  }
+
+  public static String printPgqlString(GroupBy groupBy) {
+    String result = "GROUP BY ";
+    Iterator<ExpAsVar> it = groupBy.getElements().iterator();
+    while (it.hasNext()) {
+      result += it.next();
+      if (it.hasNext()) {
+        result += ", ";
+      }
+    }
+    return result;
+  }
+
+  public static String printPgqlString(OrderBy orderBy) {
+    String result = "ORDER BY ";
+    Iterator<OrderByElem> it = orderBy.getElements().iterator();
+    while (it.hasNext()) {
+      result += it.next();
+      if (it.hasNext()) {
+        result += ", ";
+      }
+    }
+    return result;
+  }
+
+  public static String printPgqlString(OrderByElem orderByElem) {
+    return (orderByElem.isAscending() ? "ASC" : "DESC") + "(" + orderByElem.getExp() + ")";
+  }
 }

@@ -1,7 +1,8 @@
 package oracle.pgql.lang.ir;
 
-import java.util.Iterator;
 import java.util.List;
+
+import static oracle.pgql.lang.ir.PgqlUtils.printPgqlString;
 
 public class OrderBy {
 
@@ -17,14 +18,6 @@ public class OrderBy {
   
   @Override
   public String toString() {
-    String result = "ORDER BY ";
-    Iterator<OrderByElem> it = elements.iterator();
-    while (it.hasNext()) {
-      result += it.next();
-      if (it.hasNext()) {
-        result += ", ";
-      }
-    }
-    return result;
+    return printPgqlString(this);
   }
 }
