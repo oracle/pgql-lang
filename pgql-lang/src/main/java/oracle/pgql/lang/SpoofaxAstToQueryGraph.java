@@ -25,6 +25,7 @@ import oracle.pgql.lang.ir.QueryPath.Direction;
 import oracle.pgql.lang.ir.QueryPath;
 import oracle.pgql.lang.ir.QueryVariable;
 import org.spoofax.interpreter.terms.IStrategoAppl;
+import org.spoofax.interpreter.terms.IStrategoInt;
 import org.spoofax.interpreter.terms.IStrategoString;
 import org.spoofax.interpreter.terms.IStrategoTerm;
 
@@ -60,6 +61,10 @@ public class SpoofaxAstToQueryGraph {
   private static final int POS_PATH_PATH_PATTERN = 2;
   private static final int POS_PATH_KLEENE_STAR = 3;
   private static final int POS_PATH_NAME = 4;
+  
+  private static final int POS_KLEENE_STAR_MIN_MAX_REPETITION = 0;
+  private static final int POS_MIN_REPETITION = 0;
+  private static final int POS_MAX_REPETITION = 1;
 
   private static final int POS_ORDERBY_EXP = 0;
   private static final int POS_ORDERBY_ORDERING = 1;
@@ -189,6 +194,24 @@ public class SpoofaxAstToQueryGraph {
     for (IStrategoTerm pathT : pathsT) {
 
       String pathPatternName = getString(pathT.getSubterm(POS_PATH_PATH_PATTERN));
+      IStrategoTerm kleeneStarT = pathT.getSubterm(POS_PATH_KLEENE_STAR);
+      long minRepetition = 0;
+      long maxRepetition = -1;
+      if (isNone(kleeneStarT) == false) {
+        IStrategoTerm minMaxRepetitionT = getSome(kleeneStarT).getSubterm(POS_KLEENE_STAR_MIN_MAX_REPETITION);
+        if (isNone(minMaxRepetitionT) == false) {
+          IStrategoTerm minRepetitionT = getSome(minMaxRepetitionT).getSubterm(POS_MIN_REPETITION);
+          if (isNone(minRepetitionT) == false) {
+            minRepetition = Integer.parseInt(getString(minRepetitionT));
+          }
+          
+          IStrategoTerm maxRepetitionT = getSome(minMaxRepetitionT).getSubterm(POS_MAX_REPETITION);
+          if (isNone(maxRepetitionT) == false) {
+            maxRepetition = Integer.parseInt(getString(maxRepetitionT));
+          }
+        }
+      }
+      
       IStrategoTerm pathPatternT = pathPatternMap.get(pathPatternName);
 
       // vertices
@@ -220,8 +243,8 @@ public class SpoofaxAstToQueryGraph {
       }
 
       QueryPath pathPattern = name.contains(GENERATED_VAR_SUBSTR)
-          ? new QueryPath(src, dst, vertices, connections, directions, constraints)
-          : new QueryPath(src, dst, vertices, connections, directions, constraints, name);
+          ? new QueryPath(src, dst, vertices, connections, directions, constraints, minRepetition, maxRepetition)
+          : new QueryPath(src, dst, vertices, connections, directions, constraints, minRepetition, maxRepetition, name);
 
       result.add(pathPattern);
     }
@@ -451,5 +474,10 @@ public class SpoofaxAstToQueryGraph {
   // helper method
   private static boolean isNone(IStrategoTerm t) {
     return ((IStrategoAppl) t).getConstructor().getName().equals("None");
+  }
+  
+  // helper method
+  private static IStrategoTerm getSome(IStrategoTerm t) {
+    return t.getSubterm(0);
   }
 }

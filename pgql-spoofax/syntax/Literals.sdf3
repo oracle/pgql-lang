@@ -38,17 +38,14 @@ lexical syntax
   UNQUOTED-STRING = [a-zA-Z][a-zA-Z0-9\_]*
   
   CUSTOM-TYPE = [a-zA-Z][a-zA-Z0-9\_]*
-  
-  PATHLENGTH = [0-9]+
 
 lexical restrictions // greedy matching
 
-  INTEGER         -/- [0-9\.]
-  DECIMAL         -/- [0-9\.]
+  INTEGER         -/- [0-9]
+  DECIMAL         -/- [0-9]
   // DOUBLE          -/- [0-9]
   UNQUOTED-STRING -/- [a-zA-Z0-9\_]
   CUSTOM-TYPE     -/- [a-zA-Z0-9\_]
-  PATHLENGTH      -/- [0-9]  // whereas a normal INT cannot be followed by a dot, a PATHLENGTH can (e.g {1..5})
 
 lexical syntax
 

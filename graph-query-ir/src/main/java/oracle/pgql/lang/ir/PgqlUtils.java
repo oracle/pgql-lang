@@ -271,7 +271,7 @@ public class PgqlUtils {
     }
     return result;
   }
-  
+
   public static String printPgqlString(Projection projection) {
     String result = "SELECT ";
     if (projection.getElements().isEmpty()) {
@@ -316,9 +316,16 @@ public class PgqlUtils {
           result += "]-> ";
           break;
         case PATH:
+          QueryPath path = (QueryPath) connection;
           result += " -/:type";
           result += pathCounter;
-          result += "*/-> ";
+          String minMaxRepetition = "";
+          if (path.getMinRepetition() != 0 && path.getMaxRepetition() != -1) {
+            String minRepetition = path.getMinRepetition() == 0 ? "" : path.getMinRepetition() + "";
+            String maxRepetition = path.getMaxRepetition() == -1 ? "" : path.getMaxRepetition() + "";
+            minMaxRepetition = minRepetition + ".." + maxRepetition;
+          }
+          result += "*" + minMaxRepetition + "/-> ";
           break;
         default:
           break;

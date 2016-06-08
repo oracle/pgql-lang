@@ -34,8 +34,11 @@ context-free syntax
   Connection.InEdge = [<-]
   
   EdgeContents.EdgeContents = <[<ElemContents>]>
-  EdgeContents.Path = </<VARNAME?>:<PATHPATTERNNAME><KleeneStar?>/>
-  KleeneStar.KleeneStar = <*>
+  EdgeContents.Path = </<VARNAME?>:<AltPath><KleeneStar?>/>
+  AltPath.Or = <<AltPath>|<AltPath>> {left}
+  AltPath.PathPatternRef = PATHPATTERNNAME
+  KleeneStar.KleeneStar = <*<MinMaxRepetition?>>
+  MinMaxRepetition.MinMaxRepetition = <<INTEGER?>..<INTEGER?>>
 
 context-free syntax
 

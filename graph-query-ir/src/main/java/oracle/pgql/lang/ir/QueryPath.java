@@ -17,29 +17,37 @@ public class QueryPath extends VertexPairConnection {
   private final List<Direction> directions;
 
   private final Set<QueryExpression> constraints;
+  
+  private final long minRepetition;
+  
+  private final long maxRepetition; // -1 for unbounded repetition
 
   /**
    * Reachability query
    */
   public QueryPath(QueryVertex src, QueryVertex dst, List<QueryVertex> vertices, List<VertexPairConnection> connections, List<Direction> directions,
-      Set<QueryExpression> constraints) {
+      Set<QueryExpression> constraints, long minRepetition, long maxRepetition) {
     super(src, dst);
     this.vertices = vertices;
     this.connections = connections;
     this.directions = directions;
     this.constraints = constraints;
+    this.minRepetition = minRepetition;
+    this.maxRepetition = maxRepetition;
   }
 
   /**
    * Path finding query
    */
   public QueryPath(QueryVertex src, QueryVertex dst, List<QueryVertex> vertices, List<VertexPairConnection> connections, List<Direction> directions,
-      Set<QueryExpression> constraints, String name) {
+      Set<QueryExpression> constraints, long minRepetition, long maxRepetition, String name) {
     super(src, dst, name);
     this.vertices = vertices;
     this.connections = connections;
     this.directions = directions;
     this.constraints = constraints;
+    this.minRepetition = minRepetition;
+    this.maxRepetition = maxRepetition;
   }
 
   public List<QueryVertex> getVertices() {
@@ -56,6 +64,14 @@ public class QueryPath extends VertexPairConnection {
 
   public Set<QueryExpression> getConstraints() {
     return constraints;
+  }
+  
+  public long getMinRepetition() {
+    return minRepetition;
+  }
+  
+  public long getMaxRepetition() {
+    return maxRepetition;
   }
 
   @Override

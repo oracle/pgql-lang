@@ -19,7 +19,7 @@ rules // Unresolved/duplicate variables
     	<generate-error-on-unresolved(|ctx, "Unresolved variable")> v
 
   nabl-constraint(|ctx):
-    Path(_, _, p, _, _) -> <fail>
+    PathPatternRef(p) -> <fail>
     where
       <generate-error-on-unresolved(|ctx, "Undefined path pattern")> p
 
@@ -182,6 +182,11 @@ rules // Oracle PGX specific (TODO: remove this from the project)
       <?Has(_, exp) + ?HasLabel(_, exp)> t;
       not ( String(_) := exp );
       <generate-error(|ctx, "String expected")> exp
+
+  nabl-constraint(|ctx):
+    Or(_, PathPatternRef(p)) -> <fail>
+    where
+      <generate-error(|ctx, "Alternative path patterns not yet supported")> p
 
 rules // expressions
   
