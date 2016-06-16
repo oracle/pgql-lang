@@ -49,6 +49,7 @@ rules // in-lined constraints
 rules
 
   // expressions in SELECT, ORDER BY need to be simple
+/* GM-7848
   nabl-constraint(|ctx):
     t -> <fail>
     where
@@ -58,16 +59,18 @@ rules
       <batch-generate-error(|ctx, "Only simple expressions allowed here: variable, property access, aggregation or function call")> exps;
       expsInAggr := <not-supported-expressions-in-aggregration> t;
       <batch-generate-error(|ctx, "Only simple expressions allowed here: variable, property access or function call")> expsInAggr
+*/
 
  // expressions in GROUP BY need to be simple
-  nabl-constraint(|ctx):
+/* GM-7848
+    nabl-constraint(|ctx):
     t@GroupClause(_) -> <fail>
     with
       exps := <not-supported-expressions> t;
       <batch-generate-error(|ctx, "Only simple expressions allowed here: variable, property access or function call")> exps;
       aggregations := <collect-om(is-aggregate, conc)> t;
       <batch-generate-error(|ctx, "Aggregation not allowed in GROUP BY")> aggregations
-  
+*/  
   not-supported-expressions = collect-om(is-aggregate <+ is-function <+ is-expression <+ is-literal, conc); remove-all(is-aggregate + is-function)
   not-supported-expressions-in-aggregration = collect-om(get-exp-from-aggregation, conc); filter(is-expression <+ is-literal)
   
@@ -142,7 +145,7 @@ rules // future PGQL versions
       <generate-error(|ctx, $[Custom data types are not supported])> type
       
 rules // Oracle PGX specific (TODO: remove this from the project)
-  
+ /* GM-7848 
   nabl-constraint(|ctx):
     t -> <fail>
     where
@@ -175,7 +178,7 @@ rules // Oracle PGX specific (TODO: remove this from the project)
       <?Has(exp, _) + ?HasLabel(exp, _)> t;
       not ( <?VarRef(_) + ?GroupRef(_)> exp );
       <generate-error(|ctx, "Function is only defined for vertices and edges")> t
-
+*/
   nabl-constraint(|ctx):
     t -> <fail>
     where
