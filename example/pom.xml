@@ -4,29 +4,22 @@
   <modelVersion>4.0.0</modelVersion>
   <groupId>oracle.pgx</groupId>
   <artifactId>example</artifactId>
-  <version>2016.06.16</version>
+  <version>2016.06.21</version>
 
   <dependencies>
     <dependency>
       <groupId>oracle.pgx</groupId>
       <artifactId>pgql-lang</artifactId>
-      <version>2016.06.16</version>
+      <version>2016.06.21</version>
       <scope>compile</scope>
     </dependency>
     <dependency>
       <groupId>oracle.pgx</groupId>
       <artifactId>graph-query-ir</artifactId>
-      <version>2016.06.16</version>
+      <version>2016.06.21</version>
       <scope>compile</scope>
     </dependency>
   </dependencies>
-
-  <repositories>
-    <repository>
-      <id>artifactoryRepository</id>
-      <url>http://artifactory-slc.oraclecorp.com/artifactory/simple/labs-pgx-release-local/</url>
-    </repository>
-  </repositories>
 
   <properties>
     <maven.compiler.source>1.7</maven.compiler.source>

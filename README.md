@@ -1,22 +1,23 @@
-# PGQL : a Property Graph Query Language
+# PGQL: a Property Graph Query Language
 
-PGQL is a SQL-like pattern-matching query language for the Property Graph data model.
+PGQL is a SQL-like graph query language for the Property Graph data model.
 
 This repository contains PGQL's reference implementation:
 
  - Parser
+ - Graph Query IR
  - Tests
 
-## Build
+## Build and Install
 
 PGQL can be build on Windows, Linux and Mac OS X and requires Java 1.7 or higher and Maven 3.3.9 or higher.
 
  - To build, run `sh build.sh`
- - To deploy to a Maven repository, see `deploy.sh` for an example
+ - To install to your local Maven repository, run `sh install.sh`
 
 ## Getting started
 
-First, build and deploy the parser. Then, use it like in the [example](example/src/main/java/oracle/pgql/lang/example/Main.java):
+First, build and install PGQL like explained above. Then, execute `cd example; sh run.sh` to parse two [example](example/src/main/java/oracle/pgql/lang/example/Main.java) queries:
 
 ```java
 public class Main {

@@ -4,18 +4,18 @@
   <modelVersion>4.0.0</modelVersion>
   <groupId>oracle.pgx</groupId>
   <artifactId>pgql-lang</artifactId>
-  <version>2016.06.16</version>
+  <version>2016.06.21</version>
 
   <dependencies>
     <dependency>
       <groupId>oracle.pgx</groupId>
       <artifactId>graph-query-ir</artifactId>
-      <version>2016.06.16</version>
+      <version>2016.06.21</version>
       <scope>compile</scope>
     </dependency>
     <dependency>
       <groupId>org.metaborg</groupId>
-      <artifactId>spoofax</artifactId>
+      <artifactId>org.metaborg.spoofax.core</artifactId>
       <version>2.0.0-beta1</version>
       <exclusions> <!-- we don't need this -->
         <exclusion>
@@ -27,18 +27,16 @@
   </dependencies>
 
   <repositories>
-    <!-- for now, we host Spoofax locally until we switch to a future stable build that is hosted on the Spoofax server -->
+    <!-- for now, we host Spoofax locally until we switch to a future stable build that is hosted on the Spoofax server 
     <repository>
       <id>artifactoryRepository</id>
       <url>http://artifactory-slc.oraclecorp.com/artifactory/simple/labs-pgx-release-local/</url>
-    </repository>
+    </repository> -->
 
-    <!-- not used a.t.m.
     <repository>
       <id>metaborgRepo</id>
       <url>http://artifacts.metaborg.org/content/repositories/releases/</url>
     </repository>
-    -->
   </repositories>
 
   <properties>
