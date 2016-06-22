@@ -29,7 +29,7 @@ import org.spoofax.interpreter.terms.IStrategoInt;
 import org.spoofax.interpreter.terms.IStrategoString;
 import org.spoofax.interpreter.terms.IStrategoTerm;
 
-public class SpoofaxAstToQueryGraph {
+public class SpoofaxAstToGraphQuery {
 
   private static final String GENERATED_VAR_SUBSTR = "<<generated>>";
 

@@ -10,7 +10,7 @@ imports
 /*
  * normalizeForNaBL is called after normalize. It's for extra transformations to get the AST in a shape that NaBL likes.
  *   PGQL -> PGQL AST -> PGQL norm. AST -> PGQL AST for NaBL ==> NaBL
- *                                      -> QueryGraph object ==> query planner
+ *                                      -> GraphQuery object ==> query planner
  */
 rules
   

@@ -97,7 +97,6 @@ public class Pgql {
           return new HashSet<>();
         }
 
-        @Override
         public String metaborgVersion() {
           return null;
         }
@@ -142,7 +141,7 @@ public class Pgql {
 
         queryValid = analysisResult.success();
         if (queryValid) {
-          queryGraph = SpoofaxAstToQueryGraph.translate(analysisResult.ast());
+          queryGraph = SpoofaxAstToGraphQuery.translate(analysisResult.ast());
         } else {
           prettyMessages = getMessages(analysisResult.messages(), queryString);
         }
