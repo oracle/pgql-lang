@@ -17,7 +17,7 @@ On Linux / Mac OS X:
  - To build, run `sh build.sh`
  - To install to your local Maven repository, run `sh install.sh`
 
-You can easily adopt the scripts to work with Windows.
+You can easily adapt the scripts to work with Windows.
 
 ## Getting started
 
