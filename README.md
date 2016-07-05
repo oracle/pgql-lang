@@ -19,7 +19,7 @@ On Linux / Mac OS X:
 
 You can easily adapt the scripts to work with Windows.
 
-## Getting started
+## Getting Started
 
 First, build and install PGQL like explained above. Then, execute `cd example; sh run.sh` to parse two [example](example/src/main/java/oracle/pgql/lang/example/Main.java) queries:
 
@@ -46,6 +46,14 @@ The AST returned by the parser is a [GraphQuery](graph-query-ir/src/main/java/or
 ## Documentation
 
 The language specification can be found [here](https://docs.oracle.com/cd/E56133_01/1.2.0/PGQL_Specification.pdf).
+
+## Development
+
+- Download Eclipse with Spoofax pre-installed [here](https://spoofax.readthedocs.io/en/latest/source/langdev/start.html)
+- Import the projects into Eclipse:
+    - Choose `File>Import...>Maven>Existing Maven Projects>Browse...`
+    - Browse to `/path/to/pgql-lang/` and choose `OK`
+    - Make sure all the projects are checked and choose `Finish`
 
 ## Contributions
 

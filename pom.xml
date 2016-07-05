@@ -11,6 +11,8 @@
   <modules>
     <module>graph-query-ir</module>
     <module>pgql-lang</module>
+    <module>pgql-spoofax</module>
+    <module>example</module>
   </modules>
 
 </project>
