@@ -17,6 +17,7 @@ imports
   pp
   trans-for-nabl
   normalize
+  check-pgx-specific
 
 rules // Analysis
 

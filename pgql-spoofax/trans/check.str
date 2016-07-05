@@ -7,6 +7,7 @@ imports
   sig-nabl
   common
   names/-
+  runtime/properties/-
   
 rules // Unresolved/duplicate variables
   
@@ -47,32 +48,6 @@ rules // in-lined constraints
       <generate-error(|ctx, "In-lined constraint may not access other variables")> t
 
 rules
-
-  // expressions in SELECT, ORDER BY need to be simple
-/* GM-7848
-  nabl-constraint(|ctx):
-    t -> <fail>
-    where
-      <?ExpAsVars(_) + ?OrderClause(_)> t
-    with
-      exps := <not-supported-expressions> t;
-      <batch-generate-error(|ctx, "Only simple expressions allowed here: variable, property access, aggregation or function call")> exps;
-      expsInAggr := <not-supported-expressions-in-aggregration> t;
-      <batch-generate-error(|ctx, "Only simple expressions allowed here: variable, property access or function call")> expsInAggr
-*/
-
- // expressions in GROUP BY need to be simple
-/* GM-7848
-    nabl-constraint(|ctx):
-    t@GroupClause(_) -> <fail>
-    with
-      exps := <not-supported-expressions> t;
-      <batch-generate-error(|ctx, "Only simple expressions allowed here: variable, property access or function call")> exps;
-      aggregations := <collect-om(is-aggregate, conc)> t;
-      <batch-generate-error(|ctx, "Aggregation not allowed in GROUP BY")> aggregations
-*/  
-  not-supported-expressions = collect-om(is-aggregate <+ is-function <+ is-expression <+ is-literal, conc); remove-all(is-aggregate + is-function)
-  not-supported-expressions-in-aggregration = collect-om(get-exp-from-aggregation, conc); filter(is-expression <+ is-literal)
   
   nabl-constraint(|ctx):
     Query(_, Vars(vars), _, _, groupClause, Some(orderClause), _) -> <fail>
@@ -144,7 +119,8 @@ rules // future PGQL versions
     with
       <generate-error(|ctx, $[Custom data types are not supported])> type
       
-rules // Oracle PGX specific (TODO: remove this from the project)
+rules
+
  /* GM-7848 
   nabl-constraint(|ctx):
     t -> <fail>
@@ -179,141 +155,3 @@ rules // Oracle PGX specific (TODO: remove this from the project)
       not ( <?VarRef(_) + ?GroupRef(_)> exp );
       <generate-error(|ctx, "Function is only defined for vertices and edges")> t
 */
-  nabl-constraint(|ctx):
-    t -> <fail>
-    where
-      <?Has(_, exp) + ?HasLabel(_, exp)> t;
-      not ( String(_) := exp );
-      <generate-error(|ctx, "String expected")> exp
-
-  nabl-constraint(|ctx):
-    Or(_, PathPatternRef(p)) -> <fail>
-    where
-      <generate-error(|ctx, "Alternative path patterns not yet supported")> p
-
-rules // expressions
-  
-  nabl-constraint(|ctx):
-    Regex(_, exp) -> <fail>
-    where
-      not ( String(_) := exp);
-      <generate-error(|ctx, "String expected")> exp
-
-  nabl-constraint(|ctx):
-    Constraints(constraints) -> <fail>
-    where
-      constraintsWithoutVarRef := <remove-all(oncetd(?VarRef(_)))> constraints;
-      <batch-generate-error(|ctx, "Constraint should include at least one variable")> constraintsWithoutVarRef
-
-  nabl-constraint(|ctx):
-    t@Null() -> <fail>
-    where
-      <generate-error(|ctx, "NULL is not supported")> t
-    
-rules // cross-constraints involving paths
-  
-  nabl-constraint(|ctx):
-    Constraints(constraints) -> <fail>
-    where
-      <map(try(constraints-check(|ctx)))> constraints
-      
-  constraints-check(|ctx):
-    constraint -> <fail>
-    where
-      varRefs := <collect-om(?VarRef(_))> constraint;
-      <gt> (<length> varRefs, 1);
-      <alltd(cross-constraints-paths(|ctx))> constraint
-  
-  cross-constraints-paths(|ctx):
-    PropRef(VarRef(v), _) -> <fail>
-    where
-      var-is-path := <var-is-path(|ctx)> v;
-      <task-create-error-on-success(|ctx, var-is-path, $[Cross-constraints involving path variables not supported])> v
-
-  var-is-edge(|ctx) = var-is-type(|ctx, "VarIsEdge")
-  var-is-node(|ctx) = var-is-type(|ctx, "VarIsNode")
-  var-is-path(|ctx) = var-is-type(|ctx, "VarIsPath")
-
-  var-is-type(|ctx, type):
-    v -> rewrite-task1
-    where
-      v-resolve-task := <nabl-create-collectdefs(|ctx)> v;
-      v-prop-task    := <prop-create-lookup(|ctx, Type())> v-resolve-task;
-      rewrite-task1  := <task-create-rewrite(|ctx, type)> v-prop-task
-      
-  task-rewrite: ("VarIsNode", NodeTy()) -> <id>
-  task-rewrite: ("VarIsEdge", EdgeTy()) -> <id>
-  task-rewrite: ("VarIsPath", PathTy()) -> <id>
-
-rules // Not a connected graph, e.g. WHERE x -> y, x2 -> y2
-  
-  nabl-constraint(|ctx):
-    GraphPattern(Nodes(nodes), Edges(edges), Paths(paths), _) -> <fail>
-    where
-      connections := <conc> (edges, paths);
-      sorted-partitions := <strip-annos; partition(|connections); reverse; qsort(length-gt)> nodes;
-      biggest-partition := <Hd> sorted-partitions;
-      other-partitions := <Tl> sorted-partitions
-    with
-      <map(connected-pattern-constraint(|ctx, biggest-partition))> other-partitions
-
-  connected-pattern-constraint(|ctx, biggest-partition):
-    other-partition -> <id>
-    with
-      if 1 := <length> biggest-partition
-      then
-        m := $[Vertex [<Hd> other-partition] is not connected to vertex [<Hd> biggest-partition]]
-      else
-        if 1 := <length> other-partition
-        then m := $[Vertex [<Hd> other-partition] is not connected to vertices [<print-nodes> biggest-partition]]
-        else m := $[Vertices [<print-nodes> other-partition] are not connected to vertices [<print-nodes> biggest-partition]]
-        end
-      end;
-      <generate-error(|ctx, m)> other-partition
-
-  print-nodes = reverse; separate-by(|", "); concat-strings
-
-  length-gt = ?(l1, l2); !(<length> l1, <length> (l2)); gt
-
-  partition(|connections):
-    nodes -> partitions
-    with
-      nodes' := <map(?Node(<id>))> nodes;
-      if [] := nodes
-      then
-        partitions := []
-      else
-        someNode := <Hd; get-reachable-nodes(|connections)> nodes';
-        partitions := <partition-helper(|nodes', connections)> [someNode]
-      end
-      
-  partition-helper(|nodes, connections):
-    partitions -> partitions'
-    with
-      covered := <concat> partitions;
-      uncovered := <diff> (nodes, covered);
-      if [] := uncovered
-      then
-        partitions' := partitions
-      else
-        partition := <Hd; get-reachable-nodes(|connections)> uncovered;
-        partitions' := <partition-helper(|nodes, connections)> [partition|partitions]
-      end
-
-  get-reachable-nodes(|connections):
-    x -> result
-    with
-      nodes := <is-list <+ ![<id>]> x;
-      nodes' := <map(get-reachable-nodes-helper(|connections));  concat; make-set> nodes;
-      if <eq> (<length> nodes, <length> nodes')
-      then result := nodes'
-      else result := <get-reachable-nodes(|connections)> nodes'
-      end
-
-  get-reachable-nodes-helper(|connections):
-    node -> result
-    with
-      outNeighbors := <filter(?Edge(node, _, <id>, _) + ?Path(node, <id>, _, _, _))> connections;
-      inNeighbors := <filter(?Edge(<id>, _, node, _) + ?Path(<id>, node, _, _, _))> connections;
-      result := <conc> (outNeighbors, inNeighbors, [node])
-
