@@ -50,10 +50,10 @@ The language specification can be found [here](https://docs.oracle.com/cd/E56133
 ## Development
 
 - Download Eclipse with Spoofax pre-installed [here](https://spoofax.readthedocs.io/en/latest/source/langdev/start.html)
-- Import the projects into Eclipse:
-    - Choose `File>Import...>Maven>Existing Maven Projects>Browse...`
-    - Browse to `/path/to/pgql-lang/` and choose `OK`
-    - Make sure all the projects are checked and choose `Finish`
+- Import the following projects into Eclipse (`File>Import...>Maven>Existing Maven Projects>Browse...`):
+    - `graph-query-ir`: Java representation of graph queries
+    - `pqgl-spoofax`: Spoofax implementation of PGQL (parser + error checks)
+    - `pgql-lang`: translation of Spoofax AST into `graph-query-ir`
 
 ## Contributions
 
