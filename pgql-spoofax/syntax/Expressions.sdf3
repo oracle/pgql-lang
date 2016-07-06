@@ -13,8 +13,8 @@ context-free syntax
   Exp = VarRef
   Exp = Literal
   
-  Exp.Not1 = <not <Exp>> {right, case-insensitive}
-  Exp.Not2 = <!<Exp>> {right}
+  Exp.Not1 = <!<Exp>> {right}
+  Exp.Not2 = <not <Exp>> {right, case-insensitive}
   Exp.UMin = <-<Exp>> {right}
 
   Exp.And = <<Exp> and <Exp>> {left, case-insensitive}
