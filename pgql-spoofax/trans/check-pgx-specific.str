@@ -6,7 +6,6 @@ imports
 
 rules
 
-/* GM-7848
   not-supported-expressions = collect-om(is-aggregate <+ is-function <+ is-expression <+ is-literal, conc); remove-all(is-aggregate + is-function)
   not-supported-expressions-in-aggregration = collect-om(get-exp-from-aggregation, conc); filter(is-expression <+ is-literal)
 
@@ -29,7 +28,6 @@ rules
       <batch-generate-error(|ctx, "Only simple expressions allowed here: variable, property access or function call")> exps;
       aggregations := <collect-om(is-aggregate, conc)> t;
       <batch-generate-error(|ctx, "Aggregation not allowed in GROUP BY")> aggregations
-*/
 
   nabl-constraint(|ctx):
     t -> <fail>

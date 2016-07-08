@@ -4,25 +4,19 @@
   <modelVersion>4.0.0</modelVersion>
   <groupId>oracle.pgx</groupId>
   <artifactId>pgql-lang</artifactId>
-  <version>2016.06.21</version>
+  <version>2016.08.07</version>
 
   <dependencies>
     <dependency>
       <groupId>oracle.pgx</groupId>
       <artifactId>graph-query-ir</artifactId>
-      <version>2016.06.21</version>
+      <version>2016.08.07</version>
       <scope>compile</scope>
     </dependency>
     <dependency>
       <groupId>org.metaborg</groupId>
-      <artifactId>org.metaborg.spoofax.core</artifactId>
-      <version>2.0.0-beta1</version>
-      <exclusions> <!-- we don't need this -->
-        <exclusion>
-          <groupId>commons-beanutils</groupId>
-          <artifactId>commons-beanutils</artifactId>
-        </exclusion>
-      </exclusions>
+      <artifactId>org.metaborg.spoofax.core.uber</artifactId>
+      <version>2.0.0</version>
     </dependency>
   </dependencies>
 
