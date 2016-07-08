@@ -97,8 +97,14 @@ public class Pgql {
           return new HashSet<>();
         }
 
+        @Override
         public String metaborgVersion() {
           return null;
+        }
+
+        @Override
+        public boolean typesmart() {
+          return false;
         }
       });
 
