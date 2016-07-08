@@ -10,7 +10,7 @@ This repository contains PGQL's reference implementation:
 
 ## Build and Install
 
-PGQL can be built on Windows, Linux and Mac OS X and requires Java 1.7 or higher and Maven 3.3.9 or higher.
+PGQL can be built on Windows, Linux and Mac OS X and requires Java 1.8 or higher and Maven 3.3.9 or higher. Note that although Java 1.8 or higher is required to *build* PGQL, Java 1.7 or higher can be used to *run* PGQL.
 
 On Linux / Mac OS X:
 
