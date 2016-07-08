@@ -3,19 +3,25 @@ set -e
 
 VERSION=2016.07.08
 GROUP=oracle.pgx
+REPO=http://artifactory-slc.oraclecorp.com/artifactory/simple/labs-pgx-release-local
+REPO_ID=labs-pgx-release-local
 
-mvn install:install-file \
+mvn deploy:deploy-file \
         -DgroupId=oracle.pgx \
         -DartifactId=pgql-lang \
         -Dversion=$VERSION \
         -Dpackaging=jar \
         -Dfile=pgql-lang/target/pgql-lang-$VERSION.jar \
-        -DpomFile=pgql-lang/pom.xml
+        -DpomFile=pgql-lang/pom.xml \
+        -Durl=$REPO \
+        -DrepositoryId=$REPO_ID
 
-mvn install:install-file \
+mvn deploy:deploy-file \
         -DgroupId=oracle.pgx \
         -DartifactId=graph-query-ir \
         -Dversion=$VERSION \
         -Dpackaging=jar \
         -Dfile=graph-query-ir/target/graph-query-ir-$VERSION.jar \
-        -DpomFile=graph-query-ir/pom.xml
+        -DpomFile=graph-query-ir/pom.xml \
+        -Durl=$REPO \
+        -DrepositoryId=$REPO_ID
