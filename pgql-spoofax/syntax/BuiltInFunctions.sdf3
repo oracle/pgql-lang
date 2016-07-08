@@ -52,6 +52,7 @@ context-free priorities
     right:
       Exp.UMin
       Exp.Not1
+      Exp.Not2
   }
   >
   {
@@ -90,11 +91,6 @@ context-free priorities
   }
   >
   {
-    right:
-      Exp.Not2
-  }
-  >
-  {
     left:
       Exp.And
   }
@@ -110,6 +106,7 @@ context-free priorities
     right:
       InlinedExp.UMin
       InlinedExp.Not1
+      InlinedExp.Not2
   }
   >
   {
@@ -145,11 +142,6 @@ context-free priorities
       InlinedExp.Gte
       InlinedExp.Lte
       InlinedExp.Regex
-  }
-  >
-  {
-    right:
-      Exp.Not2
   }
   >
   {
