@@ -47,6 +47,7 @@ lexical syntax // reserved keywords
   NAME = 'true' {reject}
   NAME = 'false' {reject}
   NAME = 'null' {reject}
+  NAME = 'not' {reject}
   
 lexical restrictions // greedy matching
 

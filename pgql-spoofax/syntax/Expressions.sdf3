@@ -42,8 +42,8 @@ context-free syntax
   InlinedExp.SelfPropRef = <<Prop>>
   InlinedExp.SelfPropRef = <<Dot><Prop>>
   
-  InlinedExp.Not1 = <not <InlinedExp>> {right, case-insensitive}
-  InlinedExp.Not2 = <!<InlinedExp>> {right}
+  InlinedExp.Not1 = <!<InlinedExp>> {right}
+  InlinedExp.Not2 = <not <InlinedExp>> {right, case-insensitive}
   InlinedExp.UMin = <-<InlinedExp>> {right}
 
   InlinedExp.And = <<InlinedExp> and <InlinedExp>> {left, case-insensitive}
