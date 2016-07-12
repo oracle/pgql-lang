@@ -1,6 +1,6 @@
 module select
 
-language PGQL
+language pgql-lang
 
 test Nested aggregation 1 [[
 SELECT AVG(MIN(n.age))

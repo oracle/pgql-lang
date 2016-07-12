@@ -1,6 +1,6 @@
 module in-lined-constraints
 
-language PGQL
+language pgql-lang
 
 test Inlined cross-referece 1 [[
 SELECT *

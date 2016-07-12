@@ -1,6 +1,6 @@
 module select
 
-language PGQL
+language pgql-lang
 
 test In-lined expression, no variable name [[
 SELECT m.name

@@ -1,6 +1,6 @@
 module order-by
 
-language PGQL
+language pgql-lang
 
 test Order by node [[
 SELECT n.id()

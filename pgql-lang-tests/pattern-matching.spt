@@ -1,6 +1,6 @@
 module pattern-matching
 
-language PGQL
+language pgql-lang
 
 test Single node 1 [[
 SELECT *

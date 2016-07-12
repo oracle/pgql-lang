@@ -1,6 +1,6 @@
 module select
 
-language PGQL
+language pgql-lang
 
 test Duplicate select expression allowed [[
 SELECT n.name, n.name

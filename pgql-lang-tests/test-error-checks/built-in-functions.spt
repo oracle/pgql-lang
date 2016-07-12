@@ -1,6 +1,6 @@
 module group-by
 
-language PGQL
+language pgql-lang
 
 test inDegree() on edge 1 [[
 SELECT e.inDegree() WHERE x -[e]-> y

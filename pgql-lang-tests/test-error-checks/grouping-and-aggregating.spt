@@ -1,6 +1,6 @@
 module variables
 
-language PGQL
+language pgql-lang
 
 test Select non-group key 1 [[
 SELECT n.name

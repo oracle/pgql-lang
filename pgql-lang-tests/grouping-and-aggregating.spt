@@ -1,6 +1,6 @@
 module group-by
 
-language PGQL
+language pgql-lang
 
 test Aggregate over empty group [[
 SELECT COUNT(*), AVG(n.salary), MIN(n.salary), MAX(n.salary), SUM(n.salary)

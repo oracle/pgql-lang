@@ -1,6 +1,6 @@
 module select
 
-language PGQL
+language pgql-lang
 
 test prop not exists [[
 SELECT n.name, n.prop_not_exists WHERE (n WITH name = 'Mary')

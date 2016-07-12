@@ -1,6 +1,6 @@
 module syntax
 
-language PGQL
+language pgql-lang
 
 test Case insensitivity [[
 sElEcT mAx(n.age), MiN(n.age), sUm(n.age)

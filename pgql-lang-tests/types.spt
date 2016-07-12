@@ -1,6 +1,6 @@
 module select
 
-language PGQL
+language pgql-lang
 
 test Equals different types [[
 SELECT n.name WHERE (n WITH name = 3)

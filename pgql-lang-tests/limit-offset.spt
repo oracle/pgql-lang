@@ -1,6 +1,6 @@
 module syntax
 
-language PGQL
+language pgql-lang
 
 test Limit [[
 SELECT n.name

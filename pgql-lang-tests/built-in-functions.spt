@@ -1,6 +1,6 @@
 module group-by
 
-language PGQL
+language pgql-lang
 
 test id() 1 [[
 SELECT x.id() WHERE (x WITH id() < 4)
