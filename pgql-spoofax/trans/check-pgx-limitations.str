@@ -184,3 +184,9 @@ rules // Not a connected graph, e.g. WHERE x -> y, x2 -> y2
     with
       <generate-error(|ctx, "PGX currently doesn't support minimal and maximal path length constraints")> t
 
+  nabl-constraint(|ctx):
+    Path(_, _, _, _, p) -> <id>
+    where
+      <not(is-substring(GENERATED))> p
+    with
+      <generate-error(|ctx, "PGX currently doesn't support path variables")> p
