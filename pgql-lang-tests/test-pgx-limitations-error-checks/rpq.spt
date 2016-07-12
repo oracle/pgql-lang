@@ -1,0 +1,9 @@
+module variables
+
+language PGQL
+
+test Unresolved variable in SELECT [[
+SELECT n2
+WHERE
+  n
+]] / Unresolved variable /
