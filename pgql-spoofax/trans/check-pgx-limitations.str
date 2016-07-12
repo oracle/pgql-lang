@@ -1,4 +1,4 @@
-module check-pgx-specific
+module check-pgx-limitations
 
 imports
 
@@ -42,11 +42,6 @@ rules
     where
       constraintsWithoutVarRef := <remove-all(oncetd(?VarRef(_)))> constraints;
       <batch-generate-error(|ctx, "Constraint should include at least one variable")> constraintsWithoutVarRef
-
-  nabl-constraint(|ctx):
-    Or(_, PathPatternRef(p)) -> <fail>
-    where
-      <generate-error(|ctx, "Alternative path patterns not yet supported")> p
 
   nabl-constraint(|ctx):
     t@Null() -> <fail>
@@ -159,3 +154,33 @@ rules // Not a connected graph, e.g. WHERE x -> y, x2 -> y2
       outNeighbors := <filter(?Edge(node, _, <id>, _) + ?Path(node, <id>, _, _, _))> connections;
       inNeighbors := <filter(?Edge(<id>, _, node, _) + ?Path(<id>, node, _, _, _))> connections;
       result := <conc> (outNeighbors, inNeighbors, [node])
+
+// RPQs
+
+  nabl-constraint(|ctx):
+    PathPattern(_, _, _, Constraints(constraints)) -> <id>
+    where
+      <map(try(rpq-constraint-limitation(|ctx)))> constraints
+      
+  rpq-constraint-limitation(|ctx):
+    constraint -> <id>
+    where
+      not ( ?Eq(Label(VarRef(_)), String(_)) )
+    with
+      <generate-error(|ctx, "PGX currently only supports simple edge label constraints in path patterns: () -[:lbl]-> () ...")> constraint
+
+  nabl-constraint(|ctx):
+    Or(_, PathPatternRef(p)) -> <fail>
+    where
+      <generate-error(|ctx, "PGX currently doesn't support alternative path patterns")> p
+            
+  nabl-constraint(|ctx):
+    Path(_, _, t@PathPatternRef(r), None(), _) -> <id>
+    with
+      <generate-error(|ctx, $<PGX currently requires a Kleene star on this: <r>*>)> t
+
+  nabl-constraint(|ctx):
+    KleeneStar(t@Some(_)) -> <id>
+    with
+      <generate-error(|ctx, "PGX currently doesn't support minimal and maximal path length constraints")> t
+
