@@ -1,3 +1,6 @@
+/*
+ * PGX-specific error checks. Remove the import of this file from trans/analysis.str if your query engine is not PGX.
+ */
 module check-pgx-limitations
 
 imports
@@ -158,16 +161,21 @@ rules // Not a connected graph, e.g. WHERE x -> y, x2 -> y2
 // RPQs
 
   nabl-constraint(|ctx):
-    PathPattern(_, _, _, Constraints(constraints)) -> <id>
-    where
-      <map(try(rpq-constraint-limitation(|ctx)))> constraints
+    PathPattern(_, _, connections, constraints) -> <id>
+    with
+      <alltd(rpq-constraint-limitation(|ctx))> constraints;
+      <alltd(nested-path-pattern-limitation(|ctx))> connections
       
   rpq-constraint-limitation(|ctx):
-    constraint -> <id>
-    where
-      not ( ?Eq(Label(VarRef(_)), String(_)) )
+    VarRef(v) -> <id>
     with
-      <generate-error(|ctx, "PGX currently only supports simple edge label constraints in path patterns: () -[:lbl]-> () ...")> constraint
+      var-is-vertex := <var-is-node(|ctx)> v;
+      <task-create-error-on-success(|ctx, var-is-vertex, $[PGX currently doesn't support constraints over vertices in path patterns])> v
+
+  nested-path-pattern-limitation(|ctx):
+    PathPatternRef(p) -> <id>
+    with
+      <generate-error(|ctx, "PGX currently doesn't support nested path patterns")> p
 
   nabl-constraint(|ctx):
     Or(_, PathPatternRef(p)) -> <fail>
@@ -179,14 +187,3 @@ rules // Not a connected graph, e.g. WHERE x -> y, x2 -> y2
     with
       <generate-error(|ctx, $<PGX currently requires a Kleene star on this: <r>*>)> t
 
-  nabl-constraint(|ctx):
-    KleeneStar(t@Some(_)) -> <id>
-    with
-      <generate-error(|ctx, "PGX currently doesn't support minimal and maximal path length constraints")> t
-
-  nabl-constraint(|ctx):
-    Path(_, _, _, _, p) -> <id>
-    where
-      <not(is-substring(GENERATED))> p
-    with
-      <generate-error(|ctx, "PGX currently doesn't support path variables")> p
