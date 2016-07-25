@@ -13,6 +13,7 @@ imports
   runtime/editor/-
   
   names/-
+  types/-
   
   pp
   trans-for-nabl
@@ -21,7 +22,7 @@ imports
 
 rules // Analysis
 
-  editor-analyze = analyze-all(normalize-before, trans-for-nabl; ?normalized-ast, id|<language>)
+  editor-analyze = analyze-all(normalize-before, trans-for-nabl, id|<language>)
 
 rules // Editor services
 
@@ -41,7 +42,7 @@ rules // Debugging
     (_, _, ast, path, _) -> (filename, result)
     with
       filename := <guarantee-extension(|"normalized.aterm")> path;
-      result   := <normalize-before> ast
+      result   := <normalize-before; trans-for-nabl> ast
 
   debug-show-analyzed:
     (_, _, ast, path, _) -> (filename, result)

@@ -34,13 +34,13 @@ binding rules
 
   // Note 1: SelectVar is non-unique because we already do the uniqueness test using Var
   // Note 2: In PGQL 0.9, in the SELECT, you cannot refer to variables previously defined in the SELECT
-  ExpAsVar(v, _):
-  	defines non-unique SelectVar v
-  	defines unique Var v
+  ExpAsVar(v, exp):
+    defines non-unique SelectVar v
+    defines unique Var v of type ty where exp has type ty
   
-  ExpAsGroupVar(v, _):
+  ExpAsGroupVar(v, exp):
     defines non-unique GroupVar v
-    defines unique Var v
+    defines unique Var v of type ty where exp has type ty
     
   VarRef(v):
     refers to Var v
