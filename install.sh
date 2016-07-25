@@ -1,7 +1,7 @@
 #!/bin/bash
 set -e
 
-VERSION=2016.07.25-2
+VERSION=2016.07.25-3
 GROUP=oracle.pgx
 
 mvn install:install-file \
