@@ -15,8 +15,10 @@ signature constructors // types
   NodeTy : NodeTy
   EdgeTy : EdgeTy
   PathTy : PathTy
-  NodePropTy : PropTy -> NodePropTy
-  EdgePropTy : PropTy -> EdgePropTy
+  BooleanTy : BooleanTy
+  IntegerTy : IntegerTy
+  StringTy : StringTy
+  StringSetTy : StringSetTy
 
 signature constructors // namespaces
     
