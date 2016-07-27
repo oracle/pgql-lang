@@ -16,6 +16,7 @@ import java.util.UUID;
 
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.IOUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.vfs2.FileObject;
 import org.apache.commons.vfs2.VFS;
 import org.apache.commons.vfs2.impl.DefaultFileReplicator;
@@ -59,19 +60,26 @@ public class Pgql {
    * Loads PGQL Spoofax binaries if not done already.
    */
   public Pgql() throws PgqlException {
+    // create our own temp dir for storing Spoofax resources such that we can clean up without requiring a Pgql.close()
+    // a temp dir should always be random such that there are no conflicts when multiple users use PGQL on the same system
     String baseTmpDir = System.getProperty("java.io.tmpdir");
     File tempDir = new File(baseTmpDir, "vfs_cache" + new Random().nextLong()).getAbsoluteFile();
     try {
-      // temporary workaround for http://yellowgrass.org/issue/SpoofaxWithCore/113
       DefaultFileReplicator replicator = new DefaultFileReplicator(tempDir);
       ((DefaultFileSystemManager) VFS.getManager()).setReplicator(replicator);
+
+      // convert PGQL's jar into a FileObject
       String jarLocation = URLDecoder.decode(Pgql.class.getProtectionDomain().getCodeSource().getLocation().getPath(),
           "UTF-8");
-      FileObject jarFile = VFS.getManager().resolveFile("jar:" + jarLocation + "!/");
-      assert (jarFile.exists());
+      String vfsUrl = StringUtils.repeat("jar:", StringUtils.countMatches(jarLocation, "!") + 1) + jarLocation + "!/"; // the pgql jar may be nested inside other jar or war files
+      FileObject fileObject = VFS.getManager().resolveFile(vfsUrl);
+      if (fileObject.exists() == false) {
+        throw new PgqlException("Malformed VFS URL: " + vfsUrl);
+      }
       
+      // set up Spoofax
       spoofax = new Spoofax();
-      Iterable<ILanguageDiscoveryRequest> requests = spoofax.languageDiscoveryService.request(jarFile);
+      Iterable<ILanguageDiscoveryRequest> requests = spoofax.languageDiscoveryService.request(fileObject);
       Iterable<ILanguageComponent> components = spoofax.languageDiscoveryService.discover(requests);
       Set<ILanguageImpl> implementations = LanguageUtils.toImpls(components);
       pgqlLang = LanguageUtils.active(implementations);
