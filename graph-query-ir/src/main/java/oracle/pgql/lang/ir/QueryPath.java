@@ -18,7 +18,7 @@ public class QueryPath extends VertexPairConnection {
 
   private final Set<QueryExpression> constraints;
   
-  private final long minRepetition;
+  private final boolean kleenePlus; // Kleene star if false
   
   private final long maxRepetition; // -1 for unbounded repetition
 
@@ -26,13 +26,13 @@ public class QueryPath extends VertexPairConnection {
    * Reachability query
    */
   public QueryPath(QueryVertex src, QueryVertex dst, List<QueryVertex> vertices, List<VertexPairConnection> connections, List<Direction> directions,
-      Set<QueryExpression> constraints, long minRepetition, long maxRepetition) {
+      Set<QueryExpression> constraints, boolean kleenePlus, long maxRepetition) {
     super(src, dst);
     this.vertices = vertices;
     this.connections = connections;
     this.directions = directions;
     this.constraints = constraints;
-    this.minRepetition = minRepetition;
+    this.kleenePlus = kleenePlus;
     this.maxRepetition = maxRepetition;
   }
 
@@ -40,13 +40,13 @@ public class QueryPath extends VertexPairConnection {
    * Path finding query
    */
   public QueryPath(QueryVertex src, QueryVertex dst, List<QueryVertex> vertices, List<VertexPairConnection> connections, List<Direction> directions,
-      Set<QueryExpression> constraints, long minRepetition, long maxRepetition, String name) {
+      Set<QueryExpression> constraints, boolean kleenePlus, long maxRepetition, String name) {
     super(src, dst, name);
     this.vertices = vertices;
     this.connections = connections;
     this.directions = directions;
     this.constraints = constraints;
-    this.minRepetition = minRepetition;
+    this.kleenePlus = kleenePlus;
     this.maxRepetition = maxRepetition;
   }
 
@@ -66,8 +66,8 @@ public class QueryPath extends VertexPairConnection {
     return constraints;
   }
   
-  public long getMinRepetition() {
-    return minRepetition;
+  public boolean isKleenePlus() {
+    return kleenePlus;
   }
   
   public long getMaxRepetition() {

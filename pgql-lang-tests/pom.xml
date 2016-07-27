@@ -4,13 +4,13 @@
   <modelVersion>4.0.0</modelVersion>
   <groupId>oracle.pgx</groupId>
   <artifactId>pgql-lang-tests</artifactId>
-  <version>2016.07.25-3</version>
+  <version>2016.07.26</version>
 
   <dependencies>
     <dependency>
       <groupId>oracle.pgx</groupId>
       <artifactId>pgql-lang</artifactId>
-      <version>2016.07.25-3</version>
+      <version>2016.07.26</version>
       <scope>compile</scope>
     </dependency>
     <dependency>

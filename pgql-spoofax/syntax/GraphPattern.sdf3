@@ -37,8 +37,7 @@ context-free syntax
   EdgeContents.Path = </<VARNAME?>:<AltPath><KleeneStar?>/>
   AltPath.Or = <<AltPath>|<AltPath>> {left}
   AltPath.PathPatternRef = PATHPATTERNNAME
-  KleeneStar.KleeneStar = <*<MinMaxRepetition?>>
-  MinMaxRepetition.MinMaxRepetition = <<INTEGER?>..<INTEGER?>>
+  KleeneStar.KleeneStar = <*>
 
 context-free syntax
 

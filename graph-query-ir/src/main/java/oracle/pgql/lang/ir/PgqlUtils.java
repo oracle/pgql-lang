@@ -316,16 +316,9 @@ public class PgqlUtils {
           result += "]-> ";
           break;
         case PATH:
-          QueryPath path = (QueryPath) connection;
           result += " -/:type";
           result += pathCounter;
-          String minMaxRepetition = "";
-          if (path.getMinRepetition() != 0 && path.getMaxRepetition() != -1) {
-            String minRepetition = path.getMinRepetition() == 0 ? "" : path.getMinRepetition() + "";
-            String maxRepetition = path.getMaxRepetition() == -1 ? "" : path.getMaxRepetition() + "";
-            minMaxRepetition = minRepetition + ".." + maxRepetition;
-          }
-          result += "*" + minMaxRepetition + "/-> ";
+          result += "*/-> ";
           break;
         default:
           break;
