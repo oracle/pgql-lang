@@ -28,4 +28,28 @@ public class OrderByElem {
   public String toString() {
     return printPgqlString(this);
   }
+
+  @Override
+  public boolean equals(Object o) {
+    if (this == o) {
+      return true;
+    }
+    if (o == null || getClass() != o.getClass()) {
+      return false;
+    }
+
+    OrderByElem that = (OrderByElem) o;
+
+    if (ascending != that.ascending) {
+      return false;
+    }
+    return exp.equals(that.exp);
+  }
+
+  @Override
+  public int hashCode() {
+    int result = exp.hashCode();
+    result = 31 * result + (ascending ? 1 : 0);
+    return result;
+  }
 }

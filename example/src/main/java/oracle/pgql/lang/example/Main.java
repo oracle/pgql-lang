@@ -14,11 +14,9 @@ public class Main {
     Pgql pgql = new Pgql();
 
     // parse query and print graph query
-    PgqlResult result1 = pgql.parse("SELECT n WHERE (n) -[e]-> (m)");
-    System.out.println(result1.getGraphQuery());
+    PgqlResult result1 = pgql.parse("SELECT * WHERE () -> (n) <- ()");
+    PgqlResult result2 = pgql.parse("SELECT * WHERE () -> (n), (n) <- ()");
 
-    // parse query with errors and print error messages
-    PgqlResult result2 = pgql.parse("SELECT x, y, WHERE (n) -[e]-> (m)");
-    System.out.println(result2.getErrorMessages());
+    System.out.println(result1.getGraphQuery().equals(result2.getGraphQuery()));
   }
 }

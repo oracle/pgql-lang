@@ -1,3 +1,6 @@
+/**
+ * Copyright (C) 2013 - 2016 Oracle and/or its affiliates. All rights reserved.
+ */
 package oracle.pgql.lang.ir;
 
 import java.util.List;
@@ -19,5 +22,24 @@ public class OrderBy {
   @Override
   public String toString() {
     return printPgqlString(this);
+  }
+
+  @Override
+  public boolean equals(Object o) {
+    if (this == o) {
+      return true;
+    }
+    if (o == null || getClass() != o.getClass()) {
+      return false;
+    }
+
+    OrderBy orderBy = (OrderBy) o;
+
+    return elements.equals(orderBy.elements);
+  }
+
+  @Override
+  public int hashCode() {
+    return elements.hashCode();
   }
 }

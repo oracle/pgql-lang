@@ -60,4 +60,44 @@ public class GraphQuery {
   public String toString() {
     return printPgqlString(this);
   }
+
+  @Override
+  public boolean equals(Object o) {
+    if (this == o) {
+      return true;
+    }
+    if (o == null || getClass() != o.getClass()) {
+      return false;
+    }
+
+    GraphQuery that = (GraphQuery) o;
+
+    if (limit != that.limit) {
+      return false;
+    }
+    if (offset != that.offset) {
+      return false;
+    }
+    if (!projection.equals(that.projection)) {
+      return false;
+    }
+    if (!graphPattern.equals(that.graphPattern)) {
+      return false;
+    }
+    if (!groupBy.equals(that.groupBy)) {
+      return false;
+    }
+    return orderBy.equals(that.orderBy);
+  }
+
+  @Override
+  public int hashCode() {
+    int result = projection.hashCode();
+    result = 31 * result + graphPattern.hashCode();
+    result = 31 * result + groupBy.hashCode();
+    result = 31 * result + orderBy.hashCode();
+    result = 31 * result + (int) (limit ^ (limit >>> 32));
+    result = 31 * result + (int) (offset ^ (offset >>> 32));
+    return result;
+  }
 }

@@ -49,7 +49,8 @@ import oracle.pgql.lang.ir.GraphQuery;
 public class Pgql {
 
   private static final Logger LOG = LoggerFactory.getLogger(Pgql.class);
-  private static final String NON_BREAKING_WHITE_SPACE_ERROR = "Illegal character '\u00a0' (non-breaking white space); use a normal space instead";
+  private static final String NON_BREAKING_WHITE_SPACE_ERROR = "Illegal character '\u00a0' (non-breaking white space)"
+      + "; use a normal space instead";
 
   private final Spoofax spoofax;
   private final ILanguageImpl pgqlLang;
@@ -61,7 +62,8 @@ public class Pgql {
    */
   public Pgql() throws PgqlException {
     // create our own temp dir for storing Spoofax resources such that we can clean up without requiring a Pgql.close()
-    // a temp dir should always be random such that there are no conflicts when multiple users use PGQL on the same system
+    // a temp dir should always be random such that there are no conflicts when multiple users use PGQL on the same
+    // system
     String baseTmpDir = System.getProperty("java.io.tmpdir");
     File tempDir = new File(baseTmpDir, "vfs_cache" + new Random().nextLong()).getAbsoluteFile();
     try {
@@ -69,14 +71,15 @@ public class Pgql {
       ((DefaultFileSystemManager) VFS.getManager()).setReplicator(replicator);
 
       // convert PGQL's jar into a FileObject
-      String jarLocation = URLDecoder.decode(Pgql.class.getProtectionDomain().getCodeSource().getLocation().getPath(),
-          "UTF-8");
-      String vfsUrl = StringUtils.repeat("jar:", StringUtils.countMatches(jarLocation, "!") + 1) + jarLocation + "!/"; // the pgql jar may be nested inside other jar or war files
+      String jarLocation = URLDecoder
+          .decode(Pgql.class.getProtectionDomain().getCodeSource().getLocation().getPath(), "UTF-8");
+      String vfsUrl = StringUtils.repeat("jar:", StringUtils.countMatches(jarLocation, "!") + 1) + jarLocation
+          + "!/"; // the pgql jar may be nested inside other jar or war files
       FileObject fileObject = VFS.getManager().resolveFile(vfsUrl);
       if (fileObject.exists() == false) {
         throw new PgqlException("Malformed VFS URL: " + vfsUrl);
       }
-      
+
       // set up Spoofax
       spoofax = new Spoofax();
       Iterable<ILanguageDiscoveryRequest> requests = spoofax.languageDiscoveryService.request(fileObject);
@@ -223,7 +226,7 @@ public class Pgql {
     if (m.contains(" ")) {
       m = NON_BREAKING_WHITE_SPACE_ERROR;
     }
-    
+
     if (affectedSourceText == null) {
       sb.append("\t" + m);
     } else {

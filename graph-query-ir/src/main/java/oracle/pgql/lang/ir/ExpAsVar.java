@@ -33,4 +33,32 @@ public class ExpAsVar extends QueryVariable {
   public VariableType getVariableType() {
     return VariableType.EXP_AS_VAR;
   }
+
+  @Override
+  public boolean equals(Object o) {
+    if (this == o) {
+      return true;
+    }
+    if (o == null || getClass() != o.getClass()) {
+      return false;
+    }
+
+    ExpAsVar expAsVar = (ExpAsVar) o;
+
+    if (anonymous != expAsVar.anonymous) {
+      return false;
+    }
+    if (!name.equals(expAsVar.name)) {
+      return false;
+    }
+    return exp.equals(expAsVar.exp);
+  }
+
+  @Override
+  public int hashCode() {
+    int result = (anonymous ? 1 : 0);
+    result = 31 * result + name.hashCode();
+    result = 31 * result + exp.hashCode();
+    return result;
+  }
 }

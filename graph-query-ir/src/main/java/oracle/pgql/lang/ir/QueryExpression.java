@@ -5,7 +5,7 @@ package oracle.pgql.lang.ir;
 
 public interface QueryExpression {
 
-  public enum ExpressionType {
+  enum ExpressionType {
     INTEGER, DECIMAL, STRING, BOOLEAN, NULL, // constants
     SUB, ADD, MUL, DIV, MOD, UMIN, // arithmetic expressions
     AND, OR, NOT, // logical expressions
@@ -15,29 +15,49 @@ public interface QueryExpression {
 
     // functions:
     REGEX, // String
-    ID, PROP_ACCESS, HAS_PROP, HAS_LABEL, // vertex/edges     note: HasProp/HasLabel will be removed in future version (replaced by 'x.prop != NULL')
+    ID, PROP_ACCESS, HAS_PROP, HAS_LABEL, // vertex/edges     note: HasProp/HasLabel will be removed in future
+    // version (replaced by 'x.prop != NULL')
     VERTEX_LABELS, INDEGREE, OUTDEGREE, // vertex
     EDGE_LABEL // edge
   }
 
-  public ExpressionType getExpType();
+  ExpressionType getExpType();
 
-  public void accept(QueryExpressionVisitor v);
+  void accept(QueryExpressionVisitor v);
 
-  public static abstract class UnaryExpression implements QueryExpression {
+  abstract class UnaryExpression implements QueryExpression {
 
     private final QueryExpression exp;
 
     public UnaryExpression(QueryExpression exp) {
       this.exp = exp;
     }
-    
+
     public QueryExpression getExp() {
       return exp;
     }
+
+    @Override
+    public boolean equals(Object o) {
+      if (this == o) {
+        return true;
+      }
+      if (o == null || getClass() != o.getClass()) {
+        return false;
+      }
+
+      UnaryExpression that = (UnaryExpression) o;
+
+      return exp.equals(that.exp);
+    }
+
+    @Override
+    public int hashCode() {
+      return exp.hashCode();
+    }
   }
 
-  public static abstract class BinaryExpression implements QueryExpression {
+  abstract class BinaryExpression implements QueryExpression {
 
     private final QueryExpression exp1;
     private final QueryExpression exp2;
@@ -46,18 +66,42 @@ public interface QueryExpression {
       this.exp1 = exp1;
       this.exp2 = exp2;
     }
-    
+
     public QueryExpression getExp1() {
       return exp1;
     }
-    
+
     public QueryExpression getExp2() {
       return exp2;
+    }
+
+    @Override
+    public boolean equals(Object o) {
+      if (this == o) {
+        return true;
+      }
+      if (o == null || getClass() != o.getClass()) {
+        return false;
+      }
+
+      BinaryExpression that = (BinaryExpression) o;
+
+      if (!exp1.equals(that.exp1)) {
+        return false;
+      }
+      return exp2.equals(that.exp2);
+    }
+
+    @Override
+    public int hashCode() {
+      int result = exp1.hashCode();
+      result = 31 * result + exp2.hashCode();
+      return result;
     }
   }
 
   // not yet used, but there will be built-in functions in the future that will need it
-  public static abstract class TernaryExpression implements QueryExpression {
+  abstract class TernaryExpression implements QueryExpression {
 
     private final QueryExpression exp1;
     private final QueryExpression exp2;
@@ -68,21 +112,49 @@ public interface QueryExpression {
       this.exp2 = exp2;
       this.exp3 = exp3;
     }
-    
+
     public QueryExpression getExp1() {
       return exp1;
     }
-    
+
     public QueryExpression getExp2() {
       return exp2;
     }
-    
+
     public QueryExpression getExp3() {
       return exp3;
     }
+
+    @Override
+    public boolean equals(Object o) {
+      if (this == o) {
+        return true;
+      }
+      if (o == null || getClass() != o.getClass()) {
+        return false;
+      }
+
+      TernaryExpression that = (TernaryExpression) o;
+
+      if (!exp1.equals(that.exp1)) {
+        return false;
+      }
+      if (!exp2.equals(that.exp2)) {
+        return false;
+      }
+      return exp3.equals(that.exp3);
+    }
+
+    @Override
+    public int hashCode() {
+      int result = exp1.hashCode();
+      result = 31 * result + exp2.hashCode();
+      result = 31 * result + exp3.hashCode();
+      return result;
+    }
   }
 
-  public interface ArithmeticExpression extends QueryExpression {
+  interface ArithmeticExpression extends QueryExpression {
 
     class Sub extends BinaryExpression implements ArithmeticExpression {
       public Sub(QueryExpression exp1, QueryExpression exp2) {
@@ -93,12 +165,12 @@ public interface QueryExpression {
       public ExpressionType getExpType() {
         return ExpressionType.SUB;
       }
-      
+
       @Override
       public String toString() {
         return "(" + getExp1() + " - " + getExp2() + ")";
       }
-      
+
       @Override
       public void accept(QueryExpressionVisitor v) {
         v.visit(this);
@@ -113,13 +185,13 @@ public interface QueryExpression {
       @Override
       public ExpressionType getExpType() {
         return ExpressionType.ADD;
-      }    
-      
+      }
+
       @Override
       public String toString() {
         return "(" + getExp1() + " + " + getExp2() + ")";
       }
-      
+
       @Override
       public void accept(QueryExpressionVisitor v) {
         v.visit(this);
@@ -135,12 +207,12 @@ public interface QueryExpression {
       public ExpressionType getExpType() {
         return ExpressionType.MUL;
       }
-      
+
       @Override
       public String toString() {
         return "(" + getExp1() + " * " + getExp2() + ")";
       }
-      
+
       @Override
       public void accept(QueryExpressionVisitor v) {
         v.visit(this);
@@ -156,12 +228,12 @@ public interface QueryExpression {
       public ExpressionType getExpType() {
         return ExpressionType.DIV;
       }
-      
+
       @Override
       public String toString() {
         return "(" + getExp1() + " / " + getExp2() + ")";
       }
-      
+
       @Override
       public void accept(QueryExpressionVisitor v) {
         v.visit(this);
@@ -177,12 +249,12 @@ public interface QueryExpression {
       public ExpressionType getExpType() {
         return ExpressionType.MOD;
       }
-      
+
       @Override
       public String toString() {
         return "(" + getExp1() + " % " + getExp2() + ")";
       }
-      
+
       @Override
       public void accept(QueryExpressionVisitor v) {
         v.visit(this);
@@ -198,11 +270,12 @@ public interface QueryExpression {
       public ExpressionType getExpType() {
         return ExpressionType.UMIN;
       }
+
       @Override
       public String toString() {
         return "-(" + getExp() + ")";
       }
-      
+
       @Override
       public void accept(QueryExpressionVisitor v) {
         v.visit(this);
@@ -210,7 +283,7 @@ public interface QueryExpression {
     }
   }
 
-  public interface LogicalExpression extends QueryExpression {
+  interface LogicalExpression extends QueryExpression {
 
     class And extends BinaryExpression implements LogicalExpression {
       public And(QueryExpression exp1, QueryExpression exp2) {
@@ -226,7 +299,7 @@ public interface QueryExpression {
       public String toString() {
         return "(" + getExp1() + " AND " + getExp2() + ")";
       }
-      
+
       @Override
       public void accept(QueryExpressionVisitor v) {
         v.visit(this);
@@ -247,7 +320,7 @@ public interface QueryExpression {
       public String toString() {
         return "(" + getExp1() + " OR " + getExp2() + ")";
       }
-      
+
       @Override
       public void accept(QueryExpressionVisitor v) {
         v.visit(this);
@@ -263,12 +336,12 @@ public interface QueryExpression {
       public ExpressionType getExpType() {
         return ExpressionType.NOT;
       }
-      
+
       @Override
       public String toString() {
         return "NOT(" + getExp() + ")";
       }
-      
+
       @Override
       public void accept(QueryExpressionVisitor v) {
         v.visit(this);
@@ -276,7 +349,7 @@ public interface QueryExpression {
     }
   }
 
-  public interface RelationalExpression extends QueryExpression {
+  interface RelationalExpression extends QueryExpression {
 
     class Equal extends BinaryExpression implements RelationalExpression {
       public Equal(QueryExpression exp1, QueryExpression exp2) {
@@ -287,12 +360,12 @@ public interface QueryExpression {
       public ExpressionType getExpType() {
         return ExpressionType.EQUAL;
       }
-      
+
       @Override
       public String toString() {
         return "(" + getExp1() + " = " + getExp2() + ")";
       }
-      
+
       @Override
       public void accept(QueryExpressionVisitor v) {
         v.visit(this);
@@ -313,7 +386,7 @@ public interface QueryExpression {
       public String toString() {
         return "(" + getExp1() + " != " + getExp2() + ")";
       }
-      
+
       @Override
       public void accept(QueryExpressionVisitor v) {
         v.visit(this);
@@ -334,7 +407,7 @@ public interface QueryExpression {
       public String toString() {
         return "(" + getExp1() + " > " + getExp2() + ")";
       }
-      
+
       @Override
       public void accept(QueryExpressionVisitor v) {
         v.visit(this);
@@ -355,7 +428,7 @@ public interface QueryExpression {
       public String toString() {
         return "(" + getExp1() + " >= " + getExp2() + ")";
       }
-      
+
       @Override
       public void accept(QueryExpressionVisitor v) {
         v.visit(this);
@@ -376,7 +449,7 @@ public interface QueryExpression {
       public String toString() {
         return "(" + getExp1() + " < " + getExp2() + ")";
       }
-      
+
       @Override
       public void accept(QueryExpressionVisitor v) {
         v.visit(this);
@@ -397,7 +470,7 @@ public interface QueryExpression {
       public String toString() {
         return "(" + getExp1() + " <= " + getExp2() + ")";
       }
-      
+
       @Override
       public void accept(QueryExpressionVisitor v) {
         v.visit(this);
@@ -405,14 +478,14 @@ public interface QueryExpression {
     }
   }
 
-  public static abstract class Constant<T> implements QueryExpression {
+  abstract class Constant<T> implements QueryExpression {
 
     protected final T value;
 
     public Constant(T value) {
       this.value = value;
     }
-    
+
     public T getValue() {
       return value;
     }
@@ -421,7 +494,26 @@ public interface QueryExpression {
     public String toString() {
       return value.toString();
     }
-    
+
+    @Override
+    public boolean equals(Object o) {
+      if (this == o) {
+        return true;
+      }
+      if (o == null || getClass() != o.getClass()) {
+        return false;
+      }
+
+      Constant<?> constant = (Constant<?>) o;
+
+      return value.equals(constant.value);
+    }
+
+    @Override
+    public int hashCode() {
+      return value.hashCode();
+    }
+
     public static class ConstInteger extends Constant<Long> {
       public ConstInteger(long val) {
         super(val);
@@ -431,7 +523,7 @@ public interface QueryExpression {
       public ExpressionType getExpType() {
         return ExpressionType.INTEGER;
       }
-      
+
       @Override
       public void accept(QueryExpressionVisitor v) {
         v.visit(this);
@@ -447,7 +539,7 @@ public interface QueryExpression {
       public ExpressionType getExpType() {
         return ExpressionType.DECIMAL;
       }
-      
+
       @Override
       public void accept(QueryExpressionVisitor v) {
         v.visit(this);
@@ -468,7 +560,7 @@ public interface QueryExpression {
       public String toString() {
         return "'" + value + "'";
       }
-      
+
       @Override
       public void accept(QueryExpressionVisitor v) {
         v.visit(this);
@@ -485,7 +577,7 @@ public interface QueryExpression {
       public ExpressionType getExpType() {
         return ExpressionType.BOOLEAN;
       }
-      
+
       @Override
       public void accept(QueryExpressionVisitor v) {
         v.visit(this);
@@ -493,7 +585,7 @@ public interface QueryExpression {
     }
   }
 
-  public static class ConstNull implements QueryExpression {
+  class ConstNull implements QueryExpression {
 
     @Override
     public ExpressionType getExpType() {
@@ -504,20 +596,37 @@ public interface QueryExpression {
     public String toString() {
       return "NULL";
     }
-    
+
     @Override
     public void accept(QueryExpressionVisitor v) {
       v.visit(this);
     }
+
+    @Override
+    public boolean equals(Object o) {
+      if (this == o) {
+        return true;
+      }
+      if (o == null || getClass() != o.getClass()) {
+        return false;
+      }
+
+      return true;
+    }
+
+    @Override
+    public int hashCode() {
+      return 31;
+    }
   }
 
-  public static class VarRef implements QueryExpression {
+  class VarRef implements QueryExpression {
     private final QueryVariable variable;
 
     public VarRef(QueryVariable variable) {
       this.variable = variable;
     }
-    
+
     public QueryVariable getVariable() {
       return variable;
     }
@@ -531,14 +640,33 @@ public interface QueryExpression {
     public String toString() {
       return variable.isAnonymous() ? "" : variable.name;
     }
-    
+
     @Override
     public void accept(QueryExpressionVisitor v) {
       v.visit(this);
     }
+
+    @Override
+    public boolean equals(Object o) {
+      if (this == o) {
+        return true;
+      }
+      if (o == null || getClass() != o.getClass()) {
+        return false;
+      }
+
+      VarRef varRef = (VarRef) o;
+
+      return variable.equals(varRef.variable);
+    }
+
+    @Override
+    public int hashCode() {
+      return variable.hashCode();
+    }
   }
 
-  public static class PropertyAccess implements QueryExpression {
+  class PropertyAccess implements QueryExpression {
     private final QueryVariable variable;
     private final String propertyName;
 
@@ -550,11 +678,11 @@ public interface QueryExpression {
     public QueryVariable getVariable() {
       return variable;
     }
-    
+
     public String getPropertyName() {
       return propertyName;
     }
-    
+
     @Override
     public ExpressionType getExpType() {
       return ExpressionType.PROP_ACCESS;
@@ -564,14 +692,38 @@ public interface QueryExpression {
     public String toString() {
       return (variable.isAnonymous() ? "" : variable.name) + "." + propertyName;
     }
-    
+
     @Override
     public void accept(QueryExpressionVisitor v) {
       v.visit(this);
     }
+
+    @Override
+    public boolean equals(Object o) {
+      if (this == o) {
+        return true;
+      }
+      if (o == null || getClass() != o.getClass()) {
+        return false;
+      }
+
+      PropertyAccess that = (PropertyAccess) o;
+
+      if (!variable.equals(that.variable)) {
+        return false;
+      }
+      return propertyName.equals(that.propertyName);
+    }
+
+    @Override
+    public int hashCode() {
+      int result = variable.hashCode();
+      result = 31 * result + propertyName.hashCode();
+      return result;
+    }
   }
 
-  public interface Function extends QueryExpression {
+  interface Function extends QueryExpression {
 
     class Regex extends BinaryExpression implements Function {
       public Regex(QueryExpression exp1, QueryExpression exp2) {
@@ -587,7 +739,7 @@ public interface QueryExpression {
       public String toString() {
         return "(" + getExp1() + "=~" + getExp2() + ")";
       }
-      
+
       @Override
       public void accept(QueryExpressionVisitor v) {
         v.visit(this);
@@ -614,7 +766,7 @@ public interface QueryExpression {
       public String toString() {
         return getExp() + ".id()";
       }
-      
+
       @Override
       public void accept(QueryExpressionVisitor v) {
         v.visit(this);
@@ -632,12 +784,11 @@ public interface QueryExpression {
         return ExpressionType.EDGE_LABEL;
       }
 
-
       @Override
       public String toString() {
         return getExp() + ".label()";
       }
-      
+
       @Override
       public void accept(QueryExpressionVisitor v) {
         v.visit(this);
@@ -659,7 +810,7 @@ public interface QueryExpression {
       public String toString() {
         return getExp() + ".labels()";
       }
-      
+
       @Override
       public void accept(QueryExpressionVisitor v) {
         v.visit(this);
@@ -681,7 +832,7 @@ public interface QueryExpression {
       public String toString() {
         return getExp1() + ".hasLabel(" + getExp2() + ")";
       }
-      
+
       @Override
       public void accept(QueryExpressionVisitor v) {
         v.visit(this);
@@ -709,7 +860,7 @@ public interface QueryExpression {
       public String toString() {
         return getExp1() + ".has(" + getExp2() + ")";
       }
-      
+
       @Override
       public void accept(QueryExpressionVisitor v) {
         v.visit(this);
@@ -730,7 +881,7 @@ public interface QueryExpression {
       public String toString() {
         return getExp() + ".indegree()";
       }
-      
+
       @Override
       public void accept(QueryExpressionVisitor v) {
         v.visit(this);
@@ -751,7 +902,7 @@ public interface QueryExpression {
       public String toString() {
         return getExp() + ".outdegree()";
       }
-      
+
       @Override
       public void accept(QueryExpressionVisitor v) {
         v.visit(this);
@@ -759,7 +910,7 @@ public interface QueryExpression {
     }
   }
 
-  public interface Aggregation extends QueryExpression {
+  interface Aggregation extends QueryExpression {
 
     class AggrCount extends UnaryExpression implements Aggregation {
 
@@ -776,7 +927,7 @@ public interface QueryExpression {
       public String toString() {
         return "COUNT(" + getExp() + ")";
       }
-      
+
       @Override
       public void accept(QueryExpressionVisitor v) {
         v.visit(this);
@@ -798,7 +949,7 @@ public interface QueryExpression {
       public String toString() {
         return "MIN(" + getExp() + ")";
       }
-      
+
       @Override
       public void accept(QueryExpressionVisitor v) {
         v.visit(this);
@@ -820,7 +971,7 @@ public interface QueryExpression {
       public String toString() {
         return "MAX(" + getExp() + ")";
       }
-      
+
       @Override
       public void accept(QueryExpressionVisitor v) {
         v.visit(this);
@@ -842,7 +993,7 @@ public interface QueryExpression {
       public String toString() {
         return "SUM(" + getExp() + ")";
       }
-      
+
       @Override
       public void accept(QueryExpressionVisitor v) {
         v.visit(this);
@@ -864,7 +1015,7 @@ public interface QueryExpression {
       public String toString() {
         return "AVG(" + getExp() + ")";
       }
-      
+
       @Override
       public void accept(QueryExpressionVisitor v) {
         v.visit(this);
@@ -886,6 +1037,23 @@ public interface QueryExpression {
       @Override
       public void accept(QueryExpressionVisitor v) {
         v.visit(this);
+      }
+
+      @Override
+      public boolean equals(Object o) {
+        if (this == o) {
+          return true;
+        }
+        if (o == null || getClass() != o.getClass()) {
+          return false;
+        }
+
+        return true;
+      }
+
+      @Override
+      public int hashCode() {
+        return 31;
       }
     }
   }

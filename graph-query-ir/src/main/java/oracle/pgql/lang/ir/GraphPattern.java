@@ -1,3 +1,6 @@
+/**
+ * Copyright (C) 2013 - 2016 Oracle and/or its affiliates. All rights reserved.
+ */
 package oracle.pgql.lang.ir;
 
 import java.util.Set;
@@ -34,5 +37,33 @@ public class GraphPattern {
   @Override
   public String toString() {
     return printPgqlString(this);
+  }
+
+  @Override
+  public boolean equals(Object o) {
+    if (this == o) {
+      return true;
+    }
+    if (o == null || getClass() != o.getClass()) {
+      return false;
+    }
+
+    GraphPattern that = (GraphPattern) o;
+
+    if (!vertices.equals(that.vertices)) {
+      return false;
+    }
+    if (!connections.equals(that.connections)) {
+      return false;
+    }
+    return constraints.equals(that.constraints);
+  }
+
+  @Override
+  public int hashCode() {
+    int result = vertices.hashCode();
+    result = 31 * result + connections.hashCode();
+    result = 31 * result + constraints.hashCode();
+    return result;
   }
 }

@@ -3,11 +3,7 @@
  */
 package oracle.pgql.lang.ir;
 
-import java.util.Random;
-
 public abstract class QueryVariable {
-
-  private static final Random random = new Random();
 
   public enum VariableType {
     VERTEX,
@@ -27,10 +23,6 @@ public abstract class QueryVariable {
 
   public QueryVariable(String name) {
     this(name, false);
-  }
-
-  public QueryVariable() {
-    this("anonymous" + Math.abs(random.nextLong()), true);
   }
 
   public String getName() {

@@ -80,7 +80,7 @@ public class SpoofaxAstToGraphQuery {
     // path patterns
     IStrategoTerm pathPatternsT = getList(ast.getSubterm(POS_PATH_PATTERNS));
     Map<String, IStrategoTerm> pathPatternMap = getPathPatterns(pathPatternsT); // map from path pattern name to path
-                                                                                // pattern term
+    // pattern term
 
     // WHERE
     IStrategoTerm graphPatternT = ast.getSubterm(POS_WHERE);
@@ -146,7 +146,9 @@ public class SpoofaxAstToGraphQuery {
     List<QueryVertex> vertices = new ArrayList<>(verticesT.getSubtermCount());
     for (IStrategoTerm vertexT : verticesT) {
       String vertexName = getString(vertexT);
-      QueryVertex vertex = vertexName.contains(GENERATED_VAR_SUBSTR) ? new QueryVertex() : new QueryVertex(vertexName);
+      QueryVertex vertex = vertexName.contains(GENERATED_VAR_SUBSTR)
+          ? new QueryVertex(vertexName, true)
+          : new QueryVertex(vertexName, false);
       vertices.add(vertex);
       varmap.put(vertexName, vertex);
     }
@@ -173,7 +175,9 @@ public class SpoofaxAstToGraphQuery {
       QueryVertex src = (QueryVertex) varmap.get(srcName);
       QueryVertex dst = (QueryVertex) varmap.get(dstName);
 
-      QueryEdge edge = name.contains(GENERATED_VAR_SUBSTR) ? new QueryEdge(src, dst) : new QueryEdge(src, dst, name);
+      QueryEdge edge = name.contains(GENERATED_VAR_SUBSTR)
+          ? new QueryEdge(src, dst, name, true)
+          : new QueryEdge(src, dst, name, false);
 
       edges.add(edge);
       varmap.put(name, edge);
@@ -189,10 +193,10 @@ public class SpoofaxAstToGraphQuery {
     for (IStrategoTerm pathT : pathsT) {
 
       String pathPatternName = getString(pathT.getSubterm(POS_PATH_PATH_PATTERN));
-      
+
       boolean kleenePlus = false; // kleene plus not yet supported
       long maxRepetition = -1; // max repetition not yet supported
-      
+
       IStrategoTerm pathPatternT = pathPatternMap.get(pathPatternName);
 
       // vertices
@@ -224,8 +228,10 @@ public class SpoofaxAstToGraphQuery {
       }
 
       QueryPath pathPattern = name.contains(GENERATED_VAR_SUBSTR)
-          ? new QueryPath(src, dst, vertices, connections, directions, constraints, kleenePlus, maxRepetition)
-          : new QueryPath(src, dst, vertices, connections, directions, constraints, kleenePlus, maxRepetition, name);
+          ? new QueryPath(src, dst, vertices, connections, directions, constraints, kleenePlus, maxRepetition, name,
+          true)
+          : new QueryPath(src, dst, vertices, connections, directions, constraints, kleenePlus, maxRepetition, name,
+              false);
 
       result.add(pathPattern);
     }
@@ -456,7 +462,7 @@ public class SpoofaxAstToGraphQuery {
   private static boolean isNone(IStrategoTerm t) {
     return ((IStrategoAppl) t).getConstructor().getName().equals("None");
   }
-  
+
   // helper method
   private static IStrategoTerm getSome(IStrategoTerm t) {
     return t.getSubterm(0);
