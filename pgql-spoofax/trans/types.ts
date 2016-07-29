@@ -17,6 +17,12 @@ type rules // expressions
 
   COUNT(_, _) + MIN(_, _)  + MAX(_, _)  + SUM(_, _)  + AVG(_, _) : IntegerTy()
 
+  True() + False() : BooleanTy()
+  Integer(_)       : IntegerTy()
+  Decimal(_)       : DecimalTy()
+  String(_)        : StringTy()
+  Null()           : UnknownTy()
+
 type rules // built-in functions
 
   t@InDegree(exp) + t@OutDegree(exp) : IntegerTy()

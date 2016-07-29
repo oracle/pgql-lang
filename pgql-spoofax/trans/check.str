@@ -106,15 +106,3 @@ signature constructors
   
   ReferenceInInlinedConstraint : var -> ReferenceInInlinedConstraint
   CrossReferenceInInlinedConstraint : CrossReferenceInInlinedConstraint
-
-rules // future PGQL versions
-
-  nabl-constraint(|ctx):
-    e@Distinct() -> <fail>
-    with
-      <generate-error(|ctx, $[DISTINCT is not supported])> e
-
-  nabl-constraint(|ctx):
-    LitCustomType(_, type) -> <fail>
-    with
-      <generate-error(|ctx, $[Custom data types are not supported])> type

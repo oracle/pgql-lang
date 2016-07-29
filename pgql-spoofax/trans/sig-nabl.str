@@ -17,8 +17,10 @@ signature constructors // types
   PathTy : PathTy
   BooleanTy : BooleanTy
   IntegerTy : IntegerTy
+  DecimalTy : DecimalTy
   StringTy : StringTy
   StringSetTy : StringSetTy
+  UnknownTy : UnknownTy
 
 signature constructors // namespaces
     

@@ -9,6 +9,12 @@ imports
 
 rules
 
+
+  nabl-constraint(|ctx):
+    e@Distinct() -> <fail>
+    with
+      <generate-error(|ctx, $[DISTINCT is not supported])> e
+
   not-supported-expressions = collect-om(is-aggregate <+ is-function <+ is-expression <+ is-literal, conc); remove-all(is-aggregate + is-function)
   not-supported-expressions-in-aggregration = collect-om(get-exp-from-aggregation, conc); filter(is-expression <+ is-literal)
 
