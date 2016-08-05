@@ -45,7 +45,7 @@ The AST returned by the parser is a [GraphQuery](graph-query-ir/src/main/java/or
 
 ## Documentation
 
-The language specification can be found [here](https://docs.oracle.com/cd/E56133_01/1.2.0/PGQL_Specification.pdf) (new PGQL 1.0 spec. by Saturday 6th of August).
+The PGQL 1.0 language specification can be found [here](specification/pgql-1.0-spec.md).
 
 ## Development
 
