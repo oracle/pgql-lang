@@ -4,7 +4,7 @@ topnav:
 - title: Topnav
   items:
     - title: PGQL 1.0 Specification
-      url: /news
+      url: pgql-1.0-specification.html
 
 #Topnav dropdowns
 topnav_dropdowns:
