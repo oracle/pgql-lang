@@ -1,9 +1,7 @@
 ---
-title:  "PGQL 1.0 Language Specification"
-published: true
+title:  "PGQL 1.0 Specification"
 permalink: pgql-1.0-specification.html
 summary: "PGQL is a SQL-like query language for the Property Graph data model."
-tags: [specification, 1.0]
 toc: false
 ---
 

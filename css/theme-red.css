@@ -1,6 +1,6 @@
 .summary {
     color: #808080;
-    border-left: 5px solid #ED1951;
+    border-left: 5px solid #F80000;
     font-size:16px;
 }
 
@@ -95,7 +95,7 @@ li.sidebarTitle {
     margin-top:40px;
     font-weight:normal;
     font-size:130%;
-    color: #ED1951;
+    color: #F80000;
     margin-bottom:10px;
     margin-left: 5px;
 
