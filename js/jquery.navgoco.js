@@ -85,6 +85,7 @@
 					self._toggle(sub, sub.is(":hidden"));
 					self._save();
 				} else if (self.options.accordion) {
+/*
 					var allowed = self.state = self._parents($(this));
 					self.$el.find('ul').filter(':visible').each(function() {
 						var sub = $(this),
@@ -94,6 +95,8 @@
 							self._toggle(sub, false);
 						}
 					});
+*/
+self._toggle(sub, true);
 					self._save();
 				}
 				self.options.onClickAfter.call(this, event, sub);
