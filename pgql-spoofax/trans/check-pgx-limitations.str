@@ -9,12 +9,6 @@ imports
 
 rules
 
-
-  nabl-constraint(|ctx):
-    e@Distinct() -> <fail>
-    with
-      <generate-error(|ctx, $[DISTINCT is not supported])> e
-
   not-supported-expressions = collect-om(is-aggregate <+ is-function <+ is-expression <+ is-literal, conc); remove-all(is-aggregate + is-function)
   not-supported-expressions-in-aggregration = collect-om(get-exp-from-aggregation, conc); filter(is-expression <+ is-literal)
 
@@ -29,8 +23,8 @@ rules
       expsInAggr := <not-supported-expressions-in-aggregration> t;
       <batch-generate-error(|ctx, "Only simple expressions allowed here: variable, property access or function call")> expsInAggr
 
-    // expressions in GROUP BY need to be simple
-    nabl-constraint(|ctx):
+  // expressions in GROUP BY need to be simple
+  nabl-constraint(|ctx):
     t@GroupClause(_) -> <fail>
     with
       exps := <not-supported-expressions> t;
@@ -45,7 +39,6 @@ rules
       not ( String(_) := exp );
       <generate-error(|ctx, "String expected")> exp
 
-  
   nabl-constraint(|ctx):
     Constraints(constraints) -> <fail>
     where
@@ -57,40 +50,13 @@ rules
     where
       <generate-error(|ctx, "NULL is not supported")> t
 
-rules // cross-constraints involving paths
-  
-  nabl-constraint(|ctx):
-    Constraints(constraints) -> <fail>
-    where
-      <map(try(constraints-check(|ctx)))> constraints
-      
-  constraints-check(|ctx):
-    constraint -> <fail>
-    where
-      varRefs := <collect-om(?VarRef(_))> constraint;
-      <gt> (<length> varRefs, 1);
-      <alltd(cross-constraints-paths(|ctx))> constraint
-  
-  cross-constraints-paths(|ctx):
-    PropRef(VarRef(v), _) -> <fail>
+rules
+
+  path-reference(|ctx):
+    VarRef(v) -> <fail>
     where
       var-is-path := <var-is-path(|ctx)> v;
-      <task-create-error-on-success(|ctx, var-is-path, $[Cross-constraints involving path variables not supported])> v
-
-  var-is-edge(|ctx) = var-is-type(|ctx, "VarIsEdge")
-  var-is-node(|ctx) = var-is-type(|ctx, "VarIsNode")
-  var-is-path(|ctx) = var-is-type(|ctx, "VarIsPath")
-
-  var-is-type(|ctx, type):
-    v -> rewrite-task1
-    where
-      v-resolve-task := <nabl-create-collectdefs(|ctx)> v;
-      v-prop-task    := <prop-create-lookup(|ctx, Type())> v-resolve-task;
-      rewrite-task1  := <task-create-rewrite(|ctx, type)> v-prop-task
-      
-  task-rewrite: ("VarIsNode", NodeTy()) -> <id>
-  task-rewrite: ("VarIsEdge", EdgeTy()) -> <id>
-  task-rewrite: ("VarIsPath", PathTy()) -> <id>
+      <task-create-error-on-success(|ctx, var-is-path, $[Path variables not yet supported])> v
 
 rules // Not a connected graph, e.g. WHERE x -> y, x2 -> y2
   
@@ -176,20 +142,19 @@ rules // Not a connected graph, e.g. WHERE x -> y, x2 -> y2
     VarRef(v) -> <id>
     with
       var-is-vertex := <var-is-node(|ctx)> v;
-      <task-create-error-on-success(|ctx, var-is-vertex, $[PGX currently doesn't support constraints over vertices in path patterns])> v
+      <task-create-error-on-success(|ctx, var-is-vertex, $[Constraints on vertices in path patterns not yet supported])> v
 
   nested-path-pattern-limitation(|ctx):
     PathPatternRef(p) -> <id>
     with
-      <generate-error(|ctx, "PGX currently doesn't support nested path patterns")> p
+      <generate-error(|ctx, "Nested path patterns not yet supported")> p
 
   nabl-constraint(|ctx):
     Or(_, PathPatternRef(p)) -> <fail>
     where
-      <generate-error(|ctx, "PGX currently doesn't support alternative path patterns")> p
+      <generate-error(|ctx, "Alternative path patterns not yet supported")> p
             
   nabl-constraint(|ctx):
     Path(_, _, t@PathPatternRef(r), None(), _) -> <id>
     with
-      <generate-error(|ctx, $<PGX currently requires a Kleene star on this: <r>*>)> t
-
+      <generate-error(|ctx, $<For now, Kleene star required here: <r>*>)> t

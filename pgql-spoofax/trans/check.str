@@ -77,6 +77,11 @@ rules
       aggrsInAggr := <get-arguments; collect-om(is-aggregate, conc)> t;
       <batch-generate-error(|ctx, "Nested aggregation is not allowed")> aggrsInAggr  
 
+  nabl-constraint(|ctx):
+    e@Distinct() -> <fail>
+    with
+      <generate-error(|ctx, $[DISTINCT is not supported in PGQL 1.0])> e
+
 rules // helper rules
 
   batch-generate-error(|ctx, m) = map(generate-error(|ctx, m))
@@ -101,7 +106,22 @@ rules // helper rules
       uri := <nabl-uri; nabl-uri-parent> v;
       resolve-task := <nabl-create-resolvedefs(|ctx, NablNsVar(), v, [])> uri;
       <task-create-error-on-multiple(|ctx, resolve-task, m)> v
+
+  var-is-edge(|ctx) = var-is-type(|ctx, "VarIsEdge")
+  var-is-node(|ctx) = var-is-type(|ctx, "VarIsNode")
+  var-is-path(|ctx) = var-is-type(|ctx, "VarIsPath")
+
+  var-is-type(|ctx, type):
+    v -> rewrite-task1
+    where
+      v-resolve-task := <nabl-create-collectdefs(|ctx)> v;
+      v-prop-task    := <prop-create-lookup(|ctx, Type())> v-resolve-task;
+      rewrite-task1  := <task-create-rewrite(|ctx, type)> v-prop-task
       
+  task-rewrite: ("VarIsNode", NodeTy()) -> <id>
+  task-rewrite: ("VarIsEdge", EdgeTy()) -> <id>
+  task-rewrite: ("VarIsPath", PathTy()) -> <id>
+
 signature constructors
   
   ReferenceInInlinedConstraint : var -> ReferenceInInlinedConstraint
