@@ -1,23 +1,275 @@
-# This is your sidebar TOC. The sidebar code loops through sections here and provides the appropriate formatting.
-
 entries:
 - title: Sidebar
   product: PGQL 1.0 Specification
-  levels: one
   folders:
 
-  - title: Products
+  - title: Introduction
+    url: pgql-1.0-specification.html#introduction
+    output: web
+
+  - title: Basic Query Structure
+    url: pgql-1.0-specification.html#basic-query-structure
+    output: web
+
+  - title: WHERE Clause
+    url: pgql-1.0-specification.html#where-clause
     output: web
     folderitems:
-    - title: News
-      url: /news.html
+
+    - title: Topology Constraint
+      url: pgql-1.0-specification.html#topology-constraint
       output: web
-    - title: Theme instructions
-      url: /mydoc_introduction.html
+      subfolderitems:
+
+      - title: Repeated Variables in Multiple Topology Constraints
+        url: pgql-1.0-specification.html#repeated-variables-in-multiple-topology-constraints
+        output: web
+
+      - title: Syntactic Sugars for Topology Constraints
+        url: pgql-1.0-specification.html#syntactic-sugars-for-topology-constraints
+        output: web
+
+      - title: Disconnected Topology Constraints
+        url: pgql-1.0-specification.html#disconnected-topology-constraints
+        output: web
+
+    - title: Label Matching
+      url: pgql-1.0-specification.html#label-matching
       output: web
-    - title: Product 1
-      url: /p1_landing_page.html
+      subfolderitems:
+
+      - title: Labels and Quotes
+        url: pgql-1.0-specification.html#labels-and-quotes
+        output: web
+
+      - title: Label Alternatives
+        url: pgql-1.0-specification.html#label-alternatives
+        output: web
+
+      - title: Built-in Functions for Labels
+        url: pgql-1.0-specification.html#built-in-functions-for-labels
+        output: web
+
+    - title: Value Constraint
+      url: pgql-1.0-specification.html#value-constraint
       output: web
-    - title: Product 2
-      url: /p2_landing_page.html
+
+    - title: In-lined Constraint
+      url: pgql-1.0-specification.html#in-lined-constraint
+      output: web
+      subfolderitems:
+
+      - title: Simplified Property Access in the In-lined Expressions
+        url: pgql-1.0-specification.html#simplified-property-access-in-the-in-lined-expressions
+        output: web
+
+      - title: Vertices/edges without Variable Name but with In-lined Constraints
+        url: pgql-1.0-specification.html#vertices/edges-without-variable-name-but-with-in-lined-constraints
+        output: web
+
+      - title: Limitation on the In-lined Expressions
+        url: pgql-1.0-specification.html#limitation-on-the-in-lined-expressions
+        output: web
+
+      - title: Identifier short-cut for in-lined expressions
+        url: pgql-1.0-specification.html#identifier-short-cut-for-in-lined-expressions
+        output: web
+
+    - title: Graph Pattern Matching Semantic
+      url: pgql-1.0-specification.html#graph-pattern-matching-semantic
+      output: web
+      subfolderitems:
+
+      - title: Homomorphic Pattern Matching
+        url: pgql-1.0-specification.html#homomorphic-pattern-matching
+        output: web
+
+      - title: Isomorphic Pattern Matching
+        url: pgql-1.0-specification.html#isomorphic-pattern-matching
+        output: web
+
+  - title: SELECT Clause
+    url: pgql-1.0-specification.html#select-clause
+    output: web
+    folderitems:
+
+    - title: SELECT Expressions
+      url: pgql-1.0-specification.html#select-expressions
+      output: web
+      subfolderitems:
+
+      - title: Assigning Variable Name to Select Expression
+        url: pgql-1.0-specification.html#assigning-variable-name-to-select-expression
+        output: web
+
+    - title: SELECT *
+      url: pgql-1.0-specification.html#select-
+      output: web
+      subfolderitems:
+
+      - title: SELECT * with no variables in the WHERE clause
+        url: pgql-1.0-specification.html#select--with-no-variables-in-the-where-clause
+        output: web
+
+    - title: Aggregation
+      url: pgql-1.0-specification.html#aggregation
+      output: web
+      subfolderitems:
+
+      - title: Aggregation and Required Input Type
+        url: pgql-1.0-specification.html#aggregation-and-required-input-type
+        output: web
+
+      - title: Aggregation and Solution Modifier
+        url: pgql-1.0-specification.html#aggregation-and-solution-modifier
+        output: web
+
+      - title: Assigning Variable Name to Aggregation
+        url: pgql-1.0-specification.html#assigning-variable-name-to-aggregation
+        output: web
+
+  - title: Path Queries
+    url: pgql-1.0-specification.html#path-queries
+    output: web
+    folderitems:
+
+    - title: Regular Path Patterns
+      url: pgql-1.0-specification.html#regular-path-patterns
+      output: web
+
+    - title: Path Pattern Composition
+      url: pgql-1.0-specification.html#path-pattern-composition
+      output: web
+
+  - title: Solution Modifier Clause
+    url: pgql-1.0-specification.html#solution-modifier-clause
+    output: web
+    folderitems:
+
+    - title: ORDER BY
+      url: pgql-1.0-specification.html#order-by
+      output: web
+      subfolderitems:
+
+      - title: Multiple Terms in ORDER BY
+        url: pgql-1.0-specification.html#multiple-terms-in-order-by
+        output: web
+
+      - title: Data Types for ORDER BY
+        url: pgql-1.0-specification.html#data-types-for-order-by
+        output: web
+
+    - title: LIMIT and OFFSET
+      url: pgql-1.0-specification.html#limit-and-offset
+      output: web
+
+    - title: Grouping and Aggregation
+      url: pgql-1.0-specification.html#grouping-and-aggregation
+      output: web
+      subfolderitems:
+
+      - title: Assigning Variable Name to Group Expression
+        url: pgql-1.0-specification.html#assigning-variable-name-to-group-expression
+        output: web
+
+      - title: Multiple Terms in GROUP BY
+        url: pgql-1.0-specification.html#multiple-terms-in-group-by
+        output: web
+
+      - title: GROUP BY and NULL values
+        url: pgql-1.0-specification.html#group-by-and-null-values
+        output: web
+
+    - title: Repetition of Group Expression in Select or Order Expression
+      url: pgql-1.0-specification.html#repetition-of-group-expression-in-select-or-order-expression
+      output: web
+
+  - title: Expressions
+    url: pgql-1.0-specification.html#expressions
+    output: web
+    folderitems:
+
+    - title: Operators
+      url: pgql-1.0-specification.html#operators
+      output: web
+      subfolderitems:
+
+      - title: Operator Precedence
+        url: pgql-1.0-specification.html#operator-precedence
+        output: web
+
+      - title: Operator and Operand Types
+        url: pgql-1.0-specification.html#operator-and-operand-types
+        output: web
+
+      - title: Data Type Conversion
+        url: pgql-1.0-specification.html#data-type-conversion
+        output: web
+
+    - title: Regular Expression String Matching
+      url: pgql-1.0-specification.html#regular-expression-string-matching
+      output: web
+
+    - title: Null Values
+      url: pgql-1.0-specification.html#null-values
+      output: web
+      subfolderitems:
+
+      - title: Null Values and Operators
+        url: pgql-1.0-specification.html#null-values-and-operators
+        output: web
+
+      - title: Null Values as Function Argument
+        url: pgql-1.0-specification.html#null-values-as-function-argument
+        output: web
+
+    - title: Built-in Functions
+      url: pgql-1.0-specification.html#built-in-functions
+      output: web
+      subfolderitems:
+
+      - title: Simplified Function Calls in the In-lined Expressions
+        url: pgql-1.0-specification.html#simplified-function-calls-in-the-in-lined-expressions
+        output: web
+
+  - title: Other Syntactic Rules
+    url: pgql-1.0-specification.html#other-syntactic-rules
+    output: web
+    folderitems:
+
+    - title: Syntax for Variables
+      url: pgql-1.0-specification.html#syntax-for-variables
+      output: web
+
+    - title: Syntax for Properties
+      url: pgql-1.0-specification.html#syntax-for-properties
+      output: web
+
+    - title: Literals
+      url: pgql-1.0-specification.html#literals
+      output: web
+      subfolderitems:
+
+      - title: Single-quoted and Double-quoted Strings
+        url: pgql-1.0-specification.html#single-quoted-and-double-quoted-strings
+        output: web
+
+      - title: Escaped Characters in Strings
+        url: pgql-1.0-specification.html#escaped-characters-in-strings
+        output: web
+
+      - title: Optional Escaping of Quotes in Strings
+        url: pgql-1.0-specification.html#optional-escaping-of-quotes-in-strings
+        output: web
+
+    - title: Keywords
+      url: pgql-1.0-specification.html#keywords
+      output: web
+
+    - title: Comments
+      url: pgql-1.0-specification.html#comments
+      output: web
+
+    - title: White Space
+      url: pgql-1.0-specification.html#white-space
       output: web
