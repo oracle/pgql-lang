@@ -1,3 +1,10 @@
+---
+title:  "PGQL 1.0 Specification"
+permalink: pgql-1.0-specification.html
+summary: "PGQL is a SQL-like query language for the Property Graph data model."
+toc: false
+---
+
 # Introduction
 
 PGQL (Property Graph Query Language) is a query language for the Property Graph (PG) data model. This specification defines the syntax and semantics of PGQL.
