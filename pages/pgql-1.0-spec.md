@@ -12,6 +12,7 @@ PGQL (Property Graph Query Language) is a query language for the Property Graph 
 Essentially, PGQL is a graph pattern-matching query language. A PGQL query describes a graph pattern with vertices, edges, properties, and their relationships,  When the query is evaluated against a Property Graph instance, the query engine finds all subgraph instances of the graph that match to the specified query pattern. Then the query engine returns the selected data entities from each of the matched subgraph instance.
 
 Consider the following example PGQL query:
+
 ```
 SELECT m.name, o.name
 WHERE (n WITH type = 'Person' AND name = 'John') -[e1 WITH type = 'friendOf']-> (m WITH type = 'Person') <-[e2 WITH type = 'belongs_to']- (o WITH type = 'Car')
@@ -958,6 +959,7 @@ Note that the value of the literal is the same no matter if quotes are escaped o
 ```
 '\"double" quotes and \'single\' quotes' = "\"double\" quotes and \'single' quotes" // this expression evaluates to TRUE
 ```
+
 ## Keywords
 
 The following is the list of keywords in PGQL.
