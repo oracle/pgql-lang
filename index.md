@@ -41,4 +41,4 @@ WHERE
 ORDER BY friend.dob DESC
 ```
 
-{% include tip.html content="Find the latest language specification here: [PGQL 1.0 Specification](pgql-1.0-specification.html)." %}
+{% include note.html content="Find the latest language specification here: [PGQL 1.0 Specification](pgql-1.0-specification.html)." %}
