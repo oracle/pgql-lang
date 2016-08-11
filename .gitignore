@@ -2,3 +2,5 @@
 /.settings
 /.idea/
 pgql-lang-parent.iml
+/_site/
+GenerateMenuFromMarkdown.class
