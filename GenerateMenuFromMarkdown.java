@@ -7,7 +7,7 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.Iterator;
 
-public class GenerateMenuForMarkdown {
+public class GenerateMenuFromMarkdown {
 
   private static final String[] ENTRY_TYPES = { "folders", "folderitems", "subfolderitems" };
 

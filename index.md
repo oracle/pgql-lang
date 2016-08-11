@@ -14,10 +14,10 @@ In addition, PGQL supports _regular path queries_ for applications such as reach
 Here are some resources for PGQL:
 
  - The [PGQL 1.0 Specification](pgql-1.0-specification.html)
- - A reusable [open-sourced parser](https://github.com/oracle/pgql-lang) for PGQL queries
- - The [paper](http://dl.acm.org/citation.cfm?id=2960421) ([pdf](http://event.cwi.nl/grades/2016/07-VanRest.pdf)), which also outlines some future directions of PGQL,
+ - An [open-sourced parser](https://github.com/oracle/pgql-lang) for PGQL queries
+ - The [paper](http://dl.acm.org/citation.cfm?id=2960421) ([pdf](http://event.cwi.nl/grades/2016/07-VanRest.pdf)) that also outlines some future directions of PGQL
    (shortest path finding, graph construction, etc.)
- - The in-memory graph analytics framework [PGX](http://www.oracle.com/technetwork/oracle-labs/parallel-graph-analytics/overview/index.html), which comes with a high-performance PGQL query engine 
+ - [PGX](http://www.oracle.com/technetwork/oracle-labs/parallel-graph-analytics/overview/index.html), an in-memory graph analytics framework with a high-performance PGQL query engine 
 
 ## Example Queries
 
@@ -34,10 +34,10 @@ WHERE
 #### Find common friends of 'April' and 'Chris' that are older than both 
 
 ```
-SELECT friend.name, friend.age
+SELECT friend.name, friend.dob
 WHERE
   (p1:Person WITH name = 'April') -[:likes]-> (friend),
   (p2:Person WITH name = 'Chris') -[:likes]-> (friend),
   friend.dob > p1.dob AND friend.dob > p2.dob
-ORDER BY friend.age DESC
+ORDER BY friend.dob DESC
 ```
