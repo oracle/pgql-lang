@@ -4,273 +4,273 @@ entries:
   folders:
 
   - title: Introduction
-    url: 1.0#introduction
+    url: #introduction
     output: web
     folderitems:
 
     - title: Basic Query Structure
-      url: 1.0#basic-query-structure
+      url: #basic-query-structure
       output: web
 
   - title: WHERE Clause
-    url: 1.0#where-clause
+    url: #where-clause
     output: web
     folderitems:
 
     - title: Topology Constraint
-      url: 1.0#topology-constraint
+      url: #topology-constraint
       output: web
       subfolderitems:
 
       - title: Repeated Variables in Multiple Topology Constraints
-        url: 1.0#repeated-variables-in-multiple-topology-constraints
+        url: #repeated-variables-in-multiple-topology-constraints
         output: web
 
       - title: Syntactic Sugars for Topology Constraints
-        url: 1.0#syntactic-sugars-for-topology-constraints
+        url: #syntactic-sugars-for-topology-constraints
         output: web
 
       - title: Disconnected Topology Constraints
-        url: 1.0#disconnected-topology-constraints
+        url: #disconnected-topology-constraints
         output: web
 
     - title: Label Matching
-      url: 1.0#label-matching
+      url: #label-matching
       output: web
       subfolderitems:
 
       - title: Labels and Quotes
-        url: 1.0#labels-and-quotes
+        url: #labels-and-quotes
         output: web
 
       - title: Label Alternatives
-        url: 1.0#label-alternatives
+        url: #label-alternatives
         output: web
 
       - title: Built-in Functions for Labels
-        url: 1.0#built-in-functions-for-labels
+        url: #built-in-functions-for-labels
         output: web
 
     - title: Value Constraint
-      url: 1.0#value-constraint
+      url: #value-constraint
       output: web
 
     - title: In-lined Constraint
-      url: 1.0#in-lined-constraint
+      url: #in-lined-constraint
       output: web
       subfolderitems:
 
       - title: Simplified Property Access in the In-lined Expressions
-        url: 1.0#simplified-property-access-in-the-in-lined-expressions
+        url: #simplified-property-access-in-the-in-lined-expressions
         output: web
 
       - title: Vertices/edges without Variable Name but with In-lined Constraints
-        url: 1.0#vertices/edges-without-variable-name-but-with-in-lined-constraints
+        url: #vertices/edges-without-variable-name-but-with-in-lined-constraints
         output: web
 
       - title: Limitation on the In-lined Expressions
-        url: 1.0#limitation-on-the-in-lined-expressions
+        url: #limitation-on-the-in-lined-expressions
         output: web
 
       - title: Identifier short-cut for in-lined expressions
-        url: 1.0#identifier-short-cut-for-in-lined-expressions
+        url: #identifier-short-cut-for-in-lined-expressions
         output: web
 
     - title: Graph Pattern Matching Semantic
-      url: 1.0#graph-pattern-matching-semantic
+      url: #graph-pattern-matching-semantic
       output: web
       subfolderitems:
 
       - title: Homomorphic Pattern Matching
-        url: 1.0#homomorphic-pattern-matching
+        url: #homomorphic-pattern-matching
         output: web
 
       - title: Isomorphic Pattern Matching
-        url: 1.0#isomorphic-pattern-matching
+        url: #isomorphic-pattern-matching
         output: web
 
   - title: SELECT Clause
-    url: 1.0#select-clause
+    url: #select-clause
     output: web
     folderitems:
 
     - title: SELECT Expressions
-      url: 1.0#select-expressions
+      url: #select-expressions
       output: web
       subfolderitems:
 
       - title: Assigning Variable Name to Select Expression
-        url: 1.0#assigning-variable-name-to-select-expression
+        url: #assigning-variable-name-to-select-expression
         output: web
 
     - title: SELECT *
-      url: 1.0#select-
+      url: #select-
       output: web
       subfolderitems:
 
       - title: SELECT * with no variables in the WHERE clause
-        url: 1.0#select--with-no-variables-in-the-where-clause
+        url: #select--with-no-variables-in-the-where-clause
         output: web
 
     - title: Aggregation
-      url: 1.0#aggregation
+      url: #aggregation
       output: web
       subfolderitems:
 
       - title: Aggregation and Required Input Type
-        url: 1.0#aggregation-and-required-input-type
+        url: #aggregation-and-required-input-type
         output: web
 
       - title: Aggregation and Solution Modifier
-        url: 1.0#aggregation-and-solution-modifier
+        url: #aggregation-and-solution-modifier
         output: web
 
       - title: Assigning Variable Name to Aggregation
-        url: 1.0#assigning-variable-name-to-aggregation
+        url: #assigning-variable-name-to-aggregation
         output: web
 
   - title: Path Queries
-    url: 1.0#path-queries
+    url: #path-queries
     output: web
     folderitems:
 
     - title: Regular Path Patterns
-      url: 1.0#regular-path-patterns
+      url: #regular-path-patterns
       output: web
 
     - title: Path Pattern Composition
-      url: 1.0#path-pattern-composition
+      url: #path-pattern-composition
       output: web
 
   - title: Solution Modifier Clause
-    url: 1.0#solution-modifier-clause
+    url: #solution-modifier-clause
     output: web
     folderitems:
 
     - title: ORDER BY
-      url: 1.0#order-by
+      url: #order-by
       output: web
       subfolderitems:
 
       - title: Multiple Terms in ORDER BY
-        url: 1.0#multiple-terms-in-order-by
+        url: #multiple-terms-in-order-by
         output: web
 
       - title: Data Types for ORDER BY
-        url: 1.0#data-types-for-order-by
+        url: #data-types-for-order-by
         output: web
 
     - title: LIMIT and OFFSET
-      url: 1.0#limit-and-offset
+      url: #limit-and-offset
       output: web
 
     - title: Grouping and Aggregation
-      url: 1.0#grouping-and-aggregation
+      url: #grouping-and-aggregation
       output: web
       subfolderitems:
 
       - title: Assigning Variable Name to Group Expression
-        url: 1.0#assigning-variable-name-to-group-expression
+        url: #assigning-variable-name-to-group-expression
         output: web
 
       - title: Multiple Terms in GROUP BY
-        url: 1.0#multiple-terms-in-group-by
+        url: #multiple-terms-in-group-by
         output: web
 
       - title: GROUP BY and NULL values
-        url: 1.0#group-by-and-null-values
+        url: #group-by-and-null-values
         output: web
 
     - title: Repetition of Group Expression in Select or Order Expression
-      url: 1.0#repetition-of-group-expression-in-select-or-order-expression
+      url: #repetition-of-group-expression-in-select-or-order-expression
       output: web
 
   - title: Expressions
-    url: 1.0#expressions
+    url: #expressions
     output: web
     folderitems:
 
     - title: Operators
-      url: 1.0#operators
+      url: #operators
       output: web
       subfolderitems:
 
       - title: Operator Precedence
-        url: 1.0#operator-precedence
+        url: #operator-precedence
         output: web
 
       - title: Operator and Operand Types
-        url: 1.0#operator-and-operand-types
+        url: #operator-and-operand-types
         output: web
 
       - title: Data Type Conversion
-        url: 1.0#data-type-conversion
+        url: #data-type-conversion
         output: web
 
     - title: Regular Expression String Matching
-      url: 1.0#regular-expression-string-matching
+      url: #regular-expression-string-matching
       output: web
 
     - title: Null Values
-      url: 1.0#null-values
+      url: #null-values
       output: web
       subfolderitems:
 
       - title: Null Values and Operators
-        url: 1.0#null-values-and-operators
+        url: #null-values-and-operators
         output: web
 
       - title: Null Values as Function Argument
-        url: 1.0#null-values-as-function-argument
+        url: #null-values-as-function-argument
         output: web
 
     - title: Built-in Functions
-      url: 1.0#built-in-functions
+      url: #built-in-functions
       output: web
       subfolderitems:
 
       - title: Simplified Function Calls in the In-lined Expressions
-        url: 1.0#simplified-function-calls-in-the-in-lined-expressions
+        url: #simplified-function-calls-in-the-in-lined-expressions
         output: web
 
   - title: Other Syntactic Rules
-    url: 1.0#other-syntactic-rules
+    url: #other-syntactic-rules
     output: web
     folderitems:
 
     - title: Syntax for Variables
-      url: 1.0#syntax-for-variables
+      url: #syntax-for-variables
       output: web
 
     - title: Syntax for Properties
-      url: 1.0#syntax-for-properties
+      url: #syntax-for-properties
       output: web
 
     - title: Literals
-      url: 1.0#literals
+      url: #literals
       output: web
       subfolderitems:
 
       - title: Single-quoted and Double-quoted Strings
-        url: 1.0#single-quoted-and-double-quoted-strings
+        url: #single-quoted-and-double-quoted-strings
         output: web
 
       - title: Escaped Characters in Strings
-        url: 1.0#escaped-characters-in-strings
+        url: #escaped-characters-in-strings
         output: web
 
       - title: Optional Escaping of Quotes in Strings
-        url: 1.0#optional-escaping-of-quotes-in-strings
+        url: #optional-escaping-of-quotes-in-strings
         output: web
 
     - title: Keywords
-      url: 1.0#keywords
+      url: #keywords
       output: web
 
     - title: Comments
-      url: 1.0#comments
+      url: #comments
       output: web
 
     - title: White Space
-      url: 1.0#white-space
+      url: #white-space
       output: web

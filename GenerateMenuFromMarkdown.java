@@ -13,14 +13,14 @@ public class GenerateMenuFromMarkdown {
 
   public static void main(String[] args) throws IOException {
 
-    if (args.length != 3) {
-      System.out.println("Three arguments expected:\n - input .md file (e.g. '/path/to/pages/pgql-1.0-spec.md')\n - destination .yaml file (e.g. 'path/to/_data/sidebars/pgql-1.0-spec.yml')\n - page url (e.g. 'pgql-1.0-specification.html')");
+    if (args.length != 2) {
+      System.out.println("Three arguments expected:\n - input .md file (e.g. '/path/to/pages/pgql-1.0-spec.md')\n - destination .yaml file (e.g. 'path/to/_data/sidebars/pgql-1.0-spec.yml')");
       System.exit(1);
     }
     
     Path markdownFile = Paths.get(args[0]);
     Path yamlFile = Paths.get(args[1]);
-    String url_prefix = args[2] + "#";
+    String url_prefix = "#";
     
     Files.deleteIfExists(yamlFile);
 
