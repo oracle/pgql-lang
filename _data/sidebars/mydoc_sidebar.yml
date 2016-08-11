@@ -13,6 +13,6 @@ entries:
       type: homepage
 
     - title: PGQL 1.0 Specification
-      url: /pgql-1.0-specification.html
+      url: /spec/1.0
       output: web
 
