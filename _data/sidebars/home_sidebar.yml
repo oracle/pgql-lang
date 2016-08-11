@@ -4,273 +4,273 @@ entries:
   folders:
 
   - title: Introduction
-    url: spec/1.0/#introduction
+    url: ../1.0/#introduction
     output: web
     folderitems:
 
     - title: Basic Query Structure
-      url: spec/1.0/#basic-query-structure
+      url: ../1.0/#basic-query-structure
       output: web
 
   - title: WHERE Clause
-    url: spec/1.0/#where-clause
+    url: ../1.0/#where-clause
     output: web
     folderitems:
 
     - title: Topology Constraint
-      url: spec/1.0/#topology-constraint
+      url: ../1.0/#topology-constraint
       output: web
       subfolderitems:
 
       - title: Repeated Variables in Multiple Topology Constraints
-        url: spec/1.0/#repeated-variables-in-multiple-topology-constraints
+        url: ../1.0/#repeated-variables-in-multiple-topology-constraints
         output: web
 
       - title: Syntactic Sugars for Topology Constraints
-        url: spec/1.0/#syntactic-sugars-for-topology-constraints
+        url: ../1.0/#syntactic-sugars-for-topology-constraints
         output: web
 
       - title: Disconnected Topology Constraints
-        url: spec/1.0/#disconnected-topology-constraints
+        url: ../1.0/#disconnected-topology-constraints
         output: web
 
     - title: Label Matching
-      url: spec/1.0/#label-matching
+      url: ../1.0/#label-matching
       output: web
       subfolderitems:
 
       - title: Labels and Quotes
-        url: spec/1.0/#labels-and-quotes
+        url: ../1.0/#labels-and-quotes
         output: web
 
       - title: Label Alternatives
-        url: spec/1.0/#label-alternatives
+        url: ../1.0/#label-alternatives
         output: web
 
       - title: Built-in Functions for Labels
-        url: spec/1.0/#built-in-functions-for-labels
+        url: ../1.0/#built-in-functions-for-labels
         output: web
 
     - title: Value Constraint
-      url: spec/1.0/#value-constraint
+      url: ../1.0/#value-constraint
       output: web
 
     - title: In-lined Constraint
-      url: spec/1.0/#in-lined-constraint
+      url: ../1.0/#in-lined-constraint
       output: web
       subfolderitems:
 
       - title: Simplified Property Access in the In-lined Expressions
-        url: spec/1.0/#simplified-property-access-in-the-in-lined-expressions
+        url: ../1.0/#simplified-property-access-in-the-in-lined-expressions
         output: web
 
       - title: Vertices/edges without Variable Name but with In-lined Constraints
-        url: spec/1.0/#vertices/edges-without-variable-name-but-with-in-lined-constraints
+        url: ../1.0/#vertices/edges-without-variable-name-but-with-in-lined-constraints
         output: web
 
       - title: Limitation on the In-lined Expressions
-        url: spec/1.0/#limitation-on-the-in-lined-expressions
+        url: ../1.0/#limitation-on-the-in-lined-expressions
         output: web
 
       - title: Identifier short-cut for in-lined expressions
-        url: spec/1.0/#identifier-short-cut-for-in-lined-expressions
+        url: ../1.0/#identifier-short-cut-for-in-lined-expressions
         output: web
 
     - title: Graph Pattern Matching Semantic
-      url: spec/1.0/#graph-pattern-matching-semantic
+      url: ../1.0/#graph-pattern-matching-semantic
       output: web
       subfolderitems:
 
       - title: Homomorphic Pattern Matching
-        url: spec/1.0/#homomorphic-pattern-matching
+        url: ../1.0/#homomorphic-pattern-matching
         output: web
 
       - title: Isomorphic Pattern Matching
-        url: spec/1.0/#isomorphic-pattern-matching
+        url: ../1.0/#isomorphic-pattern-matching
         output: web
 
   - title: SELECT Clause
-    url: spec/1.0/#select-clause
+    url: ../1.0/#select-clause
     output: web
     folderitems:
 
     - title: SELECT Expressions
-      url: spec/1.0/#select-expressions
+      url: ../1.0/#select-expressions
       output: web
       subfolderitems:
 
       - title: Assigning Variable Name to Select Expression
-        url: spec/1.0/#assigning-variable-name-to-select-expression
+        url: ../1.0/#assigning-variable-name-to-select-expression
         output: web
 
     - title: SELECT *
-      url: spec/1.0/#select-
+      url: ../1.0/#select-
       output: web
       subfolderitems:
 
       - title: SELECT * with no variables in the WHERE clause
-        url: spec/1.0/#select--with-no-variables-in-the-where-clause
+        url: ../1.0/#select--with-no-variables-in-the-where-clause
         output: web
 
     - title: Aggregation
-      url: spec/1.0/#aggregation
+      url: ../1.0/#aggregation
       output: web
       subfolderitems:
 
       - title: Aggregation and Required Input Type
-        url: spec/1.0/#aggregation-and-required-input-type
+        url: ../1.0/#aggregation-and-required-input-type
         output: web
 
       - title: Aggregation and Solution Modifier
-        url: spec/1.0/#aggregation-and-solution-modifier
+        url: ../1.0/#aggregation-and-solution-modifier
         output: web
 
       - title: Assigning Variable Name to Aggregation
-        url: spec/1.0/#assigning-variable-name-to-aggregation
+        url: ../1.0/#assigning-variable-name-to-aggregation
         output: web
 
   - title: Path Queries
-    url: spec/1.0/#path-queries
+    url: ../1.0/#path-queries
     output: web
     folderitems:
 
     - title: Regular Path Patterns
-      url: spec/1.0/#regular-path-patterns
+      url: ../1.0/#regular-path-patterns
       output: web
 
     - title: Path Pattern Composition
-      url: spec/1.0/#path-pattern-composition
+      url: ../1.0/#path-pattern-composition
       output: web
 
   - title: Solution Modifier Clause
-    url: spec/1.0/#solution-modifier-clause
+    url: ../1.0/#solution-modifier-clause
     output: web
     folderitems:
 
     - title: ORDER BY
-      url: spec/1.0/#order-by
+      url: ../1.0/#order-by
       output: web
       subfolderitems:
 
       - title: Multiple Terms in ORDER BY
-        url: spec/1.0/#multiple-terms-in-order-by
+        url: ../1.0/#multiple-terms-in-order-by
         output: web
 
       - title: Data Types for ORDER BY
-        url: spec/1.0/#data-types-for-order-by
+        url: ../1.0/#data-types-for-order-by
         output: web
 
     - title: LIMIT and OFFSET
-      url: spec/1.0/#limit-and-offset
+      url: ../1.0/#limit-and-offset
       output: web
 
     - title: Grouping and Aggregation
-      url: spec/1.0/#grouping-and-aggregation
+      url: ../1.0/#grouping-and-aggregation
       output: web
       subfolderitems:
 
       - title: Assigning Variable Name to Group Expression
-        url: spec/1.0/#assigning-variable-name-to-group-expression
+        url: ../1.0/#assigning-variable-name-to-group-expression
         output: web
 
       - title: Multiple Terms in GROUP BY
-        url: spec/1.0/#multiple-terms-in-group-by
+        url: ../1.0/#multiple-terms-in-group-by
         output: web
 
       - title: GROUP BY and NULL values
-        url: spec/1.0/#group-by-and-null-values
+        url: ../1.0/#group-by-and-null-values
         output: web
 
     - title: Repetition of Group Expression in Select or Order Expression
-      url: spec/1.0/#repetition-of-group-expression-in-select-or-order-expression
+      url: ../1.0/#repetition-of-group-expression-in-select-or-order-expression
       output: web
 
   - title: Expressions
-    url: spec/1.0/#expressions
+    url: ../1.0/#expressions
     output: web
     folderitems:
 
     - title: Operators
-      url: spec/1.0/#operators
+      url: ../1.0/#operators
       output: web
       subfolderitems:
 
       - title: Operator Precedence
-        url: spec/1.0/#operator-precedence
+        url: ../1.0/#operator-precedence
         output: web
 
       - title: Operator and Operand Types
-        url: spec/1.0/#operator-and-operand-types
+        url: ../1.0/#operator-and-operand-types
         output: web
 
       - title: Data Type Conversion
-        url: spec/1.0/#data-type-conversion
+        url: ../1.0/#data-type-conversion
         output: web
 
     - title: Regular Expression String Matching
-      url: spec/1.0/#regular-expression-string-matching
+      url: ../1.0/#regular-expression-string-matching
       output: web
 
     - title: Null Values
-      url: spec/1.0/#null-values
+      url: ../1.0/#null-values
       output: web
       subfolderitems:
 
       - title: Null Values and Operators
-        url: spec/1.0/#null-values-and-operators
+        url: ../1.0/#null-values-and-operators
         output: web
 
       - title: Null Values as Function Argument
-        url: spec/1.0/#null-values-as-function-argument
+        url: ../1.0/#null-values-as-function-argument
         output: web
 
     - title: Built-in Functions
-      url: spec/1.0/#built-in-functions
+      url: ../1.0/#built-in-functions
       output: web
       subfolderitems:
 
       - title: Simplified Function Calls in the In-lined Expressions
-        url: spec/1.0/#simplified-function-calls-in-the-in-lined-expressions
+        url: ../1.0/#simplified-function-calls-in-the-in-lined-expressions
         output: web
 
   - title: Other Syntactic Rules
-    url: spec/1.0/#other-syntactic-rules
+    url: ../1.0/#other-syntactic-rules
     output: web
     folderitems:
 
     - title: Syntax for Variables
-      url: spec/1.0/#syntax-for-variables
+      url: ../1.0/#syntax-for-variables
       output: web
 
     - title: Syntax for Properties
-      url: spec/1.0/#syntax-for-properties
+      url: ../1.0/#syntax-for-properties
       output: web
 
     - title: Literals
-      url: spec/1.0/#literals
+      url: ../1.0/#literals
       output: web
       subfolderitems:
 
       - title: Single-quoted and Double-quoted Strings
-        url: spec/1.0/#single-quoted-and-double-quoted-strings
+        url: ../1.0/#single-quoted-and-double-quoted-strings
         output: web
 
       - title: Escaped Characters in Strings
-        url: spec/1.0/#escaped-characters-in-strings
+        url: ../1.0/#escaped-characters-in-strings
         output: web
 
       - title: Optional Escaping of Quotes in Strings
-        url: spec/1.0/#optional-escaping-of-quotes-in-strings
+        url: ../1.0/#optional-escaping-of-quotes-in-strings
         output: web
 
     - title: Keywords
-      url: spec/1.0/#keywords
+      url: ../1.0/#keywords
       output: web
 
     - title: Comments
-      url: spec/1.0/#comments
+      url: ../1.0/#comments
       output: web
 
     - title: White Space
-      url: spec/1.0/#white-space
+      url: ../1.0/#white-space
       output: web
