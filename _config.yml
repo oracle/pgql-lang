@@ -104,4 +104,4 @@ description: "Website Description"
 url: oracle.github.io/pgql-lang/
 
 # needed to support permalinks with directories (e.g. 'pgql-lang.org/directory1/directory2/')
-root_url: https://oracle.github.io/pgql-lang/
+root_url: http://127.0.0.1:4005/
