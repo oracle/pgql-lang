@@ -6,10 +6,11 @@ entries:
   - title: Introduction
     url: pgql-1.0-specification.html#introduction
     output: web
+    folderitems:
 
-  - title: Basic Query Structure
-    url: pgql-1.0-specification.html#basic-query-structure
-    output: web
+    - title: Basic Query Structure
+      url: pgql-1.0-specification.html#basic-query-structure
+      output: web
 
   - title: WHERE Clause
     url: pgql-1.0-specification.html#where-clause
