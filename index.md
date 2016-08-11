@@ -28,7 +28,7 @@ PATH has_parent := () -[:has_father|has_mother]-> ()
 SELECT ancestor.name
 WHERE
   (:Person WITH name = 'Mario') -/:has_parent*/-> (ancestor:Person),
-  (:Person WITH name = 'Luigi') -/:has_parent*/-> (ancestor:Person)
+  (:Person WITH name = 'Luigi') -/:has_parent*/-> (ancestor)
 ```
 
 #### Find common friends of 'April' and 'Chris' that are older than both 
@@ -36,8 +36,7 @@ WHERE
 ```
 SELECT friend.name, friend.dob
 WHERE
-  (p1:Person WITH name = 'April') -[:likes]-> (friend),
-  (p2:Person WITH name = 'Chris') -[:likes]-> (friend),
+  (p1:Person WITH name = 'April') -[:likes]-> (friend) <-[:likes]- (p2:Person WITH name = 'Chris'),
   friend.dob > p1.dob AND friend.dob > p2.dob
 ORDER BY friend.dob DESC
 ```
