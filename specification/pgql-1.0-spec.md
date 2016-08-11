@@ -34,7 +34,7 @@ In the `SELECT` clause, the above query defines the data entities to be returned
 
 - For each of the matched subgraph, the query returns the property name of vertex `m` and the property name of vertex `o`.
 
-# Basic Query Structure
+## Basic Query Structure
 
 The syntax structure of PGQL resembles that of SQL (Standard Query Language) of relational database systems. A basic PGQL query consists of the following three clauses:
 
