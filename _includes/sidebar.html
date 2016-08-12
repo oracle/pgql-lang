@@ -13,7 +13,7 @@
 
             {% if folderitem.subfolderitems %}
               <li class="subfolders">
-                <a href="{{folderitem.url}}">{{ folderitem.title }}</a>
+                <a href="{{folderitem.url | prepend: site.baseurl}}">{{ folderitem.title }}</a>
                 <ul>
                     {% for subfolderitem in folderitem.subfolderitems %}
                     {% if subfolderitem.output contains "web" %}
