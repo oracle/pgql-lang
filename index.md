@@ -1,5 +1,5 @@
 ---
-title: Getting started with PGQL
+title: Getting Started with PGQL
 keywords: pgql graph query language
 permalink: /index.html
 toc: false

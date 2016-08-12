@@ -8,7 +8,7 @@ entries:
     output: web
     folderitems:
 
-    - title: Getting started with PGQL
+    - title: Getting Started with PGQL
       url: /index.html
       output: web
       type: homepage
