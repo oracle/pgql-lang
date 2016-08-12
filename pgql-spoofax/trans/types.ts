@@ -8,6 +8,8 @@ type rules // expressions
 
   VarRef(v) + GroupRef(v) : ty
   where definition of v : ty
+  
+  PropRef(_, _) : UnknownTy()
 
   Not(_) + And(_, _) + Or(_, _) : BooleanTy()
   
