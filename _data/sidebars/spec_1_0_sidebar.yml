@@ -65,7 +65,7 @@ entries:
         output: web
 
       - title: Vertices/edges without Variable Name but with In-lined Constraints
-        url: /spec/1.0/#vertices/edges-without-variable-name-but-with-in-lined-constraints
+        url: /spec/1.0/#verticesedges-without-variable-name-but-with-in-lined-constraints
         output: web
 
       - title: Limitation on the In-lined Expressions
