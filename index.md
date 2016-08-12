@@ -16,7 +16,9 @@ Here are some resources for PGQL:
  - An [open-sourced parser](https://github.com/oracle/pgql-lang) for PGQL queries
  - The [paper](http://dl.acm.org/citation.cfm?id=2960421) ([pdf](http://event.cwi.nl/grades/2016/07-VanRest.pdf)) that also outlines some future directions of PGQL
    (shortest path finding, graph construction, etc.)
- - [PGX](http://www.oracle.com/technetwork/oracle-labs/parallel-graph-analytics/overview/index.html), an in-memory graph analytics framework with a high-performance PGQL query engine 
+ - [PGX](http://www.oracle.com/technetwork/oracle-labs/parallel-graph-analytics/overview/index.html), an in-memory graph analytics framework with a high-performance PGQL query engine
+ - [Oracle Big Data Spatial and Graph](http://www.oracle.com/technetwork/database/database-technologies/bigdata-spatialandgraph/overview/index.html), which supports PGQL by integration with PGX 
+   (see [In-memory Analyist](http://docs.oracle.com/bigdata/bda45/BDSPA/using-inmem-analytics.htm#BDSPA264)).
 
 ## Example Queries
 
