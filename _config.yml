@@ -101,7 +101,6 @@ description: "Website Description"
 # the description is used in the feed.xml file
 
 # needed for sitemap.xml file only
-url: oracle.github.io/pgql-lang/
+url: oracle.github.io
+baseurl: /pgql-lang
 
-# needed to support permalinks with directories (e.g. 'pgql-lang.org/directory1/directory2/')
-root_url: https://oracle.github.io/pgql-lang/
