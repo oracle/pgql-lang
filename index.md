@@ -2,7 +2,7 @@
 title: Getting started with PGQL
 keywords: pgql graph query language
 sidebar: mydoc_sidebar
-permalink: index.html
+permalink: /index.html
 toc: false
 ---
 
