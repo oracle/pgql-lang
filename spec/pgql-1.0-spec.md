@@ -19,7 +19,7 @@ Consider the following example PGQL query:
 
 ```
 SELECT m.name, o.name
-WHERE (n WITH type = 'Person' AND name = 'John') -[e1 WITH type = 'friendOf']-> (m WITH type = 'Person') <-[e2 WITH type = 'belongs_to']- (o WITH type = 'Car')
+WHERE (n:Person WITH name = 'John') -[e1:friendOf]-> (m:Person) <-[e2:belongs_to]- (o:Car)
 ```
 
 In the `WHERE` clause, the above query defines the pattern to be found.
@@ -27,13 +27,13 @@ In the `WHERE` clause, the above query defines the pattern to be found.
 - The pattern is composed of three vertices (`n`, `m`, and `o`) and two edges (`e1` and `e2`).
 - There is an edge (`e1`) from vertex `n` to vertex `m`.
 - There is an edge (`e2`) from vertex `o` to vertex `m`.
-- Vertices `n` and `m` have a property `type` with value `'Person'`, while vertex `o` has a property `type` with value `'Car'`.
-- Vertex `n` has another property `name` with value `'John'`.
-- Edges `e1` and `e2` both have a property `type` whose values are `'friendOf'` and `'belongs_to'` respectively.
+- Vertices `n` and `m` have a label with value `'Person'`, while vertex `o` has a label with value `'Car'`.
+- Vertex `n` has a property `name` with value `'John'`.
+- Edges `e1` and `e2` have labels with values `'friendOf'` and `'belongs_to'` respectively.
 
 In the `SELECT` clause, the above query defines the data entities to be returned.
 
-- For each of the matched subgraph, the query returns the property name of vertex `m` and the property name of vertex `o`.
+- For each of the matched subgraph, the query returns the property `name` of vertex `m` and the property `name` of vertex `o`.
 
 ## Basic Query Structure
 
@@ -981,7 +981,7 @@ Finally, keywords are not case-sensitive. For example, `SELECT`, `Select` and `s
 
 ## Comments
 
-There are two kinds of comments: single-line comments and multi-line comments. Single-line comments start with double backslashes (`\\`), while multi-line comments are delimited by `/*` and `*/`. The following shows the syntactic structure of the two forms.
+There are two kinds of comments: single-line comments and multi-line comments. Single-line comments start with double forward slashes (`//`), while multi-line comments are delimited by `/*` and `*/`. The following shows the syntactic structure of the two forms.
 
 ```
 Comment           := SingleLineComment |
