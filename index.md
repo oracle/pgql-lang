@@ -1,7 +1,6 @@
 ---
 title: Getting started with PGQL
 keywords: pgql graph query language
-sidebar: mydoc_sidebar
 permalink: /index.html
 toc: false
 ---
@@ -13,7 +12,7 @@ In addition, PGQL supports _regular path queries_ for applications such as reach
 
 Here are some resources for PGQL:
 
- - The [PGQL 1.0 Specification](/pgql-lang/spec/1.0/)
+ - The [**PGQL 1.0 Specification**](spec/1.0/)
  - An [open-sourced parser](https://github.com/oracle/pgql-lang) for PGQL queries
  - The [paper](http://dl.acm.org/citation.cfm?id=2960421) ([pdf](http://event.cwi.nl/grades/2016/07-VanRest.pdf)) that also outlines some future directions of PGQL
    (shortest path finding, graph construction, etc.)
@@ -41,4 +40,4 @@ WHERE
 ORDER BY friend.dob DESC
 ```
 
-{% include note.html content="Find the latest language specification here: [PGQL 1.0 Specification](/pgql-lang/spec/1.0/)." %}
+{% include note.html content="Find the latest language specification here: [PGQL 1.0 Specification](spec/1.0/)." %}
