@@ -3,7 +3,7 @@
 PGQL is a SQL-like graph query language for the Property Graph data model.
 See [PGQL 1.0 Specification](https://oracle.github.io/pgql-lang/spec/1.0/).
 
-Thie reposistory contains PGQL's reference implementation:
+This reposistory contains PGQL's reference implementation:
 
  - Parser
  - Graph Query IR
