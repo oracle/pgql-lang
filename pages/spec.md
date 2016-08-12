@@ -6,7 +6,7 @@ toc: false
 
 ## PGQL 1.0
 
- - [PGQL 1.0 Specification](/spec/1.0/)
+ - [PGQL 1.0 Specification](1.0/)
 
 ## PGQL 0.9
 
