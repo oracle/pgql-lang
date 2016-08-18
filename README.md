@@ -1,4 +1,4 @@
-PGQL's website is based on Jekyll and GitHub pages. You can change any of the files and GitHub will automatically build and deploy the changes.
+[PGQL's website](https://oracle.github.io/pgql-lang/) is based on Jekyll and GitHub pages. You can change any of the files and GitHub will automatically build and deploy the changes. Changes are reflected after roughly 30 seconds.
 
 To host the website locally, first install the necessary tools:
 
