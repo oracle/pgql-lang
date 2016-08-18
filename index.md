@@ -22,7 +22,7 @@ Here are some resources for PGQL:
 
 ## Example Queries
 
-#### Find all ancestors of 'Mario' and 'Luigi' 
+#### Find all common ancestors of 'Mario' and 'Luigi' 
 
 ```
 PATH has_parent := () -[:has_father|has_mother]-> ()
