@@ -33,7 +33,7 @@ binding rules
     refers to PathPattern p
 
   // Note 1: SelectVar is non-unique because we already do the uniqueness test using Var
-  // Note 2: In PGQL 0.9, in the SELECT, you cannot refer to variables previously defined in the SELECT
+  // Note 2: In PGQL 1.0, in the SELECT, you cannot refer to variables previously defined in the SELECT
   ExpAsVar(v, exp):
     defines non-unique SelectVar v
     defines unique Var v of type ty where exp has type ty

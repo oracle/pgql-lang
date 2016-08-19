@@ -5,7 +5,11 @@ module check-pgx-limitations
 
 imports
 
+  signatures/-
   check
+  common
+  sig-normalized
+  runtime/task/-
 
 rules
 
