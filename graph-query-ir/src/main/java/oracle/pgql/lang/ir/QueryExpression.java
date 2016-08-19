@@ -638,7 +638,7 @@ public interface QueryExpression {
 
     @Override
     public String toString() {
-      return variable.isAnonymous() ? "" : variable.name;
+      return variable.name;
     }
 
     @Override
