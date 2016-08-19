@@ -28,15 +28,9 @@ WHERE
   () -[e]-> () -[e]-> ()
 ]] 2 errors /* Duplicate edge variable */
 
-test Duplicate variable IN SELECT [[
-SELECT n.name AS nName, n.name AS nName
-WHERE
-  n
-]] 2 errors /* Duplicate variable definition */
-
 test Duplicate variable in GROUP BY [[
 SELECT nName
 WHERE
   n
 GROUP BY n.name AS nName, n.name AS nName
-]] 2 errors /* Duplicate variable definition */
+]] 2 errors /* Group key defined multiple times */

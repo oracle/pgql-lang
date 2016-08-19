@@ -10,7 +10,7 @@ context-free syntax
   VarDef.VarDef = <<Var>>
   VarRef.VarRef = <<Var>>
   ExpAsVar.ExpAsVar = <<Exp><VarAssign?>>
-  VarAssign.VarAssign = <as <VarDef>> {case-insensitive}
+  VarAssign.VarAssign = < as <VarDef>> {case-insensitive}
   NodeVarRef.NodeVarRef = <<Var>>
   PropRef.PropRef = <<VarRef>.<Prop>>
 

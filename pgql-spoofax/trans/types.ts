@@ -6,7 +6,7 @@ imports
 
 type rules // expressions
 
-  VarRef(v) + GroupRef(v) : ty
+  VarRef(v) + GroupRef(v) + SelectOrGroupRef(v) : ty
   where definition of v : ty
   
   PropRef(_, _) : UnknownTy()

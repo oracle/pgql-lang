@@ -32,15 +32,11 @@ binding rules
   PathPatternRef(p):
     refers to PathPattern p
 
-  // Note 1: SelectVar is non-unique because we already do the uniqueness test using Var
-  // Note 2: In PGQL 1.0, in the SELECT, you cannot refer to variables previously defined in the SELECT
   ExpAsVar(v, exp):
-    defines non-unique SelectVar v
-    defines unique Var v of type ty where exp has type ty
+    defines non-unique SelectVar v of type ty where exp has type ty // like in SQL, we allow duplicate variable definitions in the SELECT
   
   ExpAsGroupVar(v, exp):
-    defines non-unique GroupVar v
-    defines unique Var v of type ty where exp has type ty
+    defines unique GroupVar v of type ty where exp has type ty // we don't allow duplicate variable definitions in the GROUP BY
     
   VarRef(v):
     refers to Var v
