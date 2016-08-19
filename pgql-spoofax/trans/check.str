@@ -123,8 +123,3 @@ rules // helper rules
   task-rewrite: ("VarIsNode", NodeTy()) -> <id>
   task-rewrite: ("VarIsEdge", EdgeTy()) -> <id>
   task-rewrite: ("VarIsPath", PathTy()) -> <id>
-
-signature constructors
-  
-  ReferenceInInlinedConstraint : var -> ReferenceInInlinedConstraint
-  CrossReferenceInInlinedConstraint : CrossReferenceInInlinedConstraint

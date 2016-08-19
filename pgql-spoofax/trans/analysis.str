@@ -1,9 +1,9 @@
 module analysis
 
 imports
-  
+
   stratego/metaborg
-  
+
   runtime/index/-
   runtime/nabl/-
   runtime/properties/-
@@ -11,10 +11,10 @@ imports
   runtime/task/-
   runtime/analysis/-
   runtime/editor/-
-  
+
   names/-
   types/-
-  
+
   pp
   trans-for-nabl
   normalize
@@ -49,7 +49,7 @@ rules // Debugging
     with
       filename := <guarantee-extension(|"analyzed.aterm")> path;
       result   := ast
-  
+
   debug-index-project =
     analysis-debug-index-project(|<language>)
   debug-index-project-resolve = 

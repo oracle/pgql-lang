@@ -1,6 +1,6 @@
 module normalized-signatures
 
-signature constructors // types
+signature constructors // for type checking (see trans/types.ts)
   
   NodeTy : NodeTy
   EdgeTy : EdgeTy
@@ -12,11 +12,7 @@ signature constructors // types
   StringSetTy : StringSetTy
   UnknownTy : UnknownTy
 
-/*
- * These signatures are for the normalized AST:
- *   PGQL -> PGQL AST -> PGQL norm. AST
- */
-signature constructors
+signature constructors // for the normalized AST (see trans/normalize.str)
   
   PathPatterns         : List(PathPattern) -> PathPatterns
   PathPattern          : name * Nodes * Connections * Constraints -> PathPattern
@@ -46,8 +42,13 @@ signature constructors
 
   Contains             : Exp * Exp -> Exp
 
-signature constructors // NaBL
+signature constructors // for name binding (see trans/trans-for-nabl.str)
     
   SelectOrGroupRef     : Var -> SelectOrGroupRef
   GroupRef             : Var -> GroupRef
   ExpAsGroupVar        : Var * Exp -> ExpAsGroupVar
+
+signature constructors // for errer checking (see trans/check.str)
+  
+  ReferenceInInlinedConstraint : var -> ReferenceInInlinedConstraint
+  CrossReferenceInInlinedConstraint : CrossReferenceInInlinedConstraint
