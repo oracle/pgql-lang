@@ -7,7 +7,7 @@ SELECT *
 WHERE
   n1 -> n2,
   n3
-]] / Node n3 is not connected to nodes n1, n2 /
+]] 1 error /* Node n3 is not connected to nodes n1, n2 */
 
 test Disconnected patterns 1 [[
 SELECT *
@@ -15,4 +15,4 @@ WHERE
   n1 -> n2,
   n3 -> n4,
   n4 -> n5
-]] / Nodes n1, n2 are not connected to nodes n3, n4, n5 /
+]] 1 error /* Nodes n1, n2 are not connected to nodes n3, n4, n5 */
