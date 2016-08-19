@@ -379,6 +379,7 @@ public class SpoofaxAstToGraphQuery {
       case "VarRef":
       case "GroupRef":
       case "SelectOrGroupRef":
+      case "VarOrSelectRef":
         String varName = getString(t);
         QueryVariable var = varmap.get(varName);
         if (var == null) {
