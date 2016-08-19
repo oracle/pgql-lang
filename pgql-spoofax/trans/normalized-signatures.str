@@ -47,6 +47,7 @@ signature constructors // for name binding (see trans/trans-for-nabl.str)
   SelectOrGroupRef     : Var -> SelectOrGroupRef
   GroupRef             : Var -> GroupRef
   ExpAsGroupVar        : Var * Exp -> ExpAsGroupVar
+  VarOrSelectRef       : Var -> VarOrSelectRef
 
 signature constructors // for errer checking (see trans/check.str)
   

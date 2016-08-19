@@ -47,6 +47,10 @@ binding rules
   SelectOrGroupRef(v):
     refers to GroupVar v
       otherwise refers to SelectVar v // e.g. in [[SELECT AVG(n.age) as avgAge WHERE n ORDER BY avgAge]], avgAge in ORDER BY is a GroupRef and can only refer to SelectVar 
-    
+
+  VarOrSelectRef(v):
+    refers to Var v
+      otherwise refers to SelectVar v
+
   NodeVarRef(n):
     refers to Var n of type NodeTy()
