@@ -31,7 +31,7 @@ rules
         bottomup(try(
            norm-matchElems
         ));
-        bottomup(try(norm-query(|c)))
+        bottomup(try(origin-track-forced(norm-query(|c))))
       > ast
 
 rules
@@ -216,7 +216,7 @@ rules
   name-select-expression(|c): ExpAsVar(exp, Some(VarAssign(VarDef(v)))) -> ExpAsVar(v, exp)
   name-select-expression(|c):
     ExpAsVar(exp, None()) -> ExpAsVar(v, exp)
-    with v := <(origin-text <+ ?VarRef(<id>)); add-unique-suffix(|c)> exp
+    with v := <(?VarRef(<id>) <+ origin-text); add-unique-suffix(|c)> exp
 
   replace-terms-with-varRef(|expressions):
     exp -> exp'

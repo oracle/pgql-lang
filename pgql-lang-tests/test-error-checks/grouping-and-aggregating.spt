@@ -3,56 +3,56 @@ module variables
 language pgql-lang
 
 test Select non-group key 1 [[
-SELECT n.name
+SELECT n.name AS nName
 WHERE
   n
-GROUP BY n.age
-]] / Non-group key variable in SELECT /
+GROUP BY n.age AS nAge
+]] 1 error /* Non-group key variable in SELECT */
 
 test Select non-group key 2 [[
 SELECT n
 WHERE
   n
-GROUP BY n.age
-]] / Non-group key variable in SELECT /
+GROUP BY n.age AS nAge
+]] 1 error /* Non-group key variable in SELECT */
 
 test Order by non-group key 1 [[
-SELECT n.age
+SELECT nAge
 WHERE
   n
-GROUP BY n.age
+GROUP BY n.age AS nAge
 ORDER BY n.name
-]] / Cannot order by non-group key variable: use aggregation /
+]] 1 error /* Cannot order by non-group key variable: use aggregation */
 
 test Order by non-group key 2 [[
-SELECT n.age
+SELECT nAge
 WHERE
   n
-GROUP BY n.age
+GROUP BY n.age AS nAge
 ORDER BY n
-]] / Cannot order by non-group key variable: use aggregation /
+]] 1 error /* Cannot order by non-group key variable: use aggregation */
 
 test Aggregation expected in SELECT 1 [[
-SELECT AVG(n.age), n
+SELECT AVG(n.age) AS avgAge, n
 WHERE
   n
-]] / Aggregation expected here since SELECT has other aggregation /
+]] 1 error /* Aggregation expected here since SELECT has other aggregation */
 
 test Aggregation expected in SELECT 2 [[
-SELECT n.labels(), COUNT(*)
+SELECT n.labels() AS lbls, COUNT(*) AS cnt
 WHERE n
-]] / Aggregation expected here since SELECT has other aggregation /
+]] 2 errors /* Aggregation expected here since SELECT has other aggregation */
 
 test Aggregation expected in ORDER BY [[
-SELECT AVG(n.age)
+SELECT AVG(n.age) AS avgAge
 WHERE
   n
 ORDER BY n.age
-]] / Aggregation expected here since SELECT has aggregation /
+]] 1 error /* Aggregation expected here since SELECT has aggregation */
 
 test Aggregation in ORDER BY not expected [[
 SELECT n
 WHERE
   n
 ORDER BY AVG(n.age)
-]] / Aggregation in ORDER BY only allowed if SELECT constains aggregations, or, in combination with GROUP BY /
+]] 1 error /* Aggregation in ORDER BY only allowed if SELECT constains aggregations, or, in combination with GROUP BY */

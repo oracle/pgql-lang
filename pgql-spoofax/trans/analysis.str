@@ -22,7 +22,7 @@ imports
 
 rules // Analysis
 
-  editor-analyze = analyze-all(normalize-before, trans-for-nabl, id|<language>)
+  editor-analyze = analyze-all(normalize-before; trans-for-nabl, id, id|<language>)
 
 rules // Editor services
 

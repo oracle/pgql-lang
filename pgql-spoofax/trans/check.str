@@ -61,7 +61,7 @@ rules
   nabl-constraint(|ctx):
     Query(_, Vars(select-exps), _, _, group-by, order-by, _) -> <fail>
     with group-refs := <collect-om(?GroupRef(<id>), conc)> select-exps
-    	 ; select-or-group-refs := <collect-om(?SelectOrGroupRef(<id>), conc)> order-by
+       ; select-or-group-refs := <collect-om(?SelectOrGroupRef(<id>), conc)> order-by
     	 ; if None() := group-by
     	     then <batch-generate-error-on-unresolved(|ctx, "Aggregation expected here since SELECT has other aggregation")> group-refs // error in SELECT
     	        ; <batch-generate-error-on-unresolved(|ctx, "Aggregation expected here since SELECT has aggregation")> select-or-group-refs // error in ORDER BY

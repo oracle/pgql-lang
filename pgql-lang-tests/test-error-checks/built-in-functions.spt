@@ -3,9 +3,13 @@ module group-by
 language pgql-lang
 
 test inDegree() on edge 1 [[
-SELECT e.inDegree() WHERE x -[e]-> y
-]] / Function is only defined for vertices /
+SELECT e.inDegree() AS indegree WHERE x -[e]-> y
+]] 1 error /* Function is only defined for vertices */
 
 test inDegree() on edge 2 [[
 SELECT x WHERE x -[e WITH inDegree() > 3]-> y
-]] / Function is only defined for vertices /
+]] 1 error /* Function is only defined for vertices */
+
+test hello [[
+select n AS p where m
+]] 1 error

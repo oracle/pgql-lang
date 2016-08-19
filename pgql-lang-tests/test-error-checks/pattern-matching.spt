@@ -7,4 +7,4 @@ test Duplicate edge names [[
 SELECT *
 WHERE
   () -[e1]-> () -[e1]-> ()
-]] / Duplicate edge variable /
+]] 2 errors /* Duplicate edge variable */
