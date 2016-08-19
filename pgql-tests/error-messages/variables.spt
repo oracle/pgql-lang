@@ -15,10 +15,18 @@ WHERE
 GROUP BY n2 AS n3
 ]] 1 error /* Unresolved variable */
 
-test Unresolved variable in ORDER BY [[
+test Unresolved variable in ORDER BY 1 [[
 SELECT n
 WHERE
   n
+ORDER BY n2
+]] 1 error /* Unresolved variable */
+
+test Unresolved variable in ORDER BY 2 [[
+SELECT n
+WHERE
+  n
+GROUP BY n AS n
 ORDER BY n2
 ]] 1 error /* Unresolved variable */
 
