@@ -2,16 +2,15 @@ module check
 
 imports
 
-  signatures/-
-  sig-normalized
-  sig-nabl
-  common
-  names/-
   runtime/properties/-
   runtime/nabl/-
   runtime/task/-
   runtime/types/-
-  
+  signatures/-
+  normalized-signatures
+  common
+  names/-
+
 rules // Unresolved/duplicate variables
   
   nabl-check-disable-unresolved = id

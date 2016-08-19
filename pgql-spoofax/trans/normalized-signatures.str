@@ -1,4 +1,16 @@
-module sig-normalized
+module normalized-signatures
+
+signature constructors // types
+  
+  NodeTy : NodeTy
+  EdgeTy : EdgeTy
+  PathTy : PathTy
+  BooleanTy : BooleanTy
+  IntegerTy : IntegerTy
+  DecimalTy : DecimalTy
+  StringTy : StringTy
+  StringSetTy : StringSetTy
+  UnknownTy : UnknownTy
 
 /*
  * These signatures are for the normalized AST:
@@ -33,3 +45,9 @@ signature constructors
   Not                  : Exp -> Exp
 
   Contains             : Exp * Exp -> Exp
+
+signature constructors // NaBL
+    
+  SelectOrGroupRef     : Var -> SelectOrGroupRef
+  GroupRef             : Var -> GroupRef
+  ExpAsGroupVar        : Var * Exp -> ExpAsGroupVar

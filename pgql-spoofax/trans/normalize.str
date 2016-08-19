@@ -1,17 +1,16 @@
 module normalize
 
 imports
-  
-  signatures/-
+
   stratego/-
-  sig-normalized
-  sig-nabl
+  signatures/-
+  normalized-signatures
   common
   pp
   check
-  
+
 rules
-  
+
   normalize-before:
     ast -> result
     with
@@ -37,24 +36,24 @@ rules
 rules
 
   norm-UMin = ?UMin(Decimal(string)); !Decimal(<conc-strings> ("-", string))
-  
+
   norm-NOT = ?Not1(<id>); !Not(<id>)
   norm-NOT = ?Not2(<id>); !Not(<id>)
-  
+
   norm-string = is-string; try(un-double-quote + un-single-quote)
-  
+
 rules
-  
+
   norm-singleNode = ?SingleNode(Some(ElemContents1(a, b, c, d))); !Path(Node(ElemContents(a, Some(b), c, d)), [], None())
   norm-singleNode = ?SingleNode(Some(ElemContents2(a, b, c, d))); !Path(Node(ElemContents(a, b, Some(c), d)), [], None())
   norm-singleNode = ?SingleNode(Some(ElemContents3(a, b, c, d))); !Path(Node(ElemContents(a, b, c, Some(d))), [], None())
   norm-singleNode = ?SingleNode(None()); !Path(Node(ElemContents(None(), None(), None(), None())), [], None()) // SELECT * WHERE ()
   norm-singleNode = ?Constraint(VarRef(<id>)); !Path(SimpleNode(<id>), [], None()); oncetd(norm-simpleNode)
-  
+
   norm-simpleNode =?SimpleNode(<id>); !Node(ElemContents(Some(<id>), None(), None(), None()))
-  
+
   norm-edgeContents = ?Some(EdgeContents(<id>))
-  
+
   name-unnamed-elems(|c) = ?ElemContents(None(), type, id', constraints); !ElemContents(Some(<unique-name(|c)>), type, id', constraints)
   name-unnamed-elems(|c) = OutConn(?None(); name-unnamed-elems-helper(|c)) +
                            InConn(?None(); name-unnamed-elems-helper(|c))
@@ -62,7 +61,7 @@ rules
                            ?InEdge(); !InConn(<name-unnamed-elems-helper(|c)>) +
                            ?Path(None(), pathPatternRef, kleeneStar); !Path(Some(<unique-name(|c)> ""), pathPatternRef, kleeneStar)
   name-unnamed-elems-helper(|c) = !ElemContents(Some(<unique-name(|c)> ""), None(), None(), None())
-  
+
   norm-inlined-references = ?ElemContents(Some(varName), _, _, _); alltd(norm-inlined-reference(|varName))
   norm-inlined-reference(|varName) =
     ?Obj(dot); !VarRef(varName) + (?Obj(VarRef(v), dot) + ?PropRef(VarRef(v), _));
@@ -73,7 +72,7 @@ rules
     (?SelfPropRef(propName) + ?SelfPropRef(dot, propName)); !PropRef(VarRef(varName), propName)
 
 rules
-  
+
   norm-matchElems:
     GraphPattern(elems) -> GraphPattern(nodes, edges, paths'', constraints)
     with
@@ -87,7 +86,7 @@ rules
       connections := <get-edges> paths';
       edges := <filter(?Edge(_, _, _, _)); !Edges(<id>)> connections;
       paths'' := <filter(?Path(_, _, _, _, _)); !Paths(<id>)> connections
-  
+
   norm-path-pattern:
     PathPattern(name, path) -> PathPattern(name, nodes, connections, constraints)
     with
@@ -97,14 +96,14 @@ rules
       path' := <alltd(?ElemContents(Some(<id>), _, _, _))> path;
       nodes := <collect-om(?Node(_), conc); !Nodes(<id>)> path';
       connections := <get-edges> [path']
-  
+
   get-inlined-constraints(|nodeOrEdge):
     ElemContents(Some(var), label, id', otherConstraint) -> [labels, identifiers, otherConstraint']
     with
       labels := <?Some(Labels(<id>)); to-label-constraints(|var, nodeOrEdge) <+ ![]> label;
     	identifiers := <?Some(Ids(<id>)); to-id-constraints(|var) <+ ![]> id';
     	otherConstraint' := <?Some(Constraint(<id>)) <+ ![]> otherConstraint
-  
+
   to-label-constraints(|var, nodeOrEdge):
     labels -> result
     with
@@ -115,15 +114,15 @@ rules
   to-hasLabel-expressions(|var) = bottomup(try(is-literal; origin-track-forced(!HasLabel(<origin-track-forced(!VarRef(var))> <id>, <id>))))
   to-label-equals-expressions(|var) = bottomup(try(is-literal; origin-track-forced(!Eq(<origin-track-forced(!Label(VarRef(var)))> <id>, <id>))))
   to-id-constraints(|var) = bottomup(try(is-literal; origin-track-forced(!Eq(Id(VarRef(var)), <id>))))
-  
+
   // base case: no paths
   get-edges:
     [] -> []
-  
+
   // head is path with only one node => get neighbors for the other paths
   get-edges:
     [Path(_, [], _)|otherPaths] -> <get-edges> otherPaths
-  
+
   // paths with more than one node
   get-edges:
     [Path(
@@ -135,7 +134,7 @@ rules
       edge := <to-edge> (n1, e, n2);
       edgesPathTail := <get-edges> edgeNodes;
       edgesTailPaths := <get-edges> otherPaths
-  
+
   // base case: only one edgeNode
   get-edges:
     [EdgeNode(_, _)] -> []
@@ -147,7 +146,7 @@ rules
     with
       edge := <to-edge> (n1, e, n2);
       edgesPathTail := <get-edges> edgeNodes
-  
+
   to-edge:
     (n1, e, n2) -> expansion
     with
@@ -169,16 +168,16 @@ rules
           expansion := Path(src, dst, pathPatternName, kleeneStar, pathName)
         otherwise: fail
       end
-  
+
 rules
-  
+
   norm-has-prop = ?Has(varRef, <id>); map(!Has(varRef, String(<id>))); create-conjunct
-  
+
   create-conjunct = reverse; !(<Tl>, <Hd>); foldl(create-OR)
   create-OR = ?(exp1, exp2); !And(exp1, exp2)
 
 rules
-  
+
   norm-query(|c):
     Query(pathPatterns, SelectClause(distinctOrReduced, selectElems), graphName, graphPattern, SolutionModifier(ungroupAs, groupBy, having, orderBy, limitOffsets)) -> Query(pathPatterns', projection', graphName, graphPattern, groupBy', orderByElems, limitOffsets')
     with
@@ -197,7 +196,7 @@ rules
       orderByElems := <try(norm-orderBy(|allExpAsVars))> orderBy;
 
       limitOffsets' := <norm-limitOffsets> limitOffsets
-  
+
   norm-select-star(|graphPattern, group-exps):
     Star() -> expAsSelectVars
     with if [] := group-exps
@@ -205,7 +204,7 @@ rules
            else vars := <map(?ExpAsVar(<id>, _))> group-exps
          end
        ; expAsSelectVars := <map(!ExpAsVar(VarRef(<id>), None()))> vars
-  
+
   norm-expAsGroupVar(|c) = ?ExpAsVar(term, Some(VarAssign(VarDef(v)))); !ExpAsVar(v, term)
   norm-expAsGroupVar(|c) = ?ExpAsVar(term, None()); !ExpAsVar(<origin-text; add-unique-suffix(|c)> term, term)
 
@@ -245,7 +244,7 @@ rules
   norm-limitOffsets = ?Some(OffsetLimitClauses(offsetClause, limitClause)); !LimitOffsetClauses(limitClause, Some(offsetClause))
 
 rules // normalization after error checking
-  
+
   normalize-after = alltd(norm-order-by-aggr-in-select-no-groupBy)
 
   norm-order-by-aggr-in-select-no-groupBy:
