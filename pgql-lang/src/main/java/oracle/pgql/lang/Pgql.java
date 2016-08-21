@@ -6,7 +6,6 @@ package oracle.pgql.lang;
 import java.io.File;
 import java.io.IOException;
 import java.io.OutputStream;
-import java.net.URLDecoder;
 import java.util.Collection;
 import java.util.HashSet;
 import java.util.Iterator;
@@ -16,7 +15,6 @@ import java.util.UUID;
 
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.IOUtils;
-import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.vfs2.FileObject;
 import org.apache.commons.vfs2.VFS;
 import org.apache.commons.vfs2.impl.DefaultFileReplicator;
@@ -70,14 +68,9 @@ public class Pgql {
       DefaultFileReplicator replicator = new DefaultFileReplicator(tempDir);
       ((DefaultFileSystemManager) VFS.getManager()).setReplicator(replicator);
 
-      // convert PGQL's jar into a FileObject
-      String jarLocation = URLDecoder
-          .decode(Pgql.class.getProtectionDomain().getCodeSource().getLocation().getPath(), "UTF-8");
-      String vfsUrl = StringUtils.repeat("jar:", StringUtils.countMatches(jarLocation, "!") + 1) + jarLocation
-          + "!/"; // the pgql jar may be nested inside other jar or war files
-      FileObject fileObject = VFS.getManager().resolveFile(vfsUrl);
+      FileObject fileObject = VFS.getManager().resolveFile("res:pgql-spoofax-binaries");
       if (fileObject.exists() == false) {
-        throw new PgqlException("Malformed VFS URL: " + vfsUrl);
+        throw new PgqlException("Can't find " + fileObject.getURL());
       }
 
       // set up Spoofax

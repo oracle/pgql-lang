@@ -32,25 +32,4 @@
     <maven.compiler.target>1.7</maven.compiler.target>
   </properties>
 
-  <build>
-    <resources>
-      <resource>
-        <directory>target/spoofax-binaries</directory>
-      </resource>
-    </resources>
-    <plugins>
-      <plugin>
-        <groupId>org.apache.maven.plugins</groupId>
-        <artifactId>maven-jar-plugin</artifactId>
-        <configuration>
-          <archive>
-            <manifest>
-              <addDefaultImplementationEntries>true</addDefaultImplementationEntries>
-            </manifest>
-          </archive>
-        </configuration>
-      </plugin>
-    </plugins>
-  </build>
-
 </project>
