@@ -10,13 +10,13 @@
     <dependency>
       <groupId>oracle.pgx</groupId>
       <artifactId>pgql-lang</artifactId>
-      <version>1.0.0</version>
+      <version>LATEST</version>
       <scope>compile</scope>
     </dependency>
     <dependency>
       <groupId>oracle.pgx</groupId>
       <artifactId>graph-query-ir</artifactId>
-      <version>1.0.0</version>
+      <version>LATEST</version>
       <scope>compile</scope>
     </dependency>
   </dependencies>

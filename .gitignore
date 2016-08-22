@@ -5,3 +5,4 @@ pgql-lang-parent.iml
 /_site/
 GenerateMenuFromMarkdown.class
 pgql-lang/src/main/resources/pgql-spoofax-binaries/
+*.versionsBackup

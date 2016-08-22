@@ -32,4 +32,28 @@
     <maven.compiler.target>1.7</maven.compiler.target>
   </properties>
 
+  <build>
+    <plugins>
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-jar-plugin</artifactId>
+        <configuration>
+          <archive>
+            <manifest>
+              <addDefaultImplementationEntries>true</addDefaultImplementationEntries>
+            </manifest>
+          </archive>
+        </configuration>
+      </plugin>
+    </plugins>
+  </build>
+
+  <distributionManagement>
+    <repository>
+      <id>labs-pgx-release-local</id>
+      <name>Oracle Internal Repository</name>
+      <url>http://artifactory-slc.oraclecorp.com/artifactory/simple/labs-pgx-release-local</url>
+    </repository>
+  </distributionManagement>
+
 </project>
