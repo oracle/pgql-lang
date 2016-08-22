@@ -19,7 +19,7 @@ Consider the following example PGQL query:
 
 ```
 SELECT m.name, o.name
-WHERE (n WITH type = 'Person' AND name = 'John') -[e1 WITH type = 'friendOf']-> (m WITH type = 'Person') <-[e2 WITH type = 'belongs_to']- (o WITH type = 'Car')
+WHERE (n:Person WITH name = 'John') -[e1:friendOf]-> (m:Person) <-[e2:belongs_to]- (o:Car)
 ```
 
 In the `WHERE` clause, the above query defines the pattern to be found.
@@ -27,13 +27,13 @@ In the `WHERE` clause, the above query defines the pattern to be found.
 - The pattern is composed of three vertices (`n`, `m`, and `o`) and two edges (`e1` and `e2`).
 - There is an edge (`e1`) from vertex `n` to vertex `m`.
 - There is an edge (`e2`) from vertex `o` to vertex `m`.
-- Vertices `n` and `m` have a property `type` with value `'Person'`, while vertex `o` has a property `type` with value `'Car'`.
-- Vertex `n` has another property `name` with value `'John'`.
-- Edges `e1` and `e2` both have a property `type` whose values are `'friendOf'` and `'belongs_to'` respectively.
+- Vertices `n` and `m` have a label with value `'Person'`, while vertex `o` has a label with value `'Car'`.
+- Vertex `n` has a property `name` with value `'John'`.
+- Edges `e1` and `e2` have labels with values `'friendOf'` and `'belongs_to'` respectively.
 
 In the `SELECT` clause, the above query defines the data entities to be returned.
 
-- For each of the matched subgraph, the query returns the property name of vertex `m` and the property name of vertex `o`.
+- For each of the matched subgraph, the query returns the property `name` of vertex `m` and the property `name` of vertex `o`.
 
 ## Basic Query Structure
 
@@ -64,8 +64,7 @@ Constraint          := TopologyConstraint |
                        ValueConstraint
 TopologyConstraint  := PathPattern
 PathPattern         := QueryVertex (QueryConnection QueryVertex)*
-QueryVertex         := VariableName |
-                       '(' VariableName? LabelConstraint? PropertyConstraints? ')'
+QueryVertex         := '(' VariableName? LabelConstraint? PropertyConstraints? ')'
 QueryConnection     := QueryEdge |
                        QueryPath // see Section 'Path Queries'
 QueryEdge           := '->' | '<-' | '-->' | '<--' |
@@ -146,9 +145,6 @@ Omit variable name of the destination vertex | `(n)-[e]->()`
 Omit variable names in both vertices | `()-[e]->()`
 Omit variable name in edge | `(n)-->(m)`
 Omit variable name in edge (alternative,  one dash) | `(n)->(m)`
-Omitting variables in both vertex and edge | `k1->()->()->k2`
-
-Finally, the parenthesis in the vertex term can be omitted, if the vertex term is attached to an edge term and there is no in-lined value constraints. Therefore the following syntax is a valid topology constraint in PGQL: `x->y->z<-w-[e1]->q`.
 
 ### Disconnected Topology Constraints
 
@@ -157,8 +153,8 @@ In the case the topology constraints form multiple groups of vertices and edges 
 ```
 SELECT *
 WHERE
-  n1 -> m1
-  n2 -> m2 // vertices {n2, m2} are not connected to vertices {n1, m1}, resulting in a Cartesian product
+  (n1) -> (m1),
+  (n2) -> (m2) // vertices {n2, m2} are not connected to vertices {n1, m1}, resulting in a Cartesian product
 ```
 
 ## Label Matching
@@ -222,7 +218,7 @@ There are also built-in functions available for labels:
 The value constraint describes a general constraint other than the topology. A value constraint takes the form of a Boolean expression which typically involves certain property values of the vertices and edges that are defined in topology constraints in the same query. For instance, the following example consists of three constraints – one topology constraint followed by two value constraints.
 
 ```
-x -> y,
+(x) -> (y),
 x.name = 'John',
 y.age > 25
 ```
@@ -233,7 +229,7 @@ Note that in PGQL the ordering of constraints does not has any effect on the res
 
 ```
 x.name = 'John',
-x -> y,
+(x) -> (y),
 y.age > 25
 ```
 
@@ -242,7 +238,7 @@ y.age > 25
 An in-lined constraint is a syntactic sugar where value constraints are written directly inside a topology constraint. More specifically, expressions that access the property values of a certain vertex (or edge) are put directly inside the parenthesis (or the square bracket) of the corresponding vertex (or edge) term. Consider the following set of constraints.
 
 ```
-n-[e]->(),
+(n) -[e]-> (),
 n.name = 'John' OR n.name = 'James',
 n.type = 'Person'
 e.type = 'workAt',
@@ -281,14 +277,14 @@ In-lined Constraint | In-lined Constraint w/o variable name
 Expressions that contain property accesses from multiple variables (a.k.a. cross-constraints) cannot be in-lined. Consider the following constraint:
 
 ```
-n->m
+(n) -> (m)
 n.name = m.name
 ```
 
 This constraint cannot be inlined. The following is syntatcially not valid:
 
 ```
-(n WITH name = m.name) -> m   // this is a syntax error
+(n WITH name = m.name) -> (m)   // this is NOT valid syntax
 ```
 
 ### Identifier short-cut for in-lined expressions
@@ -320,7 +316,7 @@ Edge 1: 0 -> 1
 
 ```
 SELECT x, y
-WHERE x -> y
+WHERE (x) -> (y)
 ```
 
 Under graph homomorphism semantic the output of this query is as follows:
@@ -342,7 +338,7 @@ In PGQL, to specify that a pattern should be matched in an isomorphic way, one c
 
 ```
 SELECT x, y
-WHERE x -> y, x != y
+WHERE (x) -> (y), x != y
 ```
 
 The output of this query is as follows:
@@ -730,7 +726,7 @@ Consider the following query:
 ```
 SELECT n.age, COUNT(*)
 WHERE
-  n
+  (n)
 GROUP BY n.age
 ORDER BY n.age
 ```
@@ -742,7 +738,7 @@ This repetition of group expressions introduces an exception to the variable vis
 ```
 SELECT nAge, COUNT(*)
 WHERE
-  n
+  (n)
 GROUP BY n.age AS nAge
 ORDER BY nAge
 ```
@@ -874,7 +870,7 @@ Consider the following query:
 ```
 SELECT y.id()
 WHERE
-  x -> y,
+  (x) -> (y),
   x.inDegree() > 10
 ```
 
@@ -975,13 +971,13 @@ PATH, SELECT, WHERE, AS, WITH, ORDER, GROUP, BY, ASC, DESC, LIMIT, OFFSET, AND, 
 There are certain restrictions when using keywords as variable or property name:
 
 - Keywords cannot be used as a variable name.
-- Keywords can only be used as a property name, if quotations are used when accessing the property: `SELECT * WHERE n -> m, n.'GROUP' = 'managers'`
+- Keywords can only be used as a property name, if quotations are used when accessing the property: `SELECT * WHERE (n) -> (m), n.'GROUP' = 'managers'`
 
 Finally, keywords are not case-sensitive. For example, `SELECT`, `Select` and `sELeCt`, are all valid.
 
 ## Comments
 
-There are two kinds of comments: single-line comments and multi-line comments. Single-line comments start with double backslashes (`\\`), while multi-line comments are delimited by `/*` and `*/`. The following shows the syntactic structure of the two forms.
+There are two kinds of comments: single-line comments and multi-line comments. Single-line comments start with double forward slashes (`//`), while multi-line comments are delimited by `/*` and `*/`. The following shows the syntactic structure of the two forms.
 
 ```
 Comment           := SingleLineComment |
@@ -1015,13 +1011,13 @@ Consider the following query:
 ```
 SELECT n.name, m.name
 WHERE
-  (n WITH type = 'Person', name = 'Ron Weasley') -> m
+  (n WITH type = 'Person', name = 'Ron Weasley') -> (m)
 ```
 
 This query can be reformatted with minimal white space, while guaranteeing compatibility with different parser implementations, as follows:
 
 ```
-SELECT n.name,m.name WHERE(n WITH type='Person',name='Ron Weasley')->m
+SELECT n.name,m.name WHERE(n WITH type='Person',name='Ron Weasley')->(m)
 ```
 
 Note that the white space after the `SELECT` keyword, in front of the `WHERE` keyword, before and after the `WITH` keyword and in the String literal `'Ron Weasley'` cannot be omitted.
