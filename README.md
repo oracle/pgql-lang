@@ -1,13 +1,16 @@
 # PGQL: a Property Graph Query Language
 
 PGQL is a SQL-like graph query language for the Property Graph data model.
-See [PGQL 1.0 Specification](https://oracle.github.io/pgql-lang/spec/1.0/).
 
-This reposistory contains PGQL's reference implementation:
+See [PGQL Home](http://pgql-lang.org/) and [PGQL 1.0 Specification](http://pgql-lang.org/spec/1.0/).
 
- - Parser
- - Graph Query IR
- - Tests
+This reposistory contains:
+
+ - The specification of PGQL
+ - A parser for PGQL that provides various static error checks to validate queries
+ - An intermediate representation of graph queries (see [GraphQuery.java](graph-query-ir/src/main/java/oracle/pgql/lang/ir/GraphQuery.java))
+    - GraphQuery objects are returned by the parser and they can be used as a starting point when implementing a graph query engine
+ - PGQL compatibility tests (in-progress)
 
 ## Build and Install
 
@@ -45,11 +48,11 @@ The AST returned by the parser is a [GraphQuery](graph-query-ir/src/main/java/or
 
 ## Documentation
 
-The PGQL 1.0 language specification can be found [here](https://oracle.github.io/pgql-lang/spec/1.0/).
+See [PGQL 1.0 Specification](http://pgql-lang.org/spec/1.0/).
 
 ## Development
 
-- Download Eclipse with Spoofax pre-installed [here](https://spoofax.readthedocs.io/en/latest/source/langdev/start.html)
+- Download Eclipse with Spoofax pre-installed [here](https://spoofax.readthedocs.io/en/latest/source/release/note/2.0.0.html)
 - Import the following projects into Eclipse (`File>Import...>Maven>Existing Maven Projects>Browse...`):
     - `graph-query-ir`: Java representation of graph queries
     - `pqgl-spoofax`: Spoofax implementation of PGQL (parser + error checks)
