@@ -1,7 +1,6 @@
 # PGQL: a Property Graph Query Language
 
-PGQL is a SQL-like graph query language for the Property Graph data model.
-
+PGQL is a SQL-like query language for the Property Graph data model.
 See [PGQL Home](http://pgql-lang.org/) and [PGQL 1.0 Specification](http://pgql-lang.org/spec/1.0/).
 
 This reposistory contains:
