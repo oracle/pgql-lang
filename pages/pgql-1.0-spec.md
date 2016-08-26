@@ -64,14 +64,16 @@ Constraint          := TopologyConstraint |
                        ValueConstraint
 TopologyConstraint  := PathPattern
 PathPattern         := QueryVertex (QueryConnection QueryVertex)*
-QueryVertex         := '(' VariableName? LabelConstraint? PropertyConstraints? ')'
+QueryVertex         := '(' VariableName? LabelConstraint? InlinedConstraints? ')'
 QueryConnection     := QueryEdge |
                        QueryPath // see Section 'Path Queries'
 QueryEdge           := '->' | '<-' | '-->' | '<--' |
-                       '-[' VariableName? LabelConstraint? PropertyConstraints? '->' |
-                       '<-[' VariableName? LabelConstraint? PropertyConstraints? '-'
-LabelConstraint     := ':' Label ('|' Label)*
-InlinedConstraints  := 'WITH' InlinedConstraint*
+                       '-[' VariableName? LabelConstraint? InlinedConstraints? ']->' |
+                       '<-[' VariableName? LabelConstraint? InlinedConstraints? ']-'
+LabelConstraint     := ':' {Label '|'}
+InlinedConstraints  := 'WITH' {InlinedConstraint ','}+
+ValueConstraint     := Expression // see Section Expressions
+InlinedConstraint   := Expression // see Section Expressions
 ```
 
 Each constraint is one of the following types:
@@ -299,9 +301,9 @@ Original Syntax | Shortcut Syntax
 
 ## Graph Pattern Matching Semantic
 
-There are two popular graph pattern matching semantics: homomorphic pattern matching and isomorphic pattern matching. The semantic of PGQL is that of homomorphic pattern matching, which gives more expressive power.
+There are two popular graph pattern matching semantics: graph homomorphism and graph isomorphism. The semantic of PGQL is graph homomorphism.
 
-### Homomorphic Pattern Matching
+### Graph Homomorphism
 
 Under graph homomorphism, multiple vertices (or edges) in the query pattern may match with the same vertex (or edge) in the data graph as long as all topology and value constraints of the different query vertices (or edges) are satisfied by the data vertex (or edge).
 
@@ -319,20 +321,20 @@ SELECT x, y
 WHERE (x) -> (y)
 ```
 
-Under graph homomorphism semantic the output of this query is as follows:
+Under graph homomorphism the output of this query is as follows:
 
 x | y
 --- | ---
 0 | 0
 0 | 1
 
-Note that in case of the first result, both query vertex `x` and query vertex `y` bind to the same data vertex `0`.
+Note that in case of the first result, both query vertex `x` and query vertex `y` are bound to the same data vertex `0`.
 
-### Isomorphic Pattern Matching
+### Graph Isomorphism
 
-Under graph isomorphism, two query vertices may not match with the same data vertex.
+Under graph isomorphism, two distinct query vertices must not match with the same data vertex.
 
-Consider the example from above. Under isomorphic semantic, only the second solution is a valid one since the first solution binds both query vertices `x` and `y` to the same data vertex.
+Consider the example from above. Under graph isomorphism, only the second solution is a valid one since the first solution binds both query vertices `x` and `y` to the same data vertex.
 
 In PGQL, to specify that a pattern should be matched in an isomorphic way, one can introduce non-equality constraints:
 
@@ -393,7 +395,8 @@ ORDER BY pivot
 
 Consider the following query:
 
-```SELECT *
+```
+SELECT *
 WHERE
   (n WITH type = 'Person') -> (m) -> (w)
   (n) -> (w) -> (m)
@@ -497,29 +500,25 @@ Path queries test for the existence of arbitrary-length paths between pairs of v
 ## Regular Path Patterns
 
 In addition to query vertices and query edge, a graph pattern in PGQL may be composed of query paths. Such paths define a regular path pattern between a pair of query vertices. During querying, bindings for query vertices are only obtained for those vertices in the graph that are reachable by at least one path that satisfies the regular path pattern.
-The syntactic structure of a query path is similar to a query edge, but it uses forward slashes (-/.../->) instead of square brackets (-[...]->) to clearly distinguishes the two types of connection. Inside the forward slashes, there must be a colon (':') followed by a regular pattern.
+The syntactic structure of a query path is similar to a query edge, but it uses forward slashes (-/.../->) instead of square brackets (-[...]->) to clearly distinguishes the two types of connection. Inside the forward slashes, there must be a colon (':') followed by a regular path pattern.
 
 ```
-QueryPath       := '-/' ':' RegularPattern '/->' |
-                   '<-/' ':' RegularPattern '/-'
-RegularPattern  := PathPatternName |
-                   Label |
-                   ZeroOrMorePath |
-                   AlternativePath |
-                   GroupPath
-ZeroOrMorePath  := RegularPattern '*'
-ZeroOrMorePath  := RegularPattern
-AlternativePath := {RegularPattern '|'}
-GroupPath       := '(' RegularPattern ')'
+QueryPath          := '-/' ':' RegularPathPattern '/->' |
+                      '<-/' ':' RegularPathPattern '/-'
+RegularPathPattern := PathPatternName |
+                      Label |
+                      ZeroOrMorePath |
+                      AlternativePath
+ZeroOrMorePath     := RegularPathPattern '*'
+AlternativePath    := {RegularPathPattern '|'}+
 ```
 
-A regular pattern is one of the following:
+A regular path pattern is one of the following:
 
 - `PathPatternName`: matches a path using a path pattern that is declared at the beginning of the query
 - `Label`: matches a path of length one such that the edge on the path has the specified label
 - `ZeroOrMorePath`: matches a path by repeatedly matching the pattern zero or more times
 - `AlternativePath`: matches an alternative pattern (all possibilities are tried)
-- `GroupPath`: matches a path (brackets help control precedence)
 
 An example is as follows:
 
@@ -529,7 +528,7 @@ WHERE
   (c:Class) -/:subclass_of*/-> (:Class WITH name = 'ArrayList')
 ```
 
-Here, we find all classes that are a subclass of `'ArrayList'`. The regular pattern `subclass_of*` matches a path consisting of zero or more edges with the label `subclass_of`. Because the pattern may match a path with zero edges, it is allowed for the two query vertices to bind to the same data vertex if the data vertex satisfies the value constraints specified for path vertices (i.e. the vertex has a label `'Class'` and a property name with a value `'ArrayList'`.
+Here, we find all classes that are a subclass of `'ArrayList'`. The regular path pattern `subclass_of*` matches a path consisting of zero or more edges with the label `subclass_of`. Because the pattern may match a path with zero edges, the two query vertices can be bound to the same data vertex if the data vertex satisfies the constraints specified in both source and destination vertices (i.e. the vertex has a label `'Class'` and a property `name` with a value `'ArrayList'`.
 
 ## Path Pattern Composition
 
@@ -570,7 +569,7 @@ The above query outputs all generators that are connected to each other via one 
 
 # Solution Modifier Clause
 
-The solution modifier clause defines additional operations for building up the result of the query.  A solution modifier clause consists of four (sub-)clauses– `GroupByClause`, `OrderByClause`, <LIMIT clause> and <OFFSET clause>. Note that all these clauses are optional; therefore the entire solution modifier clause is optional.
+The solution modifier clause defines additional operations for building up the result of the query.  A solution modifier clause consists of three (sub-)clauses– `GroupByClause`, `OrderByClause` and `LimitOffsetClauses`. Note that all these clauses are optional; therefore the entire solution modifier clause is optional.
 
 ```
 SolutionModifierClause := GroupByClause? OrderByClause? LimitOffsetClauses?

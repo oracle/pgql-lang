@@ -81,12 +81,12 @@ entries:
       output: web
       subfolderitems:
 
-      - title: Homomorphic Pattern Matching
-        url: /spec/1.0/#homomorphic-pattern-matching
+      - title: Graph Homomorphism
+        url: /spec/1.0/#graph-homomorphism
         output: web
 
-      - title: Isomorphic Pattern Matching
-        url: /spec/1.0/#isomorphic-pattern-matching
+      - title: Graph Isomorphism
+        url: /spec/1.0/#graph-isomorphism
         output: web
 
   - title: SELECT Clause
