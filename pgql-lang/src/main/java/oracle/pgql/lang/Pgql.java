@@ -16,8 +16,6 @@ import java.util.UUID;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.vfs2.FileObject;
-import org.apache.commons.vfs2.FileSystemManager;
-import org.apache.commons.vfs2.Selectors;
 import org.apache.commons.vfs2.VFS;
 import org.apache.commons.vfs2.impl.DefaultFileReplicator;
 import org.apache.commons.vfs2.impl.DefaultFileSystemManager;
@@ -51,7 +49,6 @@ public class Pgql {
   private static final Logger LOG = LoggerFactory.getLogger(Pgql.class);
   private static final String NON_BREAKING_WHITE_SPACE_ERROR = "Illegal character '\u00a0' (non-breaking white space)"
       + "; use a normal space instead";
-  private static final String SPOOFAX_BINARIES_RESOURCE = "pgql-spoofax-binaries";
 
   private final Spoofax spoofax;
   private final ILanguageImpl pgqlLang;
@@ -68,27 +65,22 @@ public class Pgql {
     String baseTmpDir = System.getProperty("java.io.tmpdir");
     File tempDir = new File(baseTmpDir, "vfs_cache" + new Random().nextLong()).getAbsoluteFile();
     try {
-      FileSystemManager vfsManager = VFS.getManager();
       DefaultFileReplicator replicator = new DefaultFileReplicator(tempDir);
-      ((DefaultFileSystemManager) vfsManager).setReplicator(replicator);
+      ((DefaultFileSystemManager) VFS.getManager()).setReplicator(replicator);
 
-      FileObject fileObject = vfsManager.resolveFile("res:" + SPOOFAX_BINARIES_RESOURCE);
+      FileObject fileObject = VFS.getManager().resolveFile("res:pgql-spoofax-binaries");
       if (fileObject.exists() == false) {
         throw new PgqlException("Can't find " + fileObject.getURL());
       }
 
-      // make a copy of the fileObject or it can't be read when it's inside a WAR file (Spoofax bug?)
-      FileObject fileObjectCopy = vfsManager.resolveFile(tempDir, SPOOFAX_BINARIES_RESOURCE);
-      fileObjectCopy.copyFrom(fileObject, Selectors.SELECT_ALL);
-
       // set up Spoofax
       spoofax = new Spoofax();
-      Iterable<ILanguageDiscoveryRequest> requests = spoofax.languageDiscoveryService.request(fileObjectCopy);
+      Iterable<ILanguageDiscoveryRequest> requests = spoofax.languageDiscoveryService.request(fileObject);
       Iterable<ILanguageComponent> components = spoofax.languageDiscoveryService.discover(requests);
       Set<ILanguageImpl> implementations = LanguageUtils.toImpls(components);
       pgqlLang = LanguageUtils.active(implementations);
       assert (pgqlLang != null);
-      dummyProjectDir = vfsManager.resolveFile("ram://pgql/");
+      dummyProjectDir = VFS.getManager().resolveFile("ram://pgql/");
 
       final LanguageIdentifier id = pgqlLang.id();
       dummyProject = new Project(dummyProjectDir, new IProjectConfig() {
