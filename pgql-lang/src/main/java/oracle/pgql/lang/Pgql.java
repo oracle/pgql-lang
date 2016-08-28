@@ -6,6 +6,7 @@ package oracle.pgql.lang;
 import java.io.File;
 import java.io.IOException;
 import java.io.OutputStream;
+import java.net.URL;
 import java.util.Collection;
 import java.util.HashSet;
 import java.util.Iterator;
@@ -49,6 +50,7 @@ public class Pgql {
   private static final Logger LOG = LoggerFactory.getLogger(Pgql.class);
   private static final String NON_BREAKING_WHITE_SPACE_ERROR = "Illegal character '\u00a0' (non-breaking white space)"
       + "; use a normal space instead";
+  private static final String SPOOFAX_BINARIES = "pgql-1.0.spoofax-language";
 
   private final Spoofax spoofax;
   private final ILanguageImpl pgqlLang;
@@ -68,10 +70,13 @@ public class Pgql {
       DefaultFileReplicator replicator = new DefaultFileReplicator(tempDir);
       ((DefaultFileSystemManager) VFS.getManager()).setReplicator(replicator);
 
-      FileObject fileObject = VFS.getManager().resolveFile("res:pgql-spoofax-binaries");
-      if (fileObject.exists() == false) {
-        throw new PgqlException("Can't find " + fileObject.getURL());
-      }
+      // first copy the resource to the local file system.
+      // IMPORTANT: don't replace this with VFS.getManager().resolveFile("res:...") because VFS will fail to replicate
+      // the resource when it's nested inside multiple JAR or WAR files.
+      URL inputUrl = getClass().getResource("/" + SPOOFAX_BINARIES);
+      File dest = new File(tempDir, SPOOFAX_BINARIES);
+      FileUtils.copyURLToFile(inputUrl, dest);
+      FileObject fileObject = VFS.getManager().resolveFile("jar:" + dest.getAbsolutePath() + "!");
 
       // set up Spoofax
       spoofax = new Spoofax();
