@@ -5,7 +5,7 @@ language pgql-lang
 test Empty SELECT [[
 SELECT
 WHERE
-  x
+  (x)
 ]] parse fails
 
 test Empty WHERE [[
@@ -16,13 +16,13 @@ WHERE
 test Empty GROUP BY [[
 SELECT *
 WHERE
-  n
+  (n)
 GROUP BY
 ]] parse fails
 
 test Empty ORDER BY [[
 SELECT *
 WHERE
-  n
+  (n)
 ORDER BY
 ]] parse fails

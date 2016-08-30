@@ -5,13 +5,13 @@ language pgql-lang
 test Inlined cross-referece 1 [[
 SELECT *
 WHERE
-  (n WITH age = m.age) -> m
+  (n WITH age = m.age) -> (m)
 ]] 1 error /* In-lined constraint may not access other variables */
 
 test Inlined cross-referece 2 [[
 SELECT *
 WHERE
-  (n WITH age = m.inDegree()) -> m
+  (n WITH age = m.inDegree()) -> (m)
 ]] 1 error /* In-lined constraint may not access other variables */
 
 test Inlined constraint with var.prop [[

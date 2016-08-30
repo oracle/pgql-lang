@@ -32,10 +32,10 @@ binding rules
   PathPatternRef(p):
     refers to PathPattern p
 
-  ExpAsVar(v, exp):
+  ExpAsVar(exp, v):
     defines non-unique SelectVar v of type ty where exp has type ty // like in SQL, we allow duplicate variable definitions in the SELECT
   
-  ExpAsGroupVar(v, exp):
+  ExpAsGroupVar(exp, v):
     defines unique GroupVar v of type ty where exp has type ty // we don't allow duplicate variable definitions in the GROUP BY
     
   VarRef(v):

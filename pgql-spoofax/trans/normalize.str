@@ -77,7 +77,7 @@ rules
     GraphPattern(elems) -> GraphPattern(nodes, edges, paths'', constraints)
     with
       paths := <filter(?Path(_, _, _))> elems;
-      inlined-constraints-for-nodes := <collect-om(?Node(<id>)); map(get-inlined-constraints(|"node")); concat> paths;
+      inlined-constraints-for-nodes := <collect-om(?Node(<id>)); map(get-inlined-constraints(|"vertex")); concat> paths;
       inlined-constraints-for-edges := <collect-om(?OutConn(<id>) + ?InConn(<id>)); filter(get-inlined-constraints(|"edge")); concat> paths;
       non-inlined-constraints := <filter(?Constraint(<id>))> elems;
       constraints := <conc; flatten-list; !Constraints(<id>)> (inlined-constraints-for-nodes, inlined-constraints-for-edges, non-inlined-constraints);
@@ -90,24 +90,24 @@ rules
   norm-path-pattern:
     PathPattern(name, path) -> PathPattern(name, nodes, connections, constraints)
     with
-      inlined-constraints-for-nodes := <collect-om(?Node(<id>)); map(get-inlined-constraints(|"node")); concat> path;
+      inlined-constraints-for-nodes := <collect-om(?Node(<id>)); map(get-inlined-constraints(|"vertex")); concat> path;
       inlined-constraints-for-edges := <collect-om(?OutConn(<id>) + ?InConn(<id>)); filter(get-inlined-constraints(|"edge")); concat> path;
       constraints := <conc; flatten-list; !Constraints(<id>)> (inlined-constraints-for-nodes, inlined-constraints-for-edges);
       path' := <alltd(?ElemContents(Some(<id>), _, _, _))> path;
       nodes := <collect-om(?Node(_), conc); !Nodes(<id>)> path';
       connections := <get-edges> [path']
 
-  get-inlined-constraints(|nodeOrEdge):
+  get-inlined-constraints(|vertexOrEdge):
     ElemContents(Some(var), label, id', otherConstraint) -> [labels, identifiers, otherConstraint']
     with
-      labels := <?Some(Labels(<id>)); to-label-constraints(|var, nodeOrEdge) <+ ![]> label;
+      labels := <?Some(Labels(<id>)); to-label-constraints(|var, vertexOrEdge) <+ ![]> label;
     	identifiers := <?Some(Ids(<id>)); to-id-constraints(|var) <+ ![]> id';
     	otherConstraint' := <?Some(Constraint(<id>)) <+ ![]> otherConstraint
 
-  to-label-constraints(|var, nodeOrEdge):
+  to-label-constraints(|var, vertexOrEdge):
     labels -> result
     with
-      if "node" := nodeOrEdge
+      if "vertex" := vertexOrEdge
       then result := <to-hasLabel-expressions(|var)> labels
       else result := <to-label-equals-expressions(|var)> labels
       end
@@ -182,16 +182,16 @@ rules
     Query(pathPatterns, SelectClause(distinctOrReduced, selectElems), graphName, graphPattern, SolutionModifier(ungroupAs, groupBy, having, orderBy, limitOffsets)) -> Query(pathPatterns', projection', graphName, graphPattern, groupBy', orderByElems, limitOffsets')
     with
       pathPatterns' := <map(norm-path-pattern); !PathPatterns(<id>)> pathPatterns;
-    
+
       expAsGroupVars := <?Some(GroupClause(<id>)) <+ ![]> groupBy;
       expAsGroupVars' := <map(norm-expAsGroupVar(|c))> expAsGroupVars;
       groupBy' := <?Some(_); !Some(GroupClause(expAsGroupVars')) <+ !None()> groupBy;
 
       expAsSelectVars := <?ExpAsVars(<id>); map(replace-terms-with-varRef(|expAsGroupVars')) <+
                           norm-select-star(|graphPattern, expAsGroupVars')> selectElems;
-      expAsSelectVars' := <map(name-select-expression(|c))> expAsSelectVars;
+      expAsSelectVars' := <map(norm-select-expression(|c))> expAsSelectVars;
       projection' := Vars(ExpAsVars(expAsSelectVars'));
-      
+
       allExpAsVars := <conc> (<remove-all(?ExpAsVar(_, <id>); not(is-aggregate))> expAsSelectVars', expAsGroupVars');
       orderByElems := <try(norm-orderBy(|allExpAsVars))> orderBy;
 
@@ -201,43 +201,39 @@ rules
     Star() -> expAsSelectVars
     with if [] := group-exps
            then vars := <collect((?Node(<id>) + ?Edge(_, <id>, _, _)); not(is-substring(GENERATED)))> graphPattern
-           else vars := <map(?ExpAsVar(<id>, _))> group-exps
+           else vars := <map(?ExpAsVar(_, <id>))> group-exps
          end
        ; expAsSelectVars := <map(!ExpAsVar(VarRef(<id>), None()))> vars
 
-  norm-expAsGroupVar(|c) = ?ExpAsVar(term, Some(VarAssign(VarDef(v)))); !ExpAsVar(v, term)
-  norm-expAsGroupVar(|c) = ?ExpAsVar(term, None()); !ExpAsVar(<origin-text; add-unique-suffix(|c)> term, term)
+  norm-expAsGroupVar(|c) = ?ExpAsVar(term, Some(VarAssign(VarDef(v)))); !ExpAsVar(term, v)
+  norm-expAsGroupVar(|c) = ?ExpAsVar(term, None()); !ExpAsVar(term, <origin-text; add-unique-suffix(|c)> term)
 
-  norm-select-expression(|group-expressions):
-    ExpAsVar(exp, var) -> ExpAsVar(exp', var)
-    with exp' := <replace-terms-with-varRef(|group-expressions)> exp
-      
-  name-select-expression(|c): ExpAsVar(exp, Some(VarAssign(VarDef(v)))) -> ExpAsVar(v, exp)
-  name-select-expression(|c):
-    ExpAsVar(exp, None()) -> ExpAsVar(v, exp)
+  norm-select-expression(|c): ExpAsVar(exp, Some(VarAssign(VarDef(v)))) -> ExpAsVar(exp, v)
+  norm-select-expression(|c):
+    ExpAsVar(exp, None()) -> ExpAsVar(exp, v)
     with v := <(?VarRef(<id>) <+ origin-text); add-unique-suffix(|c)> exp
 
   replace-terms-with-varRef(|expressions):
     exp -> exp'
     with exp' := <foldl(replace-terms-with-varRef)> (expressions, exp)
 
-  replace-terms-with-varRef = ?(ExpAsVar(var, term), <id>); alltd(
+  replace-terms-with-varRef = ?(ExpAsVar(term, var), <id>); alltd(
     is-aggregate; ?term; !VarRef(var) + // for ORDER BY
     is-aggregate + ?term; !VarRef(var)) // for SELECT: never look into aggregates
 
   norm-orderBy(|allExpAsVars):
-  	Some(OrderClause(elems)) -> Some(OrderClause(elems'))
-  	with
-  		elems' := <map(norm-orderBy-ordering); map(norm-order-expression(|allExpAsVars))> elems
+    Some(OrderClause(elems)) -> Some(OrderClause(elems'))
+    with
+      elems' := <map(norm-orderBy-ordering); map(norm-order-expression(|allExpAsVars))> elems
 
   norm-orderBy-ordering =
     ((?Desc1(<id>) + ?Desc2(<id>)); !OrderByElem(<id>, Desc())) <+
     ((try(?Asc1(<id>) + ?Asc2(<id>))); !OrderByElem(<id>, Asc()))
 
   norm-order-expression(|group-and-select-expressions):
-  	OrderByElem(exp, ordering) -> OrderByElem(exp', ordering)
-  	with
-  	  exp' := <replace-terms-with-varRef(|group-and-select-expressions)> exp
+    OrderByElem(exp, ordering) -> OrderByElem(exp', ordering)
+    with
+      exp' := <replace-terms-with-varRef(|group-and-select-expressions)> exp
 
   norm-limitOffsets = ?None(); !LimitOffsetClauses(None(), None())
   norm-limitOffsets = ?Some(LimitOffsetClauses(limitClause, offsetClause)); !LimitOffsetClauses(Some(limitClause), offsetClause)

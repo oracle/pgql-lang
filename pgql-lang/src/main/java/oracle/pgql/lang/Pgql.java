@@ -118,7 +118,7 @@ public class Pgql {
         }
       });
 
-      parse("select * where ()"); // make Spoofax initialize the language
+      parse("select * where (initQuery)"); // make Spoofax initialize the language
     } catch (MetaborgException | IOException e) {
       throw new PgqlException("Failed to initialize PGQL", e);
     } finally {

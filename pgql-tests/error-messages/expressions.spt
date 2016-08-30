@@ -11,27 +11,27 @@ WHERE
 test Nested aggregation 2 [[
 SELECT MIN(n.age) AS min
 WHERE
-  n
+  (n)
 ORDER BY AVG(MIN(n.age))
 ]] 1 error /* Nested aggregation is not allowed */
 
 test Nested aggregation 3 [[
 SELECT MIN(n.age) AS min
 WHERE
-  n
+  (n)
 ORDER BY AVG(min)
 ]] 1 error /* Nested aggregation is not allowed */
 
 test Aggregation in GROUP BY 1 [[
 SELECT avgAge
 WHERE
-  n
+  (n)
 GROUP BY AVG(n.age) AS avgAge
 ]] 1 error /* Aggregation not allowed in GROUP BY */
 
 test Aggregation in GROUP BY 2 [[
 SELECT avgAge
 WHERE
-  n
+  (n)
 GROUP BY AVG(MIN(n.age)) AS avgAge
 ]] 2 errors /* Aggregation not allowed in GROUP BY, Nested aggregation is not allowed */

@@ -36,6 +36,6 @@ rules
   to-VarRef-or-SelectOrGroupRefs = alltd(is-aggregate <+ ?VarRef(<id>); !SelectOrGroupRef(<id>))
 
   to-ExpAsGroupVars = alltd(to-ExpAsGroupVar)
-  to-ExpAsGroupVar = ?ExpAsVar(v, exp); !ExpAsGroupVar(v, exp)
+  to-ExpAsGroupVar = ?ExpAsVar(exp, v); !ExpAsGroupVar(exp, v)
 
   to-VarOrSelectRefs = alltd(?VarRef(<id>); !VarOrSelectRef(<id>))

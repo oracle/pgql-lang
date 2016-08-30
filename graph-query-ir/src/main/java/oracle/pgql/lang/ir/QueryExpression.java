@@ -3,6 +3,8 @@
  */
 package oracle.pgql.lang.ir;
 
+import oracle.pgql.lang.ir.QueryVariable.VariableType;
+
 public interface QueryExpression {
 
   enum ExpressionType {
@@ -638,7 +640,7 @@ public interface QueryExpression {
 
     @Override
     public String toString() {
-      return variable.isAnonymous() ? "" : variable.name;
+      return PgqlUtils.printPgqlString(this);
     }
 
     @Override

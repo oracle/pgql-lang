@@ -28,7 +28,7 @@ rules // Unresolved/duplicate variables
       <generate-error-on-unresolved(|ctx, "Undefined path pattern")> p
 
   nabl-constraint(|ctx):
-    ExpAsGroupVar(v, _) -> <fail>
+    ExpAsGroupVar(_, v) -> <fail>
     where
       <generate-error-on-duplicate(|ctx, NablNsGroupVar(), "Group key defined multiple times")> v
 

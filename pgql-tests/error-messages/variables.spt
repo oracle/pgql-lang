@@ -5,27 +5,27 @@ language pgql-lang
 test Unresolved variable in SELECT [[
 SELECT n2
 WHERE
-  n
+  (n)
 ]] 1 error /* Unresolved variable */
 
 test Unresolved variable in GROUP BY [[
 SELECT n3
 WHERE
-  n
+  (n)
 GROUP BY n2 AS n3
 ]] 1 error /* Unresolved variable */
 
 test Unresolved variable in ORDER BY 1 [[
 SELECT n
 WHERE
-  n
+  (n)
 ORDER BY n2
 ]] 1 error /* Unresolved variable */
 
 test Unresolved variable in ORDER BY 2 [[
 SELECT n
 WHERE
-  n
+  (n)
 GROUP BY n AS n
 ORDER BY n2
 ]] 1 error /* Unresolved variable */
@@ -39,6 +39,6 @@ WHERE
 test Duplicate variable in GROUP BY [[
 SELECT nName
 WHERE
-  n
+  (n)
 GROUP BY n.name AS nName, n.name AS nName
 ]] 2 errors /* Group key defined multiple times */

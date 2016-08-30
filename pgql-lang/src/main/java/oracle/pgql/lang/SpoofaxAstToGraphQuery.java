@@ -66,8 +66,8 @@ public class SpoofaxAstToGraphQuery {
   private static final int POS_LIMIT = 0;
   private static final int POS_OFFSET = 1;
 
-  private static final int POS_EXPASVAR_EXP = 1;
-  private static final int POS_EXPASVAR_VAR = 0;
+  private static final int POS_EXPASVAR_EXP = 0;
+  private static final int POS_EXPASVAR_VAR = 1;
   private static final int POS_BINARY_EXP_LEFT = 0;
   private static final int POS_BINARY_EXP_RIGHT = 1;
   private static final int POS_UNARY_EXP = 0;

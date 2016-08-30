@@ -291,8 +291,26 @@ public class PgqlUtils {
     return result;
   }
 
+  public static String printPgqlString(VarRef varRef) {
+    QueryVariable variable = varRef.getVariable();
+    if (variable.getVariableType() == VariableType.EXP_AS_VAR) {
+      ExpAsVar expAsVar = (ExpAsVar) variable;
+      if (expAsVar.isAnonymous()) {
+        // e.g. in "SELECT x.inDegree() WHERE (n) GROUP BY x.inDegree()", the SELECT expression "x.inDegree()"
+        // is a VarRef to the anonymous GROUP BY expression "x.inDegree()"
+        return expAsVar.getExp().toString();
+      }
+      else {
+        return variable.name;
+      }
+    }
+
+    return variable.isAnonymous() ? "" : variable.name;
+  }
+
   public static String printPgqlString(ExpAsVar expAsVar) {
-    return expAsVar.isAnonymous() ? expAsVar.getExp().toString() : expAsVar.getExp() + " AS " + expAsVar.getName();
+    String exp = expAsVar.getExp().toString();
+    return expAsVar.isAnonymous() ? exp : exp + " AS " + expAsVar.getName();
   }
 
   public static String printPgqlString(GraphPattern graphPattern) {
