@@ -29,11 +29,11 @@ type rules // built-in functions
 
   t@InDegree(exp) + t@OutDegree(exp) : IntegerTy()
   where exp : ty
-    and ty == NodeTy() else error $[Function only defined for vertices] on t
+    and ty == VertexTy() else error $[Function only defined for vertices] on t
 
   t@Labels(exp) : StringSetTy()
   where exp : ty
-    and ty == NodeTy() else error $[Function only defined for vertices] on t
+    and ty == VertexTy() else error $[Function only defined for vertices] on t
 
   t@Label(exp) : StringTy()
   where exp : ty
@@ -41,8 +41,8 @@ type rules // built-in functions
 
   t@Has(exp, _) + t@HasLabel(exp, _) : BooleanTy()
   where exp : ty
-    and (ty == NodeTy() or ty == EdgeTy()) else error $[Function only defined for vertices and edges] on t
+    and (ty == VertexTy() or ty == EdgeTy()) else error $[Function only defined for vertices and edges] on t
 
   t@Id(exp) : IntegerTy()
   where exp : ty
-    and (ty == NodeTy() or ty == EdgeTy()) else error $[Function only defined for vertices and edges] on t
+    and (ty == VertexTy() or ty == EdgeTy()) else error $[Function only defined for vertices and edges] on t

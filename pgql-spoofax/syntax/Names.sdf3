@@ -11,7 +11,7 @@ context-free syntax
   VarRef.VarRef = <<Var>>
   ExpAsVar.ExpAsVar = <<Exp><VarAssign?>>
   VarAssign.VarAssign = < as <VarDef>> {case-insensitive}
-  NodeVarRef.NodeVarRef = <<Var>>
+  VertexVarRef.VertexVarRef = <<Var>>
   PropRef.PropRef = <<VarRef>.<Prop>>
 
   Var = VARNAME

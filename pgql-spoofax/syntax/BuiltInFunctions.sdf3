@@ -20,7 +20,7 @@ context-free syntax // inlined function calls
   Obj.Obj = <<VarRef><Dot>>
   Obj.Obj = <<Dot?>>
 
-context-free syntax // nodes/edges
+context-free syntax // vertices/edges
 
   Exp.Label = <<Exp>. label()> {case-insensitive}
   Exp.Labels = <<Exp>. labels()> {case-insensitive}
@@ -28,7 +28,7 @@ context-free syntax // nodes/edges
   Exp.Id = <<Exp>. id()> {case-insensitive}
   Exp.Has = <<Exp>. has(<{Prop ", "}*>)> {case-insensitive}
   
-context-free syntax // nodes
+context-free syntax // vertices
 
   Exp.InDegree  = <<Exp>. inDegree()> {case-insensitive}
   Exp.OutDegree = <<Exp>. outDegree()> {case-insensitive}

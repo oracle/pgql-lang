@@ -27,14 +27,14 @@ rules // Analysis
 rules // Editor services
 
   editor-resolve:
-    (node, _, _, _, project-path) -> definition
+    (vertex, _, _, _, project-path) -> definition
     where
-      definition := <analysis-resolve(|<language>, project-path)> node
+      definition := <analysis-resolve(|<language>, project-path)> vertex
 
   editor-hover:
-    (node, _, _, _, project-path) -> label
+    (vertex, _, _, _, project-path) -> label
     where
-      label := <get-editor-properties(pp-partial-pgql-lang-string|<language>, project-path); properties-to-html> node
+      label := <get-editor-properties(pp-partial-pgql-lang-string|<language>, project-path); properties-to-html> vertex
 
 rules // Debugging
 

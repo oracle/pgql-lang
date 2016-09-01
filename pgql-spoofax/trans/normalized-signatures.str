@@ -2,7 +2,7 @@ module normalized-signatures
 
 signature constructors // for type checking (see trans/types.ts)
   
-  NodeTy : NodeTy
+  VertexTy : VertexTy
   EdgeTy : EdgeTy
   PathTy : PathTy
   BooleanTy : BooleanTy
@@ -15,12 +15,12 @@ signature constructors // for type checking (see trans/types.ts)
 signature constructors // for the normalized AST (see trans/normalize.str)
   
   PathPatterns         : List(PathPattern) -> PathPatterns
-  PathPattern          : name * Nodes * Connections * Constraints -> PathPattern
+  PathPattern          : name * Vertices * Connections * Constraints -> PathPattern
   Query                : pathPatterns * projection * inputGraph * graphPattern * groupBy * orderByElems * limitOffsets -> Query
-  GraphPattern         : Nodes * Edges * Paths * Constraints -> GraphPattern
+  GraphPattern         : Vertices * Edges * Paths * Constraints -> GraphPattern
   Select               : Option(distinctOrReduced) * List(expAsVars) * groupBy * having * orderBy * limitOffsets -> Select
-  Nodes                : List(Node) -> Nodes
-  Node                 : Var -> Node
+  Vertices                : List(Vertex) -> Vertices
+  Vertex                 : Var -> Vertex
   Edges                : List(Edge) -> Edges
   Edge                 : src * name * dst * Direction -> Edge
   Paths                : List(Path) -> Paths

@@ -10,11 +10,11 @@ imports
 rules
 
   editor-format:
-    (node, _, ast, path, project-path) -> (filename, result)
+    (vertex, _, ast, path, project-path) -> (filename, result)
     with
       ext      := <get-extension> path
     ; filename := <guarantee-extension(|$[pp.[ext]])> path
-    ; result   := <pp-debug> node
+    ; result   := <pp-debug> vertex
 
 rules
   

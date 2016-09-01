@@ -65,10 +65,10 @@ rules
 rules // Not a connected graph, e.g. WHERE x -> y, x2 -> y2
   
   nabl-constraint(|ctx):
-    GraphPattern(Nodes(nodes), Edges(edges), Paths(paths), _) -> <fail>
+    GraphPattern(Vertices(vertices), Edges(edges), Paths(paths), _) -> <fail>
     where
       connections := <conc> (edges, paths);
-      sorted-partitions := <strip-annos; partition(|connections); reverse; qsort(length-gt)> nodes;
+      sorted-partitions := <strip-annos; partition(|connections); reverse; qsort(length-gt)> vertices;
       biggest-partition := <Hd> sorted-partitions;
       other-partitions := <Tl> sorted-partitions
     with
@@ -82,57 +82,57 @@ rules // Not a connected graph, e.g. WHERE x -> y, x2 -> y2
         m := $[Vertex [<Hd> other-partition] is not connected to vertex [<Hd> biggest-partition]]
       else
         if 1 := <length> other-partition
-        then m := $[Vertex [<Hd> other-partition] is not connected to vertices [<print-nodes> biggest-partition]]
-        else m := $[Vertices [<print-nodes> other-partition] are not connected to vertices [<print-nodes> biggest-partition]]
+        then m := $[Vertex [<Hd> other-partition] is not connected to vertices [<print-vertices> biggest-partition]]
+        else m := $[Vertices [<print-vertices> other-partition] are not connected to vertices [<print-vertices> biggest-partition]]
         end
       end;
       <generate-error(|ctx, m)> other-partition
 
-  print-nodes = reverse; separate-by(|", "); concat-strings
+  print-vertices = reverse; separate-by(|", "); concat-strings
 
   length-gt = ?(l1, l2); !(<length> l1, <length> (l2)); gt
 
   partition(|connections):
-    nodes -> partitions
+    vertices -> partitions
     with
-      nodes' := <map(?Node(<id>))> nodes;
-      if [] := nodes
+      vertices' := <map(?Vertex(<id>))> vertices;
+      if [] := vertices
       then
         partitions := []
       else
-        someNode := <Hd; get-reachable-nodes(|connections)> nodes';
-        partitions := <partition-helper(|nodes', connections)> [someNode]
+        someVertex := <Hd; get-reachable-vertices(|connections)> vertices';
+        partitions := <partition-helper(|vertices', connections)> [someVertex]
       end
       
-  partition-helper(|nodes, connections):
+  partition-helper(|vertices, connections):
     partitions -> partitions'
     with
       covered := <concat> partitions;
-      uncovered := <diff> (nodes, covered);
+      uncovered := <diff> (vertices, covered);
       if [] := uncovered
       then
         partitions' := partitions
       else
-        partition := <Hd; get-reachable-nodes(|connections)> uncovered;
-        partitions' := <partition-helper(|nodes, connections)> [partition|partitions]
+        partition := <Hd; get-reachable-vertices(|connections)> uncovered;
+        partitions' := <partition-helper(|vertices, connections)> [partition|partitions]
       end
 
-  get-reachable-nodes(|connections):
+  get-reachable-vertices(|connections):
     x -> result
     with
-      nodes := <is-list <+ ![<id>]> x;
-      nodes' := <map(get-reachable-nodes-helper(|connections));  concat; make-set> nodes;
-      if <eq> (<length> nodes, <length> nodes')
-      then result := nodes'
-      else result := <get-reachable-nodes(|connections)> nodes'
+      vertices := <is-list <+ ![<id>]> x;
+      vertices' := <map(get-reachable-vertices-helper(|connections));  concat; make-set> vertices;
+      if <eq> (<length> vertices, <length> vertices')
+      then result := vertices'
+      else result := <get-reachable-vertices(|connections)> vertices'
       end
 
-  get-reachable-nodes-helper(|connections):
-    node -> result
+  get-reachable-vertices-helper(|connections):
+    vertex -> result
     with
-      outNeighbors := <filter(?Edge(node, _, <id>, _) + ?Path(node, <id>, _, _, _))> connections;
-      inNeighbors := <filter(?Edge(<id>, _, node, _) + ?Path(<id>, node, _, _, _))> connections;
-      result := <conc> (outNeighbors, inNeighbors, [node])
+      outNeighbors := <filter(?Edge(vertex, _, <id>, _) + ?Path(vertex, <id>, _, _, _))> connections;
+      inNeighbors := <filter(?Edge(<id>, _, vertex, _) + ?Path(<id>, vertex, _, _, _))> connections;
+      result := <conc> (outNeighbors, inNeighbors, [vertex])
 
 // RPQs
 
@@ -145,7 +145,7 @@ rules // Not a connected graph, e.g. WHERE x -> y, x2 -> y2
   rpq-constraint-limitation(|ctx):
     VarRef(v) -> <id>
     with
-      var-is-vertex := <var-is-node(|ctx)> v;
+      var-is-vertex := <var-is-vertex(|ctx)> v;
       <task-create-error-on-success(|ctx, var-is-vertex, $[Constraints on vertices in path patterns not yet supported])> v
 
   nested-path-pattern-limitation(|ctx):

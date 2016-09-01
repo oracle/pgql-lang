@@ -17,17 +17,17 @@ context-free syntax
   
   PatternElem = Path
   
-  PatternElem.Constraint = Exp {avoid} // see Expressions.sdf3. Note: 'avoid' disambiguates 'select * where (X.p1)' ('(X.p1)' can be a Constraint or a Node)
+  PatternElem.Constraint = Exp {avoid} // see Expressions.sdf3. Note: 'avoid' disambiguates 'select * where (X.p1)' ('(X.p1)' can be a Constraint or a Vertex)
 
 context-free syntax
 
-  Path.Path = <<Node><{EdgeNode ""}+><VarAssign?>>
-  Path.SingleNode = <(<NoExpression?>)>
+  Path.Path = <<Vertex><{EdgeVertex ""}+><VarAssign?>>
+  Path.SingleVertex = <(<NoExpression?>)>
 
-  Node.Node = <(<ElemContents>)>
-  Node.SimpleNode = <<VARNAME>>
+  Vertex.Vertex = <(<ElemContents>)>
+  Vertex.SimpleVertex = <<VARNAME>>
 
-  EdgeNode.EdgeNode = < <Connection> <Node>>
+  EdgeVertex.EdgeVertex = < <Connection> <Vertex>>
   Connection.OutConn = [-[EdgeContents?]->]
   Connection.InConn = [<-[EdgeContents?]-]
   Connection.OutEdge = [->]

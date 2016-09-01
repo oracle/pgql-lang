@@ -20,8 +20,8 @@ binding rules
     defines unique PathPattern p
     scopes Var, SelectVar, GroupVar
 
-  Node(n):
-    defines non-unique Var n of type NodeTy()
+  Vertex(n):
+    defines non-unique Var n of type VertexTy()
 
   Edge(_, e, _, _):
     defines unique Var e of type EdgeTy()
@@ -52,5 +52,5 @@ binding rules
     refers to Var v
       otherwise refers to SelectVar v
 
-  NodeVarRef(n):
-    refers to Var n of type NodeTy()
+  VertexVarRef(n):
+    refers to Var n of type VertexTy()

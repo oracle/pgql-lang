@@ -113,7 +113,7 @@ rules // helper rules
     ; <task-create-error-on-multiple(|ctx, resolve-task, m)> v
 
   var-is-edge(|ctx) = var-is-type(|ctx, "VarIsEdge")
-  var-is-node(|ctx) = var-is-type(|ctx, "VarIsNode")
+  var-is-vertex(|ctx) = var-is-type(|ctx, "VarIsVertex")
   var-is-path(|ctx) = var-is-type(|ctx, "VarIsPath")
 
   var-is-type(|ctx, type):
@@ -123,6 +123,6 @@ rules // helper rules
     ; v-prop-task    := <prop-create-lookup(|ctx, Type())> v-resolve-task
     ; rewrite-task1  := <task-create-rewrite(|ctx, type)> v-prop-task
       
-  task-rewrite: ("VarIsNode", NodeTy()) -> <id>
+  task-rewrite: ("VarIsVertex", VertexTy()) -> <id>
   task-rewrite: ("VarIsEdge", EdgeTy()) -> <id>
   task-rewrite: ("VarIsPath", PathTy()) -> <id>
