@@ -31,6 +31,7 @@ signature constructors // for the normalized AST (see trans/normalize.str)
 
   Vars                 : List(Var) -> Vars
   ExpAsVar             : VarDef * Exp -> ExpAsVar
+  AnonymousExpAsVar    : VarDef * Exp -> AnonymousExpAsVar
   OrderClause          : List(OrderElem) -> OrderClause
   GroupClause          : List(GroupElem) -> GroupClause
   OrderByElem          : Exp * Ordering -> OrderbyElem
@@ -44,10 +45,11 @@ signature constructors // for the normalized AST (see trans/normalize.str)
 
 signature constructors // for name binding (see trans/trans-for-nabl.str)
     
-  SelectOrGroupRef     : Var -> SelectOrGroupRef
-  GroupRef             : Var -> GroupRef
-  ExpAsGroupVar        : Var * Exp -> ExpAsGroupVar
-  VarOrSelectRef       : Var -> VarOrSelectRef
+  SelectOrGroupRef       : Var -> SelectOrGroupRef
+  GroupRef               : Var -> GroupRef
+  ExpAsGroupVar          : Var * Exp -> ExpAsGroupVar
+  AnonymousExpAsGroupVar : Var * Exp -> AnonymousExpAsGroupVar
+  VarOrSelectRef         : Var -> VarOrSelectRef
 
 signature constructors // for errer checking (see trans/check.str)
   

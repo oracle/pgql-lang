@@ -1,16 +1,16 @@
 module names
 
 imports
-  
+
   signatures/-
-  
+
 namespaces
-  
-  Var       // var defined in WHERE
-  SelectVar // var defined in SELECT
-  GroupVar  // var defined in GROUP BY
-  PathPattern
-  
+
+  PathPattern // regular PATH pattern name
+  Var         // var defined in WHERE
+  SelectVar   // var defined in SELECT
+  GroupVar    // var defined in GROUP BY
+
 binding rules
 
   Query(_, _, _, _, _, _, _):
@@ -28,29 +28,30 @@ binding rules
 
   Path(_, _, _, _, p):
     defines unique Var p of type PathTy()
-    
+
   PathPatternRef(p):
     refers to PathPattern p
 
-  ExpAsVar(exp, v):
-    defines non-unique SelectVar v of type ty where exp has type ty // like in SQL, we allow duplicate variable definitions in the SELECT
-  
-  ExpAsGroupVar(exp, v):
-    defines unique GroupVar v of type ty where exp has type ty // we don't allow duplicate variable definitions in the GROUP BY
-    
+  ExpAsVar(exp, v): // in SELECT
+    defines unique SelectVar v of type ty where exp has type ty // unlike SQL but like SPARQL, we don't allow duplicate column names
+  AnonymousExpAsVar(exp, v):
+    defines unique SelectVar v of type ty where exp has type ty
+
+  ExpAsGroupVar(exp, v): // in GROUP BY
+    defines unique GroupVar v of type ty where exp has type ty // unlike SQL but like SPARQL, we don't allow duplicate group keys
+  AnonymousExpAsGroupVar(exp, v):
+    defines unique GroupVar v of type ty where exp has type ty
+
   VarRef(v):
-    refers to Var v
-  
+    refers to Var v // refers to a variable in the WHERE clause
+
   GroupRef(v):
-    refers to GroupVar v
-      
-  SelectOrGroupRef(v):
-    refers to GroupVar v
-      otherwise refers to SelectVar v // e.g. in [[SELECT AVG(n.age) as avgAge WHERE n ORDER BY avgAge]], avgAge in ORDER BY is a GroupRef and can only refer to SelectVar 
+    refers to GroupVar v // refers to a variable in the GROUP BY clause
 
-  VarOrSelectRef(v):
-    refers to Var v
-      otherwise refers to SelectVar v
+  SelectOrGroupRef(v): // in ORDER BY while there is a GROUP BY
+    refers to GroupVar v // e.g. in [[SELECT * WHERE (n1) GROUP BY n1 AS n2 ORDER BY n2]], 'n2' in ORDER BY refers to 'n2' in GROUP BY
+      otherwise refers to SelectVar v // e.g. in [[SELECT AVG(n.age) as avgAge WHERE (n) ORDER BY avgAge]], 'avgAge' in ORDER BY refers to 'avgAge' in SELECT
 
-  VertexVarRef(n):
-    refers to Var n of type VertexTy()
+  VarOrSelectRef(v): // in ORDER BY while there is no GROUP BY
+    refers to Var v // e.g. in [[SELECT n.name WHERE (n) ORDER BY n.age], 'n' in ORDER BY refers to 'n' in WHERE
+      otherwise refers to SelectVar v // e.g. in [[SELECT n.name AS nName WHERE (n) ORDER BY nName], 'nName' in ORDER BY refers to 'nName' in SELECT

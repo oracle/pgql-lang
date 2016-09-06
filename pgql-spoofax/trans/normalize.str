@@ -184,15 +184,15 @@ rules
       pathPatterns' := <map(norm-path-pattern); !PathPatterns(<id>)> pathPatterns;
 
       expAsGroupVars := <?Some(GroupClause(<id>)) <+ ![]> groupBy;
-      expAsGroupVars' := <map(norm-expAsGroupVar(|c))> expAsGroupVars;
+      expAsGroupVars' := <map(norm-ExpAsVar)> expAsGroupVars;
       groupBy' := <?Some(_); !Some(GroupClause(expAsGroupVars')) <+ !None()> groupBy;
 
       expAsSelectVars := <?ExpAsVars(<id>); map(replace-terms-with-varRef(|expAsGroupVars')) <+
                           norm-select-star(|graphPattern, expAsGroupVars')> selectElems;
-      expAsSelectVars' := <map(norm-select-expression(|c))> expAsSelectVars;
+      expAsSelectVars' := <map(norm-ExpAsVar)> expAsSelectVars;
       projection' := Vars(ExpAsVars(expAsSelectVars'));
 
-      allExpAsVars := <conc> (<remove-all(?ExpAsVar(_, <id>); not(is-aggregate))> expAsSelectVars', expAsGroupVars');
+      allExpAsVars := <conc> (<remove-all((?ExpAsVar(_, <id>) + ?AnonymousExpAsVar(_, <id>)); not(is-aggregate))> expAsSelectVars', expAsGroupVars');
       orderByElems := <try(norm-orderBy(|allExpAsVars))> orderBy;
 
       limitOffsets' := <norm-limitOffsets> limitOffsets
@@ -205,19 +205,14 @@ rules
          end
        ; expAsSelectVars := <map(!ExpAsVar(VarRef(<id>), None()))> vars
 
-  norm-expAsGroupVar(|c) = ?ExpAsVar(term, Some(VarAssign(VarDef(v)))); !ExpAsVar(term, v)
-  norm-expAsGroupVar(|c) = ?ExpAsVar(term, None()); !ExpAsVar(term, <origin-text; add-unique-suffix(|c)> term)
-
-  norm-select-expression(|c): ExpAsVar(exp, Some(VarAssign(VarDef(v)))) -> ExpAsVar(exp, v)
-  norm-select-expression(|c):
-    ExpAsVar(exp, None()) -> ExpAsVar(exp, v)
-    with v := <(?VarRef(<id>) <+ origin-text); add-unique-suffix(|c)> exp
+  norm-ExpAsVar = ?ExpAsVar(exp, Some(VarAssign(VarDef(v)))); !ExpAsVar(exp, v)
+  norm-ExpAsVar = ?ExpAsVar(exp, None()); !AnonymousExpAsVar(exp, <?VarRef(<id>) <+ origin-track-forced(origin-text)> exp)
 
   replace-terms-with-varRef(|expressions):
     exp -> exp'
     with exp' := <foldl(replace-terms-with-varRef)> (expressions, exp)
 
-  replace-terms-with-varRef = ?(ExpAsVar(term, var), <id>); alltd(
+  replace-terms-with-varRef = (?(ExpAsVar(term, var), <id>) + ?(AnonymousExpAsVar(term, var), <id>)); alltd(
     is-aggregate; ?term; !VarRef(var) + // for ORDER BY
     is-aggregate + ?term; !VarRef(var)) // for SELECT: never look into aggregates
 

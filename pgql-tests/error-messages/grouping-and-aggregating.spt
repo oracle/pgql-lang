@@ -7,14 +7,16 @@ SELECT n.name AS nName
 WHERE
   (n)
 GROUP BY n.age AS nAge
-]] 1 error /* Non-group key variable in SELECT */
+]] 2 errors /* Non-group key variable in SELECT
+               Unresolved variable */
 
 test Select non-group key 2 [[
 SELECT n
 WHERE
   (n)
 GROUP BY n.age AS nAge
-]] 1 error /* Non-group key variable in SELECT */
+]] 2 errors /* Unresolved variableNon-group key variable in SELECT
+               Unresolved variable */
 
 test Order by non-group key 1 [[
 SELECT nAge
@@ -22,7 +24,8 @@ WHERE
   (n)
 GROUP BY n.age AS nAge
 ORDER BY n.name
-]] 1 error /* Cannot order by non-group key variable: use aggregation */
+]] 2 errors /* Cannot order by non-group key variable: use aggregation
+               Unresolved variable */
 
 test Order by non-group key 2 [[
 SELECT nAge
@@ -30,25 +33,30 @@ WHERE
   (n)
 GROUP BY n.age AS nAge
 ORDER BY n
-]] 1 error /* Cannot order by non-group key variable: use aggregation */
+]] 2 errors /* Cannot order by non-group key variable: use aggregation 
+               Unresolved variable */
 
 test Aggregation expected in SELECT 1 [[
 SELECT AVG(n.age) AS avgAge, n
 WHERE
   (n)
-]] 1 error /* Aggregation expected here since SELECT has other aggregation */
+]] 2 errors /* Aggregation expected here since SELECT has other aggregation
+               Unresolved variable */
 
 test Aggregation expected in SELECT 2 [[
 SELECT n.labels() AS lbls, COUNT(*) AS cnt
 WHERE (n)
-]] 2 errors /* Aggregation expected here since SELECT has other aggregation */
+]] 3 errors /* Aggregation expected here since SELECT has other aggregation
+               Function only defined for vertices
+               Unresolved variable */
 
 test Aggregation expected in ORDER BY [[
 SELECT AVG(n.age) AS avgAge
 WHERE
   (n)
 ORDER BY n.age
-]] 1 error /* Aggregation expected here since SELECT has aggregation */
+]] 2 errors /* Aggregation expected here since SELECT has aggregation
+              Unresolved variable */
 
 test Aggregation in ORDER BY not expected [[
 SELECT n

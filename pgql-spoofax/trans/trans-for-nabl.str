@@ -37,5 +37,6 @@ rules
 
   to-ExpAsGroupVars = alltd(to-ExpAsGroupVar)
   to-ExpAsGroupVar = ?ExpAsVar(exp, v); !ExpAsGroupVar(exp, v)
+  to-ExpAsGroupVar = ?AnonymousExpAsVar(exp, v); !AnonymousExpAsGroupVar(exp, v)
 
   to-VarOrSelectRefs = alltd(?VarRef(<id>); !VarOrSelectRef(<id>))

@@ -19,7 +19,7 @@ rules // Unresolved/duplicate variables
   nabl-constraint(|ctx):
     ref -> <fail>
     where
-      <?VarRef(v) + ?VarOrSelectRef(v)> ref
+      <?VarRef(v) + ?GroupRef(v) + ?SelectOrGroupRef(v) + ?VarOrSelectRef(v)> ref
     ;	<generate-error-on-unresolved(|ctx, "Unresolved variable")> v
 
   nabl-constraint(|ctx):
@@ -28,9 +28,16 @@ rules // Unresolved/duplicate variables
       <generate-error-on-unresolved(|ctx, "Undefined path pattern")> p
 
   nabl-constraint(|ctx):
-    ExpAsGroupVar(_, v) -> <fail>
+    expAsVar -> <fail>
     where
-      <generate-error-on-duplicate(|ctx, NablNsGroupVar(), "Group key defined multiple times")> v
+      <?ExpAsVar(_, v) + ?AnonymousExpAsVar(_, v)> expAsVar;
+      <generate-error-on-duplicate(|ctx, NablNsSelectVar(), "Duplicate select key")> v
+
+  nabl-constraint(|ctx):
+    expAsGroupVar -> <fail>
+    where
+      <?ExpAsGroupVar(_, v) + ?AnonymousExpAsGroupVar(_, v)> expAsGroupVar;
+      <generate-error-on-duplicate(|ctx, NablNsGroupVar(), "Duplicate group key")> v
 
   nabl-constraint(|ctx):
     Edge(_, e, _, _) -> <fail>

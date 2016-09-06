@@ -28,17 +28,50 @@ WHERE
   (n)
 GROUP BY n AS n
 ORDER BY n2
-]] 1 error /* Unresolved variable */
+]] 2 errors /* Cannot order by non-group key variable: use aggregation
+              Unresolved variable */
 
 test Duplicate edge variable [[
 SELECT *
 WHERE
   () -[e]-> () -[e]-> ()
-]] 2 errors /* Duplicate edge variable */
+]] 2 errors /* 2x Duplicate edge variable */
 
-test Duplicate variable in GROUP BY [[
+test Duplicate select key 1 [[
+SELECT n.name AS nName, n.name AS nName
+WHERE
+  (n)
+]] 2 errors /* 2x Duplicate select key */
+
+test Duplicate select key 2 [[
+SELECT n, n
+WHERE
+  (n)
+]] 2 errors /* 2x Duplicate select key */
+
+test Duplicate select key 3 [[
+SELECT n AS n, n
+WHERE
+  (n)
+]] 2 errors /* 2x Duplicate select key */
+
+test Duplicate variable in GROUP BY 1 [[
 SELECT nName
 WHERE
   (n)
 GROUP BY n.name AS nName, n.name AS nName
-]] 2 errors /* Group key defined multiple times */
+]] 2 errors /* 2x Duplicate group key */
+
+test Duplicate variable in GROUP BY 2 [[
+SELECT n
+WHERE
+  (n)
+GROUP BY n AS n, n
+]] 2 errors /* 2x Duplicate group key */
+
+test Duplicate variable in GROUP BY 3 [[
+SELECT n
+WHERE
+  (n)
+GROUP BY n, n
+]] 2 errors /* 2x Duplicate group key */

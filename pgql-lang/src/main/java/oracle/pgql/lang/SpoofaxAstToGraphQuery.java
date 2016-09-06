@@ -261,11 +261,19 @@ public class SpoofaxAstToGraphQuery {
       QueryExpression exp = translateExp(expAsVarT.getSubterm(POS_EXPASVAR_EXP), varmap);
 
       ExpAsVar expAsVar;
-      if (varName.contains(GENERATED_VAR_SUBSTR)) {
-        expAsVar = new ExpAsVar(exp, varName.replaceFirst(GENERATED_VAR_SUBSTR + ".*", ""), true);
-      } else {
-        expAsVar = new ExpAsVar(exp, varName, false);
+      switch (getConstructorName(expAsVarT)) {
+        case "ExpAsVar":
+        case "ExpAsGroupVar":
+          expAsVar = new ExpAsVar(exp, varName, false);
+          break;
+        case "AnonymousExpAsVar":
+        case "AnonymousExpAsGroupVar":
+          expAsVar = new ExpAsVar(exp, varName, true);
+          break;
+        default:
+          throw new IllegalArgumentException("Unexpected term: " + expAsVarT);
       }
+      
       expAsVars.add(expAsVar);
       varmap.put(varName, expAsVar);
     }
@@ -465,7 +473,7 @@ public class SpoofaxAstToGraphQuery {
   }
 
   // helper method
-  private static IStrategoTerm getSome(IStrategoTerm t) {
-    return t.getSubterm(0);
+  private static String getConstructorName(IStrategoTerm t) {
+    return ((IStrategoAppl) t).getConstructor().getName();
   }
 }
