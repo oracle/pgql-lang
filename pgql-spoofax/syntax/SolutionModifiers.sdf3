@@ -7,26 +7,10 @@ imports
   Expressions
   
 context-free syntax
-
-  SolutionModifier.SolutionModifier = <
-      <UngroupClause?>
-      <GroupClause?>
-      <HavingClause?>
-      <OrderClause?>
-      <LimitOffsetClauses?>
-  >
   
-  SelectElems.ExpAsVars = <<{ExpAsVar ", "}+>>
-  SelectElems.Star = <*>
+  GroupByClause.GroupByClause = <group by <{ExpAsVar ", "}+>> {case-insensitive}
   
-  UngroupClause.UngroupClase = <ungroup <{ExpAsVar ", "}+>> {case-insensitive}
-  
-  GroupClause.GroupClause = <group by <{ExpAsVar ", "}+>> {case-insensitive}
-  Distinct.Distinct = <distinct > {case-insensitive}
-  
-  HavingClause.HavingClause = <having <Exp+>> {case-insensitive}
-  
-  OrderClause.OrderClause = <order by <{OrderElem ", "}+>> {case-insensitive}
+  OrderByClause.OrderByClause = <order by <{OrderElem ", "}+>> {case-insensitive}
   OrderElem = <<Exp>>
   OrderElem.Asc1 = <asc(<Exp>)> {case-insensitive}
   OrderElem.Desc1 = <desc(<Exp>)> {case-insensitive}

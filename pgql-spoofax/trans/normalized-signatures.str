@@ -15,16 +15,14 @@ signature constructors // for type checking (see trans/types.ts)
 signature constructors // for the normalized AST (see trans/normalize.str)
   
   PathPatterns         : List(PathPattern) -> PathPatterns
-  PathPattern          : name * Vertices * Connections * Constraints -> PathPattern
-  Query                : pathPatterns * projection * inputGraph * graphPattern * groupBy * orderByElems * limitOffsets -> Query
+  PathPattern          : PATHPATTERNNAME * Vertices * Connections * Constraints -> PathPattern
   GraphPattern         : Vertices * Edges * Paths * Constraints -> GraphPattern
-  Select               : Option(distinctOrReduced) * List(expAsVars) * groupBy * having * orderBy * limitOffsets -> Select
-  Vertices                : List(Vertex) -> Vertices
-  Vertex                 : Var -> Vertex
+  Vertices             : List(Vertex) -> Vertices
+  Vertex               : Var -> Vertex
   Edges                : List(Edge) -> Edges
-  Edge                 : src * name * dst * Direction -> Edge
+  Edge                 : Var * Var * Var * Direction -> Edge
   Paths                : List(Path) -> Paths
-  Path                 : src * dst * pathPatternName * kleeneStar * pathName -> Path
+  Path                 : Var * Var * PathPatternRef * Option(KleeneStar) * Var -> Path
   Constraints          : List(Exp) -> Constraints
   Incoming             : Direction
   Outgoing             : Direction
@@ -32,8 +30,6 @@ signature constructors // for the normalized AST (see trans/normalize.str)
   Vars                 : List(Var) -> Vars
   ExpAsVar             : VarDef * Exp -> ExpAsVar
   AnonymousExpAsVar    : VarDef * Exp -> AnonymousExpAsVar
-  OrderClause          : List(OrderElem) -> OrderClause
-  GroupClause          : List(GroupElem) -> GroupClause
   OrderByElem          : Exp * Ordering -> OrderbyElem
   Asc                  : Ordering
   Desc                 : Ordering

@@ -20,7 +20,7 @@ rules
   nabl-constraint(|ctx):
     t -> <fail>
     where
-      <?ExpAsVars(_) + ?OrderClause(_)> t
+      <?ExpAsVars(_) + ?OrderByClause(_)> t
     with
       exps := <not-supported-expressions> t;
       <batch-generate-error(|ctx, "Only simple expressions allowed here: variable, property access, aggregation or function call")> exps;
@@ -29,7 +29,7 @@ rules
 
   // expressions in GROUP BY need to be simple
   nabl-constraint(|ctx):
-    t@GroupClause(_) -> <fail>
+    t@GroupByClause(_) -> <fail>
     with
       exps := <not-supported-expressions> t;
       <batch-generate-error(|ctx, "Only simple expressions allowed here: variable, property access or function call")> exps;
