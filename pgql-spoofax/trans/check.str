@@ -2,6 +2,7 @@ module check
 
 imports
 
+  stratego/-
   runtime/properties/-
   runtime/nabl/-
   runtime/task/-
@@ -55,6 +56,15 @@ rules // in-lined constraints
     t@CrossReferenceInInlinedConstraint() -> <fail>
     with
       <generate-error(|ctx, "In-lined constraint may not access other variables")> t
+
+rules // vertex in WHERE without rounded brackets
+
+  nabl-constraint(|ctx):
+    Vertex(v) -> <fail>
+    where
+      <string-ends-with(|<VERTEX_WITHOUT_BRACKETS>)> v
+    with
+      <generate-error(|ctx, $<Vertices in the WHERE clause need to be surrounded by brackets: (<<origin-text> v>)>)> v
 
 rules
   

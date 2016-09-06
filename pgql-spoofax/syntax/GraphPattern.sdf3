@@ -22,10 +22,10 @@ context-free syntax
 context-free syntax
 
   Path.Path = <<Vertex><{EdgeVertex ""}+><VarAssign?>>
-  Path.SingleVertex = <(<NoExpression?>)>
+  Path.SingleVertex = <(<ElemContents>)>
 
   Vertex.Vertex = <(<ElemContents>)>
-  Vertex.SimpleVertex = <<VARNAME>>
+  Vertex.VertexWithoutBrackets = <<VARNAME>> // deprecated
 
   EdgeVertex.EdgeVertex = < <Connection> <Vertex>>
   Connection.OutConn = [-[EdgeContents?]->]
@@ -41,11 +41,7 @@ context-free syntax
 
 context-free syntax
 
-  ElemContents.ElemContents =   <<VARNAME?><Labels?><Ids?><WithInlinedConstraints?>>
-  NoExpression.ElemContents1 = <<VARNAME?><Labels><Ids?><WithInlinedConstraints?>> {prefer}
-  NoExpression.ElemContents2 = <<VARNAME?><Labels?><Ids><WithInlinedConstraints?>>
-  NoExpression.ElemContents3 = <<VARNAME?><Labels?><Ids?><WithInlinedConstraints>> {avoid}
+  ElemContents.ElemContents = <<VARNAME?><Labels?><Ids?><WithInlinedConstraints?>>
   Labels.Labels = <:<AltLit>>
   Ids.Ids = <@<AltLit>>
-  
   WithInlinedConstraints.Constraint = < with <{InlinedExp ", "}+>> {case-insensitive}

@@ -19,3 +19,5 @@ rules
   // add-generated-suffix = !(<id>, <GENERATED>); conc-strings
   add-unique-suffix(|c) = !(<id>, <unique-name(|c)>); conc-strings
   unique-name(|c) = !(<GENERATED>, "#", <next-counter; write-to-string> c); conc-strings
+  
+  VERTEX_WITHOUT_BRACKETS = !"<<vertex-without-brackets>>"

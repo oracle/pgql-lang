@@ -7,7 +7,6 @@ imports
   normalized-signatures
   common
   pp
-  check
 
 rules
 
@@ -20,7 +19,7 @@ rules
         innermost(
           norm-NOT +
           norm-singleVertex +
-          norm-simpleVertex +
+          norm-VertexWithoutBrackets +
           norm-edgeContents
         );
         alltd(norm-string);
@@ -44,13 +43,10 @@ rules
 
 rules
 
-  norm-singleVertex = ?SingleVertex(Some(ElemContents1(a, b, c, d))); !Path(Vertex(ElemContents(a, Some(b), c, d)), [], None())
-  norm-singleVertex = ?SingleVertex(Some(ElemContents2(a, b, c, d))); !Path(Vertex(ElemContents(a, b, Some(c), d)), [], None())
-  norm-singleVertex = ?SingleVertex(Some(ElemContents3(a, b, c, d))); !Path(Vertex(ElemContents(a, b, c, Some(d))), [], None())
-  norm-singleVertex = ?SingleVertex(None()); !Path(Vertex(ElemContents(None(), None(), None(), None())), [], None()) // SELECT * WHERE ()
-  norm-singleVertex = ?Constraint(VarRef(<id>)); !Path(SimpleVertex(<id>), [], None()); oncetd(norm-simpleVertex)
+  norm-singleVertex = ?SingleVertex(elemContents); !Path(Vertex(elemContents), [], None()) // SELECT * WHERE ()
+  norm-singleVertex = ?Constraint(VarRef(v)); !Path(Vertex(ElemContents(Some(v), None(), None(), None())), [], None())
 
-  norm-simpleVertex =?SimpleVertex(<id>); !Vertex(ElemContents(Some(<id>), None(), None(), None()))
+  norm-VertexWithoutBrackets = ?VertexWithoutBrackets(v); !Vertex(ElemContents(Some(<origin-track-forced(<conc-strings> (v, <VERTEX_WITHOUT_BRACKETS>))>), None(), None(), None()))
 
   norm-edgeContents = ?Some(EdgeContents(<id>))
 

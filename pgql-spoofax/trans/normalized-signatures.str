@@ -51,7 +51,7 @@ signature constructors // for name binding (see trans/trans-for-nabl.str)
   AnonymousExpAsGroupVar : Var * Exp -> AnonymousExpAsGroupVar
   VarOrSelectRef         : Var -> VarOrSelectRef
 
-signature constructors // for errer checking (see trans/check.str)
+signature constructors // for error checking (see trans/check.str)
   
-  ReferenceInInlinedConstraint : var -> ReferenceInInlinedConstraint
+  ReferenceInInlinedConstraint : Var -> ReferenceInInlinedConstraint
   CrossReferenceInInlinedConstraint : CrossReferenceInInlinedConstraint
