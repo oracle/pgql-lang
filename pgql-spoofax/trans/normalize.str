@@ -39,7 +39,10 @@ rules
   norm-NOT = ?Not1(<id>); !Not(<id>)
   norm-NOT = ?Not2(<id>); !Not(<id>)
 
-  norm-string = is-string; try(un-double-quote + un-single-quote)
+  norm-string = String((un-double-quote + un-single-quote)
+                     ; string-replace(|"\\\"", "\"")
+                     ; string-replace(|"\\'", "'")
+                     ; string-replace(|"\\\\", "\\"))
 
 rules
 
