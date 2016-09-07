@@ -13,7 +13,7 @@ context-free syntax // inlined function calls
   InlinedCall.Labels = <<Obj>labels()> {case-insensitive}
   InlinedCall.HasLabel = <<Obj>hasLabel(<Exp>)> {case-insensitive}
   InlinedCall.Id = <<Obj>id()> {case-insensitive}
-  InlinedCall.Has = <<Obj>has(<{Prop ", "}*>)> {case-insensitive}
+  InlinedCall.Has = <<Obj>has(<{Exp ", "}*>)> {case-insensitive}
   InlinedCall.InDegree  = <<Obj>inDegree()> {case-insensitive}
   InlinedCall.OutDegree = <<Obj>outDegree()> {case-insensitive}
   
@@ -26,7 +26,7 @@ context-free syntax // vertices/edges
   Exp.Labels = <<Exp>. labels()> {case-insensitive}
   Exp.HasLabel = <<Exp>. hasLabel(<Exp>)> {case-insensitive}
   Exp.Id = <<Exp>. id()> {case-insensitive}
-  Exp.Has = <<Exp>. has(<{Prop ", "}*>)> {case-insensitive}
+  Exp.Has = <<Exp>. has(<{Exp ", "}*>)> {case-insensitive}
   
 context-free syntax // vertices
 
