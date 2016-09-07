@@ -5,7 +5,7 @@ language pgql-lang
 test Nested aggregation 1 [[
 SELECT AVG(MIN(n.age)) AS nextedAggr
 WHERE
-  n
+  (n)
 ]] 1 error /* Nested aggregation is not allowed */
 
 test Nested aggregation 2 [[
