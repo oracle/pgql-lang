@@ -13,7 +13,6 @@ rules
   normalize-before:
     ast -> result
     with
-      c := <new-counter>;
       result := <
       	alltd(norm-UMin);
         innermost(
@@ -24,12 +23,12 @@ rules
         );
         alltd(norm-string);
         alltd(norm-has-prop);
-        alltd(name-unnamed-elems(|c));
+        alltd(name-unnamed-elems);
         alltd(norm-inlined-references);
         bottomup(try(
            norm-matchElems
         ));
-        bottomup(try(origin-track-forced(norm-query(|c))))
+        bottomup(try(origin-track-forced(norm-query)))
       > ast
 
 rules
@@ -52,6 +51,7 @@ rules
 
   norm-edgeContents = ?Some(EdgeContents(<id>))
 
+  name-unnamed-elems     = (?PathPattern(_, _) + ?GraphPattern(_)); where (c := <new-counter>); alltd(name-unnamed-elems(|c))
   name-unnamed-elems(|c) = ?ElemContents(None(), type, id', constraints); !ElemContents(Some(<unique-name(|c)>), type, id', constraints)
   name-unnamed-elems(|c) = OutConn(?None(); name-unnamed-elems-helper(|c)) +
                            InConn(?None(); name-unnamed-elems-helper(|c))
@@ -177,7 +177,7 @@ rules
 
 rules
 
-  norm-query(|c):
+  norm-query:
     Query(pathPatterns, SelectClause(projection), fromClause, graphPattern, groupByClause, orderByClause, limitOffsets) ->
         Query(pathPatterns', projection', fromClause, graphPattern, groupByClause', orderByElems, limitOffsets')
     with
