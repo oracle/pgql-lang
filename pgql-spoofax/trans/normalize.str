@@ -44,7 +44,6 @@ rules
 rules
 
   norm-singleVertex = ?SingleVertex(elemContents); !Path(Vertex(elemContents), [], None()) // SELECT * WHERE ()
-  norm-singleVertex = ?Constraint(VarRef(v)); !Path(Vertex(ElemContents(Some(v), None(), None(), None())), [], None())
 
   norm-VertexWithoutBrackets = ?VertexWithoutBrackets(v); !Vertex(ElemContents(Some(<origin-track-forced(<conc-strings> (v, <VERTEX_WITHOUT_BRACKETS>))>), None(), None(), None()))
 
