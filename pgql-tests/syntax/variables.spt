@@ -5,19 +5,19 @@ language pgql-lang
 test Duplicate select expression allowed [[
 SELECT n.name, n.name
 WHERE
-  n
+  (n)
 ]]
 
 test Duplicate group expression allowed [[
 SELECT n.name
 WHERE
-  n
+  (n)
 GROUP BY n.name, n.name
 ]]
 
 test Duplicate order expression allowed [[
 SELECT n
 WHERE
-  n
+  (n)
 ORDER BY n.name, n.name
 ]]

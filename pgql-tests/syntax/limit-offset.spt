@@ -4,7 +4,7 @@ language pgql-lang
 
 test Limit [[
 SELECT n.name
-WHERE n
+WHERE (n)
 ORDER BY n.name
 LIMIT 1
 ]]

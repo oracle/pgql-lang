@@ -11,7 +11,7 @@ SELECT n.name WHERE (n WITH name = 3 OR name = 'Mary')
 ]]
 
 test negation of NULL [[
-SELECT n.name WHERE (n WITH name = 'Mary'), !(n.prop_not_exists)
+SELECT n.name WHERE (n WITH name = 'Mary'), !n.prop_not_exists
 ]]
 
 test NULL equals NULL 1 [[

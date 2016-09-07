@@ -5,49 +5,49 @@ language pgql-lang
 test Order by node [[
 SELECT n.id()
 WHERE
-  n
+  (n)
 ORDER BY n
 ]]
 
 test Order by node and node [[
 SELECT n.id(), m.id()
 WHERE
-  n -[WITH label = 'likes']-> m
+  (n) -[WITH label = 'likes']-> (m)
 ORDER BY n, m
 ]]
 
 test Order by node ID [[
 SELECT n.id()
 WHERE
-  n
+  (n)
 ORDER BY n.id()
 ]]
 
 test Order by property [[
 SELECT n.age
 WHERE
-  n
+  (n)
 ORDER BY n.name
 ]]
 
 test Order by select key 1 [[
 SELECT n.name AS nName
 WHERE
-  n
+  (n)
 ORDER BY nName
 ]]
 
 test Order by select key 2 [[
 SELECT n.name AS nName
 WHERE
-  n
+  (n)
 ORDER BY n.name
 ]]
 
 test Order by group key 1 [[
 SELECT n.age, COUNT(*)
 WHERE
-  n
+  (n)
 GROUP BY n.age AS nAge
 ORDER BY nAge
 ]]
@@ -55,7 +55,7 @@ ORDER BY nAge
 test Order by group key 2 [[
 SELECT n.age, COUNT(*)
 WHERE
-  n
+  (n)
 GROUP BY n.age
 ORDER BY n.age
 ]]
@@ -63,14 +63,14 @@ ORDER BY n.age
 test Order by aggregation from SELECT 1 [[
 SELECT AVG(n.age) AS avgAge
 WHERE
-  n
+  (n)
 ORDER BY avgAge
 ]]
 
 test Order by aggregation from SELECT 2 [[
 SELECT n.name, AVG(n.age) AS avgAge
 WHERE
-  n
+  (n)
 GROUP BY n.name
 ORDER BY n.name, avgAge
 ]]
@@ -79,14 +79,14 @@ ORDER BY n.name, avgAge
 test Order by aggregation not from SELECT 1 [[
 SELECT COUNT(*)
 WHERE
-  n
+  (n)
 ORDER BY AVG(n.age)
 ]]
 
 test Order by aggregation not from SELECT 2 [[
 SELECT COUNT(*)
 WHERE
-  n
+  (n)
 GROUP BY n.age
 ORDER BY AVG(n.age)
 ]]
@@ -94,6 +94,6 @@ ORDER BY AVG(n.age)
 test Duplicate expression in ORDER BY is fine [[
 SELECT *
 WHERE
-  n
+  (n)
 ORDER BY n.name, n.name
 ]]

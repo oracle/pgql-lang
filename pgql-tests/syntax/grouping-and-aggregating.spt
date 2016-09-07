@@ -12,21 +12,21 @@ WHERE
 test Basic GROUP BY 1 [[
 SELECT n.age, COUNT(*), AVG(n.salary), MIN(n.salary), MAX(n.salary), SUM(n.salary)
 WHERE
-  n
+  (n)
 GROUP BY n.age
 ]]
 
 test Basic GROUP BY 2 [[
 SELECT n.age, COUNT(*), AVG(n.salary), MIN(n.salary), MAX(n.salary), SUM(n.salary)
 WHERE
-  n
+  (n)
 GROUP BY n.age
 ]]
 
 test Basic GROUP BY 3 [[
 SELECT x, x.age
 WHERE
-  x
+  (x)
 GROUP BY x
 ORDER BY x
 ]]
@@ -34,63 +34,55 @@ ORDER BY x
 test SELECT * and GROUP BY 1 [[
 SELECT *
 WHERE
-  n -[e]-> m
+  (n) -[e]-> (m)
 GROUP BY n, e, m
 ]]
 
 test SELECT * and GROUP BY 2 [[
 SELECT *
 WHERE
-  n -> m
+  (n) -> (m)
 GROUP BY n, m
 ]]
 
 test SELECT * and GROUP BY 3 [[
 SELECT *
 WHERE
-  n -> m
+  (n) -> (m)
 GROUP BY n
 ]]
 
 test Aggregation of group key 1 [[
 SELECT AVG(nAge)
 WHERE
-  n
+  (n)
 GROUP BY n.age AS nAge
 ]]
 
 test Aggregation of group key 2 [[
 SELECT AVG(n.age)
 WHERE
-  n
+  (n)
 GROUP BY n.age
 ]]
 
 test Aggregation of group key 3 [[
 SELECT nAge, AVG(nAge)
 WHERE
-  n
+  (n)
 GROUP BY n.age AS nAge
 ]]
 
 test Aggregation of group key 3 [[
 SELECT n.age, AVG(n.age)
 WHERE
-  n
+  (n)
 GROUP BY n.age
 ]]
 
 test Group variable but variable not used [[
 SELECT n.age
 WHERE
-  n
+  (n)
 GROUP BY n.age AS nAge
 ]]
-
-test Duplicate expression in GROUP BY is fine [[
-SELECT n.name
-WHERE
-  n
-GROUP BY n.name, n.name
-]]
-

@@ -5,7 +5,7 @@ language pgql-lang
 test Single node 1 [[
 SELECT *
 WHERE
-  n
+  (n)
 ]]
 
 test Single node 2 [[
@@ -47,6 +47,6 @@ WHERE
 test Multiple paths [[
 SELECT *
 WHERE
-  n1 -> n2,
-  n2 -> n3
+  (n1) -> (n2),
+  (n2) -> (n3)
 ]]
