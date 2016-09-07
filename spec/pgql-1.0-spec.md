@@ -70,7 +70,7 @@ QueryConnection     := QueryEdge |
 QueryEdge           := '->' | '<-' | '-->' | '<--' |
                        '-[' VariableName? LabelConstraint? InlinedConstraints? ']->' |
                        '<-[' VariableName? LabelConstraint? InlinedConstraints? ']-'
-LabelConstraint     := ':' {Label '|'}
+LabelConstraint     := ':' {Label '|'}+
 InlinedConstraints  := 'WITH' {InlinedConstraint ','}+
 ValueConstraint     := Expression // see Section Expressions
 InlinedConstraint   := Expression // see Section Expressions
