@@ -187,12 +187,11 @@ rules
       expAsGroupVars' := <map(norm-ExpAsVar)> expAsGroupVars;
       groupByClause' := <?Some(_); !Some(GroupByClause(expAsGroupVars')) <+ !None()> groupByClause;
 
-      expAsSelectVars := <?ExpAsVars(<id>); map(replace-terms-with-varRef(|expAsGroupVars')) <+
-                          norm-select-star(|graphPattern, expAsGroupVars')> projection;
-      expAsSelectVars' := <map(norm-ExpAsVar)> expAsSelectVars;
-      projection' := Vars(ExpAsVars(expAsSelectVars'));
+      expAsSelectVars := <?ExpAsVars(<id>); map(norm-ExpAsVar); map(replace-terms-with-varRef(|expAsGroupVars')) <+
+                          norm-select-star(|graphPattern, expAsGroupVars'); map(norm-ExpAsVar)> projection;
+      projection' := Vars(ExpAsVars(expAsSelectVars));
 
-      allExpAsVars := <conc> (expAsGroupVars', expAsSelectVars');
+      allExpAsVars := <conc> (expAsGroupVars', expAsSelectVars);
       orderByElems := <try(norm-orderBy(|allExpAsVars))> orderByClause;
 
       limitOffsets' := <norm-limitOffsets> limitOffsets
