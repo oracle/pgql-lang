@@ -81,3 +81,9 @@ SELECT *
 WHERE (n)
 GROUP BY n AS n
 ]] 1 error /* Duplicate variable; variable already defined in the WHERE clause */
+
+test Redefine variable from GROUP BY in SELECT [[
+SELECT COUNT(*) AS x
+WHERE (n)
+GROUP BY n AS x
+]] 1 error /* Duplicate variable; variable already defined in the WHERE clause */

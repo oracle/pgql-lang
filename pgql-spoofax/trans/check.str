@@ -31,7 +31,7 @@ rules // Unresolved/duplicate variables
   nabl-constraint(|ctx):
     expAsVar -> <fail>
     where
-      <?ExpAsVar(_, v) + ?AnonymousExpAsVar(_, v)> expAsVar;
+      <?ExpAsVar(_, v) + ?ExpAsSelectVar(_, v) + ?AnonymousExpAsVar(_, v)> expAsVar;
       <generate-error-on-duplicate(|ctx, NablNsSelectVar(), "Duplicate select key")> v
 
   nabl-constraint(|ctx):
@@ -48,7 +48,12 @@ rules // Unresolved/duplicate variables
   nabl-constraint(|ctx):
     ExpAsGroupVar(_, v) -> <fail>
     where
-      <generate-error-on-duplicate(|ctx, NablNsVar(), "Duplicate variable; variable already defined in the WHERE clause")> v
+      <generate-error-on-duplicate(|ctx, NablNsVar1(), "Duplicate variable; variable already defined in the WHERE clause")> v
+
+  nabl-constraint(|ctx):
+    ExpAsSelectVar(_, v) -> <fail>
+    where
+      <generate-error-on-duplicate(|ctx, NablNsVar2(), "Duplicate variable; variable already defined in the GROUP BY clause")> v
 
 rules // in-lined constraints
 

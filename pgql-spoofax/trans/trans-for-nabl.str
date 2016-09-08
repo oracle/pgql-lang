@@ -23,7 +23,7 @@ rules
     with
       if (!groupBy; ?Some(_)) + (!expAsVars; oncetd(is-aggregate))
       then
-        expAsVars' := <to-VarRef-or-GroupRefs> expAsVars
+        expAsVars' := <to-VarRef-or-GroupRefs; to-ExpAsSelectVars> expAsVars
       ; orderBy' := <to-VarRef-or-SelectOrGroupRefs> orderBy
       ; groupBy' := <to-ExpAsGroupVars> groupBy
       else
@@ -34,6 +34,9 @@ rules
 
   to-VarRef-or-GroupRefs = alltd(is-aggregate <+ ?VarRef(<id>); !GroupRef(<id>))
   to-VarRef-or-SelectOrGroupRefs = alltd(is-aggregate <+ ?VarRef(<id>); !SelectOrGroupRef(<id>))
+
+  to-ExpAsSelectVars = alltd(to-ExpAsSelectVar)
+  to-ExpAsSelectVar = ?ExpAsVar(exp, v); !ExpAsSelectVar(exp, v)
 
   to-ExpAsGroupVars = alltd(to-ExpAsGroupVar)
   to-ExpAsGroupVar = ?ExpAsVar(exp, v); !ExpAsGroupVar(exp, v)

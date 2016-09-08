@@ -10,27 +10,28 @@ namespaces
   WhereVar    // var defined in WHERE
   GroupVar    // var defined in GROUP BY
   SelectVar   // var defined in SELECT
-  Var         // var defined in WHERE/GROUP BY/SELECT
+  Var1        // var defined in WHERE/GROUP BY (only used for redefinition checking)
+  Var2        // var defined in GROUP BY/SELECT (only used for redefinition checking)
 
 binding rules
 
   Query(_, _, _, _, _, _, _):
-    scopes WhereVar, SelectVar, GroupVar, Var, PathPattern
+    scopes WhereVar, SelectVar, GroupVar, Var1, Var2, PathPattern
 
   PathPattern(p, _, _, _):
     defines unique PathPattern p
-    scopes WhereVar, SelectVar, Var, GroupVar
+    scopes WhereVar, SelectVar, Var1, Var2, GroupVar
 
   Vertex(n):
-    defines non-unique Var n
+    defines non-unique Var1 n
     defines non-unique WhereVar n of type VertexTy()
 
   Edge(_, e, _, _):
-    defines non-unique Var e
+    defines non-unique Var1 e
     defines unique WhereVar e of type EdgeTy()
 
   Path(_, _, _, _, p):
-    defines non-unique Var p
+    defines non-unique Var1 p
     defines unique WhereVar p of type PathTy()
 
   PathPatternRef(p):
@@ -38,12 +39,16 @@ binding rules
 
   ExpAsVar(exp, v): // in SELECT when there is no GROUP BY
     defines unique SelectVar v of type ty where exp has type ty // unlike SQL but like SPARQL, we don't allow duplicate column names
+  ExpAsSelectVar(exp, v): // in SELECT when there is a GROUP BY
+    defines unique SelectVar v of type ty where exp has type ty // unlike SQL but like SPARQL, we don't allow duplicate column names
+    defines unique Var2 v // re-definition of a variable from GROUP BY in SELECT is not allowed
   AnonymousExpAsVar(exp, v):
     defines unique SelectVar v of type ty where exp has type ty
 
   ExpAsGroupVar(exp, v): // in GROUP BY
     defines unique GroupVar v of type ty where exp has type ty // unlike SQL but like SPARQL, we don't allow duplicate group keys
-    defines unique Var v
+    defines non-unique Var2 v // re-definition of a variable from GROUP BY in SELECT is not allowed
+    defines unique Var1 v // re-definition of a variable from WHERE in GROUP BY is not allowed
   AnonymousExpAsGroupVar(exp, v):
     defines unique GroupVar v of type ty where exp has type ty
 

@@ -264,6 +264,7 @@ public class SpoofaxAstToGraphQuery {
       switch (getConstructorName(expAsVarT)) {
         case "ExpAsVar":
         case "ExpAsGroupVar":
+        case "ExpAsSelectVar":
           expAsVar = new ExpAsVar(exp, varName, false);
           break;
         case "AnonymousExpAsVar":
