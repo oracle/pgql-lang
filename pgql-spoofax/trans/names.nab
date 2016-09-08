@@ -6,44 +6,49 @@ imports
 
 namespaces
 
-  PathPattern // regular PATH pattern name
-  Var         // var defined in WHERE
-  SelectVar   // var defined in SELECT
+  PathPattern // regular PATH pattern
+  WhereVar    // var defined in WHERE
   GroupVar    // var defined in GROUP BY
+  SelectVar   // var defined in SELECT
+  Var         // var defined in WHERE/GROUP BY/SELECT
 
 binding rules
 
   Query(_, _, _, _, _, _, _):
-    scopes Var, SelectVar, GroupVar, PathPattern
+    scopes WhereVar, SelectVar, GroupVar, PathPattern
 
   PathPattern(p, _, _, _):
     defines unique PathPattern p
-    scopes Var, SelectVar, GroupVar
+    scopes WhereVar, SelectVar, GroupVar
 
   Vertex(n):
-    defines non-unique Var n of type VertexTy()
+    defines non-unique Var n
+    defines non-unique WhereVar n of type VertexTy()
 
   Edge(_, e, _, _):
-    defines unique Var e of type EdgeTy()
+    defines non-unique Var e
+    defines unique WhereVar e of type EdgeTy()
 
   Path(_, _, _, _, p):
-    defines unique Var p of type PathTy()
+    defines non-unique Var p
+    defines unique WhereVar p of type PathTy()
 
   PathPatternRef(p):
     refers to PathPattern p
 
-  ExpAsVar(exp, v): // in SELECT
+  ExpAsVar(exp, v): // in SELECT when there is no GROUP BY
     defines unique SelectVar v of type ty where exp has type ty // unlike SQL but like SPARQL, we don't allow duplicate column names
   AnonymousExpAsVar(exp, v):
     defines unique SelectVar v of type ty where exp has type ty
 
   ExpAsGroupVar(exp, v): // in GROUP BY
     defines unique GroupVar v of type ty where exp has type ty // unlike SQL but like SPARQL, we don't allow duplicate group keys
+    defines unique Var v
   AnonymousExpAsGroupVar(exp, v):
     defines unique GroupVar v of type ty where exp has type ty
 
   VarRef(v):
-    refers to Var v // refers to a variable in the WHERE clause
+    refers to WhereVar v // refers to a variable in the WHERE clause
 
   GroupRef(v):
     refers to GroupVar v // refers to a variable in the GROUP BY clause
@@ -53,5 +58,5 @@ binding rules
       otherwise refers to SelectVar v // e.g. in [[SELECT AVG(n.age) as avgAge WHERE (n) ORDER BY avgAge]], 'avgAge' in ORDER BY refers to 'avgAge' in SELECT
 
   VarOrSelectRef(v): // in ORDER BY while there is no GROUP BY
-    refers to Var v // e.g. in [[SELECT n.name WHERE (n) ORDER BY n.age], 'n' in ORDER BY refers to 'n' in WHERE
+    refers to WhereVar v // e.g. in [[SELECT n.name WHERE (n) ORDER BY n.age], 'n' in ORDER BY refers to 'n' in WHERE
       otherwise refers to SelectVar v // e.g. in [[SELECT n.name AS nName WHERE (n) ORDER BY nName], 'nName' in ORDER BY refers to 'nName' in SELECT

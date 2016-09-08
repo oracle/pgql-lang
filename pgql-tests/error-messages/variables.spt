@@ -26,7 +26,7 @@ test Unresolved variable in ORDER BY 2 [[
 SELECT n
 WHERE
   (n)
-GROUP BY n AS n
+GROUP BY n
 ORDER BY n2
 ]] 2 errors /* Cannot order by non-group key variable: use aggregation
               Unresolved variable */
@@ -75,3 +75,9 @@ WHERE
   (n)
 GROUP BY n, n
 ]] 2 errors /* 2x Duplicate group key */
+
+test Redefine variable from WHERE in GROUP BY [[
+SELECT *
+WHERE (n)
+GROUP BY n AS n
+]] 1 error /* Duplicate variable; variable already defined in the WHERE clause */

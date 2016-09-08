@@ -43,7 +43,12 @@ rules // Unresolved/duplicate variables
   nabl-constraint(|ctx):
     Edge(_, e, _, _) -> <fail>
     where
-      <generate-error-on-duplicate(|ctx, NablNsVar(), "Duplicate edge variable")> e
+      <generate-error-on-duplicate(|ctx, NablNsWhereVar(), "Duplicate edge variable")> e
+
+  nabl-constraint(|ctx):
+    ExpAsGroupVar(_, v) -> <fail>
+    where
+      <generate-error-on-duplicate(|ctx, NablNsVar(), "Duplicate variable; variable already defined in the WHERE clause")> v
 
 rules // in-lined constraints
 
