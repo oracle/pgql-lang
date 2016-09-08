@@ -15,11 +15,11 @@ namespaces
 binding rules
 
   Query(_, _, _, _, _, _, _):
-    scopes WhereVar, SelectVar, GroupVar, PathPattern
+    scopes WhereVar, SelectVar, GroupVar, Var, PathPattern
 
   PathPattern(p, _, _, _):
     defines unique PathPattern p
-    scopes WhereVar, SelectVar, GroupVar
+    scopes WhereVar, SelectVar, Var, GroupVar
 
   Vertex(n):
     defines non-unique Var n
