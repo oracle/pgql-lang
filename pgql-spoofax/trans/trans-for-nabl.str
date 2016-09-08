@@ -7,8 +7,9 @@ imports
   common
 
 /*
- * normalizeForNaBL is called after normalize. It's for extra transformations to get the AST in a shape that NaBL likes.
- *   PGQL -> PGQL AST -> PGQL norm. AST -> PGQL AST for NaBL -> GraphQuery object ==> query planner
+ * 'trans-for-nabl' is called after 'normalize' and transforms the normalized AST into a shape that works for NaBL.
+ *
+ *  PGQL String -> PGQL AST -> PGQL normalized AST -> PGQL AST for NaBL -> GraphQuery object -> query plan
  */
 rules
 
@@ -16,7 +17,7 @@ rules
 
 rules
 
-  // if there is a GROUP BY or aggregation in SELECT then all variables in the SELECT need to be group keys or need to be inside aggregates
+  // if there is a GROUP BY or aggregation in SELECT, then all the variables references in the SELECT need to be group keys or need to be inside aggregates
   trans-for-nabl-grouping:
     Query(pathPatterns, expAsVars, fromClause, graphPattern, groupBy, orderBy, limitOffsets) ->
         Query(pathPatterns, expAsVars', fromClause, graphPattern, groupBy', orderBy', limitOffsets)
