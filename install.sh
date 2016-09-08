@@ -9,5 +9,5 @@ cd graph-query-ir/; mvn clean install; cd ../
 
 cd pgql-lang/
 mkdir -p src/main/resources/pgql-spoofax-binaries
-cp ../pgql-spoofax/target/pgqllang-1.0.0.spoofax-language -d src/main/resources/pgql-1.0.spoofax-language
+cp ../pgql-spoofax/target/pgqllang-1.0.3-SNAPSHOT.spoofax-language -d src/main/resources/pgql-1.0.spoofax-language
 mvn clean install
