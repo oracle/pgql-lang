@@ -192,7 +192,7 @@ rules
       expAsSelectVars' := <map(norm-ExpAsVar)> expAsSelectVars;
       projection' := Vars(ExpAsVars(expAsSelectVars'));
 
-      allExpAsVars := <conc> (<remove-all((?ExpAsVar(_, <id>) + ?AnonymousExpAsVar(_, <id>)); not(is-aggregate))> expAsSelectVars', expAsGroupVars');
+      allExpAsVars := <conc> (expAsGroupVars', expAsSelectVars');
       orderByElems := <try(norm-orderBy(|allExpAsVars))> orderByClause;
 
       limitOffsets' := <norm-limitOffsets> limitOffsets
