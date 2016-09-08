@@ -7,7 +7,7 @@
   <modelVersion>4.0.0</modelVersion>
   <groupId>oracle.pgql.lang.spoofax</groupId>
   <artifactId>pgql-spoofax</artifactId>
-  <version>1.0.0</version>
+  <version>1.0.3-SNAPSHOT</version>
 
   <packaging>spoofax-language</packaging>
 
