@@ -38,10 +38,11 @@ rules
   norm-NOT = ?Not1(<id>); !Not(<id>)
   norm-NOT = ?Not2(<id>); !Not(<id>)
 
-  norm-string = String((un-double-quote + un-single-quote)
+  norm-string = String(norm-string-helper) + PropRef(id, norm-string-helper)
+  norm-string-helper = (un-double-quote + un-single-quote)
                      ; string-replace(|"\\\"", "\"")
                      ; string-replace(|"\\'", "'")
-                     ; string-replace(|"\\\\", "\\"))
+                     ; string-replace(|"\\\\", "\\")
 
 rules
 
