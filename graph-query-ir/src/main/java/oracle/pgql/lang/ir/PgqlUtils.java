@@ -386,7 +386,7 @@ public class PgqlUtils {
       stringForVerticesWithInlinedConstraints.remove(vertex);
       return result;
     } else {
-      return vertex.isAnonymous() ? "()" : vertex.name;
+      return "(" + (vertex.isAnonymous() ? "" : vertex.name) + ")";
     }
   }
 
