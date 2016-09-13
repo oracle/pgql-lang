@@ -1,0 +1,14 @@
+# main links links
+main:
+  - title: "Specification"
+    url: //spec/1.0
+
+  - title: "Oracle PGX"
+    url: http://www.oracle.com/technetwork/oracle-labs/parallel-graph-analytics/overview/index.html
+
+  - title: "Parser"
+    url: https://github.com/oracle/pgql-lang
+
+  - title: "White Paper"
+    url: http://event.cwi.nl/grades/2016/07-VanRest.pdf
+

@@ -4,3 +4,13 @@ _site/
 _pdf
 .idea/
 GenerateMenuFromMarkdown.class
+.bundle/
+.DS_Store
+bin/
+images/hatfield.jpg
+images/mm-browser-mockups.png
+images/mm-layout-examples.png
+node_modules
+.npm
+
+
