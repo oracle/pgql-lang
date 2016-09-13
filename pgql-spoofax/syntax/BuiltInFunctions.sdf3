@@ -49,12 +49,6 @@ context-free syntax // Aggregates
 context-free priorities
 
   {
-    right:
-      Exp.UMin
-      Exp.Not1
-  }
-  >
-  {
     left:
       Exp.Label
       Exp.Labels
@@ -63,6 +57,12 @@ context-free priorities
       Exp.Has
       Exp.InDegree
       Exp.OutDegree
+  }
+  >
+  {
+    right:
+      Exp.UMin
+      Exp.Not1
   }
   >
   {
@@ -105,13 +105,7 @@ context-free priorities
   }
 
 context-free priorities
- 
-  {
-    right:
-      InlinedExp.UMin
-      InlinedExp.Not1
-  }
-  >
+
   {
     left:
       InlinedCall.Label
@@ -121,6 +115,12 @@ context-free priorities
       InlinedCall.Has
       InlinedCall.InDegree
       InlinedCall.OutDegree
+  }
+  >
+  {
+    right:
+      InlinedExp.UMin
+      InlinedExp.Not1
   }
   >
   {
