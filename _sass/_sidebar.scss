@@ -9,6 +9,8 @@
 .sidebar {
   @include clearfix();
   margin-bottom: 1em;
+  width: 30% !important;
+  color: black;
 
   @include breakpoint($large) {
     @include span(2 of 12);
@@ -36,7 +38,6 @@
 
   p, li {
     font-family: $sans-serif;
-    font-size: $type-size-6;
     line-height: 1.5;
   }
 

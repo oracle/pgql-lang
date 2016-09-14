@@ -31,7 +31,7 @@
   ol {
     padding: 0;
     list-style: none;
-    font-size: $type-size-6;
+    font-size: $type-size-3;
 
     @include breakpoint($large) {
       @include span(10 of 12 last);
@@ -373,7 +373,7 @@
   font-family: $sans-serif-narrow;
   color: $gray;
   text-transform: uppercase;
-  letter-spacing: 1px;
+  letter-spacing: inherit;
   background-color: #fff;
   border: 1px solid $border-color;
   border-radius: $border-radius;
@@ -397,9 +397,9 @@
 
   a {
     display: block;
-    padding: 0.5rem 1rem;
+    padding: 0.25rem 0.25rem;
     color: $gray;
-    font-size: $type-size-7;
+    font-size: $type-size-5;
     font-weight: bold;
     line-height: 1.5;
     border-bottom: 1px solid $border-color;
@@ -417,7 +417,7 @@
   }
 
   li ul > li a {
-    padding-left: 2rem;
+    padding-left: 0.75rem;
     font-weight: normal;
   }
 
