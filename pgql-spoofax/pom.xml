@@ -11,13 +11,11 @@
 
   <packaging>spoofax-language</packaging>
 
-  <dependencies>
-    <dependency>
-      <groupId>org.metaborg</groupId>
-      <artifactId>org.metaborg.spoofax.core</artifactId>
-      <version>2.0.0</version>
-    </dependency>
-  </dependencies>
+  <parent>
+    <groupId>org.metaborg</groupId>
+    <artifactId>parent.language</artifactId>
+    <version>2.0.0</version>
+  </parent>
 
   <repositories>
     <repository>
