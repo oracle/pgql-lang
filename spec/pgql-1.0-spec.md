@@ -150,7 +150,7 @@ Omit variable name in edge (alternative,  one dash) | `(n)->(m)`
 
 ### Disconnected Topology Constraints
 
-In the case the topology constraints form multiple groups of vertices and edges that a not connected to each other, the semantic is that the different groups are matched independently and that final result is produced by taking the Cartesian product of the result sets of the different groups. The following is an example of a query that will result in a Cartesian product.
+In the case the topology constraints form multiple groups of vertices and edges that are not connected to each other, the semantic is that the different groups are matched independently and that the final result is produced by taking the Cartesian product of the result sets of the different groups. The following is an example of a query that will result in a Cartesian product.
 
 ```
 SELECT *
