@@ -256,6 +256,7 @@ public class SpoofaxAstToGraphQuery {
   private static List<ExpAsVar> getExpAsVars(Map<String, QueryVariable> varmap, IStrategoTerm expAsVarsT)
       throws PgqlException {
     List<ExpAsVar> expAsVars = new ArrayList<>(expAsVarsT.getSubtermCount());
+    Map<String, QueryVariable> newVars = new HashMap<>();
     for (IStrategoTerm expAsVarT : expAsVarsT) {
       String varName = getString(expAsVarT.getSubterm(POS_EXPASVAR_VAR));
       QueryExpression exp = translateExp(expAsVarT.getSubterm(POS_EXPASVAR_EXP), varmap);
@@ -275,9 +276,11 @@ public class SpoofaxAstToGraphQuery {
           throw new IllegalArgumentException("Unexpected term: " + expAsVarT);
       }
       
-      expAsVars.add(expAsVar);
-      varmap.put(varName, expAsVar);
+      expAsVars.add(expAsVar); // only add the new variables at the end of the for-loop to make sure that expression
+                               // in the SELECT/GROUP BY clauses don't refer to variables defined in the same clause
+      newVars.put(varName, expAsVar);
     }
+    varmap.putAll(newVars);
     return expAsVars;
   }
 

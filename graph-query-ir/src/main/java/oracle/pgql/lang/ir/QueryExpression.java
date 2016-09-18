@@ -3,8 +3,6 @@
  */
 package oracle.pgql.lang.ir;
 
-import oracle.pgql.lang.ir.QueryVariable.VariableType;
-
 public interface QueryExpression {
 
   enum ExpressionType {
