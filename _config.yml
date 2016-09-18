@@ -14,8 +14,8 @@ name                     : "Oracle Corp, reuse granted under the Apache license"
 description              : "PGQL - Property Graph Query Language"
 #url                      : http://pgql-lang.org/ # the base hostname & protocol for your site e.g. "https://mmistakes.github.io"
 #url: pgql-lang.org
-url                      : http://localhost:4000/ # the base hostname & protocol for your site e.g. "https://mmistakes.github.io"
-#url			 : https://timboudreau.github.io/pgql-lang/
+#url                      : http://localhost:4000/ # the base hostname & protocol for your site e.g. "https://mmistakes.github.io"
+url			 : https://timboudreau.github.io/pgql-lang/
 baseurl                  : # the subpath of your site, e.g. "/blog"
 repository               : "oracle/pgql-lang" # GitHub username/repo-name e.g. "mmistakes/minimal-mistakes"
 teaser                   : # filename of teaser fallback teaser image placed in /images/, .e.g. "500x300.png"
