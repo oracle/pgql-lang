@@ -22,8 +22,6 @@ A Query Language for Property Graphs
 
 PGQL is a SQL-like query language for [Property Graphs](https://github.com/tinkerpop/blueprints/wiki/Property-Graph-Model) - data structures that consist of *nodes* that are connected to other nodes by *edges*, each of which can have ad-hoc key-value pairs (properties) associated with them.
 
-{% include toc title="Contents" icon="gears" %}
-
 The language is based on the concept of *graph pattern matching*, which allows you to specify patterns that are matched against vertices and edges in a data graph.  This site is the official home of the [PGQL language specification](spec/1.0/).
 
 
@@ -38,16 +36,17 @@ Say we have a graph of TCP/IP connections on a computer network, and you want to
 one machine, from there into another, and from there into still another - you would query for that pattern like this:
 
 ```sql
-SELECT host1.id(), host2.id(), host3.id() WHERE       -- choose what to return
-    (host1) -[c1 WITH toPort = 22 and opened = true]-> (host2)     -- topology must match this pattern
+SELECT host1.id(), host2.id(), host3.id() WHERE   -- choose what to return
+    (host1) -[c1 WITH toPort = 22 and opened = true]-> (host2) -- topology must match this pattern
       -[connection2 WITH toPort = 22 and opened = true]-> (host3),
-    connection1.bytes > 300,                          -- meaningful amount of data was exchanged
+    connection1.bytes > 300,                      -- meaningful amount of data was exchanged
     connection2.bytes > 300,
-    connection1.start < connection2.start,            -- second connection within time-frame of first
+    connection1.start < connection2.start,        -- second connection within time-frame of first
     connection2.start + connection2.duration < connection1.start + connection1.duration
-      GROUP BY host1.id(), host2.id(), host3.id()     -- aggregate multiple matching connections
-      ORDER BY DESC(connection1.when)                 -- reverse sort chronologically
+      GROUP BY host1.id(), host2.id(), host3.id() -- aggregate multiple matching connections
+      ORDER BY DESC(connection1.when)             -- reverse sort chronologically
 ```
+
 
 Constraints Are Directional
 ---------------------------

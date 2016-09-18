@@ -2,34 +2,29 @@
    Syntax highlighting
    ========================================================================== */
 
+p > code, a > code, li > code, figcaption > code, td > code {
+  box-shadow: none;
+  background: inherit;
+  border: none;
+}
+
 div.highlighter-rouge,
 figure.highlight {
   position: relative;
   margin-bottom: 1em;
   font-family: $monospace;
-  font-size: $type-size-7;
+  font-size: 0.75em;
   line-height: 1.8;
   border: none;
   border-radius: $border-radius;
   background-color: $code-background-color;
   box-shadow: none;
 
-  &:before {
-    position: absolute;
-    top: 0;
-    right: 0;
-    padding: 0.5em;
-    background-color: $lighter-gray;
-    content: "\f121";
-    font-family: "fontawesome" !important;
-    line-height: 1;
-    text-transform: none;
-    speak: none;
-  }
+
 
   .highlight {
     margin: 0;
-    padding: 1em;
+    padding: 0px;
   }
 }
 

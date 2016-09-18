@@ -1,0 +1,132 @@
+article {
+  margin: 1em;
+}
+
+.page__content {
+  list-style-position: inside;
+}
+
+#main {
+  padding-left: 0px;
+  padding-right: 0px;
+}
+
+@media screen and /* only screen and */ (min-width : 600px)  {
+  #toc {
+    float : left;
+    max-width: 17%;
+    font-size: $type-size-9;
+    margin-right: 0px;
+  }
+  .page__content {
+      list-style-position: inside;
+      margin-left: 17%;
+    }
+}
+@media screen and (max-width: 600px) {
+  #toc {
+    display: block;
+    width: 100%;
+    margin-left: 5%;
+    left: 0px;
+  }
+}
+
+#toc {
+  background-color: $body-color;
+  text-transform: uppercase;
+  padding-right: 20px;
+  font-family: "Source Sans Pro";
+}
+
+#toc:before {
+  content: 'CONTENTS';
+  text-decoration: underline;
+  font-weight: bold;
+  text-indent: -0.5em;
+  display: block;
+  font-size: $type-size-4;
+  padding-bottom: 0.25em;
+  color: $gray;
+}
+
+.clickable-header {
+  cursor:pointer;
+}
+.clickable-header:hover {
+  text-decoration:underline;
+}
+.top-level-header {
+  display:inline;
+}
+
+#toc li {
+  margin-bottom: 0px;
+  margin-left: 0.0em;
+  padding-top: 3px;
+  padding-left: 0px;
+  font-weight: normal;
+}
+
+#toc ul:first-child {
+  list-style: none;
+  text-transform: uppercase;
+  text-decoration: none;
+}
+
+.tochead {
+  font-weight: bold;
+  font-size: $type-size-5 ;
+  text-indent: -2em;
+  text-decoration: underline;
+}
+
+#toc ul:first-child li {
+  margin-left: 0px;
+}
+
+#toc ul:only-child {
+  margin-bottom: 1em;
+}
+
+.toclist {
+  text-decoration: none;
+  list-style-position: outside;
+  line-height: 1.025;
+  text-transform: capitalize;
+  list-style-type: circle;
+  text-indent: -0.5em;
+  padding-left: 0.0em;
+  padding-bottom: 0px;
+  padding-top: 0px;
+  margin-bottom: 0px;
+  margin-top: 0px;
+  margin-left: 0px;
+}
+
+.toclist .toclist {
+  padding-left: 1.025em;
+}
+
+.toclist:last-child {
+  margin-bottom: 0.25em;
+}
+
+.tocitem a {
+  color: $gray;
+  text-decoration: none;
+  font-weight: bold;
+}
+
+.tocitem ul li a {
+  color: $gray;
+  text-decoration: none;
+  font-weight: normal;
+}
+
+.tocitem a:hover {
+  background-color: inherit;
+  color: $link-color;
+  text-decoration: none;
+}
+

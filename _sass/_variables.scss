@@ -5,6 +5,7 @@
 /*
    Typography
    ========================================================================== */
+@import 'https://fonts.googleapis.com/css?family=Source+Code+Pro|Source+Sans+Pro:400,700';
 
 $doc-font-size              : 16;
 
@@ -15,7 +16,7 @@ $indent-var                 : 1.3em;
 /* system typefaces */
 $serif                      : Georgia, Times, serif;
 $sans-serif                 : -apple-system, ".SFNSText-Regular", "San Francisco", "Roboto", "Segoe UI", "Helvetica Neue", "Lucida Grande", Arial, sans-serif;
-$monospace                  : Monaco, Consolas, "Lucida Console", monospace;
+$monospace                  : "Source Code Pro", Monaco, Consolas, "Lucida Console", monospace;
 
 /* sans serif typefaces */
 $sans-serif-narrow          : $sans-serif;
@@ -36,11 +37,12 @@ $caption-font-family        : $sans-serif;
 $type-size-1                : 2.441em;  // ~39.056px
 $type-size-2                : 1.953em;  // ~31.248px
 $type-size-3                : 1.563em;  // ~25.008px
-$type-size-4                : 1.25em;   // ~20px
+$type-size-4                : 1.15em;   // ~20px
 $type-size-5                : 1em;      // ~16px
 $type-size-6                : 0.95em;   // ~12px
 $type-size-7                : 0.9em; // ~11px
 $type-size-8                : 0.85em;  // ~10px
+$type-size-9                : 0.65rem;  // ~10px
 
 
 /*
@@ -56,7 +58,7 @@ $lighter-gray               : mix(#fff, $gray, 90%);
 $body-color                 : #fff;
 $background-color           : #fff;
 $code-background-color      : inherit;
-$code-background-color-dark : $light-gray;
+$code-background-color-dark : inherit;
 $text-color                 : #6a625a;
 $border-color               : $lighter-gray;
 

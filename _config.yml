@@ -9,12 +9,13 @@
 locale                   : "en"
 title                    : "PGQL"
 title_separator          : "-"
-name                     : "Oracle"
+follow_label		 : ""
+name                     : "Oracle Corp, reuse granted under the Apache license"
 description              : "PGQL - Property Graph Query Language"
 #url                      : http://pgql-lang.org/ # the base hostname & protocol for your site e.g. "https://mmistakes.github.io"
 #url: pgql-lang.org
-#url                      : http://localhost:4000/ # the base hostname & protocol for your site e.g. "https://mmistakes.github.io"
-url			 : https://timboudreau.github.io/pgql-lang/
+url                      : http://localhost:4000/ # the base hostname & protocol for your site e.g. "https://mmistakes.github.io"
+#url			 : https://timboudreau.github.io/pgql-lang/
 baseurl                  : # the subpath of your site, e.g. "/blog"
 repository               : "oracle/pgql-lang" # GitHub username/repo-name e.g. "mmistakes/minimal-mistakes"
 teaser                   : # filename of teaser fallback teaser image placed in /images/, .e.g. "500x300.png"
@@ -99,18 +100,18 @@ author:
   flickr           :
   facebook         :
   foursquare       :
-  github           :
+  github           : oracle
   google_plus      :
   keybase          :
   instagram        :
   lastfm           :
-  linkedin         :
+  linkedin         : 
   pinterest        :
   soundcloud       :
   stackoverflow    : # "123456/username" (the last part of your profile url, e.g. http://stackoverflow.com/users/123456/username)
   steam            :
   tumblr           :
-  twitter          :
+  twitter          : oraclelabs
   vine             :
   weibo            :
   xing             :
@@ -174,11 +175,11 @@ kramdown:
   smart_quotes: lsquo,rsquo,ldquo,rdquo
   enable_coderay: false
 
-
 # Sass/SCSS
 sass:
   sass_dir: _sass
-  style: compressed # http://sass-lang.com/documentation/file.SASS_REFERENCE.html#output_style
+#  style: compressed # http://sass-lang.com/documentation/file.SASS_REFERENCE.html#output_style
+  style: expanded
 
 
 # Outputting
