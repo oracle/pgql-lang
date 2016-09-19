@@ -1,4 +1,5 @@
 <!-- start custom head snippets -->
+<link rel="stylesheet" href="{{ base_path }}/assets/css/toc.css">
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/2.1.4/jquery.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery-cookie/1.4.1/jquery.cookie.min.js"></script>
@@ -11,7 +12,8 @@ jQuery(function($) {
       tc.toc({ title: '',
         minimumHeaders: 0,
         showSpeed: 0,
-        headers: 'h1,h2',
+        popupDepth: 3,
+        headers: 'h1,h2,h3,h4,h5,h6',
         showEffect: 'fadeIn',
         listType : 'ul',
         noBackToTopLinks: true,

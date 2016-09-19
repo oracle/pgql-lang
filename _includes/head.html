@@ -1,10 +1,18 @@
-{% include base_path %}
-
+<head>
 <meta charset="utf-8">
 
 {% include seo.html %}
 
-<link href="{% if site.atom_feed.path %}{{ site.atom_feed.path }}{% else %}{{ base_path }}/feed.xml{% endif %}" type="application/atom+xml" rel="alternate" title="{{ site.title }} Feed">
+<link href="{{ BASE_PATH }}{{ site.JB.atom_path }}" type="application/atom+xml" rel="alternate" title="{{ site.title }} ATOM Feed">
+<link href="{{ BASE_PATH }}{{ site.JB.rss_path }}" type="application/rss+xml" rel="alternate" title="{{ site.title }} RSS Feed">
+
+{% if page.description %}<meta name="description" content="{{ page.description }}">{% endif %}
+<meta name="author" content="{{ site.author.name }}">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+{% include JB/setup %}
+<link rel="stylesheet" href="{{ base_path }}/assets/themes/bootstrap/resources/bootstrap/css/bootstrap.min.css">
+<link rel="stylesheet" href="{{ base_path }}/assets/themes/bootstrap/css/style.css">
 
 <!-- http://t.co/dKP3o1e -->
 <meta name="HandheldFriendly" content="True">
@@ -15,7 +23,7 @@
   document.documentElement.className = document.documentElement.className.replace(/\bno-js\b/g, '') + ' js ';
 </script>
 
-<!-- For all browsers -->
-<link rel="stylesheet" href="{{ base_path }}/assets/css/main.css">
-
 <meta http-equiv="cleartype" content="on">
+
+{% include head/custom.html %}
+</head>

@@ -1,8 +1,9 @@
 ---
 title: PGQL &middot; Property Graph Query Language
-layout: splash
+layout: default
 excerpt: "*An SQL-like query language for graphs*"
 share: true
+toc: false
 summary: "Property Graph Query Language (PGQL) home - PGQL is an SQL-like language for querying graphs."
 tags:
   - graph
@@ -12,9 +13,12 @@ tags:
 header:
 #  overlay_image: hatfield.jpg
   overlay_image: graph.png
-  overlay_filter: rgba(180, 0, 0, 0.65)
+  overlay_filter: rgba(190, 0, 0, 0.65)
   cta_label: "Try It"
   cta_url: "http://www.oracle.com/technetwork/oracle-labs/parallel-graph-analytics/overview/index.html"
+
+theme:
+  name : bootstrap
 ---
 
 A Query Language for Property Graphs

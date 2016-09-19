@@ -1,0 +1,33 @@
+<!DOCTYPE html>
+<html lang="en">
+
+{% include head.html %}
+
+  <body>
+    {% include navbar.html %}
+    <div class="container {%if page.toc %} mainContent {% else %} {% if page.header.overlay_color or page.header.overlay_image or page.header.image %} mainContent-notoc {% else %} mainContent-notoc-nosplash {% endif %} {% endif %}">
+      {% if page.header.overlay_color or page.header.overlay_image or page.header.image %}
+        {% include page__hero.html %}
+      {% endif %}
+      <div class="row">
+        {% if page.toc %}
+          <!-- <div id="toc-holder" class="col-lg-3 col-md-4 col-sm-4"> -->
+            <nav id="toc"></nav>
+          <!-- </div> -->
+          <!-- <div class="col-lg-9 col-md-8 col-sm-8"> -->
+          <div id="contentBody" class="col-xs-10 col-lg-10 col-md-10 col-sm-10">
+        {% else %}
+          <div id="contentBody" class="col-xs-12 col-lg-12 col-md-12 col-sm-12">
+        {% endif %}
+          {{ content }}
+        </div>
+      </div>
+    {% include footer.html %}
+    </div>
+
+    {% include JB/analytics %}
+    <!-- <script src="{{ ASSET_PATH }}/resources/jquery/jquery.min.js"></script> -->
+    <script src="https://use.fontawesome.com/6f1c98cc36.js"></script>
+    <script src="{{ ASSET_PATH }}/resources/bootstrap/js/bootstrap.min.js"></script>
+  </body>
+</html>
