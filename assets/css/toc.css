@@ -110,11 +110,8 @@ footer {
   z-index: 10000;
 }
 
-.clickable-header {
-  cursor:pointer;
-}
 .clickable-header:hover {
-  text-decoration:underline;
+  text-decoration:none;
 }
 .top-level-header {
   display:inline;
@@ -193,11 +190,6 @@ footer {
   margin-bottom: 0.25em;
 }
 
-.tocitem_2 {
-  /*white-space: nowrap;*/
-}
-.tocitem .dropdown-menu {
-}
 .tocitem .dropdown-menu li {
   font-size: 0.85em;
   list-style-position: inside;
@@ -215,6 +207,7 @@ footer {
   color: #A17575;
   text-decoration: none;
   font-weight: bold;
+  cursor:pointer;
 }
 
 .tocitem ul li a {

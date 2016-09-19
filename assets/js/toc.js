@@ -24,7 +24,8 @@
 
     function createLink (header) {
       var innerText = (header.textContent === undefined) ? header.innerText : header.textContent;
-      return "<a href='#" + fixedEncodeURIComponent(header.id) + "'>" + innerText + "</a>";
+      var idMunged = fixedEncodeURIComponent(header.id);
+      return "<a class=\"toca\" id=\"_" + idMunged + "\" href='#" + idMunged + "'>" + innerText + "</a>";
     }
 
     var headers = $(settings.headers).filter(function() {
@@ -58,14 +59,17 @@
     var level = get_level(headers[0]);
     var openDiv = false;
     var this_level,
-      html = settings.title + "<" +settings.listType + " class=\"toclevel_" + level + " " + settings.classes.list +"\">";
+    html = settings.title + "<" +settings.listType + " class=\"toclevel_" + level + " " + settings.classes.list +"\">";
     headers.on('click', function() {
       if (!settings.noBackToTopLinks) {
         window.location.hash = this.id;
       }
     })
+    // .wrap("<a name='" + header.id + "'></a>")
     .addClass('clickable-header')
     .each(function(_, header) {
+      // Wrap in an actual a name
+      $('#' + header.id).wrap("<a name='" + header.id + "'></a>");
       this_level = get_level(header);
       if (!settings.noBackToTopLinks && this_level === highest_level) {
         $(header).addClass('top-level-header').after(return_to_top);
@@ -74,7 +78,6 @@
         html += "<li class=\"tocitem_" + this_level + " " + settings.classes.item + "\">" + createLink(header);
       else if (this_level <= level){ // higher level than before; end parent ol
         for(i = this_level; i < level; i++) {
-          console.log("Rewind " + i + " for " + header.id);
           html += "</li></"+settings.listType+">"
           if (i === settings.popupDepth-1 && openDiv) {
             html += '</div>';
@@ -97,7 +100,6 @@
       level = this_level; // update for the next one
     });
     html += "</"+settings.listType+">";
-    console.log(html);
     if (!settings.noBackToTopLinks) {
       $(document).on('click', '.back-to-top', function() {
         $(window).scrollTop(0);
@@ -106,5 +108,8 @@
     }
 
     render[settings.showEffect]();
+    $('.toca').on('click', function() {
+      window.location.hash = this.id.substring(1);
+    });
   };
 })(jQuery);
