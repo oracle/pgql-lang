@@ -18,7 +18,7 @@ description              : "PGQL - Property Graph Query Language"
 #url                      : http://localhost:4000/ # the base hostname & protocol for your site e.g. "https://mmistakes.github.io"
 #url                      : http://10.0.0.89:8080/ # the base hostname & protocol for your site e.g. "https://mmistakes.github.io"
 url			 : https://timboudreau.github.io
-baseurl                  : pgql-lang # the subpath of your site, e.g. "/blog"
+baseurl                  : /pgql-lang # the subpath of your site, e.g. "/blog"
 repository               : "oracle/pgql-lang" # GitHub username/repo-name e.g. "mmistakes/minimal-mistakes"
 teaser                   : # filename of teaser fallback teaser image placed in /images/, .e.g. "500x300.png"
 # breadcrumbs            : false # true, false (default)

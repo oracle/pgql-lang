@@ -1,6 +1,6 @@
 <head>
 <meta charset="utf-8">
-
+{% include base_path %}
 {% include seo.html %}
 
 <link href="{{ BASE_PATH }}{{ site.JB.atom_path }}" type="application/atom+xml" rel="alternate" title="{{ site.title }} ATOM Feed">
@@ -11,11 +11,12 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
 {% include JB/setup %}
-<link rel="stylesheet" href="{{ BASE_PATH }}/assets/themes/bootstrap/resources/bootstrap/css/bootstrap.min.css">
-<link rel="stylesheet" href="{{ BASE_PATH }}/assets/themes/bootstrap/css/style.css">
+<link rel="stylesheet" href="{{ base_path }}/assets/themes/bootstrap/resources/bootstrap/css/bootstrap.min.css">
+<link rel="stylesheet" href="{{ base_path }}/assets/themes/bootstrap/css/style.css">
 
 <!-- ASSET_PATH is {{ ASSET_PATH }}
-base_path is {{ BASE_PATH }}
+BASE_PATH is {{ BASE_PATH }}
+base_path is {{ base_path }}
 url is {{ url }}
 baseurl is {{ baseurl }}
 -->
