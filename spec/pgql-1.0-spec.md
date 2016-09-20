@@ -758,7 +758,7 @@ Logical | `AND`, `OR`, `NOT`, `!` | `SELECT * WHERE n --> m, n.start_line_num > 
 
 ### Operator Precedence
 
-Operator precedences are shown in the following list, from highest precedence to the lowest. An operator on a higher level is evaluated before an operator on a lower level.
+Operator precedences are shown in the following list, from highest precedence to the lowest. An operator on a higher level (e.g. level 1) is evaluated before an operator on a lower level (e.g. level 2).
 
 Level | Operator Precedence
 --- | ---
