@@ -57,6 +57,8 @@ public class Pgql {
   private final FileObject dummyProjectDir;
   private final IProject dummyProject;
 
+  private String randomFileName = UUID.randomUUID().toString() + ".pgql";
+
   /**
    * Loads PGQL Spoofax binaries if not done already.
    */
@@ -130,11 +132,11 @@ public class Pgql {
     }
   }
 
-  public PgqlResult parse(String queryString) throws PgqlException {
+  // this method is synchronized to avoid that different threads write to the same dummyFile concurrently
+  // also see http://yellowgrass.org/issue/SpoofaxWithCore/171
+  public synchronized PgqlResult parse(String queryString) throws PgqlException {
     FileObject dummyFile = null;
     try {
-      String randomFileName = UUID.randomUUID().toString() + ".pgql";
-
       dummyFile = VFS.getManager().resolveFile(dummyProjectDir, randomFileName);
       try (OutputStream out = dummyFile.getContent().getOutputStream()) {
         IOUtils.write(queryString.getBytes("UTF-8"), out);
