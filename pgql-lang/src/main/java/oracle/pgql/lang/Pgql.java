@@ -24,7 +24,7 @@ import org.metaborg.core.MetaborgException;
 import org.metaborg.core.analysis.AnalysisException;
 import org.metaborg.core.config.IProjectConfig;
 import org.metaborg.core.context.ContextException;
-import org.metaborg.core.context.IContext;
+import org.metaborg.core.context.ITemporaryContext;
 import org.metaborg.core.language.ILanguageComponent;
 import org.metaborg.core.language.ILanguageDiscoveryRequest;
 import org.metaborg.core.language.ILanguageImpl;
@@ -56,8 +56,6 @@ public class Pgql {
   private final ILanguageImpl pgqlLang;
   private final FileObject dummyProjectDir;
   private final IProject dummyProject;
-
-  private String randomFileName = UUID.randomUUID().toString() + ".pgql";
 
   /**
    * Loads PGQL Spoofax binaries if not done already.
@@ -132,11 +130,11 @@ public class Pgql {
     }
   }
 
-  // this method is synchronized to avoid that different threads write to the same dummyFile concurrently
-  // also see http://yellowgrass.org/issue/SpoofaxWithCore/171
-  public synchronized PgqlResult parse(String queryString) throws PgqlException {
+  public PgqlResult parse(String queryString) throws PgqlException {
+    ITemporaryContext context = null;
     FileObject dummyFile = null;
     try {
+      String randomFileName = UUID.randomUUID().toString() + ".pgql";
       dummyFile = VFS.getManager().resolveFile(dummyProjectDir, randomFileName);
       try (OutputStream out = dummyFile.getContent().getOutputStream()) {
         IOUtils.write(queryString.getBytes("UTF-8"), out);
@@ -151,7 +149,7 @@ public class Pgql {
       if (!queryValid) {
         prettyMessages = getMessages(parseResult.messages(), queryString);
       } else {
-        IContext context = spoofax.contextService.get(dummyFile, dummyProject, pgqlLang);
+        context = spoofax.contextService.getTemporary(dummyFile, dummyProject, pgqlLang);
         ISpoofaxAnalyzeUnit analysisResult = null;
         try (IClosableLock lock = context.write()) {
           analysisResult = spoofax.analysisService.analyze(parseResult, context).result();
@@ -169,6 +167,9 @@ public class Pgql {
     } catch (IOException | ParseException | AnalysisException | ContextException e) {
       throw new PgqlException("Failed to parse PGQL query", e);
     } finally {
+      if (context != null) {
+        context.close();
+      }
       quietlyDelete(dummyFile);
     }
   }
