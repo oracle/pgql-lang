@@ -3,10 +3,12 @@
  */
 package oracle.pgql.lang.ir;
 
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
@@ -313,6 +315,42 @@ public class PgqlUtils {
     return expAsVar.isAnonymous() ? exp : exp + " AS " + expAsVar.getName();
   }
 
+  /**
+   * Returns whether QueryPath a equals QueryPath b, ignoring source, destination vertices and path name.
+   */
+  private static boolean patternsEqual(QueryPath a, QueryPath b) {
+
+    if (a.isAnonymous() != b.isAnonymous()) {
+      return false;
+    }
+    if (a.isKleenePlus() != b.isKleenePlus()) {
+      return false;
+    }
+    if (a.getMaxRepetition() != b.getMaxRepetition()) {
+      return false;
+    }
+    if (!a.getVertices().equals(b.getVertices())) {
+      return false;
+    }
+    if (!a.getConnections().equals(b.getConnections())) {
+      return false;
+    }
+    if (!a.getDirections().equals(b.getDirections())) {
+      return false;
+    }
+    return a.getConstraints().equals(b.getConstraints());
+  }
+
+  private static int getPathId(QueryPath path, List<QueryPath> queryPaths) {
+    for (int i = 0; i < queryPaths.size(); i++) {
+      if (patternsEqual(path, queryPaths.get(i))) {
+        return i;
+      }
+    }
+    queryPaths.add(path);
+    return queryPaths.size() - 1;
+  }
+
   public static String printPgqlString(GraphPattern graphPattern) {
     String result = "WHERE\n";
 
@@ -322,7 +360,8 @@ public class PgqlUtils {
         constraints);
 
     Iterator<VertexPairConnection> it2 = graphPattern.getConnections().iterator();
-    int pathCounter = 0;
+
+    List<QueryPath> queryPaths = new ArrayList<>();
     while (it2.hasNext()) {
       VertexPairConnection connection = it2.next();
 
@@ -337,8 +376,9 @@ public class PgqlUtils {
           result += "]-> ";
           break;
         case PATH:
+          QueryPath path = (QueryPath) connection;
           result += " -/:type";
-          result += pathCounter;
+          result += getPathId(path, queryPaths);
           result += "*/-> ";
           break;
         default:
@@ -431,12 +471,20 @@ public class PgqlUtils {
 
   private static String printPathPatterns(GraphPattern graphPattern) {
     String result = "";
-    int counter = 0;
 
+    List<QueryPath> queryPaths = new ArrayList<>();
     for (VertexPairConnection connection : graphPattern.getConnections()) {
       if (connection.getVariableType() == VariableType.PATH) {
         QueryPath path = (QueryPath) connection;
-        result += "PATH type" + counter++ + " := ";
+        int numPathPatternsBefore = queryPaths.size();
+        int pathId = getPathId(path, queryPaths);
+        int numPathPatternsAfter = queryPaths.size();
+        if (numPathPatternsBefore != numPathPatternsAfter) {
+          // the path has already been printed
+          continue;
+        }
+
+        result += "PATH type" + pathId + " := ";
 
         Set<QueryExpression> constraints = new HashSet<>(path.getConstraints());
 
