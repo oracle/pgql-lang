@@ -3,8 +3,6 @@
  */
 package oracle.pgql.lang;
 
-import static oracle.pgql.lang.ir.PgqlUtils.getAggregations;
-
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
@@ -26,6 +24,8 @@ import oracle.pgql.lang.ir.OrderByElem;
 import oracle.pgql.lang.ir.Projection;
 import oracle.pgql.lang.ir.QueryEdge;
 import oracle.pgql.lang.ir.QueryExpression;
+import oracle.pgql.lang.ir.QueryExpression.ExpressionType;
+import oracle.pgql.lang.ir.QueryExpression.VarRef;;
 import oracle.pgql.lang.ir.QueryPath;
 import oracle.pgql.lang.ir.QueryPath.Direction;
 import oracle.pgql.lang.ir.QueryVariable;
@@ -133,7 +133,22 @@ public class SpoofaxAstToGraphQuery {
     // ORDER BY
     IStrategoTerm orderByT = ast.getSubterm(POS_ORDERBY);
     List<OrderByElem> orderByElems = getOrderByElems(inScopeVarsForOrderBy, inScopeInAggregationVars, orderByT);
-    OrderBy orderBy = new OrderBy(orderByElems);
+    
+    // remove references to select expressions, e.g. "SELECT x.p1 + x.p2 AS sum WHERE ... ORDER BY sum" => "SELECT x.p1 + x.p2 AS sum WHERE ... ORDER BY x.p1 + x.p2"
+    List<OrderByElem> orderByElemsNormalized = new ArrayList<>(orderByElems.size()); 
+    for (OrderByElem orderByElem : orderByElems) {
+      QueryExpression exp = orderByElem.getExp();
+      
+      if (exp.getExpType() == ExpressionType.VARREF && selectElems.contains(((VarRef) exp).getVariable())) {
+        int index = selectElems.indexOf(((VarRef) exp).getVariable());
+        QueryExpression newExp = selectElems.get(index).getExp();
+        OrderByElem newOrderByElem = new OrderByElem(newExp, orderByElem.isAscending());
+        orderByElemsNormalized.add(newOrderByElem);
+      } else {
+        orderByElemsNormalized.add(orderByElem);
+      }
+    }
+    OrderBy orderBy = new OrderBy(orderByElemsNormalized);
 
     // LIMIT OFFSET
     IStrategoTerm limitOffsetT = ast.getSubterm(POS_LIMITOFFSET);
