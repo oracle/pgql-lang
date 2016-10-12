@@ -22,16 +22,21 @@ rules
     Query(pathPatterns, expAsVars, fromClause, graphPattern, groupBy, orderBy, limitOffsets) ->
         Query(pathPatterns, expAsVars', fromClause, graphPattern, groupBy', orderBy', limitOffsets)
     with
-      if (!groupBy; ?Some(_)) + (!expAsVars; oncetd(is-aggregate))
+      if (!groupBy; ?Some(_)) + (!expAsVars; contains-aggregation)
       then
         expAsVars' := <to-VarRef-or-GroupRefs; to-ExpAsSelectVars> expAsVars
       ; orderBy' := <to-VarRef-or-SelectOrGroupRefs> orderBy
-      ; groupBy' := <to-ExpAsGroupVars> groupBy
+      ; if !expAsVars; contains-aggregation; !groupBy; ?None()
+        then groupBy' := CreateOneGroup() // create one group when there's no GROUP BY but SELECT has at least one aggregation
+        else groupBy' := <to-ExpAsGroupVars> groupBy
+        end
       else
         expAsVars' := expAsVars
       ; orderBy' := <to-VarOrSelectRefs> orderBy
       ; groupBy' := groupBy
       end
+
+  contains-aggregation = oncetd(is-aggregate)
 
   to-VarRef-or-GroupRefs = alltd(is-aggregate <+ ?VarRef(<id>); !GroupRef(<id>))
   to-VarRef-or-SelectOrGroupRefs = alltd(is-aggregate <+ ?VarRef(<id>); !SelectOrGroupRef(<id>))

@@ -12,6 +12,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
+import oracle.pgql.lang.ir.QueryExpression.Aggregation;
 import oracle.pgql.lang.ir.QueryExpression.ConstNull;
 import oracle.pgql.lang.ir.QueryExpression.PropertyAccess;
 import oracle.pgql.lang.ir.QueryExpression.VarRef;
@@ -203,6 +204,201 @@ public class PgqlUtils {
       @Override
       public void visit(AggrAvg aggrAvg) {
         aggrAvg.getExp().accept(this);
+      }
+
+      @Override
+      public void visit(Star star) {
+      }
+
+      @Override
+      public void visit(Regex regex) {
+        regex.getExp1().accept(this);
+        regex.getExp2().accept(this);
+      }
+
+      @Override
+      public void visit(Id id) {
+        id.getExp().accept(this);
+      }
+
+      @Override
+      public void visit(HasProp hasProp) {
+        hasProp.getExp1().accept(this);
+        hasProp.getExp2().accept(this);
+      }
+
+      @Override
+      public void visit(HasLabel hasLabel) {
+        hasLabel.getExp1().accept(this);
+        hasLabel.getExp2().accept(this);
+      }
+
+      @Override
+      public void visit(VertexLabels vertexLabels) {
+        vertexLabels.getExp().accept(this);
+      }
+
+      @Override
+      public void visit(InDegree inDegree) {
+        inDegree.getExp().accept(this);
+      }
+
+      @Override
+      public void visit(OutDegree outDegree) {
+        outDegree.getExp().accept(this);
+      }
+
+      @Override
+      public void visit(EdgeLabel edgeLabel) {
+        edgeLabel.getExp().accept(this);
+      }
+    });
+    return result;
+  }
+
+  public static Set<Aggregation> getAggregations(QueryExpression exp) {
+    final Set<Aggregation> result = new HashSet<>();
+    exp.accept(new QueryExpressionVisitor() {
+
+      @Override
+      public void visit(VarRef varRef) {
+      }
+
+      @Override
+      public void visit(PropertyAccess propAccess) {
+      }
+
+      @Override
+      public void visit(ConstInteger constInteger) {
+      }
+
+      @Override
+      public void visit(ConstDecimal constDecimal) {
+      }
+
+      @Override
+      public void visit(ConstString constString) {
+      }
+
+      @Override
+      public void visit(ConstBoolean constBoolean) {
+      }
+
+      @Override
+      public void visit(ConstNull constantNull) {
+      }
+
+      @Override
+      public void visit(Sub sub) {
+        sub.getExp1().accept(this);
+        sub.getExp2().accept(this);
+      }
+
+      @Override
+      public void visit(Add add) {
+        add.getExp1().accept(this);
+        add.getExp2().accept(this);
+      }
+
+      @Override
+      public void visit(Mul mul) {
+        mul.getExp1().accept(this);
+        mul.getExp2().accept(this);
+      }
+
+      @Override
+      public void visit(Div div) {
+        div.getExp1().accept(this);
+        div.getExp2().accept(this);
+      }
+
+      @Override
+      public void visit(Mod mod) {
+        mod.getExp1().accept(this);
+        mod.getExp2().accept(this);
+      }
+
+      @Override
+      public void visit(UMin uMin) {
+        uMin.getExp().accept(this);
+      }
+
+      @Override
+      public void visit(And and) {
+        and.getExp1().accept(this);
+        and.getExp2().accept(this);
+      }
+
+      @Override
+      public void visit(Or or) {
+        or.getExp1().accept(this);
+        or.getExp2().accept(this);
+      }
+
+      @Override
+      public void visit(Not not) {
+        not.getExp().accept(this);
+      }
+
+      @Override
+      public void visit(Equal equal) {
+        equal.getExp1().accept(this);
+        equal.getExp2().accept(this);
+      }
+
+      @Override
+      public void visit(NotEqual notEqual) {
+        notEqual.getExp1().accept(this);
+        notEqual.getExp2().accept(this);
+      }
+
+      @Override
+      public void visit(Greater greater) {
+        greater.getExp1().accept(this);
+        greater.getExp2().accept(this);
+      }
+
+      @Override
+      public void visit(GreaterEqual greaterEqual) {
+        greaterEqual.getExp1().accept(this);
+        greaterEqual.getExp2().accept(this);
+      }
+
+      @Override
+      public void visit(Less less) {
+        less.getExp1().accept(this);
+        less.getExp2().accept(this);
+      }
+
+      @Override
+      public void visit(LessEqual lessEqual) {
+        lessEqual.getExp1().accept(this);
+        lessEqual.getExp2().accept(this);
+      }
+
+      @Override
+      public void visit(AggrCount aggrCount) {
+        result.add(aggrCount);
+      }
+
+      @Override
+      public void visit(AggrMin aggrMin) {
+        result.add(aggrMin);
+      }
+
+      @Override
+      public void visit(AggrMax aggrMax) {
+        result.add(aggrMax);
+      }
+
+      @Override
+      public void visit(AggrSum aggrSum) {
+        result.add(aggrSum);
+      }
+
+      @Override
+      public void visit(AggrAvg aggrAvg) {
+        result.add(aggrAvg);
       }
 
       @Override

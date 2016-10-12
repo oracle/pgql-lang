@@ -3,30 +3,34 @@
  */
 package oracle.pgql.lang;
 
+import static oracle.pgql.lang.ir.PgqlUtils.getAggregations;
+
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
+import org.spoofax.interpreter.terms.IStrategoAppl;
+import org.spoofax.interpreter.terms.IStrategoString;
+import org.spoofax.interpreter.terms.IStrategoTerm;
+
 import oracle.pgql.lang.ir.ExpAsVar;
-import oracle.pgql.lang.ir.OrderByElem;
-import oracle.pgql.lang.ir.Projection;
-import oracle.pgql.lang.ir.QueryEdge;
-import oracle.pgql.lang.ir.QueryExpression;
 import oracle.pgql.lang.ir.GraphPattern;
 import oracle.pgql.lang.ir.GraphQuery;
 import oracle.pgql.lang.ir.GroupBy;
 import oracle.pgql.lang.ir.OrderBy;
+import oracle.pgql.lang.ir.OrderByElem;
+import oracle.pgql.lang.ir.Projection;
+import oracle.pgql.lang.ir.QueryEdge;
+import oracle.pgql.lang.ir.QueryExpression;
+import oracle.pgql.lang.ir.QueryPath;
+import oracle.pgql.lang.ir.QueryPath.Direction;
+import oracle.pgql.lang.ir.QueryVariable;
 import oracle.pgql.lang.ir.QueryVertex;
 import oracle.pgql.lang.ir.VertexPairConnection;
-import oracle.pgql.lang.ir.QueryPath.Direction;
-import oracle.pgql.lang.ir.QueryPath;
-import oracle.pgql.lang.ir.QueryVariable;
-import org.spoofax.interpreter.terms.IStrategoAppl;
-import org.spoofax.interpreter.terms.IStrategoString;
-import org.spoofax.interpreter.terms.IStrategoTerm;
 
 public class SpoofaxAstToGraphQuery {
 
@@ -87,16 +91,16 @@ public class SpoofaxAstToGraphQuery {
 
     // vertices
     IStrategoTerm verticesT = getList(graphPatternT.getSubterm(POS_VERTICES));
-    Map<String, QueryVariable> varmap = new HashMap<>(); // map from variable name to variable
-    Set<QueryVertex> vertices = new HashSet<>(getQueryVertices(verticesT, varmap));
+    Map<String, QueryVariable> vars = new HashMap<>(); // map from variable name to variable
+    Set<QueryVertex> vertices = new HashSet<>(getQueryVertices(verticesT, vars));
 
     // edges
     IStrategoTerm edgesT = getList(graphPatternT.getSubterm(POS_EDGES));
-    Set<QueryEdge> edges = new HashSet<>(getQueryEdges(edgesT, varmap));
+    Set<QueryEdge> edges = new HashSet<>(getQueryEdges(edgesT, vars));
 
     // paths
     IStrategoTerm pathsT = getList(graphPatternT.getSubterm(POS_PATHS));
-    Set<QueryPath> paths = getPaths(pathsT, pathPatternMap, varmap);
+    Set<QueryPath> paths = getPaths(pathsT, pathPatternMap, vars);
 
     // connections
     Set<VertexPairConnection> connections = new HashSet<>();
@@ -105,24 +109,30 @@ public class SpoofaxAstToGraphQuery {
 
     // constraints
     IStrategoTerm constraintsT = getList(graphPatternT.getSubterm(POS_CONSTRAINTS));
-    Set<QueryExpression> constraints = getQueryExpressions(constraintsT, varmap);
+    Set<QueryExpression> constraints = getQueryExpressions(constraintsT, vars);
 
     // graph pattern
     GraphPattern graphPattern = new GraphPattern(vertices, connections, constraints);
 
     // GROUP BY
     IStrategoTerm groupByT = ast.getSubterm(POS_GROUPBY);
-    List<ExpAsVar> groupByElems = getGroupByElems(varmap, groupByT);
+    Map<String, QueryVariable> groupKeys = new HashMap<>(); // map from variable name to variable
+    List<ExpAsVar> groupByElems = getGroupByElems(vars, groupKeys, groupByT);
     GroupBy groupBy = new GroupBy(groupByElems);
+    boolean createOneGroup = ((IStrategoAppl) groupByT).getConstructor().getName().equals("CreateOneGroup"); // create one group when there's no GROUP BY but SELECT has at least one aggregation
+    boolean changeScope = groupByElems.size() > 0 || createOneGroup;
+    Map<String, QueryVariable> inScopeVars = changeScope ? groupKeys : vars;
+    Map<String, QueryVariable> inScopeInAggregationVars = changeScope ? vars : Collections.<String, QueryVariable> emptyMap();
 
     // SELECT
     IStrategoTerm projectionT = ast.getSubterm(POS_PROJECTION);
-    List<ExpAsVar> selectElems = getSelectElems(varmap, projectionT);
+    HashMap<String, QueryVariable> inScopeVarsForOrderBy = new HashMap<String, QueryVariable>();
+    List<ExpAsVar> selectElems = getSelectElems(inScopeVars, inScopeInAggregationVars, inScopeVarsForOrderBy, projectionT);
     Projection projection = new Projection(selectElems);
 
     // ORDER BY
     IStrategoTerm orderByT = ast.getSubterm(POS_ORDERBY);
-    List<OrderByElem> orderByElems = getOrderByElems(varmap, orderByT);
+    List<OrderByElem> orderByElems = getOrderByElems(inScopeVarsForOrderBy, inScopeInAggregationVars, orderByT);
     OrderBy orderBy = new OrderBy(orderByElems);
 
     // LIMIT OFFSET
@@ -159,7 +169,7 @@ public class SpoofaxAstToGraphQuery {
       throws PgqlException {
     Set<QueryExpression> constraints = new HashSet<>(constraintsT.getSubtermCount());
     for (IStrategoTerm constraintT : constraintsT) {
-      QueryExpression exp = translateExp(constraintT, varmap);
+      QueryExpression exp = translateExp(constraintT, varmap, Collections.<String, QueryVariable> emptyMap());
       constraints.add(exp);
     }
     return constraints;
@@ -239,27 +249,27 @@ public class SpoofaxAstToGraphQuery {
     return result;
   }
 
-  private static List<ExpAsVar> getGroupByElems(Map<String, QueryVariable> varmap, IStrategoTerm groupByT)
+  private static List<ExpAsVar> getGroupByElems(Map<String, QueryVariable> inputVars, Map<String, QueryVariable> outputVars, IStrategoTerm groupByT)
       throws PgqlException {
-    if (!isNone(groupByT)) { // has GROUP BY
+    if (isSome(groupByT)) { // has GROUP BY
       IStrategoTerm groupByElemsT = getList(groupByT);
-      return getExpAsVars(varmap, groupByElemsT);
+      return getExpAsVars(inputVars, Collections.<String, QueryVariable> emptyMap(), outputVars, groupByElemsT);
     }
-    return new ArrayList<>();
+    return Collections.emptyList();
   }
 
-  private static List<ExpAsVar> getSelectElems(Map<String, QueryVariable> varmap, IStrategoTerm projectionT)
-      throws PgqlException {
-    return getExpAsVars(varmap, getList(projectionT));
+  private static List<ExpAsVar> getSelectElems(Map<String, QueryVariable> inScopeVars, Map<String, QueryVariable> inScopeInAggregationVars,
+      Map<String, QueryVariable> outputVars, IStrategoTerm projectionT) throws PgqlException {
+    outputVars.putAll(inScopeVars);
+    return getExpAsVars(inScopeVars, inScopeInAggregationVars, outputVars, getList(projectionT));
   }
 
-  private static List<ExpAsVar> getExpAsVars(Map<String, QueryVariable> varmap, IStrategoTerm expAsVarsT)
-      throws PgqlException {
+  private static List<ExpAsVar> getExpAsVars(Map<String, QueryVariable> inScopeVars, Map<String, QueryVariable> inScopeInAggregationVars,
+      Map<String, QueryVariable> outputVars, IStrategoTerm expAsVarsT) throws PgqlException {
     List<ExpAsVar> expAsVars = new ArrayList<>(expAsVarsT.getSubtermCount());
-    Map<String, QueryVariable> newVars = new HashMap<>();
     for (IStrategoTerm expAsVarT : expAsVarsT) {
       String varName = getString(expAsVarT.getSubterm(POS_EXPASVAR_VAR));
-      QueryExpression exp = translateExp(expAsVarT.getSubterm(POS_EXPASVAR_EXP), varmap);
+      QueryExpression exp = translateExp(expAsVarT.getSubterm(POS_EXPASVAR_EXP), inScopeVars, inScopeInAggregationVars);
 
       ExpAsVar expAsVar;
       switch (getConstructorName(expAsVarT)) {
@@ -276,21 +286,19 @@ public class SpoofaxAstToGraphQuery {
           throw new IllegalArgumentException("Unexpected term: " + expAsVarT);
       }
       
-      expAsVars.add(expAsVar); // only add the new variables at the end of the for-loop to make sure that expression
-                               // in the SELECT/GROUP BY clauses don't refer to variables defined in the same clause
-      newVars.put(varName, expAsVar);
+      expAsVars.add(expAsVar);
+      outputVars.put(varName, expAsVar);
     }
-    varmap.putAll(newVars);
     return expAsVars;
   }
 
-  private static List<OrderByElem> getOrderByElems(Map<String, QueryVariable> varmap, IStrategoTerm orderByT)
-      throws PgqlException {
+  private static List<OrderByElem> getOrderByElems(Map<String, QueryVariable> inScopeVars, Map<String, QueryVariable> inScopeInAggregationVars,
+      IStrategoTerm orderByT) throws PgqlException {
     List<OrderByElem> orderByElems = new ArrayList<>();
     if (!isNone(orderByT)) { // has ORDER BY
       IStrategoTerm orderByElemsT = getList(orderByT);
       for (IStrategoTerm orderByElemT : orderByElemsT) {
-        QueryExpression exp = translateExp(orderByElemT.getSubterm(POS_ORDERBY_EXP), varmap);
+        QueryExpression exp = translateExp(orderByElemT.getSubterm(POS_ORDERBY_EXP), inScopeVars, inScopeInAggregationVars);
         boolean ascending = ((IStrategoAppl) orderByElemT.getSubterm(POS_ORDERBY_ORDERING)).getConstructor().getName()
             .equals("Asc");
         orderByElems.add(new OrderByElem(exp, ascending));
@@ -307,67 +315,68 @@ public class SpoofaxAstToGraphQuery {
     return offset;
   }
 
-  private static QueryExpression translateExp(IStrategoTerm t, Map<String, QueryVariable> varmap) throws PgqlException {
+  private static QueryExpression translateExp(IStrategoTerm t, Map<String, QueryVariable> inScopeVars, Map<String,
+      QueryVariable> inScopeInAggregationVars) throws PgqlException {
     String cons = ((IStrategoAppl) t).getConstructor().getName();
 
     switch (cons) {
       case "Sub":
-        QueryExpression exp1 = translateExp(t.getSubterm(POS_BINARY_EXP_LEFT), varmap);
-        QueryExpression exp2 = translateExp(t.getSubterm(POS_BINARY_EXP_RIGHT), varmap);
+        QueryExpression exp1 = translateExp(t.getSubterm(POS_BINARY_EXP_LEFT), inScopeVars, inScopeInAggregationVars);
+        QueryExpression exp2 = translateExp(t.getSubterm(POS_BINARY_EXP_RIGHT), inScopeVars, inScopeInAggregationVars);
         return new QueryExpression.ArithmeticExpression.Sub(exp1, exp2);
       case "Add":
-        exp1 = translateExp(t.getSubterm(POS_BINARY_EXP_LEFT), varmap);
-        exp2 = translateExp(t.getSubterm(POS_BINARY_EXP_RIGHT), varmap);
+        exp1 = translateExp(t.getSubterm(POS_BINARY_EXP_LEFT), inScopeVars, inScopeInAggregationVars);
+        exp2 = translateExp(t.getSubterm(POS_BINARY_EXP_RIGHT), inScopeVars, inScopeInAggregationVars);
         return new QueryExpression.ArithmeticExpression.Add(exp1, exp2);
       case "Mul":
-        exp1 = translateExp(t.getSubterm(POS_BINARY_EXP_LEFT), varmap);
-        exp2 = translateExp(t.getSubterm(POS_BINARY_EXP_RIGHT), varmap);
+        exp1 = translateExp(t.getSubterm(POS_BINARY_EXP_LEFT), inScopeVars, inScopeInAggregationVars);
+        exp2 = translateExp(t.getSubterm(POS_BINARY_EXP_RIGHT), inScopeVars, inScopeInAggregationVars);
         return new QueryExpression.ArithmeticExpression.Mul(exp1, exp2);
       case "Div":
-        exp1 = translateExp(t.getSubterm(POS_BINARY_EXP_LEFT), varmap);
-        exp2 = translateExp(t.getSubterm(POS_BINARY_EXP_RIGHT), varmap);
+        exp1 = translateExp(t.getSubterm(POS_BINARY_EXP_LEFT), inScopeVars, inScopeInAggregationVars);
+        exp2 = translateExp(t.getSubterm(POS_BINARY_EXP_RIGHT), inScopeVars, inScopeInAggregationVars);
         return new QueryExpression.ArithmeticExpression.Div(exp1, exp2);
       case "Mod":
-        exp1 = translateExp(t.getSubterm(POS_BINARY_EXP_LEFT), varmap);
-        exp2 = translateExp(t.getSubterm(POS_BINARY_EXP_RIGHT), varmap);
+        exp1 = translateExp(t.getSubterm(POS_BINARY_EXP_LEFT), inScopeVars, inScopeInAggregationVars);
+        exp2 = translateExp(t.getSubterm(POS_BINARY_EXP_RIGHT), inScopeVars, inScopeInAggregationVars);
         return new QueryExpression.ArithmeticExpression.Mod(exp1, exp2);
       case "UMin":
-        QueryExpression exp = translateExp(t.getSubterm(POS_UNARY_EXP), varmap);
+        QueryExpression exp = translateExp(t.getSubterm(POS_UNARY_EXP), inScopeVars, inScopeInAggregationVars);
         return new QueryExpression.ArithmeticExpression.UMin(exp);
       case "And":
-        exp1 = translateExp(t.getSubterm(POS_BINARY_EXP_LEFT), varmap);
-        exp2 = translateExp(t.getSubterm(POS_BINARY_EXP_RIGHT), varmap);
+        exp1 = translateExp(t.getSubterm(POS_BINARY_EXP_LEFT), inScopeVars, inScopeInAggregationVars);
+        exp2 = translateExp(t.getSubterm(POS_BINARY_EXP_RIGHT), inScopeVars, inScopeInAggregationVars);
         return new QueryExpression.LogicalExpression.And(exp1, exp2);
       case "Or":
-        exp1 = translateExp(t.getSubterm(POS_BINARY_EXP_LEFT), varmap);
-        exp2 = translateExp(t.getSubterm(POS_BINARY_EXP_RIGHT), varmap);
+        exp1 = translateExp(t.getSubterm(POS_BINARY_EXP_LEFT), inScopeVars, inScopeInAggregationVars);
+        exp2 = translateExp(t.getSubterm(POS_BINARY_EXP_RIGHT), inScopeVars, inScopeInAggregationVars);
         return new QueryExpression.LogicalExpression.Or(exp1, exp2);
       case "Not":
-        exp = translateExp(t.getSubterm(POS_UNARY_EXP), varmap);
+        exp = translateExp(t.getSubterm(POS_UNARY_EXP), inScopeVars, inScopeInAggregationVars);
         return new QueryExpression.LogicalExpression.Not(exp);
       case "Eq":
-        exp1 = translateExp(t.getSubterm(POS_BINARY_EXP_LEFT), varmap);
-        exp2 = translateExp(t.getSubterm(POS_BINARY_EXP_RIGHT), varmap);
+        exp1 = translateExp(t.getSubterm(POS_BINARY_EXP_LEFT), inScopeVars, inScopeInAggregationVars);
+        exp2 = translateExp(t.getSubterm(POS_BINARY_EXP_RIGHT), inScopeVars, inScopeInAggregationVars);
         return new QueryExpression.RelationalExpression.Equal(exp1, exp2);
       case "Neq":
-        exp1 = translateExp(t.getSubterm(POS_BINARY_EXP_LEFT), varmap);
-        exp2 = translateExp(t.getSubterm(POS_BINARY_EXP_RIGHT), varmap);
+        exp1 = translateExp(t.getSubterm(POS_BINARY_EXP_LEFT), inScopeVars, inScopeInAggregationVars);
+        exp2 = translateExp(t.getSubterm(POS_BINARY_EXP_RIGHT), inScopeVars, inScopeInAggregationVars);
         return new QueryExpression.RelationalExpression.NotEqual(exp1, exp2);
       case "Gt":
-        exp1 = translateExp(t.getSubterm(POS_BINARY_EXP_LEFT), varmap);
-        exp2 = translateExp(t.getSubterm(POS_BINARY_EXP_RIGHT), varmap);
+        exp1 = translateExp(t.getSubterm(POS_BINARY_EXP_LEFT), inScopeVars, inScopeInAggregationVars);
+        exp2 = translateExp(t.getSubterm(POS_BINARY_EXP_RIGHT), inScopeVars, inScopeInAggregationVars);
         return new QueryExpression.RelationalExpression.Greater(exp1, exp2);
       case "Gte":
-        exp1 = translateExp(t.getSubterm(POS_BINARY_EXP_LEFT), varmap);
-        exp2 = translateExp(t.getSubterm(POS_BINARY_EXP_RIGHT), varmap);
+        exp1 = translateExp(t.getSubterm(POS_BINARY_EXP_LEFT), inScopeVars, inScopeInAggregationVars);
+        exp2 = translateExp(t.getSubterm(POS_BINARY_EXP_RIGHT), inScopeVars, inScopeInAggregationVars);
         return new QueryExpression.RelationalExpression.GreaterEqual(exp1, exp2);
       case "Lt":
-        exp1 = translateExp(t.getSubterm(POS_BINARY_EXP_LEFT), varmap);
-        exp2 = translateExp(t.getSubterm(POS_BINARY_EXP_RIGHT), varmap);
+        exp1 = translateExp(t.getSubterm(POS_BINARY_EXP_LEFT), inScopeVars, inScopeInAggregationVars);
+        exp2 = translateExp(t.getSubterm(POS_BINARY_EXP_RIGHT), inScopeVars, inScopeInAggregationVars);
         return new QueryExpression.RelationalExpression.Less(exp1, exp2);
       case "Lte":
-        exp1 = translateExp(t.getSubterm(POS_BINARY_EXP_LEFT), varmap);
-        exp2 = translateExp(t.getSubterm(POS_BINARY_EXP_RIGHT), varmap);
+        exp1 = translateExp(t.getSubterm(POS_BINARY_EXP_LEFT), inScopeVars, inScopeInAggregationVars);
+        exp2 = translateExp(t.getSubterm(POS_BINARY_EXP_RIGHT), inScopeVars, inScopeInAggregationVars);
         return new QueryExpression.RelationalExpression.LessEqual(exp1, exp2);
       case "Integer":
         try {
@@ -393,60 +402,60 @@ public class SpoofaxAstToGraphQuery {
       case "SelectOrGroupRef":
       case "VarOrSelectRef":
         String varName = getString(t);
-        QueryVariable var = varmap.get(varName);
+        QueryVariable var = inScopeVars.get(varName);
         if (var == null) {
           throw new PgqlException("Variable " + varName + " undefined");
         }
         return new QueryExpression.VarRef(var);
       case "PropRef":
         varName = getString(t.getSubterm(POS_PROPREF_VARNAME));
-        var = varmap.get(varName);
+        var = inScopeVars.get(varName);
         if (var == null) {
           throw new PgqlException("Variable " + varName + " undefined");
         }
         String propname = getString(t.getSubterm(POS_PROPREF_PROPNAME));
         return new QueryExpression.PropertyAccess(var, propname);
       case "Regex":
-        exp1 = translateExp(t.getSubterm(POS_BINARY_EXP_LEFT), varmap);
-        exp2 = translateExp(t.getSubterm(POS_BINARY_EXP_RIGHT), varmap);
+        exp1 = translateExp(t.getSubterm(POS_BINARY_EXP_LEFT), inScopeVars, inScopeInAggregationVars);
+        exp2 = translateExp(t.getSubterm(POS_BINARY_EXP_RIGHT), inScopeVars, inScopeInAggregationVars);
         return new QueryExpression.Function.Regex(exp1, exp2);
       case "Label":
-        exp = translateExp(t.getSubterm(POS_UNARY_EXP), varmap);
+        exp = translateExp(t.getSubterm(POS_UNARY_EXP), inScopeVars, inScopeInAggregationVars);
         return new QueryExpression.Function.EdgeLabel(exp);
       case "Labels":
-        exp = translateExp(t.getSubterm(POS_UNARY_EXP), varmap);
+        exp = translateExp(t.getSubterm(POS_UNARY_EXP), inScopeVars, inScopeInAggregationVars);
         return new QueryExpression.Function.VertexLabels(exp);
       case "Id":
-        exp = translateExp(t.getSubterm(POS_UNARY_EXP), varmap);
+        exp = translateExp(t.getSubterm(POS_UNARY_EXP), inScopeVars, inScopeInAggregationVars);
         return new QueryExpression.Function.Id(exp);
       case "Has":
-        exp1 = translateExp(t.getSubterm(POS_BINARY_EXP_LEFT), varmap);
-        exp2 = translateExp(t.getSubterm(POS_BINARY_EXP_RIGHT), varmap);
+        exp1 = translateExp(t.getSubterm(POS_BINARY_EXP_LEFT), inScopeVars, inScopeInAggregationVars);
+        exp2 = translateExp(t.getSubterm(POS_BINARY_EXP_RIGHT), inScopeVars, inScopeInAggregationVars);
         return new QueryExpression.Function.HasProp(exp1, exp2);
       case "HasLabel":
-        exp1 = translateExp(t.getSubterm(POS_BINARY_EXP_LEFT), varmap);
-        exp2 = translateExp(t.getSubterm(POS_BINARY_EXP_RIGHT), varmap);
+        exp1 = translateExp(t.getSubterm(POS_BINARY_EXP_LEFT), inScopeVars, inScopeInAggregationVars);
+        exp2 = translateExp(t.getSubterm(POS_BINARY_EXP_RIGHT), inScopeVars, inScopeInAggregationVars);
         return new QueryExpression.Function.HasLabel(exp1, exp2);
       case "InDegree":
-        exp = translateExp(t.getSubterm(POS_UNARY_EXP), varmap);
+        exp = translateExp(t.getSubterm(POS_UNARY_EXP), inScopeVars, inScopeInAggregationVars);
         return new QueryExpression.Function.InDegree(exp);
       case "OutDegree":
-        exp = translateExp(t.getSubterm(POS_UNARY_EXP), varmap);
+        exp = translateExp(t.getSubterm(POS_UNARY_EXP), inScopeVars, inScopeInAggregationVars);
         return new QueryExpression.Function.OutDegree(exp);
       case "COUNT":
-        exp = translateExp(t.getSubterm(POS_AGGREGATE_EXP), varmap);
+        exp = translateExp(t.getSubterm(POS_AGGREGATE_EXP), inScopeInAggregationVars, inScopeInAggregationVars);
         return new QueryExpression.Aggregation.AggrCount(exp);
       case "MIN":
-        exp = translateExp(t.getSubterm(POS_AGGREGATE_EXP), varmap);
+        exp = translateExp(t.getSubterm(POS_AGGREGATE_EXP), inScopeInAggregationVars, inScopeInAggregationVars);
         return new QueryExpression.Aggregation.AggrMin(exp);
       case "MAX":
-        exp = translateExp(t.getSubterm(POS_AGGREGATE_EXP), varmap);
+        exp = translateExp(t.getSubterm(POS_AGGREGATE_EXP), inScopeInAggregationVars, inScopeInAggregationVars);
         return new QueryExpression.Aggregation.AggrMax(exp);
       case "SUM":
-        exp = translateExp(t.getSubterm(POS_AGGREGATE_EXP), varmap);
+        exp = translateExp(t.getSubterm(POS_AGGREGATE_EXP), inScopeInAggregationVars, inScopeInAggregationVars);
         return new QueryExpression.Aggregation.AggrSum(exp);
       case "AVG":
-        exp = translateExp(t.getSubterm(POS_AGGREGATE_EXP), varmap);
+        exp = translateExp(t.getSubterm(POS_AGGREGATE_EXP), inScopeInAggregationVars, inScopeInAggregationVars);
         return new QueryExpression.Aggregation.AggrAvg(exp);
       case "Star":
         return new QueryExpression.Aggregation.Star();
@@ -474,6 +483,11 @@ public class SpoofaxAstToGraphQuery {
   // helper method
   private static boolean isNone(IStrategoTerm t) {
     return ((IStrategoAppl) t).getConstructor().getName().equals("None");
+  }
+
+  // helper method
+  private static boolean isSome(IStrategoTerm t) {
+    return ((IStrategoAppl) t).getConstructor().getName().equals("Some");
   }
 
   // helper method
