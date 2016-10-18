@@ -626,13 +626,13 @@ In the case a property access holds multiple types of data values, the following
 Consider the following data values:
 
 ```
-['Mary', 25, null, false, true, 'John', 3.5, 27.5]
+['Mary', 25, null, true, false, 'John', 3.5, 27.5]
 ```
 
 Applying the above rules to the values, will result in the following ordering:
 
 ```
-[3.5, 25, 27.5, 'John', 'Mary', true, false, null]
+[3.5, 25, 27.5, 'John', 'Mary', false, true, null]
 ```
 
 ## LIMIT and OFFSET
