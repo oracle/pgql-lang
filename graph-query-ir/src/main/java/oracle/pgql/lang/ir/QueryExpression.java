@@ -339,7 +339,7 @@ public interface QueryExpression {
 
       @Override
       public String toString() {
-        return "NOT(" + getExp() + ")";
+        return "!(" + getExp() + ")";
       }
 
       @Override
@@ -558,7 +558,7 @@ public interface QueryExpression {
 
       @Override
       public String toString() {
-        return "'" + value + "'";
+        return "'" + value.replace("\\", "\\\\").replace("'", "\\'") + "'";
       }
 
       @Override
@@ -638,7 +638,7 @@ public interface QueryExpression {
 
     @Override
     public String toString() {
-      return PgqlUtils.printPgqlString(this);
+      return PgqlUtils.printPgqlString(variable);
     }
 
     @Override
@@ -690,7 +690,7 @@ public interface QueryExpression {
 
     @Override
     public String toString() {
-      return (variable.isAnonymous() ? "" : variable.name) + "." + propertyName;
+      return PgqlUtils.printPgqlString(variable) + "." + propertyName;
     }
 
     @Override
@@ -737,7 +737,7 @@ public interface QueryExpression {
 
       @Override
       public String toString() {
-        return "(" + getExp1() + "=~" + getExp2() + ")";
+        return "(" + getExp1() + " =~ " + getExp2() + ")";
       }
 
       @Override

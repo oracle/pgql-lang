@@ -489,8 +489,7 @@ public class PgqlUtils {
     return result;
   }
 
-  public static String printPgqlString(VarRef varRef) {
-    QueryVariable variable = varRef.getVariable();
+  public static String printPgqlString(QueryVariable variable) {
     if (variable.getVariableType() == VariableType.EXP_AS_VAR) {
       ExpAsVar expAsVar = (ExpAsVar) variable;
       if (expAsVar.isAnonymous()) {
@@ -675,7 +674,7 @@ public class PgqlUtils {
         int numPathPatternsBefore = queryPaths.size();
         int pathId = getPathId(path, queryPaths);
         int numPathPatternsAfter = queryPaths.size();
-        if (numPathPatternsBefore != numPathPatternsAfter) {
+        if (numPathPatternsBefore == numPathPatternsAfter) {
           // the path has already been printed
           continue;
         }
