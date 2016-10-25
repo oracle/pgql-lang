@@ -13,29 +13,6 @@ imports
 
 rules
 
-  not-supported-expressions = collect-om(is-aggregate <+ is-function <+ is-expression <+ is-literal, conc); remove-all(is-aggregate + is-function)
-  not-supported-expressions-in-aggregration = collect-om(get-exp-from-aggregation, conc); filter(is-expression <+ is-literal)
-
-  // expressions in SELECT, ORDER BY need to be simple
-  nabl-constraint(|ctx):
-    t -> <fail>
-    where
-      <?ExpAsVars(_) + ?OrderByClause(_)> t
-    with
-      exps := <not-supported-expressions> t;
-      <batch-generate-error(|ctx, "Only simple expressions allowed here: variable, property access, aggregation or function call")> exps;
-      expsInAggr := <not-supported-expressions-in-aggregration> t;
-      <batch-generate-error(|ctx, "Only simple expressions allowed here: variable, property access or function call")> expsInAggr
-
-  // expressions in GROUP BY need to be simple
-  nabl-constraint(|ctx):
-    t@GroupByClause(_) -> <fail>
-    with
-      exps := <not-supported-expressions> t;
-      <batch-generate-error(|ctx, "Only simple expressions allowed here: variable, property access or function call")> exps;
-      aggregations := <collect-om(is-aggregate, conc)> t;
-      <batch-generate-error(|ctx, "Aggregation not allowed in GROUP BY")> aggregations
-
   nabl-constraint(|ctx):
     t -> <fail>
     where
@@ -53,14 +30,6 @@ rules
     t@Null() -> <fail>
     where
       <generate-error(|ctx, "NULL is not supported")> t
-
-rules
-
-  path-reference(|ctx):
-    VarRef(v) -> <fail>
-    where
-      var-is-path := <var-is-path(|ctx)> v;
-      <task-create-error-on-success(|ctx, var-is-path, $[Path variables not yet supported])> v
 
 rules // Not a connected graph, e.g. WHERE x -> y, x2 -> y2
   

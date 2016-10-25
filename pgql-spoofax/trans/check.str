@@ -107,12 +107,24 @@ rules
       <is-aggregate> t
     with
       aggrsInAggr := <get-arguments; collect-om(is-aggregate, conc)> t
-    ; <batch-generate-error(|ctx, "Nested aggregation is not allowed")> aggrsInAggr  
+    ; <batch-generate-error(|ctx, "Nested aggregation is not allowed")> aggrsInAggr
+
+  nabl-constraint(|ctx):
+    t@GroupByClause(_) -> <fail>
+    with
+      aggregations := <collect-om(is-aggregate, conc)> t;
+      <batch-generate-error(|ctx, "Aggregation not allowed in GROUP BY")> aggregations
 
   nabl-constraint(|ctx):
     e@Distinct() -> <fail>
     with
       <generate-error(|ctx, $[DISTINCT is not supported in PGQL 1.0])> e
+
+  path-reference(|ctx):
+    VarRef(v) -> <fail>
+    where
+      var-is-path := <var-is-path(|ctx)> v;
+      <task-create-error-on-success(|ctx, var-is-path, $[Path variables not yet supported in PGQL 1.0])> v
 
 rules // helper rules
 
