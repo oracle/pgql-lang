@@ -518,10 +518,7 @@ public class PgqlUtils {
     if (a.isAnonymous() != b.isAnonymous()) {
       return false;
     }
-    if (a.isKleenePlus() != b.isKleenePlus()) {
-      return false;
-    }
-    if (a.getMaxRepetition() != b.getMaxRepetition()) {
+    if (a.getDirections() != b.getDirections()) {
       return false;
     }
     if (!a.getVertices().equals(b.getVertices())) {
@@ -574,10 +571,22 @@ public class PgqlUtils {
           QueryPath path = (QueryPath) connection;
           result += " -/:type";
           result += getPathId(path, queryPaths);
-          result += "*/-> ";
+          switch (path.getRepetition()) {
+            case KLEENE_STAR:
+              result += "*";
+              break;
+            case KLEENE_PLUS:
+              result += "+";
+              break;
+            case NONE:
+              break;
+            default:
+              throw new UnsupportedOperationException();
+          }
+          result += "/-> ";
           break;
         default:
-          break;
+          throw new UnsupportedOperationException();
       }
 
       result += printVertex(connection.getDst(), vertexStrings);

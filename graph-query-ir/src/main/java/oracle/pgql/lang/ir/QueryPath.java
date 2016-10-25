@@ -13,6 +13,12 @@ public class QueryPath extends VertexPairConnection {
     INCOMING
   }
 
+  public enum Repetition {
+    KLEENE_STAR,
+    KLEENE_PLUS, // not yet used
+    NONE
+  }
+
   private final List<QueryVertex> vertices;
 
   private final List<VertexPairConnection> connections;
@@ -21,20 +27,17 @@ public class QueryPath extends VertexPairConnection {
 
   private final Set<QueryExpression> constraints;
 
-  private final boolean kleenePlus; // Kleene star if false
-
-  private final long maxRepetition; // -1 for unbounded repetition
+  private final Repetition repetition;
 
   public QueryPath(QueryVertex src, QueryVertex dst, List<QueryVertex> vertices, List<VertexPairConnection> connections,
-      List<Direction> directions, Set<QueryExpression> constraints, boolean kleenePlus, long maxRepetition, String name,
+      List<Direction> directions, Set<QueryExpression> constraints, Repetition repetition, String name,
       boolean anonymous) {
     super(src, dst, name, anonymous);
     this.vertices = vertices;
     this.connections = connections;
     this.directions = directions;
     this.constraints = constraints;
-    this.kleenePlus = kleenePlus;
-    this.maxRepetition = maxRepetition;
+    this.repetition = repetition;
   }
 
   public List<QueryVertex> getVertices() {
@@ -53,12 +56,8 @@ public class QueryPath extends VertexPairConnection {
     return constraints;
   }
 
-  public boolean isKleenePlus() {
-    return kleenePlus;
-  }
-
-  public long getMaxRepetition() {
-    return maxRepetition;
+  public Repetition getRepetition() {
+    return repetition;
   }
 
   @Override
@@ -89,10 +88,7 @@ public class QueryPath extends VertexPairConnection {
     if (!dst.equals(queryPath.dst)) {
       return false;
     }
-    if (kleenePlus != queryPath.kleenePlus) {
-      return false;
-    }
-    if (maxRepetition != queryPath.maxRepetition) {
+    if (repetition != queryPath.repetition) {
       return false;
     }
     if (!vertices.equals(queryPath.vertices)) {
@@ -118,8 +114,7 @@ public class QueryPath extends VertexPairConnection {
     result = 31 * result + connections.hashCode();
     result = 31 * result + directions.hashCode();
     result = 31 * result + constraints.hashCode();
-    result = 31 * result + (kleenePlus ? 1 : 0);
-    result = 31 * result + (int) (maxRepetition ^ (maxRepetition >>> 32));
+    result = 31 * result + repetition.hashCode();
     return result;
   }
 }

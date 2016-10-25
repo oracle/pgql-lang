@@ -28,6 +28,7 @@ import oracle.pgql.lang.ir.QueryEdge;
 import oracle.pgql.lang.ir.QueryExpression;
 import oracle.pgql.lang.ir.QueryPath;
 import oracle.pgql.lang.ir.QueryPath.Direction;
+import oracle.pgql.lang.ir.QueryPath.Repetition;
 import oracle.pgql.lang.ir.QueryVariable;
 import oracle.pgql.lang.ir.QueryVertex;
 import oracle.pgql.lang.ir.VertexPairConnection;
@@ -204,8 +205,8 @@ public class SpoofaxAstToGraphQuery {
 
       String pathPatternName = getString(pathT.getSubterm(POS_PATH_PATH_PATTERN));
 
-      boolean kleenePlus = false; // kleene plus not yet supported
-      long maxRepetition = -1; // max repetition not yet supported
+      boolean hasKleeneStar = isSome(pathT.getSubterm(POS_PATH_KLEENE_STAR));
+      Repetition repetition = hasKleeneStar ? Repetition.KLEENE_STAR : Repetition.NONE;
 
       IStrategoTerm pathPatternT = pathPatternMap.get(pathPatternName);
 
@@ -238,9 +239,9 @@ public class SpoofaxAstToGraphQuery {
       }
 
       QueryPath pathPattern = name.contains(GENERATED_VAR_SUBSTR)
-          ? new QueryPath(src, dst, vertices, connections, directions, constraints, kleenePlus, maxRepetition, name,
+          ? new QueryPath(src, dst, vertices, connections, directions, constraints, repetition, name,
           true)
-          : new QueryPath(src, dst, vertices, connections, directions, constraints, kleenePlus, maxRepetition, name,
+          : new QueryPath(src, dst, vertices, connections, directions, constraints, repetition, name,
               false);
 
       result.add(pathPattern);
