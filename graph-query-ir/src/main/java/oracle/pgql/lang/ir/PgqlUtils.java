@@ -21,7 +21,6 @@ import oracle.pgql.lang.ir.QueryExpression.Aggregation.AggrCount;
 import oracle.pgql.lang.ir.QueryExpression.Aggregation.AggrMax;
 import oracle.pgql.lang.ir.QueryExpression.Aggregation.AggrMin;
 import oracle.pgql.lang.ir.QueryExpression.Aggregation.AggrSum;
-import oracle.pgql.lang.ir.QueryExpression.Aggregation.Star;
 import oracle.pgql.lang.ir.QueryExpression.ArithmeticExpression.Add;
 import oracle.pgql.lang.ir.QueryExpression.ArithmeticExpression.Div;
 import oracle.pgql.lang.ir.QueryExpression.ArithmeticExpression.Mod;
@@ -49,6 +48,7 @@ import oracle.pgql.lang.ir.QueryExpression.RelationalExpression.GreaterEqual;
 import oracle.pgql.lang.ir.QueryExpression.RelationalExpression.Less;
 import oracle.pgql.lang.ir.QueryExpression.RelationalExpression.LessEqual;
 import oracle.pgql.lang.ir.QueryExpression.RelationalExpression.NotEqual;
+import oracle.pgql.lang.ir.QueryExpression.Star;
 import oracle.pgql.lang.ir.QueryPath.Direction;
 import oracle.pgql.lang.ir.QueryVariable.VariableType;
 

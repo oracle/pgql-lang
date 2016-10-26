@@ -1021,40 +1021,40 @@ public interface QueryExpression {
         v.visit(this);
       }
     }
+  }
 
-    class Star implements QueryExpression {
+  class Star implements QueryExpression {
 
-      @Override
-      public ExpressionType getExpType() {
-        return ExpressionType.STAR;
-      }
+    @Override
+    public ExpressionType getExpType() {
+      return ExpressionType.STAR;
+    }
 
-      @Override
-      public String toString() {
-        return "*";
-      }
+    @Override
+    public String toString() {
+      return "*";
+    }
 
-      @Override
-      public void accept(QueryExpressionVisitor v) {
-        v.visit(this);
-      }
+    @Override
+    public void accept(QueryExpressionVisitor v) {
+      v.visit(this);
+    }
 
-      @Override
-      public boolean equals(Object o) {
-        if (this == o) {
-          return true;
-        }
-        if (o == null || getClass() != o.getClass()) {
-          return false;
-        }
-
+    @Override
+    public boolean equals(Object o) {
+      if (this == o) {
         return true;
       }
-
-      @Override
-      public int hashCode() {
-        return 31;
+      if (o == null || getClass() != o.getClass()) {
+        return false;
       }
+
+      return true;
+    }
+
+    @Override
+    public int hashCode() {
+      return 31;
     }
   }
 }

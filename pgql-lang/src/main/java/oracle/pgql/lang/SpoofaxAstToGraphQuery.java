@@ -3,8 +3,6 @@
  */
 package oracle.pgql.lang;
 
-import static oracle.pgql.lang.ir.PgqlUtils.getAggregations;
-
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
@@ -459,7 +457,7 @@ public class SpoofaxAstToGraphQuery {
         exp = translateExp(t.getSubterm(POS_AGGREGATE_EXP), inScopeInAggregationVars, inScopeInAggregationVars);
         return new QueryExpression.Aggregation.AggrAvg(exp);
       case "Star":
-        return new QueryExpression.Aggregation.Star();
+        return new QueryExpression.Star();
       default:
         throw new UnsupportedOperationException("Expression unsupported: " + t);
     }
