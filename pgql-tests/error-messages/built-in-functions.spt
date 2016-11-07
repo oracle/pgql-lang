@@ -10,6 +10,3 @@ test inDegree() on edge 2 [[
 SELECT x WHERE (x) -[e WITH inDegree() > 3]-> (y)
 ]] 1 error /* Function is only defined for vertices */
 
-test hello [[
-select n AS p where (m)
-]] 1 error
