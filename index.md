@@ -24,15 +24,16 @@ Say we have a graph of TCP/IP connections on a computer network, and you want to
 one machine, from there into another, and from there into still another - you would query for that pattern like this:
 
 ```sql
-SELECT host1.id(), host2.id(), host3.id() WHERE                     /* choose what to return */
+SELECT host1.id(), host2.id(), host3.id()
+WHERE                                                               /* choose what to return */
     (host1) -[c1 WITH toPort = 22 and opened = true]-> (host2)      /* topology must match this pattern */
       -[connection2 WITH toPort = 22 and opened = true]-> (host3),
     connection1.bytes > 300,                                        /* meaningful amount of data was exchanged */
     connection2.bytes > 300,
     connection1.start < connection2.start,                          /* second connection within time-frame of first */
     connection2.start + connection2.duration < connection1.start + connection1.duration
-      GROUP BY host1.id(), host2.id(), host3.id()                   /* aggregate multiple matching connections */
-      ORDER BY DESC(connection1.when)                               /* reverse sort chronologically */
+GROUP BY host1.id(), host2.id(), host3.id()                   /* aggregate multiple matching connections */
+ORDER BY DESC(connection1.when)                               /* reverse sort chronologically */
 ```
 
 
