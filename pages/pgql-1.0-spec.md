@@ -70,7 +70,7 @@ QueryConnection     := QueryEdge |
 QueryEdge           := '->' | '<-' | '-->' | '<--' |
                        '-[' VariableName? LabelConstraint? InlinedConstraints? ']->' |
                        '<-[' VariableName? LabelConstraint? InlinedConstraints? ']-'
-LabelConstraint     := ':' {Label '|'}
+LabelConstraint     := ':' {Label '|'}+
 InlinedConstraints  := 'WITH' {InlinedConstraint ','}+
 ValueConstraint     := Expression // see Section Expressions
 InlinedConstraint   := Expression // see Section Expressions
@@ -150,7 +150,7 @@ Omit variable name in edge (alternative,  one dash) | `(n)->(m)`
 
 ### Disconnected Topology Constraints
 
-In the case the topology constraints form multiple groups of vertices and edges that a not connected to each other, the semantic is that the different groups are matched independently and that final result is produced by taking the Cartesian product of the result sets of the different groups. The following is an example of a query that will result in a Cartesian product.
+In the case the topology constraints form multiple groups of vertices and edges that are not connected to each other, the semantic is that the different groups are matched independently and that the final result is produced by taking the Cartesian product of the result sets of the different groups. The following is an example of a query that will result in a Cartesian product.
 
 ```
 SELECT *
@@ -420,7 +420,7 @@ Because the query has a `GROUP BY`, all group keys are returned: `n.name` and `m
 
 It is semantically valid to have a `SELECT *` in combination with a `WHERE` clause that has not a single variable definition. In such a case, the result set will still contain as many results (i.e. rows) as there are matches of the subgraph defined by the `WHERE` clause. However, each result (i.e. row) will have zero elements (i.e. columns). The following is an example of such a query.
 
-``
+```
 SELECT *
 WHERE
   (WITH type = 'Person') -> () -> ()
@@ -626,13 +626,13 @@ In the case a property access holds multiple types of data values, the following
 Consider the following data values:
 
 ```
-['Mary', 25, null, false, true, 'John', 3.5, 27.5]
+['Mary', 25, null, true, false, 'John', 3.5, 27.5]
 ```
 
 Applying the above rules to the values, will result in the following ordering:
 
 ```
-[3.5, 25, 27.5, 'John', 'Mary', true, false, null]
+[3.5, 25, 27.5, 'John', 'Mary', false, true, null]
 ```
 
 ## LIMIT and OFFSET
@@ -758,7 +758,7 @@ Logical | `AND`, `OR`, `NOT`, `!` | `SELECT * WHERE n --> m, n.start_line_num > 
 
 ### Operator Precedence
 
-Operator precedences are shown in the following list, from highest precedence to the lowest. An operator on a higher level is evaluated before an operator on a lower level.
+Operator precedences are shown in the following list, from highest precedence to the lowest. An operator on a higher level (e.g. level 1) is evaluated before an operator on a lower level (e.g. level 2).
 
 Level | Operator Precedence
 --- | ---
@@ -964,7 +964,7 @@ Note that the value of the literal is the same no matter if quotes are escaped o
 The following is the list of keywords in PGQL.
 
 ```
-PATH, SELECT, WHERE, AS, WITH, ORDER, GROUP, BY, ASC, DESC, LIMIT, OFFSET, AND, OR, true, false, null
+PATH, SELECT, WHERE, AS, WITH, ORDER, GROUP, BY, ASC, DESC, LIMIT, OFFSET, AND, OR, NOT, true, false, null
 ```
 
 There are certain restrictions when using keywords as variable or property name:
