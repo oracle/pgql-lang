@@ -55,17 +55,47 @@
 </head>
 <body>
 {% include topnav.html %}
+
+
+{% if page.url contains 'index.html' %}
+<div class="row">
+<div class="jumbotron jumbotron--overlay"
+  style=" background-image: linear-gradient(rgba(190, 0, 0, 0.65), rgba(190, 0, 0, 0.65)), url('images/graph.png');background-size: contain;"
+>
+    <div class="container">
+      <h1 class="page__title" itemprop="headline" style="color:white;font-size: 50px;">
+           PGQL · Property Graph Query Language
+      </h1>
+        <p class="page__lead" style="color:white;"><em>A SQL-like query language for graphs</em>
+</p>
+        <p><a href="http://www.oracle.com/technetwork/oracle-labs/parallel-graph-analytics/overview/index.html" class="pull-right btn btn-warning btn-lg">Try It</a></p>
+    </div>
+</div>
+</div>
+{% endif %}
+
+
 <!-- Page Content -->
 <div class="container">
-    <div class="col-lg-12">&nbsp;</div>
-    <!-- Content Row -->
-    <div class="row">
+  <div class="col-lg-12">&nbsp;</div>
+    {% if page.url contains 'index.html' %}
+      <!-- don't show the sidebar --!>
+    {% else %}
+
+      <!-- Content Row -->
+      <div class="row">
         <!-- Sidebar Column -->
         <div class="col-md-3">
 
           {% include sidebar.html %}
+    {% endif %}
     <!-- Content Column -->
+
+    {% if page.url contains 'index.html' %}
+    <div style="margin-top:290px;> <!-- make it span over the entire page -->
+    {% else %}
     <div class="col-md-9">
+    {% endif %}
         {{content}}
     </div>
     <!-- /.row -->

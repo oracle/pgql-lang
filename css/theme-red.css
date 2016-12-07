@@ -137,3 +137,14 @@ li.sidebarTitle {
     border-top-color: #FFFFFF;
     border-bottom-color: #FFFFFF;
 }
+
+.jumbotron {
+  text-shadow: -2px 2px 5px #884444;
+  position: absolute;
+  left: 0px;
+  width: 100%;
+}
+
+.jumbotron .btn {
+  text-shadow: none;
+}
