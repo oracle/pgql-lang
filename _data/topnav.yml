@@ -3,18 +3,34 @@
 topnav:
 - title: Topnav
   items:
-    - title: PGQL 1.0 Specification
+    - title: Specification
       url: /spec/1.0/
 
+- title: Topnav
+  items:
+    - title: Oracle PGX
+      external_url: http://www.oracle.com/technetwork/oracle-labs/parallel-graph-analytics/overview/index.html
+
+- title: Topnav
+  items:
+    - title: Parser
+      external_url: https://github.com/oracle/pgql-lang/
+
+- title: Topnav
+  items:
+    - title: White Paper
+      external_url: http://event.cwi.nl/grades/2016/07-VanRest.pdf
+
+
 #Topnav dropdowns
-topnav_dropdowns:
-- title: Topnav dropdowns
-  folders:
-    - title: PGQL Resources
-      folderitems:
-        - title: Github Repo
-          external_url: https://github.com/oracle/pgql-lang
-        - title: Oracle PGX
-          external_url: http://www.oracle.com/technetwork/oracle-labs/parallel-graph-analytics/overview/index.html
-        - title: Oracle Big Data Spatial and Graph
-          external_url: http://www.oracle.com/technetwork/database/database-technologies/bigdata-spatialandgraph/overview/index.html
+#topnav_dropdowns:
+#- title: Topnav dropdowns
+#  folders:
+#    - title: PGQL Resources
+#      folderitems:
+#        - title: Github Repo
+#          external_url: https://github.com/oracle/pgql-lang
+#        - title: Oracle PGX
+#          external_url: http://www.oracle.com/technetwork/oracle-labs/parallel-graph-analytics/overview/index.html
+#        - title: Oracle Big Data Spatial and Graph
+#          external_url: http://www.oracle.com/technetwork/database/database-technologies/bigdata-spatialandgraph/overview/index.html
