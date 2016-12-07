@@ -32,8 +32,8 @@ WHERE                                                               /* choose wh
     connection2.bytes > 300,
     connection1.start < connection2.start,                          /* second connection within time-frame of first */
     connection2.start + connection2.duration < connection1.start + connection1.duration
-GROUP BY host1.id(), host2.id(), host3.id()                   /* aggregate multiple matching connections */
-ORDER BY DESC(connection1.when)                               /* reverse sort chronologically */
+GROUP BY host1.id(), host2.id(), host3.id()                         /* aggregate multiple matching connections */
+ORDER BY DESC(connection1.when)                                     /* reverse sort chronologically */
 ```
 
 
