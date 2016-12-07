@@ -59,8 +59,8 @@ Vertex and Edge labels
 constraints in graphs where not all nodes represent the same thing:
 
 ```sql
-SELECT p WHERE (p:person) -[e:likes]-> (m:movie WITH title="Star Wars"),
-  (p) -[e:likes]-> (m:movie WITH title="Avatar")
+SELECT p WHERE (p:person) -[e:likes]-> (m:movie WITH title='Star Wars'),
+  (p) -[e:likes]-> (m:movie WITH title='Avatar')
 ```
 
 Regular Path Queries
