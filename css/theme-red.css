@@ -138,13 +138,43 @@ li.sidebarTitle {
     border-bottom-color: #FFFFFF;
 }
 
-.jumbotron {
+.pgql-jumbotron .btn {
+  text-shadow: none;
+}
+
+.pgql-jumbotron {
+  padding: 30px;
+  margin-bottom: 30px;
+  font-size: 21px;
+  font-weight: 200;
+  line-height: 2.1428571435;
+  color: inherit;
+  background-color: #bac9c2;
   text-shadow: -2px 2px 5px #884444;
-  position: absolute;
   left: 0px;
   width: 100%;
 }
-
-.jumbotron .btn {
-  text-shadow: none;
+.pgql-jumbotron h1 {
+  line-height: 1;
+  color: inherit;
 }
+.pgql-jumbotron p {
+  line-height: 1.4;
+}
+.container .pgql-jumbotron {
+  border-radius: 6px;
+}
+@media screen and (min-width: 768px) {
+  .pgql-jumbotron {
+    padding-top: 48px;
+    padding-bottom: 48px;
+  }
+  .container .pgql-jumbotron {
+    padding-left: 60px;
+    padding-right: 60px;
+  }
+  .pgql-jumbotron h1 {
+    font-size: 63px;
+  }
+}
+

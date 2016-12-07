@@ -59,7 +59,7 @@
 
 {% if page.url contains 'index.html' %}
 <div class="row">
-<div class="jumbotron jumbotron--overlay"
+<div class="pgql-jumbotron"
   style=" background-image: linear-gradient(rgba(190, 0, 0, 0.65), rgba(190, 0, 0, 0.65)), url('images/graph.png');background-size: contain;"
 >
     <div class="container">
@@ -78,6 +78,7 @@
 <!-- Page Content -->
 <div class="container">
   <div class="col-lg-12">&nbsp;</div>
+
     {% if page.url contains 'index.html' %}
       <!-- don't show the sidebar --!>
     {% else %}
@@ -92,7 +93,7 @@
     <!-- Content Column -->
 
     {% if page.url contains 'index.html' %}
-    <div style="margin-top:220px;> <!-- make it span over the entire page -->
+    <div style="margin-top:-80px;"> <!-- make it span over the entire page and don't put too much white space on top -->
     {% else %}
     <div class="col-md-9">
     {% endif %}
