@@ -165,3 +165,9 @@ rules // helper rules
   task-rewrite: ("VarIsVertex", VertexTy()) -> <id>
   task-rewrite: ("VarIsEdge", EdgeTy()) -> <id>
   task-rewrite: ("VarIsPath", PathTy()) -> <id>
+
+  // TODO
+  nabl-constraint(|ctx):
+    Or(_, PathPatternRef(p)) -> <fail>
+    where
+      <generate-error(|ctx, "Alternative path patterns not yet supported")> p

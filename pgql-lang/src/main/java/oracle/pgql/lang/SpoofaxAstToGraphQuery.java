@@ -7,6 +7,7 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -14,6 +15,7 @@ import java.util.Set;
 import org.spoofax.interpreter.terms.IStrategoAppl;
 import org.spoofax.interpreter.terms.IStrategoString;
 import org.spoofax.interpreter.terms.IStrategoTerm;
+import org.spoofax.terms.util.NotImplementedException;
 
 import oracle.pgql.lang.ir.ExpAsVar;
 import oracle.pgql.lang.ir.GraphPattern;
@@ -177,75 +179,90 @@ public class SpoofaxAstToGraphQuery {
   private static List<QueryEdge> getQueryEdges(IStrategoTerm edgesT, Map<String, QueryVariable> varmap) {
     List<QueryEdge> edges = new ArrayList<>(edgesT.getSubtermCount());
     for (IStrategoTerm edgeT : edgesT) {
-      String name = getString(edgeT.getSubterm(POS_EDGE_NAME));
-      String srcName = getString(edgeT.getSubterm(POS_EDGE_SRC));
-      String dstName = getString(edgeT.getSubterm(POS_EDGE_DST));
-
-      QueryVertex src = (QueryVertex) varmap.get(srcName);
-      QueryVertex dst = (QueryVertex) varmap.get(dstName);
-
-      QueryEdge edge = name.contains(GENERATED_VAR_SUBSTR)
-          ? new QueryEdge(src, dst, name, true)
-          : new QueryEdge(src, dst, name, false);
-
-      edges.add(edge);
-      varmap.put(name, edge);
+      edges.add(getQueryEdge(edgeT, varmap));
     }
     return edges;
+  }
+  
+  private static QueryEdge getQueryEdge(IStrategoTerm edgeT, Map<String, QueryVariable> varmap) {
+    String name = getString(edgeT.getSubterm(POS_EDGE_NAME));
+    String srcName = getString(edgeT.getSubterm(POS_EDGE_SRC));
+    String dstName = getString(edgeT.getSubterm(POS_EDGE_DST));
+
+    QueryVertex src = (QueryVertex) varmap.get(srcName);
+    QueryVertex dst = (QueryVertex) varmap.get(dstName);
+
+    QueryEdge edge = name.contains(GENERATED_VAR_SUBSTR)
+        ? new QueryEdge(src, dst, name, true)
+        : new QueryEdge(src, dst, name, false);
+
+    varmap.put(name, edge);
+    return edge;
   }
 
   private static Set<QueryPath> getPaths(IStrategoTerm pathsT, Map<String, IStrategoTerm> pathPatternMap,
       Map<String, QueryVariable> varmap) throws PgqlException {
     Set<QueryPath> result = new HashSet<>();
 
-    // for now, assume every RPQ has a Kleene star and that there is no nested Kleene star
     for (IStrategoTerm pathT : pathsT) {
-
-      String pathPatternName = getString(pathT.getSubterm(POS_PATH_PATH_PATTERN));
-
-      boolean hasKleeneStar = isSome(pathT.getSubterm(POS_PATH_KLEENE_STAR));
-      Repetition repetition = hasKleeneStar ? Repetition.KLEENE_STAR : Repetition.NONE;
-
-      IStrategoTerm pathPatternT = pathPatternMap.get(pathPatternName);
-
-      // vertices
-      IStrategoTerm verticesT = getList(pathPatternT.getSubterm(POS_PATH_PATTERN_VERTICES));
-      Map<String, QueryVariable> pathPatternVarmap = new HashMap<>(); // map from variable name to variable
-      List<QueryVertex> vertices = getQueryVertices(verticesT, pathPatternVarmap);
-
-      // edges
-      IStrategoTerm edgesT = getList(pathPatternT.getSubterm(POS_PATH_PATTERN_CONNECTIONS));
-      List<QueryEdge> edges = getQueryEdges(edgesT, pathPatternVarmap);
-      List<VertexPairConnection> connections = new ArrayList<>();
-      connections.addAll(edges);
-
-      // constraints
-      IStrategoTerm constraintsT = getList(pathPatternT.getSubterm(POS_PATH_PATTERN_CONSTRAINTS));
-      Set<QueryExpression> constraints = getQueryExpressions(constraintsT, pathPatternVarmap);
-
-      String srcName = getString(pathT.getSubterm(POS_PATH_SRC));
-      String dstName = getString(pathT.getSubterm(POS_PATH_DST));
-      String name = getString(pathT.getSubterm(POS_PATH_NAME));
-      QueryVertex src = (QueryVertex) varmap.get(srcName);
-      QueryVertex dst = (QueryVertex) varmap.get(dstName);
-
-      List<Direction> directions = new ArrayList<Direction>();
-      for (IStrategoTerm edgeT : edgesT) {
-        Direction direction = ((IStrategoAppl) edgeT.getSubterm(POS_EDGE_DIRECTION)).getConstructor().getName()
-            .equals("Outgoing") ? Direction.OUTGOING : Direction.INCOMING;
-        directions.add(direction);
-      }
-
-      QueryPath pathPattern = name.contains(GENERATED_VAR_SUBSTR)
-          ? new QueryPath(src, dst, vertices, connections, directions, constraints, repetition, name,
-          true)
-          : new QueryPath(src, dst, vertices, connections, directions, constraints, repetition, name,
-              false);
-
-      result.add(pathPattern);
+      result.add(getPath(pathT, pathPatternMap, varmap));
     }
 
     return result;
+  }
+  
+  private static QueryPath getPath(IStrategoTerm pathT, Map<String, IStrategoTerm> pathPatternMap,
+	      Map<String, QueryVariable> varmap) throws PgqlException {
+    String pathPatternName = getString(pathT.getSubterm(POS_PATH_PATH_PATTERN));
+
+    boolean hasKleeneStar = isSome(pathT.getSubterm(POS_PATH_KLEENE_STAR));
+    Repetition repetition = hasKleeneStar ? Repetition.KLEENE_STAR : Repetition.NONE;
+
+    IStrategoTerm pathPatternT = pathPatternMap.get(pathPatternName);
+
+    // vertices
+    IStrategoTerm verticesT = getList(pathPatternT.getSubterm(POS_PATH_PATTERN_VERTICES));
+    Map<String, QueryVariable> pathPatternVarmap = new HashMap<>(); // map from variable name to variable
+    List<QueryVertex> vertices = getQueryVertices(verticesT, pathPatternVarmap);
+
+    // connections
+    IStrategoTerm connectionsT = getList(pathPatternT.getSubterm(POS_PATH_PATTERN_CONNECTIONS));
+    List<VertexPairConnection> connections = new ArrayList<>();
+    for (IStrategoTerm connectionT : connectionsT) {
+      if (((IStrategoAppl) connectionT).getConstructor().getName().equals("Edge")) {
+    	connections.add(getQueryEdge(connectionT, pathPatternVarmap));
+      } else {
+    	connections.add(getPath(connectionT, pathPatternMap, pathPatternVarmap));
+      }
+    }
+
+    // directions
+    List<Direction> directions = new ArrayList<Direction>();
+    Iterator<QueryVertex> it1 = vertices.iterator();
+    Iterator<VertexPairConnection> it2 = connections.iterator();
+    while (it2.hasNext()) {
+      if (it1.next() == it2.next().getSrc()) {
+    	directions.add(Direction.OUTGOING);
+      } else {
+      	directions.add(Direction.INCOMING);
+      }
+    }
+
+    // constraints
+    IStrategoTerm constraintsT = getList(pathPatternT.getSubterm(POS_PATH_PATTERN_CONSTRAINTS));
+    Set<QueryExpression> constraints = getQueryExpressions(constraintsT, pathPatternVarmap);
+
+    String srcName = getString(pathT.getSubterm(POS_PATH_SRC));
+    String dstName = getString(pathT.getSubterm(POS_PATH_DST));
+    String name = getString(pathT.getSubterm(POS_PATH_NAME));
+    QueryVertex src = (QueryVertex) varmap.get(srcName);
+    QueryVertex dst = (QueryVertex) varmap.get(dstName);
+
+    QueryPath pathPattern = name.contains(GENERATED_VAR_SUBSTR)
+        ? new QueryPath(src, dst, vertices, connections, directions, constraints, repetition, name, true)
+        : new QueryPath(src, dst, vertices, connections, directions, constraints, repetition, name, false);
+
+    return pathPattern;
   }
 
   private static List<ExpAsVar> getGroupByElems(Map<String, QueryVariable> inputVars, Map<String, QueryVariable> outputVars, IStrategoTerm groupByT)

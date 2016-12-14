@@ -18,7 +18,6 @@ imports
   pp
   trans-for-nabl
   normalize
-  check-pgx-limitations
 
 rules // Analysis
 

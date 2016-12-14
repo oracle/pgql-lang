@@ -677,53 +677,76 @@ public class PgqlUtils {
     String result = "";
 
     List<QueryPath> queryPaths = new ArrayList<>();
-    for (VertexPairConnection connection : graphPattern.getConnections()) {
-      if (connection.getVariableType() == VariableType.PATH) {
-        QueryPath path = (QueryPath) connection;
-        int numPathPatternsBefore = queryPaths.size();
-        int pathId = getPathId(path, queryPaths);
-        int numPathPatternsAfter = queryPaths.size();
-        if (numPathPatternsBefore == numPathPatternsAfter) {
-          // the path has already been printed
-          continue;
-        }
-
-        result += "PATH type" + pathId + " := ";
-
-        Set<QueryExpression> constraints = new HashSet<>(path.getConstraints());
-
-        Map<QueryVertex, String> vertexStrings = getStringsForVerticesWithInlinedConstraints(path.getVertices(),
-            constraints);
-
-        Iterator<Direction> directionsIt = path.getDirections().iterator();
-        Iterator<QueryVertex> verticesIt = path.getVertices().iterator();
-
-        QueryVertex vertex = verticesIt.next();
-        result += printVertex(vertex, vertexStrings);
-        for (VertexPairConnection connection2 : path.getConnections()) {
-          Direction direction = directionsIt.next();
-
-          switch (connection2.getVariableType()) {
-            case EDGE:
-              QueryEdge edge = (QueryEdge) connection2;
-              result += direction == Direction.OUTGOING ? " -[" : " <-[";
-              result += printInlinedConstraints(constraints, edge);
-              result += direction == Direction.OUTGOING ? "]-> " : "]- ";
-              break;
-            case PATH:
-              throw new UnsupportedOperationException("nested Kleene star not yet supported");
-            default:
-              throw new UnsupportedOperationException("variable type not supported: " + connection2.getVariableType());
-          }
-
-          vertex = verticesIt.next();
-          result += printVertex(vertex, vertexStrings);
-        }
-
-        result += "\n";
-      }
+    printPathPatternsHelper(queryPaths, graphPattern.getConnections());
+    
+    for (QueryPath path : queryPaths) {
+      result += printPathPattern(path, queryPaths);
     }
 
+    return result;
+  }
+
+  private static void printPathPatternsHelper(List<QueryPath> queryPaths,
+      Collection<VertexPairConnection> connections) {
+    for (VertexPairConnection connection : connections) {
+      if (connection.getVariableType() == VariableType.PATH) {
+        QueryPath path = (QueryPath) connection;
+        queryPaths.add(path);
+        printPathPatternsHelper(queryPaths, path.getConnections());
+      }
+    }
+  }
+    
+  private static String printPathPattern(QueryPath path, List<QueryPath> queryPaths) {
+    int pathId = getPathId(path, queryPaths);
+	String result = "PATH type" + pathId + " := ";
+
+    Set<QueryExpression> constraints = new HashSet<>(path.getConstraints());
+
+    Map<QueryVertex, String> vertexStrings = getStringsForVerticesWithInlinedConstraints(path.getVertices(),
+        constraints);
+
+    Iterator<Direction> directionsIt = path.getDirections().iterator();
+    Iterator<QueryVertex> verticesIt = path.getVertices().iterator();
+
+    QueryVertex vertex = verticesIt.next();
+    result += printVertex(vertex, vertexStrings);
+    for (VertexPairConnection connection2 : path.getConnections()) {
+      Direction direction = directionsIt.next();
+
+      switch (connection2.getVariableType()) {
+        case EDGE:
+          QueryEdge edge = (QueryEdge) connection2;
+          result += direction == Direction.OUTGOING ? " -[" : " <-[";
+          result += printInlinedConstraints(constraints, edge);
+          result += direction == Direction.OUTGOING ? "]-> " : "]- ";
+          break;
+        case PATH:
+            QueryPath queryPath = (QueryPath) connection2;
+            result += direction == Direction.OUTGOING ? " -/" : " <-/";
+            result += "type" + getPathId(queryPath, queryPaths);
+            switch (path.getRepetition()) {
+              case KLEENE_STAR:
+                result += "*";
+                break;
+              case KLEENE_PLUS:
+                result += "+";
+                break;
+              case NONE:
+                break;
+              default:
+                throw new UnsupportedOperationException();
+            }
+            result += direction == Direction.OUTGOING ? "/-> " : "/- ";
+            break;
+        default:
+          throw new UnsupportedOperationException("variable type not supported: " + connection2.getVariableType());
+      }
+
+      vertex = verticesIt.next();
+      result += printVertex(vertex, vertexStrings);
+    }
+    result += "\n";
     return result;
   }
 
