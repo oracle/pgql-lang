@@ -18,6 +18,7 @@ imports
   pp
   trans-for-nabl
   normalize
+  check
 
 rules // Analysis
 
