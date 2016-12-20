@@ -20,6 +20,7 @@ import oracle.pgql.lang.ir.QueryExpression.Constant.ConstBoolean;
 import oracle.pgql.lang.ir.QueryExpression.Constant.ConstDecimal;
 import oracle.pgql.lang.ir.QueryExpression.Constant.ConstInteger;
 import oracle.pgql.lang.ir.QueryExpression.Constant.ConstString;
+import oracle.pgql.lang.ir.QueryExpression.Function.Cast;
 import oracle.pgql.lang.ir.QueryExpression.Function.EdgeLabel;
 import oracle.pgql.lang.ir.QueryExpression.Function.HasLabel;
 import oracle.pgql.lang.ir.QueryExpression.Function.HasProp;
@@ -114,4 +115,6 @@ public interface QueryExpressionVisitor {
 	  public void visit(OutDegree outDegree);
 
 	  public void visit(EdgeLabel edgeLabel);
+
+	  public void visit(Cast cast);
 }

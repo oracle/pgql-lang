@@ -18,7 +18,8 @@ public interface QueryExpression {
     ID, PROP_ACCESS, HAS_PROP, HAS_LABEL, // vertex/edges     note: HasProp/HasLabel will be removed in future
     // version (replaced by 'x.prop != NULL')
     VERTEX_LABELS, INDEGREE, OUTDEGREE, // vertex
-    EDGE_LABEL // edge
+    EDGE_LABEL, // edge
+    CAST
   }
 
   ExpressionType getExpType();
@@ -908,7 +909,42 @@ public interface QueryExpression {
         v.visit(this);
       }
     }
+
+    class Cast implements QueryExpression {
+
+      private final QueryExpression exp;
+      private final String targetTypeName;
+
+      public Cast(QueryExpression exp, String targetTypeName) {
+        this.exp = exp;
+        this.targetTypeName = targetTypeName;
+      }
+
+      public QueryExpression getExp() {
+        return exp;
+      }
+
+      public String getTargetTypeName() {
+        return targetTypeName;
+      }
+
+        @Override
+      public ExpressionType getExpType() {
+        return ExpressionType.CAST;
+      }
+
+      @Override
+      public String toString() {
+        return "CAST(" + exp + " AS " + targetTypeName + ")";
+      }
+
+      @Override
+      public void accept(QueryExpressionVisitor v) {
+        v.visit(this);
+      }
+    }
   }
+
 
   interface Aggregation extends QueryExpression {
 

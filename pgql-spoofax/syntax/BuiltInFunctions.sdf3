@@ -32,7 +32,11 @@ context-free syntax // vertices
 
   Exp.InDegree  = <<Exp>. inDegree()> {case-insensitive}
   Exp.OutDegree = <<Exp>. outDegree()> {case-insensitive}
-  
+
+context-free syntax
+
+  Exp.Cast = <CAST(<Exp> AS <UNQUOTED-STRING>)> {case-insensitive}
+
 context-free syntax // Aggregates
 
   Exp.COUNT        = <count(<Distinct?><StarOrExp>)> {case-insensitive}

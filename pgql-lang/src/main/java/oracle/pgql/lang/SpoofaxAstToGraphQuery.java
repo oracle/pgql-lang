@@ -15,7 +15,6 @@ import java.util.Set;
 import org.spoofax.interpreter.terms.IStrategoAppl;
 import org.spoofax.interpreter.terms.IStrategoString;
 import org.spoofax.interpreter.terms.IStrategoTerm;
-import org.spoofax.terms.util.NotImplementedException;
 
 import oracle.pgql.lang.ir.ExpAsVar;
 import oracle.pgql.lang.ir.GraphPattern;
@@ -79,6 +78,8 @@ public class SpoofaxAstToGraphQuery {
   private static final int POS_AGGREGATE_EXP = 1;
   private static final int POS_PROPREF_VARNAME = 0;
   private static final int POS_PROPREF_PROPNAME = 1;
+  private static final int POS_CAST_EXP = 0;
+  private static final int POS_CAST_TARGET_TYPE_NAME = 1;
 
   public static GraphQuery translate(IStrategoTerm ast) throws PgqlException {
 
@@ -458,6 +459,10 @@ public class SpoofaxAstToGraphQuery {
       case "OutDegree":
         exp = translateExp(t.getSubterm(POS_UNARY_EXP), inScopeVars, inScopeInAggregationVars);
         return new QueryExpression.Function.OutDegree(exp);
+      case "Cast":
+        exp = translateExp(t.getSubterm(POS_CAST_EXP), inScopeVars, inScopeInAggregationVars);
+        String targetTypeName = getString(t.getSubterm(POS_CAST_TARGET_TYPE_NAME));
+        return new QueryExpression.Function.Cast(exp, targetTypeName);
       case "COUNT":
         exp = translateExp(t.getSubterm(POS_AGGREGATE_EXP), inScopeInAggregationVars, inScopeInAggregationVars);
         return new QueryExpression.Aggregation.AggrCount(exp);

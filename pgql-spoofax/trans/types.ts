@@ -46,3 +46,5 @@ type rules // built-in functions
   t@Id(exp) : IntegerTy()
   where exp : ty
     and (ty == VertexTy() or ty == EdgeTy()) else error $[Function only defined for vertices and edges] on t
+
+  Cast(_, _): UnknownTy()

@@ -31,6 +31,7 @@ import oracle.pgql.lang.ir.QueryExpression.Constant.ConstBoolean;
 import oracle.pgql.lang.ir.QueryExpression.Constant.ConstDecimal;
 import oracle.pgql.lang.ir.QueryExpression.Constant.ConstInteger;
 import oracle.pgql.lang.ir.QueryExpression.Constant.ConstString;
+import oracle.pgql.lang.ir.QueryExpression.Function.Cast;
 import oracle.pgql.lang.ir.QueryExpression.Function.EdgeLabel;
 import oracle.pgql.lang.ir.QueryExpression.Function.HasLabel;
 import oracle.pgql.lang.ir.QueryExpression.Function.HasProp;
@@ -252,6 +253,11 @@ public class PgqlUtils {
       public void visit(EdgeLabel edgeLabel) {
         edgeLabel.getExp().accept(this);
       }
+
+      @Override
+      public void visit(Cast cast) {
+        cast.getExp().accept(this);
+      }
     });
     return result;
   }
@@ -446,6 +452,11 @@ public class PgqlUtils {
       @Override
       public void visit(EdgeLabel edgeLabel) {
         edgeLabel.getExp().accept(this);
+      }
+
+      @Override
+      public void visit(Cast cast) {
+        cast.getExp().accept(this);
       }
     });
     return result;
@@ -699,7 +710,7 @@ public class PgqlUtils {
     
   private static String printPathPattern(QueryPath path, List<QueryPath> queryPaths) {
     int pathId = getPathId(path, queryPaths);
-	String result = "PATH type" + pathId + " := ";
+    String result = "PATH type" + pathId + " := ";
 
     Set<QueryExpression> constraints = new HashSet<>(path.getConstraints());
 
