@@ -8,8 +8,8 @@ dependencies:
   - org.metaborg:org.metaborg.meta.lang.template:${metaborgVersion}
   - org.metaborg:org.metaborg.meta.lang.nabl:${metaborgVersion}
   - org.metaborg:org.metaborg.meta.lang.ts:${metaborgVersion}
-  - org.metaborg:org.metaborg.meta.lang.stratego:${metaborgVersion}
   source:
+  - org.metaborg:meta.lib.spoofax:${metaborgVersion}
   - org.metaborg:org.metaborg.meta.lib.analysis:${metaborgVersion}
 pardonedLanguages:
 - EditorService
