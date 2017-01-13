@@ -3,9 +3,10 @@ module pp
 imports
 
   libstratego-gpp
-  runtime/refactoring/-
   pp/pgql-lang-parenthesize
   pp/pgql-lang-pp
+  libspoofax/sdf/pp
+  libspoofax/editor/refactoring/-
 
 rules
 

@@ -3,8 +3,7 @@ module outline
 imports
   
   signatures/pgql-lang-sig
-  runtime/editor/outline-library
-  runtime/editor/origins
+  libspoofax/editor/outline
 
 rules
   

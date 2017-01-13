@@ -2,7 +2,7 @@ module Syntax
 
 imports 
 
-  editor/Colorer.generated
+  libspoofax/color/default
   completion/colorer/pgql-lang-cc-esv
 
 language
