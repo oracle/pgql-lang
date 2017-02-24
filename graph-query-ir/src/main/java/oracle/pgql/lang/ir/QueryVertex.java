@@ -8,7 +8,7 @@ public class QueryVertex extends QueryVariable {
   public QueryVertex(String name, boolean anonymous) {
     super(name, anonymous);
   }
-  
+
   @Override
   public VariableType getVariableType() {
     return VariableType.VERTEX;

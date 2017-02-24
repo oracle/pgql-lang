@@ -9,10 +9,13 @@ public abstract class VertexPairConnection extends QueryVariable {
 
   protected final QueryVertex dst;
 
-  public VertexPairConnection(QueryVertex src, QueryVertex dst, String name, boolean anonymous) {
+  protected final boolean undirected;
+
+  public VertexPairConnection(QueryVertex src, QueryVertex dst, String name, boolean anonymous, boolean undirected) {
     super(name, anonymous);
     this.src = src;
     this.dst = dst;
+    this.undirected = undirected;
   }
 
   public QueryVertex getSrc() {
@@ -23,28 +26,41 @@ public abstract class VertexPairConnection extends QueryVariable {
     return dst;
   }
 
-  @Override
-  public boolean equals(Object o) {
-    if (this == o) {
-      return true;
-    }
-    if (o == null || getClass() != o.getClass()) {
-      return false;
-    }
-
-    VertexPairConnection that = (VertexPairConnection) o;
-
-    if (!src.equals(that.src)) {
-      return false;
-    }
-    return dst.equals(that.dst);
-
+  public boolean isUndirected() {
+    return undirected;
   }
 
   @Override
   public int hashCode() {
-    int result = src.hashCode();
-    result = 31 * result + dst.hashCode();
+    final int prime = 31;
+    int result = super.hashCode();
+    result = prime * result + ((dst == null) ? 0 : dst.hashCode());
+    result = prime * result + ((src == null) ? 0 : src.hashCode());
+    result = prime * result + (undirected ? 1231 : 1237);
     return result;
+  }
+
+  @Override
+  public boolean equals(Object obj) {
+    if (this == obj)
+      return true;
+    if (!super.equals(obj))
+      return false;
+    if (getClass() != obj.getClass())
+      return false;
+    VertexPairConnection other = (VertexPairConnection) obj;
+    if (dst == null) {
+      if (other.dst != null)
+        return false;
+    } else if (!dst.equals(other.dst))
+      return false;
+    if (src == null) {
+      if (other.src != null)
+        return false;
+    } else if (!src.equals(other.src))
+      return false;
+    if (undirected != other.undirected)
+      return false;
+    return true;
   }
 }

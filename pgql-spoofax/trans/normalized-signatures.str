@@ -1,7 +1,7 @@
 module normalized-signatures
 
 signature constructors // for type checking (see trans/types.ts)
-  
+
   VertexTy : VertexTy
   EdgeTy : EdgeTy
   PathTy : PathTy
@@ -13,7 +13,7 @@ signature constructors // for type checking (see trans/types.ts)
   UnknownTy : UnknownTy
 
 signature constructors // for the normalized AST (see trans/normalize.str)
-  
+
   PathPatterns         : List(PathPattern) -> PathPatterns
   PathPattern          : PATHPATTERNNAME * Vertices * Connections * Constraints -> PathPattern
   GraphPattern         : Vertices * Edges * Paths * Constraints -> GraphPattern
@@ -22,10 +22,11 @@ signature constructors // for the normalized AST (see trans/normalize.str)
   Edges                : List(Edge) -> Edges
   Edge                 : Var * Var * Var * Direction -> Edge
   Paths                : List(Path) -> Paths
-  Path                 : Var * Var * PathPatternRef * Option(KleeneStar) * Var -> Path
+  Path                 : Var * Var * PathPatternRef * Option(KleeneStar) * Var * Direction -> Path
   Constraints          : List(Exp) -> Constraints
   Incoming             : Direction
   Outgoing             : Direction
+  Undirected           : Direction
 
   Vars                 : List(Var) -> Vars
   ExpAsVar             : VarDef * Exp -> ExpAsVar
@@ -40,7 +41,7 @@ signature constructors // for the normalized AST (see trans/normalize.str)
   Contains             : Exp * Exp -> Exp
 
 signature constructors // for name binding (see trans/trans-for-nabl.str)
-    
+
   SelectOrGroupRef       : Var -> SelectOrGroupRef
   GroupRef               : Var -> GroupRef
   ExpAsGroupVar          : Var * Exp -> ExpAsGroupVar
@@ -50,6 +51,6 @@ signature constructors // for name binding (see trans/trans-for-nabl.str)
   CreateOneGroup         : CreateOneGroup
 
 signature constructors // for error checking (see trans/check.str)
-  
+
   ReferenceInInlinedConstraint : Var -> ReferenceInInlinedConstraint
   CrossReferenceInInlinedConstraint : Var -> CrossReferenceInInlinedConstraint

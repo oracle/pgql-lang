@@ -8,6 +8,7 @@ import java.util.Set;
 
 public class QueryPath extends VertexPairConnection {
 
+  @Deprecated
   public enum Direction {
     OUTGOING,
     INCOMING
@@ -31,8 +32,8 @@ public class QueryPath extends VertexPairConnection {
 
   public QueryPath(QueryVertex src, QueryVertex dst, List<QueryVertex> vertices, List<VertexPairConnection> connections,
       List<Direction> directions, Set<QueryExpression> constraints, Repetition repetition, String name,
-      boolean anonymous) {
-    super(src, dst, name, anonymous);
+      boolean anonymous, boolean undirected) {
+    super(src, dst, name, anonymous, undirected);
     this.vertices = vertices;
     this.connections = connections;
     this.directions = directions;
@@ -48,6 +49,13 @@ public class QueryPath extends VertexPairConnection {
     return connections;
   }
 
+  /**
+   * Use {@link #getSrc()} or {@link #getDst()} of connections instead.
+   * For example: PATH pattern := (n) -[e1]-> (m) <-[e2]- (o)
+   * e1.getSrc() -> (n) ==> direction is outgoing
+   * e2.getSrc() -> (o) ==> direction is incoming
+   */
+  @Deprecated
   public List<Direction> getDirections() {
     return directions;
   }
@@ -66,55 +74,48 @@ public class QueryPath extends VertexPairConnection {
   }
 
   @Override
-  public boolean equals(Object o) {
-    if (this == o) {
-      return true;
-    }
-    if (o == null || getClass() != o.getClass()) {
-      return false;
-    }
-
-    QueryPath queryPath = (QueryPath) o;
-
-    if (anonymous != queryPath.anonymous) {
-      return false;
-    }
-    if (!name.equals(queryPath.name)) {
-      return false;
-    }
-    if (!src.equals(queryPath.src)) {
-      return false;
-    }
-    if (!dst.equals(queryPath.dst)) {
-      return false;
-    }
-    if (repetition != queryPath.repetition) {
-      return false;
-    }
-    if (!vertices.equals(queryPath.vertices)) {
-      return false;
-    }
-    if (!connections.equals(queryPath.connections)) {
-      return false;
-    }
-    if (!directions.equals(queryPath.directions)) {
-      return false;
-    }
-    return constraints.equals(queryPath.constraints);
-
+  public int hashCode() {
+    final int prime = 31;
+    int result = super.hashCode();
+    result = prime * result + ((connections == null) ? 0 : connections.hashCode());
+    result = prime * result + ((constraints == null) ? 0 : constraints.hashCode());
+    result = prime * result + ((directions == null) ? 0 : directions.hashCode());
+    result = prime * result + ((repetition == null) ? 0 : repetition.hashCode());
+    result = prime * result + ((vertices == null) ? 0 : vertices.hashCode());
+    return result;
   }
 
   @Override
-  public int hashCode() {
-    int result = (anonymous ? 1 : 0);
-    result = 31 * result + name.hashCode();
-    result = 31 * result + src.hashCode();
-    result = 31 * result + dst.hashCode();
-    result = 31 * result + vertices.hashCode();
-    result = 31 * result + connections.hashCode();
-    result = 31 * result + directions.hashCode();
-    result = 31 * result + constraints.hashCode();
-    result = 31 * result + repetition.hashCode();
-    return result;
+  public boolean equals(Object obj) {
+    if (this == obj)
+      return true;
+    if (!super.equals(obj))
+      return false;
+    if (getClass() != obj.getClass())
+      return false;
+    QueryPath other = (QueryPath) obj;
+    if (connections == null) {
+      if (other.connections != null)
+        return false;
+    } else if (!connections.equals(other.connections))
+      return false;
+    if (constraints == null) {
+      if (other.constraints != null)
+        return false;
+    } else if (!constraints.equals(other.constraints))
+      return false;
+    if (directions == null) {
+      if (other.directions != null)
+        return false;
+    } else if (!directions.equals(other.directions))
+      return false;
+    if (repetition != other.repetition)
+      return false;
+    if (vertices == null) {
+      if (other.vertices != null)
+        return false;
+    } else if (!vertices.equals(other.vertices))
+      return false;
+    return true;
   }
 }

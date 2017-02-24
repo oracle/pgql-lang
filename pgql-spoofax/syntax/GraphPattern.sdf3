@@ -30,8 +30,10 @@ context-free syntax
   EdgeVertex.EdgeVertex = < <Connection> <Vertex>>
   Connection.OutConn = [-[EdgeContents?]->]
   Connection.InConn = [<-[EdgeContents?]-]
+  Connection.InOrOutConn = [-[EdgeContents?]-]
   Connection.OutEdge = [->]
   Connection.InEdge = [<-]
+  Connection.InOrOutEdge = [-]
   
   EdgeContents.EdgeContents = <[<ElemContents>]>
   EdgeContents.Path = </<VARNAME?>:<AltPath><KleeneStar?>/>

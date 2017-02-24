@@ -50,7 +50,6 @@ import oracle.pgql.lang.ir.QueryExpression.RelationalExpression.Less;
 import oracle.pgql.lang.ir.QueryExpression.RelationalExpression.LessEqual;
 import oracle.pgql.lang.ir.QueryExpression.RelationalExpression.NotEqual;
 import oracle.pgql.lang.ir.QueryExpression.Star;
-import oracle.pgql.lang.ir.QueryPath.Direction;
 import oracle.pgql.lang.ir.QueryVariable.VariableType;
 
 public class PgqlUtils {
@@ -507,8 +506,7 @@ public class PgqlUtils {
         // e.g. in "SELECT x.inDegree() WHERE (n) GROUP BY x.inDegree()", the SELECT expression "x.inDegree()"
         // is a VarRef to the anonymous GROUP BY expression "x.inDegree()"
         return expAsVar.getExp().toString();
-      }
-      else {
+      } else {
         return variable.name;
       }
     }
@@ -529,16 +527,10 @@ public class PgqlUtils {
     if (a.isAnonymous() != b.isAnonymous()) {
       return false;
     }
-    if (a.getDirections() != b.getDirections()) {
-      return false;
-    }
     if (!a.getVertices().equals(b.getVertices())) {
       return false;
     }
     if (!a.getConnections().equals(b.getConnections())) {
-      return false;
-    }
-    if (!a.getDirections().equals(b.getDirections())) {
       return false;
     }
     return a.getConstraints().equals(b.getConstraints());
@@ -576,7 +568,7 @@ public class PgqlUtils {
           QueryEdge edge = (QueryEdge) connection;
           result += " -[";
           result += printInlinedConstraints(constraints, edge);
-          result += "]-> ";
+          result += "]-";
           break;
         case PATH:
           QueryPath path = (QueryPath) connection;
@@ -594,11 +586,12 @@ public class PgqlUtils {
             default:
               throw new UnsupportedOperationException();
           }
-          result += "/-> ";
+          result += "/-";
           break;
         default:
           throw new UnsupportedOperationException();
       }
+      result += connection.isUndirected() ? " " : "> ";
 
       result += printVertex(connection.getDst(), vertexStrings);
 
@@ -689,7 +682,7 @@ public class PgqlUtils {
 
     List<QueryPath> queryPaths = new ArrayList<>();
     printPathPatternsHelper(queryPaths, graphPattern.getConnections());
-    
+
     for (QueryPath path : queryPaths) {
       result += printPathPattern(path, queryPaths);
     }
@@ -707,7 +700,7 @@ public class PgqlUtils {
       }
     }
   }
-    
+
   private static String printPathPattern(QueryPath path, List<QueryPath> queryPaths) {
     int pathId = getPathId(path, queryPaths);
     String result = "PATH type" + pathId + " := ";
@@ -717,39 +710,55 @@ public class PgqlUtils {
     Map<QueryVertex, String> vertexStrings = getStringsForVerticesWithInlinedConstraints(path.getVertices(),
         constraints);
 
-    Iterator<Direction> directionsIt = path.getDirections().iterator();
     Iterator<QueryVertex> verticesIt = path.getVertices().iterator();
 
     QueryVertex vertex = verticesIt.next();
     result += printVertex(vertex, vertexStrings);
     for (VertexPairConnection connection2 : path.getConnections()) {
-      Direction direction = directionsIt.next();
 
       switch (connection2.getVariableType()) {
         case EDGE:
           QueryEdge edge = (QueryEdge) connection2;
-          result += direction == Direction.OUTGOING ? " -[" : " <-[";
+          if (edge.isUndirected()) {
+            result += " -[";
+          } else {
+            result += (edge.getSrc() == vertex) ? " -[" : " <-[";
+          }
+
           result += printInlinedConstraints(constraints, edge);
-          result += direction == Direction.OUTGOING ? "]-> " : "]- ";
+
+          if (edge.isUndirected()) {
+            result += "]- ";
+          } else {
+            result += (edge.getSrc() == vertex) ? "]-> " : "]- ";
+          }
           break;
         case PATH:
-            QueryPath queryPath = (QueryPath) connection2;
-            result += direction == Direction.OUTGOING ? " -/" : " <-/";
-            result += "type" + getPathId(queryPath, queryPaths);
-            switch (path.getRepetition()) {
-              case KLEENE_STAR:
-                result += "*";
-                break;
-              case KLEENE_PLUS:
-                result += "+";
-                break;
-              case NONE:
-                break;
-              default:
-                throw new UnsupportedOperationException();
-            }
-            result += direction == Direction.OUTGOING ? "/-> " : "/- ";
-            break;
+          QueryPath queryPath = (QueryPath) connection2;
+          if (queryPath.isUndirected()) {
+            result += " -/";
+          } else {
+            result += (queryPath.getSrc() == vertex) ? " -/" : " <-/";
+          }
+          result += "type" + getPathId(queryPath, queryPaths);
+          switch (path.getRepetition()) {
+            case KLEENE_STAR:
+              result += "*";
+              break;
+            case KLEENE_PLUS:
+              result += "+";
+              break;
+            case NONE:
+              break;
+            default:
+              throw new UnsupportedOperationException();
+          }
+          if (queryPath.isUndirected()) {
+            result += "/- ";
+          } else {
+            result += (queryPath.getSrc() == vertex) ? "/-> " : "/- ";
+          }
+          break;
         default:
           throw new UnsupportedOperationException("variable type not supported: " + connection2.getVariableType());
       }

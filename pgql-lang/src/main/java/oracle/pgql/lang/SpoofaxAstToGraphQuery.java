@@ -64,6 +64,7 @@ public class SpoofaxAstToGraphQuery {
   private static final int POS_PATH_PATH_PATTERN = 2;
   private static final int POS_PATH_KLEENE_STAR = 3;
   private static final int POS_PATH_NAME = 4;
+  private static final int POS_PATH_DIRECTION = 5;
 
   private static final int POS_ORDERBY_EXP = 0;
   private static final int POS_ORDERBY_ORDERING = 1;
@@ -189,13 +190,14 @@ public class SpoofaxAstToGraphQuery {
     String name = getString(edgeT.getSubterm(POS_EDGE_NAME));
     String srcName = getString(edgeT.getSubterm(POS_EDGE_SRC));
     String dstName = getString(edgeT.getSubterm(POS_EDGE_DST));
+    boolean undirected = getConstructorName(edgeT.getSubterm(POS_EDGE_DIRECTION)).equals("Undirected");
 
     QueryVertex src = (QueryVertex) varmap.get(srcName);
     QueryVertex dst = (QueryVertex) varmap.get(dstName);
 
     QueryEdge edge = name.contains(GENERATED_VAR_SUBSTR)
-        ? new QueryEdge(src, dst, name, true)
-        : new QueryEdge(src, dst, name, false);
+        ? new QueryEdge(src, dst, name, true, undirected)
+        : new QueryEdge(src, dst, name, false, undirected);
 
     varmap.put(name, edge);
     return edge;
@@ -258,10 +260,11 @@ public class SpoofaxAstToGraphQuery {
     String name = getString(pathT.getSubterm(POS_PATH_NAME));
     QueryVertex src = (QueryVertex) varmap.get(srcName);
     QueryVertex dst = (QueryVertex) varmap.get(dstName);
+    boolean undirected = getConstructorName(pathT.getSubterm(POS_PATH_DIRECTION)).equals("Undirected");
 
     QueryPath pathPattern = name.contains(GENERATED_VAR_SUBSTR)
-        ? new QueryPath(src, dst, vertices, connections, directions, constraints, repetition, name, true)
-        : new QueryPath(src, dst, vertices, connections, directions, constraints, repetition, name, false);
+        ? new QueryPath(src, dst, vertices, connections, directions, constraints, repetition, name, true, undirected)
+        : new QueryPath(src, dst, vertices, connections, directions, constraints, repetition, name, false, undirected);
 
     return pathPattern;
   }

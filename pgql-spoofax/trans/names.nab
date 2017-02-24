@@ -30,7 +30,7 @@ binding rules
     defines non-unique Var1 e
     defines unique WhereVar e of type EdgeTy()
 
-  Path(_, _, _, _, p):
+  Path(_, _, _, _, p, _):
     defines non-unique Var1 p
     defines unique WhereVar p of type PathTy()
 
