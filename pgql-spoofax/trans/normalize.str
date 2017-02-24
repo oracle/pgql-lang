@@ -66,7 +66,7 @@ rules
     ?Obj(dot); !VarRef(varName) + (?Obj(VarRef(v), dot) + ?PropRef(VarRef(v), _));
     if <eq> (v, varName)
     then !ReferenceInInlinedConstraint(v)
-    else !CrossReferenceInInlinedConstraint()
+    else !CrossReferenceInInlinedConstraint(v)
     end +
     (?SelfPropRef(propName) + ?SelfPropRef(dot, propName)); !PropRef(VarRef(varName), propName)
 

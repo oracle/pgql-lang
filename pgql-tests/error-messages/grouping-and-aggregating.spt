@@ -3,64 +3,56 @@ module variables
 language pgql-lang
 
 test Select non-group key 1 [[
-SELECT n.name AS nName
+SELECT [[n.name]] AS nName
 WHERE
   (n)
 GROUP BY n.age AS nAge
-]] 2 errors /* Non-group key variable in SELECT
-               Unresolved variable */
+]] error like "Non-group key variable in SELECT" at #1
 
 test Select non-group key 2 [[
-SELECT n
+SELECT [[n]]
 WHERE
   (n)
 GROUP BY n.age AS nAge
-]] 2 errors /* Unresolved variableNon-group key variable in SELECT
-               Unresolved variable */
+]] error like "Non-group key variable in SELECT" at #1
 
 test Order by non-group key 1 [[
 SELECT nAge
 WHERE
   (n)
 GROUP BY n.age AS nAge
-ORDER BY n.name
-]] 2 errors /* Cannot order by non-group key variable: use aggregation
-               Unresolved variable */
+ORDER BY [[n.name]]
+]] error like "Cannot order by non-group key variable: use aggregation" at #1
 
 test Order by non-group key 2 [[
 SELECT nAge
 WHERE
   (n)
 GROUP BY n.age AS nAge
-ORDER BY n
-]] 2 errors /* Cannot order by non-group key variable: use aggregation 
-               Unresolved variable */
+ORDER BY [[n]]
+]] error like "Cannot order by non-group key variable: use aggregation" at #1
 
 test Aggregation expected in SELECT 1 [[
-SELECT AVG(n.age) AS avgAge, n
+SELECT AVG(n.age) AS avgAge, [[n]]
 WHERE
   (n)
-]] 2 errors /* Aggregation expected here since SELECT has other aggregation
-               Unresolved variable */
+]] error like "Aggregation expected here since SELECT has other aggregation" at #1
 
 test Aggregation expected in SELECT 2 [[
-SELECT n.labels() AS lbls, COUNT(*) AS cnt
+SELECT [[n.labels()]] AS lbls, COUNT(*) AS cnt
 WHERE (n)
-]] 3 errors /* Aggregation expected here since SELECT has other aggregation
-               Function only defined for vertices
-               Unresolved variable */
+]] error like "Aggregation expected here since SELECT has other aggregation" at #1
 
 test Aggregation expected in ORDER BY [[
 SELECT AVG(n.age) AS avgAge
 WHERE
   (n)
-ORDER BY n.age
-]] 2 errors /* Aggregation expected here since SELECT has aggregation
-              Unresolved variable */
+ORDER BY [[n.age]]
+]] error like "Aggregation expected here since SELECT has aggregation" at #1
 
 test Aggregation in ORDER BY not expected [[
 SELECT n
 WHERE
   (n)
-ORDER BY AVG(n.age)
-]] 1 error /* Aggregation in ORDER BY only allowed if SELECT constains aggregations, or, in combination with GROUP BY */
+ORDER BY [[AVG(n.age)]]
+]] error like "Aggregation in ORDER BY only allowed if SELECT constains aggregations, or, in combination with GROUP BY" at #1

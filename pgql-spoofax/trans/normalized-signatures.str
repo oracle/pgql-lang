@@ -52,4 +52,4 @@ signature constructors // for name binding (see trans/trans-for-nabl.str)
 signature constructors // for error checking (see trans/check.str)
   
   ReferenceInInlinedConstraint : Var -> ReferenceInInlinedConstraint
-  CrossReferenceInInlinedConstraint : CrossReferenceInInlinedConstraint
+  CrossReferenceInInlinedConstraint : Var -> CrossReferenceInInlinedConstraint

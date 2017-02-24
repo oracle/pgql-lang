@@ -63,9 +63,9 @@ rules // in-lined constraints
       <generate-error(|ctx, $['[v]' should be omitted here])> v
   
   nabl-constraint(|ctx):
-    t@CrossReferenceInInlinedConstraint() -> <fail>
+    CrossReferenceInInlinedConstraint(v) -> <fail>
     with
-      <generate-error(|ctx, "In-lined constraint may not access other variables")> t
+      <generate-error(|ctx, $['[v]' is not visible here])> v
 
 rules // vertex in WHERE without rounded brackets
 
@@ -92,7 +92,7 @@ rules
     with
       group-refs := <collect-om(?GroupRef(<id>), conc)> select-exps
     ; select-or-group-refs := <collect-om(?SelectOrGroupRef(<id>), conc)> order-by
-    ; if None() := group-by
+    ; if CreateOneGroup() := group-by
       then
         <batch-generate-error-on-unresolved(|ctx, "Aggregation expected here since SELECT has other aggregation")> group-refs // error in SELECT
       ; <batch-generate-error-on-unresolved(|ctx, "Aggregation expected here since SELECT has aggregation")> select-or-group-refs // error in ORDER BY
@@ -124,7 +124,7 @@ rules
     VarRef(v) -> <fail>
     where
       var-is-path := <var-is-path(|ctx)> v;
-      <task-create-error-on-success(|ctx, var-is-path, $[Path variables not yet supported in PGQL 1.0])> v
+      <task-create-error-on-success(|ctx, var-is-path, $[Path variables not supported in PGQL 1.0])> v
 
 rules // helper rules
 

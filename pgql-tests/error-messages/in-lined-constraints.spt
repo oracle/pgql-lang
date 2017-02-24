@@ -5,23 +5,23 @@ language pgql-lang
 test Inlined cross-referece 1 [[
 SELECT *
 WHERE
-  (n WITH age = m.age) -> (m)
-]] 1 error /* In-lined constraint may not access other variables */
+  (n WITH age = [[m.age]]) -> (m)
+]] error like "'m' is not visible here" at #1
 
 test Inlined cross-referece 2 [[
 SELECT *
 WHERE
-  (n WITH age = m.inDegree()) -> (m)
-]] 1 error /* In-lined constraint may not access other variables */
+  (n WITH age = [[m.age]]) -> (m)
+]] error like "'m' is not visible here" at #1
 
 test Inlined constraint with var.prop [[
 SELECT *
 WHERE
-  (n WITH n.age = 25)
-]] 2 errors /* 'n' should be omitted here */
+  (n WITH [[n]].age = 25)
+]] error like "'n' should be omitted here" at #1
 
 test Inlined constraint with var.exp [[
 SELECT *
 WHERE
-  (n WITH n.inDegree() = 25)
-]] 3 errors /* 'n' should be omitted here */
+  (n WITH [[n]].inDegree() = 25)
+]] error like "'n' should be omitted here" at #1

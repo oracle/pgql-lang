@@ -27,24 +27,12 @@ type rules // expressions
 
 type rules // built-in functions
 
-  t@InDegree(exp) + t@OutDegree(exp) : IntegerTy()
-  where exp : ty
-    and ty == VertexTy() else error $[Function only defined for vertices] on t
+  t@Id(exp) + t@InDegree(exp) + t@OutDegree(exp) : IntegerTy()
 
   t@Labels(exp) : StringSetTy()
-  where exp : ty
-    and ty == VertexTy() else error $[Function only defined for vertices] on t
 
   t@Label(exp) : StringTy()
-  where exp : ty
-    and ty == EdgeTy() else error $[Function only defined for edges] on t
 
   t@Has(exp, _) + t@HasLabel(exp, _) : BooleanTy()
-  where exp : ty
-    and (ty == VertexTy() or ty == EdgeTy()) else error $[Function only defined for vertices and edges] on t
-
-  t@Id(exp) : IntegerTy()
-  where exp : ty
-    and (ty == VertexTy() or ty == EdgeTy()) else error $[Function only defined for vertices and edges] on t
 
   Cast(_, _): UnknownTy()

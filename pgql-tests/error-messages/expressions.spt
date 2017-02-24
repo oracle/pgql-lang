@@ -3,35 +3,36 @@ module select
 language pgql-lang
 
 test Nested aggregation 1 [[
-SELECT AVG(MIN(n.age)) AS nextedAggr
+SELECT AVG( [[MIN(n.age)]] ) AS nextedAggr
 WHERE
   (n)
-]] 1 error /* Nested aggregation is not allowed */
+]] error like "Nested aggregation is not allowed" at #1
 
 test Nested aggregation 2 [[
 SELECT MIN(n.age) AS min
 WHERE
   (n)
-ORDER BY AVG(MIN(n.age))
-]] 1 error /* Nested aggregation is not allowed */
+ORDER BY AVG( [[MIN(n.age)]] )
+]] error like "Nested aggregation is not allowed" at #1
 
 test Nested aggregation 3 [[
 SELECT MIN(n.age) AS min
 WHERE
   (n)
-ORDER BY AVG(min)
-]] 1 error /* Nested aggregation is not allowed */
+ORDER BY AVG( [[min]] )
+]] error like "Unresolved variable" at #1
 
 test Aggregation in GROUP BY 1 [[
 SELECT avgAge
 WHERE
   (n)
-GROUP BY AVG(n.age) AS avgAge
-]] 1 error /* Aggregation not allowed in GROUP BY */
+GROUP BY [[AVG(n.age)]] AS avgAge
+]] error like "Aggregation not allowed in GROUP BY" at #1
 
 test Aggregation in GROUP BY 2 [[
 SELECT avgAge
 WHERE
   (n)
-GROUP BY AVG(MIN(n.age)) AS avgAge
-]] 2 errors /* Aggregation not allowed in GROUP BY, Nested aggregation is not allowed */
+GROUP BY [[AVG(MIN(n.age))]] AS avgAge
+]] error like "Aggregation not allowed in GROUP BY" at #1
+   error like "Nested aggregation is not allowed"
