@@ -79,7 +79,7 @@ rules
     with
       paths := <filter(?Path(_, _, _))> elems;
       inlined-constraints-for-vertices := <collect-om(?Vertex(<id>)); map(get-inlined-constraints(|"vertex")); concat> paths;
-      inlined-constraints-for-edges := <collect-om(?OutConn(<id>) + ?InConn(<id>) + ?InOrOutConn); filter(get-inlined-constraints(|"edge")); concat> paths;
+      inlined-constraints-for-edges := <collect-om(?OutConn(<id>) + ?InConn(<id>) + ?InOrOutConn(<id>)); filter(get-inlined-constraints(|"edge")); concat> paths;
       non-inlined-constraints := <filter(?Constraint(<id>))> elems;
       constraints := <conc; flatten-list; !Constraints(<id>)> (inlined-constraints-for-vertices, inlined-constraints-for-edges, non-inlined-constraints);
       paths' := <alltd(?ElemContents(Some(<id>), _, _, _))> paths;
