@@ -546,7 +546,7 @@ public class PgqlUtils {
     return queryPaths.size() - 1;
   }
 
-  public static String printPgqlString(GraphPattern graphPattern) {
+  public static String printPgqlString(GraphPattern graphPattern, List<QueryPath> queryPaths) {
     String result = "WHERE\n";
 
     Set<QueryExpression> constraints = new HashSet<>(graphPattern.getConstraints());
@@ -556,7 +556,6 @@ public class PgqlUtils {
 
     Iterator<VertexPairConnection> it2 = graphPattern.getConnections().iterator();
 
-    List<QueryPath> queryPaths = new ArrayList<>();
     while (it2.hasNext()) {
       VertexPairConnection connection = it2.next();
 
@@ -683,8 +682,9 @@ public class PgqlUtils {
     List<QueryPath> queryPaths = new ArrayList<>();
     printPathPatternsHelper(queryPaths, graphPattern.getConnections());
 
+    List<QueryPath> queryPathsList = new ArrayList<QueryPath>(queryPaths);
     for (QueryPath path : queryPaths) {
-      result += printPathPattern(path, queryPaths);
+      result += printPathPattern(path, queryPathsList);
     }
 
     return result;
@@ -695,8 +695,17 @@ public class PgqlUtils {
     for (VertexPairConnection connection : connections) {
       if (connection.getVariableType() == VariableType.PATH) {
         QueryPath path = (QueryPath) connection;
-        queryPaths.add(path);
-        printPathPatternsHelper(queryPaths, path.getConnections());
+
+        boolean found = false;
+        for (int i = 0; i < queryPaths.size(); i++) {
+          if (patternsEqual(path, queryPaths.get(i))) {
+            found = true;
+          }
+        }
+        if (found == false) {
+          queryPaths.add(path);
+          printPathPatternsHelper(queryPaths, path.getConnections());
+        }
       }
     }
   }

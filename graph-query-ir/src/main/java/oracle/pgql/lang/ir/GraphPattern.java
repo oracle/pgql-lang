@@ -3,6 +3,7 @@
  */
 package oracle.pgql.lang.ir;
 
+import java.util.ArrayList;
 import java.util.Set;
 
 import static oracle.pgql.lang.ir.PgqlUtils.printPgqlString;
@@ -36,7 +37,7 @@ public class GraphPattern {
 
   @Override
   public String toString() {
-    return printPgqlString(this);
+    return printPgqlString(this, new ArrayList<QueryPath>());
   }
 
   @Override
