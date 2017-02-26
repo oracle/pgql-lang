@@ -27,6 +27,7 @@ import oracle.pgql.lang.ir.QueryExpression.ArithmeticExpression.Mod;
 import oracle.pgql.lang.ir.QueryExpression.ArithmeticExpression.Mul;
 import oracle.pgql.lang.ir.QueryExpression.ArithmeticExpression.Sub;
 import oracle.pgql.lang.ir.QueryExpression.ArithmeticExpression.UMin;
+import oracle.pgql.lang.ir.QueryExpression.BindVariable;
 import oracle.pgql.lang.ir.QueryExpression.Constant.ConstBoolean;
 import oracle.pgql.lang.ir.QueryExpression.Constant.ConstDecimal;
 import oracle.pgql.lang.ir.QueryExpression.Constant.ConstInteger;
@@ -66,6 +67,10 @@ public class PgqlUtils {
       @Override
       public void visit(VarRef varRef) {
         result.add(varRef.getVariable());
+      }
+
+      @Override
+      public void visit(BindVariable bindVariable) {
       }
 
       @Override
@@ -267,6 +272,10 @@ public class PgqlUtils {
 
       @Override
       public void visit(VarRef varRef) {
+      }
+
+      @Override
+      public void visit(BindVariable bindVariable) {
       }
 
       @Override

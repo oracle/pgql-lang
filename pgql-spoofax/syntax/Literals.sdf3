@@ -5,6 +5,7 @@ context-free syntax
   Literal   = NumericLiteral
   Literal   = BooleanLiteral
   Literal   = String
+  Literal   = BindVariable
 
   AltLit.Or = <<AltLit>|<AltLit>> {left}
   AltLit    = Literal
@@ -12,13 +13,14 @@ context-free syntax
 
 context-free syntax
 
-  NumericLiteral.Integer = INTEGER
-  NumericLiteral.Decimal = DECIMAL
-  String.String          = STRING
-  UnquotedString.String  = UNQUOTED-STRING
-  BooleanLiteral.True    = <true> {case-insensitive}
-  BooleanLiteral.False   = <false> {case-insensitive}
-  Literal.Null           = <null> {case-insensitive}
+  NumericLiteral.Integer    = INTEGER
+  NumericLiteral.Decimal    = DECIMAL
+  String.String             = STRING
+  UnquotedString.String     = UNQUOTED-STRING
+  BooleanLiteral.True       = <true> {case-insensitive}
+  BooleanLiteral.False      = <false> {case-insensitive}
+  Literal.Null              = <null> {case-insensitive}
+  BindVariable.BindVariable = <?>
 
 lexical syntax
 
@@ -31,8 +33,6 @@ lexical syntax
   ESCAPE-CHAR          = "\\" [tbnrf\\\"\']
 
   UNQUOTED-STRING      = [a-zA-Z][a-zA-Z0-9\_]*
-
-  CUSTOM-TYPE          = [a-zA-Z][a-zA-Z0-9\_]*
 
 lexical restrictions // greedy matching
 

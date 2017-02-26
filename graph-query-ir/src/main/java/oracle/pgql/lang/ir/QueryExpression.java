@@ -6,18 +6,45 @@ package oracle.pgql.lang.ir;
 public interface QueryExpression {
 
   enum ExpressionType {
-    INTEGER, DECIMAL, STRING, BOOLEAN, NULL, // constants
-    SUB, ADD, MUL, DIV, MOD, UMIN, // arithmetic expressions
-    AND, OR, NOT, // logical expressions
-    EQUAL, NOT_EQUAL, GREATER, GREATER_EQUAL, LESS, LESS_EQUAL, // relational expressions
-    AGGR_COUNT, AGGR_MIN, AGGR_MAX, AGGR_SUM, AGGR_AVG, // aggregates
-    VARREF, STAR, // other
+    INTEGER,
+    DECIMAL,
+    STRING,
+    BOOLEAN,
+    NULL, // constants
+    SUB,
+    ADD,
+    MUL,
+    DIV,
+    MOD,
+    UMIN, // arithmetic expressions
+    AND,
+    OR,
+    NOT, // logical expressions
+    EQUAL,
+    NOT_EQUAL,
+    GREATER,
+    GREATER_EQUAL,
+    LESS,
+    LESS_EQUAL, // relational expressions
+    AGGR_COUNT,
+    AGGR_MIN,
+    AGGR_MAX,
+    AGGR_SUM,
+    AGGR_AVG, // aggregates
+    VARREF,
+    BIND_VARIABLE,
+    STAR, // other
 
     // functions:
     REGEX, // String
-    ID, PROP_ACCESS, HAS_PROP, HAS_LABEL, // vertex/edges     note: HasProp/HasLabel will be removed in future
+    ID,
+    PROP_ACCESS,
+    HAS_PROP,
+    HAS_LABEL, // vertex/edges note: HasProp/HasLabel will be removed in future
     // version (replaced by 'x.prop != NULL')
-    VERTEX_LABELS, INDEGREE, OUTDEGREE, // vertex
+    VERTEX_LABELS,
+    INDEGREE,
+    OUTDEGREE, // vertex
     EDGE_LABEL, // edge
     CAST
   }
@@ -667,6 +694,55 @@ public interface QueryExpression {
     }
   }
 
+  class BindVariable implements QueryExpression {
+    private final int parameterIndex;
+
+    public BindVariable(int parameterIndex) {
+      this.parameterIndex = parameterIndex;
+    }
+
+    public int getParameterIndex() {
+      return parameterIndex;
+    }
+
+    @Override
+    public ExpressionType getExpType() {
+      return ExpressionType.BIND_VARIABLE;
+    }
+
+    @Override
+    public String toString() {
+      return "?";
+    }
+
+    @Override
+    public void accept(QueryExpressionVisitor v) {
+      v.visit(this);
+    }
+
+    @Override
+    public boolean equals(Object obj) {
+      if (this == obj)
+        return true;
+      if (obj == null)
+        return false;
+      if (getClass() != obj.getClass())
+        return false;
+      BindVariable other = (BindVariable) obj;
+      if (parameterIndex != other.parameterIndex)
+        return false;
+      return true;
+    }
+
+    @Override
+    public int hashCode() {
+      final int prime = 31;
+      int result = 1;
+      result = prime * result + parameterIndex;
+      return result;
+    }
+  }
+
   class PropertyAccess implements QueryExpression {
     private final QueryVariable variable;
     private final String propertyName;
@@ -752,7 +828,8 @@ public interface QueryExpression {
       /**
        * Identifier of a node/edge
        *
-       * @param exp an expression of type node or edge
+       * @param exp
+       *          an expression of type node or edge
        */
       public Id(QueryExpression exp) {
         super(exp);
@@ -845,8 +922,10 @@ public interface QueryExpression {
       /**
        * Whether a node/edge has a property.
        *
-       * @param exp1 an expression of type node or edge
-       * @param exp2 an expression of type String
+       * @param exp1
+       *          an expression of type node or edge
+       * @param exp2
+       *          an expression of type String
        */
       public HasProp(QueryExpression exp1, QueryExpression exp2) {
         super(exp1, exp2);
@@ -928,7 +1007,7 @@ public interface QueryExpression {
         return targetTypeName;
       }
 
-        @Override
+      @Override
       public ExpressionType getExpType() {
         return ExpressionType.CAST;
       }
@@ -944,7 +1023,6 @@ public interface QueryExpression {
       }
     }
   }
-
 
   interface Aggregation extends QueryExpression {
 

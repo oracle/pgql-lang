@@ -14,6 +14,7 @@ import oracle.pgql.lang.ir.QueryExpression.ArithmeticExpression.Mod;
 import oracle.pgql.lang.ir.QueryExpression.ArithmeticExpression.Mul;
 import oracle.pgql.lang.ir.QueryExpression.ArithmeticExpression.Sub;
 import oracle.pgql.lang.ir.QueryExpression.ArithmeticExpression.UMin;
+import oracle.pgql.lang.ir.QueryExpression.BindVariable;
 import oracle.pgql.lang.ir.QueryExpressionVisitor;
 import oracle.pgql.lang.ir.QueryExpression.ConstNull;
 import oracle.pgql.lang.ir.QueryExpression.Constant.ConstBoolean;
@@ -43,78 +44,80 @@ import oracle.pgql.lang.ir.QueryExpression.Star;
 import oracle.pgql.lang.ir.QueryExpression.VarRef;
 
 public interface QueryExpressionVisitor {
-	
-	  public void visit(ConstInteger constInteger);
 
-	  public void visit(ConstDecimal constDecimal);
+  public void visit(ConstInteger constInteger);
 
-	  public void visit(ConstString constString);
+  public void visit(ConstDecimal constDecimal);
 
-	  public void visit(ConstBoolean constBoolean);
+  public void visit(ConstString constString);
 
-	  public void visit(ConstNull constantNull);
+  public void visit(ConstBoolean constBoolean);
 
-	  public void visit(Sub sub);
+  public void visit(ConstNull constantNull);
 
-	  public void visit(Add add);
+  public void visit(Sub sub);
 
-	  public void visit(Mul mul);
+  public void visit(Add add);
 
-	  public void visit(Div div);
+  public void visit(Mul mul);
 
-	  public void visit(Mod mod);
+  public void visit(Div div);
 
-	  public void visit(UMin uMin);
+  public void visit(Mod mod);
 
-	  public void visit(And and);
+  public void visit(UMin uMin);
 
-	  public void visit(Or or);
+  public void visit(And and);
 
-	  public void visit(Not not);
+  public void visit(Or or);
 
-	  public void visit(Equal equal);
+  public void visit(Not not);
 
-	  public void visit(NotEqual notEqual);
+  public void visit(Equal equal);
 
-	  public void visit(Greater greater);
+  public void visit(NotEqual notEqual);
 
-	  public void visit(GreaterEqual greaterEqual);
+  public void visit(Greater greater);
 
-	  public void visit(Less less);
+  public void visit(GreaterEqual greaterEqual);
 
-	  public void visit(LessEqual lessEqual);
+  public void visit(Less less);
 
-	  public void visit(AggrCount aggrCount);
+  public void visit(LessEqual lessEqual);
 
-	  public void visit(AggrMin aggrMin);
+  public void visit(AggrCount aggrCount);
 
-	  public void visit(AggrMax aggrMax);
+  public void visit(AggrMin aggrMin);
 
-	  public void visit(AggrSum aggrSum);
+  public void visit(AggrMax aggrMax);
 
-	  public void visit(AggrAvg aggrAvg);
+  public void visit(AggrSum aggrSum);
 
-	  public void visit(VarRef varRef);
+  public void visit(AggrAvg aggrAvg);
 
-	  public void visit(Star star);
+  public void visit(VarRef varRef);
 
-	  public void visit(Regex regex);
+  public void visit(BindVariable bindVariable);
 
-	  public void visit(Id id);
+  public void visit(Star star);
 
-	  public void visit(PropertyAccess propAccess);
+  public void visit(Regex regex);
 
-	  public void visit(HasProp hasProp);
+  public void visit(Id id);
 
-	  public void visit(HasLabel hasLabel);
+  public void visit(PropertyAccess propAccess);
 
-	  public void visit(VertexLabels vertexLabels);
+  public void visit(HasProp hasProp);
 
-	  public void visit(InDegree inDegree);
+  public void visit(HasLabel hasLabel);
 
-	  public void visit(OutDegree outDegree);
+  public void visit(VertexLabels vertexLabels);
 
-	  public void visit(EdgeLabel edgeLabel);
+  public void visit(InDegree inDegree);
 
-	  public void visit(Cast cast);
+  public void visit(OutDegree outDegree);
+
+  public void visit(EdgeLabel edgeLabel);
+
+  public void visit(Cast cast);
 }

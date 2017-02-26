@@ -13,7 +13,9 @@ rules
   normalize-before:
     ast -> result
     with
+      bindVariable-counter := <new-counter>;
       result := <
+      	alltd(norm-BindVariable(|bindVariable-counter));
       	alltd(norm-UMin);
         innermost(
           norm-NOT +
@@ -33,8 +35,10 @@ rules
 
 rules
 
-  norm-UMin = ?UMin(Decimal(string)); !Decimal(<conc-strings> ("-", string))
+  norm-BindVariable(|c) = ?BindVariable(); !BindVariable(<next-counter> c)
 
+  norm-UMin = ?UMin(Decimal(string)); !Decimal(<conc-strings> ("-", string))
+  
   norm-NOT = ?Not1(<id>); !Not(<id>)
   norm-NOT = ?Not2(<id>); !Not(<id>)
 

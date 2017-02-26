@@ -39,6 +39,8 @@ signature constructors // for the normalized AST (see trans/normalize.str)
   Not                  : Exp -> Exp
 
   Contains             : Exp * Exp -> Exp
+  
+  BindVariable         : INTEGER -> BindVariable
 
 signature constructors // for name binding (see trans/trans-for-nabl.str)
 
