@@ -17,7 +17,7 @@ public interface PreparedStatement {
    * 
    * @return a ResultSet object that contains the data produced by the query; never null
    */
-  ResultSet executeQuery();
+  ResultSet executeQuery() throws PgqlException;
 
   /**
    * Sets the designated parameter to the given Java boolean value.
@@ -27,7 +27,7 @@ public interface PreparedStatement {
    * @param x
    *          the parameter value
    */
-  void setBoolean(int parameterIndex, boolean x);
+  void setBoolean(int parameterIndex, boolean x) throws PgqlException;
 
   /**
    * Sets the designated parameter to the given Java double value.
@@ -37,7 +37,7 @@ public interface PreparedStatement {
    * @param x
    *          the parameter value
    */
-  void setDouble(int parameterIndex, double x);
+  void setDouble(int parameterIndex, double x) throws PgqlException;
 
   /**
    * Sets the designated parameter to the given Java float value.
@@ -47,7 +47,7 @@ public interface PreparedStatement {
    * @param x
    *          the parameter value
    */
-  void setFloat(int parameterIndex, float x);
+  void setFloat(int parameterIndex, float x) throws PgqlException;
 
   /**
    * Sets the designated parameter to the given Java int value.
@@ -57,7 +57,7 @@ public interface PreparedStatement {
    * @param x
    *          the parameter value
    */
-  void setInt(int parameterIndex, int x);
+  void setInt(int parameterIndex, int x) throws PgqlException;
 
   /**
    * Sets the designated parameter to the given Java long value.
@@ -67,7 +67,7 @@ public interface PreparedStatement {
    * @param x
    *          the parameter value
    */
-  void setLong(int parameterIndex, long x);
+  void setLong(int parameterIndex, long x) throws PgqlException;
 
   /**
    * Sets the designated parameter to the given Java String value.
@@ -77,5 +77,5 @@ public interface PreparedStatement {
    * @param x
    *          the parameter value
    */
-  void setString(int parameterIndex, String x);
+  void setString(int parameterIndex, String x) throws PgqlException;
 }
