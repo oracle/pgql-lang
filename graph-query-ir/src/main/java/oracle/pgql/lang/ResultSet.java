@@ -9,6 +9,6 @@ package oracle.pgql.lang;
  * The ResultSet interface is not yet defined.
  * PGQL implementers should define their own interface for now.
  */
-public interface ResultSet extends AutoClosable {
+public interface ResultSet extends AutoCloseable {
 
 }
