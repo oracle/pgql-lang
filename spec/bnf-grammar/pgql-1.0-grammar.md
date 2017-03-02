@@ -4,7 +4,7 @@ The following is a BNF grammar for PGQL 1.0 that follows syntax and naming conve
 
 ```
 <query> ::=
-        <path pattern>...
+        [ <path pattern>... ]
         <select clause>
         <where clause>
         [ <group by clause> ]
