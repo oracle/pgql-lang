@@ -78,4 +78,13 @@ public interface PreparedStatement extends AutoCloseable {
    *          the parameter value
    */
   void setString(int parameterIndex, String x) throws PgqlException;
+
+  /**
+   * Releases this statement's resources. Calling the method close on a Statement object that is already closed has no
+   * effect.
+   * 
+   * Note: When a statement is closed, its current ResultSet object, if one exists, is also closed.
+   */
+  @Override
+  void close() throws PgqlException;
 }
