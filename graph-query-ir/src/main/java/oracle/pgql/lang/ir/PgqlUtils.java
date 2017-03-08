@@ -90,12 +90,12 @@ public class PgqlUtils {
     if (orderBy.getElements().isEmpty() == false) {
       result += "\n" + orderBy;
     }
-    long limit = graphQuery.getLimit();
-    if (limit > -1) {
+    QueryExpression limit = graphQuery.getLimit();
+    if (limit != null) {
       result += "\nLIMIT " + limit;
     }
-    long offset = graphQuery.getOffset();
-    if (offset > -1) {
+    QueryExpression offset = graphQuery.getOffset();
+    if (offset != null) {
       result += "\nOFFSET " + offset;
     }
     return result;

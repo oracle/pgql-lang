@@ -19,5 +19,8 @@ context-free syntax
 
   LimitOffsetClauses.LimitOffsetClauses = <<LimitClause> <OffsetClause?>>
   LimitOffsetClauses.OffsetLimitClauses = <<OffsetClause> <LimitClause?>>
-  LimitClause.LimitClause = <limit <INTEGER>> {case-insensitive}
-  OffsetClause.OffsetClause = <offset <INTEGER>> {case-insensitive}
+  LimitClause.LimitClause = <limit <IntOrBindVariable>> {case-insensitive}
+  OffsetClause.OffsetClause = <offset <IntOrBindVariable>> {case-insensitive}
+  
+  IntOrBindVariable.Integer = INTEGER
+  IntOrBindVariable = BindVariable

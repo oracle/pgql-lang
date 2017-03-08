@@ -154,10 +154,19 @@ public class SpoofaxAstToGraphQuery {
 
     // LIMIT OFFSET
     IStrategoTerm limitOffsetT = ast.getSubterm(POS_LIMITOFFSET);
-    long limit = getLimitOrOffset(limitOffsetT.getSubterm(POS_LIMIT));
-    long offset = getLimitOrOffset(limitOffsetT.getSubterm(POS_OFFSET));
+    QueryExpression limit = getLimitOrOffset(limitOffsetT.getSubterm(POS_LIMIT));
+    QueryExpression offset = getLimitOrOffset(limitOffsetT.getSubterm(POS_OFFSET));
 
     return new GraphQuery(projection, graphPattern, groupBy, orderBy, limit, offset);
+  }
+
+  private static QueryExpression getLimitOrOffset(IStrategoTerm subterm) throws PgqlException {
+    if (isNone(subterm)) {
+      return null;
+    }
+    IStrategoAppl expT = (IStrategoAppl) subterm.getSubterm(0).getSubterm(0);
+    return translateExp(expT, Collections.<String, QueryVariable> emptyMap(),
+        Collections.<String, QueryVariable> emptyMap());
   }
 
   private static Map<String, IStrategoTerm> getPathPatterns(IStrategoTerm pathPatternsT) {
@@ -340,14 +349,6 @@ public class SpoofaxAstToGraphQuery {
       }
     }
     return orderByElems;
-  }
-
-  private static long getLimitOrOffset(IStrategoTerm getLimitOrOffsetT) {
-    long offset = -1;
-    if (!isNone(getLimitOrOffsetT)) {
-      offset = Long.parseLong(getString(getLimitOrOffsetT));
-    }
-    return offset;
   }
 
   private static QueryExpression translateExp(IStrategoTerm t, Map<String, QueryVariable> inScopeVars,

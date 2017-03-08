@@ -15,15 +15,15 @@ public class GraphQuery {
   
   private final OrderBy orderBy;
   
-  private final long limit;
+  private final QueryExpression limit;
   
-  private final long offset;
+  private final QueryExpression offset;
 
   /**
    * Constructor
    */
   public GraphQuery(Projection projection, GraphPattern graphPattern, GroupBy groupBy,
-      OrderBy orderBy, long limit, long offset) {
+      OrderBy orderBy, QueryExpression limit, QueryExpression offset) {
     this.projection = projection;
     this.graphPattern = graphPattern;
     this.groupBy = groupBy;
@@ -48,11 +48,11 @@ public class GraphQuery {
     return orderBy;
   }
 
-  public long getLimit() {
+  public QueryExpression getLimit() {
     return limit;
   }
 
-  public long getOffset() {
+  public QueryExpression getOffset() {
     return offset;
   }
 
@@ -96,8 +96,8 @@ public class GraphQuery {
     result = 31 * result + graphPattern.hashCode();
     result = 31 * result + groupBy.hashCode();
     result = 31 * result + orderBy.hashCode();
-    result = 31 * result + (int) (limit ^ (limit >>> 32));
-    result = 31 * result + (int) (offset ^ (offset >>> 32));
+    result = 31 * result + limit.hashCode();
+    result = 31 * result + offset.hashCode();
     return result;
   }
 }
