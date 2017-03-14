@@ -14,8 +14,11 @@ public class Main {
     Pgql pgql = new Pgql();
 
     // parse query and print graph query
-    PgqlResult result1 = pgql.parse("SELECT DATE '1999-10-14', TIME '13:35:16', TIMESTAMP '1997-07-15 13:35:16' WHERE (n) -[e]-> (m)");
+    PgqlResult result1 = pgql.parse("SELECT n WHERE (n) -[e]-> (m)");
     System.out.println(result1.getGraphQuery());
 
+    // parse query with errors and print error messages
+    PgqlResult result2 = pgql.parse("SELECT x, y, WHERE (n) -[e]-> (m)");
+    System.out.println(result2.getErrorMessages());
   }
 }
