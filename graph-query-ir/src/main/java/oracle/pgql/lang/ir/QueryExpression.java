@@ -3,6 +3,8 @@
  */
 package oracle.pgql.lang.ir;
 
+import static oracle.pgql.lang.ir.PgqlUtils.printPgqlString;
+
 public interface QueryExpression {
 
   enum ExpressionType {
@@ -10,6 +12,9 @@ public interface QueryExpression {
     DECIMAL,
     STRING,
     BOOLEAN,
+    DATE,
+    TIME,
+    TIMESTAMP,
     NULL, // constants
     SUB,
     ADD,
@@ -586,7 +591,7 @@ public interface QueryExpression {
 
       @Override
       public String toString() {
-        return "'" + value.replace("\\", "\\\\").replace("'", "\\'") + "'";
+        return printPgqlString(value);
       }
 
       @Override
@@ -611,6 +616,73 @@ public interface QueryExpression {
         v.visit(this);
       }
     }
+
+    public static class ConstDate extends Constant<String> {
+
+      public ConstDate(String val) {
+        super(val);
+      }
+
+      @Override
+      public ExpressionType getExpType() {
+        return ExpressionType.DATE;
+      }
+
+      @Override
+      public String toString() {
+        return "DATE " + printPgqlString(value);
+      }
+
+      @Override
+      public void accept(QueryExpressionVisitor v) {
+        v.visit(this);
+      }
+    }
+
+    public static class ConstTime extends Constant<String> {
+
+      public ConstTime(String val) {
+        super(val);
+      }
+
+      @Override
+      public ExpressionType getExpType() {
+        return ExpressionType.TIME;
+      }
+
+      @Override
+      public String toString() {
+        return "TIME " + printPgqlString(value);
+      }
+
+      @Override
+      public void accept(QueryExpressionVisitor v) {
+        v.visit(this);
+      }
+    }
+
+    public static class ConstTimestamp extends Constant<String> {
+
+      public ConstTimestamp(String val) {
+        super(val);
+      }
+
+      @Override
+      public ExpressionType getExpType() {
+        return ExpressionType.TIMESTAMP;
+      }
+
+      @Override
+      public String toString() {
+        return "TIMESTAMP " + printPgqlString(value);
+      }
+
+      @Override
+      public void accept(QueryExpressionVisitor v) {
+        v.visit(this);
+      }
+    }
+
   }
 
   class ConstNull implements QueryExpression {
@@ -666,7 +738,7 @@ public interface QueryExpression {
 
     @Override
     public String toString() {
-      return PgqlUtils.printPgqlString(variable);
+      return printPgqlString(variable);
     }
 
     @Override
@@ -767,7 +839,7 @@ public interface QueryExpression {
 
     @Override
     public String toString() {
-      return PgqlUtils.printPgqlString(variable) + "." + propertyName;
+      return printPgqlString(variable) + "." + propertyName;
     }
 
     @Override

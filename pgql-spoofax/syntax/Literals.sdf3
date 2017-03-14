@@ -6,6 +6,9 @@ context-free syntax
   Literal   = BooleanLiteral
   Literal   = String
   Literal   = BindVariable
+  Literal   = Date
+  Literal   = Time
+  Literal   = Timestamp
 
   AltLit.Or = <<AltLit>|<AltLit>> {left}
   AltLit    = Literal
@@ -21,6 +24,9 @@ context-free syntax
   BooleanLiteral.False      = <false> {case-insensitive}
   Literal.Null              = <null> {case-insensitive}
   BindVariable.BindVariable = <?>
+  Date.Date                 = <date <STRING>> {case-insensitive}
+  Time.Time                 = <time <STRING>> {case-insensitive}
+  Timestamp.Timestamp       = <timestamp <STRING>> {case-insensitive}
 
 lexical syntax
 

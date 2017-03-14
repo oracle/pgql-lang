@@ -14,9 +14,12 @@ import oracle.pgql.lang.ir.QueryExpression.ArithmeticExpression.UMin;
 import oracle.pgql.lang.ir.QueryExpression.BindVariable;
 import oracle.pgql.lang.ir.QueryExpression.ConstNull;
 import oracle.pgql.lang.ir.QueryExpression.Constant.ConstBoolean;
+import oracle.pgql.lang.ir.QueryExpression.Constant.ConstDate;
 import oracle.pgql.lang.ir.QueryExpression.Constant.ConstDecimal;
 import oracle.pgql.lang.ir.QueryExpression.Constant.ConstInteger;
 import oracle.pgql.lang.ir.QueryExpression.Constant.ConstString;
+import oracle.pgql.lang.ir.QueryExpression.Constant.ConstTime;
+import oracle.pgql.lang.ir.QueryExpression.Constant.ConstTimestamp;
 import oracle.pgql.lang.ir.QueryExpression.Function.Cast;
 import oracle.pgql.lang.ir.QueryExpression.Function.EdgeLabel;
 import oracle.pgql.lang.ir.QueryExpression.Function.HasLabel;
@@ -70,6 +73,18 @@ public abstract class AbstractQueryExpressionVisitor implements QueryExpressionV
   public void visit(ConstBoolean constBoolean) {
   }
 
+  @Override
+  public void visit(ConstDate constDate) {
+  }
+
+  @Override
+  public void visit(ConstTime constTime) {
+  }
+
+  @Override
+  public void visit(ConstTimestamp constTimestamp) {
+  }
+  
   @Override
   public void visit(ConstNull constantNull) {
   }

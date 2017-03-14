@@ -431,6 +431,15 @@ public class SpoofaxAstToGraphQuery {
         return new QueryExpression.Constant.ConstBoolean(true);
       case "False":
         return new QueryExpression.Constant.ConstBoolean(false);
+      case "Date":
+        s = getString(t);
+        return new QueryExpression.Constant.ConstDate(s);
+      case "Time":
+        s = getString(t);
+        return new QueryExpression.Constant.ConstTime(s);
+      case "Timestamp":
+        s = getString(t);
+        return new QueryExpression.Constant.ConstTimestamp(s);
       case "Null":
         return new QueryExpression.ConstNull();
       case "VarRef":

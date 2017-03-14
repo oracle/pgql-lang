@@ -79,6 +79,10 @@ public class PgqlUtils {
     return result;
   }
 
+  public static String printPgqlString(String stringLiteral) {
+    return "'" + stringLiteral.replace("\\", "\\\\").replace("'", "\\'") + "'";
+  }
+  
   public static String printPgqlString(GraphQuery graphQuery) {
     GraphPattern graphPattern = graphQuery.getGraphPattern();
     String result = printPathPatterns(graphPattern) + graphQuery.getProjection() + "\n" + graphPattern;
