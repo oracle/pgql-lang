@@ -20,6 +20,7 @@ import oracle.pgql.lang.ir.QueryExpression.Constant.ConstInteger;
 import oracle.pgql.lang.ir.QueryExpression.Constant.ConstString;
 import oracle.pgql.lang.ir.QueryExpression.Constant.ConstTime;
 import oracle.pgql.lang.ir.QueryExpression.Constant.ConstTimestamp;
+import oracle.pgql.lang.ir.QueryExpression.Function.AllDifferent;
 import oracle.pgql.lang.ir.QueryExpression.Function.Cast;
 import oracle.pgql.lang.ir.QueryExpression.Function.EdgeLabel;
 import oracle.pgql.lang.ir.QueryExpression.Function.HasLabel;
@@ -84,7 +85,7 @@ public abstract class AbstractQueryExpressionVisitor implements QueryExpressionV
   @Override
   public void visit(ConstTimestamp constTimestamp) {
   }
-  
+
   @Override
   public void visit(ConstNull constantNull) {
   }
@@ -252,5 +253,10 @@ public abstract class AbstractQueryExpressionVisitor implements QueryExpressionV
   @Override
   public void visit(Cast cast) {
     cast.getExp().accept(this);
+  }
+
+  @Override
+  public void visit(AllDifferent allDifferent) {
+    allDifferent.getExps().stream().forEach(e -> e.accept(this));
   }
 }

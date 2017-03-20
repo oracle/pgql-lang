@@ -7,35 +7,17 @@ imports
   pgql-lang
   Literals
 
-context-free syntax // inlined function calls
-
-  InlinedCall.Label = <<Obj>label()> {case-insensitive}
-  InlinedCall.Labels = <<Obj>labels()> {case-insensitive}
-  InlinedCall.HasLabel = <<Obj>hasLabel(<Exp>)> {case-insensitive}
-  InlinedCall.Id = <<Obj>id()> {case-insensitive}
-  InlinedCall.Has = <<Obj>has(<{Exp ", "}*>)> {case-insensitive}
-  InlinedCall.InDegree  = <<Obj>inDegree()> {case-insensitive}
-  InlinedCall.OutDegree = <<Obj>outDegree()> {case-insensitive}
-  
-  Obj.Obj = <<VarRef><Dot>>
-  Obj.Obj = <<Dot?>>
-
-context-free syntax // vertices/edges
+context-free syntax // non-inlined function calls
 
   Exp.Label = <<Exp>. label()> {case-insensitive}
   Exp.Labels = <<Exp>. labels()> {case-insensitive}
   Exp.HasLabel = <<Exp>. hasLabel(<Exp>)> {case-insensitive}
   Exp.Id = <<Exp>. id()> {case-insensitive}
   Exp.Has = <<Exp>. has(<{Exp ", "}*>)> {case-insensitive}
-  
-context-free syntax // vertices
-
   Exp.InDegree  = <<Exp>. inDegree()> {case-insensitive}
   Exp.OutDegree = <<Exp>. outDegree()> {case-insensitive}
-
-context-free syntax
-
-  Exp.Cast = <CAST(<Exp> AS <UNQUOTED-STRING>)> {case-insensitive}
+  Exp.Cast = <cast(<Exp> as <UNQUOTED-STRING>)> {case-insensitive}
+  Exp.AllDifferent = <all_different(<{Exp ", "}*>)> {case-insensitive}
 
 context-free syntax // Aggregates
 
@@ -50,6 +32,19 @@ context-free syntax // Aggregates
   Group-Concat-Sep.Sep = <, <String>>
   Distinct.Distinct = <distinct> {case-insensitive}
 
+context-free syntax // inlined function calls
+
+  InlinedCall.Label = <<Obj>label()> {case-insensitive}
+  InlinedCall.Labels = <<Obj>labels()> {case-insensitive}
+  InlinedCall.HasLabel = <<Obj>hasLabel(<Exp>)> {case-insensitive}
+  InlinedCall.Id = <<Obj>id()> {case-insensitive}
+  InlinedCall.Has = <<Obj>has(<{Exp ", "}*>)> {case-insensitive}
+  InlinedCall.InDegree  = <<Obj>inDegree()> {case-insensitive}
+  InlinedCall.OutDegree = <<Obj>outDegree()> {case-insensitive}
+  
+  Obj.Obj = <<VarRef><Dot>>
+  Obj.Obj = <<Dot?>>
+
 context-free priorities
 
   {
@@ -61,6 +56,8 @@ context-free priorities
       Exp.Has
       Exp.InDegree
       Exp.OutDegree
+      Exp.Cast
+      Exp.AllDifferent
   }
   >
   {

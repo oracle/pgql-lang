@@ -24,6 +24,7 @@ import oracle.pgql.lang.ir.QueryExpression.Constant.ConstInteger;
 import oracle.pgql.lang.ir.QueryExpression.Constant.ConstString;
 import oracle.pgql.lang.ir.QueryExpression.Constant.ConstTime;
 import oracle.pgql.lang.ir.QueryExpression.Constant.ConstTimestamp;
+import oracle.pgql.lang.ir.QueryExpression.Function.AllDifferent;
 import oracle.pgql.lang.ir.QueryExpression.Function.Cast;
 import oracle.pgql.lang.ir.QueryExpression.Function.EdgeLabel;
 import oracle.pgql.lang.ir.QueryExpression.Function.HasLabel;
@@ -129,4 +130,6 @@ public interface QueryExpressionVisitor {
   public void visit(EdgeLabel edgeLabel);
 
   public void visit(Cast cast);
+
+  public void visit(AllDifferent allDifferent);
 }

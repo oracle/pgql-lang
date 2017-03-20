@@ -4,6 +4,7 @@
 package oracle.pgql.lang;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -11,9 +12,11 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 import org.spoofax.interpreter.terms.IStrategoAppl;
 import org.spoofax.interpreter.terms.IStrategoInt;
+import org.spoofax.interpreter.terms.IStrategoList;
 import org.spoofax.interpreter.terms.IStrategoString;
 import org.spoofax.interpreter.terms.IStrategoTerm;
 
@@ -82,6 +85,7 @@ public class SpoofaxAstToGraphQuery {
   private static final int POS_PROPREF_PROPNAME = 1;
   private static final int POS_CAST_EXP = 0;
   private static final int POS_CAST_TARGET_TYPE_NAME = 1;
+  private static final int POS_ALL_DIFFERENT_EXPS = 0;
 
   public static GraphQuery translate(IStrategoTerm ast) throws PgqlException {
 
@@ -493,6 +497,13 @@ public class SpoofaxAstToGraphQuery {
         exp = translateExp(t.getSubterm(POS_CAST_EXP), inScopeVars, inScopeInAggregationVars);
         String targetTypeName = getString(t.getSubterm(POS_CAST_TARGET_TYPE_NAME));
         return new QueryExpression.Function.Cast(exp, targetTypeName);
+      case "AllDifferent":
+        IStrategoTerm[] expsT = t.getSubterm(POS_ALL_DIFFERENT_EXPS).getAllSubterms();
+        List<QueryExpression> exps = new ArrayList<>();
+        for (IStrategoTerm expT : expsT) {
+          exps.add(translateExp(expT, inScopeVars, inScopeInAggregationVars));
+        }
+        return new QueryExpression.Function.AllDifferent(exps);
       case "COUNT":
         exp = translateExp(t.getSubterm(POS_AGGREGATE_EXP), inScopeInAggregationVars, inScopeInAggregationVars);
         return new QueryExpression.Aggregation.AggrCount(exp);

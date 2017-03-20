@@ -27,12 +27,12 @@ type rules // expressions
 
 type rules // built-in functions
 
-  t@Id(exp) + t@InDegree(exp) + t@OutDegree(exp) : IntegerTy()
+  Id(exp) + InDegree(exp) + OutDegree(exp) : IntegerTy()
 
-  t@Labels(exp) : StringSetTy()
+  Labels(exp) : StringSetTy()
 
-  t@Label(exp) : StringTy()
+  Label(exp) : StringTy()
 
-  t@Has(exp, _) + t@HasLabel(exp, _) : BooleanTy()
+  Has(exp, _) + HasLabel(exp, _) + AllDifferent(_) : BooleanTy()
 
   Cast(_, _): UnknownTy()

@@ -5,9 +5,14 @@ package oracle.pgql.lang.ir;
 
 import static oracle.pgql.lang.ir.PgqlUtils.printPgqlString;
 
+import java.util.List;
+import java.util.stream.Collectors;
+
 public interface QueryExpression {
 
   enum ExpressionType {
+
+    // constants
     INTEGER,
     DECIMAL,
     STRING,
@@ -15,43 +20,53 @@ public interface QueryExpression {
     DATE,
     TIME,
     TIMESTAMP,
-    NULL, // constants
+    NULL,
+
+    // arithmetic expressions
     SUB,
     ADD,
     MUL,
     DIV,
     MOD,
-    UMIN, // arithmetic expressions
+    UMIN,
+
+    // logical expressions
     AND,
     OR,
-    NOT, // logical expressions
+    NOT,
+
+    // relational expressions
     EQUAL,
     NOT_EQUAL,
     GREATER,
     GREATER_EQUAL,
     LESS,
-    LESS_EQUAL, // relational expressions
+    LESS_EQUAL,
+
+    // aggregates
     AGGR_COUNT,
     AGGR_MIN,
     AGGR_MAX,
     AGGR_SUM,
-    AGGR_AVG, // aggregates
+    AGGR_AVG,
+
+    // other
     VARREF,
     BIND_VARIABLE,
-    STAR, // other
+    STAR,
 
-    // functions:
-    REGEX, // String
+    // built-in functions
+    REGEX,
     ID,
     PROP_ACCESS,
-    HAS_PROP,
-    HAS_LABEL, // vertex/edges note: HasProp/HasLabel will be removed in future
-    // version (replaced by 'x.prop != NULL')
+    HAS_PROP, // note: HasProp will be removed in the future
+    HAS_LABEL, // note: HasLabel will be removed in the future
     VERTEX_LABELS,
     INDEGREE,
     OUTDEGREE, // vertex
-    EDGE_LABEL, // edge
-    CAST
+    EDGE_LABEL,
+    CAST,
+    ALL_DIFFERENT
   }
 
   ExpressionType getExpType();
@@ -1061,7 +1076,7 @@ public interface QueryExpression {
       }
     }
 
-    class Cast implements QueryExpression {
+    class Cast implements Function {
 
       private final QueryExpression exp;
       private final String targetTypeName;
@@ -1087,6 +1102,35 @@ public interface QueryExpression {
       @Override
       public String toString() {
         return "CAST(" + exp + " AS " + targetTypeName + ")";
+      }
+
+      @Override
+      public void accept(QueryExpressionVisitor v) {
+        v.visit(this);
+      }
+    }
+
+    class AllDifferent implements Function {
+
+      private final List<QueryExpression> exps;
+
+      public AllDifferent(List<QueryExpression> exps) {
+        this.exps = exps;
+      }
+
+      public List<QueryExpression> getExps() {
+        return exps;
+      }
+
+      @Override
+      public ExpressionType getExpType() {
+        return ExpressionType.ALL_DIFFERENT;
+      }
+
+      @Override
+      public String toString() {
+        String expressions = exps.stream().map(QueryExpression::toString).collect(Collectors.joining(", "));
+        return "ALL_DIFFERENT(" + expressions + ")";
       }
 
       @Override
