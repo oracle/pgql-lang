@@ -79,7 +79,7 @@ public class Pgql {
       FileObject fileObject = VFS.getManager().resolveFile("jar:" + dest.getAbsolutePath() + "!");
 
       // set up Spoofax
-      spoofax = new Spoofax();
+      spoofax = new Spoofax(new PgqlConfig());
       Iterable<ILanguageDiscoveryRequest> requests = spoofax.languageDiscoveryService.request(fileObject);
       Iterable<ILanguageComponent> components = spoofax.languageDiscoveryService.discover(requests);
       Set<ILanguageImpl> implementations = LanguageUtils.toImpls(components);
