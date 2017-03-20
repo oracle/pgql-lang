@@ -28,15 +28,16 @@ context-free syntax
   Vertex.VertexWithoutBrackets = <<VARNAME>> // deprecated
 
   EdgeVertex.EdgeVertex = < <Connection> <Vertex>>
-  Connection.OutConn = [-[EdgeContents?]->]
-  Connection.InConn = [<-[EdgeContents?]-]
-  Connection.InOrOutConn = [-[EdgeContents?]-]
+  Connection.OutConn = [-[EdgeOrPathContents?]->]
+  Connection.InConn = [<-[EdgeOrPathContents?]-]
+  Connection.UndirectedEdge = [-[EdgeContents?]-]
   Connection.OutEdge = [->]
   Connection.InEdge = [<-]
-  Connection.InOrOutEdge = [-]
+  Connection.UndirectedEdge = [-]
   
   EdgeContents.EdgeContents = <[<ElemContents>]>
-  EdgeContents.Path = </<VARNAME?>:<AltPath><KleeneStar?>/>
+  EdgeOrPathContents = EdgeContents
+  EdgeOrPathContents.Path = </<VARNAME?>:<AltPath><KleeneStar?>/>
   AltPath.Or = <<AltPath>|<AltPath>> {left}
   AltPath.PathPatternRef = PATHPATTERNNAME
   KleeneStar.KleeneStar = <*>

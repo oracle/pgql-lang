@@ -32,8 +32,8 @@ public class QueryPath extends VertexPairConnection {
 
   public QueryPath(QueryVertex src, QueryVertex dst, List<QueryVertex> vertices, List<VertexPairConnection> connections,
       List<Direction> directions, Set<QueryExpression> constraints, Repetition repetition, String name,
-      boolean anonymous, boolean undirected) {
-    super(src, dst, name, anonymous, undirected);
+      boolean anonymous) {
+    super(src, dst, name, anonymous);
     this.vertices = vertices;
     this.connections = connections;
     this.directions = directions;

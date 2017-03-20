@@ -212,13 +212,13 @@ public class SpoofaxAstToGraphQuery {
     String name = getString(edgeT.getSubterm(POS_EDGE_NAME));
     String srcName = getString(edgeT.getSubterm(POS_EDGE_SRC));
     String dstName = getString(edgeT.getSubterm(POS_EDGE_DST));
-    boolean undirected = getConstructorName(edgeT.getSubterm(POS_EDGE_DIRECTION)).equals("Undirected");
+    boolean directed = getConstructorName(edgeT.getSubterm(POS_EDGE_DIRECTION)).equals("Undirected") == false;
 
     QueryVertex src = (QueryVertex) varmap.get(srcName);
     QueryVertex dst = (QueryVertex) varmap.get(dstName);
 
-    QueryEdge edge = name.contains(GENERATED_VAR_SUBSTR) ? new QueryEdge(src, dst, name, true, undirected)
-        : new QueryEdge(src, dst, name, false, undirected);
+    QueryEdge edge = name.contains(GENERATED_VAR_SUBSTR) ? new QueryEdge(src, dst, name, true, directed)
+        : new QueryEdge(src, dst, name, false, directed);
 
     varmap.put(name, edge);
     return edge;
@@ -281,11 +281,10 @@ public class SpoofaxAstToGraphQuery {
     String name = getString(pathT.getSubterm(POS_PATH_NAME));
     QueryVertex src = (QueryVertex) varmap.get(srcName);
     QueryVertex dst = (QueryVertex) varmap.get(dstName);
-    boolean undirected = getConstructorName(pathT.getSubterm(POS_PATH_DIRECTION)).equals("Undirected");
 
     QueryPath pathPattern = name.contains(GENERATED_VAR_SUBSTR)
-        ? new QueryPath(src, dst, vertices, connections, directions, constraints, repetition, name, true, undirected)
-        : new QueryPath(src, dst, vertices, connections, directions, constraints, repetition, name, false, undirected);
+        ? new QueryPath(src, dst, vertices, connections, directions, constraints, repetition, name, true)
+        : new QueryPath(src, dst, vertices, connections, directions, constraints, repetition, name, false);
 
     return pathPattern;
   }

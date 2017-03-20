@@ -9,13 +9,10 @@ public abstract class VertexPairConnection extends QueryVariable {
 
   protected final QueryVertex dst;
 
-  protected final boolean undirected;
-
-  public VertexPairConnection(QueryVertex src, QueryVertex dst, String name, boolean anonymous, boolean undirected) {
+  public VertexPairConnection(QueryVertex src, QueryVertex dst, String name, boolean anonymous) {
     super(name, anonymous);
     this.src = src;
     this.dst = dst;
-    this.undirected = undirected;
   }
 
   public QueryVertex getSrc() {
@@ -26,17 +23,12 @@ public abstract class VertexPairConnection extends QueryVariable {
     return dst;
   }
 
-  public boolean isUndirected() {
-    return undirected;
-  }
-
   @Override
   public int hashCode() {
     final int prime = 31;
     int result = super.hashCode();
     result = prime * result + ((dst == null) ? 0 : dst.hashCode());
     result = prime * result + ((src == null) ? 0 : src.hashCode());
-    result = prime * result + (undirected ? 1231 : 1237);
     return result;
   }
 
@@ -58,8 +50,6 @@ public abstract class VertexPairConnection extends QueryVariable {
       if (other.src != null)
         return false;
     } else if (!src.equals(other.src))
-      return false;
-    if (undirected != other.undirected)
       return false;
     return true;
   }

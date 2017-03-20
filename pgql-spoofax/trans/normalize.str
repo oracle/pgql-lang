@@ -63,10 +63,10 @@ rules
   name-unnamed-elems(|c) = ?ElemContents(None(), type, id', constraints); !ElemContents(Some(<unique-name(|c)>), type, id', constraints)
   name-unnamed-elems(|c) = OutConn(?None(); name-unnamed-elems-helper(|c)) +
                            InConn(?None(); name-unnamed-elems-helper(|c)) +
-                           InOrOutConn(?None(); name-unnamed-elems-helper(|c))
+                           UndirectedEdge(?None(); name-unnamed-elems-helper(|c))
   name-unnamed-elems(|c) = ?OutEdge(); !OutConn(<name-unnamed-elems-helper(|c)>) +
                            ?InEdge(); !InConn(<name-unnamed-elems-helper(|c)>) +
-                           ?InOrOutEdge(); !InOrOutConn(<name-unnamed-elems-helper(|c)>) +
+                           ?UndirectedEdge(); !UndirectedEdge(<name-unnamed-elems-helper(|c)>) +
                            ?Path(None(), pathPatternRef, kleeneStar); !Path(Some(<unique-name(|c)> ""), pathPatternRef, kleeneStar)
   name-unnamed-elems-helper(|c) = !ElemContents(Some(<unique-name(|c)> ""), None(), None(), None())
 
@@ -86,7 +86,7 @@ rules
     with
       paths := <filter(?Path(_, _, _))> elems;
       inlined-constraints-for-vertices := <collect-om(?Vertex(<id>)); map(get-inlined-constraints(|"vertex")); concat> paths;
-      inlined-constraints-for-edges := <collect-om(?OutConn(<id>) + ?InConn(<id>) + ?InOrOutConn(<id>)); filter(get-inlined-constraints(|"edge")); concat> paths;
+      inlined-constraints-for-edges := <collect-om(?OutConn(<id>) + ?InConn(<id>) + ?UndirectedEdge(<id>)); filter(get-inlined-constraints(|"edge")); concat> paths;
       non-inlined-constraints := <filter(?Constraint(<id>))> elems;
       constraints := <conc; flatten-list; !Constraints(<id>)> (inlined-constraints-for-vertices, inlined-constraints-for-edges, non-inlined-constraints);
       paths' := <alltd(?ElemContents(Some(<id>), _, _, _))> paths;
@@ -99,7 +99,7 @@ rules
     PathPattern(name, path) -> PathPattern(name, vertices, connections, constraints)
     with
       inlined-constraints-for-vertices := <collect-om(?Vertex(<id>)); map(get-inlined-constraints(|"vertex")); concat> path;
-      inlined-constraints-for-edges := <collect-om(?OutConn(<id>) + ?InConn(<id>) + ?InOrOutConn(<id>)); filter(get-inlined-constraints(|"edge")); concat> path;
+      inlined-constraints-for-edges := <collect-om(?OutConn(<id>) + ?InConn(<id>) + ?UndirectedEdge(<id>)); filter(get-inlined-constraints(|"edge")); concat> path;
       constraints := <conc; flatten-list; !Constraints(<id>)> (inlined-constraints-for-vertices, inlined-constraints-for-edges);
       path' := <alltd(?ElemContents(Some(<id>), _, _, _))> path;
       vertices := <collect-om(?Vertex(_), conc); !Vertices(<id>)> path';
@@ -167,7 +167,7 @@ rules
           src := n2;
           dst := n1;
           dir := Incoming()
-        case ?InOrOutConn(edgeOrPath):
+        case ?UndirectedEdge(edgeOrPath):
           src := n1;
           dst := n2;
           dir := Undirected()

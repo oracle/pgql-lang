@@ -190,6 +190,7 @@ public class PgqlUtils {
           result += " -[";
           result += printInlinedConstraints(constraints, edge);
           result += "]-";
+          result += edge.isDirected() ? "> " : " ";
           break;
         case PATH:
           QueryPath path = (QueryPath) connection;
@@ -207,12 +208,11 @@ public class PgqlUtils {
             default:
               throw new UnsupportedOperationException();
           }
-          result += "/-";
+          result += "/-> ";
           break;
         default:
           throw new UnsupportedOperationException();
       }
-      result += connection.isUndirected() ? " " : "> ";
 
       result += printVertex(connection.getDst(), vertexStrings);
 
@@ -350,27 +350,23 @@ public class PgqlUtils {
       switch (connection2.getVariableType()) {
         case EDGE:
           QueryEdge edge = (QueryEdge) connection2;
-          if (edge.isUndirected()) {
-            result += " -[";
-          } else {
+          if (edge.isDirected()) {
             result += (edge.getSrc() == vertex) ? " -[" : " <-[";
+          } else {
+            result += " -[";
           }
 
           result += printInlinedConstraints(constraints, edge);
 
-          if (edge.isUndirected()) {
-            result += "]- ";
-          } else {
+          if (edge.isDirected()) {
             result += (edge.getSrc() == vertex) ? "]-> " : "]- ";
+          } else {
+            result += "]- ";
           }
           break;
         case PATH:
           QueryPath queryPath = (QueryPath) connection2;
-          if (queryPath.isUndirected()) {
-            result += " -/";
-          } else {
-            result += (queryPath.getSrc() == vertex) ? " -/" : " <-/";
-          }
+          result += (queryPath.getSrc() == vertex) ? " -/" : " <-/";
           result += "type" + getPathId(queryPath, queryPaths);
           switch (path.getRepetition()) {
             case KLEENE_STAR:
@@ -384,11 +380,7 @@ public class PgqlUtils {
             default:
               throw new UnsupportedOperationException();
           }
-          if (queryPath.isUndirected()) {
-            result += "/- ";
-          } else {
-            result += (queryPath.getSrc() == vertex) ? "/-> " : "/- ";
-          }
+          result += (queryPath.getSrc() == vertex) ? "/-> " : "/- ";
           break;
         default:
           throw new UnsupportedOperationException("variable type not supported: " + connection2.getVariableType());
