@@ -83,7 +83,7 @@ public interface PreparedStatement extends AutoCloseable {
    * Releases this statement's resources. Calling the method close on a Statement object that is already closed has no
    * effect.
    * 
-   * Note: When a statement is closed, its current ResultSet object, if one exists, is also closed.
+   * Note: When a statement is closed, its associated ResultSet objects are also closed.
    */
   @Override
   void close() throws PgqlException;
