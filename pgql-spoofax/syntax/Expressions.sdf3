@@ -29,7 +29,10 @@ context-free syntax
   Exp.Lt = [[Exp] < [Exp]] {left}
   Exp.Gte = [[Exp] >= [Exp]] {left}
   Exp.Lte = [[Exp] <= [Exp]] {left}
-  Exp.Neq = [[Exp] != [Exp]] {left}
+
+  Exp.Neq1 = [[Exp] != [Exp]] {left}
+  Exp.Neq2 = [[Exp] <> [Exp]] {left}
+
   Exp.Regex = [[Exp] =~ [Exp]] {left, prefer}
 
 context-free syntax
@@ -58,5 +61,8 @@ context-free syntax
   InlinedExp.Lt = [[InlinedExp] < [InlinedExp]] {left}
   InlinedExp.Gte = [[InlinedExp] >= [InlinedExp]] {left}
   InlinedExp.Lte = [[InlinedExp] <= [InlinedExp]] {left}
-  InlinedExp.Neq = [[InlinedExp] != [InlinedExp]] {left}
+
+  InlinedExp.Neq1 = [[InlinedExp] != [InlinedExp]] {left}
+  InlinedExp.Neq2 = [[InlinedExp] <> [InlinedExp]] {left}
+
   InlinedExp.Regex = [[InlinedExp] =~ [InlinedExp]] {left, prefer}

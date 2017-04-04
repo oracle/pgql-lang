@@ -19,6 +19,7 @@ rules
       	alltd(norm-UMin);
         innermost(
           norm-NOT +
+          norm-NEQ +
           norm-singleVertex +
           norm-VertexWithoutBrackets +
           norm-edgeContents
@@ -41,6 +42,9 @@ rules
   
   norm-NOT = ?Not1(<id>); !Not(<id>)
   norm-NOT = ?Not2(<id>); !Not(<id>)
+
+  norm-NEQ = ?Neq1(<id>); !Neq(<id>)
+  norm-NEQ = ?Neq2(<id>); !Neq(<id>)
 
   norm-string = String(norm-string-helper) + PropRef(id, norm-string-helper)
               + Date(norm-string-helper)
