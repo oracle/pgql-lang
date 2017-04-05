@@ -82,7 +82,8 @@ context-free priorities
   {
     left:
       Exp.Eq
-      Exp.Neq
+      Exp.Neq1
+      Exp.Neq2
       Exp.Gt
       Exp.Lt
       Exp.Gte
@@ -140,7 +141,8 @@ context-free priorities
   {
     left:
       InlinedExp.Eq
-      InlinedExp.Neq
+      InlinedExp.Neq1
+      InlinedExp.Neq2
       InlinedExp.Gt
       InlinedExp.Lt
       InlinedExp.Gte
