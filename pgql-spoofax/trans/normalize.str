@@ -43,8 +43,8 @@ rules
   norm-NOT = ?Not1(<id>); !Not(<id>)
   norm-NOT = ?Not2(<id>); !Not(<id>)
 
-  norm-NEQ = ?Neq1(<id>); !Neq(<id>)
-  norm-NEQ = ?Neq2(<id>); !Neq(<id>)
+  norm-NEQ = ?Neq1(exp1, exp2); !Neq(exp1, exp2)
+  norm-NEQ = ?Neq2(exp1, exp2); !Neq(exp1, exp2)
 
   norm-string = String(norm-string-helper) + PropRef(id, norm-string-helper)
               + Date(norm-string-helper)

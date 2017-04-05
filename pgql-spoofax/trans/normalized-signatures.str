@@ -37,6 +37,7 @@ signature constructors // for the normalized AST (see trans/normalize.str)
   LimitOffsetClauses   : Option(LimitClause) * Option(OffsetClause) -> LimitOffsetClauses
 
   Not                  : Exp -> Exp
+  Neq                  : Exp * Exp -> Exp
 
   Contains             : Exp * Exp -> Exp
   
