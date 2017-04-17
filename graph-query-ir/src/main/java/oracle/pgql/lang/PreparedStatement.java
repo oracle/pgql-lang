@@ -3,6 +3,10 @@
  */
 package oracle.pgql.lang;
 
+import java.time.LocalDate;
+import java.time.LocalDateTime;
+import java.time.LocalTime;
+
 /**
  * An object that represents a precompiled PGQL statement.
  * 
@@ -78,6 +82,36 @@ public interface PreparedStatement extends AutoCloseable {
    *          the parameter value
    */
   void setString(int parameterIndex, String x) throws PgqlException;
+
+  /**
+   * Sets the designated parameter to the given Java LocalDate value.
+   *
+   * @param parameterIndex
+   *          the first parameter is 1, the second is 2, ...
+   * @param x
+   *          the parameter value
+   */
+  void setDate(int parameterIndex, LocalDate x) throws PgqlException;
+
+  /**
+   * Sets the designated parameter to the given Java LocalTime value.
+   *
+   * @param parameterIndex
+   *          the first parameter is 1, the second is 2, ...
+   * @param x
+   *          the parameter value
+   */
+  void setTime(int parameterIndex, LocalTime x) throws PgqlException;
+
+  /**
+   * Sets the designated parameter to the given Java LocalDateTime value.
+   *
+   * @param parameterIndex
+   *          the first parameter is 1, the second is 2, ...
+   * @param x
+   *          the parameter value
+   */
+  void setTimestamp(int parameterIndex, LocalDateTime x) throws PgqlException;
 
   /**
    * Releases this statement's resources. Calling the method close on a Statement object that is already closed has no
