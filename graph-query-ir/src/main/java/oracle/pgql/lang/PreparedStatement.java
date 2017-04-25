@@ -114,6 +114,26 @@ public interface PreparedStatement extends AutoCloseable {
   void setTimestamp(int parameterIndex, LocalDateTime x) throws PgqlException;
 
   /**
+   * Sets the designated parameter to the given Java OffsetTime value.
+   *
+   * @param parameterIndex
+   *          the first parameter is 1, the second is 2, ...
+   * @param x
+   *          the parameter value
+   */
+  void setTimeWithTimezone(int parameterIndex, OffsetTime x) throws PgqlException;
+
+  /**
+   * Sets the designated parameter to the given Java OffsetDateTime value.
+   *
+   * @param parameterIndex
+   *          the first parameter is 1, the second is 2, ...
+   * @param x
+   *          the parameter value
+   */
+  void setTimestampWithTimezone(int parameterIndex, OffsetDateTime x) throws PgqlException;
+
+  /**
    * Releases this statement's resources. Calling the method close on a Statement object that is already closed has no
    * effect.
    * 
