@@ -6,6 +6,8 @@ package oracle.pgql.lang;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
+import java.time.OffsetDateTime;
+import java.time.OffsetTime;
 
 /**
  * An object that represents a precompiled PGQL statement.
