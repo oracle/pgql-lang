@@ -16,22 +16,22 @@ context-free syntax
 
 context-free syntax
 
-  NumericLiteral.Integer    = INTEGER
-  NumericLiteral.Decimal    = DECIMAL
+  NumericLiteral.Integer    = UNSIGNED-INT
+  NumericLiteral.Decimal    = UNSIGNED-DECIMAL
   String.String             = STRING
   UnquotedString.String     = UNQUOTED-STRING
   BooleanLiteral.True       = <true> {case-insensitive}
   BooleanLiteral.False      = <false> {case-insensitive}
   Literal.Null              = <null> {case-insensitive}
   BindVariable.BindVariable = <?>
-  Date.Date                 = <date <STRING>> {case-insensitive}
-  Time.Time                 = <time <STRING>> {case-insensitive}
-  Timestamp.Timestamp       = <timestamp <STRING>> {case-insensitive}
+  Date.Date                 = <date <DATE-TIME-STRING>> {case-insensitive}
+  Time.Time                 = <time <DATE-TIME-STRING>> {case-insensitive}
+  Timestamp.Timestamp       = <timestamp <DATE-TIME-STRING>> {case-insensitive}
 
 lexical syntax
 
-  INTEGER              = [0-9]+
-  DECIMAL              = [0-9]* "." [0-9]+
+  UNSIGNED-INT         = [0-9]+
+  UNSIGNED-DECIMAL     = [0-9]* "." [0-9]+
 
   STRING               = SINGLE-QUOTED-STRING | DOUBLE-QUOTED-STRING
   SINGLE-QUOTED-STRING = "'" (~[\'\n\\] | ESCAPE-CHAR)* "'"
@@ -40,11 +40,13 @@ lexical syntax
 
   UNQUOTED-STRING      = [a-zA-Z][a-zA-Z0-9\_]*
 
+  DATE-TIME-STRING     = SINGLE-QUOTED-STRING
+
 lexical restrictions // greedy matching
 
-  INTEGER         -/- [0-9]
-  DECIMAL         -/- [0-9]
-  UNQUOTED-STRING -/- [a-zA-Z0-9\_]
+  UNSIGNED-INT     -/- [0-9]
+  UNSIGNED-DECIMAL -/- [0-9]
+  UNQUOTED-STRING  -/- [a-zA-Z0-9\_]
 
 lexical syntax
 

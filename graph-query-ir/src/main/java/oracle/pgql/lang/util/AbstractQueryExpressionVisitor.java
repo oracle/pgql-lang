@@ -19,7 +19,9 @@ import oracle.pgql.lang.ir.QueryExpression.Constant.ConstDecimal;
 import oracle.pgql.lang.ir.QueryExpression.Constant.ConstInteger;
 import oracle.pgql.lang.ir.QueryExpression.Constant.ConstString;
 import oracle.pgql.lang.ir.QueryExpression.Constant.ConstTime;
+import oracle.pgql.lang.ir.QueryExpression.Constant.ConstTimeWithTimezone;
 import oracle.pgql.lang.ir.QueryExpression.Constant.ConstTimestamp;
+import oracle.pgql.lang.ir.QueryExpression.Constant.ConstTimestampWithTimezone;
 import oracle.pgql.lang.ir.QueryExpression.Function.AllDifferent;
 import oracle.pgql.lang.ir.QueryExpression.Function.Cast;
 import oracle.pgql.lang.ir.QueryExpression.Function.EdgeLabel;
@@ -84,6 +86,14 @@ public abstract class AbstractQueryExpressionVisitor implements QueryExpressionV
 
   @Override
   public void visit(ConstTimestamp constTimestamp) {
+  }
+
+  @Override
+  public void visit(ConstTimeWithTimezone constTimeWithTimezone) {
+  }
+
+  @Override
+  public void visit(ConstTimestampWithTimezone constTimestampWithTimezone) {
   }
 
   @Override

@@ -23,7 +23,9 @@ import oracle.pgql.lang.ir.QueryExpression.Constant.ConstDecimal;
 import oracle.pgql.lang.ir.QueryExpression.Constant.ConstInteger;
 import oracle.pgql.lang.ir.QueryExpression.Constant.ConstString;
 import oracle.pgql.lang.ir.QueryExpression.Constant.ConstTime;
+import oracle.pgql.lang.ir.QueryExpression.Constant.ConstTimeWithTimezone;
 import oracle.pgql.lang.ir.QueryExpression.Constant.ConstTimestamp;
+import oracle.pgql.lang.ir.QueryExpression.Constant.ConstTimestampWithTimezone;
 import oracle.pgql.lang.ir.QueryExpression.Function.AllDifferent;
 import oracle.pgql.lang.ir.QueryExpression.Function.Cast;
 import oracle.pgql.lang.ir.QueryExpression.Function.EdgeLabel;
@@ -59,9 +61,13 @@ public interface QueryExpressionVisitor {
 
   public void visit(ConstDate constDate);
 
-  public void visit(ConstTime conimestT);
+  public void visit(ConstTime constTime);
 
   public void visit(ConstTimestamp constTimestamp);
+
+  public void visit(ConstTimeWithTimezone constTimeWithTimezone);
+
+  public void visit(ConstTimestampWithTimezone constTimestampWithTimezone);
 
   public void visit(ConstNull constantNull);
 

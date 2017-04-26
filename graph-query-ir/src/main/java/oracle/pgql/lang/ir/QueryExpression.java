@@ -5,6 +5,11 @@ package oracle.pgql.lang.ir;
 
 import static oracle.pgql.lang.ir.PgqlUtils.printPgqlString;
 
+import java.time.LocalDate;
+import java.time.LocalDateTime;
+import java.time.LocalTime;
+import java.time.OffsetDateTime;
+import java.time.OffsetTime;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -20,6 +25,8 @@ public interface QueryExpression {
     DATE,
     TIME,
     TIMESTAMP,
+    TIME_WITH_TIMEZONE,
+    TIMESTAMP_WITH_TIMEZONE,
     NULL,
 
     // arithmetic expressions
@@ -632,9 +639,9 @@ public interface QueryExpression {
       }
     }
 
-    public static class ConstDate extends Constant<String> {
+    public static class ConstDate extends Constant<LocalDate> {
 
-      public ConstDate(String val) {
+      public ConstDate(LocalDate val) {
         super(val);
       }
 
@@ -645,7 +652,7 @@ public interface QueryExpression {
 
       @Override
       public String toString() {
-        return "DATE " + printPgqlString(value);
+        return "DATE '" + value + "'";
       }
 
       @Override
@@ -654,9 +661,9 @@ public interface QueryExpression {
       }
     }
 
-    public static class ConstTime extends Constant<String> {
+    public static class ConstTime extends Constant<LocalTime> {
 
-      public ConstTime(String val) {
+      public ConstTime(LocalTime val) {
         super(val);
       }
 
@@ -667,7 +674,7 @@ public interface QueryExpression {
 
       @Override
       public String toString() {
-        return "TIME " + printPgqlString(value);
+        return "TIME '" + value + "'";
       }
 
       @Override
@@ -676,9 +683,9 @@ public interface QueryExpression {
       }
     }
 
-    public static class ConstTimestamp extends Constant<String> {
+    public static class ConstTimestamp extends Constant<LocalDateTime> {
 
-      public ConstTimestamp(String val) {
+      public ConstTimestamp(LocalDateTime val) {
         super(val);
       }
 
@@ -689,7 +696,7 @@ public interface QueryExpression {
 
       @Override
       public String toString() {
-        return "TIMESTAMP " + printPgqlString(value);
+        return "TIMESTAMP '" + value + "'";
       }
 
       @Override
@@ -698,6 +705,49 @@ public interface QueryExpression {
       }
     }
 
+    public static class ConstTimeWithTimezone extends Constant<OffsetTime> {
+
+      public ConstTimeWithTimezone(OffsetTime val) {
+        super(val);
+      }
+
+      @Override
+      public ExpressionType getExpType() {
+        return ExpressionType.TIME_WITH_TIMEZONE;
+      }
+
+      @Override
+      public String toString() {
+        return "TIME '" + value + "'";
+      }
+
+      @Override
+      public void accept(QueryExpressionVisitor v) {
+        v.visit(this);
+      }
+    }
+
+    public static class ConstTimestampWithTimezone extends Constant<OffsetDateTime> {
+
+      public ConstTimestampWithTimezone(OffsetDateTime val) {
+        super(val);
+      }
+
+      @Override
+      public ExpressionType getExpType() {
+        return ExpressionType.TIMESTAMP_WITH_TIMEZONE;
+      }
+
+      @Override
+      public String toString() {
+        return "TIMESTAMP '" + value + "'";
+      }
+
+      @Override
+      public void accept(QueryExpressionVisitor v) {
+        v.visit(this);
+      }
+    }
   }
 
   class ConstNull implements QueryExpression {

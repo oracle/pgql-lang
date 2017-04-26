@@ -10,6 +10,9 @@ signature constructors // for type checking (see trans/types.ts)
   DecimalTy : DecimalTy
   StringTy : StringTy
   StringSetTy : StringSetTy
+  DateTy : DateTy
+  TimeTy : TimeTy
+  TimestampTy : TimestampTy
   UnknownTy : UnknownTy
 
 signature constructors // for the normalized AST (see trans/normalize.str)

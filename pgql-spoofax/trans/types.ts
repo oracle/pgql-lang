@@ -23,6 +23,9 @@ type rules // expressions
   Integer(_)       : IntegerTy()
   Decimal(_)       : DecimalTy()
   String(_)        : StringTy()
+  Date(_)          : DateTy()
+  Time(_)          : TimeTy()
+  Timestamp(_)     : TimestampTy()
   Null()           : UnknownTy()
 
 type rules // built-in functions

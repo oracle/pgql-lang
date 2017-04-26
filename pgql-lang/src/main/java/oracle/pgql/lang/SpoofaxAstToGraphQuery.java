@@ -3,6 +3,12 @@
  */
 package oracle.pgql.lang;
 
+import java.time.LocalDate;
+import java.time.LocalDateTime;
+import java.time.LocalTime;
+import java.time.OffsetDateTime;
+import java.time.OffsetTime;
+import java.time.format.DateTimeParseException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
@@ -35,6 +41,7 @@ import oracle.pgql.lang.ir.QueryPath.Repetition;
 import oracle.pgql.lang.ir.QueryVariable;
 import oracle.pgql.lang.ir.QueryVertex;
 import oracle.pgql.lang.ir.VertexPairConnection;
+import oracle.pgql.lang.util.SqlDateTimeFormatter;
 
 public class SpoofaxAstToGraphQuery {
 
@@ -436,13 +443,26 @@ public class SpoofaxAstToGraphQuery {
         return new QueryExpression.Constant.ConstBoolean(false);
       case "Date":
         s = getString(t);
-        return new QueryExpression.Constant.ConstDate(s);
+        LocalDate date = LocalDate.parse(s, SqlDateTimeFormatter.SQL_DATE);
+        return new QueryExpression.Constant.ConstDate(date);
       case "Time":
         s = getString(t);
-        return new QueryExpression.Constant.ConstTime(s);
+        try {
+          LocalTime time = LocalTime.parse(s, SqlDateTimeFormatter.SQL_TIME);
+          return new QueryExpression.Constant.ConstTime(time);
+        } catch (DateTimeParseException e) {
+          OffsetTime timeWithTimezone = OffsetTime.parse(s, SqlDateTimeFormatter.SQL_TIME_WITH_TIMEZONE);
+          return new QueryExpression.Constant.ConstTimeWithTimezone(timeWithTimezone);
+        }
       case "Timestamp":
         s = getString(t);
-        return new QueryExpression.Constant.ConstTimestamp(s);
+        try {
+          LocalDateTime timestamp = LocalDateTime.parse(s, SqlDateTimeFormatter.SQL_TIMESTAMP);
+          return new QueryExpression.Constant.ConstTimestamp(timestamp);
+        } catch (DateTimeParseException e) {
+          OffsetDateTime timestampWithTimezone = OffsetDateTime.parse(s, SqlDateTimeFormatter.SQL_TIMESTAMP_WITH_TIMEZONE);
+          return new QueryExpression.Constant.ConstTimestampWithTimezone(timestampWithTimezone);
+        }
       case "Null":
         return new QueryExpression.ConstNull();
       case "VarRef":
