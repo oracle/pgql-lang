@@ -32,7 +32,8 @@ public class SqlDateTimeFormatter {
 
   /**
    * Differences with DateTimeFormatter.ISO_LOCAL_DATE_TIME:
-   *- seconds are optional in ISO but not in SQL - date and time are separated by 'T' in ISO but by ' ' in SQL
+   * - seconds are optional in ISO but not in SQL
+   * - date and time are separated by 'T' in ISO but by ' ' in SQL
    */
   public static final DateTimeFormatter SQL_TIMESTAMP = new DateTimeFormatterBuilder() //
       .append(SQL_DATE) //
