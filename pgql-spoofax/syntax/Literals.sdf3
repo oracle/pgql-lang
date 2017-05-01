@@ -42,6 +42,8 @@ lexical syntax
 
   DATE-TIME-STRING     = SINGLE-QUOTED-STRING
 
+  DATA-TYPE            = [a-zA-Z][a-zA-Z0-9\_\ ]*
+
 lexical restrictions // greedy matching
 
   UNSIGNED-INT     -/- [0-9]
