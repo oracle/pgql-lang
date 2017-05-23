@@ -50,10 +50,7 @@ rules
               + Date(un-single-quote)
               + Time(un-single-quote)
               + Timestamp(un-single-quote)
-  norm-string-helper = (un-double-quote + un-single-quote)
-                     ; string-replace(|"\\\"", "\"")
-                     ; string-replace(|"\\'", "'")
-                     ; string-replace(|"\\\\", "\\")
+  norm-string-helper = un-double-quote + un-single-quote
 
 rules
 

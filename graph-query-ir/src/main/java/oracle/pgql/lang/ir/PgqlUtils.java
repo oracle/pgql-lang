@@ -23,6 +23,8 @@ import oracle.pgql.lang.ir.QueryExpression.Aggregation.AggrMin;
 import oracle.pgql.lang.ir.QueryExpression.Aggregation.AggrSum;
 import oracle.pgql.lang.ir.QueryVariable.VariableType;
 
+import static org.apache.commons.lang3.StringEscapeUtils.escapeJava;
+
 public class PgqlUtils {
 
   /**
@@ -80,7 +82,7 @@ public class PgqlUtils {
   }
 
   public static String printPgqlString(String stringLiteral) {
-    return "'" + stringLiteral.replace("\\", "\\\\").replace("'", "\\'") + "'";
+    return "'" + escapeJava(stringLiteral) + "'";
   }
   
   public static String printPgqlString(GraphQuery graphQuery) {
