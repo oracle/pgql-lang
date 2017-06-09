@@ -14,7 +14,7 @@ public class Point3D {
 
   private final double z;
 
-  private double m = 0.0;
+  private final double m;
 
 
   /**
@@ -28,6 +28,7 @@ public class Point3D {
     this.x = x;
     this.y = y;
     this.z = z;
+    this.m = Double.NaN;
   }
 
   /**

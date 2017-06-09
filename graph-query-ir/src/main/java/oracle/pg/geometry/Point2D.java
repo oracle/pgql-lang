@@ -12,7 +12,7 @@ public class Point2D {
 
   private final double y;
 
-  private double m = 0.0;
+  private final double m;
 
   /**
    * A 2-dimensional point
@@ -23,6 +23,7 @@ public class Point2D {
   public Point2D(double x, double y) {
     this.x = x;
     this.y = y;
+    this.m = Double.NaN;
   }
 
 
