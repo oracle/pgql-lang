@@ -253,6 +253,7 @@ public class SpoofaxAstToGraphQuery {
     long minHopDistance;
     long maxHopDistance;
     if (isSome(hopDistanceT)) {
+      hopDistanceT = getSome(hopDistanceT);
       minHopDistance = parseLong(hopDistanceT.getSubterm(POS_PATH_HOP_DISTANCE_MIN));
       maxHopDistance = parseLong(hopDistanceT.getSubterm(POS_PATH_HOP_DISTANCE_MAX));
     } else {
@@ -615,6 +616,11 @@ public class SpoofaxAstToGraphQuery {
   // helper method
   private static boolean isSome(IStrategoTerm t) {
     return ((IStrategoAppl) t).getConstructor().getName().equals("Some");
+  }
+
+  // helper method
+  private static IStrategoTerm getSome(IStrategoTerm t) {
+    return t.getSubterm(0);
   }
 
   // helper method
