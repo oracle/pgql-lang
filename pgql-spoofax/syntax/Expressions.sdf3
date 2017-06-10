@@ -45,6 +45,9 @@ context-free syntax // function calls
   Exp.OutDegree = <<Exp>. outDegree()> {case-insensitive}
   Exp.Cast = <cast(<Exp> as <DATA-TYPE>)> {case-insensitive}
   Exp.AllDifferent = <all_different(<{Exp ", "}+>)> {case-insensitive}
+  Exp.ToDate = <to_date(<STRING>, <STRING>)> {case-insensitive}
+  Exp.ToTime = <to_time(<STRING>, <STRING>)> {case-insensitive}
+  Exp.ToTimestamp = <to_timestamp(<STRING>, <STRING>)> {case-insensitive}
 
 context-free syntax // Aggregates
 
