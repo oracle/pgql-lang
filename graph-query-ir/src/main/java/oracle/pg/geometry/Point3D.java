@@ -4,7 +4,7 @@
 package oracle.pg.geometry;
 
 /**
- * A 3-dimensional point
+ * A point in a 3-dimensional space
  */
 public class Point3D {
 
@@ -18,7 +18,7 @@ public class Point3D {
 
 
   /**
-   * A 3-dimensional point
+   * Create a point in a 3-dimensional space
    *
    * @param x longitude
    * @param y latitude
@@ -32,7 +32,7 @@ public class Point3D {
   }
 
   /**
-   * A 3-dimensional point with linear reference
+   * Create a point in a 3-dimensional space with a linear reference
    *
    * @param x longitude
    * @param y latitude
@@ -82,19 +82,6 @@ public class Point3D {
     temp = Double.doubleToLongBits(getM());
     result = 31 * result + (int) (temp ^ (temp >>> 32));
     return result;
-  }
-
-  /**
-   * Represent this point as a GeoJson string
-   * {"type": "Point", "coordinates": [lon, lat, alt]}
-   *
-   * @return a GeoJson string representation of this point
-   */
-  public String toGeoJson() {
-    return "{ " //
-        + "\"type\": \"Point\", " //
-        + "\"coordinates\": [" + x + ", " + y + ", " + z + "] " //
-        + "}";
   }
 
   /**
