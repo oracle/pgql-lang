@@ -36,10 +36,16 @@ context-free syntax
   
   EdgeContents.EdgeContents = <[<ElemContents>]>
   EdgeOrPathContents = EdgeContents
-  EdgeOrPathContents.Path = </<VARNAME?>:<AltPath><KleeneStar?>/>
+  EdgeOrPathContents.Path = </<VARNAME?>:<AltPath><HopDistance?>/>
   AltPath.Or = <<AltPath>|<AltPath>> {left}
   AltPath.PathPatternRef = PATHPATTERNNAME
-  KleeneStar.KleeneStar = <*>
+
+  HopDistance.ZeroOrMore = <*>
+  HopDistance.OneOrMore = <+>
+  HopDistance.ExactlyN = <{<UNSIGNED-INT>}>
+  HopDistance.NOrMore = <{<UNSIGNED-INT>,}>
+  HopDistance.BetweenNAndM = <{<UNSIGNED-INT>,<UNSIGNED-INT>}>
+  HopDistance.BetweenZeroAndM = <{,<UNSIGNED-INT>}>
 
 context-free syntax
 

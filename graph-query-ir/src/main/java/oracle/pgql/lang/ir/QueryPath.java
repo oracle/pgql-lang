@@ -8,37 +8,25 @@ import java.util.Set;
 
 public class QueryPath extends VertexPairConnection {
 
-  @Deprecated
-  public enum Direction {
-    OUTGOING,
-    INCOMING
-  }
-
-  public enum Repetition {
-    KLEENE_STAR,
-    KLEENE_PLUS, // not yet used
-    NONE
-  }
-
   private final List<QueryVertex> vertices;
 
   private final List<VertexPairConnection> connections;
 
-  private final List<Direction> directions;
-
   private final Set<QueryExpression> constraints;
 
-  private final Repetition repetition;
+  private final long minHopDistance;
+
+  private final long maxHopDistance;
 
   public QueryPath(QueryVertex src, QueryVertex dst, List<QueryVertex> vertices, List<VertexPairConnection> connections,
-      List<Direction> directions, Set<QueryExpression> constraints, Repetition repetition, String name,
-      boolean anonymous) {
+      Set<QueryExpression> constraints, String name,
+      boolean anonymous, long minHopDistance, long maxHopDistance) {
     super(src, dst, name, anonymous);
     this.vertices = vertices;
     this.connections = connections;
-    this.directions = directions;
     this.constraints = constraints;
-    this.repetition = repetition;
+    this.minHopDistance = minHopDistance;
+    this.maxHopDistance = maxHopDistance;
   }
 
   public List<QueryVertex> getVertices() {
@@ -49,23 +37,22 @@ public class QueryPath extends VertexPairConnection {
     return connections;
   }
 
-  /**
-   * Use {@link #getSrc()} or {@link #getDst()} of connections instead.
-   * For example: PATH pattern := (n) -[e1]-> (m) <-[e2]- (o)
-   * e1.getSrc() -> (n) ==> direction is outgoing
-   * e2.getSrc() -> (o) ==> direction is incoming
-   */
-  @Deprecated
-  public List<Direction> getDirections() {
-    return directions;
-  }
-
   public Set<QueryExpression> getConstraints() {
     return constraints;
   }
 
-  public Repetition getRepetition() {
-    return repetition;
+  /**
+   * @return minimal hop distance
+   */
+  public long getMinHopDistance() {
+    return minHopDistance;
+  }
+
+  /**
+   * @return maximal hop distance, -1 if none is specified
+   */
+  public long getMaxHopDistance() {
+    return maxHopDistance;
   }
 
   @Override
@@ -79,8 +66,8 @@ public class QueryPath extends VertexPairConnection {
     int result = super.hashCode();
     result = prime * result + ((connections == null) ? 0 : connections.hashCode());
     result = prime * result + ((constraints == null) ? 0 : constraints.hashCode());
-    result = prime * result + ((directions == null) ? 0 : directions.hashCode());
-    result = prime * result + ((repetition == null) ? 0 : repetition.hashCode());
+    result = prime * result + (int) (maxHopDistance ^ (maxHopDistance >>> 32));
+    result = prime * result + (int) (minHopDistance ^ (minHopDistance >>> 32));
     result = prime * result + ((vertices == null) ? 0 : vertices.hashCode());
     return result;
   }
@@ -104,12 +91,9 @@ public class QueryPath extends VertexPairConnection {
         return false;
     } else if (!constraints.equals(other.constraints))
       return false;
-    if (directions == null) {
-      if (other.directions != null)
-        return false;
-    } else if (!directions.equals(other.directions))
+    if (maxHopDistance != other.maxHopDistance)
       return false;
-    if (repetition != other.repetition)
+    if (minHopDistance != other.minHopDistance)
       return false;
     if (vertices == null) {
       if (other.vertices != null)

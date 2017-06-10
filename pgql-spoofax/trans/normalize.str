@@ -26,6 +26,7 @@ rules
         );
         alltd(norm-string);
         alltd(norm-has-prop);
+        alltd(norm-hop-distance);
         alltd(name-unnamed-elems);
         alltd(norm-inlined-references);
         bottomup(try(
@@ -189,6 +190,14 @@ rules
 
   create-conjunct = reverse; !(<Tl>, <Hd>); foldl(create-OR)
   create-OR = ?(exp1, exp2); !And(exp1, exp2)
+
+rules
+
+  norm-hop-distance = ?ZeroOrMore(); !BetweenNAndM("0", "-1")
+  norm-hop-distance = ?OneOrMore(); !BetweenNAndM("1", "-1")
+  norm-hop-distance = ?ExactlyN(n); !BetweenNAndM(n, n)
+  norm-hop-distance = ?NOrMore(n); !BetweenNAndM(n, "-1")
+  norm-hop-distance = ?BetweenZeroAndM(m); !BetweenNAndM("0", <int-to-string> m)
 
 rules
 
