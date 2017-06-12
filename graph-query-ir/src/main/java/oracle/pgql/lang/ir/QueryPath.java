@@ -14,19 +14,19 @@ public class QueryPath extends VertexPairConnection {
 
   private final Set<QueryExpression> constraints;
 
-  private final long minHopDistance;
+  private final long minHops;
 
-  private final long maxHopDistance;
+  private final long maxHops;
 
   public QueryPath(QueryVertex src, QueryVertex dst, List<QueryVertex> vertices, List<VertexPairConnection> connections,
       Set<QueryExpression> constraints, String name,
-      boolean anonymous, long minHopDistance, long maxHopDistance) {
+      boolean anonymous, long minHops, long maxHops) {
     super(src, dst, name, anonymous);
     this.vertices = vertices;
     this.connections = connections;
     this.constraints = constraints;
-    this.minHopDistance = minHopDistance;
-    this.maxHopDistance = maxHopDistance;
+    this.minHops = minHops;
+    this.maxHops = maxHops;
   }
 
   public List<QueryVertex> getVertices() {
@@ -42,17 +42,17 @@ public class QueryPath extends VertexPairConnection {
   }
 
   /**
-   * @return minimal hop distance
+   * @return minimal number of hops
    */
-  public long getMinHopDistance() {
-    return minHopDistance;
+  public long getMinHops() {
+    return minHops;
   }
 
   /**
-   * @return maximal hop distance, -1 if none is specified
+   * @return maximal number of hops, -1 if none is specified
    */
-  public long getMaxHopDistance() {
-    return maxHopDistance;
+  public long getMaxHops() {
+    return maxHops;
   }
 
   @Override
@@ -66,8 +66,8 @@ public class QueryPath extends VertexPairConnection {
     int result = super.hashCode();
     result = prime * result + ((connections == null) ? 0 : connections.hashCode());
     result = prime * result + ((constraints == null) ? 0 : constraints.hashCode());
-    result = prime * result + (int) (maxHopDistance ^ (maxHopDistance >>> 32));
-    result = prime * result + (int) (minHopDistance ^ (minHopDistance >>> 32));
+    result = prime * result + (int) (maxHops ^ (maxHops >>> 32));
+    result = prime * result + (int) (minHops ^ (minHops >>> 32));
     result = prime * result + ((vertices == null) ? 0 : vertices.hashCode());
     return result;
   }
@@ -91,9 +91,9 @@ public class QueryPath extends VertexPairConnection {
         return false;
     } else if (!constraints.equals(other.constraints))
       return false;
-    if (maxHopDistance != other.maxHopDistance)
+    if (maxHops != other.maxHops)
       return false;
-    if (minHopDistance != other.minHopDistance)
+    if (minHops != other.minHops)
       return false;
     if (vertices == null) {
       if (other.vertices != null)

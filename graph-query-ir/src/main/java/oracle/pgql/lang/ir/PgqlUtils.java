@@ -374,8 +374,8 @@ public class PgqlUtils {
   }
 
   private static String printHopDistance(QueryPath path) {
-    long minHopDistance = path.getMinHopDistance();
-    long maxHopDistance = path.getMaxHopDistance();
+    long minHopDistance = path.getMinHops();
+    long maxHopDistance = path.getMaxHops();
     if (minHopDistance == 1 && maxHopDistance == 1) {
       return "";
     } else if (minHopDistance == 0 && maxHopDistance == -1) {

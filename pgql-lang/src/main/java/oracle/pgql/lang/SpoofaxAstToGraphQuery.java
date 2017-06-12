@@ -70,9 +70,9 @@ public class SpoofaxAstToGraphQuery {
   private static final int POS_PATH_SRC = 0;
   private static final int POS_PATH_DST = 1;
   private static final int POS_PATH_PATH_PATTERN = 2;
-  private static final int POS_PATH_HOP_DISTANCE = 3;
-  private static final int POS_PATH_HOP_DISTANCE_MIN = 0;
-  private static final int POS_PATH_HOP_DISTANCE_MAX = 1;
+  private static final int POS_PATH_QUANTIFIERS = 3;
+  private static final int POS_PATH_QUANTIFIERS_MIN_HOPS = 0;
+  private static final int POS_PATH_QUANTIFIERS_MAX_HOPS = 1;
   private static final int POS_PATH_NAME = 4;
 
   private static final int POS_ORDERBY_EXP = 0;
@@ -249,16 +249,16 @@ public class SpoofaxAstToGraphQuery {
   private static QueryPath getPath(IStrategoTerm pathT, Map<String, IStrategoTerm> pathPatternMap,
       Map<String, QueryVariable> varmap) throws PgqlException {
     String pathPatternName = getString(pathT.getSubterm(POS_PATH_PATH_PATTERN));
-    IStrategoTerm hopDistanceT = pathT.getSubterm(POS_PATH_HOP_DISTANCE);
-    long minHopDistance;
-    long maxHopDistance;
-    if (isSome(hopDistanceT)) {
-      hopDistanceT = getSome(hopDistanceT);
-      minHopDistance = parseLong(hopDistanceT.getSubterm(POS_PATH_HOP_DISTANCE_MIN));
-      maxHopDistance = parseLong(hopDistanceT.getSubterm(POS_PATH_HOP_DISTANCE_MAX));
+    IStrategoTerm pathQuantifiersT = pathT.getSubterm(POS_PATH_QUANTIFIERS);
+    long minHops;
+    long maxHops;
+    if (isSome(pathQuantifiersT)) {
+      pathQuantifiersT = getSome(pathQuantifiersT);
+      minHops = parseLong(pathQuantifiersT.getSubterm(POS_PATH_QUANTIFIERS_MIN_HOPS));
+      maxHops = parseLong(pathQuantifiersT.getSubterm(POS_PATH_QUANTIFIERS_MAX_HOPS));
     } else {
-      minHopDistance = 1;
-      maxHopDistance = 1;
+      minHops = 1;
+      maxHops = 1;
     }
 
     IStrategoTerm pathPatternT = pathPatternMap.get(pathPatternName);
@@ -290,8 +290,8 @@ public class SpoofaxAstToGraphQuery {
     QueryVertex dst = (QueryVertex) varmap.get(dstName);
 
     QueryPath pathPattern = name.contains(GENERATED_VAR_SUBSTR)
-        ? new QueryPath(src, dst, vertices, connections, constraints, name, true, minHopDistance, maxHopDistance)
-        : new QueryPath(src, dst, vertices, connections, constraints, name, false, minHopDistance, maxHopDistance);
+        ? new QueryPath(src, dst, vertices, connections, constraints, name, true, minHops, maxHops)
+        : new QueryPath(src, dst, vertices, connections, constraints, name, false, minHops, maxHops);
 
     return pathPattern;
   }

@@ -36,16 +36,16 @@ context-free syntax
   
   EdgeContents.EdgeContents = <[<ElemContents>]>
   EdgeOrPathContents = EdgeContents
-  EdgeOrPathContents.Path = </<VARNAME?>:<AltPath><HopDistance?>/>
+  EdgeOrPathContents.Path = </<VARNAME?>:<AltPath><PathQuantifier?>/>
   AltPath.Or = <<AltPath>|<AltPath>> {left}
   AltPath.PathPatternRef = PATHPATTERNNAME
 
-  HopDistance.ZeroOrMore = <*>
-  HopDistance.OneOrMore = <+>
-  HopDistance.ExactlyN = <{<UNSIGNED-INT>}>
-  HopDistance.NOrMore = <{<UNSIGNED-INT>,}>
-  HopDistance.BetweenNAndM = <{<UNSIGNED-INT>,<UNSIGNED-INT>}>
-  HopDistance.BetweenZeroAndM = <{,<UNSIGNED-INT>}>
+  PathQuantifier.ZeroOrMore = <*>
+  PathQuantifier.OneOrMore = <+>
+  PathQuantifier.ExactlyN = <{<UNSIGNED-INT>}>
+  PathQuantifier.NOrMore = <{<UNSIGNED-INT>,}>
+  PathQuantifier.BetweenNAndM = <{<UNSIGNED-INT>,<UNSIGNED-INT>}>
+  PathQuantifier.BetweenZeroAndM = <{,<UNSIGNED-INT>}>
 
 context-free syntax
 
