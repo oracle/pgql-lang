@@ -198,18 +198,7 @@ public class PgqlUtils {
           QueryPath path = (QueryPath) connection;
           result += " -/:type";
           result += getPathId(path, queryPaths);
-          switch (path.getRepetition()) {
-            case KLEENE_STAR:
-              result += "*";
-              break;
-            case KLEENE_PLUS:
-              result += "+";
-              break;
-            case NONE:
-              break;
-            default:
-              throw new UnsupportedOperationException();
-          }
+          result += printHopDistance(path);
           result += "/-> ";
           break;
         default:
@@ -370,18 +359,7 @@ public class PgqlUtils {
           QueryPath queryPath = (QueryPath) connection2;
           result += (queryPath.getSrc() == vertex) ? " -/" : " <-/";
           result += "type" + getPathId(queryPath, queryPaths);
-          switch (path.getRepetition()) {
-            case KLEENE_STAR:
-              result += "*";
-              break;
-            case KLEENE_PLUS:
-              result += "+";
-              break;
-            case NONE:
-              break;
-            default:
-              throw new UnsupportedOperationException();
-          }
+          result += printHopDistance(path);
           result += (queryPath.getSrc() == vertex) ? "/-> " : "/- ";
           break;
         default:
@@ -393,6 +371,26 @@ public class PgqlUtils {
     }
     result += "\n";
     return result;
+  }
+
+  private static String printHopDistance(QueryPath path) {
+    long minHopDistance = path.getMinHops();
+    long maxHopDistance = path.getMaxHops();
+    if (minHopDistance == 1 && maxHopDistance == 1) {
+      return "";
+    } else if (minHopDistance == 0 && maxHopDistance == -1) {
+      return "*";
+    } else if (minHopDistance == 1 && maxHopDistance == -1) {
+      return "+";
+    } else if (minHopDistance == maxHopDistance) {
+      return "{" + minHopDistance + "}";
+    } else if (maxHopDistance == -1) {
+      return "{" + minHopDistance + ",}";
+    } else if (minHopDistance == 0) {
+      return "{," + maxHopDistance + "}";
+    } else {
+      return "{" + minHopDistance + "," + maxHopDistance + "}";
+    }
   }
 
   public static String printPgqlString(GroupBy groupBy) {

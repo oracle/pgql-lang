@@ -8,21 +8,18 @@ import java.time.LocalDateTime;
 import java.time.LocalTime;
 import java.time.OffsetDateTime;
 import java.time.OffsetTime;
+import java.time.format.DateTimeFormatter;
 import java.time.format.DateTimeParseException;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
-import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-import java.util.stream.Collectors;
 
 import org.spoofax.interpreter.terms.IStrategoAppl;
 import org.spoofax.interpreter.terms.IStrategoInt;
-import org.spoofax.interpreter.terms.IStrategoList;
 import org.spoofax.interpreter.terms.IStrategoString;
 import org.spoofax.interpreter.terms.IStrategoTerm;
 
@@ -36,8 +33,6 @@ import oracle.pgql.lang.ir.Projection;
 import oracle.pgql.lang.ir.QueryEdge;
 import oracle.pgql.lang.ir.QueryExpression;
 import oracle.pgql.lang.ir.QueryPath;
-import oracle.pgql.lang.ir.QueryPath.Direction;
-import oracle.pgql.lang.ir.QueryPath.Repetition;
 import oracle.pgql.lang.ir.QueryVariable;
 import oracle.pgql.lang.ir.QueryVertex;
 import oracle.pgql.lang.ir.VertexPairConnection;
@@ -75,9 +70,10 @@ public class SpoofaxAstToGraphQuery {
   private static final int POS_PATH_SRC = 0;
   private static final int POS_PATH_DST = 1;
   private static final int POS_PATH_PATH_PATTERN = 2;
-  private static final int POS_PATH_KLEENE_STAR = 3;
+  private static final int POS_PATH_QUANTIFIERS = 3;
+  private static final int POS_PATH_QUANTIFIERS_MIN_HOPS = 0;
+  private static final int POS_PATH_QUANTIFIERS_MAX_HOPS = 1;
   private static final int POS_PATH_NAME = 4;
-  private static final int POS_PATH_DIRECTION = 5;
 
   private static final int POS_ORDERBY_EXP = 0;
   private static final int POS_ORDERBY_ORDERING = 1;
@@ -95,6 +91,8 @@ public class SpoofaxAstToGraphQuery {
   private static final int POS_CAST_EXP = 0;
   private static final int POS_CAST_TARGET_TYPE_NAME = 1;
   private static final int POS_ALL_DIFFERENT_EXPS = 0;
+  private static final int POS_TO_TEMPORAL_STRING = 0;
+  private static final int POS_TO_TEMPORAL_FORMAT = 1;
 
   public static GraphQuery translate(IStrategoTerm ast) throws PgqlException {
 
@@ -251,9 +249,17 @@ public class SpoofaxAstToGraphQuery {
   private static QueryPath getPath(IStrategoTerm pathT, Map<String, IStrategoTerm> pathPatternMap,
       Map<String, QueryVariable> varmap) throws PgqlException {
     String pathPatternName = getString(pathT.getSubterm(POS_PATH_PATH_PATTERN));
-
-    boolean hasKleeneStar = isSome(pathT.getSubterm(POS_PATH_KLEENE_STAR));
-    Repetition repetition = hasKleeneStar ? Repetition.KLEENE_STAR : Repetition.NONE;
+    IStrategoTerm pathQuantifiersT = pathT.getSubterm(POS_PATH_QUANTIFIERS);
+    long minHops;
+    long maxHops;
+    if (isSome(pathQuantifiersT)) {
+      pathQuantifiersT = getSome(pathQuantifiersT);
+      minHops = parseLong(pathQuantifiersT.getSubterm(POS_PATH_QUANTIFIERS_MIN_HOPS));
+      maxHops = parseLong(pathQuantifiersT.getSubterm(POS_PATH_QUANTIFIERS_MAX_HOPS));
+    } else {
+      minHops = 1;
+      maxHops = 1;
+    }
 
     IStrategoTerm pathPatternT = pathPatternMap.get(pathPatternName);
 
@@ -273,18 +279,6 @@ public class SpoofaxAstToGraphQuery {
       }
     }
 
-    // directions
-    List<Direction> directions = new ArrayList<Direction>();
-    Iterator<QueryVertex> it1 = vertices.iterator();
-    Iterator<VertexPairConnection> it2 = connections.iterator();
-    while (it2.hasNext()) {
-      if (it1.next() == it2.next().getSrc()) {
-        directions.add(Direction.OUTGOING);
-      } else {
-        directions.add(Direction.INCOMING);
-      }
-    }
-
     // constraints
     IStrategoTerm constraintsT = getList(pathPatternT.getSubterm(POS_PATH_PATTERN_CONSTRAINTS));
     Set<QueryExpression> constraints = getQueryExpressions(constraintsT, pathPatternVarmap);
@@ -296,8 +290,8 @@ public class SpoofaxAstToGraphQuery {
     QueryVertex dst = (QueryVertex) varmap.get(dstName);
 
     QueryPath pathPattern = name.contains(GENERATED_VAR_SUBSTR)
-        ? new QueryPath(src, dst, vertices, connections, directions, constraints, repetition, name, true)
-        : new QueryPath(src, dst, vertices, connections, directions, constraints, repetition, name, false);
+        ? new QueryPath(src, dst, vertices, connections, constraints, name, true, minHops, maxHops)
+        : new QueryPath(src, dst, vertices, connections, constraints, name, false, minHops, maxHops);
 
     return pathPattern;
   }
@@ -427,12 +421,8 @@ public class SpoofaxAstToGraphQuery {
         exp2 = translateExp(t.getSubterm(POS_BINARY_EXP_RIGHT), inScopeVars, inScopeInAggregationVars);
         return new QueryExpression.RelationalExpression.LessEqual(exp1, exp2);
       case "Integer":
-        try {
-          long l = Long.parseLong(getString(t));
-          return new QueryExpression.Constant.ConstInteger(l);
-        } catch (NumberFormatException e) {
-          throw new PgqlException(getString(t) + " is too large to be stored as Long");
-        }
+        long l = parseLong(t);
+        return new QueryExpression.Constant.ConstInteger(l);
       case "Decimal":
         double d = Double.parseDouble(getString(t));
         return new QueryExpression.Constant.ConstDecimal(d);
@@ -526,6 +516,43 @@ public class SpoofaxAstToGraphQuery {
           exps.add(translateExp(expT, inScopeVars, inScopeInAggregationVars));
         }
         return new QueryExpression.Function.AllDifferent(exps);
+      case "ToDate":
+        String dateString = getString(t.getSubterm(POS_TO_TEMPORAL_STRING));
+        String unquotedDateString = dateString.substring(1, dateString.length() - 1);
+        String dateFormat = getString(t.getSubterm(POS_TO_TEMPORAL_FORMAT));
+        String unquotedDateFormat = dateFormat.substring(1, dateFormat.length() - 1);
+
+        DateTimeFormatter dateFormatter = DateTimeFormatter.ofPattern(unquotedDateFormat);
+        LocalDate localDate = LocalDate.parse(unquotedDateString, dateFormatter);
+        return new QueryExpression.Constant.ConstDate(localDate);
+      case "ToTime":
+        String timeString = getString(t.getSubterm(POS_TO_TEMPORAL_STRING));
+        String unquotedTimeString = timeString.substring(1, timeString.length() - 1);
+        String timeFormat = getString(t.getSubterm(POS_TO_TEMPORAL_FORMAT));
+        String unquotedTimeFormat = timeFormat.substring(1, timeFormat.length() - 1);
+
+        DateTimeFormatter timeFormatter = DateTimeFormatter.ofPattern(unquotedTimeFormat);
+        try {
+          OffsetTime timeWithTimezone = OffsetTime.parse(unquotedTimeString, timeFormatter);
+          return new QueryExpression.Constant.ConstTimeWithTimezone(timeWithTimezone);
+        } catch (DateTimeParseException e) {
+          LocalTime localTime = LocalTime.parse(unquotedTimeString, timeFormatter);
+          return new QueryExpression.Constant.ConstTime(localTime);
+        }
+      case "ToTimestamp":
+        String timestampString = getString(t.getSubterm(POS_TO_TEMPORAL_STRING));
+        String unquotedTimestampString = timestampString.substring(1, timestampString.length() - 1);
+        String timestampFormat = getString(t.getSubterm(POS_TO_TEMPORAL_FORMAT));
+        String unquotedTimestampFormat = timestampFormat.substring(1, timestampFormat.length() - 1);
+
+        DateTimeFormatter timestampFormatter = DateTimeFormatter.ofPattern(unquotedTimestampFormat);
+        try {
+          OffsetDateTime timestampWithTimezone = OffsetDateTime.parse(unquotedTimestampString, timestampFormatter);
+          return new QueryExpression.Constant.ConstTimestampWithTimezone(timestampWithTimezone);
+        } catch (DateTimeParseException e) {
+          LocalDateTime localTimestamp = LocalDateTime.parse(unquotedTimestampString, timestampFormatter);
+          return new QueryExpression.Constant.ConstTimestamp(localTimestamp);
+        }
       case "COUNT":
         exp = translateExp(t.getSubterm(POS_AGGREGATE_EXP), inScopeInAggregationVars, inScopeInAggregationVars);
         return new QueryExpression.Aggregation.AggrCount(exp);
@@ -545,6 +572,15 @@ public class SpoofaxAstToGraphQuery {
         return new QueryExpression.Star();
       default:
         throw new UnsupportedOperationException("Expression unsupported: " + t);
+    }
+  }
+
+  // helper method
+  private static long parseLong(IStrategoTerm t) throws PgqlException {
+    try {
+      return Long.parseLong(getString(t));
+    } catch (NumberFormatException e) {
+      throw new PgqlException(getString(t) + " is too large to be stored as Long");
     }
   }
 
@@ -580,6 +616,11 @@ public class SpoofaxAstToGraphQuery {
   // helper method
   private static boolean isSome(IStrategoTerm t) {
     return ((IStrategoAppl) t).getConstructor().getName().equals("Some");
+  }
+
+  // helper method
+  private static IStrategoTerm getSome(IStrategoTerm t) {
+    return t.getSubterm(0);
   }
 
   // helper method
