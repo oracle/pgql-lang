@@ -93,6 +93,8 @@ public class SpoofaxAstToGraphQuery {
   private static final int POS_ALL_DIFFERENT_EXPS = 0;
   private static final int POS_TO_TEMPORAL_STRING = 0;
   private static final int POS_TO_TEMPORAL_FORMAT = 1;
+  private static final int POS_GET_LATITUDE_EXP = 0;
+  private static final int POS_GET_LONGITUDE_EXP = 0;
 
   public static GraphQuery translate(IStrategoTerm ast) throws PgqlException {
 
@@ -516,6 +518,12 @@ public class SpoofaxAstToGraphQuery {
           exps.add(translateExp(expT, inScopeVars, inScopeInAggregationVars));
         }
         return new QueryExpression.Function.AllDifferent(exps);
+      case "GetLatitude":
+        exp = translateExp(t.getSubterm(POS_GET_LATITUDE_EXP), inScopeVars, inScopeInAggregationVars);
+        return new QueryExpression.Function.GetLatitude(exp);
+      case "GetLongitude":
+        exp = translateExp(t.getSubterm(POS_GET_LONGITUDE_EXP), inScopeVars, inScopeInAggregationVars);
+        return new QueryExpression.Function.GetLongitude(exp);
       case "ToDate":
         String dateString = getString(t.getSubterm(POS_TO_TEMPORAL_STRING));
         String unquotedDateString = dateString.substring(1, dateString.length() - 1);
