@@ -27,8 +27,8 @@ import oracle.pgql.lang.ir.QueryExpression.Constant.ConstTimeWithTimezone;
 import oracle.pgql.lang.ir.QueryExpression.Constant.ConstTimestamp;
 import oracle.pgql.lang.ir.QueryExpression.Constant.ConstTimestampWithTimezone;
 import oracle.pgql.lang.ir.QueryExpression.Function.AllDifferent;
-import oracle.pgql.lang.ir.QueryExpression.Function.GetLatitude;
-import oracle.pgql.lang.ir.QueryExpression.Function.GetLongitude;
+import oracle.pgql.lang.ir.SpatialFunction.StX;
+import oracle.pgql.lang.ir.SpatialFunction.StY;
 import oracle.pgql.lang.ir.QueryExpression.Function.Cast;
 import oracle.pgql.lang.ir.QueryExpression.Function.EdgeLabel;
 import oracle.pgql.lang.ir.QueryExpression.Function.HasLabel;
@@ -141,7 +141,7 @@ public interface QueryExpressionVisitor {
 
   public void visit(AllDifferent allDifferent);
 
-  public void visit(GetLatitude getLatitude);
+  public void visit(StX getX);
 
-  public void visit(GetLongitude getLongitude);
+  public void visit(StY getY);
 }

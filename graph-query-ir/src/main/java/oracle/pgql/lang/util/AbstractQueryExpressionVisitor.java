@@ -23,8 +23,8 @@ import oracle.pgql.lang.ir.QueryExpression.Constant.ConstTimeWithTimezone;
 import oracle.pgql.lang.ir.QueryExpression.Constant.ConstTimestamp;
 import oracle.pgql.lang.ir.QueryExpression.Constant.ConstTimestampWithTimezone;
 import oracle.pgql.lang.ir.QueryExpression.Function.AllDifferent;
-import oracle.pgql.lang.ir.QueryExpression.Function.GetLatitude;
-import oracle.pgql.lang.ir.QueryExpression.Function.GetLongitude;
+import oracle.pgql.lang.ir.SpatialFunction.StX;
+import oracle.pgql.lang.ir.SpatialFunction.StY;
 import oracle.pgql.lang.ir.QueryExpression.Function.Cast;
 import oracle.pgql.lang.ir.QueryExpression.Function.EdgeLabel;
 import oracle.pgql.lang.ir.QueryExpression.Function.HasLabel;
@@ -273,12 +273,12 @@ public abstract class AbstractQueryExpressionVisitor implements QueryExpressionV
   }
 
   @Override
-  public void visit(GetLatitude getLatitude) {
-    getLatitude.getExp().accept(this);
+  public void visit(StX getX) {
+    getX.getExp().accept(this);
   }
 
   @Override
-  public void visit(GetLongitude getLongitude) {
-    getLongitude.getExp().accept(this);
+  public void visit(StY getY) {
+    getY.getExp().accept(this);
   }
 }
