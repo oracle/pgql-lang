@@ -18,6 +18,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
+import oracle.pgql.lang.ir.SpatialFunction;
 import org.spoofax.interpreter.terms.IStrategoAppl;
 import org.spoofax.interpreter.terms.IStrategoInt;
 import org.spoofax.interpreter.terms.IStrategoString;
@@ -93,6 +94,8 @@ public class SpoofaxAstToGraphQuery {
   private static final int POS_ALL_DIFFERENT_EXPS = 0;
   private static final int POS_TO_TEMPORAL_STRING = 0;
   private static final int POS_TO_TEMPORAL_FORMAT = 1;
+  private static final int POS_ST_X_EXP = 0;
+  private static final int POS_ST_Y_EXP = 0;
 
   public static GraphQuery translate(IStrategoTerm ast) throws PgqlException {
 
@@ -516,6 +519,12 @@ public class SpoofaxAstToGraphQuery {
           exps.add(translateExp(expT, inScopeVars, inScopeInAggregationVars));
         }
         return new QueryExpression.Function.AllDifferent(exps);
+      case "StX":
+        exp = translateExp(t.getSubterm(POS_ST_X_EXP), inScopeVars, inScopeInAggregationVars);
+        return new SpatialFunction.StX(exp);
+      case "StY":
+        exp = translateExp(t.getSubterm(POS_ST_Y_EXP), inScopeVars, inScopeInAggregationVars);
+        return new SpatialFunction.StY(exp);
       case "ToDate":
         String dateString = getString(t.getSubterm(POS_TO_TEMPORAL_STRING));
         String unquotedDateString = dateString.substring(1, dateString.length() - 1);
