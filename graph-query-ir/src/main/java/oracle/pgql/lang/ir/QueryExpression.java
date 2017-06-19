@@ -73,7 +73,9 @@ public interface QueryExpression {
     OUTDEGREE, // vertex
     EDGE_LABEL,
     CAST,
-    ALL_DIFFERENT
+    ALL_DIFFERENT,
+    ST_X,
+    ST_Y
   }
 
   ExpressionType getExpType();
