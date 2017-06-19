@@ -96,6 +96,7 @@ public class SpoofaxAstToGraphQuery {
   private static final int POS_TO_TEMPORAL_FORMAT = 1;
   private static final int POS_ST_X_EXP = 0;
   private static final int POS_ST_Y_EXP = 0;
+  private static final int POS_ST_POINT_FROM_TEXT_EXP = 0;
 
   public static GraphQuery translate(IStrategoTerm ast) throws PgqlException {
 
@@ -525,6 +526,9 @@ public class SpoofaxAstToGraphQuery {
       case "StY":
         exp = translateExp(t.getSubterm(POS_ST_Y_EXP), inScopeVars, inScopeInAggregationVars);
         return new SpatialFunction.StY(exp);
+      case "StPointFromText":
+        String wktPoint = getString(t.getSubterm(POS_ST_POINT_FROM_TEXT_EXP));
+        return new SpatialFunction.StPointFromText(wktPoint);
       case "ToDate":
         String dateString = getString(t.getSubterm(POS_TO_TEMPORAL_STRING));
         String unquotedDateString = dateString.substring(1, dateString.length() - 1);

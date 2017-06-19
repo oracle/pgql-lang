@@ -47,6 +47,7 @@ context-free syntax // function calls
   Exp.AllDifferent = <all_different(<{Exp ", "}+>)> {case-insensitive}
   Exp.StX = <st_x(<Exp>)> {case-insensitive}
   Exp.StY = <st_y(<Exp>)> {case-insensitive}
+  Exp.StPointFromText = <ST_PointFromText(<STRING>)> {case-sensitive}
   Exp.ToDate = <to_date(<STRING>, <STRING>)> {case-insensitive}
   Exp.ToTime = <to_time(<STRING>, <STRING>)> {case-insensitive}
   Exp.ToTimestamp = <to_timestamp(<STRING>, <STRING>)> {case-insensitive}

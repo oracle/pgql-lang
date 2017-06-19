@@ -75,7 +75,8 @@ public interface QueryExpression {
     CAST,
     ALL_DIFFERENT,
     ST_X,
-    ST_Y
+    ST_Y,
+    ST_POINT_FROM_TEXT
   }
 
   ExpressionType getExpType();
