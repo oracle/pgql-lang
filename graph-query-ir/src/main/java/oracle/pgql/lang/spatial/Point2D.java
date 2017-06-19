@@ -1,7 +1,7 @@
 /**
  * Copyright (C) 2013 - 2017 Oracle and/or its affiliates. All rights reserved.
  */
-package oracle.pg.geometry;
+package oracle.pgql.lang.spatial;
 
 /**
  * A point in a 2-dimensional space
