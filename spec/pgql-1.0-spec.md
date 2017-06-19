@@ -440,7 +440,7 @@ Aggregate Operator | Semantic | Required Input Type
 --- | --- | ---
 `COUNT` | counts the number of times the given expression has a bound. | not null
 `MIN` | takes the minimum of the values for the given expression. | numeric
-`MAX` | takes the minimum of the values for the given expression. | numeric
+`MAX` | takes the maximum of the values for the given expression. | numeric
 `SUM` | sums over the values for the given expression. | numeric
 `AVG` | takes the average of the values for the given | numeric
 
