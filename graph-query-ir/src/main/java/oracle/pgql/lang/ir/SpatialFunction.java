@@ -5,16 +5,10 @@ package oracle.pgql.lang.ir;
 
 public interface SpatialFunction extends QueryExpression {
 
-  class StX implements SpatialFunction {
+  class StX extends UnaryExpression implements SpatialFunction {
 
-    private final QueryExpression exp;
-
-    public StX(QueryExpression exps) {
-      this.exp = exps;
-    }
-
-    public QueryExpression getExp() {
-      return exp;
+    public StX(QueryExpression exp) {
+      super(exp);
     }
 
     @Override
@@ -24,7 +18,7 @@ public interface SpatialFunction extends QueryExpression {
 
     @Override
     public String toString() {
-      return "ST_X(" + exp + ")";
+      return "ST_X(" + getExp() + ")";
     }
 
     @Override
@@ -33,16 +27,10 @@ public interface SpatialFunction extends QueryExpression {
     }
   }
 
-  class StY implements SpatialFunction {
+  class StY extends UnaryExpression implements SpatialFunction {
 
-    private final QueryExpression exp;
-
-    public StY(QueryExpression exps) {
-      this.exp = exps;
-    }
-
-    public QueryExpression getExp() {
-      return exp;
+    public StY(QueryExpression exp) {
+      super(exp);
     }
 
     @Override
@@ -52,7 +40,7 @@ public interface SpatialFunction extends QueryExpression {
 
     @Override
     public String toString() {
-      return "ST_Y(" + exp + ")";
+      return "ST_Y(" + getExp() + ")";
     }
 
     @Override
@@ -61,5 +49,26 @@ public interface SpatialFunction extends QueryExpression {
     }
   }
 
+  class StPointFromText extends UnaryExpression implements SpatialFunction {
+
+    public StPointFromText(QueryExpression wktString) {
+      super(wktString);
+    }
+
+    @Override
+    public ExpressionType getExpType() {
+      return ExpressionType.ST_POINT_FROM_TEXT;
+    }
+
+    @Override
+    public String toString() {
+      return "ST_PointFromText(" + getExp() + ")";
+    }
+
+    @Override
+    public void accept(QueryExpressionVisitor v) {
+      v.visit(this);
+    }
+  }
 
 }

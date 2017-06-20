@@ -3,6 +3,8 @@
  */
 package oracle.pgql.lang.spatial;
 
+import org.apache.commons.lang3.StringUtils;
+
 /**
  * A point in a 2-dimensional space
  */
@@ -26,7 +28,6 @@ public class Point2D {
     this.m = Double.NaN;
   }
 
-
   /**
    * Create a point in a 2-dimensional space with a linear reference
    *
@@ -38,6 +39,44 @@ public class Point2D {
     this.x = x;
     this.y = y;
     this.m = m;
+  }
+
+  /**
+   * Create a Point2D object from a well-known text representation
+   * @param wktPoint well-known text representation of a point value
+   * @return Point2D object
+   */
+  public static Point2D fromWkt(String wktPoint) {
+    if (wktPoint.indexOf('(') == -1 || wktPoint.indexOf(')') == -1 || wktPoint.indexOf('(') > wktPoint.indexOf(')')) {
+      throw new WktParseException(wktPoint + " is not in the right format");
+    }
+    String prefix = wktPoint.substring(0, wktPoint.indexOf('('));
+    String values = wktPoint.substring(wktPoint.indexOf('(') + 1, wktPoint.indexOf(')'));
+
+    int xValEndPos = values.indexOf(' ');
+    if (xValEndPos == -1) {
+      throw new WktParseException(wktPoint + " is not in the right format");
+    }
+    Double xVal = Double
+        .parseDouble(values.substring(0, xValEndPos));
+
+    int yValStartPos = values.indexOf(' ') + 1;
+
+    switch (prefix) {
+      case "POINT":
+        Double yVal = Double.parseDouble(values.substring(yValStartPos, values.length()));
+        return new Point2D(xVal, yVal);
+      case "POINT M":
+        int yValEndPos = StringUtils.ordinalIndexOf(values, " ", 2);
+        if (yValEndPos <= yValStartPos) {
+          throw new WktParseException(wktPoint + " is not in the right format");
+        }
+        yVal = Double.parseDouble(values.substring(yValStartPos, yValEndPos));
+        Double mVal = Double.parseDouble(values.substring(yValEndPos + 1, values.length()));
+        return new Point2D(xVal, yVal, mVal);
+      default:
+        throw new WktParseException(wktPoint + " is not in the right format");
+    }
   }
 
   @Override
