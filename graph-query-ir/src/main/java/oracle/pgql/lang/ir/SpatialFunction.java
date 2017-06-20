@@ -5,16 +5,10 @@ package oracle.pgql.lang.ir;
 
 public interface SpatialFunction extends QueryExpression {
 
-  class StX implements SpatialFunction {
+  class StX extends UnaryExpression implements SpatialFunction {
 
-    private final QueryExpression exp;
-
-    public StX(QueryExpression exps) {
-      this.exp = exps;
-    }
-
-    public QueryExpression getExp() {
-      return exp;
+    public StX(QueryExpression exp) {
+      super(exp);
     }
 
     @Override
@@ -24,7 +18,7 @@ public interface SpatialFunction extends QueryExpression {
 
     @Override
     public String toString() {
-      return "ST_X(" + exp + ")";
+      return "ST_X(" + getExp() + ")";
     }
 
     @Override
@@ -33,16 +27,10 @@ public interface SpatialFunction extends QueryExpression {
     }
   }
 
-  class StY implements SpatialFunction {
+  class StY extends UnaryExpression implements SpatialFunction {
 
-    private final QueryExpression exp;
-
-    public StY(QueryExpression exps) {
-      this.exp = exps;
-    }
-
-    public QueryExpression getExp() {
-      return exp;
+    public StY(QueryExpression exp) {
+      super(exp);
     }
 
     @Override
@@ -52,7 +40,7 @@ public interface SpatialFunction extends QueryExpression {
 
     @Override
     public String toString() {
-      return "ST_Y(" + exp + ")";
+      return "ST_Y(" + getExp() + ")";
     }
 
     @Override
@@ -61,16 +49,10 @@ public interface SpatialFunction extends QueryExpression {
     }
   }
 
-  class StPointFromText implements SpatialFunction {
+  class StPointFromText extends Constant<String> implements SpatialFunction {
 
-    private final String exp;
-
-    public StPointFromText(String exps) {
-      this.exp = exps;
-    }
-
-    public String getExp() {
-      return exp;
+    public StPointFromText(String wktString) {
+      super(wktString);
     }
 
     @Override
@@ -80,7 +62,7 @@ public interface SpatialFunction extends QueryExpression {
 
     @Override
     public String toString() {
-      return "ST_PointFromText(" + exp + ")";
+      return "ST_PointFromText(" + getValue() + ")";
     }
 
     @Override
