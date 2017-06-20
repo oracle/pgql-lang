@@ -3,7 +3,7 @@
  */
 package oracle.pgql.lang.spatial;
 
-public class WktParseException extends Exception {
+public class WktParseException extends RuntimeException {
   public WktParseException(String s) {
     super(s);
   }

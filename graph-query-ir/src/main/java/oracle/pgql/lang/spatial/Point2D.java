@@ -46,7 +46,7 @@ public class Point2D {
    * @param wktPoint well-known text representation of a point value
    * @return Point2D object
    */
-  public static Point2D fromWkt(String wktPoint) throws WktParseException {
+  public static Point2D fromWkt(String wktPoint) {
     if (wktPoint.indexOf('(') == -1 || wktPoint.indexOf(')') == -1 || wktPoint.indexOf('(') > wktPoint.indexOf(')')) {
       throw new WktParseException(wktPoint + " is not in the right format");
     }
