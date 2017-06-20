@@ -46,11 +46,17 @@ public class Point2D {
    * @param wktPoint well-known text representation of a point value
    * @return Point2D object
    */
-  public static Point2D fromWkt(String wktPoint) {
+  public static Point2D fromWkt(String wktPoint) throws WktParseException {
+    if (wktPoint.indexOf('(') == -1 || wktPoint.indexOf(')') == -1 || wktPoint.indexOf('(') > wktPoint.indexOf(')')) {
+      throw new WktParseException(wktPoint + " is not in the right format");
+    }
     String prefix = wktPoint.substring(0, wktPoint.indexOf('('));
     String values = wktPoint.substring(wktPoint.indexOf('(') + 1, wktPoint.indexOf(')'));
 
     int xValEndPos = values.indexOf(' ');
+    if (xValEndPos == -1) {
+      throw new WktParseException(wktPoint + " is not in the right format");
+    }
     Double xVal = Double
         .parseDouble(values.substring(0, xValEndPos));
 
@@ -62,11 +68,14 @@ public class Point2D {
         return new Point2D(xVal, yVal);
       case "POINT M":
         int yValEndPos = StringUtils.ordinalIndexOf(values, " ", 2);
+        if (yValEndPos <= yValStartPos) {
+          throw new WktParseException(wktPoint + " is not in the right format");
+        }
         yVal = Double.parseDouble(values.substring(yValStartPos, yValEndPos));
         Double mVal = Double.parseDouble(values.substring(yValEndPos + 1, values.length()));
         return new Point2D(xVal, yVal, mVal);
       default:
-        return new Point2D(Double.NaN, Double.NaN);
+        throw new WktParseException(wktPoint + " is not in the right format");
     }
   }
 

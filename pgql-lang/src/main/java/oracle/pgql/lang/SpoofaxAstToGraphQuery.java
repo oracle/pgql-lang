@@ -527,8 +527,8 @@ public class SpoofaxAstToGraphQuery {
         exp = translateExp(t.getSubterm(POS_ST_Y_EXP), inScopeVars, inScopeInAggregationVars);
         return new SpatialFunction.StY(exp);
       case "StPointFromText":
-        s = getString(t.getSubterm(POS_ST_POINT_FROM_TEXT_EXP));
-        return new SpatialFunction.StPointFromText(s);
+        exp = translateExp(t.getSubterm(POS_ST_POINT_FROM_TEXT_EXP), inScopeVars, inScopeInAggregationVars);
+        return new SpatialFunction.StPointFromText(exp);
       case "ToDate":
         String dateString = getString(t.getSubterm(POS_TO_TEMPORAL_STRING));
         String unquotedDateString = dateString.substring(1, dateString.length() - 1);

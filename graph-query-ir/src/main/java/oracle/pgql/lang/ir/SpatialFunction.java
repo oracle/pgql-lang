@@ -49,9 +49,9 @@ public interface SpatialFunction extends QueryExpression {
     }
   }
 
-  class StPointFromText extends Constant<String> implements SpatialFunction {
+  class StPointFromText extends UnaryExpression implements SpatialFunction {
 
-    public StPointFromText(String wktString) {
+    public StPointFromText(QueryExpression wktString) {
       super(wktString);
     }
 
@@ -62,7 +62,7 @@ public interface SpatialFunction extends QueryExpression {
 
     @Override
     public String toString() {
-      return "ST_PointFromText(" + getValue() + ")";
+      return "ST_PointFromText(" + getExp() + ")";
     }
 
     @Override

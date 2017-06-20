@@ -285,5 +285,6 @@ public abstract class AbstractQueryExpressionVisitor implements QueryExpressionV
   }
 
   public void visit(StPointFromText pointFromText) {
+    pointFromText.getExp().accept(this);
   }
 }
