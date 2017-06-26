@@ -15,6 +15,7 @@ import oracle.pgql.lang.ir.QueryExpression.ArithmeticExpression.Mul;
 import oracle.pgql.lang.ir.QueryExpression.ArithmeticExpression.Sub;
 import oracle.pgql.lang.ir.QueryExpression.ArithmeticExpression.UMin;
 import oracle.pgql.lang.ir.QueryExpression.BindVariable;
+import oracle.pgql.lang.ir.QueryExpression.CallStatement;
 import oracle.pgql.lang.ir.QueryExpressionVisitor;
 import oracle.pgql.lang.ir.QueryExpression.ConstNull;
 import oracle.pgql.lang.ir.QueryExpression.Constant.ConstBoolean;
@@ -147,4 +148,6 @@ public interface QueryExpressionVisitor {
   public void visit(StY getY);
 
   public void visit(StPointFromText pointFromText);
+
+  public void visit(CallStatement callStatement);
 }

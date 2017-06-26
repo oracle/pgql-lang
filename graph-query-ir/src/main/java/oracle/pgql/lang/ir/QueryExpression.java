@@ -76,7 +76,8 @@ public interface QueryExpression {
     ALL_DIFFERENT,
     ST_X,
     ST_Y,
-    ST_POINT_FROM_TEXT
+    ST_POINT_FROM_TEXT,
+    CALL_STATEMENT
   }
 
   ExpressionType getExpType();
@@ -1190,6 +1191,54 @@ public interface QueryExpression {
       public void accept(QueryExpressionVisitor v) {
         v.visit(this);
       }
+    }
+  }
+
+  class CallStatement implements QueryExpression {
+
+    private final String packageName;
+
+    private final String routineName;
+
+    private final List<QueryExpression> exps;
+
+    public CallStatement(String routineName, List<QueryExpression> exps) {
+      this(null, routineName, exps);
+    }
+
+    public CallStatement(String packageName, String routineName, List<QueryExpression> exps) {
+      this.packageName = packageName;
+      this.routineName = routineName;
+      this.exps = exps;
+    }
+
+    public String getPackageName() {
+      return packageName;
+    }
+
+    public String getRoutineName() {
+      return routineName;
+    }
+
+    public List<QueryExpression> getExps() {
+      return exps;
+    }
+
+    @Override
+    public ExpressionType getExpType() {
+      return ExpressionType.CALL_STATEMENT;
+    }
+
+    @Override
+    public String toString() {
+      String expressions = exps.stream().map(QueryExpression::toString).collect(Collectors.joining(", "));
+      String packageNamePart = packageName == null ? "" : packageName + ".";
+      return "CALL " + packageNamePart + routineName + "(" + expressions + ")";
+    }
+
+    @Override
+    public void accept(QueryExpressionVisitor v) {
+      v.visit(this);
     }
   }
 

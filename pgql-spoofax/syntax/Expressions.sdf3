@@ -51,6 +51,12 @@ context-free syntax // function calls
   Exp.ToDate = <to_date(<STRING>, <STRING>)> {case-insensitive}
   Exp.ToTime = <to_time(<STRING>, <STRING>)> {case-insensitive}
   Exp.ToTimestamp = <to_timestamp(<STRING>, <STRING>)> {case-insensitive}
+  Exp.CallStatement = <call <PackageDecl?><RoutineName><ArgumentList>> {case-insensitive}
+
+  PackageDecl.PackageDecl = <<PackageName>.>
+  PackageName = NAME
+  RoutineName = NAME
+  ArgumentList.ArgumentList = <(<{Exp ", "}*>)>
 
 context-free syntax // Aggregates
 

@@ -97,6 +97,9 @@ public class SpoofaxAstToGraphQuery {
   private static final int POS_ST_X_EXP = 0;
   private static final int POS_ST_Y_EXP = 0;
   private static final int POS_ST_POINT_FROM_TEXT_EXP = 0;
+  private static final int POS_CALL_STATEMENT_PACKAGE_NAME = 0;
+  private static final int POS_CALL_STATEMENT_ROUTINE_NAME = 1;
+  private static final int POS_CALL_STATEMENT_EXPS = 2;
 
   public static GraphQuery translate(IStrategoTerm ast) throws PgqlException {
 
@@ -514,11 +517,8 @@ public class SpoofaxAstToGraphQuery {
         String targetTypeName = getString(t.getSubterm(POS_CAST_TARGET_TYPE_NAME));
         return new QueryExpression.Function.Cast(exp, targetTypeName);
       case "AllDifferent":
-        IStrategoTerm[] expsT = t.getSubterm(POS_ALL_DIFFERENT_EXPS).getAllSubterms();
-        List<QueryExpression> exps = new ArrayList<>();
-        for (IStrategoTerm expT : expsT) {
-          exps.add(translateExp(expT, inScopeVars, inScopeInAggregationVars));
-        }
+        IStrategoTerm expsT = t.getSubterm(POS_ALL_DIFFERENT_EXPS);
+        List<QueryExpression> exps = varArgsToExps(inScopeVars, inScopeInAggregationVars, expsT);
         return new QueryExpression.Function.AllDifferent(exps);
       case "StX":
         exp = translateExp(t.getSubterm(POS_ST_X_EXP), inScopeVars, inScopeInAggregationVars);
@@ -566,6 +566,13 @@ public class SpoofaxAstToGraphQuery {
           LocalDateTime localTimestamp = LocalDateTime.parse(unquotedTimestampString, timestampFormatter);
           return new QueryExpression.Constant.ConstTimestamp(localTimestamp);
         }
+      case "CallStatement":
+        IStrategoTerm packageDeclT = t.getSubterm(POS_CALL_STATEMENT_PACKAGE_NAME);
+        String packageName = isNone(packageDeclT) ? null : getString(packageDeclT);
+        String routineName = getString(t.getSubterm(POS_CALL_STATEMENT_ROUTINE_NAME));
+        IStrategoTerm argsT = getList(t.getSubterm(POS_CALL_STATEMENT_EXPS));
+        List<QueryExpression> args = varArgsToExps(inScopeVars, inScopeInAggregationVars, argsT);
+        return new QueryExpression.CallStatement(packageName, routineName, args);
       case "COUNT":
         exp = translateExp(t.getSubterm(POS_AGGREGATE_EXP), inScopeInAggregationVars, inScopeInAggregationVars);
         return new QueryExpression.Aggregation.AggrCount(exp);
@@ -586,6 +593,15 @@ public class SpoofaxAstToGraphQuery {
       default:
         throw new UnsupportedOperationException("Expression unsupported: " + t);
     }
+  }
+
+  private static List<QueryExpression> varArgsToExps(Map<String, QueryVariable> inScopeVars,
+      Map<String, QueryVariable> inScopeInAggregationVars, IStrategoTerm expsT) throws PgqlException {
+    List<QueryExpression> exps = new ArrayList<>();
+    for (IStrategoTerm expT : expsT) {
+      exps.add(translateExp(expT, inScopeVars, inScopeInAggregationVars));
+    }
+    return exps;
   }
 
   // helper method
