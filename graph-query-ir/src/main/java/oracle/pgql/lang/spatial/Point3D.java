@@ -3,10 +3,12 @@
  */
 package oracle.pgql.lang.spatial;
 
+import java.io.Serializable;
+
 /**
  * A point in a 3-dimensional space
  */
-public class Point3D {
+public class Point3D implements Serializable {
 
   private final double x;
 
