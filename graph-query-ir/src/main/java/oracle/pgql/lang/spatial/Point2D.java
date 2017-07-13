@@ -3,12 +3,14 @@
  */
 package oracle.pgql.lang.spatial;
 
+import java.io.Serializable;
+
 import org.apache.commons.lang3.StringUtils;
 
 /**
  * A point in a 2-dimensional space
  */
-public class Point2D {
+public class Point2D implements Serializable {
 
   private final double x;
 
