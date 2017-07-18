@@ -326,7 +326,12 @@ public class PgqlUtils {
   private static String printPathPattern(QueryPath path, List<QueryPath> queryPaths) {
     int pathId = getPathId(path, queryPaths);
     String result = "PATH type" + pathId + " := ";
+    result += printPathPatternInfo(path, queryPaths);
+    return result;
+  }
 
+  private static String printPathPatternInfo(QueryPath path, List<QueryPath> queryPaths) {
+    String result = "";
     Set<QueryExpression> constraints = new HashSet<>(path.getConstraints());
 
     Map<QueryVertex, String> vertexStrings = getStringsForVerticesWithInlinedConstraints(path.getVertices(),
@@ -373,7 +378,11 @@ public class PgqlUtils {
     return result;
   }
 
-  private static String printHopDistance(QueryPath path) {
+  public static String printPathPatternInfo(QueryPath path) {
+    return printPathPatternInfo(path, null);
+  }
+
+  public static String printHopDistance(QueryPath path) {
     long minHopDistance = path.getMinHops();
     long maxHopDistance = path.getMaxHops();
     if (minHopDistance == 1 && maxHopDistance == 1) {
