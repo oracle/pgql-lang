@@ -33,6 +33,9 @@ import oracle.pgql.lang.ir.OrderByElem;
 import oracle.pgql.lang.ir.Projection;
 import oracle.pgql.lang.ir.QueryEdge;
 import oracle.pgql.lang.ir.QueryExpression;
+import oracle.pgql.lang.ir.QueryExpression.Constant.ConstString;
+import oracle.pgql.lang.ir.QueryExpression.Function.HasLabel;
+import oracle.pgql.lang.ir.QueryExpression.VarRef;
 import oracle.pgql.lang.ir.QueryPath;
 import oracle.pgql.lang.ir.QueryVariable;
 import oracle.pgql.lang.ir.QueryVertex;
@@ -270,25 +273,43 @@ public class SpoofaxAstToGraphQuery {
 
     IStrategoTerm pathPatternT = pathPatternMap.get(pathPatternName);
 
-    // vertices
-    IStrategoTerm verticesT = getList(pathPatternT.getSubterm(POS_PATH_PATTERN_VERTICES));
-    Map<String, QueryVariable> pathPatternVarmap = new HashMap<>(); // map from variable name to variable
-    List<QueryVertex> vertices = getQueryVertices(verticesT, pathPatternVarmap);
+    List<QueryVertex> vertices;
+    List<VertexPairConnection> connections;
+    Set<QueryExpression> constraints;
+    if (pathPatternT == null) { // no path pattern defined for the label; generate one here
+      QueryVertex src = new QueryVertex(GENERATED_VAR_SUBSTR + "n", true);
+      QueryVertex dst = new QueryVertex(GENERATED_VAR_SUBSTR + "m", true);
+      VertexPairConnection edge = new QueryEdge(src, dst, GENERATED_VAR_SUBSTR + "e", true, true);
+      QueryExpression labelExp = new HasLabel(new VarRef(edge), new ConstString(pathPatternName));
 
-    // connections
-    IStrategoTerm connectionsT = getList(pathPatternT.getSubterm(POS_PATH_PATTERN_CONNECTIONS));
-    List<VertexPairConnection> connections = new ArrayList<>();
-    for (IStrategoTerm connectionT : connectionsT) {
-      if (((IStrategoAppl) connectionT).getConstructor().getName().equals("Edge")) {
-        connections.add(getQueryEdge(connectionT, pathPatternVarmap));
-      } else {
-        connections.add(getPath(connectionT, pathPatternMap, pathPatternVarmap));
+      vertices = new ArrayList<>();
+      vertices.add(src);
+      vertices.add(dst);
+      connections = new ArrayList<>();
+      connections.add(edge);
+      constraints = new HashSet<>();
+      constraints.add(labelExp);
+    } else {
+      // vertices
+      IStrategoTerm verticesT = getList(pathPatternT.getSubterm(POS_PATH_PATTERN_VERTICES));
+      Map<String, QueryVariable> pathPatternVarmap = new HashMap<>(); // map from variable name to variable
+      vertices = getQueryVertices(verticesT, pathPatternVarmap);
+
+      // connections
+      IStrategoTerm connectionsT = getList(pathPatternT.getSubterm(POS_PATH_PATTERN_CONNECTIONS));
+      connections = new ArrayList<>();
+      for (IStrategoTerm connectionT : connectionsT) {
+        if (((IStrategoAppl) connectionT).getConstructor().getName().equals("Edge")) {
+          connections.add(getQueryEdge(connectionT, pathPatternVarmap));
+        } else {
+          connections.add(getPath(connectionT, pathPatternMap, pathPatternVarmap));
+        }
       }
-    }
 
-    // constraints
-    IStrategoTerm constraintsT = getList(pathPatternT.getSubterm(POS_PATH_PATTERN_CONSTRAINTS));
-    Set<QueryExpression> constraints = getQueryExpressions(constraintsT, pathPatternVarmap);
+      // constraints
+      IStrategoTerm constraintsT = getList(pathPatternT.getSubterm(POS_PATH_PATTERN_CONSTRAINTS));
+      constraints = getQueryExpressions(constraintsT, pathPatternVarmap);
+    }
 
     String srcName = getString(pathT.getSubterm(POS_PATH_SRC));
     String dstName = getString(pathT.getSubterm(POS_PATH_DST));

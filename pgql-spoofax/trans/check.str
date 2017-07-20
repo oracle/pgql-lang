@@ -24,11 +24,6 @@ rules // Unresolved/duplicate variables
     ;	<generate-error-on-unresolved(|ctx, "Unresolved variable")> v
 
   nabl-constraint(|ctx):
-    PathPatternRef(p) -> <fail>
-    where
-      <generate-error-on-unresolved(|ctx, "Undefined path pattern")> p
-
-  nabl-constraint(|ctx):
     expAsVar -> <fail>
     where
       <?ExpAsVar(_, v) + ?ExpAsSelectVar(_, v) + ?AnonymousExpAsVar(_, v)> expAsVar;
