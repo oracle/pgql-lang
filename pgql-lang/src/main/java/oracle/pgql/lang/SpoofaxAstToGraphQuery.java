@@ -297,8 +297,8 @@ public class SpoofaxAstToGraphQuery {
     QueryVertex dst = (QueryVertex) varmap.get(dstName);
 
     QueryPath pathPattern = name.contains(GENERATED_VAR_SUBSTR)
-        ? new QueryPath(src, dst, vertices, connections, constraints, name, true, minHops, maxHops)
-        : new QueryPath(src, dst, vertices, connections, constraints, name, false, minHops, maxHops);
+        ? new QueryPath(src, dst, vertices, connections, constraints, name, pathPatternName, true, minHops, maxHops)
+        : new QueryPath(src, dst, vertices, connections, constraints, name, pathPatternName, false, minHops, maxHops);
 
     return pathPattern;
   }

@@ -16,7 +16,11 @@ public class QueryVertex extends QueryVariable {
 
   @Override
   public String toString() {
-    return "(" + name + ")";
+    if (isAnonymous()) {
+      return "()";
+    } else {
+      return "(" + name + ")";
+    }
   }
 
   @Override

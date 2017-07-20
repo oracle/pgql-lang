@@ -3,7 +3,6 @@
  */
 package oracle.pgql.lang.ir;
 
-import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -11,6 +10,7 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 import oracle.pgql.lang.util.AbstractQueryExpressionVisitor;
 import oracle.pgql.lang.ir.QueryExpression.Aggregation;
@@ -108,19 +108,13 @@ public class PgqlUtils {
   }
 
   public static String printPgqlString(Projection projection) {
-    String result = "SELECT ";
     if (projection.getElements().isEmpty()) {
-      result += "*";
+      return "SELECT *";
     } else {
-      Iterator<ExpAsVar> it = projection.getElements().iterator();
-      while (it.hasNext()) {
-        result += it.next();
-        if (it.hasNext()) {
-          result += ", ";
-        }
-      }
+      return "SELECT " + projection.getElements().stream() //
+          .map(x -> x.toString()) //
+          .collect(Collectors.joining(", "));
     }
-    return result;
   }
 
   public static String printPgqlString(QueryVariable variable) {
@@ -135,7 +129,7 @@ public class PgqlUtils {
       }
     }
 
-    return variable.isAnonymous() ? "" : variable.name;
+    return variable.isAnonymous() ? "_anonymous_" : variable.name;
   }
 
   public static String printPgqlString(ExpAsVar expAsVar) {
@@ -143,237 +137,116 @@ public class PgqlUtils {
     return expAsVar.isAnonymous() ? exp : exp + " AS " + expAsVar.getName();
   }
 
-  /**
-   * Returns whether QueryPath a equals QueryPath b, ignoring source, destination vertices and path name.
-   */
-  private static boolean patternsEqual(QueryPath a, QueryPath b) {
-
-    if (a.isAnonymous() != b.isAnonymous()) {
-      return false;
-    }
-    if (!a.getVertices().equals(b.getVertices())) {
-      return false;
-    }
-    if (!a.getConnections().equals(b.getConnections())) {
-      return false;
-    }
-    return a.getConstraints().equals(b.getConstraints());
-  }
-
-  private static int getPathId(QueryPath path, List<QueryPath> queryPaths) {
-    for (int i = 0; i < queryPaths.size(); i++) {
-      if (patternsEqual(path, queryPaths.get(i))) {
-        return i;
-      }
-    }
-    queryPaths.add(path);
-    return queryPaths.size() - 1;
-  }
-
   public static String printPgqlString(GraphPattern graphPattern, List<QueryPath> queryPaths) {
     String result = "WHERE\n";
 
-    Set<QueryExpression> constraints = new HashSet<>(graphPattern.getConstraints());
+    Set<QueryVertex> verticesCopy = new HashSet<>(graphPattern.getVertices());
 
-    Map<QueryVertex, String> vertexStrings = getStringsForVerticesWithInlinedConstraints(graphPattern.getVertices(),
-        constraints);
+    Iterator<VertexPairConnection> connectionIt = graphPattern.getConnections().iterator();
 
-    Iterator<VertexPairConnection> it2 = graphPattern.getConnections().iterator();
-
-    while (it2.hasNext()) {
-      VertexPairConnection connection = it2.next();
-
-      result += "  ";
-      result += printVertex(connection.getSrc(), vertexStrings);
-
-      switch (connection.getVariableType()) {
-        case EDGE:
-          QueryEdge edge = (QueryEdge) connection;
-          result += " -[";
-          result += printInlinedConstraints(constraints, edge);
-          result += "]-";
-          result += edge.isDirected() ? "> " : " ";
-          break;
-        case PATH:
-          QueryPath path = (QueryPath) connection;
-          result += " -/:type";
-          result += getPathId(path, queryPaths);
-          result += printHopDistance(path);
-          result += "/-> ";
-          break;
-        default:
-          throw new UnsupportedOperationException();
-      }
-
-      result += printVertex(connection.getDst(), vertexStrings);
-
-      if (it2.hasNext()) {
+    while (connectionIt.hasNext()) {
+      VertexPairConnection connection = connectionIt.next();
+      QueryVertex src = connection.getSrc();
+      QueryVertex dst = connection.getDst();
+      result += "  " + src + " " + connection + " " + dst;
+      if (connectionIt.hasNext()) {
         result += ",\n";
       }
+      verticesCopy.remove(src);
+      verticesCopy.remove(dst);
     }
-
-    if (graphPattern.getConnections().isEmpty() == false && vertexStrings.isEmpty() == false) {
+    if (!graphPattern.getConnections().isEmpty() && !verticesCopy.isEmpty()) {
       result += ",\n";
     }
 
-    Iterator<String> it = vertexStrings.values().iterator();
-    while (it.hasNext()) {
-      String vertexString = it.next();
-      result += vertexString;
-      if (it.hasNext()) {
-        vertexString += ",\n";
-      }
+    result += verticesCopy.stream() //
+        .map(x -> "  " + x.toString()) //
+        .collect(Collectors.joining(",\n"));
+    
+    
+    Set<QueryExpression> constraints = graphPattern.getConstraints();
+    if (!constraints.isEmpty()) {
+      result += ",\n  " + constraints.stream() //
+      .map(x -> x.toString()) //
+      .collect(Collectors.joining(",\n  "));
     }
-
-    if (constraints.isEmpty() == false) {
-      result += ",\n";
-    }
-
-    Iterator<QueryExpression> it4 = constraints.iterator();
-    while (it4.hasNext()) {
-      result += "  " + it4.next();
-      if (it4.hasNext()) {
-        result += ",\n";
-      }
-    }
-    return result;
-  }
-
-  private static String printVertex(QueryVertex vertex,
-      Map<QueryVertex, String> stringForVerticesWithInlinedConstraints) {
-    if (stringForVerticesWithInlinedConstraints.containsKey(vertex)) {
-      String result = stringForVerticesWithInlinedConstraints.get(vertex);
-      stringForVerticesWithInlinedConstraints.remove(vertex);
-      return result;
-    } else {
-      return "(" + (vertex.isAnonymous() ? "" : vertex.name) + ")";
-    }
-  }
-
-  private static HashMap<QueryVertex, String> getStringsForVerticesWithInlinedConstraints(
-      Collection<QueryVertex> vertices, Set<QueryExpression> constraints) {
-    HashMap<QueryVertex, String> result = new HashMap<>();
-    for (QueryVertex vertex : vertices) {
-      String vertexString = "(";
-      vertexString += printInlinedConstraints(constraints, vertex);
-      vertexString += ")";
-      result.put(vertex, vertexString);
-    }
-    return result;
-  }
-
-  private static String printInlinedConstraints(Set<QueryExpression> constraints, QueryVariable variable) {
-    if (variable.isAnonymous() == false) {
-      return variable.name;
-    }
-
-    String result = "";
-    Set<QueryExpression> constraintsForVariable = new HashSet<>();
-    for (QueryExpression exp : constraints) {
-      Set<QueryVariable> varsInExp = PgqlUtils.getVariables(exp);
-      if (varsInExp.size() == 1 && varsInExp.contains(variable)) {
-        constraintsForVariable.add(exp);
-      }
-    }
-    if (constraintsForVariable.size() >= 1) {
-      constraints.removeAll(constraintsForVariable);
-      result += "WITH ";
-      Iterator<QueryExpression> it = constraintsForVariable.iterator();
-      while (it.hasNext()) {
-        result += it.next();
-        if (it.hasNext()) {
-          result += ", ";
-        }
-      }
-    }
+    
     return result;
   }
 
   private static String printPathPatterns(GraphPattern graphPattern) {
-    String result = "";
-
-    List<QueryPath> queryPaths = new ArrayList<>();
+    Map<String, QueryPath> queryPaths = new HashMap<>();
     printPathPatternsHelper(queryPaths, graphPattern.getConnections());
-
-    List<QueryPath> queryPathsList = new ArrayList<QueryPath>(queryPaths);
-    for (QueryPath path : queryPaths) {
-      result += printPathPattern(path, queryPathsList);
-    }
-
-    return result;
+    return queryPaths.values().stream() //
+        .map(x -> printPathExpression(x)) //
+        .collect(Collectors.joining());
   }
 
-  private static void printPathPatternsHelper(List<QueryPath> queryPaths,
+  private static void printPathPatternsHelper(Map<String, QueryPath> queryPaths,
       Collection<VertexPairConnection> connections) {
     for (VertexPairConnection connection : connections) {
       if (connection.getVariableType() == VariableType.PATH) {
         QueryPath path = (QueryPath) connection;
-
-        boolean found = false;
-        for (int i = 0; i < queryPaths.size(); i++) {
-          if (patternsEqual(path, queryPaths.get(i))) {
-            found = true;
-          }
-        }
-        if (found == false) {
-          queryPaths.add(path);
+        QueryPath result = queryPaths.putIfAbsent(path.getPathExpressionName(), path);
+        if (result == null) {
           printPathPatternsHelper(queryPaths, path.getConnections());
         }
       }
     }
   }
 
-  private static String printPathPattern(QueryPath path, List<QueryPath> queryPaths) {
-    int pathId = getPathId(path, queryPaths);
-    String result = "PATH type" + pathId + " := ";
+  private static String printPathExpression(QueryPath path) {
+    String result = "PATH " + path.getPathExpressionName() + " := ";
 
-    Set<QueryExpression> constraints = new HashSet<>(path.getConstraints());
+    Iterator<QueryVertex> vertexIt = path.getVertices().iterator();
 
-    Map<QueryVertex, String> vertexStrings = getStringsForVerticesWithInlinedConstraints(path.getVertices(),
-        constraints);
-
-    Iterator<QueryVertex> verticesIt = path.getVertices().iterator();
-
-    QueryVertex vertex = verticesIt.next();
-    result += printVertex(vertex, vertexStrings);
-    for (VertexPairConnection connection2 : path.getConnections()) {
-
-      switch (connection2.getVariableType()) {
+    QueryVertex vertex = vertexIt.next();
+    result += vertex;
+    for (VertexPairConnection connection : path.getConnections()) {
+      result += " ";
+      switch (connection.getVariableType()) {
         case EDGE:
-          QueryEdge edge = (QueryEdge) connection2;
-          if (edge.isDirected()) {
-            result += (edge.getSrc() == vertex) ? " -[" : " <-[";
+          QueryEdge edge = (QueryEdge) connection;
+          if (edge.getSrc() == vertex || !edge.isDirected()) {
+            result += edge.toString();
           } else {
-            result += " -[";
-          }
-
-          result += printInlinedConstraints(constraints, edge);
-
-          if (edge.isDirected()) {
-            result += (edge.getSrc() == vertex) ? "]-> " : "]- ";
-          } else {
-            result += "]- ";
+            result += printReverseConnection(edge);
           }
           break;
         case PATH:
-          QueryPath queryPath = (QueryPath) connection2;
-          result += (queryPath.getSrc() == vertex) ? " -/" : " <-/";
-          result += "type" + getPathId(queryPath, queryPaths);
-          result += printHopDistance(path);
-          result += (queryPath.getSrc() == vertex) ? "/-> " : "/- ";
+          if (connection.getSrc() == vertex) {
+            result += connection.toString();
+          } else {
+            result += printReverseConnection(connection);
+          }
           break;
         default:
-          throw new UnsupportedOperationException("variable type not supported: " + connection2.getVariableType());
+          throw new UnsupportedOperationException("variable type not supported: " + connection.getVariableType());
       }
 
-      vertex = verticesIt.next();
-      result += printVertex(vertex, vertexStrings);
+      vertex = vertexIt.next();
+      result += " " + vertex;
     }
-    result += "\n";
-    return result;
+
+    Set<QueryExpression> constraints = path.getConstraints();
+    if (!constraints.isEmpty()) {
+      result += " WHERE " + constraints.stream() //
+      .map(x -> x.toString()) //
+      .collect(Collectors.joining(" AND "));
+    }
+    return result + "\n";
   }
 
-  private static String printHopDistance(QueryPath path) {
+  /**
+   * Example 1:  "-[e]->" => "<-[e]-"
+   * Example 2:  -/:xyz/-> "<-/:xyz/-"
+   */
+  private static String printReverseConnection(VertexPairConnection connection) {
+    String s = connection.toString();
+    return "<" + s.substring(0, s.length() - 1);
+  }
+
+  public static String printHopDistance(QueryPath path) {
     long minHopDistance = path.getMinHops();
     long maxHopDistance = path.getMaxHops();
     if (minHopDistance == 1 && maxHopDistance == 1) {
@@ -394,30 +267,18 @@ public class PgqlUtils {
   }
 
   public static String printPgqlString(GroupBy groupBy) {
-    String result = "GROUP BY ";
-    Iterator<ExpAsVar> it = groupBy.getElements().iterator();
-    while (it.hasNext()) {
-      result += it.next();
-      if (it.hasNext()) {
-        result += ", ";
-      }
-    }
-    return result;
+    return "GROUP BY " + groupBy.getElements().stream() //
+        .map(x -> x.toString()) //
+        .collect(Collectors.joining(", "));
   }
 
   public static String printPgqlString(OrderBy orderBy) {
-    String result = "ORDER BY ";
-    Iterator<OrderByElem> it = orderBy.getElements().iterator();
-    while (it.hasNext()) {
-      result += it.next();
-      if (it.hasNext()) {
-        result += ", ";
-      }
-    }
-    return result;
+    return "ORDER BY " + orderBy.getElements().stream() //
+        .map(orderByElem -> printPgqlString(orderByElem)) //
+        .collect(Collectors.joining(", "));
   }
 
   public static String printPgqlString(OrderByElem orderByElem) {
-    return (orderByElem.isAscending() ? "ASC" : "DESC") + "(" + orderByElem.getExp() + ")";
+    return orderByElem.getExp() + " " + (orderByElem.isAscending() ? "" : "DESC");
   }
 }
