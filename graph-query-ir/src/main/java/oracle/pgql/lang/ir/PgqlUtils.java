@@ -246,6 +246,10 @@ public class PgqlUtils {
     return "<" + s.substring(0, s.length() - 1);
   }
 
+  public static String printConnectionWithSrcAndDst(VertexPairConnection connection) {
+    return connection.getSrc() + " " + connection + " " + connection.getDst();
+  }
+
   public static String printHopDistance(QueryPath path) {
     long minHopDistance = path.getMinHops();
     long maxHopDistance = path.getMaxHops();
