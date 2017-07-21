@@ -250,23 +250,23 @@ public class PgqlUtils {
     return connection.getSrc() + " " + connection + " " + connection.getDst();
   }
 
-  public static String printHopDistance(QueryPath path) {
-    long minHopDistance = path.getMinHops();
-    long maxHopDistance = path.getMaxHops();
-    if (minHopDistance == 1 && maxHopDistance == 1) {
+  public static String printHops(QueryPath path) {
+    long minHops = path.getMinHops();
+    long maxHops = path.getMaxHops();
+    if (minHops == 1 && maxHops == 1) {
       return "";
-    } else if (minHopDistance == 0 && maxHopDistance == -1) {
+    } else if (minHops == 0 && maxHops == -1) {
       return "*";
-    } else if (minHopDistance == 1 && maxHopDistance == -1) {
+    } else if (minHops == 1 && maxHops == -1) {
       return "+";
-    } else if (minHopDistance == maxHopDistance) {
-      return "{" + minHopDistance + "}";
-    } else if (maxHopDistance == -1) {
-      return "{" + minHopDistance + ",}";
-    } else if (minHopDistance == 0) {
-      return "{," + maxHopDistance + "}";
+    } else if (minHops == maxHops) {
+      return "{" + minHops + "}";
+    } else if (maxHops == -1) {
+      return "{" + minHops + ",}";
+    } else if (minHops == 0) {
+      return "{," + maxHops + "}";
     } else {
-      return "{" + minHopDistance + "," + maxHopDistance + "}";
+      return "{" + minHops + "," + maxHops + "}";
     }
   }
 

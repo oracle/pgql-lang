@@ -6,7 +6,7 @@ package oracle.pgql.lang.ir;
 import java.util.List;
 import java.util.Set;
 
-import static oracle.pgql.lang.ir.PgqlUtils.printHopDistance;
+import static oracle.pgql.lang.ir.PgqlUtils.printHops;
 
 public class QueryPath extends VertexPairConnection {
 
@@ -74,7 +74,7 @@ public class QueryPath extends VertexPairConnection {
     if (!isAnonymous()) {
       path += name;
     }
-    return path + ":" + pathExpressionName + printHopDistance(this) + "/->";
+    return path + ":" + pathExpressionName + printHops(this) + "/->";
   }
 
   @Override
