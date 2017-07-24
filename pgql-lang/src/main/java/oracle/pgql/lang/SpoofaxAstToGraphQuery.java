@@ -168,6 +168,10 @@ public class SpoofaxAstToGraphQuery {
         projectionT);
     Projection projection = new Projection(selectElems);
 
+    // FROM
+    IStrategoTerm fromT = ast.getSubterm(POS_FROM);
+    String inputGraphName = isNone(fromT) ? null : getString(fromT);
+
     // ORDER BY
     IStrategoTerm orderByT = ast.getSubterm(POS_ORDERBY);
     List<OrderByElem> orderByElems = getOrderByElems(inScopeVarsForOrderBy, inScopeInAggregationVars, orderByT);
@@ -178,7 +182,7 @@ public class SpoofaxAstToGraphQuery {
     QueryExpression limit = getLimitOrOffset(limitOffsetT.getSubterm(POS_LIMIT));
     QueryExpression offset = getLimitOrOffset(limitOffsetT.getSubterm(POS_OFFSET));
 
-    return new GraphQuery(projection, graphPattern, groupBy, orderBy, limit, offset);
+    return new GraphQuery(projection, inputGraphName, graphPattern, groupBy, orderBy, limit, offset);
   }
 
   private static QueryExpression getLimitOrOffset(IStrategoTerm subterm) throws PgqlException {

@@ -9,6 +9,8 @@ public class GraphQuery {
 
   private final Projection projection;
 
+  private final String inputGraphName;
+
   private final GraphPattern graphPattern;
 
   private final GroupBy groupBy;
@@ -22,9 +24,10 @@ public class GraphQuery {
   /**
    * Constructor
    */
-  public GraphQuery(Projection projection, GraphPattern graphPattern, GroupBy groupBy,
+  public GraphQuery(Projection projection, String inputGraphName, GraphPattern graphPattern, GroupBy groupBy,
       OrderBy orderBy, QueryExpression limit, QueryExpression offset) {
     this.projection = projection;
+    this.inputGraphName = inputGraphName;
     this.graphPattern = graphPattern;
     this.groupBy = groupBy;
     this.orderBy = orderBy;
@@ -34,6 +37,10 @@ public class GraphQuery {
 
   public Projection getProjection() {
     return projection;
+  }
+
+  public String getInputGraphName() {
+    return inputGraphName;
   }
 
   public GraphPattern getGraphPattern() {
