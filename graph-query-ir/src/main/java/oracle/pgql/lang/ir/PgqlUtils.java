@@ -28,8 +28,7 @@ import static org.apache.commons.lang3.StringEscapeUtils.escapeJava;
 public class PgqlUtils {
 
   /**
-   * @param exp
-   *          a query expression
+   * @param exp a query expression
    * @return the set of variables used in the query expression
    */
   public static Set<QueryVariable> getVariables(QueryExpression exp) {
@@ -81,11 +80,21 @@ public class PgqlUtils {
     return result;
   }
 
-  public static String printPgqlString(String stringLiteral) {
+  public static String printConnectionWithSrcAndDst(VertexPairConnection connection) {
+    return connection.getSrc() + " " + connection + " " + connection.getDst();
+  }
+
+  public static String printReverseConnectionWithSrcAndDst(VertexPairConnection connection) {
+    return connection.getDst() + " " + printReverseConnection(connection) + " " + connection.getSrc();
+  }
+
+// HELPER METHODS FOR PRETTY-PRINTING BELOW
+
+  protected static String printPgqlString(String stringLiteral) {
     return "'" + escapeJava(stringLiteral) + "'";
   }
   
-  public static String printPgqlString(GraphQuery graphQuery) {
+  protected static String printPgqlString(GraphQuery graphQuery) {
     GraphPattern graphPattern = graphQuery.getGraphPattern();
     String result = printPathPatterns(graphPattern);
     result += graphQuery.getProjection() + "\n";
@@ -112,7 +121,7 @@ public class PgqlUtils {
     return result;
   }
 
-  public static String printPgqlString(Projection projection) {
+  protected static String printPgqlString(Projection projection) {
     if (projection.getElements().isEmpty()) {
       return "SELECT *";
     } else {
@@ -122,7 +131,7 @@ public class PgqlUtils {
     }
   }
 
-  public static String printPgqlString(QueryVariable variable) {
+  protected static String printPgqlString(QueryVariable variable) {
     if (variable.getVariableType() == VariableType.EXP_AS_VAR) {
       ExpAsVar expAsVar = (ExpAsVar) variable;
       if (expAsVar.isAnonymous()) {
@@ -137,12 +146,12 @@ public class PgqlUtils {
     return variable.isAnonymous() ? "_anonymous_" : variable.name;
   }
 
-  public static String printPgqlString(ExpAsVar expAsVar) {
+  protected static String printPgqlString(ExpAsVar expAsVar) {
     String exp = expAsVar.getExp().toString();
     return expAsVar.isAnonymous() ? exp : exp + " AS " + expAsVar.getName();
   }
 
-  public static String printPgqlString(GraphPattern graphPattern, List<QueryPath> queryPaths) {
+  protected static String printPgqlString(GraphPattern graphPattern, List<QueryPath> queryPaths) {
     String result = "WHERE\n";
 
     Set<QueryVertex> verticesCopy = new HashSet<>(graphPattern.getVertices());
@@ -251,15 +260,7 @@ public class PgqlUtils {
     return "<" + s.substring(0, s.length() - 1);
   }
 
-  public static String printConnectionWithSrcAndDst(VertexPairConnection connection) {
-    return connection.getSrc() + " " + connection + " " + connection.getDst();
-  }
-
-  public static String printReverseConnectionWithSrcAndDst(VertexPairConnection connection) {
-    return connection.getDst() + " " + printReverseConnection(connection) + " " + connection.getSrc();
-  }
-
-  public static String printHops(QueryPath path) {
+  protected static String printHops(QueryPath path) {
     long minHops = path.getMinHops();
     long maxHops = path.getMaxHops();
     if (minHops == 1 && maxHops == 1) {
@@ -279,19 +280,19 @@ public class PgqlUtils {
     }
   }
 
-  public static String printPgqlString(GroupBy groupBy) {
+  protected static String printPgqlString(GroupBy groupBy) {
     return "GROUP BY " + groupBy.getElements().stream() //
         .map(x -> x.toString()) //
         .collect(Collectors.joining(", "));
   }
 
-  public static String printPgqlString(OrderBy orderBy) {
+  protected static String printPgqlString(OrderBy orderBy) {
     return "ORDER BY " + orderBy.getElements().stream() //
         .map(orderByElem -> printPgqlString(orderByElem)) //
         .collect(Collectors.joining(", "));
   }
 
-  public static String printPgqlString(OrderByElem orderByElem) {
+  protected static String printPgqlString(OrderByElem orderByElem) {
     return orderByElem.getExp() + " " + (orderByElem.isAscending() ? "" : "DESC");
   }
 }
