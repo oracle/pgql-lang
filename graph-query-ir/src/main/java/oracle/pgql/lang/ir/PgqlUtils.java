@@ -250,6 +250,10 @@ public class PgqlUtils {
     return connection.getSrc() + " " + connection + " " + connection.getDst();
   }
 
+  public static String printReverseConnectionWithSrcAndDst(VertexPairConnection connection) {
+    return connection.getDst() + " " + printReverseConnection(connection) + " " + connection.getSrc();
+  }
+
   public static String printHops(QueryPath path) {
     long minHops = path.getMinHops();
     long maxHops = path.getMaxHops();
