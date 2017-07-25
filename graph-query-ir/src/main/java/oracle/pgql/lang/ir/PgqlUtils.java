@@ -293,6 +293,6 @@ public class PgqlUtils {
   }
 
   protected static String printPgqlString(OrderByElem orderByElem) {
-    return orderByElem.getExp() + " " + (orderByElem.isAscending() ? "" : "DESC");
+    return orderByElem.getExp() + (orderByElem.isAscending() ? "" : " DESC");
   }
 }
