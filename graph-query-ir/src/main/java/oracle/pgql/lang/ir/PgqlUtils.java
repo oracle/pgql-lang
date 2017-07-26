@@ -280,13 +280,13 @@ public class PgqlUtils {
     }
   }
 
-  protected static String printPgqlString(GroupBy groupBy) {
+  public static String printPgqlString(GroupBy groupBy) {
     return "GROUP BY " + groupBy.getElements().stream() //
         .map(x -> x.toString()) //
         .collect(Collectors.joining(", "));
   }
 
-  protected static String printPgqlString(OrderBy orderBy) {
+  public static String printPgqlString(OrderBy orderBy) {
     return "ORDER BY " + orderBy.getElements().stream() //
         .map(orderByElem -> printPgqlString(orderByElem)) //
         .collect(Collectors.joining(", "));
