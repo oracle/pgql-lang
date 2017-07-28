@@ -10,6 +10,7 @@ import java.net.URL;
 import java.util.Collection;
 import java.util.HashSet;
 import java.util.Iterator;
+import java.util.List;
 import java.util.Random;
 import java.util.Set;
 import java.util.UUID;
@@ -43,6 +44,9 @@ import org.metaborg.util.concurrent.IClosableLock;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import oracle.pgql.lang.completions.PgqlCompletion;
+import oracle.pgql.lang.completions.PgqlCompletionContext;
+import oracle.pgql.lang.completions.PgqlCompletionGenerator;
 import oracle.pgql.lang.ir.GraphQuery;
 
 public class Pgql {
@@ -238,5 +242,9 @@ public class Pgql {
 
     sb.append("\n----------");
     return sb.toString();
+  }
+
+  public List<PgqlCompletion> generateCompletions(String query, int cursor, PgqlCompletionContext ctx) {
+    return PgqlCompletionGenerator.generate(query, cursor, ctx);
   }
 }

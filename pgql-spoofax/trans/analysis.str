@@ -3,6 +3,7 @@ module analysis
 imports
 
   libspoofax/core/language
+  libspoofax/editor/completion/-
   stratego/metaborg
 
   runtime/index/-

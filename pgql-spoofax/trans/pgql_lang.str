@@ -2,7 +2,7 @@ module pgql_lang
 
 imports
   
-  completion
+  completion/completion
   pp
   outline
   analysis

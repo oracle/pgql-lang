@@ -30,7 +30,13 @@ rules
     ; prettyprint-pgql-lang
     ; !V([], <id>)
     ; box2text-string(|120)
-      
+
+  pp-partial-pgql-lang-string(|sort) =
+    parenthesize-pgql-lang
+    ; prettyprint-pgql-lang(|sort)
+    ; !V([], <id>)
+    ; box2text-string(|120)
+
   pp-debug :
     ast -> result
     with
