@@ -4,12 +4,14 @@
 package oracle.pgql.lang.spatial;
 
 import oracle.pgql.lang.PgqlException;
-import oracle.pgql.lang.ResultSet;
 
 /**
- * An extension of the PGQL ResultSet with spatial types
+ * This is an extension of ResultAccess with get methods for access to spatial types.
+ *
+ * Get methods to access the values in the result set. The parameter indicates the column number of column name. Just
+ * like the SQL ResultSet, columns are numbered from 1.
  */
-public interface STResultSet extends ResultSet {
+public interface STResultAccess {
 
   /**
    * Gets the value of the designated element by element index as a {@link Point2D}
@@ -26,5 +28,4 @@ public interface STResultSet extends ResultSet {
    * @return {@link Point2D}
    */
   public Point2D getPoint2D(String elementName) throws PgqlException;
-
 }
