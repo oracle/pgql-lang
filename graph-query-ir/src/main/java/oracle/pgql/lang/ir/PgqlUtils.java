@@ -96,7 +96,7 @@ public class PgqlUtils {
   
   protected static String printPgqlString(GraphQuery graphQuery) {
     GraphPattern graphPattern = graphQuery.getGraphPattern();
-    String result = "";//printPathPatterns(graphPattern);
+    String result = printPathPatterns(graphPattern);
     result += graphQuery.getProjection() + "\n";
     if (graphQuery.getInputGraphName() != null) {
       result += "FROM " + graphQuery.getInputGraphName() + "\n";
