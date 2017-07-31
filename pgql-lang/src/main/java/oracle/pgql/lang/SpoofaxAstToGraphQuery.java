@@ -46,7 +46,7 @@ import static org.apache.commons.lang3.StringEscapeUtils.unescapeJava;
 
 public class SpoofaxAstToGraphQuery {
 
-  private static final String GENERATED_VAR_SUBSTR = "<<generated>>";
+  private static final String GENERATED_VAR_SUBSTR = "anonymous";
 
   private static final int POS_PATH_PATTERNS = 0;
   private static final int POS_PROJECTION = 1;
@@ -281,9 +281,9 @@ public class SpoofaxAstToGraphQuery {
     List<VertexPairConnection> connections;
     Set<QueryExpression> constraints;
     if (pathPatternT == null) { // no path pattern defined for the label; generate one here
-      QueryVertex src = new QueryVertex(GENERATED_VAR_SUBSTR + "n", true);
-      QueryVertex dst = new QueryVertex(GENERATED_VAR_SUBSTR + "m", true);
-      VertexPairConnection edge = new QueryEdge(src, dst, GENERATED_VAR_SUBSTR + "e", true, true);
+      QueryVertex src = new QueryVertex(GENERATED_VAR_SUBSTR + "_n", true);
+      QueryVertex dst = new QueryVertex(GENERATED_VAR_SUBSTR + "_m", true);
+      VertexPairConnection edge = new QueryEdge(src, dst, GENERATED_VAR_SUBSTR + "_e", true, true);
       QueryExpression labelExp = new HasLabel(new VarRef(edge), new ConstString(pathPatternName));
 
       vertices = new ArrayList<>();
