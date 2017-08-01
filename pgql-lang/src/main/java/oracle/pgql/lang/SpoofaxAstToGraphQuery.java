@@ -46,7 +46,7 @@ import static org.apache.commons.lang3.StringEscapeUtils.unescapeJava;
 
 public class SpoofaxAstToGraphQuery {
 
-  private static final String GENERATED_VAR_SUBSTR = "<<generated>>";
+  private static final String GENERATED_VAR_SUBSTR = "<<anonymous>>";
 
   private static final int POS_PATH_PATTERNS = 0;
   private static final int POS_PROJECTION = 1;
@@ -207,7 +207,7 @@ public class SpoofaxAstToGraphQuery {
     List<QueryVertex> vertices = new ArrayList<>(verticesT.getSubtermCount());
     for (IStrategoTerm vertexT : verticesT) {
       String vertexName = getString(vertexT);
-      QueryVertex vertex = vertexName.contains(GENERATED_VAR_SUBSTR) ? new QueryVertex(vertexName, true)
+      QueryVertex vertex = vertexName.contains(GENERATED_VAR_SUBSTR) ? new QueryVertex(toUniqueName(vertexName), true)
           : new QueryVertex(vertexName, false);
       vertices.add(vertex);
       varmap.put(vertexName, vertex);
@@ -242,7 +242,7 @@ public class SpoofaxAstToGraphQuery {
     QueryVertex src = (QueryVertex) varmap.get(srcName);
     QueryVertex dst = (QueryVertex) varmap.get(dstName);
 
-    QueryEdge edge = name.contains(GENERATED_VAR_SUBSTR) ? new QueryEdge(src, dst, name, true, directed)
+    QueryEdge edge = name.contains(GENERATED_VAR_SUBSTR) ? new QueryEdge(src, dst, toUniqueName(name), true, directed)
         : new QueryEdge(src, dst, name, false, directed);
 
     varmap.put(name, edge);
@@ -281,9 +281,9 @@ public class SpoofaxAstToGraphQuery {
     List<VertexPairConnection> connections;
     Set<QueryExpression> constraints;
     if (pathPatternT == null) { // no path pattern defined for the label; generate one here
-      QueryVertex src = new QueryVertex(GENERATED_VAR_SUBSTR + "n", true);
-      QueryVertex dst = new QueryVertex(GENERATED_VAR_SUBSTR + "m", true);
-      VertexPairConnection edge = new QueryEdge(src, dst, GENERATED_VAR_SUBSTR + "e", true, true);
+      QueryVertex src = new QueryVertex("n", true);
+      QueryVertex dst = new QueryVertex("m", true);
+      VertexPairConnection edge = new QueryEdge(src, dst, "e", true, true);
       QueryExpression labelExp = new HasLabel(new VarRef(edge), new ConstString(pathPatternName));
 
       vertices = new ArrayList<>();
@@ -322,10 +322,14 @@ public class SpoofaxAstToGraphQuery {
     QueryVertex dst = (QueryVertex) varmap.get(dstName);
 
     QueryPath pathPattern = name.contains(GENERATED_VAR_SUBSTR)
-        ? new QueryPath(src, dst, vertices, connections, constraints, name, pathPatternName, true, minHops, maxHops)
+        ? new QueryPath(src, dst, vertices, connections, constraints, toUniqueName(name), pathPatternName, true, minHops, maxHops)
         : new QueryPath(src, dst, vertices, connections, constraints, name, pathPatternName, false, minHops, maxHops);
 
     return pathPattern;
+  }
+
+  private static String toUniqueName(String generatedAnonymousName) {
+    return generatedAnonymousName.replace(GENERATED_VAR_SUBSTR, "anonymous");
   }
 
   private static List<ExpAsVar> getGroupByElems(Map<String, QueryVariable> inputVars,

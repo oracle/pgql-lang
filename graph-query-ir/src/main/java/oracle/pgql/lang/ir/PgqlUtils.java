@@ -85,7 +85,7 @@ public class PgqlUtils {
   }
 
   public static String printReverseConnectionWithSrcAndDst(VertexPairConnection connection) {
-    return connection.getDst() + " " + printReverseConnection(connection) + " " + connection.getSrc();
+    return connection.getDst() + " " + printReverseConnection(connection.toString()) + " " + connection.getSrc();
   }
 
 // HELPER METHODS FOR PRETTY-PRINTING BELOW
@@ -143,7 +143,7 @@ public class PgqlUtils {
       }
     }
 
-    return variable.isAnonymous() ? "_anonymous_" : variable.name;
+    return variable.name;
   }
 
   protected static String printPgqlString(ExpAsVar expAsVar) {
@@ -157,12 +157,13 @@ public class PgqlUtils {
     Set<QueryVertex> verticesCopy = new HashSet<>(graphPattern.getVertices());
 
     Iterator<VertexPairConnection> connectionIt = graphPattern.getConnections().iterator();
+    Set<QueryExpression> constraints = graphPattern.getConstraints();
 
     while (connectionIt.hasNext()) {
       VertexPairConnection connection = connectionIt.next();
       QueryVertex src = connection.getSrc();
       QueryVertex dst = connection.getDst();
-      result += "  " + src + " " + connection + " " + dst;
+      result += "  " + deanonymizeIfNeeded(src, constraints) + " " + deanonymizeIfNeeded(connection, constraints) + " " + deanonymizeIfNeeded(dst, constraints);
       if (connectionIt.hasNext()) {
         result += ",\n";
       }
@@ -177,8 +178,6 @@ public class PgqlUtils {
         .map(x -> "  " + x.toString()) //
         .collect(Collectors.joining(",\n"));
     
-    
-    Set<QueryExpression> constraints = graphPattern.getConstraints();
     if (!constraints.isEmpty()) {
       result += ",\n  " + constraints.stream() //
       .map(x -> x.toString()) //
@@ -215,23 +214,25 @@ public class PgqlUtils {
     Iterator<QueryVertex> vertexIt = path.getVertices().iterator();
 
     QueryVertex vertex = vertexIt.next();
-    result += vertex;
+    result += deanonymizeIfNeeded(vertex, path.getConstraints());
     for (VertexPairConnection connection : path.getConnections()) {
       result += " ";
       switch (connection.getVariableType()) {
         case EDGE:
           QueryEdge edge = (QueryEdge) connection;
+          String edgeAsString = deanonymizeIfNeeded(edge, path.getConstraints());
           if (edge.getSrc() == vertex || !edge.isDirected()) {
-            result += edge.toString();
+            result += edgeAsString;
           } else {
-            result += printReverseConnection(edge);
+            result += printReverseConnection(edgeAsString);
           }
           break;
         case PATH:
+          String pathAsString = deanonymizeIfNeeded(path, path.getConstraints());
           if (connection.getSrc() == vertex) {
-            result += connection.toString();
+            result += pathAsString;
           } else {
-            result += printReverseConnection(connection);
+            result += printReverseConnection(pathAsString);
           }
           break;
         default:
@@ -239,7 +240,7 @@ public class PgqlUtils {
       }
 
       vertex = vertexIt.next();
-      result += " " + vertex;
+      result += " " + deanonymizeIfNeeded(vertex, path.getConstraints());
     }
 
     Set<QueryExpression> constraints = path.getConstraints();
@@ -251,13 +252,34 @@ public class PgqlUtils {
     return result + "\n";
   }
 
+  private static String deanonymizeIfNeeded(QueryVariable var, Set<QueryExpression> constraints) {
+    Set<QueryVariable> variables = constraints.stream() //
+        .map(c -> getVariables(c)) //
+        .collect(HashSet::new, Set::addAll, Set::addAll);
+
+    if (variables.contains(var) && var.isAnonymous()) {
+      switch (var.getVariableType()) {
+        case EDGE:
+          return "-[" + var.name + "]->";
+        case PATH: 
+          QueryPath queryPath = (QueryPath) var;
+          return "-/" + var.name + ":" + queryPath.getPathExpressionName() + printHops(queryPath) + "/->";
+        case VERTEX:
+          return "(" + var.name + ")";
+        default:
+          throw new UnsupportedOperationException("variable type not supported: " + var.getVariableType());
+      }
+    } else {
+      return var.toString();
+    }
+  }
+
   /**
    * Example 1:  "-[e]->" => "<-[e]-"
    * Example 2:  -/:xyz/-> "<-/:xyz/-"
    */
-  private static String printReverseConnection(VertexPairConnection connection) {
-    String s = connection.toString();
-    return "<" + s.substring(0, s.length() - 1);
+  private static String printReverseConnection(String connection) {
+    return "<" + connection.substring(0, connection.length() - 1);
   }
 
   protected static String printHops(QueryPath path) {
