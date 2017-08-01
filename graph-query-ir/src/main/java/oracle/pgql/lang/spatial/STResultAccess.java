@@ -6,7 +6,7 @@ package oracle.pgql.lang.spatial;
 import oracle.pgql.lang.PgqlException;
 
 /**
- * Get methods to access spatial type values in the result set. The parameter indicates the column number of column
+ * Get methods to access spatial type values in the result set. The parameter indicates the column number or column
  * name. Just like the SQL ResultSet, columns are numbered from 1.
  */
 public interface STResultAccess {

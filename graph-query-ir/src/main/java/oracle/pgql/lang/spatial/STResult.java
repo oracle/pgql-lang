@@ -5,8 +5,8 @@ package oracle.pgql.lang.spatial;
 
 /**
  * A result of a pattern matching query with spatial types. The get methods can be used to access the values in the
- * columns.
- * The parameter indicates the column number of column name. Just like the SQL ResultSet, columns are numbered from 1.
+ * columns. The parameter indicates the column number or column name. Just like the SQL ResultSet, columns are
+ * numbered from 1.
  */
 public interface STResult extends STResultAccess {
 

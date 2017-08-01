@@ -12,7 +12,7 @@ import java.util.Date;
 import java.util.Set;
 
 /**
- * Get methods to access the values in the columns. The parameter indicates the column number of column name. Just
+ * Get methods to access the values in the columns. The parameter indicates the column number or column name. Just
  * like the SQL ResultSet, columns are numbered from 1.
  */
 public interface ResultAccess {
