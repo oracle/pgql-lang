@@ -55,11 +55,13 @@ public boolean equals(Object obj) {
 	QueryVariable other = (QueryVariable) obj;
 	if (anonymous != other.anonymous)
 		return false;
-	if (name == null) {
-		if (other.name != null)
-			return false;
-	} else if (!name.equals(other.name))
-		return false;
+	if (!anonymous) {
+	  if (name == null) {
+  		if (other.name != null)
+	  		return false;
+	  } else if (!name.equals(other.name))
+	  	return false;
+	}
 	return true;
 }
 }

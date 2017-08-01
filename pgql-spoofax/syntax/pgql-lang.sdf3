@@ -7,6 +7,7 @@ imports
   Literals
   GraphPattern
   SolutionModifiers
+  Expressions
   
 context-free start-symbols
 
@@ -27,10 +28,12 @@ context-free syntax
       <LimitOffsetClauses?>
     >
 
-  PathPattern.PathPattern = <path <PATHPATTERNNAME> := <Path>> {case-insensitive}
+  PathPattern.PathPattern = <path <PATHPATTERNNAME> := <Path> <WhereClause?>> {case-insensitive}
 
   SelectClause.SelectClause = <select <Projection>> {case-insensitive}
   Projection.ExpAsVars = <<{ExpAsVar ", "}+>>
   Projection.Star = <*>
 
   FromClause.FromClause = <from <GRAPHNAME>> {case-insensitive}
+
+  WhereClause.WhereClause = <where <Exp>> {case-insensitive}
