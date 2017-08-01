@@ -23,58 +23,58 @@ public class PrettyPrintingTests {
   @Test
   public void testBasicGraphPattern1() throws Exception {
     String query = "SELECT n.name WHERE (n) -> (m), m.prop1 = 'abc' AND n.prop2 = m.prop2";
-    checkRoundtripAndEquals(query);
+    checkRoundTrip(query);
   }
 
   @Test
   public void testBasicGraphPattern2() throws Exception {
     String query = "SELECT n.name WHERE (n) -[e]-> (), e.weight = 10 OR e.weight < n.weight";
-    checkRoundtripAndEquals(query);
+    checkRoundTrip(query);
   }
 
   @Test
   public void testBasicGraphPattern3() throws Exception {
     String query = "SELECT n.name WHERE (n WITH prop1 = 10) -> ()";
-    checkRoundtripAndEquals(query);
+    checkRoundTrip(query);
   }
 
   @Test
   public void testPathQuery1() throws Exception {
     String query = "SELECT n.name, m.name WHERE (n) -/:likes*/-> (m)";
-    checkRoundtrip(query);
+    checkRoundTrip(query);
   }
 
   @Test
   public void testPathQuery2() throws Exception {
     String query = "PATH knows := (n:Person) -[e:likes|dislikes]-> (m:Person) SELECT n.name, m.name WHERE (n) -/:knows*/-> (m)";
-    checkRoundtrip(query);
+    checkRoundTrip(query);
   }
 
   @Test
   public void testPredicatesOnAnonymousVariables() throws Exception {
     String query = "SELECT m.name WHERE (WITH prop1 = 10) -> (m)";
-    checkRoundtrip(query);
+    checkRoundTrip(query);
   }
 
-  /**
-   * Asserts that when parsing a query into a GraphQuery object and then pretty printing that GraphQuery object,
-   * we obtain a string that is a valid PGQL query.
-   */
-  private void checkRoundtrip(String query) throws PgqlException {
-    GraphQuery queryIR = pgql.parse(query).getGraphQuery();
-    String prettyPrintedQuery = queryIR.toString();
-    PgqlResult result = pgql.parse(prettyPrintedQuery); 
-    assertTrue(result.getErrorMessages(), result.getGraphQuery() != null);
-  }
+  private void checkRoundTrip(String query1) throws PgqlException {
 
-  /**
-   * Asserts that when parsing a query into a GraphQuery object A and then pretty printing A and parsing the result again
-   * into a GraphQuery object B, A and B are equal.
-   */
-  private void checkRoundtripAndEquals(String query) throws PgqlException {
-    GraphQuery queryIR = pgql.parse(query).getGraphQuery();
-    String prettyPrintedQuery = queryIR.toString();
-    GraphQuery prettyPrintedQueryIR = pgql.parse(prettyPrintedQuery).getGraphQuery();
-    assertEquals(queryIR, prettyPrintedQueryIR);
+    /*
+     * First, assert that when parsing a query into a GraphQuery object and then pretty printing that GraphQuery object,
+     * we obtain a string that is a valid PGQL query.
+     */
+    GraphQuery iR1 = pgql.parse(query1).getGraphQuery();
+    String query2 = iR1.toString();
+    PgqlResult result2 = pgql.parse(query2);
+    GraphQuery iR2 = result2.getGraphQuery();
+    assertTrue(result2.getErrorMessages(), iR2 != null);
+
+    /*
+     * Since pretty-printed queries are in normal form, we can now round trip endlessly.
+     * Here, we assert that when pretty-printing a GraphQuery object that was parsed from a pretty-printed query,
+     * we obtain another GraphQuery object that is equal to the first.
+     */
+    String query3 = iR2.toString();
+    GraphQuery iR3 = pgql.parse(query3).getGraphQuery();
+    assertEquals(iR2, iR3);
   }
 }
