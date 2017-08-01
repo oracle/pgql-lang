@@ -7,6 +7,7 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
 
 import org.junit.BeforeClass;
+import org.junit.Ignore;
 import org.junit.Test;
 
 import oracle.pgql.lang.ir.GraphQuery;
@@ -53,6 +54,13 @@ public class PrettyPrintingTests {
   @Test
   public void testPredicatesOnAnonymousVariables() throws Exception {
     String query = "SELECT m.name WHERE (WITH prop1 = 10) -> (m)";
+    checkRoundTrip(query);
+  }
+
+  @Ignore("FIXME")
+  public void testNestedPath() throws Exception {
+    String query = "PATH abc := () -[:a|b|c]-> (b) PATH abc_star := () -/:abc*/-> () "
+        + "PATH abc_star_star := () -/:abc_star*/-> () SELECT m.name WHERE (n) -/:abc_star_star+/-> (m)";
     checkRoundTrip(query);
   }
 
