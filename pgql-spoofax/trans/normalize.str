@@ -69,8 +69,8 @@ rules
   name-unnamed-elems(|c) = ?OutEdge(); !OutConn(<name-unnamed-elems-helper(|c)>) +
                            ?InEdge(); !InConn(<name-unnamed-elems-helper(|c)>) +
                            ?UndirectedEdge(); !UndirectedEdge(<name-unnamed-elems-helper(|c)>) +
-                           ?Path(None(), pathPatternRef, kleeneStar); !Path(Some(<unique-name(|c)> ""), pathPatternRef, kleeneStar)
-  name-unnamed-elems-helper(|c) = !ElemContents(Some(<unique-name(|c)> ""), None(), None(), None())
+                           ?Path(None(), pathPatternRef, kleeneStar); !Path(Some(<unique-name(|c)>), pathPatternRef, kleeneStar)
+  name-unnamed-elems-helper(|c) = !ElemContents(Some(<unique-name(|c)>), None(), None(), None())
 
   norm-inlined-references = ?ElemContents(Some(varName), _, _, _); alltd(norm-inlined-reference(|varName))
   norm-inlined-reference(|varName) =
