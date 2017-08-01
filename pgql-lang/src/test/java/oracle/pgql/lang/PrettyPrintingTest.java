@@ -12,7 +12,7 @@ import org.junit.Test;
 
 import oracle.pgql.lang.ir.GraphQuery;
 
-public class PrettyPrintingTests {
+public class PrettyPrintingTest {
 
   private static Pgql pgql;
 

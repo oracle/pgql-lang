@@ -16,7 +16,7 @@ import org.junit.Test;
 import oracle.pgql.lang.completions.PgqlCompletion;
 import oracle.pgql.lang.completions.PgqlCompletionContext;
 
-public class CompletionsTests {
+public class CompletionsTest {
 
   private static final String[] VERTEX_LABELS = {"Person", "Student", "Professor"};
 
