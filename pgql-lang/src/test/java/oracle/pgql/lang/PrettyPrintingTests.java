@@ -28,8 +28,20 @@ public class PrettyPrintingTests {
   }
 
   @Test
+  public void testBasicGraphPattern1Reverse() throws Exception {
+    String query = "SELECT n.name WHERE (n) <- (m), m.prop1 = 'abc' AND n.prop2 = m.prop2";
+    checkRoundTrip(query);
+  }
+
+  @Test
   public void testBasicGraphPattern2() throws Exception {
     String query = "SELECT n.name WHERE (n) -[e]-> (), e.weight = 10 OR e.weight < n.weight";
+    checkRoundTrip(query);
+  }
+
+  @Test
+  public void testBasicGraphPattern2Reverse() throws Exception {
+    String query = "SELECT n.name WHERE (n) <-[e]- (), e.weight = 10 OR e.weight < n.weight";
     checkRoundTrip(query);
   }
 
@@ -46,6 +58,12 @@ public class PrettyPrintingTests {
   }
 
   @Test
+  public void testPathQuery1Reverse() throws Exception {
+    String query = "SELECT n.name, m.name WHERE (n) <-/:likes*/- (m)";
+    checkRoundTrip(query);
+  }
+
+  @Test
   public void testPathQuery2() throws Exception {
     String query = "PATH knows := (n:Person) -[e:likes|dislikes]-> (m:Person) SELECT n.name, m.name WHERE (n) -/:knows*/-> (m)";
     checkRoundTrip(query);
@@ -57,10 +75,40 @@ public class PrettyPrintingTests {
     checkRoundTrip(query);
   }
 
-  @Ignore("FIXME")
+  @Test
   public void testNestedPath() throws Exception {
     String query = "PATH abc := () -[:a|b|c]-> (b) PATH abc_star := () -/:abc*/-> () "
         + "PATH abc_star_star := () -/:abc_star*/-> () SELECT m.name WHERE (n) -/:abc_star_star+/-> (m)";
+    checkRoundTrip(query);
+  }
+
+  @Test
+  public void testQueryWithOrderBy() throws Exception {
+    String query = "SELECT m.name, m.age WHERE (m)->(n) ORDER BY m.age";
+    checkRoundTrip(query);
+  }
+
+  @Test
+  public void testQueryWithOrderByLimit() throws Exception {
+    String query = "SELECT m.name, m.age WHERE (m)->(n) ORDER BY m.age LIMIT 10";
+    checkRoundTrip(query);
+  }
+
+  @Test
+  public void testQueryWithOrderByOffsetLimit() throws Exception {
+    String query = "SELECT m.name, m.age WHERE (m)->(n) ORDER BY m.age OFFSET 2 LIMIT 1";
+    checkRoundTrip(query);
+  }
+
+  @Test
+  public void testQueryWithFromClause() throws Exception {
+    String query = "SELECT m.name, n.age FROM persons WHERE (m)->(n)";
+    checkRoundTrip(query);
+  }
+
+  @Test
+  public void testUndirectedEdge() throws Exception {
+    String query = "SELECT m.name, m.age WHERE (m)-(n)";
     checkRoundTrip(query);
   }
 
