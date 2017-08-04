@@ -3,6 +3,8 @@
  */
 package oracle.pgql.lang.ir;
 
+import java.util.Objects;
+
 import static oracle.pgql.lang.ir.PgqlUtils.printPgqlString;
 
 public class GraphQuery {
@@ -79,10 +81,10 @@ public class GraphQuery {
 
     GraphQuery that = (GraphQuery) o;
 
-    if (limit != that.limit) {
+    if (!Objects.equals(limit, that.limit)) {
       return false;
     }
-    if (offset != that.offset) {
+    if (!Objects.equals(offset, that.offset)) {
       return false;
     }
     if (!projection.equals(that.projection)) {

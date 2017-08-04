@@ -228,7 +228,8 @@ public class PgqlUtils {
           }
           break;
         case PATH:
-          String pathAsString = deanonymizeIfNeeded(path, path.getConstraints());
+          QueryPath nestedPath = (QueryPath) connection;
+          String pathAsString = deanonymizeIfNeeded(nestedPath, path.getConstraints());
           if (connection.getSrc() == vertex) {
             result += pathAsString;
           } else {
