@@ -1,7 +1,7 @@
 ---
 title:  "PGQL 1.0 Specification"
 permalink: /spec/1.0/
-summary: "PGQL is a SQL-like query language for the Property Graph data model.
+summary: "PGQL is an SQL-like query language for the Property Graph data model.
 The language is based on the paradigm of graph pattern matching, which allows you to specify patterns that are matched against vertices and edges in a data graph.
 Like SQL, PGQL has support for grouping (GROUP BY), aggregation (e.g. MIN, MAX, AVG), sorting (ORDER BY) and many other familiar SQL constructs.
 In addition, PGQL supports regular path queries for applications such as reachability analysis."
