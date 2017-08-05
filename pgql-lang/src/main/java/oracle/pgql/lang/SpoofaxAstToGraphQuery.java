@@ -622,7 +622,7 @@ public class SpoofaxAstToGraphQuery {
     QueryVariable var = inScopeVars.get(varName);
     if (var == null) {
       // dangling reference
-      var = new QueryVertex(varName, true);
+      var = new QueryVertex(varName, false);
     }
     return var;
   }
