@@ -152,20 +152,19 @@ public class Pgql {
       GraphQuery queryGraph = null;
       if (!queryValid) {
         prettyMessages = getMessages(parseResult.messages(), queryString);
-      } else {
-        context = spoofax.contextService.getTemporary(dummyFile, dummyProject, pgqlLang);
-        ISpoofaxAnalyzeUnit analysisResult = null;
-        try (IClosableLock lock = context.write()) {
-          analysisResult = spoofax.analysisService.analyze(parseResult, context).result();
-        }
-
-        queryValid = analysisResult.success();
-        if (queryValid) {
-          queryGraph = SpoofaxAstToGraphQuery.translate(analysisResult.ast());
-        } else {
-          prettyMessages = getMessages(analysisResult.messages(), queryString);
-        }
       }
+
+      context = spoofax.contextService.getTemporary(dummyFile, dummyProject, pgqlLang);
+      ISpoofaxAnalyzeUnit analysisResult = null;
+      try (IClosableLock lock = context.write()) {
+        analysisResult = spoofax.analysisService.analyze(parseResult, context).result();
+      }
+
+      if (queryValid) {
+        queryValid = analysisResult.success();
+        prettyMessages = getMessages(analysisResult.messages(), queryString);
+      }
+      queryGraph = SpoofaxAstToGraphQuery.translate(analysisResult.ast());
 
       return new PgqlResult(queryString, queryValid, prettyMessages, queryGraph);
     } catch (IOException | ParseException | AnalysisException | ContextException e) {
@@ -244,7 +243,8 @@ public class Pgql {
     return sb.toString();
   }
 
-  public List<PgqlCompletion> generateCompletions(String query, int cursor, PgqlCompletionContext ctx) {
-    return PgqlCompletionGenerator.generate(query, cursor, ctx);
+  public List<PgqlCompletion> generateCompletions(String query, int cursor, PgqlCompletionContext ctx)
+      throws PgqlException {
+    return PgqlCompletionGenerator.generate(this, query, cursor, ctx);
   }
 }

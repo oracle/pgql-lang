@@ -498,20 +498,14 @@ public class SpoofaxAstToGraphQuery {
       case "SelectOrGroupRef":
       case "VarOrSelectRef":
         String varName = getString(t);
-        QueryVariable var = inScopeVars.get(varName);
-        if (var == null) {
-          throw new PgqlException("Variable " + varName + " undefined");
-        }
+        QueryVariable var = getVariable(inScopeVars, varName);
         return new QueryExpression.VarRef(var);
       case "BindVariable":
         int parameterIndex = getInt(t);
         return new QueryExpression.BindVariable(parameterIndex);
       case "PropRef":
         varName = getString(t.getSubterm(POS_PROPREF_VARNAME));
-        var = inScopeVars.get(varName);
-        if (var == null) {
-          throw new PgqlException("Variable " + varName + " undefined");
-        }
+        var = getVariable(inScopeVars, varName);
         String propname = getString(t.getSubterm(POS_PROPREF_PROPNAME));
         return new QueryExpression.PropertyAccess(var, propname);
       case "Regex":
@@ -622,6 +616,15 @@ public class SpoofaxAstToGraphQuery {
       default:
         throw new UnsupportedOperationException("Expression unsupported: " + t);
     }
+  }
+
+  private static QueryVariable getVariable(Map<String, QueryVariable> inScopeVars, String varName) {
+    QueryVariable var = inScopeVars.get(varName);
+    if (var == null) {
+      // dangling reference
+      var = new QueryVertex(varName, true);
+    }
+    return var;
   }
 
   private static List<QueryExpression> varArgsToExps(Map<String, QueryVariable> inScopeVars,

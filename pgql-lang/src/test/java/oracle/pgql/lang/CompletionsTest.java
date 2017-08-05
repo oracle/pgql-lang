@@ -18,6 +18,10 @@ import oracle.pgql.lang.completions.PgqlCompletionContext;
 
 public class CompletionsTest {
 
+  private static final String[] VERTEX_PROPS = {"name", "age"};
+
+  private static final String[] EDGE_PROPS = {"weight"};
+
   private static final String[] VERTEX_LABELS = {"Person", "Student", "Professor"};
 
   private static final String[] EDGE_LABELS = {"likes", "knows"};
@@ -33,12 +37,12 @@ public class CompletionsTest {
 
       @Override
       public List<String> getVertexProperties() {
-        return new ArrayList<>();
+        return new ArrayList<>(Arrays.asList(VERTEX_PROPS));
       }
 
       @Override
       public List<String> getEdgeProperties() {
-        return new ArrayList<>();
+        return new ArrayList<>(Arrays.asList(EDGE_PROPS));
       }
 
       @Override
@@ -54,8 +58,29 @@ public class CompletionsTest {
   }
 
   @Test
+  public void testVertexProps() throws Exception {
+    String query = "SELECT n.??? FROM g WHERE (n)";
+
+    List<PgqlCompletion> expected = new ArrayList<>();
+    expected.add(new PgqlCompletion("name", "name", "vertex property"));
+    expected.add(new PgqlCompletion("age", "age", "vertex property"));
+
+    checkResult(query, expected);
+  }
+
+  @Test
+  public void testEdgeProps() throws Exception {
+    String query = "SELECT edge.??? FROM g WHERE (n) -[edge]-> (m)";
+
+    List<PgqlCompletion> expected = new ArrayList<>();
+    expected.add(new PgqlCompletion("weight", "weight", "edge property"));
+
+    checkResult(query, expected);
+  }
+
+  @Test
   public void testVertexLabels() throws Exception {
-    String query = "SELECT n.name WHERE (n:???)";
+    String query = "SELECT n.name FROM g WHERE (n:???)";
 
     List<PgqlCompletion> expected = new ArrayList<>();
     expected.add(new PgqlCompletion("Person", "Person", "vertex label"));
@@ -67,7 +92,7 @@ public class CompletionsTest {
 
   @Test
   public void testEdgeLabels() throws Exception {
-    String query = "SELECT e.weight WHERE () -[e:???]-> ())";
+    String query = "SELECT e.weight FROM g WHERE () -[e:???]-> ())";
 
     List<PgqlCompletion> expected = new ArrayList<>();
     expected.add(new PgqlCompletion("likes", "likes", "edge label"));
@@ -76,7 +101,7 @@ public class CompletionsTest {
     checkResult(query, expected);
   }
 
-  private void checkResult(String query, List<PgqlCompletion> expected) {
+  private void checkResult(String query, List<PgqlCompletion> expected) throws Exception {
     int cursor = query.indexOf("???");
     query = query.replaceAll("\\?\\?\\?", "");
 
