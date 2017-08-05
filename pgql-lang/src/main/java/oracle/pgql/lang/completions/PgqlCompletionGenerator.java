@@ -3,7 +3,7 @@
  */
 package oracle.pgql.lang.completions;
 
-import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import java.util.Set;
 import java.util.regex.Matcher;
@@ -20,24 +20,25 @@ import oracle.pgql.lang.ir.VertexPairConnection;
 
 public class PgqlCompletionGenerator {
 
+  public static final Pattern IDENTIFIER_PATTERN = Pattern.compile("(\\w)+$");
+
   public static List<PgqlCompletion> generate(Pgql pgql, String queryString, int cursor, PgqlCompletionContext ctx)
       throws PgqlException {
-    List<PgqlCompletion> results = new ArrayList<>();
 
     // labels
     if (queryString.charAt(cursor - 1) == ':') {
       String queryUpToCursor = queryString.substring(0, cursor - 2);
       if (queryUpToCursor.lastIndexOf('(') > queryUpToCursor.lastIndexOf('[')) {
-        results.addAll(ctx.getVertexLabels().stream().map(lbl -> new PgqlCompletion(lbl, lbl, "vertex label"))
-            .collect(Collectors.toList()));
+        return ctx.getVertexLabels().stream().map(lbl -> new PgqlCompletion(lbl, lbl, "vertex label"))
+            .collect(Collectors.toList());
       } else {
-        results.addAll(ctx.getEdgeLabels().stream().map(lbl -> new PgqlCompletion(lbl, lbl, "edge label"))
-            .collect(Collectors.toList()));
+        return ctx.getEdgeLabels().stream().map(lbl -> new PgqlCompletion(lbl, lbl, "edge label"))
+            .collect(Collectors.toList());
       }
     } else if (queryString.charAt(cursor - 1) == '.') {
       String variableName = parseIdentifier(queryString, cursor - 1);
       if (variableName == null) {
-        return results;
+        return Collections.emptyList();
       }
       PgqlResult result = pgql.parse(queryString);
       GraphPattern graphPattern = result.getGraphQuery().getGraphPattern();
@@ -46,28 +47,27 @@ public class PgqlCompletionGenerator {
       boolean isVertexVariable = vertices.stream() //
           .map(QueryVertex::getName) //
           .anyMatch(variableName::equals);
+      if (isVertexVariable) {
+        return ctx.getVertexProperties().stream().map(prop -> new PgqlCompletion(prop, prop, "vertex property"))
+            .collect(Collectors.toList());
+      }
 
       Set<VertexPairConnection> edges = graphPattern.getConnections();
       boolean isEdgeVariable = edges.stream() //
           .filter((n) -> n.getVariableType() == VariableType.EDGE) //
           .map(VertexPairConnection::getName) //
           .anyMatch(variableName::equals);
-
-      if (isVertexVariable) {
-        results.addAll(ctx.getVertexProperties().stream().map(prop -> new PgqlCompletion(prop, prop, "vertex property"))
-            .collect(Collectors.toList()));
-      } else if (isEdgeVariable) {
-        results.addAll(ctx.getEdgeProperties().stream().map(prop -> new PgqlCompletion(prop, prop, "edge property"))
-            .collect(Collectors.toList()));
+      if (isEdgeVariable) {
+        return ctx.getEdgeProperties().stream().map(prop -> new PgqlCompletion(prop, prop, "edge property"))
+            .collect(Collectors.toList());
       }
     }
-    return results;
+    return Collections.emptyList();
   }
 
   private static String parseIdentifier(String queryString, int positionLastCharacter) {
     queryString = queryString.substring(0, positionLastCharacter);
-    Pattern pattern = Pattern.compile("(\\w)+$");
-    Matcher matcher = pattern.matcher(queryString);
+    Matcher matcher = IDENTIFIER_PATTERN.matcher(queryString);
     if (matcher.find()) {
       return matcher.group();
     }
