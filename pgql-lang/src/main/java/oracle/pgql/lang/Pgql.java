@@ -54,7 +54,7 @@ public class Pgql {
   private static final Logger LOG = LoggerFactory.getLogger(Pgql.class);
   private static final String NON_BREAKING_WHITE_SPACE_ERROR = "Illegal character '\u00a0' (non-breaking white space)"
       + "; use a normal space instead";
-  private static final String SPOOFAX_BINARIES = "pgql-1.0.spoofax-language";
+  private static final String SPOOFAX_BINARIES = "pgql-1.1.spoofax-language";
 
   private final Spoofax spoofax;
   private final ILanguageImpl pgqlLang;
