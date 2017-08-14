@@ -812,22 +812,21 @@ The syntax followed for the pattern on the right-hand side, is that of Java REGE
 
 ## Null Values
 
-`null` is used to represent a missing or undefined value. There are three ways in which a null value can come into existence:
+`null` is used to represent a missing or undefined value. There are two ways in which a null value can come into existence:
 
 - A property access (i.e. `var_name.prop_name`) returns `null` if the property is missing for a vertex or edge in the data graph.
 - An expression returns `null` if any operand or function argument is `null` (with an exception for the `OR` operator, see below).
-- In a query, a `null` value may be used in the place of a literal value (e.g. `n.name = null`).
 
 ### Null Values and Operators
 
 An operator returns `null` if one of its operands yields `null`, with an exception for the `OR` operator: if the left-hand side or right-hand side of the `OR` operations returns `true`, the operation itself yields `true`. Otherwise, the operation yields `null`. The table below summarizes these rules.
 
 Operator | Result {A = NULL} | Result {B = NULL} | Result {A = NULL, B = NULL}
---- | --- | --- | ---
-A `+` `-` `*` `/` `%` B<br>A `=` `!=` `<` `>` `<=` `>=` B  | `null`  | `null`  | `null`
-A `AND` B  | `null`  | `null`  | `null`
-A `OR` B | `true` if B yields `true`, `null` otherwise | true if A yields `true`, `null` otherwise | `null`
-`NOT` A<br>`!`A | `null` | |
+---------------------------------------------------------- | --------------------------------------------- | ---------------------------------------------- | ------
+A `+` `-` `*` `/` `%` B<br>A `=` `!=` `<` `>` `<=` `>=` B  | `null`                                        | `null`                                         | `null`
+A `AND` B                                                  | `false` if B yields `false`, `null` otherwise | `false` if A yields `false`, `null` otherwise  | `null`
+A `OR` B                                                   | `true` if B yields `true`, `null` otherwise   | `true` if A yields `true`, `null` otherwise    | `null`
+`NOT` A<br>`!`A                                            | `null`                                        |                                                |
 
 Note that from the table it follows that `null = null` yields `null` and not `true`.
 
