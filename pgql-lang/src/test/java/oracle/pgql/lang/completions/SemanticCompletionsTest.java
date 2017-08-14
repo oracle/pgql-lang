@@ -1,39 +1,30 @@
 /**
  * Copyright (C) 2013 - 2017 Oracle and/or its affiliates. All rights reserved.
  */
-package oracle.pgql.lang;
-
-import static org.junit.Assert.assertEquals;
+package oracle.pgql.lang.completions;
 
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
-import java.util.stream.Collectors;
 
-import org.junit.BeforeClass;
 import org.junit.Test;
 
 import oracle.pgql.lang.completions.PgqlCompletion;
 import oracle.pgql.lang.completions.PgqlCompletionContext;
 
-public class CompletionsTest {
+public class SemanticCompletionsTest extends AbstractCompletionsTest {
 
-  private static final String[] VERTEX_PROPS = {"name", "age"};
+  private static final String[] VERTEX_PROPS = { "name", "age" };
 
-  private static final String[] EDGE_PROPS = {"weight"};
+  private static final String[] EDGE_PROPS = { "weight" };
 
-  private static final String[] VERTEX_LABELS = {"Person", "Student", "Professor"};
+  private static final String[] VERTEX_LABELS = { "Person", "Student", "Professor" };
 
-  private static final String[] EDGE_LABELS = {"likes", "knows"};
+  private static final String[] EDGE_LABELS = { "likes", "knows" };
 
-  private static Pgql pgql;
-
-  private static PgqlCompletionContext completionCtx;
-  
-  @BeforeClass
-  public static void setUp() throws Exception {
-    pgql = new Pgql();
-    completionCtx = new PgqlCompletionContext() {
+  @Override
+  protected PgqlCompletionContext getCompletionContext() {
+    return new PgqlCompletionContext() {
 
       @Override
       public List<String> getVertexProperties() {
@@ -92,24 +83,12 @@ public class CompletionsTest {
 
   @Test
   public void testEdgeLabels() throws Exception {
-    String query = "SELECT e.weight FROM g WHERE () -[e:???]-> ())";
+    String query = "SELECT e.weight FROM g WHERE () -[e:???]-> ()";
 
     List<PgqlCompletion> expected = new ArrayList<>();
     expected.add(new PgqlCompletion("likes", "likes", "edge label"));
     expected.add(new PgqlCompletion("knows", "knows", "edge label"));
 
     checkResult(query, expected);
-  }
-
-  private void checkResult(String query, List<PgqlCompletion> expected) throws Exception {
-    int cursor = query.indexOf("???");
-    query = query.replaceAll("\\?\\?\\?", "");
-
-    List<PgqlCompletion> actual = pgql.generateCompletions(query, cursor, completionCtx);
-
-    String expectedAsString = expected.stream().map(c -> c.toString()).collect(Collectors.joining("\n"));
-    String actualAsString = actual.stream().map(c -> c.toString()).collect(Collectors.joining("\n"));
-    String errorMessage = "\nexpected\n\n" + expectedAsString  + "\n\nactual\n\n" + actualAsString + "\n";
-    assertEquals(errorMessage, expected, actual);
   }
 }

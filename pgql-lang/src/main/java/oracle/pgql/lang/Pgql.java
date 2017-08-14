@@ -6,6 +6,7 @@ package oracle.pgql.lang;
 import java.io.File;
 import java.io.IOException;
 import java.io.OutputStream;
+import java.io.UnsupportedEncodingException;
 import java.net.URL;
 import java.util.Collection;
 import java.util.HashSet;
@@ -23,6 +24,7 @@ import org.apache.commons.vfs2.impl.DefaultFileReplicator;
 import org.apache.commons.vfs2.impl.DefaultFileSystemManager;
 import org.metaborg.core.MetaborgException;
 import org.metaborg.core.analysis.AnalysisException;
+import org.metaborg.core.completion.ICompletion;
 import org.metaborg.core.config.IProjectConfig;
 import org.metaborg.core.context.ContextException;
 import org.metaborg.core.context.ITemporaryContext;
@@ -138,14 +140,8 @@ public class Pgql {
     ITemporaryContext context = null;
     FileObject dummyFile = null;
     try {
-      String randomFileName = UUID.randomUUID().toString() + ".pgql";
-      dummyFile = VFS.getManager().resolveFile(dummyProjectDir, randomFileName);
-      try (OutputStream out = dummyFile.getContent().getOutputStream()) {
-        IOUtils.write(queryString.getBytes("UTF-8"), out);
-      }
-
-      ISpoofaxInputUnit input = spoofax.unitService.inputUnit(dummyFile, queryString, pgqlLang, null);
-      ISpoofaxParseUnit parseResult = spoofax.syntaxService.parse(input);
+      dummyFile = getFileObject(queryString);
+      ISpoofaxParseUnit parseResult = parseHelper(queryString, dummyFile);
 
       String prettyMessages = null;
       boolean queryValid = parseResult.success();
@@ -177,6 +173,21 @@ public class Pgql {
     }
   }
 
+  private FileObject getFileObject(String queryString) throws UnsupportedEncodingException, IOException {
+    String randomFileName = UUID.randomUUID().toString() + ".pgql";
+    FileObject dummyFile = VFS.getManager().resolveFile(dummyProjectDir, randomFileName);
+    try (OutputStream out = dummyFile.getContent().getOutputStream()) {
+      IOUtils.write(queryString.getBytes("UTF-8"), out);
+    }
+    return dummyFile;
+  }
+
+  private ISpoofaxParseUnit parseHelper(String queryString, FileObject fileObject) throws ParseException {
+
+    ISpoofaxInputUnit input = spoofax.unitService.inputUnit(fileObject, queryString, pgqlLang, null);
+    return spoofax.syntaxService.parse(input);
+  }
+
   private static void quietlyDelete(FileObject fo) {
     try {
       if (fo != null && fo.exists()) {
@@ -187,6 +198,21 @@ public class Pgql {
     } catch (IOException e) {
       LOG.warn("got error while trying to delete temporary query file", e);
     }
+  }
+
+  private Iterable<ICompletion> spoofaxComplete(String queryString, int cursor) {
+    FileObject dummyFile = null;
+    try {
+      dummyFile = getFileObject(queryString);
+      ISpoofaxParseUnit parseResult = parseHelper(queryString, dummyFile);
+
+      return spoofax.completionService.get(cursor, parseResult, false);
+    } catch (IOException | MetaborgException e) {
+      // swallow exceptions
+    } finally {
+      quietlyDelete(dummyFile);
+    }
+    return null;
   }
 
   /**
@@ -243,8 +269,15 @@ public class Pgql {
     return sb.toString();
   }
 
-  public List<PgqlCompletion> generateCompletions(String query, int cursor, PgqlCompletionContext ctx)
+  public List<PgqlCompletion> generateCompletions(String queryString, int cursor, PgqlCompletionContext ctx)
       throws PgqlException {
-    return PgqlCompletionGenerator.generate(this, query, cursor, ctx);
+
+    Iterable<ICompletion> spoofaxCompletions = null;
+    if (queryString.charAt(cursor - 1) != ':' && queryString.charAt(cursor - 1) != '.') { // skip Spoofax completion to
+                                                                                          // safe time
+      spoofaxCompletions = spoofaxComplete(queryString, cursor);
+    }
+
+    return PgqlCompletionGenerator.generate(this, spoofaxCompletions, queryString, cursor, ctx);
   }
 }

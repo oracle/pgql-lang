@@ -10,6 +10,8 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
+import org.metaborg.core.completion.ICompletion;
+
 import oracle.pgql.lang.Pgql;
 import oracle.pgql.lang.PgqlException;
 import oracle.pgql.lang.PgqlResult;
@@ -22,8 +24,8 @@ public class PgqlCompletionGenerator {
 
   public static final Pattern IDENTIFIER_PATTERN = Pattern.compile("(\\w)+$");
 
-  public static List<PgqlCompletion> generate(Pgql pgql, String queryString, int cursor, PgqlCompletionContext ctx)
-      throws PgqlException {
+  public static List<PgqlCompletion> generate(Pgql pgql, Iterable<ICompletion> spoofaxCompletions, String queryString,
+      int cursor, PgqlCompletionContext ctx) throws PgqlException {
 
     // labels
     if (queryString.charAt(cursor - 1) == ':') {
@@ -35,6 +37,7 @@ public class PgqlCompletionGenerator {
         return ctx.getEdgeLabels().stream().map(lbl -> new PgqlCompletion(lbl, lbl, "edge label"))
             .collect(Collectors.toList());
       }
+      // properties
     } else if (queryString.charAt(cursor - 1) == '.') {
       String variableName = parseIdentifier(queryString, cursor - 1);
       if (variableName == null) {
@@ -60,6 +63,10 @@ public class PgqlCompletionGenerator {
       if (isEdgeVariable) {
         return ctx.getEdgeProperties().stream().map(prop -> new PgqlCompletion(prop, prop, "edge property"))
             .collect(Collectors.toList());
+      }
+    } else if (spoofaxCompletions != null) {
+      for (ICompletion c : spoofaxCompletions) {
+        System.out.println(c + ", " + c.prefix());
       }
     }
     return Collections.emptyList();
