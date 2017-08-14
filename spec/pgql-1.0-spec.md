@@ -815,7 +815,7 @@ The syntax followed for the pattern on the right-hand side, is that of Java REGE
 `null` is used to represent a missing or undefined value. There are two ways in which a null value can come into existence:
 
 - A property access (i.e. `var_name.prop_name`) returns `null` if the property is missing for a vertex or edge in the data graph.
-- An expression returns `null` if any operand or function argument is `null` (with an exception for the `OR` operator, see below).
+- An expression returns `null` if any operand or function argument is `null` (with an exception for the `OR` and `AND` operators, see below).
 
 ### Null Values and Operators
 
