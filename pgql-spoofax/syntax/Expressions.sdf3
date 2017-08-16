@@ -54,8 +54,8 @@ context-free syntax // function calls
   Exp.CallStatement = <call <PackageDecl?><RoutineName><ArgumentList>> {case-insensitive}
 
   PackageDecl.PackageDecl = <<PackageName>.>
-  PackageName = NAME
-  RoutineName = NAME
+  PackageName = IDENTIFIER
+  RoutineName = IDENTIFIER
   ArgumentList.ArgumentList = <(<{Exp ", "}*>)>
 
 context-free syntax // Aggregates

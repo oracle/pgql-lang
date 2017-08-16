@@ -47,7 +47,7 @@ rules
   norm-NEQ = ?Neq1(exp1, exp2); !Neq(exp1, exp2)
   norm-NEQ = ?Neq2(exp1, exp2); !Neq(exp1, exp2)
 
-  norm-string = String(norm-string-helper) + PropRef(id, norm-string-helper)
+  norm-string = String(norm-string-helper) + PropRef(id, norm-string-helper) + FromClause(norm-string-helper)
               + Date(un-single-quote)
               + Time(un-single-quote)
               + Timestamp(un-single-quote)

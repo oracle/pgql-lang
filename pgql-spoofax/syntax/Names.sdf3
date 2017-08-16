@@ -21,33 +21,33 @@ context-free syntax
   
 lexical syntax
   
-  GRAPHNAME       = NAME
-  VARNAME         = NAME
-  PROPNAME        = NAME
-  PATHPATTERNNAME = NAME
-  NAME            = [a-zA-Z][a-zA-Z0-9\_]*
+  GRAPHNAME       = IDENTIFIER | DOUBLE-QUOTED-STRING
+  VARNAME         = IDENTIFIER
+  PROPNAME        = IDENTIFIER
+  PATHPATTERNNAME = IDENTIFIER
+  IDENTIFIER      = [a-zA-Z][a-zA-Z0-9\_]*
   
 lexical syntax // reserved keywords
 
-  NAME = 'path' {reject}
-  NAME = 'select' {reject}
-  NAME = 'where' {reject}
-  NAME = 'as' {reject}
-  NAME = 'with' {reject}
-  NAME = 'order' {reject}
-  NAME = 'group' {reject}
-  NAME = 'by' {reject}
-  NAME = 'asc' {reject}
-  NAME = 'desc' {reject}
-  NAME = 'limit' {reject}
-  NAME = 'offset' {reject}
-  NAME = 'and' {reject}
-  NAME = 'or' {reject}
-  NAME = 'true' {reject}
-  NAME = 'false' {reject}
-  NAME = 'null' {reject}
-  NAME = 'not' {reject}
+  IDENTIFIER = 'path' {reject}
+  IDENTIFIER = 'select' {reject}
+  IDENTIFIER = 'where' {reject}
+  IDENTIFIER = 'as' {reject}
+  IDENTIFIER = 'with' {reject}
+  IDENTIFIER = 'order' {reject}
+  IDENTIFIER = 'group' {reject}
+  IDENTIFIER = 'by' {reject}
+  IDENTIFIER = 'asc' {reject}
+  IDENTIFIER = 'desc' {reject}
+  IDENTIFIER = 'limit' {reject}
+  IDENTIFIER = 'offset' {reject}
+  IDENTIFIER = 'and' {reject}
+  IDENTIFIER = 'or' {reject}
+  IDENTIFIER = 'true' {reject}
+  IDENTIFIER = 'false' {reject}
+  IDENTIFIER = 'null' {reject}
+  IDENTIFIER = 'not' {reject}
   
 lexical restrictions // greedy matching
 
-  NAME -/- [a-zA-Z0-9\_]
+  IDENTIFIER -/- [a-zA-Z0-9\_]
