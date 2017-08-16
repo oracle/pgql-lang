@@ -99,7 +99,7 @@ public class PgqlUtils {
     String result = printPathPatterns(graphPattern);
     result += graphQuery.getProjection() + "\n";
     if (graphQuery.getInputGraphName() != null) {
-      result += "FROM " + graphQuery.getInputGraphName() + "\n";
+      result += "FROM " + printIdentifier(graphQuery.getInputGraphName()) + "\n";
     }
     result += graphPattern;
     GroupBy groupBy = graphQuery.getGroupBy();
@@ -119,6 +119,14 @@ public class PgqlUtils {
       result += "\nOFFSET " + offset;
     }
     return result;
+  }
+
+  private static String printIdentifier(String identifier) {
+    if (identifier.matches("\\w*")) {
+      return identifier;
+    } else {
+      return "\"" + escapeJava(identifier) + "\"";
+    }
   }
 
   protected static String printPgqlString(Projection projection) {

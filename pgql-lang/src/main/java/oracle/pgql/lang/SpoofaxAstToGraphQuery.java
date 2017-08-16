@@ -170,7 +170,7 @@ public class SpoofaxAstToGraphQuery {
 
     // FROM
     IStrategoTerm fromT = ast.getSubterm(POS_FROM);
-    String inputGraphName = isNone(fromT) ? null : getString(fromT);
+    String inputGraphName = isNone(fromT) ? null : unescapeJava(getString(fromT));
 
     // ORDER BY
     IStrategoTerm orderByT = ast.getSubterm(POS_ORDERBY);
