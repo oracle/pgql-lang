@@ -774,14 +774,16 @@ Level | Operator Precedence
 
 The following table specifies operand types and operator return types.
 
-Operator | Type(A) | Type(B) | Result Type
---- | --- | --- | ---
-A `+` B<br>A `-` B<br>A `*` B<br>A `/` B<br>A `%` B | numeric | numeric | numeric
+Operator                                                          | Type(A) | Type(B) | Result Type
+----------------------------------------------------------------- | ------- | ------ -| -----------
+A `+` B<br>A `-` B<br>A `*` B<br>A `/` B<br>A `%` B               | numeric | numeric | numeric
 A `=` B<br>A `!=` B<br>A `<` B<br>A `>` B<br>A `<=` B<br>A `>=` B | numeric | numeric | boolean
-A `=` B<br>A `=~` B | String | String | boolean
-A `=` B | boolean | boolean | boolean
-A `AND` B<br>A `OR` B | boolean | boolean | boolean
-`NOT` A<br>`!`A | boolean | | boolean
+A `=` B<br>A `!=` B<br>A `=~` B                                   | string  | string  | boolean
+A `=` B<br>A `!=` B                                               | boolean | boolean | boolean
+A `=` B<br>A `!=` B                                               | vertex  | vertex  | boolean
+A `=` B<br>A `!=` B                                               | edge    | edge    | boolean
+A `AND` B<br>A `OR` B                                             | boolean | boolean | boolean
+`NOT` A<br>`!`A                                                   | boolean |         | boolean
 
 
 If the value for an operand is of a type that is not defined for the operator, the operation yields `null`. There is one exception to this rule, which is that the `OR` operator yields true if either of the operands yield `true` (see the section on `null` values and operators).

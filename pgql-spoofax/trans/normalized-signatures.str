@@ -6,8 +6,7 @@ signature constructors // for type checking (see trans/types.ts)
   EdgeTy : EdgeTy
   PathTy : PathTy
   BooleanTy : BooleanTy
-  IntegerTy : IntegerTy
-  DecimalTy : DecimalTy
+  NumericTy : NumericTy
   StringTy : StringTy
   StringSetTy : StringSetTy
   DateTy : DateTy
