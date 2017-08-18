@@ -111,6 +111,12 @@ public class PrettyPrintingTest {
     checkRoundTrip(query);
   }
 
+  @Test
+  public void testAggregation() throws Exception {
+    String query = "SELECT AVG(n.age) WHERE (n)";
+    checkRoundTrip(query);
+  }
+
   private void checkRoundTrip(String query1) throws PgqlException {
 
     /*

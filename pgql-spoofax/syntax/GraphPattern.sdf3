@@ -8,37 +8,31 @@ imports
 
 context-free syntax
 
-  GraphPattern.GraphPattern = 
+  MatchClause.GraphPattern = 
     <
-      where
-        <{PatternElem ",\n"}+>
+      match
+        <{PathPattern ",\n"}+>
     > {case-insensitive}
-  
-  PatternElem = Path
-  
-  PatternElem.Constraint = Exp {avoid} // see Expressions.sdf3. Note: 'avoid' disambiguates 'select * where (X.p1)' ('(X.p1)' can be a Constraint or a Vertex)
 
 context-free syntax
 
-  Path.Path = <<Vertex><{EdgeVertex ""}+><VarAssign?>>
-  Path.SingleVertex = <(<ElemContents>)>
+  PathPattern.Path = <<Vertex><{EdgeVertex ""}*>>
 
   Vertex.Vertex = <(<ElemContents>)>
-  Vertex.VertexWithoutBrackets = <<VARNAME>> // deprecated
 
   EdgeVertex.EdgeVertex = < <Connection> <Vertex>>
-  Connection.OutConn = [-[EdgeOrPathContents?]->]
-  Connection.InConn = [<-[EdgeOrPathContents?]-]
-  Connection.UndirectedEdge = [-[EdgeContents?]-]
+  Connection.OutConn = [-[EdgeOrPathContents]->]
+  Connection.InConn = [<-[EdgeOrPathContents]-]
+  Connection.UndirectedEdge = [-[EdgeContents]-]
   Connection.OutEdge = [->]
   Connection.InEdge = [<-]
   Connection.UndirectedEdge = [-]
   
   EdgeContents.EdgeContents = <[<ElemContents>]>
   EdgeOrPathContents = EdgeContents
-  EdgeOrPathContents.Path = </<VARNAME?>:<AltPath><PathQuantifier?>/>
+  EdgeOrPathContents.Path = </<IDENTIFIER?>:<AltPath><PathQuantifier?>/>
   AltPath.Or = <<AltPath>|<AltPath>> {left}
-  AltPath.PathPatternRef = PATHPATTERNNAME
+  AltPath.PathPatternRef = IDENTIFIER
 
   PathQuantifier.ZeroOrMore = <*>
   PathQuantifier.OneOrMore = <+>
@@ -50,7 +44,5 @@ context-free syntax
 
 context-free syntax
 
-  ElemContents.ElemContents = <<VARNAME?><Labels?><Ids?><WithInlinedConstraints?>>
-  Labels.Labels = <:<AltLit>>
-  Ids.Ids = <@<AltLit>>
-  WithInlinedConstraints.Constraint = < with <{InlinedExp ", "}+>> {case-insensitive}
+  ElemContents.ElemContents = <<IDENTIFIER?><LabelPredicate?>>
+  LabelPredicate.Labels = <:<Labels>>

@@ -1,14 +1,15 @@
 module pgql-lang
 
 imports
-  
+
   Layout
   Names
   Literals
   GraphPattern
   SolutionModifiers
+  Legacy
   Expressions
-  
+
 context-free start-symbols
 
   Start
@@ -19,21 +20,21 @@ context-free syntax
 
   Query.Query =
     <
-      <{PathPattern "\n"}*>
+      <{CommonPathExpression "\n"}*>
       <SelectClause>
       <FromClause?>
-      <GraphPattern>
+      <MatchClause>
+      <WhereClause?>
       <GroupByClause?>
       <OrderByClause?>
       <LimitOffsetClauses?>
     >
 
-  PathPattern.PathPattern = <path <PATHPATTERNNAME> := <Path> <WhereClause?>> {case-insensitive}
+  CommonPathExpression.PathPattern = <path <IDENTIFIER> as <PathPattern> <WhereClause?>> {case-insensitive}
 
   SelectClause.SelectClause = <select <Projection>> {case-insensitive}
   Projection.ExpAsVars = <<{ExpAsVar ", "}+>>
-  Projection.Star = <*>
 
-  FromClause.FromClause = <from <GRAPHNAME>> {case-insensitive}
+  FromClause.FromClause = <from <Identifier>> {case-insensitive}
 
   WhereClause.WhereClause = <where <Exp>> {case-insensitive}

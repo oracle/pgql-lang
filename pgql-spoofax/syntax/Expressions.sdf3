@@ -1,19 +1,20 @@
 module Expressions
 
 imports
-  
+
   Names
   Literals
-  
+
 context-free syntax
+
+  ExpAsVar.ExpAsVar = <<Exp><VarAssign?>>
 
   Exp = <(<Exp>)> {bracket}
   Exp = PropRef
   Exp = VarRef
   Exp = Literal
-  
-  Exp.Not1 = <!<Exp>> {right}
-  Exp.Not2 = <not <Exp>> {right, case-insensitive}
+
+  Exp.Not = <not <Exp>> {right, case-insensitive}
   Exp.UMin = <-<Exp>> {right}
 
   Exp.And = <<Exp> and <Exp>> {left, case-insensitive}
@@ -32,62 +33,30 @@ context-free syntax
   Exp.Neq1 = [[Exp] != [Exp]] {left}
   Exp.Neq2 = [[Exp] <> [Exp]] {left}
 
-  Exp.Regex = [[Exp] =~ [Exp]] {left, prefer}
+  Exp.Cast = <cast(<Exp> as <DATA-TYPE>)> {case-insensitive}
 
 context-free syntax // function calls
 
-  Exp.Label = <<Exp>. label()> {case-insensitive}
-  Exp.Labels = <<Exp>. labels()> {case-insensitive}
-  Exp.HasLabel = <<Exp>. hasLabel(<Exp>)> {case-insensitive}
-  Exp.Id = <<Exp>. id()> {case-insensitive}
-  Exp.Has = <<Exp>. has(<{Exp ", "}+>)> {case-insensitive}
-  Exp.InDegree  = <<Exp>. inDegree()> {case-insensitive}
-  Exp.OutDegree = <<Exp>. outDegree()> {case-insensitive}
-  Exp.Cast = <cast(<Exp> as <DATA-TYPE>)> {case-insensitive}
-  Exp.AllDifferent = <all_different(<{Exp ", "}+>)> {case-insensitive}
-  Exp.StX = <st_x(<Exp>)> {case-insensitive}
-  Exp.StY = <st_y(<Exp>)> {case-insensitive}
-  Exp.StPointFromText = <ST_PointFromText(<Exp>)> {case-sensitive}
-  Exp.ToDate = <to_date(<STRING>, <STRING>)> {case-insensitive}
-  Exp.ToTime = <to_time(<STRING>, <STRING>)> {case-insensitive}
-  Exp.ToTimestamp = <to_timestamp(<STRING>, <STRING>)> {case-insensitive}
-  Exp.CallStatement = <call <PackageDecl?><RoutineName><ArgumentList>> {case-insensitive}
-
-  PackageDecl.PackageDecl = <<PackageName>.>
-  PackageName = IDENTIFIER
-  RoutineName = IDENTIFIER
-  ArgumentList.ArgumentList = <(<{Exp ", "}*>)>
+  Exp.FunctionCall = <<PackageName?><IDENTIFIER>(<{Exp ", "}*>)> {case-insensitive}
+  PackageName.PackageName = <<IDENTIFIER>.>
 
 context-free syntax // Aggregates
 
-  Exp.COUNT        = <count(<Distinct?><StarOrExp>)> {case-insensitive}
-  Exp.MIN          = <min(<Distinct?><Exp>)> {case-insensitive}
-  Exp.MAX          = <max(<Distinct?><Exp>)> {case-insensitive}
-  Exp.SUM          = <sum(<Distinct?><Exp>)> {case-insensitive}
-  Exp.AVG          = <avg(<Distinct?><Exp>)> {case-insensitive}
+  Exp.COUNT        = <count(<Distinct?><StarOrExp>)> {case-insensitive, prefer}
+  Exp.MIN          = <min(<Distinct?><Exp>)> {case-insensitive, prefer}
+  Exp.MAX          = <max(<Distinct?><Exp>)> {case-insensitive, prefer}
+  Exp.SUM          = <sum(<Distinct?><Exp>)> {case-insensitive, prefer}
+  Exp.AVG          = <avg(<Distinct?><Exp>)> {case-insensitive, prefer}
 
   StarOrExp.Star = <*>
   StarOrExp = <<Exp>>
-  Group-Concat-Sep.Sep = <, <String>>
   Distinct.Distinct = <distinct> {case-insensitive}
 
 context-free priorities
 
   {
-    left:
-      Exp.Label
-      Exp.Labels
-      Exp.HasLabel
-      Exp.Id
-      Exp.Has
-      Exp.InDegree
-      Exp.OutDegree
-  }
-  >
-  {
     right:
       Exp.UMin
-      Exp.Not1
   }
   >
   {
@@ -112,12 +81,11 @@ context-free priorities
       Exp.Lt
       Exp.Gte
       Exp.Lte
-      Exp.Regex
   }
   >
   {
     right:
-      Exp.Not2
+      Exp.Not
   }
   >
   {
@@ -129,108 +97,3 @@ context-free priorities
     left:
       Exp.Or
   }
-
-context-free syntax
-
-  InlinedExp = <(<InlinedExp>)> {bracket}
-  InlinedExp = PropRef
-  InlinedExp = Literal {prefer}
-  InlinedExp = InlinedCall
-  
-  InlinedExp.SelfPropRef = <<Prop>>
-  InlinedExp.SelfPropRef = <<Dot><Prop>>
-  
-  InlinedExp.Not1 = <!<InlinedExp>> {right}
-  InlinedExp.Not2 = <not <InlinedExp>> {right, case-insensitive}
-  InlinedExp.UMin = <-<InlinedExp>> {right}
-
-  InlinedExp.And = <<InlinedExp> and <InlinedExp>> {left, case-insensitive}
-  InlinedExp.Or = <<InlinedExp> or <InlinedExp>> {left, case-insensitive}
-  InlinedExp.Mul = <<InlinedExp> * <InlinedExp>> {left}
-  InlinedExp.Add = <<InlinedExp> + <InlinedExp>> {left}
-  InlinedExp.Div = <<InlinedExp> / <InlinedExp>> {left}
-  InlinedExp.Mod = <<InlinedExp> % <InlinedExp>> {left}
-  InlinedExp.Sub = <<InlinedExp> - <InlinedExp>> {left}
-  InlinedExp.Eq = <<InlinedExp> = <InlinedExp>> {left}
-  InlinedExp.Gt = [[InlinedExp] > [InlinedExp]] {left}
-  InlinedExp.Lt = [[InlinedExp] < [InlinedExp]] {left}
-  InlinedExp.Gte = [[InlinedExp] >= [InlinedExp]] {left}
-  InlinedExp.Lte = [[InlinedExp] <= [InlinedExp]] {left}
-
-  InlinedExp.Neq1 = [[InlinedExp] != [InlinedExp]] {left}
-  InlinedExp.Neq2 = [[InlinedExp] <> [InlinedExp]] {left}
-
-  InlinedExp.Regex = [[InlinedExp] =~ [InlinedExp]] {left, prefer}
-
-context-free syntax // inlined function calls
-
-  InlinedCall.Label = <<Obj>label()> {case-insensitive}
-  InlinedCall.Labels = <<Obj>labels()> {case-insensitive}
-  InlinedCall.HasLabel = <<Obj>hasLabel(<Exp>)> {case-insensitive}
-  InlinedCall.Id = <<Obj>id()> {case-insensitive}
-  InlinedCall.Has = <<Obj>has(<{Exp ", "}*>)> {case-insensitive}
-  InlinedCall.InDegree  = <<Obj>inDegree()> {case-insensitive}
-  InlinedCall.OutDegree = <<Obj>outDegree()> {case-insensitive}
-
-  Obj.Obj = <<VarRef><Dot>>
-  Obj.Obj = <<Dot?>>
-
-context-free priorities
-
-  {
-    left:
-      InlinedCall.Label
-      InlinedCall.Labels
-      InlinedCall.HasLabel
-      InlinedCall.Id
-      InlinedCall.Has
-      InlinedCall.InDegree
-      InlinedCall.OutDegree
-  }
-  >
-  {
-    right:
-      InlinedExp.UMin
-      InlinedExp.Not1
-  }
-  >
-  {
-    left:
-      InlinedExp.Mul
-      InlinedExp.Div
-      InlinedExp.Mod
-  }
-  >
-  {
-    left:
-      InlinedExp.Add
-      InlinedExp.Sub
-  }
-  >
-  {
-    left:
-      InlinedExp.Eq
-      InlinedExp.Neq1
-      InlinedExp.Neq2
-      InlinedExp.Gt
-      InlinedExp.Lt
-      InlinedExp.Gte
-      InlinedExp.Lte
-      InlinedExp.Regex
-  }
-  >
-  {
-    right:
-      InlinedExp.Not2
-  }
-  >
-  {
-    left:
-      InlinedExp.And
-  }
-  >
-  {
-    left:
-      InlinedExp.Or
-  }
-

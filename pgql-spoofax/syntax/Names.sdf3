@@ -3,51 +3,31 @@ module Names
 imports
 
   Literals
-  Expressions
-  
+
 context-free syntax
-  
-  VarDef.VarDef = <<Var>>
-  VarRef.VarRef = <<Var>>
-  ExpAsVar.ExpAsVar = <<Exp><VarAssign?>>
+
+  VarDef.VarDef = IDENTIFIER
+  VarRef.VarRef = IDENTIFIER
   VarAssign.VarAssign = < as <VarDef>> {case-insensitive}
   PropRef.PropRef = <<VarRef>.<Prop>>
 
-  Var = VARNAME
-  
-  Prop = PROPNAME
+  Prop = Identifier
   Prop = STRING
-  Dot.Dot = <.>
-  
-lexical syntax
-  
-  GRAPHNAME       = IDENTIFIER | DOUBLE-QUOTED-STRING
-  VARNAME         = IDENTIFIER
-  PROPNAME        = IDENTIFIER
-  PATHPATTERNNAME = IDENTIFIER
-  IDENTIFIER      = [a-zA-Z][a-zA-Z0-9\_]*
-  
-lexical syntax // reserved keywords
 
-  IDENTIFIER = 'path' {reject}
-  IDENTIFIER = 'select' {reject}
-  IDENTIFIER = 'where' {reject}
-  IDENTIFIER = 'as' {reject}
-  IDENTIFIER = 'with' {reject}
-  IDENTIFIER = 'order' {reject}
-  IDENTIFIER = 'group' {reject}
-  IDENTIFIER = 'by' {reject}
-  IDENTIFIER = 'asc' {reject}
-  IDENTIFIER = 'desc' {reject}
-  IDENTIFIER = 'limit' {reject}
-  IDENTIFIER = 'offset' {reject}
-  IDENTIFIER = 'and' {reject}
-  IDENTIFIER = 'or' {reject}
+  Identifier = IDENTIFIER
+  Identifier = DOUBLE-QUOTED-STRING
+
+lexical syntax
+
+  IDENTIFIER = [a-zA-Z][a-zA-Z0-9\_]*
   IDENTIFIER = 'true' {reject}
   IDENTIFIER = 'false' {reject}
-  IDENTIFIER = 'null' {reject}
-  IDENTIFIER = 'not' {reject}
-  
+
+  DOUBLE-QUOTED-STRING = '"' (~[\"\n\\] | ESCAPE-CHAR)* '"'
+  ESCAPE-CHAR          = "\\" [tbnrf\\\"\']
+
+  DATA-TYPE            = [a-zA-Z][a-zA-Z0-9\_\ ]*
+
 lexical restrictions // greedy matching
 
   IDENTIFIER -/- [a-zA-Z0-9\_]
