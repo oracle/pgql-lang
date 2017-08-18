@@ -1145,6 +1145,10 @@ public interface QueryExpression {
         this.subquery = subquery;
       }
 
+      public GraphQuery getSubquery() {
+        return subquery;
+      }
+
       @Override
       public ExpressionType getExpType() {
         return ExpressionType.EXISTS;
