@@ -4,6 +4,7 @@ imports
 
   Names
   Literals
+  pgql-lang
 
 context-free syntax
 
@@ -34,6 +35,8 @@ context-free syntax
   Exp.Neq2 = [[Exp] <> [Exp]] {left}
 
   Exp.Cast = <cast(<Exp> as <DATA-TYPE>)> {case-insensitive}
+
+  Exp.Exists = <exists( <Query> )> {case-insensitive}
 
 context-free syntax // function calls
 

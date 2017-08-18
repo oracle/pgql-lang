@@ -40,3 +40,4 @@ lexical syntax // reserved keywords
   FUNCTION-NAME = 'max' {reject}
   FUNCTION-NAME = 'sum' {reject}
   FUNCTION-NAME = 'avg' {reject}
+  FUNCTION-NAME = 'exists' {reject}

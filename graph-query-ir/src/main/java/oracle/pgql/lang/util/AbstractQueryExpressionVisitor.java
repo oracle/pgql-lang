@@ -27,6 +27,7 @@ import oracle.pgql.lang.ir.SpatialFunction.StPointFromText;
 import oracle.pgql.lang.ir.SpatialFunction.StX;
 import oracle.pgql.lang.ir.SpatialFunction.StY;
 import oracle.pgql.lang.ir.QueryExpression.Function.Cast;
+import oracle.pgql.lang.ir.QueryExpression.Function.Exists;
 import oracle.pgql.lang.ir.QueryExpression.Function.EdgeLabel;
 import oracle.pgql.lang.ir.QueryExpression.Function.HasLabel;
 import oracle.pgql.lang.ir.QueryExpression.Function.HasProp;
@@ -262,6 +263,11 @@ public abstract class AbstractQueryExpressionVisitor implements QueryExpressionV
   @Override
   public void visit(Cast cast) {
     cast.getExp().accept(this);
+  }
+
+  @Override
+  public void visit(Exists exists) {
+    // TODO
   }
 
   @Override

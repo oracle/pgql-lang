@@ -94,6 +94,7 @@ public class SpoofaxAstToGraphQuery {
   private static final int POS_PROPREF_PROPNAME = 1;
   private static final int POS_CAST_EXP = 0;
   private static final int POS_CAST_TARGET_TYPE_NAME = 1;
+  private static final int POS_EXISTS_SUBQUERY = 0;
   private static final int POS_ALL_DIFFERENT_EXPS = 0;
   private static final int POS_TO_TEMPORAL_STRING = 0;
   private static final int POS_TO_TEMPORAL_FORMAT = 1;
@@ -105,6 +106,17 @@ public class SpoofaxAstToGraphQuery {
   private static final int POS_CALL_STATEMENT_EXPS = 2;
 
   public static GraphQuery translate(IStrategoTerm ast) throws PgqlException {
+    return translate(ast, new HashMap<>());
+  }
+
+  /**
+   *
+   * @param ast
+   *          abstract syntax tree returned by Spoofax parser
+   * @param vars
+   *          map from variable name to variable
+   */
+  public static GraphQuery translate(IStrategoTerm ast, Map<String, QueryVariable> vars) throws PgqlException {
 
     // path patterns
     IStrategoTerm pathPatternsT = getList(ast.getSubterm(POS_PATH_PATTERNS));
@@ -116,7 +128,6 @@ public class SpoofaxAstToGraphQuery {
 
     // vertices
     IStrategoTerm verticesT = getList(graphPatternT.getSubterm(POS_VERTICES));
-    Map<String, QueryVariable> vars = new HashMap<>(); // map from variable name to variable
     Set<QueryVertex> vertices = new HashSet<>(getQueryVertices(verticesT, vars));
 
     // edges
@@ -207,10 +218,15 @@ public class SpoofaxAstToGraphQuery {
     List<QueryVertex> vertices = new ArrayList<>(verticesT.getSubtermCount());
     for (IStrategoTerm vertexT : verticesT) {
       String vertexName = getString(vertexT);
-      QueryVertex vertex = vertexName.contains(GENERATED_VAR_SUBSTR) ? new QueryVertex(toUniqueName(vertexName), true)
-          : new QueryVertex(vertexName, false);
+      QueryVertex vertex;
+      if (varmap.containsKey(vertexName)) {
+        vertex = (QueryVertex) varmap.get(vertexName);
+      } else {
+        vertex = vertexName.contains(GENERATED_VAR_SUBSTR) ? new QueryVertex(toUniqueName(vertexName), true)
+            : new QueryVertex(vertexName, false);
+        varmap.put(vertexName, vertex);
+      }
       vertices.add(vertex);
-      varmap.put(vertexName, vertex);
     }
     return vertices;
   }
@@ -322,7 +338,8 @@ public class SpoofaxAstToGraphQuery {
     QueryVertex dst = (QueryVertex) varmap.get(dstName);
 
     QueryPath pathPattern = name.contains(GENERATED_VAR_SUBSTR)
-        ? new QueryPath(src, dst, vertices, connections, constraints, toUniqueName(name), pathPatternName, true, minHops, maxHops)
+        ? new QueryPath(src, dst, vertices, connections, constraints, toUniqueName(name), pathPatternName, true,
+            minHops, maxHops)
         : new QueryPath(src, dst, vertices, connections, constraints, name, pathPatternName, false, minHops, maxHops);
 
     return pathPattern;
@@ -488,7 +505,8 @@ public class SpoofaxAstToGraphQuery {
           LocalDateTime timestamp = LocalDateTime.parse(s, SqlDateTimeFormatter.SQL_TIMESTAMP);
           return new QueryExpression.Constant.ConstTimestamp(timestamp);
         } catch (DateTimeParseException e) {
-          OffsetDateTime timestampWithTimezone = OffsetDateTime.parse(s, SqlDateTimeFormatter.SQL_TIMESTAMP_WITH_TIMEZONE);
+          OffsetDateTime timestampWithTimezone = OffsetDateTime.parse(s,
+              SqlDateTimeFormatter.SQL_TIMESTAMP_WITH_TIMEZONE);
           return new QueryExpression.Constant.ConstTimestampWithTimezone(timestampWithTimezone);
         }
       case "VarRef":
@@ -537,6 +555,10 @@ public class SpoofaxAstToGraphQuery {
         exp = translateExp(t.getSubterm(POS_CAST_EXP), inScopeVars, inScopeInAggregationVars);
         String targetTypeName = getString(t.getSubterm(POS_CAST_TARGET_TYPE_NAME));
         return new QueryExpression.Function.Cast(exp, targetTypeName);
+      case "Exists":
+        IStrategoTerm subqueryT = t.getSubterm(POS_EXISTS_SUBQUERY);
+        GraphQuery subquery = translate(subqueryT, inScopeVars);
+        return new QueryExpression.Function.Exists(subquery);
       case "AllDifferent":
         IStrategoTerm expsT = t.getSubterm(POS_ALL_DIFFERENT_EXPS);
         List<QueryExpression> exps = varArgsToExps(inScopeVars, inScopeInAggregationVars, expsT);

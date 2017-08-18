@@ -72,6 +72,7 @@ public interface QueryExpression {
     @Deprecated OUTDEGREE, // vertex
     @Deprecated EDGE_LABEL,
     CAST,
+    EXISTS,
     @Deprecated ALL_DIFFERENT,
     @Deprecated ST_X,
     @Deprecated ST_Y,
@@ -1128,6 +1129,30 @@ public interface QueryExpression {
       @Override
       public String toString() {
         return "CAST(" + exp + " AS " + targetTypeName + ")";
+      }
+
+      @Override
+      public void accept(QueryExpressionVisitor v) {
+        v.visit(this);
+      }
+    }
+
+    class Exists implements Function {
+
+      private final GraphQuery subquery;
+
+      public Exists(GraphQuery subquery) {
+        this.subquery = subquery;
+      }
+
+      @Override
+      public ExpressionType getExpType() {
+        return ExpressionType.EXISTS;
+      }
+
+      @Override
+      public String toString() {
+        return "EXISTS(" + subquery + ")";
       }
 
       @Override
