@@ -131,9 +131,9 @@ context-free syntax // function calls
   Legacy10Exp.StX = <st_x(<Legacy10Exp>)> {case-insensitive}
   Legacy10Exp.StY = <st_y(<Legacy10Exp>)> {case-insensitive}
   Legacy10Exp.StPointFromText = <ST_PointFromText(<Legacy10Exp>)> {case-sensitive}
-  Legacy10Exp.ToDate = <to_date(<STRING>, <STRING>)> {case-insensitive}
-  Legacy10Exp.ToTime = <to_time(<STRING>, <STRING>)> {case-insensitive}
-  Legacy10Exp.ToTimestamp = <to_timestamp(<STRING>, <STRING>)> {case-insensitive}
+  Legacy10Exp.ToDate = <to_date(<LEGACY10-STRING>, <LEGACY10-STRING>)> {case-insensitive}
+  Legacy10Exp.ToTime = <to_time(<LEGACY10-STRING>, <LEGACY10-STRING>)> {case-insensitive}
+  Legacy10Exp.ToTimestamp = <to_timestamp(<LEGACY10-STRING>, <LEGACY10-STRING>)> {case-insensitive}
   Legacy10Exp.CallStatement = <call <Legacy10PackageDecl?><Legacy10RoutineName><Legacy10ArgumentList>> {case-insensitive}
 
   Legacy10PackageDecl.PackageDecl = <<Legacy10PackageName>.>

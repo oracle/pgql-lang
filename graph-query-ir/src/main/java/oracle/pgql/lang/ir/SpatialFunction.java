@@ -3,8 +3,10 @@
  */
 package oracle.pgql.lang.ir;
 
+@Deprecated
 public interface SpatialFunction extends QueryExpression {
 
+  @Deprecated
   class StX extends UnaryExpression implements SpatialFunction {
 
     public StX(QueryExpression exp) {
@@ -27,6 +29,7 @@ public interface SpatialFunction extends QueryExpression {
     }
   }
 
+  @Deprecated
   class StY extends UnaryExpression implements SpatialFunction {
 
     public StY(QueryExpression exp) {
@@ -49,6 +52,7 @@ public interface SpatialFunction extends QueryExpression {
     }
   }
 
+  @Deprecated
   class StPointFromText extends UnaryExpression implements SpatialFunction {
 
     public StPointFromText(QueryExpression wktString) {

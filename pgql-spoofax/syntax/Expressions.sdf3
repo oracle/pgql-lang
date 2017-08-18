@@ -37,16 +37,16 @@ context-free syntax
 
 context-free syntax // function calls
 
-  Exp.FunctionCall = <<PackageName?><IDENTIFIER>(<{Exp ", "}*>)> {case-insensitive}
+  Exp.FunctionCall = <<PackageName?><FUNCTION-NAME>(<{Exp ", "}*>)> {case-insensitive, avoid}
   PackageName.PackageName = <<IDENTIFIER>.>
 
 context-free syntax // Aggregates
 
-  Exp.COUNT        = <count(<Distinct?><StarOrExp>)> {case-insensitive, prefer}
-  Exp.MIN          = <min(<Distinct?><Exp>)> {case-insensitive, prefer}
-  Exp.MAX          = <max(<Distinct?><Exp>)> {case-insensitive, prefer}
-  Exp.SUM          = <sum(<Distinct?><Exp>)> {case-insensitive, prefer}
-  Exp.AVG          = <avg(<Distinct?><Exp>)> {case-insensitive, prefer}
+  Exp.COUNT        = <count(<Distinct?><StarOrExp>)> {case-insensitive}
+  Exp.MIN          = <min(<Distinct?><Exp>)> {case-insensitive}
+  Exp.MAX          = <max(<Distinct?><Exp>)> {case-insensitive}
+  Exp.SUM          = <sum(<Distinct?><Exp>)> {case-insensitive}
+  Exp.AVG          = <avg(<Distinct?><Exp>)> {case-insensitive}
 
   StarOrExp.Star = <*>
   StarOrExp = <<Exp>>

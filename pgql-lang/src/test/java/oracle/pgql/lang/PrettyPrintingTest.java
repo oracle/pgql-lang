@@ -113,7 +113,7 @@ public class PrettyPrintingTest {
 
   @Test
   public void testAggregation() throws Exception {
-    String query = "SELECT AVG(n.age) MATCH (n)";
+    String query = "SELECT COUNT(*) AS count, AVG(n.age) AS AVG WHERE (n)";
     checkRoundTrip(query);
   }
 

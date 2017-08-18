@@ -20,8 +20,7 @@ context-free syntax
 lexical syntax
 
   IDENTIFIER = [a-zA-Z][a-zA-Z0-9\_]*
-  IDENTIFIER = 'true' {reject}
-  IDENTIFIER = 'false' {reject}
+  FUNCTION-NAME = IDENTIFIER
 
   DOUBLE-QUOTED-STRING = '"' (~[\"\n\\] | ESCAPE-CHAR)* '"'
   ESCAPE-CHAR          = "\\" [tbnrf\\\"\']
@@ -31,3 +30,14 @@ lexical syntax
 lexical restrictions // greedy matching
 
   IDENTIFIER -/- [a-zA-Z0-9\_]
+
+lexical syntax // reserved keywords
+
+  IDENTIFIER = 'true' {reject}
+  IDENTIFIER = 'false' {reject}
+
+  FUNCTION-NAME = 'count' {reject}
+  FUNCTION-NAME = 'min' {reject}
+  FUNCTION-NAME = 'max' {reject}
+  FUNCTION-NAME = 'sum' {reject}
+  FUNCTION-NAME = 'avg' {reject}
