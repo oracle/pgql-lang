@@ -13,7 +13,6 @@ import oracle.pgql.lang.ir.QueryExpression.ArithmeticExpression.Sub;
 import oracle.pgql.lang.ir.QueryExpression.ArithmeticExpression.UMin;
 import oracle.pgql.lang.ir.QueryExpression.BindVariable;
 import oracle.pgql.lang.ir.QueryExpression.CallStatement;
-import oracle.pgql.lang.ir.QueryExpression.ConstNull;
 import oracle.pgql.lang.ir.QueryExpression.Constant.ConstBoolean;
 import oracle.pgql.lang.ir.QueryExpression.Constant.ConstDate;
 import oracle.pgql.lang.ir.QueryExpression.Constant.ConstDecimal;
@@ -98,10 +97,6 @@ public abstract class AbstractQueryExpressionVisitor implements QueryExpressionV
 
   @Override
   public void visit(ConstTimestampWithTimezone constTimestampWithTimezone) {
-  }
-
-  @Override
-  public void visit(ConstNull constantNull) {
   }
 
   @Override

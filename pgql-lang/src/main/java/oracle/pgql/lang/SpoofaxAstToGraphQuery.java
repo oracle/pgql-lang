@@ -491,8 +491,6 @@ public class SpoofaxAstToGraphQuery {
           OffsetDateTime timestampWithTimezone = OffsetDateTime.parse(s, SqlDateTimeFormatter.SQL_TIMESTAMP_WITH_TIMEZONE);
           return new QueryExpression.Constant.ConstTimestampWithTimezone(timestampWithTimezone);
         }
-      case "Null":
-        return new QueryExpression.ConstNull();
       case "VarRef":
       case "GroupRef":
       case "SelectOrGroupRef":

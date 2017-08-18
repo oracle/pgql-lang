@@ -17,7 +17,6 @@ import oracle.pgql.lang.ir.QueryExpression.ArithmeticExpression.UMin;
 import oracle.pgql.lang.ir.QueryExpression.BindVariable;
 import oracle.pgql.lang.ir.QueryExpression.CallStatement;
 import oracle.pgql.lang.ir.QueryExpressionVisitor;
-import oracle.pgql.lang.ir.QueryExpression.ConstNull;
 import oracle.pgql.lang.ir.QueryExpression.Constant.ConstBoolean;
 import oracle.pgql.lang.ir.QueryExpression.Constant.ConstDate;
 import oracle.pgql.lang.ir.QueryExpression.Constant.ConstDecimal;
@@ -72,8 +71,6 @@ public interface QueryExpressionVisitor {
   public void visit(ConstTimeWithTimezone constTimeWithTimezone);
 
   public void visit(ConstTimestampWithTimezone constTimestampWithTimezone);
-
-  public void visit(ConstNull constantNull);
 
   public void visit(Sub sub);
 

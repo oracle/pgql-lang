@@ -27,7 +27,6 @@ public interface QueryExpression {
     TIMESTAMP,
     TIME_WITH_TIMEZONE,
     TIMESTAMP_WITH_TIMEZONE,
-    NULL,
 
     // arithmetic expressions
     SUB,
@@ -63,21 +62,21 @@ public interface QueryExpression {
     STAR,
 
     // built-in functions
-    REGEX,
-    ID,
+    @Deprecated REGEX,
+    @Deprecated ID,
     PROP_ACCESS,
-    HAS_PROP, // note: HasProp will be removed in the future
-    HAS_LABEL, // note: HasLabel will be removed in the future
-    VERTEX_LABELS,
-    INDEGREE,
-    OUTDEGREE, // vertex
-    EDGE_LABEL,
+    @Deprecated HAS_PROP,
+    @Deprecated HAS_LABEL, // note: HasLabel will be removed in the future
+    @Deprecated VERTEX_LABELS,
+    @Deprecated INDEGREE,
+    @Deprecated OUTDEGREE, // vertex
+    @Deprecated EDGE_LABEL,
     CAST,
-    ALL_DIFFERENT,
-    ST_X,
-    ST_Y,
-    ST_POINT_FROM_TEXT,
-    CALL_STATEMENT
+    @Deprecated ALL_DIFFERENT,
+    @Deprecated ST_X,
+    @Deprecated ST_Y,
+    @Deprecated ST_POINT_FROM_TEXT,
+    @Deprecated CALL_STATEMENT
   }
 
   ExpressionType getExpType();
@@ -754,41 +753,6 @@ public interface QueryExpression {
     }
   }
 
-  class ConstNull implements QueryExpression {
-
-    @Override
-    public ExpressionType getExpType() {
-      return ExpressionType.NULL;
-    }
-
-    @Override
-    public String toString() {
-      return "NULL";
-    }
-
-    @Override
-    public void accept(QueryExpressionVisitor v) {
-      v.visit(this);
-    }
-
-    @Override
-    public boolean equals(Object o) {
-      if (this == o) {
-        return true;
-      }
-      if (o == null || getClass() != o.getClass()) {
-        return false;
-      }
-
-      return true;
-    }
-
-    @Override
-    public int hashCode() {
-      return 31;
-    }
-  }
-
   class VarRef implements QueryExpression {
     private final QueryVariable variable;
 
@@ -943,6 +907,7 @@ public interface QueryExpression {
 
   interface Function extends QueryExpression {
 
+    @Deprecated
     class Regex extends BinaryExpression implements Function {
       public Regex(QueryExpression exp1, QueryExpression exp2) {
         super(exp1, exp2);
@@ -964,6 +929,7 @@ public interface QueryExpression {
       }
     }
 
+    @Deprecated
     class Id extends UnaryExpression implements Function {
 
       /**
@@ -992,6 +958,7 @@ public interface QueryExpression {
       }
     }
 
+    @Deprecated
     class EdgeLabel extends UnaryExpression implements Function {
 
       public EdgeLabel(QueryExpression exp) {
@@ -1014,6 +981,7 @@ public interface QueryExpression {
       }
     }
 
+    @Deprecated
     class VertexLabels extends UnaryExpression implements Function {
 
       public VertexLabels(QueryExpression exp) {
@@ -1036,6 +1004,7 @@ public interface QueryExpression {
       }
     }
 
+    @Deprecated
     class HasLabel extends BinaryExpression implements Function {
 
       public HasLabel(QueryExpression exp1, QueryExpression exp2) {
@@ -1058,6 +1027,7 @@ public interface QueryExpression {
       }
     }
 
+    @Deprecated
     class HasProp extends BinaryExpression implements Function {
 
       /**
@@ -1088,6 +1058,7 @@ public interface QueryExpression {
       }
     }
 
+    @Deprecated
     class InDegree extends UnaryExpression implements Function {
       public InDegree(QueryExpression exp) {
         super(exp);
@@ -1109,6 +1080,7 @@ public interface QueryExpression {
       }
     }
 
+    @Deprecated
     class OutDegree extends UnaryExpression implements Function {
       public OutDegree(QueryExpression exp) {
         super(exp);
@@ -1164,6 +1136,7 @@ public interface QueryExpression {
       }
     }
 
+    @Deprecated
     class AllDifferent implements Function {
 
       private final List<QueryExpression> exps;
@@ -1194,6 +1167,7 @@ public interface QueryExpression {
     }
   }
 
+  @Deprecated
   class CallStatement implements QueryExpression {
 
     private final String packageName;
