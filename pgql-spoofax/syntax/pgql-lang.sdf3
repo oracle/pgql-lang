@@ -17,6 +17,7 @@ context-free start-symbols
 context-free syntax
 
   Start = Query
+  Start = Legacy10Query
 
   Query.Query =
     <
@@ -34,6 +35,7 @@ context-free syntax
 
   SelectClause.SelectClause = <select <Projection>> {case-insensitive}
   Projection.ExpAsVars = <<{ExpAsVar ", "}+>>
+  Projection.Star = <*>
 
   FromClause.FromClause = <from <Identifier>> {case-insensitive}
 

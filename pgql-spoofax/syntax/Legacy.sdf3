@@ -11,7 +11,7 @@ imports
 
 context-free syntax
 
-  Query.Query =
+  Legacy10Query.Query =
     <
       <{Legacy10CommonPathExpression "\n"}*>
       <Legacy10SelectClause>
