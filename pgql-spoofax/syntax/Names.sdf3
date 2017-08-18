@@ -12,7 +12,6 @@ context-free syntax
   PropRef.PropRef = <<VarRef>.<Prop>>
 
   Prop = Identifier
-  Prop = STRING
 
   Identifier = IDENTIFIER
   Identifier = DOUBLE-QUOTED-STRING

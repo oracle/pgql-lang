@@ -15,15 +15,16 @@ rules
     with
       bindVariable-counter := <new-counter>;
       result := <
+        alltd(norm-pgql11);
       	alltd(norm-BindVariable(|bindVariable-counter));
       	alltd(norm-UMin);
         innermost(
           norm-NOT +
           norm-NEQ +
           norm-singleVertex +
-          norm-VertexWithoutBrackets +
-          norm-edgeContents
+          norm-VertexWithoutBrackets
         );
+      	alltd(norm-edgeContents);
         alltd(norm-string);
         alltd(norm-has-prop);
         alltd(norm-hop-distance);
@@ -36,6 +37,8 @@ rules
       > ast
 
 rules
+
+  norm-pgql11 = ?ElemContents(varName, labels); !ElemContents(varName, labels, None(), None())
 
   norm-BindVariable(|c) = ?BindVariable(); !BindVariable(<next-counter> c)
 
@@ -55,11 +58,12 @@ rules
 
 rules
 
-  norm-singleVertex = ?SingleVertex(elemContents); !Path(Vertex(elemContents), [], None()) // SELECT * WHERE ()
+  norm-singleVertex = ?SingleVertex(elemContents); !Path(Vertex(elemContents), []) // SELECT * WHERE ()
 
   norm-VertexWithoutBrackets = ?VertexWithoutBrackets(v); !Vertex(ElemContents(Some(<origin-track-forced(<conc-strings> (v, <VERTEX_WITHOUT_BRACKETS>))>), None(), None(), None()))
 
-  norm-edgeContents = ?Some(EdgeContents(<id>))
+  norm-edgeContents = ?Some(EdgeContents(<id>)) // pgql 1.0
+                   <+ ?EdgeContents(<id>) // pgql 1.1
 
   name-unnamed-elems     = (?PathPattern(_, _, _) + ?GraphPattern(_)); where (c := <new-counter>); alltd(name-unnamed-elems(|c))
   name-unnamed-elems(|c) = ?ElemContents(None(), type, id', constraints); !ElemContents(Some(<unique-name(|c)>), type, id', constraints)
@@ -86,7 +90,7 @@ rules
   norm-matchElems:
     GraphPattern(elems) -> GraphPattern(vertices, edges, paths'', constraints)
     with
-      paths := <filter(?Path(_, _, _))> elems;
+      paths := <filter(?Path(_, _))> elems;
       inlined-constraints-for-vertices := <collect-om(?Vertex(<id>)); map(get-inlined-constraints(|"vertex")); concat> paths;
       inlined-constraints-for-edges := <collect-om(?OutConn(<id>) + ?InConn(<id>) + ?UndirectedEdge(<id>)); filter(get-inlined-constraints(|"edge")); concat> paths;
       non-inlined-constraints := <filter(?Constraint(<id>))> elems;
@@ -132,14 +136,13 @@ rules
 
   // head is path with only one vertex => get neighbors for the other paths
   get-edges:
-    [Path(_, [], _)|otherPaths] -> <get-edges> otherPaths
+    [Path(_, [])|otherPaths] -> <get-edges> otherPaths
 
   // paths with more than one vertex
   get-edges:
     [Path(
       Vertex(n1),
-      edgeVertices@[EdgeVertex(e, Vertex(n2))|_],
-      _)
+      edgeVertices@[EdgeVertex(e, Vertex(n2))|_])
     |otherPaths] -> <conc> ([edge], edgesPathTail, edgesTailPaths)
     with
       edge := <to-edge> (n1, e, n2);
@@ -203,11 +206,21 @@ rules
 
 rules
 
+  // pgql 1.1
   norm-query:
-    Query(pathPatterns, SelectClause(projection), fromClause, graphPattern, groupByClause, orderByClause, limitOffsets) ->
-        Query(pathPatterns', projection', fromClause, graphPattern, groupByClause', orderByElems, limitOffsets')
+    Query(commonPathExpressions, selectClause, fromClause, graphPattern, whereClause, groupByClause, orderByClause, limitOffsets) ->
+      <norm-query> Query(commonPathExpressions, selectClause, fromClause, graphPattern', groupByClause, orderByClause, limitOffsets)
     with
-      pathPatterns' := <map(norm-path-pattern); !PathPatterns(<id>)> pathPatterns;
+      <?GraphPattern(vertices, edges, paths, _)> graphPattern;
+      constraints := <?Some(WhereClause(<id>)); ![<id>] + ?None(); ![]> whereClause;
+      graphPattern' := GraphPattern(vertices, edges, paths, constraints)
+
+  // pgql 1.0
+  norm-query:
+    Query(commonPathExpressions, SelectClause(projection), fromClause, graphPattern, groupByClause, orderByClause, limitOffsets) ->
+        Query(commonPathExpressions', projection', fromClause, graphPattern, groupByClause', orderByElems, limitOffsets')
+    with
+      commonPathExpressions' := <map(norm-path-pattern); !PathPatterns(<id>)> commonPathExpressions;
 
       expAsGroupVars := <?Some(GroupByClause(<id>)) <+ ![]> groupByClause;
       expAsGroupVars' := <map(norm-ExpAsVar)> expAsGroupVars;

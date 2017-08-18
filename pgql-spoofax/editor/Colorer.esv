@@ -31,18 +31,10 @@ colorer System colors
   brown     = 139 69 19
   default   = _
 
-colorer // names
+colorer
 
-  PROPNAME         : black
-  GRAPHNAME        : black
-  VARNAME          : darkgreen
-  PATHPATTERNNAME  : brown
-
-colorer // literals
-
+  IDENTIFIER           : black
+  DOUBLE-QUOTED-STRING : black
   STRING               : darkblue
-  UNQUOTED-STRING      : darkblue
-  INTEGER              : darkblue
-  DECIMAL              : darkblue
-  DOUBLE               : darkblue
-  LitCustomType        : darkblue
+  UNSIGNED-INT         : darkblue
+  UNSIGNED-DECIMAL     : darkblue
