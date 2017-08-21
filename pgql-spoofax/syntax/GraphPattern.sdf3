@@ -16,7 +16,7 @@ context-free syntax
 
 context-free syntax
 
-  PathPattern.Path = <<Vertex><{EdgeVertex ""}*>>
+  PathPattern.PathPattern = <<Vertex><{EdgeVertex ""}*>>
 
   Vertex.Vertex = <(<ElemContents>)>
 

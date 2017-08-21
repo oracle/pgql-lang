@@ -2,48 +2,45 @@ module normalized-signatures
 
 signature constructors // for type checking (see trans/types.ts)
 
-  VertexTy : VertexTy
-  EdgeTy : EdgeTy
-  PathTy : PathTy
-  BooleanTy : BooleanTy
-  NumericTy : NumericTy
-  StringTy : StringTy
+  VertexTy    : VertexTy
+  EdgeTy      : EdgeTy
+  PathTy      : PathTy
+  BooleanTy   : BooleanTy
+  NumericTy   : NumericTy
+  StringTy    : StringTy
   StringSetTy : StringSetTy
-  DateTy : DateTy
-  TimeTy : TimeTy
+  DateTy      : DateTy
+  TimeTy      : TimeTy
   TimestampTy : TimestampTy
-  UnknownTy : UnknownTy
+  UnknownTy   : UnknownTy
 
 signature constructors // for the normalized AST (see trans/normalize.str)
 
-  PathPatterns         : List(PathPattern) -> PathPatterns
-  PathPattern          : PATHPATTERNNAME * Vertices * Connections * Constraints -> PathPattern
-  GraphPattern         : Vertices * Edges * Paths * Constraints -> GraphPattern
-  Vertices             : List(Vertex) -> Vertices
-  Vertex               : Var -> Vertex
-  Edges                : List(Edge) -> Edges
-  Edge                 : Var * Var * Var * Direction -> Edge
-  Paths                : List(Path) -> Paths
-  Path                 : Var * Var * PathPatternRef * Option(KleeneStar) * Var * Direction -> Path
-  Constraints          : List(Exp) -> Constraints
-  Incoming             : Direction
-  Outgoing             : Direction
-  Undirected           : Direction
+  CommonPathExpressions : List(CommonPathExpression) -> CommonPathExpressions
+  CommonPathExpression  : PATHPATTERNNAME * Vertices * Connections * Constraints -> CommonPathExpression
+  GraphPattern          : Vertices * Edges * Paths * Constraints -> GraphPattern
+  Vertices              : List(Vertex) -> Vertices
+  Vertex                : Var -> Vertex
+  Edges                 : List(Edge) -> Edges
+  Edge                  : Var * Var * Var * Direction -> Edge
+  Paths                 : List(Path) -> Paths
+  Path                  : Var * Var * PathPatternRef * Option(KleeneStar) * Var * Direction -> Path
+  Constraints           : List(Exp) -> Constraints
+  Incoming              : Direction
+  Outgoing              : Direction
+  Undirected            : Direction
 
-  Vars                 : List(Var) -> Vars
-  ExpAsVar             : VarDef * Exp -> ExpAsVar
-  AnonymousExpAsVar    : VarDef * Exp -> AnonymousExpAsVar
-  OrderByElem          : Exp * Ordering -> OrderbyElem
-  Asc                  : Ordering
-  Desc                 : Ordering
-  LimitOffsetClauses   : Option(LimitClause) * Option(OffsetClause) -> LimitOffsetClauses
+  Vars                  : List(Var) -> Vars
+  ExpAsVar              : VarDef * Exp -> ExpAsVar
+  AnonymousExpAsVar     : VarDef * Exp -> AnonymousExpAsVar
+  OrderByElem           : Exp * Ordering -> OrderbyElem
+  Asc                   : Ordering
+  Desc                  : Ordering
+  LimitOffsetClauses    : Option(LimitClause) * Option(OffsetClause) -> LimitOffsetClauses
 
-  Not                  : Exp -> Exp
-  Neq                  : Exp * Exp -> Exp
+  Neq                   : Exp * Exp -> Exp
 
-  Contains             : Exp * Exp -> Exp
-  
-  BindVariable         : INTEGER -> BindVariable
+  BindVariable          : INTEGER -> BindVariable
 
 signature constructors // for name binding (see trans/trans-for-nabl.str)
 
@@ -57,5 +54,5 @@ signature constructors // for name binding (see trans/trans-for-nabl.str)
 
 signature constructors // for error checking (see trans/check.str)
 
-  ReferenceInInlinedConstraint : Var -> ReferenceInInlinedConstraint
+  ReferenceInInlinedConstraint      : Var -> ReferenceInInlinedConstraint
   CrossReferenceInInlinedConstraint : Var -> CrossReferenceInInlinedConstraint

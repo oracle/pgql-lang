@@ -33,7 +33,9 @@ import oracle.pgql.lang.ir.OrderByElem;
 import oracle.pgql.lang.ir.Projection;
 import oracle.pgql.lang.ir.QueryEdge;
 import oracle.pgql.lang.ir.QueryExpression;
+import oracle.pgql.lang.ir.QueryExpression.LogicalExpression.And;
 import oracle.pgql.lang.ir.QueryExpression.Constant.ConstString;
+import oracle.pgql.lang.ir.QueryExpression.ExpressionType;
 import oracle.pgql.lang.ir.QueryExpression.Function.HasLabel;
 import oracle.pgql.lang.ir.QueryExpression.VarRef;
 import oracle.pgql.lang.ir.QueryPath;
@@ -236,9 +238,19 @@ public class SpoofaxAstToGraphQuery {
     Set<QueryExpression> constraints = new HashSet<>(constraintsT.getSubtermCount());
     for (IStrategoTerm constraintT : constraintsT) {
       QueryExpression exp = translateExp(constraintT, varmap, Collections.<String, QueryVariable> emptyMap());
-      constraints.add(exp);
+      addQueryExpressions(exp, constraints);
     }
     return constraints;
+  }
+
+  private static void addQueryExpressions(QueryExpression exp, Set<QueryExpression> constraints) {
+    if (exp.getExpType() == ExpressionType.AND) {
+      And and = (And) exp;
+      addQueryExpressions(and.getExp1(), constraints);
+      addQueryExpressions(and.getExp2(), constraints);
+    } else {
+      constraints.add(exp);
+    }
   }
 
   private static List<QueryEdge> getQueryEdges(IStrategoTerm edgesT, Map<String, QueryVariable> varmap) {

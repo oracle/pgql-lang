@@ -160,7 +160,7 @@ public class PgqlUtils {
   }
 
   protected static String printPgqlString(GraphPattern graphPattern, List<QueryPath> queryPaths) {
-    String result = "WHERE\n";
+    String result = "MATCH\n";
 
     Set<QueryVertex> verticesCopy = new HashSet<>(graphPattern.getVertices());
 
@@ -187,9 +187,9 @@ public class PgqlUtils {
         .collect(Collectors.joining(",\n"));
     
     if (!constraints.isEmpty()) {
-      result += ",\n  " + constraints.stream() //
+      result += "\nWHERE " + constraints.stream() //
       .map(x -> x.toString()) //
-      .collect(Collectors.joining(",\n  "));
+      .collect(Collectors.joining("\n  AND"));
     }
     
     return result;
@@ -217,7 +217,7 @@ public class PgqlUtils {
   }
 
   private static String printPathExpression(QueryPath path) {
-    String result = "PATH " + path.getPathExpressionName() + " := ";
+    String result = "PATH " + path.getPathExpressionName() + " AS ";
 
     Iterator<QueryVertex> vertexIt = path.getVertices().iterator();
 

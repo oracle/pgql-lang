@@ -22,7 +22,7 @@ context-free syntax
       <LimitOffsetClauses?>
     >
 
-  Legacy10CommonPathExpression.PathPattern = <path <IDENTIFIER> := <Legacy10PathPattern> <Legacy10WhereClause?>> {case-insensitive}
+  Legacy10CommonPathExpression.CommonPathExpression = <path <IDENTIFIER> := <Legacy10PathPattern> <Legacy10WhereClause?>> {case-insensitive}
 
   Legacy10SelectClause.SelectClause = <select <Legacy10Projection>> {case-insensitive}
   Legacy10Projection.ExpAsVars = <<{Legacy10ExpAsVar ", "}+>>
@@ -53,7 +53,7 @@ context-free syntax
 
 context-free syntax
 
-  Legacy10PathPattern.Path = <<Legacy10Vertex><{Legacy10EdgeVertex ""}+>>
+  Legacy10PathPattern.PathPattern = <<Legacy10Vertex><{Legacy10EdgeVertex ""}+>>
   Legacy10PathPattern.SingleVertex = <(<Legacy10ElemContents>)>
 
   Legacy10Vertex.Vertex = <(<Legacy10ElemContents>)>

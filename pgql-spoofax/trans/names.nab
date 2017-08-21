@@ -6,20 +6,20 @@ imports
 
 namespaces
 
-  PathPattern // regular PATH pattern
-  WhereVar    // var defined in WHERE
-  GroupVar    // var defined in GROUP BY
-  SelectVar   // var defined in SELECT
-  Var1        // var defined in WHERE/GROUP BY (only used for redefinition checking)
-  Var2        // var defined in GROUP BY/SELECT (only used for redefinition checking)
+  CommonPathExpression // regular PATH pattern
+  WhereVar             // var defined in WHERE
+  GroupVar             // var defined in GROUP BY
+  SelectVar            // var defined in SELECT
+  Var1                 // var defined in WHERE/GROUP BY (only used for redefinition checking)
+  Var2                 // var defined in GROUP BY/SELECT (only used for redefinition checking)
 
 binding rules
 
   Query(_, _, _, _, _, _, _):
-    scopes WhereVar, SelectVar, GroupVar, Var1, Var2, PathPattern
+    scopes WhereVar, SelectVar, GroupVar, Var1, Var2, CommonPathExpression
 
-  PathPattern(p, _, _, _):
-    defines unique PathPattern p
+  CommonPathExpression(p, _, _, _):
+    defines unique CommonPathExpression p
     scopes WhereVar, SelectVar, Var1, Var2, GroupVar
 
   Vertex(n):
@@ -35,7 +35,7 @@ binding rules
     defines unique WhereVar p of type PathTy()
 
   PathPatternRef(p):
-    refers to PathPattern p
+    refers to CommonPathExpression p
 
   ExpAsVar(exp, v): // in SELECT when there is no GROUP BY
     defines unique SelectVar v of type ty where exp has type ty // unlike SQL but like SPARQL, we don't allow duplicate column names
