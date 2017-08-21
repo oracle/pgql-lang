@@ -30,6 +30,7 @@ import oracle.pgql.lang.ir.QueryExpression.Function.AllDifferent;
 import oracle.pgql.lang.ir.SpatialFunction.StPointFromText;
 import oracle.pgql.lang.ir.SpatialFunction.StX;
 import oracle.pgql.lang.ir.SpatialFunction.StY;
+import oracle.pgql.lang.ir.QueryExpression.FunctionCall;
 import oracle.pgql.lang.ir.QueryExpression.Function.Cast;
 import oracle.pgql.lang.ir.QueryExpression.Function.EdgeLabel;
 import oracle.pgql.lang.ir.QueryExpression.Function.Exists;
@@ -150,4 +151,6 @@ public interface QueryExpressionVisitor {
   public void visit(StPointFromText pointFromText);
 
   public void visit(CallStatement callStatement);
+
+  public void visit(FunctionCall functionCall);
 }

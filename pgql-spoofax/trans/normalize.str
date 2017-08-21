@@ -127,8 +127,8 @@ rules
       then result := <to-hasLabel-expressions(|var)> labels
       else result := <to-label-equals-expressions(|var)> labels
       end
-  to-hasLabel-expressions(|var) = bottomup(try(is-literal; origin-track-forced(!HasLabel(<origin-track-forced(!VarRef(var))> <id>, <id>))))
-  to-label-equals-expressions(|var) = bottomup(try(is-literal; origin-track-forced(!Eq(<origin-track-forced(!Label(VarRef(var)))> <id>, <id>))))
+  to-hasLabel-expressions(|var) = bottomup(try(is-literal; origin-track-forced(!FunctionCall(None(), String("hasLabel"), [<origin-track-forced(!VarRef(var))> <id>, <id>]))))
+  to-label-equals-expressions(|var) = bottomup(try(is-literal; origin-track-forced(!Eq(<origin-track-forced(!FunctionCall(None(), String("label"), [VarRef(var)]))> <id>, <id>))))
   to-id-constraints(|var) = bottomup(try(is-literal; origin-track-forced(!Eq(Id(VarRef(var)), <id>))))
 
   // base case: no paths

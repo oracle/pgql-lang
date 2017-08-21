@@ -62,22 +62,36 @@ public interface QueryExpression {
     STAR,
 
     // built-in functions
-    @Deprecated REGEX,
-    @Deprecated ID,
+    @Deprecated
+    REGEX,
+    @Deprecated
+    ID,
     PROP_ACCESS,
-    @Deprecated HAS_PROP,
-    @Deprecated HAS_LABEL, // note: HasLabel will be removed in the future
-    @Deprecated VERTEX_LABELS,
-    @Deprecated INDEGREE,
-    @Deprecated OUTDEGREE, // vertex
-    @Deprecated EDGE_LABEL,
+    @Deprecated
+    HAS_PROP,
+    @Deprecated
+    HAS_LABEL, // note: HasLabel will be removed in the future
+    @Deprecated
+    VERTEX_LABELS,
+    @Deprecated
+    INDEGREE,
+    @Deprecated
+    OUTDEGREE, // vertex
+    @Deprecated
+    EDGE_LABEL,
     CAST,
     EXISTS,
-    @Deprecated ALL_DIFFERENT,
-    @Deprecated ST_X,
-    @Deprecated ST_Y,
-    @Deprecated ST_POINT_FROM_TEXT,
-    @Deprecated CALL_STATEMENT
+    @Deprecated
+    ALL_DIFFERENT,
+    @Deprecated
+    ST_X,
+    @Deprecated
+    ST_Y,
+    @Deprecated
+    ST_POINT_FROM_TEXT,
+    @Deprecated
+    CALL_STATEMENT,
+    FUNCTION_CALL
   }
 
   ExpressionType getExpType();
@@ -921,7 +935,7 @@ public interface QueryExpression {
 
       @Override
       public String toString() {
-        return "(" + getExp1() + " =~ " + getExp2() + ")";
+        return "JavaRegex(" + getExp1() + ", " + getExp2() + ")";
       }
 
       @Override
@@ -950,7 +964,7 @@ public interface QueryExpression {
 
       @Override
       public String toString() {
-        return getExp() + ".id()";
+        return "id(" + getExp() + ")";
       }
 
       @Override
@@ -973,7 +987,7 @@ public interface QueryExpression {
 
       @Override
       public String toString() {
-        return getExp() + ".label()";
+        return "label(" + getExp() + ")";
       }
 
       @Override
@@ -996,7 +1010,7 @@ public interface QueryExpression {
 
       @Override
       public String toString() {
-        return getExp() + ".labels()";
+        return "labels(" + getExp() + ")";
       }
 
       @Override
@@ -1019,7 +1033,7 @@ public interface QueryExpression {
 
       @Override
       public String toString() {
-        return getExp1() + ".hasLabel(" + getExp2() + ")";
+        return "hasLabel(" + getExp1() + ", " + getExp2() + ")";
       }
 
       @Override
@@ -1050,7 +1064,7 @@ public interface QueryExpression {
 
       @Override
       public String toString() {
-        return getExp1() + ".has(" + getExp2() + ")";
+        return "has(" + getExp1() + ", " + getExp2() + ")";
       }
 
       @Override
@@ -1072,7 +1086,7 @@ public interface QueryExpression {
 
       @Override
       public String toString() {
-        return getExp() + ".indegree()";
+        return "indegree(" + getExp() + ")";
       }
 
       @Override
@@ -1094,7 +1108,7 @@ public interface QueryExpression {
 
       @Override
       public String toString() {
-        return getExp() + ".outdegree()";
+        return "outdegree(" + getExp() + ")";
       }
 
       @Override
@@ -1243,6 +1257,129 @@ public interface QueryExpression {
     public void accept(QueryExpressionVisitor v) {
       v.visit(this);
     }
+
+    @Override
+    public int hashCode() {
+      final int prime = 31;
+      int result = 1;
+      result = prime * result + ((exps == null) ? 0 : exps.hashCode());
+      result = prime * result + ((packageName == null) ? 0 : packageName.hashCode());
+      result = prime * result + ((routineName == null) ? 0 : routineName.hashCode());
+      return result;
+    }
+
+    @Override
+    public boolean equals(Object obj) {
+      if (this == obj)
+        return true;
+      if (obj == null)
+        return false;
+      if (getClass() != obj.getClass())
+        return false;
+      CallStatement other = (CallStatement) obj;
+      if (exps == null) {
+        if (other.exps != null)
+          return false;
+      } else if (!exps.equals(other.exps))
+        return false;
+      if (packageName == null) {
+        if (other.packageName != null)
+          return false;
+      } else if (!packageName.equals(other.packageName))
+        return false;
+      if (routineName == null) {
+        if (other.routineName != null)
+          return false;
+      } else if (!routineName.equals(other.routineName))
+        return false;
+      return true;
+    }
+  }
+
+  class FunctionCall implements QueryExpression {
+
+    private final String packageName;
+
+    private final String functionName;
+
+    private final List<QueryExpression> exps;
+
+    public FunctionCall(String functionName, List<QueryExpression> exps) {
+      this(null, functionName, exps);
+    }
+
+    public FunctionCall(String packageName, String functionName, List<QueryExpression> exps) {
+      this.packageName = packageName;
+      this.functionName = functionName;
+      this.exps = exps;
+    }
+
+    public String getPackageName() {
+      return packageName;
+    }
+
+    public String getFunctionName() {
+      return functionName;
+    }
+
+    public List<QueryExpression> getExps() {
+      return exps;
+    }
+
+    @Override
+    public ExpressionType getExpType() {
+      return ExpressionType.FUNCTION_CALL;
+    }
+
+    @Override
+    public String toString() {
+      String expressions = exps.stream().map(QueryExpression::toString).collect(Collectors.joining(", "));
+      String packageNamePart = packageName == null ? "" : packageName + ".";
+      return packageNamePart + functionName + "(" + expressions + ")";
+    }
+
+    @Override
+    public void accept(QueryExpressionVisitor v) {
+      v.visit(this);
+    }
+
+    @Override
+    public int hashCode() {
+      final int prime = 31;
+      int result = 1;
+      result = prime * result + ((exps == null) ? 0 : exps.hashCode());
+      result = prime * result + ((functionName == null) ? 0 : functionName.hashCode());
+      result = prime * result + ((packageName == null) ? 0 : packageName.hashCode());
+      return result;
+    }
+
+    @Override
+    public boolean equals(Object obj) {
+      if (this == obj)
+        return true;
+      if (obj == null)
+        return false;
+      if (getClass() != obj.getClass())
+        return false;
+      FunctionCall other = (FunctionCall) obj;
+      if (exps == null) {
+        if (other.exps != null)
+          return false;
+      } else if (!exps.equals(other.exps))
+        return false;
+      if (functionName == null) {
+        if (other.functionName != null)
+          return false;
+      } else if (!functionName.equals(other.functionName))
+        return false;
+      if (packageName == null) {
+        if (other.packageName != null)
+          return false;
+      } else if (!packageName.equals(other.packageName))
+        return false;
+      return true;
+    }
+
   }
 
   interface Aggregation extends QueryExpression {

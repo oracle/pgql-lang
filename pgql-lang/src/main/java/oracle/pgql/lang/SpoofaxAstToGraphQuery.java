@@ -103,9 +103,9 @@ public class SpoofaxAstToGraphQuery {
   private static final int POS_ST_X_EXP = 0;
   private static final int POS_ST_Y_EXP = 0;
   private static final int POS_ST_POINT_FROM_TEXT_EXP = 0;
-  private static final int POS_CALL_STATEMENT_PACKAGE_NAME = 0;
-  private static final int POS_CALL_STATEMENT_ROUTINE_NAME = 1;
-  private static final int POS_CALL_STATEMENT_EXPS = 2;
+  private static final int POS_FUNCTION_CALL_PACKAGE_NAME = 0;
+  private static final int POS_FUNCTION_CALL_ROUTINE_NAME = 1;
+  private static final int POS_FUNCTION_CALL_EXPS = 2;
 
   public static GraphQuery translate(IStrategoTerm ast) throws PgqlException {
     return translate(ast, new HashMap<>());
@@ -424,6 +424,7 @@ public class SpoofaxAstToGraphQuery {
 
   private static QueryExpression translateExp(IStrategoTerm t, Map<String, QueryVariable> inScopeVars,
       Map<String, QueryVariable> inScopeInAggregationVars) throws PgqlException {
+
     String cons = ((IStrategoAppl) t).getConstructor().getName();
 
     switch (cons) {
@@ -622,12 +623,19 @@ public class SpoofaxAstToGraphQuery {
           return new QueryExpression.Constant.ConstTimestamp(localTimestamp);
         }
       case "CallStatement":
-        IStrategoTerm packageDeclT = t.getSubterm(POS_CALL_STATEMENT_PACKAGE_NAME);
+        IStrategoTerm packageDeclT = t.getSubterm(POS_FUNCTION_CALL_PACKAGE_NAME);
         String packageName = isNone(packageDeclT) ? null : getString(packageDeclT);
-        String routineName = getString(t.getSubterm(POS_CALL_STATEMENT_ROUTINE_NAME));
-        IStrategoTerm argsT = getList(t.getSubterm(POS_CALL_STATEMENT_EXPS));
+        String routineName = getString(t.getSubterm(POS_FUNCTION_CALL_ROUTINE_NAME));
+        IStrategoTerm argsT = getList(t.getSubterm(POS_FUNCTION_CALL_EXPS));
         List<QueryExpression> args = varArgsToExps(inScopeVars, inScopeInAggregationVars, argsT);
         return new QueryExpression.CallStatement(packageName, routineName, args);
+      case "FunctionCall":
+        packageDeclT = t.getSubterm(POS_FUNCTION_CALL_PACKAGE_NAME);
+        packageName = isNone(packageDeclT) ? null : getString(packageDeclT);
+        String functionName = getString(t.getSubterm(POS_FUNCTION_CALL_ROUTINE_NAME));
+        argsT = getList(t.getSubterm(POS_FUNCTION_CALL_EXPS));
+        args = varArgsToExps(inScopeVars, inScopeInAggregationVars, argsT);
+        return new QueryExpression.FunctionCall(packageName, functionName, args);
       case "COUNT":
         exp = translateExp(t.getSubterm(POS_AGGREGATE_EXP), inScopeInAggregationVars, inScopeInAggregationVars);
         return new QueryExpression.Aggregation.AggrCount(exp);

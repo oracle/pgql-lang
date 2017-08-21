@@ -189,7 +189,7 @@ public class PgqlUtils {
     if (!constraints.isEmpty()) {
       result += "\nWHERE " + constraints.stream() //
       .map(x -> x.toString()) //
-      .collect(Collectors.joining("\n  AND"));
+      .collect(Collectors.joining("\n  AND "));
     }
     
     return result;
