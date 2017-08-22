@@ -71,7 +71,7 @@ rules
   norm-pgql10 = ?Legacy10OutDegree(x); <to-function(|"out_degree")> [x]
 
   to-function(|name):
-    args -> FunctionCall(None(), "label", args)
+    args -> FunctionCall(None(), name, args)
 
   norm-BindVariable(|c) = ?BindVariable(); !BindVariable(<next-counter> c)
 
