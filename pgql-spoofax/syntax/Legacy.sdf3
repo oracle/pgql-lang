@@ -9,37 +9,28 @@ imports
   Literals
   Expressions
 
-context-free syntax
+context-free syntax // pgql-lang
 
   Legacy10Query.Query =
     <
-      <{Legacy10CommonPathExpression "\n"}*>
-      <Legacy10SelectClause>
+      <{CommonPathExpression "\n"}*>
+      <SelectClause>
       <FromClause?>
       <Legacy10GraphPattern>
-      <Legacy10GroupByClause?>
-      <Legacy10OrderByClause?>
+      <GroupByClause?>
+      <OrderByClause?>
       <LimitOffsetClauses?>
     >
 
-  Legacy10CommonPathExpression.CommonPathExpression = <path <IDENTIFIER> := <Legacy10PathPattern> <Legacy10WhereClause?>> {case-insensitive}
-
   Legacy10SelectClause.SelectClause = <select <Legacy10Projection>> {case-insensitive}
-  Legacy10Projection.ExpAsVars = <<{Legacy10ExpAsVar ", "}+>>
+  Legacy10Projection.ExpAsVars = <<{ExpAsVar ", "}+>>
   Legacy10Projection.Star = <*>
 
-  Legacy10WhereClause.WhereClause = <where <Legacy10Exp>> {case-insensitive}
+lexical syntax
 
-  Legacy10GroupByClause.GroupByClause = <group by <{Legacy10ExpAsVar ", "}+>> {case-insensitive}
+  LEGACY10-STRING = '"' (~[\"\n\\] | ESCAPE-CHAR)* '"'
 
-  Legacy10OrderByClause.OrderByClause = <order by <{Legacy10OrderElem ", "}+>> {case-insensitive}
-  Legacy10OrderElem = <<Legacy10Exp>>
-  Legacy10OrderElem.Asc1 = <asc(<Legacy10Exp>)> {case-insensitive}
-  Legacy10OrderElem.Desc1 = <desc(<Legacy10Exp>)> {case-insensitive}
-  Legacy10OrderElem.Asc2 = <<Legacy10Exp> asc> {case-insensitive}
-  Legacy10OrderElem.Desc2 = <<Legacy10Exp> desc> {case-insensitive}
-
-context-free syntax
+context-free syntax // GraphPattern.sdf3
 
   Legacy10GraphPattern.GraphPattern = 
     <
@@ -47,209 +38,74 @@ context-free syntax
         <{Legacy10PatternElem ",\n"}+>
     > {case-insensitive}
 
-  Legacy10PatternElem = Legacy10PathPattern
+  Legacy10PatternElem = PathPattern
 
-  Legacy10PatternElem.Constraint = Legacy10Exp {avoid} // see Expressions.sdf3. Note: 'avoid' disambiguates 'select * where (X.p1)' ('(X.p1)' can be a Constraint or a Vertex)
+  Legacy10PatternElem.Constraint = Exp {avoid} // see Expressions.sdf3. Note: 'avoid' disambiguates 'select * where (X.p1)' ('(X.p1)' can be a Constraint or a Vertex)
 
-context-free syntax
+  Vertex.VertexWithoutBrackets = <<IDENTIFIER>> // deprecated
 
-  Legacy10PathPattern.PathPattern = <<Legacy10Vertex><{Legacy10EdgeVertex ""}+>>
-  Legacy10PathPattern.SingleVertex = <(<Legacy10ElemContents>)>
+  Legacy10Ids.Ids = <@<AltLit>>
+  Legacy10WithInlinedConstraints.Constraint = < with <{Legacy10InlinedExp ", "}+>> {case-insensitive}
 
-  Legacy10Vertex.Vertex = <(<Legacy10ElemContents>)>
-  Legacy10Vertex.VertexWithoutBrackets = <<IDENTIFIER>> // deprecated
+context-free syntax // SolutionModifiers
 
-  Legacy10EdgeVertex.EdgeVertex = < <Legacy10Connection> <Legacy10Vertex>>
-  Legacy10Connection.OutConn = [-[Legacy10EdgeOrPathContents?]->]
-  Legacy10Connection.InConn = [<-[Legacy10EdgeOrPathContents?]-]
-  Legacy10Connection.UndirectedEdge = [-[Legacy10EdgeContents?]-]
-  Legacy10Connection.OutEdge = [->]
-  Legacy10Connection.InEdge = [<-]
-  Legacy10Connection.UndirectedEdge = [-]
-  
-  Legacy10EdgeContents.EdgeContents = <[<Legacy10ElemContents>]>
-  Legacy10EdgeOrPathContents = Legacy10EdgeContents
-  Legacy10EdgeOrPathContents.Path = </<IDENTIFIER?>:<Legacy10AltPath><PathQuantifier?>/>
-  Legacy10AltPath.Or = <<Legacy10AltPath>|<Legacy10AltPath>> {left}
-  Legacy10AltPath.PathPatternRef = IDENTIFIER
+  OrderElem.Legacy10Asc = <asc(<Exp>)> {case-insensitive}
+  OrderElem.Legacy10Desc = <desc(<Exp>)> {case-insensitive}
 
-context-free syntax
+context-free syntax // Expressions.sdf3
 
-  Legacy10ElemContents.ElemContents = <<IDENTIFIER?><Legacy10Labels?><Ids?><WithInlinedConstraints?>>
-  Legacy10Labels.Labels = <:<Legacy10AltLit>>
-  Ids.Ids = <@<Legacy10AltLit>>
-  WithInlinedConstraints.Constraint = < with <{InlinedExp ", "}+>> {case-insensitive}
+  Exp.Legacy10Not = <!<Exp>> {right}
+  Exp.Legacy10Regex = [[Exp] =~ [Exp]] {left, prefer}
 
-context-free syntax
-
-  Legacy10ExpAsVar.ExpAsVar = <<Legacy10Exp><VarAssign?>>
-
-  Legacy10Exp = <(<Legacy10Exp>)> {bracket}
-  Legacy10Exp = Legacy10PropRef
-  Legacy10Exp = VarRef
-  Legacy10Exp = Legacy10Literal
-  
-  Legacy10PropRef.PropRef = <<VarRef>.<Prop>>
-
-  Legacy10Prop = Identifier
-  Legacy10Prop = STRING
-  Legacy10Prop = DOUBLE-QUOTED-STRING
-  
-  Legacy10Exp.Not1 = <!<Legacy10Exp>> {right}
-  Legacy10Exp.Not2 = <not <Legacy10Exp>> {right, case-insensitive}
-  Legacy10Exp.UMin = <-<Legacy10Exp>> {right}
-
-  Legacy10Exp.And = <<Legacy10Exp> and <Legacy10Exp>> {left, case-insensitive}
-  Legacy10Exp.Or = <<Legacy10Exp> or <Legacy10Exp>> {left, case-insensitive}
-  Legacy10Exp.Mul = <<Legacy10Exp> * <Legacy10Exp>> {left}
-  Legacy10Exp.Add = <<Legacy10Exp> + <Legacy10Exp>> {left}
-  Legacy10Exp.Div = <<Legacy10Exp> / <Legacy10Exp>> {left}
-  Legacy10Exp.Mod = <<Legacy10Exp> % <Legacy10Exp>> {left}
-  Legacy10Exp.Sub = <<Legacy10Exp> - <Legacy10Exp>> {left}
-  Legacy10Exp.Eq = <<Legacy10Exp> = <Legacy10Exp>> {left}
-  Legacy10Exp.Gt = [[Legacy10Exp] > [Legacy10Exp]] {left}
-  Legacy10Exp.Lt = [[Legacy10Exp] < [Legacy10Exp]] {left}
-  Legacy10Exp.Gte = [[Legacy10Exp] >= [Legacy10Exp]] {left}
-  Legacy10Exp.Lte = [[Legacy10Exp] <= [Legacy10Exp]] {left}
-
-  Legacy10Exp.Neq1 = [[Legacy10Exp] != [Legacy10Exp]] {left}
-  Legacy10Exp.Neq2 = [[Legacy10Exp] <> [Legacy10Exp]] {left}
-
-  Legacy10Exp.Regex = [[Legacy10Exp] =~ [Legacy10Exp]] {left, prefer}
-
-context-free syntax // function calls
-
-  Legacy10Exp.Label = <<Legacy10Exp>. label()> {case-insensitive}
-  Legacy10Exp.Labels = <<Legacy10Exp>. labels()> {case-insensitive}
-  Legacy10Exp.HasLabel = <<Legacy10Exp>. hasLabel(<Legacy10Exp>)> {case-insensitive}
-  Legacy10Exp.Id = <<Legacy10Exp>. id()> {case-insensitive}
-  Legacy10Exp.Has = <<Legacy10Exp>. has(<{Legacy10Exp ", "}+>)> {case-insensitive}
-  Legacy10Exp.InDegree  = <<Legacy10Exp>. inDegree()> {case-insensitive}
-  Legacy10Exp.OutDegree = <<Legacy10Exp>. outDegree()> {case-insensitive}
-  Legacy10Exp.Cast = <cast(<Legacy10Exp> as <DATA-TYPE>)> {case-insensitive}
-  Legacy10Exp.AllDifferent = <all_different(<{Legacy10Exp ", "}+>)> {case-insensitive}
-  Legacy10Exp.StX = <st_x(<Legacy10Exp>)> {case-insensitive}
-  Legacy10Exp.StY = <st_y(<Legacy10Exp>)> {case-insensitive}
-  Legacy10Exp.StPointFromText = <ST_PointFromText(<Legacy10Exp>)> {case-sensitive}
-  Legacy10Exp.ToDate = <to_date(<LEGACY10-STRING>, <LEGACY10-STRING>)> {case-insensitive}
-  Legacy10Exp.ToTime = <to_time(<LEGACY10-STRING>, <LEGACY10-STRING>)> {case-insensitive}
-  Legacy10Exp.ToTimestamp = <to_timestamp(<LEGACY10-STRING>, <LEGACY10-STRING>)> {case-insensitive}
-  Legacy10Exp.CallStatement = <call <Legacy10PackageDecl?><Legacy10RoutineName><Legacy10ArgumentList>> {case-insensitive}
+  Exp.Legacy10Label = <<Exp>. label()> {case-insensitive}
+  Exp.Legacy10Labels = <<Exp>. labels()> {case-insensitive}
+  Exp.Legacy10HasLabel = <<Exp>. hasLabel(<Exp>)> {case-insensitive}
+  Exp.Legacy10Id = <<Exp>. id()> {case-insensitive}
+  Exp.Legacy10Has = <<Exp>. has(<{Exp ", "}+>)> {case-insensitive}
+  Exp.Legacy10InDegree  = <<Exp>. inDegree()> {case-insensitive}
+  Exp.Legacy10OutDegree = <<Exp>. outDegree()> {case-insensitive}
+  Exp.Legacy10CallStatement = <call <Legacy10PackageDecl?><Legacy10RoutineName><Legacy10ArgumentList>> {case-insensitive}
 
   Legacy10PackageDecl.PackageDecl = <<Legacy10PackageName>.>
   Legacy10PackageName = IDENTIFIER
   Legacy10RoutineName = IDENTIFIER
-  Legacy10ArgumentList.ArgumentList = <(<{Legacy10Exp ", "}*>)>
+  Legacy10ArgumentList.ArgumentList = <(<{Exp ", "}*>)>
 
-context-free syntax // Aggregates
-
-  Legacy10Exp.COUNT        = <count(<Distinct?><StarOrLegacy10Exp>)> {case-insensitive}
-  Legacy10Exp.MIN          = <min(<Distinct?><Legacy10Exp>)> {case-insensitive}
-  Legacy10Exp.MAX          = <max(<Distinct?><Legacy10Exp>)> {case-insensitive}
-  Legacy10Exp.SUM          = <sum(<Distinct?><Legacy10Exp>)> {case-insensitive}
-  Legacy10Exp.AVG          = <avg(<Distinct?><Legacy10Exp>)> {case-insensitive}
-
-  StarOrLegacy10Exp.Star = <*>
-  StarOrLegacy10Exp = <<Legacy10Exp>>
-
-context-free priorities
-
-  {
-    left:
-      Legacy10Exp.Label
-      Legacy10Exp.Labels
-      Legacy10Exp.HasLabel
-      Legacy10Exp.Id
-      Legacy10Exp.Has
-      Legacy10Exp.InDegree
-      Legacy10Exp.OutDegree
-  }
-  >
-  {
-    right:
-      Legacy10Exp.UMin
-      Legacy10Exp.Not1
-  }
-  >
-  {
-    left:
-      Legacy10Exp.Mul
-      Legacy10Exp.Div
-      Legacy10Exp.Mod
-  }
-  >
-  {
-    left:
-      Legacy10Exp.Add
-      Legacy10Exp.Sub
-  }
-  >
-  {
-    left:
-      Legacy10Exp.Eq
-      Legacy10Exp.Neq1
-      Legacy10Exp.Neq2
-      Legacy10Exp.Gt
-      Legacy10Exp.Lt
-      Legacy10Exp.Gte
-      Legacy10Exp.Lte
-      Legacy10Exp.Regex
-  }
-  >
-  {
-    right:
-      Legacy10Exp.Not2
-  }
-  >
-  {
-    left:
-      Legacy10Exp.And
-  }
-  >
-  {
-    left:
-      Legacy10Exp.Or
-  }
-
-context-free syntax
-
-  InlinedExp = <(<InlinedExp>)> {bracket}
-  InlinedExp = PropRef
-  InlinedExp = Legacy10Literal {prefer}
-  InlinedExp = InlinedCall
+  Legacy10InlinedExp = <(<Legacy10InlinedExp>)> {bracket}
+  Legacy10InlinedExp = PropRef
+  Legacy10InlinedExp = Literal {prefer}
+  Legacy10InlinedExp = InlinedCall
   
-  InlinedExp.SelfPropRef = <<Prop>>
-  InlinedExp.SelfPropRef = <<Dot><Prop>>
+  Legacy10InlinedExp.SelfPropRef = <<Prop>>
+  Legacy10InlinedExp.SelfPropRef = <<Dot><Prop>>
   
-  InlinedExp.Not1 = <!<InlinedExp>> {right}
-  InlinedExp.Not2 = <not <InlinedExp>> {right, case-insensitive}
-  InlinedExp.UMin = <-<InlinedExp>> {right}
+  Legacy10InlinedExp.Not1 = <!<Legacy10InlinedExp>> {right}
+  Legacy10InlinedExp.Not2 = <not <Legacy10InlinedExp>> {right, case-insensitive}
+  Legacy10InlinedExp.UMin = <-<Legacy10InlinedExp>> {right}
 
-  InlinedExp.And = <<InlinedExp> and <InlinedExp>> {left, case-insensitive}
-  InlinedExp.Or = <<InlinedExp> or <InlinedExp>> {left, case-insensitive}
-  InlinedExp.Mul = <<InlinedExp> * <InlinedExp>> {left}
-  InlinedExp.Add = <<InlinedExp> + <InlinedExp>> {left}
-  InlinedExp.Div = <<InlinedExp> / <InlinedExp>> {left}
-  InlinedExp.Mod = <<InlinedExp> % <InlinedExp>> {left}
-  InlinedExp.Sub = <<InlinedExp> - <InlinedExp>> {left}
-  InlinedExp.Eq = <<InlinedExp> = <InlinedExp>> {left}
-  InlinedExp.Gt = [[InlinedExp] > [InlinedExp]] {left}
-  InlinedExp.Lt = [[InlinedExp] < [InlinedExp]] {left}
-  InlinedExp.Gte = [[InlinedExp] >= [InlinedExp]] {left}
-  InlinedExp.Lte = [[InlinedExp] <= [InlinedExp]] {left}
+  Legacy10InlinedExp.And = <<Legacy10InlinedExp> and <Legacy10InlinedExp>> {left, case-insensitive}
+  Legacy10InlinedExp.Or = <<Legacy10InlinedExp> or <Legacy10InlinedExp>> {left, case-insensitive}
+  Legacy10InlinedExp.Mul = <<Legacy10InlinedExp> * <Legacy10InlinedExp>> {left}
+  Legacy10InlinedExp.Add = <<Legacy10InlinedExp> + <Legacy10InlinedExp>> {left}
+  Legacy10InlinedExp.Div = <<Legacy10InlinedExp> / <Legacy10InlinedExp>> {left}
+  Legacy10InlinedExp.Mod = <<Legacy10InlinedExp> % <Legacy10InlinedExp>> {left}
+  Legacy10InlinedExp.Sub = <<Legacy10InlinedExp> - <Legacy10InlinedExp>> {left}
+  Legacy10InlinedExp.Eq = <<Legacy10InlinedExp> = <Legacy10InlinedExp>> {left}
+  Legacy10InlinedExp.Gt = [[Legacy10InlinedExp] > [Legacy10InlinedExp]] {left}
+  Legacy10InlinedExp.Lt = [[Legacy10InlinedExp] < [Legacy10InlinedExp]] {left}
+  Legacy10InlinedExp.Gte = [[Legacy10InlinedExp] >= [Legacy10InlinedExp]] {left}
+  Legacy10InlinedExp.Lte = [[Legacy10InlinedExp] <= [Legacy10InlinedExp]] {left}
 
-  InlinedExp.Neq1 = [[InlinedExp] != [InlinedExp]] {left}
-  InlinedExp.Neq2 = [[InlinedExp] <> [InlinedExp]] {left}
+  Legacy10InlinedExp.Neq1 = [[Legacy10InlinedExp] != [Legacy10InlinedExp]] {left}
+  Legacy10InlinedExp.Neq2 = [[Legacy10InlinedExp] <> [Legacy10InlinedExp]] {left}
 
-  InlinedExp.Regex = [[InlinedExp] =~ [InlinedExp]] {left, prefer}
-
-context-free syntax // inlined function calls
+  Legacy10InlinedExp.Regex = [[Legacy10InlinedExp] =~ [Legacy10InlinedExp]] {left, prefer}
 
   InlinedCall.Label = <<Obj>label()> {case-insensitive}
   InlinedCall.Labels = <<Obj>labels()> {case-insensitive}
-  InlinedCall.HasLabel = <<Obj>hasLabel(<Legacy10Exp>)> {case-insensitive}
+  InlinedCall.HasLabel = <<Obj>hasLabel(<Exp>)> {case-insensitive}
   InlinedCall.Id = <<Obj>id()> {case-insensitive}
-  InlinedCall.Has = <<Obj>has(<{Legacy10Exp ", "}*>)> {case-insensitive}
+  InlinedCall.Has = <<Obj>has(<{Exp ", "}*>)> {case-insensitive}
   InlinedCall.InDegree  = <<Obj>inDegree()> {case-insensitive}
   InlinedCall.OutDegree = <<Obj>outDegree()> {case-insensitive}
 
@@ -272,75 +128,46 @@ context-free priorities
   >
   {
     right:
-      InlinedExp.UMin
-      InlinedExp.Not1
+      Legacy10InlinedExp.UMin
+      Legacy10InlinedExp.Not1
   }
   >
   {
     left:
-      InlinedExp.Mul
-      InlinedExp.Div
-      InlinedExp.Mod
+      Legacy10InlinedExp.Mul
+      Legacy10InlinedExp.Div
+      Legacy10InlinedExp.Mod
   }
   >
   {
     left:
-      InlinedExp.Add
-      InlinedExp.Sub
+      Legacy10InlinedExp.Add
+      Legacy10InlinedExp.Sub
   }
   >
   {
     left:
-      InlinedExp.Eq
-      InlinedExp.Neq1
-      InlinedExp.Neq2
-      InlinedExp.Gt
-      InlinedExp.Lt
-      InlinedExp.Gte
-      InlinedExp.Lte
-      InlinedExp.Regex
+      Legacy10InlinedExp.Eq
+      Legacy10InlinedExp.Neq1
+      Legacy10InlinedExp.Neq2
+      Legacy10InlinedExp.Gt
+      Legacy10InlinedExp.Lt
+      Legacy10InlinedExp.Gte
+      Legacy10InlinedExp.Lte
+      Legacy10InlinedExp.Regex
   }
   >
   {
     right:
-      InlinedExp.Not2
+      Legacy10InlinedExp.Not2
   }
   >
   {
     left:
-      InlinedExp.And
+      Legacy10InlinedExp.And
   }
   >
   {
     left:
-      InlinedExp.Or
+      Legacy10InlinedExp.Or
   }
-
-context-free syntax
-
-  Legacy10Literal   = Number
-  Legacy10Literal   = Boolean
-  Legacy10Literal   = Legacy10String
-  Legacy10Literal   = BindVariable
-  Legacy10Literal   = Date
-  Legacy10Literal   = Time
-  Legacy10Literal   = Timestamp
-
-context-free syntax
-
-  Legacy10String.String     = LEGACY10-STRING
-
-  Legacy10AltLit.Or     = <<Legacy10AltLit>|<Legacy10AltLit>> {left}
-  Legacy10AltLit        = Legacy10Literal
-  Legacy10AltLit.String = IDENTIFIER
-
-lexical syntax
-
-  LEGACY10-STRING          = STRING | DOUBLE-QUOTED-STRING
-  LEGACY10-UNQUOTED-STRING = [a-zA-Z][a-zA-Z0-9\_]*
-
-lexical syntax
-
-  LEGACY10-UNQUOTED-STRING = [Tt][Rr][Uu][Ee] {reject}
-  LEGACY10-UNQUOTED-STRING = [Ff][Aa][Ll][Ss][Ee] {reject}
-  LEGACY10-UNQUOTED-STRING = [Nn][Uu][Ll][Ll] {reject}

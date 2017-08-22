@@ -5,6 +5,7 @@ imports
   Literals
   Names
   Expressions
+  Legacy
 
 context-free syntax
 
@@ -16,14 +17,14 @@ context-free syntax
 
 context-free syntax
 
-  PathPattern.PathPattern = <<Vertex><{EdgeVertex ""}*>>
-
+  PathPattern.PathPattern = <<Vertex><{EdgeVertex ""}+>>
+  PathPattern.SingleVertex = <(<ElemContents>)> // PGQL 1.0
   Vertex.Vertex = <(<ElemContents>)>
 
   EdgeVertex.EdgeVertex = < <Connection> <Vertex>>
-  Connection.OutConn = [-[EdgeOrPathContents]->]
-  Connection.InConn = [<-[EdgeOrPathContents]-]
-  Connection.UndirectedEdge = [-[EdgeContents]-]
+  Connection.OutConn = [-[EdgeOrPathContents?]->]
+  Connection.InConn = [<-[EdgeOrPathContents?]-]
+  Connection.UndirectedEdge = [-[EdgeContents?]-]
   Connection.OutEdge = [->]
   Connection.InEdge = [<-]
   Connection.UndirectedEdge = [-]
@@ -31,8 +32,6 @@ context-free syntax
   EdgeContents.EdgeContents = <[<ElemContents>]>
   EdgeOrPathContents = EdgeContents
   EdgeOrPathContents.Path = </<IDENTIFIER?>:<AltPath><PathQuantifier?>/>
-  AltPath.Or = <<AltPath>|<AltPath>> {left}
-  AltPath.PathPatternRef = IDENTIFIER
 
   PathQuantifier.ZeroOrMore = <*>
   PathQuantifier.OneOrMore = <+>
@@ -44,5 +43,5 @@ context-free syntax
 
 context-free syntax
 
-  ElemContents.ElemContents = <<IDENTIFIER?><LabelPredicate?>>
-  LabelPredicate.Labels = <:<Labels>>
+  ElemContents.ElemContents = <<IDENTIFIER?><LabelPredicate?><Legacy10Ids?><Legacy10WithInlinedConstraints?>>
+  LabelPredicate.Labels = <:<AltLit>>

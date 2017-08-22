@@ -31,7 +31,9 @@ context-free syntax
       <LimitOffsetClauses?>
     >
 
-  CommonPathExpression.CommonPathExpression = <path <IDENTIFIER> as <PathPattern> <WhereClause?>> {case-insensitive}
+  CommonPathExpression.CommonPathExpression = <path <IDENTIFIER> <AsignSymbol> <PathPattern> <WhereClause?>> {case-insensitive}
+  AsignSymbol.Pgql11AsignSymbol = <as>  {case-insensitive}
+  AsignSymbol.Pgql10AsignSymbol = <:=>
 
   SelectClause.SelectClause = <select <Projection>> {case-insensitive}
   Projection.ExpAsVars = <<{ExpAsVar ", "}+>>

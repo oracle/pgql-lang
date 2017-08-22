@@ -59,7 +59,7 @@ type rules // LEGACY (PGQL 1.0 and earlier)
 
   Label(exp) : StringTy()
 
-  Has(exp, _) + HasLabel(exp, _) + AllDifferent(_) : BooleanTy()
+  Has(exp, _) + HasLabel(exp, _) : BooleanTy()
 
   Regex(_, _) : BooleanTy()
 

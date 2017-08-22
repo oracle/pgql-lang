@@ -5,6 +5,7 @@ imports
   Names
   Literals
   pgql-lang
+  Legacy
 
 context-free syntax
 
@@ -58,8 +59,20 @@ context-free syntax // Aggregates
 context-free priorities
 
   {
+    left:
+      Exp.Legacy10Label
+      Exp.Legacy10Labels
+      Exp.Legacy10HasLabel
+      Exp.Legacy10Id
+      Exp.Legacy10Has
+      Exp.Legacy10InDegree
+      Exp.Legacy10OutDegree
+  }
+  >
+  {
     right:
       Exp.UMin
+      Exp.Legacy10Not
   }
   >
   {
@@ -84,6 +97,7 @@ context-free priorities
       Exp.Lt
       Exp.Gte
       Exp.Lte
+      Exp.Legacy10Regex
   }
   >
   {

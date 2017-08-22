@@ -3,6 +3,7 @@ module Literals
 imports
 
   Names
+  Legacy
 
 context-free syntax
 
@@ -14,15 +15,18 @@ context-free syntax
   Literal   = Time
   Literal   = Timestamp
 
-  Labels.Or = <<Labels>|<Labels>> {left}
-  Labels    = IDENTIFIER
-  Labels    = STRING
+  AltLit.Or = <<AltLit>|<AltLit>> {left}
+  AltLit    = Literal
+  AltLit    = IDENTIFIER
+
+  AltPath.Or = <<AltPath>|<AltPath>> {left}
+  AltPath.PathPatternRef = IDENTIFIER
 
 context-free syntax
 
   Number.Integer            = UNSIGNED-INT
   Number.Decimal            = UNSIGNED-DECIMAL
-  String.String             = STRING
+  String.String             = LEGACY10-STRING
   Label.String              = IDENTIFIER
   Boolean.True              = <true> {case-insensitive}
   Boolean.False             = <false> {case-insensitive}
