@@ -15,11 +15,10 @@ context-free syntax
   Literal   = Time
   Literal   = Timestamp
 
-  AltLit.Or = <<AltLit>|<AltLit>> {left}
-  AltLit    = Literal
-  AltLit    = IDENTIFIER
-
-  AltPath.Or = <<AltPath>|<AltPath>> {left}
+  AltLit.Or              = <<AltLit>|<AltLit>> {left}
+  AltLit                 = Literal
+  AltLit.String          = IDENTIFIER
+  AltPath.Or             = <<AltPath>|<AltPath>> {left}
   AltPath.PathPatternRef = IDENTIFIER
 
 context-free syntax
@@ -30,7 +29,6 @@ context-free syntax
   Label.String              = IDENTIFIER
   Boolean.True              = <true> {case-insensitive}
   Boolean.False             = <false> {case-insensitive}
-  Literal.Null              = <null> {case-insensitive}
   BindVariable.BindVariable = <?>
   Date.Date                 = <date <STRING>> {case-insensitive}
   Time.Time                 = <time <STRING>> {case-insensitive}

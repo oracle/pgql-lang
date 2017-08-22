@@ -18,7 +18,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
-import oracle.pgql.lang.ir.SpatialFunction;
 import org.spoofax.interpreter.terms.IStrategoAppl;
 import org.spoofax.interpreter.terms.IStrategoInt;
 import org.spoofax.interpreter.terms.IStrategoString;
@@ -36,7 +35,6 @@ import oracle.pgql.lang.ir.QueryExpression;
 import oracle.pgql.lang.ir.QueryExpression.LogicalExpression.And;
 import oracle.pgql.lang.ir.QueryExpression.Constant.ConstString;
 import oracle.pgql.lang.ir.QueryExpression.ExpressionType;
-import oracle.pgql.lang.ir.QueryExpression.Function.HasLabel;
 import oracle.pgql.lang.ir.QueryExpression.VarRef;
 import oracle.pgql.lang.ir.QueryPath;
 import oracle.pgql.lang.ir.QueryVariable;
@@ -97,12 +95,8 @@ public class SpoofaxAstToGraphQuery {
   private static final int POS_CAST_EXP = 0;
   private static final int POS_CAST_TARGET_TYPE_NAME = 1;
   private static final int POS_EXISTS_SUBQUERY = 0;
-  private static final int POS_ALL_DIFFERENT_EXPS = 0;
   private static final int POS_TO_TEMPORAL_STRING = 0;
   private static final int POS_TO_TEMPORAL_FORMAT = 1;
-  private static final int POS_ST_X_EXP = 0;
-  private static final int POS_ST_Y_EXP = 0;
-  private static final int POS_ST_POINT_FROM_TEXT_EXP = 0;
   private static final int POS_FUNCTION_CALL_PACKAGE_NAME = 0;
   private static final int POS_FUNCTION_CALL_ROUTINE_NAME = 1;
   private static final int POS_FUNCTION_CALL_EXPS = 2;
@@ -312,7 +306,10 @@ public class SpoofaxAstToGraphQuery {
       QueryVertex src = new QueryVertex("n", true);
       QueryVertex dst = new QueryVertex("m", true);
       VertexPairConnection edge = new QueryEdge(src, dst, "e", true, true);
-      QueryExpression labelExp = new HasLabel(new VarRef(edge), new ConstString(pathPatternName));
+      List<QueryExpression> args = new ArrayList<>();
+      args.add(new VarRef(edge));
+      args.add(new ConstString(pathPatternName));
+      QueryExpression labelExp = new QueryExpression.FunctionCall("has_label", args);
 
       vertices = new ArrayList<>();
       vertices.add(src);
@@ -537,33 +534,6 @@ public class SpoofaxAstToGraphQuery {
         var = getVariable(inScopeVars, varName);
         String propname = getString(t.getSubterm(POS_PROPREF_PROPNAME));
         return new QueryExpression.PropertyAccess(var, propname);
-      case "Regex":
-        exp1 = translateExp(t.getSubterm(POS_BINARY_EXP_LEFT), inScopeVars, inScopeInAggregationVars);
-        exp2 = translateExp(t.getSubterm(POS_BINARY_EXP_RIGHT), inScopeVars, inScopeInAggregationVars);
-        return new QueryExpression.Function.Regex(exp1, exp2);
-      case "Label":
-        exp = translateExp(t.getSubterm(POS_UNARY_EXP), inScopeVars, inScopeInAggregationVars);
-        return new QueryExpression.Function.EdgeLabel(exp);
-      case "Labels":
-        exp = translateExp(t.getSubterm(POS_UNARY_EXP), inScopeVars, inScopeInAggregationVars);
-        return new QueryExpression.Function.VertexLabels(exp);
-      case "Id":
-        exp = translateExp(t.getSubterm(POS_UNARY_EXP), inScopeVars, inScopeInAggregationVars);
-        return new QueryExpression.Function.Id(exp);
-      case "Has":
-        exp1 = translateExp(t.getSubterm(POS_BINARY_EXP_LEFT), inScopeVars, inScopeInAggregationVars);
-        exp2 = translateExp(t.getSubterm(POS_BINARY_EXP_RIGHT), inScopeVars, inScopeInAggregationVars);
-        return new QueryExpression.Function.HasProp(exp1, exp2);
-      case "HasLabel":
-        exp1 = translateExp(t.getSubterm(POS_BINARY_EXP_LEFT), inScopeVars, inScopeInAggregationVars);
-        exp2 = translateExp(t.getSubterm(POS_BINARY_EXP_RIGHT), inScopeVars, inScopeInAggregationVars);
-        return new QueryExpression.Function.HasLabel(exp1, exp2);
-      case "InDegree":
-        exp = translateExp(t.getSubterm(POS_UNARY_EXP), inScopeVars, inScopeInAggregationVars);
-        return new QueryExpression.Function.InDegree(exp);
-      case "OutDegree":
-        exp = translateExp(t.getSubterm(POS_UNARY_EXP), inScopeVars, inScopeInAggregationVars);
-        return new QueryExpression.Function.OutDegree(exp);
       case "Cast":
         exp = translateExp(t.getSubterm(POS_CAST_EXP), inScopeVars, inScopeInAggregationVars);
         String targetTypeName = getString(t.getSubterm(POS_CAST_TARGET_TYPE_NAME));
@@ -572,19 +542,6 @@ public class SpoofaxAstToGraphQuery {
         IStrategoTerm subqueryT = t.getSubterm(POS_EXISTS_SUBQUERY);
         GraphQuery subquery = translate(subqueryT, inScopeVars);
         return new QueryExpression.Function.Exists(subquery);
-      case "AllDifferent":
-        IStrategoTerm expsT = t.getSubterm(POS_ALL_DIFFERENT_EXPS);
-        List<QueryExpression> exps = varArgsToExps(inScopeVars, inScopeInAggregationVars, expsT);
-        return new QueryExpression.Function.AllDifferent(exps);
-      case "StX":
-        exp = translateExp(t.getSubterm(POS_ST_X_EXP), inScopeVars, inScopeInAggregationVars);
-        return new SpatialFunction.StX(exp);
-      case "StY":
-        exp = translateExp(t.getSubterm(POS_ST_Y_EXP), inScopeVars, inScopeInAggregationVars);
-        return new SpatialFunction.StY(exp);
-      case "StPointFromText":
-        exp = translateExp(t.getSubterm(POS_ST_POINT_FROM_TEXT_EXP), inScopeVars, inScopeInAggregationVars);
-        return new SpatialFunction.StPointFromText(exp);
       case "ToDate":
         String dateString = getString(t.getSubterm(POS_TO_TEMPORAL_STRING));
         String unquotedDateString = dateString.substring(1, dateString.length() - 1);

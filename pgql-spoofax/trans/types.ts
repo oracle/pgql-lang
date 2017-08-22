@@ -48,19 +48,3 @@ type rules
   String(_)               : StringTy()
   Time(_)                 : TimeTy()
   Timestamp(_)            : TimestampTy()
-
-type rules // LEGACY (PGQL 1.0 and earlier)
-
-  Id(exp) : UnknownTy()
-
-  InDegree(exp) + OutDegree(exp) : NumericTy()
-
-  Labels(exp) : StringSetTy()
-
-  Label(exp) : StringTy()
-
-  Has(exp, _) + HasLabel(exp, _) : BooleanTy()
-
-  Regex(_, _) : BooleanTy()
-
-  Null() : UnknownTy()

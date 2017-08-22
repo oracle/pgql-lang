@@ -16,6 +16,8 @@ rules
       bindVariable-counter := <new-counter>;
       deprecations := <collect-om(get-deprecation)> ast;
       result := <
+        alltd(norm-has-prop);
+        alltd(norm-pgql10);
       	alltd(norm-BindVariable(|bindVariable-counter));
       	alltd(norm-UMin);
         innermost(
@@ -26,7 +28,6 @@ rules
         );
       	alltd(norm-edgeContents);
         alltd(norm-string);
-        alltd(norm-has-prop);
         alltd(norm-hop-distance);
         alltd(name-unnamed-elems);
         alltd(norm-inlined-references);
@@ -41,12 +42,41 @@ rules
   get-deprecation = (?OutConn(None()) + ?InConn(None()) + ?UndirectedEdge(None())); to-deprecation(|"Use \"-\" instead of \"--\"")
   get-deprecation = ?Pgql10AsignSymbol(); to-deprecation(|"Use \"AS\" instead of \":=\"")
 
+  get-deprecation = ?Legacy10Label(_); to-deprecation(|"Use \"label(x)\" instead of \"x.label()\"")
+  get-deprecation = ?Legacy10Labels(_); to-deprecation(|"Use \"labels(x)\" instead of \"x.labels()\"")
+  get-deprecation = ?Legacy10HasLabel(_, _); to-deprecation(|"Use \"has_label(x, 'lbl')\" instead of \"x.hasLabel('lbl')\"")
+  get-deprecation = ?Legacy10Id(_); to-deprecation(|"Use \"id(x)\" instead of \"x.id()\"")
+  get-deprecation = ?Legacy10Has(_, _); to-deprecation(|"Use \"x.prop IS NULL\" instead of \"x.has(prop)\"")
+  get-deprecation = ?Legacy10InDegree(_); to-deprecation(|"Use \"in_degree(x)\" instead of \"x.indegree()\"")
+  get-deprecation = ?Legacy10OutDegree(_); to-deprecation(|"Use \"out_degree(x)\" instead of \"x.out_degree()\"")
+
+  get-deprecation = ?String(<id>); is-double-quoted; to-deprecation(|"Use single quotes for character string literals (not double quotes)")
+  get-deprecation = ?Ids(_); to-deprecation(|"Use \"id(x) = xyz\" instead of \"@xyz\"")
+  get-deprecation = ?InlinedConstraint(_); to-deprecation(|"Constraints should be specified in the WHERE clause instead of the WTIH")
+  get-deprecation = ?Legacy10Not(_); to-deprecation(|"Use \"NOT\" instead of \"!\"")
+  get-deprecation = ?Legacy10CallStatement(_, _, _); to-deprecation(|"Use \"func(..)\" instead of \"CALL func(..)\"")
+  get-deprecation = ?Legacy10Regex(_, _); to-deprecation(|"Use \"java_regex(exp1, exp2)\" instead of \"exp1 =~ exp2\"")
+//  get-deprecation = ?Legacy10Not(_); to-deprecation(|"ORDER BY vertex or edge not allowed")
+
+  // pgql 1.0 should not allow FROM or EXISTS 
+
   to-deprecation(|message) = !Deprecation(<origin-track-forced(!message)> <id>)
+
+  norm-pgql10 = ?Legacy10Label(x); <to-function(|"label")> [x]
+  norm-pgql10 = ?Legacy10Labels(x); <to-function(|"labels")> [x]
+  norm-pgql10 = ?Legacy10HasLabel(x, lbl); <to-function(|"has_label")> [x, lbl]
+  norm-pgql10 = ?Legacy10Id(x); <to-function(|"id")> [x]
+  norm-pgql10 = ?Legacy10Has(x, prop); <to-function(|"legacy10_has_prop")> [x, prop]
+  norm-pgql10 = ?Legacy10InDegree(x); <to-function(|"in_degree")> [x]
+  norm-pgql10 = ?Legacy10OutDegree(x); <to-function(|"out_degree")> [x]
+
+  to-function(|name):
+    args -> FunctionCall(None(), "label", args)
 
   norm-BindVariable(|c) = ?BindVariable(); !BindVariable(<next-counter> c)
 
   norm-UMin = ?UMin(Decimal(string)); !Decimal(<conc-strings> ("-", string))
-  
+
   norm-NOT = ?Legacy10Not(<id>); !Not(<id>)
 
   norm-NEQ = ?Neq1(exp1, exp2); !Neq(exp1, exp2)
@@ -117,8 +147,8 @@ rules
     ElemContents(Some(var), label, id', otherConstraint) -> [labels, identifiers, otherConstraint']
     with
       labels := <?Some(Labels(<id>)); to-label-constraints(|var, vertexOrEdge) <+ ![]> label;
-    	identifiers := <?Some(Ids(<id>)); to-id-constraints(|var) <+ ![]> id';
-    	otherConstraint' := <?Some(Constraint(<id>)) <+ ![]> otherConstraint
+      identifiers := <?Some(Ids(<id>)); to-id-constraints(|var) <+ ![]> id';
+      otherConstraint' := <?Some(InlinedConstraint(<id>)) <+ ![]> otherConstraint
 
   to-label-constraints(|var, vertexOrEdge):
     labels -> result
@@ -127,9 +157,9 @@ rules
       then result := <to-hasLabel-expressions(|var)> labels
       else result := <to-label-equals-expressions(|var)> labels
       end
-  to-hasLabel-expressions(|var) = bottomup(try(is-literal; origin-track-forced(!FunctionCall(None(), String("hasLabel"), [<origin-track-forced(!VarRef(var))> <id>, <id>]))))
-  to-label-equals-expressions(|var) = bottomup(try(is-literal; origin-track-forced(!Eq(<origin-track-forced(!FunctionCall(None(), String("label"), [VarRef(var)]))> <id>, <id>))))
-  to-id-constraints(|var) = bottomup(try(is-literal; origin-track-forced(!Eq(Id(VarRef(var)), <id>))))
+  to-hasLabel-expressions(|var) = bottomup(try(is-literal; ![VarRef(var), <id>]; to-function(|"has_label")))
+  to-label-equals-expressions(|var) = bottomup(try(is-literal; ![VarRef(var), <id>]; to-function(|"label")))
+  to-id-constraints(|var) = bottomup(try(is-literal; origin-track-forced(!Eq(<to-function(|"id")> VarRef(var), <id>))))
 
   // base case: no paths
   get-edges:
@@ -190,8 +220,8 @@ rules
 
 rules
 
-  norm-has-prop = ?Has(varRef, [prop]); !Has(varRef, prop) <+
-                  ?Has(varRef, <id>); map(!Has(varRef, <id>)); create-conjunct
+  norm-has-prop = ?Legacy10Has(varRef, [prop]); !Legacy10Has(varRef, prop) <+
+                  ?Legacy10Has(varRef, <id>); map(!Legacy10Has(varRef, <id>)); create-conjunct
 
   create-conjunct = reverse; !(<Tl>, <Hd>); foldl(create-OR)
   create-OR = ?(exp1, exp2); !And(exp1, exp2)
@@ -212,8 +242,9 @@ rules
     Query(commonPathExpressions, selectClause, fromClause, graphPattern, whereClause, groupByClause, orderByClause, limitOffsets) ->
       <norm-query> Query(commonPathExpressions, selectClause, fromClause, graphPattern', groupByClause, orderByClause, limitOffsets)
     with
-      <?GraphPattern(vertices, edges, paths, _)> graphPattern;
-      constraints := <?Some(WhereClause(<id>)); ![<id>] + ?None(); ![]> whereClause;
+      <?GraphPattern(vertices, edges, paths, Constraints(inlined-constraints))> graphPattern;
+      non-inlined-constraints := <?Some(WhereClause(<id>)); ![<id>] + ?None(); ![]> whereClause;
+      constraints := Constraints(<conc> (inlined-constraints,  non-inlined-constraints));
       graphPattern' := GraphPattern(vertices, edges, paths, constraints)
 
   // pgql 1.0

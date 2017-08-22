@@ -28,7 +28,8 @@ context-free syntax // pgql-lang
 
 lexical syntax
 
-  LEGACY10-STRING = '"' (~[\"\n\\] | ESCAPE-CHAR)* '"'
+  LEGACY10-STRING = STRING | LEGACY10-DOULBE-QUOTED-STRING
+  LEGACY10-DOULBE-QUOTED-STRING = '"' (~[\"\n\\] | ESCAPE-CHAR)* '"'
 
 context-free syntax // GraphPattern.sdf3
 
@@ -45,7 +46,7 @@ context-free syntax // GraphPattern.sdf3
   Vertex.VertexWithoutBrackets = <<IDENTIFIER>> // deprecated
 
   Legacy10Ids.Ids = <@<AltLit>>
-  Legacy10WithInlinedConstraints.Constraint = < with <{Legacy10InlinedExp ", "}+>> {case-insensitive}
+  Legacy10WithInlinedConstraints.InlinedConstraint = < with <{Legacy10InlinedExp ", "}+>> {case-insensitive}
 
 context-free syntax // SolutionModifiers
 
@@ -76,11 +77,11 @@ context-free syntax // Expressions.sdf3
   Legacy10InlinedExp = Literal {prefer}
   Legacy10InlinedExp = InlinedCall
   
-  Legacy10InlinedExp.SelfPropRef = <<Prop>>
-  Legacy10InlinedExp.SelfPropRef = <<Dot><Prop>>
+  Legacy10InlinedExp.SelfPropRef = <<IDENTIFIER>>
+  Legacy10InlinedExp.SelfPropRef = <<Dot><IDENTIFIER>>
   
-  Legacy10InlinedExp.Not1 = <!<Legacy10InlinedExp>> {right}
-  Legacy10InlinedExp.Not2 = <not <Legacy10InlinedExp>> {right, case-insensitive}
+  Legacy10InlinedExp.Legacy10Not = <!<Legacy10InlinedExp>> {right}
+  Legacy10InlinedExp.Not = <not <Legacy10InlinedExp>> {right, case-insensitive}
   Legacy10InlinedExp.UMin = <-<Legacy10InlinedExp>> {right}
 
   Legacy10InlinedExp.And = <<Legacy10InlinedExp> and <Legacy10InlinedExp>> {left, case-insensitive}
@@ -99,15 +100,15 @@ context-free syntax // Expressions.sdf3
   Legacy10InlinedExp.Neq1 = [[Legacy10InlinedExp] != [Legacy10InlinedExp]] {left}
   Legacy10InlinedExp.Neq2 = [[Legacy10InlinedExp] <> [Legacy10InlinedExp]] {left}
 
-  Legacy10InlinedExp.Regex = [[Legacy10InlinedExp] =~ [Legacy10InlinedExp]] {left, prefer}
+  Legacy10InlinedExp.Legacy10Regex = [[Legacy10InlinedExp] =~ [Legacy10InlinedExp]] {left, prefer}
 
-  InlinedCall.Label = <<Obj>label()> {case-insensitive}
-  InlinedCall.Labels = <<Obj>labels()> {case-insensitive}
-  InlinedCall.HasLabel = <<Obj>hasLabel(<Exp>)> {case-insensitive}
-  InlinedCall.Id = <<Obj>id()> {case-insensitive}
-  InlinedCall.Has = <<Obj>has(<{Exp ", "}*>)> {case-insensitive}
-  InlinedCall.InDegree  = <<Obj>inDegree()> {case-insensitive}
-  InlinedCall.OutDegree = <<Obj>outDegree()> {case-insensitive}
+  InlinedCall.Legacy10Label = <<Obj>label()> {case-insensitive}
+  InlinedCall.Legacy10Labels = <<Obj>labels()> {case-insensitive}
+  InlinedCall.Legacy10HasLabel = <<Obj>hasLabel(<Exp>)> {case-insensitive}
+  InlinedCall.Legacy10Id = <<Obj>id()> {case-insensitive}
+  InlinedCall.Legacy10Has = <<Obj>has(<{Exp ", "}*>)> {case-insensitive}
+  InlinedCall.Legacy10InDegree  = <<Obj>inDegree()> {case-insensitive}
+  InlinedCall.Legacy10OutDegree = <<Obj>outDegree()> {case-insensitive}
 
   Dot.Dot = <.>
   Obj.Obj = <<VarRef><Dot>>
@@ -117,19 +118,19 @@ context-free priorities
 
   {
     left:
-      InlinedCall.Label
-      InlinedCall.Labels
-      InlinedCall.HasLabel
-      InlinedCall.Id
-      InlinedCall.Has
-      InlinedCall.InDegree
-      InlinedCall.OutDegree
+      InlinedCall.Legacy10Label
+      InlinedCall.Legacy10Labels
+      InlinedCall.Legacy10HasLabel
+      InlinedCall.Legacy10Id
+      InlinedCall.Legacy10Has
+      InlinedCall.Legacy10InDegree
+      InlinedCall.Legacy10OutDegree
   }
   >
   {
     right:
       Legacy10InlinedExp.UMin
-      Legacy10InlinedExp.Not1
+      Legacy10InlinedExp.Legacy10Not
   }
   >
   {
@@ -154,12 +155,12 @@ context-free priorities
       Legacy10InlinedExp.Lt
       Legacy10InlinedExp.Gte
       Legacy10InlinedExp.Lte
-      Legacy10InlinedExp.Regex
+      Legacy10InlinedExp.Legacy10Regex
   }
   >
   {
     right:
-      Legacy10InlinedExp.Not2
+      Legacy10InlinedExp.Not
   }
   >
   {

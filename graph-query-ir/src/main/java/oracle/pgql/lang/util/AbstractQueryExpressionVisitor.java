@@ -22,21 +22,9 @@ import oracle.pgql.lang.ir.QueryExpression.Constant.ConstTime;
 import oracle.pgql.lang.ir.QueryExpression.Constant.ConstTimeWithTimezone;
 import oracle.pgql.lang.ir.QueryExpression.Constant.ConstTimestamp;
 import oracle.pgql.lang.ir.QueryExpression.Constant.ConstTimestampWithTimezone;
-import oracle.pgql.lang.ir.QueryExpression.Function.AllDifferent;
-import oracle.pgql.lang.ir.SpatialFunction.StPointFromText;
-import oracle.pgql.lang.ir.SpatialFunction.StX;
-import oracle.pgql.lang.ir.SpatialFunction.StY;
 import oracle.pgql.lang.ir.QueryExpression.FunctionCall;
 import oracle.pgql.lang.ir.QueryExpression.Function.Cast;
 import oracle.pgql.lang.ir.QueryExpression.Function.Exists;
-import oracle.pgql.lang.ir.QueryExpression.Function.EdgeLabel;
-import oracle.pgql.lang.ir.QueryExpression.Function.HasLabel;
-import oracle.pgql.lang.ir.QueryExpression.Function.HasProp;
-import oracle.pgql.lang.ir.QueryExpression.Function.Id;
-import oracle.pgql.lang.ir.QueryExpression.Function.InDegree;
-import oracle.pgql.lang.ir.QueryExpression.Function.OutDegree;
-import oracle.pgql.lang.ir.QueryExpression.Function.Regex;
-import oracle.pgql.lang.ir.QueryExpression.Function.VertexLabels;
 import oracle.pgql.lang.ir.QueryExpression.LogicalExpression.And;
 import oracle.pgql.lang.ir.QueryExpression.LogicalExpression.Not;
 import oracle.pgql.lang.ir.QueryExpression.LogicalExpression.Or;
@@ -219,49 +207,6 @@ public abstract class AbstractQueryExpressionVisitor implements QueryExpressionV
   }
 
   @Override
-  public void visit(Regex regex) {
-    regex.getExp1().accept(this);
-    regex.getExp2().accept(this);
-  }
-
-  @Override
-  public void visit(Id id) {
-    id.getExp().accept(this);
-  }
-
-  @Override
-  public void visit(HasProp hasProp) {
-    hasProp.getExp1().accept(this);
-    hasProp.getExp2().accept(this);
-  }
-
-  @Override
-  public void visit(HasLabel hasLabel) {
-    hasLabel.getExp1().accept(this);
-    hasLabel.getExp2().accept(this);
-  }
-
-  @Override
-  public void visit(VertexLabels vertexLabels) {
-    vertexLabels.getExp().accept(this);
-  }
-
-  @Override
-  public void visit(InDegree inDegree) {
-    inDegree.getExp().accept(this);
-  }
-
-  @Override
-  public void visit(OutDegree outDegree) {
-    outDegree.getExp().accept(this);
-  }
-
-  @Override
-  public void visit(EdgeLabel edgeLabel) {
-    edgeLabel.getExp().accept(this);
-  }
-
-  @Override
   public void visit(Cast cast) {
     cast.getExp().accept(this);
   }
@@ -269,25 +214,6 @@ public abstract class AbstractQueryExpressionVisitor implements QueryExpressionV
   @Override
   public void visit(Exists exists) {
     // TODO
-  }
-
-  @Override
-  public void visit(AllDifferent allDifferent) {
-    allDifferent.getExps().stream().forEach(e -> e.accept(this));
-  }
-
-  @Override
-  public void visit(StX getX) {
-    getX.getExp().accept(this);
-  }
-
-  @Override
-  public void visit(StY getY) {
-    getY.getExp().accept(this);
-  }
-
-  public void visit(StPointFromText pointFromText) {
-    pointFromText.getExp().accept(this);
   }
 
   public void visit(CallStatement callStatement) {

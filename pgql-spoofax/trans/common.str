@@ -7,11 +7,11 @@ imports
 
 rules
 
-  is-literal = ?Integer(_) + ?Decimal(_) + ?String(_) + ?True() + ?False() + ?Null() + ?BindVariable(_)
+  is-literal = ?Integer(_) + ?Decimal(_) + ?String(_) + ?True() + ?False() + ?BindVariable(_)
   is-aggregate = ?COUNT(_, _) + ?MIN(_, _) + ?MAX(_, _) + ?SUM(_, _) + ?AVG(_, _)
   is-expression = ?Not(_) + ?And(_, _) + ?Or(_, _) + ?Mul(_, _) + ?Add(_, _) + ?Div(_, _) + ?Mod(_, _) +
-        ?Sub(_, _) + ?Eq(_, _) + ?Lt(_, _) + ?Gte(_, _) + ?Lte(_, _) + ?Neq(_, _) + ?Regex(_, _)
-  is-function = ?Id(_) + ?Label(_) + ?Has(_, _) + ?InDegree(_) + ?OutDegree(_) + ?HasLabel(_, _)
+        ?Sub(_, _) + ?Eq(_, _) + ?Lt(_, _) + ?Gte(_, _) + ?Lte(_, _) + ?Neq(_, _) + ?Legacy10Regex(_, _)
+  is-function = ?Legacy10Id(_) + ?Legacy10Label(_) + ?Legacy10Has(_, _) + ?Legacy10InDegree(_) + ?Legacy10OutDegree(_) + ?Legacy10HasLabel(_, _)
 
   get-exp-from-aggregation = ?COUNT(_, <id>) + ?MIN(_, <id>) + ?MAX(_, <id>) + ?SUM(_, <id>) + ?AVG(_, <id>)
 
