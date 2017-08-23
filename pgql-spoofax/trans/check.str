@@ -83,7 +83,7 @@ rules
     ; <batch-generate-error(|ctx, "Aggregation in ORDER BY only allowed if SELECT constains aggregations, or, in combination with GROUP BY")> aggregations
 
   nabl-constraint(|ctx):
-    Query(_, Vars(select-exps), _, _, group-by, order-by, _) -> <fail>
+    Query(_, Vars(select-exps), _, _, group-by, order-by, _, _) -> <fail>
     with
       group-refs := <collect-om(?GroupRef(<id>), conc)> select-exps
     ; select-or-group-refs := <collect-om(?SelectOrGroupRef(<id>), conc)> order-by
@@ -166,3 +166,8 @@ rules // helper rules
     Or(_, PathPatternRef(p)) -> <fail>
     where
       <generate-error(|ctx, "Alternative path patterns not yet supported")> p
+
+  nabl-constraint(|ctx):
+    ErrorMessage(m) -> <fail>
+    where
+      <generate-error(|ctx, m)> m

@@ -56,4 +56,4 @@ signature constructors // for error checking (see trans/check.str)
 
   ReferenceInInlinedConstraint      : Var -> ReferenceInInlinedConstraint
   CrossReferenceInInlinedConstraint : Var -> CrossReferenceInInlinedConstraint
-  Deprecation                       : STRING -> Deprecation
+  ErrorMessage                      : STRING -> ErrorMessage

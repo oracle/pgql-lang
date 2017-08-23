@@ -14,7 +14,7 @@ rules
     ast -> result
     with
       bindVariable-counter := <new-counter>;
-      deprecations := <collect-om(get-deprecation)> ast;
+      error-messages := <is-pgql10; collect-om(get-pgql10-limitiation) <+ collect-om(get-deprecation)> ast;
       result := <
         alltd(norm-has-prop);
         alltd(norm-pgql10);
@@ -34,33 +34,33 @@ rules
         bottomup(try(
            norm-matchElems
         ));
-        bottomup(try(origin-track-forced(norm-query)))
+        bottomup(try(origin-track-forced(norm-query(|error-messages))))
       > ast
 
 rules
 
-  get-deprecation = (?OutConn(None()) + ?InConn(None()) + ?UndirectedEdge(None())); to-deprecation(|"Use \"-\" instead of \"--\"")
-  get-deprecation = ?Pgql10AsignSymbol(); to-deprecation(|"Use \"AS\" instead of \":=\"")
+  is-pgql10 = ?Query(_, _, _, _, _, _, _)
 
-  get-deprecation = ?Legacy10Label(_); to-deprecation(|"Use \"label(x)\" instead of \"x.label()\"")
-  get-deprecation = ?Legacy10Labels(_); to-deprecation(|"Use \"labels(x)\" instead of \"x.labels()\"")
-  get-deprecation = ?Legacy10HasLabel(_, _); to-deprecation(|"Use \"has_label(x, 'lbl')\" instead of \"x.hasLabel('lbl')\"")
-  get-deprecation = ?Legacy10Id(_); to-deprecation(|"Use \"id(x)\" instead of \"x.id()\"")
-  get-deprecation = ?Legacy10Has(_, _); to-deprecation(|"Use \"x.prop IS NULL\" instead of \"x.has(prop)\"")
-  get-deprecation = ?Legacy10InDegree(_); to-deprecation(|"Use \"in_degree(x)\" instead of \"x.indegree()\"")
-  get-deprecation = ?Legacy10OutDegree(_); to-deprecation(|"Use \"out_degree(x)\" instead of \"x.out_degree()\"")
+  get-deprecation = (?OutConn(None()) + ?InConn(None()) + ?UndirectedEdge(None())); to-error-message(|"Use \"-\" instead of \"--\"")
+  get-deprecation = ?Pgql10AsignSymbol(); to-error-message(|"Use \"AS\" instead of \":=\"")
+  get-deprecation = ?Legacy10Label(_); to-error-message(|"Use \"label(x)\" instead of \"x.label()\"")
+  get-deprecation = ?Legacy10Labels(_); to-error-message(|"Use \"labels(x)\" instead of \"x.labels()\"")
+  get-deprecation = ?Legacy10HasLabel(_, _); to-error-message(|"Use \"has_label(x, 'lbl')\" instead of \"x.hasLabel('lbl')\"")
+  get-deprecation = ?Legacy10Id(_); to-error-message(|"Use \"id(x)\" instead of \"x.id()\"")
+  get-deprecation = ?Legacy10Has(_, _); to-error-message(|"Use \"x.prop IS NULL\" instead of \"x.has(prop)\"")
+  get-deprecation = ?Legacy10InDegree(_); to-error-message(|"Use \"in_degree(x)\" instead of \"x.indegree()\"")
+  get-deprecation = ?Legacy10OutDegree(_); to-error-message(|"Use \"out_degree(x)\" instead of \"x.out_degree()\"")
 
-  get-deprecation = ?String(<id>); is-double-quoted; to-deprecation(|"Use single quotes for character string literals (not double quotes)")
-  get-deprecation = ?Ids(_); to-deprecation(|"Use \"id(x) = xyz\" instead of \"@xyz\"")
-  get-deprecation = ?InlinedConstraint(_); to-deprecation(|"Constraints should be specified in the WHERE clause instead of the WTIH")
-  get-deprecation = ?Legacy10Not(_); to-deprecation(|"Use \"NOT\" instead of \"!\"")
-  get-deprecation = ?Legacy10CallStatement(_, _, _); to-deprecation(|"Use \"func(..)\" instead of \"CALL func(..)\"")
-  get-deprecation = ?Legacy10Regex(_, _); to-deprecation(|"Use \"java_regexp_like(exp1, exp2)\" instead of \"exp1 =~ exp2\"")
-//  get-deprecation = ?Legacy10Not(_); to-deprecation(|"ORDER BY vertex or edge not allowed")
+  get-deprecation = ?String(<id>); is-double-quoted; to-error-message(|"Use single quotes for character string literals (not double quotes)")
+  get-deprecation = ?Ids(_); to-error-message(|"Use \"id(x) = xyz\" instead of \"@xyz\"")
+  get-deprecation = ?InlinedConstraint(_); to-error-message(|"Constraints should be specified in the WHERE clause instead of the WITH")
+  get-deprecation = ?Legacy10Not(_); to-error-message(|"Use \"NOT\" instead of \"!\"")
+  get-deprecation = ?Legacy10CallStatement(_, _, _); to-error-message(|"Use \"func(..)\" instead of \"CALL func(..)\"")
+  get-deprecation = ?Legacy10Regex(_, _); to-error-message(|"Use \"java_regexp_like(exp1, exp2)\" instead of \"exp1 =~ exp2\"")
 
-  // pgql 1.0 should not allow FROM or EXISTS 
+  get-pgql10-limitiation = (?FromClause(_) + ?Exists(_) + ?Pgql11AsignSymbol()); to-error-message(|"Use SELECT .. [FROM ..] MATCH pattern [WHERE filters] instead of SELECT .. WHERE pattern, filters")
 
-  to-deprecation(|message) = !Deprecation(<origin-track-forced(!message)> <id>)
+  to-error-message(|message) = !ErrorMessage(<origin-track-forced(!message)> <id>)
 
   norm-pgql10 = ?Legacy10Label(x); <to-function(|"label")> [x]
   norm-pgql10 = ?Legacy10Labels(x); <to-function(|"labels")> [x]
@@ -239,9 +239,9 @@ rules
 rules
 
   // pgql 1.1
-  norm-query:
+  norm-query(|error-messages):
     Query(commonPathExpressions, selectClause, fromClause, graphPattern, whereClause, groupByClause, orderByClause, limitOffsets) ->
-      <norm-query> Query(commonPathExpressions, selectClause, fromClause, graphPattern', groupByClause, orderByClause, limitOffsets)
+      <norm-query(|error-messages)> Query(commonPathExpressions, selectClause, fromClause, graphPattern', groupByClause, orderByClause, limitOffsets)
     with
       <?GraphPattern(vertices, edges, paths, Constraints(inlined-constraints))> graphPattern;
       non-inlined-constraints := <?Some(WhereClause(<id>)); ![<id>] + ?None(); ![]> whereClause;
@@ -249,9 +249,9 @@ rules
       graphPattern' := GraphPattern(vertices, edges, paths, constraints)
 
   // pgql 1.0
-  norm-query:
+  norm-query(|error-messages):
     Query(commonPathExpressions, SelectClause(projection), fromClause, graphPattern, groupByClause, orderByClause, limitOffsets) ->
-        Query(commonPathExpressions', projection', fromClause, graphPattern, groupByClause', orderByElems, limitOffsets')
+        Query(commonPathExpressions', projection', fromClause, graphPattern, groupByClause', orderByElems, limitOffsets', error-messages)
     with
       commonPathExpressions' := <map(norm-common-path-expression); !CommonPathExpressions(<id>)> commonPathExpressions;
 
