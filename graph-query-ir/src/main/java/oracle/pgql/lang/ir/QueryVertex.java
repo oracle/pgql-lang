@@ -46,4 +46,8 @@ public class QueryVertex extends QueryVariable {
     result = 31 * result + name.hashCode();
     return result;
   }
+
+  public void accept(QueryExpressionVisitor v) {
+    v.visit(this);
+  }
 }

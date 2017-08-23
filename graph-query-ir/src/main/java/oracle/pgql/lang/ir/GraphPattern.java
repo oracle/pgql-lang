@@ -67,4 +67,8 @@ public class GraphPattern {
     result = 31 * result + constraints.hashCode();
     return result;
   }
+
+  public void accept(QueryExpressionVisitor v) {
+    v.visit(this);
+  }
 }

@@ -56,4 +56,8 @@ public class QueryEdge extends VertexPairConnection {
       return false;
     return true;
   }
+
+  public void accept(QueryExpressionVisitor v) {
+    v.visit(this);
+  }
 }

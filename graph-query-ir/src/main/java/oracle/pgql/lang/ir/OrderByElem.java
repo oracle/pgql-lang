@@ -52,4 +52,8 @@ public class OrderByElem {
     result = 31 * result + (ascending ? 1 : 0);
     return result;
   }
+
+  public void accept(QueryExpressionVisitor v) {
+    v.visit(this);
+  }
 }

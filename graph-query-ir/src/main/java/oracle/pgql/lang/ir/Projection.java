@@ -42,4 +42,8 @@ public class Projection {
   public int hashCode() {
     return elements.hashCode();
   }
+
+  public void accept(QueryExpressionVisitor v) {
+    v.visit(this);
+  }
 }

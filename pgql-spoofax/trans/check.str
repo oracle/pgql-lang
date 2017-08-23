@@ -43,7 +43,7 @@ rules // Unresolved/duplicate variables
   nabl-constraint(|ctx):
     ExpAsGroupVar(_, v) -> <fail>
     where
-      <generate-error-on-duplicate(|ctx, NablNsVar1(), "Duplicate variable; variable already defined in the WHERE clause")> v
+      <generate-error-on-duplicate(|ctx, NablNsVar1(), "Duplicate variable; variable already defined in the MATCH clause")> v
 
   nabl-constraint(|ctx):
     ExpAsSelectVar(_, v) -> <fail>
@@ -69,7 +69,7 @@ rules // vertex in WHERE without rounded brackets
     where
       <string-ends-with(|<VERTEX_WITHOUT_BRACKETS>)> v
     with
-      <generate-error(|ctx, $<Vertices in the WHERE clause need to be surrounded by brackets: (<<origin-text> v>)>)> v
+      <generate-error(|ctx, $<Vertices need to be surrounded by brackets: (<<origin-text> v>)>)> v
 
 rules
   
@@ -113,13 +113,13 @@ rules
   nabl-constraint(|ctx):
     e@Distinct() -> <fail>
     with
-      <generate-error(|ctx, $[DISTINCT is not supported in PGQL 1.0])> e
+      <generate-error(|ctx, $[DISTINCT is not supported in PGQL 1.1])> e
 
   path-reference(|ctx):
     VarRef(v) -> <fail>
     where
       var-is-path := <var-is-path(|ctx)> v;
-      <task-create-error-on-success(|ctx, var-is-path, $[Path variables not supported in PGQL 1.0])> v
+      <task-create-error-on-success(|ctx, var-is-path, $[Path variables not supported in PGQL 1.1])> v
 
 rules // helper rules
 

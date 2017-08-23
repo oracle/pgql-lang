@@ -117,4 +117,24 @@ public interface QueryExpressionVisitor {
   public void visit(CallStatement callStatement);
 
   public void visit(FunctionCall functionCall);
+
+  public void visit(GraphQuery query);
+
+  public void visit(GraphPattern graphPattern);
+
+  public void visit(Projection projection);
+
+  public void visit(ExpAsVar expAsVar);
+
+  public void visit(QueryVertex queryVertex);
+
+  public void visit(QueryEdge queryEdge);
+
+  public void visit(QueryPath queryPath);
+
+  public void visit(GroupBy groupBy);
+
+  public void visit(OrderBy orderBy);
+
+  public void visit(OrderByElem orderByElem);
 }

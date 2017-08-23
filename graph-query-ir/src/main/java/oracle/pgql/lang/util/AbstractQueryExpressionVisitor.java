@@ -1,6 +1,13 @@
 package oracle.pgql.lang.util;
 
+import oracle.pgql.lang.ir.ExpAsVar;
+import oracle.pgql.lang.ir.GraphPattern;
 import oracle.pgql.lang.ir.GraphQuery;
+import oracle.pgql.lang.ir.GroupBy;
+import oracle.pgql.lang.ir.OrderBy;
+import oracle.pgql.lang.ir.OrderByElem;
+import oracle.pgql.lang.ir.Projection;
+import oracle.pgql.lang.ir.QueryEdge;
 import oracle.pgql.lang.ir.QueryExpression.Aggregation.AggrAvg;
 import oracle.pgql.lang.ir.QueryExpression.Aggregation.AggrCount;
 import oracle.pgql.lang.ir.QueryExpression.Aggregation.AggrMax;
@@ -39,6 +46,9 @@ import oracle.pgql.lang.ir.QueryExpression.RelationalExpression.NotEqual;
 import oracle.pgql.lang.ir.QueryExpression.Star;
 import oracle.pgql.lang.ir.QueryExpression.VarRef;
 import oracle.pgql.lang.ir.QueryExpressionVisitor;
+import oracle.pgql.lang.ir.QueryPath;
+import oracle.pgql.lang.ir.QueryVariable.VariableType;
+import oracle.pgql.lang.ir.QueryVertex;
 
 public abstract class AbstractQueryExpressionVisitor implements QueryExpressionVisitor {
 
@@ -212,20 +222,60 @@ public abstract class AbstractQueryExpressionVisitor implements QueryExpressionV
     cast.getExp().accept(this);
   }
 
-  @Override
-  public void visit(Exists exists) {
-    GraphQuery subquery = exists.getSubquery();
-    subquery.getProjection().getElements().stream().forEach(e -> e.getExp().accept(this));
-    subquery.getGraphPattern().getConstraints().stream().forEach(e -> e.accept(this));
-    subquery.getGroupBy().getElements().stream().forEach(e -> e.getExp().accept(this));
-    subquery.getOrderBy().getElements().stream().forEach(e -> e.getExp().accept(this));
-  }
-
   public void visit(CallStatement callStatement) {
     callStatement.getExps().stream().forEach(e -> e.accept(this));
   }
 
   public void visit(FunctionCall functionCall) {
     functionCall.getArgs().stream().forEach(e -> e.accept(this));
+  }
+
+  @Override
+  public void visit(Exists exists) {
+    exists.getSubquery().accept(this);
+  }
+
+  public void visit(GraphQuery query) {
+    query.getProjection().accept(this);
+    query.getGraphPattern().accept(this);
+    query.getGroupBy().accept(this);
+    query.getOrderBy().accept(this);
+  }
+
+  public void visit(GraphPattern graphPattern) {
+    graphPattern.getVertices().stream().forEach(e -> e.accept(this));
+    graphPattern.getConnections().stream().forEach(e -> e.accept(this));
+    graphPattern.getConstraints().stream().forEach(e -> e.accept(this));
+  }
+
+  public void visit(Projection projection) {
+    projection.getElements().stream().forEach(e -> e.accept(this));
+  }
+
+  public void visit(ExpAsVar expAsVar) {
+    expAsVar.getExp().accept(this);
+  }
+
+  public void visit(QueryVertex queryVertex) {
+  }
+
+  public void visit(QueryEdge queryEdge) {
+  }
+
+  public void visit(QueryPath queryPath) {
+    queryPath.getConnections().stream().forEach(e -> e.accept(this));
+    queryPath.getConstraints().stream().forEach(e -> e.accept(this));
+  }
+
+  public void visit(GroupBy groupBy) {
+    groupBy.getElements().stream().forEach(e -> e.accept(this));
+  }
+
+  public void visit(OrderBy orderBy) {
+    orderBy.getElements().stream().forEach(e -> e.accept(this));
+  }
+
+  public void visit(OrderByElem orderByElem) {
+    orderByElem.getExp().accept(this);
   }
 }

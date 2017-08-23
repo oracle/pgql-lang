@@ -61,4 +61,8 @@ public class ExpAsVar extends QueryVariable {
     result = 31 * result + exp.hashCode();
     return result;
   }
+
+  public void accept(QueryExpressionVisitor v) {
+    v.visit(this);
+  }
 }

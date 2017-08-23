@@ -109,4 +109,8 @@ public class GraphQuery {
     result = 31 * result + offset.hashCode();
     return result;
   }
+
+  public void accept(QueryExpressionVisitor v) {
+    v.visit(this);
+  }
 }

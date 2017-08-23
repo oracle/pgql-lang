@@ -271,7 +271,7 @@ rules
   norm-select-star(|graphPattern, group-exps):
     Star() -> expAsSelectVars
     with if [] := group-exps
-           then vars := <collect((?Vertex(<id>) + ?Edge(_, <id>, _, _)); not(is-substring(GENERATED)))> graphPattern
+           then vars := <collect(?Vertex(<id>) + ?Edge(_, <id>, _, _) + ?Exists(_)); filter(is-string; not(is-substring(GENERATED)))> graphPattern
            else vars := <map(?ExpAsVar(_, <id>))> group-exps
          end
        ; expAsSelectVars := <map(!ExpAsVar(VarRef(<id>), None()))> vars
