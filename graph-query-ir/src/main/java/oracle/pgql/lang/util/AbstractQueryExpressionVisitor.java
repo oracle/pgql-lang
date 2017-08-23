@@ -1,5 +1,6 @@
 package oracle.pgql.lang.util;
 
+import oracle.pgql.lang.ir.GraphQuery;
 import oracle.pgql.lang.ir.QueryExpression.Aggregation.AggrAvg;
 import oracle.pgql.lang.ir.QueryExpression.Aggregation.AggrCount;
 import oracle.pgql.lang.ir.QueryExpression.Aggregation.AggrMax;
@@ -213,7 +214,11 @@ public abstract class AbstractQueryExpressionVisitor implements QueryExpressionV
 
   @Override
   public void visit(Exists exists) {
-    // TODO
+    GraphQuery subquery = exists.getSubquery();
+    subquery.getProjection().getElements().stream().forEach(e -> e.getExp().accept(this));
+    subquery.getGraphPattern().getConstraints().stream().forEach(e -> e.accept(this));
+    subquery.getGroupBy().getElements().stream().forEach(e -> e.getExp().accept(this));
+    subquery.getOrderBy().getElements().stream().forEach(e -> e.getExp().accept(this));
   }
 
   public void visit(CallStatement callStatement) {
