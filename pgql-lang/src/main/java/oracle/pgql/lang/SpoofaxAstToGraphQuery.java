@@ -8,7 +8,6 @@ import java.time.LocalDateTime;
 import java.time.LocalTime;
 import java.time.OffsetDateTime;
 import java.time.OffsetTime;
-import java.time.format.DateTimeFormatter;
 import java.time.format.DateTimeParseException;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -95,8 +94,6 @@ public class SpoofaxAstToGraphQuery {
   private static final int POS_CAST_EXP = 0;
   private static final int POS_CAST_TARGET_TYPE_NAME = 1;
   private static final int POS_EXISTS_SUBQUERY = 0;
-  private static final int POS_TO_TEMPORAL_STRING = 0;
-  private static final int POS_TO_TEMPORAL_FORMAT = 1;
   private static final int POS_FUNCTION_CALL_PACKAGE_NAME = 0;
   private static final int POS_FUNCTION_CALL_ROUTINE_NAME = 1;
   private static final int POS_FUNCTION_CALL_EXPS = 2;
@@ -542,43 +539,6 @@ public class SpoofaxAstToGraphQuery {
         IStrategoTerm subqueryT = t.getSubterm(POS_EXISTS_SUBQUERY);
         GraphQuery subquery = translate(subqueryT, inScopeVars);
         return new QueryExpression.Function.Exists(subquery);
-      case "ToDate":
-        String dateString = getString(t.getSubterm(POS_TO_TEMPORAL_STRING));
-        String unquotedDateString = dateString.substring(1, dateString.length() - 1);
-        String dateFormat = getString(t.getSubterm(POS_TO_TEMPORAL_FORMAT));
-        String unquotedDateFormat = dateFormat.substring(1, dateFormat.length() - 1);
-
-        DateTimeFormatter dateFormatter = DateTimeFormatter.ofPattern(unquotedDateFormat);
-        LocalDate localDate = LocalDate.parse(unquotedDateString, dateFormatter);
-        return new QueryExpression.Constant.ConstDate(localDate);
-      case "ToTime":
-        String timeString = getString(t.getSubterm(POS_TO_TEMPORAL_STRING));
-        String unquotedTimeString = timeString.substring(1, timeString.length() - 1);
-        String timeFormat = getString(t.getSubterm(POS_TO_TEMPORAL_FORMAT));
-        String unquotedTimeFormat = timeFormat.substring(1, timeFormat.length() - 1);
-
-        DateTimeFormatter timeFormatter = DateTimeFormatter.ofPattern(unquotedTimeFormat);
-        try {
-          OffsetTime timeWithTimezone = OffsetTime.parse(unquotedTimeString, timeFormatter);
-          return new QueryExpression.Constant.ConstTimeWithTimezone(timeWithTimezone);
-        } catch (DateTimeParseException e) {
-          LocalTime localTime = LocalTime.parse(unquotedTimeString, timeFormatter);
-          return new QueryExpression.Constant.ConstTime(localTime);
-        }
-      case "ToTimestamp":
-        String timestampString = getString(t.getSubterm(POS_TO_TEMPORAL_STRING));
-        String unquotedTimestampString = timestampString.substring(1, timestampString.length() - 1);
-        String timestampFormat = getString(t.getSubterm(POS_TO_TEMPORAL_FORMAT));
-        String unquotedTimestampFormat = timestampFormat.substring(1, timestampFormat.length() - 1);
-
-        DateTimeFormatter timestampFormatter = DateTimeFormatter.ofPattern(unquotedTimestampFormat);
-        try {
-          OffsetDateTime timestampWithTimezone = OffsetDateTime.parse(unquotedTimestampString, timestampFormatter);
-          return new QueryExpression.Constant.ConstTimestampWithTimezone(timestampWithTimezone);
-        } catch (DateTimeParseException e) {
-          LocalDateTime localTimestamp = LocalDateTime.parse(unquotedTimestampString, timestampFormatter);
-          return new QueryExpression.Constant.ConstTimestamp(localTimestamp);
-        }
       case "CallStatement":
         IStrategoTerm packageDeclT = t.getSubterm(POS_FUNCTION_CALL_PACKAGE_NAME);
         String packageName = isNone(packageDeclT) ? null : getString(packageDeclT);
