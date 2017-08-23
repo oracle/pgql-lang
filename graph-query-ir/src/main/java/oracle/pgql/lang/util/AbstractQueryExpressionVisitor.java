@@ -221,6 +221,6 @@ public abstract class AbstractQueryExpressionVisitor implements QueryExpressionV
   }
 
   public void visit(FunctionCall functionCall) {
-    functionCall.getExps().stream().forEach(e -> e.accept(this));
+    functionCall.getArgs().stream().forEach(e -> e.accept(this));
   }
 }

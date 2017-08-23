@@ -41,3 +41,5 @@ lexical syntax // reserved keywords
   FUNCTION-NAME = 'sum' {reject}
   FUNCTION-NAME = 'avg' {reject}
   FUNCTION-NAME = 'exists' {reject}
+  FUNCTION-NAME = 'asc' {reject}
+  FUNCTION-NAME = 'desc' {reject}

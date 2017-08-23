@@ -66,9 +66,10 @@ rules
   norm-pgql10 = ?Legacy10Labels(x); <to-function(|"labels")> [x]
   norm-pgql10 = ?Legacy10HasLabel(x, lbl); <to-function(|"has_label")> [x, lbl]
   norm-pgql10 = ?Legacy10Id(x); <to-function(|"id")> [x]
-  norm-pgql10 = ?Legacy10Has(x, prop); <to-function(|"legacy10_has_prop")> [x, prop]
+  norm-pgql10 = ?Legacy10Has(x, prop); <to-function(|"has_prop")> [x, prop]
   norm-pgql10 = ?Legacy10InDegree(x); <to-function(|"in_degree")> [x]
   norm-pgql10 = ?Legacy10OutDegree(x); <to-function(|"out_degree")> [x]
+  norm-pgql10 = ?Legacy10Regex(x, regex); <to-function(|"java_regex")> [x, regex]
 
   to-function(|name):
     args -> FunctionCall(None(), name, args)
@@ -158,8 +159,8 @@ rules
       else result := <to-label-equals-expressions(|var)> labels
       end
   to-hasLabel-expressions(|var) = bottomup(try(is-literal; ![VarRef(var), <id>]; to-function(|"has_label")))
-  to-label-equals-expressions(|var) = bottomup(try(is-literal; ![VarRef(var), <id>]; to-function(|"label")))
-  to-id-constraints(|var) = bottomup(try(is-literal; origin-track-forced(!Eq(<to-function(|"id")> VarRef(var), <id>))))
+  to-label-equals-expressions(|var) = bottomup(try(is-literal; !Eq(<to-function(|"label")> [VarRef(var)], <id>)))
+  to-id-constraints(|var) = bottomup(try(is-literal; origin-track-forced(!Eq(<to-function(|"id")> [VarRef(var)], <id>))))
 
   // base case: no paths
   get-edges:
