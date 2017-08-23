@@ -39,24 +39,24 @@ rules
 
 rules
 
-  is-pgql10 = ?Query(_, _, _, _, _, _, _)
+  is-pgql10 = ?Query(_, _, _, _, _, _, _) // pgql 1.0 has 7 sub-terms while pgql 1.1 has 8
 
-  get-deprecation = (?OutConn(None()) + ?InConn(None()) + ?UndirectedEdge(None())); to-error-message(|"Use \"-\" instead of \"--\"")
-  get-deprecation = ?Pgql10AsignSymbol(); to-error-message(|"Use \"AS\" instead of \":=\"")
-  get-deprecation = ?Legacy10Label(_); to-error-message(|"Use \"label(x)\" instead of \"x.label()\"")
-  get-deprecation = ?Legacy10Labels(_); to-error-message(|"Use \"labels(x)\" instead of \"x.labels()\"")
-  get-deprecation = ?Legacy10HasLabel(_, _); to-error-message(|"Use \"has_label(x, 'lbl')\" instead of \"x.hasLabel('lbl')\"")
-  get-deprecation = ?Legacy10Id(_); to-error-message(|"Use \"id(x)\" instead of \"x.id()\"")
-  get-deprecation = ?Legacy10Has(_, _); to-error-message(|"Use \"x.prop IS NULL\" instead of \"x.has(prop)\"")
-  get-deprecation = ?Legacy10InDegree(_); to-error-message(|"Use \"in_degree(x)\" instead of \"x.indegree()\"")
-  get-deprecation = ?Legacy10OutDegree(_); to-error-message(|"Use \"out_degree(x)\" instead of \"x.out_degree()\"")
+  get-deprecation = (?OutConn(None()) + ?InConn(None()) + ?UndirectedEdge(None())); to-error-message(|"Use '-' instead of '--'")
+  get-deprecation = ?Pgql10AsignSymbol(); to-error-message(|"Use 'AS' instead of ':='")
+  get-deprecation = ?Legacy10Label(_); to-error-message(|"Use 'label(x)' instead of 'x.label()'")
+  get-deprecation = ?Legacy10Labels(_); to-error-message(|"Use 'labels(x)' instead of 'x.labels()'")
+  get-deprecation = ?Legacy10HasLabel(_, _); to-error-message(|"Use 'has_label(x, 'lbl')' instead of 'x.hasLabel('lbl')'")
+  get-deprecation = ?Legacy10Id(_); to-error-message(|"Use 'id(x)' instead of 'x.id()'")
+  get-deprecation = ?Legacy10Has(_, _); to-error-message(|"Use 'x.prop IS NOT NULL' instead of 'x.has(prop)'")
+  get-deprecation = ?Legacy10InDegree(_); to-error-message(|"Use 'in_degree(x)' instead of 'x.indegree()'")
+  get-deprecation = ?Legacy10OutDegree(_); to-error-message(|"Use 'out_degree(x)' instead of 'x.out_degree()'")
 
   get-deprecation = ?String(<id>); is-double-quoted; to-error-message(|"Use single quotes for character string literals (not double quotes)")
-  get-deprecation = ?Ids(_); to-error-message(|"Use \"id(x) = xyz\" instead of \"@xyz\"")
+  get-deprecation = ?Ids(_); to-error-message(|"Use 'id(x) = xyz' instead of '@xyz'")
   get-deprecation = ?InlinedConstraint(_); to-error-message(|"Constraints should be specified in the WHERE clause instead of the WITH")
-  get-deprecation = ?Legacy10Not(_); to-error-message(|"Use \"NOT\" instead of \"!\"")
-  get-deprecation = ?Legacy10CallStatement(_, _, _); to-error-message(|"Use \"func(..)\" instead of \"CALL func(..)\"")
-  get-deprecation = ?Legacy10Regex(_, _); to-error-message(|"Use \"java_regexp_like(exp1, exp2)\" instead of \"exp1 =~ exp2\"")
+  get-deprecation = ?Legacy10Not(_); to-error-message(|"Use 'NOT' instead of '!'")
+  get-deprecation = ?Legacy10CallStatement(_, _, _); to-error-message(|"Use 'func(..)' instead of 'CALL func(..)'")
+  get-deprecation = ?Legacy10Regex(_, _); to-error-message(|"Use 'java_regexp_like(exp1, exp2)' instead of 'exp1 =~ exp2'")
 
   get-pgql10-limitiation = (?FromClause(_) + ?Exists(_) + ?Pgql11AsignSymbol()); to-error-message(|"Use SELECT .. [FROM ..] MATCH pattern [WHERE filters] instead of SELECT .. WHERE pattern, filters")
 

@@ -40,7 +40,7 @@ type rules
   COUNT(_, exp) + MIN(_, exp)  + MAX(_, exp)  + SUM(_, exp)  + AVG(_, exp) : ty
   where exp : ty
 
-  Cast(_, _): UnknownTy()
+  Cast(_, _) + FunctionCall(_, _, _) + Legacy10CallStatement(_, _, _): UnknownTy()
 
   True() + False()        : BooleanTy()
   Date(_)                 : DateTy()
