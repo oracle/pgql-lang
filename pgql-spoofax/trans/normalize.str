@@ -55,7 +55,7 @@ rules
   get-deprecation = ?InlinedConstraint(_); to-deprecation(|"Constraints should be specified in the WHERE clause instead of the WTIH")
   get-deprecation = ?Legacy10Not(_); to-deprecation(|"Use \"NOT\" instead of \"!\"")
   get-deprecation = ?Legacy10CallStatement(_, _, _); to-deprecation(|"Use \"func(..)\" instead of \"CALL func(..)\"")
-  get-deprecation = ?Legacy10Regex(_, _); to-deprecation(|"Use \"java_regex(exp1, exp2)\" instead of \"exp1 =~ exp2\"")
+  get-deprecation = ?Legacy10Regex(_, _); to-deprecation(|"Use \"java_regexp_like(exp1, exp2)\" instead of \"exp1 =~ exp2\"")
 //  get-deprecation = ?Legacy10Not(_); to-deprecation(|"ORDER BY vertex or edge not allowed")
 
   // pgql 1.0 should not allow FROM or EXISTS 
@@ -69,7 +69,7 @@ rules
   norm-pgql10 = ?Legacy10Has(x, prop); <to-function(|"has_prop")> [x, prop]
   norm-pgql10 = ?Legacy10InDegree(x); <to-function(|"in_degree")> [x]
   norm-pgql10 = ?Legacy10OutDegree(x); <to-function(|"out_degree")> [x]
-  norm-pgql10 = ?Legacy10Regex(x, regex); <to-function(|"java_regex")> [x, regex]
+  norm-pgql10 = ?Legacy10Regex(x, regex); <to-function(|"java_regexp_like")> [x, regex]
 
   to-function(|name):
     args -> FunctionCall(None(), name, args)
