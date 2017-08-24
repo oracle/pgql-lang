@@ -37,6 +37,7 @@ import oracle.pgql.lang.ir.QueryExpression.ExpressionType;
 import oracle.pgql.lang.ir.QueryExpression.VarRef;
 import oracle.pgql.lang.ir.QueryPath;
 import oracle.pgql.lang.ir.QueryVariable;
+import oracle.pgql.lang.ir.QueryVariable.VariableType;
 import oracle.pgql.lang.ir.QueryVertex;
 import oracle.pgql.lang.ir.VertexPairConnection;
 import oracle.pgql.lang.util.SqlDateTimeFormatter;
@@ -213,7 +214,7 @@ public class SpoofaxAstToGraphQuery {
       String vertexName = getString(vertexT);
       QueryVertex vertex;
       if (varmap.containsKey(vertexName)) {
-        vertex = (QueryVertex) varmap.get(vertexName);
+        vertex = getQueryVertex(varmap, vertexName);
       } else {
         vertex = vertexName.contains(GENERATED_VAR_SUBSTR) ? new QueryVertex(toUniqueName(vertexName), true)
             : new QueryVertex(vertexName, false);
@@ -258,14 +259,25 @@ public class SpoofaxAstToGraphQuery {
     String dstName = getString(edgeT.getSubterm(POS_EDGE_DST));
     boolean directed = getConstructorName(edgeT.getSubterm(POS_EDGE_DIRECTION)).equals("Undirected") == false;
 
-    QueryVertex src = (QueryVertex) varmap.get(srcName);
-    QueryVertex dst = (QueryVertex) varmap.get(dstName);
+    QueryVertex src = getQueryVertex(varmap, srcName);
+    QueryVertex dst = getQueryVertex(varmap, dstName);
 
     QueryEdge edge = name.contains(GENERATED_VAR_SUBSTR) ? new QueryEdge(src, dst, toUniqueName(name), true, directed)
         : new QueryEdge(src, dst, name, false, directed);
 
     varmap.put(name, edge);
     return edge;
+  }
+
+  private static QueryVertex getQueryVertex(Map<String, QueryVariable> varmap, String vertexName) {
+    QueryVariable queryVariable = varmap.get(vertexName);
+    if (queryVariable.getVariableType() == VariableType.VERTEX) {
+      return (QueryVertex) queryVariable;
+    } else {
+      // query has syntactic error and although Spoofax generates a grammatically correct AST, the AST is not semantically correct
+      QueryVertex dummyVertex = new QueryVertex(vertexName, false);
+      return dummyVertex;
+    }
   }
 
   private static Set<QueryPath> getPaths(IStrategoTerm pathsT, Map<String, IStrategoTerm> pathPatternMap,
@@ -340,8 +352,8 @@ public class SpoofaxAstToGraphQuery {
     String srcName = getString(pathT.getSubterm(POS_PATH_SRC));
     String dstName = getString(pathT.getSubterm(POS_PATH_DST));
     String name = getString(pathT.getSubterm(POS_PATH_NAME));
-    QueryVertex src = (QueryVertex) varmap.get(srcName);
-    QueryVertex dst = (QueryVertex) varmap.get(dstName);
+    QueryVertex src = getQueryVertex(varmap, srcName);
+    QueryVertex dst = getQueryVertex(varmap, dstName);
 
     QueryPath pathPattern = name.contains(GENERATED_VAR_SUBSTR)
         ? new QueryPath(src, dst, vertices, connections, constraints, toUniqueName(name), pathPatternName, true,
