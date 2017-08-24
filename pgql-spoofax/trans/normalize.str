@@ -47,10 +47,12 @@ rules
   get-deprecation = ?Legacy10Labels(_); to-error-message(|"Use 'labels(x)' instead of 'x.labels()'")
   get-deprecation = ?Legacy10HasLabel(_, _); to-error-message(|"Use 'has_label(x, 'lbl')' instead of 'x.hasLabel('lbl')'")
   get-deprecation = ?Legacy10Id(_); to-error-message(|"Use 'id(x)' instead of 'x.id()'")
-  get-deprecation = ?Legacy10Has(_, _); to-error-message(|"Use 'x.prop IS NOT NULL' instead of 'x.has(prop)'")
+  get-deprecation = ?Legacy10Has(_, _); to-error-message(|"Use 'has_prop(x, prop)' instead of 'x.has(prop)'")
   get-deprecation = ?Legacy10InDegree(_); to-error-message(|"Use 'in_degree(x)' instead of 'x.indegree()'")
   get-deprecation = ?Legacy10OutDegree(_); to-error-message(|"Use 'out_degree(x)' instead of 'x.out_degree()'")
 
+  get-deprecation = ?Legacy10Asc(x); to-error-message(|$[Use '[<origin-text> x] ASC' instead of 'ASC([<origin-text> x])')])
+  get-deprecation = ?Legacy10Desc(x); to-error-message(|$[Use '[<origin-text> x] DESC' instead of 'DESC)[<origin-text> x])')])
   get-deprecation = ?String(<id>); is-double-quoted; to-error-message(|"Use single quotes for character string literals (not double quotes)")
   get-deprecation = ?Ids(_); to-error-message(|"Use 'id(x) = xyz' instead of '@xyz'")
   get-deprecation = ?InlinedConstraint(_); to-error-message(|"Constraints should be specified in the WHERE clause instead of the WITH")
