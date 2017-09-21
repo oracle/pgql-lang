@@ -34,7 +34,6 @@ lexical syntax // reserved keywords
 
   IDENTIFIER = 'true' {reject}
   IDENTIFIER = 'false' {reject}
-  IDENTIFIER = 'not' {reject}
 
   FUNCTION-NAME = 'count' {reject}
   FUNCTION-NAME = 'min' {reject}
