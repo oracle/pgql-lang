@@ -15,7 +15,6 @@ import oracle.pgql.lang.ir.QueryExpression.ArithmeticExpression.Mul;
 import oracle.pgql.lang.ir.QueryExpression.ArithmeticExpression.Sub;
 import oracle.pgql.lang.ir.QueryExpression.ArithmeticExpression.UMin;
 import oracle.pgql.lang.ir.QueryExpression.BindVariable;
-import oracle.pgql.lang.ir.QueryExpression.CallStatement;
 import oracle.pgql.lang.ir.QueryExpressionVisitor;
 import oracle.pgql.lang.ir.QueryExpression.Constant.ConstBoolean;
 import oracle.pgql.lang.ir.QueryExpression.Constant.ConstDate;
@@ -113,8 +112,6 @@ public interface QueryExpressionVisitor {
   public void visit(Cast cast);
 
   public void visit(Exists exists);
-
-  public void visit(CallStatement callStatement);
 
   public void visit(FunctionCall functionCall);
 

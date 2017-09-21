@@ -20,7 +20,6 @@ import oracle.pgql.lang.ir.QueryExpression.ArithmeticExpression.Mul;
 import oracle.pgql.lang.ir.QueryExpression.ArithmeticExpression.Sub;
 import oracle.pgql.lang.ir.QueryExpression.ArithmeticExpression.UMin;
 import oracle.pgql.lang.ir.QueryExpression.BindVariable;
-import oracle.pgql.lang.ir.QueryExpression.CallStatement;
 import oracle.pgql.lang.ir.QueryExpression.Constant.ConstBoolean;
 import oracle.pgql.lang.ir.QueryExpression.Constant.ConstDate;
 import oracle.pgql.lang.ir.QueryExpression.Constant.ConstDecimal;
@@ -47,7 +46,6 @@ import oracle.pgql.lang.ir.QueryExpression.Star;
 import oracle.pgql.lang.ir.QueryExpression.VarRef;
 import oracle.pgql.lang.ir.QueryExpressionVisitor;
 import oracle.pgql.lang.ir.QueryPath;
-import oracle.pgql.lang.ir.QueryVariable.VariableType;
 import oracle.pgql.lang.ir.QueryVertex;
 
 public abstract class AbstractQueryExpressionVisitor implements QueryExpressionVisitor {
@@ -222,10 +220,6 @@ public abstract class AbstractQueryExpressionVisitor implements QueryExpressionV
     cast.getExp().accept(this);
   }
 
-  public void visit(CallStatement callStatement) {
-    callStatement.getExps().stream().forEach(e -> e.accept(this));
-  }
-
   public void visit(FunctionCall functionCall) {
     functionCall.getArgs().stream().forEach(e -> e.accept(this));
   }
@@ -240,6 +234,8 @@ public abstract class AbstractQueryExpressionVisitor implements QueryExpressionV
     query.getGraphPattern().accept(this);
     query.getGroupBy().accept(this);
     query.getOrderBy().accept(this);
+    query.getLimit().accept(this);
+    query.getOffset().accept(this);
   }
 
   public void visit(GraphPattern graphPattern) {
