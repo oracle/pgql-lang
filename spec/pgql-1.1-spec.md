@@ -1,13 +1,40 @@
 ---
-title:  "PGQL 1.0 Specification"
-permalink: /spec/1.0/
+title:  "PGQL 1.1 Specification"
+permalink: /spec/1.1/
 summary: "PGQL is an SQL-like query language for the Property Graph data model.
 The language is based on the paradigm of graph pattern matching, which allows you to specify patterns that are matched against vertices and edges in a data graph.
-Like SQL, PGQL has support for grouping (GROUP BY), aggregation (e.g. MIN, MAX, AVG), sorting (ORDER BY) and many other familiar SQL constructs.
+Like SQL, PGQL has support for grouping (GROUP BY), aggregation (e.g. MIN, MAX, AVG, SUM), sorting (ORDER BY) and many other familiar SQL constructs.
 In addition, PGQL supports regular path queries for applications such as reachability analysis."
-sidebar: spec_1_0_sidebar
+sidebar: spec_1_1_sidebar
 toc: false
 ---
+
+# Changelog
+
+The following are the changes since PGQL 1.0:
+
+## Breaking Syntax Changes
+
+ - MATCH .. WHERE .. instead of WHERE ..
+ - No more inlined filter predicates
+ - No more double-quoted string literals
+ - Updated common path expression syntax (AS in stead of :=)
+ - Replace OO-style functions with SQL-style functions, also, `inDegree` is now `in_degree` and `outDegree` is now `out_degree`
+ - No more `-->` only `->`
+ - Java regex call
+ - Negation NOT instead of !
+ - Not equals `<>` instead of `!=`
+
+## New Functionality
+
+ - FROM clause
+ - Existential and scalar subqueries
+ - DATE, TIME, TIMESTAMP, TIME WITH TIMEZONE, TIMESTAMP WITH TIMEZONE data types
+ - Undirected edges
+ - Min and max hops, e.g. `{1,4}` for one to four hops
+ - IS NULL and IS NOT NULL
+ - CAST
+ - New built-in function `all_different(element..)`
 
 # Introduction
 
@@ -19,40 +46,50 @@ Consider the following example PGQL query:
 
 ```
 SELECT m.name, o.name
-WHERE (n:Person WITH name = 'John') -[e1:friendOf]-> (m:Person) <-[e2:belongs_to]- (o:Car)
+MATCH (n:Person) -[e1:friendOf]-> (m:Person) <-[e2:belongs_to]- (o:Car)
+WHERE n.name = 'John'
 ```
 
-In the `WHERE` clause, the above query defines the pattern to be found.
+In the `MATCH` clause, the above query defines the pattern to be found.
 
 - The pattern is composed of three vertices (`n`, `m`, and `o`) and two edges (`e1` and `e2`).
 - There is an edge (`e1`) from vertex `n` to vertex `m`.
 - There is an edge (`e2`) from vertex `o` to vertex `m`.
 - Vertices `n` and `m` have a label with value `'Person'`, while vertex `o` has a label with value `'Car'`.
-- Vertex `n` has a property `name` with value `'John'`.
 - Edges `e1` and `e2` have labels with values `'friendOf'` and `'belongs_to'` respectively.
 
-In the `SELECT` clause, the above query defines the data entities to be returned.
+In `WHERE` clause specifies filter predicates.
 
-- For each of the matched subgraph, the query returns the property `name` of vertex `m` and the property `name` of vertex `o`.
+- Vertex `n` has a property `name` with the value `'John'`.
+
+The `SELECT` clause specifies what should be projected out from the query.
+
+- For each of the matched subgraph, the query projects out the property `name` of vertex `m` and the property `name` of vertex `o`.
 
 ## Basic Query Structure
 
-The syntax structure of PGQL resembles that of SQL (Standard Query Language) of relational database systems. A basic PGQL query consists of the following three clauses:
+The syntax structure of PGQL resembles that of SQL (Standard Query Language) of relational database systems. A basic PGQL query consists of the following clauses:
 
 ```
 Query :=
+  CommonPathExpressions?
   SelectClause
+  FromClause?
   WhereClause
-  SolutionModifierClause?
+  GroupByClause?
+  OrderByClause?
+  LimitOffsetClauses?
 ```
 
+The most important ones are as follows:
+
 - The `SelectClause` defines the data entities that are returned in the result.
-- The `WhereClause` defines the graph pattern that is matched against the data graph instance.
-- The `SolutionModifierClause` defines additional operations for building up the result of the query. The clause is optional.
+- The `MatchClause` defines the graph pattern that is matched against the data graph instance.
+- The `WhereClause` defines the filter predicates.
 
 The detailed syntax and semantic of each clause are explained in following sections.
 
-# WHERE Clause
+# Graph Pattern Matching
 
 In a PGQL query, the `WHERE` clause defines the graph pattern to be matched.
 
@@ -67,7 +104,7 @@ PathPattern         := QueryVertex (QueryConnection QueryVertex)*
 QueryVertex         := '(' VariableName? LabelConstraint? InlinedConstraints? ')'
 QueryConnection     := QueryEdge |
                        QueryPath // see Section 'Path Queries'
-QueryEdge           := '->' | '<-' | '-->' | '<--' |
+QueryEdge           := '->' | '<-' |
                        '-[' VariableName? LabelConstraint? InlinedConstraints? ']->' |
                        '<-[' VariableName? LabelConstraint? InlinedConstraints? ']-'
 LabelConstraint     := ':' {Label '|'}+
@@ -84,7 +121,7 @@ Each constraint is one of the following types:
 
 There can be multiple constraints in the `WHERE` clause of a PGQL query. Semantically, all constraints are conjunctive – that is, each matched result should satisfy every constraint in the `WHERE` clause.
 
-## Topology Constraint
+## Topology Constraints
 
 A topology constraint is a path pattern that describes a partial topology of the subgraph pattern. In other words, a topology constraint describes some connectivity relationships between vertices and edges in the pattern, whereas the whole topology of the pattern is described with one or multiple topology constraints.
 
@@ -145,8 +182,7 @@ Basic form | `(n)-[e]->(m)`
 Omit variable name of the source vertex | `()-[e]->(m)`
 Omit variable name of the destination vertex | `(n)-[e]->()`
 Omit variable names in both vertices | `()-[e]->()`
-Omit variable name in edge | `(n)-->(m)`
-Omit variable name in edge (alternative,  one dash) | `(n)->(m)`
+Omit variable name in edge | `(n)->(m)`
 
 ### Disconnected Topology Constraints
 
@@ -211,11 +247,11 @@ Here, vertices `x` and `y` match if they have either or both of labels `'Student
 
 There are also built-in functions available for labels:
 
-- `hasLabel(String label)` which returns `true` if the vertex or edge has the specified label.
-- `labels()` which returns the set of labels of a vertex.
-- `label()` which returns the label of an edge.
+- `has_label(element, string)` returns `true` if the vertex or edge (first argument) has the specified label (second argument).
+- `labels(element)` returns the set of labels of a vertex or edge in the case the vertex/edge has multiple labels.
+- `label(element)` returns the label of a vertex or edge in the case the vertex/edge has only a single label.
 
-## Value Constraint
+## Value Constraints
 
 The value constraint describes a general constraint other than the topology. A value constraint takes the form of a Boolean expression which typically involves certain property values of the vertices and edges that are defined in topology constraints in the same query. For instance, the following example consists of three constraints – one topology constraint followed by two value constraints.
 
@@ -234,70 +270,6 @@ x.name = 'John',
 (x) -> (y),
 y.age > 25
 ```
-
-## In-lined Constraint
-
-An in-lined constraint is a syntactic sugar where value constraints are written directly inside a topology constraint. More specifically, expressions that access the property values of a certain vertex (or edge) are put directly inside the parenthesis (or the square bracket) of the corresponding vertex (or edge) term. Consider the following set of constraints.
-
-```
-(n) -[e]-> (),
-n.name = 'John' OR n.name = 'James',
-n.type = 'Person'
-e.type = 'workAt',
-e.workHours < 40
-```
-
-The above constraints can re-written with in-lined constraint as follows:
-
-```
-(n WITH name = 'John' OR name = 'James', type = 'Person') -[e WITH type = 'workAt', workHours < 40]-> ()
-```
-
-Note that the property-accessing expressions in the original value constraints are in-lined into the topology constraint. More specifically, the expressions are in-lined inside the parenthesis or square bracket after the `WITH` keyword. Moreover, the syntax for property access gets simplified in the in-lined expressions. See the discussion in the following section.
-
-### Simplified Property Access in the In-lined Expressions
-
-Syntax for property access is further simplified in the in-lined expressions. In normal value constraint, a property access takes the form of dot expression (i.e. variable_name.property_name). In an in-lined expression, on the other hand, the variable name can be omitted since it is clear from the context. Moreover, if the property name is properly alpha-numeric, even the leading dot can be omitted. The following table summarizes this short-cut rules.
-
-Normal Value Constraint | In-lined Constraint | In-lined Constraint (alternative)
---- | --- | ---
-`n.name = 'John'` | `(n WITH .name = 'John')` | `(n WITH name = 'John')`
-`n.'middle name' = 'John'` | `(n WITH .'middle name' = 'John')` |
-
-Note that in the above table, we cannot omit the leading dot nor the quotes for property access '.middle name' since the name contains a space and is thus not an alpha-numeric.
-
-### Vertices/edges without Variable Name but with In-lined Constraints
-
-If a not-interesting variable name is omitted for a vertex or edge term, it is still possible to specify in-lined constraints without having to introduce a variable name. This can be achieved by omitting the variable name and by directly using the `WITH` keyword followed by the constraints. The following table summarizes this short-cut rule.
-
-In-lined Constraint | In-lined Constraint w/o variable name
---- | ---
-`(n WITH name = 'John')` | `(WITH name = 'John')`
-
-### Limitation on the In-lined Expressions
-
-Expressions that contain property accesses from multiple variables (a.k.a. cross-constraints) cannot be in-lined. Consider the following constraint:
-
-```
-(n) -> (m)
-n.name = m.name
-```
-
-This constraint cannot be inlined. The following is syntatcially not valid:
-
-```
-(n WITH name = m.name) -> (m)   // this is NOT valid syntax
-```
-
-### Identifier short-cut for in-lined expressions
-
-In property graphs, vertices and edges can have unique identifiers (IDs). PGQL expression provides a special function `id()` for accessing the indentifier of a vertex or edge. However, there is another short-cut syntax for an in-lined expression, if the vertex (or edge) is constrained to have a specific ID value. Specifically, the variable name followed by `@` and a certain value means that the vertex (or edge) should have the ID of the specified value. The following is an example.
-
-Original Syntax | Shortcut Syntax
---- | ---
-`(n WITH id() = 123)` | `(n@123)`
-`(n:Person WITH id() = 123)` | `(n:Person@123)`
-`()-[e WITH id()=1234)->[]` | `() -[e@1234]-> ()`
 
 ## Graph Pattern Matching Semantic
 
@@ -349,7 +321,7 @@ x | y
 --- | ---
 0 | 1
 
-# SELECT Clause
+# Constructing a table
 
 In a PGQL query, the SELECT clause defines the data entities to be returned in the result. In other words, the select clause defines the columns of the result table.
 
@@ -431,7 +403,7 @@ WHERE
 Instead of retrieving all the matched results, a PGQL query can choose to get only some aggregated information about the result. This is done by putting aggregations in SELECT clause, instead of normal expressions. Consider the following example query which returns the average value of property age over all the matched vertex m.
 
 ```
-SELECT AVG(m.age) WHERE (m WITH type = 'Person')
+SELECT AVG(m.age) MATCH (m:Person)
 ```
 
 Syntactically, an aggregation takes the form of Aggregate operator followed by expression inside a parenthesis. The following table is the list of Aggregate operators and their required input type.
@@ -493,7 +465,7 @@ GROUP BY n.hometown
 ORDER BY pivot
 ```
 
-# Path Queries
+# Regular Path Expressions
 
 Path queries test for the existence of arbitrary-length paths between pairs of vertices, or, retrieve actual paths between pairs of vertices. PGQL 1.0 supports testing for path existence ("reachability testing") only, while retrieval of actual paths between reachable pairs of vertices is planned for future PGQL versions.
 
@@ -537,16 +509,16 @@ Path patterns may be declared outside of the `WHERE` clause at the beginning of 
 The syntactic structure is as follows:
 
 ```
-PathPatternDecl := 'PATH' PathPatternName ':=' PathPattern
+PathPatternDecl := 'PATH' PathPatternName 'AS' PathPattern
 PathPatternName := [a-zA-Z][a-zA-Z0-9\_]*
 ```
 
-A path pattern declaration starts with the keyword `PATH` and is followed by the name for the path pattern, the assignment operator `:=` and a path pattern. The syntactic structure of the path pattern is the same as a path pattern in the `WHERE` clause.
+A path pattern declaration starts with the keyword `PATH` and is followed by the name for the path pattern, the assignment operator `AS` and a path pattern. The syntactic structure of the path pattern is the same as a path pattern in the `MATCH` clause.
 
 An example is as follows:
 
 ```
-PATH has_parent := () -[:has_father|has_mother]-> ()
+PATH has_parent AS () -[:has_father|has_mother]-> ()
 SELECT ancestor
 WHERE
   (:Person WITH name = 'Mario') -/:has_parent*/-> (ancestor:Person),
@@ -558,7 +530,7 @@ The above query finds common ancestors of `'Mario'` and `'Luigi'`.
 Another example is as follows:
 
 ```
-PATH connects_to := (:Generator) -[:has_connector]-> (:Connector WITH status = 'OPERATIVE') <-[:has_connector]- (:Generator)
+PATH connects_to AS (:Generator) -[:has_connector]-> (:Connector WITH status = 'OPERATIVE') <-[:has_connector]- (:Generator)
 SELECT generatorA.location, generatorB.location
 WHERE
   (generatorA) -/:connects_to*/-> (generatorB),
@@ -567,7 +539,7 @@ WHERE
 
 The above query outputs all generators that are connected to each other via one or more connectors that are all operative.
 
-# Solution Modifier Clause
+# Tabular Solution Modifiers
 
 The solution modifier clause defines additional operations for building up the result of the query.  A solution modifier clause consists of three (sub-)clauses– `GroupByClause`, `OrderByClause` and `LimitOffsetClauses`. Note that all these clauses are optional; therefore the entire solution modifier clause is optional.
 
@@ -583,8 +555,7 @@ The following explains the syntactic structure of `ORDER BY` clause.
 
 ```
 OrderByClause := 'ORDER' 'BY' {OrderTerm ','}+
-OrderTerm     := Expression ('ASC'|'DESC')? |
-                 ('ASC'|'DESC')? '(' Expression ')'
+OrderTerm     := Expression ('ASC'|'DESC')?
 ```
 
 The `ORDER BY` clause starts with the keywords `ORDER BY` and is followed by comma separated list of order terms. An order term consists of the following parts:
@@ -597,7 +568,8 @@ The following is an example in which the results are ordered by property access 
 
 ```
 SELECT n.name
-WHERE (n WITH type = 'Person')
+MATCH (n)
+WHERE n.type = 'Person'
 ORDER BY n.age ASC
 ```
 
@@ -660,7 +632,7 @@ In the following query, the first 5 intermediate solutions are pruned from the r
 SELECT n WHERE (n) LIMIT 10 OFFSET 5
 ```
 
-## Grouping and Aggregation
+# Grouping and Aggregation
 
 GROUP BY allows for grouping of solutions and is typically used in combination with aggregation to aggregate over groups of solutions instead of over the total set of solutions.
 
@@ -680,25 +652,25 @@ Consider the following query:
 
 ```
 SELECT n.firstName, COUNT(*), AVG(n.age)
-WHERE (n WITH type = 'Person')
+MATCH (n:Person)
 GROUP BY n.firstName
 ```
 
 Matches are grouped by their values for `n.firstName`. For each group, the query selects `n.firstName` (i.e. the group key), the number of solutions in the group (i.e. `COUNT(*)`), and the average value of the property age for vertex n (i.e. `AVG(n.age)`).
 
-### Assigning Variable Name to Group Expression
+## Assigning Variable Name to Group Expression
 
 It is possible to assign a variable name to any of the group expression, by appending the keyword `AS` and a variable name. The variable name can be used in the `SELECT` to select a group key, or in the `ORDER BY` to order by a group key. See the related section later in this document.
 
 ```
 SELECT nAge, COUNT(*)
-WHERE
-   (n WITH type = 'Person')
+MATCH
+   (n:Person)
 GROUP BY n.age AS nAge
 ORDER BY nAge
 ```
 
-### Multiple Terms in GROUP BY
+## Multiple Terms in GROUP BY
 
 It is possible that the `GROUP BY` clause consists of multiple terms. In such a case, matches are grouped together only if they hold the same result for each of the group expressions.
 
@@ -706,13 +678,13 @@ Consider the following query:
 
 ```
 SELECT n.firstName, n.lastName, COUNT(*)
-WHERE (n WITH type = 'Person')
+MATCH (n:Person)
 GROUP BY n.firstName, n.lastName
 ```
 
 Matches will be grouped together only if they hold the same values for `n.firstName` and the same values for `n.lastName`.
 
-### GROUP BY and NULL values
+## GROUP BY and NULL values
 
 The group for which all the group by expressions evaluate to null is ignored and does not take part in further query processing. However, a group for which some expressions evaluate to null but at least one expression evaluates to a non-null value, is not ignored and takes part in further query processing.
 
@@ -724,7 +696,7 @@ Consider the following query:
 
 ```
 SELECT n.age, COUNT(*)
-WHERE
+MATCH
   (n)
 GROUP BY n.age
 ORDER BY n.age
@@ -736,7 +708,7 @@ This repetition of group expressions introduces an exception to the variable vis
 
 ```
 SELECT nAge, COUNT(*)
-WHERE
+MATCH
   (n)
 GROUP BY n.age AS nAge
 ORDER BY nAge
@@ -753,8 +725,8 @@ The following table is an overview of the operators in PGQL.
 Operator type | Operator | Example
 --- | --- | ---
 Arithmetic | `+`, `-`, `*`, `/`, `%` | `SELECT * WHERE n -> (m WITH start_line_num < end-line-num - 10)`
-Relational | `=`, `!=`, `<`, `>`, `<=`, `>=`, `=~` | `SELECT * WHERE n --> m, n.start_line_num < m.start_line_num`
-Logical | `AND`, `OR`, `NOT`, `!` | `SELECT * WHERE n --> m, n.start_line_num > 500 AND m.start_line_num > 500`
+Relational | `=`, `!=`, `<`, `>`, `<=`, `>=` | `SELECT * WHERE n -> m, n.start_line_num < m.start_line_num`
+Logical | `AND`, `OR`, `NOT` | `SELECT * MATCH n -> m WHERE n.start_line_num > 500 AND m.start_line_num > 500`
 
 ### Operator Precedence
 
@@ -762,10 +734,10 @@ Operator precedences are shown in the following list, from highest precedence to
 
 Level | Operator Precedence
 --- | ---
-1 | `-` (unary minus), `!`
+1 | `-` (unary minus)
 2 | `*`, `/`, `%`
 3 | `+`, `-`
-4 | `=`, `!=`, `<`, `>`, `<=`, `>=`, `=~`
+4 | `=`, `<>`, `<`, `>`, `<=`, `>=`
 5 | `NOT`
 6 | `AND`
 7 | `OR`
@@ -798,20 +770,6 @@ Numeric values are automatically converted (coerced) when compared against each 
 
 Comparing between Numeric, String, or Boolean values yields `null`  (see the corresponding section for more details on the handling of `null` values).
 
-## Regular Expression String Matching
-
-Regular expressions for String matching is supported using the `=~` operator, which returns true if the String on the left-hand side matches the String pattern on the right-hand side.
-
-An example is as follows:
-
-```
-n.name =~ 'ar' // this expression yields TRUE if the String n.name contains String 'ar'
-'Carl' =~ 'ar' // this expression yields TRUE
-'Carl' =~ 'lm' // this expression yields FALSE
-```
-
-The syntax followed for the pattern on the right-hand side, is that of Java REGEX.
-
 ## Null Values
 
 `null` is used to represent a missing or undefined value. There are two ways in which a null value can come into existence:
@@ -834,64 +792,65 @@ Note that from the table it follows that `null = null` yields `null` and not `tr
 
 ### Null Values as Function Argument
 
-If any of the arguments of a function is `null`, the function itself yields `null`. For example, `x.has(null)` yields `null`.
+If any of the arguments of a function is `null`, the function itself yields `null`. For example, `has_label(null)` yields `null`.
 
-## Built-in Functions
+## Built-in and user-defined functions
 
-Built-in functions can be used in a value constraint or an in-lined constraint, or in a select/group/order expression. The following table lists the built-in functions of PGQL.
+PGQL has a set of built-in functions and also support user-defined functions.
 
-Object type | Signature | Return value | Description
-vertex/edge | `id()` | numeric/string | returns the vertex/edge identifier. |
-vertex/edge | `has(String prop1, String prop2, ...)` | boolean | returns `true` if the vertex or edge has the given (comma-separated) properties.
-vertex | `inDegree()` | decimal | returns the number of incoming neighbors.
-vertex | `outDegree()` | decimal | returns the number of outgoing neighbors.
-vertex/edge | `hasLabel(String lbl)` | boolean | returns true if the vertex or edge has the given label.
-vertex | `labels()` | Set<String> | returns the labels of the vertex.
-edge | `label()` | String | returns the label of the edge.
+The following is an overview of the built-in PGQL functions:
 
-The syntactic structure of a built-in function call is as follows:
+Signature | Return value | Description
+`id(element)` | numeric/string | returns the vertex/edge identifier. |
+`in_degree(vertex)` | decimal | returns the number of incoming neighbors.
+`out_degree(vertex)` | decimal | returns the number of outgoing neighbors.
+`has_label(element)` | boolean | returns true if the vertex or edge has the given label.
+`labels(element)` | Set<String> | returns the labels of the vertex or edge in the case it has multiple labels.
+`label()` | String | returns the label of the vertex or edge in the case it has a single label.
+
+PGQL provides syntax for invoking user-defined functions, however, unlike in SQL, PGQL does not provide support for defining the signatures of a function as part of a schema.
+
+The syntactic structure for built-in and user-defined function calls is as follows:
 
 ```
-FunctionCall := 'id' '(' ')' |
-                'has' '(' {String ','}+ ')' |
-                'inDegree' '(' ')' |
-                'outDegree' '(' ')' |
-                'hasLabel' '(' ')' |
-                'labels' '(' ')' |
-                'label' '(' ')'
+FunctionCall        := FunctionPackage? FunctionName '(' {String ','}* ')'
+FunctionPackage     := FunctionPackageName '.'
+FunctionPackageName := IDENTIFIER
+FunctionName        := IDENTIFIER
 ```
 
-A build-in function call is a function name followed by zero or more function arguments. The function arguments are in between rounded brackets. Furthermore, function names are not case-sensitive.
-
-In contrast to SQL, the vertex or edge to which the function applies (i.e. the object), is not passed as one of the function arguments. Instead, the same dot expression syntax that is used for a property access, is also used for a function call: `variable_name.function_name(function arguments)`.
+A function call has an optional package name, a function name, and zero or more argument. Function names are case-insensitive.
 
 Consider the following query:
 
 ```
-SELECT y.id()
+SELECT id(y)
+MATCH
+  (x) -> (y)
 WHERE
-  (x) -> (y),
-  x.inDegree() > 10
+  in_degree(x) > 10
 ```
 
-Here, `x.inDegree()` returns the number of incoming neighbors of `x`, whereas `y.id()` returns the identifier of the vertex `y`. Variables `x` and `y` are the objects of the two function calls.
-
-### Simplified Function Calls in the In-lined Expressions
-
-The same syntactic structure rules that apply to a simplified property access, also apply to a function call in an in-lined expression. That is, the object of the function call can be omitted since it is clear from the context. Moreover, the leading dot can be omitted too. The following table summarizes these short-cut rules.
-
-Normal Function Call | In-lined Function Call | In-lined Function Call (alternative)
---- | --- | ---
-`n.outDegree() > 10` | `(n WITH .outDegree() > 10)` | `(n WITH outDegree() > 10)`
+Here, `in_degree(x)` returns the number of incoming neighbors of `x`, whereas `id(y)` returns the identifier of the vertex `y`.
 
 # Other Syntactic Rules
+
+## Identifiers
+
+Variable names as well as unquoted property names take the form of an identifier
+
+```
+Variable := IDENTIFIER
+IDENTIFIER := [a-zA-Z][a-zA-Z0-9\_]* |
+              '"' (~[\"\n\\] | EscapedCharacter)* '"'
+```
 
 ## Syntax for Variables
 
 The syntactic structure of a variable name is an alphabetic character followed by zero or more alphanumeric or underscore (i.e. `_`) characters:
 
 ```
-Variable := [a-zA-Z][a-zA-Z0-9\_]*
+Variable := IDENTIFIER
 ```
 
 ## Syntax for Properties
@@ -899,8 +858,7 @@ Variable := [a-zA-Z][a-zA-Z0-9\_]*
 Property names may be quoted or unquoted. Quoted and unquotes property names may be used interchangeably. If unquoted, the syntactic structure of a property name is the same as for a variable name. That is, an alphabetic character followed by zero or more alphanumeric or underscore (i.e. _) characters. If quoted, the syntactic structure is that of a String (for the syntactic structure, see String literal).
 
 ```
-PropertyName := String |
-                UnquotedString
+PropertyName := IDENTIFIER
 ```
 
 ## Literals
@@ -909,7 +867,6 @@ The literal types are String, Integer, Decimal, and Boolean. The following shows
 
 ```
 String  := "'" (~[\'\n\\] | EscapedCharacter)* "'" |
-           '"' (~[\"\n\\] | EscapedCharacter)* '"'
 Integer := '-'? [0-9]+
 Decimal := '-'? [0-9]* '.' [0-9]+
 Boolean := 'true' |
@@ -918,13 +875,9 @@ Boolean := 'true' |
 
 Just like `null`, `true` and `false` are case-insensitive.
 
-### Single-quoted and Double-quoted Strings
+### Single-quoted strings
 
-A String literal may either be single or double quoted. Single and double quoted Strings can be used interchangeably. For example, the following expression evaluates to true.
-
-```
-"Person" = 'Person' // this expression evaluates to TRUE
-```
+A String literal is singel quoted. Double-quoted strings are not allowed.
 
 ### Escaped Characters in Strings
 
@@ -947,17 +900,16 @@ Escape | Unicode code point
 
 ### Optional Escaping of Quotes in Strings
 
-In single quoted String literals, it is optional to escape double quotes, while in double quoted String literals, it is optional to escape single quotes. The following table provides examples of String literals with escaped quotes, and corresponding String literals in which quotes are not escaped.
+In string literals, it is optional to escape double quotes. The following table provides examples of String literals with escaped quotes, and corresponding String literals in which quotes are not escaped.
 
 With escape | Without escape
 --- | ---
 `'single quoted string literal with \"double\" quotes inside'` | `'single quoted string literal with "double" quotes inside'`
-`"double quoted string literal with \'single\' quotes inside"` | `"double quoted string literal with 'single' quotes inside"`
 
 Note that the value of the literal is the same no matter if quotes are escaped or not. This means that, for example, the following expression evaluates to `true`.
 
 ```
-'\"double" quotes and \'single\' quotes' = "\"double\" quotes and \'single' quotes" // this expression evaluates to TRUE
+`'single quoted string literal with \"double\" quotes inside' = 'single quoted string literal with "double" quotes inside' // this expression evaluates to TRUE`
 ```
 
 ## Keywords
@@ -965,13 +917,13 @@ Note that the value of the literal is the same no matter if quotes are escaped o
 The following is the list of keywords in PGQL.
 
 ```
-PATH, SELECT, WHERE, AS, WITH, ORDER, GROUP, BY, ASC, DESC, LIMIT, OFFSET, AND, OR, NOT, true, false, null
+true, false
 ```
 
 There are certain restrictions when using keywords as variable or property name:
 
 - Keywords cannot be used as a variable name.
-- Keywords can only be used as a property name, if quotations are used when accessing the property: `SELECT * WHERE (n) -> (m), n.'GROUP' = 'managers'`
+- Keywords can only be used as a property name, if quotations are used when accessing the property: `SELECT * MATCH (n) -> (m), n.'true' = 'managers'`
 
 Finally, keywords are not case-sensitive. For example, `SELECT`, `Select` and `sELeCt`, are all valid.
 
@@ -993,8 +945,8 @@ An example query with both single-line and multi-line comments is as follows:
    multi-line
    comment */
 SELECT n.name, n.age
-WHERE
-  (n WITH type = 'Person') // this is a single-line comment
+MATCH
+  (n:Person) // this is a single-line comment
 ```
 
 ## White Space
@@ -1010,17 +962,17 @@ Consider the following query:
 
 ```
 SELECT n.name, m.name
-WHERE
-  (n WITH type = 'Person', name = 'Ron Weasley') -> (m)
+MATCH (n:Person) -> (m)
+WHERE n.name = 'Ron Weasley'
 ```
 
 This query can be reformatted with minimal white space, while guaranteeing compatibility with different parser implementations, as follows:
 
 ```
-SELECT n.name,m.name WHERE(n WITH type='Person',name='Ron Weasley')->(m)
+SELECT n.name,m.name MATCH(n)->(m)WHEREn.name='Ron Weasley')->(m)
 ```
 
-Note that the white space after the `SELECT` keyword, in front of the `WHERE` keyword, before and after the `WITH` keyword and in the String literal `'Ron Weasley'` cannot be omitted.
+Note that the white space after the `SELECT` keyword, in front of the `MATCH` keyword, and in the string literal `'Ron Weasley'`, cannot be omitted.
 
 
 
