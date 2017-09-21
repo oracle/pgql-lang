@@ -3,30 +3,23 @@ module group-by
 language pgql-lang
 
 test id() 1 [[
-SELECT x.id() WHERE (x WITH id() < 4)
+SELECT x.id() MATCH (x WITH id() < 4)
 ]]
 
 test id() 2 [[
-SELECT x.id() WHERE (x@3)
+SELECT x.id() MATCH (x@3)
 ]]
 
 test inDegree() [[
-SELECT x.name, x.inDegree() WHERE (x WITH inDegree() = 2)
+SELECT x.name, x.inDegree() MATCH (x WITH inDegree() = 2)
 ]]
 
 test outDegree() [[
-SELECT x.name, x.outDegree() WHERE (x WITH outDegree() = 2)
+SELECT x.name, x.outDegree() MATCH (x WITH outDegree() = 2)
 ]]
 
 test has(prop1, prop2, ...) [[
 SELECT x.name, x.age, x.has('name'), x.has('not-exists')
-WHERE (x WITH name = 'Mary', has('age', 'salary'))
+MATCH (x)
+WHERE x.name = 'Mary' AND has_prop(x, 'age') AND has_prop(x, 'salary')
 ]]
-
-test has(prop1, prop2, ...) with double quoted and unquoted property names [[
-SELECT x.name, x.age, x.salary WHERE (x WITH name = 'Mary', has("age", salary))
-]]
-
-test has(prop1, prop2, ...) with property that doesn't exsits [[
-SELECT x.name, x.age, x.salary WHERE (x WITH name = 'Mary', has('prop-not-exists'))
-]] // return zero results

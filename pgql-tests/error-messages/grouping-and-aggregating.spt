@@ -4,21 +4,21 @@ language pgql-lang
 
 test Select non-group key 1 [[
 SELECT [[n.name]] AS nName
-WHERE
+MATCH
   (n)
 GROUP BY n.age AS nAge
 ]] error like "Non-group key variable in SELECT" at #1
 
 test Select non-group key 2 [[
 SELECT [[n]]
-WHERE
+MATCH
   (n)
 GROUP BY n.age AS nAge
 ]] error like "Non-group key variable in SELECT" at #1
 
 test Order by non-group key 1 [[
 SELECT nAge
-WHERE
+MATCH
   (n)
 GROUP BY n.age AS nAge
 ORDER BY [[n.name]]
@@ -26,7 +26,7 @@ ORDER BY [[n.name]]
 
 test Order by non-group key 2 [[
 SELECT nAge
-WHERE
+MATCH
   (n)
 GROUP BY n.age AS nAge
 ORDER BY [[n]]
@@ -34,18 +34,18 @@ ORDER BY [[n]]
 
 test Aggregation expected in SELECT 1 [[
 SELECT AVG(n.age) AS avgAge, [[n]]
-WHERE
+MATCH
   (n)
 ]] error like "Aggregation expected here since SELECT has other aggregation" at #1
 
 test Aggregation expected in SELECT 2 [[
 SELECT [[n.labels()]] AS lbls, COUNT(*) AS cnt
-WHERE (n)
+MATCH (n)
 ]] error like "Aggregation expected here since SELECT has other aggregation" at #1
 
 test Aggregation expected in ORDER BY [[
 SELECT AVG(n.age) AS avgAge
-WHERE
+MATCH
   (n)
 ORDER BY [[n.age]]
 ]] error like "Aggregation expected here since SELECT has aggregation" at #1

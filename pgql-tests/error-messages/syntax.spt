@@ -4,25 +4,25 @@ language pgql-lang
 
 test Empty SELECT [[
 SELECT
-WHERE
+MATCH
   (x)
 ]] parse fails
 
 test Empty WHERE [[
 SELECT *
-WHERE
+MATCH
 ]] parse fails
 
 test Empty GROUP BY [[
 SELECT *
-WHERE
+MATCH
   (n)
 GROUP BY
 ]] parse fails
 
 test Empty ORDER BY [[
 SELECT *
-WHERE
+MATCH
   (n)
 ORDER BY
 ]] parse fails
