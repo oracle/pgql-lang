@@ -234,8 +234,12 @@ public abstract class AbstractQueryExpressionVisitor implements QueryExpressionV
     query.getGraphPattern().accept(this);
     query.getGroupBy().accept(this);
     query.getOrderBy().accept(this);
-    query.getLimit().accept(this);
-    query.getOffset().accept(this);
+    if (query.getLimit() != null) {
+      query.getLimit().accept(this);
+    }
+    if (query.getOffset() != null) {
+      query.getOffset().accept(this);
+    }
   }
 
   public void visit(GraphPattern graphPattern) {
