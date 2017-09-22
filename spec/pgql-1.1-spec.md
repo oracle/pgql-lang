@@ -96,21 +96,19 @@ In a PGQL query, the `WHERE` clause defines the graph pattern to be matched.
 Syntactically, a `WHERE` clause is composed of the keyword `WHERE` followed by a comma-separated sequence of constraints.
 
 ```
-WhereClause         := 'WHERE' {Constraint ','}+
-Constraint          := TopologyConstraint |
-                       ValueConstraint
-TopologyConstraint  := PathPattern
+MatchClause         := 'MATCH' {PathPattern ','}+
 PathPattern         := QueryVertex (QueryConnection QueryVertex)*
-QueryVertex         := '(' VariableName? LabelConstraint? InlinedConstraints? ')'
+QueryVertex         := '(' VariablePlusLabel ')'
 QueryConnection     := QueryEdge |
-                       QueryPath // see Section 'Path Queries'
-QueryEdge           := '->' | '<-' |
-                       '-[' VariableName? LabelConstraint? InlinedConstraints? ']->' |
-                       '<-[' VariableName? LabelConstraint? InlinedConstraints? ']-'
-LabelConstraint     := ':' {Label '|'}+
-InlinedConstraints  := 'WITH' {InlinedConstraint ','}+
-ValueConstraint     := Expression // see Section Expressions
-InlinedConstraint   := Expression // see Section Expressions
+                       QueryPath // see Section 'Regular Path Expressions'
+QueryEdge           := '->' | '<-' | '-' |
+                       '-[' VariablePlusLabel ']->' |
+                       '<-[' VariablePlusLabel ']-' |
+                       '-[' VariablePlusLabel ']-'
+VariablePlusLabel   := VariableName? LabelPredicate?
+VariableName        := IDENTIFIER
+LabelPredicate      := ':' {Label '|'}+
+WhereClause         := 'WHERE' Expression // see Section 'Value Expressions'
 ```
 
 Each constraint is one of the following types:
@@ -321,7 +319,9 @@ x | y
 --- | ---
 0 | 1
 
-# Constructing a table
+# Table Operations
+
+## Projection (SELECT clause)
 
 In a PGQL query, the SELECT clause defines the data entities to be returned in the result. In other words, the select clause defines the columns of the result table.
 
@@ -338,7 +338,7 @@ A `SELECT` clause consists of the keyword `SELECT` followed by a comma-separated
 - An expression.
 - An optional variable definition that is specified by appending the keyword AS and the name of the variable.
 
-## SELECT Expressions
+### SELECT Expressions
 
 A PGQL query can dictate the data entities to be returned in the `SELECT` clause, by putting a comma-separated list of expressions after the `SELECT` keyword. Per every matched subgraph (i.e. row), each `SELECT` expression (i.e. column) is computed and stored in the result set. For instance, consider the following example:
 
@@ -350,7 +350,7 @@ WHERE
 
 Per each matched subgraph, the query returns two vertices `n` and `m` and the value for property age of vertex `n`.  Note that edge `e` is omitted from the result even though it is used for describing the pattern.
 
-### Assigning Variable Name to Select Expression
+#### Assigning Variable Name to Select Expression
 
 It is possible to assign a variable name to any of the selection expression, by appending the keyword `AS` and a variable name. The variable name is used as the column name of the result set. In addition, the variable name can be later used in the `ORDER BY` clause. See the related section later in this document.
 
@@ -361,7 +361,7 @@ WHERE
 ORDER BY pivot
 ```
 
-## SELECT *
+### SELECT *
 
 `SELECT *` is a special `SELECT` clause. The semantic of `SELECT *` is to select all the variables or group keys in-scope. If the query has no `GROUP BY`, the selected variables are all the vertex and edge variables from the `WHERE` clause. If the query does have a `GROUP BY`, the selected elements are all the group keys.
 
@@ -388,7 +388,7 @@ GROUP BY n.name, m
 
 Because the query has a `GROUP BY`, all group keys are returned: `n.name` and `m`. The order of the variables selected is the order in which the group keys appear in the `GROUP BY`.
 
-### SELECT * with no variables in the WHERE clause
+#### SELECT * with no variables in the WHERE clause
 
 It is semantically valid to have a `SELECT *` in combination with a `WHERE` clause that has not a single variable definition. In such a case, the result set will still contain as many results (i.e. rows) as there are matches of the subgraph defined by the `WHERE` clause. However, each result (i.e. row) will have zero elements (i.e. columns). The following is an example of such a query.
 
@@ -397,149 +397,6 @@ SELECT *
 WHERE
   (WITH type = 'Person') -> () -> ()
 ```
-
-## Aggregation
-
-Instead of retrieving all the matched results, a PGQL query can choose to get only some aggregated information about the result. This is done by putting aggregations in SELECT clause, instead of normal expressions. Consider the following example query which returns the average value of property age over all the matched vertex m.
-
-```
-SELECT AVG(m.age) MATCH (m:Person)
-```
-
-Syntactically, an aggregation takes the form of Aggregate operator followed by expression inside a parenthesis. The following table is the list of Aggregate operators and their required input type.
-
-Aggregate Operator | Semantic | Required Input Type
---- | --- | ---
-`COUNT` | counts the number of times the given expression has a bound. | not null
-`MIN` | takes the minimum of the values for the given expression. | numeric
-`MAX` | takes the maximum of the values for the given expression. | numeric
-`SUM` | sums over the values for the given expression. | numeric
-`AVG` | takes the average of the values for the given | numeric
-
-`COUNT(*)` is a special syntax to count the number of pattern matches, without specifying an expressions. Consider the following example:
-
-```
-SELECT COUNT(*)
-WHERE (m WITH type='Person') -> (k WITH type = 'Car') <- (n WITH type = 'Person')
-```
-
-The above query simply returns the number of matches to the pattern.
-
-### Aggregation and Required Input Type
-
-In PGQL, aggregation is performed only for the matched results where the type of the target expression matches with the required input type. Consider an example graph instance which has the following four vertex entities.
-
-```
-{"id": 3048,  "name":"John",  "age":30}
-{"id": 1197,  "name":"Peter", "age":20}
-{"id": 20487, "name":"Paul",  "age":"thirty five"}
-{"id": 2019,  "name":"James"}
-```
-
-Now suppose the following query is applied on this data set.
-
-```
-SELECT AVG(n.age), COUNT(*) WHERE (n)
-```
-
-Note that all the vertices are matched by the `WHERE` clause. However, the aggregation result from `SELECT` clause is `25` and `4`. For `AVG(n.age)` aggregation, only two vertices get aggregated (`"John"` and `"Peter"`) – the vertex for `"Paul"` is not applied because `'age'` is not numeric type, and the vertex for `"James"` does not have `'age'` property at all. For `COUNT(*)` aggregation, on the other hand, all the four matched vertices are applied to the aggregation.
-
-### Aggregation and Solution Modifier
-
-Aggregation is applied only afterthe  `GROUP BY` operator is applied, but before the `OFFSET` and `LIMIT` operators are applied.
-
-- If there is no GROUP BY operator, the aggregation is performed over the whole match results.
-- If there is a GROUP BY operator, the aggregation is applied over each group.
-
-See the detailed syntax and semantics of `SolutionModifierClause` in the related section of this specification.
-
-### Assigning Variable Name to Aggregation
-
-Like normal selection expression, it is also possible to assign variable name to aggregations. Again this is done by appending the key word `AS` and a variable name next to the aggregation. The variable name is used as the column name of the result set. In addition, the variable name can be later used in the `ORDER BY` clause. See the related section later in this document.
-
-```
-SELECT AVG(n.age) AS pivot, COUNT(n)
-WHERE
-   (n WITH type = 'Person') -> (m WITH type = 'Car')
-GROUP BY n.hometown
-ORDER BY pivot
-```
-
-# Regular Path Expressions
-
-Path queries test for the existence of arbitrary-length paths between pairs of vertices, or, retrieve actual paths between pairs of vertices. PGQL 1.0 supports testing for path existence ("reachability testing") only, while retrieval of actual paths between reachable pairs of vertices is planned for future PGQL versions.
-
-## Regular Path Patterns
-
-In addition to query vertices and query edge, a graph pattern in PGQL may be composed of query paths. Such paths define a regular path pattern between a pair of query vertices. During querying, bindings for query vertices are only obtained for those vertices in the graph that are reachable by at least one path that satisfies the regular path pattern.
-The syntactic structure of a query path is similar to a query edge, but it uses forward slashes (-/.../->) instead of square brackets (-[...]->) to clearly distinguishes the two types of connection. Inside the forward slashes, there must be a colon (':') followed by a regular path pattern.
-
-```
-QueryPath          := '-/' ':' RegularPathPattern '/->' |
-                      '<-/' ':' RegularPathPattern '/-'
-RegularPathPattern := PathPatternName |
-                      Label |
-                      ZeroOrMorePath |
-                      AlternativePath
-ZeroOrMorePath     := RegularPathPattern '*'
-AlternativePath    := {RegularPathPattern '|'}+
-```
-
-A regular path pattern is one of the following:
-
-- `PathPatternName`: matches a path using a path pattern that is declared at the beginning of the query
-- `Label`: matches a path of length one such that the edge on the path has the specified label
-- `ZeroOrMorePath`: matches a path by repeatedly matching the pattern zero or more times
-- `AlternativePath`: matches an alternative pattern (all possibilities are tried)
-
-An example is as follows:
-
-```
-SELECT c
-WHERE
-  (c:Class) -/:subclass_of*/-> (:Class WITH name = 'ArrayList')
-```
-
-Here, we find all classes that are a subclass of `'ArrayList'`. The regular path pattern `subclass_of*` matches a path consisting of zero or more edges with the label `subclass_of`. Because the pattern may match a path with zero edges, the two query vertices can be bound to the same data vertex if the data vertex satisfies the constraints specified in both source and destination vertices (i.e. the vertex has a label `'Class'` and a property `name` with a value `'ArrayList'`.
-
-## Path Pattern Composition
-
-Path patterns may be declared outside of the `WHERE` clause at the beginning of the query. Such patterns can then be used to construct more complex regular path patterns via path pattern composition.
-
-The syntactic structure is as follows:
-
-```
-PathPatternDecl := 'PATH' PathPatternName 'AS' PathPattern
-PathPatternName := [a-zA-Z][a-zA-Z0-9\_]*
-```
-
-A path pattern declaration starts with the keyword `PATH` and is followed by the name for the path pattern, the assignment operator `AS` and a path pattern. The syntactic structure of the path pattern is the same as a path pattern in the `MATCH` clause.
-
-An example is as follows:
-
-```
-PATH has_parent AS () -[:has_father|has_mother]-> ()
-SELECT ancestor
-WHERE
-  (:Person WITH name = 'Mario') -/:has_parent*/-> (ancestor:Person),
-  (:Person WITH name = 'Luigi') -/:has_parent*/-> (ancestor:Person)
-```
-
-The above query finds common ancestors of `'Mario'` and `'Luigi'`.
-
-Another example is as follows:
-
-```
-PATH connects_to AS (:Generator) -[:has_connector]-> (:Connector WITH status = 'OPERATIVE') <-[:has_connector]- (:Generator)
-SELECT generatorA.location, generatorB.location
-WHERE
-  (generatorA) -/:connects_to*/-> (generatorB),
-  generatorA != generatorB
-```
-
-The above query outputs all generators that are connected to each other via one or more connectors that are all operative.
-
-# Tabular Solution Modifiers
 
 The solution modifier clause defines additional operations for building up the result of the query.  A solution modifier clause consists of three (sub-)clauses– `GroupByClause`, `OrderByClause` and `LimitOffsetClauses`. Note that all these clauses are optional; therefore the entire solution modifier clause is optional.
 
@@ -632,7 +489,150 @@ In the following query, the first 5 intermediate solutions are pruned from the r
 SELECT n WHERE (n) LIMIT 10 OFFSET 5
 ```
 
+# Regular Path Expressions
+
+Path queries test for the existence of arbitrary-length paths between pairs of vertices, or, retrieve actual paths between pairs of vertices. PGQL 1.0 supports testing for path existence ("reachability testing") only, while retrieval of actual paths between reachable pairs of vertices is planned for future PGQL versions.
+
+## Regular Path Patterns
+
+In addition to query vertices and query edge, a graph pattern in PGQL may be composed of query paths. Such paths define a regular path pattern between a pair of query vertices. During querying, bindings for query vertices are only obtained for those vertices in the graph that are reachable by at least one path that satisfies the regular path pattern.
+The syntactic structure of a query path is similar to a query edge, but it uses forward slashes (-/.../->) instead of square brackets (-[...]->) to clearly distinguishes the two types of connection. Inside the forward slashes, there must be a colon (':') followed by a regular path pattern.
+
+```
+QueryPath          := '-/' ':' RegularPathPattern '/->' |
+                      '<-/' ':' RegularPathPattern '/-'
+RegularPathPattern := PathPatternName |
+                      Label |
+                      ZeroOrMorePath |
+                      AlternativePath
+ZeroOrMorePath     := RegularPathPattern '*'
+AlternativePath    := {RegularPathPattern '|'}+
+```
+
+A regular path pattern is one of the following:
+
+- `PathPatternName`: matches a path using a path pattern that is declared at the beginning of the query
+- `Label`: matches a path of length one such that the edge on the path has the specified label
+- `ZeroOrMorePath`: matches a path by repeatedly matching the pattern zero or more times
+- `AlternativePath`: matches an alternative pattern (all possibilities are tried)
+
+An example is as follows:
+
+```
+SELECT c
+WHERE
+  (c:Class) -/:subclass_of*/-> (:Class WITH name = 'ArrayList')
+```
+
+Here, we find all classes that are a subclass of `'ArrayList'`. The regular path pattern `subclass_of*` matches a path consisting of zero or more edges with the label `subclass_of`. Because the pattern may match a path with zero edges, the two query vertices can be bound to the same data vertex if the data vertex satisfies the constraints specified in both source and destination vertices (i.e. the vertex has a label `'Class'` and a property `name` with a value `'ArrayList'`.
+
+## Path Pattern Composition
+
+Path patterns may be declared outside of the `WHERE` clause at the beginning of the query. Such patterns can then be used to construct more complex regular path patterns via path pattern composition.
+
+The syntactic structure is as follows:
+
+```
+PathPatternDecl := 'PATH' PathPatternName 'AS' PathPattern
+PathPatternName := [a-zA-Z][a-zA-Z0-9\_]*
+```
+
+A path pattern declaration starts with the keyword `PATH` and is followed by the name for the path pattern, the assignment operator `AS` and a path pattern. The syntactic structure of the path pattern is the same as a path pattern in the `MATCH` clause.
+
+An example is as follows:
+
+```
+PATH has_parent AS () -[:has_father|has_mother]-> ()
+SELECT ancestor
+WHERE
+  (:Person WITH name = 'Mario') -/:has_parent*/-> (ancestor:Person),
+  (:Person WITH name = 'Luigi') -/:has_parent*/-> (ancestor:Person)
+```
+
+The above query finds common ancestors of `'Mario'` and `'Luigi'`.
+
+Another example is as follows:
+
+```
+PATH connects_to AS (:Generator) -[:has_connector]-> (:Connector WITH status = 'OPERATIVE') <-[:has_connector]- (:Generator)
+SELECT generatorA.location, generatorB.location
+WHERE
+  (generatorA) -/:connects_to*/-> (generatorB),
+  generatorA != generatorB
+```
+
+The above query outputs all generators that are connected to each other via one or more connectors that are all operative.
+
 # Grouping and Aggregation
+
+## Aggregation
+
+Instead of retrieving all the matched results, a PGQL query can choose to get only some aggregated information about the result. This is done by putting aggregations in SELECT clause, instead of normal expressions. Consider the following example query which returns the average value of property age over all the matched vertex m.
+
+```
+SELECT AVG(m.age) MATCH (m:Person)
+```
+
+Syntactically, an aggregation takes the form of Aggregate operator followed by expression inside a parenthesis. The following table is the list of Aggregate operators and their required input type.
+
+Aggregate Operator | Semantic | Required Input Type
+--- | --- | ---
+`COUNT` | counts the number of times the given expression has a bound. | not null
+`MIN` | takes the minimum of the values for the given expression. | numeric
+`MAX` | takes the maximum of the values for the given expression. | numeric
+`SUM` | sums over the values for the given expression. | numeric
+`AVG` | takes the average of the values for the given | numeric
+
+`COUNT(*)` is a special syntax to count the number of pattern matches, without specifying an expressions. Consider the following example:
+
+```
+SELECT COUNT(*)
+WHERE (m WITH type='Person') -> (k WITH type = 'Car') <- (n WITH type = 'Person')
+```
+
+The above query simply returns the number of matches to the pattern.
+
+### Aggregation and Required Input Type
+
+In PGQL, aggregation is performed only for the matched results where the type of the target expression matches with the required input type. Consider an example graph instance which has the following four vertex entities.
+
+```
+{"id": 3048,  "name":"John",  "age":30}
+{"id": 1197,  "name":"Peter", "age":20}
+{"id": 20487, "name":"Paul",  "age":"thirty five"}
+{"id": 2019,  "name":"James"}
+```
+
+Now suppose the following query is applied on this data set.
+
+```
+SELECT AVG(n.age), COUNT(*) WHERE (n)
+```
+
+Note that all the vertices are matched by the `WHERE` clause. However, the aggregation result from `SELECT` clause is `25` and `4`. For `AVG(n.age)` aggregation, only two vertices get aggregated (`"John"` and `"Peter"`) – the vertex for `"Paul"` is not applied because `'age'` is not numeric type, and the vertex for `"James"` does not have `'age'` property at all. For `COUNT(*)` aggregation, on the other hand, all the four matched vertices are applied to the aggregation.
+
+### Aggregation and Solution Modifier
+
+Aggregation is applied only afterthe  `GROUP BY` operator is applied, but before the `OFFSET` and `LIMIT` operators are applied.
+
+- If there is no GROUP BY operator, the aggregation is performed over the whole match results.
+- If there is a GROUP BY operator, the aggregation is applied over each group.
+
+See the detailed syntax and semantics of `SolutionModifierClause` in the related section of this specification.
+
+### Assigning Variable Name to Aggregation
+
+Like normal selection expression, it is also possible to assign variable name to aggregations. Again this is done by appending the key word `AS` and a variable name next to the aggregation. The variable name is used as the column name of the result set. In addition, the variable name can be later used in the `ORDER BY` clause. See the related section later in this document.
+
+```
+SELECT AVG(n.age) AS pivot, COUNT(n)
+WHERE
+   (n WITH type = 'Person') -> (m WITH type = 'Car')
+GROUP BY n.hometown
+ORDER BY pivot
+```
+
+## Grouping
 
 GROUP BY allows for grouping of solutions and is typically used in combination with aggregation to aggregate over groups of solutions instead of over the total set of solutions.
 
@@ -658,7 +658,7 @@ GROUP BY n.firstName
 
 Matches are grouped by their values for `n.firstName`. For each group, the query selects `n.firstName` (i.e. the group key), the number of solutions in the group (i.e. `COUNT(*)`), and the average value of the property age for vertex n (i.e. `AVG(n.age)`).
 
-## Assigning Variable Name to Group Expression
+### Assigning Variable Name to Group Expression
 
 It is possible to assign a variable name to any of the group expression, by appending the keyword `AS` and a variable name. The variable name can be used in the `SELECT` to select a group key, or in the `ORDER BY` to order by a group key. See the related section later in this document.
 
@@ -670,7 +670,7 @@ GROUP BY n.age AS nAge
 ORDER BY nAge
 ```
 
-## Multiple Terms in GROUP BY
+### Multiple Terms in GROUP BY
 
 It is possible that the `GROUP BY` clause consists of multiple terms. In such a case, matches are grouped together only if they hold the same result for each of the group expressions.
 
@@ -684,11 +684,11 @@ GROUP BY n.firstName, n.lastName
 
 Matches will be grouped together only if they hold the same values for `n.firstName` and the same values for `n.lastName`.
 
-## GROUP BY and NULL values
+### GROUP BY and NULL values
 
 The group for which all the group by expressions evaluate to null is ignored and does not take part in further query processing. However, a group for which some expressions evaluate to null but at least one expression evaluates to a non-null value, is not ignored and takes part in further query processing.
 
-## Repetition of Group Expression in Select or Order Expression
+### Repetition of Group Expression in Select or Order Expression
 
 Group expressions that are variable accesses, property accesses, or built-in function calls may be repeated in select or order expressions. This is a short-cut that allows you to neglect introducing new variables for simple expressions.
 
@@ -714,7 +714,7 @@ GROUP BY n.age AS nAge
 ORDER BY nAge
 ```
 
-# Expressions
+# Value Expressions
 
 Expressions are used in value constraints, in-lined constraints, and select/group/order terms. This section of the document defines the operators and built-in functions that can be used as part of an expression.
 
