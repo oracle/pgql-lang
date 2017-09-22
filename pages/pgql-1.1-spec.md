@@ -338,9 +338,7 @@ A `SELECT` clause consists of the keyword `SELECT` followed by a comma-separated
 - An expression.
 - An optional variable definition that is specified by appending the keyword AS and the name of the variable.
 
-### SELECT Expressions
-
-A PGQL query can dictate the data entities to be returned in the `SELECT` clause, by putting a comma-separated list of expressions after the `SELECT` keyword. Per every matched subgraph (i.e. row), each `SELECT` expression (i.e. column) is computed and stored in the result set. For instance, consider the following example:
+Consider the following example:
 
 ```
 SELECT n, m, n.age
@@ -350,7 +348,7 @@ WHERE
 
 Per each matched subgraph, the query returns two vertices `n` and `m` and the value for property age of vertex `n`.  Note that edge `e` is omitted from the result even though it is used for describing the pattern.
 
-#### Assigning Variable Name to Select Expression
+### Assigning Variable Name to Select Expression
 
 It is possible to assign a variable name to any of the selection expression, by appending the keyword `AS` and a variable name. The variable name is used as the column name of the result set. In addition, the variable name can be later used in the `ORDER BY` clause. See the related section later in this document.
 
@@ -388,7 +386,7 @@ GROUP BY n.name, m
 
 Because the query has a `GROUP BY`, all group keys are returned: `n.name` and `m`. The order of the variables selected is the order in which the group keys appear in the `GROUP BY`.
 
-#### SELECT * with no variables in the WHERE clause
+### SELECT * with no variables in the WHERE clause
 
 It is semantically valid to have a `SELECT *` in combination with a `WHERE` clause that has not a single variable definition. In such a case, the result set will still contain as many results (i.e. rows) as there are matches of the subgraph defined by the `WHERE` clause. However, each result (i.e. row) will have zero elements (i.e. columns). The following is an example of such a query.
 

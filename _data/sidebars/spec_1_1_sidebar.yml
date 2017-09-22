@@ -1,0 +1,262 @@
+entries:
+- title: Sidebar
+  product: PGQL 1.1 Specification
+  folders:
+
+  - title: Changelog
+    url: /spec/1.1/#changelog
+    output: web
+    folderitems:
+
+    - title: Breaking Syntax Changes
+      url: /spec/1.1/#breaking-syntax-changes
+      output: web
+
+    - title: New Functionality
+      url: /spec/1.1/#new-functionality
+      output: web
+
+  - title: Introduction
+    url: /spec/1.1/#introduction
+    output: web
+    folderitems:
+
+    - title: Basic Query Structure
+      url: /spec/1.1/#basic-query-structure
+      output: web
+
+  - title: Graph Pattern Matching
+    url: /spec/1.1/#graph-pattern-matching
+    output: web
+    folderitems:
+
+    - title: Topology Constraints
+      url: /spec/1.1/#topology-constraints
+      output: web
+      subfolderitems:
+
+      - title: Repeated Variables in Multiple Topology Constraints
+        url: /spec/1.1/#repeated-variables-in-multiple-topology-constraints
+        output: web
+
+      - title: Syntactic Sugars for Topology Constraints
+        url: /spec/1.1/#syntactic-sugars-for-topology-constraints
+        output: web
+
+      - title: Disconnected Topology Constraints
+        url: /spec/1.1/#disconnected-topology-constraints
+        output: web
+
+    - title: Label Matching
+      url: /spec/1.1/#label-matching
+      output: web
+      subfolderitems:
+
+      - title: Labels and Quotes
+        url: /spec/1.1/#labels-and-quotes
+        output: web
+
+      - title: Label Alternatives
+        url: /spec/1.1/#label-alternatives
+        output: web
+
+      - title: Built-in Functions for Labels
+        url: /spec/1.1/#built-in-functions-for-labels
+        output: web
+
+    - title: Value Constraints
+      url: /spec/1.1/#value-constraints
+      output: web
+
+    - title: Graph Pattern Matching Semantic
+      url: /spec/1.1/#graph-pattern-matching-semantic
+      output: web
+      subfolderitems:
+
+      - title: Graph Homomorphism
+        url: /spec/1.1/#graph-homomorphism
+        output: web
+
+      - title: Graph Isomorphism
+        url: /spec/1.1/#graph-isomorphism
+        output: web
+
+  - title: Table Operations
+    url: /spec/1.1/#table-operations
+    output: web
+    folderitems:
+
+    - title: Projection (SELECT clause)
+      url: /spec/1.1/#projection-(select-clause)
+      output: web
+      subfolderitems:
+
+      - title: Assigning Variable Name to Select Expression
+        url: /spec/1.1/#assigning-variable-name-to-select-expression
+        output: web
+
+      - title: SELECT *
+        url: /spec/1.1/#select-
+        output: web
+
+      - title: SELECT * with no variables in the WHERE clause
+        url: /spec/1.1/#select--with-no-variables-in-the-where-clause
+        output: web
+
+    - title: ORDER BY
+      url: /spec/1.1/#order-by
+      output: web
+      subfolderitems:
+
+      - title: Multiple Terms in ORDER BY
+        url: /spec/1.1/#multiple-terms-in-order-by
+        output: web
+
+      - title: Data Types for ORDER BY
+        url: /spec/1.1/#data-types-for-order-by
+        output: web
+
+    - title: LIMIT and OFFSET
+      url: /spec/1.1/#limit-and-offset
+      output: web
+
+  - title: Regular Path Expressions
+    url: /spec/1.1/#regular-path-expressions
+    output: web
+    folderitems:
+
+    - title: Regular Path Patterns
+      url: /spec/1.1/#regular-path-patterns
+      output: web
+
+    - title: Path Pattern Composition
+      url: /spec/1.1/#path-pattern-composition
+      output: web
+
+  - title: Grouping and Aggregation
+    url: /spec/1.1/#grouping-and-aggregation
+    output: web
+    folderitems:
+
+    - title: Aggregation
+      url: /spec/1.1/#aggregation
+      output: web
+      subfolderitems:
+
+      - title: Aggregation and Required Input Type
+        url: /spec/1.1/#aggregation-and-required-input-type
+        output: web
+
+      - title: Aggregation and Solution Modifier
+        url: /spec/1.1/#aggregation-and-solution-modifier
+        output: web
+
+      - title: Assigning Variable Name to Aggregation
+        url: /spec/1.1/#assigning-variable-name-to-aggregation
+        output: web
+
+    - title: Grouping
+      url: /spec/1.1/#grouping
+      output: web
+      subfolderitems:
+
+      - title: Assigning Variable Name to Group Expression
+        url: /spec/1.1/#assigning-variable-name-to-group-expression
+        output: web
+
+      - title: Multiple Terms in GROUP BY
+        url: /spec/1.1/#multiple-terms-in-group-by
+        output: web
+
+      - title: GROUP BY and NULL values
+        url: /spec/1.1/#group-by-and-null-values
+        output: web
+
+      - title: Repetition of Group Expression in Select or Order Expression
+        url: /spec/1.1/#repetition-of-group-expression-in-select-or-order-expression
+        output: web
+
+  - title: Value Expressions
+    url: /spec/1.1/#value-expressions
+    output: web
+    folderitems:
+
+    - title: Operators
+      url: /spec/1.1/#operators
+      output: web
+      subfolderitems:
+
+      - title: Operator Precedence
+        url: /spec/1.1/#operator-precedence
+        output: web
+
+      - title: Operator and Operand Types
+        url: /spec/1.1/#operator-and-operand-types
+        output: web
+
+      - title: Data Type Conversion
+        url: /spec/1.1/#data-type-conversion
+        output: web
+
+    - title: Null Values
+      url: /spec/1.1/#null-values
+      output: web
+      subfolderitems:
+
+      - title: Null Values and Operators
+        url: /spec/1.1/#null-values-and-operators
+        output: web
+
+      - title: Null Values as Function Argument
+        url: /spec/1.1/#null-values-as-function-argument
+        output: web
+
+    - title: Built-in and user-defined functions
+      url: /spec/1.1/#built-in-and-user-defined-functions
+      output: web
+
+  - title: Other Syntactic Rules
+    url: /spec/1.1/#other-syntactic-rules
+    output: web
+    folderitems:
+
+    - title: Identifiers
+      url: /spec/1.1/#identifiers
+      output: web
+
+    - title: Syntax for Variables
+      url: /spec/1.1/#syntax-for-variables
+      output: web
+
+    - title: Syntax for Properties
+      url: /spec/1.1/#syntax-for-properties
+      output: web
+
+    - title: Literals
+      url: /spec/1.1/#literals
+      output: web
+      subfolderitems:
+
+      - title: Single-quoted strings
+        url: /spec/1.1/#single-quoted-strings
+        output: web
+
+      - title: Escaped Characters in Strings
+        url: /spec/1.1/#escaped-characters-in-strings
+        output: web
+
+      - title: Optional Escaping of Quotes in Strings
+        url: /spec/1.1/#optional-escaping-of-quotes-in-strings
+        output: web
+
+    - title: Keywords
+      url: /spec/1.1/#keywords
+      output: web
+
+    - title: Comments
+      url: /spec/1.1/#comments
+      output: web
+
+    - title: White Space
+      url: /spec/1.1/#white-space
+      output: web
