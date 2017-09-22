@@ -43,6 +43,10 @@ public class GenerateMenuFromMarkdown {
 
       String indent = repeatString(" ", newLevel * 2 + 2);
 
+      if (newLevel >= 4) {
+        continue; // only three levels supported in the menu
+      }
+
       if (newLevel > level) {
         if (newLevel != level + 1) {
           throw new IllegalArgumentException("Remove one or more '#' from '" + header + "'");
@@ -55,7 +59,7 @@ public class GenerateMenuFromMarkdown {
       level = newLevel;
 
       result += indent.substring(2) + "- title: " + title + "\n";
-      result += indent + "url: " + url_prefix + title.toLowerCase().replace(" ", "-").replace("*", "").replace("/", "") + "\n";
+      result += indent + "url: " + url_prefix + title.toLowerCase().replace(" ", "-").replace("*", "").replace("/", "").replace("(", "").replace(")", "") + "\n";
       result += indent + "output: web\n";
     }
 

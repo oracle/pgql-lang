@@ -95,7 +95,7 @@ entries:
     folderitems:
 
     - title: Projection (SELECT)
-      url: /spec/1.1/#projection-(select)
+      url: /spec/1.1/#projection-select
       output: web
       subfolderitems:
 
@@ -112,7 +112,7 @@ entries:
         output: web
 
     - title: Sorting (ORDER BY)
-      url: /spec/1.1/#sorting-(order-by)
+      url: /spec/1.1/#sorting-order-by
       output: web
       subfolderitems:
 
@@ -125,7 +125,7 @@ entries:
         output: web
 
     - title: Pagination (LIMIT and OFFSET)
-      url: /spec/1.1/#pagination-(limit-and-offset)
+      url: /spec/1.1/#pagination-limit-and-offset
       output: web
 
   - title: Regular Path Expressions
@@ -140,6 +140,15 @@ entries:
     - title: Path Pattern Composition
       url: /spec/1.1/#path-pattern-composition
       output: web
+
+    - title: Min and max hops in regular path queries
+      url: /spec/1.1/#min-and-max-hops-in-regular-path-queries
+      output: web
+      subfolderitems:
+
+      - title: Examples
+        url: /spec/1.1/#examples
+        output: web
 
   - title: Grouping and Aggregation
     url: /spec/1.1/#grouping-and-aggregation
