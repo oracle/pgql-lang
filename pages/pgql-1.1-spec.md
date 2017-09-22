@@ -35,6 +35,9 @@ The following are the changes since PGQL 1.0:
  - IS NULL and IS NOT NULL
  - CAST
  - New built-in function `all_different(element..)`
+ - HAVING clause
+ - DISTINCT
+ - UDFs
 
 # Introduction
 
@@ -44,7 +47,7 @@ Essentially, PGQL is a graph pattern-matching query language. A PGQL query descr
 
 Consider the following example PGQL query:
 
-```
+```sql
 SELECT m.name, o.name
 MATCH (n:Person) -[e1:friendOf]-> (m:Person) <-[e2:belongs_to]- (o:Car)
 WHERE n.name = 'John'
@@ -65,6 +68,8 @@ In `WHERE` clause specifies filter predicates.
 The `SELECT` clause specifies what should be projected out from the query.
 
 - For each of the matched subgraph, the query projects out the property `name` of vertex `m` and the property `name` of vertex `o`.
+
+## Property Graph Data Model
 
 ## Basic Query Structure
 
@@ -125,7 +130,7 @@ A topology constraint is a path pattern that describes a partial topology of the
 
 A topology constraint is composed of one or more vertices and connections, where a connection is either an edge or a path. In a query, each vertex or edge is (optionally) associated with a variable, which is a symbolic name to refer the vertex or edge in the pattern. For example, consider the following topology constraint:
 
-```
+```sql
 (n)-[e]->(m)
 ```
 
@@ -137,7 +142,7 @@ More specifically, a vertex term is written as a variable name inside a pair of 
 
 There can be multiple topology constraints in the `WHERE` clause of a PGQL query. In such a case, vertex terms that have the same variable name correspond to the same vertex entity. For example, consider the following two lines of topology constraints:
 
-```
+```sql
 (n)-[e1]->(m1),
 (n)-[e2]->(m2)
 ```
@@ -150,13 +155,13 @@ For user's convenience, PGQL provides several syntactic sugars (short-cuts) for 
 
 First, a single topology constraint can be written as a chain of edge terms such that two consecutive edge terms share the common vertex term in between. For instance, the following topology constraint is valid in PGQL:
 
-```
+```sql
 (n1)-[e1]->(n2)-[e2]->(n3)-[e3]->(n4)
 ```
 
 In fact, the above constraint is equivalent to the following set of comma-separated constraints:
 
-```
+```sql
 (n1)-[e1]->(n2),
 (n2)-[e2]->(n3),
 (n3)-[e3]->(n4)
@@ -164,7 +169,7 @@ In fact, the above constraint is equivalent to the following set of comma-separa
 
 Second, PGQL syntax allows to reverse the direction of an edge in the query, i.e. right-to-left instead of left-to-right. Therefore, the following is a valid topology constraint in PGQL:
 
-```
+```sql
 (n1)-[e1]->(n2)<-[e2]-(n3)
 ```
 
@@ -186,18 +191,18 @@ Omit variable name in edge | `(n)->(m)`
 
 In the case the topology constraints form multiple groups of vertices and edges that are not connected to each other, the semantic is that the different groups are matched independently and that the final result is produced by taking the Cartesian product of the result sets of the different groups. The following is an example of a query that will result in a Cartesian product.
 
-```
+```sql
 SELECT *
 WHERE
   (n1) -> (m1),
-  (n2) -> (m2) // vertices {n2, m2} are not connected to vertices {n1, m1}, resulting in a Cartesian product
+  (n2) -> (m2) /* vertices {n2, m2} are not connected to vertices {n1, m1}, resulting in a Cartesian product */
 ```
 
 ## Label Matching
 
 In the Property Graph model, vertices have a set of labels, while edges have a single label. PGQL provides a convenient syntax for matching labels by attaching the label to the corresponding vertex or edge using a colon (`:`) followed by the label. Take the following example:
 
-```
+```sql
 SELECT *
 WHERE (x:Person) -[e:likes]-> (y:Person)
 ```
@@ -206,7 +211,7 @@ Here, we specify that vertices `x` and `y` have the label `'Person'` and that th
 
 Labels can still be specified when variables are omitted. The following is an example:
 
-```
+```sql
 SELECT *
 WHERE (:Person) -[:likes]-> (:Person)
 ```
@@ -222,7 +227,7 @@ UnquotedString := [a-zA-Z][a-zA-Z0-9\_]*
 
 Take the following example:
 
-```
+```sql
 SELECT *
 WHERE (x:Person) -[e:'has friend']-> (y:Person)
 ```
@@ -233,7 +238,7 @@ Here, because the label `'has friend'` contains a white space, the quotes cannot
 
 One can specify label alternatives, such that the pattern matches if the vertex or edge has one of the specified labels. Syntax-wise, label alternatives are separated by a `|` character, as follows:
 
-```
+```sql
 SELECT *
 WHERE (x:Student|Professor) -[e:likes|knows]-> (y:Student|Professor)
 ```
@@ -253,7 +258,7 @@ There are also built-in functions available for labels:
 
 The value constraint describes a general constraint other than the topology. A value constraint takes the form of a Boolean expression which typically involves certain property values of the vertices and edges that are defined in topology constraints in the same query. For instance, the following example consists of three constraints – one topology constraint followed by two value constraints.
 
-```
+```sql
 (x) -> (y),
 x.name = 'John',
 y.age > 25
@@ -263,7 +268,7 @@ In the above example, the first value constraint demands that the vertex `x` has
 
 Note that in PGQL the ordering of constraints does not has any effect on the result. Therefore, the previous example is equivalent to the following:
 
-```
+```sql
 x.name = 'John',
 (x) -> (y),
 y.age > 25
@@ -286,7 +291,7 @@ Edge 0: 0 -> 0
 Edge 1: 0 -> 1
 ```
 
-```
+```sql
 SELECT x, y
 WHERE (x) -> (y)
 ```
@@ -308,7 +313,7 @@ Consider the example from above. Under graph isomorphism, only the second soluti
 
 In PGQL, to specify that a pattern should be matched in an isomorphic way, one can introduce non-equality constraints:
 
-```
+```sql
 SELECT x, y
 WHERE (x) -> (y), x != y
 ```
@@ -319,9 +324,30 @@ x | y
 --- | ---
 0 | 1
 
+## Undirected Query Edges
+
+Undirected query edges match with both incoming and outgoing data edges.
+
+An example PGQL query with undirected edges is as follows:
+
+```sql
+SELECT * MATCH (n) -[e1]- (m) -[e2]- (o)
+```
+
+Note that in case there are both incoming and outgoing data edges between two data vertices, there will be separate result bindings for each of the edges.
+
+Undirected edges may also be used inside common path expressions:
+
+```
+PATH two_hops := () -[e1]- () -[e2]- ()
+SELECT * MATCH (n) -/:two_hops*/-> (m)
+```
+
+The above query will return all pairs of vertices `n` and `m` that are reachable via a multiple of two edges, each edge being either an incoming or an outgoing edge.
+
 # Table Operations
 
-## Projection (SELECT clause)
+## Projection (SELECT)
 
 In a PGQL query, the SELECT clause defines the data entities to be returned in the result. In other words, the select clause defines the columns of the result table.
 
@@ -340,7 +366,7 @@ A `SELECT` clause consists of the keyword `SELECT` followed by a comma-separated
 
 Consider the following example:
 
-```
+```sql
 SELECT n, m, n.age
 WHERE
    (n WITH type = 'Person') -[e WITH type='friendOf']-> (m WITH type = 'Person')
@@ -352,7 +378,7 @@ Per each matched subgraph, the query returns two vertices `n` and `m` and the va
 
 It is possible to assign a variable name to any of the selection expression, by appending the keyword `AS` and a variable name. The variable name is used as the column name of the result set. In addition, the variable name can be later used in the `ORDER BY` clause. See the related section later in this document.
 
-```
+```sql
 SELECT n.age*2 - 1 AS pivot, n.name, n
 WHERE
    (n WITH type = 'Person') -> (m WITH type = 'Car')
@@ -365,7 +391,7 @@ ORDER BY pivot
 
 Consider the following query:
 
-```
+```sql
 SELECT *
 WHERE
   (n WITH type = 'Person') -> (m) -> (w)
@@ -376,7 +402,7 @@ Since this query does not have a `GROUP BY`, all the variables in the `WHERE` ar
 
 Now consider the following query, which has a `GROUP BY`:
 
-```
+```sql
 SELECT *
 WHERE
   (n WITH type = 'Person') -> (m) -> (w)
@@ -390,7 +416,7 @@ Because the query has a `GROUP BY`, all group keys are returned: `n.name` and `m
 
 It is semantically valid to have a `SELECT *` in combination with a `WHERE` clause that has not a single variable definition. In such a case, the result set will still contain as many results (i.e. rows) as there are matches of the subgraph defined by the `WHERE` clause. However, each result (i.e. row) will have zero elements (i.e. columns). The following is an example of such a query.
 
-```
+```sql
 SELECT *
 WHERE
   (WITH type = 'Person') -> () -> ()
@@ -402,7 +428,7 @@ The solution modifier clause defines additional operations for building up the r
 SolutionModifierClause := GroupByClause? OrderByClause? LimitOffsetClauses?
 ```
 
-## ORDER BY
+## Sorting (ORDER BY)
 
 When there are multiple matched subgraph instances to a given query, in general, the ordering between those instances are not defined; the query execution engine can present the result in any order. Still, the user can specify the ordering between the answers in the result using `ORDER BY` clause.
 
@@ -421,7 +447,7 @@ The `ORDER BY` clause starts with the keywords `ORDER BY` and is followed by com
 
 The following is an example in which the results are ordered by property access `n.age` in ascending order:
 
-```
+```sql
 SELECT n.name
 MATCH (n)
 WHERE n.type = 'Person'
@@ -432,7 +458,7 @@ ORDER BY n.age ASC
 
 It is possible that `ORDER BY` clause consists of multiple terms. In such a case, these terms are evaluated from left to right. That is, (n+1)th ordering term is used only for the tie-break rule for n-th ordering term. Note that each term can have different ascending or descending decorator.
 
-```
+```sql
 SELECT f.name
 WHERE (f WITH type = 'Person')
 ORDER BY ASC(f.age), f.salary DESC
@@ -462,7 +488,7 @@ Applying the above rules to the values, will result in the following ordering:
 [3.5, 25, 27.5, 'John', 'Mary', false, true, null]
 ```
 
-## LIMIT and OFFSET
+## Pagination (LIMIT and OFFSET)
 
 The `LIMIT` puts an upper bound on the number of solutions returned, whereas the `OFFSET` specifies the start of the first solution that should be returned.
 
@@ -483,7 +509,7 @@ If the number of actual solutions after `OFFSET` is applied is greater than the 
 
 In the following query, the first 5 intermediate solutions are pruned from the result (i.e. `OFFSET 5`). The next 10 intermediate solutions are returned and become final solutions of the query (i.e. `LIMIT 10`).
 
-```
+```sql
 SELECT n WHERE (n) LIMIT 10 OFFSET 5
 ```
 
@@ -516,7 +542,7 @@ A regular path pattern is one of the following:
 
 An example is as follows:
 
-```
+```sql
 SELECT c
 WHERE
   (c:Class) -/:subclass_of*/-> (:Class WITH name = 'ArrayList')
@@ -539,10 +565,10 @@ A path pattern declaration starts with the keyword `PATH` and is followed by the
 
 An example is as follows:
 
-```
+```sql
 PATH has_parent AS () -[:has_father|has_mother]-> ()
 SELECT ancestor
-WHERE
+MATCH
   (:Person WITH name = 'Mario') -/:has_parent*/-> (ancestor:Person),
   (:Person WITH name = 'Luigi') -/:has_parent*/-> (ancestor:Person)
 ```
@@ -551,7 +577,7 @@ The above query finds common ancestors of `'Mario'` and `'Luigi'`.
 
 Another example is as follows:
 
-```
+```sql
 PATH connects_to AS (:Generator) -[:has_connector]-> (:Connector WITH status = 'OPERATIVE') <-[:has_connector]- (:Generator)
 SELECT generatorA.location, generatorB.location
 WHERE
@@ -561,13 +587,183 @@ WHERE
 
 The above query outputs all generators that are connected to each other via one or more connectors that are all operative.
 
+## Min and max hops in regular path queries
+
+PGX $version extends PGQL 1.0 with additional quantifiers in regular path queries for specifying lower and upper limits on the number of times a path pattern is allowed to match. We refer to these lower and upper limits as min and max hops respectively.
+
+| quantifier | meaning                              | matches                                                                                                                             | example path         |
+|------------|--------------------------------------|-------------------------------------------------------------------------------------------------------------------------------------|----------------------|
+| *          | zero (0) or more                     | A path that connects the source and destination of the path by zero or more matches of a given pattern.                             | `-/:pattern*/->`     |
+| +          | one (1) or more                      | A path that connects the source and destination of the path by one or more matches of a given pattern.                              | `-/:pattern+/->`     |
+| ?          | zero or one (1), i.e. "optional"     | A path that connects the source and destination of the path by zero or one matches of a given pattern.                              | `-/:pattern?/->`     |
+| { n }      | exactly _n_                          | A path that connects the source and destination of the path by exactly _n_ matches of a given pattern.                              | `-/:pattern{2}/->`   |
+| { n, }     | _n_ or more                          | A path that connects the source and destination of the path by at least _n_ matches of a given pattern.                             | `-/:pattern{2,}/->`  |
+| { n, m }   | between _n_ and _m_ (inclusive)      | A path that connects the source and destination of the path by at least _n_ and at most _m_ (inclusive) matches of a given pattern. | `-/:pattern{2,3}/->` |
+| { , m }    | between zero (0) and _m_ (inclusive) | A path that connects the source and destination of the path by at least 0 and at most _m_ (inclusive) matches of a given pattern.   | `-/:pattern{,3}/->`  |
+
+Paths considered include those that repeat the same vertices and/or edges multiple times. This means that even cycles are considered. However, because the semantic is to test for the existence of paths between pairs of vertices, there is only at most one result per pair of vertices. Thus, even though an unbounded number of paths may exist between a pair of vertices (because of cycles), the result is always bounded.
+
+### Examples
+
+Take the following graph as example:
+
+{% include image.html file="example_graphs/pgql_min_max_hop.png" caption="Friendship graph with 'likes' and 'knows' edges" %}
+
+#### Zero or more hops
+
+The following query finds all vertices y that can be reached from 'Amy' by following zero or more 'likes' edges.
+
+```sql
+SELECT y.name
+MATCH (x:Person) -/:likes*/-> (y)
+WHERE x.name = 'Amy'
+```
+
+```
++----------+
+| y.name   |
++----------+
+| "Amy"    |
+| "John"   |
+| "Albert" |
+| "Judith" |
++----------+
+```
+
+Note that here, Amy is returned since Amy connects to Amy by following zero 'likes' edges. In other words, there exists an empty path for the vertex pair.
+For Judith, there exist two paths (`100 -> 200 -> 300 -> 400` and `100 -> 400`). However, Judith is still only returned once.
+
+#### One or more hops
+
+The following query finds all people that can be reached from 'Amy' by following one or more 'likes' edges.
+
+```sql
+SELECT y.name WHERE (x:Person) -/:likes+/-> (y)
+WHERE x.name = 'Amy'
+```
+
+```
++----------+
+| y.name   |
++----------+
+| "John"   |
+| "Albert" |
+| "Judith" |
++----------+
+```
+
+This time, Amy is not returned since there doesn't exist a path that connects Amy to Amy that has a length greater than zero.
+
+Another example is a query that finds all people that can be reached from Judith by following one or more 'knows' edges:
+
+```
+SELECT y.name
+MATCH (x:Person) -/:knows+/-> (y)
+WHERE x.name = 'Judith'
+```
+
+```
++----------+
+| y.name   |
++----------+
+| "Jonas"  |
+| "Judith" |
++----------+
+```
+
+Here, in addition to Jonas, Judith is returned since there exist paths from Judith back to Judith that has a length greater than zero. Examples of such paths are `400 -> 500 -> 400` and `400 -> 500 -> 400 -> 500 -> 400`.
+
+#### Optional hop
+
+The following query finds all people that can be reached from Judith by following zero or one 'knows' edges.
+
+```sql
+SELECT y.name
+MATCH (x:Person) -/:knows?/-> (y)
+WHERE x.name = 'Judith'
+```
+
+```
++----------+
+| y.name   |
++----------+
+| "Judith" |
+| "Jonas"  |
++----------+
+```
+
+Here, Judith is returned since there exists the empty path that starts in `400` and ends in `400`. Jonas is returned because of the following path that has length one: `400 -> 500`.
+
+#### Exactly n hops
+
+The following query finds all people that can be reached from Amy by following 2 or more 'likes' edges.
+
+```sql
+SELECT y.name
+MATCH (x:PersoN) -/:likes{2,}/-> (y)
+WHERE x.name = 'Amy'
+```
+
+```
++----------+
+| y.name   |
++----------+
+| "Albert" |
+| "Judith" |
++----------+
+```
+Here, Albert is returned since there exists the following path of length two: `100 -> 200 -> 300`. Judith is returned since there exists a path of length three: `100 -> 200 -> 300 -> 400`.
+
+#### n or more hops
+
+The following query finds all people that can be reached from Amy by following between 1 and 2 'likes' edges.
+
+```sql
+SELECT y.name
+MATCH (x:Person) -/:likes{1,2}/-> (y)
+WHERE x.name = 'Amy'
+```
+
+```
++----------+
+| y.name   |
++----------+
+| "John"   |
+| "Albert" |
+| "Judith" |
++----------+
+```
+
+Here, John is returned since there exists a path of length one (i.e. `100 -> 200`); Albert is returned since there exists a path of length two (i.e. `100 -> 200 -> 300`); Judith is returned since there exists a path of length one (i.e. `100 -> 400`).
+
+#### Between zero and m hops
+
+The following query finds all people that can be reached from Judith by following at most 2 'knows' edges.
+
+```sql
+SELECT y.name
+MATCH (x:Person) -/:knows{,2}/-> (y)
+WHERE x.name = 'Judith'
+```
+
+```
++----------+
+| y.name   |
++----------+
+| "Jonas"  |
+| "Judith" |
++----------+
+```
+
+Here, Jonas is returned since there exists a path of length one (i.e. `400 -> 500`). For Judith, there exists an empty path of length zero (i.e. `400`) as well as a non-empty path of length two (i.e. `400 -> 500 -> 400`). Yet, Judith is only returned once.
+
 # Grouping and Aggregation
 
 ## Aggregation
 
 Instead of retrieving all the matched results, a PGQL query can choose to get only some aggregated information about the result. This is done by putting aggregations in SELECT clause, instead of normal expressions. Consider the following example query which returns the average value of property age over all the matched vertex m.
 
-```
+```sql
 SELECT AVG(m.age) MATCH (m:Person)
 ```
 
@@ -583,9 +779,9 @@ Aggregate Operator | Semantic | Required Input Type
 
 `COUNT(*)` is a special syntax to count the number of pattern matches, without specifying an expressions. Consider the following example:
 
-```
+```sql
 SELECT COUNT(*)
-WHERE (m WITH type='Person') -> (k WITH type = 'Car') <- (n WITH type = 'Person')
+MATCH (m:Person) -> (k:Car) <- (n:Person)
 ```
 
 The above query simply returns the number of matches to the pattern.
@@ -603,8 +799,8 @@ In PGQL, aggregation is performed only for the matched results where the type of
 
 Now suppose the following query is applied on this data set.
 
-```
-SELECT AVG(n.age), COUNT(*) WHERE (n)
+```sql
+SELECT AVG(n.age), COUNT(*) MATCH (n)
 ```
 
 Note that all the vertices are matched by the `WHERE` clause. However, the aggregation result from `SELECT` clause is `25` and `4`. For `AVG(n.age)` aggregation, only two vertices get aggregated (`"John"` and `"Peter"`) – the vertex for `"Paul"` is not applied because `'age'` is not numeric type, and the vertex for `"James"` does not have `'age'` property at all. For `COUNT(*)` aggregation, on the other hand, all the four matched vertices are applied to the aggregation.
@@ -622,10 +818,10 @@ See the detailed syntax and semantics of `SolutionModifierClause` in the related
 
 Like normal selection expression, it is also possible to assign variable name to aggregations. Again this is done by appending the key word `AS` and a variable name next to the aggregation. The variable name is used as the column name of the result set. In addition, the variable name can be later used in the `ORDER BY` clause. See the related section later in this document.
 
-```
+```sql
 SELECT AVG(n.age) AS pivot, COUNT(n)
 WHERE
-   (n WITH type = 'Person') -> (m WITH type = 'Car')
+   (n:Person) -> (m:Car)
 GROUP BY n.hometown
 ORDER BY pivot
 ```
@@ -648,7 +844,7 @@ The `GROUP BY` clause starts with the keywords GROUP BY and is followed by a com
 
 Consider the following query:
 
-```
+```sql
 SELECT n.firstName, COUNT(*), AVG(n.age)
 MATCH (n:Person)
 GROUP BY n.firstName
@@ -660,7 +856,7 @@ Matches are grouped by their values for `n.firstName`. For each group, the query
 
 It is possible to assign a variable name to any of the group expression, by appending the keyword `AS` and a variable name. The variable name can be used in the `SELECT` to select a group key, or in the `ORDER BY` to order by a group key. See the related section later in this document.
 
-```
+```sql
 SELECT nAge, COUNT(*)
 MATCH
    (n:Person)
@@ -674,7 +870,7 @@ It is possible that the `GROUP BY` clause consists of multiple terms. In such a 
 
 Consider the following query:
 
-```
+```sql
 SELECT n.firstName, n.lastName, COUNT(*)
 MATCH (n:Person)
 GROUP BY n.firstName, n.lastName
@@ -692,7 +888,7 @@ Group expressions that are variable accesses, property accesses, or built-in fun
 
 Consider the following query:
 
-```
+```sql
 SELECT n.age, COUNT(*)
 MATCH
   (n)
@@ -704,7 +900,7 @@ Here, the group expression n.age is repeated as select and order expressions.
 
 This repetition of group expressions introduces an exception to the variable visibility rules described above, since variable n is not inside an aggregation in the select/order expression. However, semantically, the query is treated as if there were a variable for the group expression:
 
-```
+```sql
 SELECT nAge, COUNT(*)
 MATCH
   (n)
@@ -762,8 +958,8 @@ If the value for an operand is of a type that is not defined for the operator, t
 
 Numeric values are automatically converted (coerced) when compared against each other. An example is as follows:
 
-```
-3 = 3.0 // this expression yields TRUE
+```sql
+3 = 3.0 /* this expression yields TRUE */
 ```
 
 Comparing between Numeric, String, or Boolean values yields `null`  (see the corresponding section for more details on the handling of `null` values).
@@ -792,7 +988,7 @@ Note that from the table it follows that `null = null` yields `null` and not `tr
 
 If any of the arguments of a function is `null`, the function itself yields `null`. For example, `has_label(null)` yields `null`.
 
-## Built-in and user-defined functions
+## Built-in and User-Defined Functions
 
 PGQL has a set of built-in functions and also support user-defined functions.
 
@@ -821,7 +1017,7 @@ A function call has an optional package name, a function name, and zero or more 
 
 Consider the following query:
 
-```
+```sql
 SELECT id(y)
 MATCH
   (x) -> (y)
@@ -830,6 +1026,48 @@ WHERE
 ```
 
 Here, `in_degree(x)` returns the number of incoming neighbors of `x`, whereas `id(y)` returns the identifier of the vertex `y`.
+
+## Literals
+
+The following are the available literals in PGQl:
+
+
+| From \ To               | syntax                                              | example
+|-------------------------|-----------------------------------------------------|-----------------------------------------|
+| string                  | `"'" (~[\'\n\\] | EscapedCharacter)* "'"`           | `'Clara'`                               |
+| integer                 | `[0-9]+`                                            | `12`                                    |
+| decimal                 | `[0-9]* '.' [0-9]+`                                 | `12.3`                                  |
+| boolean                 | `"true" | "false"`                                  | `true`                                  |
+| date                    | `"DATE" "'" <yyyy-MM-dd> "'"`                       | `DATE '2017-09-21'`                     |
+| time                    | `"TIME" "'" <HH:mm:ss> "'"`                         | `TIME '16:15:00'`                       |
+| timestamp               | `"TIMESTAMP" "'" <yyyy-MM-dd HH:mm:ss> "'"`         | `TIMESTAMP '2017-09-21 16:15:00'`       |
+| time with timezone      | `"TIME" "'" <HH:mm:ss+HH:MM> "'"`                   |  `TIME '16:15:00+01:00'`                |
+| timestamp with timezone | `"TIMESTAMP" "'" <yyyy-MM-dd HH:mm:ss+HH:MM> "'"`   | `TIMESTAMP '2017-09-21 16:15:00-03:00'` |
+
+## Type Casting
+
+PGQL supports casting between the following data types:
+
+| From \ To               | string | exact numeric | approximate numeric | boolean | time | time with timezone | date | timestamp | timestamp with timezone |
+|-------------------------|--------|---------------|---------------------|---------|------|--------------------|------|-----------|-------------------------|
+| string                  | Y      | Y             | Y                   | Y       | Y    | Y                  | Y    | Y         | Y                       |
+| exact numeric           | Y      | M             | M                   | N       | N    | N                  | N    | N         | N                       |
+| approximate numeric     | Y      | M             | M                   | N       | N    | N                  | N    | N         | N                       |
+| boolean                 | Y      | N             | N                   | Y       | N    | N                  | N    | N         | N                       |
+| date                    | Y      | N             | N                   | N       | N    | N                  | Y    | Y         | Y                       |
+| time                    | Y      | N             | N                   | N       | Y    | Y                  | N    | Y         | Y                       |
+| timestamp               | Y      | N             | N                   | N       | Y    | Y                  | Y    | Y         | Y                       |
+| time with timezone      | Y      | N             | N                   | N       | Y    | Y                  | N    | Y         | Y                       |
+| timestamp with timezone | Y      | N             | N                   | N       | Y    | Y                  | Y    | Y         | Y                       |
+
+In the table above, `Y` indicates that casting is supported, `N` indicates that casting is not supported, and `M` indicates that casting is supported only if the numeric value is within the precision bounds of the specified target type.
+
+The syntax is like SQL's `CAST` function: `CAST(expression AS datatype)`. For example:
+
+```
+SELECT CAST(n.age AS STRING), CAST('123' AS INT), CAST('true' AS BOOLEAN)
+WHERE (n:Person)
+```
 
 # Other Syntactic Rules
 
@@ -858,20 +1096,6 @@ Property names may be quoted or unquoted. Quoted and unquotes property names may
 ```
 PropertyName := IDENTIFIER
 ```
-
-## Literals
-
-The literal types are String, Integer, Decimal, and Boolean. The following shows the syntactic structure of the different types of literals.
-
-```
-String  := "'" (~[\'\n\\] | EscapedCharacter)* "'" |
-Integer := '-'? [0-9]+
-Decimal := '-'? [0-9]* '.' [0-9]+
-Boolean := 'true' |
-           'false'
-```
-
-Just like `null`, `true` and `false` are case-insensitive.
 
 ### Single-quoted strings
 
@@ -906,8 +1130,8 @@ With escape | Without escape
 
 Note that the value of the literal is the same no matter if quotes are escaped or not. This means that, for example, the following expression evaluates to `true`.
 
-```
-`'single quoted string literal with \"double\" quotes inside' = 'single quoted string literal with "double" quotes inside' // this expression evaluates to TRUE`
+```sql
+`'single quoted string literal with \"double\" quotes inside' = 'single quoted string literal with "double" quotes inside' /* this expression evaluates to TRUE` */
 ```
 
 ## Keywords
@@ -915,36 +1139,35 @@ Note that the value of the literal is the same no matter if quotes are escaped o
 The following is the list of keywords in PGQL.
 
 ```
-true, false
+PATH, SELECT, MATCH, WHERE, AS, ORDER, GROUP, BY, ASC, DESC, LIMIT, OFFSET,
+AND, OR, NOT, true, false, IS, NULL,
+DATE, TIME, TIMESTAMP, WITH, TIMEZONE
 ```
 
-There are certain restrictions when using keywords as variable or property name:
+Only for `true` and `false` there is the following restriction:
 
-- Keywords cannot be used as a variable name.
-- Keywords can only be used as a property name, if quotations are used when accessing the property: `SELECT * MATCH (n) -> (m), n.'true' = 'managers'`
+ - `true` and `false` cannot be used as variable name
+ - `true` and `false` can be used as property name but only when double quoted (e.g `SELECT * MATCH (n) WHERE n."true" = 100`
 
-Finally, keywords are not case-sensitive. For example, `SELECT`, `Select` and `sELeCt`, are all valid.
+Keywords are case-insensitive and variations such as `SELECT`, `Select` and `sELeCt` can be used interchangeably.
 
 ## Comments
 
-There are two kinds of comments: single-line comments and multi-line comments. Single-line comments start with double forward slashes (`//`), while multi-line comments are delimited by `/*` and `*/`. The following shows the syntactic structure of the two forms.
+Comments are delimited by `/*` and `*/`. The following shows the syntactic structure:
 
 ```
-Comment           := SingleLineComment |
-                     MultiLineComment
-SingleLineComment := '//' ~[\n]*
-MultiLineComment  := '/*' ~[\*]* '*/'
+Comment  := '/*' ~[\*]* '*/'
 ```
 
 An example query with both single-line and multi-line comments is as follows:
 
-```
+```sql
 /* This is a
    multi-line
    comment */
 SELECT n.name, n.age
 MATCH
-  (n:Person) // this is a single-line comment
+  (n:Person) /* this is a single-line comment */
 ```
 
 ## White Space
@@ -958,7 +1181,7 @@ If these rules are not followed, a PGQL parser may or may not treat it as an err
 
 Consider the following query:
 
-```
+```sql
 SELECT n.name, m.name
 MATCH (n:Person) -> (m)
 WHERE n.name = 'Ron Weasley'
@@ -966,56 +1189,9 @@ WHERE n.name = 'Ron Weasley'
 
 This query can be reformatted with minimal white space, while guaranteeing compatibility with different parser implementations, as follows:
 
-```
+```sql
 SELECT n.name,m.name MATCH(n)->(m)WHEREn.name='Ron Weasley')->(m)
 ```
 
 Note that the white space after the `SELECT` keyword, in front of the `MATCH` keyword, and in the string literal `'Ron Weasley'`, cannot be omitted.
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 

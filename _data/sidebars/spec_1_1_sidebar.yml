@@ -21,6 +21,10 @@ entries:
     output: web
     folderitems:
 
+    - title: Property Graph Data Model
+      url: /spec/1.1/#property-graph-data-model
+      output: web
+
     - title: Basic Query Structure
       url: /spec/1.1/#basic-query-structure
       output: web
@@ -81,13 +85,17 @@ entries:
         url: /spec/1.1/#graph-isomorphism
         output: web
 
+    - title: Undirected Query Edges
+      url: /spec/1.1/#undirected-query-edges
+      output: web
+
   - title: Table Operations
     url: /spec/1.1/#table-operations
     output: web
     folderitems:
 
-    - title: Projection (SELECT clause)
-      url: /spec/1.1/#projection-(select-clause)
+    - title: Projection (SELECT)
+      url: /spec/1.1/#projection-(select)
       output: web
       subfolderitems:
 
@@ -103,8 +111,8 @@ entries:
         url: /spec/1.1/#select--with-no-variables-in-the-where-clause
         output: web
 
-    - title: ORDER BY
-      url: /spec/1.1/#order-by
+    - title: Sorting (ORDER BY)
+      url: /spec/1.1/#sorting-(order-by)
       output: web
       subfolderitems:
 
@@ -116,8 +124,8 @@ entries:
         url: /spec/1.1/#data-types-for-order-by
         output: web
 
-    - title: LIMIT and OFFSET
-      url: /spec/1.1/#limit-and-offset
+    - title: Pagination (LIMIT and OFFSET)
+      url: /spec/1.1/#pagination-(limit-and-offset)
       output: web
 
   - title: Regular Path Expressions
@@ -211,8 +219,16 @@ entries:
         url: /spec/1.1/#null-values-as-function-argument
         output: web
 
-    - title: Built-in and user-defined functions
+    - title: Built-in and User-Defined Functions
       url: /spec/1.1/#built-in-and-user-defined-functions
+      output: web
+
+    - title: Literals
+      url: /spec/1.1/#literals
+      output: web
+
+    - title: Type Casting
+      url: /spec/1.1/#type-casting
       output: web
 
   - title: Other Syntactic Rules
@@ -230,10 +246,6 @@ entries:
 
     - title: Syntax for Properties
       url: /spec/1.1/#syntax-for-properties
-      output: web
-
-    - title: Literals
-      url: /spec/1.1/#literals
       output: web
       subfolderitems:
 
