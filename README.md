@@ -13,4 +13,4 @@ Changes to any of the files will automatically be reflected after a few seconds 
 
 To regenerate the menu for a markdown (.md) file:
 
- - `javac GenerateMenuFromMarkdown.java; java GenerateMenuFromMarkdown pages/pgql-1.0-spec.md _data/sidebars/spec_1_0_sidebar.yml /spec/1.0/`
+ - `javac GenerateMenuFromMarkdown.java; java GenerateMenuFromMarkdown pages/pgql-1.1-spec.md _data/sidebars/spec_1_1_sidebar.yml /spec/1.1/`

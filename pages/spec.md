@@ -4,6 +4,10 @@ permalink: /spec/
 toc: false
 ---
 
+## PGQL 1.1
+
+ - [PGQL 1.1 Specification](1.1/)
+
 ## PGQL 1.0
 
  - [PGQL 1.0 Specification](1.0/)

@@ -26,7 +26,7 @@ public class GenerateMenuFromMarkdown {
 
     Iterator<String> headers = Files.lines(markdownFile).filter(m -> m.startsWith("#")).iterator();
     
-    String result = "entries:\n" + "- title: Sidebar\n" + "  product: PGQL 1.0 Specification\n" + "  folders:\n";
+    String result = "entries:\n" + "- title: Sidebar\n" + "  product: PGQL 1.1 Specification\n" + "  folders:\n";
 
     int level = 1;
 
