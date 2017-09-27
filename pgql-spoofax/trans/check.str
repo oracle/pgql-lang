@@ -74,7 +74,7 @@ rules // vertex in WHERE without rounded brackets
 rules
   
   nabl-constraint(|ctx):
-    Query(_, Vars(vars), _, _, groupClause, Some(orderClause), _) -> <fail>
+    NormalizedQuery(_, Vars(vars), _, _, groupClause, Some(orderClause), _, _, _) -> <fail>
     where
       None() := groupClause
     ; [] := <collect(is-aggregate)> vars // there are no aggregations in the SELECT
@@ -83,7 +83,7 @@ rules
     ; <batch-generate-error(|ctx, "Aggregation in ORDER BY only allowed if SELECT constains aggregations, or, in combination with GROUP BY")> aggregations
 
   nabl-constraint(|ctx):
-    Query(_, Vars(select-exps), _, _, group-by, order-by, _, _) -> <fail>
+    NormalizedQuery(_, Vars(select-exps), _, _, group-by, order-by, _, _, _) -> <fail>
     with
       group-refs := <collect-om(?GroupRef(<id>), conc)> select-exps
     ; select-or-group-refs := <collect-om(?SelectOrGroupRef(<id>), conc)> order-by
@@ -120,6 +120,31 @@ rules
     where
       var-is-path := <var-is-path(|ctx)> v;
       <task-create-error-on-success(|ctx, var-is-path, $[Path variables not supported in PGQL 1.1])> v
+
+rules // type checking
+
+  nabl-constraint-1-1(|ctx):
+    OrderByElem(exp, _) -> <fail>
+    where
+      <?SelectOrGroupRef(n) + ?VarOrSelectRef(n)> exp
+    with
+      var-is-vertex := <var-is-vertex(|ctx)> n;
+      <task-create-error-on-success(|ctx, var-is-vertex, "Can't order by vertex")> exp
+
+  nabl-constraint-1-1(|ctx):
+    OrderByElem(exp, _) -> <fail>
+    where
+      <?SelectOrGroupRef(n) + ?VarOrSelectRef(n)> exp
+    with
+      var-is-edge := <var-is-edge(|ctx)> n;
+      <task-create-error-on-success(|ctx, var-is-edge, "Can't order by edge")> exp
+
+rules // version-specific error messages
+
+  nabl-constraint(|ctx):
+    q@NormalizedQuery(_, _, _, _, _, _, _, _, "v1.1") -> <id>
+    with
+      <alltd(nabl-constraint-1-1(|ctx))> q 
 
 rules // helper rules
 

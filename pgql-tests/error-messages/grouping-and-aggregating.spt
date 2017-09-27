@@ -29,7 +29,7 @@ SELECT nAge
 MATCH
   (n)
 GROUP BY n.age AS nAge
-ORDER BY [[n]]
+ORDER BY [[n.name]]
 ]] error like "Cannot order by non-group key variable: use aggregation" at #1
 
 test Aggregation expected in SELECT 1 [[
@@ -50,10 +50,9 @@ MATCH
 ORDER BY [[n.age]]
 ]] error like "Aggregation expected here since SELECT has aggregation" at #1
 
-// FIXME
-//test Aggregation in ORDER BY not expected [[
-//SELECT n
-//WHERE
-//  (n)
-//ORDER BY [[AVG(n.age)]]
-//]] error like "Aggregation in ORDER BY only allowed if SELECT constains aggregations, or, in combination with GROUP BY" at #1
+test Aggregation in ORDER BY not expected [[
+SELECT n
+WHERE
+  (n)
+ORDER BY [[AVG(n.age)]]
+]] error like "Aggregation in ORDER BY only allowed if SELECT constains aggregations, or, in combination with GROUP BY" at #1

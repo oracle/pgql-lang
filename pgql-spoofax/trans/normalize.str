@@ -243,7 +243,7 @@ rules
   // pgql 1.1
   norm-query(|error-messages):
     Query(commonPathExpressions, selectClause, fromClause, graphPattern, whereClause, groupByClause, orderByClause, limitOffsets) ->
-      <norm-query(|error-messages)> Query(commonPathExpressions, selectClause, fromClause, graphPattern', groupByClause, orderByClause, limitOffsets)
+      <norm-query(|error-messages, "v1.1")> Query(commonPathExpressions, selectClause, fromClause, graphPattern', groupByClause, orderByClause, limitOffsets)
     with
       <?GraphPattern(vertices, edges, paths, Constraints(inlined-constraints))> graphPattern;
       non-inlined-constraints := <?Some(WhereClause(<id>)); ![<id>] + ?None(); ![]> whereClause;
@@ -252,8 +252,12 @@ rules
 
   // pgql 1.0
   norm-query(|error-messages):
+    q@Query(_, _, _, _, _, _, _) ->
+      <norm-query(|error-messages, "v1.0")> q
+    
+  norm-query(|error-messages, version):
     Query(commonPathExpressions, SelectClause(projection), fromClause, graphPattern, groupByClause, orderByClause, limitOffsets) ->
-        Query(commonPathExpressions', projection', fromClause, graphPattern, groupByClause', orderByElems, limitOffsets', error-messages)
+        NormalizedQuery(commonPathExpressions', projection', fromClause, graphPattern, groupByClause', orderByElems, limitOffsets', error-messages, version)
     with
       commonPathExpressions' := <map(norm-common-path-expression); !CommonPathExpressions(<id>)> commonPathExpressions;
 

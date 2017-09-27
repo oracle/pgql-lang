@@ -1,0 +1,25 @@
+module sorting
+
+language pgql-lang
+
+test Order by vertex in PGQL 1.1 (1) [[
+SELECT n
+MATCH
+  (n)
+ORDER BY [[n]]
+]] error like "Can't order by vertex" at #1
+
+test Order by vertex in PGQL 1.1 (2) [[
+SELECT n AS n2
+MATCH
+  (n)
+ORDER BY [[n2]]
+]] error like "Can't order by vertex" at #1
+
+test Order by edge in PGQL 1.1 (1) [[
+SELECT e
+MATCH
+  () -[e]-> ()
+GROUP BY e
+ORDER BY [[e]]
+]] error like "Can't order by edge" at #1

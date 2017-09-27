@@ -19,7 +19,7 @@ test Unresolved variable in ORDER BY 1 [[
 SELECT n
 MATCH
   (n)
-ORDER BY [[n2]]
+ORDER BY [[n2.name]]
 ]] error like "Unresolved variable" at #1
 
 test Unresolved variable in ORDER BY 2 [[
@@ -27,7 +27,7 @@ SELECT n
 MATCH
   (n)
 GROUP BY n
-ORDER BY [[n2]]
+ORDER BY [[n2.name]]
 ]] error like "Cannot order by non-group key variable: use aggregation" at #1
 
 test Duplicate edge variable [[

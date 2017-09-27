@@ -16,6 +16,8 @@ signature constructors // for type checking (see trans/types.ts)
 
 signature constructors // for the normalized AST (see trans/normalize.str)
 
+  NormalizedQuery       : CommonPathExpressions * Vars * FromClause * GraphPattern * GroupByClause * List(OrderByElem) * LimitOffsetClauses * List(ErrorMessage) * PgqlVersion -> NormalizedQuery
+  PgqlVersion           : STRING
   CommonPathExpressions : List(CommonPathExpression) -> CommonPathExpressions
   CommonPathExpression  : PATHPATTERNNAME * Vertices * Connections * Constraints -> CommonPathExpression
   GraphPattern          : Vertices * Edges * Paths * Constraints -> GraphPattern
