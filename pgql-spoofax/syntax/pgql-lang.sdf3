@@ -17,7 +17,8 @@ context-free start-symbols
 context-free syntax
 
   Start = Query
-  Start = Legacy10Query
+
+  Query = Legacy10Query
 
   Query.Query =
     <
