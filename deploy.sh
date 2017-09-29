@@ -12,7 +12,7 @@ if [ $# -eq 0 ]
     exit
 fi
 
-if [ -f pgql-lang/src/main/resources/pgql-1.0.spoofax-language ]
+if [ -f pgql-lang/src/main/resources/pgql-1.1.spoofax-language ]
 then
   echo "INFO: Using the parser that was previously built via 'bash install.sh'"
 else

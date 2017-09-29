@@ -19,7 +19,7 @@ binding rules
     scopes WhereVar, SelectVar, GroupVar, Var1, Var2, CommonPathExpression
 
   CommonPathExpression(p, _, _, _):
-    defines unique CommonPathExpression p in subsequent scope
+    defines unique CommonPathExpression p
     scopes WhereVar, SelectVar, Var1, Var2, GroupVar
 
   Vertex(n):
