@@ -121,6 +121,21 @@ rules
       var-is-path := <var-is-path(|ctx)> v;
       <task-create-error-on-success(|ctx, var-is-path, $[Path variables not supported in PGQL 1.1])> v
 
+  nabl-constraint(|ctx):
+    e@Null() -> <fail>
+    with
+      <generate-error(|ctx, "Use IS NULL or IS NOT NULL")> e
+
+  nabl-constraint(|ctx):
+    e@IsNull(_) -> <fail>
+    with
+      <generate-error(|ctx, "IS NULL is not yet supported")> e
+
+  nabl-constraint(|ctx):
+    e@IsNotNull(_) -> <fail>
+    with
+      <generate-error(|ctx, "IS NOT NULL is not yet supported")> e
+
 rules // type checking
 
   nabl-constraint-1-1(|ctx):

@@ -26,3 +26,22 @@ MATCH
   (n)
 ORDER BY
 ]] parse fails
+
+test Is Null [[
+SELECT n.prop = [[null]] AS isNull
+MATCH (n)
+]] error like "Use IS NULL or IS NOT NULL" at #1
+
+test Is Null [[
+SELECT n.prop = [[null]] AS isNull
+MATCH (n)
+]] error like "Use IS NULL or IS NOT NULL" at #1
+
+test Is Null [[
+SELECT n.prop = [[null]] AS equalsNull,
+       [[n.prop IS NULL]] AS isNull,
+       [[n.prop IS NOT NULL]] AS isNotNull
+MATCH (n)
+]] error like "Use IS NULL or IS NOT NULL" at #1
+   error like "IS NULL is not yet supported" at #2
+   error like "IS NOT NULL is not yet supported" at #3

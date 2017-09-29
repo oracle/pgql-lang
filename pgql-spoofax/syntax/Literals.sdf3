@@ -33,6 +33,7 @@ context-free syntax
   Date.Date                 = <date <STRING>> {case-insensitive}
   Time.Time                 = <time <STRING>> {case-insensitive}
   Timestamp.Timestamp       = <timestamp <STRING>> {case-insensitive}
+  Literal.Null              = <null> {case-insensitive} // not valid syntax; just here so that we can generate an appropriate error to use IS NULL or IS NOT NULL instead
 
 lexical syntax
 
