@@ -65,12 +65,6 @@ context-free syntax // Expressions.sdf3
   Exp.Legacy10Has = <<Exp>. has(<{Exp ", "}+>)> {case-insensitive}
   Exp.Legacy10InDegree  = <<Exp>. inDegree()> {case-insensitive}
   Exp.Legacy10OutDegree = <<Exp>. outDegree()> {case-insensitive}
-  Exp.Legacy10CallStatement = <call <Legacy10PackageDecl?><Legacy10RoutineName><Legacy10ArgumentList>> {case-insensitive}
-
-  Legacy10PackageDecl.PackageDecl = <<Legacy10PackageName>.>
-  Legacy10PackageName = IDENTIFIER
-  Legacy10RoutineName = IDENTIFIER
-  Legacy10ArgumentList.ArgumentList = <(<{Exp ", "}*>)>
 
   Legacy10InlinedExp = <(<Legacy10InlinedExp>)> {bracket}
   Legacy10InlinedExp = PropRef

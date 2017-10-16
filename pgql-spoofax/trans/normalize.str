@@ -57,7 +57,6 @@ rules
   get-deprecation = ?Ids(_); to-error-message(|"Use 'id(x) = xyz' instead of '@xyz'")
   get-deprecation = ?InlinedConstraint(_); to-error-message(|"Constraints should be specified in the WHERE clause instead of the WITH")
   get-deprecation = ?Legacy10Not(_); to-error-message(|"Use 'NOT' instead of '!'")
-  get-deprecation = ?Legacy10CallStatement(_, _, _); to-error-message(|"Use 'func(..)' instead of 'CALL func(..)'")
   get-deprecation = ?Legacy10Regex(_, _); to-error-message(|"Use 'java_regexp_like(exp1, exp2)' instead of 'exp1 =~ exp2'")
 
   get-pgql10-limitiation = (?FromClause(_) + ?Exists(_) + ?Pgql11AsignSymbol()); to-error-message(|"Use SELECT .. [FROM ..] MATCH pattern [WHERE filters] instead of SELECT .. WHERE pattern, filters")

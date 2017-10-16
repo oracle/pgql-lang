@@ -65,7 +65,6 @@ public interface QueryExpression {
     PROP_ACCESS,
     CAST,
     EXISTS,
-    CALL_STATEMENT,
     FUNCTION_CALL
   }
 
