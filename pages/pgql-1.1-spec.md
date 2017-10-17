@@ -15,15 +15,77 @@ The following are the changes since PGQL 1.0:
 
 ## Breaking Syntax Changes in PGQL 1.1
 
- - The graph pattern has MATCH .. WHERE .. instead of WHERE ... 
- - No more inlined filter predicates
- - No more double-quoted string literals
- - Updated common path expression syntax (`AS` instead of `:=`)
- - Replace OO-style functions with SQL-style functions, also, `inDegree` is now `in_degree` and `outDegree` is now `out_degree`
- - No more `-->` only `->`
- - Java regex call
- - Negation NOT instead of !
- - Not equals `<>` instead of `!=`
+ - The `WHERE` clause is changed into a `MATCH` clause and an optional `WHERE` clause such that the `MATCH` contains the pattern (vertices and edges) while the `WHERE` contains the filters if there are any.
+   The inlined filters (`WITH` construct) should also be specified in the `WHERE` clause.
+   For example, the following is a query in PGQL 1.0 and PGQL 1.1 syntax:
+
+   ```sql
+   /* PGQL 1.0 */
+   SELECT n.name
+    WHERE (n:Person WTIH age > 25)
+        , n.age <= 35
+   ```
+
+   ```sql
+   /* PGQL 1.1 */
+   SELECT n.name
+    MATCH (n:Person)
+    WHERE n.age > 25
+      AND n.age <= 35
+   ```
+
+ - The syntax for common path expressions has changed as follows:
+
+   ```bash
+   # PGQL 1.0
+   CommonPathExpression ::= 'PATH' IDENTIFIER ':=' PathPattern
+   ```
+
+   ```bash
+   # PGQL 1.1
+   CommonPathExpression ::= 'PATH' IDENTIFIER 'AS' PathPattern WhereClause?
+   ```
+
+   The changes are as follows:
+
+   - The symbol `:=` has changed into the keyword `AS`.
+   - The inlined expressions (`WITH` construct) are moved to an optional `WHERE` clause.
+
+   For example, the following is a query in PGQL 1.0 and PGQL 1.1 syntax:
+
+   ```sql
+     /* PGQL 1.0 */
+     PATH close_friend := () -[WITH weight >= 9]-> (:Person)
+   SELECT m.name
+    WHERE (n:Person) -/:close_friend*/-> (m)
+        , n.name = 'Amber' 
+   ```
+
+   ```sql
+     /* PGQL 1.1 */
+     PATH close_friend AS () -[e]-> (:Person) WHERE e.weight >= 9
+   SELECT m.name
+    MATCH (n:Person) -/:close_friend*/-> (m)
+    WHERe n.name = 'Amber'  
+   ```
+
+ - Double-quoted string literals are no longer allowed; string literals should be single-quoted.
+
+ - OO-style function call syntax has been replaced with SQL-style function call syntax:
+
+   - `x.label()` => `label(x)`
+   - `x.labels()` => `labels(x)`
+   - `x.id()` => `id(x)`
+   - `x.inDegree()` => `in_degree(x)`
+   - `x.outDegree()` => `out_degree(x)`
+
+ - The constructs `-->` (match any outgoing edge) and `<--` (match any incoming edge) are no longer allowed. Instead, use `->` and `<-`.
+
+ - The infix Java RegExp opertor `=~` has been removed. Instead, use the built-in function `java_regexp_like`.
+
+ - The operator `!` (logical not) has been removed. Instead, use `NOT` (logical not).
+
+ - The operator `<>` (not equals) has been added as syntactic alternative for `!=` (not equals).
 
 ## New Functionality in PGQL 1.1
 
