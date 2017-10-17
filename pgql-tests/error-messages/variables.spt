@@ -28,7 +28,7 @@ MATCH
   (n)
 GROUP BY n
 ORDER BY [[n2.name]]
-]] error like "Unresolved variable" at #1
+]] error like "Cannot order by non-group key variable: use aggregation" at #1
 
 test Duplicate edge variable [[
 SELECT *
