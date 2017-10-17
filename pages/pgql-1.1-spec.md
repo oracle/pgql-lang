@@ -46,7 +46,7 @@ The following are the changes since PGQL 1.0:
    CommonPathExpression ::= 'PATH' IDENTIFIER 'AS' PathPattern WhereClause?
    ```
 
-   The changes are as follows:
+   The changes are:
 
    - The symbol `:=` has changed into the keyword `AS`.
    - The inlined expressions (`WITH` construct) are moved to an optional `WHERE` clause.
@@ -75,17 +75,22 @@ The following are the changes since PGQL 1.0:
 
    - `x.label()` => `label(x)`
    - `x.labels()` => `labels(x)`
+   - `x.hasLabel(y)` => `has_label(x, y)`
    - `x.id()` => `id(x)`
    - `x.inDegree()` => `in_degree(x)`
    - `x.outDegree()` => `out_degree(x)`
 
  - The constructs `-->` (match any outgoing edge) and `<--` (match any incoming edge) are no longer allowed. Instead, use `->` and `<-`.
 
- - The infix Java RegExp opertor `=~` has been removed. Instead, use the built-in function `java_regexp_like`.
+ - The infix Java RegExp operator `=~` has been removed. Instead, use the built-in function `java_regexp_like`.
 
  - The operator `!` (logical not) has been removed. Instead, use `NOT` (logical not).
 
  - The operator `<>` (not equals) has been added as syntactic alternative for `!=` (not equals).
+
+ - The `ASC(x)` (sort in ascending order) and `DESC(x)` (sort in descending order) functions have been removed. Instead, use the `x ASC` and `x DESC` constructs.
+
+ - Direct sorting of vertices and edges (e.g. `ORDER BY v1, e1`) is no longer allowed. Instead, sort using _properties_ of vertices and edges (e.g. `ORDER BY v1.propX, e1.propY`).
 
 ## New Functionality in PGQL 1.1
 
@@ -528,7 +533,7 @@ It is possible that `ORDER BY` clause consists of multiple terms. In such a case
 ```sql
 SELECT f.name
 WHERE (f WITH type = 'Person')
-ORDER BY ASC(f.age), f.salary DESC
+ORDER BY f.age ASC, f.salary DESC
 ```
 
 ### Data Types for ORDER BY
