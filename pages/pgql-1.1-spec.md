@@ -13,9 +13,9 @@ toc: true
 
 The following are the changes since PGQL 1.0:
 
-## Breaking Syntax Changes
+## Breaking Syntax Changes in PGQL 1.1
 
- - MATCH .. WHERE .. instead of WHERE ..
+ - The graph pattern has MATCH .. WHERE .. instead of WHERE ... 
  - No more inlined filter predicates
  - No more double-quoted string literals
  - Updated common path expression syntax (`AS` instead of `:=`)
@@ -25,19 +25,19 @@ The following are the changes since PGQL 1.0:
  - Negation NOT instead of !
  - Not equals `<>` instead of `!=`
 
-## New Functionality
+## New Functionality in PGQL 1.1
 
  - FROM clause
- - [Existential subqueries](#existential-subqueries)
- - [Temporal types](#temporal-types): `DATE`, `TIME`, `TIMESTAMP`, `TIME WITH TIMEZONE`, `TIMESTAMP WITH TIMEZONE`
- - Undirected edges
+ - [Undirected query edges](#undirected-query-edges)
  - [Min and max repetition](#min-and-max-repetition) in regular path expressions
+ - DISTINCT
+ - [Filtering of groups (HAVING)](#filtering-of-groups-having)
+ - [Temporal types](#temporal-types): `DATE`, `TIME`, `TIMESTAMP`, `TIME WITH TIMEZONE`, `TIMESTAMP WITH TIMEZONE`
  - [IS NULL and IS NOT NULL](#is-null-and-is-not-null)
  - [Explicit Type Conversion](#explicit-type-conversion) through `CAST` function
- - New [built-in function](#built-in-functions): `all_different(val1, val2, .., valn)`
- - [Filtering of groups (HAVING)](#filtering-of-groups-having)
- - DISTINCT
+ - [Built-in function](#built-in-functions) `all_different(val1, val2, .., valn)`
  - [User-defined functions](#user-defined-functions)
+ - [Existential subqueries](#existential-subqueries)
 
 # Introduction
 
@@ -75,12 +75,13 @@ The `SELECT` clause specifies what should be projected out from the query.
 
 The syntax structure of PGQL resembles that of SQL (Standard Query Language) of relational database systems. A basic PGQL query consists of the following clauses:
 
-```
+```bash
 Query :=
   CommonPathExpressions?
   SelectClause
   FromClause?
-  WhereClause
+  MatchClause
+  WhereClause?
   GroupByClause?
   OrderByClause?
   LimitOffsetClauses?
@@ -100,20 +101,24 @@ In a PGQL query, the `WHERE` clause defines the graph pattern to be matched.
 
 Syntactically, a `WHERE` clause is composed of the keyword `WHERE` followed by a comma-separated sequence of constraints.
 
-```
+```bash
 MatchClause         := 'MATCH' {PathPattern ','}+
-PathPattern         := QueryVertex (QueryConnection QueryVertex)*
-QueryVertex         := '(' VariablePlusLabel ')'
-QueryConnection     := QueryEdge |
-                       QueryPath // see Section 'Regular Path Expressions'
-QueryEdge           := '->' | '<-' | '-' |
-                       '-[' VariablePlusLabel ']->' |
-                       '<-[' VariablePlusLabel ']-' |
-                       '-[' VariablePlusLabel ']-'
-VariablePlusLabel   := VariableName? LabelPredicate?
-VariableName        := IDENTIFIER
-LabelPredicate      := ':' {Label '|'}+
-WhereClause         := 'WHERE' Expression // see Section 'Value Expressions'
+PathPattern         := Vertex (Relation Vertex)*
+Vertex              := '(' VariablePlusLabel ')'
+Relation            := Edge
+                     | Path // see Regular Path Expressions
+Edge                := OutgoingEdge
+                     | IncomingEdge
+                     | UndirectedEdge
+OutgoingEdge        := '->'
+                     | '-[' VariableDeclaration ']->'
+IncomingEdge        := '<-'
+                     | '<-[' VariableDeclaration ']-'
+UndirectedEdge      := '-'
+                     | '-[' VariableDeclaration ']-'
+VariableDeclaration := IDENTIFIER? LabelsPredicate?
+LabelsPredicate     := ':' {IDENTIFIER '|'}+
+WhereClause         := 'WHERE' ValueExpression // see Value Expressions
 ```
 
 Each constraint is one of the following types:
@@ -220,7 +225,7 @@ WHERE (:Person) -[:likes]-> (:Person)
 
 Note that even though labels are Strings, we have omitted the quotes in the example above. Omitting quotes is optional only if the label is an alphanumeric character followed by zero or more alphanumeric or underscore characters. Otherwise, the label needs to be quoted and Syntax for Strings needs to be followed. This is explained by the following grammar constructs:
 
-```
+```bash
 Label          := String | UnquotedString
 UnquotedString := [a-zA-Z][a-zA-Z0-9\_]*
 ```
@@ -338,7 +343,7 @@ Note that in case there are both incoming and outgoing data edges between two da
 
 Undirected edges may also be used inside common path expressions:
 
-```
+```sql
 PATH two_hops := () -[e1]- () -[e2]- ()
 SELECT * MATCH (n) -/:two_hops*/-> (m)
 ```
@@ -353,7 +358,7 @@ In a PGQL query, the SELECT clause defines the data entities to be returned in t
 
 The following explains the syntactic structure of SELECT clause.
 
-```
+```bash
 SelectClause := 'SELECT' {SelectElem ','}* |
                 'SELECT' '*'
 SelectElem   := Expression ('AS' Variable)?
@@ -494,7 +499,7 @@ The `LIMIT` puts an upper bound on the number of solutions returned, whereas the
 
 The following explains the syntactic structure for the LIMIT and OFFSET clauses:
 
-```
+```bash
 LimitOffsetClauses := 'LIMIT' Integer ('OFFSET' Integer)? |
                       'OFFSET' Integer ('LIMIT' Integer)?
 ```
@@ -520,31 +525,33 @@ PGQL 1.0 supports testing for path existence ("reachability testing") only, whil
 
 The syntactic structure of a query path is similar to a query edge, but it uses forward slashes (-/.../->) instead of square brackets (-[...]->). The syntax rules are as follows:
 
-```
-QueryPath             := PathWithQuantifier
-                       | PathWithoutQuantifier
+```bash
+Path                 := OutgoingPath
+                      | IncomingPath
 
-PathWithQuantifier    := '-/' ':' Label RepetitionQuantifier '/->'
-                       | '<-/' ':' Label RepetitionQuantifier '/-' 
+OutgoingPath         := '-/' LabelsPredicate '/->'
+                      | '-/' SingleLabelPredicate RepetitionQuantifier '/->'
 
-PathWithoutQuantifier := '-/' ':' AlternativeLabels '/->'
-                       | '<-/' ':' AlternativeLabels '/-'
+IncomingPath         := '<-/' LabelsPredicate '/-'
+                      | '<-/' SingleLabelPredicate RepetitionQuantifier '/-'
 
-RepetitionQuantifier  := ZeroOrMore
-                       | OneOrMore
-                       | Optional
-                       | ExactlyN
-                       | NOrMore
-                       | BetweenNAndM
-                       | BetweenZeroAndM
+SingleLabelPredicate := ':' IDENTIFIER
 
-ZeroOrMore            := '*'
-OneOrMore             := '+'
-Optional              := '?'
-ExactlyN              := '{' UNSIGNED-INTEGER '}'
-NOrMore               := '{' UNSIGNED-INTEGER ',' '}'
-BetweenNAndM          := '{' UNSIGNED-INTEGER ',' UNSIGNED-INTEGER '}'
-BetweenZeroAndM       := '{' ',' UNSIGNED-INTEGER '}'
+RepetitionQuantifier := ZeroOrMore
+                      | OneOrMore
+                      | Optional
+                      | ExactlyN
+                      | NOrMore
+                      | BetweenNAndM
+                      | BetweenZeroAndM
+
+ZeroOrMore           := '*'
+OneOrMore            := '+'
+Optional             := '?'
+ExactlyN             := '{' UNSIGNED-INTEGER '}'
+NOrMore              := '{' UNSIGNED-INTEGER ',' '}'
+BetweenNAndM         := '{' UNSIGNED-INTEGER ',' UNSIGNED-INTEGER '}'
+BetweenZeroAndM      := '{' ',' UNSIGNED-INTEGER '}'
 ```
 
 An example is as follows:
@@ -944,13 +951,15 @@ A `AND` B<br>A `OR` B                                             | boolean     
 
 *For precision and scale, see [Implicit Type Conversion](#implicit-type-conversion). 
 
-Note that from the above table it follows that binary operations are only allowed if both operands are of the same type, with the following two exceptions:
+### Comparing Different Temporal Types
+
+Binary operations are only allowed if both operands are of the same type, with the following two exceptions:
 
 - _time_ values can be compared to _time with timezone_ values
 - _timestamp_ values can be compared to _timestamp with timezone_ values
 
-Comparison between temporal values with timezones is done by first normalizing the values to have the same timezone.
-For comparison between other types of temporal values, such as dates and timestamps, see [Explicit Type Conversion](#explicit-type-conversion).
+To compare such time(stamp) with timezone values to other time(stamp) values (with or without timezone), values are first normalized to have the same timezone, before they are compared.
+Comparison with other operand type combinations, such as dates and timestamp, is not possible. However, casting between e.g. dates and timestamp is allowed (see [Explicit Type Conversion](#explicit-type-conversion)).
 
 ### Operator Precedence
 
@@ -976,12 +985,12 @@ Three-valued logic applies when `null` values appear in computation.
 
 An operator returns `null` if one of its operands yields `null`, with an exception for `AND` and `OR`. This is shown in the following table:
 
-Operator                                                   | Result when A is null                         | Result when B is null                          | Result when A and B are null
----------------------------------------------------------- | --------------------------------------------- | ---------------------------------------------- | ----------------------------
-A `+` `-` `*` `/` `%` B<br>A `=` `<>` `<` `>` `<=` `>=` B  | `null`                                        | `null`                                         | `null`
-A `AND` B                                                  | `false` if B yields `false`, `null` otherwise | `false` if A yields `false`, `null` otherwise  | `null`
-A `OR` B                                                   | `true` if B yields `true`, `null` otherwise   | `true` if A yields `true`, `null` otherwise    | `null`
-`NOT` A<br>`!`A                                            | `null`                                        |                                                |
+Operator                                            | Result when A is null                         | Result when B is null                          | Result when A and B are null
+--------------------------------------------------- | --------------------------------------------- | ---------------------------------------------- | ----------------------------
+A `+` `-` `*` `/` `%` `=` `<>` `<` `>` `<=` `>=` B  | `null`                                        | `null`                                         | `null`
+A `AND` B                                           | `false` if B yields `false`, `null` otherwise | `false` if A yields `false`, `null` otherwise  | `null`
+A `OR` B                                            | `true` if B yields `true`, `null` otherwise   | `true` if A yields `true`, `null` otherwise    | `null`
+`NOT` A                                             | `null`                                        |                                                |
 
 Note that from the table it follows that `null = null` yields `null` and not `true`.
 
@@ -1040,7 +1049,7 @@ Signature | Return value | Description
 `has_label(element)` | boolean | returns true if the vertex or edge has the given label.
 `labels(element)` | set<String> | returns the labels of the vertex or edge in the case it has multiple labels.
 `label()` | string | returns the label of the vertex or edge in the case it has a single label.
-`all_different(val1, val2, .., valn)` | boolean | return true if the values are all different (usually used for [subgraph isomorphism](subgraph isomorphism))
+`all_different(val1, val2, .., valn)` | boolean | return true if the values are all different (usually used for [subgraph isomorphism](#subgraph-isomorphism))
 `in_degree(vertex)` | exact numeric | returns the number of incoming neighbors.
 `out_degree(vertex)` | exact numeric | returns the number of outgoing neighbors.
 
@@ -1113,7 +1122,7 @@ In the table above, `Y` indicates that casting is supported, `N` indicates that 
 PGQL has five temporal data types: `DATE`, `TIME`, `TIMESTAMP`, `TIME WITH TIMEZONE` and `TIMESTAMP WITH TIMEZONE`.
 For each of the data types, there exists a corresponding literal as shown in [Literals](#literals).
 
-In PGQL 1.1, the supported operations on temporal values are limited to comparison. See [Operators](#operators).
+In PGQL 1.1, the supported operations on temporal values are limited to comparison. See [Comparing Different Temporal Types](#comparing-different-temporal-types).
 
 # Subqueries
 
@@ -1207,7 +1216,7 @@ Keywords are case-insensitive and variations such as `SELECT`, `Select` and `sEL
 
 Comments are delimited by `/*` and `*/`. The following shows the syntactic structure:
 
-```
+```bash
 Comment  := '/*' ~[\*]* '*/'
 ```
 
