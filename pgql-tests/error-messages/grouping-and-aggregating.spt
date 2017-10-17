@@ -56,3 +56,9 @@ WHERE
   (n)
 ORDER BY [[AVG(n.age)]]
 ]] error like "Aggregation in ORDER BY only allowed if SELECT constains aggregations, or, in combination with GROUP BY" at #1
+
+test Aggregation in ORDER BY not expected [[
+SELECT [[*]]
+MATCH (n) -[e]-> (m)
+GROUP BY e.weight AS weight
+]] error like "SELECT * not allowed in combination with GROUP BY" at #1

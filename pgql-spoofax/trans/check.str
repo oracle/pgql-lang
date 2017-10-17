@@ -113,7 +113,7 @@ rules
   nabl-constraint(|ctx):
     e@Distinct() -> <fail>
     with
-      <generate-error(|ctx, $[DISTINCT is not supported in PGQL 1.1])> e
+      <generate-error(|ctx, $[DISTINCT is not supported])> e
 
   path-reference(|ctx):
     VarRef(v) -> <fail>
@@ -135,6 +135,11 @@ rules
     e@IsNotNull(_) -> <fail>
     with
       <generate-error(|ctx, "IS NOT NULL is not yet supported")> e
+
+  nabl-constraint(|ctx):
+    e@Star() -> <fail>
+    with
+      <generate-error(|ctx, "SELECT * not allowed in combination with GROUP BY")> e
 
 rules // type checking
 

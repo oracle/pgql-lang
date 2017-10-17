@@ -8,8 +8,8 @@ WHERE
   (WITH name = 'Heather') -[WITH label = 'dislikes']-> (m)
 ]]
 
-test Call statement [[
-SELECT CALL myFunc1(), CALL myFunc2(n.age, n.name, n.age + 123), CALL myPackage.myFunc3(n)
+test User-defined functions [[
+SELECT myFunc1(), myFunc2(n.age, n.name, n.age + 123), myPackage.myFunc3(n)
 WHERE
   (n)
 ]]

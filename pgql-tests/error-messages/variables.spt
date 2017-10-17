@@ -28,7 +28,7 @@ MATCH
   (n)
 GROUP BY n
 ORDER BY [[n2.name]]
-]] error like "Cannot order by non-group key variable: use aggregation" at #1
+]] error like "Unresolved variable" at #1
 
 test Duplicate edge variable [[
 SELECT *
@@ -77,7 +77,7 @@ GROUP BY [[n]], [[n]]
 ]] error like "Duplicate group key" at #1, #2
 
 test Redefine variable from WHERE in GROUP BY [[
-SELECT *
+SELECT n.age AS nAge
 MATCH (n)
 GROUP BY n AS [[n]]
 ]] error like "Duplicate variable; variable already defined in the MATCH clause" at #1
