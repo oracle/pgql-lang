@@ -66,7 +66,7 @@ The following are the changes since PGQL 1.0:
      PATH close_friend AS () -[e]-> (:Person) WHERE e.weight >= 9
    SELECT m.name
     MATCH (n:Person) -/:close_friend*/-> (m)
-    WHERe n.name = 'Amber'  
+    WHERE n.name = 'Amber'  
    ```
 
  - Double-quoted string literals are no longer allowed; string literals should be single-quoted.
@@ -143,7 +143,7 @@ The `SELECT` clause specifies what should be projected out from the query.
 The syntax structure of PGQL resembles that of SQL (Standard Query Language) of relational database systems. A basic PGQL query consists of the following clauses:
 
 ```bash
-Query :=
+Query ::=
   CommonPathExpressions?
   SelectClause
   FromClause?
@@ -169,23 +169,23 @@ In a PGQL query, the `WHERE` clause defines the graph pattern to be matched.
 Syntactically, a `WHERE` clause is composed of the keyword `WHERE` followed by a comma-separated sequence of constraints.
 
 ```bash
-MatchClause         := 'MATCH' {PathPattern ','}+
-PathPattern         := Vertex (Relation Vertex)*
-Vertex              := '(' VariablePlusLabel ')'
-Relation            := Edge
-                     | Path // see Regular Path Expressions
-Edge                := OutgoingEdge
-                     | IncomingEdge
-                     | UndirectedEdge
-OutgoingEdge        := '->'
-                     | '-[' VariableDeclaration ']->'
-IncomingEdge        := '<-'
-                     | '<-[' VariableDeclaration ']-'
-UndirectedEdge      := '-'
-                     | '-[' VariableDeclaration ']-'
-VariableDeclaration := IDENTIFIER? LabelsPredicate?
-LabelsPredicate     := ':' {IDENTIFIER '|'}+
-WhereClause         := 'WHERE' ValueExpression // see Value Expressions
+MatchClause         ::= 'MATCH' {PathPattern ','}+
+PathPattern         ::= Vertex (Relation Vertex)*
+Vertex              ::= '(' VariablePlusLabel ')'
+Relation            ::= Edge
+                      | Path // see Regular Path Expressions
+Edge                ::= OutgoingEdge
+                      | IncomingEdge
+                      | UndirectedEdge
+OutgoingEdge        ::= '->'
+                      | '-[' VariableDeclaration ']->'
+IncomingEdge        ::= '<-'
+                      | '<-[' VariableDeclaration ']-'
+UndirectedEdge      ::= '-'
+                      | '-[' VariableDeclaration ']-'
+VariableDeclaration ::= IDENTIFIER? LabelsPredicate?
+LabelsPredicate     ::= ':' {IDENTIFIER '|'}+
+WhereClause         ::= 'WHERE' ValueExpression // see Value Expressions
 ```
 
 Each constraint is one of the following types:
@@ -292,14 +292,14 @@ SELECT *
 Note that even though labels are Strings, we have omitted the quotes in the example above. Omitting quotes is optional only if the label is an alphanumeric character followed by zero or more alphanumeric or underscore characters. Otherwise, the label needs to be quoted and Syntax for Strings needs to be followed. This is explained by the following grammar constructs:
 
 ```bash
-Label          := IDENTIFIER
+Label ::= IDENTIFIER
 ```
 
 Take the following example:
 
 ```sql
 SELECT *
-MATCH (x:Person) -[e:"has friend"]-> (y:Person)
+ MATCH (x:Person) -[e:"has friend"]-> (y:Person)
 ```
 
 Here, because the label `has friend` contains a white space, the quotes cannot be omitted and syntax for quoted Strings need to be followed.
@@ -310,7 +310,7 @@ One can specify label alternatives, such that the pattern matches if the vertex 
 
 ```sql
 SELECT *
-MATCH (x:Student|Professor) -[e:likes|knows]-> (y:Student|Professor)
+ MATCH (x:Student|Professor) -[e:likes|knows]-> (y:Student|Professor)
 ```
 
 Here, vertices `x` and `y` match if they have either or both of labels `Student` and `Professor`. Edge `e` matches if it has either label `likes` or label `knows`.
@@ -429,9 +429,9 @@ In a PGQL query, the SELECT clause defines the data entities to be returned in t
 The following explains the syntactic structure of SELECT clause.
 
 ```bash
-SelectClause := 'SELECT' {SelectElem ','}* |
-                'SELECT' '*'
-SelectElem   := Expression ('AS' Variable)?
+SelectClause ::= 'SELECT' {SelectElem ','}* |
+                 'SELECT' '*'
+SelectElem   ::= Expression ('AS' Variable)?
 ```
 
 A `SELECT` clause consists of the keyword `SELECT` followed by a comma-separated sequence of select element, or a special character star `*`. A select element consists of:
@@ -495,7 +495,7 @@ SELECT *
 The solution modifier clause defines additional operations for building up the result of the query.  A solution modifier clause consists of three (sub-)clauses– `GroupByClause`, `OrderByClause` and `LimitOffsetClauses`. Note that all these clauses are optional; therefore the entire solution modifier clause is optional.
 
 ```
-SolutionModifierClause := GroupByClause? OrderByClause? LimitOffsetClauses?
+SolutionModifierClause ::= GroupByClause? OrderByClause? LimitOffsetClauses?
 ```
 
 ## Sorting (ORDER BY)
@@ -505,8 +505,8 @@ When there are multiple matched subgraph instances to a given query, in general,
 The following explains the syntactic structure of `ORDER BY` clause.
 
 ```
-OrderByClause := 'ORDER' 'BY' {OrderTerm ','}+
-OrderTerm     := Expression ('ASC'|'DESC')?
+OrderByClause ::= 'ORDER' 'BY' {OrderTerm ','}+
+OrderTerm     ::= Expression ('ASC'|'DESC')?
 ```
 
 The `ORDER BY` clause starts with the keywords `ORDER BY` and is followed by comma separated list of order terms. An order term consists of the following parts:
@@ -564,7 +564,7 @@ The `LIMIT` puts an upper bound on the number of solutions returned, whereas the
 The following explains the syntactic structure for the LIMIT and OFFSET clauses:
 
 ```bash
-LimitOffsetClauses := 'LIMIT' Integer ('OFFSET' Integer)? |
+LimitOffsetClauses ::= 'LIMIT' Integer ('OFFSET' Integer)? |
                       'OFFSET' Integer ('LIMIT' Integer)?
 ```
 
@@ -593,32 +593,32 @@ PGQL 1.0 supports testing for path existence ("reachability testing") only, whil
 The syntactic structure of a query path is similar to a query edge, but it uses forward slashes (-/.../->) instead of square brackets (-[...]->). The syntax rules are as follows:
 
 ```bash
-Path                 := OutgoingPath
-                      | IncomingPath
+Path                 ::= OutgoingPath
+                       | IncomingPath
 
-OutgoingPath         := '-/' LabelsPredicate '/->'
-                      | '-/' SingleLabelPredicate RepetitionQuantifier '/->'
+OutgoingPath         ::= '-/' LabelsPredicate '/->'
+                       | '-/' SingleLabelPredicate RepetitionQuantifier '/->'
 
-IncomingPath         := '<-/' LabelsPredicate '/-'
-                      | '<-/' SingleLabelPredicate RepetitionQuantifier '/-'
+IncomingPath         ::= '<-/' LabelsPredicate '/-'
+                       | '<-/' SingleLabelPredicate RepetitionQuantifier '/-'
 
-SingleLabelPredicate := ':' IDENTIFIER
+SingleLabelPredicate ::= ':' IDENTIFIER
 
-RepetitionQuantifier := ZeroOrMore
-                      | OneOrMore
-                      | Optional
-                      | ExactlyN
-                      | NOrMore
-                      | BetweenNAndM
-                      | BetweenZeroAndM
+RepetitionQuantifier ::= ZeroOrMore
+                       | OneOrMore
+                       | Optional
+                       | ExactlyN
+                       | NOrMore
+                       | BetweenNAndM
+                       | BetweenZeroAndM
 
-ZeroOrMore           := '*'
-OneOrMore            := '+'
-Optional             := '?'
-ExactlyN             := '{' UNSIGNED-INTEGER '}'
-NOrMore              := '{' UNSIGNED-INTEGER ',' '}'
-BetweenNAndM         := '{' UNSIGNED-INTEGER ',' UNSIGNED-INTEGER '}'
-BetweenZeroAndM      := '{' ',' UNSIGNED-INTEGER '}'
+ZeroOrMore           ::= '*'
+OneOrMore            ::= '+'
+Optional             ::= '?'
+ExactlyN             ::= '{' UNSIGNED-INTEGER '}'
+NOrMore              ::= '{' UNSIGNED-INTEGER ',' '}'
+BetweenNAndM         ::= '{' UNSIGNED-INTEGER ',' UNSIGNED-INTEGER '}'
+BetweenZeroAndM      ::= '{' ',' UNSIGNED-INTEGER '}'
 ```
 
 An example is as follows:
@@ -778,7 +778,7 @@ SELECT y.name
 | "Judith" |
 +----------+
 ```
-
+ 
 Here, John is returned since there exists a path of length one (i.e. `100 -> 200`); Albert is returned since there exists a path of length two (i.e. `100 -> 200 -> 300`); Judith is returned since there exists a path of length one (i.e. `100 -> 400`).
 
 #### Between zero and m
@@ -807,8 +807,8 @@ Here, Jonas is returned since there exists a path of length one (i.e. `400 -> 50
 One or more "common path expression" may be declared at the beginning of the query. These can be seen as macros that allow for expression more complex regular expressions. The syntactic structure is as follows:  
 
 ```
-PathPatternDecl := 'PATH' PathPatternName 'AS' PathPattern
-PathPatternName := [a-zA-Z][a-zA-Z0-9\_]*
+PathPatternDecl ::= 'PATH' PathPatternName 'AS' PathPattern
+PathPatternName ::= [a-zA-Z][a-zA-Z0-9\_]*
 ```
 
 A path pattern declaration starts with the keyword `PATH` and is followed by the name for the path pattern, the assignment operator `AS` and a path pattern. The syntactic structure of the path pattern is the same as a path pattern in the `MATCH` clause.
@@ -820,8 +820,8 @@ An example is as follows:
 SELECT ancestor.name
  MATCH (p1:Person) -/:has_parent+/-> (ancestor),
      , (p2:Person) -/:has_parent+/-> (ancestor)
-WHERE p1.name = 'Mario'
-  AND p2.name = 'Luigi'
+ WHERE p1.name = 'Mario'
+   AND p2.name = 'Luigi'
 ```
 
 The above query finds common ancestors of `Mario` and `Luigi`.
@@ -829,8 +829,8 @@ The above query finds common ancestors of `Mario` and `Luigi`.
 Another example is as follows:
 
 ```sql
- PATH connects_to AS (:Generator) -[:has_connector]-> (:Connector) <-[:has_connector]- (:Generator)
-                     WHERE c.status = 'OPERATIONAL'
+  PATH connects_to AS (:Generator) -[:has_connector]-> (c:Connector) <-[:has_connector]- (:Generator)
+                      WHERE c.status = 'OPERATIONAL'
 SELECT generatorA.location, generatorB.location
  MATCH (generatorA) -/:connects_to+/-> (generatorB)
 ```
@@ -846,8 +846,8 @@ GROUP BY allows for grouping of solutions and is typically used in combination w
 The following explains the syntactic structure of the `GROUP BY` clause:
 
 ```
-GroupByClause := 'GROUP' 'BY' {GroupTerm ','}+
-GroupTerm     := Expression ('AS' Variable)?
+GroupByClause ::= 'GROUP' 'BY' {GroupTerm ','}+
+GroupTerm     ::= Expression ('AS' Variable)?
 ```
 
 The `GROUP BY` clause starts with the keywords GROUP BY and is followed by a comma-separated list of group terms. Each group term consists of:
@@ -1097,10 +1097,10 @@ PGQL has a set of built-in functions and supports extension through user-defined
 The syntactic structure for built-in and user-defined function calls is as follows:
 
 ```
-FunctionCall        := FunctionPackage? FunctionName '(' {String ','}* ')'
-FunctionPackage     := FunctionPackageName '.'
-FunctionPackageName := IDENTIFIER
-FunctionName        := IDENTIFIER
+FunctionCall        ::= FunctionPackage? FunctionName '(' {String ','}* ')'
+FunctionPackage     ::= FunctionPackageName '.'
+FunctionPackageName ::= IDENTIFIER
+FunctionName        ::= IDENTIFIER
 ```
 
 A function call has an optional package name, a function name, and zero or more argument. Function names are case-insensitive.
@@ -1283,7 +1283,7 @@ Keywords are case-insensitive and variations such as `SELECT`, `Select` and `sEL
 Comments are delimited by `/*` and `*/`. The following shows the syntactic structure:
 
 ```bash
-Comment  := '/*' ~[\*]* '*/'
+Comment ::= '/*' ~[\*]* '*/'
 ```
 
 An example query with both single-line and multi-line comments is as follows:
