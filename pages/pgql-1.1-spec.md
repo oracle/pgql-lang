@@ -125,12 +125,12 @@ In the `MATCH` clause, the above query defines the pattern to be found.
 - The pattern is composed of three vertices (`n`, `m`, and `o`) and two edges (`e1` and `e2`).
 - There is an edge (`e1`) from vertex `n` to vertex `m`.
 - There is an edge (`e2`) from vertex `o` to vertex `m`.
-- Vertices `n` and `m` have a label with value `'Person'`, while vertex `o` has a label with value `'Car'`.
-- Edges `e1` and `e2` have labels with values `'friendOf'` and `'belongs_to'` respectively.
+- Vertices `n` and `m` have a label with value `Person`, while vertex `o` has a label with value `Car`.
+- Edges `e1` and `e2` have labels with values `friendOf` and `belongs_to` respectively.
 
 In `WHERE` clause specifies filter predicates.
 
-- Vertex `n` has a property `name` with the value `'John'`.
+- Vertex `n` has a property `name` with the value `John`.
 
 The `SELECT` clause specifies what should be projected out from the query.
 
@@ -138,9 +138,24 @@ The `SELECT` clause specifies what should be projected out from the query.
 
 ## Property Graph Data Model
 
+A property graph has a name and contains:
+
+ - A set of vertices.
+
+   - Each vertex has zero or more labels.
+   - Each vertex has zero or more properties, which are arbitrary key-value pairs.
+
+ - A set of edges.
+
+   - Each edge has a source and a destination vertex.
+   - Each edge has zero or more labels.
+   - Each edge has zero or more properties, which are arbitrary key-value pairs.
+
+In PGQL 1.1, we do not consider multi-valued properties like in e.g. Blueprints API.
+
 ## Basic Query Structure
 
-The syntax structure of PGQL resembles that of SQL (Standard Query Language) of relational database systems. A basic PGQL query consists of the following clauses:
+The syntax of PGQL resembles that of SQL (Standard Query Language) of relational database systems. A basic PGQL query consists of the following clauses:
 
 ```bash
 Query ::=
@@ -164,9 +179,9 @@ The detailed syntax and semantic of each clause are explained in following secti
 
 # Graph Pattern Matching
 
-In a PGQL query, the `WHERE` clause defines the graph pattern to be matched.
+In a PGQL query, the `MATCH` clause defines the graph pattern to be matched.
 
-Syntactically, a `WHERE` clause is composed of the keyword `WHERE` followed by a comma-separated sequence of constraints.
+Syntactically, a `MATCH` clause is composed of the keyword `MATCH` followed by a comma-separated sequence of path patterns.
 
 ```bash
 MatchClause         ::= 'MATCH' {PathPattern ','}+
@@ -188,15 +203,13 @@ LabelsPredicate     ::= ':' {IDENTIFIER '|'}+
 WhereClause         ::= 'WHERE' ValueExpression // see Value Expressions
 ```
 
-Each constraint is one of the following types:
+A path pattern describes a partial topology of the subgraph pattern, i.e. vertices and edges in the pattern.
 
-- A topology constraint describes a partial topology of the subgraph pattern, i.e. vertices and edges in the pattern.
-- A value constraint describes a general constraint other than the topology; the constraint takes the form of a Boolean expression which typically involves property values of the vertices and edges.
-- An in-lined constraint is a syntactic sugar where value constraints are written inside vertex terms or edge terms of a topology constraint.
-
-There can be multiple constraints in the `WHERE` clause of a PGQL query. Semantically, all constraints are conjunctive – that is, each matched result should satisfy every constraint in the `WHERE` clause.
+There can be multiple path patterns in the `WHERE` clause of a PGQL query. Semantically, all constraints are conjunctive – that is, each matched result should satisfy every constraint in the `MATCH` clause.
 
 ## Topology Constraints
+
+FIXME
 
 A topology constraint is a path pattern that describes a partial topology of the subgraph pattern. In other words, a topology constraint describes some connectivity relationships between vertices and edges in the pattern, whereas the whole topology of the pattern is described with one or multiple topology constraints.
 
@@ -429,9 +442,9 @@ In a PGQL query, the SELECT clause defines the data entities to be returned in t
 The following explains the syntactic structure of SELECT clause.
 
 ```bash
-SelectClause ::= 'SELECT' {SelectElem ','}* |
-                 'SELECT' '*'
-SelectElem   ::= Expression ('AS' Variable)?
+SelectClause ::= 'SELECT' {SelectElem ','}+
+               | 'SELECT' '*'
+SelectElem   ::= ValueExpression ('AS' Variable)?
 ```
 
 A `SELECT` clause consists of the keyword `SELECT` followed by a comma-separated sequence of select element, or a special character star `*`. A select element consists of:
@@ -506,7 +519,7 @@ The following explains the syntactic structure of `ORDER BY` clause.
 
 ```
 OrderByClause ::= 'ORDER' 'BY' {OrderTerm ','}+
-OrderTerm     ::= Expression ('ASC'|'DESC')?
+OrderTerm     ::= ValueExpression ('ASC'|'DESC')?
 ```
 
 The `ORDER BY` clause starts with the keywords `ORDER BY` and is followed by comma separated list of order terms. An order term consists of the following parts:
@@ -847,7 +860,7 @@ The following explains the syntactic structure of the `GROUP BY` clause:
 
 ```
 GroupByClause ::= 'GROUP' 'BY' {GroupTerm ','}+
-GroupTerm     ::= Expression ('AS' Variable)?
+GroupTerm     ::= ValueExpression ('AS' Variable)?
 ```
 
 The `GROUP BY` clause starts with the keywords GROUP BY and is followed by a comma-separated list of group terms. Each group term consists of:
