@@ -6,7 +6,7 @@ The language is based on the paradigm of graph pattern matching, which allows yo
 Like SQL, PGQL has support for grouping (GROUP BY), aggregation (e.g. MIN, MAX, AVG, SUM), sorting (ORDER BY) and many other familiar SQL constructs.
 In addition, PGQL supports regular path queries for applications such as reachability analysis."
 sidebar: spec_1_1_sidebar
-toc: false
+toc: true
 ---
 
 # Changelog
@@ -18,7 +18,7 @@ The following are the changes since PGQL 1.0:
  - MATCH .. WHERE .. instead of WHERE ..
  - No more inlined filter predicates
  - No more double-quoted string literals
- - Updated common path expression syntax (AS in stead of :=)
+ - Updated common path expression syntax (`AS` instead of `:=`)
  - Replace OO-style functions with SQL-style functions, also, `inDegree` is now `in_degree` and `outDegree` is now `out_degree`
  - No more `-->` only `->`
  - Java regex call
@@ -28,16 +28,16 @@ The following are the changes since PGQL 1.0:
 ## New Functionality
 
  - FROM clause
- - Existential and scalar subqueries
- - DATE, TIME, TIMESTAMP, TIME WITH TIMEZONE, TIMESTAMP WITH TIMEZONE data types
+ - [Existential subqueries](#existential-subqueries)
+ - [Temporal types](#temporal-types): `DATE`, `TIME`, `TIMESTAMP`, `TIME WITH TIMEZONE`, `TIMESTAMP WITH TIMEZONE`
  - Undirected edges
- - Min and max hops, e.g. `{1,4}` for one to four hops
- - IS NULL and IS NOT NULL
- - CAST
- - New built-in function `all_different(element..)`
- - HAVING clause
+ - [Min and max repetition](#min-and-max-repetition) in regular path expressions
+ - [IS NULL and IS NOT NULL](#is-null-and-is-not-null)
+ - [Explicit Type Conversion](#explicit-type-conversion) through `CAST` function
+ - New [built-in function](#built-in-functions): `all_different(val1, val2, .., valn)`
+ - [Filtering of groups (HAVING)](#filtering-of-groups-having)
  - DISTINCT
- - UDFs
+ - [User-defined functions](#user-defined-functions)
 
 # Introduction
 
@@ -278,7 +278,7 @@ y.age > 25
 
 There are two popular graph pattern matching semantics: graph homomorphism and graph isomorphism. The semantic of PGQL is graph homomorphism.
 
-### Graph Homomorphism
+### Subgraph Homomorphism
 
 Under graph homomorphism, multiple vertices (or edges) in the query pattern may match with the same vertex (or edge) in the data graph as long as all topology and value constraints of the different query vertices (or edges) are satisfied by the data vertex (or edge).
 
@@ -305,17 +305,17 @@ x | y
 
 Note that in case of the first result, both query vertex `x` and query vertex `y` are bound to the same data vertex `0`.
 
-### Graph Isomorphism
+### Subgraph Isomorphism
 
 Under graph isomorphism, two distinct query vertices must not match with the same data vertex.
 
 Consider the example from above. Under graph isomorphism, only the second solution is a valid one since the first solution binds both query vertices `x` and `y` to the same data vertex.
 
-In PGQL, to specify that a pattern should be matched in an isomorphic way, one can introduce non-equality constraints:
+In PGQL, to specify that a pattern should be matched in an isomorphic way, one can introduce either non-equality constraints:
 
 ```sql
 SELECT x, y
-WHERE (x) -> (y), x != y
+WHERE (x) -> (y), x <> y
 ```
 
 The output of this query is as follows:
@@ -515,81 +515,51 @@ SELECT n WHERE (n) LIMIT 10 OFFSET 5
 
 # Regular Path Expressions
 
-Path queries test for the existence of arbitrary-length paths between pairs of vertices, or, retrieve actual paths between pairs of vertices. PGQL 1.0 supports testing for path existence ("reachability testing") only, while retrieval of actual paths between reachable pairs of vertices is planned for future PGQL versions.
+Path queries test for the existence of arbitrary-length paths between pairs of vertices, or, retrieve actual paths between pairs of vertices.
+PGQL 1.0 supports testing for path existence ("reachability testing") only, while retrieval of actual paths between reachable pairs of vertices is planned for a future PGQL version.
 
-## Regular Path Patterns
-
-In addition to query vertices and query edge, a graph pattern in PGQL may be composed of query paths. Such paths define a regular path pattern between a pair of query vertices. During querying, bindings for query vertices are only obtained for those vertices in the graph that are reachable by at least one path that satisfies the regular path pattern.
-The syntactic structure of a query path is similar to a query edge, but it uses forward slashes (-/.../->) instead of square brackets (-[...]->) to clearly distinguishes the two types of connection. Inside the forward slashes, there must be a colon (':') followed by a regular path pattern.
+The syntactic structure of a query path is similar to a query edge, but it uses forward slashes (-/.../->) instead of square brackets (-[...]->). The syntax rules are as follows:
 
 ```
-QueryPath          := '-/' ':' RegularPathPattern '/->' |
-                      '<-/' ':' RegularPathPattern '/-'
-RegularPathPattern := PathPatternName |
-                      Label |
-                      ZeroOrMorePath |
-                      AlternativePath
-ZeroOrMorePath     := RegularPathPattern '*'
-AlternativePath    := {RegularPathPattern '|'}+
+QueryPath             := PathWithQuantifier
+                       | PathWithoutQuantifier
+
+PathWithQuantifier    := '-/' ':' Label RepetitionQuantifier '/->'
+                       | '<-/' ':' Label RepetitionQuantifier '/-' 
+
+PathWithoutQuantifier := '-/' ':' AlternativeLabels '/->'
+                       | '<-/' ':' AlternativeLabels '/-'
+
+RepetitionQuantifier  := ZeroOrMore
+                       | OneOrMore
+                       | Optional
+                       | ExactlyN
+                       | NOrMore
+                       | BetweenNAndM
+                       | BetweenZeroAndM
+
+ZeroOrMore            := '*'
+OneOrMore             := '+'
+Optional              := '?'
+ExactlyN              := '{' UNSIGNED-INTEGER '}'
+NOrMore               := '{' UNSIGNED-INTEGER ',' '}'
+BetweenNAndM          := '{' UNSIGNED-INTEGER ',' UNSIGNED-INTEGER '}'
+BetweenZeroAndM       := '{' ',' UNSIGNED-INTEGER '}'
 ```
-
-A regular path pattern is one of the following:
-
-- `PathPatternName`: matches a path using a path pattern that is declared at the beginning of the query
-- `Label`: matches a path of length one such that the edge on the path has the specified label
-- `ZeroOrMorePath`: matches a path by repeatedly matching the pattern zero or more times
-- `AlternativePath`: matches an alternative pattern (all possibilities are tried)
 
 An example is as follows:
 
 ```sql
-SELECT c
+SELECT c.name
 WHERE
   (c:Class) -/:subclass_of*/-> (:Class WITH name = 'ArrayList')
 ```
 
 Here, we find all classes that are a subclass of `'ArrayList'`. The regular path pattern `subclass_of*` matches a path consisting of zero or more edges with the label `subclass_of`. Because the pattern may match a path with zero edges, the two query vertices can be bound to the same data vertex if the data vertex satisfies the constraints specified in both source and destination vertices (i.e. the vertex has a label `'Class'` and a property `name` with a value `'ArrayList'`.
 
-## Path Pattern Composition
+## Min and max repetition
 
-Path patterns may be declared outside of the `WHERE` clause at the beginning of the query. Such patterns can then be used to construct more complex regular path patterns via path pattern composition.
-
-The syntactic structure is as follows:
-
-```
-PathPatternDecl := 'PATH' PathPatternName 'AS' PathPattern
-PathPatternName := [a-zA-Z][a-zA-Z0-9\_]*
-```
-
-A path pattern declaration starts with the keyword `PATH` and is followed by the name for the path pattern, the assignment operator `AS` and a path pattern. The syntactic structure of the path pattern is the same as a path pattern in the `MATCH` clause.
-
-An example is as follows:
-
-```sql
-PATH has_parent AS () -[:has_father|has_mother]-> ()
-SELECT ancestor
-MATCH
-  (:Person WITH name = 'Mario') -/:has_parent*/-> (ancestor:Person),
-  (:Person WITH name = 'Luigi') -/:has_parent*/-> (ancestor:Person)
-```
-
-The above query finds common ancestors of `'Mario'` and `'Luigi'`.
-
-Another example is as follows:
-
-```sql
-PATH connects_to AS (:Generator) -[:has_connector]-> (:Connector WITH status = 'OPERATIVE') <-[:has_connector]- (:Generator)
-SELECT generatorA.location, generatorB.location
-WHERE
-  (generatorA) -/:connects_to*/-> (generatorB),
-  generatorA != generatorB
-```
-
-The above query outputs all generators that are connected to each other via one or more connectors that are all operative.
-
-## Min and max hops in regular path queries
-
-PGX $version extends PGQL 1.0 with additional quantifiers in regular path queries for specifying lower and upper limits on the number of times a path pattern is allowed to match. We refer to these lower and upper limits as min and max hops respectively.
+Quantifiers in regular path expressions allow for specifying lower and upper limits on the number of times a path expression should match.
 
 | quantifier | meaning                              | matches                                                                                                                             | example path         |
 |------------|--------------------------------------|-------------------------------------------------------------------------------------------------------------------------------------|----------------------|
@@ -609,7 +579,7 @@ Take the following graph as example:
 
 {% include image.html file="example_graphs/pgql_min_max_hop.png" caption="Friendship graph with 'likes' and 'knows' edges" %}
 
-#### Zero or more hops
+#### Zero or more
 
 The following query finds all vertices y that can be reached from 'Amy' by following zero or more 'likes' edges.
 
@@ -633,7 +603,7 @@ WHERE x.name = 'Amy'
 Note that here, Amy is returned since Amy connects to Amy by following zero 'likes' edges. In other words, there exists an empty path for the vertex pair.
 For Judith, there exist two paths (`100 -> 200 -> 300 -> 400` and `100 -> 400`). However, Judith is still only returned once.
 
-#### One or more hops
+#### One or more
 
 The following query finds all people that can be reached from 'Amy' by following one or more 'likes' edges.
 
@@ -673,7 +643,7 @@ WHERE x.name = 'Judith'
 
 Here, in addition to Jonas, Judith is returned since there exist paths from Judith back to Judith that has a length greater than zero. Examples of such paths are `400 -> 500 -> 400` and `400 -> 500 -> 400 -> 500 -> 400`.
 
-#### Optional hop
+#### Optional
 
 The following query finds all people that can be reached from Judith by following zero or one 'knows' edges.
 
@@ -694,7 +664,7 @@ WHERE x.name = 'Judith'
 
 Here, Judith is returned since there exists the empty path that starts in `400` and ends in `400`. Jonas is returned because of the following path that has length one: `400 -> 500`.
 
-#### Exactly n hops
+#### Exactly n
 
 The following query finds all people that can be reached from Amy by following 2 or more 'likes' edges.
 
@@ -714,7 +684,7 @@ WHERE x.name = 'Amy'
 ```
 Here, Albert is returned since there exists the following path of length two: `100 -> 200 -> 300`. Judith is returned since there exists a path of length three: `100 -> 200 -> 300 -> 400`.
 
-#### n or more hops
+#### n or more
 
 The following query finds all people that can be reached from Amy by following between 1 and 2 'likes' edges.
 
@@ -736,7 +706,7 @@ WHERE x.name = 'Amy'
 
 Here, John is returned since there exists a path of length one (i.e. `100 -> 200`); Albert is returned since there exists a path of length two (i.e. `100 -> 200 -> 300`); Judith is returned since there exists a path of length one (i.e. `100 -> 400`).
 
-#### Between zero and m hops
+#### Between zero and m
 
 The following query finds all people that can be reached from Judith by following at most 2 'knows' edges.
 
@@ -757,74 +727,42 @@ WHERE x.name = 'Judith'
 
 Here, Jonas is returned since there exists a path of length one (i.e. `400 -> 500`). For Judith, there exists an empty path of length zero (i.e. `400`) as well as a non-empty path of length two (i.e. `400 -> 500 -> 400`). Yet, Judith is only returned once.
 
-# Grouping and Aggregation
+## Common Path Expressions
 
-## Aggregation
+One or more "common path expression" may be declared at the beginning of the query. These can be seen as macros that allow for expression more complex regular expressions. The syntactic structure is as follows:  
 
-Instead of retrieving all the matched results, a PGQL query can choose to get only some aggregated information about the result. This is done by putting aggregations in SELECT clause, instead of normal expressions. Consider the following example query which returns the average value of property age over all the matched vertex m.
+```
+PathPatternDecl := 'PATH' PathPatternName 'AS' PathPattern
+PathPatternName := [a-zA-Z][a-zA-Z0-9\_]*
+```
+
+A path pattern declaration starts with the keyword `PATH` and is followed by the name for the path pattern, the assignment operator `AS` and a path pattern. The syntactic structure of the path pattern is the same as a path pattern in the `MATCH` clause.
+
+An example is as follows:
 
 ```sql
-SELECT AVG(m.age) MATCH (m:Person)
+PATH has_parent AS () -[:has_father|has_mother]-> ()
+SELECT ancestor
+MATCH
+  (:Person WITH name = 'Mario') -/:has_parent*/-> (ancestor:Person),
+  (:Person WITH name = 'Luigi') -/:has_parent*/-> (ancestor:Person)
 ```
 
-Syntactically, an aggregation takes the form of Aggregate operator followed by expression inside a parenthesis. The following table is the list of Aggregate operators and their required input type.
+The above query finds common ancestors of `'Mario'` and `'Luigi'`.
 
-Aggregate Operator | Semantic | Required Input Type
---- | --- | ---
-`COUNT` | counts the number of times the given expression has a bound. | not null
-`MIN` | takes the minimum of the values for the given expression. | numeric
-`MAX` | takes the maximum of the values for the given expression. | numeric
-`SUM` | sums over the values for the given expression. | numeric
-`AVG` | takes the average of the values for the given | numeric
-
-`COUNT(*)` is a special syntax to count the number of pattern matches, without specifying an expressions. Consider the following example:
+Another example is as follows:
 
 ```sql
-SELECT COUNT(*)
-MATCH (m:Person) -> (k:Car) <- (n:Person)
-```
-
-The above query simply returns the number of matches to the pattern.
-
-### Aggregation and Required Input Type
-
-In PGQL, aggregation is performed only for the matched results where the type of the target expression matches with the required input type. Consider an example graph instance which has the following four vertex entities.
-
-```
-{"id": 3048,  "name":"John",  "age":30}
-{"id": 1197,  "name":"Peter", "age":20}
-{"id": 20487, "name":"Paul",  "age":"thirty five"}
-{"id": 2019,  "name":"James"}
-```
-
-Now suppose the following query is applied on this data set.
-
-```sql
-SELECT AVG(n.age), COUNT(*) MATCH (n)
-```
-
-Note that all the vertices are matched by the `WHERE` clause. However, the aggregation result from `SELECT` clause is `25` and `4`. For `AVG(n.age)` aggregation, only two vertices get aggregated (`"John"` and `"Peter"`) – the vertex for `"Paul"` is not applied because `'age'` is not numeric type, and the vertex for `"James"` does not have `'age'` property at all. For `COUNT(*)` aggregation, on the other hand, all the four matched vertices are applied to the aggregation.
-
-### Aggregation and Solution Modifier
-
-Aggregation is applied only afterthe  `GROUP BY` operator is applied, but before the `OFFSET` and `LIMIT` operators are applied.
-
-- If there is no GROUP BY operator, the aggregation is performed over the whole match results.
-- If there is a GROUP BY operator, the aggregation is applied over each group.
-
-See the detailed syntax and semantics of `SolutionModifierClause` in the related section of this specification.
-
-### Assigning Variable Name to Aggregation
-
-Like normal selection expression, it is also possible to assign variable name to aggregations. Again this is done by appending the key word `AS` and a variable name next to the aggregation. The variable name is used as the column name of the result set. In addition, the variable name can be later used in the `ORDER BY` clause. See the related section later in this document.
-
-```sql
-SELECT AVG(n.age) AS pivot, COUNT(n)
+PATH connects_to AS (:Generator) -[:has_connector]-> (:Connector WITH status = 'OPERATIVE') <-[:has_connector]- (:Generator)
+SELECT generatorA.location, generatorB.location
 WHERE
-   (n:Person) -> (m:Car)
-GROUP BY n.hometown
-ORDER BY pivot
+  (generatorA) -/:connects_to*/-> (generatorB),
+  generatorA <> generatorB
 ```
+
+The above query outputs all generators that are connected to each other via one or more connectors that are all operative.
+
+# Grouping and Aggregation
 
 ## Grouping
 
@@ -908,6 +846,77 @@ GROUP BY n.age AS nAge
 ORDER BY nAge
 ```
 
+## Aggregation
+
+Instead of retrieving all the matched results, a PGQL query can choose to get only some aggregated information about the result. This is done by putting aggregations in SELECT clause, instead of normal expressions. Consider the following example query which returns the average value of property age over all the matched vertex m.
+
+```sql
+SELECT AVG(m.age) MATCH (m:Person)
+```
+
+Syntactically, an aggregation takes the form of Aggregate operator followed by expression inside a parenthesis. The following table is the list of Aggregate operators and their required input type.
+
+Aggregate Operator | Semantic | Required Input Type
+--- | --- | ---
+`COUNT` | counts the number of times the given expression has a bound. | not null
+`MIN` | takes the minimum of the values for the given expression. | numeric
+`MAX` | takes the maximum of the values for the given expression. | numeric
+`SUM` | sums over the values for the given expression. | numeric
+`AVG` | takes the average of the values for the given | numeric
+
+`COUNT(*)` is a special syntax to count the number of pattern matches, without specifying an expressions. Consider the following example:
+
+```sql
+SELECT COUNT(*)
+MATCH (m:Person) -> (k:Car) <- (n:Person)
+```
+
+The above query simply returns the number of matches to the pattern.
+
+### Aggregation and Required Input Type
+
+In PGQL, aggregation is performed only for the matched results where the type of the target expression matches with the required input type. Consider an example graph instance which has the following four vertex entities.
+
+```
+{"id": 3048,  "name":"John",  "age":30}
+{"id": 1197,  "name":"Peter", "age":20}
+{"id": 20487, "name":"Paul",  "age":"thirty five"}
+{"id": 2019,  "name":"James"}
+```
+
+Now suppose the following query is applied on this data set.
+
+```sql
+SELECT AVG(n.age), COUNT(*) MATCH (n)
+```
+
+Note that all the vertices are matched by the `WHERE` clause. However, the aggregation result from `SELECT` clause is `25` and `4`. For `AVG(n.age)` aggregation, only two vertices get aggregated (`"John"` and `"Peter"`) – the vertex for `"Paul"` is not applied because `'age'` is not numeric type, and the vertex for `"James"` does not have `'age'` property at all. For `COUNT(*)` aggregation, on the other hand, all the four matched vertices are applied to the aggregation.
+
+### Aggregation and Solution Modifier
+
+Aggregation is applied only afterthe  `GROUP BY` operator is applied, but before the `OFFSET` and `LIMIT` operators are applied.
+
+- If there is no GROUP BY operator, the aggregation is performed over the whole match results.
+- If there is a GROUP BY operator, the aggregation is applied over each group.
+
+See the detailed syntax and semantics of `SolutionModifierClause` in the related section of this specification.
+
+### Assigning Variable Name to Aggregation
+
+Like normal selection expression, it is also possible to assign variable name to aggregations. Again this is done by appending the key word `AS` and a variable name next to the aggregation. The variable name is used as the column name of the result set. In addition, the variable name can be later used in the `ORDER BY` clause. See the related section later in this document.
+
+```sql
+SELECT AVG(n.age) AS pivot, COUNT(n)
+WHERE
+   (n:Person) -> (m:Car)
+GROUP BY n.hometown
+ORDER BY pivot
+```
+
+## Filtering of Groups (HAVING)
+
+TODO
+
 # Value Expressions
 
 Expressions are used in value constraints, in-lined constraints, and select/group/order terms. This section of the document defines the operators and built-in functions that can be used as part of an expression.
@@ -916,93 +925,99 @@ Expressions are used in value constraints, in-lined constraints, and select/grou
 
 The following table is an overview of the operators in PGQL.
 
-Operator type | Operator | Example
---- | --- | ---
-Arithmetic | `+`, `-`, `*`, `/`, `%` | `SELECT * WHERE n -> (m WITH start_line_num < end-line-num - 10)`
-Relational | `=`, `!=`, `<`, `>`, `<=`, `>=` | `SELECT * WHERE n -> m, n.start_line_num < m.start_line_num`
-Logical | `AND`, `OR`, `NOT` | `SELECT * MATCH n -> m WHERE n.start_line_num > 500 AND m.start_line_num > 500`
+Operator kind | Operator
+------------- | --------
+Arithmetic    | `+`, `-`, `*`, `/`, `%`, `-` (unary minus)
+Relational    | `=`, `<>`, `<`, `>`, `<=`, `>=`
+Logical       | `AND`, `OR`, `NOT`
+
+The supported input types and corresponding return types are as follows:
+
+Operator                                                          | type of A (and B)                                                                                   | Return Type
+----------------------------------------------------------------- | --------------------------------------------------------------------------------------------------- | -----------
+A `+` B<br>A `-` B<br>A `*` B<br>A `/` B<br>A `%` B               | numeric                                                                                             | numeric*
+`-`A (unary minus)                                                | numeric                                                                                             | type of A 
+A `=` B<br>A `<>` B<br>A `<` B<br>A `>` B<br>A `<=` B<br>A `>=` B | numeric,<br>date, time (with timezone), timestamp (with timezone)                                   | boolean
+A `=` B<br>A `<>` B                                               | numeric,<br>string, boolean, vertex, edge,<br>date, time (with timezone), timestamp (with timezone) | boolean
+`NOT` A                                                           | boolean                                                                                             | boolean
+A `AND` B<br>A `OR` B                                             | boolean                                                                                             | boolean
+
+*For precision and scale, see [Implicit Type Conversion](#implicit-type-conversion). 
+
+Note that from the above table it follows that binary operations are only allowed if both operands are of the same type, with the following two exceptions:
+
+- _time_ values can be compared to _time with timezone_ values
+- _timestamp_ values can be compared to _timestamp with timezone_ values
+
+Comparison between temporal values with timezones is done by first normalizing the values to have the same timezone.
+For comparison between other types of temporal values, such as dates and timestamps, see [Explicit Type Conversion](#explicit-type-conversion).
 
 ### Operator Precedence
 
 Operator precedences are shown in the following list, from highest precedence to the lowest. An operator on a higher level (e.g. level 1) is evaluated before an operator on a lower level (e.g. level 2).
 
 Level | Operator Precedence
---- | ---
-1 | `-` (unary minus)
-2 | `*`, `/`, `%`
-3 | `+`, `-`
-4 | `=`, `<>`, `<`, `>`, `<=`, `>=`
-5 | `NOT`
-6 | `AND`
-7 | `OR`
-
-### Operator and Operand Types
-
-The following table specifies operand types and operator return types.
-
-Operator                                                          | Type(A) | Type(B) | Result Type
------------------------------------------------------------------ | ------- | ------ -| -----------
-A `+` B<br>A `-` B<br>A `*` B<br>A `/` B<br>A `%` B               | numeric | numeric | numeric
-A `=` B<br>A `!=` B<br>A `<` B<br>A `>` B<br>A `<=` B<br>A `>=` B | numeric | numeric | boolean
-A `=` B<br>A `!=` B<br>A `=~` B                                   | string  | string  | boolean
-A `=` B<br>A `!=` B                                               | boolean | boolean | boolean
-A `=` B<br>A `!=` B                                               | vertex  | vertex  | boolean
-A `=` B<br>A `!=` B                                               | edge    | edge    | boolean
-A `AND` B<br>A `OR` B                                             | boolean | boolean | boolean
-`NOT` A<br>`!`A                                                   | boolean |         | boolean
-
-
-If the value for an operand is of a type that is not defined for the operator, the operation yields `null`. There is one exception to this rule, which is that the `OR` operator yields true if either of the operands yield `true` (see the section on `null` values and operators).
-
-### Data Type Conversion
-
-Numeric values are automatically converted (coerced) when compared against each other. An example is as follows:
-
-```sql
-3 = 3.0 /* this expression yields TRUE */
-```
-
-Comparing between Numeric, String, or Boolean values yields `null`  (see the corresponding section for more details on the handling of `null` values).
+----- | ---
+1     | `-` (unary minus)
+2     | `*`, `/`, `%`
+3     | `+`, `-`
+4     | `=`, `<>`, `<`, `>`, `<=`, `>=`
+5     | `NOT`
+6     | `AND`
+7     | `OR`
 
 ## Null Values
 
-`null` is used to represent a missing or undefined value. There are two ways in which a null value can come into existence:
+The property graph data model does not allow properties with `null` value. Instead, missing or undefined data can be modeled through the _absence_ of properties.
+A `null` value is generated when trying to access a property of a vertex or edge wile the property appears to be missing.
+Three-valued logic applies when `null` values appear in computation.
 
-- A property access (i.e. `var_name.prop_name`) returns `null` if the property is missing for a vertex or edge in the data graph.
-- An expression returns `null` if any operand or function argument is `null` (with an exception for the `OR` and `AND` operators, see below).
+### Three-Valued Logic
 
-### Null Values and Operators
+An operator returns `null` if one of its operands yields `null`, with an exception for `AND` and `OR`. This is shown in the following table:
 
-An operator returns `null` if one of its operands yields `null`, with an exception for the `OR` operator: if the left-hand side or right-hand side of the `OR` operations returns `true`, the operation itself yields `true`. Otherwise, the operation yields `null`. The table below summarizes these rules.
-
-Operator | Result {A = NULL} | Result {B = NULL} | Result {A = NULL, B = NULL}
----------------------------------------------------------- | --------------------------------------------- | ---------------------------------------------- | ------
-A `+` `-` `*` `/` `%` B<br>A `=` `!=` `<` `>` `<=` `>=` B  | `null`                                        | `null`                                         | `null`
+Operator                                                   | Result when A is null                         | Result when B is null                          | Result when A and B are null
+---------------------------------------------------------- | --------------------------------------------- | ---------------------------------------------- | ----------------------------
+A `+` `-` `*` `/` `%` B<br>A `=` `<>` `<` `>` `<=` `>=` B  | `null`                                        | `null`                                         | `null`
 A `AND` B                                                  | `false` if B yields `false`, `null` otherwise | `false` if A yields `false`, `null` otherwise  | `null`
 A `OR` B                                                   | `true` if B yields `true`, `null` otherwise   | `true` if A yields `true`, `null` otherwise    | `null`
 `NOT` A<br>`!`A                                            | `null`                                        |                                                |
 
 Note that from the table it follows that `null = null` yields `null` and not `true`.
 
-### Null Values as Function Argument
+### IS NULL and IS NOT NULL
 
-If any of the arguments of a function is `null`, the function itself yields `null`. For example, `has_label(null)` yields `null`.
+To test whether a value is null or not, one can use the `IS NULL` and `IS NOT NULL` constructs. An example is as follows:
 
-## Built-in and User-Defined Functions
+```sql
+SELECT n.name
+MATCH (n)
+WHERE n.name IS NOT NULL
+```
 
-PGQL has a set of built-in functions and also support user-defined functions.
+Here, we find all the vertices in the graph that have the property `name` (i.e. `n.name IS NOT NULL`). We then return the property.
 
-The following is an overview of the built-in PGQL functions:
+## Literals
 
-Signature | Return value | Description
-`id(element)` | numeric/string | returns the vertex/edge identifier. |
-`in_degree(vertex)` | decimal | returns the number of incoming neighbors.
-`out_degree(vertex)` | decimal | returns the number of outgoing neighbors.
-`has_label(element)` | boolean | returns true if the vertex or edge has the given label.
-`labels(element)` | Set<String> | returns the labels of the vertex or edge in the case it has multiple labels.
-`label()` | String | returns the label of the vertex or edge in the case it has a single label.
+The following are the available literals in PGQL:
 
-PGQL provides syntax for invoking user-defined functions, however, unlike in SQL, PGQL does not provide support for defining the signatures of a function as part of a schema.
+| Type of literal         | Syntax                                              | Example
+|-------------------------|-----------------------------------------------------|-----------------------------------------|
+| string                  | `"'" (~[\'\n\\] | EscapedCharacter)* "'"`           | `'Clara'`                               |
+| integer                 | `[0-9]+`                                            | `12`                                    |
+| decimal                 | `[0-9]* '.' [0-9]+`                                 | `12.3`                                  |
+| boolean                 | `"true" | "false"`                                  | `true`                                  |
+| date                    | `"DATE" "'" <yyyy-MM-dd> "'"`                       | `DATE '2017-09-21'`                     |
+| time                    | `"TIME" "'" <HH:mm:ss> "'"`                         | `TIME '16:15:00'`                       |
+| timestamp               | `"TIMESTAMP" "'" <yyyy-MM-dd HH:mm:ss> "'"`         | `TIMESTAMP '2017-09-21 16:15:00'`       |
+| time with timezone      | `"TIME" "'" <HH:mm:ss+HH:MM> "'"`                   | `TIME '16:15:00+01:00'`                 |
+| timestamp with timezone | `"TIMESTAMP" "'" <yyyy-MM-dd HH:mm:ss+HH:MM> "'"`   | `TIMESTAMP '2017-09-21 16:15:00-03:00'` |
+
+Note that the numeric literals (integer and decimal) are unsigned. However, signed values can be generated by using the unary minus opeartor (`-`).
+
+## Functions
+
+PGQL has a set of built-in functions and supports extension through user-defined functions (UDFs).
 
 The syntactic structure for built-in and user-defined function calls is as follows:
 
@@ -1014,6 +1029,21 @@ FunctionName        := IDENTIFIER
 ```
 
 A function call has an optional package name, a function name, and zero or more argument. Function names are case-insensitive.
+
+
+### Built-in Functions
+
+The following is an overview of the built-in PGQL functions:
+
+Signature | Return value | Description
+`id(element)` | object | returns the vertex/edge identifier if one exists.
+`has_label(element)` | boolean | returns true if the vertex or edge has the given label.
+`labels(element)` | set<String> | returns the labels of the vertex or edge in the case it has multiple labels.
+`label()` | string | returns the label of the vertex or edge in the case it has a single label.
+`all_different(val1, val2, .., valn)` | boolean | return true if the values are all different (usually used for [subgraph isomorphism](subgraph isomorphism))
+`in_degree(vertex)` | exact numeric | returns the number of incoming neighbors.
+`out_degree(vertex)` | exact numeric | returns the number of outgoing neighbors.
+
 
 Consider the following query:
 
@@ -1027,26 +1057,42 @@ WHERE
 
 Here, `in_degree(x)` returns the number of incoming neighbors of `x`, whereas `id(y)` returns the identifier of the vertex `y`.
 
-## Literals
+### User-defined Functions
 
-The following are the available literals in PGQl:
+PGQL does not specify how user-defined functions (UDFs) are registered to a database system and only considers how functions are invoked.
 
+UDFs are invoked in a similar way to built-in functions. For example, a user may have registered a function `math.tan` to return the tangent of a given angle. An example invocation of this function would then be:
 
-| From \ To               | syntax                                              | example
-|-------------------------|-----------------------------------------------------|-----------------------------------------|
-| string                  | `"'" (~[\'\n\\] | EscapedCharacter)* "'"`           | `'Clara'`                               |
-| integer                 | `[0-9]+`                                            | `12`                                    |
-| decimal                 | `[0-9]* '.' [0-9]+`                                 | `12.3`                                  |
-| boolean                 | `"true" | "false"`                                  | `true`                                  |
-| date                    | `"DATE" "'" <yyyy-MM-dd> "'"`                       | `DATE '2017-09-21'`                     |
-| time                    | `"TIME" "'" <HH:mm:ss> "'"`                         | `TIME '16:15:00'`                       |
-| timestamp               | `"TIMESTAMP" "'" <yyyy-MM-dd HH:mm:ss> "'"`         | `TIMESTAMP '2017-09-21 16:15:00'`       |
-| time with timezone      | `"TIME" "'" <HH:mm:ss+HH:MM> "'"`                   |  `TIME '16:15:00+01:00'`                |
-| timestamp with timezone | `"TIMESTAMP" "'" <yyyy-MM-dd HH:mm:ss+HH:MM> "'"`   | `TIMESTAMP '2017-09-21 16:15:00-03:00'` |
+```sql
+SELECT math.tan(n.angle) AS tangent
+MATCH (n)
+ORDER BY tangent
+```
 
-## Type Casting
+If a UDF is registered that has the same name as a built-in function, then upon function invocation, the UDF is invoked and not the built-in function. UDFs can thus override built-ins.
 
-PGQL supports casting between the following data types:
+## Type Conversion
+
+### Implicit Type Conversion
+
+Performing arithmetic operations with different numeric types will lead to implicit type conversion (i.e. "coercion").
+Coercion is only defined for numeric types. Given a binary arithmetic operation (i.e. `+`, `-`, `*`, `/`, `%`), the rules are as follows:
+
+- If both operands are exact numerics (e.g. integer or long), then the result is also an exact numeric with a scale that is at least as large as the scales of each operand.
+- If one or both of the operands is approximate numeric (e.g. float, double), the result is an approximate numeric with a scale that is at least as large as the scales of each operand. The precision will also be at least as high as the precision of each operand.
+
+### Explicit Type Conversion
+
+Explicit type conversion is supported through type "casting".
+
+The syntax is as follows: `CAST(expression AS datatype)`. For example:
+
+```
+SELECT CAST(n.age AS STRING), CAST('123' AS INT), CAST('true' AS BOOLEAN)
+MATCH  (n:Person)
+```
+
+Casting is allowed between the following data types:
 
 | From \ To               | string | exact numeric | approximate numeric | boolean | time | time with timezone | date | timestamp | timestamp with timezone |
 |-------------------------|--------|---------------|---------------------|---------|------|--------------------|------|-----------|-------------------------|
@@ -1062,12 +1108,18 @@ PGQL supports casting between the following data types:
 
 In the table above, `Y` indicates that casting is supported, `N` indicates that casting is not supported, and `M` indicates that casting is supported only if the numeric value is within the precision bounds of the specified target type.
 
-The syntax is like SQL's `CAST` function: `CAST(expression AS datatype)`. For example:
+## Temporal Types
 
-```
-SELECT CAST(n.age AS STRING), CAST('123' AS INT), CAST('true' AS BOOLEAN)
-WHERE (n:Person)
-```
+PGQL has five temporal data types: `DATE`, `TIME`, `TIMESTAMP`, `TIME WITH TIMEZONE` and `TIMESTAMP WITH TIMEZONE`.
+For each of the data types, there exists a corresponding literal as shown in [Literals](#literals).
+
+In PGQL 1.1, the supported operations on temporal values are limited to comparison. See [Operators](#operators).
+
+# Subqueries
+
+## Existential Subqueries
+
+
 
 # Other Syntactic Rules
 

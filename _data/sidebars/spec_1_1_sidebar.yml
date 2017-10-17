@@ -77,12 +77,12 @@ entries:
       output: web
       subfolderitems:
 
-      - title: Graph Homomorphism
-        url: /spec/1.1/#graph-homomorphism
+      - title: Subgraph Homomorphism
+        url: /spec/1.1/#subgraph-homomorphism
         output: web
 
-      - title: Graph Isomorphism
-        url: /spec/1.1/#graph-isomorphism
+      - title: Subgraph Isomorphism
+        url: /spec/1.1/#subgraph-isomorphism
         output: web
 
     - title: Undirected Query Edges
@@ -133,16 +133,8 @@ entries:
     output: web
     folderitems:
 
-    - title: Regular Path Patterns
-      url: /spec/1.1/#regular-path-patterns
-      output: web
-
-    - title: Path Pattern Composition
-      url: /spec/1.1/#path-pattern-composition
-      output: web
-
-    - title: Min and max hops in regular path queries
-      url: /spec/1.1/#min-and-max-hops-in-regular-path-queries
+    - title: Min and max repetition
+      url: /spec/1.1/#min-and-max-repetition
       output: web
       subfolderitems:
 
@@ -150,27 +142,14 @@ entries:
         url: /spec/1.1/#examples
         output: web
 
+    - title: Common Path Expressions
+      url: /spec/1.1/#common-path-expressions
+      output: web
+
   - title: Grouping and Aggregation
     url: /spec/1.1/#grouping-and-aggregation
     output: web
     folderitems:
-
-    - title: Aggregation
-      url: /spec/1.1/#aggregation
-      output: web
-      subfolderitems:
-
-      - title: Aggregation and Required Input Type
-        url: /spec/1.1/#aggregation-and-required-input-type
-        output: web
-
-      - title: Aggregation and Solution Modifier
-        url: /spec/1.1/#aggregation-and-solution-modifier
-        output: web
-
-      - title: Assigning Variable Name to Aggregation
-        url: /spec/1.1/#assigning-variable-name-to-aggregation
-        output: web
 
     - title: Grouping
       url: /spec/1.1/#grouping
@@ -193,6 +172,27 @@ entries:
         url: /spec/1.1/#repetition-of-group-expression-in-select-or-order-expression
         output: web
 
+    - title: Aggregation
+      url: /spec/1.1/#aggregation
+      output: web
+      subfolderitems:
+
+      - title: Aggregation and Required Input Type
+        url: /spec/1.1/#aggregation-and-required-input-type
+        output: web
+
+      - title: Aggregation and Solution Modifier
+        url: /spec/1.1/#aggregation-and-solution-modifier
+        output: web
+
+      - title: Assigning Variable Name to Aggregation
+        url: /spec/1.1/#assigning-variable-name-to-aggregation
+        output: web
+
+    - title: Filtering of Groups (HAVING)
+      url: /spec/1.1/#filtering-of-groups-having
+      output: web
+
   - title: Value Expressions
     url: /spec/1.1/#value-expressions
     output: web
@@ -207,37 +207,60 @@ entries:
         url: /spec/1.1/#operator-precedence
         output: web
 
-      - title: Operator and Operand Types
-        url: /spec/1.1/#operator-and-operand-types
-        output: web
-
-      - title: Data Type Conversion
-        url: /spec/1.1/#data-type-conversion
-        output: web
-
     - title: Null Values
       url: /spec/1.1/#null-values
       output: web
       subfolderitems:
 
-      - title: Null Values and Operators
-        url: /spec/1.1/#null-values-and-operators
+      - title: Three-Valued Logic
+        url: /spec/1.1/#three-valued-logic
         output: web
 
-      - title: Null Values as Function Argument
-        url: /spec/1.1/#null-values-as-function-argument
+      - title: IS NULL and IS NOT NULL
+        url: /spec/1.1/#is-null-and-is-not-null
         output: web
-
-    - title: Built-in and User-Defined Functions
-      url: /spec/1.1/#built-in-and-user-defined-functions
-      output: web
 
     - title: Literals
       url: /spec/1.1/#literals
       output: web
 
-    - title: Type Casting
-      url: /spec/1.1/#type-casting
+    - title: Functions
+      url: /spec/1.1/#functions
+      output: web
+      subfolderitems:
+
+      - title: Built-in Functions
+        url: /spec/1.1/#built-in-functions
+        output: web
+
+      - title: User-defined Functions
+        url: /spec/1.1/#user-defined-functions
+        output: web
+
+    - title: Type Conversion
+      url: /spec/1.1/#type-conversion
+      output: web
+      subfolderitems:
+
+      - title: Implicit Type Conversion
+        url: /spec/1.1/#implicit-type-conversion
+        output: web
+
+      - title: Explicit Type Conversion
+        url: /spec/1.1/#explicit-type-conversion
+        output: web
+
+    - title: Temporal Types
+      url: /spec/1.1/#temporal-types
+      output: web
+
+  - title: Subqueries
+    url: /spec/1.1/#subqueries
+    output: web
+    folderitems:
+
+    - title: Existential Subqueries
+      url: /spec/1.1/#existential-subqueries
       output: web
 
   - title: Other Syntactic Rules
