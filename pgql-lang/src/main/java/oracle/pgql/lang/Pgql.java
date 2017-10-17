@@ -9,6 +9,7 @@ import java.io.OutputStream;
 import java.io.UnsupportedEncodingException;
 import java.net.URL;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
@@ -26,6 +27,7 @@ import org.metaborg.core.MetaborgException;
 import org.metaborg.core.analysis.AnalysisException;
 import org.metaborg.core.completion.ICompletion;
 import org.metaborg.core.config.IProjectConfig;
+import org.metaborg.core.config.ISourceConfig;
 import org.metaborg.core.context.ContextException;
 import org.metaborg.core.context.ITemporaryContext;
 import org.metaborg.core.language.ILanguageComponent;
@@ -105,12 +107,12 @@ public class Pgql {
 
         @Override
         public Collection<LanguageIdentifier> javaDeps() {
-          return new HashSet<>();
+          return Collections.emptySet();
         }
 
         @Override
         public Collection<LanguageIdentifier> compileDeps() {
-          return new HashSet<>();
+          return Collections.emptySet();
         }
 
         @Override
@@ -119,8 +121,8 @@ public class Pgql {
         }
 
         @Override
-        public boolean typesmart() {
-          return false;
+        public Collection<ISourceConfig> sources() {
+          return Collections.emptySet();
         }
       });
 
