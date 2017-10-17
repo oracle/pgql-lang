@@ -9,11 +9,11 @@ entries:
     folderitems:
 
     - title: Breaking Syntax Changes in PGQL 1.1
-      url: /spec/1.1/#breaking-syntax-changes-in-pgql-1.1
+      url: /spec/1.1/#breaking-syntax-changes-in-pgql-11
       output: web
 
     - title: New Functionality in PGQL 1.1
-      url: /spec/1.1/#new-functionality-in-pgql-1.1
+      url: /spec/1.1/#new-functionality-in-pgql-11
       output: web
 
   - title: Introduction
