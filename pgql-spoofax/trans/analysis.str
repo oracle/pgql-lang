@@ -4,15 +4,14 @@ imports
 
   libspoofax/core/language
   libspoofax/editor/completion/-
-  stratego/metaborg
 
-  runtime/index/-
-  runtime/nabl/-
-  runtime/properties/-
-  runtime/types/-
-  runtime/task/-
-  runtime/analysis/-
-  runtime/editor/-
+  libspoofax/index/-
+  libspoofax/nabl/-
+  libspoofax/properties/-
+  libspoofax/types/-
+  libspoofax/task/-
+  libspoofax/analysis/-
+  libspoofax/editor/-
 
   names/-
   types/-

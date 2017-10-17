@@ -3,10 +3,10 @@ module check
 imports
 
   stratego/-
-  runtime/properties/-
-  runtime/nabl/-
-  runtime/task/-
-  runtime/types/-
+  libspoofax/properties/-
+  libspoofax/nabl/-
+  libspoofax/task/-
+  libspoofax/types/-
   signatures/-
   normalized-signatures
   common
