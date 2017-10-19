@@ -53,13 +53,17 @@ public class SpoofaxAstToGraphQuery {
   private static final int POS_FROM = 2;
   private static final int POS_WHERE = 3;
   private static final int POS_GROUPBY = 4;
-  private static final int POS_ORDERBY = 5;
-  private static final int POS_LIMITOFFSET = 6;
+  private static final int POS_HAVING = 5; /* unused */
+  private static final int POS_ORDERBY = 6;
+  private static final int POS_LIMITOFFSET = 7;
 
   private static final int POS_PATH_PATTERN_NAME = 0;
   private static final int POS_PATH_PATTERN_VERTICES = 1;
   private static final int POS_PATH_PATTERN_CONNECTIONS = 2;
   private static final int POS_PATH_PATTERN_CONSTRAINTS = 3;
+
+  private static final int POS_PROJECTION_DISTINCT = 0; /* unused */
+  private static final int POS_PROJECTION_ELEMS = 1;
 
   private static final int POS_VERTICES = 0;
   private static final int POS_EDGES = 1;
@@ -89,6 +93,7 @@ public class SpoofaxAstToGraphQuery {
   private static final int POS_BINARY_EXP_LEFT = 0;
   private static final int POS_BINARY_EXP_RIGHT = 1;
   private static final int POS_UNARY_EXP = 0;
+  private static final int POS_AGGREGATE_DISTINCT = 0; /* unused */
   private static final int POS_AGGREGATE_EXP = 1;
   private static final int POS_PROPREF_VARNAME = 0;
   private static final int POS_PROPREF_PROPNAME = 1;
@@ -168,9 +173,10 @@ public class SpoofaxAstToGraphQuery {
 
     // SELECT
     IStrategoTerm projectionT = ast.getSubterm(POS_PROJECTION);
+    IStrategoTerm selectElemsT = getList(projectionT.getSubterm(POS_PROJECTION_ELEMS));
     HashMap<String, QueryVariable> inScopeVarsForOrderBy = new HashMap<String, QueryVariable>();
     List<ExpAsVar> selectElems = getSelectElems(inScopeVars, inScopeInAggregationVars, inScopeVarsForOrderBy,
-        projectionT);
+        selectElemsT);
     Projection projection = new Projection(selectElems);
 
     // FROM
@@ -378,9 +384,9 @@ public class SpoofaxAstToGraphQuery {
 
   private static List<ExpAsVar> getSelectElems(Map<String, QueryVariable> inScopeVars,
       Map<String, QueryVariable> inScopeInAggregationVars, Map<String, QueryVariable> outputVars,
-      IStrategoTerm projectionT) throws PgqlException {
+      IStrategoTerm selectElemsT) throws PgqlException {
     outputVars.putAll(inScopeVars);
-    return getExpAsVars(inScopeVars, inScopeInAggregationVars, outputVars, getList(projectionT));
+    return getExpAsVars(inScopeVars, inScopeInAggregationVars, outputVars, selectElemsT);
   }
 
   private static List<ExpAsVar> getExpAsVars(Map<String, QueryVariable> inScopeVars,

@@ -105,6 +105,12 @@ context-free priorities
   >
   {
     right:
+      Exp.IsNull
+      Exp.IsNotNull
+  }
+  >
+  {
+    right:
       Exp.Not
   }
   >
