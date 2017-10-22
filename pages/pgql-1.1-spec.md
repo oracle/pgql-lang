@@ -63,7 +63,8 @@ The following are the changes since PGQL 1.0:
 
    ```sql
      /* PGQL 1.1 */
-     PATH close_friend AS () -[e]-> (:Person) WHERE e.weight >= 9
+     PATH close_friend AS () -[e]-> (:Person)
+                    WHERE e.weight >= 9
    SELECT m.name
     MATCH (n:Person) -/:close_friend*/-> (m)
     WHERE n.name = 'Amber'  
@@ -165,6 +166,7 @@ Query ::=
   MatchClause
   WhereClause?
   GroupByClause?
+  HavingClause?
   OrderByClause?
   LimitOffsetClauses?
 ```
@@ -291,7 +293,7 @@ SELECT *
  MATCH (x:Person) -[e:likes]-> (y:Person)
 ```
 
-Here, we specify that vertices `x` and `y` have the label `'Person'` and that the edge `e` has the label `'likes'`.
+Here, we specify that vertices `x` and `y` have the label `Person` and that the edge `e` has the label `likes`.
 
 Labels can still be specified when variables are omitted. The following is an example:
 
@@ -560,13 +562,13 @@ In the case a property access holds multiple types of data values, the following
 
 Consider the following data values:
 
-```
+```sql
 ['Mary', 25, null, true, false, 'John', 3.5, 27.5]
 ```
 
 Applying the above rules to the values, will result in the following ordering:
 
-```
+```sql
 [3.5, 25, 27.5, 'John', 'Mary', false, true, null]
 ```
 
@@ -577,8 +579,8 @@ The `LIMIT` puts an upper bound on the number of solutions returned, whereas the
 The following explains the syntactic structure for the LIMIT and OFFSET clauses:
 
 ```bash
-LimitOffsetClauses ::= 'LIMIT' Integer ('OFFSET' Integer)? |
-                      'OFFSET' Integer ('LIMIT' Integer)?
+LimitOffsetClauses ::= 'LIMIT' Integer ('OFFSET' Integer)?
+                     | 'OFFSET' Integer ('LIMIT' Integer)?
 ```
 
 The `LIMIT` clause starts with the keyword `LIMIT` and is followed by an integer that defines the limit. Similarly, the `OFFSET` clause starts with the keyword `OFFSET` and is followed by an integer that defines the offset. Furthermore:
@@ -668,7 +670,7 @@ Take the following graph as example:
 
 #### Zero or more
 
-The following query finds all vertices y that can be reached from 'Amy' by following zero or more 'likes' edges.
+The following query finds all vertices `y` that can be reached from `Amy` by following zero or more `likes` edges.
 
 ```sql
 SELECT y.name
@@ -677,22 +679,22 @@ SELECT y.name
 ```
 
 ```
-+----------+
-| y.name   |
-+----------+
-| "Amy"    |
-| "John"   |
-| "Albert" |
-| "Judith" |
-+----------+
++--------+
+| y.name |
++--------+
+| Amy    |
+| John   |
+| Albert |
+| Judith |
++--------+
 ```
 
-Note that here, Amy is returned since Amy connects to Amy by following zero 'likes' edges. In other words, there exists an empty path for the vertex pair.
-For Judith, there exist two paths (`100 -> 200 -> 300 -> 400` and `100 -> 400`). However, Judith is still only returned once.
+Note that here, `Amy` is returned since `Amy` connects to `Amy` by following zero `likes` edges. In other words, there exists an empty path for the vertex pair.
+For `Judith`, there exist two paths (`100 -> 200 -> 300 -> 400` and `100 -> 400`). However, `Judith` is still only returned once.
 
 #### One or more
 
-The following query finds all people that can be reached from 'Amy' by following one or more 'likes' edges.
+The following query finds all people that can be reached from `Amy` by following one or more `likes` edges.
 
 ```sql
 SELECT y.name
@@ -701,39 +703,39 @@ SELECT y.name
 ```
 
 ```
-+----------+
-| y.name   |
-+----------+
-| "John"   |
-| "Albert" |
-| "Judith" |
-+----------+
++--------+
+| y.name |
++--------+
+| John   |
+| Albert |
+| Judith |
++--------+
 ```
 
-This time, Amy is not returned since there doesn't exist a path that connects Amy to Amy that has a length greater than zero.
+This time, `Amy` is not returned since there doesn't exist a path that connects `Amy` to `Amy` that has a length greater than zero.
 
-Another example is a query that finds all people that can be reached from Judith by following one or more 'knows' edges:
+Another example is a query that finds all people that can be reached from `Judith` by following one or more `knows` edges:
 
-```
+```sql
 SELECT y.name
  MATCH (x:Person) -/:knows+/-> (y)
  WHERE x.name = 'Judith'
 ```
 
 ```
-+----------+
-| y.name   |
-+----------+
-| "Jonas"  |
-| "Judith" |
-+----------+
++--------+
+| y.name |
++--------+
+| Jonas  |
+| Judith |
++--------+
 ```
 
-Here, in addition to Jonas, Judith is returned since there exist paths from Judith back to Judith that has a length greater than zero. Examples of such paths are `400 -> 500 -> 400` and `400 -> 500 -> 400 -> 500 -> 400`.
+Here, in addition to `Jonas`, `Judith` is returned since there exist paths from `Judith` back to `Judith` that has a length greater than zero. Examples of such paths are `400 -> 500 -> 400` and `400 -> 500 -> 400 -> 500 -> 400`.
 
 #### Optional
 
-The following query finds all people that can be reached from Judith by following zero or one 'knows' edges.
+The following query finds all people that can be reached from `Judith` by following zero or one `knows` edges.
 
 ```sql
 SELECT y.name
@@ -742,19 +744,19 @@ SELECT y.name
 ```
 
 ```
-+----------+
-| y.name   |
-+----------+
-| "Judith" |
-| "Jonas"  |
-+----------+
++--------+
+| y.name |
++--------+
+| Judith |
+| Jonas  |
++--------+
 ```
 
-Here, Judith is returned since there exists the empty path that starts in `400` and ends in `400`. Jonas is returned because of the following path that has length one: `400 -> 500`.
+Here, `Judith` is returned since there exists the empty path that starts in `400` and ends in `400`. `Jonas` is returned because of the following path that has length one: `400 -> 500`.
 
 #### Exactly n
 
-The following query finds all people that can be reached from Amy by following 2 or more 'likes' edges.
+The following query finds all people that can be reached from `Amy` by following 2 or more `likes` edges.
 
 ```sql
 SELECT y.name
@@ -763,18 +765,18 @@ SELECT y.name
 ```
 
 ```
-+----------+
-| y.name   |
-+----------+
-| "Albert" |
-| "Judith" |
-+----------+
++--------+
+| y.name |
++--------+
+| Albert |
+| Judith |
++--------+
 ```
-Here, Albert is returned since there exists the following path of length two: `100 -> 200 -> 300`. Judith is returned since there exists a path of length three: `100 -> 200 -> 300 -> 400`.
+Here, `Albert` is returned since there exists the following path of length two: `100 -> 200 -> 300`. `Judith` is returned since there exists a path of length three: `100 -> 200 -> 300 -> 400`.
 
 #### n or more
 
-The following query finds all people that can be reached from Amy by following between 1 and 2 'likes' edges.
+The following query finds all people that can be reached from `Amy` by following between 1 and 2 `likes` edges.
 
 ```sql
 SELECT y.name
@@ -783,20 +785,22 @@ SELECT y.name
 ```
 
 ```
-+----------+
-| y.name   |
-+----------+
-| "John"   |
-| "Albert" |
-| "Judith" |
-+----------+
++--------+
+| y.name |
++--------+
+| John   |
+| Albert |
+| Judith |
++--------+
 ```
  
-Here, John is returned since there exists a path of length one (i.e. `100 -> 200`); Albert is returned since there exists a path of length two (i.e. `100 -> 200 -> 300`); Judith is returned since there exists a path of length one (i.e. `100 -> 400`).
+Here, `John` is returned since there exists a path of length one (i.e. `100 -> 200`);
+`Albert` is returned since there exists a path of length two (i.e. `100 -> 200 -> 300`);
+`Judith` is returned since there exists a path of length one (i.e. `100 -> 400`).
 
 #### Between zero and m
 
-The following query finds all people that can be reached from Judith by following at most 2 'knows' edges.
+The following query finds all people that can be reached from `Judith` by following at most 2 `knows` edges.
 
 ```sql
 SELECT y.name
@@ -805,24 +809,21 @@ SELECT y.name
 ```
 
 ```
-+----------+
-| y.name   |
-+----------+
-| "Jonas"  |
-| "Judith" |
-+----------+
++--------+
+| y.name |
++--------+
+| Jonas  |
+| Judith |
++--------+
 ```
 
-Here, Jonas is returned since there exists a path of length one (i.e. `400 -> 500`). For Judith, there exists an empty path of length zero (i.e. `400`) as well as a non-empty path of length two (i.e. `400 -> 500 -> 400`). Yet, Judith is only returned once.
+Here, `Jonas` is returned since there exists a path of length one (i.e. `400 -> 500`).
+For `Judith`, there exists an empty path of length zero (i.e. `400`) as well as a non-empty path of length two (i.e. `400 -> 500 -> 400`).
+Yet, `Judith` is only returned once.
 
 ## Common Path Expressions
 
-One or more "common path expression" may be declared at the beginning of the query. These can be seen as macros that allow for expression more complex regular expressions. The syntactic structure is as follows:  
-
-```
-PathPatternDecl ::= 'PATH' PathPatternName 'AS' PathPattern
-PathPatternName ::= [a-zA-Z][a-zA-Z0-9\_]*
-```
+One or more "common path expression" may be declared at the beginning of the query. These can be seen as macros that allow for expression more complex regular expressions.
 
 A path pattern declaration starts with the keyword `PATH` and is followed by the name for the path pattern, the assignment operator `AS` and a path pattern. The syntactic structure of the path pattern is the same as a path pattern in the `MATCH` clause.
 
@@ -843,24 +844,23 @@ Another example is as follows:
 
 ```sql
   PATH connects_to AS (:Generator) -[:has_connector]-> (c:Connector) <-[:has_connector]- (:Generator)
-                      WHERE c.status = 'OPERATIONAL'
+                WHERE c.status = 'OPERATIONAL'
 SELECT generatorA.location, generatorB.location
  MATCH (generatorA) -/:connects_to+/-> (generatorB)
 ```
 
-The above query outputs all generators that are connected to each other via one or more connectors that are all operative.
+The above query outputs all generators that are connected to each other via one or more connectors that are all operational.
 
 # Grouping and Aggregation
 
 ## Grouping
 
-GROUP BY allows for grouping of solutions and is typically used in combination with aggregation to aggregate over groups of solutions instead of over the total set of solutions.
+`GROUP BY` allows for grouping of solutions and is typically used in combination with aggregation to aggregate over groups of solutions instead of over the total set of solutions.
 
 The following explains the syntactic structure of the `GROUP BY` clause:
 
-```
-GroupByClause ::= 'GROUP' 'BY' {GroupTerm ','}+
-GroupTerm     ::= ValueExpression ('AS' Variable)?
+```bash
+GroupByClause ::= 'GROUP' 'BY' {ExpAsVar ','}+
 ```
 
 The `GROUP BY` clause starts with the keywords GROUP BY and is followed by a comma-separated list of group terms. Each group term consists of:
@@ -920,7 +920,7 @@ GROUP BY n.age
 ORDER BY n.age
 ```
 
-Here, the group expression n.age is repeated as select and order expressions.
+Here, the group expression `n.age` is repeated as select and order expressions.
 
 This repetition of group expressions introduces an exception to the variable visibility rules described above, since variable n is not inside an aggregation in the select/order expression. However, semantically, the query is treated as if there were a variable for the group expression:
 
@@ -1001,7 +1001,9 @@ ORDER BY pivot
 
 ## Filtering of Groups (HAVING)
 
-TODO
+```bash
+HavingClause ::= 'HAVING' {ValueExpression ','}+
+```
 
 # Value Expressions
 
@@ -1109,7 +1111,7 @@ PGQL has a set of built-in functions and supports extension through user-defined
 
 The syntactic structure for built-in and user-defined function calls is as follows:
 
-```
+```bash
 FunctionCall        ::= FunctionPackage? FunctionName '(' {String ','}* ')'
 FunctionPackage     ::= FunctionPackageName '.'
 FunctionPackageName ::= IDENTIFIER
@@ -1173,8 +1175,8 @@ Explicit type conversion is supported through type "casting".
 
 The syntax is as follows: `CAST(expression AS datatype)`. For example:
 
-```
-SELECT CAST(n.age AS STRING), CAST('123' AS INT), CAST('true' AS BOOLEAN)
+```sql
+SELECT CAST(n.age AS STRING), CAST('123' AS INTEGER), CAST('true' AS BOOLEAN)
  MATCH (n:Person)
 ```
 
@@ -1205,7 +1207,10 @@ In PGQL 1.1, the supported operations on temporal values are limited to comparis
 
 ## Existential Subqueries
 
-TODO
+```bash
+ExistsPredicate ::= 'EXISTS' '(' Query ')'
+```
+
 
 # Other Syntactic Rules
 
@@ -1271,7 +1276,7 @@ With escape | Without escape
 Note that the value of the literal is the same no matter if quotes are escaped or not. This means that, for example, the following expression evaluates to `true`.
 
 ```sql
-`'single quoted string literal with \"double\" quotes inside' = 'single quoted string literal with "double" quotes inside' /* this expression evaluates to TRUE` */
+'single quoted string literal with \"double\" quotes inside' = 'single quoted string literal with "double" quotes inside' /* this expression evaluates to TRUE */
 ```
 
 ## Keywords
