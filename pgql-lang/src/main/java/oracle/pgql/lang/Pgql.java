@@ -46,7 +46,6 @@ import org.metaborg.util.concurrent.IClosableLock;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.google.common.collect.Iterators;
 import com.google.common.collect.Lists;
 
 import oracle.pgql.lang.completions.PgqlCompletion;
@@ -237,13 +236,13 @@ public class Pgql {
     while (it.hasNext()) {
       IMessage message = it.next();
       if (message.region() != null) { // null when query string is empty (e.g. "")
-        int startRow = message.region().startRow();
+        int startRow = message.region().startRow() + 1;
         if (lineNumber != startRow) {
           if (lineNumber != -1) {
             sb.append("\n");
           }
           lineNumber = startRow;
-          sb.append("Error(s) in line " + message.region().startRow() + ":");
+          sb.append("Error(s) in line " + startRow + ":");
         }
       }
 
