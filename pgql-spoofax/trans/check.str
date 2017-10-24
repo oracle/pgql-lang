@@ -74,18 +74,18 @@ rules // vertex in WHERE without rounded brackets
 rules
   
   nabl-constraint(|ctx):
-    NormalizedQuery(_, Vars(vars), _, _, groupClause, Some(orderClause), _, _, _) -> <fail>
+    NormalizedQuery(_, SelectClause(_, ExpAsVars(select-elems)), _, _, groupClause, _, Some(orderClause), _, _, _) -> <fail>
     where
       None() := groupClause
-    ; [] := <collect(is-aggregate)> vars // there are no aggregations in the SELECT
+    ; [] := <collect(is-aggregate)> select-elems // there are no aggregations in the SELECT
     with
       aggregations := <collect-om(is-aggregate, conc)> orderClause
     ; <batch-generate-error(|ctx, "Aggregation in ORDER BY only allowed if SELECT constains aggregations, or, in combination with GROUP BY")> aggregations
 
   nabl-constraint(|ctx):
-    NormalizedQuery(_, Vars(select-exps), _, _, group-by, order-by, _, _, _) -> <fail>
+    NormalizedQuery(_, SelectClause(_, ExpAsVars(select-elems)), _, _, group-by, _, order-by, _, _, _) -> <fail>
     with
-      group-refs := <collect-om(?GroupRef(<id>), conc)> select-exps
+      group-refs := <collect-om(?GroupRef(<id>), conc)> select-elems
     ; select-or-group-refs := <collect-om(?SelectOrGroupRef(<id>), conc)> order-by
     ; if CreateOneGroup() := group-by
       then
@@ -113,7 +113,7 @@ rules
   nabl-constraint(|ctx):
     e@Distinct() -> <fail>
     with
-      <generate-error(|ctx, $[DISTINCT is not supported in PGQL 1.1])> e
+      <generate-error(|ctx, $[DISTINCT is not yet supported])> e
 
   path-reference(|ctx):
     VarRef(v) -> <fail>
@@ -136,6 +136,16 @@ rules
     with
       <generate-error(|ctx, "IS NOT NULL is not yet supported")> e
 
+  nabl-constraint(|ctx):
+    ExpAsVars(e@Star()) -> <fail>
+    with
+      <generate-error(|ctx, "SELECT * not allowed in combination with GROUP BY")> e
+
+  nabl-constraint(|ctx):
+    e@HavingClause(_) -> <fail>
+    with
+      <generate-error(|ctx, "HAVING is not yet supported")> e
+
 rules // type checking
 
   nabl-constraint-1-1(|ctx):
@@ -157,7 +167,7 @@ rules // type checking
 rules // version-specific error messages
 
   nabl-constraint(|ctx):
-    q@NormalizedQuery(_, _, _, _, _, _, _, _, "v1.1") -> <id>
+    q@NormalizedQuery(_, _, _, _, _, _, _, _, _, "v1.1") -> <id>
     with
       <alltd(nabl-constraint-1-1(|ctx))> q 
 

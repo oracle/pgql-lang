@@ -48,6 +48,8 @@ import org.metaborg.util.concurrent.IClosableLock;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.google.common.collect.Lists;
+
 import oracle.pgql.lang.completions.PgqlCompletion;
 import oracle.pgql.lang.completions.PgqlCompletionContext;
 import oracle.pgql.lang.completions.PgqlCompletionGenerator;
@@ -56,13 +58,20 @@ import oracle.pgql.lang.ir.GraphQuery;
 public class Pgql {
 
   private static final Logger LOG = LoggerFactory.getLogger(Pgql.class);
+
   private static final String NON_BREAKING_WHITE_SPACE_ERROR = "Illegal character '\u00a0' (non-breaking white space)"
       + "; use a normal space instead";
+
+  private static final String ERROR_MESSSAGE_INDENTATION = "\t";
+
   private static final String SPOOFAX_BINARIES = "pgql-1.1.spoofax-language";
 
   private final Spoofax spoofax;
+
   private final ILanguageImpl pgqlLang;
+
   private final FileObject dummyProjectDir;
+
   private final IProject dummyProject;
 
   /**
@@ -218,56 +227,52 @@ public class Pgql {
   }
 
   /**
-   * Pretty-prints messages (i.e. compiler errors/warnings/notes) into an output stream. TODO: get rid of this code,
-   * Spoofax should natively support it?
+   * Pretty-prints messages (i.e. compiler errors/warnings/notes) into an output stream.
    */
   private static String getMessages(final Iterable<IMessage> messages, String sourceText) {
-    StringBuilder stringBuilder = new StringBuilder();
-    Iterator<IMessage> it = messages.iterator();
-    int messageCount = 0;
-    while (it.hasNext()) {
-      IMessage msg = it.next();
-      stringBuilder.append(messageCount + ". " + getMessage(msg, sourceText));
-      messageCount++;
-    }
-
-    if (messageCount != 0) {
-      stringBuilder.append(messageCount + (messageCount == 1 ? " ERROR" : " ERRORS"));
-    }
-    return stringBuilder.toString();
-  }
-
-  /**
-   * TODO: get rid of this code, Spoofax should natively support it?
-   */
-  private static String getMessage(IMessage message, String sourceText) {
     StringBuilder sb = new StringBuilder();
-    sb.append(message.severity());
-    if (message.region() != null) { // null when query string is empty (e.g. "")
-      sb.append(" at line " + message.region().startRow() + ":");
-    }
+    int lineNumber = -1;
 
-    String affectedSourceText = null;
-    try {
-      affectedSourceText = AffectedSourceHelper.affectedSourceText(message.region(), sourceText, "\t");
-    } catch (NullPointerException e) {
-      // workaround for Spoofax bug, see GM-5111
-    }
+    // Reverse the messages to have them in the right order (top to bottom)
+    Iterator<IMessage> it = Lists.reverse(Lists.newArrayList(messages.iterator())).iterator();
+    while (it.hasNext()) {
+      IMessage message = it.next();
+      if (message.region() != null) { // null when query string is empty (e.g. "")
+        int startRow = message.region().startRow() + 1;
+        if (lineNumber != startRow) {
+          if (lineNumber != -1) {
+            sb.append("\n");
+          }
+          lineNumber = startRow;
+          sb.append("Error(s) in line " + startRow + ":");
+        }
+      }
 
-    String m = message.message();
-    if (m.contains(" ")) {
-      m = NON_BREAKING_WHITE_SPACE_ERROR;
-    }
+      String affectedSourceText;
+      try {
+        affectedSourceText = AffectedSourceHelper.affectedSourceText(message.region(), sourceText,
+            ERROR_MESSSAGE_INDENTATION);
+      } catch (NullPointerException e) {
+        // workaround for Spoofax bug, see GM-5111
+        affectedSourceText = null;
+      }
 
-    if (affectedSourceText == null) {
-      sb.append("\t" + m);
-    } else {
-      sb.append("\n");
-      sb.append(affectedSourceText);
-      sb.append(m);
-    }
+      sb.append("\n\n");
 
-    sb.append("\n----------");
+      if (affectedSourceText != null) {
+        sb.append(affectedSourceText);
+      }
+
+      String m = message.message();
+      if (m.contains(" ")) {
+        m = NON_BREAKING_WHITE_SPACE_ERROR;
+      }
+      sb.append(ERROR_MESSSAGE_INDENTATION + m);
+
+      if (it.hasNext()) {
+        sb.append("\n");
+      }
+    }
     return sb.toString();
   }
 

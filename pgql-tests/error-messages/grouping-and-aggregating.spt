@@ -56,3 +56,36 @@ WHERE
   (n)
 ORDER BY [[AVG(n.age)]]
 ]] error like "Aggregation in ORDER BY only allowed if SELECT constains aggregations, or, in combination with GROUP BY" at #1
+
+test Aggregation in ORDER BY not expected [[
+SELECT [[*]]
+MATCH (n) -[e]-> (m)
+GROUP BY e.weight AS weight
+]] error like "SELECT * not allowed in combination with GROUP BY" at #1
+
+test Select Distinct [[
+
+  SELECT [[DISTINCT]] n.age AS nAge
+   MATCH (n)
+
+]] error like "DISTINCT is not yet supported" at #1
+
+test Aggregate Distinct [[
+
+  SELECT MIN([[DISTINCT]] n.age) AS min
+       , MAX([[DISTINCT]] n.age) AS max
+       , COUNT([[DISTINCT]] n.age) AS count
+       , SUM([[DISTINCT]] n.age) AS sum
+       , AVG([[DISTINCT]] n.age) AS avg
+   MATCH (n)
+
+]] error like "DISTINCT is not yet supported" at #1, #2, #3, #4, #5
+
+test Filter groups (HAVING) [[
+
+      SELECT nAge
+       MATCH (n)
+    GROUP BY n.age AS nAge
+  [[HAVING n.age > 25]]
+
+]] error like "HAVING is not yet supported" at #1

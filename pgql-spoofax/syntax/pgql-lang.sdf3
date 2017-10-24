@@ -28,6 +28,7 @@ context-free syntax
       <MatchClause>
       <WhereClause?>
       <GroupByClause?>
+      <HavingClause?>
       <OrderByClause?>
       <LimitOffsetClauses?>
     >
@@ -36,7 +37,7 @@ context-free syntax
   AsignSymbol.Pgql11AsignSymbol = <as>  {case-insensitive}
   AsignSymbol.Pgql10AsignSymbol = <:=>
 
-  SelectClause.SelectClause = <select <Projection>> {case-insensitive}
+  SelectClause.SelectClause = <select <Distinct?> <Projection>> {case-insensitive}
   Projection.ExpAsVars = <<{ExpAsVar ", "}+>>
   Projection.Star = <*>
 

@@ -39,27 +39,27 @@ rules
 
 rules
 
-  is-pgql10 = ?Query(_, _, _, _, _, _, _) // pgql 1.0 has 7 sub-terms while pgql 1.1 has 8
+  is-pgql10 = ?Pgql10Query(_, _, _, _, _, _, _) // pgql 1.0 has 7 sub-terms while pgql 1.1 has 8
 
-  get-deprecation = (?OutConn(None()) + ?InConn(None()) + ?UndirectedEdge(None())); to-error-message(|"Use '-' instead of '--'")
-  get-deprecation = ?Pgql10AsignSymbol(); to-error-message(|"Use 'AS' instead of ':='")
-  get-deprecation = ?Legacy10Label(_); to-error-message(|"Use 'label(x)' instead of 'x.label()'")
-  get-deprecation = ?Legacy10Labels(_); to-error-message(|"Use 'labels(x)' instead of 'x.labels()'")
-  get-deprecation = ?Legacy10HasLabel(_, _); to-error-message(|"Use 'has_label(x, 'lbl')' instead of 'x.hasLabel('lbl')'")
-  get-deprecation = ?Legacy10Id(_); to-error-message(|"Use 'id(x)' instead of 'x.id()'")
-  get-deprecation = ?Legacy10Has(_, _); to-error-message(|"Use 'has_prop(x, prop)' instead of 'x.has(prop)'")
-  get-deprecation = ?Legacy10InDegree(_); to-error-message(|"Use 'in_degree(x)' instead of 'x.indegree()'")
-  get-deprecation = ?Legacy10OutDegree(_); to-error-message(|"Use 'out_degree(x)' instead of 'x.out_degree()'")
+  get-deprecation = (?OutConn(None()) + ?InConn(None()) + ?UndirectedEdge(None())); to-error-message(|"Use [-] instead of [--]")
+  get-deprecation = ?Pgql10AsignSymbol(); to-error-message(|"Use [AS] instead of [:=]")
+  get-deprecation = ?Legacy10Label(_); to-error-message(|"Use [label(x)] instead of [x.label()]")
+  get-deprecation = ?Legacy10Labels(_); to-error-message(|"Use [labels(x)] instead of [x.labels()]")
+  get-deprecation = ?Legacy10HasLabel(_, _); to-error-message(|"Use [has_label(x, 'lbl')] instead of [x.hasLabel('lbl')]")
+  get-deprecation = ?Legacy10Id(_); to-error-message(|"Use [id(x)] instead of [x.id()]")
+  get-deprecation = ?Legacy10Has(_, _); to-error-message(|"Use [x.prop IS NOT NULL] instead of [x.has(prop)]")
+  get-deprecation = ?Legacy10InDegree(_); to-error-message(|"Use [in_degree(x)] instead of [x.indegree()]")
+  get-deprecation = ?Legacy10OutDegree(_); to-error-message(|"Use [out_degree(x)] instead of [x.out_degree()]")
 
-  get-deprecation = ?Legacy10Asc(x); to-error-message(|$[Use '[<origin-text> x] ASC' instead of 'ASC([<origin-text> x])')])
-  get-deprecation = ?Legacy10Desc(x); to-error-message(|$[Use '[<origin-text> x] DESC' instead of 'DESC)[<origin-text> x])')])
-  get-deprecation = ?String(<id>); is-double-quoted; to-error-message(|"Use single quotes for character string literals (not double quotes)")
-  get-deprecation = ?Ids(_); to-error-message(|"Use 'id(x) = xyz' instead of '@xyz'")
+  get-deprecation = ?Legacy10Asc(x); to-error-message(|$<Use [<<origin-text> x> ASC] instead of [ASC(<<origin-text> x>)])>)
+  get-deprecation = ?Legacy10Desc(x); to-error-message(|$<Use [<<origin-text> x> DESC'] instead of [DESC(<<origin-text> x>)]>)
+  get-deprecation = ?String(<id>); is-double-quoted; to-error-message(|"Use single quotes for character string literals; not double quotes")
+  get-deprecation = ?Ids(_); to-error-message(|"Use [id(x) = xyz] instead of [@xyz]")
   get-deprecation = ?InlinedConstraint(_); to-error-message(|"Constraints should be specified in the WHERE clause instead of the WITH")
-  get-deprecation = ?Legacy10Not(_); to-error-message(|"Use 'NOT' instead of '!'")
-  get-deprecation = ?Legacy10Regex(_, _); to-error-message(|"Use 'java_regexp_like(exp1, exp2)' instead of 'exp1 =~ exp2'")
+  get-deprecation = ?Legacy10Not(_); to-error-message(|"Use [NOT] instead of [!]")
+  get-deprecation = ?Legacy10Regex(_, _); to-error-message(|"Use [java_regexp_like(exp1, exp2)] instead of [exp1 =~ exp2]")
 
-  get-pgql10-limitiation = (?FromClause(_) + ?Exists(_) + ?Pgql11AsignSymbol()); to-error-message(|"Use SELECT .. [FROM ..] MATCH pattern [WHERE filters] instead of SELECT .. WHERE pattern, filters")
+  get-pgql10-limitiation = (?FromClause(_) + ?Exists(_) + ?Pgql11AsignSymbol()); to-error-message(|"Use [MATCH pattern WHERE filters] instead of [WHERE pattern mixed with filters]")
 
   to-error-message(|message) = !ErrorMessage(<origin-track-forced(!message)> <id>)
 
@@ -241,8 +241,8 @@ rules
 
   // pgql 1.1
   norm-query(|error-messages):
-    Query(commonPathExpressions, selectClause, fromClause, graphPattern, whereClause, groupByClause, orderByClause, limitOffsets) ->
-      <norm-query(|error-messages, "v1.1")> Query(commonPathExpressions, selectClause, fromClause, graphPattern', groupByClause, orderByClause, limitOffsets)
+    Query(commonPathExpressions, selectClause, fromClause, graphPattern, whereClause, groupByClause, havingClause, orderByClause, limitOffsets) ->
+      <norm-query(|error-messages, "v1.1")> (commonPathExpressions, selectClause, fromClause, graphPattern', groupByClause, havingClause, orderByClause, limitOffsets)
     with
       <?GraphPattern(vertices, edges, paths, Constraints(inlined-constraints))> graphPattern;
       non-inlined-constraints := <?Some(WhereClause(<id>)); ![<id>] + ?None(); ![]> whereClause;
@@ -251,12 +251,13 @@ rules
 
   // pgql 1.0
   norm-query(|error-messages):
-    q@Query(_, _, _, _, _, _, _) ->
-      <norm-query(|error-messages, "v1.0")> q
+    q@Pgql10Query(commonPathExpressions, selectClause, fromClause, graphPattern, groupByClause, orderByClause, limitOffsets) ->
+      <norm-query(|error-messages, "v1.0")> (commonPathExpressions, selectClause, fromClause, graphPattern, groupByClause, havingClause, orderByClause, limitOffsets)
+      with havingClause := None()
     
   norm-query(|error-messages, version):
-    Query(commonPathExpressions, SelectClause(projection), fromClause, graphPattern, groupByClause, orderByClause, limitOffsets) ->
-        NormalizedQuery(commonPathExpressions', projection', fromClause, graphPattern, groupByClause', orderByElems, limitOffsets', error-messages, version)
+    (commonPathExpressions, SelectClause(distinct, projection), fromClause, graphPattern, groupByClause, havingClause, orderByClause, limitOffsets) ->
+        NormalizedQuery(commonPathExpressions', SelectClause(distinct, projection'), fromClause, graphPattern, groupByClause', havingClause, orderByElems, limitOffsets', error-messages, version)
     with
       commonPathExpressions' := <map(norm-common-path-expression); !CommonPathExpressions(<id>)> commonPathExpressions;
 
@@ -265,21 +266,21 @@ rules
       groupByClause' := <?Some(_); !Some(GroupByClause(expAsGroupVars')) <+ !None()> groupByClause;
 
       expAsSelectVars := <?ExpAsVars(<id>); map(norm-ExpAsVar); map(replace-terms-with-varRef(|expAsGroupVars')) <+
-                          norm-select-star(|graphPattern, expAsGroupVars'); map(norm-ExpAsVar)> projection;
-      projection' := Vars(ExpAsVars(expAsSelectVars));
+                          norm-select-star(|graphPattern, expAsGroupVars')> projection;
+      projection' := ExpAsVars(expAsSelectVars);
 
-      allExpAsVars := <conc> (expAsGroupVars', expAsSelectVars);
+      allExpAsVars := <conc> (expAsGroupVars', <try(?Star(); ![])> expAsSelectVars);
       orderByElems := <try(norm-orderBy(|allExpAsVars))> orderByClause;
 
       limitOffsets' := <norm-limitOffsets> limitOffsets
 
   norm-select-star(|graphPattern, group-exps):
-    Star() -> expAsSelectVars
+    star@Star() -> expAsSelectVars
     with if [] := group-exps
-           then vars := <collect(?Vertex(<id>) + ?Edge(_, <id>, _, _) + ?Exists(_)); filter(is-string; not(is-substring(GENERATED)))> graphPattern
-           else vars := <map(?ExpAsVar(_, <id>))> group-exps
+           then vars := <collect(?Vertex(<id>) + ?Edge(_, <id>, _, _) + ?Exists(_)); filter(is-string; not(is-substring(GENERATED)))> graphPattern;
+                expAsSelectVars := <map(!ExpAsVar(VarRef(<id>), None()); norm-ExpAsVar)> vars
+           else expAsSelectVars := star
          end
-       ; expAsSelectVars := <map(!ExpAsVar(VarRef(<id>), None()))> vars
 
   norm-ExpAsVar = ?ExpAsVar(exp, Some(VarAssign(VarDef(v)))); !ExpAsVar(exp, v)
   norm-ExpAsVar = ?ExpAsVar(exp, None()); !AnonymousExpAsVar(exp, <?VarRef(<id>) <+ origin-track-forced(origin-text)> exp)
