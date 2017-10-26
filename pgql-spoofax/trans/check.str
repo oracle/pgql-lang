@@ -110,11 +110,6 @@ rules
       aggregations := <collect-om(is-aggregate, conc)> t;
       <batch-generate-error(|ctx, "Aggregation not allowed in GROUP BY")> aggregations
 
-  nabl-constraint(|ctx):
-    e@Distinct() -> <fail>
-    with
-      <generate-error(|ctx, $[DISTINCT is not yet supported])> e
-
   path-reference(|ctx):
     VarRef(v) -> <fail>
     where

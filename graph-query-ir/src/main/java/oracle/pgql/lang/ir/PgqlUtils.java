@@ -28,7 +28,8 @@ import static org.apache.commons.lang3.StringEscapeUtils.escapeJava;
 public class PgqlUtils {
 
   /**
-   * @param exp a query expression
+   * @param exp
+   *          a query expression
    * @return the set of variables used in the query expression
    */
   public static Set<QueryVariable> getVariables(QueryExpression exp) {
@@ -88,12 +89,12 @@ public class PgqlUtils {
     return connection.getDst() + " " + printReverseConnection(connection.toString()) + " " + connection.getSrc();
   }
 
-// HELPER METHODS FOR PRETTY-PRINTING BELOW
+  // HELPER METHODS FOR PRETTY-PRINTING BELOW
 
   protected static String printPgqlString(String stringLiteral) {
     return "'" + escapeJava(stringLiteral) + "'";
   }
-  
+
   protected static String printPgqlString(GraphQuery graphQuery) {
     GraphPattern graphPattern = graphQuery.getGraphPattern();
     String result = printPathPatterns(graphPattern);
@@ -133,9 +134,10 @@ public class PgqlUtils {
     if (projection.getElements().isEmpty()) {
       return "SELECT *";
     } else {
-      return "SELECT " + projection.getElements().stream() //
-          .map(x -> x.toString()) //
-          .collect(Collectors.joining(", "));
+      return "SELECT " + (projection.hasDistinct() ? "DISTINCT " : "")
+          + projection.getElements().stream() //
+              .map(x -> x.toString()) //
+              .collect(Collectors.joining(", "));
     }
   }
 
@@ -171,7 +173,8 @@ public class PgqlUtils {
       VertexPairConnection connection = connectionIt.next();
       QueryVertex src = connection.getSrc();
       QueryVertex dst = connection.getDst();
-      result += "  " + deanonymizeIfNeeded(src, constraints) + " " + deanonymizeIfNeeded(connection, constraints) + " " + deanonymizeIfNeeded(dst, constraints);
+      result += "  " + deanonymizeIfNeeded(src, constraints) + " " + deanonymizeIfNeeded(connection, constraints) + " "
+          + deanonymizeIfNeeded(dst, constraints);
       if (connectionIt.hasNext()) {
         result += ",\n";
       }
@@ -185,13 +188,13 @@ public class PgqlUtils {
     result += verticesCopy.stream() //
         .map(x -> "  " + x.toString()) //
         .collect(Collectors.joining(",\n"));
-    
+
     if (!constraints.isEmpty()) {
       result += "\nWHERE " + constraints.stream() //
-      .map(x -> x.toString()) //
-      .collect(Collectors.joining("\n  AND "));
+          .map(x -> x.toString()) //
+          .collect(Collectors.joining("\n  AND "));
     }
-    
+
     return result;
   }
 
@@ -255,8 +258,8 @@ public class PgqlUtils {
     Set<QueryExpression> constraints = path.getConstraints();
     if (!constraints.isEmpty()) {
       result += " WHERE " + constraints.stream() //
-      .map(x -> x.toString()) //
-      .collect(Collectors.joining(" AND "));
+          .map(x -> x.toString()) //
+          .collect(Collectors.joining(" AND "));
     }
     return result + "\n";
   }
@@ -270,7 +273,7 @@ public class PgqlUtils {
       switch (var.getVariableType()) {
         case EDGE:
           return "-[" + var.name + "]->";
-        case PATH: 
+        case PATH:
           QueryPath queryPath = (QueryPath) var;
           return "-/" + var.name + ":" + queryPath.getPathExpressionName() + printHops(queryPath) + "/->";
         case VERTEX:
@@ -284,8 +287,7 @@ public class PgqlUtils {
   }
 
   /**
-   * Example 1:  "-[e]->" => "<-[e]-"
-   * Example 2:  -/:xyz/-> "<-/:xyz/-"
+   * Example 1: "-[e]->" => "<-[e]-" Example 2: -/:xyz/-> "<-/:xyz/-"
    */
   private static String printReverseConnection(String connection) {
     return "<" + connection.substring(0, connection.length() - 1);

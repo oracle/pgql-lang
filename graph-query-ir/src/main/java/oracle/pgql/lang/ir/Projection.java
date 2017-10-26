@@ -9,10 +9,17 @@ import static oracle.pgql.lang.ir.PgqlUtils.printPgqlString;
 
 public class Projection {
 
+  private final boolean distinct;
+
   private final List<ExpAsVar> elements;
 
-  public Projection(List<ExpAsVar> elements) {
+  public Projection(boolean distinct, List<ExpAsVar> elements) {
+    this.distinct = distinct;
     this.elements = elements;
+  }
+
+  public boolean hasDistinct() {
+    return distinct;
   }
 
   public List<ExpAsVar> getElements() {
@@ -25,22 +32,31 @@ public class Projection {
   }
 
   @Override
-  public boolean equals(Object o) {
-    if (this == o) {
-      return true;
-    }
-    if (o == null || getClass() != o.getClass()) {
-      return false;
-    }
-
-    Projection that = (Projection) o;
-
-    return elements.equals(that.elements);
+  public int hashCode() {
+    final int prime = 31;
+    int result = 1;
+    result = prime * result + (distinct ? 1231 : 1237);
+    result = prime * result + ((elements == null) ? 0 : elements.hashCode());
+    return result;
   }
 
   @Override
-  public int hashCode() {
-    return elements.hashCode();
+  public boolean equals(Object obj) {
+    if (this == obj)
+      return true;
+    if (obj == null)
+      return false;
+    if (getClass() != obj.getClass())
+      return false;
+    Projection other = (Projection) obj;
+    if (distinct != other.distinct)
+      return false;
+    if (elements == null) {
+      if (other.elements != null)
+        return false;
+    } else if (!elements.equals(other.elements))
+      return false;
+    return true;
   }
 
   public void accept(QueryExpressionVisitor v) {
