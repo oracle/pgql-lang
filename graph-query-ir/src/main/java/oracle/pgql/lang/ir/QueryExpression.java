@@ -387,7 +387,7 @@ public interface QueryExpression {
 
       @Override
       public String toString() {
-        return "NOT (" + getExp() + ")";
+        return "(NOT " + getExp() + ")";
       }
 
       @Override
