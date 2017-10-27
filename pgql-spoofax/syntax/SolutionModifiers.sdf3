@@ -8,19 +8,19 @@ imports
 
 context-free syntax
 
-  GroupByClause.GroupByClause = <group by <{ExpAsVar ", "}+>> {case-insensitive}
+  GroupByClause.GroupByClause = <GROUP BY <{ExpAsVar ", "}+>> {case-insensitive}
 
-  HavingClause.HavingClause = <having <{Exp ", "}+>> {case-insensitive}
+  HavingClause.HavingClause = <HAVING <{Exp ", "}+>> {case-insensitive}
 
-  OrderByClause.OrderByClause = <order by <{OrderElem ", "}+>> {case-insensitive}
+  OrderByClause.OrderByClause = <ORDER BY <{OrderElem ", "}+>> {case-insensitive}
   OrderElem = <<Exp>>
-  OrderElem.Asc = <<Exp> asc> {case-insensitive}
-  OrderElem.Desc = <<Exp> desc> {case-insensitive}
+  OrderElem.Asc = <<Exp> ASC> {case-insensitive}
+  OrderElem.Desc = <<Exp> DESC> {case-insensitive}
 
   LimitOffsetClauses.LimitOffsetClauses = <<LimitClause> <OffsetClause?>>
   LimitOffsetClauses.OffsetLimitClauses = <<OffsetClause> <LimitClause?>>
-  LimitClause.LimitClause = <limit <IntOrBindVariable>> {case-insensitive}
-  OffsetClause.OffsetClause = <offset <IntOrBindVariable>> {case-insensitive}
+  LimitClause.LimitClause = <LIMIT <IntOrBindVariable>> {case-insensitive}
+  OffsetClause.OffsetClause = <OFFSET <IntOrBindVariable>> {case-insensitive}
 
   IntOrBindVariable.Integer = UNSIGNED-INT
   IntOrBindVariable = BindVariable

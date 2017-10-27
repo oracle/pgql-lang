@@ -48,6 +48,8 @@ context-free syntax // GraphPattern.sdf3
   Legacy10Ids.Ids = <@<AltLit>>
   Legacy10WithInlinedConstraints.InlinedConstraint = < with <{Legacy10InlinedExp ", "}+>> {case-insensitive}
 
+  AsignSymbol.Pgql10AsignSymbol = <:=>
+
 context-free syntax // SolutionModifiers
 
   OrderElem.Legacy10Asc = <asc(<Exp>)> {case-insensitive}

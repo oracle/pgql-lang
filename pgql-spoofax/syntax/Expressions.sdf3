@@ -16,11 +16,11 @@ context-free syntax
   Exp = VarRef
   Exp = Literal
 
-  Exp.Not = <not <Exp>> {right, case-insensitive}
+  Exp.Not = <NOT <Exp>> {right, case-insensitive}
   Exp.UMin = <-<Exp>> {right}
 
-  Exp.And = <<Exp> and <Exp>> {left, case-insensitive}
-  Exp.Or = <<Exp> or <Exp>> {left, case-insensitive}
+  Exp.And = <<Exp> AND <Exp>> {left, case-insensitive}
+  Exp.Or = <<Exp> OR <Exp>> {left, case-insensitive}
   Exp.Mul = <<Exp> * <Exp>> {left}
   Exp.Add = <<Exp> + <Exp>> {left}
   Exp.Div = <<Exp> / <Exp>> {left}
@@ -35,12 +35,12 @@ context-free syntax
   Exp.Neq1 = [[Exp] != [Exp]] {left}
   Exp.Neq2 = [[Exp] <> [Exp]] {left}
 
-  Exp.Cast = <cast(<Exp> as <DATA-TYPE>)> {case-insensitive}
+  Exp.Cast = <CAST(<Exp> AS <DATA-TYPE>)> {case-insensitive}
 
-  Exp.Exists = <exists( <Query> )> {case-insensitive}
+  Exp.Exists = <EXISTS( <Query> )> {case-insensitive}
 
-  Exp.IsNull = <<Exp> is null> {right, case-insensitive}
-  Exp.IsNotNull = <<Exp> is not null> {right, case-insensitive}
+  Exp.IsNull = <<Exp> IS NULL> {right, case-insensitive}
+  Exp.IsNotNull = <<Exp> IS NOT NULL> {right, case-insensitive}
 
 context-free syntax // function calls
 
@@ -49,15 +49,15 @@ context-free syntax // function calls
 
 context-free syntax // Aggregates
 
-  Exp.COUNT        = <count(<Distinct?><StarOrExp>)> {case-insensitive}
-  Exp.MIN          = <min(<Distinct?><Exp>)> {case-insensitive}
-  Exp.MAX          = <max(<Distinct?><Exp>)> {case-insensitive}
-  Exp.SUM          = <sum(<Distinct?><Exp>)> {case-insensitive}
-  Exp.AVG          = <avg(<Distinct?><Exp>)> {case-insensitive}
+  Exp.COUNT        = <COUNT(<Distinct?><StarOrExp>)> {case-insensitive}
+  Exp.MIN          = <MIN(<Distinct?><Exp>)> {case-insensitive}
+  Exp.MAX          = <MAX(<Distinct?><Exp>)> {case-insensitive}
+  Exp.SUM          = <SUM(<Distinct?><Exp>)> {case-insensitive}
+  Exp.AVG          = <AVG(<Distinct?><Exp>)> {case-insensitive}
 
   StarOrExp.Star = <*>
   StarOrExp = <<Exp>>
-  Distinct.Distinct = <distinct> {case-insensitive}
+  Distinct.Distinct = <DISTINCT> {case-insensitive}
 
 context-free priorities
 
