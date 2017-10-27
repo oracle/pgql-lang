@@ -8,7 +8,7 @@ context-free syntax
 
   VarDef.VarDef = IDENTIFIER
   VarRef.VarRef = IDENTIFIER
-  VarAssign.VarAssign = < as <VarDef>> {case-insensitive}
+  VarAssign.VarAssign = < AS <VarDef>> {case-insensitive}
   PropRef.PropRef = <<VarRef>.<Prop>>
 
   Prop = Identifier

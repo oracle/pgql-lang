@@ -30,9 +30,9 @@ context-free syntax
   Boolean.True              = <true> {case-insensitive}
   Boolean.False             = <false> {case-insensitive}
   BindVariable.BindVariable = <?>
-  Date.Date                 = <date <STRING>> {case-insensitive}
-  Time.Time                 = <time <STRING>> {case-insensitive}
-  Timestamp.Timestamp       = <timestamp <STRING>> {case-insensitive}
+  Date.Date                 = <DATE <STRING>> {case-insensitive}
+  Time.Time                 = <TIME <STRING>> {case-insensitive}
+  Timestamp.Timestamp       = <TIMESTAMP <STRING>> {case-insensitive}
   Literal.Null              = <null> {case-insensitive} // not valid syntax; just here so that we can generate an appropriate error to use IS NULL or IS NOT NULL instead
 
 lexical syntax
