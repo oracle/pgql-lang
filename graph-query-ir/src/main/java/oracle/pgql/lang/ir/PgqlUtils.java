@@ -105,7 +105,7 @@ public class PgqlUtils {
             .replace("\n", "\\n") //
             .replace("\r", "\\r") //
             .replace("\b", "\\b") //
-            .replace("\f", "\\t") //
+            .replace("\f", "\\f") //
         + "'";
   }
 
