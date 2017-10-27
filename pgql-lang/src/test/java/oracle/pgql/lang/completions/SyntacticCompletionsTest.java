@@ -42,7 +42,7 @@ public class SyntacticCompletionsTest extends AbstractCompletionsTest {
 
   @Test
   public void testVertexProps() throws Exception {
-    String query = "SELECT n ??? WHERE (n)";
+    String query = "SELECT 123 MATCH (n) -[e]-> (m) WHERE ???";
 
     List<PgqlCompletion> expected = new ArrayList<>();
     // TODO
