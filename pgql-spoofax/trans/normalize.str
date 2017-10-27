@@ -121,7 +121,7 @@ rules
 rules
 
   norm-matchElems:
-    GraphPattern(elems) -> GraphPattern(vertices, edges, pathPatterns'', constraints)
+    GraphPattern(elems) -> GraphPattern(vertices, connections, constraints)
     with
       pathPatterns := <filter(?PathPattern(_, _))> elems;
       inlined-constraints-for-vertices := <collect-om(?Vertex(<id>)); map(get-inlined-constraints(|"vertex")); concat> pathPatterns;
@@ -130,9 +130,7 @@ rules
       constraints := <conc; flatten-list; !Constraints(<id>)> (inlined-constraints-for-vertices, inlined-constraints-for-edges, non-inlined-constraints);
       pathPatterns' := <alltd(?ElemContents(Some(<id>), _, _, _))> pathPatterns;
       vertices := <collect-om(?Vertex(_)); !Vertices(<id>)> pathPatterns';
-      connections := <get-edges> pathPatterns';
-      edges := <filter(?Edge(_, _, _, _)); !Edges(<id>)> connections;
-      pathPatterns'' := <filter(?Path(_, _, _, _, _, _)); !Paths(<id>)> connections
+      connections := <get-connections> pathPatterns'
 
   norm-common-path-expression:
     CommonPathExpression(name, _, path, whereClause) -> CommonPathExpression(name, vertices, connections, constraints)
@@ -143,7 +141,7 @@ rules
       constraints := <concat; flatten-list; !Constraints(<id>)> [inlined-constraints-for-vertices, inlined-constraints-for-edges, non-inlined-constraints];
       path' := <alltd(?ElemContents(Some(<id>), _, _, _))> path;
       vertices := <collect-om(?Vertex(_), conc); !Vertices(<id>)> path';
-      connections := <get-edges> [path']
+      connections := <get-connections> [path']
 
   get-inlined-constraints(|vertexOrEdge):
     ElemContents(Some(var), label, id', otherConstraint) -> [labels, identifiers, otherConstraint']
@@ -164,37 +162,37 @@ rules
   to-id-constraints(|var) = bottomup(try(is-literal; origin-track-forced(!Eq(<to-function(|"id")> [VarRef(var)], <id>))))
 
   // base case: no paths
-  get-edges:
+  get-connections:
     [] -> []
 
   // head is path with only one vertex => get neighbors for the other paths
-  get-edges:
-    [PathPattern(_, [])|otherPaths] -> <get-edges> otherPaths
+  get-connections:
+    [PathPattern(_, [])|otherPaths] -> <get-connections> otherPaths
 
   // paths with more than one vertex
-  get-edges:
+  get-connections:
     [PathPattern(
       Vertex(n1),
       edgeVertices@[EdgeVertex(e, Vertex(n2))|_])
     |otherPaths] -> <conc> ([edge], edgesPathTail, edgesTailPaths)
     with
-      edge := <to-edge> (n1, e, n2);
-      edgesPathTail := <get-edges> edgeVertices;
-      edgesTailPaths := <get-edges> otherPaths
+      edge := <to-connection> (n1, e, n2);
+      edgesPathTail := <get-connections> edgeVertices;
+      edgesTailPaths := <get-connections> otherPaths
 
   // base case: only one edgeVertex
-  get-edges:
+  get-connections:
     [EdgeVertex(_, _)] -> []
     
   // two or more edgeVertices
-  get-edges:
+  get-connections:
     [EdgeVertex(_, Vertex(n1)) | edgeVertices@[EdgeVertex(e, Vertex(n2))|_]]
     -> <conc> ([edge], edgesPathTail)
     with
-      edge := <to-edge> (n1, e, n2);
-      edgesPathTail := <get-edges> edgeVertices
+      edge := <to-connection> (n1, e, n2);
+      edgesPathTail := <get-connections> edgeVertices
 
-  to-edge:
+  to-connection:
     (n1, e, n2) -> expansion
     with
       switch !e
@@ -244,10 +242,10 @@ rules
     Query(commonPathExpressions, selectClause, fromClause, graphPattern, whereClause, groupByClause, havingClause, orderByClause, limitOffsets) ->
       <norm-query(|error-messages, "v1.1")> (commonPathExpressions, selectClause, fromClause, graphPattern', groupByClause, havingClause, orderByClause, limitOffsets)
     with
-      <?GraphPattern(vertices, edges, paths, Constraints(inlined-constraints))> graphPattern;
+      <?GraphPattern(vertices, connections, Constraints(inlined-constraints))> graphPattern;
       non-inlined-constraints := <?Some(WhereClause(<id>)); ![<id>] + ?None(); ![]> whereClause;
       constraints := Constraints(<conc> (inlined-constraints,  non-inlined-constraints));
-      graphPattern' := GraphPattern(vertices, edges, paths, constraints)
+      graphPattern' := GraphPattern(vertices, connections, constraints)
 
   // pgql 1.0
   norm-query(|error-messages):

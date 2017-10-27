@@ -13,6 +13,7 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -66,9 +67,8 @@ public class SpoofaxAstToGraphQuery {
   private static final int POS_PROJECTION_ELEMS = 1;
 
   private static final int POS_VERTICES = 0;
-  private static final int POS_EDGES = 1;
-  private static final int POS_PATHS = 2;
-  private static final int POS_CONSTRAINTS = 3;
+  private static final int POS_CONNECTIONS = 1;
+  private static final int POS_CONSTRAINTS = 2;
 
   private static final int POS_EDGE_SRC = 0;
   private static final int POS_EDGE_DST = 2;
@@ -129,22 +129,13 @@ public class SpoofaxAstToGraphQuery {
     IStrategoTerm verticesT = getList(graphPatternT.getSubterm(POS_VERTICES));
     Set<QueryVertex> vertices = new HashSet<>(getQueryVertices(verticesT, vars));
 
-    // edges
-    IStrategoTerm edgesT = getList(graphPatternT.getSubterm(POS_EDGES));
-    Set<QueryEdge> edges = new HashSet<>(getQueryEdges(edgesT, vars));
-
-    // paths
-    IStrategoTerm pathsT = getList(graphPatternT.getSubterm(POS_PATHS));
-    Set<QueryPath> paths = getPaths(pathsT, pathPatternMap, vars);
-
     // connections
-    Set<VertexPairConnection> connections = new HashSet<>();
-    connections.addAll(edges);
-    connections.addAll(paths);
+    IStrategoTerm connectionsT = getList(graphPatternT.getSubterm(POS_CONNECTIONS));
+    LinkedHashSet<VertexPairConnection> connections = getConnections(connectionsT, pathPatternMap, vars);
 
     // constraints
     IStrategoTerm constraintsT = getList(graphPatternT.getSubterm(POS_CONSTRAINTS));
-    Set<QueryExpression> constraints = getQueryExpressions(constraintsT, vars);
+    LinkedHashSet<QueryExpression> constraints = getQueryExpressions(constraintsT, vars);
 
     // graph pattern
     GraphPattern graphPattern = new GraphPattern(vertices, connections, constraints);
@@ -223,9 +214,9 @@ public class SpoofaxAstToGraphQuery {
     return vertices;
   }
 
-  private static Set<QueryExpression> getQueryExpressions(IStrategoTerm constraintsT, Map<String, QueryVariable> varmap)
-      throws PgqlException {
-    Set<QueryExpression> constraints = new HashSet<>(constraintsT.getSubtermCount());
+  private static LinkedHashSet<QueryExpression> getQueryExpressions(IStrategoTerm constraintsT,
+      Map<String, QueryVariable> varmap) throws PgqlException {
+    LinkedHashSet<QueryExpression> constraints = new LinkedHashSet<>(constraintsT.getSubtermCount());
     for (IStrategoTerm constraintT : constraintsT) {
       QueryExpression exp = translateExp(constraintT, varmap, Collections.<String, QueryVariable> emptyMap());
       addQueryExpressions(exp, constraints);
@@ -243,12 +234,23 @@ public class SpoofaxAstToGraphQuery {
     }
   }
 
-  private static List<QueryEdge> getQueryEdges(IStrategoTerm edgesT, Map<String, QueryVariable> varmap) {
-    List<QueryEdge> edges = new ArrayList<>(edgesT.getSubtermCount());
-    for (IStrategoTerm edgeT : edgesT) {
-      edges.add(getQueryEdge(edgeT, varmap));
+  private static LinkedHashSet<VertexPairConnection> getConnections(IStrategoTerm connectionsT,
+      Map<String, IStrategoTerm> pathPatternMap, Map<String, QueryVariable> varmap) throws PgqlException {
+
+    LinkedHashSet<VertexPairConnection> result = new LinkedHashSet<>();
+
+    for (IStrategoTerm connectionT : connectionsT) {
+      String consName = ((IStrategoAppl) connectionT).getConstructor().getName();
+
+      if (consName.equals("Edge")) {
+        result.add(getQueryEdge(connectionT, varmap));
+      } else {
+        assert consName.equals("Path");
+        result.add(getPath(connectionT, pathPatternMap, varmap));
+      }
     }
-    return edges;
+
+    return result;
   }
 
   private static QueryEdge getQueryEdge(IStrategoTerm edgeT, Map<String, QueryVariable> varmap) {
@@ -277,17 +279,6 @@ public class SpoofaxAstToGraphQuery {
       QueryVertex dummyVertex = new QueryVertex(vertexName, false);
       return dummyVertex;
     }
-  }
-
-  private static Set<QueryPath> getPaths(IStrategoTerm pathsT, Map<String, IStrategoTerm> pathPatternMap,
-      Map<String, QueryVariable> varmap) throws PgqlException {
-    Set<QueryPath> result = new HashSet<>();
-
-    for (IStrategoTerm pathT : pathsT) {
-      result.add(getPath(pathT, pathPatternMap, varmap));
-    }
-
-    return result;
   }
 
   private static QueryPath getPath(IStrategoTerm pathT, Map<String, IStrategoTerm> pathPatternMap,

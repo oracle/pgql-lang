@@ -44,3 +44,4 @@ lexical syntax // reserved keywords
   FUNCTION-NAME = 'exists' {reject}
   FUNCTION-NAME = 'asc' {reject}
   FUNCTION-NAME = 'desc' {reject}
+  FUNCTION-NAME = 'not' {reject}

@@ -129,6 +129,18 @@ public class PrettyPrintingTest {
     checkRoundTrip(query);
   }
 
+  @Test
+  public void testDateTime() throws Exception {
+    String query = "SELECT "
+        + "DATE '2017-01-01', "
+        + "TIME '20:00:00', "
+        + "TIMESTAMP '2017-01-01 20:00:00', "
+        + "TIME '20:00:00.1234+01:00', "
+        + "TIMESTAMP '2017-01-01 20:00:00.1234-01:00'" //
+        + "MATCH ()";
+    checkRoundTrip(query);
+  }
+
   private void checkRoundTrip(String query1) throws PgqlException {
 
     /*

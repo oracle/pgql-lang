@@ -3,6 +3,7 @@
  */
 package oracle.pgql.lang.ir;
 
+import static oracle.pgql.lang.ir.PgqlUtils.printTime;
 import static oracle.pgql.lang.ir.PgqlUtils.printPgqlString;
 
 import java.time.LocalDate;
@@ -386,7 +387,7 @@ public interface QueryExpression {
 
       @Override
       public String toString() {
-        return "!(" + getExp() + ")";
+        return "NOT (" + getExp() + ")";
       }
 
       @Override
@@ -666,7 +667,7 @@ public interface QueryExpression {
 
       @Override
       public String toString() {
-        return "TIME '" + value + "'";
+        return "TIME '" + printTime(value) + "'";
       }
 
       @Override
@@ -688,7 +689,7 @@ public interface QueryExpression {
 
       @Override
       public String toString() {
-        return "TIMESTAMP '" + value + "'";
+        return "TIMESTAMP '" + value.toLocalDate() + " " + printTime(value.toLocalTime()) + "'";
       }
 
       @Override
@@ -710,7 +711,7 @@ public interface QueryExpression {
 
       @Override
       public String toString() {
-        return "TIME '" + value + "'";
+        return "TIME '" + printTime(value.toLocalTime()) + value.getOffset() + "'";
       }
 
       @Override
@@ -732,7 +733,7 @@ public interface QueryExpression {
 
       @Override
       public String toString() {
-        return "TIMESTAMP '" + value + "'";
+        return "TIMESTAMP '" + value.toLocalDate() + " " + printTime(value.toLocalTime()) + value.getOffset() + "'";
       }
 
       @Override
