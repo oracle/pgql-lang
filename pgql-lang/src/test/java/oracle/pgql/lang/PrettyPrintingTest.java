@@ -117,6 +117,37 @@ public class PrettyPrintingTest {
     checkRoundTrip(query);
   }
 
+  @Test
+  public void testDistinct() throws Exception {
+    String query = "SELECT DISTINCT " //
+        + "COUNT(DISTINCT n.age) AS count," //
+        + "MIN(DISTINCT n.age)," //
+        + "MAX(DISTINCT n.age)," //
+        + "AVG(DISTINCT .age)," //
+        + "SUM(DISTINCT n.age)" //
+        + "WHERE (n)";
+    checkRoundTrip(query);
+  }
+
+  @Test
+  public void testDateTime() throws Exception {
+    String query = "SELECT " //
+        + "DATE '2017-01-01', "//
+        + "TIME '20:00:00', " //
+        + "TIMESTAMP '2017-01-01 20:00:00', "//
+        + "TIME '20:00:00.1234+01:00', "//
+        + "TIMESTAMP '2017-01-01 20:00:00.1234-01:00'" //
+        + "MATCH ()";
+    checkRoundTrip(query);
+  }
+
+  @Test
+  public void testStringEscaping() throws Exception {
+    String query = "SELECT '\\'\"\\\"\\\\\\t\\n\\r\\b\\f'" //
+        + "MATCH ()";
+    checkRoundTrip(query);
+  }
+
   private void checkRoundTrip(String query1) throws PgqlException {
 
     /*
@@ -130,9 +161,9 @@ public class PrettyPrintingTest {
     assertTrue(result2.getErrorMessages(), iR2 != null);
 
     /*
-     * Since pretty-printed queries are in normal form, we can now round trip endlessly.
-     * Here, we assert that when pretty-printing a GraphQuery object that was parsed from a pretty-printed query,
-     * we obtain another GraphQuery object that is equal to the first.
+     * Since pretty-printed queries are in normal form, we can now round trip endlessly. Here, we assert that when
+     * pretty-printing a GraphQuery object that was parsed from a pretty-printed query, we obtain another GraphQuery
+     * object that is equal to the first.
      */
     String query3 = iR2.toString();
     GraphQuery iR3 = pgql.parse(query3).getGraphQuery();

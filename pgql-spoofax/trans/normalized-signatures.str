@@ -20,7 +20,7 @@ signature constructors // for the normalized AST (see trans/normalize.str)
   PgqlVersion           : STRING
   CommonPathExpressions : List(CommonPathExpression) -> CommonPathExpressions
   CommonPathExpression  : PATHPATTERNNAME * Vertices * Connections * Constraints -> CommonPathExpression
-  GraphPattern          : Vertices * Edges * Paths * Constraints -> GraphPattern
+  GraphPattern          : Vertices * Connections * Constraints -> GraphPattern
   Vertices              : List(Vertex) -> Vertices
   Vertex                : Var -> Vertex
   Edges                 : List(Edge) -> Edges

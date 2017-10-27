@@ -4,6 +4,7 @@
 package oracle.pgql.lang.ir;
 
 import java.util.ArrayList;
+import java.util.LinkedHashSet;
 import java.util.Set;
 
 import static oracle.pgql.lang.ir.PgqlUtils.printPgqlString;
@@ -16,8 +17,19 @@ public class GraphPattern {
 
   private final Set<QueryExpression> constraints;
 
-  public GraphPattern(Set<QueryVertex> vertices, Set<VertexPairConnection> connections,
-      Set<QueryExpression> constraints) {
+  /**
+   * @param vertices
+   * @param connections
+   *          the edges and paths
+   * @param constraints
+   *          the filters
+   *
+   *          The connections and constraints are instances of LinkedHashSet such that ordering is maintained for
+   *          pretty-printing purposes (i.e. toString()). It is expected that the ordering corresponds to the ordering
+   *          in which the elements appear in the query string.
+   */
+  public GraphPattern(Set<QueryVertex> vertices, LinkedHashSet<VertexPairConnection> connections,
+      LinkedHashSet<QueryExpression> constraints) {
     this.vertices = vertices;
     this.connections = connections;
     this.constraints = constraints;

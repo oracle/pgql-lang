@@ -3,6 +3,7 @@
  */
 package oracle.pgql.lang.ir;
 
+import static oracle.pgql.lang.ir.PgqlUtils.printTime;
 import static oracle.pgql.lang.ir.PgqlUtils.printPgqlString;
 
 import java.time.LocalDate;
@@ -386,7 +387,7 @@ public interface QueryExpression {
 
       @Override
       public String toString() {
-        return "!(" + getExp() + ")";
+        return "(NOT " + getExp() + ")";
       }
 
       @Override
@@ -666,7 +667,7 @@ public interface QueryExpression {
 
       @Override
       public String toString() {
-        return "TIME '" + value + "'";
+        return "TIME '" + printTime(value) + "'";
       }
 
       @Override
@@ -688,7 +689,7 @@ public interface QueryExpression {
 
       @Override
       public String toString() {
-        return "TIMESTAMP '" + value + "'";
+        return "TIMESTAMP '" + value.toLocalDate() + " " + printTime(value.toLocalTime()) + "'";
       }
 
       @Override
@@ -710,7 +711,7 @@ public interface QueryExpression {
 
       @Override
       public String toString() {
-        return "TIME '" + value + "'";
+        return "TIME '" + printTime(value.toLocalTime()) + value.getOffset() + "'";
       }
 
       @Override
@@ -732,7 +733,7 @@ public interface QueryExpression {
 
       @Override
       public String toString() {
-        return "TIMESTAMP '" + value + "'";
+        return "TIMESTAMP '" + value.toLocalDate() + " " + printTime(value.toLocalTime()) + value.getOffset() + "'";
       }
 
       @Override
@@ -1042,15 +1043,76 @@ public interface QueryExpression {
         return false;
       return true;
     }
-
   }
 
   interface Aggregation extends QueryExpression {
 
-    class AggrCount extends UnaryExpression implements Aggregation {
+    abstract class AbstractAggregation extends UnaryExpression implements Aggregation {
 
-      public AggrCount(QueryExpression exp) {
+      private final boolean distinct;
+
+      public AbstractAggregation(boolean distinct, QueryExpression exp) {
         super(exp);
+        this.distinct = distinct;
+      }
+
+      public boolean hasDistinct() {
+        return distinct;
+      }
+
+      @Override
+      public String toString() {
+        String result;
+        switch (getExpType()) {
+          case AGGR_COUNT:
+            result = "COUNT";
+            break;
+          case AGGR_MIN:
+            result = "MIN";
+            break;
+          case AGGR_MAX:
+            result = "MAX";
+            break;
+          case AGGR_AVG:
+            result = "AVG";
+            break;
+          case AGGR_SUM:
+            result = "SUM";
+            break;
+          default:
+            throw new IllegalArgumentException("Unexpected expression type: " + getExpType());
+        }
+        result += "(" + (distinct ? "DISTINCT " : "") + getExp() + ")";
+        return result;
+      }
+
+      @Override
+      public int hashCode() {
+        final int prime = 31;
+        int result = super.hashCode();
+        result = prime * result + (distinct ? 1231 : 1237);
+        return result;
+      }
+
+      @Override
+      public boolean equals(Object obj) {
+        if (this == obj)
+          return true;
+        if (!super.equals(obj))
+          return false;
+        if (getClass() != obj.getClass())
+          return false;
+        AbstractAggregation other = (AbstractAggregation) obj;
+        if (distinct != other.distinct)
+          return false;
+        return true;
+      }
+    }
+
+    class AggrCount extends AbstractAggregation {
+
+      public AggrCount(boolean distinct, QueryExpression exp) {
+        super(distinct, exp);
       }
 
       @Override
@@ -1059,20 +1121,15 @@ public interface QueryExpression {
       }
 
       @Override
-      public String toString() {
-        return "COUNT(" + getExp() + ")";
-      }
-
-      @Override
       public void accept(QueryExpressionVisitor v) {
         v.visit(this);
       }
     }
 
-    class AggrMin extends UnaryExpression implements Aggregation {
+    class AggrMin extends AbstractAggregation {
 
-      public AggrMin(QueryExpression exp) {
-        super(exp);
+      public AggrMin(boolean distinct, QueryExpression exp) {
+        super(distinct, exp);
       }
 
       @Override
@@ -1081,20 +1138,15 @@ public interface QueryExpression {
       }
 
       @Override
-      public String toString() {
-        return "MIN(" + getExp() + ")";
-      }
-
-      @Override
       public void accept(QueryExpressionVisitor v) {
         v.visit(this);
       }
     }
 
-    class AggrMax extends UnaryExpression implements Aggregation {
+    class AggrMax extends AbstractAggregation {
 
-      public AggrMax(QueryExpression exp) {
-        super(exp);
+      public AggrMax(boolean distinct, QueryExpression exp) {
+        super(distinct, exp);
       }
 
       @Override
@@ -1103,20 +1155,15 @@ public interface QueryExpression {
       }
 
       @Override
-      public String toString() {
-        return "MAX(" + getExp() + ")";
-      }
-
-      @Override
       public void accept(QueryExpressionVisitor v) {
         v.visit(this);
       }
     }
 
-    class AggrSum extends UnaryExpression implements Aggregation {
+    class AggrSum extends AbstractAggregation {
 
-      public AggrSum(QueryExpression exp) {
-        super(exp);
+      public AggrSum(boolean distinct, QueryExpression exp) {
+        super(distinct, exp);
       }
 
       @Override
@@ -1125,30 +1172,20 @@ public interface QueryExpression {
       }
 
       @Override
-      public String toString() {
-        return "SUM(" + getExp() + ")";
-      }
-
-      @Override
       public void accept(QueryExpressionVisitor v) {
         v.visit(this);
       }
     }
 
-    class AggrAvg extends UnaryExpression implements Aggregation {
+    class AggrAvg extends AbstractAggregation {
 
-      public AggrAvg(QueryExpression exp) {
-        super(exp);
+      public AggrAvg(boolean distinct, QueryExpression exp) {
+        super(distinct, exp);
       }
 
       @Override
       public ExpressionType getExpType() {
         return ExpressionType.AGGR_AVG;
-      }
-
-      @Override
-      public String toString() {
-        return "AVG(" + getExp() + ")";
       }
 
       @Override
