@@ -172,7 +172,8 @@ public class PgqlUtils {
 
   protected static String printPgqlString(ExpAsVar expAsVar) {
     String exp = expAsVar.getExp().toString();
-    return expAsVar.isAnonymous() ? expAsVar.getName() : exp + " AS " + expAsVar.getName();
+    // replace expAsVar.getExp().toString() with expAsVar.getName() once we no longer have to pretty print PGQL v1.0
+    return expAsVar.isAnonymous() ? expAsVar.getExp().toString() : exp + " AS " + expAsVar.getName();
   }
 
   protected static String printPgqlString(GraphPattern graphPattern, List<QueryPath> queryPaths) {
