@@ -50,45 +50,72 @@ public class SemanticCompletionsTest extends AbstractCompletionsTest {
 
   @Test
   public void testVertexProps() throws Exception {
-    String query = "SELECT n.??? FROM g WHERE (n)";
 
     List<PgqlCompletion> expected = new ArrayList<>();
-    expected.add(new PgqlCompletion("name", "name", "vertex property"));
-    expected.add(new PgqlCompletion("age", "age", "vertex property"));
+    expected.add(new PgqlCompletion("name", "vertex property"));
+    expected.add(new PgqlCompletion("age", "vertex property"));
 
+    String query = "SELECT n.??? FROM g MATCH (n)";
+    checkResult(query, expected);
+
+    query = "SELECT n.name FROM g MATCH (n) WHERE n.???";
+    checkResult(query, expected);
+
+    query = "SELECT n.name FROM g MATCH (n) WHERE n.name = 'Ana' GROUP BY n.???";
+    checkResult(query, expected);
+
+    query = "SELECT n.name FROM g MATCH (n) WHERE n.name = 'Ana' GROUP BY n ORDER BY n.???";
     checkResult(query, expected);
   }
 
   @Test
   public void testEdgeProps() throws Exception {
-    String query = "SELECT edge.??? FROM g WHERE (n) -[edge]-> (m)";
-
     List<PgqlCompletion> expected = new ArrayList<>();
-    expected.add(new PgqlCompletion("weight", "weight", "edge property"));
+    expected.add(new PgqlCompletion("weight", "edge property"));
 
+    String query = "SELECT edge.??? FROM g WHERE (n) -[edge]-> (m)";
+    checkResult(query, expected);
+
+    query = "SELECT edge.weight FROM g WHERE (n) -[edge]-> (m) WHERE edge.???";
+    checkResult(query, expected);
+
+    query = "SELECT edge.weight FROM g WHERE (n) -[edge]-> (m) WHERE n.name = 'Ana' GROUP BY edge.???";
+    checkResult(query, expected);
+
+    query = "SELECT edge.weight FROM g WHERE (n) -[edge]-> (m) WHERE n.name = 'Ana' GROUP BY edge ORDER BY edge.???";
     checkResult(query, expected);
   }
 
   @Test
   public void testVertexLabels() throws Exception {
-    String query = "SELECT n.name FROM g WHERE (n:???)";
-
     List<PgqlCompletion> expected = new ArrayList<>();
-    expected.add(new PgqlCompletion("Person", "Person", "vertex label"));
-    expected.add(new PgqlCompletion("Student", "Student", "vertex label"));
-    expected.add(new PgqlCompletion("Professor", "Professor", "vertex label"));
+    expected.add(new PgqlCompletion("Person", "vertex label"));
+    expected.add(new PgqlCompletion("Student", "vertex label"));
+    expected.add(new PgqlCompletion("Professor", "vertex label"));
 
+    String query = "SELECT n.name FROM g MATCH (n:???)";
+    checkResult(query, expected);
+
+    query = "SELECT n.name FROM g MATCH (n) -> (m:???";
+    checkResult(query, expected);
+
+    query = "SELECT n.name FROM g MATCH (n) -> (m:??? GROUP BY n";
     checkResult(query, expected);
   }
 
   @Test
   public void testEdgeLabels() throws Exception {
-    String query = "SELECT e.weight FROM g WHERE () -[e:???]-> ()";
-
     List<PgqlCompletion> expected = new ArrayList<>();
-    expected.add(new PgqlCompletion("likes", "likes", "edge label"));
-    expected.add(new PgqlCompletion("knows", "knows", "edge label"));
+    expected.add(new PgqlCompletion("likes", "edge label"));
+    expected.add(new PgqlCompletion("knows", "edge label"));
 
+    String query = "SELECT e.weight FROM g MATCH () -[e:???]-> ()";
+    checkResult(query, expected);
+
+    query = "SELECT e.weight FROM g MATCH () -[e:???";
+    checkResult(query, expected);
+
+    query = "SELECT e.weight FROM g MATCH () -[e:??? GROUP BY e";
     checkResult(query, expected);
   }
 }

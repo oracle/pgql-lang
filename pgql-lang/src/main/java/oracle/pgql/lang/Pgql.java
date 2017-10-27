@@ -216,14 +216,13 @@ public class Pgql {
     try {
       dummyFile = getFileObject(queryString);
       ISpoofaxParseUnit parseResult = parseHelper(queryString, dummyFile);
-
       return spoofax.completionService.get(cursor, parseResult, false);
     } catch (IOException | MetaborgException e) {
       // swallow exceptions
+       return null;
     } finally {
       quietlyDelete(dummyFile);
     }
-    return null;
   }
 
   /**
@@ -280,8 +279,9 @@ public class Pgql {
       throws PgqlException {
 
     Iterable<ICompletion> spoofaxCompletions = null;
-    if (queryString.charAt(cursor - 1) != ':' && queryString.charAt(cursor - 1) != '.') { // skip Spoofax completion to
-                                                                                          // safe time
+    if (queryString.charAt(cursor - 1) == ':' || queryString.charAt(cursor - 1) == '.') {
+      // skip Spoofax completion to safe time
+    } else {
       spoofaxCompletions = spoofaxComplete(queryString, cursor);
     }
 

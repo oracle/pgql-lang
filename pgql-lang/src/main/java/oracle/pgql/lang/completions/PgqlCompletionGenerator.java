@@ -31,10 +31,10 @@ public class PgqlCompletionGenerator {
     if (queryString.charAt(cursor - 1) == ':') {
       String queryUpToCursor = queryString.substring(0, cursor - 2);
       if (queryUpToCursor.lastIndexOf('(') > queryUpToCursor.lastIndexOf('[')) {
-        return ctx.getVertexLabels().stream().map(lbl -> new PgqlCompletion(lbl, lbl, "vertex label"))
+        return ctx.getVertexLabels().stream().map(lbl -> new PgqlCompletion(lbl, "vertex label"))
             .collect(Collectors.toList());
       } else {
-        return ctx.getEdgeLabels().stream().map(lbl -> new PgqlCompletion(lbl, lbl, "edge label"))
+        return ctx.getEdgeLabels().stream().map(lbl -> new PgqlCompletion(lbl, "edge label"))
             .collect(Collectors.toList());
       }
       // properties
@@ -51,7 +51,7 @@ public class PgqlCompletionGenerator {
           .map(QueryVertex::getName) //
           .anyMatch(variableName::equals);
       if (isVertexVariable) {
-        return ctx.getVertexProperties().stream().map(prop -> new PgqlCompletion(prop, prop, "vertex property"))
+        return ctx.getVertexProperties().stream().map(prop -> new PgqlCompletion(prop, "vertex property"))
             .collect(Collectors.toList());
       }
 
@@ -61,13 +61,15 @@ public class PgqlCompletionGenerator {
           .map(VertexPairConnection::getName) //
           .anyMatch(variableName::equals);
       if (isEdgeVariable) {
-        return ctx.getEdgeProperties().stream().map(prop -> new PgqlCompletion(prop, prop, "edge property"))
+        return ctx.getEdgeProperties().stream().map(prop -> new PgqlCompletion(prop, "edge property"))
             .collect(Collectors.toList());
       }
     } else if (spoofaxCompletions != null) {
       for (ICompletion c : spoofaxCompletions) {
         System.out.println(c + ", " + c.prefix());
       }
+    } else {
+      System.out.println("no completions");
     }
     return Collections.emptyList();
   }
