@@ -24,7 +24,7 @@ public class PgqlCompletion {
 
   @Override
   public String toString() {
-    return value + "\n  " + meta;
+    return value + "\t\t" + meta;
   }
 
   @Override
