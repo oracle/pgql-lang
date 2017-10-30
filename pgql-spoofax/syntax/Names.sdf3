@@ -45,3 +45,13 @@ lexical syntax // reserved keywords
   FUNCTION-NAME = 'asc' {reject}
   FUNCTION-NAME = 'desc' {reject}
   FUNCTION-NAME = 'not' {reject}
+  FUNCTION-NAME = 'distinct' {reject}
+  FUNCTION-NAME = 'select' {reject}
+  FUNCTION-NAME = 'from' {reject}
+  FUNCTION-NAME = 'match' {reject}
+  FUNCTION-NAME = 'group' {reject}
+  FUNCTION-NAME = 'order' {reject}
+  FUNCTION-NAME = 'by' {reject}
+  FUNCTION-NAME = 'having' {reject}
+  FUNCTION-NAME = 'limit' {reject}
+  FUNCTION-NAME = 'offset' {reject}
