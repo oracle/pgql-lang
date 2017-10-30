@@ -46,6 +46,8 @@ lexical syntax // reserved keywords
   FUNCTION-NAME = 'desc' {reject}
   FUNCTION-NAME = 'not' {reject}
   FUNCTION-NAME = 'distinct' {reject}
+  FUNCTION-NAME = 'path' {reject}
+  FUNCTION-NAME = 'as' {reject}
   FUNCTION-NAME = 'select' {reject}
   FUNCTION-NAME = 'from' {reject}
   FUNCTION-NAME = 'match' {reject}
