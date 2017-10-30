@@ -71,3 +71,10 @@ test Filter groups (HAVING) [[
   [[HAVING n.age > 25]]
 
 ]] error like "HAVING is not yet supported" at #1
+
+test COUNT(DISTINCT *) [[
+
+  SELECT COUNT(DISTINCT [[*]]) AS cnt
+   MATCH (n)
+
+]] error like "* not allowed in combination with DISTINCT" at #1
