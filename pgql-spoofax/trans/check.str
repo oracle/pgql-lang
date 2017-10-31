@@ -137,6 +137,11 @@ rules
       <generate-error(|ctx, "SELECT * not allowed in combination with GROUP BY")> e
 
   nabl-constraint(|ctx):
+    COUNT(Some(Distinct()), e@Star()) -> <fail>
+    with
+      <generate-error(|ctx, "* not allowed in combination with DISTINCT")> e
+
+  nabl-constraint(|ctx):
     e@HavingClause(_) -> <fail>
     with
       <generate-error(|ctx, "HAVING is not yet supported")> e
