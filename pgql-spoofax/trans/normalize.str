@@ -129,8 +129,13 @@ rules
       non-inlined-constraints := <filter(?Constraint(<id>))> elems;
       constraints := <conc; flatten-list; !Constraints(<id>)> (inlined-constraints-for-vertices, inlined-constraints-for-edges, non-inlined-constraints);
       pathPatterns' := <alltd(?ElemContents(Some(<id>), _, _, _))> pathPatterns;
-      vertices := <collect-om(?Vertex(_)); !Vertices(<id>)> pathPatterns';
+      vertices := <collect-but-preserve-order(?Vertex(_)); !Vertices(<id>)> pathPatterns';
       connections := <get-connections> pathPatterns'
+
+  collect-but-preserve-order(s) = collect-om(s, reverse-then-union); reverse
+
+  reverse-then-union:
+    (x, y) -> <union> (y, x)
 
   norm-common-path-expression:
     CommonPathExpression(name, _, path, whereClause) -> CommonPathExpression(name, vertices, connections, constraints)
