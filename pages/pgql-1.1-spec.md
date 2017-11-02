@@ -556,23 +556,10 @@ A partial ordering is defined for the different data types as follows:
 
 - Numeric data values are ordered from small to large.
 - Strings are ordered lexicographically.
-- Vertices and edges are ordered by their identifier (small to larger if numeric, lexicographically if String)
+- Boolean values are ordered such that `false` comes before `true`
+- Temporal data types (dates, time, timestamps) are ordered such that earlier points in time come before later points in time.
 
-In the case a property access holds multiple types of data values, the following ordering is applied between values of different types:
-
-- Numeric < String < Boolean 'false' < Boolean 'true' < 'null'
-
-Consider the following data values:
-
-```sql
-['Mary', 25, null, true, false, 'John', 3.5, 27.5]
-```
-
-Applying the above rules to the values, will result in the following ordering:
-
-```sql
-[3.5, 25, 27.5, 'John', 'Mary', false, true, null]
-```
+Vertices and edges cannot be ordered.
 
 ## Pagination (LIMIT and OFFSET)
 
@@ -605,7 +592,7 @@ OFFSET 5
 # Regular Path Expressions
 
 Path queries test for the existence of arbitrary-length paths between pairs of vertices, or, retrieve actual paths between pairs of vertices.
-PGQL 1.0 supports testing for path existence ("reachability testing") only, while retrieval of actual paths between reachable pairs of vertices is planned for a future PGQL version.
+PGQL 1.0 supports testing for path existence ("reachability testing") only, while retrieval of actual paths between reachable pairs of vertices is planned for a future version.
 
 The syntactic structure of a query path is similar to a query edge, but it uses forward slashes (-/.../->) instead of square brackets (-[...]->). The syntax rules are as follows:
 
@@ -1003,9 +990,23 @@ ORDER BY pivot
 
 ## Filtering of Groups (HAVING)
 
+The `HAVING` clause can be placed after a `GROUP BY` clause to filter out particular groups of solutions.
+The syntactic structure is as follows:
+
 ```bash
 HavingClause ::= 'HAVING' {ValueExpression ','}+
 ```
+
+An example is as follows:
+
+```sql
+  SELECT n.name
+   MATCH (n) -[:has_friend]-> (m)
+GROUP BY n
+  HAVING COUNT(m) > 10
+```
+
+This query returns the names of people who have more than 10 friends.
 
 # Value Expressions
 
