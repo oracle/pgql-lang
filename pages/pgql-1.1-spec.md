@@ -4,7 +4,7 @@ permalink: /spec/1.1/
 summary: "PGQL is an SQL-like query language for the Property Graph data model.
 The language is based on the paradigm of graph pattern matching, which allows you to specify patterns that are matched against vertices and edges in a data graph.
 Like SQL, PGQL has support for grouping (GROUP BY), aggregation (e.g. MIN, MAX, AVG, SUM), sorting (ORDER BY) and many other familiar SQL constructs.
-In addition, PGQL supports regular path queries for applications such as reachability analysis."
+In addition, PGQL has regular path expressions for applications such as reachability analysis."
 sidebar: spec_1_1_sidebar
 toc: true
 ---
@@ -13,7 +13,7 @@ toc: true
 
 The following are the changes since PGQL 1.0:
 
-## Breaking Syntax Changes in PGQL 1.1
+## Breaking Syntax Changes
 
  - The `WHERE` clause is changed into a `MATCH` clause and an optional `WHERE` clause such that the `MATCH` contains the pattern (vertices and edges) while the `WHERE` contains the filters if there are any.
    The inlined filters (`WITH` construct) should also be specified in the `WHERE` clause.
@@ -93,12 +93,12 @@ The following are the changes since PGQL 1.0:
 
  - Direct sorting of vertices and edges (e.g. `ORDER BY v1, e1`) is no longer allowed. Instead, sort using _properties_ of vertices and edges (e.g. `ORDER BY v1.propX, e1.propY`).
 
-## New Functionality in PGQL 1.1
+## New Functionality
 
- - FROM clause
+ - FROM clause (TODO)
  - [Undirected query edges](#undirected-query-edges)
  - [Min and max repetition](#min-and-max-repetition) in regular path expressions
- - DISTINCT
+ - DISTINCT (TODO)
  - [Filtering of groups (HAVING)](#filtering-of-groups-having)
  - [Temporal types](#temporal-types): `DATE`, `TIME`, `TIMESTAMP`, `TIME WITH TIMEZONE`, `TIMESTAMP WITH TIMEZONE`
  - [IS NULL and IS NOT NULL](#is-null-and-is-not-null)
@@ -109,33 +109,37 @@ The following are the changes since PGQL 1.0:
 
 # Introduction
 
-PGQL (Property Graph Query Language) is a query language for the Property Graph (PG) data model. This specification defines the syntax and semantics of PGQL.
+PGQL (Property Graph Query Language) is a query language for the [Property Graph (PG) data model](#property-graph-data-model). This specification defines the syntax and semantics of PGQL.
 
-Essentially, PGQL is a graph pattern-matching query language. A PGQL query describes a graph pattern with vertices, edges, properties, and their relationships,  When the query is evaluated against a Property Graph instance, the query engine finds all subgraph instances of the graph that match to the specified query pattern. Then the query engine returns the selected data entities from each of the matched subgraph instance.
+Essentially, PGQL is a graph pattern-matching query language. A PGQL query describes a graph pattern consisting of vertices and edges. When the query is evaluated against a property graph, all the possible subgraphs that match the pattern are returned.
 
 Consider the following example PGQL query:
 
 ```sql
 SELECT m.name, o.name
+  FROM g
  MATCH (n:Person) -[e1:friendOf]-> (m:Person) <-[e2:belongs_to]- (o:Car)
  WHERE n.name = 'John'
 ```
 
+In the `FROM` clause, we specify the graph that is queried:
+
+ - The input graph is named `g`
+
 In the `MATCH` clause, the above query defines the pattern to be found.
 
-- The pattern is composed of three vertices (`n`, `m`, and `o`) and two edges (`e1` and `e2`).
-- There is an edge (`e1`) from vertex `n` to vertex `m`.
-- There is an edge (`e2`) from vertex `o` to vertex `m`.
-- Vertices `n` and `m` have a label with value `Person`, while vertex `o` has a label with value `Car`.
-- Edges `e1` and `e2` have labels with values `friendOf` and `belongs_to` respectively.
+ - The pattern has three vertices, `n`, `m` and `o`, and two edges, `e1` and `e2`.
+ - The edge `e1` goes from `n` to `m` and the edge `e2` goes from `o` to `m`.
+ - Vertices `n` and `m` have a label `Person`, while vertex `o` has a label `Car`.
+ - Edges `e1` and `e2` have labels `friendOf` and `belongs_to` respectively.
 
-In `WHERE` clause specifies filter predicates.
+The `WHERE` clause contains filters:
 
-- Vertex `n` has a property `name` with the value `John`.
+ - Vertex `n` has a property `name` with the value `John`.
 
-The `SELECT` clause specifies what should be projected out from the query.
+The `SELECT` clause specifies what should be projected out from the query:
 
-- For each of the matched subgraph, the query projects out the property `name` of vertex `m` and the property `name` of vertex `o`.
+ - For each of the matched subgraphs, we project the property `name` of vertex `m` and the property `name` of vertex `o`.
 
 ## Property Graph Data Model
 
@@ -152,7 +156,7 @@ A property graph has a name and contains:
    - Each edge has zero or more labels.
    - Each edge has zero or more properties, which are arbitrary key-value pairs.
 
-In PGQL 1.1, we do not consider multi-valued properties like in e.g. Blueprints API.
+In PGQL 1.1, we do not consider multi-valued properties like in [TinkerPop](http://tinkerpop.apache.org/docs/current/reference/#graph) or [Neo4j](https://neo4j.com/developer/graph-database/#property-graph).
 
 ## Basic Query Structure
 
@@ -175,7 +179,7 @@ The most important ones are as follows:
 
 - The `SelectClause` defines the data entities that are returned in the result.
 - The `MatchClause` defines the graph pattern that is matched against the data graph instance.
-- The `WhereClause` defines the filter predicates.
+- The `WhereClause` defines the filters. 
 
 The detailed syntax and semantic of each clause are explained in following sections.
 
@@ -211,11 +215,9 @@ There can be multiple path patterns in the `WHERE` clause of a PGQL query. Seman
 
 ## Topology Constraints
 
-FIXME
-
 A topology constraint is a path pattern that describes a partial topology of the subgraph pattern. In other words, a topology constraint describes some connectivity relationships between vertices and edges in the pattern, whereas the whole topology of the pattern is described with one or multiple topology constraints.
 
-A topology constraint is composed of one or more vertices and connections, where a connection is either an edge or a path. In a query, each vertex or edge is (optionally) associated with a variable, which is a symbolic name to refer the vertex or edge in the pattern. For example, consider the following topology constraint:
+A topology constraint is composed of one or more vertices and relations, where a relation is either an edge or a path. In a query, each vertex or edge is (optionally) associated with a variable, which is a symbolic name to reference the vertex or edge in other clauses. For example, consider the following topology constraint:
 
 ```sql
 (n)-[e]->(m)
@@ -286,7 +288,7 @@ SELECT *
 
 ## Label Matching
 
-In the Property Graph model, vertices have a set of labels, while edges have a single label. PGQL provides a convenient syntax for matching labels by attaching the label to the corresponding vertex or edge using a colon (`:`) followed by the label. Take the following example:
+In the property graph model, vertices and edge may have labels. These are typicalyl used to encode the type of the entity, e.g. `Person` or `Movie` for vertices and `likes` for edges. PGQL provides a convenient syntax for matching labels by attaching the label to the corresponding vertex or edge using a colon (`:`) followed by the label. Take the following example:
 
 ```sql
 SELECT *
@@ -304,7 +306,7 @@ SELECT *
 
 ### Labels and Quotes
 
-Note that even though labels are Strings, we have omitted the quotes in the example above. Omitting quotes is optional only if the label is an alphanumeric character followed by zero or more alphanumeric or underscore characters. Otherwise, the label needs to be quoted and Syntax for Strings needs to be followed. This is explained by the following grammar constructs:
+Labels can be arbitrary strings. Omitting quotes is optional only if the label is an alphanumeric character followed by zero or more alphanumeric or underscore characters. Otherwise, the label needs to be quoted and Syntax for Strings needs to be followed. This is explained by the following grammar constructs:
 
 ```bash
 Label ::= IDENTIFIER
@@ -317,7 +319,7 @@ SELECT *
  MATCH (x:Person) -[e:"has friend"]-> (y:Person)
 ```
 
-Here, because the label `has friend` contains a white space, the quotes cannot be omitted and syntax for quoted Strings need to be followed.
+Here, because the label `has friend` contains a white space, the quotes cannot be omitted and syntax for quoted identifiers is required.
 
 ### Label Alternatives
 
@@ -339,26 +341,26 @@ There are also built-in functions available for labels:
 - `labels(element)` returns the set of labels of a vertex or edge in the case the vertex/edge has multiple labels.
 - `label(element)` returns the label of a vertex or edge in the case the vertex/edge has only a single label.
 
-## Value Constraints
+## Filters
 
-FIXME
-
-The value constraint describes a general constraint other than the topology. A value constraint takes the form of a Boolean expression which typically involves certain property values of the vertices and edges that are defined in topology constraints in the same query. For instance, the following example consists of three constraints – one topology constraint followed by two value constraints.
+Filters describe general constraints other than topology. A filter takes the form of a boolean expression which typically involves certain property values of the vertices and edges that are defined in topology constraints in the same query. For instance, the following example consists of three constraints – one topology constraint followed by two value constraints.
 
 ```sql
-(x) -> (y),
-x.name = 'John',
-y.age > 25
+SELECT y.name
+MATCH (x) -> (y)
+WHERE x.name = 'John'
+  AND y.age > 25
 ```
 
-In the above example, the first value constraint demands that the vertex `x` has a property `name` and its value to be `'John'`. Similarly, the second value constrain demands that the vertex `y` has a numeric property `age` and its value to be larger than `25`. Here, in the value constraint expressions, the dot (`.`) operator is used for property access. For the detailed syntax and semantic of expressions, please refer to the corresponding section in this specification.
+In the above example, the first filter describes that the vertex `x` has a property `name` and its value is `John`. Similarly, the second value describes that the vertex `y` has a property `age` and its value is larger than `25`. Here, in the filter, the dot (`.`) operator is used for property access. For the detailed syntax and semantic of expressions, please see [value expressions](#value-expressions).
 
 Note that in PGQL the ordering of constraints does not has any effect on the result. Therefore, the previous example is equivalent to the following:
 
 ```sql
-x.name = 'John',
-(x) -> (y),
-y.age > 25
+SELECT y.name
+MATCH (x) -> (y)
+WHERE y.age > 25
+  AND x.name = 'John'
 ```
 
 ## Graph Pattern Matching Semantic
@@ -1077,7 +1079,7 @@ Note that from the table it follows that `null = null` yields `null` and not `tr
 
 ### IS NULL and IS NOT NULL
 
-To test whether a value is null or not, one can use the `IS NULL` and `IS NOT NULL` constructs. An example is as follows:
+To test whether a value exists or not, one can use the `IS NULL` and `IS NOT NULL` constructs. An example is as follows:
 
 ```sql
 SELECT n.name
@@ -1085,7 +1087,7 @@ SELECT n.name
  WHERE n.name IS NOT NULL
 ```
 
-Here, we find all the vertices in the graph that have the property `name` (i.e. `n.name IS NOT NULL`). We then return the property.
+Here, we find all the vertices in the graph that have the property `name` and then return the property.
 
 ## Literals
 
@@ -1126,14 +1128,13 @@ A function call has an optional package name, a function name, and zero or more 
 The following is an overview of the built-in PGQL functions:
 
 Signature | Return value | Description
-`id(element)` | object | returns the vertex/edge identifier if one exists.
+`id(element)` | object | returns an identifier for the vertex/edge, if one exists.
 `has_label(element)` | boolean | returns true if the vertex or edge has the given label.
 `labels(element)` | set<String> | returns the labels of the vertex or edge in the case it has multiple labels.
 `label()` | string | returns the label of the vertex or edge in the case it has a single label.
 `all_different(val1, val2, .., valn)` | boolean | return true if the values are all different (usually used for [subgraph isomorphism](#subgraph-isomorphism))
 `in_degree(vertex)` | exact numeric | returns the number of incoming neighbors.
 `out_degree(vertex)` | exact numeric | returns the number of outgoing neighbors.
-
 
 Consider the following query:
 
@@ -1211,7 +1212,6 @@ In PGQL 1.1, the supported operations on temporal values are limited to comparis
 ExistsPredicate ::= 'EXISTS' '(' Query ')'
 ```
 
-
 # Other Syntactic Rules
 
 ## Identifiers
@@ -1241,8 +1241,6 @@ PropertyName ::= IDENTIFIER
 ```
 
 ### Single-quoted strings
-
-TODO
 
 A String literal is single quoted. Double-quoted strings are not allowed.
 

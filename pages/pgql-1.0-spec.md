@@ -6,7 +6,7 @@ The language is based on the paradigm of graph pattern matching, which allows yo
 Like SQL, PGQL has support for grouping (GROUP BY), aggregation (e.g. MIN, MAX, AVG), sorting (ORDER BY) and many other familiar SQL constructs.
 In addition, PGQL supports regular path queries for applications such as reachability analysis."
 sidebar: spec_1_0_sidebar
-toc: false
+toc: true
 ---
 
 # Introduction
