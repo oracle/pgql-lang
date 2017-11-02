@@ -422,7 +422,7 @@ An example PGQL query with undirected edges is as follows:
 
 ```sql
 SELECT *
-MATCH (n) -[e1]- (m) -[e2]- (o)
+ MATCH (n) -[e1]- (m) -[e2]- (o)
 ```
 
 Note that in case there are both incoming and outgoing data edges between two data vertices, there will be separate result bindings for each of the edges.
@@ -430,9 +430,9 @@ Note that in case there are both incoming and outgoing data edges between two da
 Undirected edges may also be used inside common path expressions:
 
 ```sql
-PATH two_hops AS () -[e1]- () -[e2]- ()
+  PATH two_hops AS () -[e1]- () -[e2]- ()
 SELECT *
-MATCH (n) -/:two_hops*/-> (m)
+ MATCH (n) -/:two_hops*/-> (m)
 ```
 
 The above query will return all pairs of vertices `n` and `m` that are reachable via a multiple of two edges, each edge being either an incoming or an outgoing edge.
