@@ -806,9 +806,9 @@ Yet, `Judith` is only returned once.
 
 ## Common Path Expressions
 
-One or more "common path expression" may be declared at the beginning of the query. These can be seen as macros that allow for expression more complex regular expressions.
+One or more "common path expression" may be declared at the beginning of the query. These can be seen as macros that allow for expressing complex regular expressions.
 
-A path pattern declaration starts with the keyword `PATH` and is followed by the name for the path pattern, the assignment operator `AS` and a path pattern. The syntactic structure of the path pattern is the same as a path pattern in the `MATCH` clause.
+A path pattern declaration starts with the keyword `PATH`, followed by an expression name, the assignment operator `AS`, and a path pattern consisting ofat least one vertex. The syntactic structure of the path pattern is the same as a path pattern in the `MATCH` clause.
 
 An example is as follows:
 
