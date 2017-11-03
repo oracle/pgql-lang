@@ -214,7 +214,7 @@ WhereClause         ::= 'WHERE' ValueExpression // see Value Expressions
 
 A path pattern describes a partial topology of the subgraph pattern, i.e. vertices and edges in the pattern.
 
-There can be multiple path patterns in the `WHERE` clause of a PGQL query. Semantically, all constraints are conjunctive – that is, each matched result should satisfy every constraint in the `MATCH` clause.
+There can be multiple path patterns in the `MATCH` clause of a PGQL query. Semantically, all constraints are conjunctive – that is, each matched result should satisfy every constraint in the `MATCH` clause.
 
 ## Topology Constraints
 
