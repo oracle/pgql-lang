@@ -24,16 +24,16 @@ Say we have a graph of TCP/IP connections on a computer network, and you want to
 one machine, from there into another, and from there into still another - you would query for that pattern like this:
 
 ```sql
-  SELECT host1.name, host2.name, host3.name                       /* choose what to return */
+  SELECT host1.name, host2.name, host3.name              /* choose what to return */
     FROM computer_network_graph
-   MATCH (host1) -[c1]-> (host2) -[c2]-> (host3)                  /* topology must match this pattern */
+   MATCH (host1) -[c1]-> (host2) -[c2]-> (host3)         /* topology must match this pattern */
    WHERE c1.to_port = 22 AND c1.opened = true
      AND c2.to_port = 22 AND c2.opened = true
-     AND c1.bytes > 300 AND 2.bytes > 300                         /* meaningful amount of data was exchanged */
-     AND c1.start < connection2.start,                            /* second connection within time-frame of first */
-     AND c2.start + connection2.duration < c1.start + c1.duration
-GROUP BY host1, host2, host3                                      /* aggregate multiple matching connections */
-ORDER BY DESC(c1.when)                                            /* reverse sort chronologically */
+     AND c1.bytes > 300 AND 2.bytes > 300                /* meaningful amount of data was exchanged */
+     AND c1.start < c2.start,                            /* second connection within time-frame of first */
+     AND c2.start + c2.duration < c1.start + c1.duration
+GROUP BY host1, host2, host3                             /* aggregate multiple matching connections */
+ORDER BY DESC(c1.when)                                   /* reverse sort chronologically */
 ```
 
 
@@ -56,7 +56,7 @@ for an edge in the opposite direction.  For example, here we find common friends
 ORDER BY friend.dob DESC
 ```
 
-Vertex and Edge labels
+Vertex and Edge Labels
 ----------------------
 
 *Labels* are a way of attaching type information to edges and vertices in a graph, and can be used in
