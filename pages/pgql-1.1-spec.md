@@ -143,7 +143,7 @@ The `SELECT` clause specifies what should be projected out from the query:
 
 ## Property Graph Data Model
 
-A property graph has a name and contains:
+A property graph has a name, which is a string, and furthermore contains:
 
  - A set of vertices.
 
@@ -155,6 +155,8 @@ A property graph has a name and contains:
    - Each edge has a source and a destination vertex.
    - Each edge has zero or more labels.
    - Each edge has zero or more properties, which are arbitrary key-value pairs.
+
+Labels as well as property names are (character) strings. Property values are scalars such as numbers, strings or booleans.
 
 In PGQL 1.1, we do not consider multi-valued properties like in [TinkerPop](http://tinkerpop.apache.org/docs/current/reference/#vertex-properties),
 or, composite types like in [Neo4j](https://neo4j.com/docs/developer-manual/current/cypher/syntax/values/#composite-types).
