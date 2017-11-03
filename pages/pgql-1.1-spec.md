@@ -117,21 +117,21 @@ Consider the following example PGQL query:
 
 ```sql
 SELECT m.name, o.name
-  FROM g
- MATCH (n:Person) -[e1:friendOf]-> (m:Person) <-[e2:belongs_to]- (o:Car)
+  FROM sn_graph
+ MATCH (n:Person) -[e1:friend_of]-> (m:Person) <-[e2:belongs_to]- (o:Car)
  WHERE n.name = 'John'
 ```
 
 In the `FROM` clause, we specify the graph that is queried:
 
- - The input graph is named `g`
+ - The input graph is named `sn_graph`
 
 In the `MATCH` clause, the above query defines the pattern to be found.
 
  - The pattern has three vertices, `n`, `m` and `o`, and two edges, `e1` and `e2`.
  - The edge `e1` goes from `n` to `m` and the edge `e2` goes from `o` to `m`.
  - Vertices `n` and `m` have a label `Person`, while vertex `o` has a label `Car`.
- - Edges `e1` and `e2` have labels `friendOf` and `belongs_to` respectively.
+ - Edges `e1` and `e2` have labels `friend_of` and `belongs_to` respectively.
 
 The `WHERE` clause contains filters:
 
@@ -156,7 +156,8 @@ A property graph has a name and contains:
    - Each edge has zero or more labels.
    - Each edge has zero or more properties, which are arbitrary key-value pairs.
 
-In PGQL 1.1, we do not consider multi-valued properties like in [TinkerPop](http://tinkerpop.apache.org/docs/current/reference/#graph) or [Neo4j](https://neo4j.com/developer/graph-database/#property-graph).
+In PGQL 1.1, we do not consider multi-valued properties like in [TinkerPop](http://tinkerpop.apache.org/docs/current/reference/#vertex-properties),
+or, composite types like in [Neo4j](https://neo4j.com/docs/developer-manual/current/cypher/syntax/values/#composite-types).
 
 ## Basic Query Structure
 
@@ -220,7 +221,7 @@ A topology constraint is a path pattern that describes a partial topology of the
 A topology constraint is composed of one or more vertices and relations, where a relation is either an edge or a path. In a query, each vertex or edge is (optionally) associated with a variable, which is a symbolic name to reference the vertex or edge in other clauses. For example, consider the following topology constraint:
 
 ```sql
-(n)-[e]->(m)
+(n) -[e]-> (m)
 ```
 
 The above example defines two vertices (with variable names `n` and `m`), and an edge (with variable name `e`) between them. Also the edge is directed such that the edge `e` is an outgoing edge from vertex `n`.
@@ -232,8 +233,8 @@ More specifically, a vertex term is written as a variable name inside a pair of 
 There can be multiple topology constraints in the `WHERE` clause of a PGQL query. In such a case, vertex terms that have the same variable name correspond to the same vertex entity. For example, consider the following two lines of topology constraints:
 
 ```sql
-(n)-[e1]->(m1),
-(n)-[e2]->(m2)
+(n) -[e1]-> (m1),
+(n) -[e2]-> (m2)
 ```
 
 Here, the vertex term `(n)` in the first constraint indeed refers to the same vertex as the vertex term `(n)` in the second constraint. It is an error, however, if two edge terms have the same variable name, or, if the same variable name is assigned to an edge term as well as to a vertex term in a single query.
@@ -251,15 +252,15 @@ First, a single topology constraint can be written as a chain of edge terms such
 In fact, the above constraint is equivalent to the following set of comma-separated constraints:
 
 ```sql
-(n1)-[e1]->(n2),
-(n2)-[e2]->(n3),
-(n3)-[e3]->(n4)
+(n1) -[e1]-> (n2),
+(n2) -[e2]-> (n3),
+(n3) -[e3]-> (n4)
 ```
 
 Second, PGQL syntax allows to reverse the direction of an edge in the query, i.e. right-to-left instead of left-to-right. Therefore, the following is a valid topology constraint in PGQL:
 
 ```sql
-(n1)-[e1]->(n2)<-[e2]-(n3)
+(n1) -[e1]-> (n2) <-[e2]- (n3)
 ```
 
 Please mind the edge directions in the above query – vertex `n2` is a common outgoing neighbor of both vertex `n1` and vertex `n3`.
@@ -270,11 +271,11 @@ The following table summarizes these short cuts.
 
 Syntax form | Example
 --- | ---
-Basic form | `(n)-[e]->(m)`
-Omit variable name of the source vertex | `()-[e]->(m)`
-Omit variable name of the destination vertex | `(n)-[e]->()`
-Omit variable names in both vertices | `()-[e]->()`
-Omit variable name in edge | `(n)->(m)`
+Basic form | `(n) -[e]-> (m)`
+Omit variable name of the source vertex | `() -[e]-> (m)`
+Omit variable name of the destination vertex | `(n) -[e]-> ()`
+Omit variable names in both vertices | `() -[e]-> ()`
+Omit variable name in edge | `(n) -> (m)`
 
 ### Disconnected Topology Constraints
 
@@ -460,7 +461,7 @@ Consider the following example:
 
 ```sql
 SELECT n, m, n.age
- MATCH (n:Person) -[e:friendOf]-> (m:Person)
+ MATCH (n:Person) -[e:friend_of]-> (m:Person)
 ```
 
 Per each matched subgraph, the query returns two vertices `n` and `m` and the value for property age of vertex `n`.  Note that edge `e` is omitted from the result even though it is used for describing the pattern.
@@ -477,7 +478,7 @@ ORDER BY pivot
 
 ### SELECT *
 
-`SELECT *` is a special `SELECT` clause. The semantic of `SELECT *` is to select all the variables or group keys in-scope. If the query has no `GROUP BY`, the selected variables are all the vertex and edge variables from the `WHERE` clause. If the query does have a `GROUP BY`, the selected elements are all the group keys.
+`SELECT *` is a special `SELECT` clause. The semantic of `SELECT *` is to select all the (non-anonymous) variables in the graph pattern.
 
 Consider the following query:
 
@@ -487,18 +488,15 @@ SELECT *
      , (n) -> (w) -> (m)
 ```
 
-Since this query does not have a `GROUP BY`, all the variables in the `WHERE` are returned: `n`, `m` and `w`. However, the order of variables selected by `SELECT *` is not defined by the specification. Therefore the result of `SELECT *` in the above query can be any combination of (`n`, `m`, `w`).
-
-Now consider the following query, which has a `GROUP BY`:
+The query is semantically equivalent to:
 
 ```sql
-  SELECT *
-   MATCH (n WITH type = 'Person') -> (m) -> (w)
-       , (n) -> (w) -> (m)
-GROUP BY n.name, m
+SELECT n, m, w
+ MATCH (n:Person) -> (m) -> ()
+     , (n) -> (w) -> (m)
 ```
 
-Because the query has a `GROUP BY`, all group keys are returned: `n.name` and `m`. The order of the variables selected is the order in which the group keys appear in the `GROUP BY`.
+`SELECT *` in combination with `GROUP BY` is not allowed.
 
 ### SELECT * with no variables in the WHERE clause
 
@@ -507,12 +505,6 @@ It is semantically valid to have a `SELECT *` in combination with a `WHERE` clau
 ```sql
 SELECT *
  MATCH () -> ()
-```
-
-The solution modifier clause defines additional operations for building up the result of the query.  A solution modifier clause consists of three (sub-)clauses– `GroupByClause`, `OrderByClause` and `LimitOffsetClauses`. Note that all these clauses are optional; therefore the entire solution modifier clause is optional.
-
-```
-SolutionModifierClause ::= GroupByClause? OrderByClause? LimitOffsetClauses?
 ```
 
 ## Sorting (ORDER BY)
@@ -528,9 +520,9 @@ OrderTerm     ::= ValueExpression ('ASC'|'DESC')?
 
 The `ORDER BY` clause starts with the keywords `ORDER BY` and is followed by comma separated list of order terms. An order term consists of the following parts:
 
-- An expression.
-- An optional ASC or DESC decoration to specify that ordering should be ascending or descending.
-    - If no keyword is given, the default is ascending order.
+ - An expression.
+ - An optional ASC or DESC decoration to specify that ordering should be ascending or descending.
+     - If no keyword is given, the default is ascending order.
 
 The following is an example in which the results are ordered by property access `n.age` in ascending order:
 
