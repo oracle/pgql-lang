@@ -8,12 +8,12 @@ entries:
     output: web
     folderitems:
 
-    - title: Breaking Syntax Changes in PGQL 1.1
-      url: /spec/1.1/#breaking-syntax-changes-in-pgql-11
+    - title: Breaking Syntax Changes
+      url: /spec/1.1/#breaking-syntax-changes
       output: web
 
-    - title: New Functionality in PGQL 1.1
-      url: /spec/1.1/#new-functionality-in-pgql-11
+    - title: New Functionality
+      url: /spec/1.1/#new-functionality
       output: web
 
   - title: Introduction
@@ -68,8 +68,8 @@ entries:
         url: /spec/1.1/#built-in-functions-for-labels
         output: web
 
-    - title: Value Constraints
-      url: /spec/1.1/#value-constraints
+    - title: Filters
+      url: /spec/1.1/#filters
       output: web
 
     - title: Graph Pattern Matching Semantic
