@@ -25,6 +25,7 @@ one machine, from there into another, and from there into still another - you wo
 
 ```sql
  SELECT host1.name, host2.name, host3.name                       /* choose what to return */
+   FROM	computer_network_graph
   MATCH (host1) -[c1]-> (host2) -[c2]-> (host3)                  /* topology must match this pattern */
   WHERE c1.to_port = 22 AND c1.opened = true
     AND c2.to_port = 22 AND c2.opened = true
@@ -46,6 +47,7 @@ for an edge in the opposite direction.  For example, here we find common friends
 
 ```sql
   SELECT friend.name, friend.dob
+    FROM social_network_graph
    MATCH (p1:Person) -[:likes]-> (friend) <-[:likes]- (p2:Person) /* note the arrow directions below */
    WHERE p1.name = 'April'
      AND p2.name = 'Chris'
@@ -62,6 +64,7 @@ constraints in graphs where not all vertices represent the same thing:
 
 ```sql
 SELECT p.name
+  FROM imdb_graph
  MATCH (p:Person) -[e:likes]-> (m1:Movie)
      , (p) -[e:likes]-> (m2:Movie)
  WHERE m1.title = 'Star Wars'
@@ -76,6 +79,7 @@ find all of the common ancestors of Mario and Luigi:
 
 ```sql
   PATH has_parent AS () -[:has_father|has_mother]-> ()
+  FROM family_graph
 SELECT ancestor.name
  MATCH (p1:Person) -/:has_parent*/-> (ancestor:Person)
      , (p2:Person) -/:has_parent*/-> (ancestor)
@@ -104,12 +108,12 @@ Like SQL, PGQL has support for:
 Resources
 ---------
 
- - [PGQL 1.1 Language Specification](spec/1.1/) - the latest language specification
- - [PGQL 1.0 Language Specification](spec/1.0/)
+ - [PGQL 1.1 Specification](spec/1.1/) (latest)
+ - [PGQL 1.0 Specification](spec/1.0/)
+ - [PGQL 0.9 Specification](https://docs.oracle.com/cd/E56133_01/1.2.1/PGQL_Specification.pdf)
  - An [open-sourced parser](https://github.com/oracle/pgql-lang) for PGQL queries on GitHub
  - [White Paper](http://dl.acm.org/citation.cfm?id=2960421) ([pdf](http://event.cwi.nl/grades/2016/07-VanRest.pdf)) that also outlines some future directions of PGQL
    (shortest path finding, graph construction, etc.)
  - [Oracle Labs' Parallel Graph Analytics (PGX)](http://www.oracle.com/technetwork/oracle-labs/parallel-graph-analytics/overview/index.html), an in-memory graph analytics framework with a high-performance PGQL query engine
  - [Oracle Big Data Spatial and Graph](http://www.oracle.com/technetwork/database/database-technologies/bigdata-spatialandgraph/overview/index.html), which supports PGQL by embedding PGX
    (see [the in-memory analyst documentation](http://docs.oracle.com/bigdata/bda45/BDSPA/using-inmem-analytics.htm#BDSPA264)).
- - [(Obsolete) PGQL 0.9 Specification](https://docs.oracle.com/cd/E56133_01/1.2.1/PGQL_Specification.pdf)
