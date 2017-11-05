@@ -33,7 +33,7 @@ one machine, from there into another, and from there into still another - you wo
      AND c1.start < c2.start,                            /* second connection within time-frame of first */
      AND c2.start + c2.duration < c1.start + c1.duration
 GROUP BY host1, host2, host3                             /* aggregate multiple matching connections */
-ORDER BY DESC(c1.when)                                   /* reverse sort chronologically */
+ORDER BY c1.when DESC                                    /* reverse sort chronologically */
 ```
 
 
