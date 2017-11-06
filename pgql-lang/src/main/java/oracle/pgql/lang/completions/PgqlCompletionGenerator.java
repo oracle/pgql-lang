@@ -219,36 +219,37 @@ public class PgqlCompletionGenerator {
 
   public static List<PgqlCompletion> aggregations() {
     return completions(//
-        completion("COUNT(*)", "COUNT"), //
-        completion("MIN(exp)", "MIN"), //
-        completion("MAX(exp)", "MAX"), //
-        completion("AVG(exp)", "AVG"), //
-        completion("SUM(exp)", "SUM"));
+        completion("COUNT(*)", "count the number of matches"), //
+        completion("COUNT(exp)", "count the number of times the expression evaluates to a non-null value"), //
+        completion("MIN(exp)", "minimum"), //
+        completion("MAX(exp)", "maximum"), //
+        completion("AVG(exp)", "average"), //
+        completion("SUM(exp)", "sum"));
   }
 
   public static List<PgqlCompletion> otherExpressions() {
     return completions(//
-        completion("true", "Boolean literal"), //
-        completion("false", "Boolean literal"), //
-        completion("DATE '2017-01-01'", "Date literal"), //
-        completion("TIME '20:15:00'", "Time literal"), //
-        completion("TIMESTAMP '2017-01-01 20:15:00'", "Timestamp literal"), //
-        completion("CAST(exp AS type)", "Cast"), //
-        completion("exp IS NULL", "Is null"), //
-        completion("exp IS NOT NULL", "Is not null"), //
-        completion("NOT exp", "Not"), //
-        completion("exp AND exp", "And"), //
-        completion("exp OR exp", "Or"), //
-        completion("exp * exp", "Multiplication"), //
-        completion("exp + exp", "Addition"), //
-        completion("exp / exp", "Division"), //
-        completion("exp % exp", "Modolo"), //
-        completion("exp - exp", "Subtraction"), //
-        completion("exp = exp", "Equqlas"), //
-        completion("exp > exp", "Greater than"), //
-        completion("exp < exp", "Less than"), //
-        completion("exp >= exp", "Greater than equals"), //
-        completion("exp <= exp", "Less than equals"), //
-        completion("exp <> exp", "Not equals"));
+        completion("true", "boolean literal"), //
+        completion("false", "boolean literal"), //
+        completion("DATE '2017-01-01'", "date literal"), //
+        completion("TIME '20:15:00'", "time literal"), //
+        completion("TIMESTAMP '2017-01-01 20:15:00'", "timestamp literal"), //
+        completion("CAST(exp AS type)", "cast"), //
+        completion("exp IS NULL", "is null"), //
+        completion("exp IS NOT NULL", "is not null"), //
+        completion("exp AND exp", "conjunction"), //
+        completion("exp OR exp", "disjuncion"), //
+        completion("NOT exp", "negation"), //
+        completion("exp * exp", "multiplication"), //
+        completion("exp + exp", "addition"), //
+        completion("exp / exp", "division"), //
+        completion("exp % exp", "modulo"), //
+        completion("exp - exp", "subtraction"), //
+        completion("exp = exp", "equals"), //
+        completion("exp > exp", "greater than"), //
+        completion("exp < exp", "less than"), //
+        completion("exp >= exp", "greater than equals"), //
+        completion("exp <= exp", "less than equals"), //
+        completion("exp <> exp", "not equals"));
   }
 }
