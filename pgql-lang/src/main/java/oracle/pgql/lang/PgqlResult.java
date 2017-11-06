@@ -3,6 +3,8 @@
  */
 package oracle.pgql.lang;
 
+import org.metaborg.spoofax.core.unit.ISpoofaxParseUnit;
+
 import oracle.pgql.lang.ir.GraphQuery;
 
 public class PgqlResult {
@@ -11,12 +13,15 @@ public class PgqlResult {
   private final String errorMessages;
   private final boolean queryValid;
   private final GraphQuery graphQuery;
+  private final ISpoofaxParseUnit spoofaxParseUnit;
 
-  public PgqlResult(String queryString, boolean queryValid, String messages, GraphQuery graphQuery) {
+  public PgqlResult(String queryString, boolean queryValid, String messages, GraphQuery graphQuery,
+      ISpoofaxParseUnit spoofaxParseUnit) {
     this.queryString = queryString;
     this.errorMessages = messages;
     this.queryValid = queryValid;
     this.graphQuery = graphQuery;
+    this.spoofaxParseUnit = spoofaxParseUnit;
   }
 
   /**
@@ -45,5 +50,9 @@ public class PgqlResult {
    */
   public GraphQuery getGraphQuery() {
     return graphQuery;
+  }
+
+  protected ISpoofaxParseUnit getSpoofaxParseUnit() {
+    return spoofaxParseUnit;
   }
 }

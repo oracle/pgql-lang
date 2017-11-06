@@ -14,7 +14,6 @@ import java.util.stream.Collectors;
 
 import org.metaborg.core.completion.ICompletion;
 
-import oracle.pgql.lang.Pgql;
 import oracle.pgql.lang.PgqlException;
 import oracle.pgql.lang.PgqlResult;
 import oracle.pgql.lang.ir.GraphPattern;
@@ -24,26 +23,33 @@ import oracle.pgql.lang.ir.VertexPairConnection;
 
 public class PgqlCompletionGenerator {
 
+  public static final PgqlCompletion EMPTY_STRING_COMPLETION = completion("SELECT n.name FROM g MATCH (n:Person)",
+      "Query");
+
   private static final Pattern IDENTIFIER_PATTERN = Pattern.compile("(\\w)+$");
 
-  public static List<PgqlCompletion> generate(Pgql pgql, Iterable<ICompletion> spoofaxCompletions, String queryString,
-      int cursor, PgqlCompletionContext ctx)
+  public static List<PgqlCompletion> generate(PgqlResult pgqlResult, Iterable<ICompletion> spoofaxCompletions,
+      String queryString, int cursor, PgqlCompletionContext ctx)
       throws PgqlException {
 
-    // labels
-    if (queryString.charAt(cursor - 1) == ':') {
+    if (queryString.trim().isEmpty()) {
+      List<PgqlCompletion> result = new ArrayList<>();
+      result.add(EMPTY_STRING_COMPLETION);
+      return result;
+    } else if (queryString.charAt(cursor - 1) == ':') {
+      // labels
       return generateLabelSuggestions(queryString, cursor, ctx);
-      // properties
     } else if (queryString.charAt(cursor - 1) == '.') {
-      return generatePropertySuggestions(pgql, queryString, cursor, ctx);
-    } else if (spoofaxCompletions != null) {
-
+      // properties
+      return generatePropertySuggestions(pgqlResult, queryString, cursor, ctx);
+    } else {
       List<PgqlCompletion> result = new ArrayList<>();
 
-      List<PgqlCompletion> variableProposals = getVariableProposals(pgql, queryString);
+      List<PgqlCompletion> variableProposals = getVariableProposals(pgqlResult);
 
-      String trimmedQuery = queryString.substring(0, cursor).trim().toUpperCase();
-      CompletionContext currentClause = getCurrentClause(trimmedQuery);
+      String stringBeforeCursor = queryString.substring(0, cursor).trim().toUpperCase();
+
+      CompletionContext currentClause = getCurrentClause(stringBeforeCursor);
       boolean proposeExpressions = false;
       boolean proposeAggregations = false;
       switch (currentClause) {
@@ -78,13 +84,11 @@ public class PgqlCompletionGenerator {
 
       return result;
     }
-    return Collections.emptyList();
   }
 
-  private static List<PgqlCompletion> getVariableProposals(Pgql pgql, String queryString) throws PgqlException {
+  private static List<PgqlCompletion> getVariableProposals(PgqlResult pgqlResult) throws PgqlException {
     List<PgqlCompletion> variables = new ArrayList<>();
-    PgqlResult parseResult = pgql.parse(queryString);
-    GraphPattern graphPattern = parseResult.getGraphQuery().getGraphPattern();
+    GraphPattern graphPattern = pgqlResult.getGraphQuery().getGraphPattern();
     for (QueryVertex vertex : graphPattern.getVertices()) {
       if (vertex.getName().contains("<<vertex-without-brackets>>")) {
         continue;
@@ -102,15 +106,14 @@ public class PgqlCompletionGenerator {
     return variables;
   }
 
-  private static List<PgqlCompletion> generatePropertySuggestions(Pgql pgql, String queryString, int cursor,
+  private static List<PgqlCompletion> generatePropertySuggestions(PgqlResult pgqlResult, String queryString, int cursor,
       PgqlCompletionContext ctx)
       throws PgqlException {
     String variableName = parseIdentifier(queryString, cursor - 1);
     if (variableName == null) {
       return Collections.emptyList();
     }
-    PgqlResult result = pgql.parse(queryString);
-    GraphPattern graphPattern = result.getGraphQuery().getGraphPattern();
+    GraphPattern graphPattern = pgqlResult.getGraphQuery().getGraphPattern();
 
     Set<QueryVertex> vertices = graphPattern.getVertices();
     boolean isVertexVariable = vertices.stream() //

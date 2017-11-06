@@ -117,6 +117,10 @@ public class SpoofaxAstToGraphQuery {
    */
   public static GraphQuery translate(IStrategoTerm ast, Map<String, QueryVariable> vars) throws PgqlException {
 
+    if (!((IStrategoAppl) ast).getConstructor().getName().equals("NormalizedQuery")) {
+      return null; // failed to parse query
+    }
+
     // path patterns
     IStrategoTerm pathPatternsT = getList(ast.getSubterm(POS_PATH_PATTERNS));
     Map<String, IStrategoTerm> pathPatternMap = getPathPatterns(pathPatternsT); // map from path pattern name to path
@@ -215,7 +219,8 @@ public class SpoofaxAstToGraphQuery {
   }
 
   private static LinkedHashSet<QueryExpression> getQueryExpressions(IStrategoTerm constraintsT,
-      Map<String, QueryVariable> varmap) throws PgqlException {
+      Map<String, QueryVariable> varmap)
+      throws PgqlException {
     LinkedHashSet<QueryExpression> constraints = new LinkedHashSet<>(constraintsT.getSubtermCount());
     for (IStrategoTerm constraintT : constraintsT) {
       QueryExpression exp = translateExp(constraintT, varmap, Collections.<String, QueryVariable> emptyMap());
@@ -235,7 +240,8 @@ public class SpoofaxAstToGraphQuery {
   }
 
   private static LinkedHashSet<VertexPairConnection> getConnections(IStrategoTerm connectionsT,
-      Map<String, IStrategoTerm> pathPatternMap, Map<String, QueryVariable> varmap) throws PgqlException {
+      Map<String, IStrategoTerm> pathPatternMap, Map<String, QueryVariable> varmap)
+      throws PgqlException {
 
     LinkedHashSet<VertexPairConnection> result = new LinkedHashSet<>();
 
@@ -282,7 +288,8 @@ public class SpoofaxAstToGraphQuery {
   }
 
   private static QueryPath getPath(IStrategoTerm pathT, Map<String, IStrategoTerm> pathPatternMap,
-      Map<String, QueryVariable> varmap) throws PgqlException {
+      Map<String, QueryVariable> varmap)
+      throws PgqlException {
     String pathPatternName = getString(pathT.getSubterm(POS_PATH_PATH_PATTERN));
     IStrategoTerm pathQuantifiersT = pathT.getSubterm(POS_PATH_QUANTIFIERS);
     long minHops;
@@ -358,7 +365,8 @@ public class SpoofaxAstToGraphQuery {
   }
 
   private static List<ExpAsVar> getGroupByElems(Map<String, QueryVariable> inputVars,
-      Map<String, QueryVariable> outputVars, IStrategoTerm groupByT) throws PgqlException {
+      Map<String, QueryVariable> outputVars, IStrategoTerm groupByT)
+      throws PgqlException {
     if (isSome(groupByT)) { // has GROUP BY
       IStrategoTerm groupByElemsT = getList(groupByT);
       return getExpAsVars(inputVars, Collections.<String, QueryVariable> emptyMap(), outputVars, groupByElemsT);
@@ -368,14 +376,16 @@ public class SpoofaxAstToGraphQuery {
 
   private static List<ExpAsVar> getSelectElems(Map<String, QueryVariable> inScopeVars,
       Map<String, QueryVariable> inScopeInAggregationVars, Map<String, QueryVariable> outputVars,
-      IStrategoTerm selectElemsT) throws PgqlException {
+      IStrategoTerm selectElemsT)
+      throws PgqlException {
     outputVars.putAll(inScopeVars);
     return getExpAsVars(inScopeVars, inScopeInAggregationVars, outputVars, selectElemsT);
   }
 
   private static List<ExpAsVar> getExpAsVars(Map<String, QueryVariable> inScopeVars,
       Map<String, QueryVariable> inScopeInAggregationVars, Map<String, QueryVariable> outputVars,
-      IStrategoTerm expAsVarsT) throws PgqlException {
+      IStrategoTerm expAsVarsT)
+      throws PgqlException {
     List<ExpAsVar> expAsVars = new ArrayList<>(expAsVarsT.getSubtermCount());
     for (IStrategoTerm expAsVarT : expAsVarsT) {
       String varName = getString(expAsVarT.getSubterm(POS_EXPASVAR_VAR));
@@ -403,7 +413,8 @@ public class SpoofaxAstToGraphQuery {
   }
 
   private static List<OrderByElem> getOrderByElems(Map<String, QueryVariable> inScopeVars,
-      Map<String, QueryVariable> inScopeInAggregationVars, IStrategoTerm orderByT) throws PgqlException {
+      Map<String, QueryVariable> inScopeInAggregationVars, IStrategoTerm orderByT)
+      throws PgqlException {
     List<OrderByElem> orderByElems = new ArrayList<>();
     if (!isNone(orderByT)) { // has ORDER BY
       IStrategoTerm orderByElemsT = getList(orderByT);
@@ -419,7 +430,8 @@ public class SpoofaxAstToGraphQuery {
   }
 
   private static QueryExpression translateExp(IStrategoTerm t, Map<String, QueryVariable> inScopeVars,
-      Map<String, QueryVariable> inScopeInAggregationVars) throws PgqlException {
+      Map<String, QueryVariable> inScopeInAggregationVars)
+      throws PgqlException {
 
     String cons = ((IStrategoAppl) t).getConstructor().getName();
 
@@ -590,7 +602,8 @@ public class SpoofaxAstToGraphQuery {
   }
 
   private static List<QueryExpression> varArgsToExps(Map<String, QueryVariable> inScopeVars,
-      Map<String, QueryVariable> inScopeInAggregationVars, IStrategoTerm expsT) throws PgqlException {
+      Map<String, QueryVariable> inScopeInAggregationVars, IStrategoTerm expsT)
+      throws PgqlException {
     List<QueryExpression> exps = new ArrayList<>();
     for (IStrategoTerm expT : expsT) {
       exps.add(translateExp(expT, inScopeVars, inScopeInAggregationVars));

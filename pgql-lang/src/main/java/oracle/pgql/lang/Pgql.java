@@ -8,6 +8,7 @@ import java.io.IOException;
 import java.io.OutputStream;
 import java.io.UnsupportedEncodingException;
 import java.net.URL;
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.HashSet;
@@ -173,7 +174,7 @@ public class Pgql {
       }
       queryGraph = SpoofaxAstToGraphQuery.translate(analysisResult.ast());
 
-      return new PgqlResult(queryString, queryValid, prettyMessages, queryGraph);
+      return new PgqlResult(queryString, queryValid, prettyMessages, queryGraph, parseResult);
     } catch (IOException | ParseException | AnalysisException | ContextException e) {
       throw new PgqlException("Failed to parse PGQL query", e);
     } finally {
@@ -211,18 +212,14 @@ public class Pgql {
     }
   }
 
-  private Iterable<ICompletion> spoofaxComplete(String queryString, int cursor) {
-    FileObject dummyFile = null;
+  private Iterable<ICompletion> spoofaxComplete(ISpoofaxParseUnit parseResult, int cursor) {
     try {
-      dummyFile = getFileObject(queryString);
-      ISpoofaxParseUnit parseResult = parseHelper(queryString, dummyFile);
       return spoofax.completionService.get(cursor, parseResult, false);
-    } catch (IOException | MetaborgException e) {
-      // swallow exceptions
-       return null;
-    } finally {
-      quietlyDelete(dummyFile);
+    } catch (MetaborgException e) {
+      // swallow any exceptions; worst case we don't suggest any completions
+      LOG.debug("spoofax completion failed: " + e.getMessage());
     }
+    return Collections.emptyList();
   }
 
   /**
@@ -277,14 +274,10 @@ public class Pgql {
 
   public List<PgqlCompletion> generateCompletions(String queryString, int cursor, PgqlCompletionContext ctx)
       throws PgqlException {
-
+    PgqlResult pgqlResult = parse(queryString);
     Iterable<ICompletion> spoofaxCompletions = null;
-    if (queryString.charAt(cursor - 1) == ':' || queryString.charAt(cursor - 1) == '.') {
-      // skip Spoofax completion to safe time
-    } else {
-      spoofaxCompletions = spoofaxComplete(queryString, cursor);
-    }
+    // spoofaxCompletions = spoofaxComplete(pgqlResult.getSpoofaxParseUnit(), cursor); // not used yet
 
-    return PgqlCompletionGenerator.generate(this, spoofaxCompletions, queryString, cursor, ctx);
+    return PgqlCompletionGenerator.generate(pgqlResult, spoofaxCompletions, queryString, cursor, ctx);
   }
 }

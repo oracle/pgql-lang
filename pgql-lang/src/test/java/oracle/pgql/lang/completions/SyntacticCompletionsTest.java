@@ -3,6 +3,7 @@
  */
 package oracle.pgql.lang.completions;
 
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
@@ -11,6 +12,7 @@ import org.junit.Test;
 import oracle.pgql.lang.completions.PgqlCompletion;
 import oracle.pgql.lang.completions.PgqlCompletionContext;
 
+import static oracle.pgql.lang.completions.PgqlCompletionGenerator.EMPTY_STRING_COMPLETION;
 import static oracle.pgql.lang.completions.PgqlCompletionGenerator.completion;
 import static oracle.pgql.lang.completions.PgqlCompletionGenerator.completions;
 import static oracle.pgql.lang.completions.PgqlCompletionGenerator.functions;
@@ -127,6 +129,14 @@ public class SyntacticCompletionsTest extends AbstractCompletionsTest {
   public void emptyAggregation() throws Exception {
     String query = "SELECT MIN(???) MATCH (n) -[e]-> (m)";
     List<PgqlCompletion> expected = expressionsExceptAggregations();
+    check(query, expected);
+  }
+
+  @Test
+  public void emptyString() throws Exception {
+    String query = "";
+    List<PgqlCompletion> expected = new ArrayList<>();
+    expected.add(EMPTY_STRING_COMPLETION);
     check(query, expected);
   }
 }
