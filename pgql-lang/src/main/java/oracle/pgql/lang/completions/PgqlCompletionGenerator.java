@@ -25,12 +25,12 @@ public class PgqlCompletionGenerator {
 
   private static String FROM = "FROM";
 
-  public static final PgqlCompletion EMPTY_STRING_COMPLETION = completion("SELECT n.name FROM g MATCH (n:Person)",
+  public static final PgqlCompletion EMPTY_STRING_COMPLETION = completion("SELECT n.prop FROM g MATCH (n:Lbl)",
       "Query");
 
   private static final String IDENTIFIER = "[A-Za-z][A-Za-z0-9_]*";
   private static final Pattern IDENTIFIER_PATTERN = Pattern.compile(IDENTIFIER);
-  private static final Pattern IDENTIFIER_PATTERN_AT_END = Pattern.compile(IDENTIFIER + "$");
+  private static final Pattern IDENTIFIER_AT_END_PATTERN = Pattern.compile(IDENTIFIER + "$");
 
   public static List<PgqlCompletion> generate(PgqlResult pgqlResult, Iterable<ICompletion> spoofaxCompletions,
       String queryString, int cursor, PgqlCompletionContext ctx)
@@ -44,7 +44,7 @@ public class PgqlCompletionGenerator {
       // fallback; for example, above fails for SELECT n.??? FROM g MATCH (n)
       int lastIndexOfFrom = queryString.toUpperCase().lastIndexOf(FROM);
       if (lastIndexOfFrom != -1) {
-        String stringAfterFrom = queryString.substring(lastIndexOfFrom + FROM.length()).trim();
+        String stringAfterFrom = queryString.substring(lastIndexOfFrom + FROM.length());
         graphName = parseIdentifierAtBeginning(stringAfterFrom);
       }
     }
@@ -187,7 +187,7 @@ public class PgqlCompletionGenerator {
 
   private static String parseIdentifierAtEnd(String queryString, int positionLastCharacter) {
     String s = queryString.substring(0, positionLastCharacter);
-    return matchPattern(s, IDENTIFIER_PATTERN_AT_END);
+    return matchPattern(s, IDENTIFIER_AT_END_PATTERN);
   }
 
   private static String matchPattern(String s, Pattern pattern) {

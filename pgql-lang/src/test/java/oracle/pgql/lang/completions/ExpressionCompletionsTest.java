@@ -106,9 +106,19 @@ public class ExpressionCompletionsTest extends AbstractCompletionsTest {
 
   @Test
   public void emptyString() throws Exception {
-    String query = "";
     List<PgqlCompletion> expected = new ArrayList<>();
     expected.add(EMPTY_STRING_COMPLETION);
+
+    String query = "";
+    check(query, expected);
+
+    query = " ";
+    check(query, expected);
+
+    query = "\t";
+    check(query, expected);
+
+    query = "\n";
     check(query, expected);
   }
 }
