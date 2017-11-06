@@ -6,13 +6,15 @@ See:
  - PGQL website: [http://pgql-lang.org/](http://pgql-lang.org/)
  - Latest specification: [http://pgql-lang.org/spec/1.1/](http://pgql-lang.org/spec/1.1/).
 
+## Master branch
+
 The 'master' branch of this reposistory contains a parser for PGQL with the following features:
 
  - Easy-to-understand IR: Given a query string, the parser returns an easy-to-understand intermedidate representation (IR) of the query as a set of Java objects
     - see [__GraphQuery.java__](graph-query-ir/src/main/java/oracle/pgql/lang/ir/GraphQuery.java))
- - Error messages: the parser has __state-of-the-art error message indication__, taking into account semantic information such as already-defined vertices and edges
+ - Error messages: the parser has __state-of-the-art static error message indication__, taking into account semantic information such as already-defined vertices and edges
 
-   Example:
+   Example 1:
 
    ```sql
    SELECT n.name, o.name
@@ -22,13 +24,15 @@ The 'master' branch of this reposistory contains a parser for PGQL with the foll
 
    ==>
 
-   ```sql
-   SELECT n.name, o.name
-                  ^
-   Unresolved variable
+   ```
+   Error(s) in line 1:
+
+       SELECT n.name, o.name
+                      ^
+       Unresolved variable
    ```
 
-   Example:
+   Example 2:
 
    ```sql
    SELECT AVG(n.age), n
@@ -38,18 +42,43 @@ The 'master' branch of this reposistory contains a parser for PGQL with the foll
 
    ==>
 
+   ```
+   Error(s) in line 1:
+
+       SELECT AVG(n.age), n
+                          ^
+       Aggregation expected here since SELECT has other aggregation
+   ```
+
+   Example 3:
+
    ```sql
-   SELECT AVG(n.age), n
-                      ^
-   Aggregation expected here since SELECT has other aggregation
+   SELECT AVG(AVG(n.age))
+    FROM g
+   MATCH (n:Person)
+   ```
+
+   ==>
+
+   ```
+   Error(s) in line 1:
+
+       SELECT AVG(AVG(n.age))
+                  ^^^^^^^^^^
+       Nested aggregation is not allowed
    ```
 
  - __Pretty printing__: invoking `GraphQuery.toString()` will "pretty print" the graph query
- - __Code completion__: given a (partial) query and a cursor position, the parser can suggest a set of code completions, including built-in functions, labelsand properties
+ - __Code completion__: given a (partial) query string and a cursor position, the parser can suggest a set of code completions, including built-in functions, labels and properties. These completions can be used in e.g. a web editor.
+   By providing the parser with metadata about the graph (existing properties and labels), the completions will also include label and property suggestions.
+
+## gh-pages branch
 
 The 'gh-pages' branch of this repository contains:
 
- - Source code for the [website](https://github.com/oracle/pgql-lang/tree/gh-pages) and [specification](https://github.com/oracle/pgql-lang/blob/gh-pages/pages/pgql-1.1-spec.md)
+ - Source code for the website and the specification
+     - [Website source code](https://github.com/oracle/pgql-lang/tree/gh-pages)
+     - [PGQL 1.1 Specification source code](https://github.com/oracle/pgql-lang/blob/gh-pages/pages/pgql-1.1-spec.md)
 
 ## Build and Install the Parser
 
@@ -87,7 +116,7 @@ The AST returned by the parser is a [GraphQuery](graph-query-ir/src/main/java/or
 
 ## Documentation
 
-See [PGQL 1.0 Specification](http://pgql-lang.org/spec/1.0/).
+See [PGQL 1.1 Specification](http://pgql-lang.org/spec/1.1/).
 
 ## Development
 
