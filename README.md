@@ -1,19 +1,41 @@
 # PGQL: a Property Graph Query Language
 
-PGQL is an SQL-like query language for the Property Graph data model.
-See [PGQL Home](http://pgql-lang.org/) and [PGQL 1.0 Specification](http://pgql-lang.org/spec/1.0/).
+PGQL is an SQL-like query language for the [property graph data model](http://pgql-lang.org/spec/1.1/#property-graph-data-model).
+See:
 
-This reposistory contains:
+ - PGQL website: [http://pgql-lang.org/](http://pgql-lang.org/)
+ - Latest specification: [http://pgql-lang.org/spec/1.1/](http://pgql-lang.org/spec/1.1/).
 
- - The specification of PGQL
- - A parser for PGQL that provides various static error checks to validate queries
- - An intermediate representation of graph queries (see [GraphQuery.java](graph-query-ir/src/main/java/oracle/pgql/lang/ir/GraphQuery.java))
-    - GraphQuery objects are returned by the parser and they can be used as a starting point when implementing a graph query engine
- - PGQL compatibility tests (in-progress)
+The 'master' branch of this reposistory contains a parser for PGQL with the following features:
 
-## Build and Install
+ - Easy-to-understand IR: Given a query string, the parser returns an easy-to-understand intermedidate representation (IR) of the query as a set of Java objects
+    - see [__GraphQuery.java__](graph-query-ir/src/main/java/oracle/pgql/lang/ir/GraphQuery.java))
+ - Error messages: the parser has __state-of-the-art error message indication__, taking into account semantic information such as already-defined vertices
 
-PGQL can be built on Windows, Linux and Mac OS X and requires Java 1.8 or higher and Maven 3.3.9 or higher.
+   ```
+   SELECT n.name, o.name
+   FROM g
+   MATCH (n) -[e]-> (m)
+   ```
+
+   ==>
+
+   ```
+   SELECT n.name, o.name FROM g MATCH (n) -[e]-> (m)
+                  ^
+   Unresolved variable
+   ```
+
+ - __Pretty printing__: invoking `GraphQuery.toString()` will "pretty print" the graph query
+ - __Code completion__: given a (partial) query and a cursor position, the parser can suggest a set of code completions, including built-in functions, labelsand properties
+
+The 'gh-pages' branch of this repository contains:
+
+ - Source code for the [website](https://github.com/oracle/pgql-lang/blob/gh-pages/) and [specification](https://github.com/oracle/pgql-lang/blob/gh-pages/pages/pgql-1.1-spec.md)
+
+## Build and Install the Parser
+
+PGQL's parser can be built on Windows, Linux and Mac OS X and requires Java 1.8 or higher and Maven 3.3.9 or higher.
 
 On Linux / Mac OS X:
 
