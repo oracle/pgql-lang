@@ -25,7 +25,7 @@ public class PgqlCompletionGenerator {
 
   private static String FROM = "FROM";
 
-  public static final PgqlCompletion EMPTY_STRING_COMPLETION = completion("SELECT n.prop FROM g MATCH (n:Lbl)",
+  public static final PgqlCompletion EMPTY_STRING_COMPLETION = completion("SELECT n.prop\n  FROM g\n MATCH (n:Lbl)",
       "Query");
 
   private static final String IDENTIFIER = "[A-Za-z][A-Za-z0-9_]*";
