@@ -49,7 +49,7 @@ The 'master' branch of this reposistory contains a parser for PGQL with the foll
 
 The 'gh-pages' branch of this repository contains:
 
- - Source code for the [website](https://github.com/oracle/pgql-lang/blob/gh-pages/) and [specification](https://github.com/oracle/pgql-lang/blob/gh-pages/pages/pgql-1.1-spec.md)
+ - Source code for the [website](https://github.com/oracle/pgql-lang/tree/gh-pages) and [specification](https://github.com/oracle/pgql-lang/blob/gh-pages/pages/pgql-1.1-spec.md)
 
 ## Build and Install the Parser
 
