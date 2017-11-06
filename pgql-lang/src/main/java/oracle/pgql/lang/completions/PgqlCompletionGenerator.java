@@ -66,7 +66,7 @@ public class PgqlCompletionGenerator {
 
       String stringBeforeCursor = queryString.substring(0, cursor).trim().toUpperCase();
 
-      CompletionContext currentClause = getCurrentClause(stringBeforeCursor);
+      ClauseOrAggregate currentClause = getCurrentClauseOrAggregate(stringBeforeCursor);
       boolean proposeExpressions = false;
       boolean proposeAggregations = false;
       switch (currentClause) {
@@ -166,11 +166,11 @@ public class PgqlCompletionGenerator {
     }
   }
 
-  private static CompletionContext getCurrentClause(String trimmedQuery) {
-    CompletionContext result = null;
+  private static ClauseOrAggregate getCurrentClauseOrAggregate(String trimmedQuery) {
+    ClauseOrAggregate result = null;
     int index = -1;
 
-    for (CompletionContext c : CompletionContext.values()) {
+    for (ClauseOrAggregate c : ClauseOrAggregate.values()) {
       int newIndex = trimmedQuery.lastIndexOf(c.toString().replace("_", " "));
       if (newIndex > index) {
         result = c;

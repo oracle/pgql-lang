@@ -1,6 +1,6 @@
 package oracle.pgql.lang.completions;
 
-public enum CompletionContext {
+public enum ClauseOrAggregate {
   SELECT,
   FROM,
   MATCH,
