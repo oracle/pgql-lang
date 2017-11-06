@@ -12,6 +12,9 @@ import org.junit.Test;
 import oracle.pgql.lang.completions.PgqlCompletion;
 import oracle.pgql.lang.completions.PgqlCompletionContext;
 
+import static oracle.pgql.lang.completions.PgqlCompletionGenerator.completion;
+import static oracle.pgql.lang.completions.PgqlCompletionGenerator.completions;
+
 public class SemanticCompletionsTest extends AbstractCompletionsTest {
 
   private static final String[] VERTEX_PROPS = { "name", "age" };
@@ -51,7 +54,7 @@ public class SemanticCompletionsTest extends AbstractCompletionsTest {
   @Test
   public void testVertexProps() throws Exception {
 
-    List<PgqlCompletion> expected = expected(//
+    List<PgqlCompletion> expected = completions(//
         completion("name", "vertex property"), //
         completion("age", "vertex property"));
 
@@ -71,7 +74,7 @@ public class SemanticCompletionsTest extends AbstractCompletionsTest {
   @Test
   public void testEdgeProps() throws Exception {
 
-    List<PgqlCompletion> expected = expected(completion("weight", "edge property"));
+    List<PgqlCompletion> expected = completions(completion("weight", "edge property"));
 
     String query = "SELECT edge.??? FROM g WHERE (n) -[edge]-> (m)";
     check(query, expected);
@@ -89,7 +92,7 @@ public class SemanticCompletionsTest extends AbstractCompletionsTest {
   @Test
   public void testVertexLabels() throws Exception {
 
-    List<PgqlCompletion> expected = expected(//
+    List<PgqlCompletion> expected = completions(//
         completion("Person", "vertex label"), //
         completion("Student", "vertex label"), //
         completion("Professor", "vertex label"));
@@ -107,7 +110,7 @@ public class SemanticCompletionsTest extends AbstractCompletionsTest {
   @Test
   public void testEdgeLabels() throws Exception {
 
-    List<PgqlCompletion> expected = expected(//
+    List<PgqlCompletion> expected = completions(//
         completion("likes", "edge label"), //
         completion("knows", "edge label"));
 

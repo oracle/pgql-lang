@@ -6,8 +6,6 @@ package oracle.pgql.lang.completions;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
 
-import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -51,13 +49,5 @@ public abstract class AbstractCompletionsTest {
       String errorMessage = "\nexpected\n\n" + expectedAsString + "\n\nactual\n\n" + actualAsString + "\n";
       assertEquals(errorMessage, expected, actual);
     }
-  }
-
-  protected List<PgqlCompletion> expected(PgqlCompletion... completions) {
-    return new ArrayList<>(Arrays.asList(completions));
-  }
-
-  protected PgqlCompletion completion(String value, String meta) {
-    return new PgqlCompletion(value, meta);
   }
 }
