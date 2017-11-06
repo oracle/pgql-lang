@@ -23,14 +23,31 @@ import oracle.pgql.lang.ir.VertexPairConnection;
 
 public class PgqlCompletionGenerator {
 
+  private static String FROM = "FROM";
+
   public static final PgqlCompletion EMPTY_STRING_COMPLETION = completion("SELECT n.name FROM g MATCH (n:Person)",
       "Query");
 
-  private static final Pattern IDENTIFIER_PATTERN = Pattern.compile("(\\w)+$");
+  private static final String IDENTIFIER = "[A-Za-z][A-Za-z0-9_]*";
+  private static final Pattern IDENTIFIER_PATTERN = Pattern.compile(IDENTIFIER);
+  private static final Pattern IDENTIFIER_PATTERN_AT_END = Pattern.compile(IDENTIFIER + "$");
 
   public static List<PgqlCompletion> generate(PgqlResult pgqlResult, Iterable<ICompletion> spoofaxCompletions,
       String queryString, int cursor, PgqlCompletionContext ctx)
       throws PgqlException {
+
+    String graphName = null;
+    if (pgqlResult.getGraphQuery() != null) {
+      graphName = pgqlResult.getGraphQuery().getInputGraphName();
+    }
+    if (graphName == null) {
+      // fallback; for example, above fails for SELECT n.??? FROM g MATCH (n)
+      int lastIndexOfFrom = queryString.toUpperCase().lastIndexOf(FROM);
+      if (lastIndexOfFrom != -1) {
+        String stringAfterFrom = queryString.substring(lastIndexOfFrom + FROM.length()).trim();
+        graphName = parseIdentifierAtBeginning(stringAfterFrom);
+      }
+    }
 
     if (queryString.trim().isEmpty()) {
       List<PgqlCompletion> result = new ArrayList<>();
@@ -38,10 +55,10 @@ public class PgqlCompletionGenerator {
       return result;
     } else if (queryString.charAt(cursor - 1) == ':') {
       // labels
-      return generateLabelSuggestions(queryString, cursor, ctx);
+      return generateLabelSuggestions(graphName, queryString, cursor, ctx);
     } else if (queryString.charAt(cursor - 1) == '.') {
       // properties
-      return generatePropertySuggestions(pgqlResult, queryString, cursor, ctx);
+      return generatePropertySuggestions(graphName, pgqlResult, queryString, cursor, ctx);
     } else {
       List<PgqlCompletion> result = new ArrayList<>();
 
@@ -106,10 +123,10 @@ public class PgqlCompletionGenerator {
     return variables;
   }
 
-  private static List<PgqlCompletion> generatePropertySuggestions(PgqlResult pgqlResult, String queryString, int cursor,
-      PgqlCompletionContext ctx)
+  private static List<PgqlCompletion> generatePropertySuggestions(String graphName, PgqlResult pgqlResult,
+      String queryString, int cursor, PgqlCompletionContext ctx)
       throws PgqlException {
-    String variableName = parseIdentifier(queryString, cursor - 1);
+    String variableName = parseIdentifierAtEnd(queryString, cursor - 1);
     if (variableName == null) {
       return Collections.emptyList();
     }
@@ -120,7 +137,7 @@ public class PgqlCompletionGenerator {
         .map(QueryVertex::getName) //
         .anyMatch(variableName::equals);
     if (isVertexVariable) {
-      return ctx.getVertexProperties().stream().map(prop -> new PgqlCompletion(prop, "vertex property"))
+      return ctx.getVertexProperties(graphName).stream().map(prop -> new PgqlCompletion(prop, "vertex property"))
           .collect(Collectors.toList());
     }
 
@@ -130,21 +147,21 @@ public class PgqlCompletionGenerator {
         .map(VertexPairConnection::getName) //
         .anyMatch(variableName::equals);
     if (isEdgeVariable) {
-      return ctx.getEdgeProperties().stream().map(prop -> new PgqlCompletion(prop, "edge property"))
+      return ctx.getEdgeProperties(graphName).stream().map(prop -> new PgqlCompletion(prop, "edge property"))
           .collect(Collectors.toList());
     }
 
     return Collections.emptyList();
   }
 
-  private static List<PgqlCompletion> generateLabelSuggestions(String queryString, int cursor,
+  private static List<PgqlCompletion> generateLabelSuggestions(String graphName, String queryString, int cursor,
       PgqlCompletionContext ctx) {
     String queryUpToCursor = queryString.substring(0, cursor - 2);
     if (queryUpToCursor.lastIndexOf('(') > queryUpToCursor.lastIndexOf('[')) {
-      return ctx.getVertexLabels().stream().map(lbl -> new PgqlCompletion(lbl, "vertex label"))
+      return ctx.getVertexLabels(graphName).stream().map(lbl -> new PgqlCompletion(lbl, "vertex label"))
           .collect(Collectors.toList());
     } else {
-      return ctx.getEdgeLabels().stream().map(lbl -> new PgqlCompletion(lbl, "edge label"))
+      return ctx.getEdgeLabels(graphName).stream().map(lbl -> new PgqlCompletion(lbl, "edge label"))
           .collect(Collectors.toList());
     }
   }
@@ -164,9 +181,17 @@ public class PgqlCompletionGenerator {
     return result;
   }
 
-  private static String parseIdentifier(String queryString, int positionLastCharacter) {
-    queryString = queryString.substring(0, positionLastCharacter);
-    Matcher matcher = IDENTIFIER_PATTERN.matcher(queryString);
+  private static String parseIdentifierAtBeginning(String s) {
+    return matchPattern(s, IDENTIFIER_PATTERN);
+  }
+
+  private static String parseIdentifierAtEnd(String queryString, int positionLastCharacter) {
+    String s = queryString.substring(0, positionLastCharacter);
+    return matchPattern(s, IDENTIFIER_PATTERN_AT_END);
+  }
+
+  private static String matchPattern(String s, Pattern pattern) {
+    Matcher matcher = pattern.matcher(s);
     if (matcher.find()) {
       return matcher.group();
     }

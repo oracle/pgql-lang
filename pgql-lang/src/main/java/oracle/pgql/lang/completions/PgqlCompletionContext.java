@@ -7,11 +7,11 @@ import java.util.List;
 
 public interface PgqlCompletionContext {
 
-  List<String> getVertexProperties();
+  List<String> getVertexProperties(String graphName);
 
-  List<String> getEdgeProperties();
+  List<String> getEdgeProperties(String graphName);
 
-  List<String> getVertexLabels();
+  List<String> getVertexLabels(String graphName);
 
-  List<String> getEdgeLabels();
+  List<String> getEdgeLabels(String graphName);
 }

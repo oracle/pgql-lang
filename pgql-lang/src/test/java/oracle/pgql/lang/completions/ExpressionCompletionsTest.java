@@ -4,13 +4,11 @@
 package oracle.pgql.lang.completions;
 
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.List;
 
 import org.junit.Test;
 
 import oracle.pgql.lang.completions.PgqlCompletion;
-import oracle.pgql.lang.completions.PgqlCompletionContext;
 
 import static oracle.pgql.lang.completions.PgqlCompletionGenerator.EMPTY_STRING_COMPLETION;
 import static oracle.pgql.lang.completions.PgqlCompletionGenerator.completion;
@@ -19,33 +17,7 @@ import static oracle.pgql.lang.completions.PgqlCompletionGenerator.functions;
 import static oracle.pgql.lang.completions.PgqlCompletionGenerator.aggregations;
 import static oracle.pgql.lang.completions.PgqlCompletionGenerator.otherExpressions;
 
-public class SyntacticCompletionsTest extends AbstractCompletionsTest {
-
-  @Override
-  protected PgqlCompletionContext getCompletionContext() {
-    return new PgqlCompletionContext() {
-
-      @Override
-      public List<String> getVertexProperties() {
-        return Collections.emptyList();
-      }
-
-      @Override
-      public List<String> getEdgeProperties() {
-        return Collections.emptyList();
-      }
-
-      @Override
-      public List<String> getVertexLabels() {
-        return Collections.emptyList();
-      }
-
-      @Override
-      public List<String> getEdgeLabels() {
-        return Collections.emptyList();
-      }
-    };
-  }
+public class ExpressionCompletionsTest extends AbstractCompletionsTest {
 
   private List<PgqlCompletion> expressions() {
     List<PgqlCompletion> expected = completions(//
