@@ -18,7 +18,7 @@ public class Main {
     System.out.println(result1.getGraphQuery());
 
     // parse query with errors and print error messages
-    PgqlResult result2 = pgql.parse("SELECT n.name, o.name FROM g MATCH (n) -[e]-> (m)");
+    PgqlResult result2 = pgql.parse("SELECT AVG(n.age), n.name FROM g MATCH (n:Person)");
     System.out.println(result2.getErrorMessages());
   }
 }

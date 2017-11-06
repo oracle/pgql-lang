@@ -10,20 +10,38 @@ The 'master' branch of this reposistory contains a parser for PGQL with the foll
 
  - Easy-to-understand IR: Given a query string, the parser returns an easy-to-understand intermedidate representation (IR) of the query as a set of Java objects
     - see [__GraphQuery.java__](graph-query-ir/src/main/java/oracle/pgql/lang/ir/GraphQuery.java))
- - Error messages: the parser has __state-of-the-art error message indication__, taking into account semantic information such as already-defined vertices
+ - Error messages: the parser has __state-of-the-art error message indication__, taking into account semantic information such as already-defined vertices and edges
 
-   ```
+   Example:
+
+   ```sql
    SELECT n.name, o.name
-   FROM g
-   MATCH (n) -[e]-> (m)
+     FROM g
+    MATCH (n) -[e]-> (m)
    ```
 
    ==>
 
-   ```
-   SELECT n.name, o.name FROM g MATCH (n) -[e]-> (m)
+   ```sql
+   SELECT n.name, o.name
                   ^
    Unresolved variable
+   ```
+
+   Example:
+
+   ```sql
+   SELECT AVG(n.age), n
+     FROM g
+    MATCH (n:Person)
+   ```
+
+   ==>
+
+   ```sql
+   SELECT AVG(n.age), n
+                      ^
+   Aggregation expected here since SELECT has other aggregation
    ```
 
  - __Pretty printing__: invoking `GraphQuery.toString()` will "pretty print" the graph query
