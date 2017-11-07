@@ -77,9 +77,9 @@ rules
     NormalizedQuery(_, SelectClause(_, ExpAsVars(select-elems)), _, _, groupClause, _, Some(orderClause), _, _, _) -> <fail>
     where
       None() := groupClause
-    ; [] := <collect(is-aggregate)> select-elems // there are no aggregations in the SELECT
+    ; [] := <get-aggregations> select-elems // there are no aggregations in the SELECT
     with
-      aggregations := <collect-om(is-aggregate, conc)> orderClause
+      aggregations := <get-aggregations> orderClause
     ; <batch-generate-error(|ctx, "Aggregation in ORDER BY only allowed if SELECT constains aggregations, or, in combination with GROUP BY")> aggregations
 
   nabl-constraint(|ctx):
@@ -112,13 +112,13 @@ rules
     where
       <is-aggregate> t
     with
-      aggrsInAggr := <get-arguments; collect-om(is-aggregate, conc)> t
+      aggrsInAggr := <get-arguments; get-aggregations> t
     ; <batch-generate-error(|ctx, "Nested aggregation is not allowed")> aggrsInAggr
 
   nabl-constraint(|ctx):
     t@GroupByClause(_) -> <fail>
     with
-      aggregations := <collect-om(is-aggregate, conc)> t;
+      aggregations := <get-aggregations> t;
       <batch-generate-error(|ctx, "Aggregation not allowed in GROUP BY")> aggregations
 
   path-reference(|ctx):
