@@ -96,6 +96,17 @@ rules
       ; <batch-generate-error-on-unresolved(|ctx, "Cannot order by non-group key variable: use aggregation")> select-or-group-refs // error in ORDER BY
       end
 
+  // if SELECT DISTINCT then ORDER BY expressions may only be repetitions of expressions in SELECT
+  nabl-constraint(|ctx):
+    NormalizedQuery(_, SelectClause(Some(Distinct()), ExpAsVars(select-elems)), _, _, _, _, Some(OrderByClause(order-by-elems)), _, _, _) -> <fail>
+    with
+      select-vars := <map(?ExpAsVar(_, <id>) + ?ExpAsSelectVar(_, <id>) + ?AnonymousExpAsVar(_, <id>)); strip-annos> select-elems
+    ; order-by-expressions := <map(?OrderByElem(<id>, _)); strip-annos> order-by-elems
+    ; order-by-expressions-not-in-select := <remove-all(
+                                                (?VarOrSelectRef(<id>) + ?SelectOrGroupRef(<id>))
+                                              ; !(<id>, select-vars); elem)> order-by-expressions
+    ; <batch-generate-error(|ctx, "Because of DISTINCT projection, the expression in ORDER BY should be one of the expressions in the SELECT")> order-by-expressions-not-in-select
+
   nabl-constraint(|ctx):
     t -> <fail>
     where

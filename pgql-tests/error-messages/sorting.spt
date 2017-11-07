@@ -23,3 +23,25 @@ MATCH
 GROUP BY e
 ORDER BY [[e]]
 ]] error like "Can't order by edge" at #1
+
+test DISTINCT projection with ORDER BY [[
+  SELECT DISTINCT n.age AS nAge
+   MATCH (n)
+ORDER BY [[n.name]], n.age, nAge, [[1+2]]
+]] error like "Because of DISTINCT projection, the expression in ORDER BY should be one of the expressions in the SELECT" at #1, #2
+
+ test DISTINCT projection with ORDER BY in GROUP BY [[
+  SELECT DISTINCT nAge AS age
+   MATCH (n)
+GROUP BY n.Age AS nAge
+ORDER BY [[n.name]], age, nAge, [[1+2]]
+]] error like "Because of DISTINCT projection, the expression in ORDER BY should be one of the expressions in the SELECT" at #1, #2
+
+test DISTINCT projection with ORDER BY in EXISTS [[
+SELECT n.age AS nAGE
+ MATCH (n)
+ WHERE EXISTS (   SELECT DISTINCT n.age AS nAge
+                   MATCH (n)
+                ORDER BY [[n.name]], n.age, nAge, [[1+2]]
+              )
+]] error like "Because of DISTINCT projection, the expression in ORDER BY should be one of the expressions in the SELECT" at #1, #2
