@@ -21,3 +21,5 @@ rules
   unique-name(|c) = !(<GENERATED>, "_", <next-counter; write-to-string> c); conc-strings
   
   VERTEX_WITHOUT_BRACKETS = !"<<vertex-without-brackets>>"
+
+  make-set-while-preserving-ordering = reverse; make-set; reverse

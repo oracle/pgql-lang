@@ -15,7 +15,7 @@ public class StaticOptimizationsTest {
   }
   
   @Test
-  public void testBasicGraphPattern1() throws Exception {
+  public void testDuplicateOrderByElems() throws Exception {
     String query = "SELECT n.age AS nAge MATCH (n) ORDER BY n.age, n.age, nAge, nAge";
     assertEquals(pgql.parse(query).getGraphQuery().getOrderBy().getElements().size(), 1);
   }
