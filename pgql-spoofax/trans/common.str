@@ -21,3 +21,10 @@ rules
   unique-name(|c) = !(<GENERATED>, "_", <next-counter; write-to-string> c); conc-strings
   
   VERTEX_WITHOUT_BRACKETS = !"<<vertex-without-brackets>>"
+
+  make-set-while-preserving-ordering = reverse; make-set; reverse
+
+  is-subquery = ?NormalizedQuery(_, _, _, _, _, _, _, _, _, _)
+
+  // get top-level aggregations (not aggregations inside subqueries)
+  get-aggregations = collect(is-subquery + is-aggregate); remove-all(is-subquery)

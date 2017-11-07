@@ -299,7 +299,9 @@ rules
   norm-orderBy(|allExpAsVars):
     Some(OrderByClause(elems)) -> Some(OrderByClause(elems'))
     with
-      elems' := <map(norm-orderBy-ordering); map(norm-order-expression(|allExpAsVars))> elems
+      elems' := <map(norm-orderBy-ordering)
+               ; map(norm-order-expression(|allExpAsVars))
+               ; make-set-while-preserving-ordering> elems // optimization to translate e.g. ORDER BY x, y, x, y into ORDER BY x, y
 
   norm-orderBy-ordering =
     ((?Desc(<id>) + ?Legacy10Desc(<id>)); !OrderByElem(<id>, Desc())) <+

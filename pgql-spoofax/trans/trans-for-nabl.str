@@ -13,7 +13,7 @@ imports
  */
 rules
 
-  trans-for-nabl = alltd(trans-for-nabl-grouping)
+  trans-for-nabl = bottomup(try(trans-for-nabl-grouping))
 
 rules
 
