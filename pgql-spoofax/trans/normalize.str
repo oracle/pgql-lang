@@ -7,7 +7,6 @@ imports
   normalized-signatures
   common
   pp
-  libspoofax/editor/completion/- // for origin-related strategies
 
 rules
 
@@ -283,13 +282,11 @@ rules
     with if [] := group-exps
            then vars := <collect(?Vertex(<id>) + ?Edge(_, <id>, _, _) + ?Exists(_)); filter(is-string; not(is-substring(GENERATED)))> graphPattern;
                 expAsSelectVars := <map(!ExpAsVar(VarRef(<id>), None()); norm-ExpAsVar)> vars
-           else expAsSelectVars := <map(groupKey-to-groupRefExpAsVar)> group-exps
+           else expAsSelectVars := star
          end
 
   norm-ExpAsVar = ?ExpAsVar(exp, Some(VarAssign(VarDef(v)))); !ExpAsVar(exp, v)
   norm-ExpAsVar = ?ExpAsVar(exp, None()); !AnonymousExpAsVar(exp, <?VarRef(<id>) <+ origin-track-forced(origin-text)> exp)
-
-  groupKey-to-groupRefExpAsVar = (?ExpAsVar(_, v) + ?AnonymousExpAsVar(_, v)); !AnonymousExpAsVar(GroupRef(v), v)
 
   replace-terms-with-varRef(|expressions):
     exp -> exp'
