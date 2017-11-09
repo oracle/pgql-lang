@@ -23,6 +23,7 @@ import oracle.pgql.lang.ir.QueryExpression.Aggregation.AggrCount;
 import oracle.pgql.lang.ir.QueryExpression.Aggregation.AggrMax;
 import oracle.pgql.lang.ir.QueryExpression.Aggregation.AggrMin;
 import oracle.pgql.lang.ir.QueryExpression.Aggregation.AggrSum;
+import oracle.pgql.lang.ir.QueryExpression.Function.Exists;
 import oracle.pgql.lang.ir.QueryVariable.VariableType;
 
 import static org.apache.commons.lang3.StringEscapeUtils.escapeJava;
@@ -78,6 +79,10 @@ public class PgqlUtils {
       @Override
       public void visit(AggrAvg aggrAvg) {
         result.add(aggrAvg);
+      }
+
+      public void visit(Exists exists ) {
+        // don't visit EXISTS subqueries
       }
     });
     return result;
