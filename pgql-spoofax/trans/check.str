@@ -143,11 +143,6 @@ rules
       <generate-error(|ctx, "IS NOT NULL is not yet supported")> e
 
   nabl-constraint(|ctx):
-    ExpAsVars(e@Star()) -> <fail>
-    with
-      <generate-error(|ctx, "SELECT * not allowed in combination with GROUP BY")> e
-
-  nabl-constraint(|ctx):
     COUNT(Some(Distinct()), e@Star()) -> <fail>
     with
       <generate-error(|ctx, "* not allowed in combination with DISTINCT")> e
