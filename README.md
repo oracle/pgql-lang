@@ -6,23 +6,21 @@ See:
  - PGQL website: [http://pgql-lang.org/](http://pgql-lang.org/)
  - Latest specification: [http://pgql-lang.org/spec/1.1/](http://pgql-lang.org/spec/1.1/).
 
-## Master branch
+## PGQL Parser and Static Query Validator
 
 The 'master' branch of this reposistory contains a parser for PGQL with the following features:
 
  - Easy-to-understand IR: Given a query string, the parser returns an easy-to-understand intermedidate representation (IR) of the query as a set of Java objects
     - see [__GraphQuery.java__](graph-query-ir/src/main/java/oracle/pgql/lang/ir/GraphQuery.java))
- - Error messages: the parser has __state-of-the-art static error message indication__, taking into account semantic information such as already-defined vertices and edges
+ - Query validation: built-in to the parser is a static query validator that provides meaningful caret-style (e.g. `^^^`) error messages:
 
-   Example 1:
+   _Example 1_
 
    ```sql
    SELECT n.name, o.name
      FROM g
     MATCH (n) -[e]-> (m)
    ```
-
-   ==>
 
    ```
    Error(s) in line 1:
@@ -32,15 +30,13 @@ The 'master' branch of this reposistory contains a parser for PGQL with the foll
        Unresolved variable
    ```
 
-   Example 2:
+   _Example 2_
 
    ```sql
    SELECT AVG(n.age), n
      FROM g
     MATCH (n:Person)
    ```
-
-   ==>
 
    ```
    Error(s) in line 1:
@@ -50,15 +46,13 @@ The 'master' branch of this reposistory contains a parser for PGQL with the foll
        Aggregation expected here since SELECT has other aggregation
    ```
 
-   Example 3:
+   _Example 3_
 
    ```sql
    SELECT AVG(AVG(n.age))
     FROM g
    MATCH (n:Person)
    ```
-
-   ==>
 
    ```
    Error(s) in line 1:
@@ -68,17 +62,23 @@ The 'master' branch of this reposistory contains a parser for PGQL with the foll
        Nested aggregation is not allowed
    ```
 
- - __Pretty printing__: invoking `GraphQuery.toString()` will "pretty print" the graph query
+ - __Pretty printing__: invoking `GraphQuery.toString()` will "pretty print" the graph query, allow unformatted queries to be turned into formatted ones:
+
+   ```sql
+   SELECT n.name MATCH
+   (n:Person) WHERE n.name = 'Anthony'
+   OR n.name = 'James'
+   ```
+
+   ```sql
+   SELECT n.name
+    MATCH (n:person)
+    WHERE n.name = 'Anthony'
+       OR n.name = 'James'
+   ```
+
  - __Code completion__: given a (partial) query string and a cursor position, the parser can suggest a set of code completions, including built-in functions, labels and properties. These completions can be used in e.g. a web editor.
    By providing the parser with metadata about the graph (existing properties and labels), the completions will also include label and property suggestions.
-
-## gh-pages branch
-
-The 'gh-pages' branch of this repository contains:
-
- - Source code for the website and the specification
-     - [Website source code](https://github.com/oracle/pgql-lang/tree/gh-pages)
-     - [PGQL 1.1 Specification source code](https://github.com/oracle/pgql-lang/blob/gh-pages/pages/pgql-1.1-spec.md)
 
 ## Build and Install the Parser
 
