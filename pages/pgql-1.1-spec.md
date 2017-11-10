@@ -63,8 +63,7 @@ The following are the changes since PGQL 1.0:
 
    ```sql
      /* PGQL 1.1 */
-     PATH close_friend AS () -[e]-> (:Person)
-                    WHERE e.weight >= 9
+     PATH close_friend AS () -[e]-> (:Person) WHERE e.weight >= 9
    SELECT m.name
     MATCH (n:Person) -/:close_friend*/-> (m)
     WHERE n.name = 'Amber'  

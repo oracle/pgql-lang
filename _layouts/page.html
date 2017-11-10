@@ -51,7 +51,12 @@ layout: default
 
     {% endunless %}
 
-  {{content}}
+  {{content
+    | replace:'<span class="n">PATH</span>','<span class="k">PATH</span>'
+    | replace:'<span class="n">DATE</span>','<span class="k">DATE</span>'
+    | replace:'<span class="n">TIME</span>','<span class="k">TIME</span>'
+    | replace:'<span class="n">TIMEZONE</span>','<span class="k">TIMEZONE</span>'
+  }}
 
     <div class="tags">
         {% if page.tags != null %}
