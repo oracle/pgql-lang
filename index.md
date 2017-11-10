@@ -8,7 +8,7 @@ keywords: pgql graph query language database analytics social
 Graphs + SQL
 ====================================
 
-PGQL is a query language for the [property graph data model](spec/1.1/#property-graph-data-model) that combines the power of __graph pattern matching__ with __SQL__:
+PGQL is a query language for the [property graph data model](spec/1.1/#property-graph-data-model) and combines the power of __graph pattern matching__ with __SQL__:
 
 
 ```sql
@@ -23,7 +23,7 @@ For a detailed specification of PGQL, see [PGQL 1.1 Specification](spec/1.1/).
 Graph Pattern Matching
 ----------------------
 
-PGQL uses ASCII-art syntax for matching vertices, edges, and paths:
+PGQL uses ASCII-art syntax for matching __vertices__, __edges__, and __paths__:
 
  * `(n:Person)` matches a vertex (node) `n` with label `Person`
  * `-[e:friend_of]->` matches an edge `e` with label `friend_of`
@@ -35,26 +35,25 @@ SQL Capabilities
 PGQL has the following SQL-like capabilities:
 
  * `DISTINCT` to remove duplicates
- * `GROUP BY` and `HAVING` to create groups of solutions and optionally filter such groups
- * `MIN`, `MAX`, `SUM` and `AVG` to aggregate over groups of solutions
+ * `GROUP BY` and create groups of solutions and optionally filter groups through `HAVING`
+ * `MIN`, `MAX`, `AVG` and `SUM` to aggregate over groups of solutions
  * `ORDER BY` to sort results
  * (`NOT`) `EXISTS` subqueries, to test whether a graph pattern exists, or, doesn't exists
 
 Regular Path Expressions
 ------------------------
 
-Regular path expressions allow for expressing complex traversals for all sorts of reachability analysis use cases:
-
+Regular path expressions allow for expressing complex traversals for all sorts of __reachability analysis__ use cases:
 
 {% include image.html file="example_graphs/electric_network.png" %}
 
 ```sql
-    PATH connects_to AS (:Device) <- (x) -> (:Device)                /* Devices are connected by two edges...                 */
-                  WHERE has_label(x, 'Connection')                   /* ...and an intermediate Connection vertex...           */
-                     OR has_label(x, 'Switch') AND x.status = 'OPEN' /* ...or an intermediate Switch vertex with OPEN status. */
+    PATH connects_to AS (:Device) <- (x) -> (:Device)                /* Devices are connected by two edges..                 */
+                  WHERE has_label(x, 'Connection')                   /* ..and an intermediate Connection vertex..            */
+                     OR has_label(x, 'Switch') AND x.status = 'OPEN' /* ..or an intermediate Switch vertex with OPEN status. */
     FROM electric_network
-  SELECT d2.name
-   MATCH (d1) -/:connects_to+/-> (d2)                                 /* We match the connect_to pattern one or more times    */
+  SELECT d1.name AS source, d2.name AS destination
+   MATCH (d1) -/:connects_to+/-> (d2)                                 /* We match the connect_to pattern one or more times.   */
    WHERE d1.name = 'DS'
 ORDER BY d2.name
 ```
@@ -62,16 +61,16 @@ ORDER BY d2.name
 Query output:
 
 ```
-+---------+
-| d2.name |
-+---------+
-| D0      |
-| D5      |
-| D6      |
-| D7      |
-| D8      |
-| D9      |
-+---------+
++--------+-------------+
+| source | destination | /* PGQL returns tables with columns, like SQL. */
++--------+-------------+
+| DN     | D0          | /* First row. */
+| DN     | D5          |
+| DN     | D6          |
+| DN     | D7          |
+| DN     | D8          |
+| DN     | D9          | /* Last row. */
++--------+-------------+
 ```
 
 Multiple Graph Support
@@ -81,11 +80,13 @@ The following query finds people who are on Facebook but not on Twitter:
 ```sql
 SELECT p1.name
   FROM facebook_graph
- MATCH (p1:Person)
- WHERE NOT EXISTS ( SELECT *
+ MATCH (p1:Person)                           /* Match persons in the Facebook graph.. */
+ WHERE NOT EXISTS (                          /* ..such that there doesn't exists..    */
+                    SELECT p2
                       FROM twitter_graph
-                     MATCH (p2:Person)
-                     WHERE p1.name = p2.name )
+                     MATCH (p2:Person)       /* ..a person in the Twitter graph..     */
+                     WHERE p1.name = p2.name /* ..with the same name.                 */
+                  )
 ```
 
 Resources
@@ -100,5 +101,5 @@ Resources
    (shortest path finding, graph construction, etc.)
  - __Implementations__
      - [Oracle Labs' Parallel Graph Analytics (__PGX__)](http://www.oracle.com/technetwork/oracle-labs/parallel-graph-analytics/overview/index.html), an in-memory graph analytics framework with a high-performance PGQL query engine
-     - [Oracle __Big Data__ Spatial and Graph](http://www.oracle.com/technetwork/database/database-technologies/bigdata-spatialandgraph/overview/index.html), which supports PGQL on top of Big Data workloads on Apache Hadoop and NoSQL database technologies
+     - [Oracle __Big Data__ Spatial and Graph](http://www.oracle.com/technetwork/database/database-technologies/bigdata-spatialandgraph/overview/index.html), which supports PGQL on top of big data workloads on Apache Hadoop and NoSQL database technologies
      - [Oracle Spatial and Graph](https://www.oracle.com/database/spatial/index.html) which supports PGQL on top of the Oracle RDBMS
