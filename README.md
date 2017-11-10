@@ -4,14 +4,14 @@ PGQL is an SQL-like query language for the [property graph data model](http://pg
 See:
 
  - PGQL website: [http://pgql-lang.org/](http://pgql-lang.org/)
- - Latest specification: [http://pgql-lang.org/spec/1.1/](http://pgql-lang.org/spec/1.1/).
+ - Specification: [http://pgql-lang.org/spec/1.1/](http://pgql-lang.org/spec/1.1/).
 
 ## PGQL Parser and Static Query Validator
 
 The 'master' branch of this reposistory contains a parser for PGQL with the following features:
 
  - Easy-to-understand IR: Given a query string, the parser returns an easy-to-understand intermedidate representation (IR) of the query as a set of Java objects
-    - see [__GraphQuery.java__](graph-query-ir/src/main/java/oracle/pgql/lang/ir/GraphQuery.java))
+    - see [__GraphQuery.java__](graph-query-ir/src/main/java/oracle/pgql/lang/ir/GraphQuery.java)
  - Query validation: built-in to the parser is a static query validator that provides meaningful caret-style (e.g. `^^^`) error messages:
 
    _Example 1_
@@ -82,7 +82,7 @@ The 'master' branch of this reposistory contains a parser for PGQL with the foll
 
 ## Build and Install the Parser
 
-PGQL's parser can be built on Windows, Linux and Mac OS X and requires Java 1.8 or higher and Maven 3.3.9 or higher.
+PGQL's parser can be built on Linux, Mac OS X and Window, and requires Java 1.8 or higher and Maven 3.3.9 or higher.
 
 On Linux / Mac OS X:
 
@@ -125,6 +125,7 @@ See [PGQL 1.1 Specification](http://pgql-lang.org/spec/1.1/).
     - `graph-query-ir`: Java representation of graph queries
     - `pqgl-spoofax`: Spoofax implementation of PGQL (parser + error checks)
     - `pgql-lang`: translation of Spoofax AST into `graph-query-ir`
+- Source code for PGQL's website can be found on the `gh-pages` branch of this repository
 
 ## Contributions
 
