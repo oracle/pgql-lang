@@ -13,11 +13,6 @@ topnav:
 
 - title: Topnav
   items:
-    - title: Oracle PGX
-      external_url: http://www.oracle.com/technetwork/oracle-labs/parallel-graph-analytics/overview/index.html
-
-- title: Topnav
-  items:
     - title: Parser
       external_url: https://github.com/oracle/pgql-lang/
 

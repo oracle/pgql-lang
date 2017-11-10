@@ -158,7 +158,7 @@ A property graph has a name, which is a (character) string, and contains:
 
 Labels as well as property names are strings. Property values are scalars such as numbers, strings or booleans.
 
-In PGQL 1.1, we do not consider multi-valued properties like in [TinkerPop](http://tinkerpop.apache.org/docs/current/reference/#vertex-properties),
+Note: PGQL 1.1 does not considers multi-valued properties like in [TinkerPop](http://tinkerpop.apache.org/docs/current/reference/#vertex-properties),
 or, composite types like in [Neo4j](https://neo4j.com/docs/developer-manual/current/cypher/syntax/values/#composite-types).
 
 ## Basic Query Structure
@@ -649,7 +649,7 @@ Paths considered include those that repeat the same vertices and/or edges multip
 
 Take the following graph as example:
 
-{% include image.html file="example_graphs/pgql_min_max_hop.png" caption="Friendship graph with 'likes' and 'knows' edges" %}
+{% include image.html file="example_graphs/pgql_min_max_hop.png" %}
 
 #### Zero or more
 
