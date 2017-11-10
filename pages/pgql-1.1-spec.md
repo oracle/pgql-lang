@@ -1275,7 +1275,7 @@ Note that the value of the literal is the same no matter if quotes are escaped o
 
 The following is the list of keywords in PGQL.
 
-```sql
+```
 PATH, SELECT, MATCH, WHERE, AS, ORDER, GROUP, BY, ASC, DESC, LIMIT, OFFSET,
 AND, OR, NOT, true, false, IS, NULL,
 DATE, TIME, TIMESTAMP, WITH, TIMEZONE
