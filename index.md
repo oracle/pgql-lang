@@ -8,7 +8,7 @@ keywords: pgql property graph query language database analytics oracle
 Graphs + SQL
 ====================================
 
-PGQL is a query language for the [property graph data model](spec/1.1/#property-graph-data-model) and combines the power of __graph pattern matching__ with __SQL__:
+PGQL is a query language for the [property graph data model](spec/1.1/#property-graph-data-model) that combines the powers of __graph pattern matching__ and __SQL__:
 
 
 ```sql
@@ -23,11 +23,11 @@ For a detailed specification of PGQL, see [PGQL 1.1 Specification](spec/1.1/).
 Graph Pattern Matching
 ----------------------
 
-PGQL uses ASCII-art syntax for matching __vertices__, __edges__, and __paths__:
+PGQL uses ASCII-art syntax for matching vertices, edges, and paths:
 
- * `(n:Person)` matches a vertex (node) `n` with label `Person`
- * `-[e:friend_of]->` matches an edge `e` with label `friend_of`
- * `-/:friend_of+/->` matches a path consisting of one or more (`+`) edges, each with label `friend_of`
+ * `(n:Person)` matches a __vertex__ (node) `n` with label `Person`
+ * `-[e:friend_of]->` matches an __edge__ `e` with label `friend_of`
+ * `-/:friend_of+/->` matches a __path__ consisting of one or more (`+`) edges, each with label `friend_of`
 
 SQL Capabilities
 -------------------
@@ -43,39 +43,39 @@ PGQL has the following SQL-like capabilities:
 Regular PATH Expressions
 ------------------------
 
-Regular PATH expressions allow for expressing complex traversals for all sorts of __reachability analysis__ use cases:
+PGQL has __regular path expressions__ (e.g. `*`, `+`, `?`, `{1,4}`) for expressing complex traversals for all sorts of __reachability analyses__:
 
 {% include image.html file="example_graphs/electric_network.png" %}
 
 ```sql
-    PATH connects_to AS (:Device) <- (x) -> (:Device)                /* Devices are connected by two edges..                 */
-                  WHERE has_label(x, 'Connection')                   /* ..and an intermediate Connection vertex..            */
-                     OR has_label(x, 'Switch') AND x.status = 'OPEN' /* ..or an intermediate Switch vertex with OPEN status. */
+    PATH connects_to AS (:Device) <- (x) -> (:Device)                /* Devices are connected by two edges..                     */
+                  WHERE has_label(x, 'Connection')                   /* ..and an intermediate Connection vertex..                */
+                     OR has_label(x, 'Switch') AND x.status = 'OPEN' /* ..or an intermediate Switch vertex with OPEN status.     */
     FROM electric_network
   SELECT d1.name AS source, d2.name AS destination
-   MATCH (d1) -/:connects_to+/-> (d2)                                 /* We match the connect_to pattern one or more times.   */
+   MATCH (d1) -/:connects_to+/-> (d2)                                 /* We match the connects_to pattern one or more (+) times. */
    WHERE d1.name = 'DS'
 ORDER BY d2.name
 ```
 
-Query output:
-
 ```
 +--------+-------------+
-| source | destination | /* PGQL returns tables with columns, like SQL. */
+| source | destination | /* The result of above query is a table with columns, like in SQL. */
 +--------+-------------+
-| DN     | D0          | /* First row. */
+| DN     | D0          | /* First result row. */
 | DN     | D5          |
 | DN     | D6          |
 | DN     | D7          |
 | DN     | D8          |
-| DN     | D9          | /* Last row. */
+| DN     | D9          | /* Last result row. */
 +--------+-------------+
 ```
 
-Multiple Graph Support
+Querying Multiple Graphs at Once
 -----------------------
-The following query finds people who are on Facebook but not on Twitter:
+Through subqueries, PGQL allows for __comparing data from different graphs__.
+
+For example, the following query finds people who are on Facebook but not on Twitter:
 
 ```sql
 SELECT p1.name

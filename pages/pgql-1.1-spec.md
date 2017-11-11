@@ -108,7 +108,7 @@ The following are the changes since PGQL 1.0:
 
 # Introduction
 
-PGQL (Property Graph Query Language) is a query language for the [Property Graph (PG) data model](#property-graph-data-model). This specification defines the syntax and semantics of PGQL.
+PGQL (Property Graph Query Language) is a query language for the [property graph data model](#property-graph-data-model). This specification defines the syntax and semantics of PGQL.
 
 Essentially, PGQL is a graph pattern-matching query language. A PGQL query describes a graph pattern consisting of vertices and edges. When the query is evaluated against a property graph, all the possible subgraphs that match the pattern are returned.
 
@@ -144,7 +144,7 @@ The `SELECT` clause specifies what should be projected out from the query:
 
 A property graph has a name, which is a (character) string, and contains:
 
- - A set of vertices.
+ - A set of vertices (nodes).
 
    - Each vertex has zero or more labels.
    - Each vertex has zero or more properties, which are arbitrary key-value pairs.
@@ -157,7 +157,7 @@ A property graph has a name, which is a (character) string, and contains:
 
 Labels as well as property names are strings. Property values are scalars such as numbers, strings or booleans.
 
-Note: PGQL 1.1 does not considers multi-valued properties like in [TinkerPop](http://tinkerpop.apache.org/docs/current/reference/#vertex-properties),
+Note: the property graph model in PGQL 1.1 does not support multi-valued properties like in [TinkerPop](http://tinkerpop.apache.org/docs/current/reference/#vertex-properties),
 or, composite types like in [Neo4j](https://neo4j.com/docs/developer-manual/current/cypher/syntax/values/#composite-types).
 
 ## Basic Query Structure
