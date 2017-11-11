@@ -74,7 +74,7 @@ ORDER BY d2.name
 
 Temporal Data Types
 -------------------
-In addition to numbers, (character) strings, booleans, PGQL supports the following temporal data types for properties:
+In addition to numbers, (character) strings and booleans, PGQL supports the following temporal data types for vertex and edge properties:
 
  - `DATE` (java.time.LocalDate)
  - `TIME` (java.time.LocalTime)
@@ -85,7 +85,7 @@ In addition to numbers, (character) strings, booleans, PGQL supports the followi
 PGQL's Java result set API
 (see [ResultSet.java](https://github.com/oracle/pgql-lang/blob/master/graph-query-ir/src/main/java/oracle/pgql/lang/ResultSet.java)
 and [ResultAccess.java](https://github.com/oracle/pgql-lang/blob/master/graph-query-ir/src/main/java/oracle/pgql/lang/ResultAccess.java))
- is based on the [new Java 8 Date and Time library](http://www.oracle.com/technetwork/articles/java/jf14-date-time-2125367.html), offering greatly improved safety and functionality for Java developers.
+ is based on the [__new Java 8 Date and Time Library__](http://www.oracle.com/technetwork/articles/java/jf14-date-time-2125367.html) (`java.time.*`), offering greatly improved safety and functionality for Java developers.
 
 Querying Multiple Graphs at Once
 -----------------------
