@@ -194,9 +194,9 @@ Syntactically, a `MATCH` clause is composed of the keyword `MATCH` followed by a
 ```bash
 MatchClause         ::= 'MATCH' {PathPattern ','}+
 PathPattern         ::= Vertex (Relation Vertex)*
-Vertex              ::= '(' VariablePlusLabel ')'
+Vertex              ::= '(' VariableDeclaration ')'
 Relation            ::= Edge
-                      | Path // see Regular Path Expressions
+                      | Path # see Regular Path Expressions
 Edge                ::= OutgoingEdge
                       | IncomingEdge
                       | UndirectedEdge
@@ -208,7 +208,7 @@ UndirectedEdge      ::= '-'
                       | '-[' VariableDeclaration ']-'
 VariableDeclaration ::= IDENTIFIER? LabelsPredicate?
 LabelsPredicate     ::= ':' {IDENTIFIER '|'}+
-WhereClause         ::= 'WHERE' ValueExpression // see Value Expressions
+WhereClause         ::= 'WHERE' ValueExpression # see Value Expressions
 ```
 
 A path pattern describes a partial topology of the subgraph pattern, i.e. vertices and edges in the pattern.
@@ -514,7 +514,7 @@ When there are multiple matched subgraph instances to a given query, in general,
 
 The following explains the syntactic structure of `ORDER BY` clause.
 
-```
+```bash
 OrderByClause ::= 'ORDER' 'BY' {OrderTerm ','}+
 OrderTerm     ::= ValueExpression ('ASC'|'DESC')?
 ```
@@ -926,11 +926,11 @@ Syntactically, an aggregation takes the form of Aggregate operator followed by e
 
 Aggregate Operator | Semantic | Required Input Type
 --- | --- | ---
-`COUNT` | counts the number of times the given expression has a bound. | not null
-`MIN` | takes the minimum of the values for the given expression. | numeric
-`MAX` | takes the maximum of the values for the given expression. | numeric
+`COUNT` | counts the number of times the given expression has a bound (i.e. is not null). | any type, including vertex and edge
+`MIN` | takes the minimum of the values for the given expression. | numeric, string, date, time (with timezone), or, timestamp (with timezone)
+`MAX` | takes the maximum of the values for the given expression. | numeric, string, date, time (with timezone), or, timestamp (with timezone)
 `SUM` | sums over the values for the given expression. | numeric
-`AVG` | takes the average of the values for the given | numeric
+`AVG` | takes the average of the values for the given. | numeric
 
 `COUNT(*)` is a special syntax to count the number of pattern matches, without specifying an expressions. Consider the following example:
 

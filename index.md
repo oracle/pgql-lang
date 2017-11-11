@@ -39,6 +39,7 @@ PGQL has the following SQL-like capabilities:
  * `MIN`, `MAX`, `AVG` and `SUM` to aggregate over groups of solutions
  * `ORDER BY` to sort results
  * (`NOT`) `EXISTS` subqueries, to test whether a graph pattern exists, or, doesn't exists
+ * `DATE`, `TIME`, `TIMESTAMP`, `TIME WITH TIMEZONE`, and `TIMESTAMP WITH TIMEZONE` temporal data types
 
 Regular PATH Expressions
 ------------------------
@@ -70,6 +71,18 @@ ORDER BY d2.name
 | DN     | D9          | /* Last result row. */
 +--------+-------------+
 ```
+
+Temporal Data Types
+-------------------
+In addition to numbers, (character) strings, booleans, PGQL supports the following temporal data types for properties:
+
+ - `DATE` (java.time.LocalDate)
+ - `TIME` (java.time.LocalTime)
+ - `TIMESTAMP` (java.time.LocalDateTime)
+ - `TIME WITH TIMEZONE` (java.time.OffsetTime)
+ - `TIMESTAMP WITH TIMEZONE` (java.time.OffsetDateTime)
+
+PGQL's [Java ResultSet API](https://github.com/oracle/pgql-lang/blob/master/graph-query-ir/src/main/java/oracle/pgql/lang/ResultSet.java) is based on the [new Java 8 Date and Time library](http://www.oracle.com/technetwork/articles/java/jf14-date-time-2125367.html) that offers greatly improved safety and functionality for developers.
 
 Querying Multiple Graphs at Once
 -----------------------
