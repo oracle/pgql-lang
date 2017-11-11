@@ -82,7 +82,10 @@ In addition to numbers, (character) strings, booleans, PGQL supports the followi
  - `TIME WITH TIMEZONE` (java.time.OffsetTime)
  - `TIMESTAMP WITH TIMEZONE` (java.time.OffsetDateTime)
 
-PGQL's [Java ResultSet API](https://github.com/oracle/pgql-lang/blob/master/graph-query-ir/src/main/java/oracle/pgql/lang/ResultSet.java) is based on the [new Java 8 Date and Time library](http://www.oracle.com/technetwork/articles/java/jf14-date-time-2125367.html) that offers greatly improved safety and functionality for developers.
+PGQL's Java result set API
+(see [ResultSet.java](https://github.com/oracle/pgql-lang/blob/master/graph-query-ir/src/main/java/oracle/pgql/lang/ResultSet.java)
+and [ResultAccess.java](https://github.com/oracle/pgql-lang/blob/master/graph-query-ir/src/main/java/oracle/pgql/lang/ResultAccess.java))
+ is based on the [new Java 8 Date and Time library](http://www.oracle.com/technetwork/articles/java/jf14-date-time-2125367.html), offering greatly improved safety and functionality for Java developers.
 
 Querying Multiple Graphs at Once
 -----------------------
