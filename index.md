@@ -2,7 +2,7 @@
 title: Home
 permalink: /index.html
 toc: false
-keywords: pgql property graph query language database analytics oracle
+keywords: pgql property graph model query language database analytics oracle cypher opencypher sparql
 ---
 
 Graphs + SQL

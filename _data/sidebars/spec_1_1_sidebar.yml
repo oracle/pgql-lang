@@ -34,6 +34,10 @@ entries:
     output: web
     folderitems:
 
+    - title: Input Graph
+      url: /spec/1.1/#input-graph
+      output: web
+
     - title: Topology Constraints
       url: /spec/1.1/#topology-constraints
       output: web
