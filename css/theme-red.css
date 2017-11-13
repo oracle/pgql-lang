@@ -138,6 +138,12 @@ li.sidebarTitle {
     border-bottom-color: #FFFFFF;
 }
 
+a.pgql-anchor {
+    position: relative;
+    top: -55px;
+    visibility: hidden;
+}
+
 .pgql-jumbotron .btn {
   text-shadow: none;
 }
