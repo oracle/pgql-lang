@@ -467,24 +467,24 @@ SelectClause ::= 'SELECT' <Distinct>? {<ExpAsVar> ','}+
 
 Distinct     ::= 'DISTINCT'
 
-ExpAsVar     ::= <ValueExpression> ('AS' <Variable>)?
+ExpAsVar     ::= <ValueExpression> ('AS' <VariableName>)?
 ```
 
 A `SELECT` clause consists of the keyword `SELECT` followed by either an optional `<Distinct>` modifier and comma-separated sequence of `<ExpAsVar>` ("expression as variable") elements, or, a special character star `*`. An `<ExpAsVar>` consists of:
 
 - A `<ValueExpression>`.
-- An optional variable definition, specified by appending the keyword `AS` and the name of the variable.
+- An optional `<VariableName>`, specified by appending the keyword `AS` and the name of the variable.
 
 Consider the following example:
 
 ```sql
-SELECT n, m, n.age
+SELECT n, m, n.age AS age
  MATCH (n:Person) -[e:friend_of]-> (m:Person)
 ```
 
 Per each matched subgraph, the query returns two vertices `n` and `m` and the value for property age of vertex `n`.  Note that edge `e` is omitted from the result even though it is used for describing the pattern.
 
-The `DISTINCT` modifier allows for filtering out duplicate results. The operation applies to an entire result row, such that rows are only considered duplicates if they contain the same set of values.
+The `DISTINCT` modifier allows for filtering out duplicate results. The operation applies to an entire result row, such that rows are only considered duplicates of each other if they contain the same set of values.
 
 ### Assigning Variable Name to Select Expression
 
