@@ -453,9 +453,9 @@ In a PGQL query, the SELECT clause defines the data entities to be returned in t
 The following explains the syntactic structure of SELECT clause.
 
 ```bash
-SelectClause ::= 'SELECT' {<SelectElem> ','}+
+SelectClause ::= 'SELECT' {<ExpAsVar> ','}+
                | 'SELECT' '*'
-SelectElem   ::= <ValueExpression> ('AS' <Variable>)?
+ExpAsVar     ::= <ValueExpression> ('AS' <Variable>)?
 ```
 
 A `SELECT` clause consists of the keyword `SELECT` followed by a comma-separated sequence of select element, or a special character star `*`. A select element consists of:
@@ -1046,7 +1046,7 @@ Subtraction              ::= <ValueExpression> '-' <ValueExpression>
 Multiplication           ::= <ValueExpression> '*' <ValueExpression>
 Division                 ::= <ValueExpression> '/' <ValueExpression>
 Modulo                   ::= <ValueExpression> '%' <ValueExpression>
-UnaryMinus               ::= <ValueExpression> '-' <ValueExpression>
+UnaryMinus               ::= '-' <ValueExpression>
 
 RelationalExpression     ::= <Equals>
                            | <NotEquals>
