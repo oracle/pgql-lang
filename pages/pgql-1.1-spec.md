@@ -217,7 +217,7 @@ There can be multiple path patterns in the `MATCH` clause of a PGQL query. Seman
 
 ## Input Graph (FROM)
 
-The `FROM` clause specifies the name of the input graph that will be queried:
+The `FROM` clause specifies the name of the input graph to be queried:
 
 ```bash
 FromClause ::= 'FROM' <IDENTIFIER>
@@ -228,6 +228,8 @@ The `FROM` clause may be omitted if the system does not require the specificatio
  - The input graph is implicit because the system only handles single graphs.
  - The system has a notion of a "default graph" like in certain SPARQL systems.
  - The system provides an API such as `Graph.queryPgql(..)`, such that it is already clear from the context what the input graph is.
+
+Subqueries may have their own `FROM` clause (see [Querying Multiple Graphs](#querying-multiple-graphs)). Subqueries may also omit the `FROM` clause (see [Subqueries without FROM Clause](#subqueries-without-from-clause)).
 
 ## Topology Constraints
 
@@ -1376,6 +1378,8 @@ In PGQL 1.1, the supported operations on temporal values are limited to comparis
 
 # Subqueries
 
+Subqueries in PGQL 1.1 are limited to existential subqueries.
+
 ## Existential Subqueries (EXISTS)
 
 `EXISTS` returns true/false depending on whether the subquery produces at least one result, given the bindings obtained in the current (outer) query. No additional binding of variables occurs.
@@ -1397,6 +1401,30 @@ SELECT fof.name, COUNT(friend) AS num_common_friends
 ```
 
 Here, vertices `p` and `fof` are passed from the outer query to the inner query. The `EXISTS` returns true if there is at least one `has_friend` edge between `p` and `fof`.
+
+## Subqueries without FROM Clause
+
+If the `FROM` clause is omitted from a subquery, then, the input graph of the subquery is the same as the input graph of the outer query.
+
+## Querying Multiple Graphs
+
+Through subqueries, PGQL allows for comparing data from different graphs.
+
+For example, the following query finds people who are on Facebook but not on Twitter:
+
+```sql
+SELECT p1.name
+  FROM facebook_graph
+ MATCH (p1:Person)                           /* Match persons in the Facebook graph.. */
+ WHERE NOT EXISTS (                          /* ..such that there doesn't exists..    */
+                    SELECT p2
+                      FROM twitter_graph
+                     MATCH (p2:Person)       /* ..a person in the Twitter graph..     */
+                     WHERE p1.name = p2.name /* ..with the same name.                 */
+                  )
+```
+
+Above, we compare two string properties from different graphs. Besides properties, it is also possible to compare vertices and edges from different graphs. However, because PGQL 1.1 does not have a concept of views and base graphs, such comparisons will always yield false.
 
 # Other Syntactic Rules
 

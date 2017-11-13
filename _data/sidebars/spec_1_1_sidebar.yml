@@ -271,6 +271,14 @@ entries:
       url: /spec/1.1/#existential-subqueries-exists
       output: web
 
+    - title: Subqueries without FROM Clause
+      url: /spec/1.1/#subqueries-without-from-clause
+      output: web
+
+    - title: Querying Multiple Graphs
+      url: /spec/1.1/#querying-multiple-graphs
+      output: web
+
   - title: Other Syntactic Rules
     url: /spec/1.1/#other-syntactic-rules
     output: web
