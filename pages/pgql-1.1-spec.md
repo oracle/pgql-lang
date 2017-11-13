@@ -1153,15 +1153,15 @@ A `AND` B<br>A `OR` B                                             | boolean     
 
 *For precision and scale, see [Implicit Type Conversion](#implicit-type-conversion). 
 
-#### Comparing Different Temporal Types
+### Timezones and Comparison of Time Values
 
 Binary operations are only allowed if both operands are of the same type, with the following two exceptions:
 
 - _time_ values can be compared to _time with timezone_ values
 - _timestamp_ values can be compared to _timestamp with timezone_ values
 
-To compare such time(stamp) with timezone values to other time(stamp) values (with or without timezone), values are first normalized to have the same timezone, before they are compared.
-Comparison with other operand type combinations, such as dates and timestamp, is not possible. However, casting between e.g. dates and timestamp is allowed (see [Explicit Type Conversion](#explicit-type-conversion-cast)).
+To compare such _time(stamp) with timezone_ values to other time(stamp) values (with or without timezone), values are first normalized to have the same timezone, before they are compared.
+Comparison with other operand type combinations, such as dates and timestamp, is not possible. However, it is possible to [cast](#explicit-type-conversion-cast) between e.g. dates and timestamps.
 
 ### Operator Precedence
 

@@ -207,6 +207,10 @@ entries:
       output: web
       subfolderitems:
 
+      - title: Timezones and Comparison of Time Values
+        url: /spec/1.1/#timezones-and-comparison-of-time-values
+        output: web
+
       - title: Operator Precedence
         url: /spec/1.1/#operator-precedence
         output: web
