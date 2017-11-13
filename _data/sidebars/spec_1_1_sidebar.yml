@@ -8,8 +8,8 @@ entries:
     output: web
     folderitems:
 
-    - title: New Query Capability in 1.1
-      url: /spec/1.1/#new-query-capability-in-11
+    - title: New Query Capability in PGQL 1.1
+      url: /spec/1.1/#new-query-capability-in-pgql-11
       output: web
 
     - title: Breaking Syntax Changes since PGQL 1.0

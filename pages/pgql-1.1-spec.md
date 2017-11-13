@@ -13,7 +13,7 @@ toc: true
 
 The following are the changes since PGQL 1.0:
 
-## New Query Capability in 1.1
+## New Query Capability in PGQL 1.1
 
  - [FROM clause](#input-graph-from)
  - [Undirected query edges](#undirected-query-edges)
@@ -58,7 +58,7 @@ The following are the changes since PGQL 1.0:
 
    ```bash
    # PGQL 1.1
-   'PATH' IDENTIFIER 'AS' PathPattern WhereClause?
+   'PATH' IDENTIFIER 'AS' <PathPattern> <WhereClause>?
    ```
 
    The changes are:
