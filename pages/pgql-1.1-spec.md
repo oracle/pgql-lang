@@ -615,7 +615,7 @@ Path                 ::= <OutgoingPath>
 OutgoingPath         ::= '-/' <LabelsPredicate> '/->'
                        | '-/' <SingleLabelPredicate> <RepetitionQuantifier> '/->'
 
-IncomingPath         ::= '<-/' <LabelsPredicate '/-'
+IncomingPath         ::= '<-/' <LabelsPredicate> '/-'
                        | '<-/' <SingleLabelPredicate> <RepetitionQuantifier> '/-'
 
 SingleLabelPredicate ::= ':' <IDENTIFIER>
@@ -651,15 +651,15 @@ Here, we find all classes that are a subclass of `'ArrayList'`. The regular path
 
 Quantifiers in regular path expressions allow for specifying lower and upper limits on the number of times a path expression should match.
 
-| quantifier | meaning                              | matches                                                                                                                             | example path         |
-|------------|--------------------------------------|-------------------------------------------------------------------------------------------------------------------------------------|----------------------|
-| *          | zero (0) or more                     | A path that connects the source and destination of the path by zero or more matches of a given pattern.                             | `-/:pattern*/->`     |
-| +          | one (1) or more                      | A path that connects the source and destination of the path by one or more matches of a given pattern.                              | `-/:pattern+/->`     |
-| ?          | zero or one (1), i.e. "optional"     | A path that connects the source and destination of the path by zero or one matches of a given pattern.                              | `-/:pattern?/->`     |
-| { n }      | exactly _n_                          | A path that connects the source and destination of the path by exactly _n_ matches of a given pattern.                              | `-/:pattern{2}/->`   |
-| { n, }     | _n_ or more                          | A path that connects the source and destination of the path by at least _n_ matches of a given pattern.                             | `-/:pattern{2,}/->`  |
-| { n, m }   | between _n_ and _m_ (inclusive)      | A path that connects the source and destination of the path by at least _n_ and at most _m_ (inclusive) matches of a given pattern. | `-/:pattern{2,3}/->` |
-| { , m }    | between zero (0) and _m_ (inclusive) | A path that connects the source and destination of the path by at least 0 and at most _m_ (inclusive) matches of a given pattern.   | `-/:pattern{,3}/->`  |
+| quantifier | meaning                              | matches                                                                                                                             | example path        |
+|------------|--------------------------------------|-------------------------------------------------------------------------------------------------------------------------------------|---------------------|
+| *          | zero (0) or more                     | A path that connects the source and destination of the path by zero or more matches of a given pattern.                             | `-/:lbl*/->`        |
+| +          | one (1) or more                      | A path that connects the source and destination of the path by one or more matches of a given pattern.                              | `-/:lbl+/->`        |
+| ?          | zero or one (1), i.e. "optional"     | A path that connects the source and destination of the path by zero or one matches of a given pattern.                              | `-/:lbl?/->`        |
+| { n }      | exactly _n_                          | A path that connects the source and destination of the path by exactly _n_ matches of a given pattern.                              | `-/:lbl{2}/->`      |
+| { n, }     | _n_ or more                          | A path that connects the source and destination of the path by at least _n_ matches of a given pattern.                             | `-/:lbl{2,}/->`     |
+| { n, m }   | between _n_ and _m_ (inclusive)      | A path that connects the source and destination of the path by at least _n_ and at most _m_ (inclusive) matches of a given pattern. | `-/:lbl{2,3}/->                      ` |
+| { , m }    | between zero (0) and _m_ (inclusive) | A path that connects the source and destination of the path by at least 0 and at most _m_ (inclusive) matches of a given pattern.   | `-/:lbl{,3}/->`     |
 
 Paths considered include those that repeat the same vertices and/or edges multiple times. This means that even cycles are considered. However, because the semantic is to test for the existence of paths between pairs of vertices, there is only at most one result per pair of vertices. Thus, even though an unbounded number of paths may exist between a pair of vertices (because of cycles), the result is always bounded.
 
@@ -828,6 +828,7 @@ One or more "common path expression" may be declared at the beginning of the que
 
 ```bash
 CommonPathExpressions ::= <CommonPathExpression>+
+
 CommonPathExpression  ::= 'PATH' <IDENTIFIER> 'AS' <PathPattern> <WhereClause>?
 ```
 
@@ -948,12 +949,12 @@ SELECT AVG(m.age)
 
 The syntax is as follows:
 
-```sql
-Aggregation ::= CountAggregation
-              | MinAggregation
-              | MaxAggregation
-              | AvgAggregation
-              | SumAggregation
+```bash
+Aggregation      ::= CountAggregation
+                   | MinAggregation
+                   | MaxAggregation
+                   | AvgAggregation
+                   | SumAggregation
 
 CountAggregation ::= 'COUNT' '(' '*' ')'
                    | 'COUNT' '(' <Distinct>? <ValueExpression> ')'
@@ -1068,10 +1069,11 @@ ValueExpression          ::= <VariableReference>
                            | <IsNullPredicate>
                            | <IsNotNullPredicate>
                            | <ExistsPredicate>
+                           | <Aggregation>
 
-VariableReference        ::= VariableName
+VariableReference        ::= <VariableName>
 
-PropertyAccess           ::= VariableReference '.' PropertyName
+PropertyAccess           ::= <VariableReference> '.' <PropertyName>
 
 PropertyName             ::= <IDENTIFIER>
 
