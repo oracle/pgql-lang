@@ -8,12 +8,12 @@ entries:
     output: web
     folderitems:
 
-    - title: Breaking Syntax Changes
-      url: /spec/1.1/#breaking-syntax-changes
+    - title: Breaking Syntax Changes Since PGQL 1.0
+      url: /spec/1.1/#breaking-syntax-changes-since-pgql-10
       output: web
 
-    - title: New Functionality
-      url: /spec/1.1/#new-functionality
+    - title: New Query Capability in 1.1
+      url: /spec/1.1/#new-query-capability-in-11
       output: web
 
   - title: Introduction
@@ -207,10 +207,6 @@ entries:
       output: web
       subfolderitems:
 
-      - title: Comparing Different Temporal Types
-        url: /spec/1.1/#comparing-different-temporal-types
-        output: web
-
       - title: Operator Precedence
         url: /spec/1.1/#operator-precedence
         output: web
@@ -280,22 +276,10 @@ entries:
       url: /spec/1.1/#identifiers
       output: web
 
-    - title: Syntax for Variables
-      url: /spec/1.1/#syntax-for-variables
-      output: web
-
-    - title: Syntax for Properties
-      url: /spec/1.1/#syntax-for-properties
+    - title: Escaped Characters in Strings
+      url: /spec/1.1/#escaped-characters-in-strings
       output: web
       subfolderitems:
-
-      - title: Single-quoted strings
-        url: /spec/1.1/#single-quoted-strings
-        output: web
-
-      - title: Escaped Characters in Strings
-        url: /spec/1.1/#escaped-characters-in-strings
-        output: web
 
       - title: Optional Escaping of Quotes in Strings
         url: /spec/1.1/#optional-escaping-of-quotes-in-strings

@@ -36,7 +36,7 @@ PGQL has the following SQL-like capabilities:
 
  * `DISTINCT` to remove duplicates
  * `GROUP BY` and create groups of solutions and optionally filter groups through `HAVING`
- * `MIN`, `MAX`, `AVG` and `SUM` to aggregate over groups of solutions
+ * `COUNT`, `MIN`, `MAX`, `AVG` and `SUM` to aggregate over groups of solutions
  * `ORDER BY` to sort results
  * (`NOT`) `EXISTS` subqueries, to test whether a graph pattern exists, or, doesn't exists
  * `DATE`, `TIME`, `TIMESTAMP`, `TIME WITH TIMEZONE`, and `TIMESTAMP WITH TIMEZONE` temporal data types

@@ -13,7 +13,7 @@ toc: true
 
 The following are the changes since PGQL 1.0:
 
-## Breaking Syntax Changes
+## Breaking Syntax Changes Since PGQL 1.0
 
  - The `WHERE` clause is changed into a `MATCH` clause and an optional `WHERE` clause such that the `MATCH` contains the pattern (vertices and edges) while the `WHERE` contains the filters if there are any.
    The inlined filters (`WITH` construct) should also be specified in the `WHERE` clause.
@@ -92,12 +92,13 @@ The following are the changes since PGQL 1.0:
 
  - Direct sorting of vertices and edges (e.g. `ORDER BY v1, e1`) is no longer allowed. Instead, sort using _properties_ of vertices and edges (e.g. `ORDER BY v1.propX, e1.propY`).
 
-## New Functionality
+## New Query Capability in 1.1
 
- - FROM clause (TODO)
+ - [FROM clause](#input-graph)
  - [Undirected query edges](#undirected-query-edges)
  - [Min and max repetition](#min-and-max-repetition) in regular path expressions
- - DISTINCT (TODO)
+ - [DISTINCT](#aggregation) in aggregation
+ - [SELECT DISTINCT](#projection-select)
  - [Filtering of groups (HAVING)](#filtering-of-groups-having)
  - [Temporal types](#temporal-types): `DATE`, `TIME`, `TIMESTAMP`, `TIME WITH TIMEZONE`, `TIMESTAMP WITH TIMEZONE`
  - [IS NULL and IS NOT NULL](#is-null-and-is-not-null)
@@ -216,9 +217,17 @@ There can be multiple path patterns in the `MATCH` clause of a PGQL query. Seman
 
 ## Input Graph
 
+The `FROM` clause specifies the name of the input graph that will be queried:
+
 ```bash
 FromClause ::= 'FROM' <IDENTIFIER>
 ```
+
+The `FROM` clause may be omitted if the system does not require the specification of an input graph for reasons such as:
+
+ - The input graph is implicit because the system only handles single graphs.
+ - The system has a notion of a "default graph" like in SPARQL.
+ - The system provides an API such as `Graph.queryPgql(..)`, such that it is already clear what the input graph is.
 
 ## Topology Constraints
 
@@ -453,15 +462,18 @@ In a PGQL query, the SELECT clause defines the data entities to be returned in t
 The following explains the syntactic structure of SELECT clause.
 
 ```bash
-SelectClause ::= 'SELECT' {<ExpAsVar> ','}+
+SelectClause ::= 'SELECT' <Distinct>? {<ExpAsVar> ','}+
                | 'SELECT' '*'
+
+Distinct     ::= 'DISTINCT'
+
 ExpAsVar     ::= <ValueExpression> ('AS' <Variable>)?
 ```
 
-A `SELECT` clause consists of the keyword `SELECT` followed by a comma-separated sequence of select element, or a special character star `*`. A select element consists of:
+A `SELECT` clause consists of the keyword `SELECT` followed by either an optional `<Distinct>` modifier and comma-separated sequence of `<ExpAsVar>` ("expression as variable") elements, or, a special character star `*`. An `<ExpAsVar>` consists of:
 
-- An expression.
-- An optional variable definition that is specified by appending the keyword AS and the name of the variable.
+- A `<ValueExpression>`.
+- An optional variable definition, specified by appending the keyword `AS` and the name of the variable.
 
 Consider the following example:
 
@@ -471,6 +483,8 @@ SELECT n, m, n.age
 ```
 
 Per each matched subgraph, the query returns two vertices `n` and `m` and the value for property age of vertex `n`.  Note that edge `e` is omitted from the result even though it is used for describing the pattern.
+
+The `DISTINCT` modifier allows for filtering out duplicate results. The operation applies to an entire result row, such that rows are only considered duplicates if they contain the same set of values.
 
 ### Assigning Variable Name to Select Expression
 
@@ -590,7 +604,7 @@ OFFSET 5
 # Regular Path Expressions
 
 Path queries test for the existence of arbitrary-length paths between pairs of vertices, or, retrieve actual paths between pairs of vertices.
-PGQL 1.0 supports testing for path existence ("reachability testing") only, while retrieval of actual paths between reachable pairs of vertices is planned for a future version.
+PGQL 1.1 supports testing for path existence ("reachability testing") only, while retrieval of actual paths between reachable pairs of vertices is planned for a future version.
 
 The syntactic structure of a query path is similar to a query edge, but it uses forward slashes (-/.../->) instead of square brackets (-[...]->). The syntax rules are as follows:
 
@@ -925,14 +939,37 @@ ORDER BY nAge
 
 ## Aggregation
 
-Instead of retrieving all the matched results, a PGQL query can choose to get only some aggregated information about the result. This is done by putting aggregations in SELECT clause, instead of normal expressions. Consider the following example query which returns the average value of property age over all the matched vertex m.
+Instead of retrieving all the matched results, a PGQL query can choose to get only some aggregated information about the result. This is done by putting aggregations in SELECT clause. Consider the following example query which returns the average value of property age over all the matched vertex m.
 
 ```sql
 SELECT AVG(m.age)
  MATCH (m:Person)
 ```
 
-Syntactically, an aggregation takes the form of Aggregate operator followed by expression inside a parenthesis. The following table is the list of Aggregate operators and their required input type.
+The syntax is as follows:
+
+```sql
+Aggregation ::= CountAggregation
+              | MinAggregation
+              | MaxAggregation
+              | AvgAggregation
+              | SumAggregation
+
+CountAggregation ::= 'COUNT' '(' '*' ')'
+                   | 'COUNT' '(' <Distinct>? <ValueExpression> ')'
+
+MinAggregation   ::= 'MIN' '(' <Distinct>? <ValueExpression> ')'
+
+MaxAggregation   ::= 'MAX' '(' <Distinct>? <ValueExpression> ')'
+
+AvgAggregation   ::= 'AVG' '(' <Distinct>? <ValueExpression> ')'
+
+SumAggregation   ::= 'SUM' '(' <Distinct>? <ValueExpression> ')'
+```
+
+Syntactically, an aggregation takes the form of aggregate followed by an optional `<Distinct>` modifier and a `<ValueExpression>`.
+
+The following table gives an overview of the different aggregates and their supported input types.
 
 Aggregate Operator | Semantic | Required Input Type
 --- | --- | ---
@@ -941,6 +978,8 @@ Aggregate Operator | Semantic | Required Input Type
 `MAX` | takes the maximum of the values for the given expression. | numeric, string, date, time (with timezone), or, timestamp (with timezone)
 `SUM` | sums over the values for the given expression. | numeric
 `AVG` | takes the average of the values for the given. | numeric
+
+The `DISTINCT` modifier specifies that duplicate values should be removed before aggregation.
 
 `COUNT(*)` is a special syntax to count the number of pattern matches, without specifying an expressions. Consider the following example:
 
@@ -993,7 +1032,7 @@ ORDER BY pivot
 
 ## Filtering of Groups (HAVING)
 
-The `HAVING` clause can be placed after a `GROUP BY` clause to filter out particular groups of solutions.
+The `HAVING` clause is an optional clause that can be placed after a `GROUP BY` clause to filter out particular groups of solutions.
 The syntactic structure is as follows:
 
 ```bash
@@ -1019,65 +1058,22 @@ Expressions are used in value constraints, in-lined constraints, and select/grou
 ValueExpression          ::= <VariableReference>
                            | <PropertyAccess>
                            | <Literal>
+                           | <BindVariable>
                            | <ArithmeticExpression>
                            | <RelationalExpression>
                            | <LogicalExpression>
                            | <BracketedValueExpression>
                            | <CastSpecification>
-                           | <ExistsPredicate>
                            | <FunctionCall>
-                           | <IsNull>
-                           | <IsNotNull>
-                           | <BindVariable>
+                           | <IsNullPredicate>
+                           | <IsNotNullPredicate>
+                           | <ExistsPredicate>
 
 VariableReference        ::= VariableName
 
 PropertyAccess           ::= VariableReference '.' PropertyName
 
 PropertyName             ::= <IDENTIFIER>
-
-ArithmeticExpression     ::= <Addition>
-                           | <Subtraction>
-                           | <Multiplication>
-                           | <Division>
-                           | <Modulo>
-                           | <UnaryMinus>
-
-Addition                 ::= <ValueExpression> '+' <ValueExpression>
-Subtraction              ::= <ValueExpression> '-' <ValueExpression>
-Multiplication           ::= <ValueExpression> '*' <ValueExpression>
-Division                 ::= <ValueExpression> '/' <ValueExpression>
-Modulo                   ::= <ValueExpression> '%' <ValueExpression>
-UnaryMinus               ::= '-' <ValueExpression>
-
-RelationalExpression     ::= <Equals>
-                           | <NotEquals>
-                           | <Greater>
-                           | <GreaterEqual>
-                           | <Less>
-                           | <LessEquals>
-
-Equals                   ::= <ValueExpression> '=' <ValueExpression>
-
-NotEquals                ::= <ValueExpression> '<>' <ValueExpression>
-
-Greater                  ::= <ValueExpression> '>' <ValueExpression>
-
-GreaterEqual             ::= <ValueExpression> '>=' <ValueExpression>
-
-Less                     ::= <ValueExpression> '<' <ValueExpression>
-
-LessEquals               ::= <ValueExpression> '<=' <ValueExpression>
-
-LogicalExpression        ::= <And>
-                           | <Or>
-                           | <Not>
-
-And                      ::= <ValueExpression> 'AND' <ValueExpression>
-
-Or                       ::= <ValueExpression> 'OR' <ValueExpression>
-
-Not                      ::= 'NOT' <ValueExpression>
 
 BracketedValueExpression ::= '(' <ValueExpression> ')'
 
@@ -1095,6 +1091,53 @@ Arithmetic    | `+`, `-`, `*`, `/`, `%`, `-` (unary minus)
 Relational    | `=`, `<>`, `<`, `>`, `<=`, `>=`
 Logical       | `AND`, `OR`, `NOT`
 
+The corresonding grammar rules are:
+
+```sql
+ArithmeticExpression ::= <Addition>
+                       | <Subtraction>
+                       | <Multiplication>
+                       | <Division>
+                       | <Modulo>
+                       | <UnaryMinus>
+
+Addition             ::= <ValueExpression> '+' <ValueExpression>
+Subtraction          ::= <ValueExpression> '-' <ValueExpression>
+Multiplication       ::= <ValueExpression> '*' <ValueExpression>
+Division             ::= <ValueExpression> '/' <ValueExpression>
+Modulo               ::= <ValueExpression> '%' <ValueExpression>
+UnaryMinus           ::= '-' <ValueExpression>
+
+RelationalExpression ::= <Equals>
+                       | <NotEquals>
+                       | <Greater>
+                       | <GreaterEqual>
+                       | <Less>
+                       | <LessEquals>
+
+Equals               ::= <ValueExpression> '=' <ValueExpression>
+
+NotEquals            ::= <ValueExpression> '<>' <ValueExpression>
+
+Greater              ::= <ValueExpression> '>' <ValueExpression>
+
+GreaterEqual         ::= <ValueExpression> '>=' <ValueExpression>
+
+Less                 ::= <ValueExpression> '<' <ValueExpression>
+
+LessEquals           ::= <ValueExpression> '<=' <ValueExpression>
+
+LogicalExpression    ::= <And>
+                       | <Or>
+                       | <Not>
+
+And                  ::= <ValueExpression> 'AND' <ValueExpression>
+
+Or                   ::= <ValueExpression> 'OR' <ValueExpression>
+
+Not                  ::= 'NOT' <ValueExpression>
+```
+
 The supported input types and corresponding return types are as follows:
 
 Operator                                                          | type of A (and B)                                                                                   | Return Type
@@ -1108,7 +1151,7 @@ A `AND` B<br>A `OR` B                                             | boolean     
 
 *For precision and scale, see [Implicit Type Conversion](#implicit-type-conversion). 
 
-### Comparing Different Temporal Types
+#### Comparing Different Temporal Types
 
 Binary operations are only allowed if both operands are of the same type, with the following two exceptions:
 
@@ -1156,9 +1199,9 @@ Note that from the table it follows that `null = null` yields `null` and not `tr
 To test whether a value exists or not, one can use the `IS NULL` and `IS NOT NULL` constructs.
 
 ```bash
-IsNull ::= <ValueExpression> 'IS' 'NULL'
+IsNullPredicate    ::= <ValueExpression> 'IS' 'NULL'
 
-IsNotNull ::= <ValueExpression> 'IS' 'NOT' 'NULL'
+IsNotNullPredicate ::= <ValueExpression> 'IS' 'NOT' 'NULL'
 ```
 
 An example is as follows:
@@ -1247,7 +1290,7 @@ Signature | Return value | Description
 `has_label(element)` | boolean | returns true if the vertex or edge has the given label.
 `labels(element)` | set<String> | returns the labels of the vertex or edge in the case it has multiple labels.
 `label()` | string | returns the label of the vertex or edge in the case it has a single label.
-`all_different(val1, val2, .., valn)` | boolean | return true if the values are all different (usually used for [subgraph isomorphism](#subgraph-isomorphism))
+`all_different(val1, val2, .., valn)` | boolean | return true if the values are all different (typically used for specifying [isomorphic](#subgraph-isomorphism) patterns)
 `in_degree(vertex)` | exact numeric | returns the number of incoming neighbors.
 `out_degree(vertex)` | exact numeric | returns the number of outgoing neighbors.
 
@@ -1294,13 +1337,15 @@ The syntax is as follows:
 ```bash
 CastSpecification ::= 'CAST' '(' <ValueExpression> 'AS' <DATA_TYPE> ')'
 
-DATA_TYPE         ::= [a-zA-Z][a-zA-Z0-9\_ ]*
+DATA_TYPE         ::= {<IDENTIFIER> ' '}+
 ```
+
+Note that the syntax of a data type is one or more identifiers separated by a space, allowing the encoding of data types such as `STRING` and `TIME WITH TIMEZONE`.
 
 For example:
 
 ```sql
-SELECT CAST(n.age AS STRING), CAST('123' AS INTEGER), CAST('true' AS BOOLEAN)
+SELECT CAST(n.age AS STRING), CAST('123' AS INTEGER), CAST('09:15:00+01:00' AS TIME WITH TIMEZONE)
  MATCH (n:Person)
 ```
 
@@ -1331,41 +1376,37 @@ In PGQL 1.1, the supported operations on temporal values are limited to comparis
 
 ## Existential Subqueries
 
+`EXISTS` returns true/false depending on whether the subquery produces at least one result, given the bindings obtained in the current (outer) query. No additional binding of variables occurs.
+
+The syntax is as follows:
+
 ```bash
 ExistsPredicate ::= 'EXISTS' '(' <Query> ')'
 ```
+An example query is to find friend of friends and return the number of friends in common:
+
+```sql
+SELECT fof.name, COUNT(friend) AS num_common_friends
+ MATCH (p:Person) -[:has_friend]-> (friend:Person) -[:has_friend]-> (fof:Person)
+ WHERE NOT EXISTS (
+                    SELECT *
+                     MATCH (p) -[:has_friend]-> (fof)
+                  )
+```
+
+Here, vertices `p` and `fof` are passed from the outer query to the inner query. The `EXISTS` returns true if there is at least one `has_friend` edge between `p` and `fof`.
 
 # Other Syntactic Rules
 
 ## Identifiers
 
-Variable names as well as unquoted property names take the form of an identifier
+Graph names, variable names, and property names all take the form of an identifier that consists of an alphabetic character followed by zero or more alphanumeric or underscore (i.e. `_`) characters:
 
 ```bash
 IDENTIFIER ::= [a-zA-Z][a-zA-Z0-9\_]*
 ```
 
-## Syntax for Variables
-
-The syntactic structure of a variable name is an alphabetic character followed by zero or more alphanumeric or underscore (i.e. `_`) characters:
-
-```bash
-Variable ::= <IDENTIFIER>
-```
-
-## Syntax for Properties
-
-Property names may be quoted or unquoted. Quoted and unquotes property names may be used interchangeably. If unquoted, the syntactic structure of a property name is the same as for a variable name. That is, an alphabetic character followed by zero or more alphanumeric or underscore (i.e. _) characters. If quoted, the syntactic structure is that of a String (for the syntactic structure, see String literal).
-
-```bash
-PropertyName ::= <IDENTIFIER>
-```
-
-### Single-quoted strings
-
-A String literal is single quoted. Double-quoted strings are not allowed.
-
-### Escaped Characters in Strings
+## Escaped Characters in Strings
 
 Escaping in String literals is necessary to support having white space, quotation marks and the backslash character as a part of the literal value. The following explains the syntax of an escaped character.
 
