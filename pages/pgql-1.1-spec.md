@@ -13,7 +13,22 @@ toc: true
 
 The following are the changes since PGQL 1.0:
 
-## Breaking Syntax Changes Since PGQL 1.0
+## New Query Capability in 1.1
+
+ - [FROM clause](#input-graph-grom)
+ - [Undirected query edges](#undirected-query-edges)
+ - [Min and max repetition](#min-and-max-repetition) in regular path expressions
+ - [DISTINCT](#aggregation) in aggregation
+ - [SELECT DISTINCT](#projection-select)
+ - [Filtering of groups (HAVING)](#filtering-of-groups-having)
+ - [Temporal types](#temporal-types): `DATE`, `TIME`, `TIMESTAMP`, `TIME WITH TIMEZONE`, `TIMESTAMP WITH TIMEZONE`
+ - [IS NULL and IS NOT NULL](#is-null-and-is-not-null)
+ - [Explicit Type Conversion](#explicit-type-conversion) through `CAST` function
+ - [Built-in function](#built-in-functions) `all_different(val1, val2, .., valn)`
+ - [User-defined functions](#user-defined-functions)
+ - [Existential subqueries](#existential-subqueries)
+
+## Breaking Syntax Changes since PGQL 1.0
 
  - The `WHERE` clause is changed into a `MATCH` clause and an optional `WHERE` clause such that the `MATCH` contains the pattern (vertices and edges) while the `WHERE` contains the filters if there are any.
    The inlined filters (`WITH` construct) should also be specified in the `WHERE` clause.
@@ -91,21 +106,6 @@ The following are the changes since PGQL 1.0:
  - The `ASC(x)` (sort in ascending order) and `DESC(x)` (sort in descending order) functions have been removed. Instead, use the `x ASC` and `x DESC` constructs.
 
  - Direct sorting of vertices and edges (e.g. `ORDER BY v1, e1`) is no longer allowed. Instead, sort using _properties_ of vertices and edges (e.g. `ORDER BY v1.propX, e1.propY`).
-
-## New Query Capability in 1.1
-
- - [FROM clause](#input-graph)
- - [Undirected query edges](#undirected-query-edges)
- - [Min and max repetition](#min-and-max-repetition) in regular path expressions
- - [DISTINCT](#aggregation) in aggregation
- - [SELECT DISTINCT](#projection-select)
- - [Filtering of groups (HAVING)](#filtering-of-groups-having)
- - [Temporal types](#temporal-types): `DATE`, `TIME`, `TIMESTAMP`, `TIME WITH TIMEZONE`, `TIMESTAMP WITH TIMEZONE`
- - [IS NULL and IS NOT NULL](#is-null-and-is-not-null)
- - [Explicit Type Conversion](#explicit-type-conversion) through `CAST` function
- - [Built-in function](#built-in-functions) `all_different(val1, val2, .., valn)`
- - [User-defined functions](#user-defined-functions)
- - [Existential subqueries](#existential-subqueries)
 
 # Introduction
 
@@ -207,7 +207,7 @@ UndirectedEdge      ::= '-'
                       | '-[' <VariableDeclaration> ']-'
 VariableDeclaration ::= <VariableName>? <LabelsPredicate>?
 VariableName        ::= <IDENTIFIER>
-LabelsPredicate     ::= ':' {<IDENTIFIER> '|'}+
+LabelsPredicate     ::= ':' {<Label> '|'}+
 WhereClause         ::= 'WHERE' <ValueExpression>
 ```
 
@@ -215,7 +215,7 @@ A path pattern describes a partial topology of the subgraph pattern, i.e. vertic
 
 There can be multiple path patterns in the `MATCH` clause of a PGQL query. Semantically, all constraints are conjunctive – that is, each matched result should satisfy every constraint in the `MATCH` clause.
 
-## Input Graph
+## Input Graph (FROM)
 
 The `FROM` clause specifies the name of the input graph that will be queried:
 
@@ -226,8 +226,8 @@ FromClause ::= 'FROM' <IDENTIFIER>
 The `FROM` clause may be omitted if the system does not require the specification of an input graph for reasons such as:
 
  - The input graph is implicit because the system only handles single graphs.
- - The system has a notion of a "default graph" like in SPARQL.
- - The system provides an API such as `Graph.queryPgql(..)`, such that it is already clear what the input graph is.
+ - The system has a notion of a "default graph" like in certain SPARQL systems.
+ - The system provides an API such as `Graph.queryPgql(..)`, such that it is already clear from the context what the input graph is.
 
 ## Topology Constraints
 
@@ -1228,7 +1228,7 @@ Literal                      ::= <StringLiteral>
                                | <TimeLiteral>
                                | <TimestampLiteral>
                                | <TimeWithTimezoneLiteral>
-                               | <TimestampWithTimeZoneLiteral>
+                               | <TimestampWithTimezoneLiteral>
 
 StringLiteral                ::= "'" (~[\'\n\\] | <EscapedCharacter>)* "'"
 
@@ -1250,7 +1250,7 @@ TimestampLiteral             ::= 'TIMESTAMP' "'" <yyyy-MM-dd HH:mm:ss> "'"
 
 TimeWithTimezoneLiteral      ::= 'TIME' "'" <HH:mm:ss+HH:MM> "'"
 
-TimestampWithTimeZoneLiteral ::= 'TIMESTAMP' "'" <yyyy-MM-dd HH:mm:ss+HH:MM> "'"
+TimestampWithTimezoneLiteral ::= 'TIMESTAMP' "'" <yyyy-MM-dd HH:mm:ss+HH:MM> "'"
 ```
 
 | Literal type            | Example literal                         |

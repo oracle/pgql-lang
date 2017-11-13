@@ -8,12 +8,12 @@ entries:
     output: web
     folderitems:
 
-    - title: Breaking Syntax Changes Since PGQL 1.0
-      url: /spec/1.1/#breaking-syntax-changes-since-pgql-10
-      output: web
-
     - title: New Query Capability in 1.1
       url: /spec/1.1/#new-query-capability-in-11
+      output: web
+
+    - title: Breaking Syntax Changes since PGQL 1.0
+      url: /spec/1.1/#breaking-syntax-changes-since-pgql-10
       output: web
 
   - title: Introduction
@@ -34,8 +34,8 @@ entries:
     output: web
     folderitems:
 
-    - title: Input Graph
-      url: /spec/1.1/#input-graph
+    - title: Input Graph (FROM)
+      url: /spec/1.1/#input-graph-from
       output: web
 
     - title: Topology Constraints
