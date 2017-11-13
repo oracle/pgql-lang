@@ -15,18 +15,18 @@ The following are the changes since PGQL 1.0:
 
 ## New Query Capability in 1.1
 
- - [FROM clause](#input-graph-grom)
+ - [FROM clause](#input-graph-from)
  - [Undirected query edges](#undirected-query-edges)
  - [Min and max repetition](#min-and-max-repetition) in regular path expressions
  - [DISTINCT](#aggregation) in aggregation
  - [SELECT DISTINCT](#projection-select)
- - [Filtering of groups (HAVING)](#filtering-of-groups-having)
+ - Filtering of groups ([HAVING](#filtering-of-groups-having))
  - [Temporal types](#temporal-types): `DATE`, `TIME`, `TIMESTAMP`, `TIME WITH TIMEZONE`, `TIMESTAMP WITH TIMEZONE`
- - [IS NULL and IS NOT NULL](#is-null-and-is-not-null)
- - [Explicit Type Conversion](#explicit-type-conversion) through `CAST` function
- - [Built-in function](#built-in-functions) `all_different(val1, val2, .., valn)`
+ - [IS NULL](#is-null-and-is-not-null) and [IS NOT NULL](#is-null-and-is-not-null)
+ - Explicit type conversion through [`CAST`](#explicit-type-conversion-cast) function
+ - Built-in function [`all_different(val1, val2, .., valn)`](#built-in-functions)
  - [User-defined functions](#user-defined-functions)
- - [Existential subqueries](#existential-subqueries)
+ - Existential subqueries ([EXISTS](#existential-subqueries-exists))
 
 ## Breaking Syntax Changes since PGQL 1.0
 
@@ -912,7 +912,7 @@ Matches will be grouped together only if they hold the same values for `n.firstN
 
 ### GROUP BY and NULL values
 
-The group for which all the group by expressions evaluate to null is ignored and does not take part in further query processing. However, a group for which some expressions evaluate to null but at least one expression evaluates to a non-null value, is not ignored and takes part in further query processing.
+The group for which all the group keys are null is a valid group and takes part in further query processing.
 
 ### Repetition of Group Expression in Select or Order Expression
 
@@ -1161,7 +1161,7 @@ Binary operations are only allowed if both operands are of the same type, with t
 - _timestamp_ values can be compared to _timestamp with timezone_ values
 
 To compare such time(stamp) with timezone values to other time(stamp) values (with or without timezone), values are first normalized to have the same timezone, before they are compared.
-Comparison with other operand type combinations, such as dates and timestamp, is not possible. However, casting between e.g. dates and timestamp is allowed (see [Explicit Type Conversion](#explicit-type-conversion)).
+Comparison with other operand type combinations, such as dates and timestamp, is not possible. However, casting between e.g. dates and timestamp is allowed (see [Explicit Type Conversion](#explicit-type-conversion-cast)).
 
 ### Operator Precedence
 
@@ -1330,7 +1330,7 @@ Coercion is only defined for numeric types. Given a binary arithmetic operation 
 - If both operands are exact numerics (e.g. integer or long), then the result is also an exact numeric with a scale that is at least as large as the scales of each operand.
 - If one or both of the operands is approximate numeric (e.g. float, double), the result is an approximate numeric with a scale that is at least as large as the scales of each operand. The precision will also be at least as high as the precision of each operand.
 
-### Explicit Type Conversion
+### Explicit Type Conversion (CAST)
 
 Explicit type conversion is supported through type "casting".
 
@@ -1376,7 +1376,7 @@ In PGQL 1.1, the supported operations on temporal values are limited to comparis
 
 # Subqueries
 
-## Existential Subqueries
+## Existential Subqueries (EXISTS)
 
 `EXISTS` returns true/false depending on whether the subquery produces at least one result, given the bindings obtained in the current (outer) query. No additional binding of variables occurs.
 

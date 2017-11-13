@@ -250,8 +250,8 @@ entries:
         url: /spec/1.1/#implicit-type-conversion
         output: web
 
-      - title: Explicit Type Conversion
-        url: /spec/1.1/#explicit-type-conversion
+      - title: Explicit Type Conversion (CAST)
+        url: /spec/1.1/#explicit-type-conversion-cast
         output: web
 
     - title: Temporal Types
@@ -263,8 +263,8 @@ entries:
     output: web
     folderitems:
 
-    - title: Existential Subqueries
-      url: /spec/1.1/#existential-subqueries
+    - title: Existential Subqueries (EXISTS)
+      url: /spec/1.1/#existential-subqueries-exists
       output: web
 
   - title: Other Syntactic Rules
