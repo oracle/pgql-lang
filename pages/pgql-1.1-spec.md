@@ -38,12 +38,12 @@ The following are the changes since PGQL 1.0:
 
    ```bash
    # PGQL 1.0
-   CommonPathExpression ::= 'PATH' IDENTIFIER ':=' PathPattern
+   'PATH' IDENTIFIER ':=' PathPattern
    ```
 
    ```bash
    # PGQL 1.1
-   CommonPathExpression ::= 'PATH' IDENTIFIER 'AS' PathPattern WhereClause?
+   'PATH' IDENTIFIER 'AS' PathPattern WhereClause?
    ```
 
    The changes are:
@@ -66,7 +66,7 @@ The following are the changes since PGQL 1.0:
      PATH close_friend AS () -[e]-> (:Person) WHERE e.weight >= 9
    SELECT m.name
     MATCH (n:Person) -/:close_friend*/-> (m)
-    WHERE n.name = 'Amber'  
+    WHERE n.name = 'Amber'
    ```
 
  - Double-quoted string literals are no longer allowed; string literals should be single-quoted.
@@ -165,16 +165,15 @@ or, composite types like in [Neo4j](https://neo4j.com/docs/developer-manual/curr
 The syntax of PGQL resembles that of SQL (Standard Query Language) of relational database systems. A basic PGQL query consists of the following clauses:
 
 ```bash
-Query ::=
-  CommonPathExpressions?
-  SelectClause
-  FromClause?
-  MatchClause
-  WhereClause?
-  GroupByClause?
-  HavingClause?
-  OrderByClause?
-  LimitOffsetClauses?
+Query ::= <CommonPathExpressions>?
+        | <SelectClause>
+        | <FromClause>?
+        | <MatchClause>
+        | <WhereClause>?
+        | <GroupByClause>?
+        | <HavingClause>?
+        | <OrderByClause>?
+        | <LimitOffsetClauses>?
 ```
 
 The most important ones are as follows:
@@ -192,28 +191,34 @@ In a PGQL query, the `MATCH` clause defines the graph pattern to be matched.
 Syntactically, a `MATCH` clause is composed of the keyword `MATCH` followed by a comma-separated sequence of path patterns.
 
 ```bash
-MatchClause         ::= 'MATCH' {PathPattern ','}+
-PathPattern         ::= Vertex (Relation Vertex)*
-Vertex              ::= '(' VariableDeclaration ')'
-Relation            ::= Edge
-                      | Path # see Regular Path Expressions
-Edge                ::= OutgoingEdge
-                      | IncomingEdge
-                      | UndirectedEdge
+MatchClause         ::= 'MATCH' {<PathPattern> ','}+
+PathPattern         ::= <Vertex> (<Relation> <Vertex>)*
+Vertex              ::= '(' <VariableDeclaration> ')'
+Relation            ::= <Edge>
+                      | <Path>
+Edge                ::= <OutgoingEdge>
+                      | <IncomingEdge>
+                      | <UndirectedEdge>
 OutgoingEdge        ::= '->'
-                      | '-[' VariableDeclaration ']->'
+                      | '-[' <VariableDeclaration> ']->'
 IncomingEdge        ::= '<-'
-                      | '<-[' VariableDeclaration ']-'
+                      | '<-[' <VariableDeclaration> ']-'
 UndirectedEdge      ::= '-'
-                      | '-[' VariableDeclaration ']-'
-VariableDeclaration ::= IDENTIFIER? LabelsPredicate?
-LabelsPredicate     ::= ':' {IDENTIFIER '|'}+
-WhereClause         ::= 'WHERE' ValueExpression # see Value Expressions
+                      | '-[' <VariableDeclaration> ']-'
+VariableDeclaration ::= <IDENTIFIER>? <LabelsPredicate>?
+LabelsPredicate     ::= ':' {<IDENTIFIER> '|'}+
+WhereClause         ::= 'WHERE' <ValueExpression>
 ```
 
 A path pattern describes a partial topology of the subgraph pattern, i.e. vertices and edges in the pattern.
 
 There can be multiple path patterns in the `MATCH` clause of a PGQL query. Semantically, all constraints are conjunctive – that is, each matched result should satisfy every constraint in the `MATCH` clause.
+
+## Input Graph
+
+```bash
+FromClause ::= 'FROM' <IDENTIFIER>
+```
 
 ## Topology Constraints
 
@@ -311,7 +316,7 @@ SELECT *
 Labels can be arbitrary strings. Omitting quotes is optional only if the label is an alphanumeric character followed by zero or more alphanumeric or underscore characters. Otherwise, the label needs to be quoted and Syntax for Strings needs to be followed. This is explained by the following grammar constructs:
 
 ```bash
-Label ::= IDENTIFIER
+Label ::= <IDENTIFIER>
 ```
 
 Take the following example:
@@ -448,9 +453,9 @@ In a PGQL query, the SELECT clause defines the data entities to be returned in t
 The following explains the syntactic structure of SELECT clause.
 
 ```bash
-SelectClause ::= 'SELECT' {SelectElem ','}+
+SelectClause ::= 'SELECT' {<SelectElem> ','}+
                | 'SELECT' '*'
-SelectElem   ::= ValueExpression ('AS' Variable)?
+SelectElem   ::= <ValueExpression> ('AS' <Variable>)?
 ```
 
 A `SELECT` clause consists of the keyword `SELECT` followed by a comma-separated sequence of select element, or a special character star `*`. A select element consists of:
@@ -515,8 +520,8 @@ When there are multiple matched subgraph instances to a given query, in general,
 The following explains the syntactic structure of `ORDER BY` clause.
 
 ```bash
-OrderByClause ::= 'ORDER' 'BY' {OrderTerm ','}+
-OrderTerm     ::= ValueExpression ('ASC'|'DESC')?
+OrderByClause ::= 'ORDER' 'BY' {<OrderTerm> ','}+
+OrderTerm     ::= <ValueExpression> ('ASC'|'DESC')?
 ```
 
 The `ORDER BY` clause starts with the keywords `ORDER BY` and is followed by comma separated list of order terms. An order term consists of the following parts:
@@ -561,8 +566,8 @@ The `LIMIT` puts an upper bound on the number of solutions returned, whereas the
 The following explains the syntactic structure for the LIMIT and OFFSET clauses:
 
 ```bash
-LimitOffsetClauses ::= 'LIMIT' Integer ('OFFSET' Integer)?
-                     | 'OFFSET' Integer ('LIMIT' Integer)?
+LimitOffsetClauses ::= 'LIMIT' <UNSIGNED_INTEGER> ('OFFSET' <UNSIGNED_INTEGER>)?
+                     | 'OFFSET' <UNSIGNED_INTEGER> ('LIMIT' <UNSIGNED_INTEGER>)?
 ```
 
 The `LIMIT` clause starts with the keyword `LIMIT` and is followed by an integer that defines the limit. Similarly, the `OFFSET` clause starts with the keyword `OFFSET` and is followed by an integer that defines the offset. Furthermore:
@@ -590,32 +595,32 @@ PGQL 1.0 supports testing for path existence ("reachability testing") only, whil
 The syntactic structure of a query path is similar to a query edge, but it uses forward slashes (-/.../->) instead of square brackets (-[...]->). The syntax rules are as follows:
 
 ```bash
-Path                 ::= OutgoingPath
-                       | IncomingPath
+Path                 ::= <OutgoingPath>
+                       | <IncomingPath>
 
-OutgoingPath         ::= '-/' LabelsPredicate '/->'
-                       | '-/' SingleLabelPredicate RepetitionQuantifier '/->'
+OutgoingPath         ::= '-/' <LabelsPredicate> '/->'
+                       | '-/' <SingleLabelPredicate> <RepetitionQuantifier> '/->'
 
-IncomingPath         ::= '<-/' LabelsPredicate '/-'
-                       | '<-/' SingleLabelPredicate RepetitionQuantifier '/-'
+IncomingPath         ::= '<-/' <LabelsPredicate '/-'
+                       | '<-/' <SingleLabelPredicate> <RepetitionQuantifier> '/-'
 
-SingleLabelPredicate ::= ':' IDENTIFIER
+SingleLabelPredicate ::= ':' <IDENTIFIER>
 
-RepetitionQuantifier ::= ZeroOrMore
-                       | OneOrMore
-                       | Optional
-                       | ExactlyN
-                       | NOrMore
-                       | BetweenNAndM
-                       | BetweenZeroAndM
+RepetitionQuantifier ::= <ZeroOrMore>
+                       | <OneOrMore>
+                       | <Optional>
+                       | <ExactlyN>
+                       | <NOrMore>
+                       | <BetweenNAndM>
+                       | <BetweenZeroAndM>
 
 ZeroOrMore           ::= '*'
 OneOrMore            ::= '+'
 Optional             ::= '?'
-ExactlyN             ::= '{' UNSIGNED-INTEGER '}'
-NOrMore              ::= '{' UNSIGNED-INTEGER ',' '}'
-BetweenNAndM         ::= '{' UNSIGNED-INTEGER ',' UNSIGNED-INTEGER '}'
-BetweenZeroAndM      ::= '{' ',' UNSIGNED-INTEGER '}'
+ExactlyN             ::= '{' <UNSIGNED_INTEGER> '}'
+NOrMore              ::= '{' <UNSIGNED_INTEGER> ',' '}'
+BetweenNAndM         ::= '{' <UNSIGNED_INTEGER> ',' <UNSIGNED_INTEGER> '}'
+BetweenZeroAndM      ::= '{' ',' <UNSIGNED_INTEGER> '}'
 ```
 
 An example is as follows:
@@ -807,6 +812,11 @@ Yet, `Judith` is only returned once.
 
 One or more "common path expression" may be declared at the beginning of the query. These can be seen as macros that allow for expressing complex regular expressions.
 
+```bash
+CommonPathExpressions ::= <CommonPathExpression>+
+CommonPathExpression  ::= 'PATH' <IDENTIFIER> 'AS' <PathPattern> <WhereClause>?
+```
+
 A path pattern declaration starts with the keyword `PATH`, followed by an expression name, the assignment operator `AS`, and a path pattern consisting ofat least one vertex. The syntactic structure of the path pattern is the same as a path pattern in the `MATCH` clause.
 
 An example is as follows:
@@ -842,7 +852,7 @@ The above query outputs all generators that are connected to each other via one 
 The following explains the syntactic structure of the `GROUP BY` clause:
 
 ```bash
-GroupByClause ::= 'GROUP' 'BY' {ExpAsVar ','}+
+GroupByClause ::= 'GROUP' 'BY' {<ExpAsVar> ','}+
 ```
 
 The `GROUP BY` clause starts with the keywords GROUP BY and is followed by a comma-separated list of group terms. Each group term consists of:
@@ -987,7 +997,7 @@ The `HAVING` clause can be placed after a `GROUP BY` clause to filter out partic
 The syntactic structure is as follows:
 
 ```bash
-HavingClause ::= 'HAVING' {ValueExpression ','}+
+HavingClause ::= 'HAVING' {<ValueExpression> ','}+
 ```
 
 An example is as follows:
@@ -1004,6 +1014,74 @@ This query returns the names of people who have more than 10 friends.
 # Value Expressions
 
 Expressions are used in value constraints, in-lined constraints, and select/group/order terms. This section of the document defines the operators and built-in functions that can be used as part of an expression.
+
+```bash
+ValueExpression          ::= <VariableReference>
+                           | <PropertyAccess>
+                           | <Literal>
+                           | <ArithmeticExpression>
+                           | <RelationalExpression>
+                           | <LogicalExpression>
+                           | <BracketedValueExpression>
+                           | <CastSpecification>
+                           | <ExistsPredicate>
+                           | <FunctionCall>
+                           | <IsNull>
+                           | <IsNotNull>
+                           | <BindVariable>
+
+VariableReference        ::= <IDENTIFIER>
+
+PropertyAccess           ::= <IDENTIFIER> '.' <IDENTIFIER>
+
+ArithmeticExpression     ::= <Addition>
+                           | <Subtraction>
+                           | <Multiplication>
+                           | <Division>
+                           | <Modulo>
+                           | <UnaryMinus>
+
+Addition                 ::= <ValueExpression> '+' <ValueExpression>
+Subtraction              ::= <ValueExpression> '-' <ValueExpression>
+Multiplication           ::= <ValueExpression> '*' <ValueExpression>
+Division                 ::= <ValueExpression> '/' <ValueExpression>
+Modulo                   ::= <ValueExpression> '%' <ValueExpression>
+UnaryMinus               ::= <ValueExpression> '-' <ValueExpression>
+
+RelationalExpression     ::= <Equals>
+                           | <NotEquals>
+                           | <Greater>
+                           | <GreaterEqual>
+                           | <Less>
+                           | <LessEquals>
+
+Equals                   ::= <ValueExpression> '=' <ValueExpression>
+
+NotEquals                ::= <ValueExpression> '<>' <ValueExpression>
+
+Greater                  ::= <ValueExpression> '>' <ValueExpression>
+
+GreaterEqual             ::= <ValueExpression> '>=' <ValueExpression>
+
+Less                     ::= <ValueExpression> '<' <ValueExpression>
+
+LessEquals               ::= <ValueExpression> '<=' <ValueExpression>
+
+LogicalExpression        ::= <And>
+                           | <Or>
+                           | <Not>
+
+And                      ::= <ValueExpression> 'AND' <ValueExpression>
+
+Or                       ::= <ValueExpression> 'OR' <ValueExpression>
+
+Not                      ::= <ValueExpression> 'NOT' <ValueExpression>
+
+BracketedValueExpression ::= '(' <ValueExpression> ')'
+
+BindVariable             ::= '?'
+```
+
 
 ## Operators
 
@@ -1073,7 +1151,15 @@ Note that from the table it follows that `null = null` yields `null` and not `tr
 
 ### IS NULL and IS NOT NULL
 
-To test whether a value exists or not, one can use the `IS NULL` and `IS NOT NULL` constructs. An example is as follows:
+To test whether a value exists or not, one can use the `IS NULL` and `IS NOT NULL` constructs.
+
+```bash
+IsNull ::= <ValueExpression> 'IS' 'NULL'
+
+IsNotNull ::= <ValueExpression> 'IS' 'NOT' 'NULL'
+```
+
+An example is as follows:
 
 ```sql
 SELECT n.name
@@ -1087,17 +1173,50 @@ Here, we find all the vertices in the graph that have the property `name` and th
 
 The following are the available literals in PGQL:
 
-| Type of literal         | Syntax                                              | Example
-|-------------------------|-----------------------------------------------------|-----------------------------------------|
-| string                  | `"'" (~[\'\n\\] | EscapedCharacter)* "'"`           | `'Clara'`                               |
-| integer                 | `[0-9]+`                                            | `12`                                    |
-| decimal                 | `[0-9]* '.' [0-9]+`                                 | `12.3`                                  |
-| boolean                 | `'true' | 'false'`                                  | `true`                                  |
-| date                    | `'DATE' "'" <yyyy-MM-dd> "'"`                       | `DATE '2017-09-21'`                     |
-| time                    | `'TIME' "'" <HH:mm:ss> "'"`                         | `TIME '16:15:00'`                       |
-| timestamp               | `'TIMESTAMP' "'" <yyyy-MM-dd HH:mm:ss> "'"`         | `TIMESTAMP '2017-09-21 16:15:00'`       |
-| time with timezone      | `'TIME' "'" <HH:mm:ss+HH:MM> "'"`                   | `TIME '16:15:00+01:00'`                 |
-| timestamp with timezone | `'TIMESTAMP' "'" <yyyy-MM-dd HH:mm:ss+HH:MM> "'"`   | `TIMESTAMP '2017-09-21 16:15:00-03:00'` |
+```bash
+Literal                      ::= <StringLiteral>
+                               | <NumericLiteral>
+                               | <BooleanLiteral>
+                               | <DateLiteral>
+                               | <TimeLiteral>
+                               | <TimestampLiteral>
+                               | <TimeWithTimezoneLiteral>
+                               | <TimestampWithTimeZoneLiteral>
+
+StringLiteral                ::= "'" (~[\'\n\\] | <EscapedCharacter>)* "'"
+
+NumericLiteral               ::= <UNSIGNED_INTEGER>
+                               | <UNSIGNED_DECIMAL>
+
+UNSIGNED_INTEGER             ::= [0-9]+
+
+UNSIGNED_DECIMAL             ::= [0-9]* '.' [0-9]+
+
+BooleanLiteral               ::= 'true'
+                               | 'false'
+
+DateLiteral                  ::= 'DATE' "'" <yyyy-MM-dd> "'"
+
+TimeLiteral                  ::= 'TIME' "'" <HH:mm:ss> "'"
+
+TimestampLiteral             ::= 'TIMESTAMP' "'" <yyyy-MM-dd HH:mm:ss> "'"
+
+TimeWithTimezoneLiteral      ::= 'TIME' "'" <HH:mm:ss+HH:MM> "'"
+
+TimestampWithTimeZoneLiteral ::= 'TIMESTAMP' "'" <yyyy-MM-dd HH:mm:ss+HH:MM> "'"
+```
+
+| Literal type            | Example literal                         |
+|-------------------------|-----------------------------------------|
+| string                  | `'Clara'`                               |
+| integer                 | `12`                                    |
+| decimal                 | `12.3`                                  |
+| boolean                 | `true`                                  |
+| date                    | `DATE '2017-09-21'`                     |
+| time                    | `TIME '16:15:00'`                       |
+| timestamp               | `TIMESTAMP '2017-09-21 16:15:00'`       |
+| time with timezone      | `TIME '16:15:00+01:00'`                 |
+| timestamp with timezone | `TIMESTAMP '2017-09-21 16:15:00-03:00'` |
 
 Note that the numeric literals (integer and decimal) are unsigned. However, signed values can be generated by using the unary minus opeartor (`-`).
 
@@ -1108,10 +1227,10 @@ PGQL has a set of built-in functions and supports extension through user-defined
 The syntactic structure for built-in and user-defined function calls is as follows:
 
 ```bash
-FunctionCall        ::= FunctionPackage? FunctionName '(' {String ','}* ')'
-FunctionPackage     ::= FunctionPackageName '.'
-FunctionPackageName ::= IDENTIFIER
-FunctionName        ::= IDENTIFIER
+FunctionCall        ::= <FunctionPackage>? <FunctionName> '(' {<ValueExpression> ','}* ')'
+FunctionPackage     ::= <FunctionPackageName> '.'
+FunctionPackageName ::= <IDENTIFIER>
+FunctionName        ::= <IDENTIFIER>
 ```
 
 A function call has an optional package name, a function name, and zero or more argument. Function names are case-insensitive.
@@ -1168,7 +1287,15 @@ Coercion is only defined for numeric types. Given a binary arithmetic operation 
 
 Explicit type conversion is supported through type "casting".
 
-The syntax is as follows: `CAST(expression AS datatype)`. For example:
+The syntax is as follows: 
+
+```bash
+CastSpecification ::= 'CAST' '(' <ValueExpression> 'AS' <DataType> ')'
+
+DataType          ::= [a-zA-Z][a-zA-Z0-9\_ ]*
+```
+
+For example:
 
 ```sql
 SELECT CAST(n.age AS STRING), CAST('123' AS INTEGER), CAST('true' AS BOOLEAN)
@@ -1203,7 +1330,7 @@ In PGQL 1.1, the supported operations on temporal values are limited to comparis
 ## Existential Subqueries
 
 ```bash
-ExistsPredicate ::= 'EXISTS' '(' Query ')'
+ExistsPredicate ::= 'EXISTS' '(' <Query> ')'
 ```
 
 # Other Syntactic Rules
@@ -1213,9 +1340,9 @@ ExistsPredicate ::= 'EXISTS' '(' Query ')'
 Variable names as well as unquoted property names take the form of an identifier
 
 ```bash
-Variable   ::= IDENTIFIER
+Variable   ::= <IDENTIFIER>
 IDENTIFIER ::= [a-zA-Z][a-zA-Z0-9\_]* |
-              '"' (~[\"\n\\] | EscapedCharacter)* '"'
+              '"' (~[\"\n\\] | <EscapedCharacter>)* '"'
 ```
 
 ## Syntax for Variables
@@ -1223,7 +1350,7 @@ IDENTIFIER ::= [a-zA-Z][a-zA-Z0-9\_]* |
 The syntactic structure of a variable name is an alphabetic character followed by zero or more alphanumeric or underscore (i.e. `_`) characters:
 
 ```bash
-Variable ::= IDENTIFIER
+Variable ::= <IDENTIFIER>
 ```
 
 ## Syntax for Properties
@@ -1231,7 +1358,7 @@ Variable ::= IDENTIFIER
 Property names may be quoted or unquoted. Quoted and unquotes property names may be used interchangeably. If unquoted, the syntactic structure of a property name is the same as for a variable name. That is, an alphabetic character followed by zero or more alphanumeric or underscore (i.e. _) characters. If quoted, the syntactic structure is that of a String (for the syntactic structure, see String literal).
 
 ```bash
-PropertyName ::= IDENTIFIER
+PropertyName ::= <IDENTIFIER>
 ```
 
 ### Single-quoted strings

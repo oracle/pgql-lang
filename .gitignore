@@ -3,4 +3,4 @@ _site/
 .jekyll-metadata
 _pdf
 .idea/
-GenerateMenuFromMarkdown.class
+*.class
