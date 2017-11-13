@@ -165,15 +165,14 @@ or, composite types like in [Neo4j](https://neo4j.com/docs/developer-manual/curr
 The syntax of PGQL resembles that of SQL (Standard Query Language) of relational database systems. A basic PGQL query consists of the following clauses:
 
 ```bash
-Query ::= <CommonPathExpressions>?
-        | <SelectClause>
-        | <FromClause>?
-        | <MatchClause>
-        | <WhereClause>?
-        | <GroupByClause>?
-        | <HavingClause>?
-        | <OrderByClause>?
-        | <LimitOffsetClauses>?
+Query ::=
+  <CommonPathExpressions>?
+  <SelectClause>
+  <FromClause>? <MatchClause>
+  <WhereClause>?
+  <GroupByClause>? <HavingClause>?
+  <OrderByClause>?
+  <LimitOffsetClauses>?
 ```
 
 The most important ones are as follows:
@@ -205,7 +204,8 @@ IncomingEdge        ::= '<-'
                       | '<-[' <VariableDeclaration> ']-'
 UndirectedEdge      ::= '-'
                       | '-[' <VariableDeclaration> ']-'
-VariableDeclaration ::= <IDENTIFIER>? <LabelsPredicate>?
+VariableDeclaration ::= <VariableName>? <LabelsPredicate>?
+VariableName        ::= <IDENTIFIER>
 LabelsPredicate     ::= ':' {<IDENTIFIER> '|'}+
 WhereClause         ::= 'WHERE' <ValueExpression>
 ```
@@ -1030,9 +1030,11 @@ ValueExpression          ::= <VariableReference>
                            | <IsNotNull>
                            | <BindVariable>
 
-VariableReference        ::= <IDENTIFIER>
+VariableReference        ::= VariableName
 
-PropertyAccess           ::= <IDENTIFIER> '.' <IDENTIFIER>
+PropertyAccess           ::= VariableReference '.' PropertyName
+
+PropertyName             ::= <IDENTIFIER>
 
 ArithmeticExpression     ::= <Addition>
                            | <Subtraction>
@@ -1075,7 +1077,7 @@ And                      ::= <ValueExpression> 'AND' <ValueExpression>
 
 Or                       ::= <ValueExpression> 'OR' <ValueExpression>
 
-Not                      ::= <ValueExpression> 'NOT' <ValueExpression>
+Not                      ::= 'NOT' <ValueExpression>
 
 BracketedValueExpression ::= '(' <ValueExpression> ')'
 
@@ -1290,9 +1292,9 @@ Explicit type conversion is supported through type "casting".
 The syntax is as follows: 
 
 ```bash
-CastSpecification ::= 'CAST' '(' <ValueExpression> 'AS' <DataType> ')'
+CastSpecification ::= 'CAST' '(' <ValueExpression> 'AS' <DATA_TYPE> ')'
 
-DataType          ::= [a-zA-Z][a-zA-Z0-9\_ ]*
+DATA_TYPE         ::= [a-zA-Z][a-zA-Z0-9\_ ]*
 ```
 
 For example:
@@ -1340,9 +1342,7 @@ ExistsPredicate ::= 'EXISTS' '(' <Query> ')'
 Variable names as well as unquoted property names take the form of an identifier
 
 ```bash
-Variable   ::= <IDENTIFIER>
-IDENTIFIER ::= [a-zA-Z][a-zA-Z0-9\_]* |
-              '"' (~[\"\n\\] | <EscapedCharacter>)* '"'
+IDENTIFIER ::= [a-zA-Z][a-zA-Z0-9\_]*
 ```
 
 ## Syntax for Variables
