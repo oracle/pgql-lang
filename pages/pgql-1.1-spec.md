@@ -494,7 +494,7 @@ The `DISTINCT` modifier allows for filtering out duplicate results. The operatio
 It is possible to assign a variable name to any of the selection expression, by appending the keyword `AS` and a variable name. The variable name is used as the column name of the result set. In addition, the variable name can be later used in the `ORDER BY` clause. See the related section later in this document.
 
 ```sql
-  SELECT n.age*2 - 1 AS pivot, n.name, n
+  SELECT n.age * 2 - 1 AS pivot, n.name, n
    MATCH (n:Person) -> (m:Car)
 ORDER BY pivot
 ```
@@ -1170,7 +1170,7 @@ Binary operations are only allowed if both operands are of the same type, with t
 - _timestamp_ values can be compared to _timestamp with timezone_ values
 
 To compare such _time(stamp) with timezone_ values to other time(stamp) values (with or without timezone), values are first normalized to have the same timezone, before they are compared.
-Comparison with other operand type combinations, such as dates and timestamp, is not possible. However, it is possible to [cast](#explicit-type-conversion-cast) between e.g. dates and timestamps.
+Comparison with other operand type combinations, such as dates and timestamp, is not possible. However, it is possible to cast between e.g. dates and timestamps (see [Explicit Type Conversion (CAST)](#explicit-type-conversion-cast)).
 
 ### Operator Precedence
 
@@ -1428,7 +1428,7 @@ Here, vertices `p` and `fof` are passed from the outer query to the inner query.
 
 ## Subqueries without FROM Clause
 
-If the `FROM` clause is omitted from a subquery, then, the input graph of the subquery is the same as the input graph of the outer query.
+If the `FROM` clause is omitted from a subquery, then the graph to process the subquery against, is the same graph as used for the outer query.
 
 ## Querying Multiple Graphs
 
