@@ -1097,7 +1097,7 @@ Logical       | `AND`, `OR`, `NOT`
 
 The corresonding grammar rules are:
 
-```sql
+```bash
 ArithmeticExpression ::= <Addition>
                        | <Subtraction>
                        | <Multiplication>
@@ -1271,19 +1271,18 @@ Note that the numeric literals (integer and decimal) are unsigned. However, sign
 
 ## Functions
 
-PGQL has a set of built-in functions and supports extension through user-defined functions (UDFs).
+PGQL has a set of [built-in functions](#built-in-functions), and in addition, provides extension through [user-defined functions](#user-defined-functions).
 
 The syntactic structure for built-in and user-defined function calls is as follows:
 
 ```bash
-FunctionCall        ::= <FunctionPackage>? <FunctionName> '(' {<ValueExpression> ','}* ')'
-FunctionPackage     ::= <FunctionPackageName> '.'
-FunctionPackageName ::= <IDENTIFIER>
-FunctionName        ::= <IDENTIFIER>
+FunctionCall         ::= <PackageSpecification>? <FunctionName> '(' {<ValueExpression> ','}* ')'
+PackageSpecification ::= <PackageName> '.'
+PackageName          ::= <IDENTIFIER>
+FunctionName         ::= <IDENTIFIER>
 ```
 
 A function call has an optional package name, a function name, and zero or more argument. Function names are case-insensitive.
-
 
 ### Built-in Functions
 
