@@ -464,15 +464,15 @@ In a PGQL query, the SELECT clause defines the data entities to be returned in t
 The following explains the syntactic structure of SELECT clause.
 
 ```bash
-SelectClause ::= 'SELECT' <Distinct>? {<ExpAsVar> ','}+
+SelectClause ::= 'SELECT' <DISTINCT>? {<ExpAsVar> ','}+
                | 'SELECT' '*'
 
-Distinct     ::= 'DISTINCT'
+DISTINCT     ::= 'DISTINCT'
 
 ExpAsVar     ::= <ValueExpression> ('AS' <VariableName>)?
 ```
 
-A `SELECT` clause consists of the keyword `SELECT` followed by either an optional `<Distinct>` modifier and comma-separated sequence of `<ExpAsVar>` ("expression as variable") elements, or, a special character star `*`. An `<ExpAsVar>` consists of:
+A `SELECT` clause consists of the keyword `SELECT` followed by either an optional `<DISTINCT>` modifier and comma-separated sequence of `<ExpAsVar>` ("expression as variable") elements, or, a special character star `*`. An `<ExpAsVar>` consists of:
 
 - A `<ValueExpression>`.
 - An optional `<VariableName>`, specified by appending the keyword `AS` and the name of the variable.
@@ -916,7 +916,7 @@ Matches will be grouped together only if they hold the same values for `n.firstN
 
 The group for which all the group keys are null is a valid group and takes part in further query processing.
 
-To filter out such a group, use a `<HavingClause>`, for example:
+To filter out such a group, use a [`HAVING` clause](#filtering-of-groups-having), for example:
 
 ```sql
   SELECT n.prop1, n.prop2, COUNT(*)
@@ -969,18 +969,18 @@ Aggregation      ::= CountAggregation
                    | SumAggregation
 
 CountAggregation ::= 'COUNT' '(' '*' ')'
-                   | 'COUNT' '(' <Distinct>? <ValueExpression> ')'
+                   | 'COUNT' '(' <DISTINCT>? <ValueExpression> ')'
 
-MinAggregation   ::= 'MIN' '(' <Distinct>? <ValueExpression> ')'
+MinAggregation   ::= 'MIN' '(' <DISTINCT>? <ValueExpression> ')'
 
-MaxAggregation   ::= 'MAX' '(' <Distinct>? <ValueExpression> ')'
+MaxAggregation   ::= 'MAX' '(' <DISTINCT>? <ValueExpression> ')'
 
-AvgAggregation   ::= 'AVG' '(' <Distinct>? <ValueExpression> ')'
+AvgAggregation   ::= 'AVG' '(' <DISTINCT>? <ValueExpression> ')'
 
-SumAggregation   ::= 'SUM' '(' <Distinct>? <ValueExpression> ')'
+SumAggregation   ::= 'SUM' '(' <DISTINCT>? <ValueExpression> ')'
 ```
 
-Syntactically, an aggregation takes the form of aggregate followed by an optional `<Distinct>` modifier and a `<ValueExpression>`.
+Syntactically, an aggregation takes the form of aggregate followed by an optional `<DISTINCT>` modifier and a `<ValueExpression>`.
 
 The following table gives an overview of the different aggregates and their supported input types.
 
@@ -1298,9 +1298,9 @@ A function call has an optional package name, a function name, and zero or more 
 The following is an overview of the built-in PGQL functions:
 
 Signature | Return value | Description
-`id(element)` | object | returns an identifier for the vertex/edge, if one exists.
+`id(element)` | `object` | returns an identifier for the vertex/edge, if one exists.
 `has_label(element)` | boolean | returns true if the vertex or edge has the given label.
-`labels(element)` | set<String> | returns the labels of the vertex or edge in the case it has multiple labels.
+`labels(element)` | `set<string>` | returns the labels of the vertex or edge in the case it has multiple labels.
 `label()` | string | returns the label of the vertex or edge in the case it has a single label.
 `all_different(val1, val2, .., valn)` | boolean | return true if the values are all different (typically used for specifying [isomorphic](#subgraph-isomorphism) patterns)
 `in_degree(vertex)` | exact numeric | returns the number of incoming neighbors.
