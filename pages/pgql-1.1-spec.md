@@ -1144,14 +1144,13 @@ Not                  ::= 'NOT' <ValueExpression>
 
 The supported input types and corresponding return types are as follows:
 
-Operator                                                          | type of A (and B)                                                                                   | Return Type
------------------------------------------------------------------ | --------------------------------------------------------------------------------------------------- | -----------
-A `+` B<br>A `-` B<br>A `*` B<br>A `/` B<br>A `%` B               | numeric                                                                                             | numeric*
-`-`A (unary minus)                                                | numeric                                                                                             | type of A 
-A `=` B<br>A `<>` B<br>A `<` B<br>A `>` B<br>A `<=` B<br>A `>=` B | numeric,<br>date, time (with timezone), timestamp (with timezone)                                   | boolean
-A `=` B<br>A `<>` B                                               | numeric,<br>string, boolean, vertex, edge,<br>date, time (with timezone), timestamp (with timezone) | boolean
-`NOT` A                                                           | boolean                                                                                             | boolean
-A `AND` B<br>A `OR` B                                             | boolean                                                                                             | boolean
+Operator                                            | type of A (and B)                                                                                   | Return Type
+--------------------------------------------------- | --------------------------------------------------------------------------------------------------- | -----------
+A `+` B<br>A `-` B<br>A `*` B<br>A `/` B<br>A `%` B | numeric                                                                                             | numeric*
+`-`A (unary minus)                                  | numeric                                                                                             | type of A
+A `=` B<br>A `<>` B                                 | numeric, string, boolean,<br>vertex, edge,<br>date, time (with timezone), timestamp (with timezone) | boolean
+A `<` B<br>A `>` B<br>A `<=` B<br>A `>=` B          | numeric,<br>date, time (with timezone), timestamp (with timezone)                                   | boolean
+`NOT` A<br>A `AND` B<br>A `OR` B                    | boolean                                                                                             | boolean
 
 *For precision and scale, see [Implicit Type Conversion](#implicit-type-conversion). 
 
