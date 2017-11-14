@@ -1573,7 +1573,7 @@ SELECT n.name, m.name
 This query can be reformatted with minimal white space, while guaranteeing compatibility with different parser implementations, as follows:
 
 ```sql
-SELECT n.name,m.name MATCH(n)->(m)WHEREn.name='Ron Weasley')->(m)
+SELECT n.name,m.name MATCH(n)->(m)WHERE n.name='Ron Weasley')->(m)
 ```
 
 Note that the white space after the `SELECT` keyword, in front of the `MATCH` keyword, and in the string literal `'Ron Weasley'`, cannot be omitted.
