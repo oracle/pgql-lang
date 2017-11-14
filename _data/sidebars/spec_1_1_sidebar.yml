@@ -111,10 +111,6 @@ entries:
         url: /spec/1.1/#select-
         output: web
 
-      - title: SELECT * with no variables in the WHERE clause
-        url: /spec/1.1/#select--with-no-variables-in-the-where-clause
-        output: web
-
     - title: Sorting (ORDER BY)
       url: /spec/1.1/#sorting-order-by
       output: web
