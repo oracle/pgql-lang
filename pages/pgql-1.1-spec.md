@@ -192,8 +192,8 @@ In a PGQL query, the `MATCH` clause defines the graph pattern to be matched.
 Syntactically, a `MATCH` clause is composed of the keyword `MATCH` followed by a comma-separated sequence of path patterns.
 
 ```bash
-MatchClause         ::= 'MATCH' {<PathPattern> ','}+
-PathPattern         ::= <Vertex> (<Relation> <Vertex>)*
+MatchClause         ::= 'MATCH' { <PathPattern> ',' }+
+PathPattern         ::= <Vertex> ( <Relation> <Vertex> )*
 Vertex              ::= '(' <VariableDeclaration> ')'
 Relation            ::= <Edge>
                       | <Path>
@@ -208,7 +208,7 @@ UndirectedEdge      ::= '-'
                       | '-[' <VariableDeclaration> ']-'
 VariableDeclaration ::= <VariableName>? <LabelsPredicate>?
 VariableName        ::= <IDENTIFIER>
-LabelsPredicate     ::= ':' {<Label> '|'}+
+LabelsPredicate     ::= ':' { <Label> '|' }+
 WhereClause         ::= 'WHERE' <ValueExpression>
 ```
 
@@ -275,7 +275,7 @@ In fact, the above constraint is equivalent to the following set of comma-separa
 (n3) -[e3]-> (n4)
 ```
 
-Second, PGQL syntax allows to reverse the direction of an edge in the query, i.e. right-to-left instead of left-to-right. Therefore, the following is a valid topology constraint in PGQL:
+Second, PGQL syntax allows reversing the direction of an edge in the query, i.e. right-to-left instead of left-to-right. Therefore, the following is a valid topology constraint in PGQL:
 
 ```sql
 (n1) -[e1]-> (n2) <-[e2]- (n3)
@@ -283,7 +283,7 @@ Second, PGQL syntax allows to reverse the direction of an edge in the query, i.e
 
 Please mind the edge directions in the above query – vertex `n2` is a common outgoing neighbor of both vertex `n1` and vertex `n3`.
 
-Third, PGQL allows to omit not-interesting variable names in the query. A variable name is not interesting if that name would not appear in any other constraint, nor in other clauses (`SelectClause`, `SolutionModifierClause`). As for a vertex term, only the variable name is omitted, resulting in an empty parenthesis pair. In case of an edge term, the whole square bracket is omitted in addition to the variable name. In this case, the remaining ASCII arrow can have either one dash or two dashes.
+Third, PGQL allows omitting not-interesting variable names in the query. A variable name is not interesting if that name would not appear in any other constraint, nor in other clauses (`SelectClause`, `SolutionModifierClause`). As for a vertex term, only the variable name is omitted, resulting in an empty parenthesis pair. In case of an edge term, the whole square bracket is omitted in addition to the variable name. In this case, the remaining ASCII arrow can have either one dash or two dashes.
 
 The following table summarizes these short cuts.
 
@@ -307,7 +307,7 @@ SELECT *
 
 ## Label Matching
 
-In the property graph model, vertices and edge may have labels. These are typicalyl used to encode the type of the entity, e.g. `Person` or `Movie` for vertices and `likes` for edges. PGQL provides a convenient syntax for matching labels by attaching the label to the corresponding vertex or edge using a colon (`:`) followed by the label. Take the following example:
+In the property graph model, vertices and edge may have labels. These are typically used to encode the type of the entity, e.g. `Person` or `Movie` for vertices and `likes` for edges. PGQL provides a convenient syntax for matching labels by attaching the label to the corresponding vertex or edge using a colon (`:`) followed by the label. Take the following example:
 
 ```sql
 SELECT *
@@ -465,15 +465,13 @@ In a PGQL query, the SELECT clause defines the data entities to be returned in t
 The following explains the syntactic structure of SELECT clause.
 
 ```bash
-SelectClause ::= 'SELECT' <DISTINCT>? {<ExpAsVar> ','}+
+SelectClause ::= 'SELECT' 'DISTINCT'? { <ExpAsVar> ',' }+
                | 'SELECT' '*'
 
-DISTINCT     ::= 'DISTINCT'
-
-ExpAsVar     ::= <ValueExpression> ('AS' <VariableName>)?
+ExpAsVar     ::= <ValueExpression> ( 'AS' <VariableName> )?
 ```
 
-A `SELECT` clause consists of the keyword `SELECT` followed by either an optional `<DISTINCT>` modifier and comma-separated sequence of `<ExpAsVar>` ("expression as variable") elements, or, a special character star `*`. An `<ExpAsVar>` consists of:
+A `SELECT` clause consists of the keyword `SELECT` followed by either an optional `DISTINCT` modifier and comma-separated sequence of `<ExpAsVar>` ("expression as variable") elements, or, a special character star `*`. An `<ExpAsVar>` consists of:
 
 - A `<ValueExpression>`.
 - An optional `<VariableName>`, specified by appending the keyword `AS` and the name of the variable.
@@ -537,8 +535,9 @@ When there are multiple matched subgraph instances to a given query, in general,
 The following explains the syntactic structure of `ORDER BY` clause.
 
 ```bash
-OrderByClause ::= 'ORDER' 'BY' {<OrderTerm> ','}+
-OrderTerm     ::= <ValueExpression> ('ASC'|'DESC')?
+OrderByClause ::= 'ORDER' 'BY' { <OrderTerm> ',' }+
+
+OrderTerm     ::= <ValueExpression> ( 'ASC' | 'DESC' )?
 ```
 
 The `ORDER BY` clause starts with the keywords `ORDER BY` and is followed by comma separated list of order terms. An order term consists of the following parts:
@@ -583,8 +582,8 @@ The `LIMIT` puts an upper bound on the number of solutions returned, whereas the
 The following explains the syntactic structure for the LIMIT and OFFSET clauses:
 
 ```bash
-LimitOffsetClauses ::= 'LIMIT' <UNSIGNED_INTEGER> ('OFFSET' <UNSIGNED_INTEGER>)?
-                     | 'OFFSET' <UNSIGNED_INTEGER> ('LIMIT' <UNSIGNED_INTEGER>)?
+LimitOffsetClauses ::= 'LIMIT' <UNSIGNED_INTEGER> ( 'OFFSET' <UNSIGNED_INTEGER> )?
+                     | 'OFFSET' <UNSIGNED_INTEGER> ( 'LIMIT' <UNSIGNED_INTEGER> )?
 ```
 
 The `LIMIT` clause starts with the keyword `LIMIT` and is followed by an integer that defines the limit. Similarly, the `OFFSET` clause starts with the keyword `OFFSET` and is followed by an integer that defines the offset. Furthermore:
@@ -632,11 +631,17 @@ RepetitionQuantifier ::= <ZeroOrMore>
                        | <BetweenZeroAndM>
 
 ZeroOrMore           ::= '*'
+
 OneOrMore            ::= '+'
+
 Optional             ::= '?'
+
 ExactlyN             ::= '{' <UNSIGNED_INTEGER> '}'
+
 NOrMore              ::= '{' <UNSIGNED_INTEGER> ',' '}'
+
 BetweenNAndM         ::= '{' <UNSIGNED_INTEGER> ',' <UNSIGNED_INTEGER> '}'
+
 BetweenZeroAndM      ::= '{' ',' <UNSIGNED_INTEGER> '}'
 ```
 
@@ -835,7 +840,7 @@ CommonPathExpressions ::= <CommonPathExpression>+
 CommonPathExpression  ::= 'PATH' <IDENTIFIER> 'AS' <PathPattern> <WhereClause>?
 ```
 
-A path pattern declaration starts with the keyword `PATH`, followed by an expression name, the assignment operator `AS`, and a path pattern consisting ofat least one vertex. The syntactic structure of the path pattern is the same as a path pattern in the `MATCH` clause.
+A path pattern declaration starts with the keyword `PATH`, followed by an expression name, the assignment operator `AS`, and a path pattern consisting of at least one vertex. The syntactic structure of the path pattern is the same as a path pattern in the `MATCH` clause.
 
 An example is as follows:
 
@@ -870,7 +875,7 @@ The above query outputs all generators that are connected to each other via one 
 The following explains the syntactic structure of the `GROUP BY` clause:
 
 ```bash
-GroupByClause ::= 'GROUP' 'BY' {<ExpAsVar> ','}+
+GroupByClause ::= 'GROUP' 'BY' { <ExpAsVar> ',' }+
 ```
 
 The `GROUP BY` clause starts with the keywords GROUP BY and is followed by a comma-separated list of group terms. Each group term consists of:
@@ -963,22 +968,22 @@ SELECT AVG(m.age)
 The syntax is as follows:
 
 ```bash
-Aggregation      ::= CountAggregation
-                   | MinAggregation
-                   | MaxAggregation
-                   | AvgAggregation
-                   | SumAggregation
+Aggregation      ::= <CountAggregation>
+                   | <MinAggregation>
+                   | <MaxAggregation>
+                   | <AvgAggregation>
+                   | <SumAggregation>
 
 CountAggregation ::= 'COUNT' '(' '*' ')'
-                   | 'COUNT' '(' <DISTINCT>? <ValueExpression> ')'
+                   | 'COUNT' '(' 'DISTINCT'? <ValueExpression> ')'
 
-MinAggregation   ::= 'MIN' '(' <DISTINCT>? <ValueExpression> ')'
+MinAggregation   ::= 'MIN' '(' 'DISTINCT'? <ValueExpression> ')'
 
-MaxAggregation   ::= 'MAX' '(' <DISTINCT>? <ValueExpression> ')'
+MaxAggregation   ::= 'MAX' '(' 'DISTINCT'? <ValueExpression> ')'
 
-AvgAggregation   ::= 'AVG' '(' <DISTINCT>? <ValueExpression> ')'
+AvgAggregation   ::= 'AVG' '(' 'DISTINCT'? <ValueExpression> ')'
 
-SumAggregation   ::= 'SUM' '(' <DISTINCT>? <ValueExpression> ')'
+SumAggregation   ::= 'SUM' '(' 'DISTINCT'? <ValueExpression> ')'
 ```
 
 Syntactically, an aggregation takes the form of aggregate followed by an optional `DISTINCT` modifier and a `<ValueExpression>`.
@@ -988,14 +993,14 @@ The following table gives an overview of the different aggregates and their supp
 Aggregate Operator | Semantic | Required Input Type
 --- | --- | ---
 `COUNT` | counts the number of times the given expression has a bound (i.e. is not null). | any type, including vertex and edge
-`MIN` | takes the minimum of the values for the given expression. | numeric, string, date, time (with timezone), or, timestamp (with timezone)
-`MAX` | takes the maximum of the values for the given expression. | numeric, string, date, time (with timezone), or, timestamp (with timezone)
+`MIN` | takes the minimum of the values for the given expression. | numeric, string, boolean, date, time (with timezone), or, timestamp (with timezone)
+`MAX` | takes the maximum of the values for the given expression. | numeric, string, boolean, date, time (with timezone), or, timestamp (with timezone)
 `SUM` | sums over the values for the given expression. | numeric
 `AVG` | takes the average of the values for the given. | numeric
 
 The `DISTINCT` modifier specifies that duplicate values should be removed before aggregation.
 
-`COUNT(*)` is a special syntax to count the number of pattern matches, without specifying an expressions. Consider the following example:
+`COUNT(*)` is a special syntax to count the number of pattern matches, without specifying an expression. Consider the following example:
 
 ```sql
 SELECT COUNT(*)
@@ -1026,7 +1031,7 @@ Note that all the vertices are matched by the `WHERE` clause. However, the aggre
 
 ### Aggregation and Solution Modifier
 
-Aggregation is applied only afterthe  `GROUP BY` operator is applied, but before the `OFFSET` and `LIMIT` operators are applied.
+Aggregation is applied only after the `GROUP BY` operator is applied, but before the `OFFSET` and `LIMIT` operators are applied.
 
 - If there is no GROUP BY operator, the aggregation is performed over the whole match results.
 - If there is a GROUP BY operator, the aggregation is applied over each group.
@@ -1050,7 +1055,7 @@ The `HAVING` clause is an optional clause that can be placed after a `GROUP BY` 
 The syntactic structure is as follows:
 
 ```bash
-HavingClause ::= 'HAVING' {<ValueExpression> ','}+
+HavingClause ::= 'HAVING' { <ValueExpression> ',' }+
 ```
 
 An example is as follows:
@@ -1103,7 +1108,7 @@ Arithmetic    | `+`, `-`, `*`, `/`, `%`, `-` (unary minus)
 Relational    | `=`, `<>`, `<`, `>`, `<=`, `>=`
 Logical       | `AND`, `OR`, `NOT`
 
-The corresonding grammar rules are:
+The corresponding grammar rules are:
 
 ```bash
 ArithmeticExpression ::= <Addition>
@@ -1114,10 +1119,15 @@ ArithmeticExpression ::= <Addition>
                        | <UnaryMinus>
 
 Addition             ::= <ValueExpression> '+' <ValueExpression>
+
 Subtraction          ::= <ValueExpression> '-' <ValueExpression>
+
 Multiplication       ::= <ValueExpression> '*' <ValueExpression>
+
 Division             ::= <ValueExpression> '/' <ValueExpression>
+
 Modulo               ::= <ValueExpression> '%' <ValueExpression>
+
 UnaryMinus           ::= '-' <ValueExpression>
 
 RelationalExpression ::= <Equals>
@@ -1156,8 +1166,8 @@ Operator                                            | type of A (and B)         
 --------------------------------------------------- | --------------------------------------------------------------------------------------------------- | -----------
 A `+` B<br>A `-` B<br>A `*` B<br>A `/` B<br>A `%` B | numeric                                                                                             | numeric*
 `-`A (unary minus)                                  | numeric                                                                                             | type of A
-A `=` B<br>A `<>` B                                 | numeric, string, boolean,<br>vertex, edge,<br>date, time (with timezone), timestamp (with timezone) | boolean
-A `<` B<br>A `>` B<br>A `<=` B<br>A `>=` B          | numeric,<br>date, time (with timezone), timestamp (with timezone)                                   | boolean
+A `=` B<br>A `<>` B                                 | numeric, string, boolean,<br>date, time (with timezone), timestamp (with timezone),<br>vertex, edge | boolean
+A `<` B<br>A `>` B<br>A `<=` B<br>A `>=` B          | numeric, string, boolean,<br>date, time (with timezone), timestamp (with timezone)                  | boolean
 `NOT` A<br>A `AND` B<br>A `OR` B                    | boolean                                                                                             | boolean
 
 *For precision and scale, see [Implicit Type Conversion](#implicit-type-conversion). 
@@ -1174,7 +1184,7 @@ Comparison with other operand type combinations, such as dates and timestamp, is
 
 ### Operator Precedence
 
-Operator precedences are shown in the following list, from highest precedence to the lowest. An operator on a higher level (e.g. level 1) is evaluated before an operator on a lower level (e.g. level 2).
+Operator precedences are shown in the following list, from the highest precedence to the lowest. An operator on a higher level (e.g. level 1) is evaluated before an operator on a lower level (e.g. level 2).
 
 Level | Operator Precedence
 ----- | ---
@@ -1274,7 +1284,7 @@ TimestampWithTimezoneLiteral ::= 'TIMESTAMP' "'" <yyyy-MM-dd HH:mm:ss+HH:MM> "'"
 | time with timezone      | `TIME '16:15:00+01:00'`                 |
 | timestamp with timezone | `TIMESTAMP '2017-09-21 16:15:00-03:00'` |
 
-Note that the numeric literals (integer and decimal) are unsigned. However, signed values can be generated by using the unary minus opeartor (`-`).
+Note that the numeric literals (integer and decimal) are unsigned. However, signed values can be generated by using the unary minus operator (`-`).
 
 ## Bind Variables
 
@@ -1300,9 +1310,12 @@ PGQL has a set of [built-in functions](#built-in-functions), and in addition, pr
 The syntactic structure for built-in and user-defined function calls is as follows:
 
 ```bash
-FunctionCall         ::= <PackageSpecification>? <FunctionName> '(' {<ValueExpression> ','}* ')'
+FunctionCall         ::= <PackageSpecification>? <FunctionName> '(' { <ValueExpression> ',' }* ')'
+
 PackageSpecification ::= <PackageName> '.'
+
 PackageName          ::= <IDENTIFIER>
+
 FunctionName         ::= <IDENTIFIER>
 ```
 
