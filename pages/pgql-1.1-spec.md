@@ -59,7 +59,7 @@ The following are the changes since PGQL 1.0:
 
    ```bash
    # PGQL 1.1
-   'PATH' IDENTIFIER 'AS' <PathPattern> <WhereClause>?
+   'PATH' <IDENTIFIER> 'AS' <PathPattern> <WhereClause>?
    ```
 
    The changes are:
@@ -100,9 +100,9 @@ The following are the changes since PGQL 1.0:
 
  - The infix Java RegExp operator `=~` has been removed. Instead, use the built-in function `java_regexp_like` (see [Built-in Functions](#built-in-functions)).
 
- - The operator `!` (logical not) has been removed. Instead, use `NOT` (logical not).
+ - The `!` (logical not) operator has been removed. Instead, use `NOT` (logical not).
 
- - The operator `<>` (not equals) has been added as syntactic alternative for `!=` (not equals).
+ - The `!=` (not equals) operator has been removed. Instead, use `<>` (not equals).
 
  - The `ASC(x)` (sort in ascending order) and `DESC(x)` (sort in descending order) functions have been removed. Instead, use the `x ASC` and `x DESC` constructs.
 
