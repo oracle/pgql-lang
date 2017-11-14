@@ -1478,10 +1478,7 @@ AND, OR, NOT, true, false, IS, NULL,
 DATE, TIME, TIMESTAMP, WITH, TIMEZONE
 ```
 
-Only for `true` and `false` there is the following restriction:
-
- - `true` and `false` cannot be used as variable name
- - `true` and `false` can be used as property name but only when double quoted (e.g `SELECT * MATCH (n) WHERE n."true" = 100`
+Keywords may not be used as `<IDENTIFIER>` (graph/variable/property names and labels).
 
 Keywords are case-insensitive and variations such as `SELECT`, `Select` and `sELeCt` can be used interchangeably.
 
