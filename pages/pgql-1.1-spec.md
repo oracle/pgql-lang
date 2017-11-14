@@ -49,7 +49,7 @@ The following are the changes since PGQL 1.0:
       AND n.age <= 35
    ```
 
- - The syntax for common path expressions has changed as follows:
+ - The syntax for [common path expressions](#common-path-expressions) has changed as follows:
 
    ```bash
    # PGQL 1.0
@@ -66,7 +66,7 @@ The following are the changes since PGQL 1.0:
    - The symbol `:=` has changed into the keyword `AS`.
    - The inlined expressions (`WITH` construct) are moved to an optional `WHERE` clause.
 
-   For example, the following is a query in PGQL 1.0 and PGQL 1.1 syntax:
+   For example, the following is a query in both PGQL 1.0 (top) and PGQL 1.1 (bottom):
 
    ```sql
      /* PGQL 1.0 */
@@ -97,7 +97,7 @@ The following are the changes since PGQL 1.0:
 
  - The constructs `-->` (match any outgoing edge) and `<--` (match any incoming edge) are no longer allowed. Instead, use `->` and `<-`.
 
- - The infix Java RegExp operator `=~` has been removed. Instead, use the built-in function `java_regexp_like`.
+ - The infix Java RegExp operator `=~` has been removed. Instead, use the built-in function `java_regexp_like` (see [Built-in Functions](#built-in-functions)).
 
  - The operator `!` (logical not) has been removed. Instead, use `NOT` (logical not).
 
@@ -445,7 +445,7 @@ SELECT *
 
 Note that in case there are both incoming and outgoing data edges between two data vertices, there will be separate result bindings for each of the edges.
 
-Undirected edges may also be used inside common path expressions:
+Undirected edges may also be used inside [common path expressions](#common-path-expressions):
 
 ```sql
   PATH two_hops AS () -[e1]- () -[e2]- ()
@@ -1295,6 +1295,7 @@ Signature | Return value | Description
 `all_different(val1, val2, .., valn)` | boolean | return true if the values are all different (typically used for specifying [isomorphic](#subgraph-isomorphism) patterns)
 `in_degree(vertex)` | exact numeric | returns the number of incoming neighbors.
 `out_degree(vertex)` | exact numeric | returns the number of outgoing neighbors.
+`java_regexp_like(string, pattern)` | boolean | returns whether the string matches the [pattern](https://docs.oracle.com/javase/7/docs/api/java/util/regex/Pattern.html)
 
 Consider the following query:
 
@@ -1422,7 +1423,7 @@ SELECT p1.name
                   )
 ```
 
-Above, we compare two string properties from different graphs. Besides properties, it is also possible to compare vertices and edges from different graphs. However, because PGQL 1.1 does not have a concept of views and base graphs, such comparisons will always yield false.
+Above, we compare two string properties from different graphs. Besides properties, it is also possible to compare vertices and edges from different graphs. However, because PGQL 1.1 does not have a concept of views and base graphs, such comparisons will always yield `false`.
 
 # Other Syntactic Rules
 
