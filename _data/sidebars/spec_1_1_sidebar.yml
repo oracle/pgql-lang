@@ -291,11 +291,6 @@ entries:
     - title: Escaped Characters in Strings
       url: /spec/1.1/#escaped-characters-in-strings
       output: web
-      subfolderitems:
-
-      - title: Optional Escaping of Quotes in Strings
-        url: /spec/1.1/#optional-escaping-of-quotes-in-strings
-        output: web
 
     - title: Keywords
       url: /spec/1.1/#keywords

@@ -1219,12 +1219,14 @@ Three-valued logic applies when `null` values appear in computation.
 
 An operator returns `null` if one of its operands yields `null`, with an exception for `AND` and `OR`. This is shown in the following table:
 
-Operator                                            | Result when A is null                         | Result when B is null                          | Result when A and B are null
---------------------------------------------------- | --------------------------------------------- | ---------------------------------------------- | ----------------------------
-A `+` `-` `*` `/` `%` `=` `<>` `<` `>` `<=` `>=` B  | `null`                                        | `null`                                         | `null`
-A `AND` B                                           | `false` if B yields `false`, `null` otherwise | `false` if A yields `false`, `null` otherwise  | `null`
-A `OR` B                                            | `true` if B yields `true`, `null` otherwise   | `true` if A yields `true`, `null` otherwise    | `null`
-`NOT` A                                             | `null`                                        |                                                |
+Operator                        | Result when A is null                         | Result when B is null                          | Result when A and B are null
+------------------------------- | --------------------------------------------- | ---------------------------------------------- | ----------------------------
+A `+` `-` `*` `/` `%` B         | `null`                                        | `null`                                         | `null`
+`-` A                           | `null`                                        | N/A                                            | N/A
+A `=` `<>` `<` `>` `<=` `>=` B  | `null`                                        | `null`                                         | `null`
+A `AND` B                       | `false` if B yields `false`, `null` otherwise | `false` if A yields `false`, `null` otherwise  | `null`
+A `OR` B                        | `true` if B yields `true`, `null` otherwise   | `true` if A yields `true`, `null` otherwise    | `null`
+`NOT` A                         | `null`                                        | N/A                                            | N/A
 
 Note that from the table it follows that `null = null` yields `null` and not `true`.
 
@@ -1262,7 +1264,7 @@ Literal                      ::= <StringLiteral>
                                | <TimeWithTimezoneLiteral>
                                | <TimestampWithTimezoneLiteral>
 
-StringLiteral                ::= "'" (~[\'\n\\] | <EscapedCharacter>)* "'"
+StringLiteral                ::= "'" (~[\'\n\\] | <ESCAPED_CHARACTER>)* "'"
 
 NumericLiteral               ::= <UNSIGNED_INTEGER>
                                | <UNSIGNED_DECIMAL>
@@ -1376,11 +1378,11 @@ If a UDF is registered that has the same name as a built-in function, then upon 
 
 ### Implicit Type Conversion
 
-Performing arithmetic operations with different numeric types will lead to implicit type conversion (i.e. "coercion").
+Performing arithmetic operations with different numeric types will lead to implicit type conversion (i.e. coercion).
 Coercion is only defined for numeric types. Given a binary arithmetic operation (i.e. `+`, `-`, `*`, `/`, `%`), the rules are as follows:
 
-- If both operands are exact numerics (e.g. integer or long), then the result is also an exact numeric with a scale that is at least as large as the scales of each operand.
-- If one or both of the operands is approximate numeric (e.g. float, double), the result is an approximate numeric with a scale that is at least as large as the scales of each operand. The precision will also be at least as high as the precision of each operand.
+ - If both operands are exact numerics (e.g. integer or long), then the result is also an exact numeric with a scale that is at least as large as the scales of each operand.
+ - If one or both of the operands is approximate numeric (e.g. float, double), the result is an approximate numeric with a scale that is at least as large as the scales of each operand. The precision will also be at least as high as the precision of each operand.
 
 ### Explicit Type Conversion (CAST)
 
@@ -1389,9 +1391,9 @@ Explicit type conversion is supported through type "casting".
 The syntax is as follows: 
 
 ```bash
-CastSpecification ::= 'CAST' '(' <ValueExpression> 'AS' <DATA_TYPE> ')'
+CastSpecification ::= 'CAST' '(' <ValueExpression> 'AS' <DataTypeName> ')'
 
-DATA_TYPE         ::= {<IDENTIFIER> ' '}+
+DataTypeName      ::= { <IDENTIFIER> ' ' }+
 ```
 
 Note that the syntax of a data type is one or more identifiers separated by a space, allowing the encoding of data types such as `STRING` and `TIME WITH TIMEZONE`.
@@ -1482,7 +1484,7 @@ Above, we compare two string properties from different graphs. Besides propertie
 
 ## Identifiers
 
-Graph names, variable names, and property names all take the form of an identifier that consists of an alphabetic character followed by zero or more alphanumeric or underscore (i.e. `_`) characters:
+Graph names, variable names, property names, and labels, all take the form of an identifier consisting of an alphabetic character followed by zero or more alphanumeric or underscore (i.e. `_`) characters:
 
 ```bash
 IDENTIFIER ::= [a-zA-Z][a-zA-Z0-9\_]*
@@ -1493,7 +1495,7 @@ IDENTIFIER ::= [a-zA-Z][a-zA-Z0-9\_]*
 Escaping in String literals is necessary to support having white space, quotation marks and the backslash character as a part of the literal value. The following explains the syntax of an escaped character.
 
 ```bash
-EscapedCharacter ::= '\' [tnr\"']
+ESCAPED_CHARACTER ::= '\' [tnr\"']
 ```
 
 Note that an escaped character is either a tab (`\t`), a line feed (`\n`), a carriage return (`\r`), a single (`\'`) or double quote (`\"`), or a backslash (`\\`). Corresponding Unicode code points are shown in the table below.
@@ -1507,40 +1509,34 @@ Escape | Unicode code point
 `\'` | U+0027 (apostrophe-quote, single quote mark)
 `\\` | U+005C (backslash)
 
-### Optional Escaping of Quotes in Strings
-
-In string literals, it is optional to escape double quotes. The following table provides examples of String literals with escaped quotes, and corresponding String literals in which quotes are not escaped.
-
-With escape | Without escape
---- | ---
-`'single quoted string literal with \"double\" quotes inside'` | `'single quoted string literal with "double" quotes inside'`
-
-Note that the value of the literal is the same no matter if quotes are escaped or not. This means that, for example, the following expression evaluates to `true`.
+In string literals, it is optional to escape double quotes. For example, the following expression yields `true`:
 
 ```sql
-'single quoted string literal with \"double\" quotes inside' = 'single quoted string literal with "double" quotes inside' /* this expression evaluates to TRUE */
+'abc\"d\"efg' = 'abc"d"efg' /* this expression yields true */
 ```
 
 ## Keywords
 
-The following is the list of keywords in PGQL.
+The following is a list of keywords in PGQL.
 
 ```
-PATH, SELECT, MATCH, WHERE, AS, ORDER, GROUP, BY, ASC, DESC, LIMIT, OFFSET,
+PATH, SELECT, AS, MATCH, WHERE, GROUP, BY,
+HAVING, ORDER, ASC, DESC, LIMIT, OFFSET,
 AND, OR, NOT, true, false, IS, NULL,
-DATE, TIME, TIMESTAMP, WITH, TIMEZONE
+DATE, TIME, TIMESTAMP, WITH, TIMEZONE,
+COUNT, MIN, MAX, AVG, SUM, EXISTS, CAST
 ```
-
-Keywords may not be used as `<IDENTIFIER>` (graph/variable/property names and labels).
 
 Keywords are case-insensitive and variations such as `SELECT`, `Select` and `sELeCt` can be used interchangeably.
 
+Keywords are reserved names such that an `<IDENTIFIER>` (e.g variable name, property name) may not be a keyword.
+
 ## Comments
 
-Comments are delimited by `/*` and `*/`. The following shows the syntactic structure:
+Comments are delimited by `/*` and `*/`. The following is the syntactic structure:
 
 ```bash
-Comment ::= '/*' ~[\*]* '*/'
+COMMENT ::= '/*' ~[\*]* '*/'
 ```
 
 An example query with both single-line and multi-line comments is as follows:
@@ -1548,7 +1544,7 @@ An example query with both single-line and multi-line comments is as follows:
 ```sql
 /* This is a
    multi-line
-   comment */
+   comment. */
 SELECT n.name, n.age
  MATCH (n:Person) /* this is a single-line comment */
 ```
@@ -1557,8 +1553,8 @@ SELECT n.name, n.age
 
 White space consists of spaces, new lines and tabs. White space is significant in String literals, as the white space is part of the literal value and taken into account when comparing against data values. Outside of String literals, white space is ignored. However, for readability consideration and ease of parser implementation, the following rules should be followed when writing a query:
 
-- A keyword should not be followed directly by a variable or property name.
-- A variable or property name should not be followed directly by a keyword.
+- A keyword should not be followed directly by an `<IDENTIFIER>` (e.g. variable name or property name)
+- An `<IDENTIFIER>` should not be followed directly by a keyword.
 
 If these rules are not followed, a PGQL parser may or may not treat it as an error.
 
@@ -1576,5 +1572,5 @@ This query can be reformatted with minimal white space, while guaranteeing compa
 SELECT n.name,m.name MATCH(n)->(m)WHERE n.name='Ron Weasley')->(m)
 ```
 
-Note that the white space after the `SELECT` keyword, in front of the `MATCH` keyword, and in the string literal `'Ron Weasley'`, cannot be omitted.
+Note that the white space after the `SELECT` keyword, in front of the `MATCH` keyword, after the `WHERE` keyword, and, in the string literal `'Ron Weasley'`, cannot be omitted.
 
