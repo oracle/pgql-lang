@@ -1411,9 +1411,11 @@ Subqueries in PGQL 1.1 are limited to existential subqueries.
 The syntax is as follows:
 
 ```bash
-ExistsPredicate ::= 'EXISTS' '(' <Query> ')'
+ExistsPredicate ::= 'EXISTS' <Subquery>
+
+Subquery        ::= '(' <Query> ')'
 ```
-An example query is to find friend of friends and return the number of friends in common:
+An example is to find friend of friends, and, for each friend of friend, return the number of common friends:
 
 ```sql
 SELECT fof.name, COUNT(friend) AS num_common_friends
