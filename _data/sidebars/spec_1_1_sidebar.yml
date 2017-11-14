@@ -232,6 +232,10 @@ entries:
       url: /spec/1.1/#literals
       output: web
 
+    - title: Bind Variables
+      url: /spec/1.1/#bind-variables
+      output: web
+
     - title: Functions
       url: /spec/1.1/#functions
       output: web
