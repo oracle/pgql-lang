@@ -916,6 +916,16 @@ Matches will be grouped together only if they hold the same values for `n.firstN
 
 The group for which all the group keys are null is a valid group and takes part in further query processing.
 
+To filter out such a group, use a `<HavingClause>`, for example:
+
+```sql
+  SELECT n.prop1, n.prop2, COUNT(*)
+   MATCH (n)
+GROUP BY n.prop1, n.prop2
+  HAVING n.prop1 IS NOT NULL
+     AND n.prop2 IS NOT NULL
+```
+
 ### Repetition of Group Expression in Select or Order Expression
 
 Group expressions that are variable accesses, property accesses, or built-in function calls may be repeated in select or order expressions. This is a short-cut that allows you to neglect introducing new variables for simple expressions.
@@ -1154,7 +1164,7 @@ A `<` B<br>A `>` B<br>A `<=` B<br>A `>=` B          | numeric,<br>date, time (wi
 
 *For precision and scale, see [Implicit Type Conversion](#implicit-type-conversion). 
 
-### Timezones and Comparison of Time Values
+### Comparison of Temporal Values with Timezones
 
 Binary operations are only allowed if both operands are of the same type, with the following two exceptions:
 
@@ -1371,9 +1381,9 @@ In the table above, `Y` indicates that casting is supported, `N` indicates that 
 ## Temporal Types
 
 PGQL has five temporal data types: `DATE`, `TIME`, `TIMESTAMP`, `TIME WITH TIMEZONE` and `TIMESTAMP WITH TIMEZONE`.
-For each of the data types, there exists a corresponding literal as shown in [Literals](#literals).
+For each of the data types, there exists a corresponding literal (see [Literals](#literals)).
 
-In PGQL 1.1, the supported operations on temporal values are limited to comparison. See [Comparing Different Temporal Types](#comparing-different-temporal-types).
+In PGQL 1.1, the supported operations on temporal values are limited to comparison (see [Operators](#operators) and [Comparison of Temporal Values with Timezones](#comparison-of-temporal-values-with-timezones)).
 
 # Subqueries
 
@@ -1423,7 +1433,7 @@ SELECT p1.name
                   )
 ```
 
-Above, we compare two string properties from different graphs. Besides properties, it is also possible to compare vertices and edges from different graphs. However, because PGQL 1.1 does not have a concept of views and base graphs, such comparisons will always yield `false`.
+Above, we compare two string properties from different graphs. Besides properties, it is also possible to compare vertices and edges from different graphs. However, because PGQL 1.1 does not have concepts like graph views, base graphs, or sharing of vertices/edges between graphs, such comparisons will always yield `false`.
 
 # Other Syntactic Rules
 

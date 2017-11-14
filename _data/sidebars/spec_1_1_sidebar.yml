@@ -207,8 +207,8 @@ entries:
       output: web
       subfolderitems:
 
-      - title: Timezones and Comparison of Time Values
-        url: /spec/1.1/#timezones-and-comparison-of-time-values
+      - title: Comparison of Temporal Values with Timezones
+        url: /spec/1.1/#comparison-of-temporal-values-with-timezones
         output: web
 
       - title: Operator Precedence
