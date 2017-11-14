@@ -502,6 +502,7 @@ ORDER BY pivot
 ### SELECT *
 
 `SELECT *` is a special `SELECT` clause. The semantic of `SELECT *` is to select all the (non-anonymous) variables in the graph pattern.
+
 `SELECT *` in combination with `GROUP BY` is not allowed.
 
 Consider the following query:
