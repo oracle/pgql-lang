@@ -1124,16 +1124,14 @@ Logical       | `AND`, `OR`, `NOT`
 The corresponding grammar rules are:
 
 ```bash
-ArithmeticExpression ::= <Addition>
-                       | <Subtraction>
+ArithmeticExpression ::= <UnaryMinus>
                        | <Multiplication>
                        | <Division>
                        | <Modulo>
-                       | <UnaryMinus>
+                       | <Addition>
+                       | <Subtraction>
 
-Addition             ::= <ValueExpression> '+' <ValueExpression>
-
-Subtraction          ::= <ValueExpression> '-' <ValueExpression>
+UnaryMinus           ::= '-' <ValueExpression>
 
 Multiplication       ::= <ValueExpression> '*' <ValueExpression>
 
@@ -1141,13 +1139,15 @@ Division             ::= <ValueExpression> '/' <ValueExpression>
 
 Modulo               ::= <ValueExpression> '%' <ValueExpression>
 
-UnaryMinus           ::= '-' <ValueExpression>
+Addition             ::= <ValueExpression> '+' <ValueExpression>
+
+Subtraction          ::= <ValueExpression> '-' <ValueExpression>
 
 RelationalExpression ::= <Equals>
                        | <NotEquals>
                        | <Greater>
-                       | <GreaterEqual>
                        | <Less>
+                       | <GreaterEqual>
                        | <LessEquals>
 
 Equals               ::= <ValueExpression> '=' <ValueExpression>
@@ -1156,21 +1156,21 @@ NotEquals            ::= <ValueExpression> '<>' <ValueExpression>
 
 Greater              ::= <ValueExpression> '>' <ValueExpression>
 
-GreaterEqual         ::= <ValueExpression> '>=' <ValueExpression>
-
 Less                 ::= <ValueExpression> '<' <ValueExpression>
+
+GreaterEqual         ::= <ValueExpression> '>=' <ValueExpression>
 
 LessEquals           ::= <ValueExpression> '<=' <ValueExpression>
 
-LogicalExpression    ::= <And>
+LogicalExpression    ::= <Not>
+                       | <And>
                        | <Or>
-                       | <Not>
+
+Not                  ::= 'NOT' <ValueExpression>
 
 And                  ::= <ValueExpression> 'AND' <ValueExpression>
 
 Or                   ::= <ValueExpression> 'OR' <ValueExpression>
-
-Not                  ::= 'NOT' <ValueExpression>
 ```
 
 The supported input types and corresponding return types are as follows:
@@ -1204,7 +1204,7 @@ Level | Operator Precedence
 1     | `-` (unary minus)
 2     | `*`, `/`, `%`
 3     | `+`, `-`
-4     | `=`, `<>`, `<`, `>`, `<=`, `>=`
+4     | `=`, `<>`, `>`, `<`, `>=`, `<=`
 5     | `NOT`
 6     | `AND`
 7     | `OR`
@@ -1223,7 +1223,7 @@ Operator                        | Result when A is null                         
 ------------------------------- | --------------------------------------------- | ---------------------------------------------- | ----------------------------
 A `+` `-` `*` `/` `%` B         | `null`                                        | `null`                                         | `null`
 `-` A                           | `null`                                        | N/A                                            | N/A
-A `=` `<>` `<` `>` `<=` `>=` B  | `null`                                        | `null`                                         | `null`
+A `=` `<>` `>` `<` `>=` `<=` B  | `null`                                        | `null`                                         | `null`
 A `AND` B                       | `false` if B yields `false`, `null` otherwise | `false` if A yields `false`, `null` otherwise  | `null`
 A `OR` B                        | `true` if B yields `true`, `null` otherwise   | `true` if A yields `true`, `null` otherwise    | `null`
 `NOT` A                         | `null`                                        | N/A                                            | N/A
@@ -1303,7 +1303,7 @@ Note that the numeric literals (integer and decimal) are unsigned. However, sign
 
 ## Bind Variables
 
-In place of literals, one may specify bind variables (`?`) to create parameterized queries.
+In place of a literal, one may specify a bind variable (`?`). This allows for specifying parameterized queries.
 
 ```bash
 BindVariable ::= '?'
@@ -1320,9 +1320,9 @@ SELECT n.age
 
 ## Functions
 
-PGQL has a set of [built-in functions](#built-in-functions), and in addition, provides extension through [user-defined functions](#user-defined-functions).
+PGQL has a set of [built-in functions](#built-in-functions), and also provides extension through [user-defined functions](#user-defined-functions).
 
-The syntactic structure for built-in and user-defined function calls is as follows:
+The syntactic structure for function calls is as follows:
 
 ```bash
 FunctionCall         ::= <PackageSpecification>? <FunctionName> '(' { <ValueExpression> ',' }* ')'
@@ -1334,7 +1334,9 @@ PackageName          ::= <IDENTIFIER>
 FunctionName         ::= <IDENTIFIER>
 ```
 
-A function call has an optional package name, a function name, and zero or more argument. Function names are case-insensitive.
+A function call has an optional package name, a function name, and zero or more argument.
+
+Function and package names are case-insensitive.
 
 ### Built-in Functions
 
@@ -1362,9 +1364,10 @@ Here, `in_degree(x)` returns the number of incoming neighbors of `x`, whereas `i
 
 ### User-defined Functions
 
-PGQL does not specify how user-defined functions (UDFs) are registered to a database system and only considers how functions are invoked.
+PGQL does not specify how user-defined functions (UDFs) are registered to a database system and only considers function invocation:
 
-UDFs are invoked in a similar way to built-in functions. For example, a user may have registered a function `math.tan` to return the tangent of a given angle. An example invocation of this function would then be:
+UDFs are invoked similarly to built-in functions. For example, a user may have registered a function `math.tan` that returns the tangent of a given angle.
+An example invocation of this function is:
 
 ```sql
   SELECT math.tan(n.angle) AS tangent
@@ -1372,7 +1375,7 @@ UDFs are invoked in a similar way to built-in functions. For example, a user may
 ORDER BY tangent
 ```
 
-If a UDF is registered that has the same name as a built-in function, then upon function invocation, the UDF is invoked and not the built-in function. UDFs can thus override built-ins.
+If a UDF is registered that has the same name as a built-in function, then, upon function invocation, the UDF is invoked and not the built-in function. UDFs can thus override built-ins.
 
 ## Type Conversion
 
