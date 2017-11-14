@@ -87,7 +87,7 @@ PGQL's Java result set API
 and [ResultAccess.java](https://github.com/oracle/pgql-lang/blob/master/graph-query-ir/src/main/java/oracle/pgql/lang/ResultAccess.java))
  is based on the [__new Java 8 Date and Time Library__](http://www.oracle.com/technetwork/articles/java/jf14-date-time-2125367.html) (`java.time.*`), offering greatly improved safety and functionality for Java developers.
 
-Querying Multiple Graphs at Once
+Querying Multiple Graphs
 -----------------------
 Through subqueries, PGQL allows for __comparing data from different graphs__.
 

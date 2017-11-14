@@ -981,7 +981,7 @@ AvgAggregation   ::= 'AVG' '(' <DISTINCT>? <ValueExpression> ')'
 SumAggregation   ::= 'SUM' '(' <DISTINCT>? <ValueExpression> ')'
 ```
 
-Syntactically, an aggregation takes the form of aggregate followed by an optional `<DISTINCT>` modifier and a `<ValueExpression>`.
+Syntactically, an aggregation takes the form of aggregate followed by an optional `DISTINCT` modifier and a `<ValueExpression>`.
 
 The following table gives an overview of the different aggregates and their supported input types.
 
