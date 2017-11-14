@@ -193,22 +193,33 @@ Syntactically, a `MATCH` clause is composed of the keyword `MATCH` followed by a
 
 ```bash
 MatchClause         ::= 'MATCH' { <PathPattern> ',' }+
+
 PathPattern         ::= <Vertex> ( <Relation> <Vertex> )*
+
 Vertex              ::= '(' <VariableDeclaration> ')'
+
 Relation            ::= <Edge>
                       | <Path>
+
 Edge                ::= <OutgoingEdge>
                       | <IncomingEdge>
                       | <UndirectedEdge>
+
 OutgoingEdge        ::= '->'
                       | '-[' <VariableDeclaration> ']->'
+
 IncomingEdge        ::= '<-'
                       | '<-[' <VariableDeclaration> ']-'
+
 UndirectedEdge      ::= '-'
                       | '-[' <VariableDeclaration> ']-'
+
 VariableDeclaration ::= <VariableName>? <LabelsPredicate>?
+
 VariableName        ::= <IDENTIFIER>
+
 LabelsPredicate     ::= ':' { <Label> '|' }+
+
 WhereClause         ::= 'WHERE' <ValueExpression>
 ```
 
@@ -221,7 +232,9 @@ There can be multiple path patterns in the `MATCH` clause of a PGQL query. Seman
 The `FROM` clause specifies the name of the input graph to be queried:
 
 ```bash
-FromClause ::= 'FROM' <IDENTIFIER>
+FromClause ::= 'FROM' <GraphName>
+
+GraphName  ::= <IDENTIFIER>
 ```
 
 The `FROM` clause may be omitted if the system does not require the specification of an input graph for reasons such as:
