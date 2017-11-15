@@ -38,8 +38,8 @@ entries:
       url: /spec/1.1/#input-graph-from
       output: web
 
-    - title: Topology Constraints
-      url: /spec/1.1/#topology-constraints
+    - title: Topology Constraints (MATCH)
+      url: /spec/1.1/#topology-constraints-match
       output: web
       subfolderitems:
 
@@ -72,8 +72,8 @@ entries:
         url: /spec/1.1/#built-in-functions-for-labels
         output: web
 
-    - title: Filters
-      url: /spec/1.1/#filters
+    - title: Filters (MATCH)
+      url: /spec/1.1/#filters-match
       output: web
 
     - title: Graph Pattern Matching Semantic
