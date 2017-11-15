@@ -51,29 +51,16 @@ entries:
         url: /spec/1.1/#syntactic-sugars-for-topology-constraints
         output: web
 
-      - title: Disconnected Topology Constraints
-        url: /spec/1.1/#disconnected-topology-constraints
+      - title: Disconnected Graph Patterns
+        url: /spec/1.1/#disconnected-graph-patterns
         output: web
 
-    - title: Label Matching
-      url: /spec/1.1/#label-matching
+    - title: Label Predicates
+      url: /spec/1.1/#label-predicates
       output: web
-      subfolderitems:
 
-      - title: Labels and Quotes
-        url: /spec/1.1/#labels-and-quotes
-        output: web
-
-      - title: Label Alternatives
-        url: /spec/1.1/#label-alternatives
-        output: web
-
-      - title: Built-in Functions for Labels
-        url: /spec/1.1/#built-in-functions-for-labels
-        output: web
-
-    - title: Filters (MATCH)
-      url: /spec/1.1/#filters-match
+    - title: Filters (WHERE)
+      url: /spec/1.1/#filters-where
       output: web
 
     - title: Graph Pattern Matching Semantic

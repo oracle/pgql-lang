@@ -187,9 +187,29 @@ The detailed syntax and semantic of each clause are explained in following secti
 
 # Graph Pattern Matching
 
+## Input Graph (FROM)
+
+The `FROM` clause specifies the name of the input graph to be queried:
+
+```bash
+FromClause ::= 'FROM' <GraphName>
+
+GraphName  ::= <IDENTIFIER>
+```
+
+The `FROM` clause may be omitted if the system does not require the specification of an input graph for reasons such as:
+
+ - The input graph is implicit because the system only handles single graphs.
+ - The system has a notion of a "default graph" like in certain SPARQL systems.
+ - The system provides an API such as `Graph.queryPgql(..)`, such that it is already clear from the context what the input graph is.
+
+Subqueries may have their own `FROM` clause (see [Querying Multiple Graphs](#querying-multiple-graphs)). Subqueries may also omit the `FROM` clause (see [Subqueries without FROM Clause](#subqueries-without-from-clause)).
+
+## Topology Constraints (MATCH)
+
 In a PGQL query, the `MATCH` clause defines the graph pattern to be matched.
 
-Syntactically, a `MATCH` clause is composed of the keyword `MATCH` followed by a comma-separated sequence of path patterns.
+Syntactically, a `MATCH` clause is composed of the keyword `MATCH` followed by a comma-separated sequence of path patterns:
 
 ```bash
 MatchClause         ::= 'MATCH' { <PathPattern> ',' }+
@@ -211,43 +231,12 @@ OutgoingEdge        ::= '->'
 IncomingEdge        ::= '<-'
                       | '<-[' <VariableDeclaration> ']-'
 
-UndirectedEdge      ::= '-'
-                      | '-[' <VariableDeclaration> ']-'
-
 VariableDeclaration ::= <VariableName>? <LabelsPredicate>?
 
 VariableName        ::= <IDENTIFIER>
-
-LabelsPredicate     ::= ':' { <Label> '|' }+
-
-WhereClause         ::= 'WHERE' <ValueExpression>
 ```
 
-A path pattern describes a partial topology of the subgraph pattern, i.e. vertices and edges in the pattern.
-
-There can be multiple path patterns in the `MATCH` clause of a PGQL query. Semantically, all constraints are conjunctive – that is, each matched result should satisfy every constraint in the `MATCH` clause.
-
-## Input Graph (FROM)
-
-The `FROM` clause specifies the name of the input graph to be queried:
-
-```bash
-FromClause ::= 'FROM' <GraphName>
-
-GraphName  ::= <IDENTIFIER>
-```
-
-The `FROM` clause may be omitted if the system does not require the specification of an input graph for reasons such as:
-
- - The input graph is implicit because the system only handles single graphs.
- - The system has a notion of a "default graph" like in certain SPARQL systems.
- - The system provides an API such as `Graph.queryPgql(..)`, such that it is already clear from the context what the input graph is.
-
-Subqueries may have their own `FROM` clause (see [Querying Multiple Graphs](#querying-multiple-graphs)). Subqueries may also omit the `FROM` clause (see [Subqueries without FROM Clause](#subqueries-without-from-clause)).
-
-## Topology Constraints (MATCH)
-
-A topology constraint is a path pattern that describes a partial topology of the subgraph pattern. In other words, a topology constraint describes some connectivity relationships between vertices and edges in the pattern, whereas the whole topology of the pattern is described with one or multiple topology constraints.
+A path pattern that describes a partial topology of the subgraph pattern. In other words, a topology constraint describes some connectivity relationships between vertices and edges in the pattern, whereas the whole topology of the pattern is described with one or multiple topology constraints.
 
 A topology constraint is composed of one or more vertices and relations, where a relation is either an edge or a path. In a query, each vertex or edge is (optionally) associated with a variable, which is a symbolic name to reference the vertex or edge in other clauses. For example, consider the following topology constraint:
 
@@ -258,6 +247,8 @@ A topology constraint is composed of one or more vertices and relations, where a
 The above example defines two vertices (with variable names `n` and `m`), and an edge (with variable name `e`) between them. Also the edge is directed such that the edge `e` is an outgoing edge from vertex `n`.
 
 More specifically, a vertex term is written as a variable name inside a pair of parenthesis `()`. An edge term is written as a variable name inside a square bracket `[]` with two dashes and an inequality symbol attached to it – which makes it look like an arrow drawn in ASCII art. An edge term is always connected with two vertex terms as for the source and destination vertex of the edge; the source vertex is located at the tail of the ASCII arrow and the destination at the head of the ASCII arrow.
+
+There can be multiple path patterns in the `MATCH` clause of a PGQL query. Semantically, all constraints are conjunctive – that is, each matched result should satisfy every constraint in the `MATCH` clause.
 
 ### Repeated Variables in Multiple Topology Constraints
 
@@ -277,7 +268,7 @@ For user's convenience, PGQL provides several syntactic sugars (short-cuts) for 
 First, a single topology constraint can be written as a chain of edge terms such that two consecutive edge terms share the common vertex term in between. For instance, the following topology constraint is valid in PGQL:
 
 ```sql
-(n1)-[e1]->(n2)-[e2]->(n3)-[e3]->(n4)
+(n1) -[e1]-> (n2) -[e2]-> (n3) -[e3]-> (n4)
 ```
 
 In fact, the above constraint is equivalent to the following set of comma-separated constraints:
@@ -288,7 +279,7 @@ In fact, the above constraint is equivalent to the following set of comma-separa
 (n3) -[e3]-> (n4)
 ```
 
-Second, PGQL syntax allows reversing the direction of an edge in the query, i.e. right-to-left instead of left-to-right. Therefore, the following is a valid topology constraint in PGQL:
+Second, PGQL syntax allows reversing the direction of an edge in the query, i.e. right-to-left instead of left-to-right. Therefore, the following is a valid graph pattern:
 
 ```sql
 (n1) -[e1]-> (n2) <-[e2]- (n3)
@@ -308,39 +299,27 @@ Omit variable name of the destination vertex | `(n) -[e]-> ()`
 Omit variable names in both vertices | `() -[e]-> ()`
 Omit variable name in edge | `(n) -> (m)`
 
-### Disconnected Topology Constraints
+### Disconnected Graph Patterns
 
-In the case the topology constraints form multiple groups of vertices and edges that are not connected to each other, the semantic is that the different groups are matched independently and that the final result is produced by taking the Cartesian product of the result sets of the different groups. The following is an example of a query that will result in a Cartesian product.
+In the case the `MATCH` clause contains two or more disconnected graph patterns (i.e. groups of vertices and relations that are not connected to each other), the different groups are matched independently and the final result is produced by taking the Cartesian product of the result sets of the different groups. The following is an example:
 
 ```sql
 SELECT *
  MATCH (n1) -> (m1)
-     , (n2) -> (m2) /* vertices {n2, m2} are not connected to vertices {n1, m1}, resulting in a Cartesian product */
+     , (n2) -> (m2)
 ```
 
-## Label Matching
+Here, vertices `n2` and `m2` are not connected to vertices `n1` and `m1`, resulting in a Cartesian product.
 
-In the property graph model, vertices and edge may have labels. These are typically used to encode the type of the entity, e.g. `Person` or `Movie` for vertices and `likes` for edges. PGQL provides a convenient syntax for matching labels by attaching the label to the corresponding vertex or edge using a colon (`:`) followed by the label. Take the following example:
+## Label Predicates
 
-```sql
-SELECT *
- MATCH (x:Person) -[e:likes]-> (y:Person)
-```
+In the property graph model, vertices and edge may have labels, which are arbitrary (character) strings. Typically, labels are used to encode types of entities. For example, a graph may contain a set of vertices with the label `Person`, a set of vertices with the label `Movie`, and, a set of edges with the label `likes`. A label predicate specifies that a vertex or edge only matches if it has ony of the specified labels. The syntax for specifying a label predicate is through a (`:`) followed by one or more labels that are separate by a vertical bar (`|`).
 
-Here, we specify that vertices `x` and `y` have the label `Person` and that the edge `e` has the label `likes`.
-
-Labels can still be specified when variables are omitted. The following is an example:
-
-```sql
-SELECT *
- MATCH (:Person) -[:likes]-> (:Person)
-```
-
-### Labels and Quotes
-
-Labels can be arbitrary strings. Omitting quotes is optional only if the label is an alphanumeric character followed by zero or more alphanumeric or underscore characters. Otherwise, the label needs to be quoted and Syntax for Strings needs to be followed. This is explained by the following grammar constructs:
+This is explained by the following grammar constructs:
 
 ```bash
+LabelsPredicate     ::= ':' { <Label> '|' }+
+
 Label ::= <IDENTIFIER>
 ```
 
@@ -348,34 +327,34 @@ Take the following example:
 
 ```sql
 SELECT *
- MATCH (x:Person) -[e:"has friend"]-> (y:Person)
+ MATCH (x:Person) -[e:likes|knows]-> (y:Person)
 ```
 
-Here, because the label `has friend` contains a white space, the quotes cannot be omitted and syntax for quoted identifiers is required.
+Here, we specify that vertices `x` and `y` have the label `Person` and that the edge `e` has the label `likes` or the label `knows`.
 
-### Label Alternatives
-
-One can specify label alternatives, such that the pattern matches if the vertex or edge has one of the specified labels. Syntax-wise, label alternatives are separated by a `|` character, as follows:
+A label predicate can be specified even when a variable is omitted. For example:
 
 ```sql
 SELECT *
- MATCH (x:Student|Professor) -[e:likes|knows]-> (y:Student|Professor)
+ MATCH (:Person) -[:likes|knows]-> (:Person)
 ```
 
-Here, vertices `x` and `y` match if they have either or both of labels `Student` and `Professor`. Edge `e` matches if it has either label `likes` or label `knows`.
+There are also built-in functions available for labels (see [Built-in Functions](#built-in-functions):
+
+ - `has_label(element, string)` returns `true` if the vertex or edge (first argument) has the specified label (second argument).
+ - `labels(element)` returns the set of labels of a vertex or edge in the case the vertex/edge has multiple labels.
+ - `label(element)` returns the label of a vertex or edge in the case the vertex/edge has only a single label.
+
+## Filters (WHERE)
+
+Filters are applied after pattern matching to remove certain solutions. A filter takes the form of a boolean value expression which typically involves certain property values of the vertices and edges in the graph pattern. The syntactic structure is as follows:
 
 
-### Built-in Functions for Labels
+```bash
+WhereClause ::= 'WHERE' <ValueExpression>
+```
 
-There are also built-in functions available for labels:
-
-- `has_label(element, string)` returns `true` if the vertex or edge (first argument) has the specified label (second argument).
-- `labels(element)` returns the set of labels of a vertex or edge in the case the vertex/edge has multiple labels.
-- `label(element)` returns the label of a vertex or edge in the case the vertex/edge has only a single label.
-
-## Filters (MATCH)
-
-Filters describe general constraints other than topology. A filter takes the form of a boolean expression which typically involves certain property values of the vertices and edges that are defined in topology constraints in the same query. For instance, the following example consists of three constraints – one topology constraint followed by two value constraints.
+For example:
 
 ```sql
 SELECT y.name
@@ -384,9 +363,9 @@ WHERE x.name = 'John'
   AND y.age > 25
 ```
 
-In the above example, the first filter describes that the vertex `x` has a property `name` and its value is `John`. Similarly, the second value describes that the vertex `y` has a property `age` and its value is larger than `25`. Here, in the filter, the dot (`.`) operator is used for property access. For the detailed syntax and semantic of expressions, please see [Value Expressions](#value-expressions).
+Here, the first filter describes that the vertex `x` has a property `name` and its value is `John`. Similarly, the second filter describes that the vertex `y` has a property `age` and its value is larger than `25`. Here, in the filter, the dot (`.`) operator is used for property access. For the detailed syntax and semantic of expressions, see [Value Expressions](#value-expressions).
 
-Note that in PGQL the ordering of constraints does not has any effect on the result. Therefore, the previous example is equivalent to the following:
+Note that the ordering of constraints does not has an affect on the result, such that query from the previous example is equivalent to:
 
 ```sql
 SELECT y.name
@@ -397,7 +376,7 @@ WHERE y.age > 25
 
 ## Graph Pattern Matching Semantic
 
-There are two popular graph pattern matching semantics: graph homomorphism and graph isomorphism. The semantic of PGQL is graph homomorphism.
+There are two popular graph pattern matching semantics: graph homomorphism and graph isomorphism. The built-in semantic of PGQL is based on graph homomorphism, but patterns can still be matched in an isomorphic manner by specifying non-equality constraints between vertices and/or edges, or, by using the built-in function `all_different(exp1, exp2, .., expN)` (see [Built-in Functions](#built-in-functions)).
 
 ### Subgraph Homomorphism
 
@@ -432,7 +411,7 @@ Under graph isomorphism, two distinct query vertices must not match with the sam
 
 Consider the example from above. Under graph isomorphism, only the second solution is a valid one since the first solution binds both query vertices `x` and `y` to the same data vertex.
 
-In PGQL, to specify that a pattern should be matched in an isomorphic way, one can introduce either non-equality constraints:
+In PGQL, to specify that a pattern should be matched in an isomorphic way, one can introduce non-equality constraints:
 
 ```sql
 SELECT x, y
@@ -446,9 +425,24 @@ x | y
 --- | ---
 0 | 1
 
+Alternatively, one can use the built-in function `all_different(exp1, exp2, .., expN)` (see [Built-in Functions](#built-in-functions)), which takes an arbitrary number of vertices or edges as input, and automatically applies non-equality constraints between all of them:
+
+```sql
+SELECT x, y
+ MATCH (x) -> (y)
+ WHERE all_different(x, y)
+```
+
 ## Undirected Query Edges
 
 Undirected query edges match with both incoming and outgoing data edges.
+
+The syntactic structure is as follows:
+
+```bash
+UndirectedEdge ::= '-'
+                 | '-[' <VariableDeclaration> ']-'
+```
 
 An example PGQL query with undirected edges is as follows:
 
