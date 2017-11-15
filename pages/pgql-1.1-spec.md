@@ -212,30 +212,30 @@ In a PGQL query, the `MATCH` clause defines the graph pattern to be matched.
 Syntactically, a `MATCH` clause is composed of the keyword `MATCH` followed by a comma-separated sequence of path patterns:
 
 ```bash
-MatchClause         ::= 'MATCH' <GraphPattern>
+MatchClause           ::= 'MATCH' <GraphPattern>
 
-GraphPattern        ::= { <PathPattern> ',' }+
+GraphPattern          ::= { <PathPattern> ',' }+
 
-PathPattern         ::= <Vertex> ( <Relation> <Vertex> )*
+PathPattern           ::= <Vertex> ( <Relation> <Vertex> )*
 
-Vertex              ::= '(' <VariableDeclaration> ')'
+Vertex                ::= '(' <VariableSpecification> ')'
 
-Relation            ::= <Edge>
-                      | <Path>
+Relation              ::= <Edge>
+                        | <Path>
 
-Edge                ::= <OutgoingEdge>
-                      | <IncomingEdge>
-                      | <UndirectedEdge>
+Edge                  ::= <OutgoingEdge>
+                        | <IncomingEdge>
+                        | <UndirectedEdge>
 
-OutgoingEdge        ::= '->'
-                      | '-[' <VariableDeclaration> ']->'
+OutgoingEdge          ::= '->'
+                        | '-[' <VariableSpecification> ']->'
 
-IncomingEdge        ::= '<-'
-                      | '<-[' <VariableDeclaration> ']-'
+IncomingEdge          ::= '<-'
+                        | '<-[' <VariableSpecification> ']-'
 
-VariableDeclaration ::= <VariableName>? <LabelPredicate>?
+VariableSpecification ::= <VariableName>? <LabelPredicate>?
 
-VariableName        ::= <IDENTIFIER>
+VariableName          ::= <IDENTIFIER>
 ```
 
 A path pattern that describes a partial topology of the subgraph pattern. In other words, a topology constraint describes some connectivity relationships between vertices and edges in the pattern, whereas the whole topology of the pattern is described with one or multiple topology constraints.
@@ -343,7 +343,7 @@ SELECT *
  MATCH (:Person) -[:likes|knows]-> (:Person)
 ```
 
-There are also built-in functions available for labels (see [Built-in Functions](#built-in-functions):
+There are also built-in functions available for labels (see [Built-in Functions](#built-in-functions)):
 
  - `has_label(element, string)` returns `true` if the vertex or edge (first argument) has the specified label (second argument).
  - `labels(element)` returns the set of labels of a vertex or edge in the case the vertex/edge has multiple labels.
@@ -445,7 +445,7 @@ The syntactic structure is as follows:
 
 ```bash
 UndirectedEdge ::= '-'
-                 | '-[' <VariableDeclaration> ']-'
+                 | '-[' <VariableSpecification> ']-'
 ```
 
 An example PGQL query with undirected edges is as follows:
@@ -893,17 +893,17 @@ GroupByClause ::= 'GROUP' 'BY' { <ExpAsVar> ',' }+
 The `GROUP BY` clause starts with the keywords GROUP BY and is followed by a comma-separated list of group terms. Each group term consists of:
 
 - An expression.
-- An optional variable definition that is specified by appending the keyword AS and the name of the variable.
+- An optional variable definition that is specified by appending the keyword `AS` and the name of the variable.
 
 Consider the following query:
 
 ```sql
-  SELECT n.firstName, COUNT(*), AVG(n.age)
+  SELECT n.first_name, COUNT(*), AVG(n.age)
    MATCH (n:Person)
-GROUP BY n.firstName
+GROUP BY n.first_name
 ```
 
-Matches are grouped by their values for `n.firstName`. For each group, the query selects `n.firstName` (i.e. the group key), the number of solutions in the group (i.e. `COUNT(*)`), and the average value of the property age for vertex n (i.e. `AVG(n.age)`).
+Matches are grouped by their values for `n.first_name`. For each group, the query selects `n.first_name` (i.e. the group key), the number of solutions in the group (i.e. `COUNT(*)`), and the average value of the property age for vertex n (i.e. `AVG(n.age)`).
 
 ### Assigning Variable Name to Group Expression
 
@@ -923,12 +923,12 @@ It is possible that the `GROUP BY` clause consists of multiple terms. In such a 
 Consider the following query:
 
 ```sql
-  SELECT n.firstName, n.lastName, COUNT(*)
+  SELECT n.first_name, n.last_name, COUNT(*)
    MATCH (n:Person)
-GROUP BY n.firstName, n.lastName
+GROUP BY n.first_name, n.last_name
 ```
 
-Matches will be grouped together only if they hold the same values for `n.firstName` and the same values for `n.lastName`.
+Matches will be grouped together only if they hold the same values for `n.first_name` and the same values for `n.last_name`.
 
 ### GROUP BY and NULL values
 
