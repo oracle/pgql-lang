@@ -245,7 +245,7 @@ The `FROM` clause may be omitted if the system does not require the specificatio
 
 Subqueries may have their own `FROM` clause (see [Querying Multiple Graphs](#querying-multiple-graphs)). Subqueries may also omit the `FROM` clause (see [Subqueries without FROM Clause](#subqueries-without-from-clause)).
 
-## Topology Constraints
+## Topology Constraints (MATCH)
 
 A topology constraint is a path pattern that describes a partial topology of the subgraph pattern. In other words, a topology constraint describes some connectivity relationships between vertices and edges in the pattern, whereas the whole topology of the pattern is described with one or multiple topology constraints.
 
@@ -373,7 +373,7 @@ There are also built-in functions available for labels:
 - `labels(element)` returns the set of labels of a vertex or edge in the case the vertex/edge has multiple labels.
 - `label(element)` returns the label of a vertex or edge in the case the vertex/edge has only a single label.
 
-## Filters
+## Filters (MATCH)
 
 Filters describe general constraints other than topology. A filter takes the form of a boolean expression which typically involves certain property values of the vertices and edges that are defined in topology constraints in the same query. For instance, the following example consists of three constraints – one topology constraint followed by two value constraints.
 
@@ -384,7 +384,7 @@ WHERE x.name = 'John'
   AND y.age > 25
 ```
 
-In the above example, the first filter describes that the vertex `x` has a property `name` and its value is `John`. Similarly, the second value describes that the vertex `y` has a property `age` and its value is larger than `25`. Here, in the filter, the dot (`.`) operator is used for property access. For the detailed syntax and semantic of expressions, please see [value expressions](#value-expressions).
+In the above example, the first filter describes that the vertex `x` has a property `name` and its value is `John`. Similarly, the second value describes that the vertex `y` has a property `age` and its value is larger than `25`. Here, in the filter, the dot (`.`) operator is used for property access. For the detailed syntax and semantic of expressions, please see [Value Expressions](#value-expressions).
 
 Note that in PGQL the ordering of constraints does not has any effect on the result. Therefore, the previous example is equivalent to the following:
 
