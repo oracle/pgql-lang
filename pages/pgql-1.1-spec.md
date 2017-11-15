@@ -1,9 +1,9 @@
 ---
 title:  "PGQL 1.1 Specification"
 permalink: /spec/1.1/
-summary: "PGQL is an SQL-like query language for the Property Graph data model.
+summary: "PGQL is an SQL-like query language for the property graph data model.
 The language is based on the paradigm of graph pattern matching, which allows you to specify patterns that are matched against vertices and edges in a data graph.
-Like SQL, PGQL has support for grouping (GROUP BY), aggregation (e.g. MIN, MAX, AVG, SUM), sorting (ORDER BY) and many other familiar SQL constructs.
+Like SQL, PGQL has support for grouping (GROUP BY), aggregation (e.g. MIN, MAX, AVG, SUM), sorting (ORDER BY) and many other familiar constructs.
 In addition, PGQL has regular path expressions for applications such as reachability analysis."
 sidebar: spec_1_1_sidebar
 toc: true
@@ -21,7 +21,7 @@ The following are the changes since PGQL 1.0:
  - [DISTINCT](#aggregation) in aggregation
  - [SELECT DISTINCT](#projection-select)
  - Filtering of groups ([HAVING](#filtering-of-groups-having))
- - [Temporal types](#temporal-types): `DATE`, `TIME`, `TIMESTAMP`, `TIME WITH TIMEZONE`, `TIMESTAMP WITH TIMEZONE`
+ - [Temporal types](#temporal-types): `DATE`, `TIME`, `TIMESTAMP`, `TIME WITH TIMEZONE`, and `TIMESTAMP WITH TIMEZONE`
  - [IS NULL](#is-null-and-is-not-null) and [IS NOT NULL](#is-null-and-is-not-null)
  - Explicit type conversion through [`CAST`](#explicit-type-conversion-cast) function
  - Built-in function [`all_different(val1, val2, .., valn)`](#built-in-functions)
@@ -593,8 +593,11 @@ The `LIMIT` puts an upper bound on the number of solutions returned, whereas the
 The following explains the syntactic structure for the LIMIT and OFFSET clauses:
 
 ```bash
-LimitOffsetClauses ::= 'LIMIT' <UNSIGNED_INTEGER> ( 'OFFSET' <UNSIGNED_INTEGER> )?
-                     | 'OFFSET' <UNSIGNED_INTEGER> ( 'LIMIT' <UNSIGNED_INTEGER> )?
+LimitOffsetClauses ::= 'LIMIT' <LimitOffsetValue> ( 'OFFSET' <LimitOffsetValue> )?
+                     | 'OFFSET' <LimitOffsetValue> ( 'LIMIT' <LimitOffsetValue> )?
+
+LimitOffsetValue   ::= <UNSIGNED_INTEGER>
+                     | <BindVariable>
 ```
 
 The `LIMIT` clause starts with the keyword `LIMIT` and is followed by an integer that defines the limit. Similarly, the `OFFSET` clause starts with the keyword `OFFSET` and is followed by an integer that defines the offset. Furthermore:
@@ -934,7 +937,7 @@ Matches will be grouped together only if they hold the same values for `n.first_
 
 The group for which all the group keys are null is a valid group and takes part in further query processing.
 
-To filter out such a group, use a [`HAVING` clause](#filtering-of-groups-having), for example:
+To filter out such a group, use a `HAVING` clause (see [Filtering of Groups (HAVING)](#filtering-of-groups-having)), for example:
 
 ```sql
   SELECT n.prop1, n.prop2, COUNT(*)
@@ -1460,7 +1463,7 @@ SELECT fof.name, COUNT(friend) AS num_common_friends
                   )
 ```
 
-Here, vertices `p` and `fof` are passed from the outer query to the inner query. The `EXISTS` returns true if there is at least one `has_friend` edge between `p` and `fof`.
+Here, vertices `p` and `fof` are passed from the outer query to the inner query. The `EXISTS` returns true if there is at least one `has_friend` edge between vertices `p` and `fof`.
 
 ## Subqueries without FROM Clause
 
@@ -1553,7 +1556,7 @@ COUNT, MIN, MAX, AVG, SUM, EXISTS, CAST
 
 Keywords are case-insensitive and variations such as `SELECT`, `Select` and `sELeCt` can be used interchangeably.
 
-Keywords are reserved names such that an `<IDENTIFIER>` (e.g variable name, property name) may not be a keyword.
+Keywords are reserved names such that an `<IDENTIFIER>` (e.g. variable name or property name) may not correspond to one of the keywords.
 
 ## Comments
 
@@ -1593,7 +1596,7 @@ SELECT n.name, m.name
 This query can be reformatted with minimal white space, while guaranteeing compatibility with different parser implementations, as follows:
 
 ```sql
-SELECT n.name,m.name MATCH(n)->(m)WHERE n.name='Ron Weasley')->(m)
+SELECT n.name,m.name MATCH(n:Person)->(m)WHERE n.name='Ron Weasley'
 ```
 
 Note that the white space after the `SELECT` keyword, in front of the `MATCH` keyword, after the `WHERE` keyword, and, in the string literal `'Ron Weasley'`, cannot be omitted.
