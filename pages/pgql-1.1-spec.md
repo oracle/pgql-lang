@@ -668,7 +668,7 @@ SELECT c.name
  WHERE arrayList.name = 'ArrayList'
 ```
 
-Here, we find all classes that are a subclass of `'ArrayList'`. The regular path pattern `subclass_of*` matches a path consisting of zero or more edges with the label `subclass_of`. Because the pattern may match a path with zero edges, the two query vertices can be bound to the same data vertex if the data vertex satisfies the constraints specified in both source and destination vertices (i.e. the vertex has a label `Class` and a property `name` with a value `ArrayList`.
+Here, we find all classes that are a subclass of `'ArrayList'`. The regular path pattern `subclass_of*` matches a path consisting of zero or more edges with the label `subclass_of`. Because the pattern may match a path with zero edges, the two query vertices can be bound to the same data vertex if the data vertex satisfies the constraints specified in both source and destination vertices (i.e. the vertex has a label `Class` and a property `name` with a value `ArrayList`).
 
 ## Min and max repetition
 
@@ -1507,7 +1507,7 @@ UNSIGNED_DECIMAL     ::= [0-9]* '.' [0-9]+
 
 These rules describe the following:
 
- - Identifiers (used for e.g. graph names, property names, etc) take the form of an alphabetic character followed by zero or more alphanumeric or underscore (i.e. `_`) characters.
+ - Identifiers (used for e.g. graph names, property names, etc.) take the form of an alphabetic character followed by zero or more alphanumeric or underscore (i.e. `_`) characters.
  - Single quoted strings (used for string literals) consist of:
      - A starting single quote.
      - Any number of characters that are either:
