@@ -38,17 +38,17 @@ entries:
       url: /spec/1.1/#input-graph-from
       output: web
 
-    - title: Topology Constraints (MATCH)
-      url: /spec/1.1/#topology-constraints-match
+    - title: Graph Pattern Specification (MATCH)
+      url: /spec/1.1/#graph-pattern-specification-match
       output: web
       subfolderitems:
 
-      - title: Repeated Variables in Multiple Topology Constraints
-        url: /spec/1.1/#repeated-variables-in-multiple-topology-constraints
+      - title: Repeated Variables
+        url: /spec/1.1/#repeated-variables
         output: web
 
-      - title: Syntactic Sugars for Topology Constraints
-        url: /spec/1.1/#syntactic-sugars-for-topology-constraints
+      - title: Alternatives for Specifying Graph Patterns
+        url: /spec/1.1/#alternatives-for-specifying-graph-patterns
         output: web
 
       - title: Disconnected Graph Patterns

@@ -205,14 +205,16 @@ The `FROM` clause may be omitted if the system does not require the specificatio
 
 Subqueries may have their own `FROM` clause (see [Querying Multiple Graphs](#querying-multiple-graphs)). Subqueries may also omit the `FROM` clause (see [Subqueries without FROM Clause](#subqueries-without-from-clause)).
 
-## Topology Constraints (MATCH)
+## Graph Pattern Specification (MATCH)
 
 In a PGQL query, the `MATCH` clause defines the graph pattern to be matched.
 
 Syntactically, a `MATCH` clause is composed of the keyword `MATCH` followed by a comma-separated sequence of path patterns:
 
 ```bash
-MatchClause         ::= 'MATCH' { <PathPattern> ',' }+
+MatchClause         ::= 'MATCH' <GraphPattern>
+
+GraphPattern        ::= { <PathPattern> ',' }+
 
 PathPattern         ::= <Vertex> ( <Relation> <Vertex> )*
 
@@ -231,7 +233,7 @@ OutgoingEdge        ::= '->'
 IncomingEdge        ::= '<-'
                       | '<-[' <VariableDeclaration> ']-'
 
-VariableDeclaration ::= <VariableName>? <LabelsPredicate>?
+VariableDeclaration ::= <VariableName>? <LabelPredicate>?
 
 VariableName        ::= <IDENTIFIER>
 ```
@@ -250,7 +252,7 @@ More specifically, a vertex term is written as a variable name inside a pair of 
 
 There can be multiple path patterns in the `MATCH` clause of a PGQL query. Semantically, all constraints are conjunctive – that is, each matched result should satisfy every constraint in the `MATCH` clause.
 
-### Repeated Variables in Multiple Topology Constraints
+### Repeated Variables
 
 There can be multiple topology constraints in the `WHERE` clause of a PGQL query. In such a case, vertex terms that have the same variable name correspond to the same vertex entity. For example, consider the following two lines of topology constraints:
 
@@ -261,17 +263,17 @@ There can be multiple topology constraints in the `WHERE` clause of a PGQL query
 
 Here, the vertex term `(n)` in the first constraint indeed refers to the same vertex as the vertex term `(n)` in the second constraint. It is an error, however, if two edge terms have the same variable name, or, if the same variable name is assigned to an edge term as well as to a vertex term in a single query.
 
-### Syntactic Sugars for Topology Constraints
+### Alternatives for Specifying Graph Patterns
 
-For user's convenience, PGQL provides several syntactic sugars (short-cuts) for topology constraints.
+There are various ways in which a particular graph pattern can be specified.
 
-First, a single topology constraint can be written as a chain of edge terms such that two consecutive edge terms share the common vertex term in between. For instance, the following topology constraint is valid in PGQL:
+First, a single path pattern can be written as a chain of edge terms such that two consecutive edge terms share the common vertex term in between. For example:
 
 ```sql
 (n1) -[e1]-> (n2) -[e2]-> (n3) -[e3]-> (n4)
 ```
 
-In fact, the above constraint is equivalent to the following set of comma-separated constraints:
+The above graph pattern is equivalent to the graph pattern specified by the following set of comma-separate path patterns:
 
 ```sql
 (n1) -[e1]-> (n2),
@@ -279,7 +281,7 @@ In fact, the above constraint is equivalent to the following set of comma-separa
 (n3) -[e3]-> (n4)
 ```
 
-Second, PGQL syntax allows reversing the direction of an edge in the query, i.e. right-to-left instead of left-to-right. Therefore, the following is a valid graph pattern:
+Second, it is allowed to reverse the direction of an edge in the pattern, i.e. right-to-left instead of left-to-right. Therefore, the following is a valid graph pattern:
 
 ```sql
 (n1) -[e1]-> (n2) <-[e2]- (n3)
@@ -287,7 +289,9 @@ Second, PGQL syntax allows reversing the direction of an edge in the query, i.e.
 
 Please mind the edge directions in the above query – vertex `n2` is a common outgoing neighbor of both vertex `n1` and vertex `n3`.
 
-Third, PGQL allows omitting not-interesting variable names in the query. A variable name is not interesting if that name would not appear in any other constraint, nor in other clauses (`SelectClause`, `SolutionModifierClause`). As for a vertex term, only the variable name is omitted, resulting in an empty parenthesis pair. In case of an edge term, the whole square bracket is omitted in addition to the variable name. In this case, the remaining ASCII arrow can have either one dash or two dashes.
+Third, it is allowed to ommitg variable names if the particular vertex or edge does not need to be referenced in any of the other clauses (e.g. `SELECT` or `ORDER BY`). When the variable name is omitted, the vertex or edge is an "anonymous" vertex or edge.
+
+Syntactically, for vertices, this result in an empty pair of parenthesis. In case of edges, the whole square bracket is omitted in addition to the variable name.
 
 The following table summarizes these short cuts.
 
@@ -318,9 +322,9 @@ In the property graph model, vertices and edge may have labels, which are arbitr
 This is explained by the following grammar constructs:
 
 ```bash
-LabelsPredicate     ::= ':' { <Label> '|' }+
+LabelPredicate ::= ':' { <Label> '|' }+
 
-Label ::= <IDENTIFIER>
+Label          ::= <IDENTIFIER>
 ```
 
 Take the following example:
@@ -615,19 +619,20 @@ OFFSET 5
 Path queries test for the existence of arbitrary-length paths between pairs of vertices, or, retrieve actual paths between pairs of vertices.
 PGQL 1.1 supports testing for path existence ("reachability testing") only, while retrieval of actual paths between reachable pairs of vertices is planned for a future version.
 
-The syntactic structure of a query path is similar to a query edge, but it uses forward slashes (-/.../->) instead of square brackets (-[...]->). The syntax rules are as follows:
+The syntactic structure of a query path is similar to a query edge, but it uses forward slashes (`-/` and `/->`) instead of square brackets (`-[` and `]->`). The syntax rules are as follows:
 
 ```bash
 Path                 ::= <OutgoingPath>
                        | <IncomingPath>
 
-OutgoingPath         ::= '-/' <LabelsPredicate> '/->'
-                       | '-/' <SingleLabelPredicate> <RepetitionQuantifier> '/->'
+OutgoingPath         ::= '-/' <PathSpecification> '/->'
 
-IncomingPath         ::= '<-/' <LabelsPredicate> '/-'
-                       | '<-/' <SingleLabelPredicate> <RepetitionQuantifier> '/-'
+IncomingPath         ::= '<-/' <PathSpecification> '/-'
 
-SingleLabelPredicate ::= ':' <IDENTIFIER>
+PathSpecification    ::= <LabelPredicate>
+                       | <PathPredicate>
+
+PathPredicate        ::= ':' <Label> <RepetitionQuantifier>
 
 RepetitionQuantifier ::= <ZeroOrMore>
                        | <OneOrMore>
