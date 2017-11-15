@@ -284,8 +284,8 @@ entries:
     output: web
     folderitems:
 
-    - title: Identifiers
-      url: /spec/1.1/#identifiers
+    - title: Lexical Constructs
+      url: /spec/1.1/#lexical-constructs
       output: web
 
     - title: Escaped Characters in Strings

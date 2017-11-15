@@ -1264,14 +1264,10 @@ Literal                      ::= <StringLiteral>
                                | <TimeWithTimezoneLiteral>
                                | <TimestampWithTimezoneLiteral>
 
-StringLiteral                ::= "'" (~[\'\n\\] | <ESCAPED_CHARACTER>)* "'"
+StringLiteral                ::= <SINGLE_QUOTED_STRING>
 
 NumericLiteral               ::= <UNSIGNED_INTEGER>
                                | <UNSIGNED_DECIMAL>
-
-UNSIGNED_INTEGER             ::= [0-9]+
-
-UNSIGNED_DECIMAL             ::= [0-9]* '.' [0-9]+
 
 BooleanLiteral               ::= 'true'
                                | 'false'
@@ -1485,20 +1481,38 @@ Above, we compare two string properties from different graphs. Besides propertie
 
 # Other Syntactic Rules
 
-## Identifiers
+## Lexical Constructs
 
-Graph names, variable names, property names, and labels, all take the form of an identifier consisting of an alphabetic character followed by zero or more alphanumeric or underscore (i.e. `_`) characters:
+The following are the lexical grammar constructs: 
 
 ```bash
-IDENTIFIER ::= [a-zA-Z][a-zA-Z0-9\_]*
+IDENTIFIER           ::= [a-zA-Z][a-zA-Z0-9\_]*
+
+SINGLE_QUOTED_STRING ::= "'" ( ~[\'\n\\] | <ESCAPED_CHARACTER> )* "'"
+
+UNSIGNED_INTEGER     ::= [0-9]+
+
+UNSIGNED_DECIMAL     ::= [0-9]* '.' [0-9]+
 ```
+
+These rules describe the following:
+
+ - Identifiers (used for e.g. graph names, property names, etc) take the form of an alphabetic character followed by zero or more alphanumeric or underscore (i.e. `_`) characters.
+ - Single quoted strings (used for string literals) consist of:
+     - a starting single quote
+     - any number of characters that are either:
+         - not a single quote, a new line character, or a backslash character
+         - an escaped character
+     - an ending single quote
+ - Unsigned integers consist of one or more digits
+ - Unsigned decimals consist of zero or more digits followed by a dot (`.`) and one or more digits
 
 ## Escaped Characters in Strings
 
 Escaping in String literals is necessary to support having white space, quotation marks and the backslash character as a part of the literal value. The following explains the syntax of an escaped character.
 
 ```bash
-ESCAPED_CHARACTER ::= '\' [tnr\"']
+ESCAPED_CHARACTER ::= '\' [tnr\"\']
 ```
 
 Note that an escaped character is either a tab (`\t`), a line feed (`\n`), a carriage return (`\r`), a single (`\'`) or double quote (`\"`), or a backslash (`\\`). Corresponding Unicode code points are shown in the table below.
