@@ -13,7 +13,7 @@ toc: true
 
 The following are the changes since PGQL 1.0:
 
-## New Query Capability in PGQL 1.1
+## New Query Capabilities in PGQL 1.1
 
  - [FROM clause](#input-graph-from)
  - [Undirected query edges](#undirected-query-edges)
@@ -971,12 +971,7 @@ ORDER BY nAge
 
 ## Aggregation
 
-Instead of retrieving all the matched results, a PGQL query can choose to get only some aggregated information about the result. This is done by putting aggregations in SELECT clause. Consider the following example query which returns the average value of property age over all the matched vertex m.
-
-```sql
-SELECT AVG(m.age)
- MATCH (m:Person)
-```
+Aggregates `COUNT`, `MIN`, `MAX`, `AVG` and `SUM` can aggregate over groups of solutions.
 
 The syntax is as follows:
 
@@ -1011,56 +1006,54 @@ Aggregate Operator | Semantic | Required Input Type
 `SUM` | sums over the values for the given expression. | numeric
 `AVG` | takes the average of the values for the given. | numeric
 
-The `DISTINCT` modifier specifies that duplicate values should be removed before aggregation.
+### Aggregation with GROUP BY
 
-`COUNT(*)` is a special syntax to count the number of pattern matches, without specifying an expression. Consider the following example:
+If a `GROUP BY` is specified, aggregations are applied to each individual group of solutions.
+
+An example is as follows:
+
+```sql
+  SELECT AVG(m.salary)
+   MATCH (m:Person)
+GROUP BY m.age
+```
+
+Here, we group people by their age and compute the average salary for each such a group.
+
+### Aggregation without GROUP BY
+
+If _no_ `GROUP BY` is specified, aggregations are applied to the entire set of solutions.
+
+An example is as follows:
+
+```sql
+SELECT AVG(m.salary)
+ MATCH (m:Person)
+```
+
+Here, we aggregate over the entire set of vertices with label `Person`, to compute the average salary.
+
+### COUNT(*)
+
+`COUNT(*)` is a special construct that simply counts the number of solutions without evaluating an expression. An example is as follows:
 
 ```sql
 SELECT COUNT(*)
- MATCH (m:Person) -> (k:Car) <- (n:Person)
+ MATCH (m:Person)
 ```
 
-The above query simply returns the number of matches to the pattern.
+### DISTINCT Aggregation
 
-### Aggregation and Required Input Type
+The `DISTINCT` modifier specifies that duplicate values should be removed before performing aggregation.
 
-In PGQL, aggregation is performed only for the matched results where the type of the target expression matches with the required input type. Consider an example graph instance which has the following four vertex entities.
-
-```
-{"id": 3048,  "name":"John",  "age":30}
-{"id": 1197,  "name":"Peter", "age":20}
-{"id": 20487, "name":"Paul",  "age":"thirty five"}
-{"id": 2019,  "name":"James"}
-```
-
-Now suppose the following query is applied on this data set.
+For example:
 
 ```sql
-SELECT AVG(n.age), COUNT(*)
- MATCH (n)
+SELECT AVG(DISTINCT m.age)
+ MATCH (m:Person)
 ```
 
-Note that all the vertices are matched by the `WHERE` clause. However, the aggregation result from `SELECT` clause is `25` and `4`. For `AVG(n.age)` aggregation, only two vertices get aggregated (`"John"` and `"Peter"`) – the vertex for `"Paul"` is not applied because `'age'` is not numeric type, and the vertex for `"James"` does not have `'age'` property at all. For `COUNT(*)` aggregation, on the other hand, all the four matched vertices are applied to the aggregation.
-
-### Aggregation and Solution Modifier
-
-Aggregation is applied only after the `GROUP BY` operator is applied, but before the `OFFSET` and `LIMIT` operators are applied.
-
-- If there is no GROUP BY operator, the aggregation is performed over the whole match results.
-- If there is a GROUP BY operator, the aggregation is applied over each group.
-
-See the detailed syntax and semantics of `SolutionModifierClause` in the related section of this specification.
-
-### Assigning Variable Name to Aggregation
-
-Like normal selection expression, it is also possible to assign variable name to aggregations. Again this is done by appending the key word `AS` and a variable name next to the aggregation. The variable name is used as the column name of the result set. In addition, the variable name can be later used in the `ORDER BY` clause. See the related section later in this document.
-
-```sql
-  SELECT AVG(n.age) AS pivot, COUNT(n)
-   MATCH (n:Person) -> (m:Car)
-GROUP BY n.hometown
-ORDER BY pivot
-```
+Here, we aggregate only over distinct `m.age` values.
 
 ## Filtering of Groups (HAVING)
 
@@ -1499,13 +1492,13 @@ These rules describe the following:
 
  - Identifiers (used for e.g. graph names, property names, etc) take the form of an alphabetic character followed by zero or more alphanumeric or underscore (i.e. `_`) characters.
  - Single quoted strings (used for string literals) consist of:
-     - a starting single quote
-     - any number of characters that are either:
-         - not a single quote, a new line character, or a backslash character
-         - an escaped character
-     - an ending single quote
- - Unsigned integers consist of one or more digits
- - Unsigned decimals consist of zero or more digits followed by a dot (`.`) and one or more digits
+     - A starting single quote.
+     - Any number of characters that are either:
+         - Not single quote characters, new line characters, or backslash characters.
+         - Escaped characters.
+     - An ending single quote.
+ - Unsigned integers consist of one or more digits.
+ - Unsigned decimals consist of zero or more digits followed by a dot (`.`) and one or more digits.
 
 ## Escaped Characters in Strings
 

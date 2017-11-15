@@ -8,8 +8,8 @@ entries:
     output: web
     folderitems:
 
-    - title: New Query Capability in PGQL 1.1
-      url: /spec/1.1/#new-query-capability-in-pgql-11
+    - title: New Query Capabilities in PGQL 1.1
+      url: /spec/1.1/#new-query-capabilities-in-pgql-11
       output: web
 
     - title: Breaking Syntax Changes since PGQL 1.0
@@ -177,16 +177,20 @@ entries:
       output: web
       subfolderitems:
 
-      - title: Aggregation and Required Input Type
-        url: /spec/1.1/#aggregation-and-required-input-type
+      - title: Aggregation with GROUP BY
+        url: /spec/1.1/#aggregation-with-group-by
         output: web
 
-      - title: Aggregation and Solution Modifier
-        url: /spec/1.1/#aggregation-and-solution-modifier
+      - title: Aggregation without GROUP BY
+        url: /spec/1.1/#aggregation-without-group-by
         output: web
 
-      - title: Assigning Variable Name to Aggregation
-        url: /spec/1.1/#assigning-variable-name-to-aggregation
+      - title: COUNT(*)
+        url: /spec/1.1/#count
+        output: web
+
+      - title: DISTINCT Aggregation
+        url: /spec/1.1/#distinct-aggregation
         output: web
 
     - title: Filtering of Groups (HAVING)
