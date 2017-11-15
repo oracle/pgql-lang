@@ -1077,7 +1077,9 @@ This query returns the names of people who have more than 10 friends.
 
 # Value Expressions
 
-Expressions are used in value constraints, in-lined constraints, and select/group/order terms. This section of the document defines the operators and built-in functions that can be used as part of an expression.
+Value expressions are used in various parts of the language, for example, to filter solutions (`WHERE` and `HAVING`), to project out computed values (`SELECT`), or, to group by or order by computed values (`GROUP BY` and `ORDER BY`).
+
+The following are the relevant grammar rules:
 
 ```bash
 ValueExpression          ::= <VariableReference>
@@ -1104,9 +1106,22 @@ PropertyName             ::= <IDENTIFIER>
 BracketedValueExpression ::= '(' <ValueExpression> ')'
 ```
 
+A value expressions is one of:
+
+ - A variable reference, being either a reference to a `<Vertex>`, an `<Edge>`, or, an `<ExpAsVar>`.
+ - A property access, which syntactically takes the form of a variable reference, followed by a dot (`.`) and the name of a property.
+ - A literal (see [Literals](#literals)).
+ - A bind variable (see [Bind Variables](#bind-variables)).
+ - An arithmetic, relational, or, logical expression (see [Operators](#operators)).
+ - A bracketed value expression, which syntactically takes the form of a value expression between rounded brackets. The brackets allow for controlling precedence.
+ - A function call (see [Functions](#functions)).
+ - The `IS NULL` and `IS NOT NULL` predicates (see [IS NULL and IS NOT NULL](#is-null-and-is-not-null)).
+ - The `EXISTS` predicate (see [Existential Subqueries (EXISTS)](#existential-subqueries-exists)).
+ - An aggregation (see [Aggregation](#aggregation)).
+
 ## Operators
 
-The following table is an overview of the operators in PGQL.
+The following table is an overview of the operators:
 
 Operator kind | Operator
 ------------- | --------
