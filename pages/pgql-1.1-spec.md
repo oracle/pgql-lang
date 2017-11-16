@@ -17,7 +17,7 @@ The following are the changes since PGQL 1.0:
 
  - Input graph definition through `FROM` clause (see [Input Graph (FROM)](#input-graph-from)).
  - Matching of edges in either incoming or outgoing direction through undirected query edges (see [Undirected Query Edges](#undirected-query-edges)).
- - Quantifiers for specifying minimal and maximal repetition in regular path expressions (see [Min and Max Repetition](#min-and-max-repetition)).
+ - Quantifiers for specifying minimal and maximal number of applications in regular path expressions (see [Min and Max Quantifiers](#min-and-max-quantifiers)).
  - `DISTINCT` in aggregations (see [Aggregation](#aggregation)).
  - `SELECT DISTINCT` (see [Projections (SELECT)](#projection-select)).
  - Filtering of groups through `HAVING` clause (see [Filtering of Groups (HAVING)](#filtering-of-groups-having))
@@ -670,9 +670,9 @@ SELECT c.name
 
 Here, we find all classes that are a subclass of `'ArrayList'`. The regular path pattern `subclass_of*` matches a path consisting of zero or more edges with the label `subclass_of`. Because the pattern may match a path with zero edges, the two query vertices can be bound to the same data vertex if the data vertex satisfies the constraints specified in both source and destination vertices (i.e. the vertex has a label `Class` and a property `name` with a value `ArrayList`).
 
-## Min and Max Repetition
+## Min and Max Quantifiers
 
-Quantifiers in regular path expressions allow for specifying lower and upper limits on the number of times a path expression should match.
+Quantifiers in regular path expressions allow for specifying lower and upper limits on the number of times a path expression may be applied for the pattern to match.
 
 | quantifier | meaning                              | matches                                                                                                                             | example path        |
 |------------|--------------------------------------|-------------------------------------------------------------------------------------------------------------------------------------|---------------------|
@@ -686,13 +686,11 @@ Quantifiers in regular path expressions allow for specifying lower and upper lim
 
 Paths considered include those that repeat the same vertices and/or edges multiple times. This means that even cycles are considered. However, because the semantic is to test for the existence of paths between pairs of vertices, there is only at most one result per pair of vertices. Thus, even though an unbounded number of paths may exist between a pair of vertices (because of cycles), the result is always bounded.
 
-### Examples
-
 Take the following graph as example:
 
 {% include image.html file="example_graphs/pgql_min_max_hop.png" %}
 
-#### Zero or more
+### Zero or more
 
 The following query finds all vertices `y` that can be reached from `Amy` by following zero or more `likes` edges.
 
@@ -716,7 +714,7 @@ SELECT y.name
 Note that here, `Amy` is returned since `Amy` connects to `Amy` by following zero `likes` edges. In other words, there exists an empty path for the vertex pair.
 For `Judith`, there exist two paths (`100 -> 200 -> 300 -> 400` and `100 -> 400`). However, `Judith` is still only returned once.
 
-#### One or more
+### One or more
 
 The following query finds all people that can be reached from `Amy` by following one or more `likes` edges.
 
@@ -757,7 +755,7 @@ SELECT y.name
 
 Here, in addition to `Jonas`, `Judith` is returned since there exist paths from `Judith` back to `Judith` that has a length greater than zero. Examples of such paths are `400 -> 500 -> 400` and `400 -> 500 -> 400 -> 500 -> 400`.
 
-#### Optional
+### Optional
 
 The following query finds all people that can be reached from `Judith` by following zero or one `knows` edges.
 
@@ -778,7 +776,7 @@ SELECT y.name
 
 Here, `Judith` is returned since there exists the empty path that starts in `400` and ends in `400`. `Jonas` is returned because of the following path that has length one: `400 -> 500`.
 
-#### Exactly n
+### Exactly n
 
 The following query finds all people that can be reached from `Amy` by following 2 or more `likes` edges.
 
@@ -798,7 +796,7 @@ SELECT y.name
 ```
 Here, `Albert` is returned since there exists the following path of length two: `100 -> 200 -> 300`. `Judith` is returned since there exists a path of length three: `100 -> 200 -> 300 -> 400`.
 
-#### n or more
+### n or more
 
 The following query finds all people that can be reached from `Amy` by following between 1 and 2 `likes` edges.
 
@@ -822,7 +820,7 @@ Here, `John` is returned since there exists a path of length one (i.e. `100 -> 2
 `Albert` is returned since there exists a path of length two (i.e. `100 -> 200 -> 300`);
 `Judith` is returned since there exists a path of length one (i.e. `100 -> 400`).
 
-#### Between zero and m
+### Between zero and m
 
 The following query finds all people that can be reached from `Judith` by following at most 2 `knows` edges.
 

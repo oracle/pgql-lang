@@ -120,13 +120,33 @@ entries:
     output: web
     folderitems:
 
-    - title: Min and Max Repetition
-      url: /spec/1.1/#min-and-max-repetition
+    - title: Min and Max Quantifiers
+      url: /spec/1.1/#min-and-max-quantifiers
       output: web
       subfolderitems:
 
-      - title: Examples
-        url: /spec/1.1/#examples
+      - title: Zero or more
+        url: /spec/1.1/#zero-or-more
+        output: web
+
+      - title: One or more
+        url: /spec/1.1/#one-or-more
+        output: web
+
+      - title: Optional
+        url: /spec/1.1/#optional
+        output: web
+
+      - title: Exactly n
+        url: /spec/1.1/#exactly-n
+        output: web
+
+      - title: n or more
+        url: /spec/1.1/#n-or-more
+        output: web
+
+      - title: Between zero and m
+        url: /spec/1.1/#between-zero-and-m
         output: web
 
     - title: Common Path Expressions
