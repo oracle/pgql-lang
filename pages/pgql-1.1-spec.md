@@ -15,19 +15,19 @@ The following are the changes since PGQL 1.0:
 
 ## New Query Capabilities in PGQL 1.1
 
- - [FROM clause](#input-graph-from)
- - [Undirected query edges](#undirected-query-edges)
- - [Min and max repetition](#min-and-max-repetition) in regular path expressions
- - [DISTINCT](#aggregation) in aggregation
- - [SELECT DISTINCT](#projection-select)
- - Filtering of groups ([HAVING](#filtering-of-groups-having))
- - [Temporal types](#temporal-types): `DATE`, `TIME`, `TIMESTAMP`, `TIME WITH TIMEZONE`, and `TIMESTAMP WITH TIMEZONE`
- - [IS NULL](#is-null-and-is-not-null) and [IS NOT NULL](#is-null-and-is-not-null)
- - Explicit type conversion through [`CAST`](#explicit-type-conversion-cast) function
- - Built-in function [`all_different(val1, val2, .., valn)`](#built-in-functions)
- - [User-defined functions](#user-defined-functions)
- - Existential subqueries ([EXISTS](#existential-subqueries-exists))
- - [Bind variables](#bind-variables) for creating parameterized queries
+ - Input graph definition through `FROM` clause (see [Input Graph (FROM)](#input-graph-from)).
+ - Matching of edges in either incoming or outgoing direction through undirected query edges (see [Undirected Query Edges](#undirected-query-edges)).
+ - Quantifiers for specifying minimal and maximal repetition in regular path expressions (see [Min and Max Repetition](#min-and-max-repetition)).
+ - `DISTINCT` in aggregations (see [Aggregation](#aggregation)).
+ - `SELECT DISTINCT` (see [Projections (SELECT)](#projection-select)).
+ - Filtering of groups through `HAVING` clause (see [Filtering of Groups (HAVING)](#filtering-of-groups-having))
+ - Temporal data types `DATE`, `TIME`, `TIMESTAMP`, `TIME WITH TIMEZONE`, and `TIMESTAMP WITH TIMEZONE` (see [Temporal types](#temporal-types))
+ - `IS NULL` and `IS NOT NULL` testing (see [IS NULL and IS NOT NULL](#is-null-and-is-not-null))
+ - Explicit type conversion through `CAST` specification (see [Explicit Type Conversion (CAST)](#explicit-type-conversion-cast))
+ - Built-in function `all_different(val1, val2, .., valn)` (see [Built-in Functions](#built-in-functions))
+ - User-defined functions (see [User-defined Functions](#user-defined-functions))
+ - Existential (`EXISTS`) subqueries (see [Existential Subqueries (EXISTS)](#existential-subqueries-exists))
+ - Bind variables (`?`) for creating parameterized queries (see [Bind Variables](#bind-variables))
 
 ## Breaking Syntax Changes since PGQL 1.0
 
@@ -50,7 +50,7 @@ The following are the changes since PGQL 1.0:
       AND n.age <= 35
    ```
 
- - The syntax for [common path expressions](#common-path-expressions) has changed as follows:
+ - The syntax for common path expressions (see [Common Path Expressions](#common-path-expressions)) has changed as follows:
 
    ```bash
    # PGQL 1.0
@@ -670,7 +670,7 @@ SELECT c.name
 
 Here, we find all classes that are a subclass of `'ArrayList'`. The regular path pattern `subclass_of*` matches a path consisting of zero or more edges with the label `subclass_of`. Because the pattern may match a path with zero edges, the two query vertices can be bound to the same data vertex if the data vertex satisfies the constraints specified in both source and destination vertices (i.e. the vertex has a label `Class` and a property `name` with a value `ArrayList`).
 
-## Min and max repetition
+## Min and Max Repetition
 
 Quantifiers in regular path expressions allow for specifying lower and upper limits on the number of times a path expression should match.
 
@@ -1326,7 +1326,7 @@ SELECT n.age
 
 ## Functions
 
-PGQL has a set of [built-in functions](#built-in-functions), and also provides extension through [user-defined functions](#user-defined-functions).
+PGQL has a set of built-in functions (see [Built-in Functions](#built-in-functions)), and, provide language extension through user-defined functions (see [User-Defined Functions](#user-defined-functions)).
 
 The syntactic structure for function calls is as follows:
 
@@ -1353,7 +1353,7 @@ Signature | Return value | Description
 `has_label(element)` | boolean | returns true if the vertex or edge has the given label.
 `labels(element)` | `set<string>` | returns the labels of the vertex or edge in the case it has multiple labels.
 `label()` | string | returns the label of the vertex or edge in the case it has a single label.
-`all_different(val1, val2, .., valn)` | boolean | returns true if the values are all different (typically used for specifying [isomorphic](#subgraph-isomorphism) patterns)
+`all_different(val1, val2, .., valn)` | boolean | returns true if the values are all different, a function typically used for specifying isomorphic constraints (see [Subgraph Isomorphism](#subgraph-isomorphism)).
 `in_degree(vertex)` | exact numeric | returns the number of incoming neighbors.
 `out_degree(vertex)` | exact numeric | returns the number of outgoing neighbors.
 `java_regexp_like(string, pattern)` | boolean | returns whether the string matches the [pattern](https://docs.oracle.com/javase/7/docs/api/java/util/regex/Pattern.html)
@@ -1400,9 +1400,9 @@ Explicit type conversion is supported through type "casting".
 The syntax is as follows: 
 
 ```bash
-CastSpecification ::= 'CAST' '(' <ValueExpression> 'AS' <DataTypeName> ')'
+CastSpecification ::= 'CAST' '(' <ValueExpression> 'AS' <DATE_TYPE_NAME> ')'
 
-DataTypeName      ::= { <IDENTIFIER> ' ' }+
+DATE_TYPE_NAME    ::= { <IDENTIFIER> ' ' }+
 ```
 
 Note that the syntax of a data type is one or more identifiers separated by a space, allowing the encoding of data types such as `STRING` and `TIME WITH TIMEZONE`.
