@@ -1400,9 +1400,9 @@ Explicit type conversion is supported through type "casting".
 The syntax is as follows: 
 
 ```bash
-CastSpecification ::= 'CAST' '(' <ValueExpression> 'AS' <DATE_TYPE_NAME> ')'
+CastSpecification ::= 'CAST' '(' <ValueExpression> 'AS' <DataTypeName> ')'
 
-DATE_TYPE_NAME    ::= { <IDENTIFIER> ' ' }+
+DataTypeName      ::= { <IDENTIFIER> ' ' }+
 ```
 
 Note that the syntax of a data type is one or more identifiers separated by a space, allowing the encoding of data types such as `STRING` and `TIME WITH TIMEZONE`.
