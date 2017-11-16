@@ -13,7 +13,7 @@ toc: true
 
 The following are the changes since PGQL 1.0:
 
-## New Query Capabilities in PGQL 1.1
+## New Querying Capabilities in PGQL 1.1
 
  - Input graph definition through `FROM` clause (see [Input Graph (FROM)](#input-graph-from)).
  - Matching of edges in either incoming or outgoing direction through undirected query edges (see [Undirected Query Edges](#undirected-query-edges)).

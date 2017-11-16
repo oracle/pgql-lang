@@ -8,8 +8,8 @@ entries:
     output: web
     folderitems:
 
-    - title: New Query Capabilities in PGQL 1.1
-      url: /spec/1.1/#new-query-capabilities-in-pgql-11
+    - title: New Querying Capabilities in PGQL 1.1
+      url: /spec/1.1/#new-querying-capabilities-in-pgql-11
       output: web
 
     - title: Breaking Syntax Changes since PGQL 1.0
@@ -120,7 +120,7 @@ entries:
     output: web
     folderitems:
 
-    - title: Min and max repetition
+    - title: Min and Max Repetition
       url: /spec/1.1/#min-and-max-repetition
       output: web
       subfolderitems:
