@@ -1338,9 +1338,9 @@ PackageName          ::= <IDENTIFIER>
 FunctionName         ::= <IDENTIFIER>
 ```
 
-A function call has an optional package name, a function name, and zero or more argument.
+A function call has an optional package name, a function name, and, zero or more arguments which are arbitrary value expressions.
 
-Function and package names are case-insensitive.
+Function and package names are case-insensitive such that e.g. `in_degree(..)` is the same function as `In_Degree(..)` or `IN_DEGREE(..)`.
 
 ### Built-In Functions
 
