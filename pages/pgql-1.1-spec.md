@@ -1498,7 +1498,7 @@ The following are the lexical grammar constructs:
 ```bash
 IDENTIFIER           ::= [a-zA-Z][a-zA-Z0-9\_]*
 
-SINGLE_QUOTED_STRING ::= "'" ( ~[\'\n\\] | <ESCAPED_CHARACTER> )* "'"
+SINGLE_QUOTED_STRING ::= '\'' ( ~[\'\n\\] | <ESCAPED_CHARACTER> )* '\''
 
 UNSIGNED_INTEGER     ::= [0-9]+
 
@@ -1519,10 +1519,10 @@ These rules describe the following:
 
 ## Escaped Characters in Strings
 
-Escaping in String literals is necessary to support having white space, quotation marks and the backslash character as a part of the literal value. The following explains the syntax of an escaped character.
+Escaping in string literals is necessary to support having white space, quotation marks and the backslash character as a part of the literal value. The following explains the syntax of an escaped character.
 
 ```bash
-ESCAPED_CHARACTER ::= '\' [tnr\"\']
+ESCAPED_CHARACTER ::= '\\' [tnr\"\']
 ```
 
 Note that an escaped character is either a tab (`\t`), a line feed (`\n`), a carriage return (`\r`), a single (`\'`) or double quote (`\"`), or a backslash (`\\`). Corresponding Unicode code points are shown in the table below.
@@ -1578,7 +1578,7 @@ SELECT n.name, n.age
 
 ## White Space
 
-White space consists of spaces, new lines and tabs. White space is significant in String literals, as the white space is part of the literal value and taken into account when comparing against data values. Outside of String literals, white space is ignored. However, for readability consideration and ease of parser implementation, the following rules should be followed when writing a query:
+White space consists of spaces, new lines and tabs. White space is significant in string literals, as the white space is part of the literal value and taken into account when comparing against data values. Outside of string literals, white space is ignored. However, for readability consideration and ease of parser implementation, the following rules should be followed when writing a query:
 
 - A keyword should not be followed directly by an `<IDENTIFIER>` (e.g. variable name or property name)
 - An `<IDENTIFIER>` should not be followed directly by a keyword.
