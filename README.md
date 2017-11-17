@@ -11,6 +11,7 @@ Then build and deploy the site:
 
 Changes to any of the files will automatically be reflected after a few seconds (no need to run the above command again).
 
-To regenerate the menu for a markdown (.md) file:
+After changing section titles or grammar snippets, regenerate necessary menus and hyperlinks as follows:
 
- - `javac GenerateMenuFromMarkdown.java; java GenerateMenuFromMarkdown pages/pgql-1.1-spec.md _data/sidebars/spec_1_1_sidebar.yml /spec/1.1/`
+ - `bash generate-menus-and-hyperlinks.sh`
+

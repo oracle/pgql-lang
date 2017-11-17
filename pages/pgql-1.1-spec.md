@@ -1324,7 +1324,7 @@ SELECT n.age
 
 ## Functions
 
-PGQL has a set of built-in functions (see [Built-in Functions](#built-in-functions)), and, provide language extension through user-defined functions (see [User-Defined Functions](#user-defined-functions)).
+PGQL has a set of built-in functions (see [Built-in Functions](#built-in-functions)), and, provides language extension through user-defined functions (see [User-Defined Functions](#user-defined-functions)).
 
 The syntactic structure for function calls is as follows:
 
@@ -1344,7 +1344,7 @@ Function and package names are case-insensitive.
 
 ### Built-In Functions
 
-The following is an overview of the built-in PGQL functions:
+The following is an overview of the built-in functions:
 
 Signature | Return value | Description
 `id(element)` | `object` | returns an identifier for the vertex/edge, if one exists.
@@ -1368,10 +1368,10 @@ Here, `in_degree(x)` returns the number of incoming neighbors of `x`, whereas `i
 
 ### User-Defined Functions
 
-PGQL does not specify how user-defined functions (UDFs) are registered to a database system and only considers function invocation:
+PGQL does not specify how user-defined functions (UDFs) are registered to a database system and only considers function _invocation_:
 
 UDFs are invoked similarly to built-in functions. For example, a user may have registered a function `math.tan` that returns the tangent of a given angle.
-An example invocation of this function is:
+An example invocation of this function is then:
 
 ```sql
   SELECT math.tan(n.angle) AS tangent
@@ -1382,6 +1382,8 @@ ORDER BY tangent
 If a UDF is registered that has the same name as a built-in function, then, upon function invocation, the UDF is invoked and not the built-in function. UDFs can thus override built-ins.
 
 ## Type Conversion
+
+Implicit type conversion is supported for numeric types (see [Implicit Type Conversion](#implicit-type-conversion)). Other type conversions require explicity type conversion (see [Explicit Type Conversion](#explicit-type-conversion)).
 
 ### Implicit Type Conversion
 
