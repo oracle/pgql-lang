@@ -21,11 +21,11 @@ The following are the changes since PGQL 1.0:
  - `DISTINCT` in aggregations (see [Aggregation](#aggregation)).
  - `SELECT DISTINCT` (see [Projections (SELECT)](#projection-select)).
  - Filtering of groups through `HAVING` clause (see [Filtering of Groups (HAVING)](#filtering-of-groups-having))
- - Temporal data types `DATE`, `TIME`, `TIMESTAMP`, `TIME WITH TIMEZONE`, and `TIMESTAMP WITH TIMEZONE` (see [Temporal types](#temporal-types))
+ - Temporal data types `DATE`, `TIME`, `TIMESTAMP`, `TIME WITH TIMEZONE`, and `TIMESTAMP WITH TIMEZONE` (see [Temporal Types](#temporal-types))
  - `IS NULL` and `IS NOT NULL` testing (see [IS NULL and IS NOT NULL](#is-null-and-is-not-null))
  - Explicit type conversion through `CAST` specification (see [Explicit Type Conversion (CAST)](#explicit-type-conversion-cast))
- - Built-in function `all_different(val1, val2, .., valn)` (see [Built-in Functions](#built-in-functions))
- - User-defined functions (see [User-defined Functions](#user-defined-functions))
+ - Built-in function `all_different(val1, val2, .., valn)` (see [Built-In Functions](#built-in-functions))
+ - User-defined functions (see [User-Defined Functions](#user-defined-functions))
  - Existential (`EXISTS`) subqueries (see [Existential Subqueries (EXISTS)](#existential-subqueries-exists))
  - Bind variables (`?`) for creating parameterized queries (see [Bind Variables](#bind-variables))
 
@@ -146,7 +146,7 @@ The `SELECT` clause specifies what should be projected out from the query:
 
 A property graph has a name, which is a (character) string, and contains:
 
- - A set of vertices (nodes).
+ - A set of vertices (or nodes).
 
    - Each vertex has zero or more labels.
    - Each vertex has zero or more properties, which are arbitrary key-value pairs.
@@ -672,7 +672,7 @@ Here, we find all classes that are a subclass of `'ArrayList'`. The regular path
 
 ## Min and Max Quantifiers
 
-Quantifiers in regular path expressions allow for specifying lower and upper limits on the number of times a path expression may be applied for the pattern to match.
+Quantifiers in regular path expressions allow for specifying lower and upper limits on the number of times a pattern should match.
 
 | quantifier | meaning                              | matches                                                                                                                             | example path        |
 |------------|--------------------------------------|-------------------------------------------------------------------------------------------------------------------------------------|---------------------|
@@ -1106,7 +1106,7 @@ PropertyName             ::= <IDENTIFIER>
 BracketedValueExpression ::= '(' <ValueExpression> ')'
 ```
 
-A value expressions is one of:
+A value expression is one of:
 
  - A variable reference, being either a reference to a `<Vertex>`, an `<Edge>`, or, an `<ExpAsVar>`.
  - A property access, which syntactically takes the form of a variable reference, followed by a dot (`.`) and the name of a property.
@@ -1342,7 +1342,7 @@ A function call has an optional package name, a function name, and zero or more 
 
 Function and package names are case-insensitive.
 
-### Built-in Functions
+### Built-In Functions
 
 The following is an overview of the built-in PGQL functions:
 
@@ -1366,7 +1366,7 @@ SELECT id(y)
 
 Here, `in_degree(x)` returns the number of incoming neighbors of `x`, whereas `id(y)` returns the identifier of the vertex `y`.
 
-### User-defined Functions
+### User-Defined Functions
 
 PGQL does not specify how user-defined functions (UDFs) are registered to a database system and only considers function invocation:
 

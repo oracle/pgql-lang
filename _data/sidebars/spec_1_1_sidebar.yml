@@ -248,11 +248,11 @@ entries:
       output: web
       subfolderitems:
 
-      - title: Built-in Functions
+      - title: Built-In Functions
         url: /spec/1.1/#built-in-functions
         output: web
 
-      - title: User-defined Functions
+      - title: User-Defined Functions
         url: /spec/1.1/#user-defined-functions
         output: web
 
