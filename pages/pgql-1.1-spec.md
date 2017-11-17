@@ -1522,7 +1522,7 @@ These rules describe the following:
 Escaping in string literals is necessary to support having white space, quotation marks and the backslash character as a part of the literal value. The following explains the syntax of an escaped character.
 
 ```bash
-ESCAPED_CHARACTER ::= '\\' [tnr\"\']
+ESCAPED_CHARACTER ::= '\\' [tnr\"\'\\]
 ```
 
 Note that an escaped character is either a tab (`\t`), a line feed (`\n`), a carriage return (`\r`), a single (`\'`) or double quote (`\"`), or a backslash (`\\`). Corresponding Unicode code points are shown in the table below.
