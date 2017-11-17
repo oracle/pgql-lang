@@ -1498,7 +1498,7 @@ The following are the lexical grammar constructs:
 ```bash
 IDENTIFIER           ::= [a-zA-Z][a-zA-Z0-9\_]*
 
-SINGLE_QUOTED_STRING ::= '\'' ( ~[\'\n\\] | <ESCAPED_CHARACTER> )* '\''
+SINGLE_QUOTED_STRING ::= "'" ( ~[\'\n\\] | <ESCAPED_CHARACTER> )* "'"
 
 UNSIGNED_INTEGER     ::= [0-9]+
 
