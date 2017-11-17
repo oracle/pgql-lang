@@ -109,13 +109,13 @@ Resources
 ---------
 
  - [__White Paper__](http://dl.acm.org/citation.cfm?id=2960421) ([pdf](http://event.cwi.nl/grades/2016/07-VanRest.pdf)) that also outlines some future directions of PGQL
-   (shortest path finding, graph construction, etc.)
+   (e.g. shortest/cheapest path finding, graph construction)
  - __Specifications__
      - [PGQL 1.1 Specification](spec/1.1/) (latest spec.)
      - [PGQL 1.0 Specification](spec/1.0/)
      - [PGQL 0.9 Specification](https://docs.oracle.com/cd/E56133_01/1.2.1/PGQL_Specification.pdf)
  - [Open-sourced __parser__ and __static query validator__](https://github.com/oracle/pgql-lang) on GitHub
  - __Implementations__
-     - [Oracle Labs' Parallel Graph Analytics (__PGX__)](http://www.oracle.com/technetwork/oracle-labs/parallel-graph-analytics/overview/index.html), an in-memory graph analytics framework with a high-performance PGQL query engine
+     - [Oracle Labs' Parallel Graph AnalytiX (__PGX__)](http://www.oracle.com/technetwork/oracle-labs/parallel-graph-analytics/overview/index.html), an in-memory graph analytics toolkit
      - [Oracle __Big Data__ Spatial and Graph](http://www.oracle.com/technetwork/database/database-technologies/bigdata-spatialandgraph/overview/index.html), which supports PGQL on top of big data workloads on Apache Hadoop and NoSQL database technologies
      - [Oracle Spatial and Graph](https://www.oracle.com/database/spatial/index.html), which supports PGQL on top of the Oracle RDBMS
