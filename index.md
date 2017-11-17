@@ -38,10 +38,10 @@ PGQL has the following SQL-like capabilities:
  * `GROUP BY` to create groups of solutions, and, `HAVING` to filter out groups of solutions
  * `COUNT`, `MIN`, `MAX`, `AVG` and `SUM` to aggregate over groups of solutions
  * `ORDER BY` to sort results
- * (`NOT`) `EXISTS` subqueries, to test whether a graph pattern exists, or, doesn't exists
+ * (`NOT`) `EXISTS` subqueries to test whether a graph pattern exists, or, doesn't exists
  * `DATE`, `TIME`, `TIMESTAMP`, `TIME WITH TIMEZONE`, and `TIMESTAMP WITH TIMEZONE` temporal data types
 
-Regular PATH Expressions
+Regular Path Expressions
 ------------------------
 
 PGQL has __regular path expressions__ (e.g. `*`, `+`, `?`, `{1,4}`) for expressing complex traversals for all sorts of __reachability analyses__:
@@ -74,7 +74,7 @@ ORDER BY d2.name
 
 Temporal Data Types
 -------------------
-In addition to numbers, (character) strings and booleans, PGQL supports the following temporal data types for vertex and edge properties:
+In addition to numbers, (character) strings, and booleans, PGQL has the following temporal data types:
 
  - `DATE` (java.time.LocalDate)
  - `TIME` (java.time.LocalTime)
