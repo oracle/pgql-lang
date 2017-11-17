@@ -52,8 +52,8 @@ PGQL has __regular path expressions__ (e.g. `*`, `+`, `?`, `{1,4}`) for expressi
     PATH connects_to AS (:Device) <- (x) -> (:Device)                /* Devices are connected by two edges..                     */
                   WHERE has_label(x, 'Connection')                   /* ..and an intermediate Connection vertex..                */
                      OR has_label(x, 'Switch') AND x.status = 'OPEN' /* ..or an intermediate Switch vertex with OPEN status.     */
-    FROM electric_network
   SELECT d1.name AS source, d2.name AS destination
+    FROM electric_network
    MATCH (d1) -/:connects_to+/-> (d2)                                 /* We match the connects_to pattern one or more (+) times. */
    WHERE d1.name = 'DS'
 ORDER BY d2.name
