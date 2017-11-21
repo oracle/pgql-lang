@@ -11,7 +11,7 @@ public class GeneratePostProcessingRules {
   private static final String[] ADDITIONAL_KEYWORDS = { "PATH", "DATE", "TIME", "TIMEZONE", "INTEGER", "BOOLEAN",
       "STRING" };
 
-  private static final String[] NO_KEYWORDS = { "source", "Class", "c" };
+  private static final String[] NO_KEYWORDS = { "source", "Class", "c", "location" };
 
   private static final String RULE_IDENTIFIER = "[A-Za-z][A-Za-z0-9_]*";
 

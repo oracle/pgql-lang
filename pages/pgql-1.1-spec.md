@@ -782,7 +782,7 @@ The following query finds all people that can be reached from `Amy` by following
 
 ```sql
 SELECT y.name
- MATCH (x:PersoN) -/:likes{2,}/-> (y)
+ MATCH (x:Person) -/:likes{2,}/-> (y)
  WHERE x.name = 'Amy'
 ```
 
@@ -1383,7 +1383,7 @@ If a UDF is registered that has the same name as a built-in function, then, upon
 
 ## Type Conversion
 
-Implicit type conversion is supported for numeric types (see [Implicit Type Conversion](#implicit-type-conversion)). Other type conversions require explicity type conversion (see [Explicit Type Conversion](#explicit-type-conversion)).
+Implicit type conversion is supported for numeric types (see [Implicit Type Conversion](#implicit-type-conversion)). Other type conversions require explicit type conversion (see [Explicit Type Conversion (CAST)](#explicit-type-conversion-cast)).
 
 ### Implicit Type Conversion
 
