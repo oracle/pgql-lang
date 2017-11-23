@@ -2,17 +2,9 @@ package oracle.pgql.lang;
 
 import static org.junit.Assert.*;
 
-import org.junit.BeforeClass;
 import org.junit.Test;
 
-public class SyntaxErrorsTest {
-
-  private static Pgql pgql;
-
-  @BeforeClass
-  public static void setUp() throws Exception {
-    pgql = new Pgql();
-  }
+public class SyntaxErrorsTest extends AbstractPgqlTest {
 
   @Test
   public void testBasicGraphPattern1() throws Exception {

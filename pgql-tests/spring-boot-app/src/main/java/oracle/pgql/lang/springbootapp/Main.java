@@ -11,7 +11,9 @@ public class Main {
 
   public static void main(String[] args) throws PgqlException {
 
-    new Pgql().parse("SELECT COUNT(*) WHERE (n)");
-    System.out.println("success");
+    try (Pgql pgql = new Pgql()) {
+      pgql.parse("SELECT COUNT(*) WHERE (n)");
+      System.out.println("success");
+    }
   }
 }

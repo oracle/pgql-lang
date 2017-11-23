@@ -6,19 +6,11 @@ package oracle.pgql.lang;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
 
-import org.junit.BeforeClass;
 import org.junit.Test;
 
 import oracle.pgql.lang.ir.GraphQuery;
 
-public class PrettyPrintingTest {
-
-  private static Pgql pgql;
-
-  @BeforeClass
-  public static void setUp() throws Exception {
-    pgql = new Pgql();
-  }
+public class PrettyPrintingTest extends AbstractPgqlTest {
 
   @Test
   public void testBasicGraphPattern1() throws Exception {

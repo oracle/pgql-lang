@@ -3,27 +3,23 @@
  */
 package oracle.pgql.lang;
 
+import java.io.Closeable;
 import java.io.File;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.io.UnsupportedEncodingException;
 import java.net.URL;
-import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
-import java.util.Random;
 import java.util.Set;
 import java.util.UUID;
 
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.vfs2.FileObject;
-import org.apache.commons.vfs2.VFS;
-import org.apache.commons.vfs2.impl.DefaultFileReplicator;
-import org.apache.commons.vfs2.impl.DefaultFileSystemManager;
 import org.metaborg.core.MetaborgException;
 import org.metaborg.core.analysis.AnalysisException;
 import org.metaborg.core.completion.ICompletion;
@@ -56,7 +52,7 @@ import oracle.pgql.lang.completions.PgqlCompletionContext;
 import oracle.pgql.lang.completions.PgqlCompletionGenerator;
 import oracle.pgql.lang.ir.GraphQuery;
 
-public class Pgql {
+public class Pgql implements Closeable {
 
   private static final Logger LOG = LoggerFactory.getLogger(Pgql.class);
 
@@ -75,35 +71,32 @@ public class Pgql {
 
   private final IProject dummyProject;
 
+  private final File spoofaxBinaryFile;
+
   /**
    * Loads PGQL Spoofax binaries if not done already.
+   *
+   * @throws IOException
    */
   public Pgql() throws PgqlException {
-    // create our own temp dir for storing Spoofax resources such that we can clean up without requiring a Pgql.close()
-    // a temp dir should always be random such that there are no conflicts when multiple users use PGQL on the same
-    // system
-    String baseTmpDir = System.getProperty("java.io.tmpdir");
-    File tempDir = new File(baseTmpDir, "vfs_cache" + new Random().nextLong()).getAbsoluteFile();
     try {
-      DefaultFileReplicator replicator = new DefaultFileReplicator(tempDir);
-      ((DefaultFileSystemManager) VFS.getManager()).setReplicator(replicator);
-
-      // first copy the resource to the local file system.
-      // IMPORTANT: don't replace this with VFS.getManager().resolveFile("res:...") because VFS will fail to replicate
-      // the resource when it's nested inside multiple JAR or WAR files.
-      URL inputUrl = getClass().getResource("/" + SPOOFAX_BINARIES);
-      File dest = new File(tempDir, SPOOFAX_BINARIES);
-      FileUtils.copyURLToFile(inputUrl, dest);
-      FileObject fileObject = VFS.getManager().resolveFile("jar:" + dest.getAbsolutePath() + "!");
-
-      // set up Spoofax
+      // initialize a new Spoofax
       spoofax = new Spoofax(new PgqlConfig());
+
+      // copy the PGQL Spoofax binary to the local file system.
+      // IMPORTANT: don't replace this with resolveFile("res:...") or resolve("res:...") because VFS will fail to
+      // replicate the resource when it's nested inside multiple JAR or WAR files.
+      URL inputUrl = getClass().getResource(File.separator + SPOOFAX_BINARIES);
+      spoofaxBinaryFile = File.createTempFile(SPOOFAX_BINARIES, "");
+      FileUtils.copyURLToFile(inputUrl, spoofaxBinaryFile);
+      FileObject fileObject = spoofax.resourceService.resolve("jar:" + spoofaxBinaryFile.getAbsolutePath() + "!");
+
       Iterable<ILanguageDiscoveryRequest> requests = spoofax.languageDiscoveryService.request(fileObject);
       Iterable<ILanguageComponent> components = spoofax.languageDiscoveryService.discover(requests);
       Set<ILanguageImpl> implementations = LanguageUtils.toImpls(components);
       pgqlLang = LanguageUtils.active(implementations);
       assert (pgqlLang != null);
-      dummyProjectDir = VFS.getManager().resolveFile("ram://pgql/");
+      dummyProjectDir = spoofax.resourceService.resolve("ram://pgql/");
 
       final LanguageIdentifier id = pgqlLang.id();
       dummyProject = new Project(dummyProjectDir, new IProjectConfig() {
@@ -136,15 +129,9 @@ public class Pgql {
         }
       });
 
-      parse("select * where (initQuery)"); // make Spoofax initialize the language
+      parse("SELECT * MATCH (initQuery)"); // make Spoofax initialize the language
     } catch (MetaborgException | IOException e) {
       throw new PgqlException("Failed to initialize PGQL", e);
-    } finally {
-      try {
-        FileUtils.deleteDirectory(tempDir);
-      } catch (IOException e) {
-        LOG.warn("failed to delete temporary directory: " + tempDir.getAbsolutePath());
-      }
     }
   }
 
@@ -187,7 +174,7 @@ public class Pgql {
 
   private FileObject getFileObject(String queryString) throws UnsupportedEncodingException, IOException {
     String randomFileName = UUID.randomUUID().toString() + ".pgql";
-    FileObject dummyFile = VFS.getManager().resolveFile(dummyProjectDir, randomFileName);
+    FileObject dummyFile = spoofax.resourceService.resolve(dummyProjectDir, randomFileName);
     try (OutputStream out = dummyFile.getContent().getOutputStream()) {
       IOUtils.write(queryString.getBytes("UTF-8"), out);
     }
@@ -279,5 +266,17 @@ public class Pgql {
     // spoofaxCompletions = spoofaxComplete(pgqlResult.getSpoofaxParseUnit(), cursor); // not used yet
 
     return PgqlCompletionGenerator.generate(pgqlResult, spoofaxCompletions, queryString, cursor, ctx);
+  }
+
+  @Override
+  public void close() {
+    if (spoofax != null) {
+      spoofax.close();
+    }
+    if (spoofaxBinaryFile != null) {
+      if (!spoofaxBinaryFile.delete()) {
+        LOG.warn("failed to delete Spoofax binary file: " + spoofaxBinaryFile.getAbsolutePath());
+      }
+    }
   }
 }

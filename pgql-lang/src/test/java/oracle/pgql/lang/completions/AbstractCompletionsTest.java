@@ -12,11 +12,9 @@ import java.util.Collections;
 import java.util.List;
 import java.util.stream.Collectors;
 
-import org.junit.BeforeClass;
+import oracle.pgql.lang.AbstractPgqlTest;
 
-import oracle.pgql.lang.Pgql;
-
-public abstract class AbstractCompletionsTest {
+public abstract class AbstractCompletionsTest extends AbstractPgqlTest {
 
   private static final String[] VERTEX_PROPS_DEFAULT_GRAPH = { "line_no" };
 
@@ -35,13 +33,6 @@ public abstract class AbstractCompletionsTest {
   private static final String[] VERTEX_LABELS_G = { "Person", "Student", "Professor" };
 
   private static final String[] EDGE_LABELS_G = { "likes", "knows" };
-
-  protected static Pgql pgql;
-
-  @BeforeClass
-  public static void setUp() throws Exception {
-    pgql = new Pgql();
-  }
 
   protected PgqlCompletionContext getCompletionContext() {
     return new PgqlCompletionContext() {
