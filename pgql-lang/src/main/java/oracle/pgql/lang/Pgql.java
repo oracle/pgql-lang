@@ -8,7 +8,6 @@ import java.io.IOException;
 import java.io.OutputStream;
 import java.io.UnsupportedEncodingException;
 import java.net.URL;
-import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.HashSet;
@@ -274,7 +273,12 @@ public class Pgql {
 
   public List<PgqlCompletion> generateCompletions(String queryString, int cursor, PgqlCompletionContext ctx)
       throws PgqlException {
-    PgqlResult pgqlResult = parse(queryString);
+    PgqlResult pgqlResult = null;
+    try {
+      pgqlResult = parse(queryString);
+    } catch (PgqlException e) {
+      // spoofax e.g. throws exception for query "SELECT * FROM g MATCH "
+    }
     Iterable<ICompletion> spoofaxCompletions = null;
     // spoofaxCompletions = spoofaxComplete(pgqlResult.getSpoofaxParseUnit(), cursor); // not used yet
 

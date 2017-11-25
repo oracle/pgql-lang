@@ -7,6 +7,8 @@ import java.util.List;
 
 public interface PgqlCompletionContext {
 
+  List<String> getGraphNames();
+
   List<String> getVertexProperties(String graphName);
 
   List<String> getEdgeProperties(String graphName);

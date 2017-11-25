@@ -12,7 +12,7 @@ import oracle.pgql.lang.completions.PgqlCompletion;
 import static oracle.pgql.lang.completions.PgqlCompletionGenerator.completion;
 import static oracle.pgql.lang.completions.PgqlCompletionGenerator.completions;
 
-public class LabelCompletionsTests extends AbstractCompletionsTest {
+public class LabelCompletionsTest extends AbstractCompletionsTest {
 
   @Test
   public void testVertexLabelsGraphG() throws Exception {
