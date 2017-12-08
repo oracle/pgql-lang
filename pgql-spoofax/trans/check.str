@@ -11,6 +11,8 @@ imports
   normalized-signatures
   common
   names/-
+  pp
+  runtime/properties/-
 
 rules // Unresolved/duplicate variables
 
@@ -85,8 +87,8 @@ rules
   nabl-constraint(|ctx):
     NormalizedQuery(_, SelectClause(_, ExpAsVars(select-elems)), _, _, group-by, _, order-by, _, _, _) -> <fail>
     with
-      group-refs := <collect-om(?GroupRef(<id>), conc)> select-elems
-    ; select-or-group-refs := <collect-om(?SelectOrGroupRef(<id>), conc)> order-by
+      group-refs := <collect-in-outer-query(?GroupRef(<id>))> select-elems
+    ; select-or-group-refs := <collect-in-outer-query(?SelectOrGroupRef(<id>))> order-by
     ; if CreateOneGroup() := group-by
       then
         <batch-generate-error-on-unresolved(|ctx, "Aggregation expected here since SELECT has other aggregation")> group-refs // error in SELECT

@@ -47,6 +47,11 @@ public abstract class AbstractCompletionsTest {
     return new PgqlCompletionContext() {
 
       @Override
+      public List<String> getGraphNames() {
+        return Collections.singletonList(GRAPH_NAME);
+      }
+
+      @Override
       public List<String> getVertexProperties(String graphName) {
         return getData(graphName, VERTEX_PROPS_DEFAULT_GRAPH, VERTEX_PROPS_G);
       }

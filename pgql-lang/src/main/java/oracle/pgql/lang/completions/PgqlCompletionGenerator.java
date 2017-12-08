@@ -17,24 +17,73 @@ import org.metaborg.core.completion.ICompletion;
 import oracle.pgql.lang.PgqlException;
 import oracle.pgql.lang.PgqlResult;
 import oracle.pgql.lang.ir.GraphPattern;
+import oracle.pgql.lang.ir.GraphQuery;
 import oracle.pgql.lang.ir.QueryVariable.VariableType;
 import oracle.pgql.lang.ir.QueryVertex;
 import oracle.pgql.lang.ir.VertexPairConnection;
 
 public class PgqlCompletionGenerator {
 
-  private static String FROM = "FROM";
+  private static final String FROM = "FROM";
 
-  public static final PgqlCompletion EMPTY_STRING_COMPLETION = completion("SELECT n.prop\n  FROM g\n MATCH (n:Lbl)",
-      "Query");
+  private static final String MATCH = "MATCH";
+
+  public static final PgqlCompletion MATCH_CLAUSE_COMPLETION = completion("MATCH (n)", "match clause");
+
+  private static final String VERTEX = "(n)";
+
+  private static final String EDGE_VERTEX = "-[e]-> (m)";
+
+  private static final String REV_EDGE_VERTEX = "<-[e]- (m)";
+
+  private static final String PATH_VERTEX = "-/:lbl*/-> (m)";
+
+  private static final String REV_PATH_VERTEX = "<-/:lbl*/- (m)";
+
+  public static final PgqlCompletion EMPTY_STRING_COMPLETION = completion("SELECT n.prop\n  FROM g\n MATCH (n)",
+      "query");
+
+  public static final PgqlCompletion VERTEX_COMPLETION = completion(VERTEX, "vertex");
+
+  public static final PgqlCompletion SPACE_VERTEX_COMPLETION = completion(" " + VERTEX, "vertex");
+
+  public static final PgqlCompletion COMMA_VERTEX_COMPLETION = completion(", " + VERTEX, "vertex");
+
+  public static final PgqlCompletion[] RELATION_VERTEX_COMPLETIONS = { //
+      completion(EDGE_VERTEX, "edge and vertex"), //
+      completion(PATH_VERTEX, "path and vertex"), //
+      completion(REV_EDGE_VERTEX, "edge and vertex"), //
+      completion(REV_PATH_VERTEX, "path and vertex")//
+  };
+
+  public static final PgqlCompletion[] SPACE_RELATION_VERTEX_COMPLETIONS = { //
+      completion(" " + EDGE_VERTEX, "edge and vertex"), //
+      completion(" " + PATH_VERTEX, "path and vertex"), //
+      completion(" " + REV_EDGE_VERTEX, "edge and vertex"), //
+      completion(" " + REV_PATH_VERTEX, "path and vertex")//
+  };
 
   private static final String IDENTIFIER = "[A-Za-z][A-Za-z0-9_]*";
+
   private static final Pattern IDENTIFIER_PATTERN = Pattern.compile(IDENTIFIER);
+
   private static final Pattern IDENTIFIER_AT_END_PATTERN = Pattern.compile(IDENTIFIER + "$");
 
   public static List<PgqlCompletion> generate(PgqlResult pgqlResult, Iterable<ICompletion> spoofaxCompletions,
       String queryString, int cursor, PgqlCompletionContext ctx)
       throws PgqlException {
+
+    if (pgqlResult == null) {
+      if (queryString.toUpperCase().trim().endsWith(MATCH)) {
+        if (queryString.endsWith(" ")) {
+          return Collections.singletonList(VERTEX_COMPLETION);
+        } else {
+          return Collections.singletonList(SPACE_VERTEX_COMPLETION);
+        }
+      }
+
+      return Collections.emptyList();
+    }
 
     String graphName = null;
     if (pgqlResult.getGraphQuery() != null) {
@@ -64,9 +113,10 @@ public class PgqlCompletionGenerator {
 
       List<PgqlCompletion> variableProposals = getVariableProposals(pgqlResult);
 
-      String stringBeforeCursor = queryString.substring(0, cursor).trim().toUpperCase();
+      String stringBeforeCursor = queryString.substring(0, cursor);
+      String trimmedStringBeforeCursor = stringBeforeCursor.trim().toUpperCase();
 
-      ClauseOrAggregate currentClause = getCurrentClauseOrAggregate(stringBeforeCursor);
+      ClauseOrAggregate currentClause = getCurrentClauseOrAggregate(trimmedStringBeforeCursor);
       boolean proposeExpressions = false;
       boolean proposeAggregations = false;
       switch (currentClause) {
@@ -74,6 +124,30 @@ public class PgqlCompletionGenerator {
         case ORDER_BY:
           proposeExpressions = true;
           proposeAggregations = true;
+          break;
+        case FROM:
+          if (trimmedStringBeforeCursor.endsWith(FROM)) {
+            return generateInputGraphCompletions(ctx);
+          } else {
+            return Collections.singletonList(MATCH_CLAUSE_COMPLETION);
+          }
+        case MATCH:
+          if (trimmedStringBeforeCursor.endsWith(",")) {
+            if (stringBeforeCursor.endsWith(" ")) {
+              return Collections.singletonList(VERTEX_COMPLETION);
+            } else {
+              return Collections.singletonList(SPACE_VERTEX_COMPLETION);
+            }
+          } else if (trimmedStringBeforeCursor.endsWith(")")) {
+            List<PgqlCompletion> completions = new ArrayList<>();
+            if (stringBeforeCursor.endsWith(" ")) {
+              completions.addAll(Arrays.asList(RELATION_VERTEX_COMPLETIONS));
+            } else {
+              completions.addAll(Arrays.asList(SPACE_RELATION_VERTEX_COMPLETIONS));
+            }
+            completions.add(COMMA_VERTEX_COMPLETION);
+            return completions;
+          }
           break;
         case WHERE:
         case GROUP_BY:
@@ -103,9 +177,22 @@ public class PgqlCompletionGenerator {
     }
   }
 
+  private static List<PgqlCompletion> generateInputGraphCompletions(PgqlCompletionContext ctx) {
+    List<PgqlCompletion> completions = new ArrayList<>();
+    for (String graphName : ctx.getGraphNames()) {
+      completions.add(completion(graphName, "graph name"));
+    }
+    return completions;
+  }
+
   private static List<PgqlCompletion> getVariableProposals(PgqlResult pgqlResult) throws PgqlException {
     List<PgqlCompletion> variables = new ArrayList<>();
-    GraphPattern graphPattern = pgqlResult.getGraphQuery().getGraphPattern();
+    GraphQuery graphQuery = pgqlResult.getGraphQuery();
+    if (graphQuery == null) {
+      return variables;
+    }
+
+    GraphPattern graphPattern = graphQuery.getGraphPattern();
     for (QueryVertex vertex : graphPattern.getVertices()) {
       if (vertex.getName().contains("<<vertex-without-brackets>>")) {
         continue;

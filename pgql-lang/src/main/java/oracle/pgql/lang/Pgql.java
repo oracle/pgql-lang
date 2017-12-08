@@ -276,7 +276,12 @@ public class Pgql {
 
   public List<PgqlCompletion> generateCompletions(String queryString, int cursor, PgqlCompletionContext ctx)
       throws PgqlException {
-    PgqlResult pgqlResult = parse(queryString);
+    PgqlResult pgqlResult = null;
+    try {
+      pgqlResult = parse(queryString);
+    } catch (PgqlException e) {
+      // spoofax e.g. throws exception for query "SELECT * FROM g MATCH "
+    }
     Iterable<ICompletion> spoofaxCompletions = null;
     // spoofaxCompletions = spoofaxComplete(pgqlResult.getSpoofaxParseUnit(), cursor); // not used yet
 

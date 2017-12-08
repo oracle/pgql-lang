@@ -49,14 +49,14 @@ public class ExpressionCompletionsTest extends AbstractCompletionsTest {
 
   @Test
   public void emptySelect1() throws Exception {
-    String query = "SELECT ??? FROM g MATCH (n) -[e]-> (m) where n";
+    String query = "SELECT ??? FROM g MATCH (n) -[e]-> (m) WHERE n";
     List<PgqlCompletion> expected = expressions();
     check(query, expected);
   }
 
   @Test
   public void emptySelect2() throws Exception {
-    String query = "SELECT ??? MATCH (n) -[e]-> (m) where n";
+    String query = "SELECT ??? MATCH (n) -[e]-> (m) WHERE n";
     List<PgqlCompletion> expected = expressionsExceptVariables();
     // ultimately, it would suggest vertices and edges here too,
     // but the parser's error recovery isn't working for this case
@@ -65,14 +65,14 @@ public class ExpressionCompletionsTest extends AbstractCompletionsTest {
 
   @Test
   public void nonEmptySelect() throws Exception {
-    String query = "SELECT n.name, ??? MATCH (n) -[e]-> (m) where n";
+    String query = "SELECT n.name, ??? MATCH (n) -[e]-> (m) WHERE n";
     List<PgqlCompletion> expected = expressions();
     check(query, expected);
   }
 
   @Test
   public void emptyWhere() throws Exception {
-    String query = "SELECT n.name MATCH (n) -[e]-> (m) where ???";
+    String query = "SELECT n.name MATCH (n) -[e]-> (m) WHERE ???";
     List<PgqlCompletion> expected = expressionsExceptAggregations();
     check(query, expected);
   }
@@ -106,8 +106,15 @@ public class ExpressionCompletionsTest extends AbstractCompletionsTest {
   }
 
   @Test
-  public void emptyAggregation() throws Exception {
+  public void emptyAggregation1() throws Exception {
     String query = "SELECT MIN(???) MATCH (n) -[e]-> (m)";
+    List<PgqlCompletion> expected = expressionsExceptAggregations();
+    check(query, expected);
+  }
+
+  @Test
+  public void emptyAggregation2() throws Exception {
+    String query = "SELECT AVG(n.age) MATCH (n) -[e]-> (m) GROUP BY n.name ORDER BY COUNT(???)";
     List<PgqlCompletion> expected = expressionsExceptAggregations();
     check(query, expected);
   }

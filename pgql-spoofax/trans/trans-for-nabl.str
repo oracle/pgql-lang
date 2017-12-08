@@ -38,14 +38,14 @@ rules
 
   contains-aggregation = oncetd(is-aggregate)
 
-  to-VarRef-or-GroupRefs = alltd(is-aggregate <+ ?VarRef(<id>); !GroupRef(<id>))
-  to-VarRef-or-SelectOrGroupRefs = alltd(is-aggregate <+ ?VarRef(<id>); !SelectOrGroupRef(<id>))
+  to-VarRef-or-GroupRefs = alltd-in-outer-query(is-aggregate <+ ?VarRef(<id>); !GroupRef(<id>))
+  to-VarRef-or-SelectOrGroupRefs = alltd-in-outer-query(is-aggregate <+ ?VarRef(<id>); !SelectOrGroupRef(<id>))
 
-  to-ExpAsSelectVars = alltd(to-ExpAsSelectVar)
+  to-ExpAsSelectVars = alltd-in-outer-query(to-ExpAsSelectVar)
   to-ExpAsSelectVar = ?ExpAsVar(exp, v); !ExpAsSelectVar(exp, v)
 
-  to-ExpAsGroupVars = alltd(to-ExpAsGroupVar)
+  to-ExpAsGroupVars = alltd-in-outer-query(to-ExpAsGroupVar)
   to-ExpAsGroupVar = ?ExpAsVar(exp, v); !ExpAsGroupVar(exp, v)
   to-ExpAsGroupVar = ?AnonymousExpAsVar(exp, v); !AnonymousExpAsGroupVar(exp, v)
 
-  to-VarOrSelectRefs = alltd(?VarRef(<id>); !VarOrSelectRef(<id>))
+  to-VarOrSelectRefs = alltd-in-outer-query(?VarRef(<id>); !VarOrSelectRef(<id>))

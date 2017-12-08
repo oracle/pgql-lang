@@ -13,7 +13,7 @@ import oracle.pgql.lang.completions.PgqlCompletion;
 import static oracle.pgql.lang.completions.PgqlCompletionGenerator.completion;
 import static oracle.pgql.lang.completions.PgqlCompletionGenerator.completions;
 
-public class PropertyCompletionsTests extends AbstractCompletionsTest {
+public class PropertyCompletionsTest extends AbstractCompletionsTest {
 
   @Test
   public void testVertexPropsGraphG() throws Exception {

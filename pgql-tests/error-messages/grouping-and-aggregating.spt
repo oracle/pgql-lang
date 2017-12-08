@@ -78,3 +78,28 @@ test COUNT(DISTINCT *) [[
    MATCH (n)
 
 ]] error like "* not allowed in combination with DISTINCT" at #1
+
+test Subquery with non-group key variable in SELECT (1) [[
+  SELECT EXISTS (   SELECT m.prop AS mProp, [[n]].prop AS nProp
+                     MATCH (m)
+                  GROUP BY m.prop AS key
+                ) AS v1
+   MATCH (n)
+]] error like "Non-group key variable in SELECT" at #1
+
+test Subquery with non-group key variable in SELECT (2) [[
+  SELECT n
+   MATCH (n)
+   WHERE EXISTS (   SELECT m.prop AS nProp, [[n]].prop AS mProp
+                     MATCH (m)
+                  GROUP BY m.prop AS key
+                )
+]] error like "Non-group key variable in SELECT" at #1
+
+test Subquery with non-group key variable in SELECT (3) [[
+  SELECT MIN(EXISTS (   SELECT key, [[n]].prop AS nProp
+                         MATCH (m)
+                      GROUP BY m.prop AS key
+                    )) AS min
+   MATCH (n)
+]] error like "Non-group key variable in SELECT" at #1
