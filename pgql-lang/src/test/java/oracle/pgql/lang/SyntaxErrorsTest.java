@@ -21,6 +21,15 @@ public class SyntaxErrorsTest {
     assertFalse(result.isQueryValid());
     assertFalse(result.getErrorMessages() == null);
     assertFalse(result.getGraphQuery() == null);
-    result.toString(); // may pretty-print syntactically/semantically incorrect query but should not produce errors
+    result.getGraphQuery().toString(); // may pretty-print syntactically/semantically incorrect query but should not
+                                       // produce errors
+  }
+
+  @Test
+  public void testEmptyString() throws Exception {
+    PgqlResult result = pgql.parse("");
+    assertFalse(result.isQueryValid());
+    assertTrue(result.getErrorMessages().contains("Syntax error"));
+    assertTrue(result.getGraphQuery() == null);
   }
 }

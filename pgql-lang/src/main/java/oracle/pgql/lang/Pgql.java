@@ -8,7 +8,6 @@ import java.io.IOException;
 import java.io.OutputStream;
 import java.io.UnsupportedEncodingException;
 import java.net.URL;
-import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.HashSet;
@@ -148,7 +147,7 @@ public class Pgql {
     }
   }
 
-  public PgqlResult parse(String queryString) throws PgqlException {
+  public synchronized PgqlResult parse(String queryString) throws PgqlException {
     ITemporaryContext context = null;
     FileObject dummyFile = null;
     try {
@@ -160,6 +159,9 @@ public class Pgql {
       GraphQuery queryGraph = null;
       if (!queryValid) {
         prettyMessages = getMessages(parseResult.messages(), queryString);
+      }
+      if (!parseResult.valid()) {
+        throw new PgqlException(prettyMessages);
       }
 
       context = spoofax.contextService.getTemporary(dummyFile, dummyProject, pgqlLang);
