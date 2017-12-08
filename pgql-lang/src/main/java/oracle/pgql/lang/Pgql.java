@@ -147,6 +147,17 @@ public class Pgql {
     }
   }
 
+  /**
+   * Parse a PGQL query.
+   *
+   * NOTE: This method is synchronized as Spoofax is not thread safe.
+   *
+   * @param queryString
+   *          PGQL query to parse
+   * @return parse result holding either an AST or error messages
+   * @throws PgqlException
+   *           if the query contains errors
+   */
   public synchronized PgqlResult parse(String queryString) throws PgqlException {
     ITemporaryContext context = null;
     FileObject dummyFile = null;
