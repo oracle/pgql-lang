@@ -4,13 +4,10 @@
 package oracle.pgql.lang.ir;
 
 import java.time.LocalTime;
-import java.util.Collection;
 import java.util.Collections;
-import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
-import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
 
@@ -115,8 +112,8 @@ public class PgqlUtils {
   }
 
   protected static String printPgqlString(GraphQuery graphQuery) {
+    String result = printPathPatterns(graphQuery.getCommonPathExpressions());
     GraphPattern graphPattern = graphQuery.getGraphPattern();
-    String result = printPathPatterns(graphPattern);
     result += graphQuery.getProjection() + "\n";
     if (graphQuery.getInputGraphName() != null) {
       result += "FROM " + printIdentifier(graphQuery.getInputGraphName()) + "\n";
@@ -276,41 +273,26 @@ public class PgqlUtils {
     return String.join("", Collections.nCopies(indentation, " "));
   }
 
-  private static String printPathPatterns(GraphPattern graphPattern) {
-    Map<String, QueryPath> queryPaths = new HashMap<>();
-    printPathPatternsHelper(queryPaths, graphPattern.getConnections());
-    return queryPaths.values().stream() //
+  private static String printPathPatterns(List<CommonPathExpression> commonPathExpressions) {
+    return commonPathExpressions.stream() //
         .map(x -> printPathExpression(x)) //
         .collect(Collectors.joining());
   }
 
-  private static void printPathPatternsHelper(Map<String, QueryPath> queryPaths,
-      Collection<VertexPairConnection> connections) {
-    for (VertexPairConnection connection : connections) {
-      if (connection.getVariableType() == VariableType.PATH) {
-        QueryPath path = (QueryPath) connection;
-        QueryPath result = queryPaths.putIfAbsent(path.getPathExpressionName(), path);
-        if (result == null) {
-          printPathPatternsHelper(queryPaths, path.getConnections());
-        }
-      }
-    }
-  }
+  private static String printPathExpression(CommonPathExpression commonPathExpression) {
+    String result = "PATH " + commonPathExpression.getName() + " AS ";
 
-  private static String printPathExpression(QueryPath path) {
-    String result = "PATH " + path.getPathExpressionName() + " AS ";
-
-    Iterator<QueryVertex> vertexIt = path.getVertices().iterator();
+    Iterator<QueryVertex> vertexIt = commonPathExpression.getVertices().iterator();
 
     QueryVertex vertex = vertexIt.next();
-    result += deanonymizeIfNeeded(vertex, path.getConstraints());
-    for (VertexPairConnection connection : path.getConnections()) {
-      result += " " + printConnection(vertex, connection, path.getConstraints());
+    result += deanonymizeIfNeeded(vertex, commonPathExpression.getConstraints());
+    for (VertexPairConnection connection : commonPathExpression.getConnections()) {
+      result += " " + printConnection(vertex, connection, commonPathExpression.getConstraints());
       vertex = vertexIt.next();
-      result += " " + deanonymizeIfNeeded(vertex, path.getConstraints());
+      result += " " + deanonymizeIfNeeded(vertex, commonPathExpression.getConstraints());
     }
 
-    Set<QueryExpression> constraints = path.getConstraints();
+    Set<QueryExpression> constraints = commonPathExpression.getConstraints();
     if (!constraints.isEmpty()) {
       result += " WHERE " + constraints.stream() //
           .map(x -> x.toString()) //

@@ -10,44 +10,34 @@ import static oracle.pgql.lang.ir.PgqlUtils.printHops;
 
 public class QueryPath extends VertexPairConnection {
 
-  private final String pathExpressionName;
-  
-  private final List<QueryVertex> vertices;
-
-  private final List<VertexPairConnection> connections;
-
-  private final Set<QueryExpression> constraints;
+  private final CommonPathExpression commonPathExpression;
 
   private final long minHops;
 
   private final long maxHops;
 
-  public QueryPath(QueryVertex src, QueryVertex dst, List<QueryVertex> vertices, List<VertexPairConnection> connections,
-      Set<QueryExpression> constraints, String name, String pathExpressionName,
+  public QueryPath(QueryVertex src, QueryVertex dst, String name, CommonPathExpression commonPathExpression,
       boolean anonymous, long minHops, long maxHops) {
     super(src, dst, name, anonymous);
-    this.pathExpressionName = pathExpressionName;
-    this.vertices = vertices;
-    this.connections = connections;
-    this.constraints = constraints;
+    this.commonPathExpression = commonPathExpression;
     this.minHops = minHops;
     this.maxHops = maxHops;
   }
 
   public String getPathExpressionName() {
-    return pathExpressionName;
+    return commonPathExpression.getName();
   }
 
   public List<QueryVertex> getVertices() {
-    return vertices;
+    return commonPathExpression.getVertices();
   }
 
   public List<VertexPairConnection> getConnections() {
-    return connections;
+    return commonPathExpression.getConnections();
   }
 
   public Set<QueryExpression> getConstraints() {
-    return constraints;
+    return commonPathExpression.getConstraints();
   }
 
   /**
@@ -68,25 +58,27 @@ public class QueryPath extends VertexPairConnection {
   public VariableType getVariableType() {
     return VariableType.PATH;
   }
+
   @Override
   public String toString() {
     String path = "-/";
     if (!isAnonymous()) {
       path += name;
     }
-    return path + ":" + pathExpressionName + printHops(this) + "/->";
+    return path + ":" + commonPathExpression.getName() + printHops(this) + "/->";
+  }
+
+  public void accept(QueryExpressionVisitor v) {
+    v.visit(this);
   }
 
   @Override
   public int hashCode() {
     final int prime = 31;
     int result = super.hashCode();
-    result = prime * result + ((pathExpressionName == null) ? 0 : pathExpressionName.hashCode());
-    result = prime * result + ((connections == null) ? 0 : connections.hashCode());
-    result = prime * result + ((constraints == null) ? 0 : constraints.hashCode());
+    result = prime * result + ((commonPathExpression == null) ? 0 : commonPathExpression.hashCode());
     result = prime * result + (int) (maxHops ^ (maxHops >>> 32));
     result = prime * result + (int) (minHops ^ (minHops >>> 32));
-    result = prime * result + ((vertices == null) ? 0 : vertices.hashCode());
     return result;
   }
 
@@ -99,34 +91,15 @@ public class QueryPath extends VertexPairConnection {
     if (getClass() != obj.getClass())
       return false;
     QueryPath other = (QueryPath) obj;
-    if (pathExpressionName == null) {
-      if (other.pathExpressionName != null)
+    if (commonPathExpression == null) {
+      if (other.commonPathExpression != null)
         return false;
-    } else if (!pathExpressionName.equals(other.pathExpressionName))
-      return false;
-    if (connections == null) {
-      if (other.connections != null)
-        return false;
-    } else if (!connections.equals(other.connections))
-      return false;
-    if (constraints == null) {
-      if (other.constraints != null)
-        return false;
-    } else if (!constraints.equals(other.constraints))
+    } else if (!commonPathExpression.equals(other.commonPathExpression))
       return false;
     if (maxHops != other.maxHops)
       return false;
     if (minHops != other.minHops)
       return false;
-    if (vertices == null) {
-      if (other.vertices != null)
-        return false;
-    } else if (!vertices.equals(other.vertices))
-      return false;
     return true;
-  }
-
-  public void accept(QueryExpressionVisitor v) {
-    v.visit(this);
   }
 }
