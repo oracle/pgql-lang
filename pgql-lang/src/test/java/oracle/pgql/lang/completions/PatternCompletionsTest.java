@@ -3,18 +3,20 @@
  */
 package oracle.pgql.lang.completions;
 
-import static oracle.pgql.lang.completions.PgqlCompletionGenerator.completions;
-import static oracle.pgql.lang.completions.PgqlCompletionGenerator.VERTEX_COMPLETION;
-import static oracle.pgql.lang.completions.PgqlCompletionGenerator.SPACE_VERTEX_COMPLETION;
-import static oracle.pgql.lang.completions.PgqlCompletionGenerator.COMMA_VERTEX_COMPLETION;
-import static oracle.pgql.lang.completions.PgqlCompletionGenerator.RELATION_VERTEX_COMPLETIONS;
-import static oracle.pgql.lang.completions.PgqlCompletionGenerator.SPACE_RELATION_VERTEX_COMPLETIONS;
+import static oracle.pgql.lang.completion.PgqlCompletionGenerator.COMMA_VERTEX_COMPLETION;
+import static oracle.pgql.lang.completion.PgqlCompletionGenerator.RELATION_VERTEX_COMPLETIONS;
+import static oracle.pgql.lang.completion.PgqlCompletionGenerator.SPACE_RELATION_VERTEX_COMPLETIONS;
+import static oracle.pgql.lang.completion.PgqlCompletionGenerator.SPACE_VERTEX_COMPLETION;
+import static oracle.pgql.lang.completion.PgqlCompletionGenerator.VERTEX_COMPLETION;
+import static oracle.pgql.lang.completion.PgqlCompletionGenerator.completions;
 
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
 import org.junit.Test;
+
+import oracle.pgql.lang.editor.completion.PgqlCompletion;
 
 public class PatternCompletionsTest extends AbstractCompletionsTest {
 

@@ -1,4 +1,4 @@
-package oracle.pgql.lang.completions;
+package oracle.pgql.lang.completion;
 
 public enum ClauseOrAggregate {
   SELECT,

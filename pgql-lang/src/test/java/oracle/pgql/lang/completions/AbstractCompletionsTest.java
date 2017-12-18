@@ -15,6 +15,8 @@ import java.util.stream.Collectors;
 import org.junit.BeforeClass;
 
 import oracle.pgql.lang.Pgql;
+import oracle.pgql.lang.editor.completion.PgqlCompletion;
+import oracle.pgql.lang.editor.completion.PgqlCompletionContext;
 
 public abstract class AbstractCompletionsTest {
 
@@ -94,7 +96,7 @@ public abstract class AbstractCompletionsTest {
     int cursor = query.indexOf("???");
     query = query.replaceAll("\\?\\?\\?", "");
 
-    List<PgqlCompletion> actual = pgql.generateCompletions(query, cursor, getCompletionContext());
+    List<PgqlCompletion> actual = pgql.complete(query, cursor, getCompletionContext());
     String actualAsString = actual.stream().map(c -> c.toString()).collect(Collectors.joining("\n"));
 
     if (subset) {

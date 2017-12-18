@@ -1,7 +1,7 @@
 /**
  * Copyright (C) 2013 - 2017 Oracle and/or its affiliates. All rights reserved.
  */
-package oracle.pgql.lang.completions;
+package oracle.pgql.lang.editor.completion;
 
 import java.util.List;
 

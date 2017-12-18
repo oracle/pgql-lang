@@ -3,19 +3,19 @@
  */
 package oracle.pgql.lang.completions;
 
+import static oracle.pgql.lang.completion.PgqlCompletionGenerator.EMPTY_STRING_COMPLETION;
+import static oracle.pgql.lang.completion.PgqlCompletionGenerator.aggregations;
+import static oracle.pgql.lang.completion.PgqlCompletionGenerator.completion;
+import static oracle.pgql.lang.completion.PgqlCompletionGenerator.completions;
+import static oracle.pgql.lang.completion.PgqlCompletionGenerator.functions;
+import static oracle.pgql.lang.completion.PgqlCompletionGenerator.otherExpressions;
+
 import java.util.ArrayList;
 import java.util.List;
 
 import org.junit.Test;
 
-import oracle.pgql.lang.completions.PgqlCompletion;
-
-import static oracle.pgql.lang.completions.PgqlCompletionGenerator.EMPTY_STRING_COMPLETION;
-import static oracle.pgql.lang.completions.PgqlCompletionGenerator.completion;
-import static oracle.pgql.lang.completions.PgqlCompletionGenerator.completions;
-import static oracle.pgql.lang.completions.PgqlCompletionGenerator.functions;
-import static oracle.pgql.lang.completions.PgqlCompletionGenerator.aggregations;
-import static oracle.pgql.lang.completions.PgqlCompletionGenerator.otherExpressions;
+import oracle.pgql.lang.editor.completion.PgqlCompletion;
 
 public class ExpressionCompletionsTest extends AbstractCompletionsTest {
 

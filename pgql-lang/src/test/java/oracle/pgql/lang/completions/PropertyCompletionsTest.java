@@ -3,15 +3,15 @@
  */
 package oracle.pgql.lang.completions;
 
+import static oracle.pgql.lang.completion.PgqlCompletionGenerator.completion;
+import static oracle.pgql.lang.completion.PgqlCompletionGenerator.completions;
+
 import java.util.Collections;
 import java.util.List;
 
 import org.junit.Test;
 
-import oracle.pgql.lang.completions.PgqlCompletion;
-
-import static oracle.pgql.lang.completions.PgqlCompletionGenerator.completion;
-import static oracle.pgql.lang.completions.PgqlCompletionGenerator.completions;
+import oracle.pgql.lang.editor.completion.PgqlCompletion;
 
 public class PropertyCompletionsTest extends AbstractCompletionsTest {
 

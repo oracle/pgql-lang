@@ -1,7 +1,7 @@
 /**
  * Copyright (C) 2013 - 2017 Oracle and/or its affiliates. All rights reserved.
  */
-package oracle.pgql.lang.completions;
+package oracle.pgql.lang.completion;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -16,6 +16,8 @@ import org.metaborg.core.completion.ICompletion;
 
 import oracle.pgql.lang.PgqlException;
 import oracle.pgql.lang.PgqlResult;
+import oracle.pgql.lang.editor.completion.PgqlCompletion;
+import oracle.pgql.lang.editor.completion.PgqlCompletionContext;
 import oracle.pgql.lang.ir.GraphPattern;
 import oracle.pgql.lang.ir.GraphQuery;
 import oracle.pgql.lang.ir.QueryVariable.VariableType;
