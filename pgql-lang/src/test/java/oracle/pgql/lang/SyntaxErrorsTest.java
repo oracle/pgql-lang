@@ -32,4 +32,12 @@ public class SyntaxErrorsTest {
     assertTrue(result.getErrorMessages().contains("Syntax error"));
     assertTrue(result.getGraphQuery() == null);
   }
+
+  @Test
+  public void testSelectStarGroupBy() throws Exception {
+    PgqlResult result = pgql.parse("SELECT * MATCH (n) GROUP BY n.prop");
+    assertFalse(result.isQueryValid());
+    assertTrue(result.getErrorMessages().contains("SELECT * not allowed in combination with GROUP BY"));
+    assertFalse(result.getGraphQuery() == null);
+  }
 }

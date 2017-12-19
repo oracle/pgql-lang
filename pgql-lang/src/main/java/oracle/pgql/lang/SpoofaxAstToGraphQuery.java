@@ -162,8 +162,15 @@ public class SpoofaxAstToGraphQuery {
     IStrategoTerm projectionT = ast.getSubterm(POS_PROJECTION);
     IStrategoTerm distinctT = projectionT.getSubterm(POS_PROJECTION_DISTINCT);
     boolean distinct = isSome(distinctT);
-    IStrategoTerm selectElemsT = getList(projectionT.getSubterm(POS_PROJECTION_ELEMS));
-    List<ExpAsVar> selectElems = getSelectElems(ctx, selectElemsT);
+    IStrategoTerm projectionElemsT = projectionT.getSubterm(POS_PROJECTION_ELEMS).getSubterm(0);
+    List<ExpAsVar> selectElems;
+    if (projectionElemsT.getTermType() == IStrategoTerm.APPL
+        && ((IStrategoAppl) projectionElemsT).getConstructor().getName().equals("Star")) {
+      // SELECT * in combination with GROUP BY
+      selectElems = Collections.emptyList();
+    } else {
+      selectElems = getSelectElems(ctx, getList(projectionElemsT));
+    }
     Projection projection = new Projection(distinct, selectElems);
 
     // FROM
@@ -545,7 +552,8 @@ public class SpoofaxAstToGraphQuery {
       case "Exists":
         IStrategoTerm subqueryT = t.getSubterm(POS_EXISTS_SUBQUERY);
         Map<String, QueryVariable> inScopeVars = new HashMap<>(ctx.getInScopeVars());
-        Map<String, QueryVariable> inScopeInAggregationVars = ctx.getInScopeInAggregationVars() == null ? null : new HashMap<>(ctx.getInScopeInAggregationVars());
+        Map<String, QueryVariable> inScopeInAggregationVars = ctx.getInScopeInAggregationVars() == null ? null
+            : new HashMap<>(ctx.getInScopeInAggregationVars());
         Map<String, CommonPathExpression> commonPathExpressions = new HashMap<>(ctx.getCommonPathExpressions());
         TranslationContext newCtx = new TranslationContext(inScopeVars, inScopeInAggregationVars,
             commonPathExpressions);
