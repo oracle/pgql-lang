@@ -48,4 +48,4 @@ rules
   to-ExpAsGroupVar = ?ExpAsVar(exp, v); !ExpAsGroupVar(exp, v)
   to-ExpAsGroupVar = ?AnonymousExpAsVar(exp, v); !AnonymousExpAsGroupVar(exp, v)
 
-  to-VarOrSelectRefs = alltd-in-outer-query(?VarRef(<id>); !VarOrSelectRef(<id>))
+  to-VarOrSelectRefs = alltd(?VarRef(<id>); !VarOrSelectRef(<id>))
