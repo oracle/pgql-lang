@@ -1491,18 +1491,13 @@ Above, we compare two string properties from different graphs. Besides propertie
 
 ## Subqueries Inside PATH Clause
 
-Users can add a sub-query in the `WHERE` clause of the `PATH` definition. One might be intereseted in asserting for specific properties for a node in the `PATH`. The following example defines a path ending in a node which is not the oldest in the graph:
+Users can add a sub-query in the `WHERE` clause of the `PATH` definition. One might be interested in asserting for specific properties for a vertex in the `PATH`. The following example defines a path ending in a vertex which is not the oldest in the graph:
 
 `PATH p AS (a) -> (b) WHERE EXISTS (SELECT * MATCH (x) WHERE x.age > b.age) SELECT ...`
 
-Topology related constraints can be also imposed. The following example defines a path ending in a node which has at least one out-neighbor:
+Topology related constraints can be also imposed. The following example defines a path ending in a vertex which has at least one out-neighbor:
 
 `PATH p AS (a) -> (b) WHERE EXISTS (SELECT * MATCH (b) -> (c)) ...`
-
-Notice that for now only simple constraints (constraints accessing at most one of the pattern variables)
-are allowed under the `WHERE` clause. Queries like:
-
-`PATH p AS (a) -> (b) WHERE EXISTS (SELECT * MATCH (a) -> (c) -> (b)) SELECT ...` are not yet supported.
 
 # Other Syntactic Rules
 
