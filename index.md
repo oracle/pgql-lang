@@ -49,12 +49,11 @@ PGQL has __regular path expressions__ (e.g. `*`, `+`, `?`, `{1,4}`) for expressi
 {% include image.html file="example_graphs/electric_network.png" %}
 
 ```sql
-    PATH connects_to AS (:Device) <- (x) -> (:Device)                /* Devices are connected by two edges..                     */
-                  WHERE has_label(x, 'Connection')                   /* ..and an intermediate Connection vertex..                */
-                     OR has_label(x, 'Switch') AND x.status = 'OPEN' /* ..or an intermediate Switch vertex with OPEN status.     */
+    PATH connects_to AS (:Device|Switch) <- (:Connection) -> (d:Device|Switch) /* Devices and switches are connected by two edges. */
+                  WHERE d.status IS NULL OR d.status = 'OPEN'                  /* Only consider switches with OPEN status. */
   SELECT d1.name AS source, d2.name AS destination
     FROM electric_network
-   MATCH (d1) -/:connects_to+/-> (d2)                                 /* We match the connects_to pattern one or more (+) times. */
+   MATCH (d1:Device) -/:connects_to+/-> (d2:Device)                            /* We match the connects_to pattern one or more (+) times. */
    WHERE d1.name = 'DS'
 ORDER BY d2.name
 ```
