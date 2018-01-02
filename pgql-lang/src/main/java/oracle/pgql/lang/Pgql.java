@@ -47,9 +47,9 @@ import org.slf4j.LoggerFactory;
 
 import com.google.common.collect.Lists;
 
-import oracle.pgql.lang.completions.PgqlCompletion;
-import oracle.pgql.lang.completions.PgqlCompletionContext;
-import oracle.pgql.lang.completions.PgqlCompletionGenerator;
+import oracle.pgql.lang.completion.PgqlCompletionGenerator;
+import oracle.pgql.lang.editor.completion.PgqlCompletion;
+import oracle.pgql.lang.editor.completion.PgqlCompletionContext;
 import oracle.pgql.lang.ir.GraphQuery;
 
 public class Pgql implements Closeable {
@@ -135,7 +135,18 @@ public class Pgql implements Closeable {
     }
   }
 
-  public PgqlResult parse(String queryString) throws PgqlException {
+  /**
+   * Parse a PGQL query.
+   *
+   * NOTE: This method is synchronized as Spoofax is not thread safe.
+   *
+   * @param queryString
+   *          PGQL query to parse
+   * @return parse result holding either an AST or error messages
+   * @throws PgqlException
+   *           if the query contains errors
+   */
+  public synchronized PgqlResult parse(String queryString) throws PgqlException {
     ITemporaryContext context = null;
     FileObject dummyFile = null;
     try {
@@ -147,6 +158,9 @@ public class Pgql implements Closeable {
       GraphQuery queryGraph = null;
       if (!queryValid) {
         prettyMessages = getMessages(parseResult.messages(), queryString);
+      }
+      if (!parseResult.valid()) {
+        throw new PgqlException(prettyMessages);
       }
 
       context = spoofax.contextService.getTemporary(dummyFile, dummyProject, pgqlLang);
@@ -259,9 +273,17 @@ public class Pgql implements Closeable {
     return sb.toString();
   }
 
-  public List<PgqlCompletion> generateCompletions(String queryString, int cursor, PgqlCompletionContext ctx)
+  /**
+   * Generate code completions, given a (partial) query and cursor location.
+   */
+  public List<PgqlCompletion> complete(String queryString, int cursor, PgqlCompletionContext ctx)
       throws PgqlException {
-    PgqlResult pgqlResult = parse(queryString);
+    PgqlResult pgqlResult = null;
+    try {
+      pgqlResult = parse(queryString);
+    } catch (PgqlException e) {
+      // spoofax e.g. throws exception for query "SELECT * FROM g MATCH "
+    }
     Iterable<ICompletion> spoofaxCompletions = null;
     // spoofaxCompletions = spoofaxComplete(pgqlResult.getSpoofaxParseUnit(), cursor); // not used yet
 

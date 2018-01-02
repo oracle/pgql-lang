@@ -140,6 +140,24 @@ public class PrettyPrintingTest extends AbstractPgqlTest {
     checkRoundTrip(query);
   }
 
+  @Test
+  public void testExistsQuery() throws Exception {
+    String query = "SELECT id(n) MATCH (n) WHERE EXISTS (SELECT 1 MATCH (n) -[:likes]-> (m))";
+    checkRoundTrip(query);
+  }
+
+  @Test
+  public void testExistsInAggregation() throws Exception {
+    String query = "SELECT MAX(EXISTS (SELECT * MATCH (m)->(o) WHERE o.age > n.age)) MATCH (n)->(m)";
+    checkRoundTrip(query);
+  }
+
+  @Test
+  public void testExistsInOrderBy() throws Exception {
+    String query = "SELECT id(n), 3 AS three MATCH (n) ORDER BY EXISTS ( SELECT * MATCH (m) WHERE m.age + three = n.age), id(n)";
+    checkRoundTrip(query);
+  }
+
   private void checkRoundTrip(String query1) throws PgqlException {
 
     /*

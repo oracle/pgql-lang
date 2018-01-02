@@ -13,6 +13,23 @@ public class SyntaxErrorsTest extends AbstractPgqlTest {
     assertFalse(result.isQueryValid());
     assertFalse(result.getErrorMessages() == null);
     assertFalse(result.getGraphQuery() == null);
-    result.toString(); // may pretty-print syntactically/semantically incorrect query but should not produce errors
+    result.getGraphQuery().toString(); // may pretty-print syntactically/semantically incorrect query but should not
+                                       // produce errors
+  }
+
+  @Test
+  public void testEmptyString() throws Exception {
+    PgqlResult result = pgql.parse("");
+    assertFalse(result.isQueryValid());
+    assertTrue(result.getErrorMessages().contains("Syntax error"));
+    assertTrue(result.getGraphQuery() == null);
+  }
+
+  @Test
+  public void testSelectStarGroupBy() throws Exception {
+    PgqlResult result = pgql.parse("SELECT * MATCH (n) GROUP BY n.prop");
+    assertFalse(result.isQueryValid());
+    assertTrue(result.getErrorMessages().contains("SELECT * not allowed in combination with GROUP BY"));
+    assertFalse(result.getGraphQuery() == null);
   }
 }

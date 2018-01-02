@@ -3,16 +3,16 @@
  */
 package oracle.pgql.lang.completions;
 
+import static oracle.pgql.lang.completion.PgqlCompletionGenerator.completion;
+import static oracle.pgql.lang.completion.PgqlCompletionGenerator.completions;
+
 import java.util.List;
 
 import org.junit.Test;
 
-import oracle.pgql.lang.completions.PgqlCompletion;
+import oracle.pgql.lang.editor.completion.PgqlCompletion;
 
-import static oracle.pgql.lang.completions.PgqlCompletionGenerator.completion;
-import static oracle.pgql.lang.completions.PgqlCompletionGenerator.completions;
-
-public class LabelCompletionsTests extends AbstractCompletionsTest {
+public class LabelCompletionsTest extends AbstractCompletionsTest {
 
   @Test
   public void testVertexLabelsGraphG() throws Exception {

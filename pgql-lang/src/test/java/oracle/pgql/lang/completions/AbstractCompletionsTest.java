@@ -13,6 +13,8 @@ import java.util.List;
 import java.util.stream.Collectors;
 
 import oracle.pgql.lang.AbstractPgqlTest;
+import oracle.pgql.lang.editor.completion.PgqlCompletion;
+import oracle.pgql.lang.editor.completion.PgqlCompletionContext;
 
 public abstract class AbstractCompletionsTest extends AbstractPgqlTest {
 
@@ -36,6 +38,11 @@ public abstract class AbstractCompletionsTest extends AbstractPgqlTest {
 
   protected PgqlCompletionContext getCompletionContext() {
     return new PgqlCompletionContext() {
+
+      @Override
+      public List<String> getGraphNames() {
+        return Collections.singletonList(GRAPH_NAME);
+      }
 
       @Override
       public List<String> getVertexProperties(String graphName) {
@@ -80,7 +87,7 @@ public abstract class AbstractCompletionsTest extends AbstractPgqlTest {
     int cursor = query.indexOf("???");
     query = query.replaceAll("\\?\\?\\?", "");
 
-    List<PgqlCompletion> actual = pgql.generateCompletions(query, cursor, getCompletionContext());
+    List<PgqlCompletion> actual = pgql.complete(query, cursor, getCompletionContext());
     String actualAsString = actual.stream().map(c -> c.toString()).collect(Collectors.joining("\n"));
 
     if (subset) {

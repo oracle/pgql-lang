@@ -957,6 +957,31 @@ public interface QueryExpression {
       public void accept(QueryExpressionVisitor v) {
         v.visit(this);
       }
+
+      @Override
+      public int hashCode() {
+        final int prime = 31;
+        int result = 1;
+        result = prime * result + ((subquery == null) ? 0 : subquery.hashCode());
+        return result;
+      }
+
+      @Override
+      public boolean equals(Object obj) {
+        if (this == obj)
+          return true;
+        if (obj == null)
+          return false;
+        if (getClass() != obj.getClass())
+          return false;
+        Exists other = (Exists) obj;
+        if (subquery == null) {
+          if (other.subquery != null)
+            return false;
+        } else if (!subquery.equals(other.subquery))
+          return false;
+        return true;
+      }
     }
   }
 
