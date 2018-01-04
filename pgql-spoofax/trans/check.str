@@ -13,6 +13,7 @@ imports
   names/-
   pp
   runtime/properties/-
+  runtime/task/-
 
 rules // Unresolved/duplicate variables
 
