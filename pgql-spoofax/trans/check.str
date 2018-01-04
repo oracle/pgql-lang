@@ -167,7 +167,7 @@ rules // type checking
       <?SelectOrGroupRef(n) + ?VarOrSelectRef(n)> exp
     with
       var-is-vertex := <var-is-vertex(|ctx)> n;
-      <task-create-error-on-success(|ctx, var-is-vertex, "Can't order by vertex")> exp
+      <task-create-error-on-success(|ctx, var-is-vertex, "Cannot order by vertex")> exp
 
   nabl-constraint-1-1(|ctx):
     OrderByElem(exp, _) -> <fail>
@@ -175,7 +175,7 @@ rules // type checking
       <?SelectOrGroupRef(n) + ?VarOrSelectRef(n)> exp
     with
       var-is-edge := <var-is-edge(|ctx)> n;
-      <task-create-error-on-success(|ctx, var-is-edge, "Can't order by edge")> exp
+      <task-create-error-on-success(|ctx, var-is-edge, "Cannot order by edge")> exp
 
 rules // version-specific error messages
 

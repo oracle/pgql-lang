@@ -37,8 +37,10 @@ type rules
   t@Gt(exp1, exp2) + t@Lt(exp1, exp2) + t@Gte(exp1, exp2) + t@Lte(exp1, exp2) : BooleanTy()
 //  where TODO
 
-  COUNT(_, exp) + MIN(_, exp)  + MAX(_, exp)  + SUM(_, exp)  + AVG(_, exp) : ty
+  MIN(_, exp)  + MAX(_, exp)  + SUM(_, exp)  + AVG(_, exp) : ty
   where exp : ty
+
+  COUNT(_, exp) : NumericTy()
 
   Cast(_, _) + FunctionCall(_, _, _) + Star(): UnknownTy()
 
