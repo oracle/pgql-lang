@@ -118,6 +118,12 @@ rules
     ; <batch-generate-error(|ctx, "Nested aggregation is not allowed")> aggrsInAggr
 
   nabl-constraint(|ctx):
+    t@Constraints(_) -> <fail>
+    with
+      aggregations := <get-aggregations> t;
+      <batch-generate-error(|ctx, "Aggregation not allowed in the WHERE clause")> aggregations
+
+  nabl-constraint(|ctx):
     t@GroupByClause(_) -> <fail>
     with
       aggregations := <get-aggregations> t;
