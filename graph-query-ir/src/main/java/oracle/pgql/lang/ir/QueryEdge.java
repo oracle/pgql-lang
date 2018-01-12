@@ -21,6 +21,10 @@ public class QueryEdge extends VertexPairConnection {
     return directed;
   }
 
+  public void setDirected(boolean directed) {
+    this.directed = directed;
+  }
+
   @Override
   public String toString() {
     String edge;

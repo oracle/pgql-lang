@@ -5,9 +5,9 @@ package oracle.pgql.lang.ir;
 
 public abstract class VertexPairConnection extends QueryVariable {
 
-  protected final QueryVertex src;
+  protected QueryVertex src;
 
-  protected final QueryVertex dst;
+  protected QueryVertex dst;
 
   public VertexPairConnection(QueryVertex src, QueryVertex dst, String name, boolean anonymous) {
     super(name, anonymous);
@@ -19,8 +19,16 @@ public abstract class VertexPairConnection extends QueryVariable {
     return src;
   }
 
+  public void setSrc(QueryVertex src) {
+    this.src = src;
+  }
+
   public QueryVertex getDst() {
     return dst;
+  }
+
+  public void setDst(QueryVertex dst) {
+    this.dst = dst;
   }
 
   @Override

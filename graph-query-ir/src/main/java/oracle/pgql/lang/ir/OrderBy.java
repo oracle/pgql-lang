@@ -9,16 +9,20 @@ import static oracle.pgql.lang.ir.PgqlUtils.printPgqlString;
 
 public class OrderBy {
 
-  private final List<OrderByElem> elements;
+  private List<OrderByElem> elements;
 
   public OrderBy(List<OrderByElem> elements) {
     this.elements = elements;
   }
-  
+
   public List<OrderByElem> getElements() {
     return elements;
   }
-  
+
+  public void setElements(List<OrderByElem> elements) {
+    this.elements = elements;
+  }
+
   @Override
   public String toString() {
     return printPgqlString(this);

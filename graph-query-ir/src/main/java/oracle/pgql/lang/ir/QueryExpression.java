@@ -75,7 +75,7 @@ public interface QueryExpression {
 
   abstract class UnaryExpression implements QueryExpression {
 
-    private final QueryExpression exp;
+    private QueryExpression exp;
 
     public UnaryExpression(QueryExpression exp) {
       this.exp = exp;
@@ -83,6 +83,10 @@ public interface QueryExpression {
 
     public QueryExpression getExp() {
       return exp;
+    }
+
+    public void setExp(QueryExpression exp) {
+      this.exp = exp;
     }
 
     @Override
@@ -107,8 +111,9 @@ public interface QueryExpression {
 
   abstract class BinaryExpression implements QueryExpression {
 
-    private final QueryExpression exp1;
-    private final QueryExpression exp2;
+    private QueryExpression exp1;
+
+    private QueryExpression exp2;
 
     public BinaryExpression(QueryExpression exp1, QueryExpression exp2) {
       this.exp1 = exp1;
@@ -119,8 +124,16 @@ public interface QueryExpression {
       return exp1;
     }
 
+    public void setExp1(QueryExpression exp1) {
+      this.exp1 = exp1;
+    }
+
     public QueryExpression getExp2() {
       return exp2;
+    }
+
+    public void setExp2(QueryExpression exp2) {
+      this.exp2 = exp2;
     }
 
     @Override
@@ -144,60 +157,6 @@ public interface QueryExpression {
     public int hashCode() {
       int result = exp1.hashCode();
       result = 31 * result + exp2.hashCode();
-      return result;
-    }
-  }
-
-  // not yet used, but there will be built-in functions in the future that will need it
-  abstract class TernaryExpression implements QueryExpression {
-
-    private final QueryExpression exp1;
-    private final QueryExpression exp2;
-    private final QueryExpression exp3;
-
-    public TernaryExpression(QueryExpression exp1, QueryExpression exp2, QueryExpression exp3) {
-      this.exp1 = exp1;
-      this.exp2 = exp2;
-      this.exp3 = exp3;
-    }
-
-    public QueryExpression getExp1() {
-      return exp1;
-    }
-
-    public QueryExpression getExp2() {
-      return exp2;
-    }
-
-    public QueryExpression getExp3() {
-      return exp3;
-    }
-
-    @Override
-    public boolean equals(Object o) {
-      if (this == o) {
-        return true;
-      }
-      if (o == null || getClass() != o.getClass()) {
-        return false;
-      }
-
-      TernaryExpression that = (TernaryExpression) o;
-
-      if (!exp1.equals(that.exp1)) {
-        return false;
-      }
-      if (!exp2.equals(that.exp2)) {
-        return false;
-      }
-      return exp3.equals(that.exp3);
-    }
-
-    @Override
-    public int hashCode() {
-      int result = exp1.hashCode();
-      result = 31 * result + exp2.hashCode();
-      result = 31 * result + exp3.hashCode();
       return result;
     }
   }
@@ -528,7 +487,7 @@ public interface QueryExpression {
 
   abstract class Constant<T> implements QueryExpression {
 
-    protected final T value;
+    protected T value;
 
     public Constant(T value) {
       this.value = value;
@@ -536,6 +495,10 @@ public interface QueryExpression {
 
     public T getValue() {
       return value;
+    }
+
+    public void setValue(T value) {
+      this.value = value;
     }
 
     @Override
@@ -744,7 +707,7 @@ public interface QueryExpression {
   }
 
   class VarRef implements QueryExpression {
-    private final QueryVariable variable;
+    private QueryVariable variable;
 
     public VarRef(QueryVariable variable) {
       this.variable = variable;
@@ -752,6 +715,10 @@ public interface QueryExpression {
 
     public QueryVariable getVariable() {
       return variable;
+    }
+
+    public void setVariable(QueryVariable variable) {
+      this.variable = variable;
     }
 
     @Override
@@ -790,7 +757,7 @@ public interface QueryExpression {
   }
 
   class BindVariable implements QueryExpression {
-    private final int parameterIndex;
+    private int parameterIndex;
 
     public BindVariable(int parameterIndex) {
       this.parameterIndex = parameterIndex;
@@ -798,6 +765,10 @@ public interface QueryExpression {
 
     public int getParameterIndex() {
       return parameterIndex;
+    }
+
+    public void setParameterIndex(int parameterIndex) {
+      this.parameterIndex = parameterIndex;
     }
 
     @Override
@@ -839,8 +810,8 @@ public interface QueryExpression {
   }
 
   class PropertyAccess implements QueryExpression {
-    private final QueryVariable variable;
-    private final String propertyName;
+    private QueryVariable variable;
+    private String propertyName;
 
     public PropertyAccess(QueryVariable variable, String propertyName) {
       this.variable = variable;
@@ -851,8 +822,16 @@ public interface QueryExpression {
       return variable;
     }
 
+    public void setVariable(QueryVariable variable) {
+      this.variable = variable;
+    }
+
     public String getPropertyName() {
       return propertyName;
+    }
+
+    public void setPropertyName(String propertyName) {
+      this.propertyName = propertyName;
     }
 
     @Override
@@ -899,8 +878,9 @@ public interface QueryExpression {
 
     class Cast implements Function {
 
-      private final QueryExpression exp;
-      private final String targetTypeName;
+      private QueryExpression exp;
+
+      private String targetTypeName;
 
       public Cast(QueryExpression exp, String targetTypeName) {
         this.exp = exp;
@@ -911,8 +891,16 @@ public interface QueryExpression {
         return exp;
       }
 
+      public void setExp(QueryExpression exp) {
+        this.exp = exp;
+      }
+
       public String getTargetTypeName() {
         return targetTypeName;
+      }
+
+      public void setTargetTypeName(String targetTypeName) {
+        this.targetTypeName = targetTypeName;
       }
 
       @Override
@@ -933,7 +921,7 @@ public interface QueryExpression {
 
     class Exists implements Function {
 
-      private final GraphQuery subquery;
+      private GraphQuery subquery;
 
       public Exists(GraphQuery subquery) {
         this.subquery = subquery;
@@ -941,6 +929,10 @@ public interface QueryExpression {
 
       public GraphQuery getSubquery() {
         return subquery;
+      }
+
+      public void setSubquery(GraphQuery subquery) {
+        this.subquery = subquery;
       }
 
       @Override
@@ -987,11 +979,11 @@ public interface QueryExpression {
 
   class FunctionCall implements QueryExpression {
 
-    private final String packageName;
+    private String packageName;
 
-    private final String functionName;
+    private String functionName;
 
-    private final List<QueryExpression> args;
+    private List<QueryExpression> args;
 
     public FunctionCall(String functionName, List<QueryExpression> exps) {
       this(null, functionName, exps);
@@ -1007,12 +999,24 @@ public interface QueryExpression {
       return packageName;
     }
 
+    public void setPackageName(String packageName) {
+      this.packageName = packageName;
+    }
+
     public String getFunctionName() {
       return functionName;
     }
 
+    public void setFunctionName(String functionName) {
+      this.functionName = functionName;
+    }
+
     public List<QueryExpression> getArgs() {
       return args;
+    }
+
+    public void setArgs(List<QueryExpression> args) {
+      this.args = args;
     }
 
     @Override
@@ -1074,7 +1078,7 @@ public interface QueryExpression {
 
     abstract class AbstractAggregation extends UnaryExpression implements Aggregation {
 
-      private final boolean distinct;
+      private boolean distinct;
 
       public AbstractAggregation(boolean distinct, QueryExpression exp) {
         super(exp);
@@ -1083,6 +1087,10 @@ public interface QueryExpression {
 
       public boolean hasDistinct() {
         return distinct;
+      }
+
+      public void setDistinct(boolean distinct) {
+        this.distinct = distinct;
       }
 
       @Override

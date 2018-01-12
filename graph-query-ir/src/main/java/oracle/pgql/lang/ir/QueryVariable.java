@@ -12,9 +12,9 @@ public abstract class QueryVariable {
     EXP_AS_VAR
   }
 
-  protected final boolean anonymous;
+  protected String name;
 
-  protected final String name;
+  protected boolean anonymous;
 
   public QueryVariable(String name, boolean anonymous) {
     this.name = name;
@@ -29,8 +29,16 @@ public abstract class QueryVariable {
     return name;
   }
 
+  public void setName(String name) {
+    this.name = name;
+  }
+
   public boolean isAnonymous() {
     return anonymous;
+  }
+
+  public void setAnonymous(boolean anonymous) {
+    this.anonymous = anonymous;
   }
 
   public abstract VariableType getVariableType();

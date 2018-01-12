@@ -10,11 +10,11 @@ import static oracle.pgql.lang.ir.PgqlUtils.printHops;
 
 public class QueryPath extends VertexPairConnection {
 
-  private final CommonPathExpression commonPathExpression;
+  private CommonPathExpression commonPathExpression; // FIXME: setter missing
 
-  private final long minHops;
+  private long minHops;
 
-  private final long maxHops;
+  private long maxHops;
 
   public QueryPath(QueryVertex src, QueryVertex dst, String name, CommonPathExpression commonPathExpression,
       boolean anonymous, long minHops, long maxHops) {
@@ -47,11 +47,19 @@ public class QueryPath extends VertexPairConnection {
     return minHops;
   }
 
+  public void setMinHops(long minHops) {
+    this.minHops = minHops;
+  }
+
   /**
    * @return maximal number of hops, -1 if none is specified
    */
   public long getMaxHops() {
     return maxHops;
+  }
+
+  public void setMaxHops(long maxHops) {
+    this.maxHops = maxHops;
   }
 
   @Override

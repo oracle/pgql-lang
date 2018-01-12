@@ -9,16 +9,20 @@ import static oracle.pgql.lang.ir.PgqlUtils.printPgqlString;
 
 public class GroupBy {
 
-  private final List<ExpAsVar> elements;
-  
+  private List<ExpAsVar> elements;
+
   public GroupBy(List<ExpAsVar> elements) {
     this.elements = elements;
   }
-  
+
   public List<ExpAsVar> getElements() {
     return elements;
   }
-  
+
+  public void setElements(List<ExpAsVar> elements) {
+    this.elements = elements;
+  }
+
   @Override
   public String toString() {
     return printPgqlString(this);

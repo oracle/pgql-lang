@@ -8,13 +8,13 @@ import java.util.Set;
 
 public class CommonPathExpression {
 
-  private final String name;
+  private String name;
 
-  private final List<QueryVertex> vertices;
+  private List<QueryVertex> vertices;
 
-  private final List<VertexPairConnection> connections;
+  private List<VertexPairConnection> connections;
 
-  private final Set<QueryExpression> constraints;
+  private Set<QueryExpression> constraints;
 
   public CommonPathExpression(String name, List<QueryVertex> vertices, List<VertexPairConnection> connections,
       Set<QueryExpression> constraints) {
@@ -28,16 +28,32 @@ public class CommonPathExpression {
     return name;
   }
 
+  public void setName(String name) {
+    this.name = name;
+  }
+
   public List<QueryVertex> getVertices() {
     return vertices;
+  }
+
+  public void setVertices(List<QueryVertex> vertices) {
+    this.vertices = vertices;
   }
 
   public List<VertexPairConnection> getConnections() {
     return connections;
   }
 
+  public void setConnections(List<VertexPairConnection> connections) {
+    this.connections = connections;
+  }
+
   public Set<QueryExpression> getConstraints() {
     return constraints;
+  }
+
+  public void setConstraints(Set<QueryExpression> constraints) {
+    this.constraints = constraints;
   }
 
   @Override

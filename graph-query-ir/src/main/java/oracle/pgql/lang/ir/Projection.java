@@ -9,9 +9,9 @@ import static oracle.pgql.lang.ir.PgqlUtils.printPgqlString;
 
 public class Projection {
 
-  private final boolean distinct;
+  private boolean distinct;
 
-  private final List<ExpAsVar> elements;
+  private List<ExpAsVar> elements;
 
   public Projection(boolean distinct, List<ExpAsVar> elements) {
     this.distinct = distinct;
@@ -22,8 +22,16 @@ public class Projection {
     return distinct;
   }
 
+  public void setDistinct(boolean distinct) {
+    this.distinct = distinct;
+  }
+
   public List<ExpAsVar> getElements() {
     return elements;
+  }
+
+  public void setElements(List<ExpAsVar> elements) {
+    this.elements = elements;
   }
 
   @Override

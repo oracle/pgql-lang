@@ -7,16 +7,24 @@ import static oracle.pgql.lang.ir.PgqlUtils.printPgqlString;
 
 public class OrderByElem {
 
-  private final QueryExpression exp;
-  
-  private final boolean ascending;
+  private QueryExpression exp;
+
+  private boolean ascending;
 
   public QueryExpression getExp() {
     return exp;
   }
 
+  public void setExp(QueryExpression exp) {
+    this.exp = exp;
+  }
+
   public boolean isAscending() {
     return ascending;
+  }
+
+  public void setAscending(boolean ascending) {
+    this.ascending = ascending;
   }
 
   public OrderByElem(QueryExpression exp, boolean ascending) {

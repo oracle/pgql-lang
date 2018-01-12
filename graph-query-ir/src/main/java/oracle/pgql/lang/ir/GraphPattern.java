@@ -11,11 +11,11 @@ import static oracle.pgql.lang.ir.PgqlUtils.printPgqlString;
 
 public class GraphPattern {
 
-  private final Set<QueryVertex> vertices;
+  private Set<QueryVertex> vertices;
 
-  private final Set<VertexPairConnection> connections;
+  private Set<VertexPairConnection> connections;
 
-  private final Set<QueryExpression> constraints;
+  private Set<QueryExpression> constraints;
 
   /**
    * @param vertices
@@ -39,12 +39,24 @@ public class GraphPattern {
     return vertices;
   }
 
+  public void setVertices(Set<QueryVertex> vertices) {
+    this.vertices = vertices;
+  }
+
   public Set<VertexPairConnection> getConnections() {
     return connections;
   }
 
+  public void setConnections(Set<VertexPairConnection> connections) {
+    this.connections = connections;
+  }
+
   public Set<QueryExpression> getConstraints() {
     return constraints;
+  }
+
+  public void setConstraints(Set<QueryExpression> constraints) {
+    this.constraints = constraints;
   }
 
   @Override

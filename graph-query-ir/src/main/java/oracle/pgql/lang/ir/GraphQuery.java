@@ -9,21 +9,21 @@ import static oracle.pgql.lang.ir.PgqlUtils.printPgqlString;
 
 public class GraphQuery {
 
-  private final List<CommonPathExpression> commonPathExpressions;
+  private List<CommonPathExpression> commonPathExpressions;
 
-  private final Projection projection;
+  private Projection projection;
 
-  private final String inputGraphName;
+  private String inputGraphName;
 
-  private final GraphPattern graphPattern;
+  private GraphPattern graphPattern;
 
-  private final GroupBy groupBy;
+  private GroupBy groupBy;
 
-  private final OrderBy orderBy;
+  private OrderBy orderBy;
 
-  private final QueryExpression limit;
+  private QueryExpression limit;
 
-  private final QueryExpression offset;
+  private QueryExpression offset;
 
   /**
    * Constructor
@@ -44,32 +44,64 @@ public class GraphQuery {
     return commonPathExpressions;
   }
 
+  public void setCommonPathExpressions(List<CommonPathExpression> commonPathExpressions) {
+    this.commonPathExpressions = commonPathExpressions;
+  }
+
   public Projection getProjection() {
     return projection;
+  }
+
+  public void setProjection(Projection projection) {
+    this.projection = projection;
   }
 
   public String getInputGraphName() {
     return inputGraphName;
   }
 
+  public void setInputGraphName(String inputGraphName) {
+    this.inputGraphName = inputGraphName;
+  }
+
   public GraphPattern getGraphPattern() {
     return graphPattern;
+  }
+
+  public void setGraphPattern(GraphPattern graphPattern) {
+    this.graphPattern = graphPattern;
   }
 
   public GroupBy getGroupBy() {
     return groupBy;
   }
 
+  public void setGroupBy(GroupBy groupBy) {
+    this.groupBy = groupBy;
+  }
+
   public OrderBy getOrderBy() {
     return orderBy;
+  }
+
+  public void setOrderBy(OrderBy orderBy) {
+    this.orderBy = orderBy;
   }
 
   public QueryExpression getLimit() {
     return limit;
   }
 
+  public void setLimit(QueryExpression limit) {
+    this.limit = limit;
+  }
+
   public QueryExpression getOffset() {
     return offset;
+  }
+
+  public void setOffset(QueryExpression offset) {
+    this.offset = offset;
   }
 
   @Override
