@@ -62,7 +62,7 @@ public class PrettyPrintingTest extends AbstractPgqlTest {
 
   @Test
   public void testPredicatesOnAnonymousVariables() throws Exception {
-    String query = "SELECT m.name WHERE (WITH prop1 = 10) -> (m)";
+    String query = "SELECT m.name MATCH (:a|b) -> (m)";
     checkRoundTrip(query);
   }
 
