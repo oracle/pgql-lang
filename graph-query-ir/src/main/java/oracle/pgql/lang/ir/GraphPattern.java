@@ -86,10 +86,7 @@ public class GraphPattern {
 
   @Override
   public int hashCode() {
-    int result = vertices.hashCode();
-    result = 31 * result + connections.hashCode();
-    result = 31 * result + constraints.hashCode();
-    return result;
+    return 31;
   }
 
   public void accept(QueryExpressionVisitor v) {

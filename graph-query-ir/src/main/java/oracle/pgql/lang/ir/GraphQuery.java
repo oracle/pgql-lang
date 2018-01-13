@@ -115,17 +115,7 @@ public class GraphQuery {
 
   @Override
   public int hashCode() {
-    final int prime = 31;
-    int result = 1;
-    result = prime * result + ((commonPathExpressions == null) ? 0 : commonPathExpressions.hashCode());
-    result = prime * result + ((graphPattern == null) ? 0 : graphPattern.hashCode());
-    result = prime * result + ((groupBy == null) ? 0 : groupBy.hashCode());
-    result = prime * result + ((inputGraphName == null) ? 0 : inputGraphName.hashCode());
-    result = prime * result + ((limit == null) ? 0 : limit.hashCode());
-    result = prime * result + ((offset == null) ? 0 : offset.hashCode());
-    result = prime * result + ((orderBy == null) ? 0 : orderBy.hashCode());
-    result = prime * result + ((projection == null) ? 0 : projection.hashCode());
-    return result;
+    return 31;
   }
 
   @Override

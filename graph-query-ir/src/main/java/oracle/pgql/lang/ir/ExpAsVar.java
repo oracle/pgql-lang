@@ -63,10 +63,7 @@ public class ExpAsVar extends QueryVariable {
 
   @Override
   public int hashCode() {
-    int result = (anonymous ? 1 : 0);
-    result = 31 * result + name.hashCode();
-    result = 31 * result + exp.hashCode();
-    return result;
+    return 31;
   }
 
   public void accept(QueryExpressionVisitor v) {

@@ -82,12 +82,7 @@ public class QueryPath extends VertexPairConnection {
 
   @Override
   public int hashCode() {
-    final int prime = 31;
-    int result = super.hashCode();
-    result = prime * result + ((commonPathExpression == null) ? 0 : commonPathExpression.hashCode());
-    result = prime * result + (int) (maxHops ^ (maxHops >>> 32));
-    result = prime * result + (int) (minHops ^ (minHops >>> 32));
-    return result;
+    return 31;
   }
 
   @Override

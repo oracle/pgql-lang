@@ -56,9 +56,7 @@ public class OrderByElem {
 
   @Override
   public int hashCode() {
-    int result = exp.hashCode();
-    result = 31 * result + (ascending ? 1 : 0);
-    return result;
+    return 31;
   }
 
   public void accept(QueryExpressionVisitor v) {

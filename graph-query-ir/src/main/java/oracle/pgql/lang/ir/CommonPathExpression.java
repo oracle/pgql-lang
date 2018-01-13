@@ -58,13 +58,7 @@ public class CommonPathExpression {
 
   @Override
   public int hashCode() {
-    final int prime = 31;
-    int result = 1;
-    result = prime * result + ((connections == null) ? 0 : connections.hashCode());
-    result = prime * result + ((constraints == null) ? 0 : constraints.hashCode());
-    result = prime * result + ((name == null) ? 0 : name.hashCode());
-    result = prime * result + ((vertices == null) ? 0 : vertices.hashCode());
-    return result;
+    return 31;
   }
 
   @Override

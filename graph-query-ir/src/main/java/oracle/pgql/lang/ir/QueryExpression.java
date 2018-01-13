@@ -105,7 +105,7 @@ public interface QueryExpression {
 
     @Override
     public int hashCode() {
-      return exp.hashCode();
+      return 31;
     }
   }
 
@@ -155,9 +155,7 @@ public interface QueryExpression {
 
     @Override
     public int hashCode() {
-      int result = exp1.hashCode();
-      result = 31 * result + exp2.hashCode();
-      return result;
+      return 31;
     }
   }
 
@@ -522,7 +520,7 @@ public interface QueryExpression {
 
     @Override
     public int hashCode() {
-      return value.hashCode();
+      return 31;
     }
 
     public static class ConstInteger extends Constant<Long> {
@@ -752,7 +750,7 @@ public interface QueryExpression {
 
     @Override
     public int hashCode() {
-      return variable.hashCode();
+      return 31;
     }
   }
 
@@ -802,10 +800,7 @@ public interface QueryExpression {
 
     @Override
     public int hashCode() {
-      final int prime = 31;
-      int result = 1;
-      result = prime * result + parameterIndex;
-      return result;
+      return 31;
     }
   }
 
@@ -868,9 +863,7 @@ public interface QueryExpression {
 
     @Override
     public int hashCode() {
-      int result = variable.hashCode();
-      result = 31 * result + propertyName.hashCode();
-      return result;
+      return 31;
     }
   }
 
@@ -952,10 +945,7 @@ public interface QueryExpression {
 
       @Override
       public int hashCode() {
-        final int prime = 31;
-        int result = 1;
-        result = prime * result + ((subquery == null) ? 0 : subquery.hashCode());
-        return result;
+        return 31;
       }
 
       @Override
@@ -1038,12 +1028,7 @@ public interface QueryExpression {
 
     @Override
     public int hashCode() {
-      final int prime = 31;
-      int result = 1;
-      result = prime * result + ((args == null) ? 0 : args.hashCode());
-      result = prime * result + ((functionName == null) ? 0 : functionName.hashCode());
-      result = prime * result + ((packageName == null) ? 0 : packageName.hashCode());
-      return result;
+      return 31;
     }
 
     @Override
@@ -1121,10 +1106,7 @@ public interface QueryExpression {
 
       @Override
       public int hashCode() {
-        final int prime = 31;
-        int result = super.hashCode();
-        result = prime * result + (distinct ? 1231 : 1237);
-        return result;
+        return 31;
       }
 
       @Override

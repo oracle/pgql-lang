@@ -44,7 +44,7 @@ public class OrderBy {
 
   @Override
   public int hashCode() {
-    return elements.hashCode();
+    return 31;
   }
 
   public void accept(QueryExpressionVisitor v) {

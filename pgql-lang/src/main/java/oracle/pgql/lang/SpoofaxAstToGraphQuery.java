@@ -139,6 +139,9 @@ public class SpoofaxAstToGraphQuery {
     IStrategoTerm connectionsT = getList(graphPatternT.getSubterm(POS_CONNECTIONS));
     LinkedHashSet<VertexPairConnection> connections = getConnections(connectionsT, ctx);
 
+    giveAnonymousVariablesUniqueHiddenName(vertices, vars);
+    giveAnonymousVariablesUniqueHiddenName(connections, vars);
+
     // constraints
     IStrategoTerm constraintsT = getList(graphPatternT.getSubterm(POS_CONSTRAINTS));
     LinkedHashSet<QueryExpression> constraints = getQueryExpressions(constraintsT, ctx);
@@ -240,7 +243,7 @@ public class SpoofaxAstToGraphQuery {
       if (varmap.containsKey(vertexName)) {
         vertex = getQueryVertex(varmap, vertexName);
       } else {
-        vertex = vertexName.contains(GENERATED_VAR_SUBSTR) ? new QueryVertex(toUniqueName(vertexName, varmap), true)
+        vertex = vertexName.contains(GENERATED_VAR_SUBSTR) ? new QueryVertex(vertexName, true)
             : new QueryVertex(vertexName, false);
         varmap.put(vertexName, vertex);
       }
@@ -297,8 +300,7 @@ public class SpoofaxAstToGraphQuery {
     QueryVertex src = getQueryVertex(varmap, srcName);
     QueryVertex dst = getQueryVertex(varmap, dstName);
 
-    QueryEdge edge = name.contains(GENERATED_VAR_SUBSTR)
-        ? new QueryEdge(src, dst, toUniqueName(name, varmap), true, directed)
+    QueryEdge edge = name.contains(GENERATED_VAR_SUBSTR) ? new QueryEdge(src, dst, name, true, directed)
         : new QueryEdge(src, dst, name, false, directed);
 
     varmap.put(name, edge);
@@ -360,19 +362,24 @@ public class SpoofaxAstToGraphQuery {
     QueryVertex dst = getQueryVertex(ctx.getInScopeVars(), dstName);
 
     QueryPath path = name.contains(GENERATED_VAR_SUBSTR)
-        ? new QueryPath(src, dst, toUniqueName(name, ctx.getInScopeVars()), commonPathExpression, true, minHops,
-            maxHops)
+        ? new QueryPath(src, dst, name, commonPathExpression, true, minHops, maxHops)
         : new QueryPath(src, dst, name, commonPathExpression, false, minHops, maxHops);
 
     return path;
   }
 
-  private static String toUniqueName(String generatedAnonymousName, Map<String, QueryVariable> varmap) {
-    String name = generatedAnonymousName.replace(GENERATED_VAR_SUBSTR, "anonymous");
-    while (varmap.containsKey(name)) {
-      name += "_2";
+  private static void giveAnonymousVariablesUniqueHiddenName(Set<? extends QueryVariable> variables,
+      Map<String, QueryVariable> varmap) {
+
+    for (QueryVariable var : variables) {
+      if (var.isAnonymous()) {
+        String name = var.getName().replace(GENERATED_VAR_SUBSTR, "anonymous");
+        while (varmap.containsKey(name)) {
+          name += "_2";
+        }
+        var.setName(name);
+      }
     }
-    return name;
   }
 
   private static List<ExpAsVar> getGroupByElems(TranslationContext ctx, Map<String, QueryVariable> outputVars,

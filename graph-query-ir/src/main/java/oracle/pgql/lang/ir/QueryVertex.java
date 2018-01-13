@@ -42,9 +42,7 @@ public class QueryVertex extends QueryVariable {
 
   @Override
   public int hashCode() {
-    int result = (anonymous ? 1 : 0);
-    result = 31 * result + name.hashCode();
-    return result;
+    return 31;
   }
 
   public void accept(QueryExpressionVisitor v) {
