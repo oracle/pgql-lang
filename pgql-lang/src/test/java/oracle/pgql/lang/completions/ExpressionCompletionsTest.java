@@ -21,8 +21,8 @@ public class ExpressionCompletionsTest extends AbstractCompletionsTest {
 
   private List<PgqlCompletion> expressions() {
     List<PgqlCompletion> expected = completions(//
-        completion("m", "vertex"), //
         completion("n", "vertex"), //
+        completion("m", "vertex"), //
         completion("e", "edge"));
     expected.addAll(functions());
     expected.addAll(aggregations());
@@ -32,8 +32,8 @@ public class ExpressionCompletionsTest extends AbstractCompletionsTest {
 
   private List<PgqlCompletion> expressionsExceptAggregations() {
     List<PgqlCompletion> expected = completions(//
-        completion("m", "vertex"), //
         completion("n", "vertex"), //
+        completion("m", "vertex"), //
         completion("e", "edge"));
     expected.addAll(functions());
     expected.addAll(otherExpressions());
