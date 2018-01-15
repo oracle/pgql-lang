@@ -59,13 +59,11 @@ public abstract class QueryVariable {
     QueryVariable other = (QueryVariable) obj;
     if (anonymous != other.anonymous)
       return false;
-    if (!anonymous) {
-      if (name == null) {
-        if (other.name != null)
-          return false;
-      } else if (!name.equals(other.name))
+    if (name == null) {
+      if (other.name != null)
         return false;
-    }
+    } else if (!name.equals(other.name))
+      return false;
     return true;
   }
 
