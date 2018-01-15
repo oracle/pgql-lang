@@ -8,6 +8,7 @@ import java.time.LocalTime;
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.Iterator;
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
@@ -195,65 +196,53 @@ public class PgqlUtils {
     String result = "MATCH ";
     int indentation = result.length();
 
-    Set<QueryVertex> verticesCopy = new HashSet<>(graphPattern.getVertices());
-
-    Iterator<VertexPairConnection> connectionIt = graphPattern.getConnections().iterator();
+    Iterator<QueryVertex> vertexIt = graphPattern.getVertices().iterator();
     Set<QueryExpression> constraintsCopy = new HashSet<>(graphPattern.getConstraints());
+    QueryVertex lastVertex = null;
+    Set<QueryVertex> uncoveredVertices = new LinkedHashSet<>(graphPattern.getVertices());
+    Set<VertexPairConnection> uncoveredConnections = new HashSet<>(graphPattern.getConnections());
 
-    if (connectionIt.hasNext()) {
-      VertexPairConnection connection1 = connectionIt.next();
-      QueryVertex lastVertex = null;
-
-      while (connectionIt.hasNext()) {
-        VertexPairConnection connection2 = connectionIt.next();
-
-        QueryVertex src1 = connection1.getSrc();
-        QueryVertex dst1 = connection1.getDst();
-
-        QueryVertex src2 = connection2.getSrc();
-        QueryVertex dst2 = connection2.getDst();
-
-        QueryVertex vertexOnTheLeft;
-        QueryVertex vertexOnTheRight;
-        if (src1 == src2 || src1 == dst2) {
-          vertexOnTheLeft = dst1;
-          vertexOnTheRight = src1;
-        } else {
-          vertexOnTheLeft = src1;
-          vertexOnTheRight = dst1;
-        }
-
-        result += printConnection(verticesCopy, constraintsCopy, connection1, lastVertex, vertexOnTheLeft,
-            vertexOnTheRight, indentation);
-
-        connection1 = connection2;
-        lastVertex = vertexOnTheRight;
-      }
-
-      QueryVertex src1 = connection1.getSrc();
-      QueryVertex dst1 = connection1.getDst();
-      QueryVertex vertexOnTheLeft;
-      QueryVertex vertexOnTheRight;
-      if (connection1.getDst() == lastVertex) {
-        vertexOnTheLeft = dst1;
-        vertexOnTheRight = src1;
+    // print all vertices and their connections
+    while (vertexIt.hasNext()) {
+      QueryVertex vertex = vertexIt.next();
+      if (!uncoveredVertices.contains(vertex)) {
+        continue;
       } else {
-        vertexOnTheLeft = src1;
-        vertexOnTheRight = dst1;
+        uncoveredVertices.remove(vertex);
       }
 
-      result += printConnection(verticesCopy, constraintsCopy, connection1, lastVertex, vertexOnTheLeft,
-          vertexOnTheRight, indentation);
+      result += printVertex(constraintsCopy, vertex, lastVertex, indentation);
+      lastVertex = vertex;
+
+      Iterator<VertexPairConnection> connectionIt = uncoveredConnections.iterator();
+      while (connectionIt.hasNext()) {
+        VertexPairConnection connection = connectionIt.next();
+
+        if (connection.getSrc() == lastVertex || connection.getDst() == lastVertex) {
+          QueryVertex vertexOnTheLeft = lastVertex;
+          QueryVertex vertexOnTheRight = connection.getSrc() == lastVertex ? connection.getDst() : connection.getSrc();
+
+          result += printConnection(constraintsCopy, connection, lastVertex, vertexOnTheLeft, vertexOnTheRight,
+              indentation);
+
+          uncoveredVertices.remove(vertexOnTheRight);
+          connectionIt.remove();
+          lastVertex = vertexOnTheRight;
+        } else {
+          break;
+        }
+      }
     }
 
-    // print disconnected vertices
-    if (!graphPattern.getConnections().isEmpty() && !verticesCopy.isEmpty()) {
-      result += ",\n";
+    // print connections for which both vertices are already printed
+    Iterator<VertexPairConnection> connectionIt = uncoveredConnections.iterator();
+    while (connectionIt.hasNext()) {
+      VertexPairConnection connection = connectionIt.next();
+      result += printConnection(constraintsCopy, connection, lastVertex, indentation);
+      lastVertex = connection.getDst();
     }
-    result += verticesCopy.stream() //
-        .map(x -> "  " + x.toString()) //
-        .collect(Collectors.joining(",\n"));
 
+    // print filter expressions
     if (!constraintsCopy.isEmpty()) {
       result += "\nWHERE " + constraintsCopy.stream() //
           .map(x -> x.toString()) //
@@ -263,9 +252,14 @@ public class PgqlUtils {
     return result;
   }
 
-  private static String printConnection(Set<QueryVertex> verticesCopy, Set<QueryExpression> constraintsCopy,
-      VertexPairConnection connection1, QueryVertex lastVertex, QueryVertex vertexOnTheLeft,
-      QueryVertex vertexOnTheRight, int indentation) {
+  private static String printConnection(Set<QueryExpression> constraintsCopy, VertexPairConnection connection,
+      QueryVertex lastVertex, int indentation) {
+    return printConnection(constraintsCopy, connection, lastVertex, connection.getSrc(), connection.getDst(),
+        indentation);
+  }
+
+  private static String printConnection(Set<QueryExpression> constraintsCopy, VertexPairConnection connection,
+      QueryVertex lastVertex, QueryVertex vertexOnTheLeft, QueryVertex vertexOnTheRight, int indentation) {
     String result = "";
 
     if (lastVertex != vertexOnTheLeft) {
@@ -274,12 +268,16 @@ public class PgqlUtils {
       }
       result += deanonymizeIfNeeded(vertexOnTheLeft, constraintsCopy);
     }
-    result += " " + printConnection(vertexOnTheLeft, connection1, constraintsCopy) + " ";
+    result += " " + printConnection(vertexOnTheLeft, connection, constraintsCopy) + " ";
     result += deanonymizeIfNeeded(vertexOnTheRight, constraintsCopy);
 
-    verticesCopy.remove(vertexOnTheLeft);
-    verticesCopy.remove(vertexOnTheRight);
     return result;
+  }
+
+  private static String printVertex(Set<QueryExpression> constraintsCopy, QueryVertex vertex, QueryVertex lastVertex,
+      int indentation) {
+    String result = (lastVertex == null) ? "" : "\n" + printIndentation(indentation - 2) + ", ";
+    return result + deanonymizeIfNeeded(vertex, constraintsCopy);
   }
 
   private static String printIndentation(int indentation) {

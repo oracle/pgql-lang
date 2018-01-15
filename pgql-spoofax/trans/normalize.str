@@ -7,13 +7,14 @@ imports
   normalized-signatures
   common
   pp
-  runtime/analysis/-
+  runtime/editor/-
 
 rules
 
   normalize-before:
     ast -> result
     with
+      variable-counter := <new-counter>;
       bindVariable-counter := <new-counter>;
       error-messages := <is-pgql10; collect-om(get-pgql10-limitiation) <+ collect-om(get-deprecation)> ast;
       result := <
@@ -30,7 +31,7 @@ rules
       	alltd(norm-edgeContents);
         alltd(norm-string);
         alltd(norm-hop-distance);
-        alltd(name-unnamed-elems);
+        alltd(name-unnamed-elems(|variable-counter));
         alltd(norm-inlined-references);
         bottomup(try(
            norm-matchElems
@@ -99,16 +100,16 @@ rules
 
   norm-edgeContents = ?Some(EdgeContents(<id>))
 
-  name-unnamed-elems     = (?CommonPathExpression(_, _, _, _) + ?GraphPattern(_)); where (c := <new-counter>); alltd(name-unnamed-elems(|c))
-  name-unnamed-elems(|c) = ?ElemContents(None(), type, id', constraints); !ElemContents(Some(<unique-name(|c)>), type, id', constraints)
-  name-unnamed-elems(|c) = OutConn(?None(); name-unnamed-elems-helper(|c)) +
-                           InConn(?None(); name-unnamed-elems-helper(|c)) +
-                           UndirectedEdge(?None(); name-unnamed-elems-helper(|c))
-  name-unnamed-elems(|c) = ?OutEdge(); !OutConn(<name-unnamed-elems-helper(|c)>) +
-                           ?InEdge(); !InConn(<name-unnamed-elems-helper(|c)>) +
-                           ?UndirectedEdge(); !UndirectedEdge(<name-unnamed-elems-helper(|c)>) +
-                           ?Path(None(), pathPatternRef, kleeneStar); !Path(Some(<unique-name(|c)>), pathPatternRef, kleeneStar)
-  name-unnamed-elems-helper(|c) = !ElemContents(Some(<unique-name(|c)>), None(), None(), None())
+  name-unnamed-elems(|c) = (?CommonPathExpression(_, _, _, _) + ?GraphPattern(_)); alltd(name-unnamed-elem(|c))
+  name-unnamed-elem(|c) = ?ElemContents(None(), type, id', constraints); !ElemContents(Some(<unique-name(|c)>), type, id', constraints)
+  name-unnamed-elem(|c) = OutConn(?None(); name-unnamed-elem-helper(|c)) +
+                           InConn(?None(); name-unnamed-elem-helper(|c)) +
+                           UndirectedEdge(?None(); name-unnamed-elem-helper(|c))
+  name-unnamed-elem(|c) = ?OutEdge(); !OutConn(<name-unnamed-elem-helper(|c)>) +
+                          ?InEdge(); !InConn(<name-unnamed-elem-helper(|c)>) +
+                          ?UndirectedEdge(); !UndirectedEdge(<name-unnamed-elem-helper(|c)>) +
+                          ?Path(None(), pathPatternRef, kleeneStar); !Path(Some(<unique-name(|c)>), pathPatternRef, kleeneStar)
+  name-unnamed-elem-helper(|c) = !ElemContents(Some(<unique-name(|c)>), None(), None(), None())
 
   norm-inlined-references = ?ElemContents(Some(varName), _, _, _); alltd(norm-inlined-reference(|varName))
   norm-inlined-reference(|varName) =
