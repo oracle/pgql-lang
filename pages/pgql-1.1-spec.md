@@ -1512,7 +1512,7 @@ SINGLE_QUOTED_STRING ::= "'" ( ~[\'\n\\] | <ESCAPED_CHARACTER> )* "'"
 
 UNSIGNED_INTEGER     ::= [0-9]+
 
-UNSIGNED_DECIMAL     ::= [0-9]* '.' [0-9]+
+UNSIGNED_DECIMAL     ::= ( [0-9]* '.' [0-9]+ ) | ( [0-9]+ '.' )
 ```
 
 These rules describe the following:
@@ -1525,7 +1525,7 @@ These rules describe the following:
          - Escaped characters.
      - An ending single quote.
  - Unsigned integers consist of one or more digits.
- - Unsigned decimals consist of zero or more digits followed by a dot (`.`) and one or more digits.
+ - Unsigned decimals consist of zero or more digits followed by a dot (`.`) and one or more digits, or, one or more digits followed by only a dot (`.`).
 
 ## Escaped Characters in Strings
 
