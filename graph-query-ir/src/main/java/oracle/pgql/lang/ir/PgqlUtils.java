@@ -3,6 +3,7 @@
  */
 package oracle.pgql.lang.ir;
 
+import java.text.DecimalFormat;
 import java.time.LocalTime;
 import java.util.Collections;
 import java.util.HashSet;
@@ -30,6 +31,12 @@ import oracle.pgql.lang.ir.QueryVariable.VariableType;
 import static org.apache.commons.lang3.StringEscapeUtils.escapeJava;
 
 public class PgqlUtils {
+
+  static DecimalFormat DECIMAL_FORMAT = new DecimalFormat("#.#");
+
+  static {
+    DECIMAL_FORMAT.setDecimalSeparatorAlwaysShown(true);
+  }
 
   /**
    * @param exp
@@ -112,6 +119,10 @@ public class PgqlUtils {
         .replace("\b", "\\b") //
         .replace("\f", "\\f") //
         + "'";
+  }
+
+  protected static String printPgqlDecimal(double val) {
+    return DECIMAL_FORMAT.format(val);
   }
 
   protected static String printPgqlString(GraphQuery graphQuery) {

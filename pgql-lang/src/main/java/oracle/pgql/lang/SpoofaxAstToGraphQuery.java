@@ -385,6 +385,7 @@ public class SpoofaxAstToGraphQuery {
       if (var.getVariableType() == VariableType.PATH) {
         QueryPath path = (QueryPath) var;
         giveAnonymousVariablesUniqueHiddenName(path.getConnections(), Collections.emptyMap());
+        giveAnonymousVariablesUniqueHiddenName(path.getVertices(), Collections.emptyMap());
       }
     }
   }
