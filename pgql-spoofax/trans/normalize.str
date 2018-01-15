@@ -7,6 +7,7 @@ imports
   normalized-signatures
   common
   pp
+  runtime/analysis/-
 
 rules
 
@@ -156,14 +157,8 @@ rules
       otherConstraint' := <?Some(InlinedConstraint(<id>)) <+ ![]> otherConstraint
 
   to-label-constraints(|var, vertexOrEdge):
-    labels -> result
-    with
-      if "vertex" := vertexOrEdge
-      then result := <to-hasLabel-expressions(|var)> labels
-      else result := <to-label-equals-expressions(|var)> labels
-      end
+    labels ->  <to-hasLabel-expressions(|var)> labels
   to-hasLabel-expressions(|var) = bottomup(try(is-literal; ![VarRef(var), <id>]; to-function(|"has_label")))
-  to-label-equals-expressions(|var) = bottomup(try(is-literal; !Eq(<to-function(|"label")> [VarRef(var)], <id>)))
   to-id-constraints(|var) = bottomup(try(is-literal; origin-track-forced(!Eq(<to-function(|"id")> [VarRef(var)], <id>))))
 
   // base case: no paths

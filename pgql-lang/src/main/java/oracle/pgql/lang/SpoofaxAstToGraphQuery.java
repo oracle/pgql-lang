@@ -10,6 +10,7 @@ import java.time.OffsetDateTime;
 import java.time.OffsetTime;
 import java.time.format.DateTimeParseException;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -368,7 +369,7 @@ public class SpoofaxAstToGraphQuery {
     return path;
   }
 
-  private static void giveAnonymousVariablesUniqueHiddenName(Set<? extends QueryVariable> variables,
+  private static void giveAnonymousVariablesUniqueHiddenName(Collection<? extends QueryVariable> variables,
       Map<String, QueryVariable> varmap) {
 
     for (QueryVariable var : variables) {
@@ -378,6 +379,12 @@ public class SpoofaxAstToGraphQuery {
           name += "_2";
         }
         var.setName(name);
+      }
+
+      // recurse for regular path expressions
+      if (var.getVariableType() == VariableType.PATH) {
+        QueryPath path = (QueryPath) var;
+        giveAnonymousVariablesUniqueHiddenName(path.getConnections(), Collections.emptyMap());
       }
     }
   }

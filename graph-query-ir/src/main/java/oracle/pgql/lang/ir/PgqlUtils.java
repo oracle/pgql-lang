@@ -20,6 +20,10 @@ import oracle.pgql.lang.ir.QueryExpression.Aggregation.AggrCount;
 import oracle.pgql.lang.ir.QueryExpression.Aggregation.AggrMax;
 import oracle.pgql.lang.ir.QueryExpression.Aggregation.AggrMin;
 import oracle.pgql.lang.ir.QueryExpression.Aggregation.AggrSum;
+import oracle.pgql.lang.ir.QueryExpression.Constant.ConstString;
+import oracle.pgql.lang.ir.QueryExpression.ExpressionType;
+import oracle.pgql.lang.ir.QueryExpression.FunctionCall;
+import oracle.pgql.lang.ir.QueryExpression.LogicalExpression.Or;
 import oracle.pgql.lang.ir.QueryExpression.Function.Exists;
 import oracle.pgql.lang.ir.QueryVariable.VariableType;
 
@@ -78,7 +82,7 @@ public class PgqlUtils {
         result.add(aggrAvg);
       }
 
-      public void visit(Exists exists ) {
+      public void visit(Exists exists) {
         // don't visit EXISTS subqueries
       }
     });
@@ -99,15 +103,14 @@ public class PgqlUtils {
   // HELPER METHODS FOR PRETTY-PRINTING BELOW
 
   protected static String printPgqlString(String stringLiteral) {
-    return "'"
-        + stringLiteral //
-            .replace("\\", "\\\\") //
-            .replace("'", "\\'") //
-            .replace("\t", "\\t") //
-            .replace("\n", "\\n") //
-            .replace("\r", "\\r") //
-            .replace("\b", "\\b") //
-            .replace("\f", "\\f") //
+    return "'" + stringLiteral //
+        .replace("\\", "\\\\") //
+        .replace("'", "\\'") //
+        .replace("\t", "\\t") //
+        .replace("\n", "\\n") //
+        .replace("\r", "\\r") //
+        .replace("\b", "\\b") //
+        .replace("\f", "\\f") //
         + "'";
   }
 
@@ -150,10 +153,9 @@ public class PgqlUtils {
     if (projection.getElements().isEmpty()) {
       return "SELECT *";
     } else {
-      return "SELECT " + (projection.hasDistinct() ? "DISTINCT " : "")
-          + projection.getElements().stream() //
-              .map(x -> x.toString()) //
-              .collect(Collectors.joining(", "));
+      return "SELECT " + (projection.hasDistinct() ? "DISTINCT " : "") + projection.getElements().stream() //
+          .map(x -> x.toString()) //
+          .collect(Collectors.joining(", "));
     }
   }
 
@@ -185,7 +187,7 @@ public class PgqlUtils {
     Set<QueryVertex> verticesCopy = new HashSet<>(graphPattern.getVertices());
 
     Iterator<VertexPairConnection> connectionIt = graphPattern.getConnections().iterator();
-    Set<QueryExpression> constraints = graphPattern.getConstraints();
+    Set<QueryExpression> constraintsCopy = new HashSet<>(graphPattern.getConstraints());
 
     if (connectionIt.hasNext()) {
       VertexPairConnection connection1 = connectionIt.next();
@@ -210,8 +212,8 @@ public class PgqlUtils {
           vertexOnTheRight = dst1;
         }
 
-        result += printConnection(verticesCopy, constraints, connection1, lastVertex, vertexOnTheLeft, vertexOnTheRight,
-            indentation);
+        result += printConnection(verticesCopy, constraintsCopy, connection1, lastVertex, vertexOnTheLeft,
+            vertexOnTheRight, indentation);
 
         connection1 = connection2;
         lastVertex = vertexOnTheRight;
@@ -229,8 +231,8 @@ public class PgqlUtils {
         vertexOnTheRight = dst1;
       }
 
-      result += printConnection(verticesCopy, constraints, connection1, lastVertex, vertexOnTheLeft, vertexOnTheRight,
-          indentation);
+      result += printConnection(verticesCopy, constraintsCopy, connection1, lastVertex, vertexOnTheLeft,
+          vertexOnTheRight, indentation);
     }
 
     // print disconnected vertices
@@ -241,8 +243,8 @@ public class PgqlUtils {
         .map(x -> "  " + x.toString()) //
         .collect(Collectors.joining(",\n"));
 
-    if (!constraints.isEmpty()) {
-      result += "\nWHERE " + constraints.stream() //
+    if (!constraintsCopy.isEmpty()) {
+      result += "\nWHERE " + constraintsCopy.stream() //
           .map(x -> x.toString()) //
           .collect(Collectors.joining("\n  AND "));
     }
@@ -250,7 +252,7 @@ public class PgqlUtils {
     return result;
   }
 
-  private static String printConnection(Set<QueryVertex> verticesCopy, Set<QueryExpression> constraints,
+  private static String printConnection(Set<QueryVertex> verticesCopy, Set<QueryExpression> constraintsCopy,
       VertexPairConnection connection1, QueryVertex lastVertex, QueryVertex vertexOnTheLeft,
       QueryVertex vertexOnTheRight, int indentation) {
     String result = "";
@@ -259,10 +261,10 @@ public class PgqlUtils {
       if (lastVertex != null) {
         result += "\n" + printIndentation(indentation - 2) + ", ";
       }
-      result += deanonymizeIfNeeded(vertexOnTheLeft, constraints);
+      result += deanonymizeIfNeeded(vertexOnTheLeft, constraintsCopy);
     }
-    result += " " + printConnection(vertexOnTheLeft, connection1, constraints) + " ";
-    result += deanonymizeIfNeeded(vertexOnTheRight, constraints);
+    result += " " + printConnection(vertexOnTheLeft, connection1, constraintsCopy) + " ";
+    result += deanonymizeIfNeeded(vertexOnTheRight, constraintsCopy);
 
     verticesCopy.remove(vertexOnTheLeft);
     verticesCopy.remove(vertexOnTheRight);
@@ -283,49 +285,114 @@ public class PgqlUtils {
     String result = "PATH " + commonPathExpression.getName() + " AS ";
 
     Iterator<QueryVertex> vertexIt = commonPathExpression.getVertices().iterator();
+    Set<QueryExpression> constraintsCopy = new HashSet<>(commonPathExpression.getConstraints());
 
     QueryVertex vertex = vertexIt.next();
-    result += deanonymizeIfNeeded(vertex, commonPathExpression.getConstraints());
+    result += deanonymizeIfNeeded(vertex, constraintsCopy);
     for (VertexPairConnection connection : commonPathExpression.getConnections()) {
-      result += " " + printConnection(vertex, connection, commonPathExpression.getConstraints());
+      result += " " + printConnection(vertex, connection, constraintsCopy);
       vertex = vertexIt.next();
-      result += " " + deanonymizeIfNeeded(vertex, commonPathExpression.getConstraints());
+      result += " " + deanonymizeIfNeeded(vertex, constraintsCopy);
     }
 
-    Set<QueryExpression> constraints = commonPathExpression.getConstraints();
-    if (!constraints.isEmpty()) {
-      result += " WHERE " + constraints.stream() //
+    if (!constraintsCopy.isEmpty()) {
+      result += " WHERE " + constraintsCopy.stream() //
           .map(x -> x.toString()) //
           .collect(Collectors.joining(" AND "));
     }
     return result + "\n";
   }
 
-  private static String deanonymizeIfNeeded(QueryVariable var, Set<QueryExpression> constraints) {
-    Set<QueryVariable> variables = constraints.stream() //
+  private static String deanonymizeIfNeeded(QueryVariable var, Set<QueryExpression> constraintsCopy) {
+
+    QueryExpression labelPredicate = null;
+    Iterator<QueryExpression> it = constraintsCopy.iterator();
+    while (it.hasNext()) {
+      QueryExpression exp = it.next();
+      if (isLabelPredicate(var, exp)) {
+        labelPredicate = exp;
+        it.remove();
+        break;
+      }
+    }
+
+    Set<QueryVariable> variables = constraintsCopy.stream() //
         .map(c -> getVariables(c)) //
         .collect(HashSet::new, Set::addAll, Set::addAll);
+    boolean printVariableName = !var.isAnonymous() || (var.isAnonymous() && variables.contains(var));
 
-    if (variables.contains(var) && var.isAnonymous()) {
-      switch (var.getVariableType()) {
-        case EDGE:
-          String edge = "-[" + var.name + "]-";
-          QueryEdge queryEdge = (QueryEdge) var;
-          if (queryEdge.isDirected()) {
-            return edge + ">";
-          } else {
-            return edge;
+    switch (var.getVariableType()) {
+      case EDGE:
+        String edge;
+        if (printVariableName == false && labelPredicate == null) {
+          edge = "-";
+        } else {
+          edge = "-[" + printVariableAndLabelPredicate(var, printVariableName, labelPredicate) + "]-";
+        }
+        QueryEdge queryEdge = (QueryEdge) var;
+        if (queryEdge.isDirected()) {
+          return edge + ">";
+        } else {
+          return edge;
+        }
+      case PATH:
+        QueryPath queryPath = (QueryPath) var;
+        return "-/" + var.name + ":" + queryPath.getPathExpressionName() + printHops(queryPath) + "/->";
+      case VERTEX:
+        return "(" + printVariableAndLabelPredicate(var, printVariableName, labelPredicate) + ")";
+      default:
+        throw new UnsupportedOperationException("variable type not supported: " + var.getVariableType());
+    }
+  }
+
+  private static String printVariableAndLabelPredicate(QueryVariable var, boolean printVariableName,
+      QueryExpression labelPredicate) {
+    String result = printVariableName ? var.getName() : "";
+    if (labelPredicate != null) {
+      result += ":" + printLabelPredicate(labelPredicate);
+    }
+    return result;
+  }
+
+  private static boolean isLabelPredicate(QueryVariable var, QueryExpression exp) {
+    switch (exp.getExpType()) {
+      case FUNCTION_CALL: {
+        FunctionCall functionCall = (FunctionCall) exp;
+        if (functionCall.getPackageName() == null && functionCall.getFunctionName().toLowerCase().equals("has_label")
+            && functionCall.getArgs().size() == 2) {
+          QueryExpression arg0 = functionCall.getArgs().get(0);
+          QueryExpression arg1 = functionCall.getArgs().get(1);
+          if (arg0.getExpType() == ExpressionType.VARREF && arg1.getExpType() == ExpressionType.STRING) {
+            if (((VarRef) arg0).getVariable() == var) {
+              return true;
+            }
           }
-        case PATH:
-          QueryPath queryPath = (QueryPath) var;
-          return "-/" + var.name + ":" + queryPath.getPathExpressionName() + printHops(queryPath) + "/->";
-        case VERTEX:
-          return "(" + var.name + ")";
-        default:
-          throw new UnsupportedOperationException("variable type not supported: " + var.getVariableType());
+        }
+
+        return false;
       }
-    } else {
-      return var.toString();
+      case OR: {
+        Or or = (Or) exp;
+        return isLabelPredicate(var, or.getExp1()) && isLabelPredicate(var, or.getExp2());
+      }
+      default:
+        return false;
+    }
+  }
+
+  private static String printLabelPredicate(QueryExpression labelPredicate) {
+    switch (labelPredicate.getExpType()) {
+      case FUNCTION_CALL: {
+        FunctionCall hasLabelPredicate = (FunctionCall) labelPredicate;
+        ConstString constString = (ConstString) hasLabelPredicate.getArgs().get(1);
+        return constString.getValue();
+      }
+      case OR: {
+        Or or = (Or) labelPredicate;
+        return printLabelPredicate(or.getExp1()) + "|" + printLabelPredicate(or.getExp2());
+      }
+      default:
+        throw new IllegalArgumentException("unexpected expression type: " + labelPredicate.getExpType());
     }
   }
 
@@ -333,8 +400,8 @@ public class PgqlUtils {
    * Example 1: "-[e]->" => "<-[e]-" Example 2: -/:xyz/-> "<-/:xyz/-"
    */
   private static String printConnection(QueryVertex vertexOnTheLeft, VertexPairConnection connection,
-      Set<QueryExpression> constraints) {
-    String connectionAsString = deanonymizeIfNeeded(connection, constraints);
+      Set<QueryExpression> constraintsCopy) {
+    String connectionAsString = deanonymizeIfNeeded(connection, constraintsCopy);
 
     boolean isUndirectedEdge = connection.getVariableType() == VariableType.EDGE
         && ((QueryEdge) connection).isDirected() == false;

@@ -6,6 +6,7 @@ package oracle.pgql.lang.ir;
 import static oracle.pgql.lang.ir.PgqlUtils.printTime;
 import static oracle.pgql.lang.ir.PgqlUtils.printPgqlString;
 
+import java.text.DecimalFormat;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
@@ -68,6 +69,8 @@ public interface QueryExpression {
     EXISTS,
     FUNCTION_CALL
   }
+
+  DecimalFormat DECIMAL_FORMAT = new DecimalFormat("#");
 
   ExpressionType getExpType();
 
@@ -552,6 +555,11 @@ public interface QueryExpression {
       @Override
       public void accept(QueryExpressionVisitor v) {
         v.visit(this);
+      }
+
+      @Override
+      public String toString() {
+        return DECIMAL_FORMAT.format(value);
       }
     }
 
