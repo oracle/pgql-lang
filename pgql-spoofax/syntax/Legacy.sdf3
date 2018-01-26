@@ -47,6 +47,11 @@ context-free syntax // GraphPattern.sdf3
 
   Legacy10Ids.Ids = <@<AltLit>>
   Legacy10WithInlinedConstraints.InlinedConstraint = < with <{Legacy10InlinedExp ", "}+>> {case-insensitive}
+  AltLit.Or              = <<AltLit>|<AltLit>> {left}
+  AltLit                 = Literal
+  AltLit.String          = IDENTIFIER
+  AltPath.Or             = <<AltPath>|<AltPath>> {left}
+  AltPath.PathPatternRef = IDENTIFIER
 
   AsignSymbol.Pgql10AsignSymbol = <:=>
 

@@ -3,6 +3,7 @@
  */
 package oracle.pgql.lang.ir;
 
+import static oracle.pgql.lang.ir.PgqlUtils.printIdentifier;
 import static oracle.pgql.lang.ir.PgqlUtils.printTime;
 import static oracle.pgql.lang.ir.PgqlUtils.printPgqlString;
 import static oracle.pgql.lang.ir.PgqlUtils.printPgqlDecimal;
@@ -843,7 +844,7 @@ public interface QueryExpression {
 
     @Override
     public String toString() {
-      return printPgqlString(variable) + "." + propertyName;
+      return printPgqlString(variable) + "." + printIdentifier(propertyName);
     }
 
     @Override

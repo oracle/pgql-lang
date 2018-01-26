@@ -15,12 +15,6 @@ context-free syntax
   Literal   = Time
   Literal   = Timestamp
 
-  AltLit.Or              = <<AltLit>|<AltLit>> {left}
-  AltLit                 = Literal
-  AltLit.String          = IDENTIFIER
-  AltPath.Or             = <<AltPath>|<AltPath>> {left}
-  AltPath.PathPatternRef = IDENTIFIER
-
 context-free syntax
 
   Number.Integer            = UNSIGNED-INT
@@ -41,6 +35,7 @@ lexical syntax
   UNSIGNED-DECIMAL     = ( [0-9]* "." [0-9]+ ) | ( [0-9]+ "." )
 
   STRING               = "'" (~[\'\n\\] | ESCAPE-CHAR)* "'"
+  ESCAPE-CHAR          = ( "\\" [tbnrf\\\"\'] ) | ( "''" )
 
 lexical restrictions // greedy matching
 

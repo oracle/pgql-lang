@@ -37,6 +37,7 @@ public class PgqlUtils {
 
   static {
     DECIMAL_FORMAT.setDecimalSeparatorAlwaysShown(true);
+    DECIMAL_FORMAT.setMaximumFractionDigits(Integer.MAX_VALUE);
   }
 
   /**
@@ -153,8 +154,8 @@ public class PgqlUtils {
     return result;
   }
 
-  private static String printIdentifier(String identifier) {
-    if (identifier.matches("\\w*")) {
+  protected static String printIdentifier(String identifier) {
+    if (identifier.matches("^[a-zA-Z0-9_]*$")) {
       return identifier;
     } else {
       return "\"" + escapeJava(identifier) + "\"";
@@ -394,7 +395,7 @@ public class PgqlUtils {
       case FUNCTION_CALL: {
         FunctionCall hasLabelPredicate = (FunctionCall) labelPredicate;
         ConstString constString = (ConstString) hasLabelPredicate.getArgs().get(1);
-        return constString.getValue();
+        return printIdentifier(constString.getValue());
       }
       case OR: {
         Or or = (Or) labelPredicate;

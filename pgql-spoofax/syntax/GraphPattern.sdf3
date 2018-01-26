@@ -28,10 +28,10 @@ context-free syntax
   Connection.OutEdge = [->]
   Connection.InEdge = [<-]
   Connection.UndirectedEdge = [-]
-  
+
   EdgeContents.EdgeContents = <[<ElemContents>]>
   EdgeOrPathContents = EdgeContents
-  EdgeOrPathContents.Path = </<IDENTIFIER?>:<AltPath><PathQuantifier?>/>
+  EdgeOrPathContents.Path = </<IDENTIFIER?><LabelPredicate><PathQuantifier?>/>
 
   PathQuantifier.ZeroOrMore = <*>
   PathQuantifier.OneOrMore = <+>
@@ -43,5 +43,7 @@ context-free syntax
 
 context-free syntax
 
-  ElemContents.ElemContents = <<IDENTIFIER?><LabelPredicate?><Legacy10Ids?><Legacy10WithInlinedConstraints?>>
-  LabelPredicate.Labels = <:<AltLit>>
+  ElemContents.ElemContents  = <<IDENTIFIER?><LabelPredicate?><Legacy10Ids?><Legacy10WithInlinedConstraints?>>
+  LabelPredicate.Labels      = <:<Labels>>
+  Labels.Label               = Identifier
+  Labels.Or                  = <<Labels>|<Labels>> {left} 

@@ -14,15 +14,15 @@ context-free syntax
   Prop = Identifier
 
   Identifier = IDENTIFIER
-  Identifier = DOUBLE-QUOTED-STRING
+  Identifier = DELIMITED-IDENTIFIER
 
 lexical syntax
 
   IDENTIFIER = [a-zA-Z][a-zA-Z0-9\_]*
   FUNCTION-NAME = IDENTIFIER
 
-  DOUBLE-QUOTED-STRING = '"' (~[\"\n\\] | ESCAPE-CHAR)* '"'
-  ESCAPE-CHAR          = "\\" [tbnrf\\\"\']
+  DELIMITED-IDENTIFIER             = '"' (~[\"\n\\] | DELIMITED-IDENTIFIER-ESCAPE-CHAR)* '"'
+  DELIMITED-IDENTIFIER-ESCAPE-CHAR = ( "\\" [tbnrf\\\"\'] ) | ( '""' )
 
   DATA-TYPE            = [a-zA-Z][a-zA-Z0-9\_\ ]*
 
