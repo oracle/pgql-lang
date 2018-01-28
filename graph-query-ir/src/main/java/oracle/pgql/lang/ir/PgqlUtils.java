@@ -16,6 +16,7 @@ import java.util.stream.Collectors;
 import oracle.pgql.lang.util.AbstractQueryExpressionVisitor;
 import oracle.pgql.lang.ir.QueryExpression.Aggregation;
 import oracle.pgql.lang.ir.QueryExpression.PropertyAccess;
+import oracle.pgql.lang.ir.QueryExpression.Subquery;
 import oracle.pgql.lang.ir.QueryExpression.VarRef;
 import oracle.pgql.lang.ir.QueryExpression.Aggregation.AggrAvg;
 import oracle.pgql.lang.ir.QueryExpression.Aggregation.AggrCount;
@@ -93,6 +94,10 @@ public class PgqlUtils {
 
       public void visit(Exists exists) {
         // don't visit EXISTS subqueries
+      }
+
+      public void visit(Subquery subquery) {
+        // don't visit subqueries
       }
     });
     return result;
