@@ -167,7 +167,8 @@ rules
 
   to-label-constraints(|var, vertexOrEdge):
     labels ->  <to-hasLabel-expressions(|var)> labels
-  to-hasLabel-expressions(|var) = bottomup(try(?Label(<id>); ![VarRef(var), String(<id>)]; to-function(|"has_label")))
+  to-hasLabel-expressions(|var) = bottomup(try(![VarRef(var), <to-label>]; to-function(|"has_label")))
+  to-label = ( ?Label(lbl); !String(lbl) ) + ?BindVariable(_)
   to-id-constraints(|var) = bottomup(try(is-literal; origin-track-forced(!Eq(<to-function(|"id")> [VarRef(var)], <id>))))
 
   // base case: no paths
