@@ -172,7 +172,7 @@ rules // subqueries
     q@NormalizedQuery(_, _, _, _, _, _, _, _, _, _) -> <fail>
     with scalarSubqueries := <collect(?Exists(_) + ?Subquery(_)); remove-all(?Exists(_))> q
        ; multiColumnScalarSubqueries := <filter(is-multi-column-subquery)> scalarSubqueries
-       ; <batch-generate-error(|ctx, "Scalar subqueries require a projection with a single column")> multiColumnScalarSubqueries
+       ; <batch-generate-error(|ctx, "Scalar subqueries require the projection to have a single column")> multiColumnScalarSubqueries
 
   is-multi-column-subquery = ?Subquery(NormalizedQuery(_, SelectClause(_, e@ExpAsVars(expAsVars)), _, _, _, _, _, _, _, _))
                            ; where(not( <eq> (<length> expAsVars, 1) )); !e
