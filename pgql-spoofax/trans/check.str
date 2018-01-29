@@ -166,6 +166,17 @@ rules
     with
       <generate-error(|ctx, "HAVING is not yet supported")> e
 
+rules // subqueries
+
+  nabl-constraint(|ctx):
+    q@NormalizedQuery(_, _, _, _, _, _, _, _, _, _) -> <fail>
+    with scalarSubqueries := <collect(?Exists(_) + ?Subquery(_)); remove-all(?Exists(_))> q
+       ; multiColumnScalarSubqueries := <filter(is-multi-column-subquery)> scalarSubqueries
+       ; <batch-generate-error(|ctx, "Scalar subqueries require a projection with a single column")> multiColumnScalarSubqueries
+
+  is-multi-column-subquery = ?Subquery(NormalizedQuery(_, SelectClause(_, e@ExpAsVars(expAsVars)), _, _, _, _, _, _, _, _))
+                           ; where(not( <eq> (<length> expAsVars, 1) )); !e
+
 rules // type checking
 
   nabl-constraint-1-1(|ctx):

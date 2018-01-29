@@ -273,25 +273,28 @@ rules
       expAsGroupVars' := <map(norm-ExpAsVar)> expAsGroupVars;
       groupByClause' := <?Some(_); !Some(GroupByClause(expAsGroupVars')) <+ !None()> groupByClause;
 
-      expAsSelectVars := <?ExpAsVars(<id>); map(norm-ExpAsVar); map(replace-terms-with-varRef(|expAsGroupVars')) <+
-                          norm-select-star(|graphPattern, expAsGroupVars')> projection;
-      projection' := ExpAsVars(expAsSelectVars);
+      projection' := <norm-ExpAsVars(|expAsGroupVars') <+ norm-select-star(|graphPattern, expAsGroupVars')> projection;
 
+      ExpAsVars(expAsSelectVars) := projection';
       allExpAsVars := <conc> (expAsGroupVars', <try(?Star(); ![])> expAsSelectVars);
       orderByElems := <try(norm-orderBy(|allExpAsVars))> orderByClause;
 
       limitOffsets' := <norm-limitOffsets> limitOffsets
 
+  norm-ExpAsVars(|expAsGroupVars'):
+    t@ExpAsVars(expAsVars) -> <origin-track-forced(!ExpAsVars(expAsVars'))> t 
+    with expAsVars' := <map(norm-ExpAsVar); map(replace-terms-with-varRef(|expAsGroupVars'))> expAsVars
+
+  norm-ExpAsVar = ?ExpAsVar(exp, Some(VarAssign(VarDef(v)))); !ExpAsVar(exp, v)
+  norm-ExpAsVar = ?ExpAsVar(exp, None()); !AnonymousExpAsVar(exp, <?VarRef(<id>) <+ origin-track-forced(origin-text)> exp)
+
   norm-select-star(|graphPattern, group-exps):
-    star@Star() -> expAsSelectVars
+    star@Star() -> <origin-track-forced(!ExpAsVars(expAsSelectVars))> star
     with if [] := group-exps
            then vars := <collect(?Vertex(<id>) + ?Edge(_, <id>, _, _) + ?Subquery(_)); filter(is-string; not(is-substring(GENERATED)))> graphPattern;
                 expAsSelectVars := <map(!ExpAsVar(VarRef(<id>), None()); norm-ExpAsVar)> vars
            else expAsSelectVars := star
          end
-
-  norm-ExpAsVar = ?ExpAsVar(exp, Some(VarAssign(VarDef(v)))); !ExpAsVar(exp, v)
-  norm-ExpAsVar = ?ExpAsVar(exp, None()); !AnonymousExpAsVar(exp, <?VarRef(<id>) <+ origin-track-forced(origin-text)> exp)
 
   replace-terms-with-varRef(|expressions):
     exp -> exp'

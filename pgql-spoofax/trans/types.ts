@@ -46,6 +46,8 @@ type rules
 
   Exists(_) : BooleanTy()
 
+  Subquery(_) : UnknownTy()
+
   True() + False()        : BooleanTy()
   Date(_)                 : DateTy()
   Integer(_) + Decimal(_) : NumericTy()
