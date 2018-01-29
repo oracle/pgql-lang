@@ -117,15 +117,29 @@ public class PgqlUtils {
   // HELPER METHODS FOR PRETTY-PRINTING BELOW
 
   protected static String printPgqlString(String stringLiteral) {
-    return "'" + stringLiteral //
-        .replace("\\", "\\\\") //
+    return "'" + escape(stringLiteral) //
         .replace("'", "\\'") //
+        + "'";
+  }
+
+  protected static String printIdentifier(String identifier) {
+    if (identifier.matches("^[a-zA-Z0-9_]*$")) {
+      return identifier;
+    } else {
+      return "\"" + escape(identifier) //
+          .replace("\"", "\\\"") //
+          + "\"";
+    }
+  }
+
+  private static String escape(String s) {
+    return s //
+        .replace("\\", "\\\\") //
         .replace("\t", "\\t") //
         .replace("\n", "\\n") //
         .replace("\r", "\\r") //
         .replace("\b", "\\b") //
-        .replace("\f", "\\f") //
-        + "'";
+        .replace("\f", "\\f");
   }
 
   protected static String printPgqlDecimal(double val) {
@@ -157,14 +171,6 @@ public class PgqlUtils {
       result += "\nOFFSET " + offset;
     }
     return result;
-  }
-
-  protected static String printIdentifier(String identifier) {
-    if (identifier.matches("^[a-zA-Z0-9_]*$")) {
-      return identifier;
-    } else {
-      return "\"" + escapeJava(identifier) + "\"";
-    }
   }
 
   protected static String printPgqlString(Projection projection) {
