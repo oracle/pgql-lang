@@ -43,6 +43,7 @@ import oracle.pgql.lang.ir.QueryExpression.RelationalExpression.Less;
 import oracle.pgql.lang.ir.QueryExpression.RelationalExpression.LessEqual;
 import oracle.pgql.lang.ir.QueryExpression.RelationalExpression.NotEqual;
 import oracle.pgql.lang.ir.QueryExpression.Star;
+import oracle.pgql.lang.ir.QueryExpression.Subquery;
 import oracle.pgql.lang.ir.QueryExpression.VarRef;
 import oracle.pgql.lang.ir.QueryExpressionVisitor;
 import oracle.pgql.lang.ir.QueryPath;
@@ -226,7 +227,11 @@ public abstract class AbstractQueryExpressionVisitor implements QueryExpressionV
 
   @Override
   public void visit(Exists exists) {
-    exists.getSubquery().accept(this);
+    exists.getQuery().accept(this);
+  }
+
+  public void visit(Subquery subquery) {
+    subquery.getQuery().accept(this);
   }
 
   public void visit(GraphQuery query) {

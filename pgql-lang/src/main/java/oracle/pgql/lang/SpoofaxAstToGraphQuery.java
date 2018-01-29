@@ -102,6 +102,7 @@ public class SpoofaxAstToGraphQuery {
   private static final int POS_CAST_EXP = 0;
   private static final int POS_CAST_TARGET_TYPE_NAME = 1;
   private static final int POS_EXISTS_SUBQUERY = 0;
+  private static final int POS_SUBQUERY = 0;
   private static final int POS_FUNCTION_CALL_PACKAGE_NAME = 0;
   private static final int POS_FUNCTION_CALL_ROUTINE_NAME = 1;
   private static final int POS_FUNCTION_CALL_EXPS = 2;
@@ -572,14 +573,11 @@ public class SpoofaxAstToGraphQuery {
         return new QueryExpression.Function.Cast(exp, targetTypeName);
       case "Exists":
         IStrategoTerm subqueryT = t.getSubterm(POS_EXISTS_SUBQUERY);
-        Map<String, QueryVariable> inScopeVars = new HashMap<>(ctx.getInScopeVars());
-        Map<String, QueryVariable> inScopeInAggregationVars = ctx.getInScopeInAggregationVars() == null ? null
-            : new HashMap<>(ctx.getInScopeInAggregationVars());
-        Map<String, CommonPathExpression> commonPathExpressions = new HashMap<>(ctx.getCommonPathExpressions());
-        TranslationContext newCtx = new TranslationContext(inScopeVars, inScopeInAggregationVars,
-            commonPathExpressions);
-        GraphQuery subquery = translate(subqueryT, newCtx);
-        return new QueryExpression.Function.Exists(subquery);
+        GraphQuery query = translateSubquery(ctx, subqueryT);
+        return new QueryExpression.Function.Exists(query);
+      case "Subquery":
+        query = translateSubquery(ctx, t);
+        return new QueryExpression.Subquery(query);
       case "CallStatement":
       case "FunctionCall":
         IStrategoTerm packageDeclT = t.getSubterm(POS_FUNCTION_CALL_PACKAGE_NAME);
@@ -593,7 +591,8 @@ public class SpoofaxAstToGraphQuery {
       case "MAX":
       case "SUM":
       case "AVG":
-        newCtx = new TranslationContext(ctx.getInScopeInAggregationVars(), null, ctx.getCommonPathExpressions());
+        TranslationContext newCtx = new TranslationContext(ctx.getInScopeInAggregationVars(), null,
+            ctx.getCommonPathExpressions());
         exp = translateExp(t.getSubterm(POS_AGGREGATE_EXP), newCtx);
         boolean distinct = aggregationHasDistinct(t);
         switch (cons) {
@@ -616,6 +615,17 @@ public class SpoofaxAstToGraphQuery {
       default:
         throw new UnsupportedOperationException("Expression unsupported: " + t);
     }
+  }
+
+  private static GraphQuery translateSubquery(TranslationContext ctx, IStrategoTerm t) throws PgqlException {
+    IStrategoTerm subqueryT = t.getSubterm(POS_SUBQUERY);
+    Map<String, QueryVariable> inScopeVars = new HashMap<>(ctx.getInScopeVars());
+    Map<String, QueryVariable> inScopeInAggregationVars = ctx.getInScopeInAggregationVars() == null ? null
+        : new HashMap<>(ctx.getInScopeInAggregationVars());
+    Map<String, CommonPathExpression> commonPathExpressions = new HashMap<>(ctx.getCommonPathExpressions());
+    TranslationContext newCtx = new TranslationContext(inScopeVars, inScopeInAggregationVars, commonPathExpressions);
+    GraphQuery query = translate(subqueryT, newCtx);
+    return query;
   }
 
   private static boolean aggregationHasDistinct(IStrategoTerm t) {

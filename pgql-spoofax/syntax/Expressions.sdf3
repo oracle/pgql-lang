@@ -37,7 +37,9 @@ context-free syntax
 
   Exp.Cast = <CAST(<Exp> AS <DATA-TYPE>)> {case-insensitive}
 
-  Exp.Exists = <EXISTS( <Query> )> {case-insensitive}
+  Exp.Exists = <EXISTS<Subquery>> {case-insensitive}
+  Exp = Subquery
+  Subquery.Subquery = <( <Query> )>
 
   Exp.IsNull = <<Exp> IS NULL> {right, case-insensitive}
   Exp.IsNotNull = <<Exp> IS NOT NULL> {right, case-insensitive}

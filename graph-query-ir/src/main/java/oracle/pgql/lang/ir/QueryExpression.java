@@ -8,7 +8,6 @@ import static oracle.pgql.lang.ir.PgqlUtils.printTime;
 import static oracle.pgql.lang.ir.PgqlUtils.printPgqlString;
 import static oracle.pgql.lang.ir.PgqlUtils.printPgqlDecimal;
 
-import java.text.DecimalFormat;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
@@ -64,6 +63,7 @@ public interface QueryExpression {
     VARREF,
     BIND_VARIABLE,
     STAR,
+    SUBQUERY,
 
     // built-in functions
     PROP_ACCESS,
@@ -920,20 +920,10 @@ public interface QueryExpression {
       }
     }
 
-    class Exists implements Function {
+    class Exists extends Subquery implements Function {
 
-      private GraphQuery subquery;
-
-      public Exists(GraphQuery subquery) {
-        this.subquery = subquery;
-      }
-
-      public GraphQuery getSubquery() {
-        return subquery;
-      }
-
-      public void setSubquery(GraphQuery subquery) {
-        this.subquery = subquery;
+      public Exists(GraphQuery query) {
+        super(query);
       }
 
       @Override
@@ -942,35 +932,13 @@ public interface QueryExpression {
       }
 
       @Override
-      public String toString() {
-        return "EXISTS(" + subquery + ")";
-      }
-
-      @Override
       public void accept(QueryExpressionVisitor v) {
         v.visit(this);
       }
 
       @Override
-      public int hashCode() {
-        return 31;
-      }
-
-      @Override
-      public boolean equals(Object obj) {
-        if (this == obj)
-          return true;
-        if (obj == null)
-          return false;
-        if (getClass() != obj.getClass())
-          return false;
-        Exists other = (Exists) obj;
-        if (subquery == null) {
-          if (other.subquery != null)
-            return false;
-        } else if (!subquery.equals(other.subquery))
-          return false;
-        return true;
+      public String toString() {
+        return "EXISTS" + super.toString();
       }
     }
   }
@@ -1250,6 +1218,59 @@ public interface QueryExpression {
     @Override
     public int hashCode() {
       return 31;
+    }
+  }
+
+  class Subquery implements QueryExpression {
+
+    private GraphQuery query;
+
+    public Subquery(GraphQuery query) {
+      this.query = query;
+    }
+
+    public GraphQuery getQuery() {
+      return query;
+    }
+
+    public void setQuery(GraphQuery query) {
+      this.query = query;
+    }
+
+    @Override
+    public ExpressionType getExpType() {
+      return ExpressionType.SUBQUERY;
+    }
+
+    @Override
+    public void accept(QueryExpressionVisitor v) {
+      v.visit(this);
+    }
+
+    public String toString() {
+      return "( " + query + " )";
+    }
+
+    @Override
+    public int hashCode() {
+      return 31;
+    }
+
+    @Override
+    public boolean equals(Object obj) {
+      if (this == obj)
+        return true;
+      if (obj == null)
+        return false;
+      if (getClass() != obj.getClass())
+        return false;
+      Subquery other = (Subquery) obj;
+      if (query == null) {
+        if (other.query != null)
+          return false;
+      } else if (!query.equals(other.query))
+        return false;
+      return true;
     }
   }
 }

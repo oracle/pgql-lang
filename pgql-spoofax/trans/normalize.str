@@ -67,7 +67,7 @@ rules
   get-deprecation = ?Legacy10Not(_); to-error-message(|"Use [NOT] instead of [!]")
   get-deprecation = ?Legacy10Regex(_, _); to-error-message(|"Use [java_regexp_like(exp1, exp2)] instead of [exp1 =~ exp2]")
 
-  get-pgql10-limitiation = (?FromClause(_) + ?Exists(_) + ?Pgql11AsignSymbol()); to-error-message(|"Use [MATCH pattern WHERE filters] instead of [WHERE pattern mixed with filters]")
+  get-pgql10-limitiation = (?FromClause(_) + ?Subquery(_) + ?Pgql11AsignSymbol()); to-error-message(|"Use [MATCH pattern WHERE filters] instead of [WHERE pattern mixed with filters]")
 
   to-error-message(|message) = !ErrorMessage(<origin-track-forced(!message)> <id>)
 
@@ -284,7 +284,7 @@ rules
   norm-select-star(|graphPattern, group-exps):
     star@Star() -> expAsSelectVars
     with if [] := group-exps
-           then vars := <collect(?Vertex(<id>) + ?Edge(_, <id>, _, _) + ?Exists(_)); filter(is-string; not(is-substring(GENERATED)))> graphPattern;
+           then vars := <collect(?Vertex(<id>) + ?Edge(_, <id>, _, _) + ?Subquery(_)); filter(is-string; not(is-substring(GENERATED)))> graphPattern;
                 expAsSelectVars := <map(!ExpAsVar(VarRef(<id>), None()); norm-ExpAsVar)> vars
            else expAsSelectVars := star
          end

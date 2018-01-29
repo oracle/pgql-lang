@@ -39,6 +39,7 @@ import oracle.pgql.lang.ir.QueryExpression.RelationalExpression.Less;
 import oracle.pgql.lang.ir.QueryExpression.RelationalExpression.LessEqual;
 import oracle.pgql.lang.ir.QueryExpression.RelationalExpression.NotEqual;
 import oracle.pgql.lang.ir.QueryExpression.Star;
+import oracle.pgql.lang.ir.QueryExpression.Subquery;
 import oracle.pgql.lang.ir.QueryExpression.VarRef;
 
 public interface QueryExpressionVisitor {
@@ -114,6 +115,8 @@ public interface QueryExpressionVisitor {
   public void visit(Exists exists);
 
   public void visit(FunctionCall functionCall);
+
+  public void visit(Subquery subquery);
 
   public void visit(GraphQuery query);
 
