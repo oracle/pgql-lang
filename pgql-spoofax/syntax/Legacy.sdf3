@@ -55,6 +55,8 @@ context-free syntax // GraphPattern.sdf3
 
   AsignSymbol.Pgql10AsignSymbol = <:=>
 
+  Labels.Legacy10Identifier = STRING
+
 context-free syntax // SolutionModifiers
 
   OrderElem.Legacy10Asc = <asc(<Exp>)> {case-insensitive}

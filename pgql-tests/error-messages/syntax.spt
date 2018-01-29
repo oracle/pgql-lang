@@ -35,3 +35,8 @@ MATCH (n)
 ]] error like "Use IS NULL or IS NOT NULL" at #1
    error like "IS NULL is not yet supported" at #2
    error like "IS NOT NULL is not yet supported" at #3
+
+test Single-quoted labels [[
+   SELECT x AS y
+ MATCH (x:[['lbl']])
+]] error like "Use double quotes to delimit labels"
