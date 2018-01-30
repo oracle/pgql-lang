@@ -1,7 +1,7 @@
 ---
 id: oracle.pgx:pgql-lang:1.1.0-SNAPSHOT
 name: pgql-lang
-metaborgVersion: 2.3.0
+metaborgVersion: 2.4.1
 dependencies:
   compile:
   - org.metaborg:org.metaborg.meta.lang.esv:${metaborgVersion}

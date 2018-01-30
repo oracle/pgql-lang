@@ -62,6 +62,7 @@ rules
   get-deprecation = ?Legacy10Asc(x); to-error-message(|$<Use [<<origin-text> x> ASC] instead of [ASC(<<origin-text> x>)])>)
   get-deprecation = ?Legacy10Desc(x); to-error-message(|$<Use [<<origin-text> x> DESC'] instead of [DESC(<<origin-text> x>)]>)
   get-deprecation = ?String(<id>); is-double-quoted; to-error-message(|"Use single quotes for character string literals; not double quotes")
+  get-deprecation = ?Legacy10Identifier(_); to-error-message(|"Use double quotes to delimit labels")
   get-deprecation = ?Ids(_); to-error-message(|"Use [id(x) = xyz] instead of [@xyz]")
   get-deprecation = ?InlinedConstraint(_); to-error-message(|"Constraints should be specified in the WHERE clause instead of the WITH")
   get-deprecation = ?Legacy10Not(_); to-error-message(|"Use [NOT] instead of [!]")
@@ -168,7 +169,7 @@ rules
   to-label-constraints(|var, vertexOrEdge):
     labels ->  <to-hasLabel-expressions(|var)> labels
   to-hasLabel-expressions(|var) = bottomup(try(![VarRef(var), <to-label>]; to-function(|"has_label")))
-  to-label = ( ?Label(lbl); !String(lbl) ) + ?BindVariable(_)
+  to-label = ( (?Label(<id>) + ?Legacy10Identifier(<id>); norm-string-helper); !String(<id>) ) + ?BindVariable(_)
   to-id-constraints(|var) = bottomup(try(is-literal; origin-track-forced(!Eq(<to-function(|"id")> [VarRef(var)], <id>))))
 
   // base case: no paths
