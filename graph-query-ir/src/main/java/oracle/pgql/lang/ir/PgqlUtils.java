@@ -16,6 +16,7 @@ import java.util.stream.Collectors;
 import oracle.pgql.lang.util.AbstractQueryExpressionVisitor;
 import oracle.pgql.lang.ir.QueryExpression.Aggregation;
 import oracle.pgql.lang.ir.QueryExpression.PropertyAccess;
+import oracle.pgql.lang.ir.QueryExpression.ScalarSubquery;
 import oracle.pgql.lang.ir.QueryExpression.Subquery;
 import oracle.pgql.lang.ir.QueryExpression.VarRef;
 import oracle.pgql.lang.ir.QueryExpression.Aggregation.AggrAvg;
@@ -92,12 +93,14 @@ public class PgqlUtils {
         result.add(aggrAvg);
       }
 
+      @Override
       public void visit(Exists exists) {
         // don't visit EXISTS subqueries
       }
 
-      public void visit(Subquery subquery) {
-        // don't visit subqueries
+      @Override
+      public void visit(ScalarSubquery subquery) {
+        // don't visit scalar subqueries
       }
     });
     return result;

@@ -35,6 +35,7 @@ import oracle.pgql.lang.ir.Projection;
 import oracle.pgql.lang.ir.QueryEdge;
 import oracle.pgql.lang.ir.QueryExpression;
 import oracle.pgql.lang.ir.QueryExpression.LogicalExpression.And;
+import oracle.pgql.lang.ir.QueryExpression.ScalarSubquery;
 import oracle.pgql.lang.ir.QueryExpression.Constant.ConstString;
 import oracle.pgql.lang.ir.QueryExpression.ExpressionType;
 import oracle.pgql.lang.ir.QueryExpression.VarRef;
@@ -102,6 +103,7 @@ public class SpoofaxAstToGraphQuery {
   private static final int POS_CAST_EXP = 0;
   private static final int POS_CAST_TARGET_TYPE_NAME = 1;
   private static final int POS_EXISTS_SUBQUERY = 0;
+  private static final int POS_SCALARSUBQUERY_SUBQUERY = 0;
   private static final int POS_SUBQUERY = 0;
   private static final int POS_FUNCTION_CALL_PACKAGE_NAME = 0;
   private static final int POS_FUNCTION_CALL_ROUTINE_NAME = 1;
@@ -575,9 +577,10 @@ public class SpoofaxAstToGraphQuery {
         IStrategoTerm subqueryT = t.getSubterm(POS_EXISTS_SUBQUERY);
         GraphQuery query = translateSubquery(ctx, subqueryT);
         return new QueryExpression.Function.Exists(query);
-      case "Subquery":
+      case "ScalarSubquery":
+        subqueryT = t.getSubterm(POS_SCALARSUBQUERY_SUBQUERY);
         query = translateSubquery(ctx, t);
-        return new QueryExpression.Subquery(query);
+        return new ScalarSubquery(query);
       case "CallStatement":
       case "FunctionCall":
         IStrategoTerm packageDeclT = t.getSubterm(POS_FUNCTION_CALL_PACKAGE_NAME);

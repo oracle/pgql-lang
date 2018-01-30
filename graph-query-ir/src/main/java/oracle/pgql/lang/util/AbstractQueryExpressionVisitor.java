@@ -42,8 +42,8 @@ import oracle.pgql.lang.ir.QueryExpression.RelationalExpression.GreaterEqual;
 import oracle.pgql.lang.ir.QueryExpression.RelationalExpression.Less;
 import oracle.pgql.lang.ir.QueryExpression.RelationalExpression.LessEqual;
 import oracle.pgql.lang.ir.QueryExpression.RelationalExpression.NotEqual;
+import oracle.pgql.lang.ir.QueryExpression.ScalarSubquery;
 import oracle.pgql.lang.ir.QueryExpression.Star;
-import oracle.pgql.lang.ir.QueryExpression.Subquery;
 import oracle.pgql.lang.ir.QueryExpression.VarRef;
 import oracle.pgql.lang.ir.QueryExpressionVisitor;
 import oracle.pgql.lang.ir.QueryPath;
@@ -230,8 +230,8 @@ public abstract class AbstractQueryExpressionVisitor implements QueryExpressionV
     exists.getQuery().accept(this);
   }
 
-  public void visit(Subquery subquery) {
-    subquery.getQuery().accept(this);
+  public void visit(ScalarSubquery scalarSubquery) {
+    scalarSubquery.getQuery().accept(this);
   }
 
   public void visit(GraphQuery query) {

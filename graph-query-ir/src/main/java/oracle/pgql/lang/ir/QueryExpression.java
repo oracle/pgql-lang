@@ -63,7 +63,7 @@ public interface QueryExpression {
     VARREF,
     BIND_VARIABLE,
     STAR,
-    SUBQUERY,
+    SCALAR_SUBQUERY,
 
     // built-in functions
     PROP_ACCESS,
@@ -1221,7 +1221,7 @@ public interface QueryExpression {
     }
   }
 
-  class Subquery implements QueryExpression {
+  abstract class Subquery implements QueryExpression {
 
     private GraphQuery query;
 
@@ -1235,16 +1235,6 @@ public interface QueryExpression {
 
     public void setQuery(GraphQuery query) {
       this.query = query;
-    }
-
-    @Override
-    public ExpressionType getExpType() {
-      return ExpressionType.SUBQUERY;
-    }
-
-    @Override
-    public void accept(QueryExpressionVisitor v) {
-      v.visit(this);
     }
 
     public String toString() {
@@ -1271,6 +1261,23 @@ public interface QueryExpression {
       } else if (!query.equals(other.query))
         return false;
       return true;
+    }
+  }
+
+  class ScalarSubquery extends Subquery {
+
+    public ScalarSubquery(GraphQuery query) {
+      super(query);
+    }
+
+    @Override
+    public ExpressionType getExpType() {
+      return ExpressionType.SCALAR_SUBQUERY;
+    }
+
+    @Override
+    public void accept(QueryExpressionVisitor v) {
+      v.visit(this);
     }
   }
 }
