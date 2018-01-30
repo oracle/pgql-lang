@@ -36,7 +36,7 @@ rules
       ; groupBy' := groupBy
       end
 
-  contains-aggregation = oncetd(is-aggregate)
+  contains-aggregation = collect-in-outer-query(is-aggregate); not ( ?[] )
 
   to-VarRef-or-GroupRefs = alltd-in-outer-query(is-aggregate <+ ?VarRef(<id>); !GroupRef(<id>))
   to-VarRef-or-SelectOrGroupRefs = alltd-in-outer-query(is-aggregate <+ ?VarRef(<id>); !SelectOrGroupRef(<id>))
