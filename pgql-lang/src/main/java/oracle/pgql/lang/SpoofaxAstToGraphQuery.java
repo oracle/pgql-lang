@@ -579,7 +579,7 @@ public class SpoofaxAstToGraphQuery {
         return new QueryExpression.Function.Exists(query);
       case "ScalarSubquery":
         subqueryT = t.getSubterm(POS_SCALARSUBQUERY_SUBQUERY);
-        query = translateSubquery(ctx, t);
+        query = translateSubquery(ctx, subqueryT);
         return new ScalarSubquery(query);
       case "CallStatement":
       case "FunctionCall":
