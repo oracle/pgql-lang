@@ -24,7 +24,7 @@ rules // Unresolved/duplicate variables
     ref -> <fail>
     where
       <?VarRef(v) + ?GroupRef(v) + ?SelectOrGroupRef(v) + ?VarOrSelectRef(v)> ref
-    ;	<generate-error-on-unresolved(|ctx, "Unresolved variable")> v
+    ;  <generate-error-on-unresolved(|ctx, "Unresolved variable")> v
 
   nabl-constraint(|ctx):
     expAsVar -> <fail>
@@ -59,7 +59,7 @@ rules // in-lined constraints
     ReferenceInInlinedConstraint(v) -> <fail>
     with
       <generate-error(|ctx, $['[v]' should be omitted here])> v
-  
+
   nabl-constraint(|ctx):
     CrossReferenceInInlinedConstraint(v) -> <fail>
     with
@@ -75,7 +75,7 @@ rules // vertex in WHERE without rounded brackets
       <generate-error(|ctx, $<Vertices need to be surrounded by brackets: (<<origin-text> v>)>)> v
 
 rules
-  
+
   nabl-constraint(|ctx):
     NormalizedQuery(_, SelectClause(_, ExpAsVars(select-elems)), _, _, groupClause, _, Some(orderClause), _, _, _) -> <fail>
     where
@@ -86,18 +86,28 @@ rules
     ; <batch-generate-error(|ctx, "Aggregation in ORDER BY only allowed if SELECT constains aggregations, or, in combination with GROUP BY")> aggregations
 
   nabl-constraint(|ctx):
-    NormalizedQuery(_, SelectClause(_, ExpAsVars(select-elems)), _, _, group-by, _, order-by, _, _, _) -> <fail>
-    with
-      group-refs := <collect-in-outer-query(?GroupRef(<id>))> select-elems
-    ; select-or-group-refs := <collect-in-outer-query(?SelectOrGroupRef(<id>))> order-by
-    ; if CreateOneGroup() := group-by
-      then
-        <batch-generate-error-on-unresolved(|ctx, "Aggregation expected here since SELECT has other aggregation")> group-refs // error in SELECT
-      ; <batch-generate-error-on-unresolved(|ctx, "Aggregation expected here since SELECT has aggregation")> select-or-group-refs // error in ORDER BY
-      else
-        <batch-generate-error-on-unresolved(|ctx, "Non-group key variable in SELECT")> group-refs // error in SELECT
-      ; <batch-generate-error-on-unresolved(|ctx, "Cannot order by non-group key variable: use aggregation")> select-or-group-refs // error in ORDER BY
-      end
+    NormalizedQuery(_, SelectClause(_, ExpAsVars(select-elems)), _, matchClause, group-by, _, order-by, _, _, _) -> <fail>
+    where not ( None() := group-by )
+    with group-refs := <collect-in-outer-query(?GroupRef(<id>))> select-elems
+       ; select-or-group-refs := <collect-in-outer-query(?SelectOrGroupRef(<id>))> order-by
+
+       ; pattern-elem-defs := <collect(?Vertex(<id>) + ?Edge(_, <id>, _, _) + ?Path(_, _, _, _, <id>, _))> matchClause
+       ; select-var-defs := <collect-in-outer-query(?AnonymousExpAsVar(_, <id>) + ?ExpAsSelectVar(_, <id>))> select-elems
+       ; group-var-defs := <collect-in-outer-query(?AnonymousExpAsGroupVar(_, <id>) + ?ExpAsGroupVar(_, <id>))> group-by
+       ; var-defs-for-select := <union> (pattern-elem-defs, group-var-defs)
+       ; var-defs-for-order-by := <union> (var-defs-for-select, select-var-defs)
+       ; group-refs-referencing-outer-query-vars-or-unresolved := <diff(strip-annos; eq)> (group-refs, var-defs-for-select )
+       ; select-or-group-refs-referencing-outer-query-vars-or-unresolved := <diff(strip-annos; eq)> (select-or-group-refs, var-defs-for-order-by)
+       ; referencing-outer-query-or-unresolved := <union> (group-refs-referencing-outer-query-vars-or-unresolved, select-or-group-refs-referencing-outer-query-vars-or-unresolved)
+
+       ; if CreateOneGroup() := group-by
+         then <batch-generate-error-on-resolved(|ctx, "Can't reference variable from outer query when SELECT has aggregation, unless from within aggregation")> referencing-outer-query-or-unresolved // error in SELECT or ORDER BY
+            ; <batch-generate-error-on-unresolved(|ctx, "Aggregation expected here since SELECT has other aggregation")> group-refs // error in SELECT
+            ; <batch-generate-error-on-unresolved(|ctx, "Aggregation expected here since SELECT has aggregation")> select-or-group-refs // error in ORDER BY
+         else <batch-generate-error-on-resolved(|ctx, "Can't reference variable from outer query after GROUP BY, unless from within aggregation")> referencing-outer-query-or-unresolved // error in SELECT or ORDER BY
+            ; <batch-generate-error-on-unresolved(|ctx, "Non-group key variable in SELECT")> group-refs // error in SELECT
+            ; <batch-generate-error-on-unresolved(|ctx, "Cannot order by non-group key variable; use aggregation")> select-or-group-refs // error in ORDER BY
+         end
 
   // if SELECT DISTINCT then ORDER BY expressions may only be repetitions of expressions in SELECT
   nabl-constraint(|ctx):
@@ -204,10 +214,16 @@ rules // helper rules
   batch-generate-error-on-unresolved(|ctx, m) = map(generate-error-on-unresolved(|ctx, m))
 
   generate-error-on-unresolved(|ctx, m):
-  	v -> <id>
-  	with
-  	  resolve-task := <nabl-create-collectdefs(|ctx)> v
-    ; <task-create-error-on-failure(|ctx, resolve-task, m)> v
+    v -> <id>
+    with resolve-task := <nabl-create-collectdefs(|ctx)> v
+       ; <task-create-error-on-failure(|ctx, resolve-task, m)> v
+
+  batch-generate-error-on-resolved(|ctx, m) = map(generate-error-on-resolved(|ctx, m))
+
+  generate-error-on-resolved(|ctx, m):
+    v -> <id>
+    with resolve-task := <nabl-create-collectdefs(|ctx)> v
+       ; <task-create-error-on-success(|ctx, resolve-task, m)> v
 
   generate-error-on-duplicate(|ctx, namespace, m):
     v -> <id>
