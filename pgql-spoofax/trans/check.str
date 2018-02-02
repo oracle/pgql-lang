@@ -94,20 +94,20 @@ rules
        ; pattern-elem-defs := <collect(?Vertex(<id>) + ?Edge(_, <id>, _, _) + ?Path(_, _, _, _, <id>, _))> matchClause
        ; select-var-defs := <collect-in-outer-query(?AnonymousExpAsVar(_, <id>) + ?ExpAsSelectVar(_, <id>))> select-elems
        ; group-var-defs := <collect-in-outer-query(?AnonymousExpAsGroupVar(_, <id>) + ?ExpAsGroupVar(_, <id>))> group-by
-       ; var-defs-for-select := <union> (pattern-elem-defs, group-var-defs)
-       ; var-defs-for-order-by := <union> (var-defs-for-select, select-var-defs)
+       ; var-defs-for-select := group-var-defs
+       ; var-defs-for-order-by := <union> (group-var-defs, select-var-defs)
        ; group-refs-referencing-outer-query-vars-or-unresolved := <diff(strip-annos; eq)> (group-refs, var-defs-for-select )
        ; select-or-group-refs-referencing-outer-query-vars-or-unresolved := <diff(strip-annos; eq)> (select-or-group-refs, var-defs-for-order-by)
        ; referencing-outer-query-or-unresolved := <union> (group-refs-referencing-outer-query-vars-or-unresolved, select-or-group-refs-referencing-outer-query-vars-or-unresolved)
 
-       ; if CreateOneGroup() := group-by
+       ;   if CreateOneGroup() := group-by
          then <batch-generate-error-on-resolved(|ctx, "Can't reference variable from outer query when SELECT has aggregation, unless from within aggregation")> referencing-outer-query-or-unresolved // error in SELECT or ORDER BY
             ; <batch-generate-error-on-unresolved(|ctx, "Aggregation expected here since SELECT has other aggregation")> group-refs // error in SELECT
             ; <batch-generate-error-on-unresolved(|ctx, "Aggregation expected here since SELECT has aggregation")> select-or-group-refs // error in ORDER BY
          else <batch-generate-error-on-resolved(|ctx, "Can't reference variable from outer query after GROUP BY, unless from within aggregation")> referencing-outer-query-or-unresolved // error in SELECT or ORDER BY
             ; <batch-generate-error-on-unresolved(|ctx, "Non-group key variable in SELECT")> group-refs // error in SELECT
             ; <batch-generate-error-on-unresolved(|ctx, "Cannot order by non-group key variable; use aggregation")> select-or-group-refs // error in ORDER BY
-         end
+          end
 
   // if SELECT DISTINCT then ORDER BY expressions may only be repetitions of expressions in SELECT
   nabl-constraint(|ctx):

@@ -60,6 +60,18 @@ test Reference variable from outer query after GROUP BY (3) [[
 
 ]] error like "Can't reference variable from outer query after GROUP BY, unless from within aggregation" at #1
 
+test Reference variable from outer query after GROUP BY (4) [[
+
+   SELECT n AS n
+    MATCH (n)
+    WHERE EXISTS (   SELECT AVG(m.age) AS avg
+                      MATCH (n) -> (m)
+                   GROUP BY m.age AS nAge
+                   ORDER BY [[n]].age
+                 )
+
+]] error like "Can't reference variable from outer query after GROUP BY, unless from within aggregation" at #1
+
 test Reference variable from outer query after aggregation (1) [[
 
   SELECT n AS x
@@ -80,5 +92,16 @@ test Reference variable from outer query after aggregation (2) [[
                     ORDER BY x.prop
                   )
   GROUP BY n AS x
+
+]] error like "Can't reference variable from outer query when SELECT has aggregation, unless from within aggregation" at #1
+
+test Reference variable from outer query after aggregation (3) [[
+
+  SELECT n AS n
+   MATCH (n)
+   WHERE EXISTS (   SELECT AVG(m.age) AS avg
+                     MATCH (n) -> (m)
+                  ORDER BY [[n]].age
+                )
 
 ]] error like "Can't reference variable from outer query when SELECT has aggregation, unless from within aggregation" at #1
