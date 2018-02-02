@@ -2,22 +2,134 @@ module subqueries
 
 language pgql-lang
 
+test Aggregation in subquery and referencing variable from outer query outside of aggregation (1) [[
+
+  SELECT n
+   MATCH (n)
+   WHERE EXISTS ( SELECT COUNT(*) AS cnt, [[n]]
+                   MATCH (m)
+                )
+
+]] error like "Aggregation expected here since SELECT has other aggregation" at #1
+
+test Aggregation in subquery and referencing variable from outer query outside of aggregation (2) [[
+
+  SELECT 123 AS x
+   MATCH (n)
+   WHERE EXISTS (   SELECT COUNT(*) AS cnt
+                     MATCH (m)
+                  ORDER BY [[n]].prop
+                )
+
+]] error like "Aggregation expected here since SELECT has aggregation" at #1
+
+test Reference variable from outer query after GROUP BY (1) [[
+
+    SELECT n
+     MATCH (n)
+     WHERE EXISTS (    SELECT m
+                        MATCH (m)
+                     GROUP BY m
+                     ORDER BY [[n]].prop
+                  )
+
+]] error like "Can't reference variable from outer query after GROUP BY, unless from within aggregation" at #1
+
+test Reference variable from outer query after GROUP BY (2) [[
+
+    SELECT n
+     MATCH (n)
+     WHERE EXISTS (    SELECT m
+                        MATCH (m)
+                     GROUP BY m
+                     ORDER BY [[n]].prop
+                  )
+  GROUP BY n
+
+]] error like "Can't reference variable from outer query after GROUP BY, unless from within aggregation" at #1
+
+test Reference variable from outer query after GROUP BY (3) [[
+
+    SELECT n
+     MATCH (n)
+     WHERE EXISTS (    SELECT [[n]].prop AS prop
+                        MATCH (m)
+                     GROUP BY m
+                  )
+  GROUP BY n
+
+]] error like "Can't reference variable from outer query after GROUP BY, unless from within aggregation" at #1
+
+test Reference variable from outer query after GROUP BY (4) [[
+
+   SELECT n AS n
+    MATCH (n)
+    WHERE EXISTS (   SELECT AVG(m.age) AS avg
+                      MATCH (n) -> (m)
+                   GROUP BY m.age AS nAge
+                   ORDER BY [[n]].age
+                 )
+
+]] error like "Can't reference variable from outer query after GROUP BY, unless from within aggregation" at #1
+
+test Reference variable from outer query after aggregation (1) [[
+
+  SELECT n AS x
+     MATCH (n)
+     WHERE EXISTS (   SELECT COUNT(*) AS cnt
+                       MATCH (m)
+                    ORDER BY [[x]].prop
+                  )
+
+]] error like "Can't reference variable from outer query when SELECT has aggregation, unless from within aggregation" at #1
+
+test Reference variable from outer query after aggregation (2) [[
+
+    SELECT n
+     MATCH (n)
+     WHERE EXISTS (   SELECT COUNT(*) AS cnt, [[x]].prop AS prop
+                       MATCH (m)
+                    ORDER BY x.prop
+                  )
+  GROUP BY n AS x
+
+]] error like "Can't reference variable from outer query when SELECT has aggregation, unless from within aggregation" at #1
+
+test Reference variable from outer query after aggregation (3) [[
+
+  SELECT n AS n
+   MATCH (n)
+   WHERE EXISTS (   SELECT AVG(m.age) AS avg
+                     MATCH (n) -> (m)
+                  ORDER BY [[n]].age
+                )
+
+]] error like "Can't reference variable from outer query when SELECT has aggregation, unless from within aggregation" at #1
+
 test Scalar subquery with zero columns (1) [[
-SELECT ( SELECT [[*]] MATCH () ) AS x
-MATCH (n)
+
+  SELECT ( SELECT [[*]] MATCH () ) AS x
+   MATCH (n)
+
 ]] error like "Scalar subqueries require the projection to have a single column" at #1
 
 test Scalar subquery with zero columns (2) [[
-SELECT ( SELECT [[*]] MATCH () WHERE ( SELECT [[*]] MATCH () )) AS x
-MATCH (n)
+
+  SELECT ( SELECT [[*]] MATCH () WHERE ( SELECT [[*]] MATCH () )) AS x
+   MATCH (n)
+
 ]] error like "Scalar subqueries require the projection to have a single column" at #1, #2
 
 test Scalar subquery with multiple columns (1) [[
-SELECT ( SELECT [[n.prop1 AS p1, n.prop2 AS p2]] MATCH (n) ) AS x
-MATCH (n)
+
+  SELECT ( SELECT [[n.prop1 AS p1, n.prop2 AS p2]] MATCH (n) ) AS x
+   MATCH (n)
+
 ]] error like "Scalar subqueries require the projection to have a single column" at #1
 
 test Scalar subquery with multiple columns (2) [[
-SELECT ( SELECT [[n.prop1 AS p1, n.prop2 AS p2]] MATCH (n) WHERE ( SELECT [[n.prop1 AS p1, n.prop2 AS p2]] MATCH (n) ) ) AS x
-MATCH (n)
+
+  SELECT ( SELECT [[n.prop1 AS p1, n.prop2 AS p2]] MATCH (n) WHERE ( SELECT [[n.prop1 AS p1, n.prop2 AS p2]] MATCH (n) ) ) AS x
+   MATCH (n)
+
 ]] error like "Scalar subqueries require the projection to have a single column" at #1, #2

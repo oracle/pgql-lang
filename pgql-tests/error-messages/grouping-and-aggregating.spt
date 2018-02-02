@@ -22,7 +22,7 @@ MATCH
   (n)
 GROUP BY n.age AS nAge
 ORDER BY [[n.name]]
-]] error like "Cannot order by non-group key variable: use aggregation" at #1
+]] error like "Cannot order by non-group key variable; use aggregation" at #1
 
 test Order by non-group key 2 [[
 SELECT nAge
@@ -30,7 +30,7 @@ MATCH
   (n)
 GROUP BY n.age AS nAge
 ORDER BY [[n.name]]
-]] error like "Cannot order by non-group key variable: use aggregation" at #1
+]] error like "Cannot order by non-group key variable; use aggregation" at #1
 
 test Aggregation expected in SELECT 1 [[
 SELECT AVG(n.age) AS avgAge, [[n]]
