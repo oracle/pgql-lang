@@ -100,7 +100,8 @@ rules
               + Time(un-single-quote)
               + Timestamp(un-single-quote)
 
-  unquote-and-unescape-string-literal = un-single-quote; unescape-string-literal
+  unquote-and-unescape-string-literal = (is-single-quoted; un-single-quote; unescape-string-literal)
+                                      + (is-double-quoted; un-double-quote; unescape-identifier) // legacy PGQL 1.0 string literal
   unquote-and-unescape-identifier = (is-double-quoted; un-double-quote; unescape-identifier) <+ id
   external unescape-string-literal(|)
   external unescape-identifier(|)
