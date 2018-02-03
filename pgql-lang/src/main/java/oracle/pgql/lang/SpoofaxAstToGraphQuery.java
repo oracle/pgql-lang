@@ -45,8 +45,6 @@ import oracle.pgql.lang.ir.QueryVertex;
 import oracle.pgql.lang.ir.VertexPairConnection;
 import oracle.pgql.lang.util.SqlDateTimeFormatter;
 
-import static org.apache.commons.lang3.StringEscapeUtils.unescapeJava;
-
 public class SpoofaxAstToGraphQuery {
 
   private static final String GENERATED_VAR_SUBSTR = "<<anonymous>>";
@@ -179,7 +177,7 @@ public class SpoofaxAstToGraphQuery {
 
     // FROM
     IStrategoTerm fromT = ast.getSubterm(POS_FROM);
-    String inputGraphName = isNone(fromT) ? null : unescapeJava(getString(fromT));
+    String inputGraphName = isNone(fromT) ? null : getString(fromT);
 
     // ORDER BY
     IStrategoTerm orderByT = ast.getSubterm(POS_ORDERBY);
@@ -522,7 +520,7 @@ public class SpoofaxAstToGraphQuery {
         double d = Double.parseDouble(getString(t));
         return new QueryExpression.Constant.ConstDecimal(d);
       case "String":
-        String s = unescapeJava(getString(t));
+        String s = getString(t);
         return new QueryExpression.Constant.ConstString(s);
       case "True":
         return new QueryExpression.Constant.ConstBoolean(true);
