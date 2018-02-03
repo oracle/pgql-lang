@@ -117,7 +117,7 @@ public class PgqlUtils {
         + "'";
   }
 
-  protected static String printIdentifier(String identifier) {
+  public static String printIdentifier(String identifier) {
     if (identifier.matches("^[a-zA-Z0-9_]*$")) {
       return identifier;
     } else {
