@@ -9,6 +9,9 @@ import static org.junit.Assert.assertTrue;
 import org.junit.Test;
 
 import oracle.pgql.lang.ir.GraphQuery;
+import oracle.pgql.lang.ir.QueryExpression.Constant.ConstString;
+import oracle.pgql.lang.ir.QueryExpression.FunctionCall;
+import oracle.pgql.lang.ir.QueryExpression.PropertyAccess;;
 
 public class PrettyPrintingTest extends AbstractPgqlTest {
 
@@ -156,6 +159,25 @@ public class PrettyPrintingTest extends AbstractPgqlTest {
   public void testExistsInOrderBy() throws Exception {
     String query = "SELECT id(n), 3 AS three MATCH (n) ORDER BY EXISTS ( SELECT * MATCH (m) WHERE m.age + three = n.age), id(n)";
     checkRoundTrip(query);
+  }
+
+  @Test
+  public void testIdentifierEscaping() throws Exception {
+    String identifier = "\"\"";
+    String escapedIdentifier = "\"\\\"\"\"\"";
+    String query = "SELECT n." + escapedIdentifier + " FROM " + escapedIdentifier + " MATCH (n:" + escapedIdentifier
+        + ")";
+    GraphQuery graphQuery = pgql.parse(query).getGraphQuery();
+
+    PropertyAccess propertyAccess = (PropertyAccess) graphQuery.getProjection().getElements().get(0).getExp();
+    assertEquals(propertyAccess.getPropertyName(), identifier);
+
+    assertEquals(identifier, graphQuery.getInputGraphName());
+
+    FunctionCall funcCall = (FunctionCall) graphQuery.getGraphPattern().getConstraints().iterator().next();
+    assertEquals(funcCall.getFunctionName(), "has_label");
+    String label = ((ConstString) funcCall.getArgs().get(1)).getValue();
+    assertEquals(identifier, label);
   }
 
   private void checkRoundTrip(String query1) throws PgqlException {

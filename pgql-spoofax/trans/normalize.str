@@ -93,13 +93,18 @@ rules
   norm-NEQ = ?Neq1(exp1, exp2); !Neq(exp1, exp2)
   norm-NEQ = ?Neq2(exp1, exp2); !Neq(exp1, exp2)
 
-  norm-string = String(norm-string-helper)
-              + Label(norm-string-helper) + PropRef(id, norm-string-helper) + FromClause(norm-string-helper)
+  norm-string = String(unquote-and-unescape-string-literal)
+              + Label(unquote-and-unescape-identifier) + PropRef(id, unquote-and-unescape-identifier) + FromClause(unquote-and-unescape-identifier)
+              + Legacy10Identifier(unquote-and-unescape-string-literal)
               + Date(un-single-quote)
               + Time(un-single-quote)
               + Timestamp(un-single-quote)
-  norm-string-helper = ( un-double-quote; string-replace(|"\"\"", "\\\"") ) // "A""B" => "A\"B"
-                     + ( un-single-quote; string-replace(|"''", "\\'") ) // 'O''Brian' => 'O\'Brian'
+
+  unquote-and-unescape-string-literal = (is-single-quoted; un-single-quote; unescape-string-literal)
+                                      + (is-double-quoted; un-double-quote; unescape-identifier) // legacy PGQL 1.0 string literal
+  unquote-and-unescape-identifier = (is-double-quoted; un-double-quote; unescape-identifier) <+ id
+  external unescape-string-literal(|)
+  external unescape-identifier(|)
 
 rules
 
@@ -169,7 +174,7 @@ rules
   to-label-constraints(|var, vertexOrEdge):
     labels ->  <to-hasLabel-expressions(|var)> labels
   to-hasLabel-expressions(|var) = bottomup(try(![VarRef(var), <to-label>]; to-function(|"has_label")))
-  to-label = ( (?Label(<id>) + ?Legacy10Identifier(<id>); norm-string-helper); !String(<id>) ) + ?BindVariable(_)
+  to-label = ( (?Label(<id>) + ?Legacy10Identifier(<id>)); !String(<id>) ) + ?BindVariable(_)
   to-id-constraints(|var) = bottomup(try(is-literal; origin-track-forced(!Eq(<to-function(|"id")> [VarRef(var)], <id>))))
 
   // base case: no paths

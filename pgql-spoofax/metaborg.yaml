@@ -1,5 +1,5 @@
 ---
-id: oracle.pgx:pgql-lang:1.1.0-SNAPSHOT
+id: oracle.pgx:pgqllang:1.1.0-SNAPSHOT
 name: pgql-lang
 metaborgVersion: 2.4.1
 dependencies:
