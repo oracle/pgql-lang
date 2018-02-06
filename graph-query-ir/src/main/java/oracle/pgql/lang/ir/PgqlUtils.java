@@ -14,6 +14,7 @@ import java.util.Set;
 import java.util.stream.Collectors;
 
 import oracle.pgql.lang.util.AbstractQueryExpressionVisitor;
+import oracle.pgql.lang.ir.QueryEdge;
 import oracle.pgql.lang.ir.QueryExpression.Aggregation;
 import oracle.pgql.lang.ir.QueryExpression.PropertyAccess;
 import oracle.pgql.lang.ir.QueryExpression.VarRef;
@@ -28,6 +29,7 @@ import oracle.pgql.lang.ir.QueryExpression.FunctionCall;
 import oracle.pgql.lang.ir.QueryExpression.LogicalExpression.Or;
 import oracle.pgql.lang.ir.QueryExpression.Function.Exists;
 import oracle.pgql.lang.ir.QueryVariable.VariableType;
+import oracle.pgql.lang.ir.QueryVertex;
 
 import static org.apache.commons.lang3.StringEscapeUtils.escapeJava;
 
@@ -48,7 +50,7 @@ public class PgqlUtils {
   public static Set<QueryVariable> getVariables(QueryExpression exp) {
     final Set<QueryVariable> result = new HashSet<>();
     exp.accept(new AbstractQueryExpressionVisitor() {
-
+      
       @Override
       public void visit(VarRef varRef) {
         result.add(varRef.getVariable());
@@ -58,6 +60,17 @@ public class PgqlUtils {
       public void visit(PropertyAccess propAccess) {
         result.add(propAccess.getVariable());
       }
+      
+      @Override
+      public void visit(QueryVertex queryVertex) {
+        result.add(queryVertex);
+      }
+
+      @Override
+      public void visit(QueryEdge queryEdge) {
+        result.add(queryEdge);
+      }
+      
     });
     return result;
   }
