@@ -50,7 +50,7 @@ public class PgqlUtils {
   public static Set<QueryVariable> getVariables(QueryExpression exp) {
     final Set<QueryVariable> result = new HashSet<>();
     exp.accept(new AbstractQueryExpressionVisitor() {
-      
+
       @Override
       public void visit(VarRef varRef) {
         result.add(varRef.getVariable());
@@ -60,7 +60,7 @@ public class PgqlUtils {
       public void visit(PropertyAccess propAccess) {
         result.add(propAccess.getVariable());
       }
-      
+
       @Override
       public void visit(QueryVertex queryVertex) {
         result.add(queryVertex);
@@ -70,7 +70,12 @@ public class PgqlUtils {
       public void visit(QueryEdge queryEdge) {
         result.add(queryEdge);
       }
-      
+
+      @Override
+      public void visit(QueryPath queryPath) {
+        result.add(queryPath);
+      }
+
     });
     return result;
   }
