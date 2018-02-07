@@ -31,8 +31,6 @@ import oracle.pgql.lang.ir.QueryExpression.Function.Exists;
 import oracle.pgql.lang.ir.QueryVariable.VariableType;
 import oracle.pgql.lang.ir.QueryVertex;
 
-import static org.apache.commons.lang3.StringEscapeUtils.escapeJava;
-
 public class PgqlUtils {
 
   static DecimalFormat DECIMAL_FORMAT = new DecimalFormat("#.#");

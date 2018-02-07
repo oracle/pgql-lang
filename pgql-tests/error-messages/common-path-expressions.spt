@@ -1,0 +1,16 @@
+module common-path-expressions
+
+language pgql-lang
+
+test Cross-constraints in PATH [[
+
+    PATH p1 AS (n) -> (m) WHERE n.age
+                            AND m.age > 3
+                            AND [[(m.age > 4 OR 5 < n.age)]]
+                            AND m.age = m.age + 2
+                            AND EXISTS ( SELECT * MATCH (n) )
+                            AND [[EXISTS ( SELECT * MATCH (n) -> (m) )]]  
+  SELECT *
+   MATCH (n)
+ 
+ ]] error like "Not yet supported: expressions in PATH with references to multiple variables" at #1, #2
