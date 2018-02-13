@@ -210,7 +210,7 @@ rules // version-specific error messages
   nabl-constraint(|ctx):
     q@NormalizedQuery(_, _, _, _, _, _, _, _, _, "v1.1") -> <id>
     with
-      <alltd(nabl-constraint-1-1(|ctx))> q 
+      <alltd(nabl-constraint-1-1(|ctx))> q
 
 rules // helper rules
 
@@ -268,3 +268,24 @@ rules // helper rules
     ErrorMessage(m) -> <fail>
     where
       <generate-error(|ctx, m)> m
+
+rules // temporary limitation
+
+  nabl-constraint(|ctx):
+    CommonPathExpression(_, vertices, connections, Constraints([constraint])) -> <fail>
+    with vertexVariables := <collect(?Vertex(<id>))> vertices
+       ; connectionsVariables := <collect(?Edge(_, <id>, _, _) + ?Path(_, _, _, _, <id>, _))> connections
+       ; variablesDefs := <union> (vertexVariables, connectionsVariables)
+       ; <generate-error-on-cross-constraint(|ctx, variablesDefs)> constraint
+
+  generate-error-on-cross-constraint(|ctx, variablesDefs):
+    t@And(lhs, rhs) -> t
+    with <generate-error-on-cross-constraint(|ctx, variablesDefs)> lhs
+       ; <generate-error-on-cross-constraint(|ctx, variablesDefs)> rhs
+
+  generate-error-on-cross-constraint(|ctx, variablesDefs):
+    t -> t
+    where <not(?And(_, _))> t
+    with variables := <collect(?VarRef(<id>) + ?Vertex(<id>) + ?Edge(_, <id>, _, _) + ?Path(_, _, _, _, <id>, _))> t
+       ; variableRefs := <strip-annos; isect> (variablesDefs, variables)
+       ; <try(!(<length> variableRefs, 1); gt; !t; generate-error(|ctx, "Not yet supported: expressions in PATH with references to multiple variables"))> t
