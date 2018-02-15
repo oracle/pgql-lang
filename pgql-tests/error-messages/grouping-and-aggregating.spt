@@ -22,7 +22,7 @@ MATCH
   (n)
 GROUP BY n.age AS nAge
 ORDER BY [[n.name]]
-]] error like "Cannot order by non-group key variable; use aggregation" at #1
+]] error like "Group key or aggregation expected here" at #1
 
 test Order by non-group key 2 [[
 SELECT nAge
@@ -30,7 +30,7 @@ MATCH
   (n)
 GROUP BY n.age AS nAge
 ORDER BY [[n.name]]
-]] error like "Cannot order by non-group key variable; use aggregation" at #1
+]] error like "Group key or aggregation expected here" at #1
 
 test Aggregation expected in SELECT 1 [[
 SELECT AVG(n.age) AS avgAge, [[n]]
@@ -62,15 +62,6 @@ SELECT [[*]]
 MATCH (n) -[e]-> (m)
 GROUP BY e.weight AS weight
 ]] error like "SELECT * not allowed in combination with GROUP BY" at #1
-
-test Filter groups (HAVING) [[
-
-      SELECT nAge
-       MATCH (n)
-    GROUP BY n.age AS nAge
-  [[HAVING n.age > 25]]
-
-]] error like "HAVING is not yet supported" at #1
 
 test COUNT(DISTINCT *) [[
 

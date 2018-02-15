@@ -180,6 +180,12 @@ public class PrettyPrintingTest extends AbstractPgqlTest {
     assertEquals(identifier, label);
   }
 
+  @Test
+  public void testHaving() throws Exception {
+    String query = "SELECT n.age, COUNT(*) MATCH (n) GROUP BY n.age HAVING COUNT(*) > 100";
+    checkRoundTrip(query);
+  }
+
   private void checkRoundTrip(String query1) throws PgqlException {
 
     /*

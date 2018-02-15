@@ -18,7 +18,6 @@ import oracle.pgql.lang.ir.QueryEdge;
 import oracle.pgql.lang.ir.QueryExpression.Aggregation;
 import oracle.pgql.lang.ir.QueryExpression.PropertyAccess;
 import oracle.pgql.lang.ir.QueryExpression.ScalarSubquery;
-import oracle.pgql.lang.ir.QueryExpression.Subquery;
 import oracle.pgql.lang.ir.QueryExpression.VarRef;
 import oracle.pgql.lang.ir.QueryExpression.Aggregation.AggrAvg;
 import oracle.pgql.lang.ir.QueryExpression.Aggregation.AggrCount;
@@ -176,6 +175,10 @@ public class PgqlUtils {
     GroupBy groupBy = graphQuery.getGroupBy();
     if (groupBy.getElements().isEmpty() == false) {
       result += "\n" + groupBy;
+    }
+    QueryExpression having = graphQuery.getHaving();
+    if (having != null) {
+      result += "\nHAVING " + having;
     }
     OrderBy orderBy = graphQuery.getOrderBy();
     if (orderBy.getElements().isEmpty() == false) {

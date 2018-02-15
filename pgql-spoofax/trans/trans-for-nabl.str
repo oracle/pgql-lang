@@ -20,7 +20,7 @@ rules
   // if there is a GROUP BY or aggregation in SELECT, then all the variables references in the SELECT need to be group keys or need to be inside aggregates
   trans-for-nabl-grouping:
     NormalizedQuery(pathPatterns, expAsVars, fromClause, graphPattern, groupBy, having, orderBy, limitOffsets, error-messages, version) ->
-        NormalizedQuery(pathPatterns, expAsVars', fromClause, graphPattern, groupBy', having, orderBy', limitOffsets, error-messages, version)
+        NormalizedQuery(pathPatterns, expAsVars', fromClause, graphPattern, groupBy', having', orderBy', limitOffsets, error-messages, version)
     with
       if (!groupBy; ?Some(_)) + (!expAsVars; contains-aggregation)
       then
@@ -30,10 +30,12 @@ rules
         then groupBy' := CreateOneGroup() // create one group when there's no GROUP BY but SELECT has at least one aggregation
         else groupBy' := <to-ExpAsGroupVars> groupBy
         end
+      ; having' := <to-VarRef-or-SelectOrGroupRefs> having
       else
         expAsVars' := expAsVars
       ; orderBy' := <to-VarOrSelectRefs> orderBy
       ; groupBy' := groupBy
+      ; having' := having
       end
 
   contains-aggregation = collect-in-outer-query(is-aggregate); not ( ?[] )

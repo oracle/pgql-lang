@@ -55,7 +55,7 @@ public class SpoofaxAstToGraphQuery {
   private static final int POS_FROM = 2;
   private static final int POS_WHERE = 3;
   private static final int POS_GROUPBY = 4;
-  private static final int POS_HAVING = 5; /* unused */
+  private static final int POS_HAVING = 5;
   private static final int POS_ORDERBY = 6;
   private static final int POS_LIMITOFFSET = 7;
 
@@ -182,6 +182,9 @@ public class SpoofaxAstToGraphQuery {
     IStrategoTerm fromT = ast.getSubterm(POS_FROM);
     String inputGraphName = isNone(fromT) ? null : getString(fromT);
 
+    // HAVING
+    QueryExpression having = tryGetExpression(ast.getSubterm(POS_HAVING), ctx);
+
     // ORDER BY
     IStrategoTerm orderByT = ast.getSubterm(POS_ORDERBY);
     List<OrderByElem> orderByElems = getOrderByElems(ctx, orderByT);
@@ -189,19 +192,19 @@ public class SpoofaxAstToGraphQuery {
 
     // LIMIT OFFSET
     IStrategoTerm limitOffsetT = ast.getSubterm(POS_LIMITOFFSET);
-    QueryExpression limit = getLimitOrOffset(limitOffsetT.getSubterm(POS_LIMIT));
-    QueryExpression offset = getLimitOrOffset(limitOffsetT.getSubterm(POS_OFFSET));
+    QueryExpression limit = tryGetExpression(limitOffsetT.getSubterm(POS_LIMIT), ctx);
+    QueryExpression offset = tryGetExpression(limitOffsetT.getSubterm(POS_OFFSET), ctx);
 
-    return new GraphQuery(commonPathExpressions, projection, inputGraphName, graphPattern, groupBy, orderBy, limit,
-        offset);
+    return new GraphQuery(commonPathExpressions, projection, inputGraphName, graphPattern, groupBy, having, orderBy,
+        limit, offset);
   }
 
-  private static QueryExpression getLimitOrOffset(IStrategoTerm subterm) throws PgqlException {
-    if (isNone(subterm)) {
+  private static QueryExpression tryGetExpression(IStrategoTerm term, TranslationContext ctx) throws PgqlException {
+    if (isNone(term)) {
       return null;
     }
-    IStrategoAppl expT = (IStrategoAppl) subterm.getSubterm(0).getSubterm(0);
-    return translateExp(expT, null);
+    IStrategoAppl expT = (IStrategoAppl) term.getSubterm(0).getSubterm(0);
+    return translateExp(expT, ctx);
   }
 
   private static List<CommonPathExpression> getCommonPathExpressions(IStrategoTerm pathPatternsT,

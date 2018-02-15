@@ -21,6 +21,8 @@ public class GraphQuery {
 
   private OrderBy orderBy;
 
+  private QueryExpression having;
+
   private QueryExpression limit;
 
   private QueryExpression offset;
@@ -29,12 +31,14 @@ public class GraphQuery {
    * Constructor
    */
   public GraphQuery(List<CommonPathExpression> commonPathExpressions, Projection projection, String inputGraphName,
-      GraphPattern graphPattern, GroupBy groupBy, OrderBy orderBy, QueryExpression limit, QueryExpression offset) {
+      GraphPattern graphPattern, GroupBy groupBy, QueryExpression having, OrderBy orderBy, QueryExpression limit,
+      QueryExpression offset) {
     this.commonPathExpressions = commonPathExpressions;
     this.projection = projection;
     this.inputGraphName = inputGraphName;
     this.graphPattern = graphPattern;
     this.groupBy = groupBy;
+    this.having = having;
     this.orderBy = orderBy;
     this.limit = limit;
     this.offset = offset;
@@ -78,6 +82,14 @@ public class GraphQuery {
 
   public void setGroupBy(GroupBy groupBy) {
     this.groupBy = groupBy;
+  }
+
+  public QueryExpression getHaving() {
+    return having;
+  }
+
+  public void setHaving(QueryExpression having) {
+    this.having = having;
   }
 
   public OrderBy getOrderBy() {
@@ -141,6 +153,11 @@ public class GraphQuery {
       if (other.groupBy != null)
         return false;
     } else if (!groupBy.equals(other.groupBy))
+      return false;
+    if (having == null) {
+      if (other.having != null)
+        return false;
+    } else if (!having.equals(other.having))
       return false;
     if (inputGraphName == null) {
       if (other.inputGraphName != null)
