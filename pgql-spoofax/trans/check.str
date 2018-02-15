@@ -183,8 +183,8 @@ rules // subqueries
     with scalarSubqueries := <collect(?Exists(_) + ?Subquery(_)); remove-all(?Exists(_))> q
        ; multiColumnScalarSubqueries := <filter(is-multi-column-subquery)> scalarSubqueries
        ; zeroColumnScalarSubqueries := <filter(is-zero-column-subquery)> scalarSubqueries
-       ; <batch-generate-error(|ctx, "Scalar subquery was expected to return a single column, but multiple columns were returned")> multiColumnScalarSubqueries
-       ; <batch-generate-error(|ctx, "Scalar subquery was expected to return a single column, but zero columns were returned")> zeroColumnScalarSubqueries
+       ; <batch-generate-error(|ctx, "Scalar subquery is expected to return a single column, but multiple columns were returned")> multiColumnScalarSubqueries
+       ; <batch-generate-error(|ctx, "Scalar subquery is expected to return a single column, but zero columns were returned")> zeroColumnScalarSubqueries
 
   is-multi-column-subquery = ?Subquery(NormalizedQuery(_, SelectClause(_, e@ExpAsVars(expAsVars)), _, _, _, _, _, _, _, _))
                            ; where(not( <eq> (<length> expAsVars, 1) )); !e

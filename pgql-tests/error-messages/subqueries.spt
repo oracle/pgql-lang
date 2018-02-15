@@ -111,25 +111,25 @@ test Scalar subquery with zero columns (1) [[
   SELECT ( SELECT [[*]] MATCH () ) AS x
    MATCH (n)
 
-]] error like "Scalar subquery was expected to return a single column, but zero columns were returned" at #1
+]] error like "Scalar subquery is expected to return a single column, but zero columns were returned" at #1
 
 test Scalar subquery with zero columns (2) [[
 
   SELECT ( SELECT [[*]] MATCH () WHERE ( SELECT [[*]] MATCH () )) AS x
    MATCH (n)
 
-]] error like "Scalar subquery was expected to return a single column, but zero columns were returned" at #1, #2
+]] error like "Scalar subquery is expected to return a single column, but zero columns were returned" at #1, #2
 
 test Scalar subquery with multiple columns (1) [[
 
   SELECT ( SELECT [[n.prop1 AS p1, n.prop2 AS p2]] MATCH (n) ) AS x
    MATCH (n)
 
-]] error like "Scalar subquery was expected to return a single column, but multiple columns were returned" at #1
+]] error like "Scalar subquery is expected to return a single column, but multiple columns were returned" at #1
 
 test Scalar subquery with multiple columns (2) [[
 
   SELECT ( SELECT [[n.prop1 AS p1, n.prop2 AS p2]] MATCH (n) WHERE ( SELECT [[n.prop1 AS p1, n.prop2 AS p2]] MATCH (n) ) ) AS x
    MATCH (n)
 
-]] error like "Scalar subquery was expected to return a single column, but multiple columns were returned" at #1, #2
+]] error like "Scalar subquery is expected to return a single column, but multiple columns were returned" at #1, #2
