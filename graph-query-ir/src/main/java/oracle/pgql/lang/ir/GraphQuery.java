@@ -19,9 +19,9 @@ public class GraphQuery {
 
   private GroupBy groupBy;
 
-  private OrderBy orderBy;
-
   private QueryExpression having;
+
+  private OrderBy orderBy;
 
   private QueryExpression limit;
 
