@@ -290,6 +290,10 @@ entries:
       url: /spec/1.1/#querying-multiple-graphs
       output: web
 
+    - title: Subqueries inside PATH Clause
+      url: /spec/1.1/#subqueries-inside-path-clause
+      output: web
+
   - title: Other Syntactic Rules
     url: /spec/1.1/#other-syntactic-rules
     output: web

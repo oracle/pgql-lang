@@ -1061,7 +1061,7 @@ The `HAVING` clause is an optional clause that can be placed after a `GROUP BY` 
 The syntactic structure is as follows:
 
 ```bash
-HavingClause ::= 'HAVING' { <ValueExpression> ',' }+
+HavingClause ::= 'HAVING' <ValueExpression>
 ```
 
 An example is as follows:
@@ -1489,7 +1489,7 @@ SELECT p1.name
 
 Above, we compare two string properties from different graphs. Besides properties, it is also possible to compare vertices and edges from different graphs. However, because PGQL 1.1 does not have concepts like graph views, base graphs, or sharing of vertices/edges between graphs, such comparisons will always yield `false`.
 
-## Subqueries Inside PATH Clause
+## Subqueries inside PATH Clause
 
 Users can add a sub-query in the `WHERE` clause of the `PATH` definition. One might be interested in asserting for specific properties for a vertex in the `PATH`. The following example defines a path ending in a vertex which is not the oldest in the graph:
 
