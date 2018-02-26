@@ -21,7 +21,7 @@ The following are the changes since PGQL 1.0:
  - `DISTINCT` in aggregations (see [Aggregation](#aggregation)).
  - `SELECT DISTINCT` (see [Projections (SELECT)](#projection-select)).
  - Filtering of groups through `HAVING` clause (see [Filtering of Groups (HAVING)](#filtering-of-groups-having))
- - Temporal data types `DATE`, `TIME`, `TIMESTAMP`, `TIME WITH TIMEZONE`, and `TIMESTAMP WITH TIMEZONE` (see [Temporal Types](#temporal-types))
+ - Temporal data types `DATE`, `TIME`, `TIMESTAMP`, `TIME WITH TIME ZONE`, and `TIMESTAMP WITH TIME ZONE` (see [Temporal Types](#temporal-types))
  - `IS NULL` and `IS NOT NULL` testing (see [IS NULL and IS NOT NULL](#is-null-and-is-not-null))
  - Explicit type conversion through `CAST` specification (see [Explicit Type Conversion (CAST)](#explicit-type-conversion-cast))
  - Built-in function `all_different(val1, val2, .., valn)` (see [Built-In Functions](#built-in-functions))
@@ -1001,8 +1001,8 @@ The following table gives an overview of the different aggregates and their supp
 Aggregate Operator | Semantic | Required Input Type
 --- | --- | ---
 `COUNT` | counts the number of times the given expression has a bound (i.e. is not null). | any type, including vertex and edge
-`MIN` | takes the minimum of the values for the given expression. | numeric, string, boolean, date, time (with timezone), or, timestamp (with timezone)
-`MAX` | takes the maximum of the values for the given expression. | numeric, string, boolean, date, time (with timezone), or, timestamp (with timezone)
+`MIN` | takes the minimum of the values for the given expression. | numeric, string, boolean, date, time (with time zone), or, timestamp (with time zone)
+`MAX` | takes the maximum of the values for the given expression. | numeric, string, boolean, date, time (with time zone), or, timestamp (with time zone)
 `SUM` | sums over the values for the given expression. | numeric
 `AVG` | takes the average of the values for the given. | numeric
 
@@ -1183,24 +1183,24 @@ Or                   ::= <ValueExpression> 'OR' <ValueExpression>
 
 The supported input types and corresponding return types are as follows:
 
-Operator                                            | type of A (and B)                                                                                   | Return Type
---------------------------------------------------- | --------------------------------------------------------------------------------------------------- | -----------
-A `+` B<br>A `-` B<br>A `*` B<br>A `/` B<br>A `%` B | numeric                                                                                             | numeric*
-`-`A (unary minus)                                  | numeric                                                                                             | type of A
-A `=` B<br>A `<>` B                                 | numeric, string, boolean,<br>date, time (with timezone), timestamp (with timezone),<br>vertex, edge | boolean
-A `<` B<br>A `>` B<br>A `<=` B<br>A `>=` B          | numeric, string, boolean,<br>date, time (with timezone), timestamp (with timezone)                  | boolean
-`NOT` A<br>A `AND` B<br>A `OR` B                    | boolean                                                                                             | boolean
+Operator                                            | type of A (and B)                                                                                     | Return Type
+--------------------------------------------------- | ----------------------------------------------------------------------------------------------------- | -----------
+A `+` B<br>A `-` B<br>A `*` B<br>A `/` B<br>A `%` B | numeric                                                                                               | numeric*
+`-`A (unary minus)                                  | numeric                                                                                               | type of A
+A `=` B<br>A `<>` B                                 | numeric, string, boolean,<br>date, time (with time zone), timestamp (with time zone),<br>vertex, edge | boolean
+A `<` B<br>A `>` B<br>A `<=` B<br>A `>=` B          | numeric, string, boolean,<br>date, time (with time zone), timestamp (with time zone)                  | boolean
+`NOT` A<br>A `AND` B<br>A `OR` B                    | boolean                                                                                               | boolean
 
 *For precision and scale, see [Implicit Type Conversion](#implicit-type-conversion). 
 
-### Comparison of Temporal Values with Timezones
+### Comparison of Temporal Values with Time Zones
 
 Binary operations are only allowed if both operands are of the same type, with the following two exceptions:
 
-- _time_ values can be compared to _time with timezone_ values
-- _timestamp_ values can be compared to _timestamp with timezone_ values
+- _time_ values can be compared to _time with time zone_ values
+- _timestamp_ values can be compared to _timestamp with time zone_ values
 
-To compare such _time(stamp) with timezone_ values to other time(stamp) values (with or without timezone), values are first normalized to have the same timezone, before they are compared.
+To compare such _time(stamp) with time zone_ values to other time(stamp) values (with or without time zone), values are first normalized to have the same time zone, before they are compared.
 Comparison with other operand type combinations, such as dates and timestamp, is not possible. However, it is possible to cast between e.g. dates and timestamps (see [Explicit Type Conversion (CAST)](#explicit-type-conversion-cast)).
 
 ### Operator Precedence
@@ -1269,8 +1269,8 @@ Literal                      ::= <StringLiteral>
                                | <DateLiteral>
                                | <TimeLiteral>
                                | <TimestampLiteral>
-                               | <TimeWithTimezoneLiteral>
-                               | <TimestampWithTimezoneLiteral>
+                               | <TimeWithTimeZoneLiteral>
+                               | <TimestampWithTimeZoneLiteral>
 
 StringLiteral                ::= <SINGLE_QUOTED_STRING>
 
@@ -1286,22 +1286,22 @@ TimeLiteral                  ::= 'TIME' "'" <HH:mm:ss> "'"
 
 TimestampLiteral             ::= 'TIMESTAMP' "'" <yyyy-MM-dd HH:mm:ss> "'"
 
-TimeWithTimezoneLiteral      ::= 'TIME' "'" <HH:mm:ss+HH:MM> "'"
+TimeWithTimeZoneLiteral      ::= 'TIME' "'" <HH:mm:ss+HH:MM> "'"
 
-TimestampWithTimezoneLiteral ::= 'TIMESTAMP' "'" <yyyy-MM-dd HH:mm:ss+HH:MM> "'"
+TimestampWithTimeZoneLiteral ::= 'TIMESTAMP' "'" <yyyy-MM-dd HH:mm:ss+HH:MM> "'"
 ```
 
-| Literal type            | Example literal                         |
-|-------------------------|-----------------------------------------|
-| string                  | `'Clara'`                               |
-| integer                 | `12`                                    |
-| decimal                 | `12.3`                                  |
-| boolean                 | `true`                                  |
-| date                    | `DATE '2017-09-21'`                     |
-| time                    | `TIME '16:15:00'`                       |
-| timestamp               | `TIMESTAMP '2017-09-21 16:15:00'`       |
-| time with timezone      | `TIME '16:15:00+01:00'`                 |
-| timestamp with timezone | `TIMESTAMP '2017-09-21 16:15:00-03:00'` |
+| Literal type             | Example literal                         |
+|--------------------------|-----------------------------------------|
+| string                   | `'Clara'`                               |
+| integer                  | `12`                                    |
+| decimal                  | `12.3`                                  |
+| boolean                  | `true`                                  |
+| date                     | `DATE '2017-09-21'`                     |
+| time                     | `TIME '16:15:00'`                       |
+| timestamp                | `TIMESTAMP '2017-09-21 16:15:00'`       |
+| time with time zone      | `TIME '16:15:00+01:00'`                 |
+| timestamp with time zone | `TIMESTAMP '2017-09-21 16:15:00-03:00'` |
 
 Note that the numeric literals (integer and decimal) are unsigned. However, signed values can be generated by using the unary minus operator (`-`).
 
@@ -1405,37 +1405,37 @@ CastSpecification ::= 'CAST' '(' <ValueExpression> 'AS' <DataTypeName> ')'
 DataTypeName      ::= { <IDENTIFIER> ' ' }+
 ```
 
-Note that the syntax of a data type is one or more identifiers separated by a space, allowing the encoding of data types such as `STRING` and `TIME WITH TIMEZONE`.
+Note that the syntax of a data type is one or more identifiers separated by a space, allowing the encoding of data types such as `STRING` and `TIME WITH TIME ZONE`.
 
 For example:
 
 ```sql
-SELECT CAST(n.age AS STRING), CAST('123' AS INTEGER), CAST('09:15:00+01:00' AS TIME WITH TIMEZONE)
+SELECT CAST(n.age AS STRING), CAST('123' AS INTEGER), CAST('09:15:00+01:00' AS TIME WITH TIME ZONE)
  MATCH (n:Person)
 ```
 
 Casting is allowed between the following data types:
 
-| From \ To               | string | exact numeric | approximate numeric | boolean | time | time with timezone | date | timestamp | timestamp with timezone |
-|-------------------------|--------|---------------|---------------------|---------|------|--------------------|------|-----------|-------------------------|
-| string                  | Y      | Y             | Y                   | Y       | Y    | Y                  | Y    | Y         | Y                       |
-| exact numeric           | Y      | M             | M                   | N       | N    | N                  | N    | N         | N                       |
-| approximate numeric     | Y      | M             | M                   | N       | N    | N                  | N    | N         | N                       |
-| boolean                 | Y      | N             | N                   | Y       | N    | N                  | N    | N         | N                       |
-| date                    | Y      | N             | N                   | N       | N    | N                  | Y    | Y         | Y                       |
-| time                    | Y      | N             | N                   | N       | Y    | Y                  | N    | Y         | Y                       |
-| timestamp               | Y      | N             | N                   | N       | Y    | Y                  | Y    | Y         | Y                       |
-| time with timezone      | Y      | N             | N                   | N       | Y    | Y                  | N    | Y         | Y                       |
-| timestamp with timezone | Y      | N             | N                   | N       | Y    | Y                  | Y    | Y         | Y                       |
+| From \ To                | string | exact numeric | approximate numeric | boolean | time | time with time zone | date | timestamp | timestamp with time zone |
+|--------------------------|--------|---------------|---------------------|---------|------|--------------------|------|-----------|-------------------------|
+| string                   | Y      | Y             | Y                   | Y       | Y    | Y                  | Y    | Y         | Y                       |
+| exact numeric            | Y      | M             | M                   | N       | N    | N                  | N    | N         | N                       |
+| approximate numeric      | Y      | M             | M                   | N       | N    | N                  | N    | N         | N                       |
+| boolean                  | Y      | N             | N                   | Y       | N    | N                  | N    | N         | N                       |
+| date                     | Y      | N             | N                   | N       | N    | N                  | Y    | Y         | Y                       |
+| time                     | Y      | N             | N                   | N       | Y    | Y                  | N    | Y         | Y                       |
+| timestamp                | Y      | N             | N                   | N       | Y    | Y                  | Y    | Y         | Y                       |
+| time with time zone      | Y      | N             | N                   | N       | Y    | Y                  | N    | Y         | Y                       |
+| timestamp with time zone | Y      | N             | N                   | N       | Y    | Y                  | Y    | Y         | Y                       |
 
 In the table above, `Y` indicates that casting is supported, `N` indicates that casting is not supported, and `M` indicates that casting is supported only if the numeric value is within the precision bounds of the specified target type.
 
 ## Temporal Types
 
-PGQL has five temporal data types: `DATE`, `TIME`, `TIMESTAMP`, `TIME WITH TIMEZONE` and `TIMESTAMP WITH TIMEZONE`.
+PGQL has five temporal data types: `DATE`, `TIME`, `TIMESTAMP`, `TIME WITH TIME ZONE` and `TIMESTAMP WITH TIME ZONE`.
 For each of the data types, there exists a corresponding literal (see [Literals](#literals)).
 
-In PGQL 1.1, the supported operations on temporal values are limited to comparison (see [Operators](#operators) and [Comparison of Temporal Values with Timezones](#comparison-of-temporal-values-with-timezones)).
+In PGQL 1.1, the supported operations on temporal values are limited to comparison (see [Operators](#operators) and [Comparison of Temporal Values with Time Zones](#comparison-of-temporal-values-with-time-zones)).
 
 # Subqueries
 
@@ -1560,7 +1560,7 @@ The following is a list of keywords in PGQL.
 PATH, SELECT, AS, MATCH, WHERE, GROUP, BY,
 HAVING, ORDER, ASC, DESC, LIMIT, OFFSET,
 AND, OR, NOT, true, false, IS, NULL,
-DATE, TIME, TIMESTAMP, WITH, TIMEZONE,
+DATE, TIME, TIMESTAMP, WITH, ZONE,
 COUNT, MIN, MAX, AVG, SUM, EXISTS, CAST
 ```
 
