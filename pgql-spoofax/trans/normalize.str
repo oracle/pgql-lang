@@ -60,7 +60,7 @@ rules
   get-deprecation = ?Legacy10OutDegree(_); to-error-message(|"Use [out_degree(x)] instead of [x.out_degree()]")
 
   get-deprecation = ?Legacy10Asc(x); to-error-message(|$<Use [<<origin-text> x> ASC] instead of [ASC(<<origin-text> x>)])>)
-  get-deprecation = ?Legacy10Desc(x); to-error-message(|$<Use [<<origin-text> x> DESC'] instead of [DESC(<<origin-text> x>)]>)
+  get-deprecation = ?Legacy10Desc(x); to-error-message(|$<Use [<<origin-text> x> DESC] instead of [DESC(<<origin-text> x>)]>)
   get-deprecation = ?String(<id>); is-double-quoted; to-error-message(|"Use single quotes for character string literals; not double quotes")
   get-deprecation = ?Legacy10Identifier(_); to-error-message(|"Use double quotes to delimit labels")
   get-deprecation = ?Ids(_); to-error-message(|"Use [id(x) = xyz] instead of [@xyz]")
