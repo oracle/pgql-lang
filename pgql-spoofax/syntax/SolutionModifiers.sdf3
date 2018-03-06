@@ -6,6 +6,10 @@ imports
   Literals
   Expressions
 
+template options
+
+  keyword -/- [a-zA-Z0-9]
+
 context-free syntax
 
   GroupByClause.GroupByClause = <GROUP BY <{ExpAsVar ", "}+>> {case-insensitive}

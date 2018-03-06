@@ -4,6 +4,10 @@ imports
 
   Literals
 
+template options
+
+  keyword -/- [a-zA-Z0-9]
+
 context-free syntax
 
   VarDef.VarDef = IDENTIFIER
