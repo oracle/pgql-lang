@@ -238,6 +238,9 @@ public abstract class AbstractQueryExpressionVisitor implements QueryExpressionV
     query.getProjection().accept(this);
     query.getGraphPattern().accept(this);
     query.getGroupBy().accept(this);
+    if (query.getHaving() != null) {
+      query.getHaving().accept(this);
+    }
     query.getOrderBy().accept(this);
     if (query.getLimit() != null) {
       query.getLimit().accept(this);

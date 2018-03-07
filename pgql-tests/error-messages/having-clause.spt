@@ -1,0 +1,20 @@
+module having-clause
+
+language pgql-lang
+
+test HAVING referencing a non-group key [[
+
+    SELECT COUNT(*) AS cnt
+     MATCH (n) -> (m)
+  GROUP BY n
+    HAVING [[m]].prop > 3
+
+]] error like "Group key or aggregation expected here" at #1
+
+test HAVING not having an aggregation [[
+
+    SELECT COUNT(*) AS cnt
+     MATCH (n) -> (m)
+    HAVING [[m]].prop > 3
+
+]] error like "Aggregation expected here since SELECT has aggregation" at #1

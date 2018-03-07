@@ -271,7 +271,7 @@ rules
     
   norm-query(|error-messages, version):
     (commonPathExpressions, SelectClause(distinct, projection), fromClause, graphPattern, groupByClause, havingClause, orderByClause, limitOffsets) ->
-        NormalizedQuery(commonPathExpressions', SelectClause(distinct, projection'), fromClause, graphPattern, groupByClause', havingClause, orderByElems, limitOffsets', error-messages, version)
+        NormalizedQuery(commonPathExpressions', SelectClause(distinct, projection'), fromClause, graphPattern, groupByClause', havingClause', orderByElems, limitOffsets', error-messages, version)
     with
       commonPathExpressions' := <map(norm-common-path-expression); !CommonPathExpressions(<id>)> commonPathExpressions;
 
@@ -283,6 +283,7 @@ rules
 
       ExpAsVars(expAsSelectVars) := projection';
       allExpAsVars := <conc> (expAsGroupVars', <try(?Star(); ![])> expAsSelectVars);
+      havingClause' := <replace-terms-with-varRef(|allExpAsVars)> havingClause;
       orderByElems := <try(norm-orderBy(|allExpAsVars))> orderByClause;
 
       limitOffsets' := <norm-limitOffsets> limitOffsets

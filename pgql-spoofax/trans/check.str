@@ -86,10 +86,10 @@ rules
     ; <batch-generate-error(|ctx, "Aggregation in ORDER BY only allowed if SELECT constains aggregations, or, in combination with GROUP BY")> aggregations
 
   nabl-constraint(|ctx):
-    NormalizedQuery(_, SelectClause(_, ExpAsVars(select-elems)), _, matchClause, group-by, _, order-by, _, _, _) -> <fail>
+    NormalizedQuery(_, SelectClause(_, ExpAsVars(select-elems)), _, matchClause, group-by, having, order-by, _, _, _) -> <fail>
     where not ( None() := group-by )
     with group-refs := <collect-in-outer-query(?GroupRef(<id>))> select-elems
-       ; select-or-group-refs := <collect-in-outer-query(?SelectOrGroupRef(<id>))> order-by
+       ; select-or-group-refs := <collect-in-outer-query(?SelectOrGroupRef(<id>))> (order-by, having)
 
        ; pattern-elem-defs := <collect(?Vertex(<id>) + ?Edge(_, <id>, _, _) + ?Path(_, _, _, _, <id>, _))> matchClause
        ; select-var-defs := <collect-in-outer-query(?AnonymousExpAsVar(_, <id>) + ?ExpAsSelectVar(_, <id>))> select-elems
@@ -103,10 +103,10 @@ rules
        ;   if CreateOneGroup() := group-by
          then <batch-generate-error-on-resolved(|ctx, "Can't reference variable from outer query when SELECT has aggregation, unless from within aggregation")> referencing-outer-query-or-unresolved // error in SELECT or ORDER BY
             ; <batch-generate-error-on-unresolved(|ctx, "Aggregation expected here since SELECT has other aggregation")> group-refs // error in SELECT
-            ; <batch-generate-error-on-unresolved(|ctx, "Aggregation expected here since SELECT has aggregation")> select-or-group-refs // error in ORDER BY
+            ; <batch-generate-error-on-unresolved(|ctx, "Aggregation expected here since SELECT has aggregation")> select-or-group-refs // error in ORDER BY / HAVING
          else <batch-generate-error-on-resolved(|ctx, "Can't reference variable from outer query after GROUP BY, unless from within aggregation")> referencing-outer-query-or-unresolved // error in SELECT or ORDER BY
             ; <batch-generate-error-on-unresolved(|ctx, "Non-group key variable in SELECT")> group-refs // error in SELECT
-            ; <batch-generate-error-on-unresolved(|ctx, "Cannot order by non-group key variable; use aggregation")> select-or-group-refs // error in ORDER BY
+            ; <batch-generate-error-on-unresolved(|ctx, "Group key or aggregation expected here")> select-or-group-refs // error in ORDER BY / HAVING
           end
 
   // if SELECT DISTINCT then ORDER BY expressions may only be repetitions of expressions in SELECT
@@ -170,11 +170,6 @@ rules
     COUNT(Some(Distinct()), e@Star()) -> <fail>
     with
       <generate-error(|ctx, "* not allowed in combination with DISTINCT")> e
-
-  nabl-constraint(|ctx):
-    e@HavingClause(_) -> <fail>
-    with
-      <generate-error(|ctx, "HAVING is not yet supported")> e
 
 rules // subqueries
 
