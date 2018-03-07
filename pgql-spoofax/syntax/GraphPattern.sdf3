@@ -7,6 +7,10 @@ imports
   Expressions
   Legacy
 
+template options
+
+  keyword -/- [a-zA-Z0-9]
+
 context-free syntax
 
   MatchClause.GraphPattern = 

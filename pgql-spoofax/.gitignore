@@ -3,6 +3,8 @@
 /src-gen
 /target
 
-/.classpath
 /.project
 /.settings
+
+*.pgql
+*.aterm

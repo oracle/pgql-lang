@@ -14,6 +14,10 @@ context-free start-symbols
 
   Start
 
+template options
+
+  keyword -/- [a-zA-Z0-9]
+
 context-free syntax
 
   Start = Query
