@@ -25,17 +25,17 @@ rules
       if (!groupBy; ?Some(_)) + (!expAsVars; contains-aggregation)
       then
         expAsVars' := <to-VarRef-or-GroupRefs; to-ExpAsSelectVars> expAsVars
+      ; having' := <to-VarRef-or-SelectOrGroupRefs> having
       ; orderBy' := <to-VarRef-or-SelectOrGroupRefs> orderBy
       ; if !expAsVars; contains-aggregation; !groupBy; ?None()
         then groupBy' := CreateOneGroup() // create one group when there's no GROUP BY but SELECT has at least one aggregation
         else groupBy' := <to-ExpAsGroupVars> groupBy
         end
-      ; having' := <to-VarRef-or-SelectOrGroupRefs> having
       else
         expAsVars' := expAsVars
+      ; having' := <to-VarOrSelectRefs> having
       ; orderBy' := <to-VarOrSelectRefs> orderBy
       ; groupBy' := groupBy
-      ; having' := having
       end
 
   contains-aggregation = collect-in-outer-query(is-aggregate); not ( ?[] )
