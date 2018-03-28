@@ -87,3 +87,8 @@ SELECT COUNT(*) AS [[x]]
 MATCH (n)
 GROUP BY n AS x
 ]] error like "Duplicate variable; variable already defined in the GROUP BY clause" at #1
+
+test Zero columns [[
+SELECT [[*]]
+MATCH ()
+]] error like "SELECT * not allowed when there are no variables in the graph pattern" at #1
