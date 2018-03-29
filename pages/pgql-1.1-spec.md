@@ -510,9 +510,7 @@ ORDER BY pivot
 
 ### SELECT *
 
-`SELECT *` is a special `SELECT` clause. The semantic of `SELECT *` is to select all the (non-anonymous) variables in the graph pattern.
-
-`SELECT *` in combination with `GROUP BY` is not allowed.
+`SELECT *` is a special `SELECT` clause. The semantic of `SELECT *` is to select all the variables in the graph pattern.
 
 Consider the following query:
 
@@ -522,7 +520,7 @@ SELECT *
      , (n) -> (w) -> (m)
 ```
 
-The query is semantically equivalent to:
+This query is semantically equivalent to:
 
 ```sql
 SELECT n, m, w
@@ -530,14 +528,8 @@ SELECT n, m, w
      , (n) -> (w) -> (m)
 ```
 
-It is allowed to have a `SELECT *` even in the case the `MATCH` clause contains only anonymous variables:
-
-```sql
-SELECT *
- MATCH () -> ()
-```
-
-This leads to a result table with zero columns. However, the table will still have as many rows as there are matches to the pattern.
+`SELECT *` is not allowed when the graph pattern has zero variables. This is the case when all the vertices and edges in the pattern are anonymous (e.g. `MATCh () -> (:Person)`).
+Futhermore, `SELECT *` in combination with `GROUP BY` is not allowed.
 
 ## Sorting (ORDER BY)
 
