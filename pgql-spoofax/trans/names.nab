@@ -63,5 +63,5 @@ binding rules
       otherwise refers to SelectVar v // e.g. in [[SELECT AVG(n.age) as avgAge WHERE (n) ORDER BY avgAge]], 'avgAge' in ORDER BY refers to 'avgAge' in SELECT
 
   VarOrSelectRef(v): // in ORDER BY while there is no GROUP BY
-    refers to WhereVar v // e.g. in [[SELECT n.name WHERE (n) ORDER BY n.age], 'n' in ORDER BY refers to 'n' in WHERE
-      otherwise refers to SelectVar v // e.g. in [[SELECT n.name AS nName WHERE (n) ORDER BY nName], 'nName' in ORDER BY refers to 'nName' in SELECT
+    refers to SelectVar v // e.g. in [[SELECT n.name AS nName WHERE (n) ORDER BY nName], 'nName' in ORDER BY refers to 'nName' in SELECT
+      otherwise refers to WhereVar v // e.g. in [[SELECT n.name WHERE (n) ORDER BY n.age], 'n' in ORDER BY refers to 'n' in WHERE

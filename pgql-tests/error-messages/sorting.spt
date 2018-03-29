@@ -16,6 +16,14 @@ MATCH
 ORDER BY [[n2]]
 ]] error like "Cannot order by vertex" at #1
 
+test Order by vertex in PGQL 1.1 (3) [[
+
+    SELECT n AS n
+     MATCH (n)
+  ORDER BY [[n]]
+
+]] error like "Cannot order by vertex" at #1
+
 test Order by edge in PGQL 1.1 (1) [[
 SELECT e
 MATCH
