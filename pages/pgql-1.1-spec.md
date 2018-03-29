@@ -528,7 +528,7 @@ SELECT n, m, w
      , (n) -> (w) -> (m)
 ```
 
-`SELECT *` is not allowed when the graph pattern has zero variables. This is the case when all the vertices and edges in the pattern are anonymous (e.g. `MATCh () -> (:Person)`).
+`SELECT *` is not allowed when the graph pattern has zero variables. This is the case when all the vertices and edges in the pattern are anonymous (e.g. `MATCH () -> (:Person)`).
 Futhermore, `SELECT *` in combination with `GROUP BY` is not allowed.
 
 ## Sorting (ORDER BY)
