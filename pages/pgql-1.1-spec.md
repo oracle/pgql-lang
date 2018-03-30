@@ -159,8 +159,8 @@ A property graph has a name, which is a (character) string, and contains:
 
 Labels as well as property names are strings. Property values are scalars such as numbers, strings or booleans.
 
-Note: the property graph model in PGQL 1.1 does not support multi-valued properties like in [TinkerPop](http://tinkerpop.apache.org/docs/current/reference/#vertex-properties),
-or, composite types like in [Neo4j](https://neo4j.com/docs/developer-manual/current/cypher/syntax/values/#composite-types).
+Note: the property graph model in PGQL 1.1 does not support multi-valued properties like in [TinkerPop](http://tinkerpop.apache.org/docs/current/reference/#vertex-properties)
+or [Neo4j](https://neo4j.com/docs/developer-manual/current/cypher/syntax/values/#composite-types).
 
 ## Basic Query Structure
 
