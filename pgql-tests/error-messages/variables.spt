@@ -3,92 +3,107 @@ module variables
 language pgql-lang
 
 test Unresolved variable in SELECT [[
-SELECT [[n2]]
-MATCH
-  (n)
+
+  SELECT [[n2]]
+   MATCH (n)
 ]] error like "Unresolved variable" at #1
 
 test Unresolved variable in GROUP BY [[
-SELECT n3
-MATCH
-  (n)
-GROUP BY [[n2]] AS n3
+
+    SELECT n3
+     MATCH (n)
+  GROUP BY [[n2]] AS n3
+
 ]] error like "Unresolved variable" at #1
 
 test Unresolved variable in ORDER BY 1 [[
-SELECT n
-MATCH
-  (n)
-ORDER BY [[n2.name]]
+
+    SELECT n
+     MATCH (n)
+  ORDER BY [[n2.name]]
+
 ]] error like "Unresolved variable" at #1
 
 test Unresolved variable in ORDER BY 2 [[
-SELECT n
-MATCH
-  (n)
-GROUP BY n
-ORDER BY [[n2.name]]
+
+    SELECT n
+     MATCH (n)
+  GROUP BY n
+  ORDER BY [[n2.name]]
+
 ]] error like "Group key or aggregation expected here" at #1
 
 test Duplicate edge variable [[
-SELECT *
-MATCH
-  () -[ [[e1]] ]-> () -[ [[e1]] ]-> ()
+
+  SELECT *
+   MATCH () -[ [[e1]] ]-> () -[ [[e1]] ]-> ()
+
 ]] error like "Duplicate edge variable" at #1, #2
 
 test Duplicate select key 1 [[
-SELECT n.name AS [[nName]], n.name AS [[nName]]
-MATCH
-  (n)
+
+  SELECT n.name AS [[nName]], n.name AS [[nName]]
+   MATCH (n)
+
 ]] error like "Duplicate select key" at #1, #2
 
 test Duplicate select key 2 [[
-SELECT [[n]], [[n]]
-MATCH
-  (n)
+
+  SELECT [[n]], [[n]]
+   MATCH (n)
+
 ]] error like "Duplicate select key" at #1, #2
 
 test Duplicate select key 3 [[
-SELECT n AS [[n]], [[n]]
-MATCH
-  (n)
+
+  SELECT n AS [[n]], [[n]]
+   MATCH (n)
+
 ]] error like "Duplicate select key" at #1, #2
 
-// FIXME
-//test Duplicate variable in GROUP BY 1 [[
-//SELECT nName
-//WHERE
-//  (n)
-//GROUP BY n.name AS [[nName]], n.name AS [[nName]]
-//]] error like "Duplicate group key" at #1, #2
+test Duplicate variable in GROUP BY 1 [[
+
+    SELECT nName
+     WHERE (n)
+  GROUP BY n.name AS [[nName]], n.name AS [[nName]]
+
+]] error like "Duplicate group key" at #1, #2
 
 test Duplicate variable in GROUP BY 2 [[
-SELECT n
-MATCH
-  (n)
-GROUP BY n AS [[n]], [[n]]
+
+    SELECT n
+     MATCH (n)
+  GROUP BY n AS [[n]], [[n]]
+
 ]] error like "Duplicate group key" at #1, #2
 
 test Duplicate variable in GROUP BY 3 [[
-SELECT n
-MATCH
-  (n)
-GROUP BY [[n]], [[n]]
+
+    SELECT n
+     MATCH (n)
+  GROUP BY [[n]], [[n]]
+
 ]] error like "Duplicate group key" at #1, #2
 
 test Redefine variable from WHERE in GROUP BY [[
-SELECT n.age AS nAge
-MATCH (n)
-GROUP BY n AS [[n]]
-]] error like "Duplicate variable; variable already defined in the MATCH clause" at #1
+
+    SELECT n.age AS nAge
+     MATCH (n)
+  GROUP BY n AS [[n]]
+
+]] error like "Duplicate variable: variable already defined in the MATCH clause" at #1
 
 test Redefine variable from GROUP BY in SELECT [[
-SELECT COUNT(*) AS [[x]]
-MATCH (n)
-GROUP BY n AS x
-]] error like "Duplicate variable; variable already defined in the GROUP BY clause" at #1
+
+    SELECT COUNT(*) AS [[x]]
+     MATCH (n)
+  GROUP BY n AS x
+
+]] error like "Duplicate variable: variable already defined in the GROUP BY clause" at #1
 
 test Zero columns [[
-SELECT [[*]]
-MATCH ()
+
+  SELECT [[*]]
+   MATCH ()
+
 ]] error like "SELECT * not allowed when there are no variables in the graph pattern" at #1

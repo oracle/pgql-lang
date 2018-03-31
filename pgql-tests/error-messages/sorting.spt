@@ -2,21 +2,21 @@ module sorting
 
 language pgql-lang
 
-test Order by vertex in PGQL 1.1 (1) [[
+test Order by vertex (1) [[
 SELECT n
 MATCH
   (n)
 ORDER BY [[n]]
 ]] error like "Cannot order by vertex" at #1
 
-test Order by vertex in PGQL 1.1 (2) [[
+test Order by vertex (2) [[
 SELECT n AS n2
 MATCH
   (n)
 ORDER BY [[n2]]
 ]] error like "Cannot order by vertex" at #1
 
-test Order by vertex in PGQL 1.1 (3) [[
+test Order by vertex (3) [[
 
     SELECT n AS n
      MATCH (n)
@@ -24,32 +24,91 @@ test Order by vertex in PGQL 1.1 (3) [[
 
 ]] error like "Cannot order by vertex" at #1
 
-test Order by edge in PGQL 1.1 (1) [[
-SELECT e
-MATCH
-  () -[e]-> ()
-GROUP BY e
-ORDER BY [[e]]
+test Order by vertex (4) [[
+
+    SELECT n, ( SELECT m MATCH (m) LIMIT 1 ) AS o
+     MATCH (n)
+  ORDER BY [[o]]
+
+]] error like "Cannot order by vertex" at #1
+
+test Order by vertex (5) [[
+
+    SELECT n, ( SELECT m MATCH (m) LIMIT 1 ) AS o
+     MATCH (n)
+  ORDER BY [[( SELECT m MATCH (m) LIMIT 1 )]]
+
+]] error like "Cannot order by vertex" at #1
+
+test Order by vertex (6) [[
+
+    SELECT n AS q
+     MATCH (n)
+  GROUP BY n
+  ORDER BY [[q]]
+
+]] error like "Cannot order by vertex" at #1
+
+test Order by vertex (7) [[
+
+    SELECT p AS q
+     MATCH (n)
+  GROUP BY n AS p
+  ORDER BY [[n]]
+
+]] error like "Cannot order by vertex" at #1
+
+test Order by vertex (8) [[
+
+    SELECT p AS q
+     MATCH (n)
+  GROUP BY n AS p
+  ORDER BY [[p]]
+
+]] error like "Cannot order by vertex" at #1
+
+test Order by vertex (9) [[
+
+    SELECT p AS q
+     MATCH (n)
+  GROUP BY n AS p
+  ORDER BY [[q]]
+
+]] error like "Cannot order by vertex" at #1
+
+test Order by edge (1) [[
+
+    SELECT e
+     MATCH () -[e]-> ()
+  GROUP BY e
+  ORDER BY [[e]]
+
 ]] error like "Cannot order by edge" at #1
 
 test DISTINCT projection with ORDER BY [[
+
   SELECT DISTINCT n.age AS nAge
    MATCH (n)
 ORDER BY [[n.name]], n.age, nAge, [[1+2]]
+
 ]] error like "Because of DISTINCT projection, the expression in ORDER BY should be one of the expressions in the SELECT" at #1, #2
 
- test DISTINCT projection with ORDER BY in GROUP BY [[
+test DISTINCT projection with ORDER BY in GROUP BY [[
+
   SELECT DISTINCT nAge AS age
    MATCH (n)
 GROUP BY n.Age AS nAge
 ORDER BY [[n.name]], age, nAge, [[1+2]]
+
 ]] error like "Because of DISTINCT projection, the expression in ORDER BY should be one of the expressions in the SELECT" at #1, #2
 
 test DISTINCT projection with ORDER BY in EXISTS [[
+
 SELECT n.age AS nAGE
  MATCH (n)
  WHERE EXISTS (   SELECT DISTINCT n.age AS nAge
                    MATCH (n)
                 ORDER BY [[n.name]], n.age, nAge, [[1+2]]
               )
+
 ]] error like "Because of DISTINCT projection, the expression in ORDER BY should be one of the expressions in the SELECT" at #1, #2

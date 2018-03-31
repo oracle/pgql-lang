@@ -44,14 +44,16 @@ rules // Unresolved/duplicate variables
       <generate-error-on-duplicate(|ctx, NablNsWhereVar(), "Duplicate edge variable")> e
 
   nabl-constraint(|ctx):
-    ExpAsGroupVar(_, v) -> <fail>
-    where
-      <generate-error-on-duplicate(|ctx, NablNsVar1(), "Duplicate variable; variable already defined in the MATCH clause")> v
+    NormalizedQuery(_, selectClause, _, matchClause, groupClause, _, _, _, _, _) -> <fail>
+    with matchVars := <collect(get-pattern-elem)> matchClause
+       ; groupVars := <collect(?ExpAsGroupVar(_, <id>))> groupClause
+       ; redefinitions-in-groupBy := <strip-annos; isect> (groupVars, matchVars)
+       ; <batch-generate-error(|ctx, "Duplicate variable: variable already defined in the MATCH clause")> redefinitions-in-groupBy
+       ; selectVars := <collect(?ExpAsSelectVar(_, <id>))> selectClause
+       ; redefinitions-in-select := <strip-annos; isect> (selectVars, groupVars)
+       ; <batch-generate-error(|ctx, "Duplicate variable: variable already defined in the GROUP BY clause")> redefinitions-in-select
 
-  nabl-constraint(|ctx):
-    ExpAsSelectVar(_, v) -> <fail>
-    where
-      <generate-error-on-duplicate(|ctx, NablNsVar2(), "Duplicate variable; variable already defined in the GROUP BY clause")> v
+  get-pattern-elem = ?Vertex(<id>) + ?Edge(_, <id>, _, _) + ?Path(_, _, _, _, <id>, _)
 
 rules // in-lined constraints
 
