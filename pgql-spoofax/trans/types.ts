@@ -48,6 +48,12 @@ type rules
 
   Subquery(_) : UnknownTy()
 
+  ExpAsVar(exp, var) + AnonymousExpAsVar(exp, var) : ty
+  where exp : ty
+
+  ScalarSubquery(Subquery(NormalizedQuery(_, SelectClause(_, ExpAsVars([expAsVar])), _, _, _, _, _, _, _, _))) : ty
+  where expAsVar : ty
+
   True() + False()        : BooleanTy()
   Date(_)                 : DateTy()
   Integer(_) + Decimal(_) : NumericTy()
