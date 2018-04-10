@@ -1340,7 +1340,7 @@ The following is an overview of the built-in functions:
 
 Signature | Return value | Description
 `id(element)` | `object` | returns an identifier for the vertex/edge, if one exists.
-`has_label(element)` | boolean | returns true if the vertex or edge has the given label.
+`has_label(element, string)` | boolean | returns true if the vertex or edge (first argument) has the given label (second argument).
 `labels(element)` | `set<string>` | returns the labels of the vertex or edge in the case it has multiple labels.
 `label()` | string | returns the label of the vertex or edge in the case it has a single label.
 `all_different(val1, val2, .., valn)` | boolean | returns true if the values are all different, a function typically used for specifying isomorphic constraints (see [Subgraph Isomorphism](#subgraph-isomorphism)).
