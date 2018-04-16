@@ -21,35 +21,25 @@ rules // Unresolved/duplicate variables
   nabl-check-disable-duplicate(|uri, ns) = id
 
   nabl-constraint(|ctx):
-    ref -> <fail>
-    where
-      <?VarRef(v) + ?GroupRef(v) + ?SelectOrGroupRef(v) + ?VarOrSelectRef(v)> ref
-    ;  <generate-error-on-unresolved(|ctx, "Unresolved variable")> v
+    ExpAsVar(_, v, _, SelectClause()) -> <fail>
+    with <generate-error-on-duplicate(|ctx, NablNsSelectVar(), "Duplicate select key")> v
 
   nabl-constraint(|ctx):
-    expAsVar -> <fail>
-    where
-      <?ExpAsVar(_, v) + ?ExpAsSelectVar(_, v) + ?AnonymousExpAsVar(_, v)> expAsVar;
-      <generate-error-on-duplicate(|ctx, NablNsSelectVar(), "Duplicate select key")> v
-
-  nabl-constraint(|ctx):
-    expAsGroupVar -> <fail>
-    where
-      <?ExpAsGroupVar(_, v) + ?AnonymousExpAsGroupVar(_, v)> expAsGroupVar;
-      <generate-error-on-duplicate(|ctx, NablNsGroupVar(), "Duplicate group key")> v
+    ExpAsVar(_, v, _, GroupByClause()) -> <fail>
+    with <generate-error-on-duplicate(|ctx, NablNsGroupVar(), "Duplicate group key")> v
 
   nabl-constraint(|ctx):
     Edge(_, e, _, _) -> <fail>
     where
-      <generate-error-on-duplicate(|ctx, NablNsWhereVar(), "Duplicate edge variable")> e
+      <generate-error-on-duplicate(|ctx, NablNsMatchVar(), "Duplicate edge variable")> e
 
   nabl-constraint(|ctx):
     NormalizedQuery(_, selectClause, _, matchClause, groupClause, _, _, _, _, _) -> <fail>
     with matchVars := <collect(get-pattern-elem)> matchClause
-       ; groupVars := <collect(?ExpAsGroupVar(_, <id>))> groupClause
+       ; groupVars := <collect(?ExpAsVar(_, <id>, NonAnonymous(), _))> groupClause
        ; redefinitions-in-groupBy := <strip-annos; isect> (groupVars, matchVars)
        ; <batch-generate-error(|ctx, "Duplicate variable: variable already defined in the MATCH clause")> redefinitions-in-groupBy
-       ; selectVars := <collect(?ExpAsSelectVar(_, <id>))> selectClause
+       ; selectVars := <collect(?ExpAsVar(_, <id>, NonAnonymous(), _))> selectClause
        ; redefinitions-in-select := <strip-annos; isect> (selectVars, groupVars)
        ; <batch-generate-error(|ctx, "Duplicate variable: variable already defined in the GROUP BY clause")> redefinitions-in-select
 
@@ -79,47 +69,35 @@ rules // vertex in WHERE without rounded brackets
 rules
 
   nabl-constraint(|ctx):
+    query@NormalizedQuery(_, selectClause, _, matchClause, group-by, having, order-by, _, _, _) -> <fail>
+    with unresolved-vars := <collect-in-outer-query(?VarRef(<id>, None()))> query
+        ; if None() := group-by
+          then <batch-generate-error(|ctx, "Unresolved variable")> unresolved-vars
+          else unresolved-vars-after-grouping := <collect-in-outer-query-outside-aggregation(?VarRef(<id>, None()))> (selectClause, having, order-by)
+             ; other-unresolved-vars := <diff> (unresolved-vars, unresolved-vars-after-grouping)
+             ; <batch-generate-error(|ctx, "Unresolved variable")> other-unresolved-vars
+             ; if CreateOneGroup() := group-by // aggregation without GROUP BY
+               then <batch-generate-error(|ctx, "Unresolved variable (did you mean to use an aggregation?)")> unresolved-vars-after-grouping
+               else <batch-generate-error(|ctx, "Unresolved variable (did you mean to use a group key?)")> unresolved-vars-after-grouping
+               end
+          end
+
+  nabl-constraint(|ctx):
     NormalizedQuery(_, SelectClause(_, ExpAsVars(select-elems)), _, _, groupClause, _, Some(orderClause), _, _, _) -> <fail>
     where
       None() := groupClause
     ; [] := <get-aggregations> select-elems // there are no aggregations in the SELECT
     with
       aggregations := <get-aggregations> orderClause
-    ; <batch-generate-error(|ctx, "Aggregation in ORDER BY only allowed if SELECT constains aggregations, or, in combination with GROUP BY")> aggregations
-
-  nabl-constraint(|ctx):
-    NormalizedQuery(_, SelectClause(_, ExpAsVars(select-elems)), _, matchClause, group-by, having, order-by, _, _, _) -> <fail>
-    where not ( None() := group-by )
-    with group-refs := <collect-in-outer-query(?GroupRef(<id>))> select-elems
-       ; select-or-group-refs := <collect-in-outer-query(?SelectOrGroupRef(<id>))> (order-by, having)
-
-       ; pattern-elem-defs := <collect(?Vertex(<id>) + ?Edge(_, <id>, _, _) + ?Path(_, _, _, _, <id>, _))> matchClause
-       ; select-var-defs := <collect-in-outer-query(?AnonymousExpAsVar(_, <id>) + ?ExpAsSelectVar(_, <id>))> select-elems
-       ; group-var-defs := <collect-in-outer-query(?AnonymousExpAsGroupVar(_, <id>) + ?ExpAsGroupVar(_, <id>))> group-by
-       ; var-defs-for-select := group-var-defs
-       ; var-defs-for-order-by := <union> (group-var-defs, select-var-defs)
-       ; group-refs-referencing-outer-query-vars-or-unresolved := <diff(strip-annos; eq)> (group-refs, var-defs-for-select )
-       ; select-or-group-refs-referencing-outer-query-vars-or-unresolved := <diff(strip-annos; eq)> (select-or-group-refs, var-defs-for-order-by)
-       ; referencing-outer-query-or-unresolved := <union> (group-refs-referencing-outer-query-vars-or-unresolved, select-or-group-refs-referencing-outer-query-vars-or-unresolved)
-
-       ;   if CreateOneGroup() := group-by
-         then <batch-generate-error-on-resolved(|ctx, "Can't reference variable from outer query when SELECT has aggregation, unless from within aggregation")> referencing-outer-query-or-unresolved // error in SELECT or ORDER BY
-            ; <batch-generate-error-on-unresolved(|ctx, "Aggregation expected here since SELECT has other aggregation")> group-refs // error in SELECT
-            ; <batch-generate-error-on-unresolved(|ctx, "Aggregation expected here since SELECT has aggregation")> select-or-group-refs // error in ORDER BY / HAVING
-         else <batch-generate-error-on-resolved(|ctx, "Can't reference variable from outer query after GROUP BY, unless from within aggregation")> referencing-outer-query-or-unresolved // error in SELECT or ORDER BY
-            ; <batch-generate-error-on-unresolved(|ctx, "Non-group key variable in SELECT")> group-refs // error in SELECT
-            ; <batch-generate-error-on-unresolved(|ctx, "Group key or aggregation expected here")> select-or-group-refs // error in ORDER BY / HAVING
-          end
+    ; <batch-generate-error(|ctx, "Aggregation in ORDER BY only allowed if SELECT has aggregation")> aggregations
 
   // if SELECT DISTINCT then ORDER BY expressions may only be repetitions of expressions in SELECT
   nabl-constraint(|ctx):
     NormalizedQuery(_, SelectClause(Some(Distinct()), ExpAsVars(select-elems)), _, _, _, _, Some(OrderByClause(order-by-elems)), _, _, _) -> <fail>
     with
-      select-vars := <map(?ExpAsVar(_, <id>) + ?ExpAsSelectVar(_, <id>) + ?AnonymousExpAsVar(_, <id>)); strip-annos> select-elems
-    ; order-by-expressions := <map(?OrderByElem(<id>, _)); strip-annos> order-by-elems
-    ; order-by-expressions-not-in-select := <remove-all(
-                                                (?VarOrSelectRef(<id>) + ?SelectOrGroupRef(<id>))
-                                              ; !(<id>, select-vars); elem)> order-by-expressions
+      select-vars := <map(?ExpAsVar(_, <id>, _, _)); strip-annos> select-elems
+    ; order-by-expressions := <map(?OrderByElem(<id>, _, _)); strip-annos> order-by-elems
+    ; order-by-expressions-not-in-select := <remove-all(?VarRef(<id>, _); !(<id>, select-vars); elem)> order-by-expressions
     ; <batch-generate-error(|ctx, "Because of DISTINCT projection, the expression in ORDER BY should be one of the expressions in the SELECT")> order-by-expressions-not-in-select
 
   nabl-constraint(|ctx):
@@ -142,12 +120,6 @@ rules
       aggregations := <get-aggregations> t;
       <batch-generate-error(|ctx, "Aggregation not allowed in GROUP BY")> aggregations
 
-  path-reference(|ctx):
-    VarRef(v) -> <fail>
-    where
-      var-is-path := <var-is-path(|ctx)> v;
-      <task-create-error-on-success(|ctx, var-is-path, $[Path variables not supported in PGQL 1.1])> v
-
   nabl-constraint(|ctx):
     e@Null() -> <fail>
     with
@@ -164,7 +136,7 @@ rules
       <generate-error(|ctx, "IS NOT NULL is not yet supported")> e
 
   nabl-constraint(|ctx):
-    ExpAsVars(e@Star()) -> <fail>
+    SelectClause(_, e@Star()) -> <fail>
     with
       <generate-error(|ctx, "SELECT * not allowed in combination with GROUP BY")> e
 
@@ -193,31 +165,6 @@ rules // subqueries
 
   is-zero-column-subquery = ?Subquery(NormalizedQuery(_, SelectClause(_, e@ExpAsVars(expAsVars)), _, _, _, _, _, _, _, _))
                            ; where( <eq> (<length> expAsVars, 0) ); !e
-
-rules // type checking
-
-  nabl-constraint-1-1(|ctx):
-    OrderByElem(exp, _) -> <fail>
-    where
-      <?SelectOrGroupRef(n) + ?VarOrSelectRef(n)> exp
-    with
-      var-is-vertex := <var-is-vertex(|ctx)> n;
-      <task-create-error-on-success(|ctx, var-is-vertex, "Cannot order by vertex")> exp
-
-  nabl-constraint-1-1(|ctx):
-    OrderByElem(exp, _) -> <fail>
-    where
-      <?SelectOrGroupRef(n) + ?VarOrSelectRef(n)> exp
-    with
-      var-is-edge := <var-is-edge(|ctx)> n;
-      <task-create-error-on-success(|ctx, var-is-edge, "Cannot order by edge")> exp
-
-rules // version-specific error messages
-
-  nabl-constraint(|ctx):
-    q@NormalizedQuery(_, _, _, _, _, _, _, _, _, "v1.1") -> <id>
-    with
-      <alltd(nabl-constraint-1-1(|ctx))> q
 
 rules // helper rules
 
@@ -249,21 +196,6 @@ rules // helper rules
       uri := <nabl-uri; nabl-uri-parent> v
     ; resolve-task := <nabl-create-resolvedefs(|ctx, namespace, v, [])> uri
     ; <task-create-error-on-multiple(|ctx, resolve-task, m)> v
-
-  var-is-edge(|ctx) = var-is-type(|ctx, "VarIsEdge")
-  var-is-vertex(|ctx) = var-is-type(|ctx, "VarIsVertex")
-  var-is-path(|ctx) = var-is-type(|ctx, "VarIsPath")
-
-  var-is-type(|ctx, type):
-    v -> rewrite-task1
-    where
-      v-resolve-task := <nabl-create-collectdefs(|ctx)> v
-    ; v-prop-task    := <prop-create-lookup(|ctx, Type())> v-resolve-task
-    ; rewrite-task1  := <task-create-rewrite(|ctx, type)> v-prop-task
-      
-  task-rewrite: ("VarIsVertex", VertexTy()) -> <id>
-  task-rewrite: ("VarIsEdge", EdgeTy()) -> <id>
-  task-rewrite: ("VarIsPath", PathTy()) -> <id>
 
   // TODO
   nabl-constraint(|ctx):

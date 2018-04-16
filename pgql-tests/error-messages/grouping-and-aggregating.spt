@@ -3,64 +3,75 @@ module variables
 language pgql-lang
 
 test Select non-group key 1 [[
-SELECT [[n.name]] AS nName
-MATCH
-  (n)
-GROUP BY n.age AS nAge
-]] error like "Non-group key variable in SELECT" at #1
+
+    SELECT [[n.name]] AS nName
+     MATCH (n)
+  GROUP BY n.age AS nAge
+
+]] error like "Unresolved variable (did you mean to use a group key?)" at #1
 
 test Select non-group key 2 [[
-SELECT [[n]]
-MATCH
-  (n)
-GROUP BY n.age AS nAge
-]] error like "Non-group key variable in SELECT" at #1
+
+    SELECT [[n]]
+     MATCH (n)
+  GROUP BY n.age AS nAge
+
+]] error like "Unresolved variable (did you mean to use a group key?)" at #1
 
 test Order by non-group key 1 [[
-SELECT nAge
-MATCH
-  (n)
-GROUP BY n.age AS nAge
-ORDER BY [[n.name]]
-]] error like "Group key or aggregation expected here" at #1
+
+    SELECT nAge
+     MATCH (n)
+  GROUP BY n.age AS nAge
+  ORDER BY [[n.name]]
+
+]] error like "Unresolved variable (did you mean to use a group key?)" at #1
 
 test Order by non-group key 2 [[
-SELECT nAge
-MATCH
-  (n)
-GROUP BY n.age AS nAge
-ORDER BY [[n.name]]
-]] error like "Group key or aggregation expected here" at #1
+
+    SELECT nAge
+     MATCH (n)
+  GROUP BY n.age AS nAge
+  ORDER BY [[n.name]]
+
+]] error like "Unresolved variable (did you mean to use a group key?)" at #1
 
 test Aggregation expected in SELECT 1 [[
-SELECT AVG(n.age) AS avgAge, [[n]]
-MATCH
-  (n)
-]] error like "Aggregation expected here since SELECT has other aggregation" at #1
+
+  SELECT AVG(n.age) AS avgAge, [[n]]
+   MATCH (n)
+
+]] error like "Unresolved variable (did you mean to use an aggregation?)" at #1
 
 test Aggregation expected in SELECT 2 [[
-SELECT [[n.labels()]] AS lbls, COUNT(*) AS cnt
-MATCH (n)
-]] error like "Aggregation expected here since SELECT has other aggregation" at #1
+
+  SELECT [[labels(n)]] AS lbls, COUNT(*) AS cnt
+   MATCH (n)
+
+]] error like "Unresolved variable (did you mean to use an aggregation?)" at #1
 
 test Aggregation expected in ORDER BY [[
-SELECT AVG(n.age) AS avgAge
-MATCH
-  (n)
-ORDER BY [[n.age]]
-]] error like "Aggregation expected here since SELECT has aggregation" at #1
+
+    SELECT AVG(n.age) AS avgAge
+     MATCH (n)
+  ORDER BY [[n.age]]
+
+]] error like "Unresolved variable (did you mean to use an aggregation?)" at #1
 
 test Aggregation in ORDER BY not expected [[
-SELECT n
-WHERE
-  (n)
-ORDER BY [[AVG(n.age)]]
-]] error like "Aggregation in ORDER BY only allowed if SELECT constains aggregations, or, in combination with GROUP BY" at #1
+
+    SELECT n
+     MATCH (n)
+  ORDER BY [[AVG(n.age)]]
+
+]] error like "Aggregation in ORDER BY only allowed if SELECT has aggregation" at #1
 
 test Aggregation in ORDER BY not expected [[
-SELECT [[*]]
-MATCH (n) -[e]-> (m)
-GROUP BY e.weight AS weight
+
+    SELECT [[*]]
+     MATCH (n) -[e]-> (m)
+  GROUP BY e.weight AS weight
+
 ]] error like "SELECT * not allowed in combination with GROUP BY" at #1
 
 test COUNT(DISTINCT *) [[
@@ -71,26 +82,32 @@ test COUNT(DISTINCT *) [[
 ]] error like "* not allowed in combination with DISTINCT" at #1
 
 test Subquery with non-group key variable in SELECT (1) [[
+
   SELECT EXISTS (   SELECT m.prop AS mProp, [[n]].prop AS nProp
                      MATCH (m)
                   GROUP BY m.prop AS key
                 ) AS v1
    MATCH (n)
-]] error like "Non-group key variable in SELECT" at #1
+
+]] error like "Unresolved variable (did you mean to use a group key?)" at #1
 
 test Subquery with non-group key variable in SELECT (2) [[
+
   SELECT n
    MATCH (n)
    WHERE EXISTS (   SELECT m.prop AS nProp, [[n]].prop AS mProp
                      MATCH (m)
                   GROUP BY m.prop AS key
                 )
-]] error like "Non-group key variable in SELECT" at #1
+
+]] error like "Unresolved variable (did you mean to use a group key?)" at #1
 
 test Subquery with non-group key variable in SELECT (3) [[
+
   SELECT MIN(EXISTS (   SELECT key, [[n]].prop AS nProp
                          MATCH (m)
                       GROUP BY m.prop AS key
                     )) AS min
    MATCH (n)
-]] error like "Non-group key variable in SELECT" at #1
+
+]] error like "Unresolved variable (did you mean to use a group key?)" at #1

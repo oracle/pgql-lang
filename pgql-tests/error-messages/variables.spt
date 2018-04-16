@@ -31,7 +31,7 @@ test Unresolved variable in ORDER BY 2 [[
   GROUP BY n
   ORDER BY [[n2.name]]
 
-]] error like "Group key or aggregation expected here" at #1
+]] error like "Unresolved variable (did you mean to use a group key?)" at #1
 
 test Duplicate edge variable [[
 

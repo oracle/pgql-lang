@@ -24,9 +24,11 @@ rules
 
   make-set-while-preserving-ordering = reverse; make-set; reverse
 
-  is-subquery = ?NormalizedQuery(_, _, _, _, _, _, _, _, _, _)
+  is-subquery = ?Subquery(_)
 
   collect-in-outer-query(s) = collect(is-subquery + s); remove-all(is-subquery)
+
+  collect-in-outer-query-outside-aggregation(s) = collect(is-subquery + is-aggregate + s); remove-all(is-subquery + is-aggregate)
 
   alltd-in-outer-query(s) = alltd(is-subquery <+ s)
 

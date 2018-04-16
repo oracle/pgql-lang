@@ -271,7 +271,7 @@ rules
     
   norm-query(|error-messages, version):
     (commonPathExpressions, SelectClause(distinct, projection), fromClause, graphPattern, groupByClause, havingClause, orderByClause, limitOffsets) ->
-        NormalizedQuery(commonPathExpressions', SelectClause(distinct, projection'), fromClause, graphPattern, groupByClause', havingClause', orderByElems, limitOffsets', error-messages, version)
+        NormalizedQuery(commonPathExpressions', SelectClause(distinct, projection'), fromClause, graphPattern, groupByClause', havingClause, orderByElems, limitOffsets', error-messages, version)
     with
       commonPathExpressions' := <map(norm-common-path-expression); !CommonPathExpressions(<id>)> commonPathExpressions;
 
@@ -283,17 +283,16 @@ rules
 
       ExpAsVars(expAsSelectVars) := projection';
       allExpAsVars := <conc> (expAsGroupVars', <try(?Star(); ![])> expAsSelectVars);
-      havingClause' := <replace-terms-with-varRef(|allExpAsVars)> havingClause;
-      orderByElems := <try(norm-orderBy(|allExpAsVars))> orderByClause;
+      orderByElems := <try(norm-orderBy(|allExpAsVars, version))> orderByClause;
 
       limitOffsets' := <norm-limitOffsets> limitOffsets
 
   norm-ExpAsVars(|expAsGroupVars'):
     t@ExpAsVars(expAsVars) -> <origin-track-forced(!ExpAsVars(expAsVars'))> t 
-    with expAsVars' := <map(norm-ExpAsVar); map(replace-terms-with-varRef(|expAsGroupVars'))> expAsVars
+    with expAsVars' := <map(norm-ExpAsVar)> expAsVars
 
-  norm-ExpAsVar = ?ExpAsVar(exp, Some(VarAssign(VarDef(v)))); !ExpAsVar(exp, v)
-  norm-ExpAsVar = ?ExpAsVar(exp, None()); !AnonymousExpAsVar(exp, <?VarRef(<id>) <+ origin-track-forced(origin-text)> exp)
+  norm-ExpAsVar = ?ExpAsVar(exp, Some(VarAssign(VarDef(v)))); !ExpAsVar(exp, v, NonAnonymous())
+  norm-ExpAsVar = ?ExpAsVar(exp, None()); !ExpAsVar(exp, <?VarRef(<id>) <+ origin-track-forced(origin-text)> exp, Anonymous())
 
   norm-select-star(|graphPattern, group-exps):
     star@Star() -> <origin-track-forced(!ExpAsVars(expAsSelectVars))> star
@@ -303,29 +302,15 @@ rules
            else expAsSelectVars := star
          end
 
-  replace-terms-with-varRef(|expressions):
-    exp -> exp'
-    with exp' := <foldl(replace-terms-with-varRef)> (expressions, exp)
-
-  replace-terms-with-varRef = (?(ExpAsVar(term, var), <id>) + ?(AnonymousExpAsVar(term, var), <id>)); alltd(
-    is-aggregate; ?term; !VarRef(var) + // for ORDER BY
-    is-aggregate + ?term; !VarRef(var)) // for SELECT: never look into aggregates
-
-  norm-orderBy(|allExpAsVars):
+  norm-orderBy(|allExpAsVars, version):
     Some(OrderByClause(elems)) -> Some(OrderByClause(elems'))
     with
-      elems' := <map(norm-orderBy-ordering)
-               ; map(norm-order-expression(|allExpAsVars))
+      elems' := <map(norm-orderBy-ordering(|version))
                ; make-set-while-preserving-ordering> elems // optimization to translate e.g. ORDER BY x, y, x, y into ORDER BY x, y
 
-  norm-orderBy-ordering =
-    ((?Desc(<id>) + ?Legacy10Desc(<id>)); !OrderByElem(<id>, Desc())) <+
-    ((try(?Asc(<id>) + ?Legacy10Asc(<id>))); !OrderByElem(<id>, Asc()))
-
-  norm-order-expression(|group-and-select-expressions):
-    OrderByElem(exp, ordering) -> OrderByElem(exp', ordering)
-    with
-      exp' := <replace-terms-with-varRef(|group-and-select-expressions)> exp
+  norm-orderBy-ordering(|version) =
+    ((?Desc(<id>) + ?Legacy10Desc(<id>)); !OrderByElem(<id>, Desc(), version)) <+
+    ((try(?Asc(<id>) + ?Legacy10Asc(<id>))); !OrderByElem(<id>, Asc(), version))
 
   norm-limitOffsets = ?None(); !LimitOffsetClauses(None(), None())
   norm-limitOffsets = ?Some(LimitOffsetClauses(limitClause, offsetClause)); !LimitOffsetClauses(Some(limitClause), offsetClause)

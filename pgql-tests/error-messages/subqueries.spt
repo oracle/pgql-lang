@@ -10,7 +10,7 @@ test Aggregation in subquery and referencing variable from outer query outside o
                    MATCH (m)
                 )
 
-]] error like "Aggregation expected here since SELECT has other aggregation" at #1
+]] error like "Unresolved variable (did you mean to use an aggregation?)" at #1
 
 test Aggregation in subquery and referencing variable from outer query outside of aggregation (2) [[
 
@@ -21,7 +21,7 @@ test Aggregation in subquery and referencing variable from outer query outside o
                   ORDER BY [[n]].prop
                 )
 
-]] error like "Aggregation expected here since SELECT has aggregation" at #1
+]] error like "Unresolved variable (did you mean to use an aggregation?)" at #1
 
 test Reference variable from outer query after GROUP BY (1) [[
 
@@ -33,7 +33,7 @@ test Reference variable from outer query after GROUP BY (1) [[
                      ORDER BY [[n]].prop
                   )
 
-]] error like "Can't reference variable from outer query after GROUP BY, unless from within aggregation" at #1
+]] error like "Unresolved variable (did you mean to use a group key?)" at #1
 
 test Reference variable from outer query after GROUP BY (2) [[
 
@@ -46,7 +46,7 @@ test Reference variable from outer query after GROUP BY (2) [[
                   )
   GROUP BY n
 
-]] error like "Can't reference variable from outer query after GROUP BY, unless from within aggregation" at #1
+]] error like "Unresolved variable (did you mean to use a group key?)" at #1
 
 test Reference variable from outer query after GROUP BY (3) [[
 
@@ -58,7 +58,7 @@ test Reference variable from outer query after GROUP BY (3) [[
                   )
   GROUP BY n
 
-]] error like "Can't reference variable from outer query after GROUP BY, unless from within aggregation" at #1
+]] error like "Unresolved variable (did you mean to use a group key?)" at #1
 
 test Reference variable from outer query after GROUP BY (4) [[
 
@@ -70,7 +70,7 @@ test Reference variable from outer query after GROUP BY (4) [[
                    ORDER BY [[n]].age
                  )
 
-]] error like "Can't reference variable from outer query after GROUP BY, unless from within aggregation" at #1
+]] error like "Unresolved variable (did you mean to use a group key?)" at #1
 
 test Reference variable from outer query after aggregation (1) [[
 
@@ -81,7 +81,7 @@ test Reference variable from outer query after aggregation (1) [[
                     ORDER BY [[x]].prop
                   )
 
-]] error like "Can't reference variable from outer query when SELECT has aggregation, unless from within aggregation" at #1
+]] error like "Unresolved variable (did you mean to use an aggregation?)" at #1
 
 test Reference variable from outer query after aggregation (2) [[
 
@@ -93,7 +93,7 @@ test Reference variable from outer query after aggregation (2) [[
                   )
   GROUP BY n AS x
 
-]] error like "Can't reference variable from outer query when SELECT has aggregation, unless from within aggregation" at #1
+]] error like "Unresolved variable (did you mean to use an aggregation?)" at #1
 
 test Reference variable from outer query after aggregation (3) [[
 
@@ -104,7 +104,7 @@ test Reference variable from outer query after aggregation (3) [[
                   ORDER BY [[n]].age
                 )
 
-]] error like "Can't reference variable from outer query when SELECT has aggregation, unless from within aggregation" at #1
+]] error like "Unresolved variable (did you mean to use an aggregation?)" at #1
 
 test Scalar subquery with zero columns (1) [[
 

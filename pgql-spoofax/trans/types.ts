@@ -6,8 +6,9 @@ imports
 
 type rules
 
-  VarRef(v) + GroupRef(v) + SelectOrGroupRef(v) + VarOrSelectRef(v) : ty
+  VarRef(v, _) : ty
   where definition of v : ty
+    and not ( ty == PathTy() ) else error $[Path variables not supported in PGQL 1.1] on v
 
   PropRef(_, _) + BindVariable(_) : UnknownTy()
 
@@ -48,10 +49,10 @@ type rules
 
   Subquery(_) : UnknownTy()
 
-  ExpAsVar(exp, var) + AnonymousExpAsVar(exp, var) : ty
+  ExpAsVar(exp, var, _, _) : ty
   where exp : ty
 
-  ScalarSubquery(Subquery(NormalizedQuery(_, SelectClause(_, ExpAsVars([expAsVar])), _, _, _, _, _, _, _, _))) : ty
+  ScalarSubquery(Subquery(NormalizedQuery(_, SelectClause(_, ExpAsVars([expAsVar|_])), _, _, _, _, _, _, _, _))) : ty
   where expAsVar : ty
 
   True() + False()        : BooleanTy()
@@ -60,3 +61,8 @@ type rules
   String(_)               : StringTy()
   Time(_)                 : TimeTy()
   Timestamp(_)            : TimestampTy()
+
+  OrderByElem(exp, _, "v1.1") :-
+  where exp : ty
+    and not ( ty == VertexTy() ) else error $[Cannot order by vertex] on exp
+    and not ( ty == EdgeTy() ) else error $[Cannot order by edge] on exp

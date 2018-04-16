@@ -32,9 +32,11 @@ signature constructors // for the normalized AST (see trans/normalize.str)
   Outgoing              : Direction
   Undirected            : Direction
 
-  ExpAsVar              : VarDef * Exp -> ExpAsVar
-  AnonymousExpAsVar     : VarDef * Exp -> AnonymousExpAsVar
-  OrderByElem           : Exp * Ordering -> OrderbyElem
+  ExpAsVar              : Exp * Var * Anonymous -> ExpAsVar
+  Anonymous             : Anonymous
+  NonAnonymous          : Anonymous
+
+  OrderByElem           : Exp * Ordering * Version -> OrderbyElem
   Asc                   : Ordering
   Desc                  : Ordering
   LimitOffsetClauses    : Option(LimitClause) * Option(OffsetClause) -> LimitOffsetClauses
@@ -42,16 +44,22 @@ signature constructors // for the normalized AST (see trans/normalize.str)
   Neq                   : Exp * Exp -> Exp
 
   BindVariable          : INTEGER -> BindVariable
+  Version               : STRING
 
 signature constructors // for name binding (see trans/trans-for-nabl.str)
 
-  SelectOrGroupRef       : Var -> SelectOrGroupRef
-  GroupRef               : Var -> GroupRef
-  ExpAsGroupVar          : Var * Exp -> ExpAsGroupVar
-  ExpAsSelectVar         : Var * Exp -> ExpAsGroupVar
-  AnonymousExpAsGroupVar : Var * Exp -> AnonymousExpAsGroupVar
-  VarOrSelectRef         : Var -> VarOrSelectRef
+  ExpAsVar              : VarDef * Exp * Anonymous* Clause -> ExpAsVar
+  AnonymousExpAsVar     : VarDef * Exp * Anonymous* Clause -> AnonymousExpAsVar
+
   CreateOneGroup         : CreateOneGroup
+
+  VarDef                 : Var * Clause -> VarDef
+  VarRef                 : Var * Clause -> VarRef
+
+  MatchClause            : Clause
+  GroupByClause          : Clause
+  SelectClause           : Clause
+  None                   : Clause // for unresolved variable
 
 signature constructors // for error checking (see trans/check.str)
 
