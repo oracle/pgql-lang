@@ -51,15 +51,19 @@ signature constructors // for name binding (see trans/trans-for-nabl.str)
   ExpAsVar              : VarDef * Exp * Anonymous* Clause -> ExpAsVar
   AnonymousExpAsVar     : VarDef * Exp * Anonymous* Clause -> AnonymousExpAsVar
 
-  CreateOneGroup         : CreateOneGroup
+  CreateOneGroup        : CreateOneGroup
 
-  VarDef                 : Var * Clause -> VarDef
-  VarRef                 : Var * Clause -> VarRef
+  VarDef                : Var * Clause * OriginalExp * TransformedExp -> VarDef
+  VarRef                : Var * Clause -> VarRef
 
-  MatchClause            : Clause
-  GroupByClause          : Clause
-  SelectClause           : Clause
-  None                   : Clause // for unresolved variable
+  MatchClause           : Clause
+  GroupByClause         : Clause
+  SelectClause          : Clause
+
+  Exp                   : OriginalExp
+  None                  : OriginalExp
+  Exp                   : TransformedExp
+  None                  : TransformedExp
 
 signature constructors // for error checking (see trans/check.str)
 

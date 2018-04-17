@@ -70,10 +70,10 @@ rules
 
   nabl-constraint(|ctx):
     query@NormalizedQuery(_, selectClause, _, matchClause, group-by, having, order-by, _, _, _) -> <fail>
-    with unresolved-vars := <collect-in-outer-query(?VarRef(<id>, None()))> query
+    with unresolved-vars := <collect-in-outer-query(?VarRef(<id>))> query
         ; if None() := group-by
           then <batch-generate-error(|ctx, "Unresolved variable")> unresolved-vars
-          else unresolved-vars-after-grouping := <collect-in-outer-query-outside-aggregation(?VarRef(<id>, None()))> (selectClause, having, order-by)
+          else unresolved-vars-after-grouping := <collect-in-outer-query-outside-aggregation(?VarRef(<id>))> (selectClause, having, order-by)
              ; other-unresolved-vars := <diff> (unresolved-vars, unresolved-vars-after-grouping)
              ; <batch-generate-error(|ctx, "Unresolved variable")> other-unresolved-vars
              ; if CreateOneGroup() := group-by // aggregation without GROUP BY
@@ -225,6 +225,6 @@ rules // temporary limitation
   generate-error-on-cross-constraint(|ctx, variablesDefs):
     t -> t
     where <not(?And(_, _))> t
-    with variables := <collect(?VarRef(<id>) + ?Vertex(<id>) + ?Edge(_, <id>, _, _) + ?Path(_, _, _, _, <id>, _))> t
+    with variables := <collect(?VarRef(<id>, _) + ?Vertex(<id>) + ?Edge(_, <id>, _, _) + ?Path(_, _, _, _, <id>, _))> t
        ; variableRefs := <strip-annos; isect> (variablesDefs, variables)
        ; <try(!(<length> variableRefs, 1); gt; !t; generate-error(|ctx, "Not yet supported: expressions in PATH with references to multiple variables"))> t

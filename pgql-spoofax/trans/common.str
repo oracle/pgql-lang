@@ -26,10 +26,12 @@ rules
 
   is-subquery = ?Subquery(_)
 
-  collect-in-outer-query(s) = collect(is-subquery + s); remove-all(is-subquery)
+  collect-in-outer-query(s) = collect(is-subquery <+ s); remove-all(is-subquery)
 
-  collect-in-outer-query-outside-aggregation(s) = collect(is-subquery + is-aggregate + s); remove-all(is-subquery + is-aggregate)
+  collect-in-outer-query-outside-aggregation(s) = collect(is-subquery <+ is-aggregate <+ s); remove-all(is-subquery + is-aggregate)
 
   alltd-in-outer-query(s) = alltd(is-subquery <+ s)
+
+  alltd-in-outer-query-outside-aggregation(s) = alltd(is-subquery <+ is-aggregate <+ s)
 
   get-aggregations = collect-in-outer-query(is-aggregate)
