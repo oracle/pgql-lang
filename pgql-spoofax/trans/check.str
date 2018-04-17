@@ -83,13 +83,13 @@ rules // vertex in WHERE without rounded brackets
 rules
 
   nabl-constraint(|ctx):
-    NormalizedQuery(_, SelectClause(_, ExpAsVars(select-elems)), _, _, groupClause, _, Some(orderClause), _, _, _) -> <fail>
+    NormalizedQuery(_, SelectClause(_, ExpAsVars(select-elems)), _, _, groupClause, havingClause, orderByClause, _, _, _) -> <fail>
     where
       None() := groupClause
     ; [] := <get-aggregations> select-elems // there are no aggregations in the SELECT
     with
-      aggregations := <get-aggregations> orderClause
-    ; <batch-generate-error(|ctx, "Aggregation in ORDER BY only allowed if SELECT has aggregation")> aggregations
+      aggregations-in-orderByclause := <get-aggregations> orderByClause
+    ; <batch-generate-error(|ctx, "Aggregation in ORDER BY only allowed if SELECT has aggregations")> aggregations-in-orderByclause
 
   // if SELECT DISTINCT then ORDER BY expressions may only be repetitions of expressions in SELECT
   nabl-constraint(|ctx):

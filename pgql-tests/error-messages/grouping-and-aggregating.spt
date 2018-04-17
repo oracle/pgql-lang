@@ -64,7 +64,7 @@ test Aggregation in ORDER BY not expected [[
      MATCH (n)
   ORDER BY [[AVG(n.age)]]
 
-]] error like "Aggregation in ORDER BY only allowed if SELECT has aggregation" at #1
+]] error like "Aggregation in ORDER BY only allowed if SELECT has aggregations" at #1
 
 test Aggregation in ORDER BY not expected [[
 

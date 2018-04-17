@@ -36,7 +36,7 @@ rules
        ; valueExpression' := <resolve-where-clause(|visible-vars, varsAggr)> valueExpression
 
        // GROUP BY
-       ; if (!groupBy; ?Some(_)) + (!selectClause; contains-aggregation)
+       ; if (!groupBy; ?Some(_)) + (!selectClause; contains-aggregation) + (!having; ?Some(_))
          then (groupBy', vars', varsAggr') := <resolve-group-by(|visible-vars, varsAggr)> groupBy
          else (groupBy', vars', varsAggr') := (groupBy, visible-vars, varsAggr)
          end
