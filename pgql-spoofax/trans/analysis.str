@@ -23,7 +23,16 @@ imports
 
 rules // Analysis
 
-  editor-analyze = analyze-all(normalize-before; trans-for-nabl, id, id|<language>)
+  editor-analyze = analyze-all(normalize-before; trans-for-nabl, id, id|<language>); reorder-error-messages
+
+  reorder-error-messages = Result([FileResult(id,id,id,reorder-error-messages-helper,id, id)], id, id, id, id)
+
+  // this is needed to make sure errors for unresolved variables occur last such that SPT can be used to check for other types of errors
+  reorder-error-messages-helper:
+    messages -> messages'
+    with unresolved-variables := <filter(?(_,"Unresolved variable"))> messages
+       ; other := <remove-all(?(_,"Unresolved variable"))> messages
+       ; messages' := <conc> (other, unresolved-variables)
 
 rules // Editor services
 

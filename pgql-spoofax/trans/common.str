@@ -32,6 +32,6 @@ rules
 
   alltd-in-outer-query(s) = alltd(is-subquery <+ s)
 
-  alltd-in-outer-query-outside-aggregation(s) = alltd(is-subquery <+ is-aggregate <+ s)
+  alltd-in-outer-query-outside-aggregation(s) = alltd(s <+ is-subquery <+ is-aggregate)
 
   get-aggregations = collect-in-outer-query(is-aggregate)

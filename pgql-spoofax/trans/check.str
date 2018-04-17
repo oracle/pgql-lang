@@ -21,6 +21,20 @@ rules // Unresolved/duplicate variables
   nabl-check-disable-duplicate(|uri, ns) = id
 
   nabl-constraint(|ctx):
+    query@NormalizedQuery(_, selectClause, _, matchClause, group-by, having, order-by, _, _, _) -> <fail>
+    with unresolved-vars := <collect-in-outer-query(?VarRef(<id>))> query
+        ; if None() := group-by
+          then <batch-generate-error(|ctx, "Unresolved variable")> unresolved-vars
+          else unresolved-vars-after-grouping := <collect-in-outer-query-outside-aggregation(?VarRef(<id>))> (selectClause, having, order-by)
+             ; other-unresolved-vars := <diff> (unresolved-vars, unresolved-vars-after-grouping)
+             ; <batch-generate-error(|ctx, "Unresolved variable")> other-unresolved-vars
+             ; if CreateOneGroup() := group-by // aggregation without GROUP BY
+               then <batch-generate-error(|ctx, "Unresolved variable (did you mean to use an aggregation?)")> unresolved-vars-after-grouping
+               else <batch-generate-error(|ctx, "Unresolved variable (did you mean to use a group key?)")> unresolved-vars-after-grouping
+               end
+          end
+
+  nabl-constraint(|ctx):
     ExpAsVar(_, v, _, SelectClause()) -> <fail>
     with <generate-error-on-duplicate(|ctx, NablNsSelectVar(), "Duplicate select key")> v
 
@@ -67,20 +81,6 @@ rules // vertex in WHERE without rounded brackets
       <generate-error(|ctx, $<Vertices need to be surrounded by brackets: (<<origin-text> v>)>)> v
 
 rules
-
-  nabl-constraint(|ctx):
-    query@NormalizedQuery(_, selectClause, _, matchClause, group-by, having, order-by, _, _, _) -> <fail>
-    with unresolved-vars := <collect-in-outer-query(?VarRef(<id>))> query
-        ; if None() := group-by
-          then <batch-generate-error(|ctx, "Unresolved variable")> unresolved-vars
-          else unresolved-vars-after-grouping := <collect-in-outer-query-outside-aggregation(?VarRef(<id>))> (selectClause, having, order-by)
-             ; other-unresolved-vars := <diff> (unresolved-vars, unresolved-vars-after-grouping)
-             ; <batch-generate-error(|ctx, "Unresolved variable")> other-unresolved-vars
-             ; if CreateOneGroup() := group-by // aggregation without GROUP BY
-               then <batch-generate-error(|ctx, "Unresolved variable (did you mean to use an aggregation?)")> unresolved-vars-after-grouping
-               else <batch-generate-error(|ctx, "Unresolved variable (did you mean to use a group key?)")> unresolved-vars-after-grouping
-               end
-          end
 
   nabl-constraint(|ctx):
     NormalizedQuery(_, SelectClause(_, ExpAsVars(select-elems)), _, _, groupClause, _, Some(orderClause), _, _, _) -> <fail>
