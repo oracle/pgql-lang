@@ -6,7 +6,7 @@ imports
 
 type rules
 
-  VarRef(v, _) : ty
+  VarRef(v, _, _) : ty
   where definition of v : ty
     and not ( ty == PathTy() ) else error $[Path variables not supported in PGQL 1.1] on v
 
@@ -49,7 +49,7 @@ type rules
 
   Subquery(_) : UnknownTy()
 
-  ExpAsVar(exp, var, _, _) : ty
+  ExpAsVar(exp, var, _, _, _) : ty
   where exp : ty
 
   ScalarSubquery(Subquery(NormalizedQuery(_, SelectClause(_, ExpAsVars([expAsVar|_])), _, _, _, _, _, _, _, _))) : ty

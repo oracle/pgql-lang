@@ -48,13 +48,17 @@ signature constructors // for the normalized AST (see trans/normalize.str)
 
 signature constructors // for name binding (see trans/trans-for-nabl.str)
 
-  ExpAsVar              : VarDef * Exp * Anonymous* Clause -> ExpAsVar
-  AnonymousExpAsVar     : VarDef * Exp * Anonymous* Clause -> AnonymousExpAsVar
+
+  Vertex                : Var * OriginPosition -> Vertex
+  Edge                  : Var * Var * Var * Direction * OriginPosition -> Edge
+
+  ExpAsVar              : VarDef * Exp * Anonymous * Clause * OriginPosition -> ExpAsVar
+  AnonymousExpAsVar     : VarDef * Exp * Anonymous * Clause * OriginPosition -> AnonymousExpAsVar
 
   CreateOneGroup        : CreateOneGroup
 
-  VarDef                : Var * Clause * OriginalExp * TransformedExp -> VarDef
-  VarRef                : Var * Clause -> VarRef
+  VarDef                : Var * Clause * OriginPosition * OriginalExp * TransformedExp -> VarDef
+  VarRef                : Var * Clause * OriginPosition -> VarRef
 
   MatchClause           : Clause
   GroupByClause         : Clause

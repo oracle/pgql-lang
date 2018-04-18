@@ -70,8 +70,6 @@ rules
 
   get-pgql10-limitiation = (?FromClause(_) + ?Subquery(_) + ?Pgql11AsignSymbol()); to-error-message(|"Use [MATCH pattern WHERE filters] instead of [WHERE pattern mixed with filters]")
 
-  to-error-message(|message) = !ErrorMessage(<origin-track-forced(!message)> <id>)
-
   norm-pgql10 = ?Legacy10Label(x); <to-function(|"label")> [x]
   norm-pgql10 = ?Legacy10Labels(x); <to-function(|"labels")> [x]
   norm-pgql10 = ?Legacy10HasLabel(x, lbl); <to-function(|"has_label")> [x, lbl]

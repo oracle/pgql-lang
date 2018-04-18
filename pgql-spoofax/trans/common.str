@@ -4,6 +4,7 @@ imports
 
   signatures/-
   normalized-signatures
+  runtime/editor/-
 
 rules
 
@@ -35,3 +36,5 @@ rules
   alltd-in-outer-query-outside-aggregation(s) = alltd(s <+ is-subquery <+ is-aggregate)
 
   get-aggregations = collect-in-outer-query(is-aggregate)
+
+  to-error-message(|message) = !ErrorMessage(<origin-track-forced(!message)> <id>)
