@@ -87,7 +87,10 @@ rules
   resolve-select-clause-helper(|varsAggr):
     (ExpAsVar(exp, v, anonymous), (result, vars)) -> (result', vars')
     with exp' := <resolve-var-refs(|vars, varsAggr)> exp // can reference other select variables defined on the left
-       ; vars' := <replace-or-add> (VarDef(v, SelectClause(), exp, exp'), vars)
+       ; if Anonymous() := anonymous; VarRef(_) := exp
+         then vars' := vars // we don't want the second 'v' in 'SELECT v, v.prop' to reference to the first 'v'.
+         else vars' := <replace-or-add> (VarDef(v, SelectClause(), exp, exp'), vars)
+         end
        ; expAsVar' := ExpAsVar(exp', v, anonymous, SelectClause())
        ; result' := <conc> (result, [expAsVar'])
 
