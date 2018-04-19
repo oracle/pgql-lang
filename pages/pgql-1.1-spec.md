@@ -1342,7 +1342,7 @@ Signature | Return value | Description
 `id(element)` | `object` | returns an identifier for the vertex/edge, if one exists.
 `has_label(element, string)` | boolean | returns true if the vertex or edge (first argument) has the given label (second argument).
 `labels(element)` | `set<string>` | returns the labels of the vertex or edge in the case it has multiple labels.
-`label()` | string | returns the label of the vertex or edge in the case it has a single label.
+`label(element)` | string | returns the label of the vertex or edge in the case it has a single label.
 `all_different(val1, val2, .., valn)` | boolean | returns true if the values are all different, a function typically used for specifying isomorphic constraints (see [Subgraph Isomorphism](#subgraph-isomorphism)).
 `in_degree(vertex)` | exact numeric | returns the number of incoming neighbors.
 `out_degree(vertex)` | exact numeric | returns the number of outgoing neighbors.
