@@ -42,7 +42,7 @@ binding rules // variable reference
   ExpAsVar(exp, v, _, GroupByClause(), _):
     defines unique GroupVar v of type ty where exp has type ty // unlike SQL, we currently don't allow duplicate column names (i.e. 'unique')
 
-  VarRef(v, MatchClause(), _):
+  VarRef(v, MatchClause(_), _):
     refers to MatchVar v
 
   VarRef(v, GroupByClause(), _):
@@ -50,3 +50,4 @@ binding rules // variable reference
 
   VarRef(v, SelectClause(), _):
     refers to SelectVar v
+    refers to MatchVar v

@@ -60,7 +60,7 @@ signature constructors // for name binding (see trans/trans-for-nabl.str)
   VarDef                : Var * Clause * OriginPosition * OriginalExp * TransformedExp -> VarDef
   VarRef                : Var * Clause * OriginPosition -> VarRef
 
-  MatchClause           : Clause
+  MatchClause           : Ty -> Clause
   GroupByClause         : Clause
   SelectClause          : Clause
 
@@ -68,6 +68,11 @@ signature constructors // for name binding (see trans/trans-for-nabl.str)
   None                  : OriginalExp
   Exp                   : TransformedExp
   None                  : TransformedExp
+
+  GraphPattern          : Vertices * Connections * Constraints * CrossReferences -> GraphPattern
+
+  CrossRef              : VarRef * Var * ExpectedType -> CrossRef
+  ExpectedType          : Ty -> ExpectedType
 
 signature constructors // for error checking (see trans/check.str)
 

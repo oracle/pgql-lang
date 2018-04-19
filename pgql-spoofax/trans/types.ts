@@ -10,6 +10,15 @@ type rules
   where definition of v : ty
     and not ( ty == PathTy() ) else error $[Path variables not supported in PGQL 1.1] on v
 
+  CrossRef(VarRef(outer-var, _, _), inner-var, MatchClause(VertexTy())) :-
+  where definition of outer-var : ty
+    and ty == VertexTy() else error $[Variable passed from outer query is not a vertex] on inner-var
+
+  CrossRef(VarRef(outer-var, _, _), inner-var, MatchClause(EdgeTy())) :-
+  where definition of outer-var : ty
+    and ty == EdgeTy() else error $[Variable passed from outer query is not an edge] on inner-var
+    and not (ty == EdgeTy()) else error $[Duplicate edge variable: cannot reuse edge variable from outer query] on inner-var
+
   PropRef(_, _) + BindVariable(_) : UnknownTy()
 
   Not(exp) : BooleanTy()
@@ -52,7 +61,7 @@ type rules
   ExpAsVar(exp, var, _, _, _) : ty
   where exp : ty
 
-  ScalarSubquery(Subquery(NormalizedQuery(_, SelectClause(_, ExpAsVars([expAsVar|_])), _, _, _, _, _, _, _, _))) : ty
+  ScalarSubquery(Subquery((_, NormalizedQuery(_, SelectClause(_, ExpAsVars([expAsVar|_])), _, _, _, _, _, _, _, _)))) : ty
   where expAsVar : ty
 
   True() + False()        : BooleanTy()

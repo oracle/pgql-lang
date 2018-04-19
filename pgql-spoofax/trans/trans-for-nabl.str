@@ -28,15 +28,17 @@ rules
 
   trans-query(|vars, varsAggr):
     NormalizedQuery(CommonPathExpressions(pathExpressions), selectClause, fromClause, GraphPattern(vertices, edges, valueExpression), groupBy, having, orderBy, limitOffsets, error-messages, version) ->
-        NormalizedQuery(CommonPathExpressions(pathExpressions'), selectClause', fromClause, GraphPattern(vertices', edges', valueExpression'), groupBy', having', orderBy', limitOffsets, error-messages, version)
+        (crossReferences', NormalizedQuery(CommonPathExpressions(pathExpressions'), selectClause', fromClause, GraphPattern(vertices', edges', valueExpression'), groupBy', having', orderBy', limitOffsets, error-messages, version))
     with
        // PATH
-         pathExpressions' := <map(trans-path-expression(|vars))> pathExpressions
+         path-expression-return := <map(trans-path-expression(|vars))> pathExpressions
+       ; pathExpressions' := <map(?(<id>, _))> path-expression-return
+       ; crossReferences := <map(?(_, <id>)); concat> path-expression-return
 
        // FROM + MATCH
        ; (vertices', edges') := <alltd(add-offset)> (vertices, edges)
        ; new-vars := <collect(to-varDef)> (vertices', edges')
-       ; visible-vars := <replace-or-add-all> (new-vars, vars)
+       ; (visible-vars, crossReferences') := <replace-or-add-all> (new-vars, (vars, crossReferences))
 
        // WHERE
        ; valueExpression' := <resolve-where-clause(|visible-vars, varsAggr)> valueExpression
@@ -59,12 +61,19 @@ rules
   add-offset = ?Vertex(<id>); !Vertex(<id>, <origin-offset>)
   add-offset = ?Edge(src, <id>, dst, direction); !Edge(src, <id>, dst, direction, <origin-offset>)
 
-  to-varDef = (?Vertex(<id>, origin-offset) + ?Edge(_, <id>, _, _, origin-offset)); !VarDef(<id>, MatchClause(), origin-offset, None(), None())
+  to-varDef = ?Vertex(name, origin-offset); !VarDef(name, MatchClause(VertexTy()), origin-offset, None(), None())
+  to-varDef = ?Edge(_, name, _, _, origin-offset); !VarDef(name, MatchClause(EdgeTy()), origin-offset, None(), None())
 
   replace-or-add-all = foldl(replace-or-add)
 
   replace-or-add:
-    (vd@VarDef(v, _, _, _, _), varDefs) -> <conc> (<remove-all(?VarDef(v, _, _, _, _))> varDefs, [vd])
+    (vd@VarDef(v, clause, _, _, _), (varDefs, crossReferences)) -> (varDefs', crossReferences')
+    with if <fetch(?VarDef(v, _, _, _, _); ?VarDef(v-from-outer-query, clause-from-outer-query, origin-position-from-outer-query, _, _))> varDefs
+         then varDefs' := <conc> (<remove-all(?VarDef(v, _, _, _, _))> varDefs, [vd])
+            ; crossReferences' := <conc> (crossReferences, [CrossRef(VarRef(v-from-outer-query, clause-from-outer-query, origin-position-from-outer-query), v, clause)])
+         else varDefs' := <conc> (varDefs, [vd])
+            ; crossReferences' := crossReferences
+         end
 
   resolve-where-clause(|vars, varsAggr):
     valueExpression -> valueExpression'
@@ -78,7 +87,7 @@ rules
   resolve-group-by-helper(|original-vars, varsAggr):
     (ExpAsVar(exp, v, anonymous), (result, vars)) -> (result', vars')
     with exp' := <resolve-var-refs(|original-vars, varsAggr)> exp // cannot reference other group variables defined on the left (may remove this restriction in the future)
-       ; vars' := <replace-or-add> (VarDef(v, GroupByClause(), <origin-offset> v, exp, exp'), vars)
+       ; (vars', _) := <replace-or-add> (VarDef(v, GroupByClause(), <origin-offset> v, exp, exp'), (vars, []))
        ; result' := <conc> (result, [ExpAsVar(exp', v, anonymous, GroupByClause(), <origin-offset> v)])
 
   resolve-group-by(|vars, varsAggr):
@@ -100,7 +109,7 @@ rules
     with exp' := <resolve-var-refs(|vars, varsAggr)> exp // can reference other select variables defined on the left
        ; if Anonymous() := anonymous; VarRef(_) := exp
          then vars' := vars // we don't want the second 'v' in 'SELECT v, v.prop' to reference to the first 'v'.
-         else vars' := <replace-or-add> (VarDef(v, SelectClause(), <origin-offset> v, exp, exp'), vars)
+         else (vars', _) := <replace-or-add> (VarDef(v, SelectClause(), <origin-offset> v, exp, exp'), (vars, []))
          end
        ; expAsVar' := ExpAsVar(exp', v, anonymous, SelectClause(), <origin-offset> v)
        ; result' := <conc> (result, [expAsVar'])
@@ -110,7 +119,7 @@ rules
   resolve-var-ref(|vars, varsAggr):
     VarRef(v) -> varRef
     with varRef := <
-        fetch(?VarDef(v, MatchClause(), origin-offset, _, _)); !VarRef(v, MatchClause(), origin-offset)
+        fetch(?VarDef(v, MatchClause(ty), origin-offset, _, _)); !VarRef(v, MatchClause(ty), origin-offset)
         <+ fetch(?VarDef(v, GroupByClause(), origin-offset, _, _)); !VarRef(v, GroupByClause(), origin-offset)
         <+ fetch(?VarDef(v, SelectClause(), origin-offset, _, _)); !VarRef(v, SelectClause(), origin-offset)
         <+ !VarRef(v)
@@ -139,12 +148,12 @@ rules
   contains-aggregation = collect-in-outer-query(is-aggregate); not ( ?[] )
 
   trans-path-expression(|vars):
-    CommonPathExpression(name, vertices, edges, valueExpression) -> CommonPathExpression(name, vertices', edges', valueExpression')
+    CommonPathExpression(name, vertices, edges, valueExpression) -> (CommonPathExpression(name, vertices', edges', valueExpression'), crossReferences)
     with
        // pattern
         (vertices', edges') := <alltd(add-offset)> (vertices, edges)
        ; new-vars := <collect(to-varDef)> (vertices', edges')
-       ; visible-vars := <replace-or-add-all> (new-vars, vars)
+       ; (visible-vars, crossReferences) := <replace-or-add-all> (new-vars, (vars, []))
 
        // WHERE
        ; varsAggr := []

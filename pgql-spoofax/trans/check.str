@@ -160,10 +160,10 @@ rules // subqueries
        ; <batch-generate-error(|ctx, "Scalar subquery is expected to return a single column, but multiple columns were returned")> multiColumnScalarSubqueries
        ; <batch-generate-error(|ctx, "Scalar subquery is expected to return a single column, but zero columns were returned")> zeroColumnScalarSubqueries
 
-  is-multi-column-subquery = ?Subquery(NormalizedQuery(_, SelectClause(_, e@ExpAsVars(expAsVars)), _, _, _, _, _, _, _, _))
+  is-multi-column-subquery = ?Subquery((_, NormalizedQuery(_, SelectClause(_, e@ExpAsVars(expAsVars)), _, _, _, _, _, _, _, _)))
                            ; where(not( <eq> (<length> expAsVars, 1) )); !e
 
-  is-zero-column-subquery = ?Subquery(NormalizedQuery(_, SelectClause(_, e@ExpAsVars(expAsVars)), _, _, _, _, _, _, _, _))
+  is-zero-column-subquery = ?Subquery((_, NormalizedQuery(_, SelectClause(_, e@ExpAsVars(expAsVars)), _, _, _, _, _, _, _, _)))
                            ; where( <eq> (<length> expAsVars, 0) ); !e
 
 rules // helper rules
