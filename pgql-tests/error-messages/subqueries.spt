@@ -106,6 +106,19 @@ test Reference variable from outer query after aggregation (3) [[
 
 ]] error like "Unresolved variable (did you mean to use an aggregation?)" at #1
 
+test Variable from outer query not visible in inner query (1) [[
+
+    SELECT COUNT(*) AS cnt
+     MATCH (n) -> (m)
+  GROUP BY n
+  ORDER BY EXISTS (
+                    SELECT *
+                     MATCH (n) -> (n)
+                     WHERE [[m]].age = n.age
+                  )
+
+]] error like "Unresolved variable" at #1
+
 test Scalar subquery with zero columns (1) [[
 
   SELECT ( SELECT [[*]] MATCH () ) AS x
@@ -133,3 +146,41 @@ test Scalar subquery with multiple columns (2) [[
    MATCH (n)
 
 ]] error like "Scalar subquery is expected to return a single column, but multiple columns were returned" at #1, #2
+
+test Duplicate variable passed from outer query (1) [[
+
+  SELECT EXISTS ( SELECT e MATCH (n) <-[ [[e]] ]- (m) ) AS x
+   MATCH (n) -[e]-> (m)
+
+]] error like "a variable with the same name is passed from an outer query" at #1
+
+test Duplicate variable passed from outer query (2) [[
+
+  SELECT EXISTS ( SELECT e MATCH ([[e]]) ) AS x
+   MATCH (n) -[e]-> (m)
+
+]] error like "a variable with the same name is passed from an outer query" at #1
+
+test Duplicate variable passed from outer query (3) [[
+
+  SELECT EXISTS ( SELECT e MATCH (n) <-[ [[e]] ]- (m) ) AS x
+   MATCH (n) -[e]-> (m)
+  GROUP BY e
+
+]] error like "a variable with the same name is passed from an outer query" at #1
+
+test Duplicate variable passed from outer query (4) [[
+
+  SELECT 123 AS b, e
+   MATCH (a) -[e]-> ()
+  ORDER BY EXISTS ( SELECT 123 AS c MATCH ([[b]]), ([[e]]) )
+
+]] error like "a variable with the same name is passed from an outer query" at #1, #2
+
+test Duplicate variable passed from outer query (5) [[
+
+  SELECT 123 AS b, e, a
+   MATCH (a) -[e]-> ()
+  ORDER BY EXISTS ( SELECT 123 AS c MATCH () -[ [[b]] ]-> () -[ [[e]] ]-> ()  -[ [[a]] ]-> () )
+
+]] error like "a variable with the same name is passed from an outer query" at #1, #2, #3

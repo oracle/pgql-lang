@@ -70,7 +70,7 @@ rules
     (vd@VarDef(v, clause, _, _, _), (varDefs, crossReferences)) -> (varDefs', crossReferences')
     with if <fetch(?VarDef(v, _, _, _, _))> varDefs
          then varDefs' := <conc> (<remove-all(?VarDef(v, _, _, _, _))> varDefs, [vd])
-            ; if <fetch(?VarDef(v, _, _, _, _)); ?VarDef(v-from-outer-query, clause-from-outer-query, origin-position-from-outer-query, _, _)> original-vars
+            ; if <fetch(?VarDef(v, _, _, _, _); ?VarDef(v-from-outer-query, clause-from-outer-query, origin-position-from-outer-query, _, _))> original-vars
               then crossReferences' := <conc> (crossReferences, [CrossRef(VarRef(v-from-outer-query, clause-from-outer-query, origin-position-from-outer-query), v, clause)])
               else crossReferences' := crossReferences
               end
