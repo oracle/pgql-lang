@@ -7,47 +7,47 @@ imports
 namespaces
 
   CommonPathExpression // regular PATH pattern
-  MatchVar             // var defined in WHERE
-  GroupVar             // var defined in GROUP BY
-  SelectVar            // var defined in SELECT
+  Var
+
+properties
+
+  OriginOffset of Var
 
 binding rules // scoping
 
   NormalizedQuery(_, _, _, _, _, _, _, _, _, _):
-    scopes MatchVar, SelectVar, GroupVar, CommonPathExpression
+    scopes Var, CommonPathExpression
 
 binding rules // variable definition
 
   CommonPathExpression(p, _, _, _):
     defines unique CommonPathExpression p
-    scopes MatchVar, SelectVar, GroupVar
+    scopes Var
 
-  Vertex(n, _):
-    defines non-unique MatchVar n of type VertexTy()
+  Vertex(n, origin-offset):
+    defines non-unique Var n
+      of OriginOffset origin-offset
+      of type VertexTy()
 
-  Edge(_, e, _, _, _):
-    defines unique MatchVar e of type EdgeTy()
+  Edge(_, e, _, _, origin-offset):
+    defines unique Var e
+      of OriginOffset origin-offset
+      of type EdgeTy()
 
   Path(_, _, _, _, p, _):
-    defines unique MatchVar p of type PathTy()
+    defines unique Var p
+      of type PathTy()
+
+  ExpAsVar(exp, v, _, _, origin-offset):
+    defines unique Var v // unlike SQL, we currently don't allow duplicate column names. This means that we eagerly detect potential ambiguous references). We may relax this in the future.
+      of OriginOffset origin-offset
+      of type ty where exp has type ty
 
 binding rules // variable reference
 
   PathPatternRef(p):
     refers to CommonPathExpression p
 
-  ExpAsVar(exp, v, _, SelectClause(), _):
-    defines unique SelectVar v of type ty where exp has type ty // unlike SQL, we currently don't allow duplicate column names (i.e. 'unique')
-
-  ExpAsVar(exp, v, _, GroupByClause(), _):
-    defines unique GroupVar v of type ty where exp has type ty // unlike SQL, we currently don't allow duplicate column names (i.e. 'unique')
-
-  VarRef(v, MatchClause(_), _):
-    refers to MatchVar v
-
-  VarRef(v, GroupByClause(), _):
-    refers to GroupVar v
-
-  VarRef(v, SelectClause(), _):
-    refers to SelectVar v
-    refers to MatchVar v
+  VarRef(v, _, origin-offset):
+    refers to Var v
+      of OriginOffset origin-offset

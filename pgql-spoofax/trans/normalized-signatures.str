@@ -74,6 +74,8 @@ signature constructors // for name binding (see trans/trans-for-nabl.str)
   CrossRef              : VarRef * Var * ExpectedType -> CrossRef
   ExpectedType          : Ty -> ExpectedType
 
+  Key                   : VarRef * OriginOffset -> Key
+
 signature constructors // for error checking (see trans/check.str)
 
   ReferenceInInlinedConstraint      : Var -> ReferenceInInlinedConstraint

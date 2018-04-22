@@ -296,9 +296,15 @@ rules
     star@Star() -> <origin-track-forced(!ExpAsVars(expAsSelectVars))> star
     with if [] := group-exps
            then vars := <collect(?Vertex(<id>) + ?Edge(_, <id>, _, _) + ?Subquery(_)); filter(is-string; not(is-substring(GENERATED)))> graphPattern;
-                expAsSelectVars := <map(!ExpAsVar(VarRef(<id>), None()); norm-ExpAsVar)> vars
+                expAsSelectVars := <map(generate-ExpAsVar(|star); norm-ExpAsVar)> vars
            else expAsSelectVars := star
          end
+
+  generate-ExpAsVar(|star):
+    v -> expAsVar
+    with v' := <origin-track-forced(!v)> star
+       ; varRef := <origin-track-forced(!VarRef(v'))> star
+       ; expAsVar := <origin-track-forced(!ExpAsVar(varRef, None()))> star
 
   norm-orderBy(|allExpAsVars, version):
     Some(OrderByClause(elems)) -> Some(OrderByClause(elems'))

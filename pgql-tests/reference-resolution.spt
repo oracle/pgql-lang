@@ -24,22 +24,20 @@ test Vertex from MATCH in ORDER BY [[
 
     SELECT *
      MATCH ([[n]])
-  ORDER BY [[n]], in_degree([[n]]), [[n]].tax_rate * [[n]].salary
+  ORDER BY in_degree([[n]]), [[n]].tax_rate * [[n]].salary
 
 ]] resolve #2 to #1
    resolve #3 to #1
    resolve #4 to #1
-   resolve #5 to #1
 
 test Edge from MATCH in ORDER BY [[
 
     SELECT *
      MATCH (n) -[ [[e]]:likes ]-> (m)
-  ORDER BY [[e]], label([[e]]), [[e]].weight
+  ORDER BY label([[e]]), [[e]].weight
 
 ]] resolve #2 to #1
    resolve #3 to #1
-   resolve #4 to #1
 
 test Variable from SELECT in ORDER BY [[
 
@@ -59,9 +57,9 @@ test Variable from GROUP BY in SELECT [[
 
 test Variable from GROUP BY in ORDER BY [[
 
-    SELECT nAge
+    SELECT [[nAge]]
      MATCH (n)
-  GROUP BY n.age AS [[nAge]]
+  GROUP BY n.age AS nAge
   ORDER BY [[nAge]]
 
 ]] resolve #2 to #1
@@ -131,3 +129,26 @@ test Variable reference in NOT EXISTS #2 [[
 
 ]] resolve #3 to #1
    resolve #4 to #2
+
+test Can't reference previous SELECT element [[
+
+  SELECT x AS n, [[n]]
+   MATCH (x) -> ([[n]])
+
+]] resolve #1 to #2
+
+test Can't reference previous GROUP BY element [[
+
+  SELECT x
+   MATCH (x) -> ([[n]])
+  GROUP BY x AS n, [[n]]
+
+]] resolve #2 to #1
+
+test Reference select key from outer query [[
+
+    SELECT n.age AS [[nAge]]
+     MATCH (n)
+   ORDER BY ( SELECT [[nAge]] MATCH (n) LIMIT 1 )
+
+]] resolve #2 to #1

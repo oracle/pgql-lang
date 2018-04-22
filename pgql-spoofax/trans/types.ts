@@ -12,12 +12,11 @@ type rules
 
   CrossRef(VarRef(outer-var, _, _), inner-var, MatchClause(VertexTy())) :-
   where definition of outer-var : ty
-    and ty == VertexTy() else error $[Variable passed from outer query is not a vertex] on inner-var
+    and ty == VertexTy() else error $[Duplicate variable; a variable with the same name is passed from outer query] on inner-var
 
   CrossRef(VarRef(outer-var, _, _), inner-var, MatchClause(EdgeTy())) :-
   where definition of outer-var : ty
-    and ty == EdgeTy() else error $[Variable passed from outer query is not an edge] on inner-var
-    and not (ty == EdgeTy()) else error $[Duplicate edge variable: cannot reuse edge variable from outer query] on inner-var
+    and ty == EdgeTy() or not (ty == EdgeTy()) else error $[Duplicate variable; a variable with the same name is passed from outer query] on inner-var
 
   PropRef(_, _) + BindVariable(_) : UnknownTy()
 
