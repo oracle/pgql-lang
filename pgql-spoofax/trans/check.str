@@ -50,7 +50,7 @@ rules // Unresolved/duplicate variables
        ; redefinitions-in-select := <strip-annos; isect> (selectVars, groupVars)
        ; <batch-generate-error(|ctx, "Duplicate variable: variable already defined in the GROUP BY clause")> redefinitions-in-select
 
-  get-pattern-elem = ?Vertex(<id>, _) + ?Edge(_, <id>, _, _, _) + ?Path(_, _, _, _, <id>, _)
+  get-pattern-elem = ?Vertex(<id>, _, _) + ?Edge(_, <id>, _, _, _, _) + ?Path(_, _, _, _, <id>, _)
 
   generate-error-on-duplicates(|ctx) = strip-annos; ?vars; map(generate-error-on-duplicate(|ctx, vars))
 
@@ -74,7 +74,7 @@ rules // in-lined constraints
 rules // vertex in WHERE without rounded brackets
 
   nabl-constraint(|ctx):
-    Vertex(v, _) -> <fail>
+    Vertex(v, _, _) -> <fail>
     where
       <string-ends-with(|<VERTEX_WITHOUT_BRACKETS>)> v
     with
@@ -160,10 +160,10 @@ rules // subqueries
        ; <batch-generate-error(|ctx, "Scalar subquery is expected to return a single column, but multiple columns were returned")> multiColumnScalarSubqueries
        ; <batch-generate-error(|ctx, "Scalar subquery is expected to return a single column, but zero columns were returned")> zeroColumnScalarSubqueries
 
-  is-multi-column-subquery = ?Subquery((_, NormalizedQuery(_, SelectClause(_, e@ExpAsVars(expAsVars)), _, _, _, _, _, _, _, _)))
+  is-multi-column-subquery = ?Subquery(NormalizedQuery(_, SelectClause(_, e@ExpAsVars(expAsVars)), _, _, _, _, _, _, _, _))
                            ; where(not( <eq> (<length> expAsVars, 1) )); !e
 
-  is-zero-column-subquery = ?Subquery((_, NormalizedQuery(_, SelectClause(_, e@ExpAsVars(expAsVars)), _, _, _, _, _, _, _, _)))
+  is-zero-column-subquery = ?Subquery(NormalizedQuery(_, SelectClause(_, e@ExpAsVars(expAsVars)), _, _, _, _, _, _, _, _))
                            ; where( <eq> (<length> expAsVars, 0) ); !e
 
 rules // helper rules
@@ -191,8 +191,8 @@ rules // temporary limitation
 
   nabl-constraint(|ctx):
     CommonPathExpression(_, vertices, connections, Constraints([constraint])) -> <fail>
-    with vertexVariables := <collect(?Vertex(<id>, _))> vertices
-       ; connectionsVariables := <collect(?Edge(_, <id>, _, _, _) + ?Path(_, _, _, _, <id>, _))> connections
+    with vertexVariables := <collect(?Vertex(<id>, _, _))> vertices
+       ; connectionsVariables := <collect(?Edge(_, <id>, _, _, _, _) + ?Path(_, _, _, _, <id>, _))> connections
        ; variablesDefs := <union> (vertexVariables, connectionsVariables)
        ; <generate-error-on-cross-constraint(|ctx, variablesDefs)> constraint
 
@@ -204,6 +204,6 @@ rules // temporary limitation
   generate-error-on-cross-constraint(|ctx, variablesDefs):
     t -> t
     where <not(?And(_, _))> t
-    with variables := <collect(?VarRef(<id>, _, _) + ?Vertex(<id>, _) + ?Edge(_, <id>, _, _, _) + ?Path(_, _, _, _, <id>, _))> t
+    with variables := <collect(?VarRef(<id>, _, _) + ?Vertex(<id>, _, _) + ?Edge(_, <id>, _, _, _, _) + ?Path(_, _, _, _, <id>, _))> t
        ; variableRefs := <strip-annos; isect> (variablesDefs, variables)
        ; <try(!(<length> variableRefs, 1); gt; !t; generate-error(|ctx, "Not yet supported: expressions in PATH with references to multiple variables"))> t

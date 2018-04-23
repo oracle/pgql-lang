@@ -24,12 +24,12 @@ binding rules // variable definition
     defines unique CommonPathExpression p
     scopes Var
 
-  Vertex(n, origin-offset):
+  Vertex(n, origin-offset, _):
     defines non-unique Var n
       of OriginOffset origin-offset
       of type VertexTy()
 
-  Edge(_, e, _, _, origin-offset):
+  Edge(_, e, _, _, origin-offset, _):
     defines unique Var e
       of OriginOffset origin-offset
       of type EdgeTy()
