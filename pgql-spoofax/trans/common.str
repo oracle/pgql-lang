@@ -17,9 +17,8 @@ rules
   get-exp-from-aggregation = ?COUNT(_, <id>) + ?MIN(_, <id>) + ?MAX(_, <id>) + ?SUM(_, <id>) + ?AVG(_, <id>)
 
   GENERATED = !"<<anonymous>>"
-  // add-generated-suffix = !(<id>, <GENERATED>); conc-strings
-  add-unique-suffix(|c) = !(<id>, <unique-name(|c)>); conc-strings
-  unique-name(|c) = !(<GENERATED>, "_", <next-counter; write-to-string> c); conc-strings
+
+  unique-name(|c, origin) = !origin; origin-track-forced(!(<GENERATED>, "_", <next-counter; write-to-string> c); conc-strings)
   
   VERTEX_WITHOUT_BRACKETS = !"<<vertex-without-brackets>>"
 

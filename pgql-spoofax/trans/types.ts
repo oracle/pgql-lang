@@ -6,15 +6,15 @@ imports
 
 type rules
 
-  VarRef(v, _, _) : ty
+  VarRef(v, _) : ty
   where definition of v : ty
     and not ( ty == PathTy() ) else error $[Path variables not supported in PGQL 1.1] on v
 
-  Vertex(v, _, Correlation(VarRef(outer-var, _, _))) :-
+  Vertex(v, _, Correlation(VarRef(outer-var, _))) :-
   where definition of outer-var : ty
     and ty == VertexTy() else error $[Duplicate variable (a variable with the same name is passed from an outer query)] on v
 
-  Edge(_, e, _, _, _, Correlation(VarRef(outer-var, _, _))) :-
+  Edge(_, e, _, _, _, Correlation(VarRef(outer-var, _))) :-
   where definition of outer-var : ty
     and not (ty == ty /* make it always throw an error */) else error $[Duplicate variable (a variable with the same name is passed from an outer query)] on e
 
@@ -57,7 +57,7 @@ type rules
 
   Subquery(_) : UnknownTy()
 
-  ExpAsVar(exp, var, _, _, _) : ty
+  ExpAsVar(exp, var, _, _) : ty
   where exp : ty
 
   ScalarSubquery(Subquery(NormalizedQuery(_, SelectClause(_, ExpAsVars([expAsVar|_])), _, _, _, _, _, _, _, _))) : ty

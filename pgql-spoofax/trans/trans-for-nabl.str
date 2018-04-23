@@ -23,6 +23,7 @@ imports
 rules
 
   trans-for-nabl = trans-query(|[], [])
+                   + Start-Plhdr() // for empty query string
 
 rules
 
@@ -54,32 +55,34 @@ rules
        ; having' := <resolve-var-refs(|vars'', varsAggr')> having
 
        // ORDER BY
-       ; orderBy' := <resolve-var-refs(|vars'', varsAggr')> orderBy
+       ; orderBy' := <resolve-var-refs(|vars'', varsAggr'); alltd(optimize-order-by)> orderBy
 
   trans-elem(|vars):
-    Vertex(v) -> Vertex(v, <origin-offset> v, correlation)
-    with correlation := <to-Correlation(|vars)> v
+    Vertex(v) -> Vertex(v, origin-offset, correlation)
+    with origin-offset := <origin-offset> v
+       ; correlation := <to-Correlation(|vars)> v
 
   trans-elem(|vars):
-    Edge(src, e, dst, direction) -> Edge(src, e, dst, direction, <origin-offset> e, correlation)
-    with correlation := <to-Correlation(|vars)> e
+    Edge(src, e, dst, direction) -> Edge(src, e, dst, direction, origin-offset, correlation)
+    with origin-offset := <origin-offset> e
+       ; correlation := <to-Correlation(|vars)> e
 
   to-Correlation(|vars):
     v -> correlation
-    with if <fetch(?VarDef(v, _, _, _, _); ?VarDef(v-from-outer-query, clause-from-outer-query, origin-position-from-outer-query, _, _))> vars
-         then correlation := Correlation(VarRef(v-from-outer-query, clause-from-outer-query, origin-position-from-outer-query))
+    with if <fetch(?VarDef(v, _, _, _); ?VarDef(v-from-outer-query, origin-position-from-outer-query, _, _))> vars
+         then correlation := Correlation(VarRef(v-from-outer-query, origin-position-from-outer-query))
          else correlation := None()
          end
 
-  to-varDef = ?Vertex(name, origin-offset, _); !VarDef(name, MatchClause(VertexTy()), origin-offset, None(), None())
-  to-varDef = ?Edge(_, name, _, _, origin-offset, _); !VarDef(name, MatchClause(EdgeTy()), origin-offset, None(), None())
+  to-varDef = ?Vertex(name, origin-offset, _); !VarDef(name, origin-offset, None(), None())
+  to-varDef = ?Edge(_, name, _, _, origin-offset, _); !VarDef(name, origin-offset, None(), None())
 
   replace-or-add-all = foldl(replace-or-add)
 
   replace-or-add:
-    (vd@VarDef(v, clause, _, _, _), varDefs) -> varDefs'
-    with if <fetch(?VarDef(v, _, _, _, _))> varDefs
-         then varDefs' := <conc> (<remove-all(?VarDef(v, _, _, _, _))> varDefs, [vd])
+    (vd@VarDef(v, _, _, _), varDefs) -> varDefs'
+    with if <fetch(?VarDef(v, _, _, _))> varDefs
+         then varDefs' := <conc> (<remove-all(?VarDef(v, _, _, _))> varDefs, [vd])
          else varDefs' := <conc> (varDefs, [vd])
          end
 
@@ -89,7 +92,7 @@ rules
 
   resolve-group-by(|vars, varsAggr):
     Some(GroupByClause(expAsVars)) -> (Some(GroupByClause(expAsVars')), vars', varsAggr')
-    with (expAsVars', vars') := <foldl(resolve-exp-as-var(|vars, varsAggr, GroupByClause()))> (expAsVars, ([], []))
+    with (expAsVars', vars') := <foldl(resolve-exp-as-var(|vars, varsAggr))> (expAsVars, ([], []))
        ; varsAggr' := vars
 
   resolve-group-by(|vars, varsAggr):
@@ -102,15 +105,15 @@ rules
     with if Star() := expAsVars
          then eav' := expAsVars
             ; vars':= vars
-         else (expAsVars', vars') := <foldl(resolve-exp-as-var(|vars, varsAggr, SelectClause()))> (expAsVars, ([], vars))
+         else (expAsVars', vars') := <foldl(resolve-exp-as-var(|vars, varsAggr))> (expAsVars, ([], vars))
             ; eav' := <origin-track-forced(!ExpAsVars(expAsVars'))> eav
          end
 
-  resolve-exp-as-var(|original-vars, varsAggr, clause):
+  resolve-exp-as-var(|original-vars, varsAggr):
     (t@ExpAsVar(exp, v, anonymous), (result, vars)) -> (result', vars')
     with exp' := <resolve-var-refs(|original-vars, varsAggr)> exp
-       ; vars' := <replace-or-add> (VarDef(v, clause, <origin-offset> v, exp, exp'), vars)
-       ; expAsVar' := <origin-track-forced(!ExpAsVar(exp', v, anonymous, clause, <origin-offset> v))> t
+       ; vars' := <replace-or-add> (VarDef(v, <origin-offset> v, exp, exp'), vars)
+       ; expAsVar' := <origin-track-forced(!ExpAsVar(exp', v, anonymous, <origin-offset> v))> t
        ; result' := <conc> (result, [expAsVar'])
 
   resolve-var-refs(|vars, varsAggr) = alltd(resolve-var-ref(|vars, varsAggr)); alltd-in-outer-query-outside-aggregation(replace-exp-with-ref(|vars))
@@ -118,9 +121,7 @@ rules
   resolve-var-ref(|vars, varsAggr):
     t@VarRef(v) -> varRef
     with varRef := <
-        fetch(?VarDef(v, MatchClause(ty), origin-offset, _, _)); !VarRef(v, MatchClause(ty), origin-offset)
-        <+ fetch(?VarDef(v, GroupByClause(), origin-offset, _, _)); !VarRef(v, GroupByClause(), origin-offset)
-        <+ fetch(?VarDef(v, SelectClause(), origin-offset, _, _)); !VarRef(v, SelectClause(), origin-offset)
+        fetch(?VarDef(v, origin-offset, _, _)); !VarRef(v, origin-offset)
         <+ !VarRef(v)
       > vars
 
@@ -141,8 +142,8 @@ rules
     where not ( None() := exp )
         ; varRef := <fetch-elem(replace-exp-with-ref-helper(|exp))> vars
 
-  replace-exp-with-ref-helper(|exp) = ?VarDef(v, clause, origin-offset, original-exp, _); where ( <eq> (exp, original-exp)); !VarRef(v, clause, origin-offset)
-  replace-exp-with-ref-helper(|exp) = ?VarDef(v, clause, origin-offset, _, resolved-exp); where ( <eq> (exp, resolved-exp)); !VarRef(v, clause, origin-offset)
+  replace-exp-with-ref-helper(|exp) = ?VarDef(v, origin-offset, original-exp, _); where ( <eq> (exp, original-exp)); !VarRef(v, origin-offset)
+  replace-exp-with-ref-helper(|exp) = ?VarDef(v, origin-offset, _, resolved-exp); where ( <eq> (exp, resolved-exp)); !VarRef(v, origin-offset)
 
   contains-aggregation = collect-in-outer-query(is-aggregate); not ( ?[] )
 
@@ -157,3 +158,7 @@ rules
        // WHERE
        ; varsAggr := []
        ; valueExpression' := <resolve-where-clause(|visible-vars, varsAggr)> valueExpression
+
+  optimize-order-by:
+    OrderByClause(elems) -> OrderByClause(elems')
+    with elems' := <make-set-while-preserving-ordering> elems // optimization to translate e.g. ORDER BY x, y, x, y into ORDER BY x, y

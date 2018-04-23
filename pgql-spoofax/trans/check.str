@@ -37,16 +37,16 @@ rules // Unresolved/duplicate variables
   nabl-constraint(|ctx):
     NormalizedQuery(_, selectClause, _, GraphPattern(vertices, edges, _), groupClause, _, _, _, _, _) -> <fail>
     with matchVars := <collect(get-pattern-elem)> (vertices, edges)
-       ; groupExpressions := <collect(?ExpAsVar(_, <id>, _, _, _))> groupClause
-       ; selectExpressions := <collect(?ExpAsVar(_, <id>, _, _, _))> selectClause
+       ; groupExpressions := <collect(?ExpAsVar(_, <id>, _, _))> groupClause
+       ; selectExpressions := <collect(?ExpAsVar(_, <id>, _, _))> selectClause
        ; <generate-error-on-duplicates(|ctx)> matchVars
        ; <generate-error-on-duplicates(|ctx)> groupExpressions
        ; <generate-error-on-duplicates(|ctx)> selectExpressions
 
-       ; groupVars := <collect(?ExpAsVar(_, <id>, NonAnonymous(), _, _))> groupClause
+       ; groupVars := <collect(?ExpAsVar(_, <id>, NonAnonymous(), _))> groupClause
        ; redefinitions-in-groupBy := <strip-annos; isect> (groupVars, matchVars)
        ; <batch-generate-error(|ctx, "Duplicate variable: variable already defined in the MATCH clause")> redefinitions-in-groupBy
-       ; selectVars := <collect(?ExpAsVar(_, <id>, NonAnonymous(), _, _))> selectClause
+       ; selectVars := <collect(?ExpAsVar(_, <id>, NonAnonymous(), _))> selectClause
        ; redefinitions-in-select := <strip-annos; isect> (selectVars, groupVars)
        ; <batch-generate-error(|ctx, "Duplicate variable: variable already defined in the GROUP BY clause")> redefinitions-in-select
 
@@ -95,9 +95,9 @@ rules
   nabl-constraint(|ctx):
     NormalizedQuery(_, SelectClause(Some(Distinct()), ExpAsVars(select-elems)), _, _, _, _, Some(OrderByClause(order-by-elems)), _, _, _) -> <fail>
     with
-      select-vars := <map(?ExpAsVar(_, <id>, _, _, _)); strip-annos> select-elems
+      select-vars := <map(?ExpAsVar(_, <id>, _, _)); strip-annos> select-elems
     ; order-by-expressions := <map(?OrderByElem(<id>, _, _)); strip-annos> order-by-elems
-    ; order-by-expressions-not-in-select := <remove-all(?VarRef(<id>, _, _); !(<id>, select-vars); elem)> order-by-expressions
+    ; order-by-expressions-not-in-select := <remove-all(?VarRef(<id>, _); !(<id>, select-vars); elem)> order-by-expressions
     ; <batch-generate-error(|ctx, "Because of DISTINCT projection, the expression in ORDER BY should be one of the expressions in the SELECT")> order-by-expressions-not-in-select
 
   nabl-constraint(|ctx):
@@ -204,6 +204,6 @@ rules // temporary limitation
   generate-error-on-cross-constraint(|ctx, variablesDefs):
     t -> t
     where <not(?And(_, _))> t
-    with variables := <collect(?VarRef(<id>, _, _) + ?Vertex(<id>, _, _) + ?Edge(_, <id>, _, _, _, _) + ?Path(_, _, _, _, <id>, _))> t
+    with variables := <collect(?VarRef(<id>, _) + ?Vertex(<id>, _, _) + ?Edge(_, <id>, _, _, _, _) + ?Path(_, _, _, _, <id>, _))> t
        ; variableRefs := <strip-annos; isect> (variablesDefs, variables)
        ; <try(!(<length> variableRefs, 1); gt; !t; generate-error(|ctx, "Not yet supported: expressions in PATH with references to multiple variables"))> t

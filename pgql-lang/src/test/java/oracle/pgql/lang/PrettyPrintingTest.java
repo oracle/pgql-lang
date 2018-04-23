@@ -17,49 +17,49 @@ public class PrettyPrintingTest extends AbstractPgqlTest {
 
   @Test
   public void testBasicGraphPattern1() throws Exception {
-    String query = "SELECT n.name WHERE (n) -> (m), m.prop1 = 'abc' AND n.prop2 = m.prop2";
+    String query = "SELECT n.name MATCH (n) -> (m) WHERE m.prop1 = 'abc' AND n.prop2 = m.prop2";
     checkRoundTrip(query);
   }
 
   @Test
   public void testBasicGraphPattern1Reverse() throws Exception {
-    String query = "SELECT n.name WHERE (n) <- (m), m.prop1 = 'abc' AND n.prop2 = m.prop2";
+    String query = "SELECT n.name MATCH (n) <- (m) WHERE m.prop1 = 'abc' AND n.prop2 = m.prop2";
     checkRoundTrip(query);
   }
 
   @Test
   public void testBasicGraphPattern2() throws Exception {
-    String query = "SELECT n.name WHERE (n) -[e]-> (), e.weight = 10 OR e.weight < n.weight";
+    String query = "SELECT n.name MATCH (n) -[e]-> () WHERE e.weight = 10 OR e.weight < n.weight";
     checkRoundTrip(query);
   }
 
   @Test
   public void testBasicGraphPattern2Reverse() throws Exception {
-    String query = "SELECT n.name WHERE (n) <-[e]- (), e.weight = 10 OR e.weight < n.weight";
+    String query = "SELECT n.name MATCH (n) <-[e]- () WHERE e.weight = 10 OR e.weight < n.weight";
     checkRoundTrip(query);
   }
 
   @Test
   public void testBasicGraphPattern3() throws Exception {
-    String query = "SELECT n.name WHERE (n WITH prop1 = 10) -> ()";
+    String query = "SELECT n.name MATCH (n) -> () WHERE n.prop1 = 10";
     checkRoundTrip(query);
   }
 
   @Test
   public void testPathQuery1() throws Exception {
-    String query = "SELECT n.name, m.name WHERE (n) -/:likes*/-> (m)";
+    String query = "SELECT n.name, m.name MATCH (n) -/:likes*/-> (m)";
     checkRoundTrip(query);
   }
 
   @Test
   public void testPathQuery1Reverse() throws Exception {
-    String query = "SELECT n.name, m.name WHERE (n) <-/:likes*/- (m)";
+    String query = "SELECT n.name, m.name MATCH (n) <-/:likes*/- (m)";
     checkRoundTrip(query);
   }
 
   @Test
   public void testPathQuery2() throws Exception {
-    String query = "PATH knows := (n:Person) -[e:likes|dislikes]-> (m:Person) SELECT n.name, m.name WHERE (n) -/:knows*/-> (m)";
+    String query = "PATH knows := (n:Person) -[e:likes|dislikes]-> (m:Person) SELECT n.name, m.name MATCH (n) -/:knows*/-> (m)";
     checkRoundTrip(query);
   }
 
@@ -71,44 +71,44 @@ public class PrettyPrintingTest extends AbstractPgqlTest {
 
   @Test
   public void testNestedPath() throws Exception {
-    String query = "PATH abc := () -[:a|b|c]-> (b) PATH abc_star := () -/:abc*/-> () "
-        + "PATH abc_star_star := () -/:abc_star*/-> () SELECT m.name WHERE (n) -/:abc_star_star+/-> (m)";
+    String query = "PATH abc AS () -[:a|b|c]-> (b) PATH abc_star AS () -/:abc*/-> () "
+        + "PATH abc_star_star AS () -/:abc_star*/-> () SELECT m.name MATCH (n) -/:abc_star_star+/-> (m)";
     checkRoundTrip(query);
   }
 
   @Test
   public void testQueryWithOrderBy() throws Exception {
-    String query = "SELECT m.name, m.age WHERE (m)->(n) ORDER BY m.age";
+    String query = "SELECT m.name, m.age MATCH (m)->(n) ORDER BY m.age";
     checkRoundTrip(query);
   }
 
   @Test
   public void testQueryWithOrderByLimit() throws Exception {
-    String query = "SELECT m.name, m.age WHERE (m)->(n) ORDER BY m.age LIMIT 10";
+    String query = "SELECT m.name, m.age MATCH (m)->(n) ORDER BY m.age LIMIT 10";
     checkRoundTrip(query);
   }
 
   @Test
   public void testQueryWithOrderByOffsetLimit() throws Exception {
-    String query = "SELECT m.name, m.age WHERE (m)->(n) ORDER BY m.age OFFSET 2 LIMIT 1";
+    String query = "SELECT m.name, m.age MATCH (m)->(n) ORDER BY m.age OFFSET 2 LIMIT 1";
     checkRoundTrip(query);
   }
 
   @Test
   public void testQueryWithFromClause() throws Exception {
-    String query = "SELECT m.name, n.age FROM persons WHERE (m)->(n)";
+    String query = "SELECT m.name, n.age FROM persons MATCH (m)->(n)";
     checkRoundTrip(query);
   }
 
   @Test
   public void testUndirectedEdge() throws Exception {
-    String query = "SELECT m.name, m.age WHERE (m)-(n)";
+    String query = "SELECT m.name, m.age MATCH (m)-(n)";
     checkRoundTrip(query);
   }
 
   @Test
   public void testAggregation() throws Exception {
-    String query = "SELECT COUNT(*) AS count, AVG(n.age) AS AVG WHERE (n)";
+    String query = "SELECT COUNT(*) AS count, AVG(n.age) AS AVG MATCH (n)";
     checkRoundTrip(query);
   }
 
@@ -118,9 +118,9 @@ public class PrettyPrintingTest extends AbstractPgqlTest {
         + "COUNT(DISTINCT n.age) AS count," //
         + "MIN(DISTINCT n.age)," //
         + "MAX(DISTINCT n.age)," //
-        + "AVG(DISTINCT .age)," //
+        + "AVG(DISTINCT n.age)," //
         + "SUM(DISTINCT n.age)" //
-        + "WHERE (n)";
+        + "MATCH (n)";
     checkRoundTrip(query);
   }
 

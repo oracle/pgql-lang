@@ -38,7 +38,7 @@ binding rules // variable definition
     defines unique Var p
       of type PathTy()
 
-  ExpAsVar(exp, v, _, _, origin-offset):
+  ExpAsVar(exp, v, _, origin-offset):
     defines unique Var v // unlike SQL, we currently don't allow duplicate column names. This means that we eagerly detect potential ambiguous references). We may relax this in the future.
       of OriginOffset origin-offset
       of type ty where exp has type ty
@@ -48,6 +48,6 @@ binding rules // variable reference
   PathPatternRef(p):
     refers to CommonPathExpression p
 
-  VarRef(v, _, origin-offset):
+  VarRef(v, origin-offset):
     refers to Var v
       of OriginOffset origin-offset

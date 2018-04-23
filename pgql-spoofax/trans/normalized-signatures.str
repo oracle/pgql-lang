@@ -52,17 +52,12 @@ signature constructors // for name binding (see trans/trans-for-nabl.str)
   Vertex                : Var * OriginPosition * Correlation -> Vertex
   Edge                  : Var * Var * Var * Direction * OriginPosition * Correlation -> Edge
 
-  ExpAsVar              : VarDef * Exp * Anonymous * Clause * OriginPosition -> ExpAsVar
-  AnonymousExpAsVar     : VarDef * Exp * Anonymous * Clause * OriginPosition -> AnonymousExpAsVar
+  ExpAsVar              : Exp * Var * Anonymous * OriginPosition -> ExpAsVar
 
   CreateOneGroup        : CreateOneGroup
 
-  VarDef                : Var * Clause * OriginPosition * OriginalExp * TransformedExp -> VarDef
-  VarRef                : Var * Clause * OriginPosition -> VarRef
-
-  MatchClause           : Ty -> Clause
-  GroupByClause         : Clause
-  SelectClause          : Clause
+  VarDef                : Var * OriginPosition * OriginalExp * TransformedExp -> VarDef
+  VarRef                : Var * OriginPosition -> VarRef
 
   Exp                   : OriginalExp
   None                  : OriginalExp

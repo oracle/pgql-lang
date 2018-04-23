@@ -22,7 +22,7 @@ test Edge from MATCH in SELECT [[
 
 test Vertex from MATCH in ORDER BY [[
 
-    SELECT *
+    SELECT 123 AS x
      MATCH ([[n]])
   ORDER BY in_degree([[n]]), [[n]].tax_rate * [[n]].salary
 
@@ -32,7 +32,7 @@ test Vertex from MATCH in ORDER BY [[
 
 test Edge from MATCH in ORDER BY [[
 
-    SELECT *
+    SELECT 123 AS x
      MATCH (n) -[ [[e]]:likes ]-> (m)
   ORDER BY label([[e]]), [[e]].weight
 

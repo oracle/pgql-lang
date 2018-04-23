@@ -113,15 +113,15 @@ rules
   norm-edgeContents = ?Some(EdgeContents(<id>))
 
   name-unnamed-elems(|c) = (?CommonPathExpression(_, _, _, _) + ?GraphPattern(_)); alltd(name-unnamed-elem(|c))
-  name-unnamed-elem(|c) = ?ElemContents(None(), type, id', constraints); !ElemContents(Some(<unique-name(|c)>), type, id', constraints)
-  name-unnamed-elem(|c) = OutConn(?None(); name-unnamed-elem-helper(|c)) +
-                           InConn(?None(); name-unnamed-elem-helper(|c)) +
-                           UndirectedEdge(?None(); name-unnamed-elem-helper(|c))
-  name-unnamed-elem(|c) = ?OutEdge(); !OutConn(<name-unnamed-elem-helper(|c)>) +
-                          ?InEdge(); !InConn(<name-unnamed-elem-helper(|c)>) +
-                          ?UndirectedEdge(); !UndirectedEdge(<name-unnamed-elem-helper(|c)>) +
-                          ?Path(None(), pathPatternRef, kleeneStar); !Path(Some(<unique-name(|c)>), pathPatternRef, kleeneStar)
-  name-unnamed-elem-helper(|c) = !ElemContents(Some(<unique-name(|c)>), None(), None(), None())
+  name-unnamed-elem(|c) = ?ElemContents(None(), type, id', constraints); ?origin; !ElemContents(Some(<unique-name(|c, origin)>), type, id', constraints)
+  name-unnamed-elem(|c) = ?origin; (OutConn(?None(); name-unnamed-elem-helper(|c, origin)) +
+                           InConn(?None(); name-unnamed-elem-helper(|c, origin)) +
+                           UndirectedEdge(?None(); name-unnamed-elem-helper(|c, origin)))
+  name-unnamed-elem(|c) = ?OutEdge(); ?origin; !OutConn(<name-unnamed-elem-helper(|c, origin)>) +
+                          ?InEdge(); ?origin; !InConn(<name-unnamed-elem-helper(|c, origin)>) +
+                          ?UndirectedEdge(); ?origin; !UndirectedEdge(<name-unnamed-elem-helper(|c, origin)>) +
+                          ?Path(None(), pathPatternRef, kleeneStar); ?origin; !Path(Some(<unique-name(|c, origin)>), pathPatternRef, kleeneStar)
+  name-unnamed-elem-helper(|c, origin) = !ElemContents(Some(<unique-name(|c, origin)>), None(), None(), None())
 
   norm-inlined-references = ?ElemContents(Some(varName), _, _, _); alltd(norm-inlined-reference(|varName))
   norm-inlined-reference(|varName) =
@@ -309,8 +309,7 @@ rules
   norm-orderBy(|allExpAsVars, version):
     Some(OrderByClause(elems)) -> Some(OrderByClause(elems'))
     with
-      elems' := <map(norm-orderBy-ordering(|version))
-               ; make-set-while-preserving-ordering> elems // optimization to translate e.g. ORDER BY x, y, x, y into ORDER BY x, y
+      elems' := <map(norm-orderBy-ordering(|version))> elems
 
   norm-orderBy-ordering(|version) =
     ((?Desc(<id>) + ?Legacy10Desc(<id>)); !OrderByElem(<id>, Desc(), version)) <+
