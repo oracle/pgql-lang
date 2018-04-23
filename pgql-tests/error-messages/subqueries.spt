@@ -152,14 +152,14 @@ test Duplicate variable passed from outer query (1) [[
   SELECT EXISTS ( SELECT e MATCH (n) <-[ [[e]] ]- (m) ) AS x
    MATCH (n) -[e]-> (m)
 
-]] error like "Duplicate variable (a variable with the same name is passed from an outer query)" at #1
+]] error like "Duplicate variable (variable with same name is passed from an outer query)" at #1
 
 test Duplicate variable passed from outer query (2) [[
 
   SELECT EXISTS ( SELECT e MATCH ([[e]]) ) AS x
    MATCH (n) -[e]-> (m)
 
-]] error like "Duplicate variable (a variable with the same name is passed from an outer query)" at #1
+]] error like "Duplicate variable (variable with same name is passed from an outer query)" at #1
 
 test Duplicate variable passed from outer query (3) [[
 
@@ -167,7 +167,7 @@ test Duplicate variable passed from outer query (3) [[
    MATCH (n) -[e]-> (m)
   GROUP BY e
 
-]] error like "Duplicate variable (a variable with the same name is passed from an outer query)" at #1
+]] error like "Duplicate variable (variable with same name is passed from an outer query)" at #1
 
 test Duplicate variable passed from outer query (4) [[
 
@@ -175,7 +175,7 @@ test Duplicate variable passed from outer query (4) [[
    MATCH (a) -[e]-> ()
   ORDER BY EXISTS ( SELECT 123 AS c MATCH ([[b]]), ([[e]]) )
 
-]] error like "Duplicate variable (a variable with the same name is passed from an outer query)" at #1, #2
+]] error like "Duplicate variable (variable with same name is passed from an outer query)" at #1, #2
 
 test Duplicate variable passed from outer query (5) [[
 
@@ -183,4 +183,4 @@ test Duplicate variable passed from outer query (5) [[
    MATCH (a) -[e]-> ()
   ORDER BY EXISTS ( SELECT 123 AS c MATCH () -[ [[b]] ]-> () -[ [[e]] ]-> ()  -[ [[a]] ]-> () )
 
-]] error like "Duplicate variable (a variable with the same name is passed from an outer query)" at #1, #2, #3
+]] error like "Duplicate variable (variable with same name is passed from an outer query)" at #1, #2, #3

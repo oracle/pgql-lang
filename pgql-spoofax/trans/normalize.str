@@ -291,6 +291,7 @@ rules
 
   norm-ExpAsVar = ?ExpAsVar(exp, Some(VarAssign(VarDef(v)))); !ExpAsVar(exp, v, NonAnonymous())
   norm-ExpAsVar = ?ExpAsVar(exp, None()); !ExpAsVar(exp, <?VarRef(<id>) <+ origin-track-forced(origin-text)> exp, Anonymous())
+  norm-ExpAsVar = ?ExpAsVar(_, v, _); where (<origin-offset> v)
 
   norm-select-star(|graphPattern, group-exps):
     star@Star() -> <origin-track-forced(!ExpAsVars(expAsSelectVars))> star
@@ -302,9 +303,9 @@ rules
 
   generate-ExpAsVar(|star):
     v -> expAsVar
-    with v' := <origin-track-forced(!v)> star
+    with v' := <origin-track-forced(!(v, ""); conc-strings /* generate a new string to make it loose origin */)> star
        ; varRef := <origin-track-forced(!VarRef(v'))> star
-       ; expAsVar := <origin-track-forced(!ExpAsVar(varRef, None()))> star
+       ; expAsVar := <origin-track-forced(!ExpAsVar(varRef, v', Anonymous()))> star
 
   norm-orderBy(|allExpAsVars, version):
     Some(OrderByClause(elems)) -> Some(OrderByClause(elems'))
