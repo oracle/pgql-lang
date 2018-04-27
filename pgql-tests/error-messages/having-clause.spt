@@ -9,12 +9,37 @@ test HAVING referencing a non-group key [[
   GROUP BY n
     HAVING [[m]].prop > 3
 
-]] error like "Group key or aggregation expected here" at #1
+]] error like "Unresolved variable (did you mean to use a group key?)" at #1
 
-test HAVING not having an aggregation [[
+test HAVING not having an aggregation (1) [[
 
     SELECT COUNT(*) AS cnt
      MATCH (n) -> (m)
     HAVING [[m]].prop > 3
 
-]] error like "Aggregation expected here since SELECT has aggregation" at #1
+]] error like "Unresolved variable (did you mean to use an aggregation?)" at #1
+
+test HAVING not having an aggregation (2) [[
+
+  SELECT n.name AS nName
+   MATCH (n)
+  HAVING [[n]].age > 20
+
+]] error like "Unresolved variable (did you mean to use an aggregation?)" at #1
+
+test HAVING not having an aggregation (3) [[
+
+  SELECT n.age AS nAge
+   MATCH (n)
+  HAVING n.age > 20
+
+]] error like "Unresolved variable (did you mean to use an aggregation?)"
+
+test HAVING not having an aggregation (4) [[
+
+   SELECT n
+    MATCH (n) -> (m)
+ GROUP BY n
+   HAVING AVG(n.age) > 20 AND [[m]].married
+
+]] error like "Unresolved variable (did you mean to use a group key?)" at #1

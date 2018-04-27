@@ -10,7 +10,7 @@ test Aggregation in subquery and referencing variable from outer query outside o
                    MATCH (m)
                 )
 
-]] error like "Aggregation expected here since SELECT has other aggregation" at #1
+]] error like "Unresolved variable (did you mean to use an aggregation?)" at #1
 
 test Aggregation in subquery and referencing variable from outer query outside of aggregation (2) [[
 
@@ -21,7 +21,7 @@ test Aggregation in subquery and referencing variable from outer query outside o
                   ORDER BY [[n]].prop
                 )
 
-]] error like "Aggregation expected here since SELECT has aggregation" at #1
+]] error like "Unresolved variable (did you mean to use an aggregation?)" at #1
 
 test Reference variable from outer query after GROUP BY (1) [[
 
@@ -33,7 +33,7 @@ test Reference variable from outer query after GROUP BY (1) [[
                      ORDER BY [[n]].prop
                   )
 
-]] error like "Can't reference variable from outer query after GROUP BY, unless from within aggregation" at #1
+]] error like "Unresolved variable (did you mean to use a group key?)" at #1
 
 test Reference variable from outer query after GROUP BY (2) [[
 
@@ -46,7 +46,7 @@ test Reference variable from outer query after GROUP BY (2) [[
                   )
   GROUP BY n
 
-]] error like "Can't reference variable from outer query after GROUP BY, unless from within aggregation" at #1
+]] error like "Unresolved variable (did you mean to use a group key?)" at #1
 
 test Reference variable from outer query after GROUP BY (3) [[
 
@@ -58,7 +58,7 @@ test Reference variable from outer query after GROUP BY (3) [[
                   )
   GROUP BY n
 
-]] error like "Can't reference variable from outer query after GROUP BY, unless from within aggregation" at #1
+]] error like "Unresolved variable (did you mean to use a group key?)" at #1
 
 test Reference variable from outer query after GROUP BY (4) [[
 
@@ -70,7 +70,7 @@ test Reference variable from outer query after GROUP BY (4) [[
                    ORDER BY [[n]].age
                  )
 
-]] error like "Can't reference variable from outer query after GROUP BY, unless from within aggregation" at #1
+]] error like "Unresolved variable (did you mean to use a group key?)" at #1
 
 test Reference variable from outer query after aggregation (1) [[
 
@@ -81,7 +81,7 @@ test Reference variable from outer query after aggregation (1) [[
                     ORDER BY [[x]].prop
                   )
 
-]] error like "Can't reference variable from outer query when SELECT has aggregation, unless from within aggregation" at #1
+]] error like "Unresolved variable (did you mean to use an aggregation?)" at #1
 
 test Reference variable from outer query after aggregation (2) [[
 
@@ -93,7 +93,7 @@ test Reference variable from outer query after aggregation (2) [[
                   )
   GROUP BY n AS x
 
-]] error like "Can't reference variable from outer query when SELECT has aggregation, unless from within aggregation" at #1
+]] error like "Unresolved variable (did you mean to use an aggregation?)" at #1
 
 test Reference variable from outer query after aggregation (3) [[
 
@@ -104,7 +104,20 @@ test Reference variable from outer query after aggregation (3) [[
                   ORDER BY [[n]].age
                 )
 
-]] error like "Can't reference variable from outer query when SELECT has aggregation, unless from within aggregation" at #1
+]] error like "Unresolved variable (did you mean to use an aggregation?)" at #1
+
+test Variable from outer query not visible in inner query (1) [[
+
+    SELECT COUNT(*) AS cnt
+     MATCH (n) -> (m)
+  GROUP BY n
+  ORDER BY EXISTS (
+                    SELECT *
+                     MATCH (n) -> (n)
+                     WHERE [[m]].age = n.age
+                  )
+
+]] error like "Unresolved variable" at #1
 
 test Scalar subquery with zero columns (1) [[
 
@@ -133,3 +146,41 @@ test Scalar subquery with multiple columns (2) [[
    MATCH (n)
 
 ]] error like "Scalar subquery is expected to return a single column, but multiple columns were returned" at #1, #2
+
+test Duplicate variable passed from outer query (1) [[
+
+  SELECT EXISTS ( SELECT e MATCH (n) <-[ [[e]] ]- (m) ) AS x
+   MATCH (n) -[e]-> (m)
+
+]] error like "Duplicate variable (variable with same name is passed from an outer query)" at #1
+
+test Duplicate variable passed from outer query (2) [[
+
+  SELECT EXISTS ( SELECT e MATCH ([[e]]) ) AS x
+   MATCH (n) -[e]-> (m)
+
+]] error like "Duplicate variable (variable with same name is passed from an outer query)" at #1
+
+test Duplicate variable passed from outer query (3) [[
+
+  SELECT EXISTS ( SELECT e MATCH (n) <-[ [[e]] ]- (m) ) AS x
+   MATCH (n) -[e]-> (m)
+  GROUP BY e
+
+]] error like "Duplicate variable (variable with same name is passed from an outer query)" at #1
+
+test Duplicate variable passed from outer query (4) [[
+
+  SELECT 123 AS b, e
+   MATCH (a) -[e]-> ()
+  ORDER BY EXISTS ( SELECT 123 AS c MATCH ([[b]]), ([[e]]) )
+
+]] error like "Duplicate variable (variable with same name is passed from an outer query)" at #1, #2
+
+test Duplicate variable passed from outer query (5) [[
+
+  SELECT 123 AS b, e, a
+   MATCH (a) -[e]-> ()
+  ORDER BY EXISTS ( SELECT 123 AS c MATCH () -[ [[b]] ]-> () -[ [[e]] ]-> ()  -[ [[a]] ]-> () )
+
+]] error like "Duplicate variable (variable with same name is passed from an outer query)" at #1, #2, #3

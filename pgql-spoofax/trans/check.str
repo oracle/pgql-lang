@@ -21,39 +21,43 @@ rules // Unresolved/duplicate variables
   nabl-check-disable-duplicate(|uri, ns) = id
 
   nabl-constraint(|ctx):
-    ref -> <fail>
-    where
-      <?VarRef(v) + ?GroupRef(v) + ?SelectOrGroupRef(v) + ?VarOrSelectRef(v)> ref
-    ;  <generate-error-on-unresolved(|ctx, "Unresolved variable")> v
+    query@NormalizedQuery(_, selectClause, _, matchClause, group-by, having, order-by, _, _, _) -> <fail>
+    with unresolved-vars := <collect-in-outer-query(?VarRef(<id>))> query
+        ; if None() := group-by
+          then <batch-generate-error(|ctx, "Unresolved variable")> unresolved-vars
+          else unresolved-vars-after-grouping := <collect-in-outer-query-outside-aggregation(?VarRef(<id>))> (selectClause, having, order-by)
+             ; other-unresolved-vars := <diff> (unresolved-vars, unresolved-vars-after-grouping)
+             ; <batch-generate-error(|ctx, "Unresolved variable")> other-unresolved-vars
+             ; if CreateOneGroup() := group-by // aggregation without GROUP BY
+               then <batch-generate-error(|ctx, "Unresolved variable (did you mean to use an aggregation?)")> unresolved-vars-after-grouping
+               else <batch-generate-error(|ctx, "Unresolved variable (did you mean to use a group key?)")> unresolved-vars-after-grouping
+               end
+          end
 
   nabl-constraint(|ctx):
-    expAsVar -> <fail>
-    where
-      <?ExpAsVar(_, v) + ?ExpAsSelectVar(_, v) + ?AnonymousExpAsVar(_, v)> expAsVar;
-      <generate-error-on-duplicate(|ctx, NablNsSelectVar(), "Duplicate select key")> v
+    NormalizedQuery(_, selectClause, _, GraphPattern(vertices, edges, _), groupClause, _, _, _, _, _) -> <fail>
+    with matchVars := <collect(get-pattern-elem)> (vertices, edges)
+       ; groupExpressions := <collect(?ExpAsVar(_, <id>, _, _))> groupClause
+       ; selectExpressions := <collect(?ExpAsVar(_, <id>, _, _))> selectClause
+       ; <generate-error-on-duplicates(|ctx)> matchVars
+       ; <generate-error-on-duplicates(|ctx)> groupExpressions
+       ; <generate-error-on-duplicates(|ctx)> selectExpressions
 
-  nabl-constraint(|ctx):
-    expAsGroupVar -> <fail>
-    where
-      <?ExpAsGroupVar(_, v) + ?AnonymousExpAsGroupVar(_, v)> expAsGroupVar;
-      <generate-error-on-duplicate(|ctx, NablNsGroupVar(), "Duplicate group key")> v
-
-  nabl-constraint(|ctx):
-    Edge(_, e, _, _) -> <fail>
-    where
-      <generate-error-on-duplicate(|ctx, NablNsWhereVar(), "Duplicate edge variable")> e
-
-  nabl-constraint(|ctx):
-    NormalizedQuery(_, selectClause, _, matchClause, groupClause, _, _, _, _, _) -> <fail>
-    with matchVars := <collect(get-pattern-elem)> matchClause
-       ; groupVars := <collect(?ExpAsGroupVar(_, <id>))> groupClause
+       ; groupVars := <collect(?ExpAsVar(_, <id>, NonAnonymous(), _))> groupClause
        ; redefinitions-in-groupBy := <strip-annos; isect> (groupVars, matchVars)
        ; <batch-generate-error(|ctx, "Duplicate variable: variable already defined in the MATCH clause")> redefinitions-in-groupBy
-       ; selectVars := <collect(?ExpAsSelectVar(_, <id>))> selectClause
+       ; selectVars := <collect(?ExpAsVar(_, <id>, NonAnonymous(), _))> selectClause
        ; redefinitions-in-select := <strip-annos; isect> (selectVars, groupVars)
        ; <batch-generate-error(|ctx, "Duplicate variable: variable already defined in the GROUP BY clause")> redefinitions-in-select
 
-  get-pattern-elem = ?Vertex(<id>) + ?Edge(_, <id>, _, _) + ?Path(_, _, _, _, <id>, _)
+  get-pattern-elem = ?Vertex(<id>, _, _) + ?Edge(_, <id>, _, _, _, _) + ?Path(_, _, _, _, <id>, _)
+
+  generate-error-on-duplicates(|ctx) = strip-annos; ?vars; map(generate-error-on-duplicate(|ctx, vars))
+
+  generate-error-on-duplicate(|ctx, vars):
+    var -> <id>
+    with vars' := <filter(?var)> vars
+       ; <try(gt; !var; generate-error(|ctx, "Duplicate variable"))> (<length> vars', 1)
 
 rules // in-lined constraints
 
@@ -70,7 +74,7 @@ rules // in-lined constraints
 rules // vertex in WHERE without rounded brackets
 
   nabl-constraint(|ctx):
-    Vertex(v) -> <fail>
+    Vertex(v, _, _) -> <fail>
     where
       <string-ends-with(|<VERTEX_WITHOUT_BRACKETS>)> v
     with
@@ -79,47 +83,21 @@ rules // vertex in WHERE without rounded brackets
 rules
 
   nabl-constraint(|ctx):
-    NormalizedQuery(_, SelectClause(_, ExpAsVars(select-elems)), _, _, groupClause, _, Some(orderClause), _, _, _) -> <fail>
+    NormalizedQuery(_, SelectClause(_, ExpAsVars(select-elems)), _, _, groupClause, havingClause, orderByClause, _, _, _) -> <fail>
     where
       None() := groupClause
     ; [] := <get-aggregations> select-elems // there are no aggregations in the SELECT
     with
-      aggregations := <get-aggregations> orderClause
-    ; <batch-generate-error(|ctx, "Aggregation in ORDER BY only allowed if SELECT constains aggregations, or, in combination with GROUP BY")> aggregations
-
-  nabl-constraint(|ctx):
-    NormalizedQuery(_, SelectClause(_, ExpAsVars(select-elems)), _, matchClause, group-by, having, order-by, _, _, _) -> <fail>
-    where not ( None() := group-by )
-    with group-refs := <collect-in-outer-query(?GroupRef(<id>))> select-elems
-       ; select-or-group-refs := <collect-in-outer-query(?SelectOrGroupRef(<id>))> (order-by, having)
-
-       ; pattern-elem-defs := <collect(?Vertex(<id>) + ?Edge(_, <id>, _, _) + ?Path(_, _, _, _, <id>, _))> matchClause
-       ; select-var-defs := <collect-in-outer-query(?AnonymousExpAsVar(_, <id>) + ?ExpAsSelectVar(_, <id>))> select-elems
-       ; group-var-defs := <collect-in-outer-query(?AnonymousExpAsGroupVar(_, <id>) + ?ExpAsGroupVar(_, <id>))> group-by
-       ; var-defs-for-select := group-var-defs
-       ; var-defs-for-order-by := <union> (group-var-defs, select-var-defs)
-       ; group-refs-referencing-outer-query-vars-or-unresolved := <diff(strip-annos; eq)> (group-refs, var-defs-for-select )
-       ; select-or-group-refs-referencing-outer-query-vars-or-unresolved := <diff(strip-annos; eq)> (select-or-group-refs, var-defs-for-order-by)
-       ; referencing-outer-query-or-unresolved := <union> (group-refs-referencing-outer-query-vars-or-unresolved, select-or-group-refs-referencing-outer-query-vars-or-unresolved)
-
-       ;   if CreateOneGroup() := group-by
-         then <batch-generate-error-on-resolved(|ctx, "Can't reference variable from outer query when SELECT has aggregation, unless from within aggregation")> referencing-outer-query-or-unresolved // error in SELECT or ORDER BY
-            ; <batch-generate-error-on-unresolved(|ctx, "Aggregation expected here since SELECT has other aggregation")> group-refs // error in SELECT
-            ; <batch-generate-error-on-unresolved(|ctx, "Aggregation expected here since SELECT has aggregation")> select-or-group-refs // error in ORDER BY / HAVING
-         else <batch-generate-error-on-resolved(|ctx, "Can't reference variable from outer query after GROUP BY, unless from within aggregation")> referencing-outer-query-or-unresolved // error in SELECT or ORDER BY
-            ; <batch-generate-error-on-unresolved(|ctx, "Non-group key variable in SELECT")> group-refs // error in SELECT
-            ; <batch-generate-error-on-unresolved(|ctx, "Group key or aggregation expected here")> select-or-group-refs // error in ORDER BY / HAVING
-          end
+      aggregations-in-orderByclause := <get-aggregations> orderByClause
+    ; <batch-generate-error(|ctx, "Aggregation in ORDER BY only allowed if SELECT has aggregations")> aggregations-in-orderByclause
 
   // if SELECT DISTINCT then ORDER BY expressions may only be repetitions of expressions in SELECT
   nabl-constraint(|ctx):
     NormalizedQuery(_, SelectClause(Some(Distinct()), ExpAsVars(select-elems)), _, _, _, _, Some(OrderByClause(order-by-elems)), _, _, _) -> <fail>
     with
-      select-vars := <map(?ExpAsVar(_, <id>) + ?ExpAsSelectVar(_, <id>) + ?AnonymousExpAsVar(_, <id>)); strip-annos> select-elems
-    ; order-by-expressions := <map(?OrderByElem(<id>, _)); strip-annos> order-by-elems
-    ; order-by-expressions-not-in-select := <remove-all(
-                                                (?VarOrSelectRef(<id>) + ?SelectOrGroupRef(<id>))
-                                              ; !(<id>, select-vars); elem)> order-by-expressions
+      select-vars := <map(?ExpAsVar(_, <id>, _, _)); strip-annos> select-elems
+    ; order-by-expressions := <map(?OrderByElem(<id>, _, _)); strip-annos> order-by-elems
+    ; order-by-expressions-not-in-select := <remove-all(?VarRef(<id>, _); !(<id>, select-vars); elem)> order-by-expressions
     ; <batch-generate-error(|ctx, "Because of DISTINCT projection, the expression in ORDER BY should be one of the expressions in the SELECT")> order-by-expressions-not-in-select
 
   nabl-constraint(|ctx):
@@ -142,12 +120,6 @@ rules
       aggregations := <get-aggregations> t;
       <batch-generate-error(|ctx, "Aggregation not allowed in GROUP BY")> aggregations
 
-  path-reference(|ctx):
-    VarRef(v) -> <fail>
-    where
-      var-is-path := <var-is-path(|ctx)> v;
-      <task-create-error-on-success(|ctx, var-is-path, $[Path variables not supported in PGQL 1.1])> v
-
   nabl-constraint(|ctx):
     e@Null() -> <fail>
     with
@@ -164,14 +136,14 @@ rules
       <generate-error(|ctx, "IS NOT NULL is not yet supported")> e
 
   nabl-constraint(|ctx):
-    ExpAsVars(e@Star()) -> <fail>
+    SelectClause(_, e@Star()) -> <fail>
     with
       <generate-error(|ctx, "SELECT * not allowed in combination with GROUP BY")> e
 
   nabl-constraint(|ctx):
     SelectClause(_, e@ExpAsVars([])) -> <fail>
     with
-      <generate-error(|ctx, "SELECT * not allowed when there are no variables in the graph pattern")> e
+      <generate-error(|ctx, "SELECT * not allowed if there are no variables in the graph pattern")> e
 
   nabl-constraint(|ctx):
     COUNT(Some(Distinct()), e@Star()) -> <fail>
@@ -194,31 +166,6 @@ rules // subqueries
   is-zero-column-subquery = ?Subquery(NormalizedQuery(_, SelectClause(_, e@ExpAsVars(expAsVars)), _, _, _, _, _, _, _, _))
                            ; where( <eq> (<length> expAsVars, 0) ); !e
 
-rules // type checking
-
-  nabl-constraint-1-1(|ctx):
-    OrderByElem(exp, _) -> <fail>
-    where
-      <?SelectOrGroupRef(n) + ?VarOrSelectRef(n)> exp
-    with
-      var-is-vertex := <var-is-vertex(|ctx)> n;
-      <task-create-error-on-success(|ctx, var-is-vertex, "Cannot order by vertex")> exp
-
-  nabl-constraint-1-1(|ctx):
-    OrderByElem(exp, _) -> <fail>
-    where
-      <?SelectOrGroupRef(n) + ?VarOrSelectRef(n)> exp
-    with
-      var-is-edge := <var-is-edge(|ctx)> n;
-      <task-create-error-on-success(|ctx, var-is-edge, "Cannot order by edge")> exp
-
-rules // version-specific error messages
-
-  nabl-constraint(|ctx):
-    q@NormalizedQuery(_, _, _, _, _, _, _, _, _, "v1.1") -> <id>
-    with
-      <alltd(nabl-constraint-1-1(|ctx))> q
-
 rules // helper rules
 
   batch-generate-error(|ctx, m) = map(generate-error(|ctx, m))
@@ -228,42 +175,6 @@ rules // helper rules
     with
       failtask := <task-create-fail(|ctx)>
     ; <task-create-error-on-failure(|ctx, failtask, m)> t
-
-  batch-generate-error-on-unresolved(|ctx, m) = map(generate-error-on-unresolved(|ctx, m))
-
-  generate-error-on-unresolved(|ctx, m):
-    v -> <id>
-    with resolve-task := <nabl-create-collectdefs(|ctx)> v
-       ; <task-create-error-on-failure(|ctx, resolve-task, m)> v
-
-  batch-generate-error-on-resolved(|ctx, m) = map(generate-error-on-resolved(|ctx, m))
-
-  generate-error-on-resolved(|ctx, m):
-    v -> <id>
-    with resolve-task := <nabl-create-collectdefs(|ctx)> v
-       ; <task-create-error-on-success(|ctx, resolve-task, m)> v
-
-  generate-error-on-duplicate(|ctx, namespace, m):
-    v -> <id>
-    with
-      uri := <nabl-uri; nabl-uri-parent> v
-    ; resolve-task := <nabl-create-resolvedefs(|ctx, namespace, v, [])> uri
-    ; <task-create-error-on-multiple(|ctx, resolve-task, m)> v
-
-  var-is-edge(|ctx) = var-is-type(|ctx, "VarIsEdge")
-  var-is-vertex(|ctx) = var-is-type(|ctx, "VarIsVertex")
-  var-is-path(|ctx) = var-is-type(|ctx, "VarIsPath")
-
-  var-is-type(|ctx, type):
-    v -> rewrite-task1
-    where
-      v-resolve-task := <nabl-create-collectdefs(|ctx)> v
-    ; v-prop-task    := <prop-create-lookup(|ctx, Type())> v-resolve-task
-    ; rewrite-task1  := <task-create-rewrite(|ctx, type)> v-prop-task
-      
-  task-rewrite: ("VarIsVertex", VertexTy()) -> <id>
-  task-rewrite: ("VarIsEdge", EdgeTy()) -> <id>
-  task-rewrite: ("VarIsPath", PathTy()) -> <id>
 
   // TODO
   nabl-constraint(|ctx):
@@ -280,8 +191,8 @@ rules // temporary limitation
 
   nabl-constraint(|ctx):
     CommonPathExpression(_, vertices, connections, Constraints([constraint])) -> <fail>
-    with vertexVariables := <collect(?Vertex(<id>))> vertices
-       ; connectionsVariables := <collect(?Edge(_, <id>, _, _) + ?Path(_, _, _, _, <id>, _))> connections
+    with vertexVariables := <collect(?Vertex(<id>, _, _))> vertices
+       ; connectionsVariables := <collect(?Edge(_, <id>, _, _, _, _) + ?Path(_, _, _, _, <id>, _))> connections
        ; variablesDefs := <union> (vertexVariables, connectionsVariables)
        ; <generate-error-on-cross-constraint(|ctx, variablesDefs)> constraint
 
@@ -293,6 +204,6 @@ rules // temporary limitation
   generate-error-on-cross-constraint(|ctx, variablesDefs):
     t -> t
     where <not(?And(_, _))> t
-    with variables := <collect(?VarRef(<id>) + ?Vertex(<id>) + ?Edge(_, <id>, _, _) + ?Path(_, _, _, _, <id>, _))> t
+    with variables := <collect(?VarRef(<id>, _) + ?Vertex(<id>, _, _) + ?Edge(_, <id>, _, _, _, _) + ?Path(_, _, _, _, <id>, _))> t
        ; variableRefs := <strip-annos; isect> (variablesDefs, variables)
        ; <try(!(<length> variableRefs, 1); gt; !t; generate-error(|ctx, "Not yet supported: expressions in PATH with references to multiple variables"))> t

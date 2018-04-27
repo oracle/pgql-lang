@@ -70,8 +70,6 @@ rules
 
   get-pgql10-limitiation = (?FromClause(_) + ?Subquery(_) + ?Pgql11AsignSymbol()); to-error-message(|"Use [MATCH pattern WHERE filters] instead of [WHERE pattern mixed with filters]")
 
-  to-error-message(|message) = !ErrorMessage(<origin-track-forced(!message)> <id>)
-
   norm-pgql10 = ?Legacy10Label(x); <to-function(|"label")> [x]
   norm-pgql10 = ?Legacy10Labels(x); <to-function(|"labels")> [x]
   norm-pgql10 = ?Legacy10HasLabel(x, lbl); <to-function(|"has_label")> [x, lbl]
@@ -115,15 +113,15 @@ rules
   norm-edgeContents = ?Some(EdgeContents(<id>))
 
   name-unnamed-elems(|c) = (?CommonPathExpression(_, _, _, _) + ?GraphPattern(_)); alltd(name-unnamed-elem(|c))
-  name-unnamed-elem(|c) = ?ElemContents(None(), type, id', constraints); !ElemContents(Some(<unique-name(|c)>), type, id', constraints)
-  name-unnamed-elem(|c) = OutConn(?None(); name-unnamed-elem-helper(|c)) +
-                           InConn(?None(); name-unnamed-elem-helper(|c)) +
-                           UndirectedEdge(?None(); name-unnamed-elem-helper(|c))
-  name-unnamed-elem(|c) = ?OutEdge(); !OutConn(<name-unnamed-elem-helper(|c)>) +
-                          ?InEdge(); !InConn(<name-unnamed-elem-helper(|c)>) +
-                          ?UndirectedEdge(); !UndirectedEdge(<name-unnamed-elem-helper(|c)>) +
-                          ?Path(None(), pathPatternRef, kleeneStar); !Path(Some(<unique-name(|c)>), pathPatternRef, kleeneStar)
-  name-unnamed-elem-helper(|c) = !ElemContents(Some(<unique-name(|c)>), None(), None(), None())
+  name-unnamed-elem(|c) = ?ElemContents(None(), type, id', constraints); ?origin; !ElemContents(Some(<unique-name(|c, origin)>), type, id', constraints)
+  name-unnamed-elem(|c) = ?origin; (OutConn(?None(); name-unnamed-elem-helper(|c, origin)) +
+                           InConn(?None(); name-unnamed-elem-helper(|c, origin)) +
+                           UndirectedEdge(?None(); name-unnamed-elem-helper(|c, origin)))
+  name-unnamed-elem(|c) = ?OutEdge(); ?origin; !OutConn(<name-unnamed-elem-helper(|c, origin)>) +
+                          ?InEdge(); ?origin; !InConn(<name-unnamed-elem-helper(|c, origin)>) +
+                          ?UndirectedEdge(); ?origin; !UndirectedEdge(<name-unnamed-elem-helper(|c, origin)>) +
+                          ?Path(None(), pathPatternRef, kleeneStar); ?origin; !Path(Some(<unique-name(|c, origin)>), pathPatternRef, kleeneStar)
+  name-unnamed-elem-helper(|c, origin) = !ElemContents(Some(<unique-name(|c, origin)>), None(), None(), None())
 
   norm-inlined-references = ?ElemContents(Some(varName), _, _, _); alltd(norm-inlined-reference(|varName))
   norm-inlined-reference(|varName) =
@@ -271,7 +269,7 @@ rules
     
   norm-query(|error-messages, version):
     (commonPathExpressions, SelectClause(distinct, projection), fromClause, graphPattern, groupByClause, havingClause, orderByClause, limitOffsets) ->
-        NormalizedQuery(commonPathExpressions', SelectClause(distinct, projection'), fromClause, graphPattern, groupByClause', havingClause', orderByElems, limitOffsets', error-messages, version)
+        NormalizedQuery(commonPathExpressions', SelectClause(distinct, projection'), fromClause, graphPattern, groupByClause', havingClause, orderByElems, limitOffsets', error-messages, version)
     with
       commonPathExpressions' := <map(norm-common-path-expression); !CommonPathExpressions(<id>)> commonPathExpressions;
 
@@ -283,49 +281,40 @@ rules
 
       ExpAsVars(expAsSelectVars) := projection';
       allExpAsVars := <conc> (expAsGroupVars', <try(?Star(); ![])> expAsSelectVars);
-      havingClause' := <replace-terms-with-varRef(|allExpAsVars)> havingClause;
-      orderByElems := <try(norm-orderBy(|allExpAsVars))> orderByClause;
+      orderByElems := <try(norm-orderBy(|allExpAsVars, version))> orderByClause;
 
       limitOffsets' := <norm-limitOffsets> limitOffsets
 
   norm-ExpAsVars(|expAsGroupVars'):
     t@ExpAsVars(expAsVars) -> <origin-track-forced(!ExpAsVars(expAsVars'))> t 
-    with expAsVars' := <map(norm-ExpAsVar); map(replace-terms-with-varRef(|expAsGroupVars'))> expAsVars
+    with expAsVars' := <map(norm-ExpAsVar)> expAsVars
 
-  norm-ExpAsVar = ?ExpAsVar(exp, Some(VarAssign(VarDef(v)))); !ExpAsVar(exp, v)
-  norm-ExpAsVar = ?ExpAsVar(exp, None()); !AnonymousExpAsVar(exp, <?VarRef(<id>) <+ origin-track-forced(origin-text)> exp)
+  norm-ExpAsVar = ?ExpAsVar(exp, Some(VarAssign(VarDef(v)))); !ExpAsVar(exp, v, NonAnonymous())
+  norm-ExpAsVar = ?ExpAsVar(exp, None()); !ExpAsVar(exp, <?VarRef(<id>) <+ origin-track-forced(origin-text)> exp, Anonymous())
+  norm-ExpAsVar = ?ExpAsVar(_, v, _); where (<origin-offset> v)
 
   norm-select-star(|graphPattern, group-exps):
     star@Star() -> <origin-track-forced(!ExpAsVars(expAsSelectVars))> star
     with if [] := group-exps
            then vars := <collect(?Vertex(<id>) + ?Edge(_, <id>, _, _) + ?Subquery(_)); filter(is-string; not(is-substring(GENERATED)))> graphPattern;
-                expAsSelectVars := <map(!ExpAsVar(VarRef(<id>), None()); norm-ExpAsVar)> vars
+                expAsSelectVars := <map(generate-ExpAsVar(|star); norm-ExpAsVar)> vars
            else expAsSelectVars := star
          end
 
-  replace-terms-with-varRef(|expressions):
-    exp -> exp'
-    with exp' := <foldl(replace-terms-with-varRef)> (expressions, exp)
+  generate-ExpAsVar(|star):
+    v -> expAsVar
+    with v' := <origin-track-forced(!(v, ""); conc-strings /* generate a new string to make it loose origin */)> star
+       ; varRef := <origin-track-forced(!VarRef(v'))> star
+       ; expAsVar := <origin-track-forced(!ExpAsVar(varRef, v', Anonymous()))> star
 
-  replace-terms-with-varRef = (?(ExpAsVar(term, var), <id>) + ?(AnonymousExpAsVar(term, var), <id>)); alltd(
-    is-aggregate; ?term; !VarRef(var) + // for ORDER BY
-    is-aggregate + ?term; !VarRef(var)) // for SELECT: never look into aggregates
-
-  norm-orderBy(|allExpAsVars):
+  norm-orderBy(|allExpAsVars, version):
     Some(OrderByClause(elems)) -> Some(OrderByClause(elems'))
     with
-      elems' := <map(norm-orderBy-ordering)
-               ; map(norm-order-expression(|allExpAsVars))
-               ; make-set-while-preserving-ordering> elems // optimization to translate e.g. ORDER BY x, y, x, y into ORDER BY x, y
+      elems' := <map(norm-orderBy-ordering(|version))> elems
 
-  norm-orderBy-ordering =
-    ((?Desc(<id>) + ?Legacy10Desc(<id>)); !OrderByElem(<id>, Desc())) <+
-    ((try(?Asc(<id>) + ?Legacy10Asc(<id>))); !OrderByElem(<id>, Asc()))
-
-  norm-order-expression(|group-and-select-expressions):
-    OrderByElem(exp, ordering) -> OrderByElem(exp', ordering)
-    with
-      exp' := <replace-terms-with-varRef(|group-and-select-expressions)> exp
+  norm-orderBy-ordering(|version) =
+    ((?Desc(<id>) + ?Legacy10Desc(<id>)); !OrderByElem(<id>, Desc(), version)) <+
+    ((try(?Asc(<id>) + ?Legacy10Asc(<id>))); !OrderByElem(<id>, Asc(), version))
 
   norm-limitOffsets = ?None(); !LimitOffsetClauses(None(), None())
   norm-limitOffsets = ?Some(LimitOffsetClauses(limitClause, offsetClause)); !LimitOffsetClauses(Some(limitClause), offsetClause)

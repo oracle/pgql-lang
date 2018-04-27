@@ -4,6 +4,7 @@ imports
 
   signatures/-
   normalized-signatures
+  runtime/editor/-
 
 rules
 
@@ -16,18 +17,23 @@ rules
   get-exp-from-aggregation = ?COUNT(_, <id>) + ?MIN(_, <id>) + ?MAX(_, <id>) + ?SUM(_, <id>) + ?AVG(_, <id>)
 
   GENERATED = !"<<anonymous>>"
-  // add-generated-suffix = !(<id>, <GENERATED>); conc-strings
-  add-unique-suffix(|c) = !(<id>, <unique-name(|c)>); conc-strings
-  unique-name(|c) = !(<GENERATED>, "_", <next-counter; write-to-string> c); conc-strings
+
+  unique-name(|c, origin) = !origin; origin-track-forced(!(<GENERATED>, "_", <next-counter; write-to-string> c); conc-strings)
   
   VERTEX_WITHOUT_BRACKETS = !"<<vertex-without-brackets>>"
 
   make-set-while-preserving-ordering = reverse; make-set; reverse
 
-  is-subquery = ?NormalizedQuery(_, _, _, _, _, _, _, _, _, _)
+  is-subquery = ?Subquery(_)
 
-  collect-in-outer-query(s) = collect(is-subquery + s); remove-all(is-subquery)
+  collect-in-outer-query(s) = collect(is-subquery <+ s); remove-all(is-subquery)
+
+  collect-in-outer-query-outside-aggregation(s) = collect(is-subquery <+ is-aggregate <+ s); remove-all(is-subquery + is-aggregate)
 
   alltd-in-outer-query(s) = alltd(is-subquery <+ s)
 
+  alltd-in-outer-query-outside-aggregation(s) = alltd(s <+ is-subquery <+ is-aggregate)
+
   get-aggregations = collect-in-outer-query(is-aggregate)
+
+  to-error-message(|message) = !ErrorMessage(<origin-track-forced(!message)> <id>)

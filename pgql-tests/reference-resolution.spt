@@ -2,169 +2,188 @@ module select
 
 language pgql-lang
 
-test Vertex from WHERE in SELECT [[
-SELECT [[n]], [[n]].inDegree() AS inDegree, [[n]].tax_rate * [[n]].salary AS tax_amount
-WHERE
-  ([[n]])
+test Vertex from MATCH in SELECT [[
+
+  SELECT [[n]], in_degree([[n]]) AS inDegree, [[n]].tax_rate * [[n]].salary AS tax_amount
+   MATCH ([[n]])
 ]] resolve #1 to #5
    resolve #2 to #5
    resolve #3 to #5
    resolve #4 to #5
 
-test Edge from WHERE in SELECT [[
-SELECT [[e]], [[e]].label() AS lbl, [[e]].weight AS weight
-WHERE
-  (n) -[ [[e]]:likes ]-> (m)
+test Edge from MATCH in SELECT [[
+
+  SELECT [[e]], label([[e]]) AS lbl, [[e]].weight AS weight
+   MATCH (n) -[ [[e]]:likes ]-> (m)
+
 ]] resolve #1 to #4
    resolve #2 to #4
    resolve #3 to #4
 
-// failing because of http://yellowgrass.org/issue/SpoofaxWithCore/148
-/*
-test Vertex from WHERE in ORDER BY [[
-SELECT *
-WHERE
-  ([[n]])
-ORDER BY [[n]], [[n]].inDegree(), [[n]].tax_rate * [[n]].salary
-]] resolve #2 to #1
-   resolve #3 to #1
-   resolve #4 to #1
-   resolve #5 to #1
-*/
+test Vertex from MATCH in ORDER BY [[
 
-// failing because of http://yellowgrass.org/issue/SpoofaxWithCore/148
-/*
-test Edge from WHERE in ORDER BY [[
-SELECT *
-WHERE
-  (n) -[ [[e]]:likes ]-> (m)
-ORDER BY [[e]], [[e]].label(), [[e]].weight
+    SELECT 123 AS x
+     MATCH ([[n]])
+  ORDER BY in_degree([[n]]), [[n]].tax_rate * [[n]].salary
+
 ]] resolve #2 to #1
    resolve #3 to #1
    resolve #4 to #1
-*/
+
+test Edge from MATCH in ORDER BY [[
+
+    SELECT 123 AS x
+     MATCH (n) -[ [[e]]:likes ]-> (m)
+  ORDER BY label([[e]]), [[e]].weight
+
+]] resolve #2 to #1
+   resolve #3 to #1
 
 test Variable from SELECT in ORDER BY [[
-SELECT n.tax_rate * n.salary AS [[tax_amount]]
-WHERE (n)
-ORDER BY [[tax_amount]]
+
+    SELECT n.tax_rate * n.salary AS [[tax_amount]]
+     MATCH (n)
+  ORDER BY [[tax_amount]]
+
 ]] resolve #2 to #1
 
 test Variable from GROUP BY in SELECT [[
-SELECT [[nAge]] AS age
-WHERE (n)
-GROUP BY n.age AS [[nAge]]
-]] resolve #1 to #2
 
-// failing because of http://yellowgrass.org/issue/SpoofaxWithCore/148
-/*
-test Repeat expression from GROUP BY in SELECT [[
-SELECT [[n.age+1]] + [[n.age   +   1]], [[n.tax_rate]] AS tax_rate2
-WHERE (n)
-GROUP BY [[n.age + 1]], [[n.tax_rate]] AS tax_rate1
-]] resolve #1 to #4
-   resolve #2 to #4
-   resolve #3 to #5
-*/
+    SELECT [[nAge]] AS age
+     MATCH (n)
+  GROUP BY n.age AS [[nAge]]
+
+]] resolve #1 to #2
 
 test Variable from GROUP BY in ORDER BY [[
-SELECT nAge
-WHERE (n)
-GROUP BY n.age AS [[nAge]]
-ORDER BY [[nAge]]
+
+    SELECT [[nAge]]
+     MATCH (n)
+  GROUP BY n.age AS nAge
+  ORDER BY [[nAge]]
+
 ]] resolve #2 to #1
 
-// failing because of http://yellowgrass.org/issue/SpoofaxWithCore/148
-/*
-test Repeat expression from GROUP BY in ORDER BY [[
-SELECT n
-WHERE (n)
-GROUP BY [[n.age + 1]], [[n.tax_rate]] AS tax_rate1
-ORDER BY [[n.age+1]] + [[n.age   +   1]], [[n.tax_rate]]
-]] resolve #3 to #1
-   resolve #4 to #1
-   resolve #5 to #2
-*/
+test Variable from MATCH in aggregation in SELECT #1 [[
 
-test Variable from WHERE in aggregation in SELECT #1 [[
-SELECT AVG([[n]].salary) AS avgSalary
-WHERE ([[n]])
+  SELECT AVG([[n]].salary) AS avgSalary
+   MATCH ([[n]])
+
 ]] resolve #1 to #2
 
-// failing because of http://yellowgrass.org/issue/SpoofaxWithCore/148
-/*
-test Variable from WHERE in aggregation in SELECT #2 [[
-SELECT n.age, AVG([[n]].salary) AS avgSalary
-WHERE ([[n]])
-GROUP BY n.age
+test Variable from MATCH in aggregation in SELECT #2 [[
+
+    SELECT AVG([[n]].salary) AS avgSalary
+     MATCH ([[n]])
+  GROUP BY n.age AS nAge
+
 ]] resolve #1 to #2
-*/
 
-// failing because of http://yellowgrass.org/issue/SpoofaxWithCore/148
-/*
-test Variable from WHERE in aggregation in ORDER BY #1 [[
-SELECT SUM(n.salary)
-WHERE ([[n]])
-ORDER BY AVG([[n]].salary)
+test Variable from MATCH in aggregation in ORDER BY #1 [[
+
+    SELECT SUM(n.salary) AS sum
+     MATCH ([[n]])
+  ORDER BY AVG([[n]].salary)
+
 ]] resolve #2 to #1
-*/
 
-// failing because of http://yellowgrass.org/issue/SpoofaxWithCore/148
-/*
-test Variable from WHERE in aggregation in ORDER BY #2 [[
-SELECT n.age
-WHERE ([[n]])
-GROUP BY n.age
-ORDER BY AVG([[n]].salary)
+test Variable from MATCH in aggregation in ORDER BY #2 [[
+
+    SELECT nAge
+     MATCH ([[n]])
+  GROUP BY n.age AS nAge
+  ORDER BY AVG([[n]].salary)
+
 ]] resolve #2 to #1
-*/
 
-// failing because of http://yellowgrass.org/issue/SpoofaxWithCore/148
-/*
 test Mixed aggregation and non-aggregation in SELECT [[
-SELECT [[n.age]], AVG([[n]].salary)
-WHERE ([[n]])
-GROUP BY [[n.age]]
-]] resolve #1 to #4
-   resolve #2 to #3
-*/
 
-// failing because of http://yellowgrass.org/issue/SpoofaxWithCore/148
-/*
-test Mixed aggregation and non-aggregation in ORDER BY [[
-SELECT n.age
-WHERE ([[n]])
-GROUP BY [[n.age]]
-ORDER BY AVG([[n]].salary), [[n.age]]
-]] resolve #2 to #4
-   resolve #3 to #1
-*/
+    SELECT n.age AS nAge2, AVG([[n]].salary) AS avg
+     MATCH ([[n]])
+  GROUP BY n.age AS nAge
 
-// failing because subqueries are not supported in PGQL 1.0
-/*
-test Variable from subquery in WHERE [[
-SELECT *
-WHERE
-  (n:Person), n.age = [[maxAge]],
-  { SELECT MAX(m.age) AS [[maxAge]] WHERE (m) }
 ]] resolve #1 to #2
-*/
 
-// failing because NOT EXISTS is not supported in PGQL 1.0
-/*
+test Mixed aggregation and non-aggregation in ORDER BY [[
+
+    SELECT nAge
+     MATCH ([[n]])
+  GROUP BY n.age AS nAge
+  ORDER BY AVG([[n]].salary), n.age
+
+]] resolve #2 to #1
+
 test Variable reference in NOT EXISTS #1 [[
-SELECT *
-WHERE (x) -> ([[y]]), NOT EXITS { (x) -> ([[z]]), [[z]], != [[y]] }
-]] resolve #3 to #2
-   resolve #4 to #1
-*/
 
-// failing because NOT EXISTS is not supported in PGQL 1.0
-/*
-test Variable reference in NOT EXISTS #2 [[
-SELECT *
-WHERE (x), NOT EXITS { (x) -> (y), x.salary = y.salary }
+  SELECT *
+   MATCH (x) -> ([[y]])
+   WHERE NOT EXISTS ( SELECT * MATCH (x) -> ([[z]]) WHERE [[z]] <> [[y]] )
 ]] resolve #3 to #2
    resolve #4 to #1
-*/
-   
+
+test Variable reference in NOT EXISTS #2 [[
+
+  SELECT *
+   MATCH (x)
+   WHERE NOT EXISTS ( SELECT * MATCH ([[x]]) -> ([[y]]) WHERE [[x]].salary = [[y]].salary )
+
+]] resolve #3 to #1
+   resolve #4 to #2
+
+test Can't reference previous SELECT element [[
+
+  SELECT x AS n, [[n]]
+   MATCH (x) -> ([[n]])
+
+]] resolve #1 to #2
+
+test Can't reference previous GROUP BY element [[
+
+  SELECT x
+   MATCH (x) -> ([[n]])
+  GROUP BY x AS n, [[n]]
+
+]] resolve #2 to #1
+
+test Reference select key from outer query (1) [[
+
+    SELECT n.age AS [[nAge]]
+     MATCH (n)
+   ORDER BY ( SELECT [[nAge]] MATCH (n) LIMIT 1 )
+
+]] resolve #2 to #1
+
+test Reference select key from outer query (2) [[
+
+    SELECT n.age AS [[nAge]]
+     MATCH (n)
+   ORDER BY ( SELECT AVG([[nAge]]) AS avg MATCH (n) GROUP BY n LIMIT 1 )
+
+]] resolve #2 to #1
+
+test Reference select key from outer query (3) [[
+
+    SELECT n.age AS [[nAge]]
+     MATCH (n)
+  GROUP BY n.age AS nAge
+  ORDER BY ( SELECT AVG([[nAge]]) AS avg MATCH (n) GROUP BY n LIMIT 1 )
+
+]] resolve #2 to #1
+
+test Reference group key from outer query (1) [[
+
+    SELECT 123 AS x
+     MATCH (n)
+    GROUP BY n.age AS [[nAge]]
+   ORDER BY ( SELECT AVG([[nAge]]) AS avg MATCH (n) LIMIT 1 )
+
+]] resolve #2 to #1
+
+test Reference group key from outer query (2) [[
+
+    SELECT 123 AS x
+     MATCH (n)
+  GROUP BY n.age AS [[nAge]]
+  ORDER BY ( SELECT AVG([[nAge]]) AS avg MATCH (n) GROUP BY n LIMIT 1 )
+
+]] resolve #2 to #1

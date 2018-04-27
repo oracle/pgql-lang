@@ -2,9 +2,18 @@ module trans-for-nabl
 
 imports
 
+  stratego/-
   signatures/-
   normalized-signatures
   common
+  pp
+  runtime/index/-
+  runtime/nabl/-
+  runtime/properties/-
+  runtime/types/-
+  runtime/task/-
+  runtime/analysis/-
+  runtime/editor/-
 
 /*
  * 'trans-for-nabl' is called after 'normalize' and transforms the normalized AST into a shape that works for NaBL.
@@ -13,41 +22,143 @@ imports
  */
 rules
 
-  trans-for-nabl = bottomup(try(trans-for-nabl-grouping))
+  trans-for-nabl = trans-query(|[], [])
+                   + Start-Plhdr() // for empty query string
 
 rules
 
-  // if there is a GROUP BY or aggregation in SELECT, then all the variables references in the SELECT need to be group keys or need to be inside aggregates
-  trans-for-nabl-grouping:
-    NormalizedQuery(pathPatterns, expAsVars, fromClause, graphPattern, groupBy, having, orderBy, limitOffsets, error-messages, version) ->
-        NormalizedQuery(pathPatterns, expAsVars', fromClause, graphPattern, groupBy', having', orderBy', limitOffsets, error-messages, version)
+  trans-query(|vars, varsAggr):
+    NormalizedQuery(CommonPathExpressions(pathExpressions), selectClause, fromClause, GraphPattern(vertices, edges, valueExpression), groupBy, having, orderBy, limitOffsets, error-messages, version) ->
+        NormalizedQuery(CommonPathExpressions(pathExpressions'), selectClause', fromClause, GraphPattern(vertices', edges', valueExpression'), groupBy', having', orderBy', limitOffsets, error-messages, version)
     with
-      if (!groupBy; ?Some(_)) + (!expAsVars; contains-aggregation)
-      then
-        expAsVars' := <to-VarRef-or-GroupRefs; to-ExpAsSelectVars> expAsVars
-      ; having' := <to-VarRef-or-SelectOrGroupRefs> having
-      ; orderBy' := <to-VarRef-or-SelectOrGroupRefs> orderBy
-      ; if !expAsVars; contains-aggregation; !groupBy; ?None()
-        then groupBy' := CreateOneGroup() // create one group when there's no GROUP BY but SELECT has at least one aggregation
-        else groupBy' := <to-ExpAsGroupVars> groupBy
-        end
-      else
-        expAsVars' := expAsVars
-      ; having' := <to-VarOrSelectRefs> having
-      ; orderBy' := <to-VarOrSelectRefs> orderBy
-      ; groupBy' := groupBy
-      end
+       // PATH
+         pathExpressions' := <map(trans-path-expression(|vars))> pathExpressions
+
+       // FROM + MATCH
+       ; (vertices', edges') := <alltd(trans-elem(|vars))> (vertices, edges)
+       ; new-vars := <collect(to-varDef)> (vertices', edges')
+       ; visible-vars := <replace-or-add-all> (new-vars, vars)
+
+       // WHERE
+       ; valueExpression' := <resolve-where-clause(|visible-vars, varsAggr)> valueExpression
+
+       // GROUP BY
+       ; if (!groupBy; ?Some(_)) + (!selectClause; contains-aggregation) + (!having; ?Some(_))
+         then (groupBy', vars', varsAggr') := <resolve-group-by(|visible-vars, varsAggr)> groupBy
+         else (groupBy', vars', varsAggr') := (groupBy, visible-vars, varsAggr)
+         end
+
+       // SELECT
+       ; (selectClause', vars'') := <resolve-select-clause(|vars', varsAggr')> selectClause
+
+       // HAVING
+       ; having' := <resolve-var-refs(|vars'', varsAggr')> having
+
+       // ORDER BY
+       ; orderBy' := <resolve-var-refs(|vars'', varsAggr'); alltd(optimize-order-by)> orderBy
+
+  trans-elem(|vars):
+    Vertex(v) -> Vertex(v, origin-offset, correlation)
+    with origin-offset := <origin-offset> v
+       ; correlation := <to-Correlation(|vars)> v
+
+  trans-elem(|vars):
+    Edge(src, e, dst, direction) -> Edge(src, e, dst, direction, origin-offset, correlation)
+    with origin-offset := <origin-offset> e
+       ; correlation := <to-Correlation(|vars)> e
+
+  to-Correlation(|vars):
+    v -> correlation
+    with if <fetch(?VarDef(v, _, _, _); ?VarDef(v-from-outer-query, origin-position-from-outer-query, _, _))> vars
+         then correlation := Correlation(VarRef(v-from-outer-query, origin-position-from-outer-query))
+         else correlation := None()
+         end
+
+  to-varDef = ?Vertex(name, origin-offset, _); !VarDef(name, origin-offset, None(), None())
+  to-varDef = ?Edge(_, name, _, _, origin-offset, _); !VarDef(name, origin-offset, None(), None())
+
+  replace-or-add-all = foldl(replace-or-add)
+
+  replace-or-add:
+    (vd@VarDef(v, _, _, _), varDefs) -> varDefs'
+    with if <fetch(?VarDef(v, _, _, _))> varDefs
+         then varDefs' := <conc> (<remove-all(?VarDef(v, _, _, _))> varDefs, [vd])
+         else varDefs' := <conc> (varDefs, [vd])
+         end
+
+  resolve-where-clause(|vars, varsAggr):
+    valueExpression -> valueExpression'
+    with valueExpression' := <resolve-var-refs(|vars, varsAggr)> valueExpression
+
+  resolve-group-by(|vars, varsAggr):
+    Some(GroupByClause(expAsVars)) -> (Some(GroupByClause(expAsVars')), vars', varsAggr')
+    with (expAsVars', vars') := <foldl(resolve-exp-as-var(|vars, varsAggr))> (expAsVars, ([], []))
+       ; varsAggr' := vars
+
+  resolve-group-by(|vars, varsAggr):
+    None() -> (CreateOneGroup(), vars', varsAggr')
+    with vars' := []
+       ; varsAggr' := vars
+
+  resolve-select-clause(|vars, varsAggr):
+    SelectClause(distinct, eav@ExpAsVars(expAsVars)) -> (SelectClause(distinct, eav'), vars')
+    with if Star() := expAsVars
+         then eav' := expAsVars
+            ; vars':= vars
+         else (expAsVars', vars') := <foldl(resolve-exp-as-var(|vars, varsAggr))> (expAsVars, ([], vars))
+            ; eav' := <origin-track-forced(!ExpAsVars(expAsVars'))> eav
+         end
+
+  resolve-exp-as-var(|original-vars, varsAggr):
+    (t@ExpAsVar(exp, v, anonymous), (result, vars)) -> (result', vars')
+    with exp' := <resolve-var-refs(|original-vars, varsAggr)> exp
+       ; vars' := <replace-or-add> (VarDef(v, <origin-offset> v, exp, exp'), vars)
+       ; expAsVar' := <origin-track-forced(!ExpAsVar(exp', v, anonymous, <origin-offset> v))> t
+       ; result' := <conc> (result, [expAsVar'])
+
+  resolve-var-refs(|vars, varsAggr) = alltd(resolve-var-ref(|vars, varsAggr)); alltd-in-outer-query-outside-aggregation(replace-exp-with-ref(|vars))
+
+  resolve-var-ref(|vars, varsAggr):
+    t@VarRef(v) -> varRef
+    with varRef := <
+        fetch(?VarDef(v, origin-offset, _, _)); !VarRef(v, origin-offset)
+        <+ !VarRef(v)
+      > vars
+
+  // MIN, MAX, SUM, AVG, ...
+  resolve-var-ref(|vars, varsAggr):
+    aggr -> <origin-track-forced(!aggr')> aggr
+    where <is-aggregate> aggr
+    with (cons, arguments) := <explode-term> aggr
+       ; arguments' :=  <resolve-var-refs(|varsAggr, [])> arguments
+       ; aggr' := <mkterm> (cons, arguments')
+
+  resolve-var-ref(|vars, varsAggr):
+    Subquery(query) -> Subquery(query')
+    with query' := <trans-query(|vars, varsAggr)> query
+
+  replace-exp-with-ref(|vars):
+    exp -> varRef
+    where not ( None() := exp )
+        ; varRef := <fetch-elem(replace-exp-with-ref-helper(|exp))> vars
+
+  replace-exp-with-ref-helper(|exp) = ?VarDef(v, origin-offset, original-exp, _); where ( <eq> (exp, original-exp)); !VarRef(v, origin-offset)
+  replace-exp-with-ref-helper(|exp) = ?VarDef(v, origin-offset, _, resolved-exp); where ( <eq> (exp, resolved-exp)); !VarRef(v, origin-offset)
 
   contains-aggregation = collect-in-outer-query(is-aggregate); not ( ?[] )
 
-  to-VarRef-or-GroupRefs = alltd-in-outer-query(is-aggregate <+ ?VarRef(<id>); !GroupRef(<id>))
-  to-VarRef-or-SelectOrGroupRefs = alltd-in-outer-query(is-aggregate <+ ?VarRef(<id>); !SelectOrGroupRef(<id>))
+  trans-path-expression(|vars):
+    CommonPathExpression(name, vertices, edges, valueExpression) -> CommonPathExpression(name, vertices', edges', valueExpression')
+    with
+       // pattern
+        (vertices', edges') := <alltd(trans-elem(|vars))> (vertices, edges)
+       ; new-vars := <collect(to-varDef)> (vertices', edges')
+       ; visible-vars := <replace-or-add-all> (new-vars, vars)
 
-  to-ExpAsSelectVars = alltd-in-outer-query(to-ExpAsSelectVar)
-  to-ExpAsSelectVar = ?ExpAsVar(exp, v); !ExpAsSelectVar(exp, v)
+       // WHERE
+       ; varsAggr := []
+       ; valueExpression' := <resolve-where-clause(|visible-vars, varsAggr)> valueExpression
 
-  to-ExpAsGroupVars = alltd-in-outer-query(to-ExpAsGroupVar)
-  to-ExpAsGroupVar = ?ExpAsVar(exp, v); !ExpAsGroupVar(exp, v)
-  to-ExpAsGroupVar = ?AnonymousExpAsVar(exp, v); !AnonymousExpAsGroupVar(exp, v)
-
-  to-VarOrSelectRefs = alltd(?VarRef(<id>); !VarOrSelectRef(<id>))
+  optimize-order-by:
+    OrderByClause(elems) -> OrderByClause(elems')
+    with elems' := <make-set-while-preserving-ordering> elems // optimization to translate e.g. ORDER BY x, y, x, y into ORDER BY x, y

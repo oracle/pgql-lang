@@ -34,13 +34,21 @@ test Order by vertex (4) [[
 
 test Order by vertex (5) [[
 
-    SELECT n, ( SELECT m MATCH (m) LIMIT 1 ) AS o
+    SELECT n
      MATCH (n)
   ORDER BY [[( SELECT m MATCH (m) LIMIT 1 )]]
 
 ]] error like "Cannot order by vertex" at #1
 
 test Order by vertex (6) [[
+
+    SELECT n, ( SELECT m MATCH (m) LIMIT 1 ) AS o
+     MATCH (n)
+  ORDER BY [[( SELECT m MATCH (m) LIMIT 1 )]]
+
+]] error like "Cannot order by vertex" at #1
+
+test Order by vertex (7) [[
 
     SELECT n AS q
      MATCH (n)

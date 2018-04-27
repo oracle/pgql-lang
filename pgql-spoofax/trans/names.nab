@@ -7,53 +7,47 @@ imports
 namespaces
 
   CommonPathExpression // regular PATH pattern
-  WhereVar             // var defined in WHERE
-  GroupVar             // var defined in GROUP BY
-  SelectVar            // var defined in SELECT
+  Var
 
-binding rules
+properties
+
+  OriginOffset of Var
+
+binding rules // scoping
 
   NormalizedQuery(_, _, _, _, _, _, _, _, _, _):
-    scopes WhereVar, SelectVar, GroupVar, CommonPathExpression
+    scopes Var, CommonPathExpression
+
+binding rules // variable definition
 
   CommonPathExpression(p, _, _, _):
     defines unique CommonPathExpression p
-    scopes WhereVar, SelectVar, GroupVar
+    scopes Var
 
-  Vertex(n):
-    defines non-unique WhereVar n of type VertexTy()
+  Vertex(n, origin-offset, _):
+    defines non-unique Var n
+      of OriginOffset origin-offset
+      of type VertexTy()
 
-  Edge(_, e, _, _):
-    defines unique WhereVar e of type EdgeTy()
+  Edge(_, e, _, _, origin-offset, _):
+    defines unique Var e
+      of OriginOffset origin-offset
+      of type EdgeTy()
 
   Path(_, _, _, _, p, _):
-    defines unique WhereVar p of type PathTy()
+    defines unique Var p
+      of type PathTy()
+
+  ExpAsVar(exp, v, _, origin-offset):
+    defines unique Var v // unlike SQL, we currently don't allow duplicate column names. This means that we eagerly detect potential ambiguous references). We may relax this in the future.
+      of OriginOffset origin-offset
+      of type ty where exp has type ty
+
+binding rules // variable reference
 
   PathPatternRef(p):
     refers to CommonPathExpression p
 
-  ExpAsVar(exp, v): // in SELECT when there is no GROUP BY
-    defines unique SelectVar v of type ty where exp has type ty // unlike SQL but like SPARQL, we don't allow duplicate column names
-  ExpAsSelectVar(exp, v): // in SELECT when there is a GROUP BY
-    defines unique SelectVar v of type ty where exp has type ty // unlike SQL but like SPARQL, we don't allow duplicate column names
-  AnonymousExpAsVar(exp, v):
-    defines unique SelectVar v of type ty where exp has type ty
-
-  ExpAsGroupVar(exp, v): // in GROUP BY
-    defines unique GroupVar v of type ty where exp has type ty // unlike SQL but like SPARQL, we don't allow duplicate group keys
-  AnonymousExpAsGroupVar(exp, v):
-    defines unique GroupVar v of type ty where exp has type ty
-
-  VarRef(v):
-    refers to WhereVar v // refers to a variable in the WHERE clause
-
-  GroupRef(v):
-    refers to GroupVar v // refers to a variable in the GROUP BY clause
-
-  SelectOrGroupRef(v): // in ORDER BY while there is a GROUP BY
-    refers to GroupVar v // e.g. in [[SELECT * WHERE (n1) GROUP BY n1 AS n2 ORDER BY n2]], 'n2' in ORDER BY refers to 'n2' in GROUP BY
-      otherwise refers to SelectVar v // e.g. in [[SELECT AVG(n.age) as avgAge WHERE (n) ORDER BY avgAge]], 'avgAge' in ORDER BY refers to 'avgAge' in SELECT
-
-  VarOrSelectRef(v): // in ORDER BY while there is no GROUP BY
-    refers to SelectVar v // e.g. in [[SELECT n.name AS nName WHERE (n) ORDER BY nName], 'nName' in ORDER BY refers to 'nName' in SELECT
-      otherwise refers to WhereVar v // e.g. in [[SELECT n.name WHERE (n) ORDER BY n.age], 'n' in ORDER BY refers to 'n' in WHERE
+  VarRef(v, origin-offset):
+    refers to Var v
+      of OriginOffset origin-offset
