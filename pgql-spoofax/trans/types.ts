@@ -62,6 +62,7 @@ type rules
 
   ScalarSubquery(Subquery(NormalizedQuery(_, SelectClause(_, ExpAsVars([expAsVar|_])), _, _, _, _, _, _, _, _))) : ty
   where expAsVar : ty
+    and not ( ty == VertexTy() or ty == EdgeTy() ) else error $[Scalar subquery not allowed to return a vertex or an edge] on expAsVar
 
   True() + False()        : BooleanTy()
   Date(_)                 : DateTy()

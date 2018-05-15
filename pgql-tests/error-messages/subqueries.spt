@@ -184,3 +184,11 @@ test Duplicate variable passed from outer query (5) [[
   ORDER BY EXISTS ( SELECT 123 AS c MATCH () -[ [[b]] ]-> () -[ [[e]] ]-> ()  -[ [[a]] ]-> () )
 
 ]] error like "Duplicate variable (variable with same name is passed from an outer query)" at #1, #2, #3
+
+test Scalar subquery return vertex or edge [[
+
+  SELECT ( SELECT [[m AS vertex]] MATCH (m) LIMIT 1 ) AS o
+       , ( SELECT [[e AS edge]] MATCH () -[e]-> () LIMIT 1 ) AS o
+   MATCH (n)
+
+]] error like "Scalar subquery not allowed to return a vertex or an edge" at #1, #2

@@ -26,11 +26,11 @@ test Order by vertex (3) [[
 
 test Order by vertex (4) [[
 
-    SELECT n, ( SELECT m MATCH (m) LIMIT 1 ) AS o
+    SELECT n, ( SELECT [[m AS m]] MATCH (m) LIMIT 1 ) AS o
      MATCH (n)
-  ORDER BY [[o]]
+  ORDER BY o
 
-]] error like "Cannot order by vertex" at #1
+]] error like "Scalar subquery not allowed to return a vertex or an edge" at #1
 
 test Order by vertex (5) [[
 
@@ -38,7 +38,7 @@ test Order by vertex (5) [[
      MATCH (n)
   ORDER BY [[( SELECT m MATCH (m) LIMIT 1 )]]
 
-]] error like "Cannot order by vertex" at #1
+]] error like "Scalar subquery not allowed to return a vertex or an edge" at #1
 
 test Order by vertex (6) [[
 
@@ -46,7 +46,7 @@ test Order by vertex (6) [[
      MATCH (n)
   ORDER BY [[( SELECT m MATCH (m) LIMIT 1 )]]
 
-]] error like "Cannot order by vertex" at #1
+]] error like "Scalar subquery not allowed to return a vertex or an edge" at #1
 
 test Order by vertex (7) [[
 
