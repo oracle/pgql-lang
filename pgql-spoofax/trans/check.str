@@ -50,7 +50,7 @@ rules // Unresolved/duplicate variables
        ; redefinitions-in-select := <strip-annos; isect> (selectVars, groupVars)
        ; <batch-generate-error(|ctx, "Duplicate variable: variable already defined in the GROUP BY clause")> redefinitions-in-select
 
-  get-pattern-elem = ?Vertex(<id>, _, _) + ?Edge(_, <id>, _, _, _, _) + ?Path(_, _, _, _, <id>, _)
+  get-pattern-elem = ?Vertex(<id>, _, _) + ?Edge(_, <id>, _, _, _, _) + ?Path(_, _, _, _, <id>, _, _, _)
 
   generate-error-on-duplicates(|ctx) = strip-annos; ?vars; map(generate-error-on-duplicate(|ctx, vars))
 
@@ -192,7 +192,7 @@ rules // temporary limitation
   nabl-constraint(|ctx):
     CommonPathExpression(_, vertices, connections, Constraints([constraint])) -> <fail>
     with vertexVariables := <collect(?Vertex(<id>, _, _))> vertices
-       ; connectionsVariables := <collect(?Edge(_, <id>, _, _, _, _) + ?Path(_, _, _, _, <id>, _))> connections
+       ; connectionsVariables := <collect(?Edge(_, <id>, _, _, _, _) + ?Path(_, _, _, _, <id>, _, _, _))> connections
        ; variablesDefs := <union> (vertexVariables, connectionsVariables)
        ; <generate-error-on-cross-constraint(|ctx, variablesDefs)> constraint
 
@@ -204,6 +204,6 @@ rules // temporary limitation
   generate-error-on-cross-constraint(|ctx, variablesDefs):
     t -> t
     where <not(?And(_, _))> t
-    with variables := <collect(?VarRef(<id>, _) + ?Vertex(<id>, _, _) + ?Edge(_, <id>, _, _, _, _) + ?Path(_, _, _, _, <id>, _))> t
+    with variables := <collect(?VarRef(<id>, _) + ?Vertex(<id>, _, _) + ?Edge(_, <id>, _, _, _, _) + ?Path(_, _, _, _, <id>, _, _, _))> t
        ; variableRefs := <strip-annos; isect> (variablesDefs, variables)
        ; <try(!(<length> variableRefs, 1); gt; !t; generate-error(|ctx, "Not yet supported: expressions in PATH with references to multiple variables"))> t

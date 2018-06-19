@@ -14,6 +14,7 @@ imports
   runtime/task/-
   runtime/analysis/-
   runtime/editor/-
+  names/-
 
 /*
  * 'trans-for-nabl' is called after 'normalize' and transforms the normalized AST into a shape that works for NaBL.

@@ -16,12 +16,18 @@ public class QueryPath extends VertexPairConnection {
 
   private long maxHops;
 
+  private PathFindingGoal goal; // FIXME: setter missing
+
+  private long kValue; // FIXME: setter missing
+
   public QueryPath(QueryVertex src, QueryVertex dst, String name, CommonPathExpression commonPathExpression,
-      boolean anonymous, long minHops, long maxHops) {
+      boolean anonymous, long minHops, long maxHops, PathFindingGoal goal, long kValue) {
     super(src, dst, name, anonymous);
     this.commonPathExpression = commonPathExpression;
     this.minHops = minHops;
     this.maxHops = maxHops;
+    this.goal = goal;
+    this.kValue = kValue;
   }
 
   public String getPathExpressionName() {
@@ -60,6 +66,14 @@ public class QueryPath extends VertexPairConnection {
 
   public void setMaxHops(long maxHops) {
     this.maxHops = maxHops;
+  }
+
+  public PathFindingGoal getPathFindingGoal() {
+    return goal;
+  }
+
+  public long getKValue() {
+    return kValue;
   }
 
   @Override
@@ -103,6 +117,9 @@ public class QueryPath extends VertexPairConnection {
       return false;
     if (minHops != other.minHops)
       return false;
+    if (goal != other.goal) {
+      return false;
+    }
     return true;
   }
 }

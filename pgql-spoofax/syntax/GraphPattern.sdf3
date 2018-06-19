@@ -26,12 +26,15 @@ context-free syntax
   Vertex.Vertex = <(<ElemContents>)>
 
   EdgeVertex.EdgeVertex = < <Connection> <Vertex>>
-  Connection.OutConn = [-[EdgeOrPathContents?]->]
-  Connection.InConn = [<-[EdgeOrPathContents?]-]
-  Connection.UndirectedEdge = [-[EdgeContents?]-]
-  Connection.OutEdge = [->]
-  Connection.InEdge = [<-]
-  Connection.UndirectedEdge = [-]
+  Connection.OutConn = [-[EdgeOrPathContents?]->[PathQuantifier?]]
+  Connection.InConn = [<-[EdgeOrPathContents?]-[PathQuantifier?]]
+  Connection.UndirectedEdge = [-[EdgeContents?]-[PathQuantifier?]]
+  Connection.OutEdge = [->[PathQuantifier?]]
+  Connection.InEdge = [<-[PathQuantifier?]]
+  Connection.UndirectedEdge = [-[PathQuantifier?]]
+
+  PathPattern.Shortest = <shortest <K?> ( <PathPattern> )> {case-insensitive}
+  K.K = UNSIGNED-INT
 
   EdgeContents.EdgeContents = <[<ElemContents>]>
   EdgeOrPathContents = EdgeContents

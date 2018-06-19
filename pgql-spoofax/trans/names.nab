@@ -34,7 +34,7 @@ binding rules // variable definition
       of OriginOffset origin-offset
       of type EdgeTy()
 
-  Path(_, _, _, _, p, _):
+  Path(_, _, _, _, p, _, _, _):
     defines unique Var p
       of type PathTy()
 

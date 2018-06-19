@@ -5,6 +5,7 @@ imports
   signatures/-
   normalized-signatures
   runtime/editor/-
+  names/-
 
 rules
 

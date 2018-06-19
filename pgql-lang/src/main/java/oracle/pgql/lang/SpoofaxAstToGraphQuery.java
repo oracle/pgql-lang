@@ -23,7 +23,6 @@ import org.spoofax.interpreter.terms.IStrategoAppl;
 import org.spoofax.interpreter.terms.IStrategoInt;
 import org.spoofax.interpreter.terms.IStrategoString;
 import org.spoofax.interpreter.terms.IStrategoTerm;
-import org.spoofax.terms.StrategoAppl;
 
 import oracle.pgql.lang.ir.CommonPathExpression;
 import oracle.pgql.lang.ir.ExpAsVar;
@@ -32,6 +31,7 @@ import oracle.pgql.lang.ir.GraphQuery;
 import oracle.pgql.lang.ir.GroupBy;
 import oracle.pgql.lang.ir.OrderBy;
 import oracle.pgql.lang.ir.OrderByElem;
+import oracle.pgql.lang.ir.PathFindingGoal;
 import oracle.pgql.lang.ir.Projection;
 import oracle.pgql.lang.ir.QueryEdge;
 import oracle.pgql.lang.ir.QueryExpression;
@@ -88,6 +88,9 @@ public class SpoofaxAstToGraphQuery {
   private static final int POS_PATH_QUANTIFIERS_MIN_HOPS = 0;
   private static final int POS_PATH_QUANTIFIERS_MAX_HOPS = 1;
   private static final int POS_PATH_NAME = 4;
+  // FIXME: where is 5?
+  private static final int POS_PATH_FINDING_GOAL = 6;
+  private static final int POS_PATH_K_VALUE = 7;
 
   private static final int POS_ORDERBY_EXP = 0;
   private static final int POS_ORDERBY_ORDERING = 1;
@@ -332,6 +335,20 @@ public class SpoofaxAstToGraphQuery {
 
   private static QueryPath getPath(IStrategoTerm pathT, TranslationContext ctx, Map<String, QueryVertex> vertexMap)
       throws PgqlException {
+
+    String pathFindingGoal = ((IStrategoAppl) pathT.getSubterm(POS_PATH_FINDING_GOAL)).getConstructor().getName();
+    switch (pathFindingGoal) {
+      case "Reaches":
+        return getReaches(pathT, ctx, vertexMap);
+      case "Shortest":
+        return getShortest(pathT, ctx, vertexMap);
+      default:
+        throw new UnsupportedOperationException(pathFindingGoal);
+    }
+  }
+
+  private static QueryPath getReaches(IStrategoTerm pathT, TranslationContext ctx, Map<String, QueryVertex> vertexMap)
+      throws PgqlException {
     String label = getString(pathT.getSubterm(POS_PATH_LABEL));
     IStrategoTerm pathQuantifiersT = pathT.getSubterm(POS_PATH_QUANTIFIERS);
     long minHops;
@@ -373,12 +390,47 @@ public class SpoofaxAstToGraphQuery {
     String name = getString(pathT.getSubterm(POS_PATH_NAME));
     QueryVertex src = getQueryVertex(vertexMap, srcName);
     QueryVertex dst = getQueryVertex(vertexMap, dstName);
+    PathFindingGoal goal = PathFindingGoal.REACHES;
+    long kValue = -1;
 
     QueryPath path = name.contains(GENERATED_VAR_SUBSTR)
-        ? new QueryPath(src, dst, name, commonPathExpression, true, minHops, maxHops)
-        : new QueryPath(src, dst, name, commonPathExpression, false, minHops, maxHops);
+        ? new QueryPath(src, dst, name, commonPathExpression, true, minHops, maxHops, goal, kValue)
+        : new QueryPath(src, dst, name, commonPathExpression, false, minHops, maxHops, goal, kValue);
 
     return path;
+  }
+
+  private static QueryPath getShortest(IStrategoTerm pathT, TranslationContext ctx, Map<String, QueryVertex> vertexMap) {
+    String srcName = getString(pathT.getSubterm(POS_PATH_SRC));
+    String dstName = getString(pathT.getSubterm(POS_PATH_DST));
+    String name = "<<anonymous>>dummy";
+    QueryVertex src = getQueryVertex(vertexMap, srcName);
+    QueryVertex dst = getQueryVertex(vertexMap, dstName);
+
+    String edgeName = getString(pathT.getSubterm(POS_PATH_LABEL).getSubterm(1));
+    IStrategoTerm originPosition = pathT.getSubterm(POS_PATH_LABEL).getSubterm(4);
+    QueryVertex v1 = new QueryVertex("generated1", true);
+    QueryVertex v2 = new QueryVertex("generated2", true);
+    QueryEdge edge = new QueryEdge(v1, v2, edgeName, false, true);
+
+    List<QueryVertex> vertices = new ArrayList<>();
+    vertices.add(v1);
+    vertices.add(v2);
+    List<VertexPairConnection> connections = new ArrayList<>();
+    connections.add(edge);
+    Set<QueryExpression> constraints = Collections.emptySet();
+    ctx.addVar(edge, edgeName, originPosition);
+    PathFindingGoal goal = PathFindingGoal.SHORTEST;
+
+    CommonPathExpression pathExpression = new CommonPathExpression("shortest( " + edgeName + "*)", vertices, connections, constraints);
+
+
+    long kValue = Long.parseLong(getString(pathT.getSubterm(POS_PATH_K_VALUE)));
+    
+    QueryPath path = new QueryPath(src, dst, name, pathExpression, true, 0, -1, goal, kValue);
+
+    return path;
+
   }
 
   private static void giveAnonymousVariablesUniqueHiddenName(Collection<? extends QueryVariable> variables,

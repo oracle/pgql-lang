@@ -26,7 +26,7 @@ signature constructors // for the normalized AST (see trans/normalize.str)
   Edges                 : List(Edge) -> Edges
   Edge                  : Var * Var * Var * Direction -> Edge
   Paths                 : List(Path) -> Paths
-  Path                  : Var * Var * PathPatternRef * Option(KleeneStar) * Var * Direction -> Path
+  Path                  : Var * Var * PathPatternRef * Option(KleeneStar) * Var * Direction * PathFindingSemantic * KValue -> Path
   Constraints           : List(Exp) -> Constraints
   Incoming              : Direction
   Outgoing              : Direction
@@ -45,6 +45,10 @@ signature constructors // for the normalized AST (see trans/normalize.str)
 
   BindVariable          : INTEGER -> BindVariable
   Version               : STRING
+
+  Reaches               : Reaches
+  Shortest              : Shortest
+  INTEGER               : KValue
 
 signature constructors // for name binding (see trans/trans-for-nabl.str)
 
