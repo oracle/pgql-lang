@@ -23,7 +23,6 @@ import org.spoofax.interpreter.terms.IStrategoAppl;
 import org.spoofax.interpreter.terms.IStrategoInt;
 import org.spoofax.interpreter.terms.IStrategoString;
 import org.spoofax.interpreter.terms.IStrategoTerm;
-import org.spoofax.terms.StrategoAppl;
 
 import oracle.pgql.lang.ir.CommonPathExpression;
 import oracle.pgql.lang.ir.ExpAsVar;
@@ -38,6 +37,8 @@ import oracle.pgql.lang.ir.QueryExpression;
 import oracle.pgql.lang.ir.QueryExpression.LogicalExpression.And;
 import oracle.pgql.lang.ir.QueryExpression.ScalarSubquery;
 import oracle.pgql.lang.ir.QueryExpression.Constant.ConstString;
+import oracle.pgql.lang.ir.QueryExpression.ExtractExpression;
+import oracle.pgql.lang.ir.QueryExpression.ExtractExpression.ExtractField;
 import oracle.pgql.lang.ir.QueryExpression.ExpressionType;
 import oracle.pgql.lang.ir.QueryExpression.VarRef;
 import oracle.pgql.lang.ir.QueryPath;
@@ -116,6 +117,8 @@ public class SpoofaxAstToGraphQuery {
   private static final int POS_FUNCTION_CALL_PACKAGE_NAME = 0;
   private static final int POS_FUNCTION_CALL_ROUTINE_NAME = 1;
   private static final int POS_FUNCTION_CALL_EXPS = 2;
+  private static final int POS_EXTRACT_FIELD = 0;
+  private static final int POS_EXTRACT_EXP = 1;
 
   public static GraphQuery translate(IStrategoTerm ast) throws PgqlException {
     return translate(ast, new TranslationContext(new HashMap<>(), new HashSet<>(), new HashMap<>()));
@@ -576,6 +579,40 @@ public class SpoofaxAstToGraphQuery {
         IStrategoTerm argsT = getList(t.getSubterm(POS_FUNCTION_CALL_EXPS));
         List<QueryExpression> args = varArgsToExps(ctx, argsT);
         return new QueryExpression.FunctionCall(packageName, functionName, args);
+      case "ExtractExp":
+        IStrategoAppl fieldT = (IStrategoAppl) t.getSubterm(POS_EXTRACT_FIELD);
+        ExtractField field;
+        switch (fieldT.getConstructor().getName()) {
+          case "Year":
+            field = ExtractField.YEAR;
+            break;
+          case "Month":
+            field = ExtractField.MONTH;
+            break;
+          case "Day":
+            field = ExtractField.DAY;
+            break;
+          case "Hour":
+            field = ExtractField.HOUR;
+            break;
+          case "Minute":
+            field = ExtractField.MINUTE;
+            break;
+          case "Second":
+            field = ExtractField.SECOND;
+            break;
+          case "TimezoneHour":
+            field = ExtractField.TIMEZONE_HOUR;
+            break;
+          case "TimezoneMinute":
+            field = ExtractField.TIMEZONE_MINUTE;
+            break;
+          default:
+            throw new IllegalArgumentException();
+        }
+        IStrategoTerm expT = t.getSubterm(POS_EXTRACT_EXP);
+        exp = translateExp(expT, ctx);
+        return new ExtractExpression(field, exp);
       case "COUNT":
       case "MIN":
       case "MAX":

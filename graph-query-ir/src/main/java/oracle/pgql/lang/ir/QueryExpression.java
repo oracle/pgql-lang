@@ -69,7 +69,8 @@ public interface QueryExpression {
     PROP_ACCESS,
     CAST,
     EXISTS,
-    FUNCTION_CALL
+    FUNCTION_CALL,
+    EXTRACT_EXPRESSION
   }
 
   ExpressionType getExpType();
@@ -911,7 +912,9 @@ public interface QueryExpression {
 
       @Override
       public String toString() {
-        return "CAST(" + exp + " AS " + targetTypeName + ")";
+        String normalizedType = targetTypeName.replace("TIMEZONE", "TIME ZONE"); // TIMEZONE is used in java.sql.*, but
+                                                                                 // TIME ZONE is standard SQL
+        return "CAST(" + exp + " AS " + normalizedType + ")";
       }
 
       @Override
@@ -1032,6 +1035,52 @@ public interface QueryExpression {
       } else if (!packageName.equals(other.packageName))
         return false;
       return true;
+    }
+  }
+
+  class ExtractExpression implements QueryExpression {
+
+    ExtractField field;
+
+    QueryExpression exp;
+
+    public enum ExtractField {
+      YEAR,
+      MONTH,
+      DAY,
+      HOUR,
+      MINUTE,
+      SECOND,
+      TIMEZONE_HOUR,
+      TIMEZONE_MINUTE
+    }
+
+    public ExtractExpression(ExtractField field, QueryExpression exp) {
+      this.field = field;
+      this.exp = exp;
+    }
+
+    public ExtractField getField() {
+      return field;
+    }
+
+    public QueryExpression getExp() {
+      return exp;
+    }
+
+    @Override
+    public ExpressionType getExpType() {
+      return ExpressionType.EXTRACT_EXPRESSION;
+    }
+
+    @Override
+    public String toString() {
+      return "EXTRACT(" + getField() + " FROM " + getExp() + ")";
+    }
+
+    @Override
+    public void accept(QueryExpressionVisitor v) {
+      v.visit(this);
     }
   }
 

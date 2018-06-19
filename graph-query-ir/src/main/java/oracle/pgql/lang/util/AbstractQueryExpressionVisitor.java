@@ -29,6 +29,7 @@ import oracle.pgql.lang.ir.QueryExpression.Constant.ConstTime;
 import oracle.pgql.lang.ir.QueryExpression.Constant.ConstTimeWithTimezone;
 import oracle.pgql.lang.ir.QueryExpression.Constant.ConstTimestamp;
 import oracle.pgql.lang.ir.QueryExpression.Constant.ConstTimestampWithTimezone;
+import oracle.pgql.lang.ir.QueryExpression.ExtractExpression;
 import oracle.pgql.lang.ir.QueryExpression.FunctionCall;
 import oracle.pgql.lang.ir.QueryExpression.Function.Cast;
 import oracle.pgql.lang.ir.QueryExpression.Function.Exists;
@@ -221,8 +222,13 @@ public abstract class AbstractQueryExpressionVisitor implements QueryExpressionV
     cast.getExp().accept(this);
   }
 
+  @Override
   public void visit(FunctionCall functionCall) {
     functionCall.getArgs().stream().forEach(e -> e.accept(this));
+  }
+
+  public void visit(ExtractExpression extractExpression) {
+    extractExpression.getExp().accept(this);
   }
 
   @Override
@@ -230,10 +236,12 @@ public abstract class AbstractQueryExpressionVisitor implements QueryExpressionV
     exists.getQuery().accept(this);
   }
 
+  @Override
   public void visit(ScalarSubquery scalarSubquery) {
     scalarSubquery.getQuery().accept(this);
   }
 
+  @Override
   public void visit(GraphQuery query) {
     query.getProjection().accept(this);
     query.getGraphPattern().accept(this);
@@ -250,39 +258,48 @@ public abstract class AbstractQueryExpressionVisitor implements QueryExpressionV
     }
   }
 
+  @Override
   public void visit(GraphPattern graphPattern) {
     graphPattern.getVertices().stream().forEach(e -> e.accept(this));
     graphPattern.getConnections().stream().forEach(e -> e.accept(this));
     graphPattern.getConstraints().stream().forEach(e -> e.accept(this));
   }
 
+  @Override
   public void visit(Projection projection) {
     projection.getElements().stream().forEach(e -> e.accept(this));
   }
 
+  @Override
   public void visit(ExpAsVar expAsVar) {
     expAsVar.getExp().accept(this);
   }
 
+  @Override
   public void visit(QueryVertex queryVertex) {
   }
 
+  @Override
   public void visit(QueryEdge queryEdge) {
   }
 
+  @Override
   public void visit(QueryPath queryPath) {
     queryPath.getConnections().stream().forEach(e -> e.accept(this));
     queryPath.getConstraints().stream().forEach(e -> e.accept(this));
   }
 
+  @Override
   public void visit(GroupBy groupBy) {
     groupBy.getElements().stream().forEach(e -> e.accept(this));
   }
 
+  @Override
   public void visit(OrderBy orderBy) {
     orderBy.getElements().stream().forEach(e -> e.accept(this));
   }
 
+  @Override
   public void visit(OrderByElem orderByElem) {
     orderByElem.getExp().accept(this);
   }
