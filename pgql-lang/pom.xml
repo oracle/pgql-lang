@@ -64,7 +64,7 @@
     <repository>
       <id>labs-pgx-release-local</id>
       <name>Oracle Internal Repository</name>
-      <url>http://artifactory-slc.oraclecorp.com/artifactory/simple/labs-pgx-release-local</url>
+      <url>https://artifacthub.oraclecorp.com/labs-pgx-release-local</url>
     </repository>
   </distributionManagement>
 

@@ -65,6 +65,19 @@ context-free syntax // Aggregates
   StarOrExp = <<Exp>>
   Distinct.Distinct = <DISTINCT> {case-insensitive}
 
+context-free syntax // extract
+
+  Exp.ExtractExp = <EXTRACT(<ExtractField> FROM <Exp>)> {case-insensitive}
+
+  ExtractField.Year = <YEAR>
+  ExtractField.Month = <MONTH>
+  ExtractField.Day = <DAY>
+  ExtractField.Hour = <HOUR>
+  ExtractField.Minute = <MINUTE>
+  ExtractField.Second = <SECOND>
+  ExtractField.TimezoneHour = <TIMEZONE_HOUR>
+  ExtractField.TimezoneMinute = <TIMEZONE_MINUTE>
+
 context-free priorities
 
   {

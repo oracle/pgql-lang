@@ -37,6 +37,7 @@ rules
         );
       	alltd(norm-edgeContents);
         alltd(norm-string);
+        alltd(norm-timezone);
         alltd(norm-hop-distance);
         alltd(name-unnamed-elems(|variable-counter));
         alltd(norm-inlined-references);
@@ -104,6 +105,16 @@ rules
   unquote-and-unescape-identifier = (is-double-quoted; un-double-quote; unescape-identifier) <+ id
   external unescape-string-literal(|)
   external unescape-identifier(|)
+
+  norm-timezone:
+    Cast(exp, type) -> Cast(exp, type')
+    with
+      type' := <origin-track-forced(upper-case
+              /* In standard SQL the time zone is denoted by "TIME ZONE" while in java.sql.* it's denoted by "TIMEZONE".
+                 Clearly people have been confusing it. Therefore, we support both notations in PGQL by normalizing one
+                 into the other. Users can then use either. However, please stick to TIME ZONE (with space) in
+                 documentation to follow the standard. */
+              ; string-replace(|"TIME ZONE", "TIMEZONE"))> type
 
 rules
 
