@@ -38,7 +38,7 @@ The following are the changes since PGQL 1.0:
    ```sql
    /* PGQL 1.0 */
    SELECT n.name
-    WHERE (n:Person WTIH age > 25)
+    WHERE (n:Person WITH age > 25)
         , n.age <= 35
    ```
 
