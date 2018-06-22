@@ -21,33 +21,36 @@ type rules
   PropRef(_, _) + BindVariable(_) : UnknownTy()
 
   Not(exp) : BooleanTy()
-//  where exp : ty
-//    and (ty == BooleanTy() or ty == UnknownTy()) else error $[Boolean expected here] on exp
+  where exp : ty
+    and not (ty == VertexTy() or ty == EdgeTy()) else error $[Boolean expected here] on exp
 
   And(exp1, exp2) + Or(exp1, exp2) : BooleanTy()
-//  where exp1 : ty1
-//    and exp2 : ty2
-//    and ((ty1 == BooleanTy() or ty1 == UnknownTy()) else error $[Boolean expected here] on exp1)
-//    and ((ty2 == BooleanTy() or ty2 == UnknownTy()) else error $[Boolean expected here] on exp2)
+  where exp1 : ty1
+    and exp2 : ty2
+    and not (ty1 == VertexTy() or ty1 == EdgeTy()) else error $[Boolean expected here] on exp1
+    and not (ty2 == VertexTy() or ty2 == EdgeTy()) else error $[Boolean expected here] on exp2
 
   UMin(exp) : NumericTy()
-//  where exp : ty
-//    and (ty == NumericTy() or ty == UnknownTy()) else error $[Number expected here] on exp
+  where exp : ty
+    and not (ty == VertexTy() or ty == EdgeTy()) else error $[Numeric expected here] on exp
 
   Mul(exp1, exp2) + Add(exp1, exp2) + Div(exp1, exp2) + Mod(exp1, exp2) + Sub(exp1, exp2) : NumericTy()
-//  where exp1 : ty1
-//    and exp2 : ty2
-//    and (ty1 == NumericTy() or ty1 == UnknownTy()) else error $[Number expected here] on exp1
-//    and (ty2 == NumericTy() or ty2 == UnknownTy()) else error $[Number expected here] on exp2
+  where exp1 : ty1
+    and exp2 : ty2
+    and not (ty1 == VertexTy() or ty1 == EdgeTy()) else error $[Numeric expected here] on exp1
+    and not (ty2 == VertexTy() or ty2 == EdgeTy()) else error $[Numeric expected here] on exp2
 
   t@Eq(exp1, exp2) + t@Neq(exp1, exp2) : BooleanTy()
-//  where TODO
 
   t@Gt(exp1, exp2) + t@Lt(exp1, exp2) + t@Gte(exp1, exp2) + t@Lte(exp1, exp2) : BooleanTy()
-//  where TODO
+  where exp1 : ty1
+    and exp2 : ty2
+    and not (ty1 == VertexTy() or ty1 == EdgeTy()) else error $[Comparison not allowed because no order is defined for vertices and edges] on exp1
+    and not (ty2 == VertexTy() or ty2 == EdgeTy()) else error $[Comparison not allowed because no order is defined for vertices and edges] on exp2
 
   MIN(_, exp)  + MAX(_, exp)  + SUM(_, exp)  + AVG(_, exp) : ty
   where exp : ty
+    and not (ty == VertexTy() or ty == EdgeTy()) else error $[Aggregate does not allow vertex or edge input] on exp
 
   COUNT(_, exp) : NumericTy()
 
