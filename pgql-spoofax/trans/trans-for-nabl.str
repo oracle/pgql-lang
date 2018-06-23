@@ -29,24 +29,33 @@ rules
 rules
 
   trans-query(|vars, varsAggr):
-    NormalizedQuery(CommonPathExpressions(pathExpressions), selectClause, fromClause, GraphPattern(vertices, edges, valueExpression), groupBy, having, orderBy, limitOffsets, error-messages, version) ->
-        NormalizedQuery(CommonPathExpressions(pathExpressions'), selectClause', fromClause, GraphPattern(vertices', edges', valueExpression'), groupBy', having', orderBy', limitOffsets, error-messages, version)
+    NormalizedQuery(CommonPathExpressions(pathExpressions), selectClause, fromClause, GraphPattern(vertices, connections, valueExpression), groupBy, having, orderBy, limitOffsets, error-messages, version) ->
+        NormalizedQuery(CommonPathExpressions(pathExpressions'), selectClause', fromClause, GraphPattern(vertices', connections', valueExpression'), groupBy', having', orderBy', limitOffsets, error-messages, version)
     with
+
        // PATH
          pathExpressions' := <map(trans-path-expression(|vars))> pathExpressions
 
        // FROM + MATCH
-       ; (vertices', edges') := <alltd(trans-elem(|vars))> (vertices, edges)
-       ; new-vars := <collect(to-varDef)> (vertices', edges')
+       ; (vertices', connections') := <alltd(trans-elem(|vars))> (vertices, connections)
+       ; edges := <filter(?Edge(_, _, _, _, _, _))> connections'
+       ; paths := <filter(?Path(_, _, _, _, _, _, _, _))> connections' 
+
+       ; new-vars := <collect(to-varDef)> (vertices', edges)
        ; visible-vars := <replace-or-add-all> (new-vars, vars)
+       ; new-varsAggr := <collect(to-varDef)> paths
+       ; visible-varsAggr := <replace-or-add-all> (varsAggr, new-varsAggr)
 
        // WHERE
-       ; valueExpression' := <resolve-where-clause(|visible-vars, varsAggr)> valueExpression
+       ; valueExpression' := <resolve-where-clause(|visible-vars, visible-varsAggr)> valueExpression
+
+; <debug> visible-vars
+; <debug> visible-varsAggr
 
        // GROUP BY
        ; if (!groupBy; ?Some(_)) + (!selectClause; contains-aggregation) + (!having; ?Some(_))
-         then (groupBy', vars', varsAggr') := <resolve-group-by(|visible-vars, varsAggr)> groupBy
-         else (groupBy', vars', varsAggr') := (groupBy, visible-vars, varsAggr)
+         then (groupBy', vars', varsAggr') := <resolve-group-by(|visible-vars, visible-varsAggr)> groupBy
+         else (groupBy', vars', varsAggr') := (groupBy, visible-vars, visible-varsAggr)
          end
 
        // SELECT

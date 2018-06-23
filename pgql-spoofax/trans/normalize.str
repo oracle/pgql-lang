@@ -218,8 +218,6 @@ rules
       edge := <to-connection> (n1, e, n2);
       edgesPathTail := <get-connections> edgeVertices
 
-  get-connections = debug; fail
-
   get-connections:
     [Shortest(
         Some(K(kValue))
@@ -235,14 +233,6 @@ rules
     with edge := <to-connection> (n1, e, n2)
        ; path := Path(n1, n2, edge, ZeroOrMore(), None(), Outgoing(), Shortest(), kValue)
        ; edgesTailPaths := <get-connections> otherPaths
-//  
-//  
-//  
-//    (n1, shortest, n2) -> expansion
-//    where <debug> shortest;
-//      <?Shortest(k, OutConn(edgeOrPath, quantifier))> shortest
-//      ; <debug> "hello"
-//    with expansion := Path(n1, n2, "anonymous", quantifier, None(), Outgoing())
 
   to-connection:
     (n1, e, n2) -> expansion
