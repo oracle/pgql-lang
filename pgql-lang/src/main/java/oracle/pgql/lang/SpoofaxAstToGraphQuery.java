@@ -671,6 +671,7 @@ public class SpoofaxAstToGraphQuery {
       case "MAX":
       case "SUM":
       case "AVG":
+      case "ARRAY-AGG":
         exp = translateExp(t.getSubterm(POS_AGGREGATE_EXP), ctx);
         boolean distinct = aggregationHasDistinct(t);
         switch (cons) {
@@ -684,10 +685,11 @@ public class SpoofaxAstToGraphQuery {
             return new QueryExpression.Aggregation.AggrSum(distinct, exp);
           case "AVG":
             return new QueryExpression.Aggregation.AggrAvg(distinct, exp);
+          case "ARRAY-AGG":
+            return new QueryExpression.Aggregation.AggrArrayAgg(distinct, exp);
           default:
-            throw new IllegalStateException();
+            throw new IllegalArgumentException(cons);
         }
-
       case "Star":
         return new QueryExpression.Star();
       default:

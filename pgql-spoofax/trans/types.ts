@@ -48,11 +48,15 @@ type rules
     and not (ty1 == VertexTy() or ty1 == EdgeTy()) else error $[Comparison not allowed because no order is defined for vertices and edges] on exp1
     and not (ty2 == VertexTy() or ty2 == EdgeTy()) else error $[Comparison not allowed because no order is defined for vertices and edges] on exp2
 
-  MIN(_, exp)  + MAX(_, exp)  + SUM(_, exp)  + AVG(_, exp) : ty
+  MIN(_, exp)  + MAX(_, exp)  + SUM(_, exp)  + AVG(_, exp): ty
   where exp : ty
     and not (ty == VertexTy() or ty == EdgeTy()) else error $[Aggregate does not allow vertex or edge input] on exp
 
   COUNT(_, exp) : NumericTy()
+
+  ARRAY-AGG(_, exp) : ArrayTy()
+  where exp : ty
+    and not (ty == VertexTy() or ty == EdgeTy()) else error $[Aggregate does not allow vertex or edge input] on exp
 
   Cast(_, _) + FunctionCall(_, _, _) + Star(): UnknownTy()
 

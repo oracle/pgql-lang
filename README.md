@@ -46,22 +46,6 @@ The 'master' branch of this reposistory contains a parser for PGQL with the foll
        Aggregation expected here since SELECT has other aggregation
    ```
 
-   _Example 3_
-
-   ```sql
-   SELECT AVG(AVG(n.age))
-    FROM g
-   MATCH (n:Person)
-   ```
-
-   ```
-   Error(s) in line 1:
-
-       SELECT AVG(AVG(n.age))
-                  ^^^^^^^^^^
-       Nested aggregation is not allowed
-   ```
-
  - __Pretty printing__: invoking `GraphQuery.toString()` will "pretty print" the graph query, allow unformatted queries to be turned into formatted ones:
 
    ```sql

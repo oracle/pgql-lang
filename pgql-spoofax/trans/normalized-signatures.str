@@ -12,6 +12,7 @@ signature constructors // for type checking (see trans/types.ts)
   DateTy      : DateTy
   TimeTy      : TimeTy
   TimestampTy : TimestampTy
+  ArrayTy     : ArrayTy
   UnknownTy   : UnknownTy
 
 signature constructors // for the normalized AST (see trans/normalize.str)

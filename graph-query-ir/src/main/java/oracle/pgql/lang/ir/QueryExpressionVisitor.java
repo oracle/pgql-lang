@@ -8,6 +8,7 @@ import oracle.pgql.lang.ir.QueryExpression.Aggregation.AggrCount;
 import oracle.pgql.lang.ir.QueryExpression.Aggregation.AggrMax;
 import oracle.pgql.lang.ir.QueryExpression.Aggregation.AggrMin;
 import oracle.pgql.lang.ir.QueryExpression.Aggregation.AggrSum;
+import oracle.pgql.lang.ir.QueryExpression.Aggregation.AggrArrayAgg;
 import oracle.pgql.lang.ir.QueryExpression.ArithmeticExpression.Add;
 import oracle.pgql.lang.ir.QueryExpression.ArithmeticExpression.Div;
 import oracle.pgql.lang.ir.QueryExpression.ArithmeticExpression.Mod;
@@ -102,6 +103,8 @@ public interface QueryExpressionVisitor {
   public void visit(AggrSum aggrSum);
 
   public void visit(AggrAvg aggrAvg);
+
+  public void visit(AggrArrayAgg aggrArrayAgg);
 
   public void visit(VarRef varRef);
 

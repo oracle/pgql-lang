@@ -58,6 +58,7 @@ public interface QueryExpression {
     AGGR_MAX,
     AGGR_SUM,
     AGGR_AVG,
+    ARRAY_AGG,
 
     // other
     VARREF,
@@ -1226,6 +1227,23 @@ public interface QueryExpression {
       @Override
       public ExpressionType getExpType() {
         return ExpressionType.AGGR_AVG;
+      }
+
+      @Override
+      public void accept(QueryExpressionVisitor v) {
+        v.visit(this);
+      }
+    }
+
+    class AggrArrayAgg extends AbstractAggregation {
+
+      public AggrArrayAgg(boolean distinct, QueryExpression exp) {
+        super(distinct, exp);
+      }
+
+      @Override
+      public ExpressionType getExpType() {
+        return ExpressionType.ARRAY_AGG;
       }
 
       @Override

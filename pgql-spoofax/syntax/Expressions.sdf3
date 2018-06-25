@@ -60,6 +60,7 @@ context-free syntax // Aggregates
   Exp.MAX          = <MAX(<Distinct?><Exp>)> {case-insensitive}
   Exp.SUM          = <SUM(<Distinct?><Exp>)> {case-insensitive}
   Exp.AVG          = <AVG(<Distinct?><Exp>)> {case-insensitive}
+  Exp.ARRAY-AGG    = <ARRAY_AGG(<Distinct?><Exp>)> {case-insensitive}
 
   StarOrExp.Star = <*>
   StarOrExp = <<Exp>>

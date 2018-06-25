@@ -111,3 +111,10 @@ test Subquery with non-group key variable in SELECT (3) [[
    MATCH (n)
 
 ]] error like "Unresolved variable (did you mean to use a group key?)" at #1
+
+test Aggregate group variable and non-group variable simultaneously [[
+
+  SELECT AVG([[n]].age) AS avg1, AVG(e.age) AS avg2
+   MATCH SHORTEST 10( (n) -[e]->* (m) )
+
+]] error like "Unresolved variable" at #1

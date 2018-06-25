@@ -4,18 +4,18 @@ language pgql-lang
 
 test Nested aggregation (1) [[
 
-  SELECT AVG( [[MIN(n.age)]] ) AS nextedAggr
+  SELECT AVG(MIN([[n]].age)) AS nextedAggr
    MATCH (n)
 
-]] error like "Nested aggregation is not allowed" at #1
+]] error like "Unresolved variable" at #1
 
 test Nested aggregation (2) [[
 
     SELECT MIN(n.age) AS min
      MATCH (n)
-  ORDER BY AVG( [[MIN(n.age)]] )
+  ORDER BY AVG(MIN([[n]].age))
 
-]] error like "Nested aggregation is not allowed" at #1
+]] error like "Unresolved variable" at #1
 
 test Nested aggregation (3) [[
 
@@ -64,7 +64,6 @@ test Aggregation in GROUP BY (2) [[
   GROUP BY [[AVG(MIN(n.age))]] AS avgAge
 
 ]] error like "Aggregation not allowed in GROUP BY" at #1
-   error like "Nested aggregation is not allowed"
 
 test Aggregation in GROUP BY (3) [[
 
@@ -73,7 +72,6 @@ test Aggregation in GROUP BY (3) [[
   GROUP BY [[AVG(MIN(n.age))]] AS avgAge
 
 ]] error like "Aggregation not allowed in GROUP BY" at #1
-   error like "Nested aggregation is not allowed"
  
 test IS NULL limitations [[
 
