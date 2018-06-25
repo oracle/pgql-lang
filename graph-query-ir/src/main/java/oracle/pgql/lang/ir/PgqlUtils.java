@@ -19,6 +19,7 @@ import oracle.pgql.lang.ir.QueryExpression.Aggregation;
 import oracle.pgql.lang.ir.QueryExpression.PropertyAccess;
 import oracle.pgql.lang.ir.QueryExpression.ScalarSubquery;
 import oracle.pgql.lang.ir.QueryExpression.VarRef;
+import oracle.pgql.lang.ir.QueryExpression.Aggregation.AggrArrayAgg;
 import oracle.pgql.lang.ir.QueryExpression.Aggregation.AggrAvg;
 import oracle.pgql.lang.ir.QueryExpression.Aggregation.AggrCount;
 import oracle.pgql.lang.ir.QueryExpression.Aggregation.AggrMax;
@@ -109,6 +110,11 @@ public class PgqlUtils {
       }
 
       @Override
+      public void visit(AggrArrayAgg aggrArrayAgg) {
+        result.add(aggrArrayAgg);
+      }
+
+      @Override
       public void visit(Exists exists) {
         // don't visit EXISTS subqueries
       }
@@ -173,7 +179,7 @@ public class PgqlUtils {
     }
     result += graphPattern;
     GroupBy groupBy = graphQuery.getGroupBy();
-    if (groupBy.getElements().isEmpty() == false) {
+    if (groupBy != null && groupBy.getElements().isEmpty() == false) {
       result += "\n" + groupBy;
     }
     QueryExpression having = graphQuery.getHaving();

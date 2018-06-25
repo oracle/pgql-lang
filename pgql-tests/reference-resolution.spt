@@ -170,6 +170,15 @@ test Reference select key from outer query (3) [[
 
 ]] resolve #2 to #1
 
+test Reference vertices from both inner and outer query inside aggregation [[
+
+  SELECT id([[a]]) AS id, (SELECT COUNT([[a]].prop + [[b]].prop) AS cnt1 MATCH ([[b]])) AS cnt2
+   MATCH ([[a]])
+
+]] resolve #1 to #5
+   resolve #2 to #5
+   resolve #3 to #4
+
 test Reference group key from outer query (1) [[
 
     SELECT 123 AS x

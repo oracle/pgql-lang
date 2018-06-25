@@ -170,8 +170,7 @@ public class SpoofaxAstToGraphQuery {
 
     // GROUP BY
     IStrategoTerm groupByT = ast.getSubterm(POS_GROUPBY);
-    List<ExpAsVar> groupByElems = getGroupByElems(ctx, groupByT);
-    GroupBy groupBy = new GroupBy(groupByElems);
+    GroupBy groupBy = getGroupBy(ctx, groupByT);
 
     // SELECT
     IStrategoTerm projectionT = ast.getSubterm(POS_PROJECTION);
@@ -404,7 +403,8 @@ public class SpoofaxAstToGraphQuery {
     return path;
   }
 
-  private static QueryPath getShortest(IStrategoTerm pathT, TranslationContext ctx, Map<String, QueryVertex> vertexMap) {
+  private static QueryPath getShortest(IStrategoTerm pathT, TranslationContext ctx,
+      Map<String, QueryVertex> vertexMap) {
     String srcName = getString(pathT.getSubterm(POS_PATH_SRC));
     String dstName = getString(pathT.getSubterm(POS_PATH_DST));
     String name = "<<anonymous>>dummy";
@@ -426,11 +426,11 @@ public class SpoofaxAstToGraphQuery {
     ctx.addVar(edge, edgeName, originPosition);
     PathFindingGoal goal = PathFindingGoal.SHORTEST;
 
-    CommonPathExpression pathExpression = new CommonPathExpression("shortest( " + edgeName + "*)", vertices, connections, constraints);
-
+    CommonPathExpression pathExpression = new CommonPathExpression("shortest( " + edgeName + "*)", vertices,
+        connections, constraints);
 
     long kValue = Long.parseLong(getString(pathT.getSubterm(POS_PATH_K_VALUE)));
-    
+
     QueryPath path = new QueryPath(src, dst, name, pathExpression, true, 0, -1, goal, kValue);
 
     return path;
@@ -458,12 +458,19 @@ public class SpoofaxAstToGraphQuery {
     }
   }
 
-  private static List<ExpAsVar> getGroupByElems(TranslationContext ctx, IStrategoTerm groupByT) throws PgqlException {
-    if (isSome(groupByT)) { // has GROUP BY
-      IStrategoTerm groupByElemsT = getList(groupByT);
-      return getExpAsVars(ctx, groupByElemsT);
+  private static GroupBy getGroupBy(TranslationContext ctx, IStrategoTerm groupByT) throws PgqlException {
+    String consName = ((IStrategoAppl) groupByT).getConstructor().getName();
+    switch (consName) {
+      case "Some": // explicit GROUP BY
+        IStrategoTerm groupByElemsT = getList(groupByT);
+        return new GroupBy(getExpAsVars(ctx, groupByElemsT));
+      case "CreateOneGroup": // implicit GROUP BY (e.g. SELECT has aggregation)
+        return new GroupBy(Collections.emptyList());
+      case "None": // no GROUP BY
+        return null;
+      default:
+        throw new IllegalArgumentException(consName);
     }
-    return Collections.emptyList();
   }
 
   private static List<ExpAsVar> getExpAsVars(TranslationContext ctx, IStrategoTerm expAsVarsT) throws PgqlException {

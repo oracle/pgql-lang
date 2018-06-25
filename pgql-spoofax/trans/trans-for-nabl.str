@@ -161,16 +161,19 @@ rules
   replace-exp-with-ref-helper(|exp) = ?VarDef(v, origin-offset, original-exp, _); where ( <eq> (exp, original-exp)); !VarRef(v, origin-offset)
   replace-exp-with-ref-helper(|exp) = ?VarDef(v, origin-offset, _, resolved-exp); where ( <eq> (exp, resolved-exp)); !VarRef(v, origin-offset)
 
-  /* if the query has no GROUP BY, we still generate an implicit group when there is an aggregation over a non-group variable */
+  /* if the query has no GROUP BY but there are one ore more aggregations in the SELECT, then we generate an
+     implicit group, but only if there is no (non-nested) aggregation over a group variable
+  */
   create-one-group(|variables):
     t@select-clause -> t
     with [vars|[groupVars|_]] := variables
+       ; aggregations := <collect-in-outer-query(is-aggregate)> select-clause
        ; exps-from-aggregations := <collect(get-exp-from-aggregation)> select-clause
        ; varsInAggregations := <collect-in-outer-query-outside-aggregation(varRef-is-visible-var(|vars))> exps-from-aggregations
        ; groupVarsInAggregations := <collect-in-outer-query-outside-aggregation(varRef-is-visible-var(|groupVars))> exps-from-aggregations
        ; groupVarsInAggregations' := <diff> (groupVarsInAggregations, varsInAggregations)
-    where not ( [] := varsInAggregations )
-        ; [] := groupVarsInAggregations'
+    where not ( [] := aggregations ) // there are aggregations
+        ; [] := groupVarsInAggregations' // but no aggregations that involve group variables (not counting nested aggregations)
 
   varRef-is-visible-var(|visible-vars):
     t@VarRef(v) -> t

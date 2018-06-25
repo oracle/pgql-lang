@@ -1,3 +1,6 @@
+/*
+ * Copyright (C) 2013 - 2018 Oracle and/or its affiliates. All rights reserved.
+ */
 package oracle.pgql.lang.util;
 
 import oracle.pgql.lang.ir.ExpAsVar;
@@ -251,7 +254,9 @@ public abstract class AbstractQueryExpressionVisitor implements QueryExpressionV
   public void visit(GraphQuery query) {
     query.getProjection().accept(this);
     query.getGraphPattern().accept(this);
-    query.getGroupBy().accept(this);
+    if (query.getGroupBy() != null) {
+      query.getGroupBy().accept(this);
+    }
     if (query.getHaving() != null) {
       query.getHaving().accept(this);
     }
