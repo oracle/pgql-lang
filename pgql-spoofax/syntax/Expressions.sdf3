@@ -48,6 +48,8 @@ context-free syntax
   Exp.IsNull = <<Exp> IS NULL> {right, case-insensitive}
   Exp.IsNotNull = <<Exp> IS NOT NULL> {right, case-insensitive}
 
+  Exp.InPredicate = <<Exp> IN (<{Literal ", "}+>)> {left, case-insensitive}
+
 context-free syntax // function calls
 
   Exp.FunctionCall = <<PackageName?><FUNCTION-NAME>(<{Exp ", "}*>)> {case-insensitive, avoid}
@@ -69,14 +71,14 @@ context-free syntax // extract
 
   Exp.ExtractExp = <EXTRACT(<ExtractField> FROM <Exp>)> {case-insensitive}
 
-  ExtractField.Year = <YEAR>
-  ExtractField.Month = <MONTH>
-  ExtractField.Day = <DAY>
-  ExtractField.Hour = <HOUR>
-  ExtractField.Minute = <MINUTE>
-  ExtractField.Second = <SECOND>
-  ExtractField.TimezoneHour = <TIMEZONE_HOUR>
-  ExtractField.TimezoneMinute = <TIMEZONE_MINUTE>
+  ExtractField.Year = <YEAR> {case-insensitive}
+  ExtractField.Month = <MONTH> {case-insensitive}
+  ExtractField.Day = <DAY> {case-insensitive}
+  ExtractField.Hour = <HOUR> {case-insensitive}
+  ExtractField.Minute = <MINUTE> {case-insensitive}
+  ExtractField.Second = <SECOND> {case-insensitive}
+  ExtractField.TimezoneHour = <TIMEZONE_HOUR> {case-insensitive}
+  ExtractField.TimezoneMinute = <TIMEZONE_MINUTE> {case-insensitive}
 
 context-free priorities
 
@@ -120,6 +122,11 @@ context-free priorities
       Exp.Gte
       Exp.Lte
       Exp.Legacy10Regex
+  }
+  >
+  {
+    left:
+      Exp.InPredicate
   }
   >
   {

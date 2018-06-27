@@ -13,6 +13,7 @@ import java.time.LocalDateTime;
 import java.time.LocalTime;
 import java.time.OffsetDateTime;
 import java.time.OffsetTime;
+import java.util.Arrays;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -70,7 +71,8 @@ public interface QueryExpression {
     CAST,
     EXISTS,
     FUNCTION_CALL,
-    EXTRACT_EXPRESSION
+    EXTRACT_EXPRESSION,
+    IN_EXPRESSION
   }
 
   ExpressionType getExpType();
@@ -1076,6 +1078,42 @@ public interface QueryExpression {
     @Override
     public String toString() {
       return "EXTRACT(" + getField() + " FROM " + getExp() + ")";
+    }
+
+    @Override
+    public void accept(QueryExpressionVisitor v) {
+      v.visit(this);
+    }
+  }
+
+  class InPredicate implements QueryExpression {
+
+    QueryExpression exp;
+
+    int[] intValues;
+
+    public InPredicate(QueryExpression exp, int[] intValues) {
+      this.exp = exp;
+      this.intValues = intValues;
+    }
+
+    public QueryExpression getExp() {
+      return exp;
+    }
+
+    public int[] getIntValues() {
+      return intValues;
+    }
+
+    @Override
+    public ExpressionType getExpType() {
+      return ExpressionType.EXTRACT_EXPRESSION;
+    }
+
+    @Override
+    public String toString() {
+      String values = Arrays.stream(getIntValues()).mapToObj(Integer::toString).collect(Collectors.joining(", "));
+      return getExp() + " IN (" + values + ")";
     }
 
     @Override

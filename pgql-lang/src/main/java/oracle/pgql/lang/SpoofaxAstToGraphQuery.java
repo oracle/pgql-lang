@@ -40,6 +40,7 @@ import oracle.pgql.lang.ir.QueryExpression.Constant.ConstString;
 import oracle.pgql.lang.ir.QueryExpression.ExtractExpression;
 import oracle.pgql.lang.ir.QueryExpression.ExtractExpression.ExtractField;
 import oracle.pgql.lang.ir.QueryExpression.ExpressionType;
+import oracle.pgql.lang.ir.QueryExpression.InPredicate;
 import oracle.pgql.lang.ir.QueryExpression.VarRef;
 import oracle.pgql.lang.ir.QueryPath;
 import oracle.pgql.lang.ir.QueryVariable;
@@ -119,6 +120,8 @@ public class SpoofaxAstToGraphQuery {
   private static final int POS_FUNCTION_CALL_EXPS = 2;
   private static final int POS_EXTRACT_FIELD = 0;
   private static final int POS_EXTRACT_EXP = 1;
+  private static final int POS_IN_PREDICATE_EXP = 0;
+  private static final int POS_IN_PREDICATE_VALUES = 1;
 
   public static GraphQuery translate(IStrategoTerm ast) throws PgqlException {
     return translate(ast, new TranslationContext(new HashMap<>(), new HashSet<>(), new HashMap<>()));
@@ -613,6 +616,18 @@ public class SpoofaxAstToGraphQuery {
         IStrategoTerm expT = t.getSubterm(POS_EXTRACT_EXP);
         exp = translateExp(expT, ctx);
         return new ExtractExpression(field, exp);
+      case "InPredicate":
+        expT = t.getSubterm(POS_IN_PREDICATE_EXP);
+        exp = translateExp(expT, ctx);
+        IStrategoTerm valuesT = t.getSubterm(POS_IN_PREDICATE_VALUES);
+        int size = valuesT.getSubtermCount();
+        int[] values = new int[size];
+        for (int i = 0; i < size; i++) {
+          String valueAsString = getString(valuesT.getSubterm(i));
+          int intValue = Integer.parseInt(valueAsString);
+          values[i] = intValue;
+        }
+        return new InPredicate(exp, values);
       case "COUNT":
       case "MIN":
       case "MAX":

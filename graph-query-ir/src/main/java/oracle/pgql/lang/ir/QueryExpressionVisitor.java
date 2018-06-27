@@ -27,6 +27,7 @@ import oracle.pgql.lang.ir.QueryExpression.Constant.ConstTimestamp;
 import oracle.pgql.lang.ir.QueryExpression.Constant.ConstTimestampWithTimezone;
 import oracle.pgql.lang.ir.QueryExpression.ExtractExpression;
 import oracle.pgql.lang.ir.QueryExpression.FunctionCall;
+import oracle.pgql.lang.ir.QueryExpression.InPredicate;
 import oracle.pgql.lang.ir.QueryExpression.Function.Cast;
 import oracle.pgql.lang.ir.QueryExpression.Function.Exists;
 import oracle.pgql.lang.ir.QueryExpression.LogicalExpression.And;
@@ -118,6 +119,8 @@ public interface QueryExpressionVisitor {
   public void visit(FunctionCall functionCall);
 
   public void visit(ExtractExpression extractExpression);
+
+  public void visit(InPredicate inPredicate);
 
   public void visit(ScalarSubquery sclarSubquery);
 

@@ -56,7 +56,9 @@ type rules
 
   Cast(_, _) + FunctionCall(_, _, _) + Star(): UnknownTy()
 
-  Exists(_) : BooleanTy()
+  ExtractExp(_, _) : NumericTy()
+
+  Exists(_) + InPredicate(_, _) : BooleanTy()
 
   Subquery(_) : UnknownTy()
 
