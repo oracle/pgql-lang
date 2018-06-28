@@ -1107,7 +1107,7 @@ public interface QueryExpression {
 
     @Override
     public ExpressionType getExpType() {
-      return ExpressionType.EXTRACT_EXPRESSION;
+      return ExpressionType.IN_EXPRESSION;
     }
 
     @Override
