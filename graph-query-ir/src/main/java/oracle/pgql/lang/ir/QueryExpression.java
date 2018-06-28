@@ -58,7 +58,7 @@ public interface QueryExpression {
     AGGR_MAX,
     AGGR_SUM,
     AGGR_AVG,
-    ARRAY_AGG,
+    AGGR_ARRAY_AGG,
 
     // other
     VARREF,
@@ -1123,6 +1123,9 @@ public interface QueryExpression {
           case AGGR_SUM:
             result = "SUM";
             break;
+          case AGGR_ARRAY_AGG:
+            result = "ARRAY_AGG";
+            break;
           default:
             throw new IllegalArgumentException("Unexpected expression type: " + getExpType());
         }
@@ -1243,7 +1246,7 @@ public interface QueryExpression {
 
       @Override
       public ExpressionType getExpType() {
-        return ExpressionType.ARRAY_AGG;
+        return ExpressionType.AGGR_ARRAY_AGG;
       }
 
       @Override
