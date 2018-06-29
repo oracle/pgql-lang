@@ -1,6 +1,7 @@
 package oracle.pgql.lang;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertTrue;
 
 import org.junit.Test;
 
@@ -19,4 +20,10 @@ public class BugFixTest extends AbstractPgqlTest {
     assertEquals("NOTfunc", funcCall.getFunctionName());
   }
 
+  @Test
+  public void testArrayAgg() throws Exception {
+    String query = "SELECT array_agg(e.weight) MATCH SHORTEST 10 ( (n) -[e]->* (m) )";
+
+    assertTrue(pgql.parse(query).isQueryValid());
+  }
 }
