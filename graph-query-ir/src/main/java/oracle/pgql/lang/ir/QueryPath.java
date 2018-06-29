@@ -83,11 +83,20 @@ public class QueryPath extends VertexPairConnection {
 
   @Override
   public String toString() {
-    String path = "-/";
-    if (!isAnonymous()) {
-      path += name;
+    switch (goal) {
+      case REACHES:
+        String path = "-/";
+        if (!isAnonymous()) {
+          path += name;
+        }
+        return path + ":" + commonPathExpression.getName() + printHops(this) + "/->";
+      case SHORTEST:
+        String kValueAsString = kValue == 1 ? "" : " " + kValue + " ";
+        return "SHORTEST" + kValueAsString + "( " + getSrc() + " " + getConnections().iterator().next()
+            + printHops(this) + " " + getDst() + " )";
+      default:
+        throw new IllegalArgumentException(goal.toString());
     }
-    return path + ":" + commonPathExpression.getName() + printHops(this) + "/->";
   }
 
   public void accept(QueryExpressionVisitor v) {

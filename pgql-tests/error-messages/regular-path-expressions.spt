@@ -1,0 +1,11 @@
+module common-path-expressions
+
+language pgql-lang
+
+test Duplicate group variable (1) [[
+
+  SELECT n
+   MATCH (n) -[ [[e]] ]-> (m)
+       , SHORTEST ( (n) -[ [[e]]:likes]->* (m) )
+ 
+ ]] error like "Duplicate variable" at #1, #2

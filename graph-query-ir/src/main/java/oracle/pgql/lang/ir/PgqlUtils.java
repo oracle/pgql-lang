@@ -251,14 +251,26 @@ public class PgqlUtils {
         uncoveredVertices.remove(vertex);
       }
 
-      result += printVertex(constraintsCopy, vertex, lastVertex, indentation);
-      lastVertex = vertex;
+      if (!(lastVertex == null && !uncoveredConnections.isEmpty()
+          && isShortest(uncoveredConnections.iterator().next()))) {
+        // no need to print the vertex if it's the first of a pattern in case the first connection is a SHORTEST path
+        result += printVertex(constraintsCopy, vertex, lastVertex, indentation);
+        lastVertex = vertex;
+      }
 
       Iterator<VertexPairConnection> connectionIt = uncoveredConnections.iterator();
       while (connectionIt.hasNext()) {
         VertexPairConnection connection = connectionIt.next();
 
-        if (connection.getSrc() == lastVertex || connection.getDst() == lastVertex) {
+        if (isShortest(connection)) {
+          // if the goal is SHORTEST we don't concatenate the connection to other connections but instead
+          // comma-separate it
+          uncoveredVertices.remove(connection.getSrc());
+          uncoveredVertices.remove(connection.getDst());
+          connectionIt.remove();
+          result += printConnection(constraintsCopy, connection, lastVertex, null, null, indentation);
+          lastVertex = connection.dst;
+        } else if (connection.getSrc() == lastVertex || connection.getDst() == lastVertex) {
           QueryVertex vertexOnTheLeft = lastVertex;
           QueryVertex vertexOnTheRight = connection.getSrc() == lastVertex ? connection.getDst() : connection.getSrc();
 
@@ -274,7 +286,7 @@ public class PgqlUtils {
       }
     }
 
-    // print connections for which both vertices are already printed
+    // print connections which are SHORTEST path or for which both vertices are already printed
     Iterator<VertexPairConnection> connectionIt = uncoveredConnections.iterator();
     while (connectionIt.hasNext()) {
       VertexPairConnection connection = connectionIt.next();
@@ -292,6 +304,11 @@ public class PgqlUtils {
     return result;
   }
 
+  private static boolean isShortest(VertexPairConnection connection) {
+    return connection.getVariableType() == VariableType.PATH
+        && ((QueryPath) connection).getPathFindingGoal() == PathFindingGoal.SHORTEST;
+  }
+
   private static String printConnection(Set<QueryExpression> constraintsCopy, VertexPairConnection connection,
       QueryVertex lastVertex, int indentation) {
     return printConnection(constraintsCopy, connection, lastVertex, connection.getSrc(), connection.getDst(),
@@ -300,7 +317,18 @@ public class PgqlUtils {
 
   private static String printConnection(Set<QueryExpression> constraintsCopy, VertexPairConnection connection,
       QueryVertex lastVertex, QueryVertex vertexOnTheLeft, QueryVertex vertexOnTheRight, int indentation) {
+
     String result = "";
+
+    if (isShortest(connection)) {
+      // if the goal is SHORTEST, we don't try to concatenate the connection to the previous connection but instead
+      // comma-separate it
+      if (lastVertex != null) {
+        return "\n" + printIndentation(indentation - 2) + ", " + connection;
+      } else {
+        return connection.toString();
+      }
+    }
 
     if (lastVertex != vertexOnTheLeft) {
       if (lastVertex != null) {
