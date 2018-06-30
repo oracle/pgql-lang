@@ -45,5 +45,3 @@ context-free syntax
   Projection.Star = <*>
 
   FromClause.FromClause = <FROM <Identifier>> {case-insensitive}
-
-  WhereClause.WhereClause = <WHERE <Exp>> {case-insensitive}

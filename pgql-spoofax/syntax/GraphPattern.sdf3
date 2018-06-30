@@ -33,6 +33,8 @@ context-free syntax
   Connection.InEdge = [<-[PathQuantifier?]]
   Connection.UndirectedEdge = [-[PathQuantifier?]]
 
+  Connection.ParenthesizedPath = <( <Vertex?> <Connection> <Vertex?> <WhereClause?> )<PathQuantifier?>>
+
   PathPattern.Shortest = <shortest <K?> ( <PathPattern> )> {case-insensitive}
   K.K = UNSIGNED-INT
 

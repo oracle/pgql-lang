@@ -230,9 +230,14 @@ rules
           ]
         )
       )|otherPaths] -> <conc> ([path], edgesTailPaths)
-    with edge := <to-connection> (n1, e, n2)
+    with edge := <to-connection + to-path> (n1, e, n2)
        ; path := Path(n1, n2, edge, ZeroOrMore(), None(), Outgoing(), Shortest(), kValue)
        ; edgesTailPaths := <get-connections> otherPaths
+
+  to-path:
+    (n1, ParenthesizedPath(v1, e, v2, whereClause, quantifier), n2) -> expansion
+    with edge := <to-connection> (v1, e, v2)
+       ; expansion := edge
 
   to-connection:
     (n1, e, n2) -> expansion

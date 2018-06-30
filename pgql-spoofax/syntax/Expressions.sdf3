@@ -13,6 +13,8 @@ template options
 
 context-free syntax
 
+  WhereClause.WhereClause = <WHERE <Exp>> {case-insensitive}
+
   ExpAsVar.ExpAsVar = <<Exp><VarAssign?>>
 
   Exp = <(<Exp>)> {bracket}
