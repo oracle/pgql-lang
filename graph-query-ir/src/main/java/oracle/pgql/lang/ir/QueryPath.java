@@ -7,6 +7,7 @@ import java.util.List;
 import java.util.Set;
 
 import static oracle.pgql.lang.ir.PgqlUtils.printHops;
+import static oracle.pgql.lang.ir.PgqlUtils.printPathExpression;
 
 public class QueryPath extends VertexPairConnection {
 
@@ -92,8 +93,16 @@ public class QueryPath extends VertexPairConnection {
         return path + ":" + commonPathExpression.getName() + printHops(this) + "/->";
       case SHORTEST:
         String kValueAsString = kValue == 1 ? "" : " " + kValue + " ";
-        return "SHORTEST" + kValueAsString + "( " + getSrc() + " " + getConnections().iterator().next()
-            + printHops(this) + " " + getDst() + " )";
+        String result = "SHORTEST" + kValueAsString + "( " + getSrc() + " ";
+        String pathExpression = printPathExpression(commonPathExpression, true);
+        if (pathExpression.contains("WHERE") || pathExpression.startsWith("(") || pathExpression.endsWith(")")) {
+          result += "(" + pathExpression + ")";
+        } else {
+          result += pathExpression;
+        }
+
+        result += printHops(this) + " " + getDst() + " )";
+        return result;
       default:
         throw new IllegalArgumentException(goal.toString());
     }

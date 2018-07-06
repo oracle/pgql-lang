@@ -30,7 +30,7 @@ rules
 
   trans-query(|variables):
     NormalizedQuery(CommonPathExpressions(pathExpressions), selectClause, fromClause, GraphPattern(vertices, connections, valueExpression), groupBy, having, orderBy, limitOffsets, error-messages, version) ->
-        NormalizedQuery(CommonPathExpressions(pathExpressions'), selectClause', fromClause, GraphPattern(vertices', connections', valueExpression'), groupBy', having', orderBy', limitOffsets, error-messages, version)
+        NormalizedQuery(CommonPathExpressions(pathExpressions'), selectClause', fromClause, GraphPattern(vertices', connections'', valueExpression'), groupBy', having', orderBy', limitOffsets, error-messages, version)
     with variables' := <guarantee-size-two-or-more> variables
 
        // PATH
@@ -38,8 +38,8 @@ rules
 
        // FROM + MATCH
        ; (vertices', connections') := <alltd(trans-elem(|variables'))> (vertices, connections)
-       ; edges := <filter(?Edge(_, _, _, _, _, _))> connections'
-       ; paths := <filter(?Path(_, _, _, _, _, _, _, _))> connections' 
+       ; edges := <filter(?Edge(_, _, _, _, _, _) + path-with-at-most-one-binding)> connections'
+       ; paths := <filter(path-with-two-or-more-bindings)> connections'
 
        ; new-vars := <collect(to-varDef)> (vertices', edges)
        ; new-groupVars := <collect(to-varDef)> paths
@@ -47,6 +47,8 @@ rules
        ; visible-vars := <replace-or-add-all> (new-vars, x)
        ; visible-groupVars := <replace-or-add-all> (new-groupVars, y)
        ; variables'' := [visible-vars|[visible-groupVars|ys]]
+
+       ; connections'' := <alltd(resolve-var-refs-in-path-expression(|variables''))> connections'
 
        // WHERE
        ; valueExpression' := <resolve-where-clause(|variables'')> valueExpression
@@ -66,9 +68,15 @@ rules
        // ORDER BY
        ; orderBy' := <resolve-var-refs(|variables''''); alltd(optimize-order-by)> orderBy
 
-  guarantee-size-two-or-more = ?[]; ![[], []] <+ ?[x]; ![x, []] <+ id
+  path-with-at-most-one-binding:
+    t@Path(_, _, _, quantifier, _, _, _, _) -> t
+    where <has-at-most-one-binding> quantifier
 
-//  debug-variables(s) = alltd(?VarDef(<id>,_, _, _)); debug(s)
+  path-with-two-or-more-bindings:
+    t@Path(_, _, _, quantifier, _, _, _, _) -> t
+    where not( <has-at-most-one-binding> quantifier )
+
+  guarantee-size-two-or-more = ?[]; ![[], []] <+ ?[x]; ![x, []] <+ id
 
   trans-elem(|variables):
     Vertex(v) -> Vertex(v, origin-offset, correlation)
@@ -132,6 +140,14 @@ rules
 
   resolve-var-refs(|variables) = alltd(resolve-var-ref(|variables))
                                ; alltd-in-outer-query-outside-aggregation(replace-exp-with-ref(|variables))
+
+  resolve-var-refs-in-path-expression(|variables):
+    t@Path(_, _, _, quantifier, _, _, _, _) -> t'
+    with [_|variables'] := variables
+       ; if <has-at-most-one-binding> quantifier
+       then t' := <alltd(resolve-var-ref(|variables))> t // resolve only to singleton variables
+       else t' := <alltd(resolve-var-ref(|variables') + resolve-var-ref(|variables))> t // resolve to either group variables or singleton variables
+        end
 
   resolve-var-ref(|variables):
     t@VarRef(v) -> varRef

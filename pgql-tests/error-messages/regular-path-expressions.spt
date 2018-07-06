@@ -2,6 +2,7 @@ module common-path-expressions
 
 language pgql-lang
 
+/* FIXME
 test Duplicate group variable (1) [[
 
   SELECT n
@@ -9,3 +10,4 @@ test Duplicate group variable (1) [[
        , SHORTEST 10 ( (n) -[ [[e]]:likes]->* (m) )
  
  ]] error like "Duplicate variable" at #1, #2
+*/

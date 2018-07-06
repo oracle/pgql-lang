@@ -31,7 +31,7 @@ test Aggregation in WHERE (1) [[
    MATCH (n)
    WHERE [[COUNT(n)]]
 
-]] error like "Aggregation not allowed in the WHERE clause" at #1
+]] error like "Aggregation without group variables not allowed in the WHERE clause" at #1
 
 test Aggregation in WHERE (2) [[
 
@@ -39,7 +39,7 @@ test Aggregation in WHERE (2) [[
    MATCH (n)
    WHERE [[COUNT(n)]]
 
-]] error like "Aggregation not allowed in the WHERE clause" at #1
+]] error like "Aggregation without group variables not allowed in the WHERE clause" at #1
 
 test Aggregation in WHERE (3) [[
 
@@ -47,7 +47,7 @@ test Aggregation in WHERE (3) [[
   SELECT 3 AS three
    MATCH (n)
 
-]] error like "Aggregation not allowed in the WHERE clause" at #1
+]] error like "Aggregation without group variables not allowed in the WHERE clause" at #1
 
 test Aggregation in GROUP BY (1) [[
 
@@ -55,7 +55,7 @@ test Aggregation in GROUP BY (1) [[
      MATCH (n)
   GROUP BY [[AVG(n.age)]] AS avgAge
 
-]] error like "Aggregation not allowed in GROUP BY" at #1
+]] error like "Aggregation without group variables not allowed in GROUP BY" at #1
 
 test Aggregation in GROUP BY (2) [[
 
@@ -63,7 +63,7 @@ test Aggregation in GROUP BY (2) [[
      MATCH (n)
   GROUP BY [[AVG(MIN(n.age))]] AS avgAge
 
-]] error like "Aggregation not allowed in GROUP BY" at #1
+]] error like "Aggregation without group variables not allowed in GROUP BY" at #1
 
 test Aggregation in GROUP BY (3) [[
 
@@ -71,7 +71,7 @@ test Aggregation in GROUP BY (3) [[
      MATCH (n)
   GROUP BY [[AVG(MIN(n.age))]] AS avgAge
 
-]] error like "Aggregation not allowed in GROUP BY" at #1
+]] error like "Aggregation without group variables not allowed in GROUP BY" at #1
  
 test IS NULL limitations [[
 

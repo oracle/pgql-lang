@@ -85,7 +85,7 @@ public class SpoofaxAstToGraphQuery {
 
   private static final int POS_PATH_SRC = 0;
   private static final int POS_PATH_DST = 1;
-  private static final int POS_PATH_LABEL = 2;
+  private static final int POS_PATH_EXPRESSION = 2;
   private static final int POS_PATH_QUANTIFIERS = 3;
   private static final int POS_PATH_QUANTIFIERS_MIN_HOPS = 0;
   private static final int POS_PATH_QUANTIFIERS_MAX_HOPS = 1;
@@ -224,32 +224,36 @@ public class SpoofaxAstToGraphQuery {
       throws PgqlException {
     List<CommonPathExpression> result = new ArrayList<>();
     for (IStrategoTerm pathPatternT : pathPatternsT) {
-      String name = getString(pathPatternT.getSubterm(POS_COMMON_PATH_EXPRESSION_NAME));
-      // vertices
-      IStrategoTerm verticesT = getList(pathPatternT.getSubterm(POS_COMMON_PATH_EXPRESSION_VERTICES));
-      List<QueryVertex> vertices = getQueryVertices(verticesT, ctx);
-      Map<String, QueryVertex> vertexMap = new HashMap<>();
-      vertices.stream().forEach(vertex -> vertexMap.put(vertex.getName(), vertex));
-
-      // connections
-      IStrategoTerm connectionsT = getList(pathPatternT.getSubterm(POS_COMMON_PATH_EXPRESSION_CONNECTIONS));
-      List<VertexPairConnection> connections = new ArrayList<>();
-      for (IStrategoTerm connectionT : connectionsT) {
-        if (((IStrategoAppl) connectionT).getConstructor().getName().equals("Edge")) {
-          connections.add(getQueryEdge(connectionT, ctx, vertexMap));
-        } else {
-          connections.add(getPath(connectionT, ctx, vertexMap));
-        }
-      }
-
-      // constraints
-      IStrategoTerm constraintsT = getList(pathPatternT.getSubterm(POS_COMMON_PATH_EXPRESSION_CONSTRAINTS));
-      LinkedHashSet<QueryExpression> constraints = getQueryExpressions(constraintsT, ctx);
-      CommonPathExpression commonPathExpression = new CommonPathExpression(name, vertices, connections, constraints);
-      result.add(commonPathExpression);
-      ctx.getCommonPathExpressions().put(name, commonPathExpression);
+      CommonPathExpression commonPathExpression = getPathExpression(pathPatternT, ctx);
+      ctx.getCommonPathExpressions().put(commonPathExpression.getName(), commonPathExpression);
     }
     return result;
+  }
+
+  private static CommonPathExpression getPathExpression(IStrategoTerm pathPatternT, TranslationContext ctx)
+      throws PgqlException {
+    String name = getString(pathPatternT.getSubterm(POS_COMMON_PATH_EXPRESSION_NAME));
+    // vertices
+    IStrategoTerm verticesT = getList(pathPatternT.getSubterm(POS_COMMON_PATH_EXPRESSION_VERTICES));
+    List<QueryVertex> vertices = getQueryVertices(verticesT, ctx);
+    Map<String, QueryVertex> vertexMap = new HashMap<>();
+    vertices.stream().forEach(vertex -> vertexMap.put(vertex.getName(), vertex));
+
+    // connections
+    IStrategoTerm connectionsT = getList(pathPatternT.getSubterm(POS_COMMON_PATH_EXPRESSION_CONNECTIONS));
+    List<VertexPairConnection> connections = new ArrayList<>();
+    for (IStrategoTerm connectionT : connectionsT) {
+      if (((IStrategoAppl) connectionT).getConstructor().getName().equals("Edge")) {
+        connections.add(getQueryEdge(connectionT, ctx, vertexMap));
+      } else {
+        connections.add(getPath(connectionT, ctx, vertexMap));
+      }
+    }
+
+    // constraints
+    IStrategoTerm constraintsT = getList(pathPatternT.getSubterm(POS_COMMON_PATH_EXPRESSION_CONSTRAINTS));
+    LinkedHashSet<QueryExpression> constraints = getQueryExpressions(constraintsT, ctx);
+    return new CommonPathExpression(name, vertices, connections, constraints);
   }
 
   private static List<QueryVertex> getQueryVertices(IStrategoTerm verticesT, TranslationContext ctx) {
@@ -352,18 +356,9 @@ public class SpoofaxAstToGraphQuery {
 
   private static QueryPath getReaches(IStrategoTerm pathT, TranslationContext ctx, Map<String, QueryVertex> vertexMap)
       throws PgqlException {
-    String label = getString(pathT.getSubterm(POS_PATH_LABEL));
-    IStrategoTerm pathQuantifiersT = pathT.getSubterm(POS_PATH_QUANTIFIERS);
-    long minHops;
-    long maxHops;
-    if (isSome(pathQuantifiersT)) {
-      pathQuantifiersT = getSome(pathQuantifiersT);
-      minHops = parseLong(pathQuantifiersT.getSubterm(POS_PATH_QUANTIFIERS_MIN_HOPS));
-      maxHops = parseLong(pathQuantifiersT.getSubterm(POS_PATH_QUANTIFIERS_MAX_HOPS));
-    } else {
-      minHops = 1;
-      maxHops = 1;
-    }
+    String label = getString(pathT.getSubterm(POS_PATH_EXPRESSION));
+    long minHops = getMinHops(pathT);
+    long maxHops = getMaxHops(pathT);
 
     CommonPathExpression commonPathExpression = ctx.getCommonPathExpressions().get(label);
 
@@ -403,38 +398,45 @@ public class SpoofaxAstToGraphQuery {
     return path;
   }
 
-  private static QueryPath getShortest(IStrategoTerm pathT, TranslationContext ctx,
-      Map<String, QueryVertex> vertexMap) {
+  private static long getMinHops(IStrategoTerm pathT) throws PgqlException {
+    return getMinMaxHops(pathT, true);
+  }
+
+  private static long getMaxHops(IStrategoTerm pathT) throws PgqlException {
+    return getMinMaxHops(pathT, false);
+  }
+
+  private static long getMinMaxHops(IStrategoTerm pathT, boolean min) throws PgqlException {
+    IStrategoTerm pathQuantifiersT = pathT.getSubterm(POS_PATH_QUANTIFIERS);
+    if (isSome(pathQuantifiersT)) {
+      pathQuantifiersT = getSome(pathQuantifiersT);
+      int position = min ? POS_PATH_QUANTIFIERS_MIN_HOPS : POS_PATH_QUANTIFIERS_MAX_HOPS;
+      return parseLong(pathQuantifiersT.getSubterm(position));
+    } else {
+      return 1;
+    }
+  }
+
+  private static QueryPath getShortest(IStrategoTerm pathT, TranslationContext ctx, Map<String, QueryVertex> vertexMap)
+      throws PgqlException {
     String srcName = getString(pathT.getSubterm(POS_PATH_SRC));
     String dstName = getString(pathT.getSubterm(POS_PATH_DST));
-    String name = "<<anonymous>>dummy";
+    long minHops = getMinHops(pathT);
+    long maxHops = getMaxHops(pathT);
+    String name = getString(pathT.getSubterm(POS_PATH_NAME));
     QueryVertex src = getQueryVertex(vertexMap, srcName);
     QueryVertex dst = getQueryVertex(vertexMap, dstName);
 
-    String edgeName = getString(pathT.getSubterm(POS_PATH_LABEL).getSubterm(1));
-    IStrategoTerm originPosition = pathT.getSubterm(POS_PATH_LABEL).getSubterm(4);
-    QueryVertex v1 = new QueryVertex("generated1", true);
-    QueryVertex v2 = new QueryVertex("generated2", true);
-    QueryEdge edge = new QueryEdge(v1, v2, edgeName, false, true);
+    IStrategoTerm pathExpressionT = pathT.getSubterm(POS_PATH_EXPRESSION);
+    CommonPathExpression pathExpression = getPathExpression(pathExpressionT, ctx);
 
-    List<QueryVertex> vertices = new ArrayList<>();
-    vertices.add(v1);
-    vertices.add(v2);
-    List<VertexPairConnection> connections = new ArrayList<>();
-    connections.add(edge);
-    Set<QueryExpression> constraints = Collections.emptySet();
-    ctx.addVar(edge, edgeName, originPosition);
     PathFindingGoal goal = PathFindingGoal.SHORTEST;
-
-    CommonPathExpression pathExpression = new CommonPathExpression("shortest( " + edgeName + "*)", vertices,
-        connections, constraints);
 
     long kValue = Long.parseLong(getString(pathT.getSubterm(POS_PATH_K_VALUE)));
 
-    QueryPath path = new QueryPath(src, dst, name, pathExpression, true, 0, -1, goal, kValue);
+    QueryPath path = new QueryPath(src, dst, name, pathExpression, true, minHops, maxHops, goal, kValue);
 
     return path;
-
   }
 
   private static void giveAnonymousVariablesUniqueHiddenName(Collection<? extends QueryVariable> variables,

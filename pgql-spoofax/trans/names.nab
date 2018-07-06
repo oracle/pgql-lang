@@ -22,7 +22,6 @@ binding rules // variable definition
 
   CommonPathExpression(p, _, _, _):
     defines unique CommonPathExpression p
-    scopes Var
 
   Vertex(n, origin-offset, _):
     defines non-unique Var n

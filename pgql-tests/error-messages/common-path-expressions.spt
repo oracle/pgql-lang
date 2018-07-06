@@ -13,4 +13,4 @@ test Cross-constraints in PATH [[
   SELECT *
    MATCH (n)
  
- ]] error like "Not yet supported: expressions in PATH with references to multiple variables" at #1, #2
+ ]] error like "Not yet supported: expressions with multiple variables" at #1, #2

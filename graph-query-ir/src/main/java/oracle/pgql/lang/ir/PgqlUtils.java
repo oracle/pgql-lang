@@ -354,22 +354,35 @@ public class PgqlUtils {
 
   private static String printPathPatterns(List<CommonPathExpression> commonPathExpressions) {
     return commonPathExpressions.stream() //
-        .map(x -> printPathExpression(x)) //
+        .map(x -> printCommonPathExpression(x)) //
         .collect(Collectors.joining());
   }
 
-  private static String printPathExpression(CommonPathExpression commonPathExpression) {
+  private static String printCommonPathExpression(CommonPathExpression commonPathExpression) {
     String result = "PATH " + commonPathExpression.getName() + " AS ";
+    result += printPathExpression(commonPathExpression, false);
+    return result + "\n";
+  }
 
+  protected static String printPathExpression(CommonPathExpression commonPathExpression, boolean tryOmitSrcAndDst) {
     Iterator<QueryVertex> vertexIt = commonPathExpression.getVertices().iterator();
     Set<QueryExpression> constraintsCopy = new HashSet<>(commonPathExpression.getConstraints());
 
     QueryVertex vertex = vertexIt.next();
-    result += deanonymizeIfNeeded(vertex, constraintsCopy);
+    String result = deanonymizeIfNeeded(vertex, constraintsCopy);
     for (VertexPairConnection connection : commonPathExpression.getConnections()) {
       result += " " + printConnection(vertex, connection, constraintsCopy);
       vertex = vertexIt.next();
       result += " " + deanonymizeIfNeeded(vertex, constraintsCopy);
+    }
+
+    if (tryOmitSrcAndDst) {
+      if (result.startsWith("()")) {
+        result = result.substring(3);
+      }
+      if (result.endsWith("()")) {
+        result = result.substring(0, result.length() - 3);
+      }
     }
 
     if (!constraintsCopy.isEmpty()) {
@@ -377,7 +390,8 @@ public class PgqlUtils {
           .map(x -> x.toString()) //
           .collect(Collectors.joining(" AND "));
     }
-    return result + "\n";
+
+    return result;
   }
 
   private static String deanonymizeIfNeeded(QueryVariable var, Set<QueryExpression> constraintsCopy) {

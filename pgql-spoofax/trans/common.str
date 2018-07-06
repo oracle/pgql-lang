@@ -44,3 +44,5 @@ rules
   origin-track-forced(s) = fail
   origin-text = fail
   origin-offset = fail
+
+  has-at-most-one-binding = ?None() + ?Some(BetweenNAndM(_, "0")) + ?Some(BetweenNAndM(_, "1"))

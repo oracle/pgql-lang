@@ -103,14 +103,18 @@ rules
   nabl-constraint(|ctx):
     t@Constraints(_) -> <fail>
     with
-      aggregations := <get-aggregations> t;
-      <batch-generate-error(|ctx, "Aggregation not allowed in the WHERE clause")> aggregations
+      aggregations := <get-aggregations-without-group-variables> t;
+      <batch-generate-error(|ctx, "Aggregation without group variables not allowed in the WHERE clause")> aggregations
 
   nabl-constraint(|ctx):
     t@GroupByClause(_) -> <fail>
     with
-      aggregations := <get-aggregations> t;
-      <batch-generate-error(|ctx, "Aggregation not allowed in GROUP BY")> aggregations
+      aggregations := <get-aggregations-without-group-variables> t;
+      <batch-generate-error(|ctx, "Aggregation without group variables not allowed in GROUP BY")> aggregations
+
+  get-aggregations-without-group-variables = get-aggregations; filter(not(contains-varRef))
+
+  contains-varRef = oncetd(?VarRef(_, _))
 
   nabl-constraint(|ctx):
     e@Null() -> <fail>
@@ -198,4 +202,4 @@ rules // temporary limitation
     where <not(?And(_, _))> t
     with variables := <collect(?VarRef(<id>, _) + ?Vertex(<id>, _, _) + ?Edge(_, <id>, _, _, _, _) + ?Path(_, _, _, _, <id>, _, _, _))> t
        ; variableRefs := <strip-annos; isect> (variablesDefs, variables)
-       ; <try(!(<length> variableRefs, 1); gt; !t; generate-error(|ctx, "Not yet supported: expressions in PATH with references to multiple variables"))> t
+       ; <try(!(<length> variableRefs, 1); gt; !t; generate-error(|ctx, "Not yet supported: expressions with multiple variables"))> t

@@ -148,17 +148,22 @@ rules
 
   norm-matchElems(|variable-counter):
     GraphPattern(elems) -> GraphPattern(vertices, connections, constraints)
-    with
-      pathPatterns := <filter(?PathPattern(_, _) + ?Shortest(_, _))> elems;
-      inlined-constraints-for-vertices := <collect-om(?Vertex(<id>)); map(get-inlined-constraints(|"vertex")); concat> pathPatterns;
-      inlined-constraints-for-edges := <collect-om(?OutConn(<id>, _) + ?InConn(<id>, _) + ?UndirectedEdge(<id>, _)); filter(get-inlined-constraints(|"edge")); concat> pathPatterns;
-      non-inlined-constraints := <filter(?Constraint(<id>))> elems;
-      constraints := <conc; flatten-list; !Constraints(<id>)> (inlined-constraints-for-vertices, inlined-constraints-for-edges, non-inlined-constraints);
-      pathPatterns' := <alltd(?ElemContents(Some(<id>), _, _, _))> pathPatterns;
-      vertices := <collect-but-preserve-order(?Vertex(_)); !Vertices(<id>)> pathPatterns';
-      connections := <get-connections(|variable-counter)> pathPatterns'
+    with pathPatterns := <filter(?PathPattern(_, _) + ?Shortest(_, _))> elems
+       ; inlined-constraints-for-vertices := <collect-outside-repeated-path(?Vertex(<id>))
+                                           ; map(get-inlined-constraints(|"vertex")); concat> pathPatterns
+       ; inlined-constraints-for-edges := <collect-outside-repeated-path(?OutConn(<id>, None())
+                                                                       + ?InConn(<id>, None())
+                                                                       + ?UndirectedEdge(<id>, None()))
+                                         ; filter(get-inlined-constraints(|"edge")); concat> pathPatterns
+       ; pathPatterns' := <alltd(?ElemContents(Some(<id>), _, _, _))> pathPatterns
+       ; vertices := <collect-outside-repeated-path(?Vertex(_)); !Vertices(<id>)> pathPatterns'
+       ; connections := <get-connections(|variable-counter)> pathPatterns'
+       ; non-inlined-constraints := <filter(?CommonPathExpression(_, _, _, _) + ?Constraint(<id>)); remove-all(?CommonPathExpression(_, _, _, _))> elems
+       ; constraints := <conc; flatten-list; !Constraints(<id>)> (inlined-constraints-for-vertices, inlined-constraints-for-edges, non-inlined-constraints)
 
-  collect-but-preserve-order(s) = collect-om(s, reverse-then-union); reverse
+  collect-outside-repeated-path(s) = collect-but-preserve-order(ParenthesizedPath-with-group-variables + s); remove-all(ParenthesizedPath-with-group-variables)
+
+  collect-but-preserve-order(s) = collect-om(s, reverse-then-union); reverse // to preserve order of vertices
 
   reverse-then-union:
     (x, y) -> <union> (y, x)
@@ -202,7 +207,7 @@ rules
       edgeVertices@[EdgeVertex(e, Vertex(n2))|_])
     |otherPaths] -> <conc> ([edge], edgesPathTail, edgesTailPaths)
     with
-      edge := <to-connection(|variable-counter)> (n1, e, n2);
+      (edge, _) := <to-connection(|variable-counter)> (n1, e, n2);
       edgesPathTail := <get-connections(|variable-counter)> edgeVertices;
       edgesTailPaths := <get-connections(|variable-counter)> otherPaths
 
@@ -214,13 +219,12 @@ rules
   get-connections(|variable-counter):
     [EdgeVertex(_, Vertex(n1)) | edgeVertices@[EdgeVertex(e, Vertex(n2))|_]]
     -> <conc> ([edge], edgesPathTail)
-    with
-      edge := <to-connection(|variable-counter)> (n1, e, n2);
-      edgesPathTail := <get-connections(|variable-counter)> edgeVertices
+    with (edge, _) := <to-connection(|variable-counter)> (n1, e, n2)
+       ; edgesPathTail := <get-connections(|variable-counter)> edgeVertices
 
   // two or more edgeVertices
   get-connections(|variable-counter):
-    [Shortest(
+    [t@Shortest(
         kValue
       , PathPattern(
           Vertex(n1)
@@ -232,8 +236,9 @@ rules
         )
       )|otherPaths] -> <conc> ([path''], edgesTailPaths)
     with (path', quantifier) := <to-path(|variable-counter)> path
-       ; kValue' := <?Some(K(kValue)) <+ !"1"> kValue
-       ; path'' := Path(n1, n2, path', quantifier, "remove path variables", Outgoing(), Shortest(), kValue')
+       ; kValue' := <?Some(K(<id>)) <+ !"1"> kValue
+       ; path-variable-name := <unique-name(|variable-counter, t)> // TODO: remove path variable names
+       ; path'' := Path(n1, n2, path', quantifier, path-variable-name, Outgoing(), Shortest(), kValue')
        ; edgesTailPaths := <get-connections(|variable-counter)> otherPaths
 
   to-path(|variable-counter):
@@ -241,26 +246,24 @@ rules
     with srcVertex := <?Some(Vertex(<id>)) <+ ?None(); unique-name(|variable-counter, edge)> v1 
        ; dstVertex := <?Some(Vertex(<id>)) <+ ?None(); unique-name(|variable-counter, edge)> v2 
        ; name := <unique-name(|variable-counter, edge)>
-       ; edge' := <to-connection(|variable-counter)> (srcVertex, edge, dstVertex)
+       ; (edge', _) := <to-connection(|variable-counter)> (srcVertex, edge, dstVertex)
        ; vertices := Vertices([Vertex(srcVertex), Vertex(dstVertex)])
        ; edges := Edges([edge'])
-       ; constraints := []
-       ; expansion := edge
+       ; constraints := <?None(); !Constraints([]) <+ ?Some(WhereClause(constraint)); !Constraints([constraint])> whereClause
 
   to-path(|variable-counter):
     edge ->  (CommonPathExpression(name, vertices, edges, constraints), quantifier)
     where srcVertex := <unique-name(|variable-counter, edge)>
         ; dstVertex := <unique-name(|variable-counter, edge)>
-        ; edge' := <to-connection(|variable-counter)> (srcVertex, edge, dstVertex)
+        ; (edge', quantifier) := <to-connection(|variable-counter)> (srcVertex, edge, dstVertex)
      with name := <unique-name(|variable-counter, edge)>
         ; vertices := Vertices([Vertex(srcVertex), Vertex(dstVertex)])
         ; edges := Edges([edge'])
         ; constraints := []
-        ; quantifier := ZeroOrMore()
 
   to-connection(|variable-counter):
-    (n1, e, n2) -> expansion
-    where <?OutConn(_, _) + ?InConn(_, _) + ?UndirectedEdge(_, _)> e
+    (n1, e, n2) -> (expansion, quantifier)
+    where <?OutConn(_, quantifier) + ?InConn(_, quantifier) + ?UndirectedEdge(_, quantifier)> e
     with
       switch !e
         case ?OutConn(edgeOrPath, _):
@@ -280,8 +283,8 @@ rules
       switch !edgeOrPath
         case is-string:
           expansion := Edge(src, edgeOrPath, dst, dir)
-        case ?Some(Path(Some(pathName), pathPatternName, quantifier)):
-          expansion := Path(src, dst, pathPatternName, quantifier, pathName, dir, Reaches(), -1)
+        case ?Some(Path(Some(pathName), pathPatternName, quantifier')):
+          expansion := Path(src, dst, pathPatternName, quantifier', pathName, dir, Reaches(), -1)
         otherwise: fail
       end
 
@@ -301,6 +304,10 @@ rules
   norm-hop-distance = ?ExactlyN(n); !BetweenNAndM(n, n)
   norm-hop-distance = ?NOrMore(n); !BetweenNAndM(n, "-1")
   norm-hop-distance = ?BetweenZeroAndM(m); !BetweenNAndM("0", m)
+
+  ParenthesizedPath-with-group-variables:
+    t@ParenthesizedPath(_, _, _, _, quantifier) -> t
+    where <not(has-at-most-one-binding)> quantifier
 
 rules
 
