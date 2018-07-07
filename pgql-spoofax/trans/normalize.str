@@ -23,7 +23,7 @@ rules
     with
       variable-counter := <new-counter>;
       bindVariable-counter := <new-counter>;
-      error-messages := <is-pgql10; collect-om(get-pgql10-limitiation) <+ collect-om(get-deprecation)> ast;
+      error-messages := <is-pgql10; collect(get-pgql10-limitiation) <+ collect(get-deprecation); try(?[]; get-all-path-limitations)> ast;
       result := <
         alltd(norm-has-prop);
         alltd(norm-pgql10);
@@ -70,7 +70,19 @@ rules
   get-deprecation = ?Legacy10Not(_); to-error-message(|"Use [NOT] instead of [!]")
   get-deprecation = ?Legacy10Regex(_, _); to-error-message(|"Use [java_regexp_like(exp1, exp2)] instead of [exp1 =~ exp2]")
 
-  get-pgql10-limitiation = (?FromClause(_) + ?Subquery(_) + ?Pgql11AsignSymbol()); to-error-message(|"Use [MATCH pattern WHERE filters] instead of [WHERE pattern mixed with filters]")
+  get-pgql10-limitiation = ( ?FromClause(_)
+                           + ?Subquery(_)
+                           + ?Pgql11AsignSymbol()
+                           + ?ExtractExp(_, _)
+                           + ?ARRAY-AGG(_, _)
+                           + ?Shortest(_, _)
+                           )
+                         ; to-error-message(|"Use [MATCH pattern WHERE filters] instead of [WHERE pattern mixed with filters]")
+
+//  get-all-path-limitations = ( ?OutConn(Some(Path(_, _, _)), Some(quantifier))
+//                             + ?InConn(Some(Path(_, _, _)), Some(quantifier)))
+//                             ; !quantifier
+//                             ; to-error-message(|"Use [MATCH pattern WHERE filters] instead of [WHERE pattern mixed with filters]")
 
   norm-pgql10 = ?Legacy10Label(x); <to-function(|"label")> [x]
   norm-pgql10 = ?Legacy10Labels(x); <to-function(|"labels")> [x]

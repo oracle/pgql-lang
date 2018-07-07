@@ -48,6 +48,7 @@ SELECT MIN([[n]]) AS min1, MIN([[e]]) AS min2
      , MAX([[n]]) AS max1, MAX([[e]]) AS max2
      , AVG([[n]]) AS avg1, AVG([[e]]) AS avg2
      , SUM([[n]]) AS sum1, SUM([[e]]) AS sum2
+     , ARRAY_AGG([[n]]) AS array1, ARRAY_AGG([[e]]) AS array2
  MATCH (n) -[e]-> (m)
 
-]] error like "Aggregate does not allow vertex or edge input" at #1, #2, #3, #4, #5, #6, #7, #8
+]] error like "Aggregate does not allow vertex or edge input" at #1, #2, #3, #4, #5, #6, #7, #8, #9, #10
