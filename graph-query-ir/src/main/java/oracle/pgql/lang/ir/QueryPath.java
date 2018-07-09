@@ -19,10 +19,10 @@ public class QueryPath extends VertexPairConnection {
 
   private PathFindingGoal goal; // FIXME: setter missing
 
-  private long kValue; // FIXME: setter missing
+  private int kValue; // FIXME: setter missing
 
   public QueryPath(QueryVertex src, QueryVertex dst, String name, CommonPathExpression commonPathExpression,
-      boolean anonymous, long minHops, long maxHops, PathFindingGoal goal, long kValue) {
+      boolean anonymous, long minHops, long maxHops, PathFindingGoal goal, int kValue) {
     super(src, dst, name, anonymous);
     this.commonPathExpression = commonPathExpression;
     this.minHops = minHops;
@@ -73,7 +73,7 @@ public class QueryPath extends VertexPairConnection {
     return goal;
   }
 
-  public long getKValue() {
+  public int getKValue() {
     return kValue;
   }
 

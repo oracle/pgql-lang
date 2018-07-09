@@ -226,6 +226,7 @@ public class SpoofaxAstToGraphQuery {
     for (IStrategoTerm pathPatternT : pathPatternsT) {
       CommonPathExpression commonPathExpression = getPathExpression(pathPatternT, ctx);
       ctx.getCommonPathExpressions().put(commonPathExpression.getName(), commonPathExpression);
+      result.add(commonPathExpression);
     }
     return result;
   }
@@ -389,7 +390,7 @@ public class SpoofaxAstToGraphQuery {
     QueryVertex src = getQueryVertex(vertexMap, srcName);
     QueryVertex dst = getQueryVertex(vertexMap, dstName);
     PathFindingGoal goal = PathFindingGoal.REACHES;
-    long kValue = -1;
+    int kValue = -1;
 
     QueryPath path = name.contains(GENERATED_VAR_SUBSTR)
         ? new QueryPath(src, dst, name, commonPathExpression, true, minHops, maxHops, goal, kValue)
@@ -432,7 +433,7 @@ public class SpoofaxAstToGraphQuery {
 
     PathFindingGoal goal = PathFindingGoal.SHORTEST;
 
-    long kValue = Long.parseLong(getString(pathT.getSubterm(POS_PATH_K_VALUE)));
+    int kValue = parseInt(pathT.getSubterm(POS_PATH_K_VALUE));
 
     QueryPath path = new QueryPath(src, dst, name, pathExpression, true, minHops, maxHops, goal, kValue);
 
@@ -737,7 +738,16 @@ public class SpoofaxAstToGraphQuery {
     try {
       return Long.parseLong(getString(t));
     } catch (NumberFormatException e) {
-      throw new PgqlException(getString(t) + " is too large to be stored as Long");
+      throw new PgqlException(getString(t) + " is too large to be stored as long");
+    }
+  }
+
+  // helper method
+  private static int parseInt(IStrategoTerm t) throws PgqlException {
+    try {
+      return Integer.parseInt(getString(t));
+    } catch (NumberFormatException e) {
+      throw new PgqlException(getString(t) + " is too large to be stored as int");
     }
   }
 

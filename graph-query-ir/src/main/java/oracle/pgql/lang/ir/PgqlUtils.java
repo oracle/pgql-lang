@@ -428,7 +428,8 @@ public class PgqlUtils {
         }
       case PATH:
         QueryPath queryPath = (QueryPath) var;
-        return "-/" + var.name + ":" + queryPath.getPathExpressionName() + printHops(queryPath) + "/->";
+        return "-/" + (queryPath.isAnonymous() ? "" : var.name) + ":" + queryPath.getPathExpressionName()
+            + printHops(queryPath) + "/->";
       case VERTEX:
         return "(" + printVariableAndLabelPredicate(var, printVariableName, labelPredicate) + ")";
       default:
