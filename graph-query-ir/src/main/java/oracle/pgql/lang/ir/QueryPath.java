@@ -11,15 +11,15 @@ import static oracle.pgql.lang.ir.PgqlUtils.printPathExpression;
 
 public class QueryPath extends VertexPairConnection {
 
-  private CommonPathExpression commonPathExpression; // FIXME: setter missing
+  private CommonPathExpression commonPathExpression;
 
   private long minHops;
 
   private long maxHops;
 
-  private PathFindingGoal goal; // FIXME: setter missing
+  private PathFindingGoal goal;
 
-  private int kValue; // FIXME: setter missing
+  private int kValue;
 
   public QueryPath(QueryVertex src, QueryVertex dst, String name, CommonPathExpression commonPathExpression,
       boolean anonymous, long minHops, long maxHops, PathFindingGoal goal, int kValue) {
@@ -35,16 +35,32 @@ public class QueryPath extends VertexPairConnection {
     return commonPathExpression.getName();
   }
 
+  public void setPathExpressionName() {
+    commonPathExpression.setName(name);
+  }
+
   public List<QueryVertex> getVertices() {
     return commonPathExpression.getVertices();
+  }
+
+  public void setVertices(List<QueryVertex> vertices) {
+    commonPathExpression.setVertices(vertices);
   }
 
   public List<VertexPairConnection> getConnections() {
     return commonPathExpression.getConnections();
   }
 
+  public void setConnections(List<VertexPairConnection> connections) {
+    commonPathExpression.setConnections(connections);
+  }
+
   public Set<QueryExpression> getConstraints() {
     return commonPathExpression.getConstraints();
+  }
+
+  public void setConstraints(Set<QueryExpression> contstraints) {
+    commonPathExpression.setConstraints(contstraints);
   }
 
   /**
@@ -73,8 +89,16 @@ public class QueryPath extends VertexPairConnection {
     return goal;
   }
 
+  public void setPathFindingGoal(PathFindingGoal goal) {
+    this.goal = goal;
+  }
+
   public int getKValue() {
     return kValue;
+  }
+
+  public void setKValue(int kValue) {
+    this.kValue = kValue;
   }
 
   @Override
@@ -135,9 +159,10 @@ public class QueryPath extends VertexPairConnection {
       return false;
     if (minHops != other.minHops)
       return false;
-    if (goal != other.goal) {
+    if (goal != other.goal)
       return false;
-    }
+    if (kValue != other.kValue)
+      return false;
     return true;
   }
 }
