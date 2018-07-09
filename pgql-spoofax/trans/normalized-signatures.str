@@ -77,4 +77,4 @@ signature constructors // for error checking (see trans/check.str)
 
   ReferenceInInlinedConstraint      : Var -> ReferenceInInlinedConstraint
   CrossReferenceInInlinedConstraint : Var -> CrossReferenceInInlinedConstraint
-  ErrorMessage                      : STRING -> ErrorMessage
+  ErrorMessage                      : Term * STRING -> ErrorMessage

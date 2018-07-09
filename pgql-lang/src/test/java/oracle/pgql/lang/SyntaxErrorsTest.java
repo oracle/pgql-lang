@@ -32,4 +32,13 @@ public class SyntaxErrorsTest extends AbstractPgqlTest {
     assertTrue(result.getErrorMessages().contains("SELECT * not allowed in combination with GROUP BY"));
     assertFalse(result.getGraphQuery() == null);
   }
+
+  @Test
+  public void testSparqlLikeAscDesc() throws Exception {
+    PgqlResult result = pgql.parse("SELECT n.prop MATCH (n) ORDER BY ASC(n.prop1), DESC(n.prop2)");
+    assertFalse(result.isQueryValid());
+    assertTrue(result.getErrorMessages().contains("Use [n.prop1 ASC] instead of [ASC(n.prop1)]"));
+    assertTrue(result.getErrorMessages().contains("Use [n.prop2 DESC] instead of [DESC(n.prop2)]"));
+    assertFalse(result.getGraphQuery() == null);
+  }
 }

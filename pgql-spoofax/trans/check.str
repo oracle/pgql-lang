@@ -179,9 +179,9 @@ rules // helper rules
       <generate-error(|ctx, "Alternative path patterns not yet supported")> p
 
   nabl-constraint(|ctx):
-    ErrorMessage(m) -> <fail>
+    ErrorMessage(term, m) -> <fail>
     where
-      <generate-error(|ctx, m)> m
+      <generate-error(|ctx, m)> term
 
 rules // temporary limitation
 
