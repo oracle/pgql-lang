@@ -25,7 +25,7 @@ signature constructors // for the normalized AST (see trans/normalize.str)
   Vertices              : List(Vertex) -> Vertices
   Vertex                : Var -> Vertex
   Edges                 : List(Edge) -> Edges
-  Edge                  : Var * Var * Var * Direction -> Edge
+  Edge                  : Var * Var * Var * Direction * Quantifier -> Edge
   Paths                 : List(Path) -> Paths
   Path                  : Var * Var * PathPatternRef * Option(KleeneStar) * Var * Direction * PathFindingSemantic * KValue -> Path
   Constraints           : List(Exp) -> Constraints
@@ -75,6 +75,7 @@ signature constructors // for name binding (see trans/trans-for-nabl.str)
 
 signature constructors // for error checking (see trans/check.str)
 
-  ReferenceInInlinedConstraint      : Var -> ReferenceInInlinedConstraint
-  CrossReferenceInInlinedConstraint : Var -> CrossReferenceInInlinedConstraint
-  ErrorMessage                      : Term * STRING -> ErrorMessage
+  ReferenceInInlinedConstraint         : Var -> ReferenceInInlinedConstraint
+  CrossReferenceInInlinedConstraint    : Var -> CrossReferenceInInlinedConstraint
+  ErrorMessage                         : Term * STRING -> ErrorMessage
+  ComplexRegularExpressionNotSupported : Term -> ComplexRegularExpressionNotSupported

@@ -203,3 +203,8 @@ rules // temporary limitation
     with variables := <collect(?VarRef(<id>, _) + ?Vertex(<id>, _, _) + ?Edge(_, <id>, _, _, _, _) + ?Path(_, _, _, _, <id>, _, _, _))> t
        ; variableRefs := <strip-annos; isect> (variablesDefs, variables)
        ; <try(!(<length> variableRefs, 1); gt; !t; generate-error(|ctx, "Not yet supported: expressions with multiple variables"))> t
+
+  nabl-constraint(|ctx):
+    ComplexRegularExpressionNotSupported(edgesOrPaths) -> <fail>
+    with [_|[secondEdgeOrPath|_]] := edgesOrPaths
+       ; <generate-error(|ctx, "Not yet supported: complex expression under SHORTEST")> edgesOrPaths

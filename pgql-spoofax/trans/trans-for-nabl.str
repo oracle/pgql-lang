@@ -84,7 +84,7 @@ rules
        ; correlation := <to-Correlation(|variables)> v
 
   trans-elem(|variables):
-    Edge(src, e, dst, direction) -> Edge(src, e, dst, direction, origin-offset, correlation)
+    Edge(src, e, dst, direction, _) -> Edge(src, e, dst, direction, origin-offset, correlation)
     with origin-offset := <origin-offset> e
        ; correlation := <to-Correlation(|variables)> e
 
