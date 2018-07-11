@@ -44,7 +44,8 @@ rules
         bottomup(try(
            norm-matchElems(|variable-counter)
         ));
-        bottomup(try(origin-track-forced(norm-query(|error-messages, variable-counter))))
+        bottomup(try(origin-track-forced(norm-query(|error-messages, variable-counter))));
+        alltd(?ElemContents(Some(<id>), _, _, _))
       > ast
 
 rules
@@ -79,6 +80,7 @@ rules
                           )
                          ; to-error-message(|"Use [MATCH pattern WHERE filters] instead of [WHERE pattern mixed with filters]")
 
+  // TODO: move this to check.str (all the information should be in the normalized AST)
   get-all-path-limitations = collect(shortest-or-reaches + is-quantifier)
                            ; remove-all(shortest-or-reaches)
                            ; map(to-error-message(|"Quantifier needs to be enclosed by SHORTEST"))
@@ -164,24 +166,26 @@ rules
   norm-matchElems(|variable-counter):
     GraphPattern(elems) -> GraphPattern(vertices, connections, constraints)
     with pathPatterns := <filter(?PathPattern(_, _) + ?Shortest(_, _))> elems
+       // TODO: move below two statements to the end (also for common path expressions)
        ; inlined-constraints-for-vertices := <collect-outside-repeated-path(?Vertex(<id>))
                                            ; map(get-inlined-constraints); concat> pathPatterns
        ; inlined-constraints-for-edges := <collect-outside-repeated-path(?OutConn(<id>, None())
                                                                        + ?InConn(<id>, None())
                                                                        + ?UndirectedEdge(<id>, None()))
                                          ; filter(get-inlined-constraints); concat> pathPatterns
-       ; pathPatterns' := <alltd(?ElemContents(Some(<id>), _, _, _))> pathPatterns
-       ; vertices := <collect-outside-repeated-path(?Vertex(_)); !Vertices(<id>)> pathPatterns'
-       ; connections := <get-connections-from-paths(|variable-counter)> pathPatterns'
+       ; vertices := <collect-outside-repeated-path(?Vertex(_)); !Vertices(<id>)> pathPatterns
+       ; connections := <get-connections-from-paths(|variable-counter)> pathPatterns
        ; non-inlined-constraints := <filter(?CommonPathExpression(_, _, _, _) + ?Constraint(<id>)); remove-all(?CommonPathExpression(_, _, _, _))> elems
        ; constraints := <conc; flatten-list; !Constraints(<id>)> (inlined-constraints-for-vertices, inlined-constraints-for-edges, non-inlined-constraints)
 
-  collect-outside-repeated-path(s) = collect-but-preserve-order(ParenthesizedPath-with-group-variables + s); remove-all(ParenthesizedPath-with-group-variables)
+  collect-outside-repeated-path(s) = collect-but-preserve-order(ParenthesizedPath + s); remove-all(ParenthesizedPath)
 
   collect-but-preserve-order(s) = collect-om(s, reverse-then-union); reverse // to preserve order of vertices
 
   reverse-then-union:
     (x, y) -> <union> (y, x)
+
+  ParenthesizedPath = ?ParenthesizedPath(_, _, _, _, _)
 
   norm-common-path-expression(|variable-counter):
     CommonPathExpression(name, _, path, whereClause) -> CommonPathExpression(name, vertices, connections, constraints)
@@ -190,22 +194,20 @@ rules
       inlined-constraints-for-edges := <collect-om(?OutConn(<id>, _) + ?InConn(<id>, _) + ?UndirectedEdge(<id>, _)); filter(get-inlined-constraints); concat> path;
       non-inlined-constraints := <(?None(); ![]) <+ (?Some(WhereClause(<id>)); ![<id>])> whereClause;
       constraints := <concat; flatten-list; !Constraints(<id>)> [inlined-constraints-for-vertices, inlined-constraints-for-edges, non-inlined-constraints];
-      path' := <alltd(?ElemContents(Some(<id>), _, _, _))> path;
-      vertices := <collect-om(?Vertex(_), conc); !Vertices(<id>)> path';
-      connections := <get-connections-from-paths(|variable-counter)> [path']
+      vertices := <collect-om(?Vertex(_), conc); !Vertices(<id>)> path;
+      connections := <get-connections-from-paths(|variable-counter)> [path]
 
   get-inlined-constraints:
-    ElemContents(Some(var), label, id', otherConstraint) -> [labels, identifiers, otherConstraint']
-    with
-      labels := <?Some(Labels(<id>)); to-label-constraints(|var) <+ ![]> label;
-      identifiers := <?Some(Ids(<id>)); to-id-constraints(|var) <+ ![]> id';
-      otherConstraint' := <?Some(InlinedConstraint(<id>)) <+ ![]> otherConstraint
+    ElemContents(Some(var), label, id', otherConstraint) -> <concat> [labels, identifiers, otherConstraint']
+    with labels := <?Some(Labels(<id>)); to-label-constraint(|var); ![<id>] <+ ![]> label
+       ; identifiers := <?Some(Ids(<id>)); to-id-constraint(|var); ![<id>] <+ ![]> id'
+       ; otherConstraint' := <?Some(InlinedConstraint(<id>)) <+ ![]> otherConstraint
 
-  to-label-constraints(|var):
+  to-label-constraint(|var):
     labels ->  <to-hasLabel-expressions(|var)> labels
   to-hasLabel-expressions(|var) = bottomup(try(![VarRef(var), <to-label>]; to-function(|"has_label")))
   to-label = ( (?Label(<id>) + ?Legacy10Identifier(<id>)); !String(<id>) ) + ?BindVariable(_)
-  to-id-constraints(|var) = bottomup(try(is-literal; origin-track-forced(!Eq(<to-function(|"id")> [VarRef(var)], <id>))))
+  to-id-constraint(|var) = bottomup(try(is-literal; origin-track-forced(!Eq(<to-function(|"id")> [VarRef(var)], <id>))))
 
   // base case: no paths
   get-connections-from-paths(|variable-counter):
@@ -251,33 +253,33 @@ rules
        ; edgesPathTail := <get-connections-from-single-path(|variable-counter, kValue)> edgeVertices
 
   to-connection(|variable-counter, kValue):
-    (n1, e, n2) -> connection
-    where <?OutConn(_, quantifier) + ?InConn(_, quantifier) + ?UndirectedEdge(_, quantifier)> e
+    (n1, edgeOrPath, n2) -> connection
+    where <?OutConn(_, quantifier) + ?InConn(_, quantifier) + ?UndirectedEdge(_, quantifier)> edgeOrPath
     with
-      switch !e
-        case ?OutConn(edgeOrPath, _):
+      switch !edgeOrPath
+        case ?OutConn(edgeOrPath', _):
           src := n1;
           dst := n2;
           dir := Outgoing()
-        case ?InConn(edgeOrPath, _):
+        case ?InConn(edgeOrPath', _):
           src := n2;
           dst := n1;
           dir := Incoming()
-        case ?UndirectedEdge(edgeOrPath, _):
+        case ?UndirectedEdge(edgeOrPath', _):
           src := n1;
           dst := n2;
           dir := Undirected()
         otherwise: fail
       end;
-      switch !edgeOrPath
-        case is-string:
-          if <has-at-most-one-binding> quantifier
-          then connection := <origin-track-forced(!Edge(src, edgeOrPath, dst, dir, quantifier))> e
-          else srcVertex := <unique-name(|variable-counter, e)>
-             ; dstVertex := <unique-name(|variable-counter, e)>
-             ; edge := <origin-track-forced(!Edge(srcVertex, edgeOrPath, dstVertex, dir, None()))> e
-             ; constraints := Constraints([])
-             ; connection := <to-path(|variable-counter, kValue)> (src, dst, edge, constraints, quantifier)
+      switch !edgeOrPath'
+        case ?ElemContents(Some(e'), _, _, _):
+          constraints := <get-inlined-constraints> edgeOrPath'
+        ; if <has-at-most-one-binding> quantifier
+          then connection := <origin-track-forced(!NormalizedEdge(src, e', dst, dir, quantifier, Constraints(constraints)))> edgeOrPath
+          else srcVertex := <unique-name(|variable-counter, edgeOrPath)>
+             ; dstVertex := <unique-name(|variable-counter, edgeOrPath)>
+             ; edge := <origin-track-forced(!NormalizedEdge(srcVertex, e', dstVertex, dir, None(), Constraints([])))> edgeOrPath
+             ; connection := <to-path(|variable-counter, kValue)> (src, dst, edge, Constraints(constraints), quantifier)
           end
         case ?Some(Path(Some(pathName), pathPatternName, quantifier')):
           connection := Path(src, dst, pathPatternName, quantifier', pathName, dir, Reaches(), -1)
@@ -286,15 +288,19 @@ rules
 
   to-connection(|variable-counter, kValue):
     (n1, t@ParenthesizedPath(v1, edge, v2, whereClause, quantifier), n2) -> path
-    with srcVertex := <?Some(Vertex(<id>)) <+ ?None(); unique-name(|variable-counter, edge)> v1
-       ; dstVertex := <?Some(Vertex(<id>)) <+ ?None(); unique-name(|variable-counter, edge)> v2
-       ; edge' := <to-connection(|variable-counter, kValue)> (srcVertex, edge, dstVertex)
-       // TODO: labels
-       ; constraints := <?None(); !Constraints([]) <+ ?Some(WhereClause(constraint)); !Constraints([constraint])> whereClause
-       ; path := <to-path(|variable-counter, kValue)> (n1, n2, edge', constraints, quantifier)
+    with if <has-at-most-one-binding> quantifier
+         then srcVertex := <?Some(Vertex(<id>)) <+ ?None(); !n1> v1
+            ; dstVertex := <?Some(Vertex(<id>)) <+ ?None(); !n2> v2
+         else srcVertex := <?Some(Vertex(<id>)) <+ ?None(); unique-name(|variable-counter, edge)> v1
+            ; dstVertex := <?Some(Vertex(<id>)) <+ ?None(); unique-name(|variable-counter, edge)> v2
+         end
+       ; edge'@NormalizedEdge(_, _, _, _, _, Constraints(inlinedConstraints)) := <to-connection(|variable-counter, kValue)> (srcVertex, edge, dstVertex)
+       ; constraints := <?None(); ![] <+ ?Some(WhereClause(constraint)); ![constraint]> whereClause
+       ; constraints' := Constraints(<conc> (inlinedConstraints, constraints))
+       ; path := <to-path(|variable-counter, kValue)> (n1, n2, edge', constraints', quantifier)
 
   to-path(|variable-counter, kValue):
-    (srcVertex, dstVertex, edge@Edge(src, _, dst, _, _), constraints, quantifier) -> path
+    (srcVertex, dstVertex, edge@NormalizedEdge(src, _, dst, _, _, _), constraints, quantifier) -> path
     with name := <unique-name(|variable-counter, edge)>
        ; vertices := Vertices([Vertex(src), Vertex(dst)])
        ; edges := Edges([edge])
@@ -306,8 +312,8 @@ rules
    [path@Path(_, _, _, _, _, _, _, _)] -> path
 
   pull-up-single-connection-as-path(|variable-counter, kValue):
-   [edge@Edge(srcVertex, e, dstVertex, direction, quantifier)] -> path
-   with path := <to-path(|variable-counter, kValue)> (srcVertex, dstVertex, edge, Constraints([]), quantifier)
+   [edge@NormalizedEdge(srcVertex, e, dstVertex, direction, quantifier, constraints)] -> path
+   with path := <to-path(|variable-counter, kValue)> (srcVertex, dstVertex, edge, constraints, quantifier)
 
 rules
 
@@ -325,10 +331,6 @@ rules
   norm-hop-distance = ?ExactlyN(n); !BetweenNAndM(n, n)
   norm-hop-distance = ?NOrMore(n); !BetweenNAndM(n, "-1")
   norm-hop-distance = ?BetweenZeroAndM(m); !BetweenNAndM("0", m)
-
-  ParenthesizedPath-with-group-variables:
-    t@ParenthesizedPath(_, _, _, _, quantifier) -> t
-    where <not(has-at-most-one-binding)> quantifier
 
 rules
 
@@ -377,7 +379,7 @@ rules
   norm-select-star(|graphPattern, group-exps):
     star@Star() -> <origin-track-forced(!ExpAsVars(expAsSelectVars))> star
     with if [] := group-exps
-           then vars := <collect(?Vertex(<id>) + ?Edge(_, <id>, _, _, _) + ?Subquery(_)); filter(is-string; not(is-substring(GENERATED)))> graphPattern;
+           then vars := <collect(?Vertex(<id>) + ?NormalizedEdge(_, <id>, _, _, _, _) + ?Subquery(_)); filter(is-string; not(is-substring(GENERATED)))> graphPattern;
                 expAsSelectVars := <map(generate-ExpAsVar(|star); norm-ExpAsVar)> vars
            else expAsSelectVars := star
          end

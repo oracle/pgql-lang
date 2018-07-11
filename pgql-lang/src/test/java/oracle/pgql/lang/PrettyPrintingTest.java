@@ -186,6 +186,12 @@ public class PrettyPrintingTest extends AbstractPgqlTest {
     checkRoundTrip(query);
   }
 
+  @Test
+  public void testShortest() throws Exception {
+    String query = "SELECT n.prop MATCH SHORTEST ( (n) (-[e:lbl]-> WHERE e.prop = 123){1} (o) )";
+    checkRoundTrip(query);
+  }
+
   private void checkRoundTrip(String query1) throws PgqlException {
 
     /*
