@@ -24,7 +24,7 @@ rules // Unresolved/duplicate variables
     query@NormalizedQuery(_, selectClause, _, matchClause, group-by, having, order-by, _, _, _) -> <fail>
     with unresolved-vars := <collect-in-outer-query(?VarRef(<id>))> query
         ; if None() := group-by
-          then <map(generate-error-on-unresolved-variable(|ctx))> unresolved-vars
+          then <batch-generate-error(|ctx, "Unresolved variable")> unresolved-vars
           else unresolved-vars-after-grouping := <collect-in-outer-query-outside-aggregation(?VarRef(<id>))> (selectClause, having, order-by)
              ; other-unresolved-vars := <diff> (unresolved-vars, unresolved-vars-after-grouping)
              ; <batch-generate-error(|ctx, "Unresolved variable")> other-unresolved-vars
@@ -59,12 +59,10 @@ rules // Unresolved/duplicate variables
     with vars' := <filter(?var)> vars
        ; <try(gt; !var; generate-error(|ctx, "Duplicate variable"))> (<length> vars', 1)
 
-  generate-error-on-unresolved-variable(|ctx):
-    v -> <fail>
-    with if "*" := <origin-text> v
-         then <generate-error(|ctx, $[Cannot select all variables since [v] is a group variable but group variables cannot be selected])> v
-         else <generate-error(|ctx, "Unresolved variable")> v
-         end
+  nabl-constraint(|ctx):
+    SelectClause(Star(), ExpAsVars(expAsVars)) -> <fail>
+    with group-variables := <filter(?ExpAsVar(VarRef(<id>), _, _, _); origin-text; ?"*")> expAsVars
+       ; <map(generate-error(|ctx, $[Cannot select all variables since [<id>] is a group variable but group variables cannot be selected]))> group-variables
 
 rules // in-lined constraints
 

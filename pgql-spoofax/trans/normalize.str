@@ -354,8 +354,8 @@ rules
       with havingClause := None()
     
   norm-query(|error-messages, version, variable-counter):
-    (commonPathExpressions, SelectClause(distinct, projection), fromClause, graphPattern, groupByClause, havingClause, orderByClause, limitOffsets) ->
-        NormalizedQuery(commonPathExpressions', SelectClause(distinct, projection'), fromClause, graphPattern, groupByClause', havingClause, orderByElems, limitOffsets', error-messages, version)
+    (commonPathExpressions, selectClause, fromClause, graphPattern, groupByClause, havingClause, orderByClause, limitOffsets) ->
+        NormalizedQuery(commonPathExpressions', selectClause', fromClause, graphPattern, groupByClause', havingClause, orderByElems, limitOffsets', error-messages, version)
     with
       commonPathExpressions' := <map(norm-common-path-expression(|variable-counter)); !CommonPathExpressions(<id>)> commonPathExpressions;
 
@@ -363,16 +363,16 @@ rules
       expAsGroupVars' := <map(norm-ExpAsVar)> expAsGroupVars;
       groupByClause' := <?Some(_); !Some(GroupByClause(expAsGroupVars')) <+ !None()> groupByClause;
 
-      projection' := <norm-ExpAsVars(|expAsGroupVars') <+ norm-select-star(|graphPattern, expAsGroupVars')> projection;
+      selectClause' := <norm-ExpAsVars(|expAsGroupVars') <+ norm-select-star(|graphPattern, expAsGroupVars')> selectClause;
 
-      ExpAsVars(expAsSelectVars) := projection';
+      expAsSelectVars := <?SelectClause(_, ExpAsVars(<id>))> selectClause';
       allExpAsVars := <conc> (expAsGroupVars', <try(?Star(); ![])> expAsSelectVars);
       orderByElems := <try(norm-orderBy(|allExpAsVars, version))> orderByClause;
 
       limitOffsets' := <norm-limitOffsets> limitOffsets
 
   norm-ExpAsVars(|expAsGroupVars'):
-    t@ExpAsVars(expAsVars) -> <origin-track-forced(!ExpAsVars(expAsVars'))> t 
+    SelectClause(distinct, t@ExpAsVars(expAsVars)) -> SelectClause(distinct, <origin-track-forced(!ExpAsVars(expAsVars'))> t)
     with expAsVars' := <map(norm-ExpAsVar)> expAsVars
 
   norm-ExpAsVar = ?ExpAsVar(exp, Some(VarAssign(VarDef(v)))); !ExpAsVar(exp, v, NonAnonymous())
@@ -380,11 +380,11 @@ rules
   norm-ExpAsVar = ?ExpAsVar(_, v, _); where (<origin-offset> v)
 
   norm-select-star(|graphPattern, group-exps):
-    star@Star() -> <origin-track-forced(!ExpAsVars(expAsSelectVars))> star
+    SelectClause(distinct, star@Star()) -> SelectClause(star, <origin-track-forced(!ExpAsVars(expAsSelectVars))> star)
     with if [] := group-exps
-           then vars := <collect(?Vertex(<id>) + ?NormalizedEdge(_, <id>, _, _, _, _) + ?Subquery(_)); filter(is-string; not(is-substring(GENERATED)))> graphPattern;
-                expAsSelectVars := <map(generate-ExpAsVar(|star); norm-ExpAsVar)> vars
-           else expAsSelectVars := star
+         then vars := <debug; collect(?Vertex(ElemContents(Some(<id>), _, _, _)) + ?NormalizedEdge(_, <id>, _, _, _, _) + ?Subquery(_)); filter(is-string; not(is-substring(GENERATED)))> graphPattern;
+              expAsSelectVars := <map(generate-ExpAsVar(|star); norm-ExpAsVar)> vars
+         else expAsSelectVars := star
          end
 
   generate-ExpAsVar(|star):

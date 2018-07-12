@@ -40,4 +40,10 @@ public class BugFixTest extends AbstractPgqlTest {
     thrown.expectMessage("10234234234234 is too large to be stored as int");
     pgql.parse("SELECT COUNT(*) MATCH shortest 10234234234234 ( (a) ->* (b) )");
   }
+
+  @Test
+  public void noErrorOnSelectStarSingleVertex() throws Exception {
+    String query = "SELECT * MATCH (n)";
+    assertTrue(pgql.parse(query).isQueryValid());
+  }
 }
