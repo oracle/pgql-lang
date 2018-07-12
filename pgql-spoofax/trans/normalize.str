@@ -294,9 +294,12 @@ rules
          else srcVertex := <?Some(Vertex(<id>)) <+ ?None(); unique-name(|variable-counter, edge)> v1
             ; dstVertex := <?Some(Vertex(<id>)) <+ ?None(); unique-name(|variable-counter, edge)> v2
          end
-       ; edge'@NormalizedEdge(_, _, _, _, _, Constraints(inlinedConstraints)) := <to-connection(|variable-counter, kValue)> (srcVertex, edge, dstVertex)
+       ; edge' := <to-connection(|variable-counter, kValue)> (srcVertex, edge, dstVertex)
+       ; inlinedEdgeConstraints := <?NormalizedEdge(_, _, _, _, _, Constraints(<id>))> edge'
+       ; inlinedSrcVertexConstraints := <?Some(Vertex(<id>)); get-inlined-constraints <+ ![]> v1
+       ; inlinedDstVertexConstraints := <?Some(Vertex(<id>)); get-inlined-constraints <+ ![]> v2
        ; constraints := <?None(); ![] <+ ?Some(WhereClause(constraint)); ![constraint]> whereClause
-       ; constraints' := Constraints(<conc> (inlinedConstraints, constraints))
+       ; constraints' := Constraints(<conc> (inlinedSrcVertexConstraints, inlinedEdgeConstraints, inlinedDstVertexConstraints, constraints))
        ; path := <to-path(|variable-counter, kValue)> (n1, n2, edge', constraints', quantifier)
 
   to-path(|variable-counter, kValue):
