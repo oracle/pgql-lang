@@ -175,7 +175,7 @@ public class SpoofaxAstToGraphQuery {
     // SELECT
     IStrategoTerm projectionT = ast.getSubterm(POS_PROJECTION);
     IStrategoTerm distinctT = projectionT.getSubterm(POS_PROJECTION_DISTINCT);
-    boolean distinct = !isNone(distinctT);
+    boolean distinct = isSome(distinctT);
 
     IStrategoTerm projectionElemsT = projectionT.getSubterm(POS_PROJECTION_ELEMS);
     List<ExpAsVar> selectElems;

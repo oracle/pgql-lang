@@ -173,7 +173,7 @@ rules
                                                                        + ?InConn(<id>, None())
                                                                        + ?UndirectedEdge(<id>, None()))
                                          ; filter(get-inlined-constraints); concat> pathPatterns
-       ; vertices := <collect-outside-repeated-path(?Vertex(_)); !Vertices(<id>)> pathPatterns
+       ; vertices := <collect-outside-repeated-path(?Vertex(ElemContents(Some(<id>), _, _, _)); !Vertex(<id>)); !Vertices(<id>)> pathPatterns
        ; connections := <get-connections-from-paths(|variable-counter)> pathPatterns
        ; non-inlined-constraints := <filter(?CommonPathExpression(_, _, _, _) + ?Constraint(<id>)); remove-all(?CommonPathExpression(_, _, _, _))> elems
        ; constraints := <conc; flatten-list; !Constraints(<id>)> (inlined-constraints-for-vertices, inlined-constraints-for-edges, non-inlined-constraints)
@@ -194,7 +194,7 @@ rules
       inlined-constraints-for-edges := <collect-om(?OutConn(<id>, _) + ?InConn(<id>, _) + ?UndirectedEdge(<id>, _)); filter(get-inlined-constraints); concat> path;
       non-inlined-constraints := <(?None(); ![]) <+ (?Some(WhereClause(<id>)); ![<id>])> whereClause;
       constraints := <concat; flatten-list; !Constraints(<id>)> [inlined-constraints-for-vertices, inlined-constraints-for-edges, non-inlined-constraints];
-      vertices := <collect-om(?Vertex(_), conc); !Vertices(<id>)> path;
+      vertices := <collect(?Vertex(_)); !Vertices(<id>)> path;
       connections := <get-connections-from-paths(|variable-counter)> [path]
 
   get-inlined-constraints:
@@ -233,7 +233,7 @@ rules
       )|otherPaths] -> <conc> ([path'], edgesTailPaths)
     with kValue' := <?Some(K(<id>)) <+ !"1"> kValue
        ; edges := <pathPattern-to-connections(|variable-counter, kValue')> pathPattern
-       ; path' := <pull-up-single-connection-as-path(|variable-counter, kValue') <+ !ComplexRegularExpressionNotSupported(<id>)> edges
+       ; path' := <?[single-path-only]; !single-path-only <+ !ComplexRegularExpressionNotSupported(<id>)> edges
        ; edgesTailPaths := <get-connections-from-paths(|variable-counter)> otherPaths
 
   pathPattern-to-connections(|variable-counter, kValue):
@@ -279,7 +279,7 @@ rules
           else srcVertex := <unique-name(|variable-counter, edgeOrPath)>
              ; dstVertex := <unique-name(|variable-counter, edgeOrPath)>
              ; edge := <origin-track-forced(!NormalizedEdge(srcVertex, e', dstVertex, dir, None(), Constraints([])))> edgeOrPath
-             ; connection := <to-path(|variable-counter, kValue)> (src, dst, edge, Constraints(constraints), quantifier)
+             ; connection := <to-path(|variable-counter, kValue)> (n1, n2, edge, Constraints(constraints), quantifier)
           end
         case ?Some(Path(Some(pathName), pathPatternName, quantifier')):
           connection := Path(src, dst, pathPatternName, quantifier', pathName, dir, Reaches(), -1)
@@ -303,20 +303,16 @@ rules
        ; path := <to-path(|variable-counter, kValue)> (n1, n2, edge', constraints', quantifier)
 
   to-path(|variable-counter, kValue):
-    (srcVertex, dstVertex, edge@NormalizedEdge(src, _, dst, _, _, _), constraints, quantifier) -> path
+    (srcVertex, dstVertex, edge@NormalizedEdge(src, _, dst, direction, _, _), constraints, quantifier) -> path
     with name := <unique-name(|variable-counter, edge)>
-       ; vertices := Vertices([Vertex(src), Vertex(dst)])
+       ; if <?Incoming()> direction
+         then vertices := Vertices([Vertex(dst), Vertex(src)])
+         else vertices := Vertices([Vertex(src), Vertex(dst)])
+         end
        ; edges := Edges([edge])
        ; path-variable-name := <unique-name(|variable-counter, edge)> // for now, all paths are anonymous/generated
        ; commonPathExpression := CommonPathExpression(name, vertices, edges, constraints)
        ; path := <origin-track-forced(!Path(srcVertex, dstVertex, commonPathExpression, quantifier, path-variable-name, Outgoing(), Shortest(), kValue))> edge
-
-  pull-up-single-connection-as-path(|variable-counter, kValue):
-   [path@Path(_, _, _, _, _, _, _, _)] -> path
-
-  pull-up-single-connection-as-path(|variable-counter, kValue):
-   [edge@NormalizedEdge(srcVertex, e, dstVertex, direction, quantifier, constraints)] -> path
-   with path := <to-path(|variable-counter, kValue)> (srcVertex, dstVertex, edge, constraints, quantifier)
 
 rules
 
@@ -382,7 +378,7 @@ rules
   norm-select-star(|graphPattern, group-exps):
     SelectClause(distinct, star@Star()) -> SelectClause(star, <origin-track-forced(!ExpAsVars(expAsSelectVars))> star)
     with if [] := group-exps
-         then vars := <collect(?Vertex(ElemContents(Some(<id>), _, _, _)) + ?NormalizedEdge(_, <id>, _, _, _, _) + ?Subquery(_)); filter(is-string; not(is-substring(GENERATED)))> graphPattern;
+         then vars := <collect(?Vertex(<id>) + ?NormalizedEdge(_, <id>, _, _, _, _) + ?Subquery(_)); filter(is-string; not(is-substring(GENERATED)))> graphPattern;
               expAsSelectVars := <map(generate-ExpAsVar(|star); norm-ExpAsVar)> vars
          else expAsSelectVars := star
          end
