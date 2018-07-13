@@ -61,8 +61,10 @@ rules // Unresolved/duplicate variables
 
   nabl-constraint(|ctx):
     SelectClause(Star(), ExpAsVars(expAsVars)) -> <fail>
-    with group-variables := <filter(?ExpAsVar(VarRef(<id>), _, _, _); origin-text; ?"*")> expAsVars
+    with group-variables := <filter(get-group-variable-from-select-star)> expAsVars
        ; <map(generate-error(|ctx, $[Cannot select all variables since [<id>] is a group variable but group variables cannot be selected]))> group-variables
+
+  get-group-variable-from-select-star = ?ExpAsVar(VarRef(<id>), _, _, _); ?v; origin-text; ?"*"; !v
 
 rules // in-lined constraints
 

@@ -44,4 +44,13 @@ public class SyntaxErrorsTest extends AbstractPgqlTest {
     assertTrue(result.getErrorMessages().contains("Use [n.prop2 DESC] instead of [DESC(n.prop2)]"));
     assertFalse(result.getGraphQuery() == null);
   }
+
+  @Test
+  public void testSelectStarGroupVariable() throws Exception {
+    PgqlResult result = pgql.parse("SELECT * MATCH SHORTEST ( (n) -[e:lbl]->+ (m) )");
+    assertFalse(result.isQueryValid());
+    assertTrue(result.getErrorMessages()
+        .contains("Cannot select all variables since e is a group variable but group variables cannot be selected"));
+    assertFalse(result.getGraphQuery() == null);
+  }
 }

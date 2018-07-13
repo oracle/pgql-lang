@@ -382,7 +382,7 @@ rules
   norm-select-star(|graphPattern, group-exps):
     SelectClause(distinct, star@Star()) -> SelectClause(star, <origin-track-forced(!ExpAsVars(expAsSelectVars))> star)
     with if [] := group-exps
-         then vars := <debug; collect(?Vertex(ElemContents(Some(<id>), _, _, _)) + ?NormalizedEdge(_, <id>, _, _, _, _) + ?Subquery(_)); filter(is-string; not(is-substring(GENERATED)))> graphPattern;
+         then vars := <collect(?Vertex(ElemContents(Some(<id>), _, _, _)) + ?NormalizedEdge(_, <id>, _, _, _, _) + ?Subquery(_)); filter(is-string; not(is-substring(GENERATED)))> graphPattern;
               expAsSelectVars := <map(generate-ExpAsVar(|star); norm-ExpAsVar)> vars
          else expAsSelectVars := star
          end
