@@ -231,7 +231,7 @@ rules
         kValue
       , pathPattern
       )|otherPaths] -> <conc> ([path'], edgesTailPaths)
-    with kValue' := <?Some(K(<id>)) <+ !"1"> kValue
+    with kValue' := <?Some(TopK(<id>)) <+ !"1"> kValue
        ; edges := <pathPattern-to-connections(|variable-counter, kValue')> pathPattern
        ; path' := <?[single-path-only]; !single-path-only <+ !ComplexRegularExpressionNotSupported(<id>)> edges
        ; edgesTailPaths := <get-connections-from-paths(|variable-counter)> otherPaths

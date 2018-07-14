@@ -24,3 +24,9 @@ test Quantifier not enclosed by SHORTEST [[
        , (n) ->[[{2,3}]] (m)
 
 ]] error like "Quantifier needs to be enclosed by SHORTEST" at #1, #2, #3, #4, #5, #6, #7
+
+test K equals zero [[
+
+  SELECT n MATCH TOP [[0]] SHORTEST( (n) ->* (m) )
+
+]]  error like "Value should be greater than 0" at #1

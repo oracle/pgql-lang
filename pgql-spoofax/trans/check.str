@@ -215,3 +215,8 @@ rules // temporary limitation
     ComplexRegularExpressionNotSupported(edgesOrPaths) -> <fail>
     with [_|[secondEdgeOrPath|_]] := edgesOrPaths
        ; <generate-error(|ctx, "Not yet supported: complex expression under SHORTEST")> edgesOrPaths
+
+  nabl-constraint(|ctx):
+    Path(_, _, _, _, _, _, _, kValue) -> <fail>
+    where <?"0"> kValue
+    with <generate-error(|ctx, "Value should be greater than 0")> kValue

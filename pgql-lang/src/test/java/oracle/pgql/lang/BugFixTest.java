@@ -30,7 +30,7 @@ public class BugFixTest extends AbstractPgqlTest {
 
   @Test
   public void testArrayAgg() throws Exception {
-    String query = "SELECT array_agg(e.weight) MATCH SHORTEST 10 ( (n) -[e]->* (m) )";
+    String query = "SELECT ARRAY_AGG(e.weight) MATCH TOP 10 SHORTEST ( (n) -[e]->* (m) )";
 
     assertTrue(pgql.parse(query).isQueryValid());
   }
@@ -38,7 +38,7 @@ public class BugFixTest extends AbstractPgqlTest {
   @Test
   public void testSparqlLikeAscDesc() throws Exception {
     thrown.expectMessage("10234234234234 is too large to be stored as int");
-    pgql.parse("SELECT COUNT(*) MATCH shortest 10234234234234 ( (a) ->* (b) )");
+    pgql.parse("SELECT COUNT(*) MATCH TOP 10234234234234 SHORTEST ( (a) ->* (b) )");
   }
 
   @Test

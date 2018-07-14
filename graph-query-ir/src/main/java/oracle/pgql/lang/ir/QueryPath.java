@@ -116,8 +116,8 @@ public class QueryPath extends VertexPairConnection {
         }
         return path + ":" + commonPathExpression.getName() + printHops(this) + "/->";
       case SHORTEST:
-        String kValueAsString = kValue == 1 ? "" : " " + kValue + " ";
-        String result = "SHORTEST" + kValueAsString + "( " + getSrc() + " ";
+        String kValueAsString = kValue == 1 ? "" : "TOP " + kValue + " ";
+        String result = kValueAsString + "SHORTEST( " + getSrc() + " ";
         String pathExpression = printPathExpression(commonPathExpression, true);
         if (pathExpression.contains("WHERE") || pathExpression.startsWith("(") || pathExpression.endsWith(")")) {
           result += "(" + pathExpression + ")";

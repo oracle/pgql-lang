@@ -35,8 +35,8 @@ context-free syntax
 
   Connection.ParenthesizedPath = <( <Vertex?> <Connection> <Vertex?> <WhereClause?> )<PathQuantifier?>>
 
-  PathPattern.Shortest = <shortest <K?> ( <PathPattern> )> {case-insensitive}
-  K.K = UNSIGNED-INT
+  PathPattern.Shortest = <<TopK?> shortest( <PathPattern> )> {case-insensitive}
+  TopK.TopK = <top <UNSIGNED-INT>> {case-insensitive}
 
   EdgeContents.EdgeContents = <[<ElemContents>]>
   EdgeOrPathContents = EdgeContents
