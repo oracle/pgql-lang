@@ -40,3 +40,31 @@ test Single-quoted labels [[
    SELECT x AS y
  MATCH (x:[['lbl']])
 ]] error like "Use double quotes to delimit labels"
+
+test Invalid date [[
+
+  SELECT [[DATE '2018-13-13']] AS date1
+       , [[DATE '']] AS date2
+       , [[DATE '12:15:00']] AS date3
+   MATCH (n)
+
+]] error like "Not a valid date; use for example 2018-01-1" at #1, #2, #3
+
+test Invalid time [[
+
+  SELECT [[TIME '25:00:00']] AS time1
+       , [[TIME '']] AS time2
+       , [[TIME '2018-13-13']] AS time3
+   MATCH (n)
+
+]] error like "Not a valid time; use for example 16:30:00 or 15:30:00+01:00" at #1, #2, #3
+
+test Invalid timestamp [[
+
+  SELECT [[TIMESTAMP '25:00:00']] AS timestamp1
+       , [[TIMESTAMP '2018-13-13']] AS timestamp2
+       , [[TIMESTAMP '']] AS timestamp3
+       , [[TIMESTAMP '2018-01-15T16:30:00']] AS timestamp4
+   MATCH (n)
+
+]] error like "Not a valid timestamp; use for example 2018-01-15 16:30:00 or 2018-01-15 15:30:00+01:00" at #1, #2, #3, #4
