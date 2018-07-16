@@ -8,6 +8,7 @@ import java.time.LocalDateTime;
 import java.time.LocalTime;
 import java.time.OffsetDateTime;
 import java.time.OffsetTime;
+import java.time.ZoneOffset;
 import java.time.format.DateTimeParseException;
 import java.util.ArrayList;
 import java.util.Collection;
@@ -36,7 +37,15 @@ import oracle.pgql.lang.ir.QueryEdge;
 import oracle.pgql.lang.ir.QueryExpression;
 import oracle.pgql.lang.ir.QueryExpression.LogicalExpression.And;
 import oracle.pgql.lang.ir.QueryExpression.ScalarSubquery;
+import oracle.pgql.lang.ir.QueryExpression.Constant.ConstBoolean;
+import oracle.pgql.lang.ir.QueryExpression.Constant.ConstDate;
+import oracle.pgql.lang.ir.QueryExpression.Constant.ConstDecimal;
+import oracle.pgql.lang.ir.QueryExpression.Constant.ConstInteger;
 import oracle.pgql.lang.ir.QueryExpression.Constant.ConstString;
+import oracle.pgql.lang.ir.QueryExpression.Constant.ConstTime;
+import oracle.pgql.lang.ir.QueryExpression.Constant.ConstTimeWithTimezone;
+import oracle.pgql.lang.ir.QueryExpression.Constant.ConstTimestamp;
+import oracle.pgql.lang.ir.QueryExpression.Constant.ConstTimestampWithTimezone;
 import oracle.pgql.lang.ir.QueryExpression.ExtractExpression;
 import oracle.pgql.lang.ir.QueryExpression.ExtractExpression.ExtractField;
 import oracle.pgql.lang.ir.QueryExpression.ExpressionType;
@@ -621,13 +630,85 @@ public class SpoofaxAstToGraphQuery {
         exp = translateExp(expT, ctx);
         IStrategoTerm valuesT = t.getSubterm(POS_IN_PREDICATE_VALUES);
         int size = valuesT.getSubtermCount();
-        int[] values = new int[size];
+
+        long[] integerValues = new long[size];
+        double[] decimalValues = new double[size];
+        boolean[] booleanValues = new boolean[size];
+        String[] stringValues = new String[size];
+        LocalDate[] dateValues = new LocalDate[size];
+        LocalTime[] timeValues = new LocalTime[size];
+        LocalDateTime[] timestampValues = new LocalDateTime[size];
+
+        ExpressionType arrayElementType = null;
+
         for (int i = 0; i < size; i++) {
-          String valueAsString = getString(valuesT.getSubterm(i));
-          int intValue = Integer.parseInt(valueAsString);
-          values[i] = intValue;
+          QueryExpression literal = translateExp(valuesT.getSubterm(i), ctx);
+          switch (literal.getExpType()) {
+            case INTEGER:
+              if (arrayElementType == null) {
+                arrayElementType = ExpressionType.INTEGER;
+              }
+              long integerValue = ((ConstInteger) literal).getValue();
+              integerValues[i] = integerValue;
+              decimalValues[i] = (double) integerValue;
+              break;
+            case DECIMAL:
+              arrayElementType = ExpressionType.DECIMAL;
+              decimalValues[i] = ((ConstDecimal) literal).getValue();
+              break;
+            case BOOLEAN:
+              arrayElementType = ExpressionType.BOOLEAN;
+              booleanValues[i] = ((ConstBoolean) literal).getValue();
+              break;
+            case STRING:
+              arrayElementType = ExpressionType.STRING;
+              stringValues[i] = ((ConstString) literal).getValue();
+              break;
+            case DATE:
+              arrayElementType = ExpressionType.DATE;
+              dateValues[i] = ((ConstDate) literal).getValue();
+              break;
+            case TIME:
+              arrayElementType = ExpressionType.TIME;
+              timeValues[i] = ((ConstTime) literal).getValue();
+              break;
+            case TIMESTAMP:
+              arrayElementType = ExpressionType.TIMESTAMP;
+              timestampValues[i] = ((ConstTimestamp) literal).getValue();
+              break;
+            case TIME_WITH_TIMEZONE:
+              arrayElementType = ExpressionType.TIME;
+              timeValues[i] = ((ConstTimeWithTimezone) literal).getValue().withOffsetSameInstant(ZoneOffset.UTC)
+                  .toLocalTime();
+              break;
+            case TIMESTAMP_WITH_TIMEZONE:
+              arrayElementType = ExpressionType.TIMESTAMP;
+              timestampValues[i] = ((ConstTimestampWithTimezone) literal).getValue().withOffsetSameInstant(ZoneOffset.UTC)
+                  .toLocalDateTime();
+              break;
+            default:
+              throw new IllegalArgumentException(literal.getExpType().toString());
+          }
         }
-        return new InPredicate(exp, values);
+
+        switch (arrayElementType) {
+          case INTEGER:
+            return new InPredicate(exp, integerValues);
+          case DECIMAL:
+            return new InPredicate(exp, decimalValues);
+          case BOOLEAN:
+            return new InPredicate(exp, booleanValues);
+          case STRING:
+            return new InPredicate(exp, stringValues);
+          case DATE:
+            return new InPredicate(exp, dateValues);
+          case TIME:
+            return new InPredicate(exp, timeValues);
+          case TIMESTAMP:
+            return new InPredicate(exp, timestampValues);
+          default:
+            throw new IllegalArgumentException(arrayElementType.toString());
+        }
       case "COUNT":
       case "MIN":
       case "MAX":

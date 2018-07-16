@@ -3,10 +3,10 @@
  */
 package oracle.pgql.lang.ir;
 
+import static java.util.stream.Collectors.joining;
 import static oracle.pgql.lang.ir.PgqlUtils.printIdentifier;
-import static oracle.pgql.lang.ir.PgqlUtils.printTime;
 import static oracle.pgql.lang.ir.PgqlUtils.printPgqlString;
-import static oracle.pgql.lang.ir.PgqlUtils.printPgqlDecimal;
+import static oracle.pgql.lang.ir.PgqlUtils.printLiteral;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
@@ -15,7 +15,7 @@ import java.time.OffsetDateTime;
 import java.time.OffsetTime;
 import java.util.Arrays;
 import java.util.List;
-import java.util.stream.Collectors;
+import java.util.stream.IntStream;
 
 public interface QueryExpression {
 
@@ -556,13 +556,13 @@ public interface QueryExpression {
       }
 
       @Override
-      public void accept(QueryExpressionVisitor v) {
-        v.visit(this);
+      public String toString() {
+        return printLiteral(value);
       }
 
       @Override
-      public String toString() {
-        return printPgqlDecimal(getValue());
+      public void accept(QueryExpressionVisitor v) {
+        v.visit(this);
       }
     }
 
@@ -578,7 +578,7 @@ public interface QueryExpression {
 
       @Override
       public String toString() {
-        return printPgqlString(value);
+        return printLiteral(value);
       }
 
       @Override
@@ -617,7 +617,7 @@ public interface QueryExpression {
 
       @Override
       public String toString() {
-        return "DATE '" + value + "'";
+        return printLiteral(value);
       }
 
       @Override
@@ -639,7 +639,7 @@ public interface QueryExpression {
 
       @Override
       public String toString() {
-        return "TIME '" + printTime(value) + "'";
+        return printLiteral(value);
       }
 
       @Override
@@ -661,7 +661,7 @@ public interface QueryExpression {
 
       @Override
       public String toString() {
-        return "TIMESTAMP '" + value.toLocalDate() + " " + printTime(value.toLocalTime()) + "'";
+        return printLiteral(value);
       }
 
       @Override
@@ -683,7 +683,7 @@ public interface QueryExpression {
 
       @Override
       public String toString() {
-        return "TIME '" + printTime(value.toLocalTime()) + value.getOffset() + "'";
+        return printLiteral(value);
       }
 
       @Override
@@ -705,7 +705,7 @@ public interface QueryExpression {
 
       @Override
       public String toString() {
-        return "TIMESTAMP '" + value.toLocalDate() + " " + printTime(value.toLocalTime()) + value.getOffset() + "'";
+        return printLiteral(value);
       }
 
       @Override
@@ -997,7 +997,7 @@ public interface QueryExpression {
 
     @Override
     public String toString() {
-      String expressions = args.stream().map(QueryExpression::toString).collect(Collectors.joining(", "));
+      String expressions = args.stream().map(QueryExpression::toString).collect(joining(", "));
       String packageNamePart = packageName == null ? "" : packageName + ".";
       return packageNamePart + functionName + "(" + expressions + ")";
     }
@@ -1066,8 +1066,16 @@ public interface QueryExpression {
       return field;
     }
 
+    public void setExtractField(ExtractField field) {
+      this.field = field;
+    }
+
     public QueryExpression getExp() {
       return exp;
+    }
+
+    public void setExp(QueryExpression exp) {
+      this.exp = exp;
     }
 
     @Override
@@ -1084,25 +1092,164 @@ public interface QueryExpression {
     public void accept(QueryExpressionVisitor v) {
       v.visit(this);
     }
+
+    @Override
+    public int hashCode() {
+      return 31;
+    }
+
+    @Override
+    public boolean equals(Object obj) {
+      if (this == obj)
+        return true;
+      if (obj == null)
+        return false;
+      if (getClass() != obj.getClass())
+        return false;
+      ExtractExpression other = (ExtractExpression) obj;
+      if (exp == null) {
+        if (other.exp != null)
+          return false;
+      } else if (!exp.equals(other.exp))
+        return false;
+      if (field != other.field)
+        return false;
+      return true;
+    }
   }
 
   class InPredicate implements QueryExpression {
 
     QueryExpression exp;
 
-    int[] intValues;
+    ExpressionType arrayElementType;
 
-    public InPredicate(QueryExpression exp, int[] intValues) {
+    long[] integerValues;
+
+    double[] decimalValues;
+
+    boolean[] booleanValues;
+
+    String[] stringValues;
+
+    LocalDate[] dateValues;
+
+    LocalTime[] timeValues;
+
+    LocalDateTime[] timestampValues;
+
+    public InPredicate(QueryExpression exp, long[] integerValues) {
       this.exp = exp;
-      this.intValues = intValues;
+      this.integerValues = integerValues;
+      this.arrayElementType = ExpressionType.INTEGER;
+    }
+
+    public InPredicate(QueryExpression exp, double[] decimalValues) {
+      this.exp = exp;
+      this.decimalValues = decimalValues;
+      this.arrayElementType = ExpressionType.DECIMAL;
+    }
+
+    public InPredicate(QueryExpression exp, boolean[] booleanValues) {
+      this.exp = exp;
+      this.booleanValues = booleanValues;
+      this.arrayElementType = ExpressionType.BOOLEAN;
+    }
+
+    public InPredicate(QueryExpression exp, String[] stringValues) {
+      this.exp = exp;
+      this.stringValues = stringValues;
+      this.arrayElementType = ExpressionType.STRING;
+    }
+
+    public InPredicate(QueryExpression exp, LocalDate[] dateValues) {
+      this.exp = exp;
+      this.dateValues = dateValues;
+      this.arrayElementType = ExpressionType.DATE;
+    }
+
+    public InPredicate(QueryExpression exp, LocalTime[] timeValues) {
+      this.exp = exp;
+      this.timeValues = timeValues;
+      this.arrayElementType = ExpressionType.TIME;
+    }
+
+    public InPredicate(QueryExpression exp, LocalDateTime[] timestampValues) {
+      this.exp = exp;
+      this.timestampValues = timestampValues;
+      this.arrayElementType = ExpressionType.TIMESTAMP;
     }
 
     public QueryExpression getExp() {
       return exp;
     }
 
-    public int[] getIntValues() {
-      return intValues;
+    public void setExp(QueryExpression exp) {
+      this.exp = exp;
+    }
+
+    public ExpressionType getArrayElementType() {
+      return arrayElementType;
+    }
+
+    public void setArrayElementType(ExpressionType arrayElementType) {
+      this.arrayElementType = arrayElementType;
+    }
+
+    public long[] getIntegerValues() {
+      return integerValues;
+    }
+
+    public void setIntegerValues(long[] integerValues) {
+      this.integerValues = integerValues;
+    }
+
+    public double[] getDecimalValues() {
+      return decimalValues;
+    }
+
+    public void setDecimalValues(double[] decimalValues) {
+      this.decimalValues = decimalValues;
+    }
+
+    public boolean[] getBooleanValues() {
+      return booleanValues;
+    }
+
+    public void setBooleanValues(boolean[] booleanValues) {
+      this.booleanValues = booleanValues;
+    }
+
+    public String[] getStringValues() {
+      return stringValues;
+    }
+
+    public void setStringValues(String[] stringValues) {
+      this.stringValues = stringValues;
+    }
+
+    public LocalDate[] getDateValues() {
+      return dateValues;
+    }
+
+    public void setDateValues(LocalDate[] dateValues) {
+      this.dateValues = dateValues;
+    }
+
+    public LocalTime[] getTimeValues() {
+      return timeValues;
+    }
+
+    public void setTimeValues(LocalTime[] timeValues) {
+      this.timeValues = timeValues;
+    }
+
+    public LocalDateTime[] getTimestampValues() {
+      return timestampValues;
+    }
+
+    public void setTimestampValues(LocalDateTime[] timestampValues) {
+      this.timestampValues = timestampValues;
     }
 
     @Override
@@ -1112,13 +1259,78 @@ public interface QueryExpression {
 
     @Override
     public String toString() {
-      String values = Arrays.stream(getIntValues()).mapToObj(Integer::toString).collect(Collectors.joining(", "));
+      String values;
+      switch (arrayElementType) {
+        case INTEGER:
+          values = Arrays.stream(integerValues).mapToObj(Long::toString).collect(joining(", "));
+          break;
+        case DECIMAL:
+          values = Arrays.stream(decimalValues).mapToObj(v -> printLiteral(v)).collect(joining(", "));
+          break;
+        case BOOLEAN:
+          values = IntStream.range(0, booleanValues.length).mapToObj(i -> Boolean.valueOf(booleanValues[i]).toString())
+              .collect(joining(", "));
+          break;
+        case STRING:
+          values = Arrays.stream(stringValues).map(v -> printLiteral(v)).collect(joining(", "));
+          break;
+        case DATE:
+          values = Arrays.stream(dateValues).map(v -> printLiteral(v)).collect(joining(", "));
+          break;
+        case TIME:
+          values = Arrays.stream(timeValues).map(v -> printLiteral(v)).collect(joining(", "));
+          break;
+        case TIMESTAMP:
+          values = Arrays.stream(timestampValues).map(v -> printLiteral(v)).collect(joining(", "));
+          break;
+        default:
+          throw new IllegalArgumentException(arrayElementType.toString());
+      }
+
       return getExp() + " IN (" + values + ")";
     }
 
     @Override
     public void accept(QueryExpressionVisitor v) {
       v.visit(this);
+    }
+
+    @Override
+    public int hashCode() {
+      return 31;
+    }
+
+    @Override
+    public boolean equals(Object obj) {
+      if (this == obj)
+        return true;
+      if (obj == null)
+        return false;
+      if (getClass() != obj.getClass())
+        return false;
+      InPredicate other = (InPredicate) obj;
+      if (arrayElementType != other.arrayElementType)
+        return false;
+      if (!Arrays.equals(booleanValues, other.booleanValues))
+        return false;
+      if (!Arrays.equals(dateValues, other.dateValues))
+        return false;
+      if (!Arrays.equals(decimalValues, other.decimalValues))
+        return false;
+      if (exp == null) {
+        if (other.exp != null)
+          return false;
+      } else if (!exp.equals(other.exp))
+        return false;
+      if (!Arrays.equals(integerValues, other.integerValues))
+        return false;
+      if (!Arrays.equals(stringValues, other.stringValues))
+        return false;
+      if (!Arrays.equals(timeValues, other.timeValues))
+        return false;
+      if (!Arrays.equals(timestampValues, other.timestampValues))
+        return false;
+      return true;
     }
   }
 
