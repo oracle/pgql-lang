@@ -48,16 +48,22 @@ test Invalid date [[
        , [[DATE '12:15:00']] AS date3
    MATCH (n)
 
-]] error like "Not a valid date; use for example 2018-01-1" at #1, #2, #3
+]] error like "Not a valid date: Text '2018-13-13' could not be parsed: Invalid value for MonthOfYear (valid values 1 - 12): 13. An example of a valid date is '2018-01-15'." at #1
+   error like "Not a valid date: Text '' could not be parsed at index 0. An example of a valid date is '2018-01-15'." at #2
+   error like "Not a valid date: Text '12:15:00' could not be parsed at index 0. An example of a valid date is '2018-01-15'." at #3
 
 test Invalid time [[
 
   SELECT [[TIME '25:00:00']] AS time1
        , [[TIME '']] AS time2
        , [[TIME '2018-13-13']] AS time3
+       , [[TIME '25:00']] AS time4
    MATCH (n)
 
-]] error like "Not a valid time; use for example 16:30:00 or 15:30:00+01:00" at #1, #2, #3
+]] error like "Not a valid time: Text '25:00:00' could not be parsed: Invalid value for HourOfDay (valid values 0 - 23): 25. Examples of valid times are '16:30:00' and '15:30:00+01:00'." at #1
+   error like "Not a valid time: Text '' could not be parsed at index 0. Examples of valid times are '16:30:00' and '15:30:00+01:00'." at #2
+   error like "Not a valid time: Text '2018-13-13' could not be parsed at index 2. Examples of valid times are '16:30:00' and '15:30:00+01:00'." at #3
+   error like "Not a valid time: Text '25:00' could not be parsed at index 5. Examples of valid times are '16:30:00' and '15:30:00+01:00'." at #4
 
 test Invalid timestamp [[
 
@@ -67,4 +73,7 @@ test Invalid timestamp [[
        , [[TIMESTAMP '2018-01-15T16:30:00']] AS timestamp4
    MATCH (n)
 
-]] error like "Not a valid timestamp; use for example 2018-01-15 16:30:00 or 2018-01-15 15:30:00+01:00" at #1, #2, #3, #4
+]] error like "Not a valid timestamp: Text '25:00:00' could not be parsed at index 0. Examples of valid datetimes are '2018-01-15 16:30:00' and '2018-01-15 15:30:00+01:00'." at #1
+   error like "Not a valid timestamp: Text '2018-13-13' could not be parsed at index 10. Examples of valid datetimes are '2018-01-15 16:30:00' and '2018-01-15 15:30:00+01:00'." at #2
+   error like "Not a valid timestamp: Text '' could not be parsed at index 0. Examples of valid datetimes are '2018-01-15 16:30:00' and '2018-01-15 15:30:00+01:00'." at #3
+   error like "Not a valid timestamp: Text '2018-01-15T16:30:00' could not be parsed at index 10. Examples of valid datetimes are '2018-01-15 16:30:00' and '2018-01-15 15:30:00+01:00'." at #4

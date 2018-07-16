@@ -22,6 +22,7 @@ import java.time.format.ResolverStyle;
 import org.spoofax.interpreter.terms.IStrategoAppl;
 import org.spoofax.interpreter.terms.IStrategoString;
 import org.spoofax.interpreter.terms.IStrategoTerm;
+import org.spoofax.interpreter.terms.ITermFactory;
 import org.strategoxt.lang.Context;
 import org.strategoxt.lang.Strategy;
 
@@ -81,7 +82,8 @@ public class is_valid_datetime_0_0 extends Strategy {
           LocalDate.parse(s, SQL_DATE);
           return current;
         } catch (DateTimeParseException e) {
-          return null;
+          String message = "Not a valid date: " + e.getMessage() + ". An example of a valid date is '2018-01-15'.";
+          return createErrorMessage(context, message);
         }
       case "Time":
         try {
@@ -92,7 +94,9 @@ public class is_valid_datetime_0_0 extends Strategy {
             OffsetTime.parse(s, SQL_TIME_WITH_TIMEZONE);
             return current;
           } catch (DateTimeParseException e2) {
-            return null;
+            String message = "Not a valid time: " + e.getMessage()
+                + ". Examples of valid times are '16:30:00' and '15:30:00+01:00'.";
+            return createErrorMessage(context, message);
           }
         }
       case "Timestamp":
@@ -104,11 +108,19 @@ public class is_valid_datetime_0_0 extends Strategy {
             OffsetDateTime.parse(s, SQL_TIMESTAMP_WITH_TIMEZONE);
             return current;
           } catch (DateTimeParseException e2) {
-            return null;
+            String message = "Not a valid timestamp: " + e.getMessage()
+                + ". Examples of valid datetimes are '2018-01-15 16:30:00' and '2018-01-15 15:30:00+01:00'.";
+            return createErrorMessage(context, message);
           }
         }
       default:
         return null;
     }
+  }
+
+  private static IStrategoTerm createErrorMessage(Context context, String message) {
+    ITermFactory f = context.getFactory();
+    return f.makeAppl(f.makeConstructor("ErrorMessage", 1), f.makeString(message));
+
   }
 }

@@ -534,7 +534,13 @@ public class SpoofaxAstToGraphQuery {
         return new QueryExpression.Constant.ConstBoolean(false);
       case "Date":
         s = getString(t);
-        LocalDate date = LocalDate.parse(s, SqlDateTimeFormatter.SQL_DATE);
+        LocalDate date;
+        try {
+          date = LocalDate.parse(s, SqlDateTimeFormatter.SQL_DATE);
+        } catch (DateTimeParseException e) {
+          // can return any date here; parser already generated an error message for it
+          date = LocalDate.MIN;
+        }
         return new QueryExpression.Constant.ConstDate(date);
       case "Time":
         s = getString(t);
@@ -542,8 +548,13 @@ public class SpoofaxAstToGraphQuery {
           LocalTime time = LocalTime.parse(s, SqlDateTimeFormatter.SQL_TIME);
           return new QueryExpression.Constant.ConstTime(time);
         } catch (DateTimeParseException e) {
-          OffsetTime timeWithTimezone = OffsetTime.parse(s, SqlDateTimeFormatter.SQL_TIME_WITH_TIMEZONE);
-          return new QueryExpression.Constant.ConstTimeWithTimezone(timeWithTimezone);
+          try {
+            OffsetTime timeWithTimezone = OffsetTime.parse(s, SqlDateTimeFormatter.SQL_TIME_WITH_TIMEZONE);
+            return new QueryExpression.Constant.ConstTimeWithTimezone(timeWithTimezone);
+          } catch (DateTimeParseException e2) {
+            // can return any time here; parser already generated an error message for it
+            return new QueryExpression.Constant.ConstTime(LocalTime.MIN);
+          }
         }
       case "Timestamp":
         s = getString(t);
@@ -551,9 +562,14 @@ public class SpoofaxAstToGraphQuery {
           LocalDateTime timestamp = LocalDateTime.parse(s, SqlDateTimeFormatter.SQL_TIMESTAMP);
           return new QueryExpression.Constant.ConstTimestamp(timestamp);
         } catch (DateTimeParseException e) {
-          OffsetDateTime timestampWithTimezone = OffsetDateTime.parse(s,
-              SqlDateTimeFormatter.SQL_TIMESTAMP_WITH_TIMEZONE);
-          return new QueryExpression.Constant.ConstTimestampWithTimezone(timestampWithTimezone);
+          try {
+            OffsetDateTime timestampWithTimezone = OffsetDateTime.parse(s,
+                SqlDateTimeFormatter.SQL_TIMESTAMP_WITH_TIMEZONE);
+            return new QueryExpression.Constant.ConstTimestampWithTimezone(timestampWithTimezone);
+          } catch (DateTimeParseException e2) {
+            // can return any timestamp here; parser already generated an error message for it
+            return new QueryExpression.Constant.ConstTimestamp(LocalDateTime.MIN);
+          }
         }
       case "VarRef":
         String varName = getString(t.getSubterm(POS_VARREF_VARNAME));
@@ -683,8 +699,8 @@ public class SpoofaxAstToGraphQuery {
               break;
             case TIMESTAMP_WITH_TIMEZONE:
               arrayElementType = ExpressionType.TIMESTAMP;
-              timestampValues[i] = ((ConstTimestampWithTimezone) literal).getValue().withOffsetSameInstant(ZoneOffset.UTC)
-                  .toLocalDateTime();
+              timestampValues[i] = ((ConstTimestampWithTimezone) literal).getValue()
+                  .withOffsetSameInstant(ZoneOffset.UTC).toLocalDateTime();
               break;
             default:
               throw new IllegalArgumentException(literal.getExpType().toString());

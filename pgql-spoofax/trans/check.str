@@ -213,16 +213,6 @@ rules // datetimes
   external is-valid-datetime(|)
 
   nabl-constraint(|ctx):
-    t@Date(_) -> <fail>
-    where not ( <is-valid-datetime> t )
-    with <generate-error(|ctx, "Not a valid date; use for example 2018-01-15")> t
-
-  nabl-constraint(|ctx):
-    t@Time(_) -> <fail>
-    where not ( <is-valid-datetime> t )
-    with <generate-error(|ctx, "Not a valid time; use for example 16:30:00 or 15:30:00+01:00")> t
-
-  nabl-constraint(|ctx):
-    t@Timestamp(_) -> <fail>
-    where not ( <is-valid-datetime> t )
-    with <generate-error(|ctx, "Not a valid timestamp; use for example 2018-01-15 16:30:00 or 2018-01-15 15:30:00+01:00")> t
+    datetime-> <fail>
+    where <(?Date(_) + ?Time(_) + ?Timestamp(_)); is-valid-datetime; ?ErrorMessage(m)> datetime
+    with <generate-error(|ctx, m)> datetime
