@@ -109,7 +109,7 @@ public class is_valid_datetime_0_0 extends Strategy {
             return current;
           } catch (DateTimeParseException e2) {
             String message = "Not a valid timestamp: " + e.getMessage()
-                + ". Examples of valid datetimes are '2018-01-15 16:30:00' and '2018-01-15 15:30:00+01:00'.";
+                + ". Examples of valid timestamps are '2018-01-15 16:30:00' and '2018-01-15 15:30:00+01:00'.";
             return createErrorMessage(context, message);
           }
         }
