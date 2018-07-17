@@ -32,4 +32,14 @@ public class SyntaxErrorsTest extends AbstractPgqlTest {
     assertTrue(result.getErrorMessages().contains("SELECT * not allowed in combination with GROUP BY"));
     assertFalse(result.getGraphQuery() == null);
   }
+
+  @Test
+  public void testDatetimes() throws Exception {
+    PgqlResult result = pgql.parse("SELECT DATE 'x', TIME 'y', TIMESTAMP 'z' MATCH (n)");
+    assertFalse(result.isQueryValid());
+    assertTrue(result.getErrorMessages().contains("Not a valid date"));
+    assertTrue(result.getErrorMessages().contains("Not a valid time"));
+    assertTrue(result.getErrorMessages().contains("Not a valid timestamp"));
+    assertFalse(result.getGraphQuery() == null);
+  }
 }
