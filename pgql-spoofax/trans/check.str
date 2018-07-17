@@ -36,9 +36,9 @@ rules // Unresolved/duplicate variables
 
   nabl-constraint(|ctx):
     NormalizedQuery(_, selectClause, _, GraphPattern(vertices, edges, _), groupClause, _, _, _, _, _) -> <fail>
-    with matchVars := <collect(get-pattern-elem)> (vertices, edges)
-       ; groupExpressions := <collect(?ExpAsVar(_, <id>, _, _))> groupClause
-       ; selectExpressions := <collect(?ExpAsVar(_, <id>, _, _))> selectClause
+    with matchVars := <collect(is-pattern-elem); collect-om(get-pattern-elem, conc)> (vertices, edges)
+       ; groupExpressions := <collect-om(?ExpAsVar(_, <id>, _, _), conc)> groupClause
+       ; selectExpressions := <collect-om(?ExpAsVar(_, <id>, _, _), conc)> selectClause
        ; <generate-error-on-duplicates(|ctx)> matchVars
        ; <generate-error-on-duplicates(|ctx)> groupExpressions
        ; <generate-error-on-duplicates(|ctx)> selectExpressions
@@ -50,7 +50,8 @@ rules // Unresolved/duplicate variables
        ; redefinitions-in-select := <strip-annos; isect> (selectVars, groupVars)
        ; <batch-generate-error(|ctx, "Duplicate variable: variable already defined in the GROUP BY clause")> redefinitions-in-select
 
-  get-pattern-elem = ?Vertex(<id>, _, _) + ?Edge(_, <id>, _, _, _, _) + ?Path(_, _, _, _, <id>, _, _, _)
+  is-pattern-elem = ?Vertex(_, _, _) + ?Edge(_, _, _, _, _, _)
+  get-pattern-elem = ?Vertex(<id>, _, _) + ?Edge(_, <id>, _, _, _, _)
 
   generate-error-on-duplicates(|ctx) = strip-annos; ?vars; map(generate-error-on-duplicate(|ctx, vars))
 

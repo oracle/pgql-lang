@@ -65,3 +65,72 @@ test No Kleene star in SHORTEST (2) [[
    MATCH SHORTEST  ( (n) [[(-[e1]->)]] (m) )
 
 ]] error like "Kleene star (*) required for now" at #1
+
+test Duplicate variables (1) [[
+
+  SELECT n.prop AS nProp
+   MATCH SHORTEST  ( (n) -[ [[e]] ]-> (m) )
+       , (n) -[ [[e]] ]-> (m)
+
+]] error like "Duplicate variable" at #1, #2
+
+test Duplicate variables (2) [[
+
+  SELECT n.prop AS nProp
+   MATCH SHORTEST  ( (n) (-> ([[dst]]))* (m) )
+       , ([[dst]])
+
+]] error like "Duplicate variable" at #1, #2
+
+test Duplicate variables (3) [[
+
+  SELECT n.prop AS nProp
+   MATCH SHORTEST  ( (n) (-> ([[m]]))* ([[m]]) )
+
+]] error like "Duplicate variable" at #1, #2
+
+test Duplicate variables (4) [[
+
+  SELECT n.prop AS nProp
+   MATCH SHORTEST  ( ([[n]]) (-[ [[n]] ]->)* (m) )
+
+]] error like "Duplicate variable" at #1, #2
+
+test Duplicate variables (5) [[
+
+  SELECT n.prop AS nProp
+   MATCH SHORTEST  ( (n) [[(-> (m)) (m) )]]
+
+]] error like "Duplicate variable" at #1
+
+test Duplicate variables (6) [[
+
+  SELECT n.prop AS nProp
+   MATCH SHORTEST  ( (n) -[ [[e]] ]->* (m) )
+       , SHORTEST  ( (n) -[ [[e]] ]->* (m) )
+
+]] error like "Duplicate variable" at #1, #2
+
+test Duplicate variables (7) [[
+
+  SELECT n.prop AS nProp
+   MATCH SHORTEST  ( (n) (-> ([[x]]))* (m) )
+       , SHORTEST  ( (n) -[ [[x]] ]->* (m) )
+
+]] error like "Duplicate variable" at #1, #2
+
+test Duplicate variables (8) [[
+
+  SELECT dst
+   MATCH SHORTEST  ( (n) -[e]->* (m) )
+   group by n AS [[e]]
+
+]] error like "Duplicate variable: variable already defined in the MATCH clause" at #1
+
+test Duplicate variables (9) [[
+
+  SELECT dst
+   MATCH SHORTEST  ( (n) (-> (dst))* (m) )
+   group by n AS [[dst]]
+
+]] error like "Duplicate variable: variable already defined in the MATCH clause" at #1
