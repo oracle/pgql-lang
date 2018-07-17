@@ -233,8 +233,12 @@ rules
       )|otherPaths] -> <conc> ([path'], edgesTailPaths)
     with kValue' := <?Some(TopK(<id>)) <+ !"1"> kValue
        ; edges := <pathPattern-to-connections(|variable-counter, kValue')> pathPattern
-       ; path' := <?[single-path-only]; !single-path-only <+ !ComplexRegularExpressionNotSupported(<id>)> edges
+       ; path' := <?[single-path-only]; !single-path-only; try(single-edge-to-path(|variable-counter, kValue)) <+ !ComplexRegularExpressionNotSupported(<id>)> edges
        ; edgesTailPaths := <get-connections-from-paths(|variable-counter)> otherPaths
+
+  single-edge-to-path(|variable-counter, kValue):
+    edge@NormalizedEdge(srcVertex, e, dstVertex, direction, quantifier, constraints) -> path
+    with path := <to-path(|variable-counter, kValue)> (srcVertex, dstVertex, edge, constraints, quantifier)
 
   pathPattern-to-connections(|variable-counter, kValue):
     PathPattern(Vertex(n1), edgeVertices@[EdgeVertex(e, Vertex(n2))|_]) -> <conc> ([edge], edgesPathTail)

@@ -30,3 +30,38 @@ test K equals zero [[
   SELECT n MATCH TOP [[0]] SHORTEST( (n) ->* (m) )
 
 ]]  error like "Value should be greater than 0" at #1
+
+test Multiple edges in SHORTEST [[
+
+  SELECT n.prop AS nProp
+   MATCH SHORTEST( (n) [[-[e1]->* (m) ->*]] (o) )
+
+]] error like "Not yet supported: multiple edges in SHORTEST" at #1
+
+test No Kleene star in SHORTEST (1) [[
+
+  SELECT n.prop AS nProp
+   MATCH SHORTEST  ( (n) -[e1]->[[+]] (m) )
+
+]] error like "Kleene star (*) required for now" at #1
+
+test No Kleene star in SHORTEST (2) [[
+
+  SELECT n.prop AS nProp
+   MATCH SHORTEST  ( (n) [[-[e1]-> (m)]] )
+
+]] error like "Kleene star (*) required for now" at #1
+
+test No Kleene star in SHORTEST (2) [[
+
+  SELECT n.prop AS nProp
+   MATCH SHORTEST  ( (n) (-[e1]->)[[+]] (m) )
+
+]] error like "Kleene star (*) required for now" at #1
+
+test No Kleene star in SHORTEST (2) [[
+
+  SELECT n.prop AS nProp
+   MATCH SHORTEST  ( (n) [[(-[e1]->)]] (m) )
+
+]] error like "Kleene star (*) required for now" at #1
