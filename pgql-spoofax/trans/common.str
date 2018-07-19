@@ -9,6 +9,8 @@ imports
 rules
 
   is-literal = ?Integer(_) + ?Decimal(_) + ?String(_) + ?True() + ?False() + ?BindVariable(_)
+  is-numeric-literal = ?Integer(_) + ?Decimal(_)
+  is-boolean-literal = ?True() + ?False()
   is-aggregate = ?COUNT(_, _) + ?MIN(_, _) + ?MAX(_, _) + ?SUM(_, _) + ?AVG(_, _)
   is-expression = ?Not(_) + ?And(_, _) + ?Or(_, _) + ?Mul(_, _) + ?Add(_, _) + ?Div(_, _) + ?Mod(_, _) +
         ?Sub(_, _) + ?Eq(_, _) + ?Lt(_, _) + ?Gte(_, _) + ?Lte(_, _) + ?Neq(_, _) + ?Legacy10Regex(_, _)
