@@ -50,6 +50,22 @@ rules // Unresolved/duplicate variables
        ; redefinitions-in-select := <strip-annos; isect> (selectVars, groupVars)
        ; <batch-generate-error(|ctx, "Duplicate variable: variable already defined in the GROUP BY clause")> redefinitions-in-select
 
+  nabl-constraint(|ctx):
+    query@NormalizedQuery(_, selectClause, _, GraphPattern(_, edges, _), _, _, _, _, _, _) -> <fail>
+    with group-variables := <collect-in-outer-query(?CommonPathExpression(_, _, _, _); get-origin-positions-of-variables); concat> query
+       ; varRefs-per-aggregation := <collect-in-outer-query(is-aggregate); map(origin-track-forced(collect-in-outer-query(?VarRef(_, <id>)); !Some(<id>)))> query
+       ; varRefs-per-aggregation' := <filter(has-multiple-groupVarRefs(|group-variables))> varRefs-per-aggregation
+       ; <batch-generate-error(|ctx, "Accessing multiple group variables in a single aggregation is not yet supported")> varRefs-per-aggregation'
+
+  get-origin-positions-of-variables:
+    CommonPathExpression(_, Vertices(vertices), Edges(edges), _) -> <conc; make-set> (origins-of-vertices, origins-of-edges)
+    with origins-of-vertices := <map(?Vertex(_, <id>, _))> vertices
+       ; origins-of-edges := <filter(?Edge(_, _, _, _, <id>, _))> edges
+
+  has-multiple-groupVarRefs(|group-variables):
+    t@Some(varRefs-in-aggregation) -> t
+    where group-varRefs := <isect; not(?[] + ?[_])> (group-variables, varRefs-in-aggregation)
+
   is-pattern-elem = ?Vertex(_, _, _) + ?Edge(_, _, _, _, _, _)
   get-pattern-elem = ?Vertex(<id>, _, _) + ?Edge(_, <id>, _, _, _, _)
 
@@ -227,3 +243,8 @@ rules // temporary limitation
     where <not(?Some(BetweenNAndM("0", "-1")))> quantifier
     with error-term := <?Some(_) <+ !pathExpression; collect-one(?Edge(_, _, _, _, _, _))> quantifier 
        ; <generate-error(|ctx, "Kleene star (*) required for now")> error-term
+
+  nabl-constraint(|ctx):
+    t@CommonPathExpression(_, _, connections, _) -> <fail>
+    where <collect-in-outer-query(?Path(_, _, _, _, _, _, _, _)); not(?[])> connections
+    with <generate-error(|ctx, "Nested regular expressions not yet supported")> t

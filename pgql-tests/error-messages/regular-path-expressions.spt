@@ -134,3 +134,51 @@ test Duplicate variables (9) [[
    group by n AS [[dst]]
 
 ]] error like "Duplicate variable: variable already defined in the MATCH clause" at #1
+
+test Nested regex (1) [[
+
+    PATH p AS SHORTEST( (n) -[e]->* (m) )
+  SELECT n
+   MATCH (n)
+
+]] error like "Nested regular expressions not yet supported"
+
+test Nested regex (2) [[
+
+    PATH p AS (n) -/:likes/-> (m)
+  SELECT n
+   MATCH (n)
+
+]] error like "Nested regular expressions not yet supported"
+
+test Nested regex (3) [[
+
+  SELECT n
+   MATCH SHORTEST( (n) [[-/:likes/->]]* (m) )
+
+]] error like "Nested regular expressions not yet supported" at #1
+
+test Multiple group variables in aggregation (1) [[
+
+  SELECT [[MIN(e.prop + x.prop)]] AS aggr1
+       , [[MAX(e.prop + x.prop)]] AS aggr2
+       , [[COUNT(e.prop + x.prop)]] AS aggr3
+       , [[SUM(e.prop + x.prop)]] AS aggr4
+       , [[AVG(e.prop + x.prop)]] AS aggr5
+       , [[ARRAY_AGG(e.prop + x.prop)]] AS aggr6
+   MATCH SHORTEST( (n) (-[e]-> (x))* (m) )
+
+]] error like "Accessing multiple group variables in a single aggregation is not yet supported" at #1, #2, #3, #4, #5, #6
+
+test Multiple group variables in aggregation (2) [[
+
+  SELECT [[MIN(e1.prop + e2.prop)]] AS aggr1
+       , [[MAX(e1.prop + e2.prop)]] AS aggr2
+       , [[COUNT(e1.prop + e2.prop)]] AS aggr3
+       , [[SUM(e1.prop + e2.prop)]] AS aggr4
+       , [[AVG(e1.prop + e2.prop)]] AS aggr5
+       , [[ARRAY_AGG(e1.prop + e2.prop)]] AS aggr6
+   MATCH SHORTEST( (n) -[e1]->* (m) )
+       ,  SHORTEST( (n) -[e2]->* (m) )
+
+]] error like "Accessing multiple group variables in a single aggregation is not yet supported" at #1, #2, #3, #4, #5, #6

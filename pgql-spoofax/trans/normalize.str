@@ -23,7 +23,7 @@ rules
     with
       variable-counter := <new-counter>;
       bindVariable-counter := <new-counter>;
-      error-messages := <is-pgql10; collect(get-pgql10-limitation) <+ collect(get-deprecation); not(?[]) <+ get-all-path-limitations> ast;
+      error-messages := <is-pgql10; collect(get-pgql10-limitation) <+ collect(get-deprecation); not(?[]) <+ get-path-limitations <+ ![]> ast;
       result := <
         alltd(norm-has-prop);
         alltd(norm-pgql10);
@@ -81,9 +81,12 @@ rules
                          ; to-error-message(|"Use [MATCH pattern WHERE filters] instead of [WHERE pattern mixed with filters]")
 
   // TODO: move this to check.str (all the information should be in the normalized AST)
-  get-all-path-limitations = collect(shortest-or-reaches + is-quantifier)
+  get-path-limitations = collect(shortest-or-reaches + is-quantifier)
                            ; remove-all(shortest-or-reaches)
+                           ; not(?[])
                            ; map(to-error-message(|"Quantifier needs to be enclosed by SHORTEST"))
+
+  get-path-limitations = collect(?Shortest(_, _)); collect(?Path(_, _, _)); not(?[]); map(to-error-message(|"Nested regular expressions not yet supported"))
 
   shortest-or-reaches = ?Shortest(_, _)
                       + ?OutConn(Some(Path(_, _, _)), _)
