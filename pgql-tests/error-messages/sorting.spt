@@ -24,6 +24,14 @@ test Order by vertex (3) [[
 
 ]] error like "Cannot order by vertex" at #1
 
+test Order by array [[
+
+    SELECT ARRAY_AGG(e.prop) AS array
+     MATCH SHORTEST( (n) -[e]->* (m) )
+  ORDER BY [[ARRAY_AGG(e.prop)]]
+
+]] error like "Cannot order by array" at #1
+
 test Order by vertex (4) [[
 
     SELECT n, ( SELECT [[m AS m]] MATCH (m) LIMIT 1 ) AS o

@@ -45,18 +45,21 @@ type rules
   t@Gt(exp1, exp2) + t@Lt(exp1, exp2) + t@Gte(exp1, exp2) + t@Lte(exp1, exp2) : BooleanTy()
   where exp1 : ty1
     and exp2 : ty2
-    and not (ty1 == VertexTy() or ty1 == EdgeTy()) else error $[Comparison not allowed because no order is defined for vertices and edges] on exp1
-    and not (ty2 == VertexTy() or ty2 == EdgeTy()) else error $[Comparison not allowed because no order is defined for vertices and edges] on exp2
+    and not (ty1 == VertexTy() or ty2 == VertexTy()) else error $[Comparison not allowed because no order is defined for vertices] on t
+    and not (ty1 == EdgeTy() or ty2 == EdgeTy()) else error $[Comparison not allowed because no order is defined for edges] on t
+    and not (ty1 == ArrayTy() or ty2 == ArrayTy()) else error $[Comparison not allowed because no order is defined for arrays] on t
 
   MIN(_, exp)  + MAX(_, exp)  + SUM(_, exp)  + AVG(_, exp): ty
   where exp : ty
     and not (ty == VertexTy() or ty == EdgeTy()) else error $[Aggregate does not allow vertex or edge input] on exp
+    and not ty == ArrayTy() else error $[Aggregate does not allow array input] on exp
 
   COUNT(_, exp) : NumericTy()
 
   ARRAY-AGG(_, exp) : ArrayTy()
   where exp : ty
     and not (ty == VertexTy() or ty == EdgeTy()) else error $[Aggregate does not allow vertex or edge input] on exp
+    and not ty == ArrayTy() else error $[Aggregate does not allow array input] on exp
 
   Cast(_, _) + FunctionCall(_, _, _) + Star(): UnknownTy()
 
@@ -80,5 +83,6 @@ type rules
 
   OrderByElem(exp, _, "v1.1") :-
   where exp : ty
-    and not ( ty == VertexTy() ) else error $[Cannot order by vertex] on exp
-    and not ( ty == EdgeTy() ) else error $[Cannot order by edge] on exp
+    and not ty == VertexTy() else error $[Cannot order by vertex] on exp
+    and not ty == EdgeTy() else error $[Cannot order by edge] on exp
+    and not ty == ArrayTy() else error $[Cannot order by array] on exp
