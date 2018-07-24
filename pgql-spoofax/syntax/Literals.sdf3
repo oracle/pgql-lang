@@ -19,6 +19,10 @@ context-free syntax
   Literal   = Time
   Literal   = Timestamp
 
+
+  ArrayLiteral = Array
+  ArrayLiteral = BindVariable
+
 context-free syntax
 
   Number.Integer            = UNSIGNED-INT
@@ -31,6 +35,7 @@ context-free syntax
   Time.Time                 = <TIME <STRING>> {case-insensitive}
   Timestamp.Timestamp       = <TIMESTAMP <STRING>> {case-insensitive}
   Literal.Null              = <null> {case-insensitive} // not valid syntax; just here so that we can generate an appropriate error to use IS NULL or IS NOT NULL instead
+  Array.Array               = <(<{Literal ", "}+>)>
 
 lexical syntax
 

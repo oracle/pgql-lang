@@ -220,7 +220,7 @@ rules // datetimes
 rules // IN
 
   nabl-constraint(|ctx):
-    InPredicate(_, [x|xs]) -> <fail>
+    InPredicate(_, Array([x|xs])) -> <fail>
     with <remove-all(same-type(|x)); batch-generate-error(|ctx, $[[<!x; type-to-string>] expected here])> xs
 
   same-type(|x) = is-numeric-literal; !x; is-numeric-literal

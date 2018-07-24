@@ -50,6 +50,7 @@ import oracle.pgql.lang.ir.QueryExpression.ExtractExpression;
 import oracle.pgql.lang.ir.QueryExpression.ExtractExpression.ExtractField;
 import oracle.pgql.lang.ir.QueryExpression.ExpressionType;
 import oracle.pgql.lang.ir.QueryExpression.InPredicate;
+import oracle.pgql.lang.ir.QueryExpression.InPredicate.InValueList;
 import oracle.pgql.lang.ir.QueryExpression.VarRef;
 import oracle.pgql.lang.ir.QueryPath;
 import oracle.pgql.lang.ir.QueryVariable;
@@ -644,8 +645,12 @@ public class SpoofaxAstToGraphQuery {
       case "InPredicate":
         expT = t.getSubterm(POS_IN_PREDICATE_EXP);
         exp = translateExp(expT, ctx);
-        IStrategoTerm valuesT = t.getSubterm(POS_IN_PREDICATE_VALUES);
-        int size = valuesT.getSubtermCount();
+        IStrategoTerm inValueListT = t.getSubterm(POS_IN_PREDICATE_VALUES);
+        QueryExpression inValueList = translateExp(inValueListT, ctx);
+        return new InPredicate(exp, inValueList);
+      case "Array":
+        IStrategoTerm arrayValues = t.getSubterm(0);
+        int size = arrayValues.getSubtermCount();
 
         long[] integerValues = new long[size];
         double[] decimalValues = new double[size];
@@ -658,7 +663,7 @@ public class SpoofaxAstToGraphQuery {
         ExpressionType arrayElementType = null;
 
         for (int i = 0; i < size; i++) {
-          QueryExpression literal = translateExp(valuesT.getSubterm(i), ctx);
+          QueryExpression literal = translateExp(arrayValues.getSubterm(i), ctx);
           switch (literal.getExpType()) {
             case INTEGER:
               if (arrayElementType == null) {
@@ -709,19 +714,19 @@ public class SpoofaxAstToGraphQuery {
 
         switch (arrayElementType) {
           case INTEGER:
-            return new InPredicate(exp, integerValues);
+            return new InValueList(integerValues);
           case DECIMAL:
-            return new InPredicate(exp, decimalValues);
+            return new InValueList(decimalValues);
           case BOOLEAN:
-            return new InPredicate(exp, booleanValues);
+            return new InValueList(booleanValues);
           case STRING:
-            return new InPredicate(exp, stringValues);
+            return new InValueList(stringValues);
           case DATE:
-            return new InPredicate(exp, dateValues);
+            return new InValueList(dateValues);
           case TIME:
-            return new InPredicate(exp, timeValues);
+            return new InValueList(timeValues);
           case TIMESTAMP:
-            return new InPredicate(exp, timestampValues);
+            return new InValueList(timestampValues);
           default:
             throw new IllegalArgumentException(arrayElementType.toString());
         }

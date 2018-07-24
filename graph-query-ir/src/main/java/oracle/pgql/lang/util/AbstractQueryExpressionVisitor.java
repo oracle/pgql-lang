@@ -32,6 +32,7 @@ import oracle.pgql.lang.ir.QueryExpression.Constant.ConstTimestampWithTimezone;
 import oracle.pgql.lang.ir.QueryExpression.ExtractExpression;
 import oracle.pgql.lang.ir.QueryExpression.FunctionCall;
 import oracle.pgql.lang.ir.QueryExpression.InPredicate;
+import oracle.pgql.lang.ir.QueryExpression.InPredicate.InValueList;
 import oracle.pgql.lang.ir.QueryExpression.Function.Cast;
 import oracle.pgql.lang.ir.QueryExpression.Function.Exists;
 import oracle.pgql.lang.ir.QueryExpression.LogicalExpression.And;
@@ -236,6 +237,10 @@ public abstract class AbstractQueryExpressionVisitor implements QueryExpressionV
   @Override
   public void visit(InPredicate inPredicate) {
     inPredicate.getExp().accept(this);
+  }
+
+  @Override
+  public void visit(InValueList inValueList) {
   }
 
   @Override
