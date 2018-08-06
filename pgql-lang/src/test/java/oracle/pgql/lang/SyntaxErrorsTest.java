@@ -51,6 +51,14 @@ public class SyntaxErrorsTest extends AbstractPgqlTest {
     assertFalse(result.isQueryValid());
     assertTrue(result.getErrorMessages()
         .contains("Cannot select all variables since e is a group variable but group variables cannot be selected"));
+  }
+
+  public void testDatetimes() throws Exception {
+    PgqlResult result = pgql.parse("SELECT DATE 'x', TIME 'y', TIMESTAMP 'z' MATCH (n)");
+    assertFalse(result.isQueryValid());
+    assertTrue(result.getErrorMessages().contains("Not a valid date"));
+    assertTrue(result.getErrorMessages().contains("Not a valid time"));
+    assertTrue(result.getErrorMessages().contains("Not a valid timestamp"));
     assertFalse(result.getGraphQuery() == null);
   }
 }

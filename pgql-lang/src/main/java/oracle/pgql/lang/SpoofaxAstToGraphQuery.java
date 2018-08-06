@@ -8,6 +8,7 @@ import java.time.LocalDateTime;
 import java.time.LocalTime;
 import java.time.OffsetDateTime;
 import java.time.OffsetTime;
+import java.time.ZoneOffset;
 import java.time.format.DateTimeParseException;
 import java.util.ArrayList;
 import java.util.Collection;
@@ -37,10 +38,20 @@ import oracle.pgql.lang.ir.QueryEdge;
 import oracle.pgql.lang.ir.QueryExpression;
 import oracle.pgql.lang.ir.QueryExpression.LogicalExpression.And;
 import oracle.pgql.lang.ir.QueryExpression.ScalarSubquery;
+import oracle.pgql.lang.ir.QueryExpression.Constant.ConstBoolean;
+import oracle.pgql.lang.ir.QueryExpression.Constant.ConstDate;
+import oracle.pgql.lang.ir.QueryExpression.Constant.ConstDecimal;
+import oracle.pgql.lang.ir.QueryExpression.Constant.ConstInteger;
 import oracle.pgql.lang.ir.QueryExpression.Constant.ConstString;
+import oracle.pgql.lang.ir.QueryExpression.Constant.ConstTime;
+import oracle.pgql.lang.ir.QueryExpression.Constant.ConstTimeWithTimezone;
+import oracle.pgql.lang.ir.QueryExpression.Constant.ConstTimestamp;
+import oracle.pgql.lang.ir.QueryExpression.Constant.ConstTimestampWithTimezone;
 import oracle.pgql.lang.ir.QueryExpression.ExtractExpression;
 import oracle.pgql.lang.ir.QueryExpression.ExtractExpression.ExtractField;
 import oracle.pgql.lang.ir.QueryExpression.ExpressionType;
+import oracle.pgql.lang.ir.QueryExpression.InPredicate;
+import oracle.pgql.lang.ir.QueryExpression.InPredicate.InValueList;
 import oracle.pgql.lang.ir.QueryExpression.VarRef;
 import oracle.pgql.lang.ir.QueryPath;
 import oracle.pgql.lang.ir.QueryVariable;
@@ -123,6 +134,8 @@ public class SpoofaxAstToGraphQuery {
   private static final int POS_FUNCTION_CALL_EXPS = 2;
   private static final int POS_EXTRACT_FIELD = 0;
   private static final int POS_EXTRACT_EXP = 1;
+  private static final int POS_IN_PREDICATE_EXP = 0;
+  private static final int POS_IN_PREDICATE_VALUES = 1;
 
   public static GraphQuery translate(IStrategoTerm ast) throws PgqlException {
     return translate(ast, new TranslationContext(new HashMap<>(), new HashSet<>(), new HashMap<>()));
@@ -585,7 +598,13 @@ public class SpoofaxAstToGraphQuery {
         return new QueryExpression.Constant.ConstBoolean(false);
       case "Date":
         s = getString(t);
-        LocalDate date = LocalDate.parse(s, SqlDateTimeFormatter.SQL_DATE);
+        LocalDate date;
+        try {
+          date = LocalDate.parse(s, SqlDateTimeFormatter.SQL_DATE);
+        } catch (DateTimeParseException e) {
+          // can return any date here; parser already generated an error message for it
+          date = LocalDate.MIN;
+        }
         return new QueryExpression.Constant.ConstDate(date);
       case "Time":
         s = getString(t);
@@ -593,8 +612,13 @@ public class SpoofaxAstToGraphQuery {
           LocalTime time = LocalTime.parse(s, SqlDateTimeFormatter.SQL_TIME);
           return new QueryExpression.Constant.ConstTime(time);
         } catch (DateTimeParseException e) {
-          OffsetTime timeWithTimezone = OffsetTime.parse(s, SqlDateTimeFormatter.SQL_TIME_WITH_TIMEZONE);
-          return new QueryExpression.Constant.ConstTimeWithTimezone(timeWithTimezone);
+          try {
+            OffsetTime timeWithTimezone = OffsetTime.parse(s, SqlDateTimeFormatter.SQL_TIME_WITH_TIMEZONE);
+            return new QueryExpression.Constant.ConstTimeWithTimezone(timeWithTimezone);
+          } catch (DateTimeParseException e2) {
+            // can return any time here; parser already generated an error message for it
+            return new QueryExpression.Constant.ConstTime(LocalTime.MIN);
+          }
         }
       case "Timestamp":
         s = getString(t);
@@ -602,9 +626,14 @@ public class SpoofaxAstToGraphQuery {
           LocalDateTime timestamp = LocalDateTime.parse(s, SqlDateTimeFormatter.SQL_TIMESTAMP);
           return new QueryExpression.Constant.ConstTimestamp(timestamp);
         } catch (DateTimeParseException e) {
-          OffsetDateTime timestampWithTimezone = OffsetDateTime.parse(s,
-              SqlDateTimeFormatter.SQL_TIMESTAMP_WITH_TIMEZONE);
-          return new QueryExpression.Constant.ConstTimestampWithTimezone(timestampWithTimezone);
+          try {
+            OffsetDateTime timestampWithTimezone = OffsetDateTime.parse(s,
+                SqlDateTimeFormatter.SQL_TIMESTAMP_WITH_TIMEZONE);
+            return new QueryExpression.Constant.ConstTimestampWithTimezone(timestampWithTimezone);
+          } catch (DateTimeParseException e2) {
+            // can return any timestamp here; parser already generated an error message for it
+            return new QueryExpression.Constant.ConstTimestamp(LocalDateTime.MIN);
+          }
         }
       case "VarRef":
         String varName = getString(t.getSubterm(POS_VARREF_VARNAME));
@@ -676,6 +705,94 @@ public class SpoofaxAstToGraphQuery {
         IStrategoTerm expT = t.getSubterm(POS_EXTRACT_EXP);
         exp = translateExp(expT, ctx);
         return new ExtractExpression(field, exp);
+      case "InPredicate":
+        expT = t.getSubterm(POS_IN_PREDICATE_EXP);
+        exp = translateExp(expT, ctx);
+        IStrategoTerm inValueListT = t.getSubterm(POS_IN_PREDICATE_VALUES);
+        QueryExpression inValueList = translateExp(inValueListT, ctx);
+        return new InPredicate(exp, inValueList);
+      case "Array":
+        IStrategoTerm arrayValues = t.getSubterm(0);
+        int size = arrayValues.getSubtermCount();
+
+        long[] integerValues = new long[size];
+        double[] decimalValues = new double[size];
+        boolean[] booleanValues = new boolean[size];
+        String[] stringValues = new String[size];
+        LocalDate[] dateValues = new LocalDate[size];
+        LocalTime[] timeValues = new LocalTime[size];
+        LocalDateTime[] timestampValues = new LocalDateTime[size];
+
+        ExpressionType arrayElementType = null;
+
+        for (int i = 0; i < size; i++) {
+          QueryExpression literal = translateExp(arrayValues.getSubterm(i), ctx);
+          switch (literal.getExpType()) {
+            case INTEGER:
+              if (arrayElementType == null) {
+                arrayElementType = ExpressionType.INTEGER;
+              }
+              long integerValue = ((ConstInteger) literal).getValue();
+              integerValues[i] = integerValue;
+              decimalValues[i] = (double) integerValue;
+              break;
+            case DECIMAL:
+              arrayElementType = ExpressionType.DECIMAL;
+              decimalValues[i] = ((ConstDecimal) literal).getValue();
+              break;
+            case BOOLEAN:
+              arrayElementType = ExpressionType.BOOLEAN;
+              booleanValues[i] = ((ConstBoolean) literal).getValue();
+              break;
+            case STRING:
+              arrayElementType = ExpressionType.STRING;
+              stringValues[i] = ((ConstString) literal).getValue();
+              break;
+            case DATE:
+              arrayElementType = ExpressionType.DATE;
+              dateValues[i] = ((ConstDate) literal).getValue();
+              break;
+            case TIME:
+              arrayElementType = ExpressionType.TIME;
+              timeValues[i] = ((ConstTime) literal).getValue();
+              break;
+            case TIMESTAMP:
+              arrayElementType = ExpressionType.TIMESTAMP;
+              timestampValues[i] = ((ConstTimestamp) literal).getValue();
+              break;
+            case TIME_WITH_TIMEZONE:
+              arrayElementType = ExpressionType.TIME;
+              timeValues[i] = ((ConstTimeWithTimezone) literal).getValue().withOffsetSameInstant(ZoneOffset.UTC)
+                  .toLocalTime();
+              break;
+            case TIMESTAMP_WITH_TIMEZONE:
+              arrayElementType = ExpressionType.TIMESTAMP;
+              timestampValues[i] = ((ConstTimestampWithTimezone) literal).getValue()
+                  .withOffsetSameInstant(ZoneOffset.UTC).toLocalDateTime();
+              break;
+            default:
+              throw new IllegalArgumentException(literal.getExpType().toString());
+          }
+        }
+
+        switch (arrayElementType) {
+          case INTEGER:
+            return new InValueList(integerValues);
+          case DECIMAL:
+            return new InValueList(decimalValues);
+          case BOOLEAN:
+            return new InValueList(booleanValues);
+          case STRING:
+            return new InValueList(stringValues);
+          case DATE:
+            return new InValueList(dateValues);
+          case TIME:
+            return new InValueList(timeValues);
+          case TIMESTAMP:
+            return new InValueList(timestampValues);
+          default:
+            throw new IllegalArgumentException(arrayElementType.toString());
+        }
       case "COUNT":
       case "MIN":
       case "MAX":

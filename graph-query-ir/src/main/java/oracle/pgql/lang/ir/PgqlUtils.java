@@ -4,7 +4,11 @@
 package oracle.pgql.lang.ir;
 
 import java.text.DecimalFormat;
+import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.time.LocalTime;
+import java.time.OffsetDateTime;
+import java.time.OffsetTime;
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.Iterator;
@@ -140,12 +144,6 @@ public class PgqlUtils {
 
   // HELPER METHODS FOR PRETTY-PRINTING BELOW
 
-  protected static String printPgqlString(String stringLiteral) {
-    return "'" + escape(stringLiteral) //
-        .replace("'", "\\'") //
-        + "'";
-  }
-
   public static String printIdentifier(String identifier) {
     if (identifier.matches("^[a-zA-Z0-9_]*$")) {
       return identifier;
@@ -164,10 +162,6 @@ public class PgqlUtils {
         .replace("\r", "\\r") //
         .replace("\b", "\\b") //
         .replace("\f", "\\f");
-  }
-
-  protected static String printPgqlDecimal(double val) {
-    return DECIMAL_FORMAT.format(val);
   }
 
   protected static String printPgqlString(GraphQuery graphQuery) {
@@ -541,7 +535,7 @@ public class PgqlUtils {
     return orderByElem.getExp() + (orderByElem.isAscending() ? "" : " DESC");
   }
 
-  protected static String printTime(LocalTime time) {
+  private static String printTime(LocalTime time) {
     StringBuilder buf = new StringBuilder(18);
     int hourValue = time.getHour();
     int minuteValue = time.getMinute();
@@ -560,5 +554,35 @@ public class PgqlUtils {
       }
     }
     return buf.toString();
+  }
+
+  protected static String printLiteral(double val) {
+    return DECIMAL_FORMAT.format(val);
+  }
+
+  protected static String printLiteral(String val) {
+    return "'" + escape(val) //
+        .replace("'", "\\'") //
+        + "'";
+  }
+
+  protected static String printLiteral(LocalDate val) {
+    return "DATE '" + val + "'";
+  }
+
+  protected static String printLiteral(LocalTime val) {
+    return "TIME '" + printTime(val) + "'";
+  }
+
+  protected static String printLiteral(LocalDateTime val) {
+    return "TIMESTAMP '" + val.toLocalDate() + " " + printTime(val.toLocalTime()) + "'";
+  }
+
+  protected static String printLiteral(OffsetTime val) {
+    return "TIME '" + printTime(val.toLocalTime()) + val.getOffset() + "'";
+  }
+
+  protected static String printLiteral(OffsetDateTime val) {
+    return "TIMESTAMP '" + val.toLocalDate() + " " + printTime(val.toLocalTime()) + val.getOffset() + "'";
   }
 }
