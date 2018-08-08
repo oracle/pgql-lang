@@ -237,6 +237,7 @@ public abstract class AbstractQueryExpressionVisitor implements QueryExpressionV
   @Override
   public void visit(InPredicate inPredicate) {
     inPredicate.getExp().accept(this);
+    inPredicate.getInValueList().accept(this);
   }
 
   @Override

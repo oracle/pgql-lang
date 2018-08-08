@@ -32,7 +32,8 @@ rules
           norm-NOT +
           norm-NEQ +
           norm-singleVertex +
-          norm-VertexWithoutBrackets
+          norm-VertexWithoutBrackets +
+          norm-inPredicate
         );
       	alltd(norm-edgeContents);
         alltd(norm-string);
@@ -114,6 +115,9 @@ rules
                  into the other. Users can then use either. However, please stick to TIME ZONE (with space) in
                  documentation to follow the standard. */
               ; string-replace(|"TIME ZONE", "TIMEZONE"))> type
+
+  norm-inPredicate = ?InPredicate(exp1, Some(NOT()), exp2); origin-track-forced(!InPredicate(exp1, exp2)); !Not(<id>)
+  norm-inPredicate = ?InPredicate(exp1, None(), exp2); origin-track-forced(!InPredicate(exp1, exp2))
 
 rules
 
