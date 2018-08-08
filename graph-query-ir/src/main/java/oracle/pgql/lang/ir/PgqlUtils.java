@@ -229,63 +229,36 @@ public class PgqlUtils {
   protected static String printPgqlString(GraphPattern graphPattern, List<QueryPath> queryPaths) {
     String result = "MATCH ";
     int indentation = result.length();
-
-    Iterator<QueryVertex> vertexIt = graphPattern.getVertices().iterator();
     Set<QueryExpression> constraintsCopy = new HashSet<>(graphPattern.getConstraints());
     QueryVertex lastVertex = null;
     Set<QueryVertex> uncoveredVertices = new LinkedHashSet<>(graphPattern.getVertices());
-    Set<VertexPairConnection> uncoveredConnections = new HashSet<>(graphPattern.getConnections());
 
-    // print all vertices and their connections
-    while (vertexIt.hasNext()) {
-      QueryVertex vertex = vertexIt.next();
-      if (!uncoveredVertices.contains(vertex)) {
-        continue;
+    Iterator<VertexPairConnection> connectionIt = graphPattern.getConnections().iterator();
+    boolean tryConcatenateNextConnection = false;
+    while (connectionIt.hasNext()) {
+      VertexPairConnection connection = connectionIt.next();
+      uncoveredVertices.remove(connection.getSrc());
+      uncoveredVertices.remove(connection.getDst());
+
+      if (isShortest(connection)) {
+        // if the goal is SHORTEST we don't concatenate the connection to other connections but instead
+        // comma-separate it
+        result += printConnection(constraintsCopy, connection, lastVertex, tryConcatenateNextConnection, indentation);
+        lastVertex = connection.getDst();
+        tryConcatenateNextConnection = false;
       } else {
-        uncoveredVertices.remove(vertex);
-      }
-
-      if (!(lastVertex == null && !uncoveredConnections.isEmpty()
-          && isShortest(uncoveredConnections.iterator().next()))) {
-        // no need to print the vertex if it's the first of a pattern in case the first connection is a SHORTEST path
-        result += printVertex(constraintsCopy, vertex, lastVertex, indentation);
-        lastVertex = vertex;
-      }
-
-      Iterator<VertexPairConnection> connectionIt = uncoveredConnections.iterator();
-      while (connectionIt.hasNext()) {
-        VertexPairConnection connection = connectionIt.next();
-
-        if (isShortest(connection)) {
-          // if the goal is SHORTEST we don't concatenate the connection to other connections but instead
-          // comma-separate it
-          uncoveredVertices.remove(connection.getSrc());
-          uncoveredVertices.remove(connection.getDst());
-          connectionIt.remove();
-          result += printConnection(constraintsCopy, connection, lastVertex, null, null, indentation);
-          lastVertex = connection.dst;
-        } else if (connection.getSrc() == lastVertex || connection.getDst() == lastVertex) {
-          QueryVertex vertexOnTheLeft = lastVertex;
-          QueryVertex vertexOnTheRight = connection.getSrc() == lastVertex ? connection.getDst() : connection.getSrc();
-
-          result += printConnection(constraintsCopy, connection, lastVertex, vertexOnTheLeft, vertexOnTheRight,
-              indentation);
-
-          uncoveredVertices.remove(vertexOnTheRight);
-          connectionIt.remove();
-          lastVertex = vertexOnTheRight;
-        } else {
-          break;
-        }
+        result += printConnection(constraintsCopy, connection, lastVertex, tryConcatenateNextConnection, indentation);
+        lastVertex = connection.getDirection() == Direction.INCOMING ? connection.getSrc() : connection.getDst();
+        tryConcatenateNextConnection = true;
       }
     }
 
-    // print connections which are SHORTEST path or for which both vertices are already printed
-    Iterator<VertexPairConnection> connectionIt = uncoveredConnections.iterator();
-    while (connectionIt.hasNext()) {
-      VertexPairConnection connection = connectionIt.next();
-      result += printConnection(constraintsCopy, connection, lastVertex, indentation);
-      lastVertex = connection.getDst();
+    // print remaining vertices that are not part of any connection
+    Iterator<QueryVertex> vertexIt = uncoveredVertices.iterator();
+    while (vertexIt.hasNext()) {
+      QueryVertex vertex = vertexIt.next();
+      result += printVertex(constraintsCopy, vertex, lastVertex, indentation);
+      lastVertex = vertex;
     }
 
     // print filter expressions
@@ -304,13 +277,7 @@ public class PgqlUtils {
   }
 
   private static String printConnection(Set<QueryExpression> constraintsCopy, VertexPairConnection connection,
-      QueryVertex lastVertex, int indentation) {
-    return printConnection(constraintsCopy, connection, lastVertex, connection.getSrc(), connection.getDst(),
-        indentation);
-  }
-
-  private static String printConnection(Set<QueryExpression> constraintsCopy, VertexPairConnection connection,
-      QueryVertex lastVertex, QueryVertex vertexOnTheLeft, QueryVertex vertexOnTheRight, int indentation) {
+      QueryVertex lastVertex, boolean tryConcatenateConnection, int indentation) {
 
     String result = "";
 
@@ -324,7 +291,17 @@ public class PgqlUtils {
       }
     }
 
-    if (lastVertex != vertexOnTheLeft) {
+    QueryVertex vertexOnTheLeft;
+    QueryVertex vertexOnTheRight;
+    if (connection.getDirection() == Direction.INCOMING) {
+      vertexOnTheLeft = connection.getDst();
+      vertexOnTheRight = connection.getSrc();
+    } else {
+      vertexOnTheLeft = connection.getSrc();
+      vertexOnTheRight = connection.getDst();
+    }
+
+    if (lastVertex != vertexOnTheLeft || !tryConcatenateConnection) {
       if (lastVertex != null) {
         result += "\n" + printIndentation(indentation - 2) + ", ";
       }

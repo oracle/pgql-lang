@@ -5,11 +5,8 @@ package oracle.pgql.lang.ir;
 
 public class QueryEdge extends VertexPairConnection {
 
-  private boolean directed;
-
-  public QueryEdge(QueryVertex src, QueryVertex dst, String name, boolean anonymous, boolean directed) {
-    super(src, dst, name, anonymous);
-    this.directed = directed;
+  public QueryEdge(QueryVertex src, QueryVertex dst, String name, boolean anonymous, Direction direction) {
+    super(src, dst, name, anonymous, direction);
   }
 
   @Override
@@ -18,11 +15,7 @@ public class QueryEdge extends VertexPairConnection {
   }
 
   public boolean isDirected() {
-    return directed;
-  }
-
-  public void setDirected(boolean directed) {
-    this.directed = directed;
+    return direction != Direction.ANY;
   }
 
   @Override
@@ -37,25 +30,6 @@ public class QueryEdge extends VertexPairConnection {
       edge += ">";
     }
     return edge;
-  }
-
-  @Override
-  public int hashCode() {
-    return 31;
-  }
-
-  @Override
-  public boolean equals(Object obj) {
-    if (this == obj)
-      return true;
-    if (!super.equals(obj))
-      return false;
-    if (getClass() != obj.getClass())
-      return false;
-    QueryEdge other = (QueryEdge) obj;
-    if (directed != other.directed)
-      return false;
-    return true;
   }
 
   public void accept(QueryExpressionVisitor v) {

@@ -22,8 +22,8 @@ public class QueryPath extends VertexPairConnection {
   private int kValue;
 
   public QueryPath(QueryVertex src, QueryVertex dst, String name, CommonPathExpression commonPathExpression,
-      boolean anonymous, long minHops, long maxHops, PathFindingGoal goal, int kValue) {
-    super(src, dst, name, anonymous);
+      boolean anonymous, long minHops, long maxHops, PathFindingGoal goal, int kValue, Direction direction) {
+    super(src, dst, name, anonymous, direction);
     this.commonPathExpression = commonPathExpression;
     this.minHops = minHops;
     this.maxHops = maxHops;

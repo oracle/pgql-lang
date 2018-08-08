@@ -9,10 +9,13 @@ public abstract class VertexPairConnection extends QueryVariable {
 
   protected QueryVertex dst;
 
-  public VertexPairConnection(QueryVertex src, QueryVertex dst, String name, boolean anonymous) {
+  protected Direction direction;
+
+  public VertexPairConnection(QueryVertex src, QueryVertex dst, String name, boolean anonymous, Direction direction) {
     super(name, anonymous);
     this.src = src;
     this.dst = dst;
+    this.direction = direction;
   }
 
   public QueryVertex getSrc() {
@@ -31,6 +34,17 @@ public abstract class VertexPairConnection extends QueryVariable {
     this.dst = dst;
   }
 
+  /**
+   * @return direction of edge in query
+   */
+  public Direction getDirection() {
+    return direction;
+  }
+
+  public void setDirection(Direction direction) {
+    this.direction = direction;
+  }
+
   @Override
   public int hashCode() {
     return 31;
@@ -45,6 +59,8 @@ public abstract class VertexPairConnection extends QueryVariable {
     if (getClass() != obj.getClass())
       return false;
     VertexPairConnection other = (VertexPairConnection) obj;
+    if (direction != other.direction)
+      return false;
     if (dst == null) {
       if (other.dst != null)
         return false;
@@ -57,4 +73,5 @@ public abstract class VertexPairConnection extends QueryVariable {
       return false;
     return true;
   }
+
 }

@@ -26,6 +26,7 @@ import org.spoofax.interpreter.terms.IStrategoString;
 import org.spoofax.interpreter.terms.IStrategoTerm;
 
 import oracle.pgql.lang.ir.CommonPathExpression;
+import oracle.pgql.lang.ir.Direction;
 import oracle.pgql.lang.ir.ExpAsVar;
 import oracle.pgql.lang.ir.GraphPattern;
 import oracle.pgql.lang.ir.GraphQuery;
@@ -101,7 +102,7 @@ public class SpoofaxAstToGraphQuery {
   private static final int POS_PATH_QUANTIFIERS_MIN_HOPS = 0;
   private static final int POS_PATH_QUANTIFIERS_MAX_HOPS = 1;
   private static final int POS_PATH_NAME = 4;
-  // FIXME: where is 5?
+  private static final int POS_PATH_DIRECTION = 5;
   private static final int POS_PATH_FINDING_GOAL = 6;
   private static final int POS_PATH_K_VALUE = 7;
 
@@ -329,17 +330,31 @@ public class SpoofaxAstToGraphQuery {
     String name = getString(edgeT.getSubterm(POS_EDGE_NAME));
     String srcName = getString(edgeT.getSubterm(POS_EDGE_SRC));
     String dstName = getString(edgeT.getSubterm(POS_EDGE_DST));
-    boolean directed = getConstructorName(edgeT.getSubterm(POS_EDGE_DIRECTION)).equals("Undirected") == false;
+    Direction direction = getDirection(edgeT.getSubterm(POS_EDGE_DIRECTION));
     IStrategoTerm originPosition = edgeT.getSubterm(POS_EDGE_ORIGIN_OFFSET);
 
     QueryVertex src = getQueryVertex(vertexMap, srcName);
     QueryVertex dst = getQueryVertex(vertexMap, dstName);
 
-    QueryEdge edge = name.contains(GENERATED_VAR_SUBSTR) ? new QueryEdge(src, dst, name, true, directed)
-        : new QueryEdge(src, dst, name, false, directed);
+    QueryEdge edge = name.contains(GENERATED_VAR_SUBSTR) ? new QueryEdge(src, dst, name, true, direction)
+        : new QueryEdge(src, dst, name, false, direction);
 
     ctx.addVar(edge, name, originPosition);
     return edge;
+  }
+
+  private static Direction getDirection(IStrategoTerm directionT) {
+    String constructorName = getConstructorName(directionT);
+    switch (constructorName) {
+      case "Outgoing":
+        return Direction.OUTGOING;
+      case "Incoming":
+        return Direction.INCOMING;
+      case "Undirected":
+        return Direction.ANY;
+      default:
+        throw new IllegalArgumentException(constructorName);
+    }
   }
 
   private static QueryVertex getQueryVertex(Map<String, QueryVertex> vertexMap, String vertexName) {
@@ -379,7 +394,7 @@ public class SpoofaxAstToGraphQuery {
     if (commonPathExpression == null) { // no path expression defined for the label; generate one here
       QueryVertex src = new QueryVertex("n", true);
       QueryVertex dst = new QueryVertex("m", true);
-      VertexPairConnection edge = new QueryEdge(src, dst, "e", true, true);
+      VertexPairConnection edge = new QueryEdge(src, dst, "e", true, Direction.OUTGOING);
 
       List<QueryExpression> args = new ArrayList<>();
       args.add(new VarRef(edge));
@@ -400,14 +415,15 @@ public class SpoofaxAstToGraphQuery {
     String srcName = getString(pathT.getSubterm(POS_PATH_SRC));
     String dstName = getString(pathT.getSubterm(POS_PATH_DST));
     String name = getString(pathT.getSubterm(POS_PATH_NAME));
+    Direction direction = getDirection(pathT.getSubterm(POS_PATH_DIRECTION));
     QueryVertex src = getQueryVertex(vertexMap, srcName);
     QueryVertex dst = getQueryVertex(vertexMap, dstName);
     PathFindingGoal goal = PathFindingGoal.REACHES;
     int kValue = -1;
 
     QueryPath path = name.contains(GENERATED_VAR_SUBSTR)
-        ? new QueryPath(src, dst, name, commonPathExpression, true, minHops, maxHops, goal, kValue)
-        : new QueryPath(src, dst, name, commonPathExpression, false, minHops, maxHops, goal, kValue);
+        ? new QueryPath(src, dst, name, commonPathExpression, true, minHops, maxHops, goal, kValue, direction)
+        : new QueryPath(src, dst, name, commonPathExpression, false, minHops, maxHops, goal, kValue, direction);
 
     return path;
   }
@@ -438,6 +454,7 @@ public class SpoofaxAstToGraphQuery {
     long minHops = getMinHops(pathT);
     long maxHops = getMaxHops(pathT);
     String name = getString(pathT.getSubterm(POS_PATH_NAME));
+    Direction direction = getDirection(pathT.getSubterm(POS_PATH_DIRECTION));
     QueryVertex src = getQueryVertex(vertexMap, srcName);
     QueryVertex dst = getQueryVertex(vertexMap, dstName);
 
@@ -448,7 +465,7 @@ public class SpoofaxAstToGraphQuery {
 
     int kValue = parseInt(pathT.getSubterm(POS_PATH_K_VALUE));
 
-    QueryPath path = new QueryPath(src, dst, name, pathExpression, true, minHops, maxHops, goal, kValue);
+    QueryPath path = new QueryPath(src, dst, name, pathExpression, true, minHops, maxHops, goal, kValue, direction);
 
     return path;
   }
