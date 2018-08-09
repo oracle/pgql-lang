@@ -8,7 +8,14 @@ keywords: pgql property graph model query language database analytics oracle cyp
 Graphs + SQL
 ====================================
 
-PGQL is a query language for the [property graph data model](spec/1.1/#property-graph-data-model) that combines the powers of __graph pattern matching__ and __SQL__:
+PGQL is a graph pattern matching query language for the [property graph data model](spec/1.1/#property-graph-data-model), inspired by
+[SQL](https://en.wikipedia.org/wiki/SQL),
+[Cypher](https://homepages.inf.ed.ac.uk/libkin/papers/sigmod18.pdf), and
+[G-CORE](https://arxiv.org/pdf/1712.01550.pdf).
+PGQL combines Cypher-like [ASCII-art syntax](https://neo4j.com/developer/cypher-query-language/) with familiar constructs from SQL, such as `SELECT`, `FROM` and `WHERE`.
+PGQL also provides powerful constructs for matching regular path expressions (i.e. `PATH`).
+
+An example PGQL query is as follows:
 
 
 ```sql
@@ -18,12 +25,12 @@ SELECT p2.name AS friend_of_friend
  WHERE p1.name = 'Mark'                           /* ..of Mark.                */
 ```
 
-For a detailed specification of PGQL, see [PGQL 1.1 Specification](spec/1.1/).
+See [PGQL 1.1 Specification](spec/1.1/) for a detailed specification of the language.
 
 Graph Pattern Matching
 ----------------------
 
-PGQL uses ASCII-art syntax for matching vertices, edges, and paths:
+PGQL uses [ASCII-art syntax](https://neo4j.com/developer/cypher-query-language/) for matching vertices, edges, and paths:
 
  * `(n:Person)` matches a __vertex__ (node) `n` with label `Person`
  * `-[e:friend_of]->` matches an __edge__ `e` with label `friend_of`
