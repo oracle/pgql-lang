@@ -85,7 +85,7 @@ The 'master' branch of this reposistory contains a parser for PGQL with the foll
 PGQL's parser can be built on Linux, macOS or Window.
 
 First install JDK 1.8 or higher and Maven 3.3.9 or higher.
-Then, follows the follows instructions:
+Then, follow the follows instructions:
 
 On Linux or macOS:
 
