@@ -82,17 +82,29 @@ The 'master' branch of this reposistory contains a parser for PGQL with the foll
 
 ## Build and Install the Parser
 
-PGQL's parser can be built on Linux, Mac OS X and Window, and requires Java 1.8 or higher and Maven 3.3.9 or higher.
+PGQL's parser can be built on Linux, macOS or Window.
 
-On Linux / Mac OS X:
+First install JDK 1.8 or higher and Maven 3.3.9 or higher.
+Then, follows the follows instructions:
 
- - To build and install to your local Maven repository, run `sh install.sh`
+On Linux or macOS:
 
-You can easily adapt the scripts to work with Windows.
+ - Build and install to your local Maven repository by running `sh install.sh`
+
+On Windows:
+
+ - Open System Properties and add a new variable `JAVA_OPTS` with value `-Xms512m -Xmx1024m -Xss16m`
+ - Build and install to your local Maven repository by running `install_on_windows.bat`
 
 ## Getting Started
 
-First, build and install PGQL like explained above. Then, execute `cd example; sh run.sh` to parse two [example](example/src/main/java/oracle/pgql/lang/example/Main.java) queries:
+After you have installed the parser like explained above, parse two [example](example/src/main/java/oracle/pgql/lang/example/Main.java) queries:
+ - On Linux or macOS execute `cd example; sh run.sh`
+ - On Windows execute:
+   ```
+   cd example
+   mvn clean package exec:java -Dexec.mainClass="oracle.pgql.lang.example.Main" -Dexec.cleanupDaemonThreads=false
+   ```
 
 ```java
 public class Main {

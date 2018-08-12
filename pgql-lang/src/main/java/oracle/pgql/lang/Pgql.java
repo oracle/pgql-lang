@@ -292,6 +292,10 @@ public class Pgql implements Closeable {
 
   @Override
   public void close() {
+    if (System.getProperty("os.name").startsWith("Windows")) {
+      return; // Windows issue, also see http://yellowgrass.org/issue/Spoofax/88
+    }
+
     if (spoofax != null) {
       spoofax.close();
     }
