@@ -48,8 +48,8 @@ context-free syntax
   Exp.IsNull = <<Exp> IS NULL> {right, case-insensitive}
   Exp.IsNotNull = <<Exp> IS NOT NULL> {right, case-insensitive}
 
-  Exp.InPredicate = <<Exp> <NOT?> IN <ArrayLiteral>> {left, case-insensitive}
-  NOT.NOT = <NOT> {case-insensitive}
+  Exp.InPredicate = <<Exp> <Not?> IN <ArrayLiteral>> {left, case-insensitive}
+  Not.NOT = <NOT> {case-insensitive}
 
 context-free syntax // function calls
 

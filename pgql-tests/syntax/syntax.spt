@@ -18,19 +18,6 @@ WHERE
   (n) <- () <-- () <-[e3]- () <-[e4 WITH label = 'Knows']- ()
 ]]
 
-// FIXME
-//test Properties [[
-//SELECT *
-//WHERE
-//  (n WITH age = 25),
-//  (n WITH .age = 25),
-//  (n WITH .age = 25),
-//  (n WITH ."age" = 25),
-//  n.age = 25,
-//  n.'age' = 25,
-//  n."age" = 25
-//]]
-
 test Built-in function calls [[
 SELECT n.inDegree()
 WHERE

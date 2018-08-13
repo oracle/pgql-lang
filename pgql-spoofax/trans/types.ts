@@ -58,7 +58,7 @@ type rules
 
   ExtractExp(_, _) : NumericTy()
 
-  Exists(_) + InPredicate(_, _) : BooleanTy()
+  Exists(_) + InPredicate(_, _) + IsNull(exp) : BooleanTy()
 
   Subquery(_) : UnknownTy()
 
