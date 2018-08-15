@@ -22,14 +22,13 @@ context-free syntax
 
   Start = Query
 
-  Query = Legacy10Query
+
 
   Query.Query =
     <
       <{CommonPathExpression "\n"}*>
       <SelectClause>
-      <FromClause?>
-      <MatchClause>
+      <FromClause>
       <WhereClause?>
       <GroupByClause?>
       <HavingClause?>
@@ -37,11 +36,13 @@ context-free syntax
       <LimitOffsetClauses?>
     >
 
+  Query = Legacy11Query
+
+  Query = Legacy10Query
+
   CommonPathExpression.CommonPathExpression = <PATH <IDENTIFIER> <AsignSymbol> <PathPattern> <WhereClause?>> {case-insensitive}
   AsignSymbol.Pgql11AsignSymbol = <AS>  {case-insensitive}
 
   SelectClause.SelectClause = <SELECT <Distinct?> <Projection>> {case-insensitive}
   Projection.ExpAsVars = <<{ExpAsVar ", "}+>>
   Projection.Star = <*>
-
-  FromClause.FromClause = <FROM <Identifier>> {case-insensitive}

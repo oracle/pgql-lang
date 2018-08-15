@@ -344,15 +344,24 @@ rules
 
 rules
 
+  // pgql 1.2
+  norm-query(|error-messages, variable-counter):
+    Query(commonPathExpressions, selectClause, FromClause(GraphTable(optionalGraphName, graphPattern)), whereClause, groupByClause, havingClause, orderByClause, limitOffsets) ->
+      <norm-query(|error-messages, "v1.2", variable-counter)> (commonPathExpressions, selectClause, fromClause, graphPattern', groupByClause, havingClause, orderByClause, limitOffsets)
+    with fromClause := <?None() + ?Some(graphName); !Some(FromClause(graphName))> optionalGraphName
+       ; <?GraphPattern(vertices, connections, Constraints(inlined-constraints))> graphPattern
+       ; non-inlined-constraints := <?Some(WhereClause(<id>)); ![<id>] + ?None(); ![]> whereClause
+       ; constraints := Constraints(<conc> (inlined-constraints,  non-inlined-constraints))
+       ; graphPattern' := GraphPattern(vertices, connections, constraints)
+
   // pgql 1.1
   norm-query(|error-messages, variable-counter):
-    Query(commonPathExpressions, selectClause, fromClause, graphPattern, whereClause, groupByClause, havingClause, orderByClause, limitOffsets) ->
+    Pgql11Query(commonPathExpressions, selectClause, fromClause, graphPattern, whereClause, groupByClause, havingClause, orderByClause, limitOffsets) ->
       <norm-query(|error-messages, "v1.1", variable-counter)> (commonPathExpressions, selectClause, fromClause, graphPattern', groupByClause, havingClause, orderByClause, limitOffsets)
-    with
-      <?GraphPattern(vertices, connections, Constraints(inlined-constraints))> graphPattern;
-      non-inlined-constraints := <?Some(WhereClause(<id>)); ![<id>] + ?None(); ![]> whereClause;
-      constraints := Constraints(<conc> (inlined-constraints,  non-inlined-constraints));
-      graphPattern' := GraphPattern(vertices, connections, constraints)
+    with <?GraphPattern(vertices, connections, Constraints(inlined-constraints))> graphPattern
+       ; non-inlined-constraints := <?Some(WhereClause(<id>)); ![<id>] + ?None(); ![]> whereClause
+       ; constraints := Constraints(<conc> (inlined-constraints,  non-inlined-constraints))
+       ; graphPattern' := GraphPattern(vertices, connections, constraints)
 
   // pgql 1.0
   norm-query(|error-messages, variable-counter):

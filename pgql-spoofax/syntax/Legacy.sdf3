@@ -13,13 +13,38 @@ template options
 
   keyword -/- [a-zA-Z0-9]
 
-context-free syntax // pgql-lang
+context-free syntax // pgql-lang.sdf3 for PGQL 1.1
+
+  Legacy11Query.Pgql11Query =
+    <
+      <{CommonPathExpression "\n"}*>
+      <SelectClause>
+      <Legacy11FromClause?>
+      <Pgql11MatchClause>
+      <WhereClause?>
+      <GroupByClause?>
+      <HavingClause?>
+      <OrderByClause?>
+      <LimitOffsetClauses?>
+    >
+
+  Legacy11FromClause.FromClause = <FROM <Identifier>> {case-insensitive}
+
+context-free syntax // GraphPattern.sdf3 for PGQL 1.1
+
+  Pgql11MatchClause.GraphPattern =
+    <
+      MATCH
+        <{PathPattern ",\n"}+>
+    > {case-insensitive}
+
+context-free syntax // pgql-lang.sdf3 for PGQL 1.0
 
   Legacy10Query.Pgql10Query =
     <
       <{CommonPathExpression "\n"}*>
       <SelectClause>
-      <FromClause?>
+      <Legacy11FromClause?>
       <Legacy10GraphPattern>
       <GroupByClause?>
       <OrderByClause?>
@@ -35,7 +60,7 @@ lexical syntax
   LEGACY10-STRING = STRING | LEGACY10-DOULBE-QUOTED-STRING
   LEGACY10-DOULBE-QUOTED-STRING = '"' (~[\"\n\\] | ESCAPE-CHAR)* '"'
 
-context-free syntax // GraphPattern.sdf3
+context-free syntax // GraphPattern.sdf3 for PGQL 1.0
 
   Legacy10GraphPattern.GraphPattern = 
     <
