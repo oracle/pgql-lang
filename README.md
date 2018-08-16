@@ -62,7 +62,7 @@ The 'master' branch of this reposistory contains a parser for PGQL with the foll
        Nested aggregation is not allowed
    ```
 
- - __Pretty printing__: invoking `GraphQuery.toString()` will "pretty print" the graph query, allow unformatted queries to be turned into formatted ones:
+ - __Pretty printing__: invoking `GraphQuery.toString()` will "pretty print" the graph query, which turns unformatted queries into formatted ones:
 
    ```sql
    SELECT n.name MATCH
