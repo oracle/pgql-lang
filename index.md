@@ -45,7 +45,7 @@ PGQL has the following SQL-like capabilities:
  * `GROUP BY` to create groups of solutions, and, `HAVING` to filter out groups of solutions
  * `COUNT`, `MIN`, `MAX`, `AVG` and `SUM` to aggregate over groups of solutions
  * `ORDER BY` to sort results
- * (`NOT`) `EXISTS` subqueries to test whether a graph pattern exists, or, doesn't exists
+ * (`NOT`) `EXISTS` subqueries to test whether a graph pattern exists, or, does not exist
  * `DATE`, `TIME`, `TIMESTAMP`, `TIME WITH TIME ZONE`, and `TIMESTAMP WITH TIME ZONE` temporal data types
 
 Regular Path Expressions
@@ -103,7 +103,7 @@ For example, the following query finds people who are on Facebook but not on Twi
 SELECT p1.name
   FROM facebook_graph
  MATCH (p1:Person)                           /* Match persons in the Facebook graph.. */
- WHERE NOT EXISTS (                          /* ..such that there doesn't exists..    */
+ WHERE NOT EXISTS (                          /* ..such that there does not exist..    */
                     SELECT p2
                       FROM twitter_graph
                      MATCH (p2:Person)       /* ..a person in the Twitter graph..     */

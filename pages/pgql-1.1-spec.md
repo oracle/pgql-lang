@@ -369,7 +369,7 @@ WHERE x.name = 'John'
 
 Here, the first filter describes that the vertex `x` has a property `name` and its value is `John`. Similarly, the second filter describes that the vertex `y` has a property `age` and its value is larger than `25`. Here, in the filter, the dot (`.`) operator is used for property access. For the detailed syntax and semantic of expressions, see [Value Expressions](#value-expressions).
 
-Note that the ordering of constraints does not has an affect on the result, such that query from the previous example is equivalent to:
+Note that the ordering of constraints does not have an affect on the result, such that query from the previous example is equivalent to:
 
 ```sql
 SELECT y.name
@@ -726,7 +726,7 @@ SELECT y.name
 +--------+
 ```
 
-This time, `Amy` is not returned since there doesn't exist a path that connects `Amy` to `Amy` that has a length greater than zero.
+This time, `Amy` is not returned since there does not exist a path that connects `Amy` to `Amy` that has a length greater than zero.
 
 Another example is a query that finds all people that can be reached from `Judith` by following one or more `knows` edges:
 
@@ -1471,7 +1471,7 @@ For example, the following query finds people who are on Facebook but not on Twi
 SELECT p1.name
   FROM facebook_graph
  MATCH (p1:Person)                           /* Match persons in the Facebook graph.. */
- WHERE NOT EXISTS (                          /* ..such that there doesn't exists..    */
+ WHERE NOT EXISTS (                          /* ..such that there does not exist..    */
                     SELECT p2
                       FROM twitter_graph
                      MATCH (p2:Person)       /* ..a person in the Twitter graph..     */
