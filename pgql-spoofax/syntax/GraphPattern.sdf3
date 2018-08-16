@@ -13,18 +13,18 @@ template options
 
 context-free syntax
 
-  FromClause.FromClause = <FROM <GraphTable>> {case-insensitive}
+  FromClause.FromClause = <FROM <GraphMatch>> {case-insensitive}
 
-  GraphTable.GraphTable =
+  GraphMatch.GraphMatch =
     <
       <GraphName?> MATCH(
         <GraphPattern>
       )
     > {case-insensitive}
 
-  GraphName = Identifier
+  GraphName.GraphName = Identifier
 
-  GraphPattern.GraphPattern = {PathPattern ",\n"}+
+  GraphPattern.GraphPattern = <<{PathPattern ",\n"}+>>
 
 context-free syntax
 

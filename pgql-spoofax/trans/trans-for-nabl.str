@@ -29,8 +29,8 @@ rules
 rules
 
   trans-query(|variables):
-    NormalizedQuery(CommonPathExpressions(pathExpressions), selectClause, fromClause, GraphPattern(vertices, connections, valueExpression), groupBy, having, orderBy, limitOffsets, error-messages, version) ->
-        NormalizedQuery(CommonPathExpressions(pathExpressions'), selectClause', fromClause, GraphPattern(vertices', connections'', valueExpression'), groupBy', having', orderBy', limitOffsets, error-messages, version)
+    NormalizedQuery(CommonPathExpressions(pathExpressions), selectClause, optionalGraphName, GraphPattern(vertices, connections, valueExpression), groupBy, having, orderBy, limitOffsets, error-messages, version) ->
+        NormalizedQuery(CommonPathExpressions(pathExpressions'), selectClause', optionalGraphName, GraphPattern(vertices', connections'', valueExpression'), groupBy', having', orderBy', limitOffsets, error-messages, version)
     with variables' := <guarantee-size-two-or-more> variables
 
        // PATH

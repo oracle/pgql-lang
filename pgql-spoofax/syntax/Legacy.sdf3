@@ -28,7 +28,7 @@ context-free syntax // pgql-lang.sdf3 for PGQL 1.1
       <LimitOffsetClauses?>
     >
 
-  Legacy11FromClause.FromClause = <FROM <Identifier>> {case-insensitive}
+  Legacy11FromClause.Pgql11FromClause = <FROM <Identifier>> {case-insensitive}
 
 context-free syntax // GraphPattern.sdf3 for PGQL 1.1
 

@@ -167,9 +167,9 @@ public class PgqlUtils {
   protected static String printPgqlString(GraphQuery graphQuery) {
     String result = printPathPatterns(graphQuery.getCommonPathExpressions());
     GraphPattern graphPattern = graphQuery.getGraphPattern();
-    result += graphQuery.getProjection() + "\n";
+    result += graphQuery.getProjection() + "\nFROM ";
     if (graphQuery.getInputGraphName() != null) {
-      result += "FROM " + printIdentifier(graphQuery.getInputGraphName()) + "\n";
+      result += printIdentifier(graphQuery.getInputGraphName()) + " ";
     }
     result += graphPattern;
     GroupBy groupBy = graphQuery.getGroupBy();
@@ -227,8 +227,8 @@ public class PgqlUtils {
   }
 
   protected static String printPgqlString(GraphPattern graphPattern, List<QueryPath> queryPaths) {
-    String result = "MATCH ";
-    int indentation = result.length();
+    String result = "MATCH(";
+    int indentation = 7;
     Set<QueryExpression> constraintsCopy = new HashSet<>(graphPattern.getConstraints());
     QueryVertex lastVertex = null;
     Set<QueryVertex> uncoveredVertices = new LinkedHashSet<>(graphPattern.getVertices());
@@ -261,6 +261,8 @@ public class PgqlUtils {
       lastVertex = vertex;
     }
 
+    result += "\n     )";
+
     // print filter expressions
     if (!constraintsCopy.isEmpty()) {
       result += "\nWHERE " + constraintsCopy.stream() //
@@ -279,16 +281,15 @@ public class PgqlUtils {
   private static String printConnection(Set<QueryExpression> constraintsCopy, VertexPairConnection connection,
       QueryVertex lastVertex, boolean tryConcatenateConnection, int indentation) {
 
-    String result = "";
+    String result = "\n" + printIndentation(indentation - 2);
 
     if (isShortest(connection)) {
+      result += lastVertex == null ? "  " : ", ";
+      result += connection.toString();
+
       // if the goal is SHORTEST, we don't try to concatenate the connection to the previous connection but instead
       // comma-separate it
-      if (lastVertex != null) {
-        return "\n" + printIndentation(indentation - 2) + ", " + connection;
-      } else {
-        return connection.toString();
-      }
+      return result;
     }
 
     QueryVertex vertexOnTheLeft;
@@ -302,9 +303,7 @@ public class PgqlUtils {
     }
 
     if (lastVertex != vertexOnTheLeft || !tryConcatenateConnection) {
-      if (lastVertex != null) {
-        result += "\n" + printIndentation(indentation - 2) + ", ";
-      }
+      result += lastVertex == null ? "  " : ", ";
       result += deanonymizeIfNeeded(vertexOnTheLeft, constraintsCopy);
     }
     result += " " + printConnection(vertexOnTheLeft, connection, constraintsCopy) + " ";

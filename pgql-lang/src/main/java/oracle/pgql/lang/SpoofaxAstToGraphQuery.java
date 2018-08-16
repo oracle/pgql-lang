@@ -67,8 +67,8 @@ public class SpoofaxAstToGraphQuery {
 
   private static final int POS_COMMON_PATH_EXPRESSIONS = 0;
   private static final int POS_PROJECTION = 1;
-  private static final int POS_FROM = 2;
-  private static final int POS_WHERE = 3;
+  private static final int POS_GRAPH_NAME = 2;
+  private static final int POS_GRAPH_PATTERN = 3;
   private static final int POS_GROUPBY = 4;
   private static final int POS_HAVING = 5;
   private static final int POS_ORDERBY = 6;
@@ -159,8 +159,8 @@ public class SpoofaxAstToGraphQuery {
     IStrategoTerm commonPathExpressionsT = getList(ast.getSubterm(POS_COMMON_PATH_EXPRESSIONS));
     List<CommonPathExpression> commonPathExpressions = getCommonPathExpressions(commonPathExpressionsT, ctx);
 
-    // WHERE
-    IStrategoTerm graphPatternT = ast.getSubterm(POS_WHERE);
+    // graph pattern
+    IStrategoTerm graphPatternT = ast.getSubterm(POS_GRAPH_PATTERN);
 
     // vertices
     IStrategoTerm verticesT = getList(graphPatternT.getSubterm(POS_VERTICES));
@@ -204,8 +204,8 @@ public class SpoofaxAstToGraphQuery {
     }
     Projection projection = new Projection(distinct, selectElems);
 
-    // FROM
-    IStrategoTerm fromT = ast.getSubterm(POS_FROM);
+    // input graph name
+    IStrategoTerm fromT = ast.getSubterm(POS_GRAPH_NAME);
     String inputGraphName = isNone(fromT) ? null : getString(fromT);
 
     // HAVING

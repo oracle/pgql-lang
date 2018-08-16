@@ -397,7 +397,7 @@ public interface QueryExpression {
 
       @Override
       public String toString() {
-        return "(" + getExp1() + " != " + getExp2() + ")";
+        return "(" + getExp1() + " <> " + getExp2() + ")";
       }
 
       @Override
