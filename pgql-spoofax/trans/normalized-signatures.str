@@ -74,6 +74,8 @@ signature constructors // for name binding (see trans/trans-for-nabl.str)
 
   Correlation           : VarRef -> CrossRef
 
+  DummyVarDef           : OriginPosition -> DummyVarDef
+
 signature constructors // for error checking (see trans/check.str)
 
   ReferenceInInlinedConstraint         : Var -> ReferenceInInlinedConstraint
