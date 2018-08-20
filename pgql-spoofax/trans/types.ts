@@ -83,8 +83,9 @@ type rules
   Time(_)                 : TimeTy()
   Timestamp(_)            : TimestampTy()
 
-  OrderByElem(exp, _, "v1.1") :-
+  OrderByElem(exp, _, version) :-
   where exp : ty
+    and not version == "v1.0"
     and not ty == VertexTy() else error $[Cannot order by vertex] on exp
     and not ty == EdgeTy() else error $[Cannot order by edge] on exp
     and not ty == ArrayTy() else error $[Cannot order by array] on exp

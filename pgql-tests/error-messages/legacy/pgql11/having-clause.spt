@@ -5,7 +5,7 @@ language pgql-lang
 test HAVING referencing a non-group key [[
 
     SELECT COUNT(*) AS cnt
-      FROM MATCH( (n) -> (m) )
+     MATCH (n) -> (m)
   GROUP BY n
     HAVING [[m]].prop > 3
 
@@ -14,7 +14,7 @@ test HAVING referencing a non-group key [[
 test HAVING not having an aggregation (1) [[
 
     SELECT COUNT(*) AS cnt
-      FROM MATCH( (n) -> (m) )
+     MATCH (n) -> (m)
     HAVING [[m]].prop > 3
 
 ]] error like "Unresolved variable (did you mean to use an aggregation?)" at #1
@@ -22,7 +22,7 @@ test HAVING not having an aggregation (1) [[
 test HAVING not having an aggregation (2) [[
 
   SELECT n.name AS nName
-    FROM MATCH( (n) )
+   MATCH (n)
   HAVING [[n]].age > 20
 
 ]] error like "Unresolved variable (did you mean to use an aggregation?)" at #1
@@ -30,7 +30,7 @@ test HAVING not having an aggregation (2) [[
 test HAVING not having an aggregation (3) [[
 
   SELECT n.age AS nAge
-    FROM MATCH( (n) )
+   MATCH (n)
   HAVING n.age > 20
 
 ]] error like "Unresolved variable (did you mean to use an aggregation?)"
@@ -38,7 +38,7 @@ test HAVING not having an aggregation (3) [[
 test HAVING not having an aggregation (4) [[
 
    SELECT n
-     FROM MATCH( (n) -> (m) )
+    MATCH (n) -> (m)
  GROUP BY n
    HAVING AVG(n.age) > 20 AND [[m]].married
 

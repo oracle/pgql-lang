@@ -5,7 +5,7 @@ language pgql-lang
 test Select non-group key 1 [[
 
     SELECT [[n.name]] AS nName
-      FROM MATCH( (n) )
+     MATCH (n)
   GROUP BY n.age AS nAge
 
 ]] error like "Unresolved variable (did you mean to use a group key?)" at #1
@@ -13,7 +13,7 @@ test Select non-group key 1 [[
 test Select non-group key 2 [[
 
     SELECT [[n]]
-      FROM MATCH( (n) )
+     MATCH (n)
   GROUP BY n.age AS nAge
 
 ]] error like "Unresolved variable (did you mean to use a group key?)" at #1
@@ -21,7 +21,7 @@ test Select non-group key 2 [[
 test Order by non-group key 1 [[
 
     SELECT nAge
-      FROM MATCH( (n) )
+     MATCH (n)
   GROUP BY n.age AS nAge
   ORDER BY [[n.name]]
 
@@ -30,7 +30,7 @@ test Order by non-group key 1 [[
 test Order by non-group key 2 [[
 
     SELECT nAge
-      FROM MATCH( (n) )
+     MATCH (n)
   GROUP BY n.age AS nAge
   ORDER BY [[n.name]]
 
@@ -39,21 +39,21 @@ test Order by non-group key 2 [[
 test Aggregation expected in SELECT 1 [[
 
   SELECT AVG(n.age) AS avgAge, [[n]]
-    FROM MATCH( (n) )
+   MATCH (n)
 
 ]] error like "Unresolved variable (did you mean to use an aggregation?)" at #1
 
 test Aggregation expected in SELECT 2 [[
 
   SELECT [[labels(n)]] AS lbls, COUNT(*) AS cnt
-    FROM MATCH( (n) )
+   MATCH (n)
 
 ]] error like "Unresolved variable (did you mean to use an aggregation?)" at #1
 
 test Aggregation expected in ORDER BY [[
 
     SELECT AVG(n.age) AS avgAge
-      FROM MATCH( (n) )
+     MATCH (n)
   ORDER BY [[n.age]]
 
 ]] error like "Unresolved variable (did you mean to use an aggregation?)" at #1
@@ -61,7 +61,7 @@ test Aggregation expected in ORDER BY [[
 test Aggregation in ORDER BY not expected [[
 
     SELECT n
-      FROM MATCH( (n) )
+     MATCH (n)
   ORDER BY [[AVG(n.age)]]
 
 ]] error like "Aggregation in ORDER BY only allowed if SELECT has aggregations" at #1
@@ -69,7 +69,7 @@ test Aggregation in ORDER BY not expected [[
 test Aggregation in ORDER BY not expected [[
 
     SELECT [[*]]
-      FROM MATCH( (n) -[e]-> (m) )
+     MATCH (n) -[e]-> (m)
   GROUP BY e.weight AS weight
 
 ]] error like "SELECT * not allowed in combination with GROUP BY" at #1
@@ -77,26 +77,26 @@ test Aggregation in ORDER BY not expected [[
 test COUNT(DISTINCT *) [[
 
   SELECT COUNT(DISTINCT [[*]]) AS cnt
-    FROM MATCH( (n) )
+   MATCH (n)
 
 ]] error like "* not allowed in combination with DISTINCT" at #1
 
 test Subquery with non-group key variable in SELECT (1) [[
 
   SELECT EXISTS (   SELECT m.prop AS mProp, [[n]].prop AS nProp
-                      FROM MATCH( (m) )
+                     MATCH (m)
                   GROUP BY m.prop AS key
                 ) AS v1
-    FROM MATCH( (n) )
+   MATCH (n)
 
 ]] error like "Unresolved variable (did you mean to use a group key?)" at #1
 
 test Subquery with non-group key variable in SELECT (2) [[
 
   SELECT n
-    FROM MATCH( (n) )
+   MATCH (n)
    WHERE EXISTS (   SELECT m.prop AS nProp, [[n]].prop AS mProp
-                      FROM MATCH( (m) )
+                     MATCH (m)
                   GROUP BY m.prop AS key
                 )
 
@@ -105,16 +105,16 @@ test Subquery with non-group key variable in SELECT (2) [[
 test Subquery with non-group key variable in SELECT (3) [[
 
   SELECT MIN(EXISTS (   SELECT key, [[n]].prop AS nProp
-                          FROM MATCH( (m) )
+                         MATCH (m)
                       GROUP BY m.prop AS key
                     )) AS min
-    FROM MATCH( (n) )
+   MATCH (n)
 
 ]] error like "Unresolved variable (did you mean to use a group key?)" at #1
 
 test Aggregate group variable and non-group variable simultaneously [[
 
   SELECT AVG([[n]].age) AS avg1, AVG(e.age) AS avg2
-    FROM MATCH( TOP 10 SHORTEST( (n) -[e]->* (m) ))
+   MATCH TOP 10 SHORTEST( (n) -[e]->* (m) )
 
 ]] error like "Unresolved variable" at #1
