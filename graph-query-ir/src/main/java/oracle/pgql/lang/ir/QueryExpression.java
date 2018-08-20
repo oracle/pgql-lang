@@ -67,14 +67,15 @@ public interface QueryExpression {
     STAR,
     SCALAR_SUBQUERY,
 
-    // built-in functions
+    // built-in functions and predicates
     PROP_ACCESS,
     CAST,
     EXISTS,
     FUNCTION_CALL,
     EXTRACT_EXPRESSION,
     IN_EXPRESSION,
-    IN_VALUE_LIST
+    IN_VALUE_LIST,
+    IS_NULL
   }
 
   ExpressionType getExpType();
@@ -1381,6 +1382,60 @@ public interface QueryExpression {
           return false;
         return true;
       }
+    }
+  }
+
+  public static class IsNull implements QueryExpression {
+
+    QueryExpression exp;
+
+    public IsNull(QueryExpression exp) {
+      this.exp = exp;
+    }
+
+    public QueryExpression getExp() {
+      return exp;
+    }
+
+    public void setExp(QueryExpression exp) {
+      this.exp = exp;
+    }
+
+    @Override
+    public ExpressionType getExpType() {
+      return ExpressionType.IS_NULL;
+    }
+
+    @Override
+    public String toString() {
+      return exp + " IS NULL";
+    }
+
+    @Override
+    public void accept(QueryExpressionVisitor v) {
+      v.visit(this);
+    }
+
+    @Override
+    public int hashCode() {
+      return 31;
+    }
+
+    @Override
+    public boolean equals(Object obj) {
+      if (this == obj)
+        return true;
+      if (obj == null)
+        return false;
+      if (getClass() != obj.getClass())
+        return false;
+      IsNull other = (IsNull) obj;
+      if (exp == null) {
+        if (other.exp != null)
+          return false;
+      } else if (!exp.equals(other.exp))
+        return false;
+      return true;
     }
   }
 
