@@ -129,3 +129,29 @@ test Can't reference previous GROUP BY element [[
   GROUP BY x AS n, [[n]]
 
 ]] resolve #2 to #1
+
+test Reference variable defined in SELECT [[
+
+  SELECT n.age AS [[nAge]]
+    FROM MATCH( (n) )
+   WHERE nAge > 25
+  GROUP BY nAge
+    HAVING [[nAge]] > 25
+  ORDER BY [[nAge]]
+
+]] resolve #2 to #1
+   resolve #3 to #1
+
+test Variables in MATCH shadow variables in SELECT [[
+
+    SELECT n.prop AS n
+      FROM MATCH( ([[n]]) )
+     WHERE [[n]].age > 25
+  GROUP BY [[n]]
+    HAVING [[n]].age > 25
+  ORDER BY [[n]].age
+
+]] resolve #2 to #1
+   resolve #3 to #1
+   resolve #4 to #1
+   resolve #5 to #1
