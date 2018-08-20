@@ -56,11 +56,20 @@ test Variable from GROUP BY in SELECT [[
 
 ]] resolve #1 to #2
 
-test Variable from GROUP BY in ORDER BY [[
+test Variable from GROUP BY in ORDER BY #1 [[
+
+    SELECT nAge
+      FROM MATCH( (n) )
+  GROUP BY n.age AS [[nAge]]
+  ORDER BY [[nAge]]
+
+]] resolve #2 to #1
+
+test Variable from GROUP BY in ORDER BY #2 [[
 
     SELECT [[nAge]]
       FROM MATCH( (n) )
-  GROUP BY n.age AS nAge
+  GROUP BY n.age AS x
   ORDER BY [[nAge]]
 
 ]] resolve #2 to #1
@@ -130,12 +139,32 @@ test Can't reference previous GROUP BY element [[
 
 ]] resolve #2 to #1
 
-test Reference variable defined in SELECT [[
+test Reference variable defined in SELECT #1 [[
+
+    SELECT n.age AS nAge, COUNT(*) as [[count]]
+      FROM MATCH( (n) )
+  GROUP BY nAge
+  ORDER BY [[count]]
+
+]] resolve #2to #1
+
+test Reference variable defined in SELECT #2 [[
 
   SELECT n.age AS [[nAge]]
     FROM MATCH( (n) )
    WHERE nAge > 25
-  GROUP BY nAge
+    HAVING [[nAge]] > 25
+  ORDER BY [[nAge]]
+
+]] resolve #2 to #1
+   resolve #3 to #1
+
+test Reference variable defined in SELECT #3 [[
+
+  SELECT n.age AS nAge
+    FROM MATCH( (n) )
+   WHERE nAge > 25
+  GROUP BY [[nAge]]
     HAVING [[nAge]] > 25
   ORDER BY [[nAge]]
 
@@ -153,5 +182,13 @@ test Variables in MATCH shadow variables in SELECT [[
 
 ]] resolve #2 to #1
    resolve #3 to #1
-   resolve #4 to #1
-   resolve #5 to #1
+   resolve #4 to #3
+   resolve #5 to #3
+
+test Pass variable from SELECT to GROUP BY and back to SELECT [[
+
+    SELECT n.age AS nAge, [[nAge]] * 2 AS doubleAge
+      FROM MATCH( (n) )
+  GROUP BY [[nAge]]
+
+]] resolve #1 to #2

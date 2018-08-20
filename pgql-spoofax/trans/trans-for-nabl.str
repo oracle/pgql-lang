@@ -50,7 +50,7 @@ rules
 
        ; connections'' := <alltd(resolve-var-refs-in-path-expression(|variables''))> connections'
 
-       // only in PGQL 1.2+, column names specified in the SELECT clause are visible in GROUP BY, HAVING and ORDER BY (but only outside of aggregations and subqueries)
+       // only in PGQL 1.2 and up, column names specified in the SELECT clause are visible in GROUP BY, HAVING and ORDER BY (but only outside of aggregations and subqueries)
        ; expAsVars := <(?"v1.0" + ?"v1.1"); ![] <+ !selectClause; ?SelectClause(_, ExpAsVars(<id>))> version
 
        // WHERE
@@ -63,7 +63,7 @@ rules
          end
 
        // SELECT
-       ; (selectClause', variables'''') := <resolve-select-clause(|variables''')> selectClause
+       ; (selectClause', variables'''') := <resolve-select-clause(|variables''', version)> selectClause
 
        // HAVING
        ; having' := <resolve-var-refs(|variables'''')> having
@@ -124,14 +124,26 @@ rules
     with vars' := []
        ; variables' := [vars'|variables]
 
-  resolve-select-clause(|variables):
+  resolve-select-clause(|variables, version):
     SelectClause(distinct, eav@ExpAsVars(expAsVars)) -> (SelectClause(distinct, eav'), variables')
     with if Star() := expAsVars
          then eav' := expAsVars
             ; variables':= variables
-         else (expAsVars', vars') := <foldl(resolve-exp-as-var-in-select(|variables))> (expAsVars, ([], <Hd> variables))
+         else varsInCurrentScope := <Hd> variables
+            ; (expAsVars', vars') := <foldl(resolve-exp-as-var-in-select(|variables))> (expAsVars, ([], varsInCurrentScope))
             ; eav' := <origin-track-forced(!ExpAsVars(expAsVars'))> eav
-            ; variables' := [vars'|<Tl> variables]
+
+            /*
+               In PGQL 1.2 and up, variables from FROM or GROUP BY shadow variables from SELECT. For example, in
+               "SELECT n.age AS n FROM MATCH( (n) ) ORDER BY n.name", the "n" in ORDER BY refers
+               to the "n" in the MATCH, not the "n" in the SELECT.
+            */
+            ; if <?"v1.0" + ?"v1.1"> version
+              then vars'' := vars'
+              else vars'' := <replace-or-add-all> (varsInCurrentScope, vars')
+              end
+
+            ; variables' := [vars''|<Tl> variables]
          end
 
   resolve-exp-as-var-in-group-by(|variables, expAsVarsFromSelectClause):
