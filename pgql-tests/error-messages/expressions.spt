@@ -72,15 +72,6 @@ test Aggregation in GROUP BY (3) [[
   GROUP BY [[AVG(MIN(n.age))]] AS avgAge
 
 ]] error like "Aggregation without group variables not allowed in GROUP BY" at #1
- 
-test IS NULL limitations [[
-
-  SELECT n
-    FROM MATCH( (n) )
-   WHERE [[n.age IS NULL]] AND NOT [[n.age IS NOT NULL]]
-
-]] error like "IS NULL is not yet supported" at #1
-   error like "IS NOT NULL is not yet supported" at #2
 
 test Type conflict in IN [[
 

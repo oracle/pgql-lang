@@ -73,15 +73,6 @@ test Aggregation in GROUP BY (3) [[
 
 ]] error like "Aggregation without group variables not allowed in GROUP BY" at #1
  
-test IS NULL limitations [[
-
-  SELECT n
-   MATCH (n)
-   WHERE [[n.age IS NULL]] AND NOT [[n.age IS NOT NULL]]
-
-]] error like "IS NULL is not yet supported" at #1
-   error like "IS NOT NULL is not yet supported" at #2
-
 test Type conflict in IN [[
 
   SELECT n.prop IN (5, 2.2, [[true]], [[false]], [['abc']], [[DATE '2018-01-01']], [[TIME '16:30:00']], [[TIMESTAMP '2018-01-01 16:30:00']]) AS v1
