@@ -12,7 +12,7 @@ public class Main {
   public static void main(String[] args) throws PgqlException {
 
     try (Pgql pgql = new Pgql()) {
-      pgql.parse("SELECT COUNT(*) WHERE (n)");
+      pgql.parse("SELECT COUNT(*) FROM MATCH( (n) )");
       System.out.println("success");
     }
   }

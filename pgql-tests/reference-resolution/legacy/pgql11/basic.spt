@@ -5,8 +5,7 @@ language pgql-lang
 test Vertex from MATCH in SELECT [[
 
   SELECT [[n]], in_degree([[n]]) AS inDegree, [[n]].tax_rate * [[n]].salary AS tax_amount
-    FROM MATCH( ([[n]]) )
-
+   MATCH ([[n]])
 ]] resolve #1 to #5
    resolve #2 to #5
    resolve #3 to #5
@@ -15,7 +14,7 @@ test Vertex from MATCH in SELECT [[
 test Edge from MATCH in SELECT [[
 
   SELECT [[e]], label([[e]]) AS lbl, [[e]].weight AS weight
-    FROM MATCH( (n) -[ [[e]]:likes ]-> (m) )
+   MATCH (n) -[ [[e]]:likes ]-> (m)
 
 ]] resolve #1 to #4
    resolve #2 to #4
@@ -24,7 +23,7 @@ test Edge from MATCH in SELECT [[
 test Vertex from MATCH in ORDER BY [[
 
     SELECT 123 AS x
-      FROM MATCH( ([[n]]) )
+     MATCH ([[n]])
   ORDER BY in_degree([[n]]), [[n]].tax_rate * [[n]].salary
 
 ]] resolve #2 to #1
@@ -34,7 +33,7 @@ test Vertex from MATCH in ORDER BY [[
 test Edge from MATCH in ORDER BY [[
 
     SELECT 123 AS x
-      FROM MATCH( (n) -[ [[e]]:likes ]-> (m) )
+     MATCH (n) -[ [[e]]:likes ]-> (m)
   ORDER BY label([[e]]), [[e]].weight
 
 ]] resolve #2 to #1
@@ -43,7 +42,7 @@ test Edge from MATCH in ORDER BY [[
 test Variable from SELECT in ORDER BY [[
 
     SELECT n.tax_rate * n.salary AS [[tax_amount]]
-      FROM MATCH( (n) )
+     MATCH (n)
   ORDER BY [[tax_amount]]
 
 ]] resolve #2 to #1
@@ -51,7 +50,7 @@ test Variable from SELECT in ORDER BY [[
 test Variable from GROUP BY in SELECT [[
 
     SELECT [[nAge]] AS age
-      FROM MATCH( (n) )
+     MATCH (n)
   GROUP BY n.age AS [[nAge]]
 
 ]] resolve #1 to #2
@@ -59,7 +58,7 @@ test Variable from GROUP BY in SELECT [[
 test Variable from GROUP BY in ORDER BY [[
 
     SELECT [[nAge]]
-      FROM MATCH( (n) )
+     MATCH (n)
   GROUP BY n.age AS nAge
   ORDER BY [[nAge]]
 
@@ -68,14 +67,14 @@ test Variable from GROUP BY in ORDER BY [[
 test Variable from MATCH in aggregation in SELECT #1 [[
 
   SELECT AVG([[n]].salary) AS avgSalary
-    FROM MATCH( ([[n]]) )
+   MATCH ([[n]])
 
 ]] resolve #1 to #2
 
 test Variable from MATCH in aggregation in SELECT #2 [[
 
     SELECT AVG([[n]].salary) AS avgSalary
-      FROM MATCH( ([[n]]) )
+     MATCH ([[n]])
   GROUP BY n.age AS nAge
 
 ]] resolve #1 to #2
@@ -83,7 +82,7 @@ test Variable from MATCH in aggregation in SELECT #2 [[
 test Variable from MATCH in aggregation in ORDER BY #1 [[
 
     SELECT SUM(n.salary) AS sum
-      FROM MATCH( ([[n]]) )
+     MATCH ([[n]])
   ORDER BY AVG([[n]].salary)
 
 ]] resolve #2 to #1
@@ -91,7 +90,7 @@ test Variable from MATCH in aggregation in ORDER BY #1 [[
 test Variable from MATCH in aggregation in ORDER BY #2 [[
 
     SELECT nAge
-      FROM MATCH( ([[n]]) )
+     MATCH ([[n]])
   GROUP BY n.age AS nAge
   ORDER BY AVG([[n]].salary)
 
@@ -100,7 +99,7 @@ test Variable from MATCH in aggregation in ORDER BY #2 [[
 test Mixed aggregation and non-aggregation in SELECT [[
 
     SELECT n.age AS nAge2, AVG([[n]].salary) AS avg
-      FROM MATCH( ([[n]]) )
+     MATCH ([[n]])
   GROUP BY n.age AS nAge
 
 ]] resolve #1 to #2
@@ -108,7 +107,7 @@ test Mixed aggregation and non-aggregation in SELECT [[
 test Mixed aggregation and non-aggregation in ORDER BY [[
 
     SELECT nAge
-      FROM MATCH( ([[n]]) )
+     MATCH ([[n]])
   GROUP BY n.age AS nAge
   ORDER BY AVG([[n]].salary), n.age
 
@@ -118,14 +117,14 @@ test Mixed aggregation and non-aggregation in ORDER BY [[
 test Can't reference previous SELECT element [[
 
   SELECT x AS n, [[n]]
-    FROM MATCH( (x) -> ([[n]]) )
+   MATCH (x) -> ([[n]])
 
 ]] resolve #1 to #2
 
 test Can't reference previous GROUP BY element [[
 
   SELECT x
-    FROM MATCH( (x) -> ([[n]]) )
+   MATCH (x) -> ([[n]])
   GROUP BY x AS n, [[n]]
 
 ]] resolve #2 to #1

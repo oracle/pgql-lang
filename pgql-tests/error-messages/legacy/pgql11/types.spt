@@ -3,41 +3,37 @@ module types
 language pgql-lang
 
 test Vertex/edge where boolean expected [[
-
-  SELECT n
-    FROM MATCH( (n) -[e]-> (m) )
-   WHERE NOT [[n]]
-     AND NOT [[e]]
-     AND (true AND [[n]])
-     AND (true AND [[e]])
-     AND (true OR [[n]])
-     AND (true OR [[e]])
-
+SELECT n
+ MATCH (n) -[e]-> (m)
+ WHERE NOT [[n]]
+   AND NOT [[e]]
+   AND (true AND [[n]])
+   AND (true AND [[e]])
+   AND (true OR [[n]])
+   AND (true OR [[e]])
 ]] error like "Boolean expected here" at #1, #2, #3, #4, #5, #6
 
 test Vertex/edge where numeric expected [[
-
-  SELECT n
-    FROM MATCH( (n) -[e]-> (m) )
-   WHERE -[[n]] > 42
-     AND -[[e]] > 42
-     AND 1 - [[n]] > 42
-     AND 1 - [[e]] > 42
-     AND 1 + [[n]] > 42
-     AND 1 + [[e]] > 42
-     AND 1 * [[n]] > 42
-     AND 1 * [[e]] > 42
-     AND 1 / [[n]] > 42
-     AND 1 / [[e]] > 42
-     AND 1 % [[n]] > 42
-     AND 1 % [[e]] > 42
-
+SELECT n
+ MATCH (n) -[e]-> (m)
+ WHERE -[[n]] > 42
+   AND -[[e]] > 42
+   AND 1 - [[n]] > 42
+   AND 1 - [[e]] > 42
+   AND 1 + [[n]] > 42
+   AND 1 + [[e]] > 42
+   AND 1 * [[n]] > 42
+   AND 1 * [[e]] > 42
+   AND 1 / [[n]] > 42
+   AND 1 / [[e]] > 42
+   AND 1 % [[n]] > 42
+   AND 1 % [[e]] > 42
 ]] error like "Numeric expected here" at #1, #2, #3, #4, #5, #6, #7, #8, #9, #10, #11, #12
 
 test Illegal vertex/edge comparison [[
 
   SELECT n
-    FROM MATCH( (n) -[e]-> (m) )
+   MATCH (n) -[e]-> (m)
    WHERE [[n < m]]
      AND [[e < 42]]
      AND [[n > m]]
@@ -56,7 +52,7 @@ test Illegal array comparison [[
        , [[ARRAY_AGG(n.prop1) <= ARRAY_AGG(n.prop2)]] AS v2
        , [[ARRAY_AGG(n.prop1) > ARRAY_AGG(n.prop2)]] AS v3
        , [[ARRAY_AGG(n.prop1) >= ARRAY_AGG(n.prop2)]] AS v4
-    FROM MATCH( (n) -[e]-> (m) )
+   MATCH (n) -[e]-> (m)
 
 ]] error like "Comparison not allowed because no order is defined for arrays" at #1, #2, #3, #4
 
@@ -67,7 +63,7 @@ test Illegal vertex/edge aggregation [[
        , AVG([[n]]) AS avg1, AVG([[e]]) AS avg2
        , SUM([[n]]) AS sum1, SUM([[e]]) AS sum2
        , ARRAY_AGG([[n]]) AS array1, ARRAY_AGG([[e]]) AS array2
-    FROM MATCH( (n) -[e]-> (m) )
+   MATCH (n) -[e]-> (m)
 
 ]] error like "Aggregate does not allow vertex or edge input" at #1, #2, #3, #4, #5, #6, #7, #8, #9, #10
 
@@ -78,6 +74,6 @@ test Illegal array aggregation [[
        , AVG([[ARRAY_AGG(e.weight)]]) AS avg
        , SUM([[ARRAY_AGG(e.weight)]]) AS sum
        , ARRAY_AGG([[ARRAY_AGG(e.weight)]]) AS array
-    FROM MATCH( SHORTEST( (n) -[e]->* (m) ))
+   MATCH SHORTEST( (n) -[e]->* (m) )
 
 ]] error like "Aggregate does not allow array input" at #1, #2, #3, #4, #5

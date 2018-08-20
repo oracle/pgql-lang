@@ -8,9 +8,9 @@ test Cross-constraints in PATH [[
                             AND m.age > 3
                             AND [[(m.age > 4 OR 5 < n.age)]]
                             AND m.age = m.age + 2
-                            AND EXISTS ( SELECT * FROM MATCH( (n) ))
-                            AND [[EXISTS ( SELECT * FROM MATCH( (n) -> (m) ))]]  
+                            AND EXISTS ( SELECT * MATCH (n) )
+                            AND [[EXISTS ( SELECT * MATCH (n) -> (m) )]]  
   SELECT *
-    FROM MATCH( (n) )
+   MATCH (n)
  
  ]] error like "Not yet supported: expressions with multiple variables" at #1, #2

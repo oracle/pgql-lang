@@ -5,17 +5,16 @@ language pgql-lang
 test Variable reference in NOT EXISTS #1 [[
 
   SELECT *
-    FROM MATCH( (x) -> ([[y]]) )
-   WHERE NOT EXISTS ( SELECT * FROM MATCH( (x) -> ([[z]]) ) WHERE [[z]] <> [[y]] )
-
+   MATCH (x) -> ([[y]])
+   WHERE NOT EXISTS ( SELECT * MATCH (x) -> ([[z]]) WHERE [[z]] <> [[y]] )
 ]] resolve #3 to #2
    resolve #4 to #1
 
 test Variable reference in NOT EXISTS #2 [[
 
   SELECT *
-    FROM MATCH( (x) )
-   WHERE NOT EXISTS ( SELECT * FROM MATCH( ([[x]]) -> ([[y]]) ) WHERE [[x]].salary = [[y]].salary )
+   MATCH (x)
+   WHERE NOT EXISTS ( SELECT * MATCH ([[x]]) -> ([[y]]) WHERE [[x]].salary = [[y]].salary )
 
 ]] resolve #3 to #1
    resolve #4 to #2
@@ -23,32 +22,32 @@ test Variable reference in NOT EXISTS #2 [[
 test Reference select key from outer query (1) [[
 
     SELECT n.age AS [[nAge]]
-      FROM MATCH( (n) )
-   ORDER BY ( SELECT [[nAge]] FROM MATCH( (n) ) LIMIT 1 )
+     MATCH (n)
+   ORDER BY ( SELECT [[nAge]] MATCH (n) LIMIT 1 )
 
 ]] resolve #2 to #1
 
 test Reference select key from outer query (2) [[
 
     SELECT n.age AS [[nAge]]
-      FROM MATCH( (n) )
-   ORDER BY ( SELECT AVG([[nAge]]) AS avg FROM MATCH( (n) ) GROUP BY n LIMIT 1 )
+     MATCH (n)
+   ORDER BY ( SELECT AVG([[nAge]]) AS avg MATCH (n) GROUP BY n LIMIT 1 )
 
 ]] resolve #2 to #1
 
 test Reference select key from outer query (3) [[
 
     SELECT n.age AS [[nAge]]
-      FROM MATCH( (n) )
+     MATCH (n)
   GROUP BY n.age AS nAge
-  ORDER BY ( SELECT AVG([[nAge]]) AS avg FROM MATCH( (n) ) GROUP BY n LIMIT 1 )
+  ORDER BY ( SELECT AVG([[nAge]]) AS avg MATCH (n) GROUP BY n LIMIT 1 )
 
 ]] resolve #2 to #1
 
 test Reference vertices from both inner and outer query inside aggregation [[
 
-  SELECT id([[a]]) AS id, (SELECT COUNT([[a]].prop + [[b]].prop) AS cnt1 FROM MATCH( ([[b]]))) AS cnt2
-    FROM MATCH( ([[a]]) )
+  SELECT id([[a]]) AS id, (SELECT COUNT([[a]].prop + [[b]].prop) AS cnt1 MATCH ([[b]])) AS cnt2
+   MATCH ([[a]])
 
 ]] resolve #1 to #5
    resolve #2 to #5
@@ -57,17 +56,17 @@ test Reference vertices from both inner and outer query inside aggregation [[
 test Reference group key from outer query (1) [[
 
     SELECT 123 AS x
-      FROM MATCH( (n) )
+     MATCH (n)
     GROUP BY n.age AS [[nAge]]
-   ORDER BY ( SELECT AVG([[nAge]]) AS avg FROM MATCH( (n) ) LIMIT 1 )
+   ORDER BY ( SELECT AVG([[nAge]]) AS avg MATCH (n) LIMIT 1 )
 
 ]] resolve #2 to #1
 
 test Reference group key from outer query (2) [[
 
     SELECT 123 AS x
-      FROM MATCH( (n) )
+     MATCH (n)
   GROUP BY n.age AS [[nAge]]
-  ORDER BY ( SELECT AVG([[nAge]]) AS avg FROM MATCH( (n) ) GROUP BY n LIMIT 1 )
+  ORDER BY ( SELECT AVG([[nAge]]) AS avg MATCH (n) GROUP BY n LIMIT 1 )
 
 ]] resolve #2 to #1

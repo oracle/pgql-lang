@@ -5,14 +5,13 @@ language pgql-lang
 test Unresolved variable in SELECT [[
 
   SELECT [[n2]]
-    FROM MATCH( (n) )
-
+   MATCH (n)
 ]] error like "Unresolved variable" at #1
 
 test Unresolved variable in GROUP BY [[
 
     SELECT n3
-      FROM MATCH( (n) )
+     MATCH (n)
   GROUP BY [[n2]] AS n3
 
 ]] error like "Unresolved variable" at #1
@@ -20,7 +19,7 @@ test Unresolved variable in GROUP BY [[
 test Unresolved variable in ORDER BY 1 [[
 
     SELECT n
-      FROM MATCH( (n) )
+     MATCH (n)
   ORDER BY [[n2.name]]
 
 ]] error like "Unresolved variable" at #1
@@ -28,7 +27,7 @@ test Unresolved variable in ORDER BY 1 [[
 test Unresolved variable in ORDER BY 2 [[
 
     SELECT n
-      FROM MATCH( (n) )
+     MATCH (n)
   GROUP BY n
   ORDER BY [[n2.name]]
 
@@ -37,42 +36,42 @@ test Unresolved variable in ORDER BY 2 [[
 test Duplicate edge variable (1) [[
 
   SELECT *
-    FROM MATCH( () -[ [[e1]] ]-> () -[ [[e1]] ]-> () )
+   MATCH () -[ [[e1]] ]-> () -[ [[e1]] ]-> ()
 
 ]] error like "Duplicate variable" at #1, #2
 
 test Duplicate edge variable (2) [[
 
   SELECT *
-    FROM MATCH( ([[e1]]) -[ [[e1]] ]-> () )
+   MATCH ([[e1]]) -[ [[e1]] ]-> ()
 
 ]] error like "Duplicate variable" at #1, #2
 
 test Duplicate select key 1 [[
 
   SELECT n.name AS [[nName]], n.name AS [[nName]]
-    FROM MATCH( (n) )
+   MATCH (n)
 
 ]] error like "Duplicate variable" at #1, #2
 
 test Duplicate select key 2 [[
 
   SELECT [[n]], [[n]]
-    FROM MATCH( (n) )
+   MATCH (n)
 
 ]] error like "Duplicate variable" at #1, #2
 
 test Duplicate select key 3 [[
 
   SELECT n AS [[n]], [[n]]
-    FROM MATCH( (n) )
+   MATCH (n)
 
 ]] error like "Duplicate variable" at #1, #2
 
 test Duplicate variable in GROUP BY 1 [[
 
     SELECT nName
-      FROM MATCH( (n) )
+     WHERE (n)
   GROUP BY n.name AS [[nName]], n.name AS [[nName]]
 
 ]] error like "Duplicate variable" at #1, #2
@@ -80,7 +79,7 @@ test Duplicate variable in GROUP BY 1 [[
 test Duplicate variable in GROUP BY 2 [[
 
     SELECT n
-      FROM MATCH( (n) )
+     MATCH (n)
   GROUP BY n AS [[n]], [[n]]
 
 ]] error like "Duplicate variable" at #1, #2
@@ -88,7 +87,7 @@ test Duplicate variable in GROUP BY 2 [[
 test Duplicate variable in GROUP BY 3 [[
 
     SELECT n
-      FROM MATCH( (n) )
+     MATCH (n)
   GROUP BY [[n]], [[n]]
 
 ]] error like "Duplicate variable" at #1, #2
@@ -96,7 +95,7 @@ test Duplicate variable in GROUP BY 3 [[
 test Redefine variable from WHERE in GROUP BY [[
 
     SELECT n.age AS nAge
-      FROM MATCH( (n) )
+     MATCH (n)
   GROUP BY n AS [[n]]
 
 ]] error like "Duplicate variable: variable already defined in the MATCH clause" at #1
@@ -104,7 +103,7 @@ test Redefine variable from WHERE in GROUP BY [[
 test Redefine variable from GROUP BY in SELECT [[
 
     SELECT COUNT(*) AS [[x]]
-      FROM MATCH( (n) )
+     MATCH (n)
   GROUP BY n AS x
 
 ]] error like "Duplicate variable: variable already defined in the GROUP BY clause" at #1
@@ -112,6 +111,6 @@ test Redefine variable from GROUP BY in SELECT [[
 test Zero columns [[
 
   SELECT [[*]]
-    FROM MATCH( () )
+   MATCH ()
 
 ]] error like "SELECT * not allowed if there are no variables in the graph pattern" at #1
