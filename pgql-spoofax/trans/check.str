@@ -146,16 +146,6 @@ rules
       <generate-error(|ctx, "Use IS NULL or IS NOT NULL")> e
 
   nabl-constraint(|ctx):
-    e@IsNull(_) -> <fail>
-    with
-      <generate-error(|ctx, "IS NULL is not yet supported")> e
-
-  nabl-constraint(|ctx):
-    e@IsNotNull(_) -> <fail>
-    with
-      <generate-error(|ctx, "IS NOT NULL is not yet supported")> e
-
-  nabl-constraint(|ctx):
     SelectClause(_, e@Star()) -> <fail>
     with
       <generate-error(|ctx, "SELECT * not allowed in combination with GROUP BY")> e

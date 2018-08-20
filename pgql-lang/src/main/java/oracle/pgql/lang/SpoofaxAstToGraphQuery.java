@@ -53,6 +53,7 @@ import oracle.pgql.lang.ir.QueryExpression.ExtractExpression.ExtractField;
 import oracle.pgql.lang.ir.QueryExpression.ExpressionType;
 import oracle.pgql.lang.ir.QueryExpression.InPredicate;
 import oracle.pgql.lang.ir.QueryExpression.InPredicate.InValueList;
+import oracle.pgql.lang.ir.QueryExpression.IsNull;
 import oracle.pgql.lang.ir.QueryExpression.VarRef;
 import oracle.pgql.lang.ir.QueryPath;
 import oracle.pgql.lang.ir.QueryVariable;
@@ -137,6 +138,7 @@ public class SpoofaxAstToGraphQuery {
   private static final int POS_EXTRACT_EXP = 1;
   private static final int POS_IN_PREDICATE_EXP = 0;
   private static final int POS_IN_PREDICATE_VALUES = 1;
+  private static final int POS_IS_NULL_EXP = 0;
 
   public static GraphQuery translate(IStrategoTerm ast) throws PgqlException {
     return translate(ast, new TranslationContext(new HashMap<>(), new HashSet<>(), new HashMap<>()));
@@ -728,6 +730,10 @@ public class SpoofaxAstToGraphQuery {
         IStrategoTerm inValueListT = t.getSubterm(POS_IN_PREDICATE_VALUES);
         QueryExpression inValueList = translateExp(inValueListT, ctx);
         return new InPredicate(exp, inValueList);
+      case "IsNull":
+        expT = t.getSubterm(POS_IS_NULL_EXP);
+        exp = translateExp(expT, ctx);
+        return new IsNull(exp);
       case "Array":
         IStrategoTerm arrayValues = t.getSubterm(0);
         int size = arrayValues.getSubtermCount();
