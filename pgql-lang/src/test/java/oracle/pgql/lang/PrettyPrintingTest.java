@@ -59,20 +59,13 @@ public class PrettyPrintingTest extends AbstractPgqlTest {
 
   @Test
   public void testPathQuery2() throws Exception {
-    String query = "PATH knows := (n:Person) -[e:likes|dislikes]-> (m:Person) SELECT n.name, m.name MATCH (n) -/:knows*/-> (m)";
+    String query = "PATH knows AS (n:Person) -[e:likes|dislikes]-> (m:Person) SELECT n.name, m.name MATCH (n) -/:knows*/-> (m)";
     checkRoundTrip(query);
   }
 
   @Test
   public void testPredicatesOnAnonymousVariables() throws Exception {
     String query = "SELECT m.name MATCH (:a|b) -> (m)";
-    checkRoundTrip(query);
-  }
-
-  @Test
-  public void testNestedPath() throws Exception {
-    String query = "PATH abc AS () -[:a|b|c]-> (b) PATH abc_star AS () -/:abc*/-> () "
-        + "PATH abc_star_star AS () -/:abc_star*/-> () SELECT m.name MATCH (n) -/:abc_star_star+/-> (m)";
     checkRoundTrip(query);
   }
 
@@ -188,7 +181,7 @@ public class PrettyPrintingTest extends AbstractPgqlTest {
 
   @Test
   public void testShortest1() throws Exception {
-    String query = "SELECT n.prop MATCH SHORTEST ( (n) (-[e:lbl]-> WHERE e.prop = 123){1} (o) )";
+    String query = "SELECT n.prop MATCH SHORTEST ( (n) (-[e:lbl]-> WHERE e.prop = 123)* (o) )";
     checkRoundTrip(query);
   }
 
@@ -198,17 +191,48 @@ public class PrettyPrintingTest extends AbstractPgqlTest {
     checkRoundTrip(query);
   }
 
+  @Test
+  public void testShortest3() throws Exception {
+    String query = "SELECT SUM(e.weight), COUNT(COUNT(e.weight)) FROM MATCH( SHORTEST ((a) -[e]->* (b))) GROUP BY SUM(e.weight) ORDER BY SUM(e.weight)";
+    checkRoundTrip(query);
+  }
+
+  @Test
+  public void testReferencesToSelectExpression1() throws Exception {
+    String query = "SELECT n.age * 2 AS doubleAge "//
+        + "    FROM MATCH( (n) ) "//
+        + "   WHERE doubleAge = n.age + n.age "//
+        + "GROUP BY doubleAge "//
+        + "  HAVING doubleAge = n.age * 2 "//
+        + "ORDER BY 2 * doubleAge ASC, 2 * (n.age * 2) DESC";
+    checkRoundTrip(query);
+  }
+
+  @Test
+  public void testReferencesToSelectExpression2() throws Exception {
+    String query = "SELECT n.age * 2 AS doubleAge "//
+        + "    FROM MATCH( (n) ) "//
+        + "   WHERE doubleAge = n.age + n.age "//
+        + "GROUP BY n.age * 2 "//
+        + "  HAVING doubleAge = n.age * 2 "//
+        + "ORDER BY 2* doubleAge ASC, 2 * (n.age * 2) DESC";
+    checkRoundTrip(query);
+  }
+
   private void checkRoundTrip(String query1) throws PgqlException {
 
     /*
      * First, assert that when parsing a query into a GraphQuery object and then pretty printing that GraphQuery object,
      * we obtain a string that is a valid PGQL query.
      */
-    GraphQuery iR1 = pgql.parse(query1).getGraphQuery();
+
+    PgqlResult result1 = pgql.parse(query1);
+    GraphQuery iR1 = result1.getGraphQuery();
+    assertTrue(result1.getErrorMessages(), result1.isQueryValid() && iR1 != null);
     String query2 = iR1.toString();
     PgqlResult result2 = pgql.parse(query2);
     GraphQuery iR2 = result2.getGraphQuery();
-    assertTrue(result2.getErrorMessages(), iR2 != null);
+    assertTrue(result2.getErrorMessages(), result2.isQueryValid() && iR1 != null);
 
     /*
      * Since pretty-printed queries are in normal form, we can now round trip endlessly. Here, we assert that when

@@ -66,10 +66,10 @@ rules
        ; (selectClause', variables'''') := <resolve-select-clause(|variables''')> selectClause
 
        // HAVING
-       ; having' := <resolve-var-refs(|variables'''', expAsVars)> having
+       ; having' := <resolve-var-refs(|variables'''')> having
 
        // ORDER BY
-       ; orderBy' := <resolve-var-refs(|variables'''', expAsVars); alltd(optimize-order-by)> orderBy
+       ; orderBy' := <resolve-var-refs(|variables''''); alltd(optimize-order-by)> orderBy
 
   path-with-at-most-one-binding:
     t@Path(_, _, _, quantifier, _, _, _, _) -> t
@@ -116,7 +116,7 @@ rules
 
   resolve-group-by(|variables, expAsVarsFromSelectClause):
     Some(GroupByClause(expAsVars)) -> (Some(GroupByClause(expAsVars')), variables')
-    with (expAsVars', vars') := <foldl(resolve-exp-as-var(|variables, expAsVarsFromSelectClause))> (expAsVars, ([], []))
+    with (expAsVars', vars') := <foldl(resolve-exp-as-var-in-group-by(|variables, expAsVarsFromSelectClause))> (expAsVars, ([], []))
        ; variables' := [vars'|variables]
 
   resolve-group-by(|variables, expAsVars):
@@ -129,19 +129,26 @@ rules
     with if Star() := expAsVars
          then eav' := expAsVars
             ; variables':= variables
-         else (expAsVars', vars') := <foldl(resolve-exp-as-var(|variables, []))> (expAsVars, ([], <Hd> variables))
+         else (expAsVars', vars') := <foldl(resolve-exp-as-var-in-select(|variables))> (expAsVars, ([], <Hd> variables))
             ; eav' := <origin-track-forced(!ExpAsVars(expAsVars'))> eav
             ; variables' := [vars'|<Tl> variables]
          end
 
-  resolve-exp-as-var(|variables, expAsVarsFromSelectClause):
+  resolve-exp-as-var-in-group-by(|variables, expAsVarsFromSelectClause):
     (t@ExpAsVar(exp, v, anonymous), (result, vars)) -> (result', vars')
     with exp' := <resolve-var-refs(|variables, expAsVarsFromSelectClause)> exp
-       ; exp'' := <alltd-in-outer-query-outside-aggregation(?VarRef(<id>, _); !VarRef(<id>))> exp'
+       ; exp'' := <alltd(?VarRef(<id>, _); !VarRef(<id>))> exp'
        ; originOffset := <origin-offset> v
-       ; (v', v'') := <?Anonymous(); !exp'; ?VarRef(<id>, _); !(<id>, DummyVarDef(originOffset)) <+ !(v, v)> anonymous // in case GROUP BY references a SELECT variable (PGQL v1.2 and up)
-       ; vars' := <replace-or-add> (VarDef(v'', originOffset, exp'', exp'), vars)
-       ; expAsVar' := <origin-track-forced(!ExpAsVar(exp', v', anonymous, originOffset))> t
+       ; vars' := <replace-or-add> (VarDef(v, originOffset, exp'', exp'), vars)
+       ; expAsVar' := <origin-track-forced(!ExpAsVar(exp', v, anonymous, originOffset))> t
+       ; result' := <conc> (result, [expAsVar'])
+
+  resolve-exp-as-var-in-select(|variables):
+    (t@ExpAsVar(exp, v, anonymous), (result, vars)) -> (result', vars')
+    with exp' := <resolve-var-refs(|variables)> exp
+       ; originOffset := <origin-offset> v
+       ; vars' := <replace-or-add> (VarDef(v, originOffset, exp, exp'), vars)
+       ; expAsVar' := <origin-track-forced(!ExpAsVar(exp', v, anonymous, originOffset))> t
        ; result' := <conc> (result, [expAsVar'])
 
   /*
@@ -161,15 +168,12 @@ rules
         Final AST:    SELECT v FROM MATCH( (n) ) GROUP BY n.age + 2 AS v
   */
   resolve-var-refs(|variables, expAsVarsFromSelectClause) =
-    resolve-var-refs-replace-groupBy-exps(|variables, expAsVarsFromSelectClause)
-    ; resolve-var-refs(|variables)
-
-  resolve-var-refs-replace-groupBy-exps(|variables, expAsVarsFromSelectClause) =
     resolve-var-refs(|variables)
   ; alltd-in-outer-query-outside-aggregation(replace-ref-with-exp(|expAsVarsFromSelectClause))
+  ; alltd-in-outer-query-outside-aggregation(resolve-var-ref(|variables))
 
   resolve-var-refs(|variables) = alltd(resolve-var-ref(|variables))
-                               ; alltd-in-outer-query-outside-aggregation(replace-exp-with-ref(|variables))
+                               ; alltd(replace-exp-with-ref(|variables) <+ is-subquery <+ is-aggregate)
 
   resolve-var-refs-in-path-expression(|variables):
     t@Path(_, _, _, quantifier, _, _, _, _) -> t'
@@ -203,7 +207,6 @@ rules
     exp -> varRef
     where not ( None() := exp )
         ; varRef := <Hd; fetch-elem(replace-exp-with-ref-helper(|exp))> variables
-        ; not ( <?VarRef(DummyVarDef(_), _)> varRef ) // disallow "SELECT n1 AS n2, n2 AS n3 FROM MATCH( (n1) ) GROUP BY n2" (i.e. SELECT clause may not reference "n2" from GROUP BY clause).
 
   replace-exp-with-ref-helper(|exp) = ?VarDef(v, origin-offset, original-exp, _); where ( <eq> (exp, original-exp)); !VarRef(v, origin-offset)
   replace-exp-with-ref-helper(|exp) = ?VarDef(v, origin-offset, _, resolved-exp); where ( <eq> (exp, resolved-exp)); !VarRef(v, origin-offset)
