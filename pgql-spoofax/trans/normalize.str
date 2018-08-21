@@ -23,7 +23,12 @@ rules
     with
       variable-counter := <new-counter>;
       bindVariable-counter := <new-counter>;
-      error-messages := <is-pgql10; collect(get-pgql10-limitation) <+ collect(get-deprecation); not(?[]) <+ get-path-limitations <+ ![]> ast;
+      error-messages := <
+        (  is-pgql10; collect(get-pgql10-limitation)
+        <+ is-pgql11; (collect(get-pgql11-limitation) <+ collect(get-pgql11-deprecation))
+        <+ is-pgql12; collect(get-pgql12-deprecation); flatten-list
+        )
+        ; not(?[]) <+ get-path-limitations <+ ![]> ast;
       result := <
         alltd(norm-has-prop);
         alltd(norm-pgql10);
@@ -53,25 +58,29 @@ rules
 rules
 
   is-pgql10 = ?Pgql10Query(_, _, _, _, _, _, _)
+  is-pgql11 = ?Pgql11Query(_, _, _, _, _, _, _, _, _)
+  is-pgql12 = ?Query(_, _, _, _, _, _, _, _)
 
-  get-deprecation = (?OutConn(None(), _) + ?InConn(None(), _) + ?UndirectedEdge(None(), _)); to-error-message(|"Use [-] instead of [--]")
-  get-deprecation = ?Pgql10AsignSymbol(); to-error-message(|"Use [AS] instead of [:=]")
-  get-deprecation = ?Legacy10Label(_); to-error-message(|"Use [label(x)] instead of [x.label()]")
-  get-deprecation = ?Legacy10Labels(_); to-error-message(|"Use [labels(x)] instead of [x.labels()]")
-  get-deprecation = ?Legacy10HasLabel(_, _); to-error-message(|"Use [has_label(x, 'lbl')] instead of [x.hasLabel('lbl')]")
-  get-deprecation = ?Legacy10Id(_); to-error-message(|"Use [id(x)] instead of [x.id()]")
-  get-deprecation = ?Legacy10Has(_, _); to-error-message(|"Use [x.prop IS NOT NULL] instead of [x.has(prop)]")
-  get-deprecation = ?Legacy10InDegree(_); to-error-message(|"Use [in_degree(x)] instead of [x.indegree()]")
-  get-deprecation = ?Legacy10OutDegree(_); to-error-message(|"Use [out_degree(x)] instead of [x.out_degree()]")
+  get-pgql11-deprecation = (?OutConn(None(), _) + ?InConn(None(), _) + ?UndirectedEdge(None(), _)); to-error-message(|"Use [-] instead of [--]")
+  get-pgql11-deprecation = ?Pgql10AsignSymbol(); to-error-message(|"Use [AS] instead of [:=]")
+  get-pgql11-deprecation = ?Legacy10Label(_); to-error-message(|"Use [label(x)] instead of [x.label()]")
+  get-pgql11-deprecation = ?Legacy10Labels(_); to-error-message(|"Use [labels(x)] instead of [x.labels()]")
+  get-pgql11-deprecation = ?Legacy10HasLabel(_, _); to-error-message(|"Use [has_label(x, 'lbl')] instead of [x.hasLabel('lbl')]")
+  get-pgql11-deprecation = ?Legacy10Id(_); to-error-message(|"Use [id(x)] instead of [x.id()]")
+  get-pgql11-deprecation = ?Legacy10Has(_, _); to-error-message(|"Use [x.prop IS NOT NULL] instead of [x.has(prop)]")
+  get-pgql11-deprecation = ?Legacy10InDegree(_); to-error-message(|"Use [in_degree(x)] instead of [x.indegree()]")
+  get-pgql11-deprecation = ?Legacy10OutDegree(_); to-error-message(|"Use [out_degree(x)] instead of [x.out_degree()]")
 
-  get-deprecation = ?Legacy10Asc(x); to-error-message(|$<Use [<<origin-text> x> ASC] instead of [ASC(<<origin-text> x>)]>)
-  get-deprecation = ?Legacy10Desc(x); to-error-message(|$<Use [<<origin-text> x> DESC] instead of [DESC(<<origin-text> x>)]>)
-  get-deprecation = ?String(<id>); is-double-quoted; to-error-message(|"Use single quotes for character string literals; not double quotes")
-  get-deprecation = ?Legacy10Identifier(_); to-error-message(|"Use double quotes to delimit labels")
-  get-deprecation = ?Ids(_); to-error-message(|"Use [id(x) = xyz] instead of [@xyz]")
-  get-deprecation = ?InlinedConstraint(_); to-error-message(|"Constraints should be specified in the WHERE clause instead of the WITH")
-  get-deprecation = ?Legacy10Not(_); to-error-message(|"Use [NOT] instead of [!]")
-  get-deprecation = ?Legacy10Regex(_, _); to-error-message(|"Use [java_regexp_like(exp1, exp2)] instead of [exp1 =~ exp2]")
+  get-pgql11-deprecation = ?Legacy10Asc(x); to-error-message(|$<Use [<<origin-text> x> ASC] instead of [ASC(<<origin-text> x>)]>)
+  get-pgql11-deprecation = ?Legacy10Desc(x); to-error-message(|$<Use [<<origin-text> x> DESC] instead of [DESC(<<origin-text> x>)]>)
+  get-pgql11-deprecation = ?String(<id>); is-double-quoted; to-error-message(|"Use single quotes for character string literals; not double quotes")
+  get-pgql11-deprecation = ?Legacy10Identifier(_); to-error-message(|"Use double quotes to delimit labels")
+  get-pgql11-deprecation = ?Ids(_); to-error-message(|"Use [id(x) = xyz] instead of [@xyz]")
+  get-pgql11-deprecation = ?InlinedConstraint(_); to-error-message(|"Constraints should be specified in the WHERE clause instead of the WITH")
+  get-pgql11-deprecation = ?Legacy10Not(_); to-error-message(|"Use [NOT] instead of [!]")
+  get-pgql11-deprecation = ?Legacy10Regex(_, _); to-error-message(|"Use [java_regexp_like(exp1, exp2)] instead of [exp1 =~ exp2]")
+
+  get-pgql12-deprecation = fail // no deprecations for now
 
   get-pgql10-limitation = ( ?Pgql11FromClause(_)
                           + ?Subquery(_)
@@ -79,8 +88,11 @@ rules
                           + ?ExtractExp(_, _)
                           + ?ARRAY-AGG(_, _)
                           + ?Shortest(_, _)
+                          + get-pgql11-limitation
                           )
-                         ; to-error-message(|"Use [MATCH pattern WHERE filters] instead of [WHERE pattern mixed with filters]")
+                        ; to-error-message(|"Use [MATCH pattern WHERE filters] instead of [WHERE pattern mixed with filters]")
+
+  get-pgql11-limitation = fail // currently all PGQL 1.2 features are also supported in PGQL 1.1
 
   // TODO: move this to check.str (all the information should be in the normalized AST)
   get-path-limitations = collect(shortest-or-reaches + is-quantifier)
