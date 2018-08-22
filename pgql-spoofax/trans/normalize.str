@@ -25,7 +25,7 @@ rules
       bindVariable-counter := <new-counter>;
       error-messages := <
         (  is-pgql10; collect(get-pgql10-limitation)
-        <+ is-pgql11; (collect(get-pgql11-limitation) <+ collect(get-pgql11-deprecation))
+        <+ is-pgql11; (collect(get-pgql11-limitation); not(?[]) <+ collect(get-pgql11-deprecation))
         <+ is-pgql12; collect(get-pgql12-deprecation); flatten-list
         )
         ; not(?[]) <+ get-path-limitations <+ ![]> ast;
@@ -80,7 +80,7 @@ rules
   get-pgql11-deprecation = ?Legacy10Not(_); to-error-message(|"Use [NOT] instead of [!]")
   get-pgql11-deprecation = ?Legacy10Regex(_, _); to-error-message(|"Use [java_regexp_like(exp1, exp2)] instead of [exp1 =~ exp2]")
 
-  get-pgql12-deprecation = fail // no deprecations for now
+  get-pgql12-deprecation = get-pgql11-deprecation // no additional deprecations for now
 
   get-pgql10-limitation = ( ?Pgql11FromClause(_)
                           + ?Subquery(_)
@@ -90,7 +90,7 @@ rules
                           + ?Shortest(_, _)
                           + get-pgql11-limitation
                           )
-                        ; to-error-message(|"Use [MATCH pattern WHERE filters] instead of [WHERE pattern mixed with filters]")
+                        ; to-error-message(|"Use [SELECT .. FROM MATCH( .. ) WHERE ..] or [SELECT .. FROM graphName MATCH( .. ) WHERE ..]")
 
   get-pgql11-limitation = fail // currently all PGQL 1.2 features are also supported in PGQL 1.1
 
