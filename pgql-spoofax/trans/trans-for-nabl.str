@@ -63,13 +63,13 @@ rules
          end
 
        // SELECT
-       ; (selectClause', variables'''') := <resolve-select-clause(|variables''', version)> selectClause
+       ; (selectClause', variables'''') := <resolve-select-clause(|variables''')> selectClause
 
        // HAVING
-       ; having' := <resolve-var-refs(|variables'''')> having
+       ; having' := <resolve-having(|variables''', variables'''')> having // having resolves to GROUP BY variables first, then to SELECT variables
 
        // ORDER BY
-       ; orderBy' := <resolve-var-refs(|variables''''); alltd(optimize-order-by)> orderBy
+       ; orderBy' := <resolve-var-refs(|variables''''); alltd(optimize-order-by)> orderBy // ORDER BY resolves to SELECT variables first, then to GROUP BY variables
 
   path-with-at-most-one-binding:
     t@Path(_, _, _, quantifier, _, _, _, _) -> t
@@ -124,7 +124,7 @@ rules
     with vars' := []
        ; variables' := [vars'|variables]
 
-  resolve-select-clause(|variables, version):
+  resolve-select-clause(|variables):
     SelectClause(distinct, eav@ExpAsVars(expAsVars)) -> (SelectClause(distinct, eav'), variables')
     with if Star() := expAsVars
          then eav' := expAsVars
@@ -132,18 +132,7 @@ rules
          else varsInCurrentScope := <Hd> variables
             ; (expAsVars', vars') := <foldl(resolve-exp-as-var-in-select(|variables))> (expAsVars, ([], varsInCurrentScope))
             ; eav' := <origin-track-forced(!ExpAsVars(expAsVars'))> eav
-
-            /*
-               In PGQL 1.2 and up, variables from FROM or GROUP BY shadow variables from SELECT. For example, in
-               "SELECT n.age AS n FROM MATCH( (n) ) ORDER BY n.name", the "n" in ORDER BY refers
-               to the "n" in the MATCH, not the "n" in the SELECT.
-            */
-            ; if <?"v1.0" + ?"v1.1"> version
-              then vars'' := vars'
-              else vars'' := <replace-or-add-all> (varsInCurrentScope, vars')
-              end
-
-            ; variables' := [vars''|<Tl> variables]
+            ; variables' := [vars'|<Tl> variables]
          end
 
   resolve-exp-as-var-in-group-by(|variables, expAsVarsFromSelectClause):
@@ -162,6 +151,14 @@ rules
        ; vars' := <replace-or-add> (VarDef(v, originOffset, exp, exp'), vars)
        ; expAsVar' := <origin-track-forced(!ExpAsVar(exp', v, anonymous, originOffset))> t
        ; result' := <conc> (result, [expAsVar'])
+
+  resolve-having(|variables-after-group-by, variables-after-select):
+    having -> having'
+    with [x|xs] := variables-after-select
+       ; [y|_] := variables-after-group-by
+       ; z := <replace-or-add-all> (y, x)
+       ; variables := [z|xs]
+       ; having' := <resolve-var-refs(|variables)> having
 
   /*
      First try to resolve variables as usual.

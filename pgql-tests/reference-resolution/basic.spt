@@ -56,24 +56,6 @@ test Variable from GROUP BY in SELECT [[
 
 ]] resolve #1 to #2
 
-test Variable from GROUP BY in ORDER BY #1 [[
-
-    SELECT nAge
-      FROM MATCH( (n) )
-  GROUP BY n.age AS [[nAge]]
-  ORDER BY [[nAge]]
-
-]] resolve #2 to #1
-
-test Variable from GROUP BY in ORDER BY #2 [[
-
-    SELECT [[nAge]]
-      FROM MATCH( (n) )
-  GROUP BY n.age AS x
-  ORDER BY [[nAge]]
-
-]] resolve #2 to #1
-
 test Variable from MATCH in aggregation in SELECT #1 [[
 
   SELECT AVG([[n]].salary) AS avgSalary
@@ -161,29 +143,29 @@ test Reference variable defined in SELECT #2 [[
 
 test Reference variable defined in SELECT #3 [[
 
-  SELECT n.age AS nAge
+  SELECT n.age AS [[nAge]]
     FROM MATCH( (n) )
    WHERE nAge > 25
   GROUP BY [[nAge]]
     HAVING [[nAge]] > 25
   ORDER BY [[nAge]]
 
-]] resolve #2 to #1
-   resolve #3 to #1
+]] resolve #3 to #2
+   resolve #4 to #1
 
 test Variables in MATCH shadow variables in SELECT [[
 
-    SELECT n.prop AS n
+    SELECT n.prop AS [[n]]
       FROM MATCH( ([[n]]) )
      WHERE [[n]].age > 25
   GROUP BY [[n]]
     HAVING [[n]].age > 25
   ORDER BY [[n]].age
 
-]] resolve #2 to #1
-   resolve #3 to #1
-   resolve #4 to #3
-   resolve #5 to #3
+]] resolve #3 to #2
+   resolve #4 to #2
+   resolve #5 to #4
+   resolve #6 to #1
 
 test Pass variable from SELECT to GROUP BY and back to SELECT [[
 
