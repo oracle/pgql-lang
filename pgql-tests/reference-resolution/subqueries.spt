@@ -40,7 +40,7 @@ test Reference select key from outer query (3) [[
 
     SELECT n.age AS [[nAge]]
       FROM MATCH( (n) )
-  GROUP BY n.age AS x
+  GROUP BY n.age AS nAge
   ORDER BY ( SELECT AVG([[nAge]]) AS avg FROM MATCH( (n) ) GROUP BY n LIMIT 1 )
 
 ]] resolve #2 to #1

@@ -219,6 +219,12 @@ public class PrettyPrintingTest extends AbstractPgqlTest {
     checkRoundTrip(query);
   }
 
+  @Test
+  public void testDeprecatedDefinitionInGroupBy() throws Exception {
+    String query = "SELECT age FROM g MATCH (n) GROUP BY n.age AS age";
+    checkRoundTrip(query);
+  }
+
   private void checkRoundTrip(String query1) throws PgqlException {
 
     /*

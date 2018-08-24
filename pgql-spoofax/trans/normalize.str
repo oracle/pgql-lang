@@ -80,7 +80,11 @@ rules
   get-pgql11-deprecation = ?Legacy10Not(_); to-error-message(|"Use [NOT] instead of [!]")
   get-pgql11-deprecation = ?Legacy10Regex(_, _); to-error-message(|"Use [java_regexp_like(exp1, exp2)] instead of [exp1 =~ exp2]")
 
-  get-pgql12-deprecation = get-pgql11-deprecation // no additional deprecations for now
+  get-pgql12-deprecation = get-pgql11-deprecation // inheriting all deprecations from 1.1
+
+  get-pgql12-deprecation:
+    GroupByClause(expAsVars) -> errors
+    with errors := <filter(?ExpAsVar(_, Some(<id>))); map(to-error-message(|"Variable definition not allowed in GROUP BY"))> expAsVars
 
   get-pgql10-limitation = ( ?Pgql11FromClause(_)
                           + ?Subquery(_)

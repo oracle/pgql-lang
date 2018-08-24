@@ -209,11 +209,13 @@ public class PgqlUtils {
     if (variable.getVariableType() == VariableType.EXP_AS_VAR) {
       ExpAsVar expAsVar = (ExpAsVar) variable;
       if (expAsVar.isAnonymous()) {
-        // e.g. in "SELECT x.inDegree() WHERE (n) GROUP BY x.inDegree()", the SELECT expression "x.inDegree()"
-        // is a VarRef to the anonymous GROUP BY expression "x.inDegree()"
+        // e.g. in "SELECT x.prop1 + x.prop2 FROM g MATCH( (n) ) ORDER BY x.prop1 + x.prop2", the ORDER BY expression
+        // "x.prop1 + x.prop2" is a VarRef to the anonymous SELECT expression "x.prop1 + x.prop2"
         return expAsVar.getExp().toString();
-      } else {
-        return variable.name;
+      } else if (!expAsVar.isContainedInSelectClause()) {
+        // e.g. "SELECT 123 FROM g MATCH( (n) ) GROUP BY n.age AS age" is not a valid PGQL query since GROUP BY may not
+        // introduce new variables since PGQL v1.2
+        return expAsVar.getExp().toString();
       }
     }
 
@@ -223,7 +225,7 @@ public class PgqlUtils {
   protected static String printPgqlString(ExpAsVar expAsVar) {
     String exp = expAsVar.getExp().toString();
     // replace expAsVar.getExp().toString() with expAsVar.getName() once we no longer have to pretty print PGQL v1.0
-    return expAsVar.isAnonymous() ? expAsVar.getExp().toString() : exp + " AS " + expAsVar.getName();
+    return expAsVar.isAnonymous() || !expAsVar.isContainedInSelectClause() ? exp : exp + " AS " + expAsVar.getName();
   }
 
   protected static String printPgqlString(GraphPattern graphPattern, List<QueryPath> queryPaths) {
