@@ -18,7 +18,7 @@ context-free syntax // pgql-lang.sdf3 for PGQL 1.1
   Legacy11Query.Pgql11Query =
     <
       <{CommonPathExpression "\n"}*>
-      <SelectClause>
+      <SelectOrUpdateClause>
       <Legacy11FromClause?>
       <Pgql11MatchClause>
       <WhereClause?>

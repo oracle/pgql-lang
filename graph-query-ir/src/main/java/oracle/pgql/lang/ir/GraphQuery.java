@@ -7,11 +7,9 @@ import java.util.List;
 
 import static oracle.pgql.lang.ir.PgqlUtils.printPgqlString;
 
-public class GraphQuery {
+public abstract class GraphQuery {
 
   private List<CommonPathExpression> commonPathExpressions;
-
-  private Projection projection;
 
   private String inputGraphName;
 
@@ -30,11 +28,10 @@ public class GraphQuery {
   /**
    * Constructor
    */
-  public GraphQuery(List<CommonPathExpression> commonPathExpressions, Projection projection, String inputGraphName,
+  protected GraphQuery(List<CommonPathExpression> commonPathExpressions, String inputGraphName,
       GraphPattern graphPattern, GroupBy groupBy, QueryExpression having, OrderBy orderBy, QueryExpression limit,
       QueryExpression offset) {
     this.commonPathExpressions = commonPathExpressions;
-    this.projection = projection;
     this.inputGraphName = inputGraphName;
     this.graphPattern = graphPattern;
     this.groupBy = groupBy;
@@ -44,6 +41,8 @@ public class GraphQuery {
     this.offset = offset;
   }
 
+  public abstract QueryType getQueryType();
+
   public List<CommonPathExpression> getCommonPathExpressions() {
     return commonPathExpressions;
   }
@@ -52,13 +51,17 @@ public class GraphQuery {
     this.commonPathExpressions = commonPathExpressions;
   }
 
-  public Projection getProjection() {
-    return projection;
-  }
+  /**
+   * @deprecated cast {@link GraphQuery} into {@link SelectQuery} before calling {@link SelectQuery#getProjection}
+   */
+  @Deprecated
+  public abstract Projection getProjection();
 
-  public void setProjection(Projection projection) {
-    this.projection = projection;
-  }
+  /**
+   * @deprecated cast {@link GraphQuery} into {@link SelectQuery} before calling {@link SelectQuery#setProjection}
+   */
+  @Deprecated
+  public abstract void setProjection(Projection projection);
 
   public String getInputGraphName() {
     return inputGraphName;
@@ -178,11 +181,6 @@ public class GraphQuery {
       if (other.orderBy != null)
         return false;
     } else if (!orderBy.equals(other.orderBy))
-      return false;
-    if (projection == null) {
-      if (other.projection != null)
-        return false;
-    } else if (!projection.equals(other.projection))
       return false;
     return true;
   }

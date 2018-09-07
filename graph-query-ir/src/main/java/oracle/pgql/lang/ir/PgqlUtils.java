@@ -36,6 +36,7 @@ import oracle.pgql.lang.ir.QueryExpression.LogicalExpression.Or;
 import oracle.pgql.lang.ir.QueryExpression.Function.Exists;
 import oracle.pgql.lang.ir.QueryVariable.VariableType;
 import oracle.pgql.lang.ir.QueryVertex;
+import oracle.pgql.lang.ir.update.GraphUpdateQuery;
 
 public class PgqlUtils {
 
@@ -167,7 +168,19 @@ public class PgqlUtils {
   protected static String printPgqlString(GraphQuery graphQuery) {
     String result = printPathPatterns(graphQuery.getCommonPathExpressions());
     GraphPattern graphPattern = graphQuery.getGraphPattern();
-    result += graphQuery.getProjection() + "\nFROM ";
+
+    switch (graphQuery.getQueryType()) {
+      case SELECT:
+        result += ((SelectQuery) graphQuery).getProjection();
+        break;
+      case GRAPH_UPDATE:
+        result += ((GraphUpdateQuery) graphQuery).getGraphUpdate();
+        break;
+      default:
+        throw new IllegalArgumentException(graphQuery.getQueryType().toString());
+    }
+
+    result += "\nFROM ";
     if (graphQuery.getInputGraphName() != null) {
       result += printIdentifier(graphQuery.getInputGraphName()) + " ";
     }

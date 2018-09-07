@@ -14,12 +14,8 @@ public class Main {
     try (Pgql pgql = new Pgql()) {
 
       // parse query and print graph query
-      PgqlResult result1 = pgql.parse("SELECT n FROM g MATCH (n:Person) -[e:likes]-> (m:Person) WHERE n.name = 'Dave'");
+      PgqlResult result1 = pgql.parse("UPDATE n.Prop = 123 MATCH (n:Person) -[e:likes]-> (m:Person) WHERE n.name = 'Dave'");
       System.out.println(result1.getGraphQuery());
-
-      // parse query with errors and print error messages
-      PgqlResult result2 = pgql.parse("SELECT x, y, WHERE (n) -[e]-> (m)");
-      System.out.println(result2.getErrorMessages());
     }
   }
 }

@@ -29,8 +29,8 @@ rules
 rules
 
   trans-query(|variables):
-    NormalizedQuery(CommonPathExpressions(pathExpressions), selectClause, optionalGraphName, GraphPattern(vertices, connections, valueExpression), groupBy, having, orderBy, limitOffsets, error-messages, version) ->
-        NormalizedQuery(CommonPathExpressions(pathExpressions'), selectClause', optionalGraphName, GraphPattern(vertices', connections'', valueExpression'), groupBy', having', orderBy', limitOffsets, error-messages, version)
+    NormalizedQuery(CommonPathExpressions(pathExpressions), selectOrUpdateClause, optionalGraphName, GraphPattern(vertices, connections, valueExpression), groupBy, having, orderBy, limitOffsets, error-messages, version) ->
+        NormalizedQuery(CommonPathExpressions(pathExpressions'), selectOrUpdateClause', optionalGraphName, GraphPattern(vertices', connections'', valueExpression'), groupBy', having', orderBy', limitOffsets, error-messages, version)
     with variables' := <guarantee-size-two-or-more> variables
 
        // PATH
@@ -54,13 +54,13 @@ rules
        ; valueExpression' := <resolve-where-clause(|variables'')> valueExpression
 
        // GROUP BY
-       ; if (!groupBy; ?Some(_)) + (!selectClause; create-one-group(|variables'')) + (!having; ?Some(_))
+       ; if (!groupBy; ?Some(_)) + (!selectOrUpdateClause; create-one-group(|variables'')) + (!having; ?Some(_))
          then (groupBy', variables''') := <resolve-group-by(|variables'')> groupBy
          else (groupBy', variables''') := (groupBy, variables'')
          end
 
-       // SELECT
-       ; (selectClause', variables'''') := <resolve-select-clause(|variables''')> selectClause
+       // SELECT / UPDATE
+       ; (selectOrUpdateClause', variables'''') := <resolve-select-or-update-clause(|variables''')> selectOrUpdateClause
 
        // HAVING
        ; having' := <resolve-var-refs(|variables'''')> having
@@ -121,7 +121,7 @@ rules
     with vars' := []
        ; variables' := [vars'|variables]
 
-  resolve-select-clause(|variables):
+  resolve-select-or-update-clause(|variables):
     SelectClause(distinct, eav@ExpAsVars(expAsVars)) -> (SelectClause(distinct, eav'), variables')
     with if Star() := expAsVars
          then eav' := expAsVars
@@ -130,6 +130,10 @@ rules
             ; eav' := <origin-track-forced(!ExpAsVars(expAsVars'))> eav
             ; variables' := [vars'|<Tl> variables]
          end
+
+  resolve-select-or-update-clause(|variables):
+    UpdateClause(updateExpressions) -> (UpdateClause(updateExpressions'), variables)
+    with updateExpressions' := <origin-track-forced(resolve-var-refs(|variables))> updateExpressions
 
   resolve-exp-as-var(|variables):
     (t@ExpAsVar(exp, v, anonymous), (result, vars)) -> (result', vars')
@@ -181,10 +185,10 @@ rules
      implicit group, but only if there is no (non-nested) aggregation over a group variable
   */
   create-one-group(|variables):
-    t@select-clause -> t
+    t@select-or-update-clause -> t
     with [vars|[groupVars|_]] := variables
-       ; aggregations := <collect-in-outer-query(is-aggregate)> select-clause
-       ; exps-from-aggregations := <collect(get-exp-from-aggregation)> select-clause
+       ; aggregations := <collect-in-outer-query(is-aggregate)> select-or-update-clause
+       ; exps-from-aggregations := <collect(get-exp-from-aggregation)> select-or-update-clause
        ; varsInAggregations := <collect-in-outer-query-outside-aggregation(varRef-is-visible-var(|vars))> exps-from-aggregations
        ; groupVarsInAggregations := <collect-in-outer-query-outside-aggregation(varRef-is-visible-var(|groupVars))> exps-from-aggregations
        ; groupVarsInAggregations' := <diff> (groupVarsInAggregations, varsInAggregations)
