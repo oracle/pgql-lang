@@ -1,0 +1,18 @@
+module update
+
+language pgql-lang
+
+test Unresolved variable in SELECT [[
+
+  SELECT ( [[UPDATE x.prop = 3]] FROM MATCH( (x) ) ) AS v
+    FROM MATCH( (n) )
+
+]] error like "SELECT clause expected here" at #1
+
+test Unresolved variable in SELECT [[
+
+  SELECT n
+    FROM MATCH( (n) )
+   WHERE EXISTS ( [[UPDATE x.prop = 3]] FROM MATCH( (x) ) )
+
+]] error like "SELECT clause expected here" at #1

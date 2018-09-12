@@ -45,4 +45,8 @@ public class SelectQuery extends GraphQuery {
       return false;
     return true;
   }
+
+  public void accept(QueryExpressionVisitor v) {
+    v.visit(this);
+  }
 }

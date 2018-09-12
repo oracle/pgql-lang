@@ -732,12 +732,12 @@ public class SpoofaxAstToGraphQuery {
         return new QueryExpression.Function.Cast(exp, targetTypeName);
       case "Exists":
         IStrategoTerm subqueryT = t.getSubterm(POS_EXISTS_SUBQUERY);
-        GraphQuery query = translateSubquery(ctx, subqueryT);
-        return new QueryExpression.Function.Exists(query);
+        SelectQuery selectQuery = translateSubquery(ctx, subqueryT);
+        return new QueryExpression.Function.Exists(selectQuery);
       case "ScalarSubquery":
         subqueryT = t.getSubterm(POS_SCALARSUBQUERY_SUBQUERY);
-        query = translateSubquery(ctx, subqueryT);
-        return new ScalarSubquery(query);
+        selectQuery = translateSubquery(ctx, subqueryT);
+        return new ScalarSubquery(selectQuery);
       case "CallStatement":
       case "FunctionCall":
         IStrategoTerm packageDeclT = t.getSubterm(POS_FUNCTION_CALL_PACKAGE_NAME);
@@ -903,9 +903,9 @@ public class SpoofaxAstToGraphQuery {
     }
   }
 
-  private static GraphQuery translateSubquery(TranslationContext ctx, IStrategoTerm t) throws PgqlException {
+  private static SelectQuery translateSubquery(TranslationContext ctx, IStrategoTerm t) throws PgqlException {
     IStrategoTerm subqueryT = t.getSubterm(POS_SUBQUERY);
-    return translate(subqueryT, ctx);
+    return (SelectQuery) translate(subqueryT, ctx);
   }
 
   private static boolean aggregationHasDistinct(IStrategoTerm t) {

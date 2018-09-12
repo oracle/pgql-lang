@@ -132,8 +132,9 @@ rules
          end
 
   resolve-select-or-update-clause(|variables):
-    UpdateClause(updateExpressions) -> (UpdateClause(updateExpressions'), variables)
+    t@UpdateClause(updateExpressions) -> (updateClause', variables)
     with updateExpressions' := <origin-track-forced(resolve-var-refs(|variables))> updateExpressions
+       ; updateClause' := <origin-track-forced(!UpdateClause(updateExpressions'))> t
 
   resolve-exp-as-var(|variables):
     (t@ExpAsVar(exp, v, anonymous), (result, vars)) -> (result', vars')

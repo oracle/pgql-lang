@@ -67,7 +67,7 @@ type rules
 
   Exists(_) + InPredicate(_, _) + IsNull(exp) : BooleanTy()
 
-  Subquery(_) : UnknownTy()
+  Subquery(_) : None()
 
   ExpAsVar(exp, var, _, _) : ty
   where exp : ty
@@ -75,6 +75,8 @@ type rules
   ScalarSubquery(Subquery(NormalizedQuery(_, SelectClause(_, ExpAsVars([expAsVar|_])), _, _, _, _, _, _, _, _))) : ty
   where expAsVar : ty
     and not ( ty == VertexTy() or ty == EdgeTy() ) else error $[Scalar subquery not allowed to return a vertex or an edge] on expAsVar
+
+  ScalarSubquery(Subquery(NormalizedQuery(_, UpdateClause(_), _, _, _, _, _, _, _, _))) : None()
 
   True() + False()        : BooleanTy()
   Date(_)                 : DateTy()

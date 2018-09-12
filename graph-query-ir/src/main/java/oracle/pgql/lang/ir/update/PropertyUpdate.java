@@ -4,6 +4,7 @@
 package oracle.pgql.lang.ir.update;
 
 import oracle.pgql.lang.ir.QueryExpression;
+import oracle.pgql.lang.ir.QueryExpressionVisitor;
 import oracle.pgql.lang.ir.QueryExpression.PropertyAccess;
 
 public class PropertyUpdate {
@@ -63,5 +64,9 @@ public class PropertyUpdate {
     } else if (!valueExpression.equals(other.valueExpression))
       return false;
     return true;
+  }
+
+  public void accept(QueryExpressionVisitor v) {
+    v.visit(this);
   }
 }

@@ -124,10 +124,6 @@ public abstract class GraphQuery {
     return printPgqlString(this);
   }
 
-  public void accept(QueryExpressionVisitor v) {
-    v.visit(this);
-  }
-
   @Override
   public int hashCode() {
     return 31;
@@ -184,4 +180,6 @@ public abstract class GraphQuery {
       return false;
     return true;
   }
+
+  public abstract void accept(QueryExpressionVisitor v);
 }

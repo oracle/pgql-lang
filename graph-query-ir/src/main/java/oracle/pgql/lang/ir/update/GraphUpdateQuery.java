@@ -12,6 +12,7 @@ import oracle.pgql.lang.ir.GroupBy;
 import oracle.pgql.lang.ir.OrderBy;
 import oracle.pgql.lang.ir.Projection;
 import oracle.pgql.lang.ir.QueryExpression;
+import oracle.pgql.lang.ir.QueryExpressionVisitor;
 import oracle.pgql.lang.ir.QueryType;
 
 public class GraphUpdateQuery extends GraphQuery {
@@ -65,5 +66,9 @@ public class GraphUpdateQuery extends GraphQuery {
   @Override
   public void setProjection(Projection projection) {
     throw new UnsupportedOperationException(PROJECTION_ERROR);
+  }
+
+  public void accept(QueryExpressionVisitor v) {
+    v.visit(this);
   }
 }

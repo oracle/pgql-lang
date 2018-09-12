@@ -176,6 +176,11 @@ rules // subqueries
   is-zero-column-subquery = ?Subquery(NormalizedQuery(_, SelectClause(_, e@ExpAsVars(expAsVars)), _, _, _, _, _, _, _, _))
                            ; where( <eq> (<length> expAsVars, 0) ); !e
 
+  nabl-constraint(|ctx):
+    Subquery(NormalizedQuery(_, t@selectOrUpdateClause, _, _, _, _, _, _, _, _)) -> <fail>
+    where not ( <?SelectClause(_, _)> selectOrUpdateClause )
+    with <generate-error(|ctx, "SELECT clause expected here")> t
+
 rules // helper rules
 
   batch-generate-error(|ctx, m) = map(generate-error(|ctx, m))

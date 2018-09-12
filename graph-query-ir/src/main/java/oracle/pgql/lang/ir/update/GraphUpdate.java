@@ -6,6 +6,8 @@ package oracle.pgql.lang.ir.update;
 import java.util.List;
 import java.util.stream.Collectors;
 
+import oracle.pgql.lang.ir.QueryExpressionVisitor;
+
 public class GraphUpdate {
 
   private List<PropertyUpdate> propertyUpdates;
@@ -49,5 +51,9 @@ public class GraphUpdate {
     } else if (!propertyUpdates.equals(other.propertyUpdates))
       return false;
     return true;
+  }
+
+  public void accept(QueryExpressionVisitor v) {
+    v.visit(this);
   }
 }

@@ -56,6 +56,10 @@ import oracle.pgql.lang.ir.QueryExpression.VarRef;
 import oracle.pgql.lang.ir.QueryExpressionVisitor;
 import oracle.pgql.lang.ir.QueryPath;
 import oracle.pgql.lang.ir.QueryVertex;
+import oracle.pgql.lang.ir.SelectQuery;
+import oracle.pgql.lang.ir.update.GraphUpdate;
+import oracle.pgql.lang.ir.update.GraphUpdateQuery;
+import oracle.pgql.lang.ir.update.PropertyUpdate;
 
 public abstract class AbstractQueryExpressionVisitor implements QueryExpressionVisitor {
 
@@ -270,8 +274,12 @@ public abstract class AbstractQueryExpressionVisitor implements QueryExpressionV
   }
 
   @Override
-  public void visit(GraphQuery query) {
-    query.getProjection().accept(this);
+  public void visit(SelectQuery selectQuery) {
+    selectQuery.getProjection().accept(this);
+    visitQuery(selectQuery);
+  }
+
+  private void visitQuery(GraphQuery query) {
     query.getGraphPattern().accept(this);
     if (query.getGroupBy() != null) {
       query.getGroupBy().accept(this);
@@ -332,5 +340,22 @@ public abstract class AbstractQueryExpressionVisitor implements QueryExpressionV
   @Override
   public void visit(OrderByElem orderByElem) {
     orderByElem.getExp().accept(this);
+  }
+
+  @Override
+  public void visit(GraphUpdateQuery updateQuery) {
+    updateQuery.getGraphUpdate().accept(this);
+    visitQuery(updateQuery);
+  }
+
+  @Override
+  public void visit(GraphUpdate graphUpdate) {
+    graphUpdate.getPropertyUpdates().stream().forEach(propertyUpdate -> propertyUpdate.accept(this));
+  }
+
+  @Override
+  public void visit(PropertyUpdate propertyUpdate) {
+    propertyUpdate.getPropertyAccess().accept(this);
+    propertyUpdate.getValueExpression().accept(this);
   }
 }
