@@ -57,6 +57,7 @@ import oracle.pgql.lang.ir.QueryExpression.InPredicate.InValueList;
 import oracle.pgql.lang.ir.QueryExpression.IsNull;
 import oracle.pgql.lang.ir.QueryExpression.VarRef;
 import oracle.pgql.lang.ir.QueryPath;
+import oracle.pgql.lang.ir.QueryType;
 import oracle.pgql.lang.ir.QueryVariable;
 import oracle.pgql.lang.ir.QueryVariable.VariableType;
 import oracle.pgql.lang.ir.QueryVertex;
@@ -905,7 +906,12 @@ public class SpoofaxAstToGraphQuery {
 
   private static SelectQuery translateSubquery(TranslationContext ctx, IStrategoTerm t) throws PgqlException {
     IStrategoTerm subqueryT = t.getSubterm(POS_SUBQUERY);
-    return (SelectQuery) translate(subqueryT, ctx);
+    GraphQuery query = translate(subqueryT, ctx);
+    if (query.getQueryType() == QueryType.SELECT) {
+      return (SelectQuery) query;
+    } else {
+      return null; // error recovery (translation should succeed even for syntactically invalid queries)
+    }
   }
 
   private static boolean aggregationHasDistinct(IStrategoTerm t) {
