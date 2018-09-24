@@ -136,6 +136,6 @@ test MATCH (6) [[
 test MATCH (7) [[
 
   SELECT n
-   WHERE [[SHORTEST( (n) ->* (m) )]]
+   WHERE [[SHORTEST (n) ->* (m)]]
 
 ]] error like "Use [MATCH pattern WHERE filters] instead of [WHERE pattern mixed with filters]" at #1
