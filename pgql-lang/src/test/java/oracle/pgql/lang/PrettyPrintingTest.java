@@ -188,13 +188,13 @@ public class PrettyPrintingTest extends AbstractPgqlTest {
 
   @Test
   public void testShortest1() throws Exception {
-    String query = "SELECT n.prop MATCH SHORTEST ( (n) (-[e:lbl]-> WHERE e.prop = 123){1} (o) )";
+    String query = "SELECT n.prop MATCH SHORTEST (n) (-[e:lbl]-> WHERE e.prop = 123){1} (o)";
     checkRoundTrip(query);
   }
 
   @Test
   public void testShortest2() throws Exception {
-    String query = "SELECT ARRAY_AGG(e.weight) AS weights MATCH () -> (n), SHORTEST ( (n) -[e]->* (m) ), (m) -> (o)";
+    String query = "SELECT ARRAY_AGG(e.weight) AS weights MATCH () -> (n), SHORTEST (n) -[e]->* (m), (m) -> (o)";
     checkRoundTrip(query);
   }
 
