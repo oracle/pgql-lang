@@ -136,6 +136,6 @@ test MATCH (6) [[
 test MATCH (7) [[
 
   SELECT n
-   WHERE [[SHORTEST( (n) ->* (m) )]]
+   WHERE [[SHORTEST (n) ->* (m)]]
 
 ]] error like "Use [SELECT .. FROM MATCH( .. ) WHERE ..] or [SELECT .. FROM graphName MATCH( .. ) WHERE ..]" at #1

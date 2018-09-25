@@ -78,6 +78,6 @@ test Illegal array aggregation [[
        , AVG([[ARRAY_AGG(e.weight)]]) AS avg
        , SUM([[ARRAY_AGG(e.weight)]]) AS sum
        , ARRAY_AGG([[ARRAY_AGG(e.weight)]]) AS array
-    FROM MATCH( SHORTEST( (n) -[e]->* (m) ))
+    FROM MATCH( SHORTEST (n) -[e]->* (m) )
 
 ]] error like "Aggregate does not allow array input" at #1, #2, #3, #4, #5
