@@ -3,12 +3,14 @@
  */
 package oracle.pgql.lang;
 
+import java.util.List;
+
 /**
  * A table of data representing the result of a PGQL query. The cursor is initially positioned before the first row.
  * After the first call to the function `next()`, the cursor will be located at the first row and you can retrieve
  * the data in the columns with one of suitable get methods.
  */
-public interface ResultSet extends AutoCloseable, ResultAccess {
+public interface ResultSet<T extends ResultAccess> extends AutoCloseable, ResultAccess, Iterable<T> {
 
   /**
    * Moves the cursor forward one row from its current position.
@@ -68,7 +70,7 @@ public interface ResultSet extends AutoCloseable, ResultAccess {
   public boolean absolute(long row) throws PgqlException;
 
   /**
-   * Moves the cursor a relative number of row with repect to the current position. A negative number will move the
+   * Moves the cursor a relative number of row with respect to the current position. A negative number will move the
    * cursor backwards.
    *
    * @return <code>true</code> if the cursor is moved to a position in the ResultSet object; <code>false</code> if
@@ -83,4 +85,21 @@ public interface ResultSet extends AutoCloseable, ResultAccess {
    */
   @Override
   void close() throws PgqlException;
+
+  /**
+   * Gets the list of result elements information for this ResultSet
+   * 
+   * @return the list of result elements information
+   * @throws PgqlException if a connection error occurs or when this method is called on a closed result set
+   */
+  public List<? extends ResultElement> getResultElements() throws PgqlException;
+
+  /**
+   * Gets the number of results in this result set.
+   * 
+   * @return the number of results
+   * @throws PgqlException if a connection error occurs or when this method is called on a closed result set
+   */
+  public long getNumResults() throws PgqlException;
+  
 }
