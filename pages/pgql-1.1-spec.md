@@ -1314,6 +1314,25 @@ SELECT n.age
     OR n.age > ?
 ```
 
+In the following query, bind variables are used in `LIMIT and `OFFSET`:
+
+```sql
+  SELECT n.name, n.age
+   MATCH (n)
+ORDER BY n.age
+   LIMIT ?
+  OFFSET ?
+```
+
+The following example shows a bind variable in the position of a label:
+
+```sql
+  SELECT n.name
+   MATCH (n)
+   WHERE has_label(n, ?)
+```
+
+ 
 ## Functions
 
 PGQL has a set of built-in functions (see [Built-in Functions](#built-in-functions)), and, provides language extension through user-defined functions (see [User-Defined Functions](#user-defined-functions)).
