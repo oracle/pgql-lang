@@ -3,8 +3,6 @@
  */
 package oracle.pgql.lang;
 
-import java.util.List;
-
 /**
  * A table of data representing the result of a PGQL query. The cursor is initially positioned before the first row.
  * After the first call to the function `next()`, the cursor will be located at the first row and you can retrieve
