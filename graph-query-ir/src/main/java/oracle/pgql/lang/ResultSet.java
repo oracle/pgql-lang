@@ -85,21 +85,13 @@ public interface ResultSet<T extends ResultAccess> extends AutoCloseable, Result
    */
   @Override
   void close() throws PgqlException;
-
-  /**
-   * Gets the list of result elements information for this ResultSet
-   * 
-   * @return the list of result elements information
-   * @throws PgqlException if a connection error occurs or when this method is called on a closed result set
-   */
-  public List<? extends ResultElement> getResultElements() throws PgqlException;
-
-  /**
-   * Gets the number of results in this result set.
-   * 
-   * @return the number of results
-   * @throws PgqlException if a connection error occurs or when this method is called on a closed result set
-   */
-  public long getNumResults() throws PgqlException;
   
+  /**
+   * Retrieves the number and properties of this <code>ResultSet</code> object's columns.
+   * 
+   * @return the description of this <code>ResultSet</code> object's columns
+   * @throws PgqlException if a connection error occurs or when this method is called on a closed result set
+   */
+  public ResultSetMetaData getMetaData() throws PgqlException;
+
 }

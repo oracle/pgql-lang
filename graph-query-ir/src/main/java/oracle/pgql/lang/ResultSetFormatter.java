@@ -13,14 +13,16 @@ public class ResultSetFormatter {
   private static final long DEFAULT_PRINT_LIMIT = 1000;
 
   /**
-   * Prints the specified number of results in the ResultSet to the given PrintStream, starting from
-   * the provided index.
+   * Prints the specified number of results in the ResultSet to the given
+   * PrintStream, starting from the provided index.
    * 
    * @param resultSet <code>ResultSet</code> containing results
-   * @param printStream <code>PrintStream</code> where the results should be printed
-   * @param numResults number of results 
+   * @param printStream <code>PrintStream</code> where the results should be
+   *        printed
+   * @param numResults number of results
    * @param from index of first result that should be printed
-   * @throws PgqlException if a connection error occurs or when this method is called on a closed result set
+   * @throws PgqlException if a connection error occurs or when this method is
+   *         called on a closed result set
    */
   public static void out(ResultSet<? extends ResultAccess> resultSet, PrintStream printStream, long numResults,
       int from) throws PgqlException {
@@ -31,7 +33,8 @@ public class ResultSetFormatter {
    * Prints all the results in the ResultSet to <code>System.out</code>.
    * 
    * @param resultSet <code>ResultSet</code> containing results
-   * @throws PgqlException if a connection error occurs or when this method is called on a closed result set
+   * @throws PgqlException if a connection error occurs or when this method is
+   *         called on a closed result set
    */
   public static void out(ResultSet<? extends ResultAccess> resultSet) throws PgqlException {
     out(resultSet, System.out, DEFAULT_PRINT_LIMIT, 0, true);
@@ -39,12 +42,12 @@ public class ResultSetFormatter {
 
   private static void out(ResultSet<? extends ResultAccess> resultSet, PrintStream printStream, long numResults,
       int from, boolean truncate) throws PgqlException {
-    List<? extends ResultElement> resultElements = resultSet.getResultElements();
-    int numElements = resultElements.size();
+    ResultSetMetaData metadata = resultSet.getMetaData();
+    int numElements = metadata.getColumnCount();
 
     int[] columnWidth = new int[numElements];
     for (int i = 0; i < numElements; i++) {
-      int length = resultElements.get(i).getVarName().length();
+      int length = metadata.getColumnName(i + 1).length();
       if (length > columnWidth[i]) {
         columnWidth[i] = length;
       }
@@ -73,15 +76,25 @@ public class ResultSetFormatter {
     }
 
     String truncationMessage = "";
-    if (truncate && resultSet.getNumResults() > numResults) {
-      truncationMessage = "... truncated " + (resultSet.getNumResults() - DEFAULT_PRINT_LIMIT) + " rows ...";
-      int columnNum = 0;
-      while (totalWidth < truncationMessage.length()) {
-        if (columnWidth.length > 0) {
-          columnWidth[columnNum] += 1;
-          columnNum = (columnNum + 1) % columnWidth.length;
+    int countResults = count;
+    if (truncate) {
+      // Since we don't have resultSet.getNumResults(), we go till the end of the
+      // iterator to get the number of results
+      while (results.hasNext()) {
+        results.next();
+        countResults++;
+      }
+
+      if (countResults > numResults) {
+        truncationMessage = "... truncated " + (countResults - DEFAULT_PRINT_LIMIT) + " rows ...";
+        int columnNum = 0;
+        while (totalWidth < truncationMessage.length()) {
+          if (columnWidth.length > 0) {
+            columnWidth[columnNum] += 1;
+            columnNum = (columnNum + 1) % columnWidth.length;
+          }
+          totalWidth++;
         }
-        totalWidth++;
       }
     }
 
@@ -95,7 +108,7 @@ public class ResultSetFormatter {
       printStream.print("|"); // zero columns
     } else {
       for (int i = 0; i < numElements; i++) {
-        printElem(printStream, resultElements.get(i).getVarName(), columnWidth[i]);
+        printElem(printStream, metadata.getColumnName(i + 1), columnWidth[i]);
       }
     }
     printStream.println();
@@ -124,7 +137,7 @@ public class ResultSetFormatter {
       count++;
     }
 
-    if (truncate && resultSet.getNumResults() > numResults) {
+    if (truncate && countResults > numResults) {
       printTruncationMessage(printStream, totalWidth, truncationMessage);
     } else {
       printHorizontalLine(printStream, totalWidth);
