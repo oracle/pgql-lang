@@ -1314,7 +1314,7 @@ SELECT n.age
     OR n.age > ?
 ```
 
-In the following query, bind variables are used in `LIMIT and `OFFSET`:
+In the following query, bind variables are used in `LIMIT` and `OFFSET`:
 
 ```sql
   SELECT n.name, n.age
