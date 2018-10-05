@@ -8,9 +8,9 @@ See:
 
 ## PGQL Parser and Static Query Validator
 
-The 'master' branch of this reposistory contains a parser for PGQL with the following features:
+The 'master' branch of this repository contains a parser for PGQL with the following features:
 
- - Easy-to-understand IR: Given a query string, the parser returns an easy-to-understand intermedidate representation (IR) of the query as a set of Java objects
+ - Easy-to-understand IR: Given a query string, the parser returns an easy-to-understand intermediate representation (IR) of the query as a set of Java objects
     - see [__GraphQuery.java__](graph-query-ir/src/main/java/oracle/pgql/lang/ir/GraphQuery.java)
  - Query validation: built-in to the parser is a static query validator that provides meaningful caret-style (e.g. `^^^`) error messages:
 
@@ -69,7 +69,7 @@ The 'master' branch of this reposistory contains a parser for PGQL with the foll
 PGQL's parser can be built on Linux, macOS or Window.
 
 First install JDK 1.8 or higher and Maven 3.3.9 or higher.
-Then, follow the follows instructions:
+Then, follow these instructions:
 
 On Linux or macOS:
 
