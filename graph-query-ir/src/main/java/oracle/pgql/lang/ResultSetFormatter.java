@@ -78,8 +78,8 @@ public class ResultSetFormatter {
     String truncationMessage = "";
     int countResults = count;
     if (truncate) {
-      // Since we don't have resultSet.getNumResults(), we go till the end of the
-      // iterator to get the number of results
+      // Since there is no ResultSet API to get the number of results,
+      // we count till the end of the iterator
       while (results.hasNext()) {
         results.next();
         countResults++;
