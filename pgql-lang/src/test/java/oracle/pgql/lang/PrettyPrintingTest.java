@@ -193,7 +193,7 @@ public class PrettyPrintingTest extends AbstractPgqlTest {
 
   @Test
   public void testShortest3() throws Exception {
-    String query = "SELECT SUM(e.weight), COUNT(COUNT(e.weight)) FROM MATCH( SHORTEST ((a) -[e]->* (b))) GROUP BY SUM(e.weight) ORDER BY SUM(e.weight)";
+    String query = "SELECT SUM(e.weight), COUNT(COUNT(e.weight)) FROM MATCH( SHORTEST (a) -[e]->* (b) ) GROUP BY SUM(e.weight) ORDER BY SUM(e.weight)";
     checkRoundTrip(query);
   }
 
