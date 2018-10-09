@@ -191,6 +191,40 @@ public class PrettyPrintingTest extends AbstractPgqlTest {
     checkRoundTrip(query);
   }
 
+  @Test
+  public void testShortest3() throws Exception {
+    String query = "SELECT SUM(e.weight), COUNT(COUNT(e.weight)) FROM MATCH( SHORTEST ((a) -[e]->* (b))) GROUP BY SUM(e.weight) ORDER BY SUM(e.weight)";
+    checkRoundTrip(query);
+  }
+
+  @Test
+  public void testReferencesToSelectExpression1() throws Exception {
+    String query = "SELECT n.age * 2 AS doubleAge "//
+        + "    FROM MATCH( (n) ) "//
+        + "   WHERE doubleAge = n.age + n.age "//
+        + "GROUP BY doubleAge "//
+        + "  HAVING doubleAge = n.age * 2 "//
+        + "ORDER BY 2 * doubleAge ASC, 2 * (n.age * 2) DESC";
+    checkRoundTrip(query);
+  }
+
+  @Test
+  public void testReferencesToSelectExpression2() throws Exception {
+    String query = "SELECT n.age * 2 AS doubleAge "//
+        + "    FROM MATCH( (n) ) "//
+        + "   WHERE doubleAge = n.age + n.age "//
+        + "GROUP BY n.age * 2 "//
+        + "  HAVING doubleAge = n.age * 2 "//
+        + "ORDER BY 2* doubleAge ASC, 2 * (n.age * 2) DESC";
+    checkRoundTrip(query);
+  }
+
+  @Test
+  public void testDeprecatedDefinitionInGroupBy() throws Exception {
+    String query = "SELECT age FROM g MATCH (n) GROUP BY n.age AS age";
+    checkRoundTrip(query);
+  }
+
   private void checkRoundTrip(String query1) throws PgqlException {
 
     /*
@@ -203,8 +237,7 @@ public class PrettyPrintingTest extends AbstractPgqlTest {
     String query2 = iR1.toString();
     PgqlResult result2 = pgql.parse(query2);
     GraphQuery iR2 = result2.getGraphQuery();
-    assertTrue(result2.getErrorMessages(), iR2 != null);
-    assertTrue(result2.getErrorMessages(), result2.isQueryValid() && iR1 != null);
+    assertTrue(result2.getErrorMessages(), result2.isQueryValid() && iR2 != null);
 
     /*
      * Since pretty-printed queries are in normal form, we can now round trip endlessly. Here, we assert that when

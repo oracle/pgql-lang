@@ -1,7 +1,7 @@
 module SolutionModifiers
 
 imports
-  
+
   Names
   Literals
   Expressions
