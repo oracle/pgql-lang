@@ -272,3 +272,10 @@ rules // IN
   type-to-string = ?Date(_); !"Date"
   type-to-string = ?Time(_); !"Time"
   type-to-string = ?Timestamp(_); !"Timestamp"
+
+rules // UPDATE
+
+  // e.g. UPDATE x.prop = 123 ... GROUP BY x.prop
+  nabl-constraint(|ctx):
+    UpdateExp(t@VarRef(_, _), _)-> <fail>
+    with <generate-error(|ctx, "Cannot update property that is grouped by")> t

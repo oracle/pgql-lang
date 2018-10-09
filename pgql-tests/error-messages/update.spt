@@ -16,3 +16,11 @@ test Unresolved variable in SELECT [[
    WHERE EXISTS ( [[UPDATE x.prop = 3]] FROM MATCH( (x) ) )
 
 ]] error like "SELECT clause expected here" at #1
+
+test Update property that is grouped by [[
+
+    UPDATE [[n.prop]] = 123
+      FROM g MATCH ( (n) )
+  GROUP BY n.prop AS nProp
+
+]] error like "Cannot update property that is grouped by" at #1
