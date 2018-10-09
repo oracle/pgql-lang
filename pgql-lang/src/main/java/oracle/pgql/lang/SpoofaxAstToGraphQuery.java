@@ -199,7 +199,6 @@ public class SpoofaxAstToGraphQuery {
     GroupBy groupBy = getGroupBy(ctx, groupByT);
 
     // SELECT or UPDATE
-
     Projection projection = null;
     GraphUpdate graphUpdate = null;
     IStrategoTerm selectOrUpdateT = ast.getSubterm(POS_SELECT_OR_UPDATE);
@@ -260,7 +259,7 @@ public class SpoofaxAstToGraphQuery {
       selectElems = new ArrayList<>();
     } else {
       projectionElemsT = projectionElemsT.getSubterm(0);
-      selectElems = getExpAsVars(ctx, projectionElemsT);
+      selectElems = getExpAsVars(ctx, projectionElemsT, true);
     }
     projection = new Projection(distinct, selectElems);
     return projection;
@@ -555,7 +554,7 @@ public class SpoofaxAstToGraphQuery {
     switch (consName) {
       case "Some": // explicit GROUP BY
         IStrategoTerm groupByElemsT = getList(groupByT);
-        return new GroupBy(getExpAsVars(ctx, groupByElemsT));
+        return new GroupBy(getExpAsVars(ctx, groupByElemsT, false));
       case "CreateOneGroup": // implicit GROUP BY (e.g. SELECT has aggregation)
         return new GroupBy(Collections.emptyList());
       case "None": // no GROUP BY
@@ -565,7 +564,9 @@ public class SpoofaxAstToGraphQuery {
     }
   }
 
-  private static List<ExpAsVar> getExpAsVars(TranslationContext ctx, IStrategoTerm expAsVarsT) throws PgqlException {
+  private static List<ExpAsVar> getExpAsVars(TranslationContext ctx, IStrategoTerm expAsVarsT,
+      boolean isContainedInSelectClause)
+      throws PgqlException {
     List<ExpAsVar> expAsVars = new ArrayList<>(expAsVarsT.getSubtermCount());
     for (IStrategoTerm expAsVarT : expAsVarsT) {
       QueryExpression exp = translateExp(expAsVarT.getSubterm(POS_EXPASVAR_EXP), ctx);
@@ -574,7 +575,7 @@ public class SpoofaxAstToGraphQuery {
           .equals("Anonymous");
       IStrategoTerm originPosition = expAsVarT.getSubterm(POS_EXPASVAR_ORIGIN_OFFSET);
 
-      ExpAsVar expAsVar = new ExpAsVar(exp, varName, anonymous);
+      ExpAsVar expAsVar = new ExpAsVar(exp, varName, anonymous, isContainedInSelectClause);
       expAsVars.add(expAsVar);
       ctx.addVar(expAsVar, varName, originPosition);
     }
