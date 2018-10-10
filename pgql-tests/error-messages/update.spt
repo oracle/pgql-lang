@@ -24,3 +24,27 @@ test Update property that is grouped by [[
   GROUP BY n.prop AS nProp
 
 ]] error like "Cannot update property that is grouped by" at #1
+
+test Update property value to vertex or edge (1) [[
+
+  UPDATE n.prop = [[n]]
+       , n.prop = [[m]]
+       , n.prop = [[e]]
+    FROM g MATCH ( (n) -[e]-> (m) )
+
+]] error like "Cannot set the value of a property to a vertex or an edge" at #1, #2, #3
+
+test Update property value to vertex or edge (2) [[
+
+  UPDATE n.prop = ( SELECT [[x FROM]] MATCH ( (x) ) LIMIT 1 )
+    FROM g MATCH ( (n) -[e]-> (m) )
+
+]] error like "Scalar subquery not allowed to return a vertex or an edge" at #1
+
+test Update property value to vertex or edge (3) [[
+
+  UPDATE n.prop = [[n]]
+    FROM g MATCH ( (n) )
+  GROUP BY n
+
+]] error like "Cannot set the value of a property to a vertex or an edge" at #1

@@ -91,3 +91,7 @@ type rules
     and not ty == VertexTy() else error $[Cannot order by vertex] on exp
     and not ty == EdgeTy() else error $[Cannot order by edge] on exp
     and not ty == ArrayTy() else error $[Cannot order by array] on exp
+
+  UpdateExp(_, exp) : ty
+  where exp : ty
+    and not ( ty == VertexTy() or ty == EdgeTy() ) else error $[Cannot set the value of a property to a vertex or an edge] on exp
