@@ -23,7 +23,7 @@ test Update property that is grouped by [[
       FROM g MATCH ( (n) )
   GROUP BY n.prop AS nProp
 
-]] error like "Cannot update property that is grouped by" at #1
+]] error like "Cannot set a property that is grouped by" at #1
 
 test Update property value to vertex or edge (1) [[
 

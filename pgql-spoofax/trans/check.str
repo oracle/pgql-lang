@@ -278,7 +278,7 @@ rules // UPDATE
   // e.g. UPDATE x.prop = 123 ... GROUP BY x.prop
   nabl-constraint(|ctx):
     UpdateExp(t@VarRef(_, _), _)-> <fail>
-    with <generate-error(|ctx, "Cannot update property that is grouped by")> t
+    with <generate-error(|ctx, "Cannot set a property that is grouped by")> t
 
   // updating a property twice, e.g. UPDATE x.prop = ..., x.prop = ...
   nabl-constraint(|ctx):
