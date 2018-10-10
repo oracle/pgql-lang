@@ -176,6 +176,11 @@ rules // subqueries
   is-zero-column-subquery = ?Subquery(NormalizedQuery(_, SelectClause(_, e@ExpAsVars(expAsVars)), _, _, _, _, _, _, _, _))
                            ; where( <eq> (<length> expAsVars, 0) ); !e
 
+  nabl-constraint(|ctx):
+    Subquery(NormalizedQuery(_, t@selectOrUpdateClause, _, _, _, _, _, _, _, _)) -> <fail>
+    where not ( <?SelectClause(_, _)> selectOrUpdateClause )
+    with <generate-error(|ctx, "SELECT clause expected here")> t
+
 rules // helper rules
 
   batch-generate-error(|ctx, m) = map(generate-error(|ctx, m))
@@ -267,3 +272,22 @@ rules // IN
   type-to-string = ?Date(_); !"Date"
   type-to-string = ?Time(_); !"Time"
   type-to-string = ?Timestamp(_); !"Timestamp"
+
+rules // UPDATE
+
+  // e.g. UPDATE x.prop = 123 ... GROUP BY x.prop
+  nabl-constraint(|ctx):
+    UpdateExp(t@VarRef(_, _), _)-> <fail>
+    with <generate-error(|ctx, "Cannot set a property that is grouped by")> t
+
+  // updating a property twice, e.g. UPDATE x.prop = ..., x.prop = ...
+  nabl-constraint(|ctx):
+    UpdateClause(updateExps) -> <fail>
+    with propertyRefs := <map(?UpdateExp(<id>, _))> updateExps
+       ; duplicatePropertyRefs := <filter(is-elem-contained-more-than-once(|propertyRefs))> propertyRefs
+       ; <batch-generate-error(|ctx, "Property is set multiple times")> duplicatePropertyRefs
+
+  is-elem-contained-more-than-once(|elems):
+    elem -> <id>
+    where duplicates := <filter(?elem)> elems
+        ; <gt> (<length>, 1)

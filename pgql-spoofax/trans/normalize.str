@@ -367,8 +367,8 @@ rules
 
   // pgql 1.2
   norm-query(|error-messages, variable-counter):
-    Query(commonPathExpressions, selectClause, FromClause(GraphMatch(optionalGraphName, graphPattern)), whereClause, groupByClause, havingClause, orderByClause, limitOffsets) ->
-      <norm-query(|error-messages, "v1.2", variable-counter)> (commonPathExpressions, selectClause, optionalGraphName, graphPattern', groupByClause, havingClause, orderByClause, limitOffsets)
+    Query(commonPathExpressions, selectOrUpdateClause, FromClause(GraphMatch(optionalGraphName, graphPattern)), whereClause, groupByClause, havingClause, orderByClause, limitOffsets) ->
+      <norm-query(|error-messages, "v1.2", variable-counter)> (commonPathExpressions, selectOrUpdateClause, optionalGraphName, graphPattern', groupByClause, havingClause, orderByClause, limitOffsets)
     with <?GraphPattern(vertices, connections, Constraints(inlined-constraints))> graphPattern
        ; non-inlined-constraints := <?Some(WhereClause(<id>)); ![<id>] + ?None(); ![]> whereClause
        ; constraints := Constraints(<conc> (inlined-constraints,  non-inlined-constraints))
@@ -376,8 +376,8 @@ rules
 
   // pgql 1.1
   norm-query(|error-messages, variable-counter):
-    Pgql11Query(commonPathExpressions, selectClause, fromClause, graphPattern, whereClause, groupByClause, havingClause, orderByClause, limitOffsets) ->
-      <norm-query(|error-messages, "v1.1", variable-counter)> (commonPathExpressions, selectClause, optionalGraphName, graphPattern', groupByClause, havingClause, orderByClause, limitOffsets)
+    Pgql11Query(commonPathExpressions, selectOrUpdateClause, fromClause, graphPattern, whereClause, groupByClause, havingClause, orderByClause, limitOffsets) ->
+      <norm-query(|error-messages, "v1.1", variable-counter)> (commonPathExpressions, selectOrUpdateClause, optionalGraphName, graphPattern', groupByClause, havingClause, orderByClause, limitOffsets)
     with optionalGraphName := <?None() + ?Some(Pgql11FromClause(graphName)); !Some(GraphName(graphName))> fromClause
        ; <?GraphPattern(vertices, connections, Constraints(inlined-constraints))> graphPattern
        ; non-inlined-constraints := <?Some(WhereClause(<id>)); ![<id>] + ?None(); ![]> whereClause
@@ -392,8 +392,8 @@ rules
          ; havingClause := None()
 
   norm-query(|error-messages, version, variable-counter):
-    (commonPathExpressions, selectClause, optionalGraphName, graphPattern, groupByClause, havingClause, orderByClause, limitOffsets) ->
-        NormalizedQuery(commonPathExpressions', selectClause', optionalGraphName, graphPattern, groupByClause', havingClause, orderByElems, limitOffsets', error-messages, version)
+    (commonPathExpressions, selectOrUpdateClause, optionalGraphName, graphPattern, groupByClause, havingClause, orderByClause, limitOffsets) ->
+        NormalizedQuery(commonPathExpressions', selectOrUpdateClause', optionalGraphName, graphPattern, groupByClause', havingClause, orderByElems, limitOffsets', error-messages, version)
     with
       commonPathExpressions' := <map(norm-common-path-expression(|variable-counter)); !CommonPathExpressions(<id>)> commonPathExpressions;
 
@@ -401,9 +401,9 @@ rules
       expAsGroupVars' := <map(norm-ExpAsVar)> expAsGroupVars;
       groupByClause' := <?Some(_); !Some(GroupByClause(expAsGroupVars')) <+ !None()> groupByClause;
 
-      selectClause' := <norm-ExpAsVars(|expAsGroupVars') <+ norm-select-star(|graphPattern, expAsGroupVars')> selectClause;
+      selectOrUpdateClause' := <?UpdateClause(_) + ?SelectClause(_, _); (norm-ExpAsVars(|expAsGroupVars') <+ norm-select-star(|graphPattern, expAsGroupVars'))> selectOrUpdateClause;
 
-      expAsSelectVars := <?SelectClause(_, ExpAsVars(<id>))> selectClause';
+      expAsSelectVars := <?UpdateClause(_); ![] + ?SelectClause(_, ExpAsVars(<id>))> selectOrUpdateClause';
       allExpAsVars := <conc> (expAsGroupVars', <try(?Star(); ![])> expAsSelectVars);
       orderByElems := <try(norm-orderBy(|allExpAsVars, version))> orderByClause;
 

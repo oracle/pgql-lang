@@ -930,7 +930,7 @@ public interface QueryExpression {
 
     class Exists extends Subquery implements Function {
 
-      public Exists(GraphQuery query) {
+      public Exists(SelectQuery query) {
         super(query);
       }
 
@@ -1647,17 +1647,17 @@ public interface QueryExpression {
 
   abstract class Subquery implements QueryExpression {
 
-    private GraphQuery query;
+    private SelectQuery query;
 
-    public Subquery(GraphQuery query) {
+    public Subquery(SelectQuery query) {
       this.query = query;
     }
 
-    public GraphQuery getQuery() {
+    public SelectQuery getQuery() {
       return query;
     }
 
-    public void setQuery(GraphQuery query) {
+    public void setQuery(SelectQuery query) {
       this.query = query;
     }
 
@@ -1690,7 +1690,7 @@ public interface QueryExpression {
 
   class ScalarSubquery extends Subquery {
 
-    public ScalarSubquery(GraphQuery query) {
+    public ScalarSubquery(SelectQuery query) {
       super(query);
     }
 

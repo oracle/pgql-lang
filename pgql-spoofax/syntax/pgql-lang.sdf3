@@ -25,7 +25,7 @@ context-free syntax
   Query.Query =
     <
       <{CommonPathExpression "\n"}*>
-      <SelectClause>
+      <SelectOrUpdateClause>
       <FromClause>
       <WhereClause?>
       <GroupByClause?>
@@ -41,6 +41,12 @@ context-free syntax
   CommonPathExpression.CommonPathExpression = <PATH <IDENTIFIER> <AsignSymbol> <PathPattern> <WhereClause?>> {case-insensitive}
   AsignSymbol.Pgql11AsignSymbol = <AS>  {case-insensitive}
 
+  SelectOrUpdateClause = SelectClause
+  SelectOrUpdateClause = UpdateClause
+
   SelectClause.SelectClause = <SELECT <Distinct?> <Projection>> {case-insensitive}
   Projection.ExpAsVars = <<{ExpAsVar ", "}+>>
   Projection.Star = <*>
+
+  UpdateClause.UpdateClause = <UPDATE <{UpdateExp ", "}+>> {case-insensitive}
+  UpdateExp.UpdateExp = <<PropRef> = <Exp>>

@@ -4,6 +4,7 @@
 package oracle.pgql.lang;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
 
 import org.junit.Rule;
@@ -45,5 +46,13 @@ public class BugFixTest extends AbstractPgqlTest {
   public void noErrorOnSelectStarSingleVertex() throws Exception {
     String query = "SELECT * MATCH (n)";
     assertTrue(pgql.parse(query).isQueryValid());
+  }
+
+  @Test
+  public void testUpdate() throws Exception {
+    String query = "UPDATE [[n.prop]] = 123 " + //
+        "FROM g MATCH (n) " + //
+        "GROUP BY n.prop AS nProp";
+    assertFalse(pgql.parse(query).isQueryValid());
   }
 }
