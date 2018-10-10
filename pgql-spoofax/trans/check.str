@@ -279,3 +279,15 @@ rules // UPDATE
   nabl-constraint(|ctx):
     UpdateExp(t@VarRef(_, _), _)-> <fail>
     with <generate-error(|ctx, "Cannot update property that is grouped by")> t
+
+  // updating a property twice, e.g. UPDATE x.prop = ..., x.prop = ...
+  nabl-constraint(|ctx):
+    UpdateClause(updateExps) -> <fail>
+    with propertyRefs := <map(?UpdateExp(<id>, _))> updateExps
+       ; duplicatePropertyRefs := <filter(is-elem-contained-more-than-once(|propertyRefs))> propertyRefs
+       ; <batch-generate-error(|ctx, "Property is set multiple times")> duplicatePropertyRefs
+
+  is-elem-contained-more-than-once(|elems):
+    elem -> <id>
+    where duplicates := <filter(?elem)> elems
+        ; <gt> (<length>, 1)

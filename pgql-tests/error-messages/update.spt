@@ -48,3 +48,10 @@ test Update property value to vertex or edge (3) [[
   GROUP BY n
 
 ]] error like "Cannot set the value of a property to a vertex or an edge" at #1
+
+test Update property multiple times [[
+
+  UPDATE [[n.prop]] = 1, [[n.prop]] = 2
+    FROM g MATCH ( (n) )
+
+]] error like "Property is set multiple times" at #1, #2
