@@ -254,8 +254,7 @@ public class SpoofaxAstToGraphQuery {
     if (projectionElemsT.getTermType() == IStrategoTerm.APPL
         && ((IStrategoAppl) projectionElemsT).getConstructor().getName().equals("Star")) {
       // GROUP BY in combination with SELECT *. Even though the parser will generate an error for it, the
-      // translation to
-      // GraphQuery should succeed (error recovery)
+      // translation to GraphQuery should succeed (error recovery)
       selectElems = new ArrayList<>();
     } else {
       projectionElemsT = projectionElemsT.getSubterm(0);
@@ -272,12 +271,15 @@ public class SpoofaxAstToGraphQuery {
     List<PropertyUpdate> propertyUpdates = new ArrayList<>();
     for (IStrategoTerm propertyUpdateT : propertyUpdatesT) {
       IStrategoTerm propertyAccessT = propertyUpdateT.getSubterm(POS_PROPERTY_UPDATE_PROPERTY_REFERENCE);
-      QueryExpression.PropertyAccess propertyAccess = (PropertyAccess) translateExp(propertyAccessT, ctx);
+      QueryExpression propertyAccess = translateExp(propertyAccessT, ctx);
+      if (!(propertyAccess instanceof PropertyAccess)) {
+        continue; // error recovery for UPDATE n.prop .... GROUP BY n.prop. Even though the parser will generate an
+      }
 
       IStrategoTerm valueExpressionT = propertyUpdateT.getSubterm(POS_PROPERTY_UPDATE_VALUE_EXPRESSION);
       QueryExpression valueExpression = translateExp(valueExpressionT, ctx);
 
-      propertyUpdates.add(new PropertyUpdate(propertyAccess, valueExpression));
+      propertyUpdates.add(new PropertyUpdate((PropertyAccess) propertyAccess, valueExpression));
     }
     graphUpdate = new GraphUpdate(propertyUpdates);
     return graphUpdate;
