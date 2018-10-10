@@ -17,7 +17,7 @@ test Unresolved variable in SELECT [[
 
 ]] error like "SELECT clause expected here" at #1
 
-test Update property that is grouped by [[
+test Set a property that is grouped by [[
 
     UPDATE [[n.prop]] = 123
       FROM g MATCH ( (n) )
@@ -49,7 +49,7 @@ test Update property value to vertex or edge (3) [[
 
 ]] error like "Cannot set the value of a property to a vertex or an edge" at #1
 
-test Update property multiple times [[
+test Set a property multiple times [[
 
   UPDATE [[n.prop]] = 1, [[n.prop]] = 2
     FROM g MATCH ( (n) )
