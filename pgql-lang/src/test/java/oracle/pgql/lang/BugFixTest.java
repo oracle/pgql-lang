@@ -55,4 +55,13 @@ public class BugFixTest extends AbstractPgqlTest {
         "GROUP BY n.prop AS nProp";
     assertFalse(pgql.parse(query).isQueryValid());
   }
+
+  @Test
+  public void orderByEdgeIsPermittedOnlyInPgql10() throws Exception {
+    String queryPgql10 = "SELECT 1 WHERE () -[e]-> () ORDER BY e";
+    assertTrue(pgql.parse(queryPgql10).isQueryValid());
+
+    String queryPgql11 = "SELECT 1 MATCH () -[e]-> () ORDER BY e";
+    assertFalse(pgql.parse(queryPgql11).isQueryValid());
+  }
 }
