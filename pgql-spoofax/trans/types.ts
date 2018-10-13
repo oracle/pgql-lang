@@ -67,6 +67,8 @@ type rules
 
   Exists(_) + InPredicate(_, _) + IsNull(exp) : BooleanTy()
 
+  IfElse(_, _, _): UnknownTy()
+
   Subquery(_) : UnknownTy()
 
   ExpAsVar(exp, var, _, _) : ty
