@@ -4,3 +4,5 @@ _site/
 _pdf
 .idea/
 *.class
+graph-query-ir/.gitignore
+pgql-lang/.gitignore
