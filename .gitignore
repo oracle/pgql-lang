@@ -6,3 +6,4 @@ _pdf
 *.class
 graph-query-ir/.gitignore
 pgql-lang/.gitignore
+pgql-spoofax/.gitignore
