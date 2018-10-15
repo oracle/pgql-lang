@@ -174,3 +174,12 @@ test Pass variable from SELECT to GROUP BY and back to SELECT [[
   GROUP BY [[nAge]]
 
 ]] resolve #1 to #2
+
+test Resolve variables in property references (but not other variables) in ORDER BY to FROM before SELECT [[
+
+   SELECT n.name AS [[n]]
+     FROM MATCH ( ([[n]]) )
+  ORDER BY [[n]].age, [[n]]
+
+]] resolve #3 to #2
+   resolve #4 to #1

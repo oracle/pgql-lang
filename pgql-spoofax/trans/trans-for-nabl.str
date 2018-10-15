@@ -58,8 +58,10 @@ rules
 
        // GROUP BY
        ; if (!groupBy; ?Some(_)) + (!selectOrUpdateClause; create-one-group(|variables'')) + (!having; ?Some(_))
-         then (groupBy', variables''') := <resolve-group-by(|variables'', expAsVars)> groupBy
-         else (groupBy', variables''') := (groupBy, variables'')
+         then hasGroupBy := True()
+            ; (groupBy', variables''') := <resolve-group-by(|variables'', expAsVars)> groupBy
+         else hasGroupBy := False()
+            ; (groupBy', variables''') := (groupBy, variables'')
          end
 
        // SELECT / UPDATE
@@ -69,7 +71,7 @@ rules
        ; having' := <resolve-having(|variables''', variables'''')> having // having resolves to GROUP BY variables first, then to SELECT variables
 
        // ORDER BY
-       ; orderBy' := <resolve-var-refs(|variables''''); alltd(optimize-order-by)> orderBy // ORDER BY resolves to SELECT variables first, then to GROUP BY variables
+       ; orderBy' := <resolve-prop-refs(|variables'', hasGroupBy); resolve-var-refs(|variables''''); alltd(optimize-order-by)> orderBy // ORDER BY resolves to SELECT variables first (except in case of a VarRef in a PropRef, which is resolved to FROM first), then to GROUP BY variables
 
   path-with-at-most-one-binding:
     t@Path(_, _, _, quantifier, _, _, _, _) -> t
@@ -228,6 +230,17 @@ rules
   replace-ref-with-exp(|expAsVars):
     VarRef(v) -> exp
     where ExpAsVar(exp, _, _) := <filter(?ExpAsVar(_, v, NonAnonymous())); Hd> expAsVars
+
+  resolve-prop-refs(|variables, hasGroupBy):
+    t -> t'
+    with if True() := hasGroupBy
+         then t' := t
+         else t' := <alltd-in-outer-query-outside-aggregation(resolve-prop-ref(|variables))> t
+         end
+
+  resolve-prop-ref(|variables):
+    t@PropRef(varRef, prop) -> PropRef(varRef', prop)
+    with varRef' := <resolve-var-ref(|variables)> varRef
 
   /*
      if the query has no GROUP BY but there are one ore more aggregations in the SELECT, then we generate an
