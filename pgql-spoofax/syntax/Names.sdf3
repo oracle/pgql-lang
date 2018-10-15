@@ -10,35 +10,37 @@ template options
 
 context-free syntax
 
-  VarDef.VarDef = IDENTIFIER
-  VarRef.VarRef = IDENTIFIER
+  VarDef.VarDef = REGULAR-IDENTIFIER
+  VarRef.VarRef = REGULAR-IDENTIFIER
   VarAssign.VarAssign = < AS <VarDef>> {case-insensitive}
   PropRef.PropRef = <<VarRef>.<Prop>>
 
   Prop = Identifier
 
-  Identifier = IDENTIFIER
-  Identifier = DELIMITED-IDENTIFIER
+  Identifier.Identifier = IDENTIFIER
 
 lexical syntax
 
-  IDENTIFIER = [a-zA-Z][a-zA-Z0-9\_]*
-  FUNCTION-NAME = IDENTIFIER
+  IDENTIFIER = REGULAR-IDENTIFIER | DELIMITED-IDENTIFIER
 
-  DELIMITED-IDENTIFIER             = '"' (~[\"\n\\] | DELIMITED-IDENTIFIER-ESCAPE-CHAR)* '"'
-  DELIMITED-IDENTIFIER-ESCAPE-CHAR = ( "\\" [tbnrf\\\"\'] ) | ( '""' )
+  REGULAR-IDENTIFIER = [a-zA-Z][a-zA-Z0-9\_]*
+
+  DELIMITED-IDENTIFIER             = '"' (~[\"] | DELIMITED-IDENTIFIER-ESCAPE-CHAR)* '"'
+  DELIMITED-IDENTIFIER-ESCAPE-CHAR = '\\"' | '""'
 
   DATA-TYPE            = [a-zA-Z][a-zA-Z0-9\_\ ]*
 
+  FUNCTION-NAME = REGULAR-IDENTIFIER
+
 lexical restrictions // greedy matching
 
-  IDENTIFIER -/- [a-zA-Z0-9\_]
+  REGULAR-IDENTIFIER -/- [a-zA-Z0-9\_]
 
 lexical syntax // reserved keywords
 
-  IDENTIFIER = 'true' {reject}
-  IDENTIFIER = 'false' {reject}
-  IDENTIFIER = 'null' {reject}
+  REGULAR-IDENTIFIER = 'true' {reject}
+  REGULAR-IDENTIFIER = 'false' {reject}
+  REGULAR-IDENTIFIER = 'null' {reject}
 
   FUNCTION-NAME = 'count' {reject}
   FUNCTION-NAME = 'min' {reject}

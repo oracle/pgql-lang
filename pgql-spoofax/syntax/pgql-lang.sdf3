@@ -38,7 +38,7 @@ context-free syntax
 
   Query = Legacy10Query
 
-  CommonPathExpression.CommonPathExpression = <PATH <IDENTIFIER> <AsignSymbol> <PathPattern> <WhereClause?>> {case-insensitive}
+  CommonPathExpression.CommonPathExpression = <PATH <REGULAR-IDENTIFIER> <AsignSymbol> <PathPattern> <WhereClause?>> {case-insensitive}
   AsignSymbol.Pgql11AsignSymbol = <AS>  {case-insensitive}
 
   SelectOrUpdateClause = SelectClause

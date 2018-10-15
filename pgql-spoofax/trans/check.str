@@ -244,7 +244,7 @@ rules // temporary limitation
     where <collect-in-outer-query(?Path(_, _, _, _, _, _, _, _)); not(?[])> connections
     with <generate-error(|ctx, "Nested regular expressions not yet supported")> t
 
-rules // datetimes
+rules // literals
 
   external is-valid-datetime(|)
 
@@ -252,6 +252,21 @@ rules // datetimes
     datetime-> <fail>
     where <(?Date(_) + ?Time(_) + ?Timestamp(_)); is-valid-datetime; ?ErrorMessage(_, m)> datetime
     with <generate-error(|ctx, m)> datetime
+
+  nabl-constraint(|ctx):
+    t@NormalizedQuery(_, _, _, _, _, _, _, _, _, pgqlVersion) -> <fail>
+    where not ( <?"v1.0" + ?"v1.1"> pgqlVersion )
+    with <alltd-in-outer-query(check-illegal-java-escaping(|ctx))> t
+
+  check-illegal-java-escaping(|ctx):
+    t@String(s) -> <fail>
+    where <is-substring(!"\\'")> s
+    with <generate-error(|ctx, "Use '' instead of \\' to escape a single quote")> t
+
+  check-illegal-java-escaping(|ctx):
+    t@Identifier(identifier) -> <fail>
+    where <is-substring(!"\\\"")> identifier
+    with <generate-error(|ctx, "Use \"\" instead of \\\" to escape a double quote")> t
 
 rules // IN
 

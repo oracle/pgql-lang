@@ -76,3 +76,18 @@ test Invalid timestamp [[
    error like "Not a valid timestamp: Text '2018-13-13' could not be parsed at index 10. Examples of valid timestamps are '2018-01-15 16:30:00' and '2018-01-15 15:30:00+01:00'." at #2
    error like "Not a valid timestamp: Text '' could not be parsed at index 0. Examples of valid timestamps are '2018-01-15 16:30:00' and '2018-01-15 15:30:00+01:00'." at #3
    error like "Not a valid timestamp: Text '2018-01-15T16:30:00' could not be parsed at index 10. Examples of valid timestamps are '2018-01-15 16:30:00' and '2018-01-15 15:30:00+01:00'." at #4
+
+test Invalid escaping in string literal [[
+
+  SELECT [['single\'quote']] AS v
+    FROM MATCH ( (n) )
+
+]] error like "Use '' instead of \' to escape a single quote" at #1
+
+test Invalid escaping in identifier [[
+
+  SELECT n
+    FROM [["double\"quote"]] MATCH ( (n:[["double\"quote"]]) )
+   WHERE n.[["double\"quote"]]
+
+]] error like "instead of \" to escape a double quote" at #1, #2, #3

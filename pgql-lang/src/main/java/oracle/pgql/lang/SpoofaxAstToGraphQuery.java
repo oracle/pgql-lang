@@ -669,6 +669,7 @@ public class SpoofaxAstToGraphQuery {
         double d = Double.parseDouble(getString(t));
         return new QueryExpression.Constant.ConstDecimal(d);
       case "String":
+      case "Identifier": // identifier "hello" in (n:hello) becomes string 'hello' in has_label(n, 'hello')
         String s = getString(t);
         return new QueryExpression.Constant.ConstString(s);
       case "True":

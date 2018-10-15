@@ -12,9 +12,9 @@ import org.spoofax.interpreter.terms.IStrategoTerm;
 import org.strategoxt.lang.Context;
 import org.strategoxt.lang.Strategy;
 
-public class unescape_string_literal_0_0 extends Strategy {
+public class unescape_legacy_string_literal_0_0 extends Strategy {
 
-	public static unescape_string_literal_0_0 instance = new unescape_string_literal_0_0();
+	public static unescape_legacy_string_literal_0_0 instance = new unescape_legacy_string_literal_0_0();
 
 	public static final CharSequenceTranslator UNESCAPE_PGQL_STRING_LITERAL = new AggregateTranslator(
 			new CharSequenceTranslator[] { //

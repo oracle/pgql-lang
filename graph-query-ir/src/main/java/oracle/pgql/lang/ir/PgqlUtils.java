@@ -149,20 +149,8 @@ public class PgqlUtils {
     if (identifier.matches("^[a-zA-Z0-9_]*$")) {
       return identifier;
     } else {
-      return "\"" + escape(identifier) //
-          .replace("\"", "\\\"") //
-          + "\"";
+      return "\"" + identifier.replace("\"", "\"\"") + "\"";
     }
-  }
-
-  private static String escape(String s) {
-    return s //
-        .replace("\\", "\\\\") //
-        .replace("\t", "\\t") //
-        .replace("\n", "\\n") //
-        .replace("\r", "\\r") //
-        .replace("\b", "\\b") //
-        .replace("\f", "\\f");
   }
 
   protected static String printPgqlString(GraphQuery graphQuery) {
@@ -552,9 +540,7 @@ public class PgqlUtils {
   }
 
   protected static String printLiteral(String val) {
-    return "'" + escape(val) //
-        .replace("'", "\\'") //
-        + "'";
+    return "'" + val.replace("'", "''") + "'";
   }
 
   protected static String printLiteral(LocalDate val) {

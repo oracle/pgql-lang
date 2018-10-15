@@ -130,9 +130,8 @@ public class PrettyPrintingTest extends AbstractPgqlTest {
   }
 
   @Test
-  public void testStringEscaping() throws Exception {
-    String query = "SELECT '\\'\"\\\"\\\\\\t\\n\\r\\b\\f'" //
-        + "FROM MATCH( () )";
+  public void testStringEscapingPgql11() throws Exception {
+    String query = "SELECT '\\'\"\\\"\\\\\\t\\n\\r\\b\\f' FROM g MATCH ()";
     checkRoundTrip(query);
   }
 
@@ -155,11 +154,11 @@ public class PrettyPrintingTest extends AbstractPgqlTest {
   }
 
   @Test
-  public void testIdentifierEscaping() throws Exception {
+  public void testIdentifierEscapingPgql11() throws Exception {
     String identifier = "\"\"";
     String escapedIdentifier = "\"\\\"\"\"\"";
-    String query = "SELECT n." + escapedIdentifier + " FROM " + escapedIdentifier + " MATCH( (n:" + escapedIdentifier
-        + "))";
+    String query = "SELECT n." + escapedIdentifier + " FROM " + escapedIdentifier + " MATCH (n:" + escapedIdentifier
+        + ")";
     GraphQuery graphQuery = pgql.parse(query).getGraphQuery();
 
     PropertyAccess propertyAccess = (PropertyAccess) graphQuery.getProjection().getElements().get(0).getExp();
