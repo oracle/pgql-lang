@@ -53,6 +53,11 @@ context-free syntax
   Exp.InPredicate = <<Exp> <Not?> IN <ArrayLiteral>> {left, case-insensitive}
   Not.NOT = <NOT> {case-insensitive}
 
+  Exp.SimpleCase  = <CASE <Exp> <WhenClause+> <ElseClause?> END> {case-insensitive}
+  Exp.SearchedCase = <CASE <WhenClause+> <ElseClause?> END> {case-insensitive}
+  WhenClause.WhenClause = <WHEN <Exp> THEN <Exp>> {case-insensitive}
+  ElseClause.ElseClause = <ELSE <Exp>> {case-insensitive}
+
 context-free syntax // function calls
 
   Exp.FunctionCall = <<PackageName?><FUNCTION-NAME>(<{Exp ", "}*>)> {case-insensitive, avoid}

@@ -35,6 +35,7 @@ import oracle.pgql.lang.ir.QueryExpression.Constant.ConstTimestamp;
 import oracle.pgql.lang.ir.QueryExpression.Constant.ConstTimestampWithTimezone;
 import oracle.pgql.lang.ir.QueryExpression.ExtractExpression;
 import oracle.pgql.lang.ir.QueryExpression.FunctionCall;
+import oracle.pgql.lang.ir.QueryExpression.IfElse;
 import oracle.pgql.lang.ir.QueryExpression.InPredicate;
 import oracle.pgql.lang.ir.QueryExpression.InPredicate.InValueList;
 import oracle.pgql.lang.ir.QueryExpression.IsNull;
@@ -257,6 +258,13 @@ public abstract class AbstractQueryExpressionVisitor implements QueryExpressionV
   @Override
   public void visit(IsNull isNull) {
     isNull.getExp().accept(this);
+  }
+
+  @Override
+  public void visit(IfElse ifElse) {
+    ifElse.getExp1().accept(this);
+    ifElse.getExp2().accept(this);
+    ifElse.getExp3().accept(this);
   }
 
   @Override

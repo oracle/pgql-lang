@@ -34,7 +34,7 @@ context-free syntax
   Date.Date                 = <DATE <STRING>> {case-insensitive}
   Time.Time                 = <TIME <STRING>> {case-insensitive}
   Timestamp.Timestamp       = <TIMESTAMP <STRING>> {case-insensitive}
-  Literal.Null              = <null> {case-insensitive} // not valid syntax; just here so that we can generate an appropriate error to use IS NULL or IS NOT NULL instead
+  Literal.IllegalNull       = <null> {case-insensitive} // not valid syntax; just here so that we can generate an appropriate error to use IS NULL or IS NOT NULL instead
   Array.Array               = <(<{Literal ", "}+>)>
 
 lexical syntax

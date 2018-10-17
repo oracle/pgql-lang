@@ -67,6 +67,16 @@ type rules
 
   Exists(_) + InPredicate(_, _) + IsNull(exp) : BooleanTy()
 
+  IfElse(exp1, exp2, exp3): ty2
+  where exp1 : ty1
+    and exp2 : ty2
+    and exp3 : ty3
+    and (ty1 == BooleanTy() or ty1 == UnknownTy()) else error $[Boolean expected here] on exp1
+    and not (ty2 == VertexTy() or ty2 == EdgeTy()) else error $[CASE does not allow vertex or edge output] on exp2
+    and not (ty3 == VertexTy() or ty3 == EdgeTy()) else error $[CASE does not allow vertex or edge output] on exp3
+
+  Null(): UnknownTy()
+
   Subquery(_) : UnknownTy()
 
   ExpAsVar(exp, var, _, _) : ty

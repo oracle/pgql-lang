@@ -47,6 +47,8 @@ signature constructors // for the normalized AST (see trans/normalize.str)
   BindVariable          : INTEGER -> BindVariable
   Version               : STRING
   InPredicate           : Exp * Exp -> InPredicate
+  IfElse                : Exp * Exp * Exp -> IfElse
+  Null                  : Null
 
   Reaches               : Reaches
   Shortest              : Shortest

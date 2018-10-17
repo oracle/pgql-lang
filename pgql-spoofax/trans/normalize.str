@@ -35,7 +35,8 @@ rules
           norm-singleVertex +
           norm-VertexWithoutBrackets +
           norm-inPredicate +
-          norm-isNull
+          norm-isNull +
+          norm-case
         );
       	alltd(norm-edgeContents);
         alltd(norm-string);
@@ -142,6 +143,36 @@ rules
   norm-inPredicate = ?InPredicate(exp1, None(), exp2); origin-track-forced(!InPredicate(exp1, exp2))
 
   norm-isNull = ?IsNotNull(exp); origin-track-forced(!IsNull(exp)); !Not(<id>)
+
+  norm-case:
+    SimpleCase(caseOperand, whenClauses, elseClause) -> ifElse
+    with ifElse := <to-if-else> (caseOperand, whenClauses, elseClause)
+
+  to-if-else:
+    (caseOperand, whenClauses, elseClause) -> IfElse(exp1, exp2, exp3)
+    with [WhenClause(whenExp, thenExp)|xs] := whenClauses
+       ; exp1 := Eq(caseOperand, whenExp)
+       ; exp2 := thenExp
+       ; if [] := xs
+         then exp3 := <to-else> elseClause
+         else exp3 := <to-if-else> (caseOperand, xs, elseClause)
+         end
+
+  norm-case:
+    SearchedCase(whenClauses, elseClause) -> ifElse
+    with ifElse := <to-if-else> (whenClauses, elseClause)
+
+  to-if-else:
+    (whenClauses, elseClause) -> IfElse(exp1, exp2, exp3)
+    with [WhenClause(whenExp, thenExp)|xs] := whenClauses
+       ; exp1 := whenExp
+       ; exp2 := thenExp
+       ; if [] := xs
+         then exp3 := <to-else> elseClause
+         else exp3 := <to-if-else> (xs, elseClause)
+         end
+
+  to-else = ?None(); !Null() <+ ?Some(ElseClause(<id>))
 
 rules
 
