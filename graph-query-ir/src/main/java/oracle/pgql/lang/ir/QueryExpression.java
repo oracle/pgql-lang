@@ -75,7 +75,8 @@ public interface QueryExpression {
     EXTRACT_EXPRESSION,
     IN_EXPRESSION,
     IN_VALUE_LIST,
-    IS_NULL
+    IS_NULL,
+    IF_ELSE
   }
 
   ExpressionType getExpType();
@@ -1434,6 +1435,96 @@ public interface QueryExpression {
         if (other.exp != null)
           return false;
       } else if (!exp.equals(other.exp))
+        return false;
+      return true;
+    }
+  }
+
+  public static class IfElse implements QueryExpression {
+
+    QueryExpression exp1;
+
+    QueryExpression exp2;
+
+    QueryExpression exp3;
+
+    public IfElse(QueryExpression exp1, QueryExpression exp2, QueryExpression exp3) {
+      this.exp1 = exp1;
+      this.exp2 = exp2;
+      this.exp3 = exp3;
+    }
+
+    public QueryExpression getExp1() {
+      return exp1;
+    }
+
+    public void setExp1(QueryExpression exp1) {
+      this.exp1 = exp1;
+    }
+
+    public QueryExpression getExp2() {
+      return exp2;
+    }
+
+    public void setExp2(QueryExpression exp2) {
+      this.exp2 = exp2;
+    }
+
+    public QueryExpression getExp3() {
+      return exp3;
+    }
+
+    public void setExp3(QueryExpression exp3) {
+      this.exp3 = exp3;
+    }
+
+    @Override
+    public ExpressionType getExpType() {
+      return ExpressionType.IF_ELSE;
+    }
+
+    @Override
+    public String toString() {
+      String elseClause = "";
+      if (exp3 != null) {
+        elseClause += " ELSE " + exp3;
+      }
+      return "CASE WHEN " + exp1 + " THEN " + exp2 + elseClause + " END";
+    }
+
+    @Override
+    public void accept(QueryExpressionVisitor v) {
+      v.visit(this);
+    }
+
+    @Override
+    public int hashCode() {
+      return 31;
+    }
+
+    @Override
+    public boolean equals(Object obj) {
+      if (this == obj)
+        return true;
+      if (obj == null)
+        return false;
+      if (getClass() != obj.getClass())
+        return false;
+      IfElse other = (IfElse) obj;
+      if (exp1 == null) {
+        if (other.exp1 != null)
+          return false;
+      } else if (!exp1.equals(other.exp1))
+        return false;
+      if (exp2 == null) {
+        if (other.exp2 != null)
+          return false;
+      } else if (!exp2.equals(other.exp2))
+        return false;
+      if (exp3 == null) {
+        if (other.exp3 != null)
+          return false;
+      } else if (!exp3.equals(other.exp3))
         return false;
       return true;
     }

@@ -141,7 +141,7 @@ rules
   contains-varRef = oncetd(?VarRef(_, _))
 
   nabl-constraint(|ctx):
-    e@Null() -> <fail>
+    e@IllegalNull() -> <fail>
     with
       <generate-error(|ctx, "Use IS NULL or IS NOT NULL")> e
 

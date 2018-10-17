@@ -31,6 +31,7 @@ import oracle.pgql.lang.ir.QueryExpression.Constant.ConstTimestamp;
 import oracle.pgql.lang.ir.QueryExpression.Constant.ConstTimestampWithTimezone;
 import oracle.pgql.lang.ir.QueryExpression.ExtractExpression;
 import oracle.pgql.lang.ir.QueryExpression.FunctionCall;
+import oracle.pgql.lang.ir.QueryExpression.IfElse;
 import oracle.pgql.lang.ir.QueryExpression.InPredicate;
 import oracle.pgql.lang.ir.QueryExpression.InPredicate.InValueList;
 import oracle.pgql.lang.ir.QueryExpression.IsNull;
@@ -133,6 +134,8 @@ public interface QueryExpressionVisitor {
   public void visit(InValueList inValueList);
 
   public void visit(IsNull isNull);
+
+  public void visit(IfElse ifElse);
 
   public void visit(ScalarSubquery sclarSubquery);
 

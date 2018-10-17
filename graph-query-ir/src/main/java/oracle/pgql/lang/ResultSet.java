@@ -8,7 +8,7 @@ package oracle.pgql.lang;
  * After the first call to the function `next()`, the cursor will be located at the first row and you can retrieve
  * the data in the columns with one of suitable get methods.
  */
-public interface ResultSet extends AutoCloseable, ResultAccess {
+public interface ResultSet<T extends ResultAccess> extends AutoCloseable, ResultAccess, Iterable<T> {
 
   /**
    * Moves the cursor forward one row from its current position.
@@ -68,7 +68,7 @@ public interface ResultSet extends AutoCloseable, ResultAccess {
   public boolean absolute(long row) throws PgqlException;
 
   /**
-   * Moves the cursor a relative number of row with repect to the current position. A negative number will move the
+   * Moves the cursor a relative number of row with respect to the current position. A negative number will move the
    * cursor backwards.
    *
    * @return <code>true</code> if the cursor is moved to a position in the ResultSet object; <code>false</code> if
@@ -83,4 +83,13 @@ public interface ResultSet extends AutoCloseable, ResultAccess {
    */
   @Override
   void close() throws PgqlException;
+  
+  /**
+   * Retrieves the number and properties of this <code>ResultSet</code> object's columns.
+   * 
+   * @return the description of this <code>ResultSet</code> object's columns
+   * @throws PgqlException if a connection error occurs or when this method is called on a closed result set
+   */
+  public ResultSetMetaData getMetaData() throws PgqlException;
+
 }

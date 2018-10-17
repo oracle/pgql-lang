@@ -52,6 +52,7 @@ import oracle.pgql.lang.ir.QueryExpression.Constant.ConstTimestampWithTimezone;
 import oracle.pgql.lang.ir.QueryExpression.ExtractExpression;
 import oracle.pgql.lang.ir.QueryExpression.ExtractExpression.ExtractField;
 import oracle.pgql.lang.ir.QueryExpression.ExpressionType;
+import oracle.pgql.lang.ir.QueryExpression.IfElse;
 import oracle.pgql.lang.ir.QueryExpression.InPredicate;
 import oracle.pgql.lang.ir.QueryExpression.InPredicate.InValueList;
 import oracle.pgql.lang.ir.QueryExpression.IsNull;
@@ -149,6 +150,9 @@ public class SpoofaxAstToGraphQuery {
   private static final int POS_IN_PREDICATE_EXP = 0;
   private static final int POS_IN_PREDICATE_VALUES = 1;
   private static final int POS_IS_NULL_EXP = 0;
+  private static final int POS_IF_ELSE_EXP1 = 0;
+  private static final int POS_IF_ELSE_EXP2 = 1;
+  private static final int POS_IF_ELSE_EXP3 = 2;
 
   public static GraphQuery translate(IStrategoTerm ast) throws PgqlException {
     return translate(ast, new TranslationContext(new HashMap<>(), new HashSet<>(), new HashMap<>()));
@@ -795,6 +799,14 @@ public class SpoofaxAstToGraphQuery {
         expT = t.getSubterm(POS_IS_NULL_EXP);
         exp = translateExp(expT, ctx);
         return new IsNull(exp);
+      case "IfElse":
+        exp1 = translateExp(t.getSubterm(POS_IF_ELSE_EXP1), ctx);
+        exp2 = translateExp(t.getSubterm(POS_IF_ELSE_EXP2), ctx);
+        QueryExpression exp3 = translateExp(t.getSubterm(POS_IF_ELSE_EXP3), ctx);
+        return new IfElse(exp1, exp2, exp3);
+      case "Null":
+      case "IllegalNull": // error recovery
+        return null;
       case "Array":
         IStrategoTerm arrayValues = t.getSubterm(0);
         int size = arrayValues.getSubtermCount();
