@@ -264,7 +264,9 @@ public abstract class AbstractQueryExpressionVisitor implements QueryExpressionV
   public void visit(IfElse ifElse) {
     ifElse.getExp1().accept(this);
     ifElse.getExp2().accept(this);
-    ifElse.getExp3().accept(this);
+    if (ifElse.getExp3() != null) {
+      ifElse.getExp3().accept(this);
+    }
   }
 
   @Override
