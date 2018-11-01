@@ -235,7 +235,7 @@ rules
     t -> t'
     with if True() := hasGroupBy
          then t' := t
-         else t' := <alltd-in-outer-query-outside-aggregation(resolve-prop-ref(|variables))> t
+         else t' := <alltd(resolve-prop-ref(|variables))> t
          end
 
   resolve-prop-ref(|variables):

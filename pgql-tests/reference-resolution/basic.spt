@@ -183,3 +183,13 @@ test Resolve variables in property references (but not other variables) in ORDER
 
 ]] resolve #3 to #2
    resolve #4 to #1
+
+test Resolve variables in property references (but not other variables) in ORDER BY to FROM before SELECT #2 [[
+
+    SELECT n.name AS [[n]]
+      FROM MATCH ( ([[n]]) )
+  ORDER BY EXISTS ( SELECT * MATCH (m) WHERE m.age = [[n]].age ), [[n]].age, [[n]]
+
+ ]] resolve #3 to #2
+    resolve #4 to #2
+    resolve #5 to #1
