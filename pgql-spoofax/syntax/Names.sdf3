@@ -28,7 +28,7 @@ lexical syntax
   DELIMITED-IDENTIFIER             = '"' (~[\"\n\\] | DELIMITED-IDENTIFIER-ESCAPE-CHAR)* '"'
   DELIMITED-IDENTIFIER-ESCAPE-CHAR = ( "\\" [tbnrf\\\"\'] ) | ( '""' )
 
-  DATA-TYPE            = [a-zA-Z][a-zA-Z0-9\_\ ]*
+  DATA-TYPE            = [a-zA-Z][a-zA-Z0-9\_]* (' ' [a-zA-Z][a-zA-Z0-9\_]*)*
 
 lexical restrictions // greedy matching
 
