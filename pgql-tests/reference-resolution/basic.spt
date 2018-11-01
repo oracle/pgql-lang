@@ -128,3 +128,22 @@ test Can't reference previous GROUP BY element [[
   GROUP BY x AS n, [[n]]
 
 ]] resolve #2 to #1
+
+test Resolve variables in property references (but not other variables) in ORDER BY to FROM before SELECT #1 [[
+
+    SELECT n.name AS [[n]]
+     MATCH ([[n]])
+  ORDER BY [[n]].age, [[n]]
+
+ ]] resolve #3 to #2
+    resolve #4 to #1
+
+test Resolve variables in property references (but not other variables) in ORDER BY to FROM before SELECT #2 [[
+
+    SELECT n.name AS [[n]]
+     MATCH ([[n]])
+  ORDER BY EXISTS ( SELECT * MATCH (m) WHERE m.age = [[n]].age ), [[n]].age, [[n]]
+
+ ]] resolve #3 to #2
+    resolve #4 to #2
+    resolve #5 to #1

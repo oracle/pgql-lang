@@ -55,8 +55,10 @@ rules
 
        // GROUP BY
        ; if (!groupBy; ?Some(_)) + (!selectClause; create-one-group(|variables'')) + (!having; ?Some(_))
-         then (groupBy', variables''') := <resolve-group-by(|variables'')> groupBy
+         then hasGroupBy := True()
+            ; (groupBy', variables''') := <resolve-group-by(|variables'')> groupBy
          else (groupBy', variables''') := (groupBy, variables'')
+            ; hasGroupBy := False()
          end
 
        // SELECT
@@ -66,7 +68,7 @@ rules
        ; having' := <resolve-var-refs(|variables'''')> having
 
        // ORDER BY
-       ; orderBy' := <resolve-var-refs(|variables''''); alltd(optimize-order-by)> orderBy
+       ; orderBy' := <resolve-prop-refs(|variables'', hasGroupBy); resolve-var-refs(|variables''''); alltd(optimize-order-by)> orderBy // ORDER BY resolves to SELECT variables first (except in case of a VarRef in a PropRef, which is resolved to FROM first), then to GROUP BY variables
 
   path-with-at-most-one-binding:
     t@Path(_, _, _, quantifier, _, _, _, _) -> t
@@ -176,6 +178,16 @@ rules
 
   replace-exp-with-ref-helper(|exp) = ?VarDef(v, origin-offset, original-exp, _); where ( <eq> (exp, original-exp)); !VarRef(v, origin-offset)
   replace-exp-with-ref-helper(|exp) = ?VarDef(v, origin-offset, _, resolved-exp); where ( <eq> (exp, resolved-exp)); !VarRef(v, origin-offset)
+
+  resolve-prop-refs(|variables, hasGroupBy):
+    t -> t'
+    with if True() := hasGroupBy
+         then t' := t
+         else t' := <alltd(resolve-prop-ref(|variables))> t
+         end
+   resolve-prop-ref(|variables):
+    t@PropRef(varRef, prop) -> PropRef(varRef', prop)
+    with varRef' := <resolve-var-ref(|variables)> varRef
 
   /* if the query has no GROUP BY but there are one ore more aggregations in the SELECT, then we generate an
      implicit group, but only if there is no (non-nested) aggregation over a group variable
