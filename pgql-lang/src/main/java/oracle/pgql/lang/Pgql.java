@@ -196,7 +196,7 @@ public class Pgql implements Closeable {
   }
 
   private void checkBetaFeatureToken(String queryString, GraphQuery graphQuery) throws PgqlException {
-    if (graphQuery.getQueryType() == QueryType.GRAPH_UPDATE
+    if (graphQuery != null && graphQuery.getQueryType() == QueryType.GRAPH_UPDATE
         && !queryString.matches("(?i)(.*)UPDATE" + ESCAPED_BETA_FEATURES_FLAG + "(.*)")) {
       throw new PgqlException(UPDATE_BETA_ERROR);
     }
