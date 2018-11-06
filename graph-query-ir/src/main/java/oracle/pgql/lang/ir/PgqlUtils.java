@@ -40,6 +40,8 @@ import oracle.pgql.lang.ir.update.GraphUpdateQuery;
 
 public class PgqlUtils {
 
+  public final static String BETA_FEATURES_FLAG = "/*beta*/";
+
   static DecimalFormat DECIMAL_FORMAT = new DecimalFormat("#.#");
 
   static {
