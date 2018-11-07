@@ -138,9 +138,14 @@ rules
          end
 
   resolve-select-or-update-clause(|variables):
-    t@UpdateClause(updateExpressions) -> (updateClause', variables)
-    with updateExpressions' := <origin-track-forced(resolve-var-refs(|variables))> updateExpressions
-       ; updateClause' := <origin-track-forced(!UpdateClause(updateExpressions'))> t
+    t@UpdateClause(setPropertyExpressions) -> (updateClause', variables)
+    with setPropertyExpressions' := <origin-track-forced(resolve-var-refs(|variables))> setPropertyExpressions
+       ; updateClause' := <origin-track-forced(!UpdateClause(setPropertyExpressions'))> t
+
+  resolve-select-or-update-clause(|variables):
+    t@InsertClause(intoGraph, graphPattern, setPropertyExpressions) -> (insertClause', variables)
+    with setPropertyExpressions' := <origin-track-forced(resolve-var-refs(|variables))> setPropertyExpressions
+       ; insertClause' := <origin-track-forced(!InsertClause(intoGraph, graphPattern, setPropertyExpressions'))> t
 
   resolve-exp-as-var-in-group-by(|variables, expAsVarsFromSelectClause):
     (t@ExpAsVar(exp, v, anonymous), (result, vars)) -> (result', vars')

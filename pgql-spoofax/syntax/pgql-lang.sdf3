@@ -43,10 +43,15 @@ context-free syntax
 
   SelectOrUpdateClause = SelectClause
   SelectOrUpdateClause = UpdateClause
+  SelectOrUpdateClause = InsertClause
 
   SelectClause.SelectClause = <SELECT <Distinct?> <Projection>> {case-insensitive}
   Projection.ExpAsVars = <<{ExpAsVar ", "}+>>
   Projection.Star = <*>
 
-  UpdateClause.UpdateClause = <UPDATE <{UpdateExp ", "}+>> {case-insensitive}
-  UpdateExp.UpdateExp = <<PropRef> = <Exp>>
+  UpdateClause.UpdateClause = <UPDATE <{SetPropertyExp ", "}+>> {case-insensitive}
+  SetPropertyExp.SetPropertyExp = <<PropRef> = <Exp>>
+
+  InsertClause.InsertClause = <INSERT <IntoGraph?> ( <GraphPattern> ) <SetProperties?>> {case-insensitivie}
+  IntoGraph.IntoGraph = <INTO <GraphName>> {case-insensitivie}
+  SetProperties.SetProperties = <SET <{SetPropertyExp ", "}+>> {case-insensitivie}

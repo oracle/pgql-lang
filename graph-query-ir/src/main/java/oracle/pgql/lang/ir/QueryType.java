@@ -6,5 +6,6 @@ package oracle.pgql.lang.ir;
 public enum QueryType {
 
   SELECT,
+  GRAPH_INSERT,
   GRAPH_UPDATE
 }

@@ -10,23 +10,23 @@ import oracle.pgql.lang.ir.QueryExpressionVisitor;
 
 public class GraphUpdate {
 
-  private List<PropertyUpdate> propertyUpdates;
+  private List<SetPropertyExpression> setPropertyExpressions;
 
-  public GraphUpdate(List<PropertyUpdate> propertyUpdates) {
-    this.propertyUpdates = propertyUpdates;
+  public GraphUpdate(List<SetPropertyExpression> propertyUpdates) {
+    this.setPropertyExpressions = propertyUpdates;
   }
 
-  public List<PropertyUpdate> getPropertyUpdates() {
-    return propertyUpdates;
+  public List<SetPropertyExpression> getSetPropertyExpressions() {
+    return setPropertyExpressions;
   }
 
-  public void setPropertyUpdates(List<PropertyUpdate> propertyUpdates) {
-    this.propertyUpdates = propertyUpdates;
+  public void setPropertyUpdates(List<SetPropertyExpression> setPropertyExpressions) {
+    this.setPropertyExpressions = setPropertyExpressions;
   }
 
   @Override
   public String toString() {
-    return "UPDATE " + propertyUpdates.stream() //
+    return "UPDATE " + setPropertyExpressions.stream() //
         .map(x -> x.toString()) //
         .collect(Collectors.joining(", "));
   }
@@ -45,10 +45,10 @@ public class GraphUpdate {
     if (getClass() != obj.getClass())
       return false;
     GraphUpdate other = (GraphUpdate) obj;
-    if (propertyUpdates == null) {
-      if (other.propertyUpdates != null)
+    if (setPropertyExpressions == null) {
+      if (other.setPropertyExpressions != null)
         return false;
-    } else if (!propertyUpdates.equals(other.propertyUpdates))
+    } else if (!setPropertyExpressions.equals(other.setPropertyExpressions))
       return false;
     return true;
   }

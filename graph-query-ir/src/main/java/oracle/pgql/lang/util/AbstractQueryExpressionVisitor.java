@@ -58,9 +58,11 @@ import oracle.pgql.lang.ir.QueryExpressionVisitor;
 import oracle.pgql.lang.ir.QueryPath;
 import oracle.pgql.lang.ir.QueryVertex;
 import oracle.pgql.lang.ir.SelectQuery;
+import oracle.pgql.lang.ir.update.GraphInsert;
+import oracle.pgql.lang.ir.update.GraphInsertQuery;
 import oracle.pgql.lang.ir.update.GraphUpdate;
 import oracle.pgql.lang.ir.update.GraphUpdateQuery;
-import oracle.pgql.lang.ir.update.PropertyUpdate;
+import oracle.pgql.lang.ir.update.SetPropertyExpression;
 
 public abstract class AbstractQueryExpressionVisitor implements QueryExpressionVisitor {
 
@@ -360,11 +362,23 @@ public abstract class AbstractQueryExpressionVisitor implements QueryExpressionV
 
   @Override
   public void visit(GraphUpdate graphUpdate) {
-    graphUpdate.getPropertyUpdates().stream().forEach(propertyUpdate -> propertyUpdate.accept(this));
+    graphUpdate.getSetPropertyExpressions().stream().forEach(propertyUpdate -> propertyUpdate.accept(this));
   }
 
   @Override
-  public void visit(PropertyUpdate propertyUpdate) {
+  public void visit(GraphInsertQuery insertQuery) {
+    insertQuery.getGraphInsert().accept(this);
+    visitQuery(insertQuery);
+  }
+
+  @Override
+  public void visit(GraphInsert graphInsert) {
+    graphInsert.getGraphPattern().accept(this);
+    graphInsert.getSetPropertyExpressions().stream().forEach(propertyUpdate -> propertyUpdate.accept(this));
+  }
+
+  @Override
+  public void visit(SetPropertyExpression propertyUpdate) {
     propertyUpdate.getPropertyAccess().accept(this);
     propertyUpdate.getValueExpression().accept(this);
   }

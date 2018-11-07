@@ -66,7 +66,7 @@ import oracle.pgql.lang.ir.SelectQuery;
 import oracle.pgql.lang.ir.VertexPairConnection;
 import oracle.pgql.lang.ir.update.GraphUpdate;
 import oracle.pgql.lang.ir.update.GraphUpdateQuery;
-import oracle.pgql.lang.ir.update.PropertyUpdate;
+import oracle.pgql.lang.ir.update.SetPropertyExpression;
 import oracle.pgql.lang.util.SqlDateTimeFormatter;
 
 public class SpoofaxAstToGraphQuery {
@@ -90,9 +90,14 @@ public class SpoofaxAstToGraphQuery {
   private static final int POS_PROJECTION_DISTINCT = 0;
   private static final int POS_PROJECTION_ELEMS = 1;
 
-  private static final int POS_UPDATE_ELEMS = 0;
-  private static final int POS_PROPERTY_UPDATE_PROPERTY_REFERENCE = 0;
-  private static final int POS_PROPERTY_UPDATE_VALUE_EXPRESSION = 1;
+  private static final int POS_UPDATE_SET_PROPERTY_EXPRESSIONS = 0;
+
+  private static final int POS_INSERT_INTO_GRAPH_NAME = 0;
+  private static final int POS_INSERT_GRAPH_PATTERN = 1;
+  private static final int POS_INSERT_SET_PROPERTY_EXPRESSIONS = 2;
+
+  private static final int POS_SET_PROPERTY_PROPERTY_REFERENCE = 0;
+  private static final int POS_SET_PROPERTY_VALUE_EXPRESSION = 1;
 
   private static final int POS_VERTICES = 0;
   private static final int POS_CONNECTIONS = 1;
@@ -271,21 +276,21 @@ public class SpoofaxAstToGraphQuery {
   private static GraphUpdate translateUpdateClause(TranslationContext ctx, IStrategoTerm selectOrUpdateT)
       throws PgqlException {
     GraphUpdate graphUpdate;
-    IStrategoTerm propertyUpdatesT = selectOrUpdateT.getSubterm(POS_UPDATE_ELEMS);
-    List<PropertyUpdate> propertyUpdates = new ArrayList<>();
+    IStrategoTerm propertyUpdatesT = selectOrUpdateT.getSubterm(POS_UPDATE_SET_PROPERTY_EXPRESSIONS);
+    List<SetPropertyExpression> setPropertyExpressions = new ArrayList<>();
     for (IStrategoTerm propertyUpdateT : propertyUpdatesT) {
-      IStrategoTerm propertyAccessT = propertyUpdateT.getSubterm(POS_PROPERTY_UPDATE_PROPERTY_REFERENCE);
+      IStrategoTerm propertyAccessT = propertyUpdateT.getSubterm(POS_SET_PROPERTY_PROPERTY_REFERENCE);
       QueryExpression propertyAccess = translateExp(propertyAccessT, ctx);
       if (!(propertyAccess instanceof PropertyAccess)) {
         continue; // error recovery for UPDATE n.prop .... GROUP BY n.prop. Even though the parser will generate an
       }
 
-      IStrategoTerm valueExpressionT = propertyUpdateT.getSubterm(POS_PROPERTY_UPDATE_VALUE_EXPRESSION);
+      IStrategoTerm valueExpressionT = propertyUpdateT.getSubterm(POS_SET_PROPERTY_VALUE_EXPRESSION);
       QueryExpression valueExpression = translateExp(valueExpressionT, ctx);
 
-      propertyUpdates.add(new PropertyUpdate((PropertyAccess) propertyAccess, valueExpression));
+      setPropertyExpressions.add(new SetPropertyExpression((PropertyAccess) propertyAccess, valueExpression));
     }
-    graphUpdate = new GraphUpdate(propertyUpdates);
+    graphUpdate = new GraphUpdate(setPropertyExpressions);
     return graphUpdate;
   }
 

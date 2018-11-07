@@ -439,30 +439,31 @@ rules
       commonPathExpressions' := <map(norm-common-path-expression(|variable-counter)); !CommonPathExpressions(<id>)> commonPathExpressions;
 
       expAsGroupVars := <?Some(GroupByClause(<id>)) <+ ![]> groupByClause;
-      expAsGroupVars' := <map(norm-ExpAsVar)> expAsGroupVars;
+      expAsGroupVars' := <map(norm-ExpAsVar(|version))> expAsGroupVars;
       groupByClause' := <?Some(_); !Some(GroupByClause(expAsGroupVars')) <+ !None()> groupByClause;
 
-      selectOrUpdateClause' := <?UpdateClause(_) + ?SelectClause(_, _); (norm-ExpAsVars(|expAsGroupVars') <+ norm-select-star(|graphPattern, expAsGroupVars'))> selectOrUpdateClause;
+      selectOrUpdateClause' := <is-dml-operation + ?SelectClause(_, _); (norm-ExpAsVars(|expAsGroupVars', version) <+ norm-select-star(|graphPattern, expAsGroupVars', version))> selectOrUpdateClause;
 
-      expAsSelectVars := <?UpdateClause(_); ![] + ?SelectClause(_, ExpAsVars(<id>))> selectOrUpdateClause';
+      expAsSelectVars := <is-dml-operation; ![] + ?SelectClause(_, ExpAsVars(<id>))> selectOrUpdateClause';
       allExpAsVars := <conc> (expAsGroupVars', <try(?Star(); ![])> expAsSelectVars);
       orderByElems := <try(norm-orderBy(|allExpAsVars, version))> orderByClause;
 
       limitOffsets' := <norm-limitOffsets> limitOffsets
 
-  norm-ExpAsVars(|expAsGroupVars'):
+  norm-ExpAsVars(|expAsGroupVars', pgqlVersion):
     SelectClause(distinct, t@ExpAsVars(expAsVars)) -> SelectClause(distinct, <origin-track-forced(!ExpAsVars(expAsVars'))> t)
-    with expAsVars' := <map(norm-ExpAsVar)> expAsVars
+    with expAsVars' := <map(norm-ExpAsVar(|pgqlVersion))> expAsVars
 
-  norm-ExpAsVar = ?ExpAsVar(exp, Some(VarAssign(VarDef(v)))); !ExpAsVar(exp, v, NonAnonymous())
-  norm-ExpAsVar = ?ExpAsVar(exp, None()); !ExpAsVar(exp, <?VarRef(<id>) <+ origin-track-forced(origin-text)> exp, Anonymous())
-  norm-ExpAsVar = ?ExpAsVar(_, v, _); where (<origin-offset> v)
+  norm-ExpAsVar(|pgqlVersion) = ?ExpAsVar(exp, Some(VarAssign(VarDef(v)))); !ExpAsVar(exp, v, NonAnonymous())
+  norm-ExpAsVar(|pgqlVersion) = ?ExpAsVar(exp, None()); !ExpAsVar(exp, <?VarRef(<id>) <+ propRef-to-columnName(|pgqlVersion) <+ origin-track-forced(origin-text)> exp, Anonymous())
+  norm-ExpAsVar(|pgqlVersion) = ?ExpAsVar(_, v, _); where (<origin-offset> v)
+  propRef-to-columnName(|pgqlVersion) = ?PropRef(_, Identifier(<id>)); where ( not ( <?"v1.0" + ?"v1.1"> pgqlVersion )) // only PGQL v1.2+ uses property names as column names 
 
-  norm-select-star(|graphPattern, group-exps):
+  norm-select-star(|graphPattern, group-exps, pgqlVersion):
     SelectClause(distinct, star@Star()) -> SelectClause(star, <origin-track-forced(!ExpAsVars(expAsSelectVars))> star)
     with if [] := group-exps
          then vars := <collect(?Vertex(<id>) + ?NormalizedEdge(_, <id>, _, _, _, _) + ?Subquery(_)); filter(is-string; not(is-substring(GENERATED)))> graphPattern;
-              expAsSelectVars := <map(generate-ExpAsVar(|star); norm-ExpAsVar)> vars
+              expAsSelectVars := <map(generate-ExpAsVar(|star); norm-ExpAsVar(|pgqlVersion))> vars
          else expAsSelectVars := star
          end
 
@@ -484,3 +485,5 @@ rules
   norm-limitOffsets = ?None(); !LimitOffsetClauses(None(), None())
   norm-limitOffsets = ?Some(LimitOffsetClauses(limitClause, offsetClause)); !LimitOffsetClauses(Some(limitClause), offsetClause)
   norm-limitOffsets = ?Some(OffsetLimitClauses(offsetClause, limitClause)); !LimitOffsetClauses(limitClause, Some(offsetClause))
+
+  is-dml-operation = ?InsertClause(_, _, _) + ?UpdateClause(_)

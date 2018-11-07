@@ -17,9 +17,11 @@ import oracle.pgql.lang.ir.QueryExpression.ArithmeticExpression.Sub;
 import oracle.pgql.lang.ir.QueryExpression.ArithmeticExpression.UMin;
 import oracle.pgql.lang.ir.QueryExpression.BindVariable;
 import oracle.pgql.lang.ir.QueryExpressionVisitor;
+import oracle.pgql.lang.ir.update.GraphInsert;
+import oracle.pgql.lang.ir.update.GraphInsertQuery;
 import oracle.pgql.lang.ir.update.GraphUpdate;
 import oracle.pgql.lang.ir.update.GraphUpdateQuery;
-import oracle.pgql.lang.ir.update.PropertyUpdate;
+import oracle.pgql.lang.ir.update.SetPropertyExpression;
 import oracle.pgql.lang.ir.QueryExpression.Constant.ConstBoolean;
 import oracle.pgql.lang.ir.QueryExpression.Constant.ConstDate;
 import oracle.pgql.lang.ir.QueryExpression.Constant.ConstDecimal;
@@ -163,5 +165,9 @@ public interface QueryExpressionVisitor {
 
   public void visit(GraphUpdate graphUpdate);
 
-  public void visit(PropertyUpdate propertyUpdate);
+  public void visit(GraphInsertQuery insertQuery);
+
+  public void visit(GraphInsert graphInsert);
+
+  public void visit(SetPropertyExpression propertyUpdate);
 }
