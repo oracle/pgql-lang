@@ -36,6 +36,7 @@ import oracle.pgql.lang.ir.QueryExpression.LogicalExpression.Or;
 import oracle.pgql.lang.ir.QueryExpression.Function.Exists;
 import oracle.pgql.lang.ir.QueryVariable.VariableType;
 import oracle.pgql.lang.ir.QueryVertex;
+import oracle.pgql.lang.ir.update.GraphInsertQuery;
 import oracle.pgql.lang.ir.update.GraphUpdateQuery;
 
 public class PgqlUtils {
@@ -161,6 +162,9 @@ public class PgqlUtils {
       case SELECT:
         result += ((SelectQuery) graphQuery).getProjection();
         break;
+      case GRAPH_INSERT:
+        result += ((GraphInsertQuery) graphQuery).getGraphInsert();
+        break;
       case GRAPH_UPDATE:
         result += ((GraphUpdateQuery) graphQuery).getGraphUpdate();
         break;
@@ -172,7 +176,7 @@ public class PgqlUtils {
     if (graphQuery.getInputGraphName() != null) {
       result += printIdentifier(graphQuery.getInputGraphName()) + " ";
     }
-    result += graphPattern;
+    result += printPgqlString(graphPattern, true);
     GroupBy groupBy = graphQuery.getGroupBy();
     if (groupBy != null && groupBy.getElements().isEmpty() == false) {
       result += "\n" + groupBy;
@@ -229,8 +233,8 @@ public class PgqlUtils {
     return expAsVar.isAnonymous() || !expAsVar.isContainedInSelectClause() ? exp : exp + " AS " + expAsVar.getName();
   }
 
-  protected static String printPgqlString(GraphPattern graphPattern, List<QueryPath> queryPaths) {
-    String result = "MATCH(";
+  protected static String printPgqlString(GraphPattern graphPattern, boolean printMatch) {
+    String result = printMatch ? "MATCH ( " : ""; // experimental
     int indentation = 7;
     Set<QueryExpression> constraintsCopy = new HashSet<>(graphPattern.getConstraints());
     QueryVertex lastVertex = null;
@@ -264,7 +268,7 @@ public class PgqlUtils {
       lastVertex = vertex;
     }
 
-    result += "\n     )";
+    result += printMatch ? "\n     )" : "";
 
     // print filter expressions
     if (!constraintsCopy.isEmpty()) {

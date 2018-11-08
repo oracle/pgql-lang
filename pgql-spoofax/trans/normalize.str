@@ -455,7 +455,7 @@ rules
     with expAsVars' := <map(norm-ExpAsVar(|pgqlVersion))> expAsVars
 
   norm-ExpAsVar(|pgqlVersion) = ?ExpAsVar(exp, Some(VarAssign(VarDef(v)))); !ExpAsVar(exp, v, NonAnonymous())
-  norm-ExpAsVar(|pgqlVersion) = ?ExpAsVar(exp, None()); !ExpAsVar(exp, <?VarRef(<id>) <+ propRef-to-columnName(|pgqlVersion) <+ origin-track-forced(origin-text)> exp, Anonymous())
+  norm-ExpAsVar(|pgqlVersion) = ?ExpAsVar(exp, None()); !ExpAsVar(exp, <?VarRef(<id>) /*<+ propRef-to-columnName(|pgqlVersion)*/ <+ origin-track-forced(origin-text)> exp, Anonymous())
   norm-ExpAsVar(|pgqlVersion) = ?ExpAsVar(_, v, _); where (<origin-offset> v)
   propRef-to-columnName(|pgqlVersion) = ?PropRef(_, Identifier(<id>)); where ( not ( <?"v1.0" + ?"v1.1"> pgqlVersion )) // only PGQL v1.2+ uses property names as column names 
 

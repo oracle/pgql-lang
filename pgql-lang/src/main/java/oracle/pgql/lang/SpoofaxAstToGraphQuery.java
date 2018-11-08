@@ -64,6 +64,8 @@ import oracle.pgql.lang.ir.QueryVariable.VariableType;
 import oracle.pgql.lang.ir.QueryVertex;
 import oracle.pgql.lang.ir.SelectQuery;
 import oracle.pgql.lang.ir.VertexPairConnection;
+import oracle.pgql.lang.ir.update.GraphInsert;
+import oracle.pgql.lang.ir.update.GraphInsertQuery;
 import oracle.pgql.lang.ir.update.GraphUpdate;
 import oracle.pgql.lang.ir.update.GraphUpdateQuery;
 import oracle.pgql.lang.ir.update.SetPropertyExpression;
@@ -92,8 +94,8 @@ public class SpoofaxAstToGraphQuery {
 
   private static final int POS_UPDATE_SET_PROPERTY_EXPRESSIONS = 0;
 
-  private static final int POS_INSERT_INTO_GRAPH_NAME = 0;
-  private static final int POS_INSERT_GRAPH_PATTERN = 1;
+  private static final int POS_INSERT_GRAPH_PATTERN = 0;
+  private static final int POS_INSERT_INTO_GRAPH_NAME = 1;
   private static final int POS_INSERT_SET_PROPERTY_EXPRESSIONS = 2;
 
   private static final int POS_SET_PROPERTY_PROPERTY_REFERENCE = 0;
@@ -182,26 +184,7 @@ public class SpoofaxAstToGraphQuery {
 
     // graph pattern
     IStrategoTerm graphPatternT = ast.getSubterm(POS_GRAPH_PATTERN);
-
-    // vertices
-    IStrategoTerm verticesT = getList(graphPatternT.getSubterm(POS_VERTICES));
-    Set<QueryVertex> vertices = new HashSet<>(getQueryVertices(verticesT, ctx));
-    Map<String, QueryVertex> vertexMap = new HashMap<>();
-    vertices.stream().forEach(vertex -> vertexMap.put(vertex.getName(), vertex));
-
-    // connections
-    IStrategoTerm connectionsT = getList(graphPatternT.getSubterm(POS_CONNECTIONS));
-    LinkedHashSet<VertexPairConnection> connections = getConnections(connectionsT, ctx, vertexMap);
-
-    giveAnonymousVariablesUniqueHiddenName(vertices, ctx);
-    giveAnonymousVariablesUniqueHiddenName(connections, ctx);
-
-    // constraints
-    IStrategoTerm constraintsT = getList(graphPatternT.getSubterm(POS_CONSTRAINTS));
-    LinkedHashSet<QueryExpression> constraints = getQueryExpressions(constraintsT, ctx);
-
-    // graph pattern
-    GraphPattern graphPattern = new GraphPattern(vertices, connections, constraints);
+    GraphPattern graphPattern = getGraphPattern(ctx, graphPatternT);
 
     // GROUP BY
     IStrategoTerm groupByT = ast.getSubterm(POS_GROUPBY);
@@ -209,12 +192,16 @@ public class SpoofaxAstToGraphQuery {
 
     // SELECT or UPDATE
     Projection projection = null;
+    GraphInsert graphInsert = null;
     GraphUpdate graphUpdate = null;
     IStrategoTerm selectOrUpdateT = ast.getSubterm(POS_SELECT_OR_UPDATE);
     String selectOrUpdate = ((IStrategoAppl) selectOrUpdateT).getConstructor().getName();
     switch (selectOrUpdate) {
       case "SelectClause":
         projection = translateSelectClause(ctx, selectOrUpdateT);
+        break;
+      case "InsertClause":
+        graphInsert = translateInsertClause(ctx, selectOrUpdateT);
         break;
       case "UpdateClause":
         graphUpdate = translateUpdateClause(ctx, selectOrUpdateT);
@@ -244,12 +231,38 @@ public class SpoofaxAstToGraphQuery {
       case "SelectClause":
         return new SelectQuery(commonPathExpressions, projection, inputGraphName, graphPattern, groupBy, having,
             orderBy, limit, offset);
+      case "InsertClause":
+        return new GraphInsertQuery(commonPathExpressions, graphInsert, inputGraphName, graphPattern, groupBy, having,
+            orderBy, limit, offset);
       case "UpdateClause":
         return new GraphUpdateQuery(commonPathExpressions, graphUpdate, inputGraphName, graphPattern, groupBy, having,
             orderBy, limit, offset);
       default:
         throw new IllegalStateException(selectOrUpdate);
     }
+  }
+
+  private static GraphPattern getGraphPattern(TranslationContext ctx, IStrategoTerm graphPatternT)
+      throws PgqlException {
+
+    // vertices
+    IStrategoTerm verticesT = getList(graphPatternT.getSubterm(POS_VERTICES));
+    Set<QueryVertex> vertices = new HashSet<>(getQueryVertices(verticesT, ctx));
+    Map<String, QueryVertex> vertexMap = new HashMap<>();
+    vertices.stream().forEach(vertex -> vertexMap.put(vertex.getName(), vertex));
+
+    // connections
+    IStrategoTerm connectionsT = getList(graphPatternT.getSubterm(POS_CONNECTIONS));
+    LinkedHashSet<VertexPairConnection> connections = getConnections(connectionsT, ctx, vertexMap);
+
+    giveAnonymousVariablesUniqueHiddenName(vertices, ctx);
+    giveAnonymousVariablesUniqueHiddenName(connections, ctx);
+
+    // constraints
+    IStrategoTerm constraintsT = getList(graphPatternT.getSubterm(POS_CONSTRAINTS));
+    LinkedHashSet<QueryExpression> constraints = getQueryExpressions(constraintsT, ctx);
+
+    return new GraphPattern(vertices, connections, constraints);
   }
 
   private static Projection translateSelectClause(TranslationContext ctx, IStrategoTerm selectOrUpdateT)
@@ -273,10 +286,25 @@ public class SpoofaxAstToGraphQuery {
     return projection;
   }
 
-  private static GraphUpdate translateUpdateClause(TranslationContext ctx, IStrategoTerm selectOrUpdateT)
+  private static GraphInsert translateInsertClause(TranslationContext ctx, IStrategoTerm insertClauseT)
+      throws PgqlException {
+
+    IStrategoTerm graphPatternT = insertClauseT.getSubterm(POS_INSERT_GRAPH_PATTERN);
+    GraphPattern graphPattern = getGraphPattern(ctx, graphPatternT);
+
+    IStrategoTerm intoGraphNameT = insertClauseT.getSubterm(POS_INSERT_INTO_GRAPH_NAME);
+    String intoGraphName = isNone(intoGraphNameT) ? null : getString(intoGraphNameT);
+
+    IStrategoTerm setPropertyExpressionsT = insertClauseT.getSubterm(POS_INSERT_SET_PROPERTY_EXPRESSIONS);
+    List<SetPropertyExpression> setPropertyExpressions = Collections.emptyList(); // TODO
+
+    return new GraphInsert(graphPattern, intoGraphName, setPropertyExpressions);
+  }
+
+  private static GraphUpdate translateUpdateClause(TranslationContext ctx, IStrategoTerm updateClauseT)
       throws PgqlException {
     GraphUpdate graphUpdate;
-    IStrategoTerm propertyUpdatesT = selectOrUpdateT.getSubterm(POS_UPDATE_SET_PROPERTY_EXPRESSIONS);
+    IStrategoTerm propertyUpdatesT = updateClauseT.getSubterm(POS_UPDATE_SET_PROPERTY_EXPRESSIONS);
     List<SetPropertyExpression> setPropertyExpressions = new ArrayList<>();
     for (IStrategoTerm propertyUpdateT : propertyUpdatesT) {
       IStrategoTerm propertyAccessT = propertyUpdateT.getSubterm(POS_SET_PROPERTY_PROPERTY_REFERENCE);

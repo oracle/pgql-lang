@@ -143,9 +143,10 @@ rules
        ; updateClause' := <origin-track-forced(!UpdateClause(setPropertyExpressions'))> t
 
   resolve-select-or-update-clause(|variables):
-    t@InsertClause(intoGraph, graphPattern, setPropertyExpressions) -> (insertClause', variables)
+    t@InsertClause(graphPattern, intoGraph, setPropertyExpressions) -> (insertClause', variables)
     with setPropertyExpressions' := <origin-track-forced(resolve-var-refs(|variables))> setPropertyExpressions
-       ; insertClause' := <origin-track-forced(!InsertClause(intoGraph, graphPattern, setPropertyExpressions'))> t
+       ; graphPattern' := <alltd(trans-elem(|[]))> graphPattern
+       ; insertClause' := <origin-track-forced(!InsertClause(graphPattern', intoGraph, setPropertyExpressions'))> t
 
   resolve-exp-as-var-in-group-by(|variables, expAsVarsFromSelectClause):
     (t@ExpAsVar(exp, v, anonymous), (result, vars)) -> (result', vars')

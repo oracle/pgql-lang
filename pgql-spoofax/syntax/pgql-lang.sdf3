@@ -52,6 +52,6 @@ context-free syntax
   UpdateClause.UpdateClause = <UPDATE <{SetPropertyExp ", "}+>> {case-insensitive}
   SetPropertyExp.SetPropertyExp = <<PropRef> = <Exp>>
 
-  InsertClause.InsertClause = <INSERT <IntoGraph?> ( <GraphPattern> ) <SetProperties?>> {case-insensitivie}
-  IntoGraph.IntoGraph = <INTO <GraphName>> {case-insensitivie}
-  SetProperties.SetProperties = <SET <{SetPropertyExp ", "}+>> {case-insensitivie}
+  InsertClause.InsertClause = <INSERT <GraphPattern> <IntoGraph?> <SetProperties?>> {case-insensitive}
+  IntoGraph.IntoGraph = <INTO <GraphName>> {case-insensitive}
+  SetProperties.SetProperties = <SET <{SetPropertyExp ", "}+>> {case-insensitive}

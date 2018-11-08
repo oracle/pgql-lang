@@ -11,22 +11,17 @@ import oracle.pgql.lang.ir.QueryExpressionVisitor;
 
 public class GraphInsert {
 
-  private String intoGraphName;
-
   private GraphPattern graphPattern;
+
+  private String intoGraphName;
 
   private List<SetPropertyExpression> setPropertyExpressions;
 
-  public GraphInsert(List<SetPropertyExpression> propertyUpdates) {
-    this.setPropertyExpressions = propertyUpdates;
-  }
-
-  public String getIntoGraphName() {
-    return intoGraphName;
-  }
-
-  public void setIntoGraphName(String graphName) {
-    this.intoGraphName = graphName;
+  public GraphInsert(GraphPattern graphPattern, String intoGraphName,
+      List<SetPropertyExpression> setPropertyExpressions) {
+    this.graphPattern = graphPattern;
+    this.intoGraphName = intoGraphName;
+    this.setPropertyExpressions = setPropertyExpressions;
   }
 
   public GraphPattern getGraphPattern() {
@@ -35,6 +30,14 @@ public class GraphInsert {
 
   public void setGraphPattern(GraphPattern graphPattern) {
     this.graphPattern = graphPattern;
+  }
+
+  public String getIntoGraphName() {
+    return intoGraphName;
+  }
+
+  public void setIntoGraphName(String graphName) {
+    this.intoGraphName = graphName;
   }
 
   public List<SetPropertyExpression> getSetPropertyExpressions() {
@@ -51,7 +54,7 @@ public class GraphInsert {
     if (intoGraphName == null) {
       intoGraphString = "";
     } else {
-      intoGraphString = "INTO " + intoGraphName;
+      intoGraphString = " INTO " + intoGraphName;
     }
 
     String setPropertyExpressionsString;
@@ -63,7 +66,7 @@ public class GraphInsert {
           .collect(Collectors.joining(", "));
     }
 
-    return "INSERT " + intoGraphString + " ( " + graphPattern + " ) " + setPropertyExpressionsString;
+    return "INSERT " + graphPattern + intoGraphString + setPropertyExpressionsString;
   }
 
   @Override
