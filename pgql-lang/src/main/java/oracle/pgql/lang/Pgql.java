@@ -62,9 +62,8 @@ public class Pgql implements Closeable {
 
   private final static String ESCAPED_BETA_FEATURES_FLAG = "\\/\\*beta\\*\\/";
 
-  private static final String UPDATE_BETA_ERROR = "UPDATE is a beta feature and syntax and semantics may change in"
-      + " a future version. If you understand the risk and want to use this feature, please change UPDATE"
-      + " into UPDATE/*beta*/";
+  private static final String UPDATE_BETA_ERROR = "UPDATE is a beta feature and the syntax and semantics may change in a future version; "
+      + "to use this feature, change UPDATE into UPDATE/*beta*/";
 
   private static final String ERROR_MESSSAGE_INDENTATION = "\t";
 
