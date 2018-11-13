@@ -8,6 +8,8 @@ import java.util.stream.Collectors;
 
 import oracle.pgql.lang.ir.QueryExpressionVisitor;
 
+import static oracle.pgql.lang.ir.PgqlUtils.BETA_FEATURES_FLAG;
+
 public class GraphUpdate {
 
   private List<SetPropertyExpression> setPropertyExpressions;
@@ -26,7 +28,7 @@ public class GraphUpdate {
 
   @Override
   public String toString() {
-    return "UPDATE " + setPropertyExpressions.stream() //
+    return "UPDATE" + BETA_FEATURES_FLAG + " " + setPropertyExpressions.stream() //
         .map(x -> x.toString()) //
         .collect(Collectors.joining(", "));
   }

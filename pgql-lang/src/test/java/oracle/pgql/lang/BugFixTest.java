@@ -50,7 +50,7 @@ public class BugFixTest extends AbstractPgqlTest {
 
   @Test
   public void testUpdate() throws Exception {
-    String query = "UPDATE [[n.prop]] = 123 " + //
+    String query = "UPDATE/*beta*/ [[n.prop]] = 123 " + //
         "FROM g MATCH (n) " + //
         "GROUP BY n.prop AS nProp";
     assertFalse(pgql.parse(query).isQueryValid());
