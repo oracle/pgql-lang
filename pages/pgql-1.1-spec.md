@@ -45,7 +45,7 @@ The following are the changes since PGQL 1.0:
    ```sql
    /* PGQL 1.1 */
    SELECT n.name
-    MATCH (n:Person)
+     FROM g MATCH (n:Person)
     WHERE n.age > 25
       AND n.age <= 35
    ```
@@ -81,7 +81,7 @@ The following are the changes since PGQL 1.0:
      /* PGQL 1.1 */
      PATH close_friend AS () -[e]-> (:Person) WHERE e.weight >= 9
    SELECT m.name
-    MATCH (n:Person) -/:close_friend*/-> (m)
+     FROM g MATCH (n:Person) -/:close_friend*/-> (m)
     WHERE n.name = 'Amber'
    ```
 
@@ -118,7 +118,7 @@ Consider the following example PGQL query:
 
 ```sql
 SELECT m.name, o.name
-  FROM sn_graph
+  FROM sn_graph 
  MATCH (n:Person) -[e1:friend_of]-> (m:Person) <-[e2:belongs_to]- (o:Car)
  WHERE n.name = 'John'
 ```
@@ -214,7 +214,7 @@ Syntactically, a `MATCH` clause is composed of the keyword `MATCH` followed by a
 ```bash
 MatchClause           ::= 'MATCH' <GraphPattern>
 
-GraphPattern          ::= { <PathPattern> ',' }+
+GraphPattern          ::= <PathPattern> ( ',' <PathPattern> )*
 
 PathPattern           ::= <Vertex> ( <Relation> <Vertex> )*
 
@@ -309,8 +309,7 @@ In the case the `MATCH` clause contains two or more disconnected graph patterns 
 
 ```sql
 SELECT *
- MATCH (n1) -> (m1)
-     , (n2) -> (m2)
+  FROM g MATCH (n1) -> (m1), (n2) -> (m2)
 ```
 
 Here, vertices `n2` and `m2` are not connected to vertices `n1` and `m1`, resulting in a Cartesian product.
@@ -322,7 +321,7 @@ In the property graph model, vertices and edge may have labels, which are arbitr
 This is explained by the following grammar constructs:
 
 ```bash
-LabelPredicate ::= ':' { <Label> '|' }+
+LabelPredicate ::= ':' <Label> ( '|' <Label> )*
 
 Label          ::= <IDENTIFIER>
 ```
@@ -331,7 +330,7 @@ Take the following example:
 
 ```sql
 SELECT *
- MATCH (x:Person) -[e:likes|knows]-> (y:Person)
+  FROM g MATCH (x:Person) -[e:likes|knows]-> (y:Person)
 ```
 
 Here, we specify that vertices `x` and `y` have the label `Person` and that the edge `e` has the label `likes` or the label `knows`.
@@ -340,7 +339,7 @@ A label predicate can be specified even when a variable is omitted. For example:
 
 ```sql
 SELECT *
- MATCH (:Person) -[:likes|knows]-> (:Person)
+  FROM g MATCH (:Person) -[:likes|knows]-> (:Person)
 ```
 
 There are also built-in functions available for labels (see [Built-in Functions](#built-in-functions)):
@@ -362,9 +361,9 @@ For example:
 
 ```sql
 SELECT y.name
-MATCH (x) -> (y)
-WHERE x.name = 'John'
-  AND y.age > 25
+  FROM g MATCH (x) -> (y)
+ WHERE x.name = 'John'
+   AND y.age > 25
 ```
 
 Here, the first filter describes that the vertex `x` has a property `name` and its value is `John`. Similarly, the second filter describes that the vertex `y` has a property `age` and its value is larger than `25`. Here, in the filter, the dot (`.`) operator is used for property access. For the detailed syntax and semantic of expressions, see [Value Expressions](#value-expressions).
@@ -373,7 +372,7 @@ Note that the ordering of constraints does not have an affect on the result, suc
 
 ```sql
 SELECT y.name
-MATCH (x) -> (y)
+ FROM g MATCH (x) -> (y)
 WHERE y.age > 25
   AND x.name = 'John'
 ```
@@ -397,7 +396,7 @@ Edge 1: 0 -> 1
 
 ```sql
 SELECT x, y
- MATCH (x) -> (y)
+  FROM g MATCH (x) -> (y)
 ```
 
 Under graph homomorphism the output of this query is as follows:
@@ -419,7 +418,7 @@ In PGQL, to specify that a pattern should be matched in an isomorphic way, one c
 
 ```sql
 SELECT x, y
- MATCH (x) -> (y)
+  FROM g MATCH (x) -> (y)
  WHERE x <> y
 ```
 
@@ -433,7 +432,7 @@ Alternatively, one can use the built-in function `all_different(exp1, exp2, .., 
 
 ```sql
 SELECT x, y
- MATCH (x) -> (y)
+  FROM g MATCH (x) -> (y)
  WHERE all_different(x, y)
 ```
 
@@ -452,7 +451,7 @@ An example PGQL query with undirected edges is as follows:
 
 ```sql
 SELECT *
- MATCH (n) -[e1]- (m) -[e2]- (o)
+  FROM g MATCH (n) -[e1]- (m) -[e2]- (o)
 ```
 
 Note that in case there are both incoming and outgoing data edges between two data vertices, there will be separate result bindings for each of the edges.
@@ -462,7 +461,7 @@ Undirected edges may also be used inside [common path expressions](#common-path-
 ```sql
   PATH two_hops AS () -[e1]- () -[e2]- ()
 SELECT *
- MATCH (n) -/:two_hops*/-> (m)
+  FROM g MATCH (n) -/:two_hops*/-> (m)
 ```
 
 The above query will return all pairs of vertices `n` and `m` that are reachable via a multiple of two edges, each edge being either an incoming or an outgoing edge.
@@ -476,7 +475,7 @@ In a PGQL query, the SELECT clause defines the data entities to be returned in t
 The following explains the syntactic structure of SELECT clause.
 
 ```bash
-SelectClause ::= 'SELECT' 'DISTINCT'? { <ExpAsVar> ',' }+
+SelectClause ::= 'SELECT' 'DISTINCT'? <ExpAsVar> ( ',' <ExpAsVar> )*
                | 'SELECT' '*'
 
 ExpAsVar     ::= <ValueExpression> ( 'AS' <VariableName> )?
@@ -491,7 +490,7 @@ Consider the following example:
 
 ```sql
 SELECT n, m, n.age AS age
- MATCH (n:Person) -[e:friend_of]-> (m:Person)
+  FROM g MATCH (n:Person) -[e:friend_of]-> (m:Person)
 ```
 
 Per each matched subgraph, the query returns two vertices `n` and `m` and the value for property age of vertex `n`.  Note that edge `e` is omitted from the result even though it is used for describing the pattern.
@@ -504,7 +503,7 @@ It is possible to assign a variable name to any of the selection expression, by 
 
 ```sql
   SELECT n.age * 2 - 1 AS pivot, n.name, n
-   MATCH (n:Person) -> (m:Car)
+    FROM g MATCH (n:Person) -> (m:Car)
 ORDER BY pivot
 ```
 
@@ -516,7 +515,7 @@ Consider the following query:
 
 ```sql
 SELECT *
- MATCH (n:Person) -> (m) -> (w)
+  FROM g MATCH (n:Person) -> (m) -> (w)
      , (n) -> (w) -> (m)
 ```
 
@@ -524,7 +523,7 @@ This query is semantically equivalent to:
 
 ```sql
 SELECT n, m, w
- MATCH (n:Person) -> (m) -> ()
+  FROM g MATCH (n:Person) -> (m) -> ()
      , (n) -> (w) -> (m)
 ```
 
@@ -538,7 +537,7 @@ When there are multiple matched subgraph instances to a given query, in general,
 The following explains the syntactic structure of `ORDER BY` clause.
 
 ```bash
-OrderByClause ::= 'ORDER' 'BY' { <OrderTerm> ',' }+
+OrderByClause ::= 'ORDER' 'BY' <OrderTerm> ( ',' <OrderTerm> )*
 
 OrderTerm     ::= <ValueExpression> ( 'ASC' | 'DESC' )?
 ```
@@ -553,7 +552,7 @@ The following is an example in which the results are ordered by property access 
 
 ```sql
   SELECT n.name
-   MATCH (n:Person)
+    FROM g MATCH (n:Person)
 ORDER BY n.age ASC
 ```
 
@@ -563,7 +562,7 @@ It is possible that `ORDER BY` clause consists of multiple terms. In such a case
 
 ```sql
   SELECT f.name
-   MATCH (f:Person)
+    FROM g MATCH (f:Person)
 ORDER BY f.age ASC, f.salary DESC
 ```
 
@@ -604,7 +603,7 @@ In the following query, the first 5 intermediate solutions are pruned from the r
 
 ```sql
 SELECT n
- MATCH (n)
+  FROM g MATCH (n)
  LIMIT 10
 OFFSET 5
 ```
@@ -656,7 +655,7 @@ An example is as follows:
 
 ```sql
 SELECT c.name
- MATCH (c:Class) -/:subclass_of*/-> (arrayList:Class)
+  FROM g MATCH (c:Class) -/:subclass_of*/-> (arrayList:Class)
  WHERE arrayList.name = 'ArrayList'
 ```
 
@@ -688,7 +687,7 @@ The following query finds all vertices `y` that can be reached from `Amy` by fol
 
 ```sql
 SELECT y.name
- MATCH (x:Person) -/:likes*/-> (y)
+  FROM g MATCH (x:Person) -/:likes*/-> (y)
  WHERE x.name = 'Amy'
 ```
 
@@ -712,7 +711,7 @@ The following query finds all people that can be reached from `Amy` by following
 
 ```sql
 SELECT y.name
- MATCH (x:Person) -/:likes+/-> (y)
+  FROM g MATCH (x:Person) -/:likes+/-> (y)
  WHERE x.name = 'Amy'
 ```
 
@@ -732,7 +731,7 @@ Another example is a query that finds all people that can be reached from `Judit
 
 ```sql
 SELECT y.name
- MATCH (x:Person) -/:knows+/-> (y)
+  FROM g MATCH (x:Person) -/:knows+/-> (y)
  WHERE x.name = 'Judith'
 ```
 
@@ -753,7 +752,7 @@ The following query finds all people that can be reached from `Judith` by follow
 
 ```sql
 SELECT y.name
- MATCH (x:Person) -/:knows?/-> (y)
+  FROM g MATCH (x:Person) -/:knows?/-> (y)
  WHERE x.name = 'Judith'
 ```
 
@@ -774,7 +773,7 @@ The following query finds all people that can be reached from `Amy` by following
 
 ```sql
 SELECT y.name
- MATCH (x:Person) -/:likes{2,}/-> (y)
+  FROM g MATCH (x:Person) -/:likes{2,}/-> (y)
  WHERE x.name = 'Amy'
 ```
 
@@ -794,7 +793,7 @@ The following query finds all people that can be reached from `Amy` by following
 
 ```sql
 SELECT y.name
- MATCH (x:Person) -/:likes{1,2}/-> (y)
+  FROM g MATCH (x:Person) -/:likes{1,2}/-> (y)
  WHERE x.name = 'Amy'
 ```
 
@@ -818,7 +817,7 @@ The following query finds all people that can be reached from `Judith` by follow
 
 ```sql
 SELECT y.name
- MATCH (x:Person) -/:knows{,2}/-> (y)
+  FROM g MATCH (x:Person) -/:knows{,2}/-> (y)
  WHERE x.name = 'Judith'
 ```
 
@@ -852,8 +851,8 @@ An example is as follows:
 ```sql
   PATH has_parent AS () -[:has_father|has_mother]-> (:Person)
 SELECT ancestor.name
- MATCH (p1:Person) -/:has_parent+/-> (ancestor),
-     , (p2:Person) -/:has_parent+/-> (ancestor)
+  FROM g MATCH (p1:Person) -/:has_parent+/-> (ancestor)
+             , (p2:Person) -/:has_parent+/-> (ancestor)
  WHERE p1.name = 'Mario'
    AND p2.name = 'Luigi'
 ```
@@ -866,7 +865,7 @@ Another example is as follows:
   PATH connects_to AS (:Generator) -[:has_connector]-> (c:Connector) <-[:has_connector]- (:Generator)
                 WHERE c.status = 'OPERATIONAL'
 SELECT generatorA.location, generatorB.location
- MATCH (generatorA) -/:connects_to+/-> (generatorB)
+  FROM g MATCH (generatorA) -/:connects_to+/-> (generatorB)
 ```
 
 The above query outputs all generators that are connected to each other via one or more connectors that are all operational.
@@ -880,7 +879,7 @@ The above query outputs all generators that are connected to each other via one 
 The following explains the syntactic structure of the `GROUP BY` clause:
 
 ```bash
-GroupByClause ::= 'GROUP' 'BY' { <ExpAsVar> ',' }+
+GroupByClause ::= 'GROUP' 'BY' <ExpAsVar> ( ',' <ExpAsVar> )*
 ```
 
 The `GROUP BY` clause starts with the keywords GROUP BY and is followed by a comma-separated list of group terms. Each group term consists of:
@@ -892,7 +891,7 @@ Consider the following query:
 
 ```sql
   SELECT n.first_name, COUNT(*), AVG(n.age)
-   MATCH (n:Person)
+    FROM g MATCH (n:Person)
 GROUP BY n.first_name
 ```
 
@@ -904,7 +903,7 @@ It is possible to assign a variable name to any of the group expression, by appe
 
 ```sql
   SELECT nAge, COUNT(*)
-   MATCH (n:Person)
+    FROM g MATCH (n:Person)
 GROUP BY n.age AS nAge
 ORDER BY nAge
 ```
@@ -917,7 +916,7 @@ Consider the following query:
 
 ```sql
   SELECT n.first_name, n.last_name, COUNT(*)
-   MATCH (n:Person)
+    FROM g MATCH (n:Person)
 GROUP BY n.first_name, n.last_name
 ```
 
@@ -931,7 +930,7 @@ To filter out such a group, use a `HAVING` clause (see [Filtering of Groups (HAV
 
 ```sql
   SELECT n.prop1, n.prop2, COUNT(*)
-   MATCH (n)
+    FROM g MATCH (n)
 GROUP BY n.prop1, n.prop2
   HAVING n.prop1 IS NOT NULL
      AND n.prop2 IS NOT NULL
@@ -945,7 +944,7 @@ Consider the following query:
 
 ```sql
   SELECT n.age, COUNT(*)
-   MATCH (n)
+    FROM g MATCH (n)
 GROUP BY n.age
 ORDER BY n.age
 ```
@@ -956,7 +955,7 @@ This repetition of group expressions introduces an exception to the variable vis
 
 ```sql
   SELECT nAge, COUNT(*)
-   MATCH (n)
+    FROM g MATCH (n)
 GROUP BY n.age AS nAge
 ORDER BY nAge
 ```
@@ -1006,7 +1005,7 @@ An example is as follows:
 
 ```sql
   SELECT AVG(m.salary)
-   MATCH (m:Person)
+    FROM g MATCH (m:Person)
 GROUP BY m.age
 ```
 
@@ -1020,7 +1019,7 @@ An example is as follows:
 
 ```sql
 SELECT AVG(m.salary)
- MATCH (m:Person)
+  FROM g MATCH (m:Person)
 ```
 
 Here, we aggregate over the entire set of vertices with label `Person`, to compute the average salary.
@@ -1031,7 +1030,7 @@ Here, we aggregate over the entire set of vertices with label `Person`, to compu
 
 ```sql
 SELECT COUNT(*)
- MATCH (m:Person)
+  FROM g MATCH (m:Person)
 ```
 
 ### DISTINCT Aggregation
@@ -1042,7 +1041,7 @@ For example:
 
 ```sql
 SELECT AVG(DISTINCT m.age)
- MATCH (m:Person)
+  FROM g MATCH (m:Person)
 ```
 
 Here, we aggregate only over distinct `m.age` values.
@@ -1060,7 +1059,7 @@ An example is as follows:
 
 ```sql
   SELECT n.name
-   MATCH (n) -[:has_friend]-> (m)
+    FROM g MATCH (n) -[:has_friend]-> (m)
 GROUP BY n
   HAVING COUNT(m) > 10
 ```
@@ -1244,7 +1243,7 @@ An example is as follows:
 
 ```sql
 SELECT n.name
- MATCH (n)
+  FROM g MATCH (n)
  WHERE n.name IS NOT NULL
 ```
 
@@ -1309,7 +1308,7 @@ An example query with two bind variables is as follows:
 
 ```sql
 SELECT n.age
- MATCH (n)
+  FROM g MATCH (n)
  WHERE n.name = ?
     OR n.age > ?
 ```
@@ -1318,7 +1317,7 @@ In the following query, bind variables are used in `LIMIT` and `OFFSET`:
 
 ```sql
   SELECT n.name, n.age
-   MATCH (n)
+    FROM g MATCH (n)
 ORDER BY n.age
    LIMIT ?
   OFFSET ?
@@ -1328,7 +1327,7 @@ The following example shows a bind variable in the position of a label:
 
 ```sql
   SELECT n.name
-   MATCH (n)
+    FROM g MATCH (n)
    WHERE has_label(n, ?)
 ```
 
@@ -1340,13 +1339,15 @@ PGQL has a set of built-in functions (see [Built-in Functions](#built-in-functio
 The syntactic structure for function calls is as follows:
 
 ```bash
-FunctionCall         ::= <PackageSpecification>? <FunctionName> '(' { <ValueExpression> ',' }* ')'
+FunctionCall         ::= <PackageSpecification>? <FunctionName> '(' <ArgumentList> ')'
 
 PackageSpecification ::= <PackageName> '.'
 
 PackageName          ::= <IDENTIFIER>
 
 FunctionName         ::= <IDENTIFIER>
+
+ArgumentList         ::= ( <ValueExpression> ( ',' <ValueExpression> )* )?
 ```
 
 A function call has an optional package name, a function name, and, zero or more arguments which are arbitrary value expressions.
@@ -1371,7 +1372,7 @@ Consider the following query:
 
 ```sql
 SELECT id(y)
- MATCH (x) -> (y)
+  FROM g MATCH (x) -> (y)
  WHERE in_degree(x) > 10
 ```
 
@@ -1386,7 +1387,7 @@ An example invocation of this function is then:
 
 ```sql
   SELECT math.tan(n.angle) AS tangent
-   MATCH (n)
+    FROM g MATCH (n)
 ORDER BY tangent
 ```
 
@@ -1411,9 +1412,12 @@ Explicit type conversion is supported through type "casting".
 The syntax is as follows: 
 
 ```bash
-CastSpecification ::= 'CAST' '(' <ValueExpression> 'AS' <DataTypeName> ')'
+CastSpecification ::= 'CAST' '(' <ValueExpression> 'AS' <DataType> ')'
 
-DataTypeName      ::= { <IDENTIFIER> ' ' }+
+DataType          ::= 'STRING'
+                    | 'INTEGER' | 'INT' | 'LONG' | 'FLOAT' | 'DOUBLE'
+                    | 'BOOLEAN'
+                    | 'DATE' | 'TIME' | 'TIME WITH TIME ZONE' | 'TIMESTAMP' | 'TIMESTAMP WITH TIME ZONE'
 ```
 
 Note that the syntax of a data type is one or more identifiers separated by a space, allowing the encoding of data types such as `STRING` and `TIME WITH TIME ZONE`.
@@ -1467,7 +1471,7 @@ An example is to find friend of friends, and, for each friend of friend, return 
 
 ```sql
 SELECT fof.name, COUNT(friend) AS num_common_friends
- MATCH (p:Person) -[:has_friend]-> (friend:Person) -[:has_friend]-> (fof:Person)
+  FROM g MATCH (p:Person) -[:has_friend]-> (friend:Person) -[:has_friend]-> (fof:Person)
  WHERE NOT EXISTS (
                     SELECT *
                      MATCH (p) -[:has_friend]-> (fof)
@@ -1594,30 +1598,5 @@ An example query with both single-line and multi-line comments is as follows:
    multi-line
    comment. */
 SELECT n.name, n.age
- MATCH (n:Person) /* this is a single-line comment */
+  FROM g MATCH (n:Person) /* this is a single-line comment */
 ```
-
-## White Space
-
-White space consists of spaces, new lines and tabs. White space is significant in string literals, as the white space is part of the literal value and taken into account when comparing against data values. Outside of string literals, white space is ignored. However, for readability consideration and ease of parser implementation, the following rules should be followed when writing a query:
-
-- A keyword should not be followed directly by an `<IDENTIFIER>` (e.g. variable name or property name)
-- An `<IDENTIFIER>` should not be followed directly by a keyword.
-
-If these rules are not followed, a PGQL parser may or may not treat it as an error.
-
-Consider the following query:
-
-```sql
-SELECT n.name, m.name
- MATCH (n:Person) -> (m)
- WHERE n.name = 'Ron Weasley'
-```
-
-This query can be reformatted with minimal white space, while guaranteeing compatibility with different parser implementations, as follows:
-
-```sql
-SELECT n.name,m.name MATCH(n:Person)->(m)WHERE n.name='Ron Weasley'
-```
-
-Note that the white space after the `SELECT` keyword, in front of the `MATCH` keyword, after the `WHERE` keyword, and, in the string literal `'Ron Weasley'`, cannot be omitted.

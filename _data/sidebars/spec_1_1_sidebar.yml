@@ -314,7 +314,3 @@ entries:
     - title: Comments
       url: /spec/1.1/#comments
       output: web
-
-    - title: White Space
-      url: /spec/1.1/#white-space
-      output: web
