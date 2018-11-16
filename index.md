@@ -5,14 +5,16 @@ toc: false
 keywords: pgql property graph model query language database analytics oracle cypher opencypher sparql
 ---
 
-Graphs + SQL
+Graphs & SQL
 ====================================
 
 PGQL is a graph pattern matching query language for the [property graph data model](spec/1.1/#property-graph-data-model), inspired by
 [Cypher](https://homepages.inf.ed.ac.uk/libkin/papers/sigmod18.pdf),
-[SQL](https://en.wikipedia.org/wiki/SQL), and
-[G-CORE](http://g-core.org/).
-PGQL combines Cypher-like [ASCII art syntax](https://neo4j.com/developer/cypher-query-language/) with familiar constructs from SQL, such as `SELECT`, `FROM` and `WHERE`.
+[SQL](https://en.wikipedia.org/wiki/SQL),
+[G-CORE](http://g-core.org/),
+[SPARQL](https://www.w3.org/TR/sparql11-query/)
+and [GSQL](https://doc.tigergraph.com/GSQL-101.html).
+PGQL combines graph pattern matching with familiar constructs from SQL, such as `SELECT`, `FROM` and `WHERE`.
 PGQL also provides powerful constructs for matching regular path expressions (e.g. `PATH`).
 
 An example PGQL query is as follows:
@@ -93,35 +95,23 @@ PGQL's Java result set API
 and [ResultAccess.java](https://github.com/oracle/pgql-lang/blob/master/graph-query-ir/src/main/java/oracle/pgql/lang/ResultAccess.java))
  is based on the [__new Java 8 Date and Time Library__](http://www.oracle.com/technetwork/articles/java/jf14-date-time-2125367.html) (`java.time.*`), offering greatly improved safety and functionality for Java developers.
 
-Querying Multiple Graphs
------------------------
-Through subqueries, PGQL allows for __comparing data from different graphs__.
-
-For example, the following query finds people who are on Facebook but not on Twitter:
-
-```sql
-SELECT p1.name
-  FROM facebook_graph
- MATCH (p1:Person)                           /* Match persons in the Facebook graph.. */
- WHERE NOT EXISTS (                          /* ..such that there does not exist..    */
-                    SELECT p2
-                      FROM twitter_graph
-                     MATCH (p2:Person)       /* ..a person in the Twitter graph..     */
-                     WHERE p1.name = p2.name /* ..with the same name.                 */
-                  )
-```
-
 Resources
 ---------
 
- - [__White Paper__](http://dl.acm.org/citation.cfm?id=2960421) ([pdf](http://event.cwi.nl/grades/2016/07-VanRest.pdf)) that also outlines some future directions of PGQL
-   (e.g. shortest/cheapest path finding, graph construction)
- - __Specifications__
-     - [PGQL 1.1 Specification](spec/1.1/) (latest spec.)
-     - [PGQL 1.0 Specification](spec/1.0/)
-     - [PGQL 0.9 Specification](https://docs.oracle.com/cd/E56133_01/1.2.1/PGQL_Specification.pdf)
- - [Open-sourced __parser__ and __static query validator__](https://github.com/oracle/pgql-lang) on GitHub
+ - __Parser__
+     - [Open-sourced parser and static query validator](https://github.com/oracle/pgql-lang) on GitHub
  - __Implementations__
-     - [Oracle Labs' Parallel Graph AnalytiX (__PGX__)](http://www.oracle.com/technetwork/oracle-labs/parallel-graph-analytics/overview/index.html), an in-memory graph analytics toolkit
-     - [Oracle __Big Data__ Spatial and Graph](http://www.oracle.com/technetwork/database/database-technologies/bigdata-spatialandgraph/overview/index.html), which supports PGQL on top of big data workloads on Apache Hadoop and NoSQL database technologies
-     - [Oracle Spatial and Graph](https://www.oracle.com/database/spatial/index.html), which supports PGQL on top of the Oracle RDBMS
+     - [PGX](http://www.oracle.com/technetwork/oracle-labs/parallel-graph-analytics/overview/index.html), an in-memory graph analytics toolkit
+     - [Oracle Spatial and Graph](https://www.oracle.com/database/spatial/index.html), which bundles PGX and additionally supports a PGQL-to-SQL translation on top of the Oracle RDBMS
+ - __Blog Posts__
+     - [Using PGQL in Python](https://blogs.oracle.com/bigdataspatialgraph/using-pgql-in-python) (_2018-05-22_)
+     - [How Many Ways to Run Property Graph Query Language (PGQL) in BDSG? (II)](https://blogs.oracle.com/bigdataspatialgraph/how-many-ways-to-run-property-graph-query-language-pgql-in-bdsg-ii) (_2017-03-23_)
+     - [How Many Ways to Run Property Graph Query Language (PGQL) in BDSG? (I)](https://blogs.oracle.com/bigdataspatialgraph/how-many-ways-to-run-property-graph-query-language-pgql-in-bdsg-i) (_2017-03-14_)
+     - [Property Graph Query Language (PGQL) support has been added to Oracle Database 12.2.0.1!](https://blogs.oracle.com/oraclespatial/property-graph-query-language-pgql-support-has-been-added-to-oracle-database-12201) (_2017-03-10_)
+ - __Training Videos__
+     - [PGQL: A Query Language for Graphs](https://asktom.oracle.com/pls/apex/f?p=100:551:::NO:551:P551_CLASS_ID:4197&cs=1F6BF819D61CFBE3F44500E3F8E156C5C) (_2018-10-02_)
+ - __White Paper__
+     - [White Paper](http://dl.acm.org/citation.cfm?id=2960421) ([pdf](http://event.cwi.nl/grades/2016/07-VanRest.pdf)) that also outlines some future directions of PGQL
+       (e.g. shortest/cheapest path finding, graph construction)
+ - __Standardization__
+     - [GQL Standard](https://www.gqlstandards.org/)

@@ -13,11 +13,6 @@ topnav:
 
 - title: Topnav
   items:
-    - title: White Paper
-      external_url: http://event.cwi.nl/grades/2016/07-VanRest.pdf
-
-- title: Topnav
-  items:
     - title: Parser
       external_url: https://github.com/oracle/pgql-lang/
 
@@ -25,6 +20,11 @@ topnav:
   items:
     - title: PGX
       external_url: http://www.oracle.com/technetwork/oracle-labs/parallel-graph-analytics/overview/index.html
+
+- title: Topnav
+  items:
+    - title: Oracle Spatial and Graph
+      external_url: https://www.oracle.com/technetwork/database/options/spatialandgraph/overview/index.html
 
 #Topnav dropdowns
 #topnav_dropdowns:
