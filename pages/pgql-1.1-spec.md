@@ -1508,11 +1508,19 @@ Above, we compare two string properties from different graphs. Besides propertie
 
 Users can add a sub-query in the `WHERE` clause of the `PATH` definition. One might be interested in asserting for specific properties for a vertex in the `PATH`. The following example defines a path ending in a vertex which is not the oldest in the graph:
 
-`PATH p AS (a) -> (b) WHERE EXISTS (SELECT * MATCH (x) WHERE x.age > b.age) SELECT ...`
+```sql
+  PATH p AS (a) -> (b) WHERE EXISTS ( SELECT * FROM g MATCH (x) WHERE x.age > b.age )
+SELECT ...
+  FROM ...
+```
 
 Topology related constraints can be also imposed. The following example defines a path ending in a vertex which has at least one out-neighbor:
 
-`PATH p AS (a) -> (b) WHERE EXISTS (SELECT * MATCH (b) -> (c)) ...`
+```sql
+  PATH p AS (a) -> (b) WHERE EXISTS ( SELECT * FROM g MATCH (b) -> (c) )
+SELECT ...
+  FROM ...
+```
 
 # Other Syntactic Rules
 
