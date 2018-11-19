@@ -11,7 +11,7 @@ test Unresolved variable in SELECT [[
 
 test Unresolved variable in SELECT [[
 
-  SELECT n
+  SELECT n AS n
     FROM MATCH( (n) )
    WHERE EXISTS ( [[UPDATE x.prop = 3]] FROM MATCH( (x) ) )
 
@@ -36,7 +36,7 @@ test Update property value to vertex or edge (1) [[
 
 test Update property value to vertex or edge (2) [[
 
-  UPDATE n.prop = ( SELECT [[x FROM]] MATCH ( (x) ) LIMIT 1 )
+  UPDATE n.prop = ( SELECT [[x AS x FROM]] MATCH ( (x) ) LIMIT 1 )
     FROM g MATCH ( (n) -[e]-> (m) )
 
 ]] error like "Scalar subquery not allowed to return a vertex or an edge" at #1

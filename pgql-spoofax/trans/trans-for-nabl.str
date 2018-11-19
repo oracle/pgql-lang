@@ -155,8 +155,13 @@ rules
     (t@ExpAsVar(exp, v, anonymous), (result, vars)) -> (result', vars')
     with exp' := <resolve-var-refs(|variables)> exp
        ; originOffset := <origin-offset> v
-       ; vars' := <replace-or-add> (VarDef(v, originOffset, exp, exp'), vars)
-       ; expAsVar' := <origin-track-forced(!ExpAsVar(exp', v, anonymous, originOffset))> t
+       ; if <?Anonymous(); !v; origin-text; ?"*"> anonymous
+         then // in case of SELECT * make sure each ExpAsVar gets a unique origin assigned
+              unique-origin := <conc-strings> ("*_", <write-to-string> originOffset, "_", <write-to-string> v)
+         else unique-origin := originOffset
+         end
+       ; vars' := <replace-or-add> (VarDef(v, unique-origin, exp, exp'), vars)
+       ; expAsVar' := <origin-track-forced(!ExpAsVar(exp', v, anonymous, unique-origin))> t
        ; result' := <conc> (result, [expAsVar'])
 
   resolve-having(|variables-after-group-by, variables-after-select):

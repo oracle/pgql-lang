@@ -11,7 +11,9 @@ import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.ExpectedException;
 
-import oracle.pgql.lang.ir.QueryExpression.FunctionCall;;
+import oracle.pgql.lang.ir.GraphQuery;
+import oracle.pgql.lang.ir.QueryExpression.FunctionCall;
+import oracle.pgql.lang.ir.QueryExpression.PropertyAccess;
 
 public class BugFixTest extends AbstractPgqlTest {
 
@@ -63,5 +65,14 @@ public class BugFixTest extends AbstractPgqlTest {
 
     String queryPgql11 = "SELECT 1 MATCH () -[e]-> () ORDER BY e";
     assertFalse(pgql.parse(queryPgql11).isQueryValid());
+  }
+
+  @Test /* GM-16567 */
+  public void selectStarOrderBy() throws Exception {
+    String query = "SELECT * MATCH (v)-[e]->(u) ORDER BY v.name";
+    String prettyPrintedQuery = pgql.parse(query).getGraphQuery().toString();
+    GraphQuery graphQuery = pgql.parse(prettyPrintedQuery).getGraphQuery();
+    PropertyAccess propertyAccess = (PropertyAccess) graphQuery.getOrderBy().getElements().get(0).getExp();
+    assertEquals("v", propertyAccess.getVariable().getName());
   }
 }
