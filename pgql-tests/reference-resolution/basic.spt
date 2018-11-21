@@ -165,7 +165,7 @@ test Variables in MATCH shadow variables in SELECT [[
 ]] resolve #3 to #2
    resolve #4 to #2
    resolve #5 to #4
-   resolve #6 to #1
+   resolve #6 to #4
 
 test Pass variable from SELECT to GROUP BY and back to SELECT [[
 
@@ -193,3 +193,14 @@ test Resolve variables in property references (but not other variables) in ORDER
  ]] resolve #3 to #2
     resolve #4 to #2
     resolve #5 to #1
+
+test Resolve variables in property references (but not other variables) in ORDER BY and HAVING to GROUP BY before SELECT [[
+
+    SELECT 123 AS n
+      FROM g MATCH (n)
+  GROUP BY [[n]]
+    HAVING [[n]].prop > 3
+  ORDER BY [[n]].prop
+
+ ]] resolve #2 to #1
+    resolve #3 to #1

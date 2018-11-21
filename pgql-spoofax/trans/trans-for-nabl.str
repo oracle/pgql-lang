@@ -71,7 +71,7 @@ rules
        ; having' := <resolve-having(|variables''', variables'''')> having // having resolves to GROUP BY variables first, then to SELECT variables
 
        // ORDER BY
-       ; orderBy' := <resolve-prop-refs(|variables'', hasGroupBy); resolve-var-refs(|variables''''); alltd(optimize-order-by)> orderBy // ORDER BY resolves to SELECT variables first (except in case of a VarRef in a PropRef, which is resolved to FROM first), then to GROUP BY variables
+       ; orderBy' := <resolve-prop-refs(|variables'''); resolve-var-refs(|variables''''); alltd(optimize-order-by)> orderBy // ORDER BY resolves to SELECT variables first, then to GROUP BY variables (except in case of a VarRef in a PropRef, in which case it is resolved to MATCH or GROUP BY first)
 
   path-with-at-most-one-binding:
     t@Path(_, _, _, quantifier, _, _, _, _) -> t
@@ -231,12 +231,7 @@ rules
     VarRef(v) -> exp
     where ExpAsVar(exp, _, _) := <filter(?ExpAsVar(_, v, NonAnonymous())); Hd> expAsVars
 
-  resolve-prop-refs(|variables, hasGroupBy):
-    t -> t'
-    with if True() := hasGroupBy
-         then t' := t
-         else t' := <alltd(resolve-prop-ref(|variables))> t
-         end
+  resolve-prop-refs(|variables) = alltd(resolve-prop-ref(|variables))
 
   resolve-prop-ref(|variables):
     t@PropRef(varRef, prop) -> PropRef(varRef', prop)
