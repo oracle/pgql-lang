@@ -5,14 +5,14 @@ language pgql-lang
 test Nested aggregation (1) [[
 
   SELECT AVG(MIN([[n]].age)) AS nextedAggr
-   MATCH (n)
+    FROM g MATCH (n)
 
 ]] error like "Unresolved variable" at #1
 
 test Nested aggregation (2) [[
 
     SELECT MIN(n.age) AS min
-     MATCH (n)
+      FROM g MATCH (n)
   ORDER BY AVG(MIN([[n]].age))
 
 ]] error like "Unresolved variable" at #1
@@ -20,7 +20,7 @@ test Nested aggregation (2) [[
 test Nested aggregation (3) [[
 
     SELECT MIN(n.age) AS min
-     MATCH (n)
+      FROM g MATCH (n)
   ORDER BY AVG( [[min]] )
 
 ]] error like "Unresolved variable" at #1
@@ -28,7 +28,7 @@ test Nested aggregation (3) [[
 test Aggregation in WHERE (1) [[
 
   SELECT COUNT(n) AS cnt
-   MATCH (n)
+    FROM g MATCH (n)
    WHERE [[COUNT(n)]]
 
 ]] error like "Aggregation without group variables not allowed in the WHERE clause" at #1
@@ -36,7 +36,7 @@ test Aggregation in WHERE (1) [[
 test Aggregation in WHERE (2) [[
 
   SELECT 3 AS three
-   MATCH (n)
+    FROM g MATCH (n)
    WHERE [[COUNT(n)]]
 
 ]] error like "Aggregation without group variables not allowed in the WHERE clause" at #1
@@ -45,30 +45,30 @@ test Aggregation in WHERE (3) [[
 
     PATH any AS () -> () WHERE [[COUNT(*)]]
   SELECT 3 AS three
-   MATCH (n)
+    FROM g MATCH (n)
 
 ]] error like "Aggregation without group variables not allowed in the WHERE clause" at #1
 
 test Aggregation in GROUP BY (1) [[
 
-    SELECT avgAge
-     MATCH (n)
+    SELECT avgAge AS c1
+      FROM g MATCH (n)
   GROUP BY [[AVG(n.age)]] AS avgAge
 
 ]] error like "Aggregation without group variables not allowed in GROUP BY" at #1
 
 test Aggregation in GROUP BY (2) [[
 
-    SELECT avgAge
-     MATCH (n)
+    SELECT avgAge AS c1
+      FROM g MATCH (n)
   GROUP BY [[AVG(MIN(n.age))]] AS avgAge
 
 ]] error like "Aggregation without group variables not allowed in GROUP BY" at #1
 
 test Aggregation in GROUP BY (3) [[
 
-    SELECT avgAge
-     MATCH (n)
+    SELECT avgAge AS c1
+      FROM g MATCH (n)
   GROUP BY [[AVG(MIN(n.age))]] AS avgAge
 
 ]] error like "Aggregation without group variables not allowed in GROUP BY" at #1
@@ -81,7 +81,7 @@ test Type conflict in IN [[
        , n.prop IN (DATE '2018-01-01', [[5]], [[2.2]], [[true]], [[false]], [['abc']], [[TIME '16:30:00']], [[TIMESTAMP '2018-01-01 16:30:00']]) AS v4
        , n.prop IN (TIME '16:30:00', [[5]], [[2.2]], [[true]], [[false]], [['abc']], [[DATE '2018-01-01']], [[TIMESTAMP '2018-01-01 16:30:00']]) AS v5
        , n.prop IN (TIMESTAMP '2018-01-01 16:30:00', [[5]], [[2.2]], [[true]], [[false]], [['abc']], [[DATE '2018-01-01']], [[TIME '16:30:00']]) AS v6
-   MATCH (n)
+    FROM g MATCH (n)
 
 ]] error like "Numeric expected here" at #1, #2, #3, #4, #5, #6
    error like "Boolean expected here" at #7, #8, #9, #10, #11, #12

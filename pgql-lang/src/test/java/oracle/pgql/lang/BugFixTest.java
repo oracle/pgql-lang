@@ -4,13 +4,16 @@
 package oracle.pgql.lang;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
 
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.ExpectedException;
 
-import oracle.pgql.lang.ir.QueryExpression.FunctionCall;;
+import oracle.pgql.lang.ir.GraphQuery;
+import oracle.pgql.lang.ir.QueryExpression.FunctionCall;
+import oracle.pgql.lang.ir.QueryExpression.PropertyAccess;
 
 public class BugFixTest extends AbstractPgqlTest {
 
@@ -45,5 +48,31 @@ public class BugFixTest extends AbstractPgqlTest {
   public void noErrorOnSelectStarSingleVertex() throws Exception {
     String query = "SELECT * MATCH (n)";
     assertTrue(pgql.parse(query).isQueryValid());
+  }
+
+  @Test
+  public void testUpdate() throws Exception {
+    String query = "UPDATE/*beta*/ [[n.prop]] = 123 " + //
+        "FROM g MATCH (n) " + //
+        "GROUP BY n.prop AS nProp";
+    assertFalse(pgql.parse(query).isQueryValid());
+  }
+
+  @Test
+  public void orderByEdgeIsPermittedOnlyInPgql10() throws Exception {
+    String queryPgql10 = "SELECT 1 WHERE () -[e]-> () ORDER BY e";
+    assertTrue(pgql.parse(queryPgql10).isQueryValid());
+
+    String queryPgql11 = "SELECT 1 MATCH () -[e]-> () ORDER BY e";
+    assertFalse(pgql.parse(queryPgql11).isQueryValid());
+  }
+
+  @Test /* GM-16567 */
+  public void selectStarOrderBy() throws Exception {
+    String query = "SELECT * MATCH (v)-[e]->(u) ORDER BY v.name";
+    String prettyPrintedQuery = pgql.parse(query).getGraphQuery().toString();
+    GraphQuery graphQuery = pgql.parse(prettyPrintedQuery).getGraphQuery();
+    PropertyAccess propertyAccess = (PropertyAccess) graphQuery.getOrderBy().getElements().get(0).getExp();
+    assertEquals("v", propertyAccess.getVariable().getName());
   }
 }

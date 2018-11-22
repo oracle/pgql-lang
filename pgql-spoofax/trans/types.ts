@@ -67,6 +67,8 @@ type rules
 
   Exists(_) + InPredicate(_, _) + IsNull(exp) : BooleanTy()
 
+  Subquery(_) : None()
+
   IfElse(exp1, exp2, exp3): ty2
   where exp1 : ty1
     and exp2 : ty2
@@ -77,14 +79,14 @@ type rules
 
   Null(): UnknownTy()
 
-  Subquery(_) : UnknownTy()
-
   ExpAsVar(exp, var, _, _) : ty
   where exp : ty
 
   ScalarSubquery(Subquery(NormalizedQuery(_, SelectClause(_, ExpAsVars([expAsVar|_])), _, _, _, _, _, _, _, _))) : ty
   where expAsVar : ty
     and not ( ty == VertexTy() or ty == EdgeTy() ) else error $[Scalar subquery not allowed to return a vertex or an edge] on expAsVar
+
+  ScalarSubquery(Subquery(NormalizedQuery(_, UpdateClause(_), _, _, _, _, _, _, _, _))) : None()
 
   True() + False()        : BooleanTy()
   Date(_)                 : DateTy()
@@ -93,8 +95,12 @@ type rules
   Time(_)                 : TimeTy()
   Timestamp(_)            : TimestampTy()
 
-  OrderByElem(exp, _, "v1.1") :-
+  OrderByElem(exp, _, version) :-
   where exp : ty
-    and not ty == VertexTy() else error $[Cannot order by vertex] on exp
-    and not ty == EdgeTy() else error $[Cannot order by edge] on exp
+    and ( not version == "v1.0" and not ty == VertexTy() ) else error $[Cannot order by vertex] on exp
+    and ( not version == "v1.0" and not ty == EdgeTy() ) else error $[Cannot order by edge] on exp
     and not ty == ArrayTy() else error $[Cannot order by array] on exp
+
+  UpdateExp(_, exp) : ty
+  where exp : ty
+    and not ( ty == VertexTy() or ty == EdgeTy() ) else error $[Cannot set the value of a property to a vertex or an edge] on exp

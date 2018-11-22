@@ -1,0 +1,35 @@
+module Experimental
+
+imports
+
+  Expressions
+  GraphPattern
+  pgql-lang
+  SolutionModifiers
+
+template options
+
+  keyword -/- [a-zA-Z0-9]
+
+context-free syntax
+
+  ExperimentalQuery.Query =
+    <
+      <{CommonPathExpression "\n"}*>
+      <SelectOrUpdateClause>
+      <ExperimentalFromClause>
+      <WhereClause?>
+      <GroupByClause?>
+      <HavingClause?>
+      <OrderByClause?>
+      <LimitOffsetClauses?>
+    >
+    
+  ExperimentalFromClause.FromClause = <FROM <ExperimentalGraphMatch>> {case-insensitive}
+
+  ExperimentalGraphMatch.GraphMatch =
+    <
+      <GraphName?> EXPERIMENTAL_MATCH (
+        <GraphPattern>
+      )
+    > {case-insensitive}

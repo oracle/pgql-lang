@@ -36,8 +36,11 @@ import oracle.pgql.lang.ir.QueryExpression.LogicalExpression.Or;
 import oracle.pgql.lang.ir.QueryExpression.Function.Exists;
 import oracle.pgql.lang.ir.QueryVariable.VariableType;
 import oracle.pgql.lang.ir.QueryVertex;
+import oracle.pgql.lang.ir.update.GraphUpdateQuery;
 
 public class PgqlUtils {
+
+  public final static String BETA_FEATURES_FLAG = "/*beta*/";
 
   static DecimalFormat DECIMAL_FORMAT = new DecimalFormat("#.#");
 
@@ -167,9 +170,21 @@ public class PgqlUtils {
   protected static String printPgqlString(GraphQuery graphQuery) {
     String result = printPathPatterns(graphQuery.getCommonPathExpressions());
     GraphPattern graphPattern = graphQuery.getGraphPattern();
-    result += graphQuery.getProjection() + "\n";
+
+    switch (graphQuery.getQueryType()) {
+      case SELECT:
+        result += ((SelectQuery) graphQuery).getProjection();
+        break;
+      case GRAPH_UPDATE:
+        result += ((GraphUpdateQuery) graphQuery).getGraphUpdate();
+        break;
+      default:
+        throw new IllegalArgumentException(graphQuery.getQueryType().toString());
+    }
+
+    result += "\n";
     if (graphQuery.getInputGraphName() != null) {
-      result += "FROM " + printIdentifier(graphQuery.getInputGraphName()) + "\n";
+      result += "FROM " + printIdentifier(graphQuery.getInputGraphName()) + " ";
     }
     result += graphPattern;
     GroupBy groupBy = graphQuery.getGroupBy();
@@ -209,11 +224,13 @@ public class PgqlUtils {
     if (variable.getVariableType() == VariableType.EXP_AS_VAR) {
       ExpAsVar expAsVar = (ExpAsVar) variable;
       if (expAsVar.isAnonymous()) {
-        // e.g. in "SELECT x.inDegree() WHERE (n) GROUP BY x.inDegree()", the SELECT expression "x.inDegree()"
-        // is a VarRef to the anonymous GROUP BY expression "x.inDegree()"
+        // e.g. in "SELECT x.prop1 + x.prop2 FROM g MATCH( (n) ) ORDER BY x.prop1 + x.prop2", the ORDER BY expression
+        // "x.prop1 + x.prop2" is a VarRef to the anonymous SELECT expression "x.prop1 + x.prop2"
         return expAsVar.getExp().toString();
-      } else {
-        return variable.name;
+      } else if (!expAsVar.isContainedInSelectClause()) {
+        // e.g. "SELECT 123 FROM g EXPERIMENTAL_MATCH ( (n) ) GROUP BY n.age AS age" is not a valid PGQL query since GROUP BY may not
+        // introduce new variables since PGQL v1.3
+        return expAsVar.getExp().toString();
       }
     }
 
@@ -223,12 +240,12 @@ public class PgqlUtils {
   protected static String printPgqlString(ExpAsVar expAsVar) {
     String exp = expAsVar.getExp().toString();
     // replace expAsVar.getExp().toString() with expAsVar.getName() once we no longer have to pretty print PGQL v1.0
-    return expAsVar.isAnonymous() ? expAsVar.getExp().toString() : exp + " AS " + expAsVar.getName();
+    return expAsVar.isAnonymous() || !expAsVar.isContainedInSelectClause() ? exp : exp + " AS " + expAsVar.getName();
   }
 
   protected static String printPgqlString(GraphPattern graphPattern, List<QueryPath> queryPaths) {
-    String result = "MATCH ";
-    int indentation = result.length();
+    String result = "MATCH";
+    int indentation = 7;
     Set<QueryExpression> constraintsCopy = new HashSet<>(graphPattern.getConstraints());
     QueryVertex lastVertex = null;
     Set<QueryVertex> uncoveredVertices = new LinkedHashSet<>(graphPattern.getVertices());
@@ -279,16 +296,15 @@ public class PgqlUtils {
   private static String printConnection(Set<QueryExpression> constraintsCopy, VertexPairConnection connection,
       QueryVertex lastVertex, boolean tryConcatenateConnection, int indentation) {
 
-    String result = "";
+    String result = "\n" + printIndentation(indentation - 2);
 
     if (isShortest(connection)) {
+      result += lastVertex == null ? "  " : ", ";
+      result += connection.toString();
+
       // if the goal is SHORTEST, we don't try to concatenate the connection to the previous connection but instead
       // comma-separate it
-      if (lastVertex != null) {
-        return "\n" + printIndentation(indentation - 2) + ", " + connection;
-      } else {
-        return connection.toString();
-      }
+      return result;
     }
 
     QueryVertex vertexOnTheLeft;
@@ -302,9 +318,7 @@ public class PgqlUtils {
     }
 
     if (lastVertex != vertexOnTheLeft || !tryConcatenateConnection) {
-      if (lastVertex != null) {
-        result += "\n" + printIndentation(indentation - 2) + ", ";
-      }
+      result += lastVertex == null ? "  " : ", ";
       result += deanonymizeIfNeeded(vertexOnTheLeft, constraintsCopy);
     }
     result += " " + printConnection(vertexOnTheLeft, connection, constraintsCopy) + " ";

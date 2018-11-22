@@ -23,7 +23,12 @@ rules
     with
       variable-counter := <new-counter>;
       bindVariable-counter := <new-counter>;
-      error-messages := <is-pgql10; collect(get-pgql10-limitation) <+ collect(get-deprecation); not(?[]) <+ get-path-limitations <+ ![]> ast;
+      error-messages := <
+        (  is-pgql10; collect(get-pgql10-limitation)
+        <+ is-pgql11; (collect(get-pgql11-limitation); not(?[]) <+ collect(get-pgql11-deprecation))
+        <+ is-pgql13; collect(get-pgql13-deprecation); flatten-list
+        )
+        ; not(?[]) <+ get-path-limitations <+ ![]> ast;
       result := <
         alltd(norm-has-prop);
         alltd(norm-pgql10);
@@ -39,8 +44,12 @@ rules
           norm-case
         );
       	alltd(norm-edgeContents);
-        alltd(norm-string);
+        ( (is-pgql10 + is-pgql11); alltd(norm-legacy-string-literal + norm-legacy-identifier) +
+          is-pgql13; alltd(norm-string-literal + norm-identifier) +
+          Start-Plhdr() // empty query string
+        );
         alltd(norm-timezone);
+        alltd(norm-datetime-literal);
         alltd(norm-hop-distance);
         alltd(name-unnamed-elems(|variable-counter));
         alltd(norm-inlined-references);
@@ -53,35 +62,46 @@ rules
 
 rules
 
-  is-pgql10 = ?Pgql10Query(_, _, _, _, _, _, _) // pgql 1.0 has 7 sub-terms while pgql 1.1 has 8
+  is-pgql10 = ?Pgql10Query(_, _, _, _, _, _, _)
+  is-pgql11 = ?Pgql11Query(_, _, _, _, _, _, _, _, _)
+  is-pgql13 = ?Query(_, _, _, _, _, _, _, _)
 
-  get-deprecation = (?OutConn(None(), _) + ?InConn(None(), _) + ?UndirectedEdge(None(), _)); to-error-message(|"Use [-] instead of [--]")
-  get-deprecation = ?Pgql10AsignSymbol(); to-error-message(|"Use [AS] instead of [:=]")
-  get-deprecation = ?Legacy10Label(_); to-error-message(|"Use [label(x)] instead of [x.label()]")
-  get-deprecation = ?Legacy10Labels(_); to-error-message(|"Use [labels(x)] instead of [x.labels()]")
-  get-deprecation = ?Legacy10HasLabel(_, _); to-error-message(|"Use [has_label(x, 'lbl')] instead of [x.hasLabel('lbl')]")
-  get-deprecation = ?Legacy10Id(_); to-error-message(|"Use [id(x)] instead of [x.id()]")
-  get-deprecation = ?Legacy10Has(_, _); to-error-message(|"Use [x.prop IS NOT NULL] instead of [x.has(prop)]")
-  get-deprecation = ?Legacy10InDegree(_); to-error-message(|"Use [in_degree(x)] instead of [x.indegree()]")
-  get-deprecation = ?Legacy10OutDegree(_); to-error-message(|"Use [out_degree(x)] instead of [x.out_degree()]")
+  get-pgql11-deprecation = (?OutConn(None(), _) + ?InConn(None(), _) + ?UndirectedEdge(None(), _)); to-error-message(|"Use [-] instead of [--]")
+  get-pgql11-deprecation = ?Pgql10AsignSymbol(); to-error-message(|"Use [AS] instead of [:=]")
+  get-pgql11-deprecation = ?Legacy10Label(_); to-error-message(|"Use [label(x)] instead of [x.label()]")
+  get-pgql11-deprecation = ?Legacy10Labels(_); to-error-message(|"Use [labels(x)] instead of [x.labels()]")
+  get-pgql11-deprecation = ?Legacy10HasLabel(_, _); to-error-message(|"Use [has_label(x, 'lbl')] instead of [x.hasLabel('lbl')]")
+  get-pgql11-deprecation = ?Legacy10Id(_); to-error-message(|"Use [id(x)] instead of [x.id()]")
+  get-pgql11-deprecation = ?Legacy10Has(_, _); to-error-message(|"Use [x.prop IS NOT NULL] instead of [x.has(prop)]")
+  get-pgql11-deprecation = ?Legacy10InDegree(_); to-error-message(|"Use [in_degree(x)] instead of [x.indegree()]")
+  get-pgql11-deprecation = ?Legacy10OutDegree(_); to-error-message(|"Use [out_degree(x)] instead of [x.out_degree()]")
 
-  get-deprecation = ?Legacy10Asc(x); to-error-message(|$<Use [<<origin-text> x> ASC] instead of [ASC(<<origin-text> x>)]>)
-  get-deprecation = ?Legacy10Desc(x); to-error-message(|$<Use [<<origin-text> x> DESC] instead of [DESC(<<origin-text> x>)]>)
-  get-deprecation = ?String(<id>); is-double-quoted; to-error-message(|"Use single quotes for character string literals; not double quotes")
-  get-deprecation = ?Legacy10Identifier(_); to-error-message(|"Use double quotes to delimit labels")
-  get-deprecation = ?Ids(_); to-error-message(|"Use [id(x) = xyz] instead of [@xyz]")
-  get-deprecation = ?InlinedConstraint(_); to-error-message(|"Constraints should be specified in the WHERE clause instead of the WITH")
-  get-deprecation = ?Legacy10Not(_); to-error-message(|"Use [NOT] instead of [!]")
-  get-deprecation = ?Legacy10Regex(_, _); to-error-message(|"Use [java_regexp_like(exp1, exp2)] instead of [exp1 =~ exp2]")
+  get-pgql11-deprecation = ?Legacy10Asc(x); to-error-message(|$<Use [<<origin-text> x> ASC] instead of [ASC(<<origin-text> x>)]>)
+  get-pgql11-deprecation = ?Legacy10Desc(x); to-error-message(|$<Use [<<origin-text> x> DESC] instead of [DESC(<<origin-text> x>)]>)
+  get-pgql11-deprecation = ?String(<id>); is-double-quoted; to-error-message(|"Use single quotes for character string literals; not double quotes")
+  get-pgql11-deprecation = ?Legacy10Identifier(_); to-error-message(|"Use double quotes to delimit labels")
+  get-pgql11-deprecation = ?Ids(_); to-error-message(|"Use [id(x) = xyz] instead of [@xyz]")
+  get-pgql11-deprecation = ?InlinedConstraint(_); to-error-message(|"Constraints should be specified in the WHERE clause instead of the WITH")
+  get-pgql11-deprecation = ?Legacy10Not(_); to-error-message(|"Use [NOT] instead of [!]")
+  get-pgql11-deprecation = ?Legacy10Regex(_, _); to-error-message(|"Use [java_regexp_like(exp1, exp2)] instead of [exp1 =~ exp2]")
 
-  get-pgql10-limitation = ( ?FromClause(_)
+  get-pgql13-deprecation = get-pgql11-deprecation // inheriting all deprecations from 1.1
+
+  get-pgql13-deprecation:
+    GroupByClause(expAsVars) -> errors
+    with errors := <filter(?ExpAsVar(_, Some(<id>))); map(to-error-message(|"Variable definition not allowed in GROUP BY"))> expAsVars
+
+  get-pgql10-limitation = ( ?Pgql11FromClause(_)
                           + ?Subquery(_)
                           + ?Pgql11AsignSymbol()
                           + ?ExtractExp(_, _)
                           + ?ARRAY-AGG(_, _)
                           + ?Shortest(_, _)
+                          + get-pgql11-limitation
                           )
-                         ; to-error-message(|"Use [MATCH pattern WHERE filters] instead of [WHERE pattern mixed with filters]")
+                        ; to-error-message(|"Use [SELECT .. FROM MATCH( .. ) WHERE ..] or [SELECT .. FROM graphName MATCH( .. ) WHERE ..]")
+
+  get-pgql11-limitation = fail // currently all PGQL 1.3 features are also supported in PGQL 1.1
 
   // TODO: move this to check.str (all the information should be in the normalized AST)
   get-path-limitations = collect(shortest-or-reaches + is-quantifier)
@@ -116,18 +136,26 @@ rules
   norm-NEQ = ?Neq1(exp1, exp2); !Neq(exp1, exp2)
   norm-NEQ = ?Neq2(exp1, exp2); !Neq(exp1, exp2)
 
-  norm-string = String(unquote-and-unescape-string-literal)
-              + Label(unquote-and-unescape-identifier) + PropRef(id, unquote-and-unescape-identifier) + FromClause(unquote-and-unescape-identifier)
-              + Legacy10Identifier(unquote-and-unescape-string-literal)
-              + Date(un-single-quote)
-              + Time(un-single-quote)
-              + Timestamp(un-single-quote)
+  norm-string-literal = String(un-single-quote; unescape-string-literal)
+  unescape-string-literal = string-replace(|"''", "'")
 
-  unquote-and-unescape-string-literal = (is-single-quoted; un-single-quote; unescape-string-literal)
-                                      + (is-double-quoted; un-double-quote; unescape-identifier) // legacy PGQL 1.0 string literal
-  unquote-and-unescape-identifier = (is-double-quoted; un-double-quote; unescape-identifier) <+ id
-  external unescape-string-literal(|)
-  external unescape-identifier(|)
+  norm-identifier = Identifier(try(un-double-quote; unescape-delimited-identifier))
+  unescape-delimited-identifier = string-replace(|"\"\"", "\"")
+
+  norm-legacy-string-literal = String(unquote-and-unescape-legacy-string-literal)
+
+  norm-legacy-identifier = Identifier(unquote-and-unescape-legacy-identifier)
+                         + Legacy10Identifier(unquote-and-unescape-legacy-string-literal)
+
+  unquote-and-unescape-legacy-string-literal = (is-single-quoted; un-single-quote; unescape-legacy-string-literal)
+                                      + (is-double-quoted; un-double-quote; unescape-legacy-identifier) // legacy PGQL 1.0 string literal
+  unquote-and-unescape-legacy-identifier = (is-double-quoted; un-double-quote; unescape-legacy-identifier) <+ id
+  external unescape-legacy-string-literal(|)
+  external unescape-legacy-identifier(|)
+
+  norm-datetime-literal = Date(un-single-quote)
+                        + Time(un-single-quote)
+                        + Timestamp(un-single-quote)
 
   norm-timezone:
     Cast(exp, type) -> Cast(exp, type')
@@ -247,7 +275,7 @@ rules
   to-label-constraint(|var):
     labels ->  <to-hasLabel-expressions(|var)> labels
   to-hasLabel-expressions(|var) = bottomup(try(![VarRef(var), <to-label>]; to-function(|"has_label")))
-  to-label = ( (?Label(<id>) + ?Legacy10Identifier(<id>)); !String(<id>) ) + ?BindVariable(_)
+  to-label = ?Label(<id>) + ?Legacy10Identifier(<id>); !Identifier(<id>) + ?BindVariable(_)
   to-id-constraint(|var) = bottomup(try(is-literal; origin-track-forced(!Eq(<to-function(|"id")> [VarRef(var)], <id>))))
 
   // base case: no paths
@@ -378,25 +406,35 @@ rules
 
 rules
 
-  // pgql 1.1
+  // pgql 1.3
   norm-query(|error-messages, variable-counter):
-    Query(commonPathExpressions, selectClause, fromClause, graphPattern, whereClause, groupByClause, havingClause, orderByClause, limitOffsets) ->
-      <norm-query(|error-messages, "v1.1", variable-counter)> (commonPathExpressions, selectClause, fromClause, graphPattern', groupByClause, havingClause, orderByClause, limitOffsets)
-    with
-      <?GraphPattern(vertices, connections, Constraints(inlined-constraints))> graphPattern;
-      non-inlined-constraints := <?Some(WhereClause(<id>)); ![<id>] + ?None(); ![]> whereClause;
-      constraints := Constraints(<conc> (inlined-constraints,  non-inlined-constraints));
-      graphPattern' := GraphPattern(vertices, connections, constraints)
+    Query(commonPathExpressions, selectOrUpdateClause, FromClause(GraphMatch(optionalGraphName, graphPattern)), whereClause, groupByClause, havingClause, orderByClause, limitOffsets) ->
+      <norm-query(|error-messages, "v1.3", variable-counter)> (commonPathExpressions, selectOrUpdateClause, optionalGraphName, graphPattern', groupByClause, havingClause, orderByClause, limitOffsets)
+    with <?GraphPattern(vertices, connections, Constraints(inlined-constraints))> graphPattern
+       ; non-inlined-constraints := <?Some(WhereClause(<id>)); ![<id>] + ?None(); ![]> whereClause
+       ; constraints := Constraints(<conc> (inlined-constraints,  non-inlined-constraints))
+       ; graphPattern' := GraphPattern(vertices, connections, constraints)
+
+  // pgql 1.1 + 1.2
+  norm-query(|error-messages, variable-counter):
+    Pgql11Query(commonPathExpressions, selectOrUpdateClause, fromClause, graphPattern, whereClause, groupByClause, havingClause, orderByClause, limitOffsets) ->
+      <norm-query(|error-messages, "v1.1", variable-counter)> (commonPathExpressions, selectOrUpdateClause, optionalGraphName, graphPattern', groupByClause, havingClause, orderByClause, limitOffsets)
+    with optionalGraphName := <?None() + ?Some(Pgql11FromClause(graphName)); !Some(GraphName(graphName))> fromClause
+       ; <?GraphPattern(vertices, connections, Constraints(inlined-constraints))> graphPattern
+       ; non-inlined-constraints := <?Some(WhereClause(<id>)); ![<id>] + ?None(); ![]> whereClause
+       ; constraints := Constraints(<conc> (inlined-constraints,  non-inlined-constraints))
+       ; graphPattern' := GraphPattern(vertices, connections, constraints)
 
   // pgql 1.0
   norm-query(|error-messages, variable-counter):
     q@Pgql10Query(commonPathExpressions, selectClause, fromClause, graphPattern, groupByClause, orderByClause, limitOffsets) ->
-      <norm-query(|error-messages, "v1.0", variable-counter)> (commonPathExpressions, selectClause, fromClause, graphPattern, groupByClause, havingClause, orderByClause, limitOffsets)
-      with havingClause := None()
-    
+      <norm-query(|error-messages, "v1.0", variable-counter)> (commonPathExpressions, selectClause, optionalGraphName, graphPattern, groupByClause, havingClause, orderByClause, limitOffsets)
+      with optionalGraphName := <?None() + ?Some(Pgql11FromClause(graphName)); !Some(GraphName(graphName))> fromClause
+         ; havingClause := None()
+
   norm-query(|error-messages, version, variable-counter):
-    (commonPathExpressions, selectClause, fromClause, graphPattern, groupByClause, havingClause, orderByClause, limitOffsets) ->
-        NormalizedQuery(commonPathExpressions', selectClause', fromClause, graphPattern, groupByClause', havingClause, orderByElems, limitOffsets', error-messages, version)
+    (commonPathExpressions, selectOrUpdateClause, optionalGraphName, graphPattern, groupByClause, havingClause, orderByClause, limitOffsets) ->
+        NormalizedQuery(commonPathExpressions', selectOrUpdateClause', optionalGraphName, graphPattern, groupByClause', havingClause, orderByElems, limitOffsets', error-messages, version)
     with
       commonPathExpressions' := <map(norm-common-path-expression(|variable-counter)); !CommonPathExpressions(<id>)> commonPathExpressions;
 
@@ -404,9 +442,9 @@ rules
       expAsGroupVars' := <map(norm-ExpAsVar)> expAsGroupVars;
       groupByClause' := <?Some(_); !Some(GroupByClause(expAsGroupVars')) <+ !None()> groupByClause;
 
-      selectClause' := <norm-ExpAsVars(|expAsGroupVars') <+ norm-select-star(|graphPattern, expAsGroupVars')> selectClause;
+      selectOrUpdateClause' := <?UpdateClause(_) + ?SelectClause(_, _); (norm-ExpAsVars(|expAsGroupVars') <+ norm-select-star(|graphPattern, expAsGroupVars'))> selectOrUpdateClause;
 
-      expAsSelectVars := <?SelectClause(_, ExpAsVars(<id>))> selectClause';
+      expAsSelectVars := <?UpdateClause(_); ![] + ?SelectClause(_, ExpAsVars(<id>))> selectOrUpdateClause';
       allExpAsVars := <conc> (expAsGroupVars', <try(?Star(); ![])> expAsSelectVars);
       orderByElems := <try(norm-orderBy(|allExpAsVars, version))> orderByClause;
 

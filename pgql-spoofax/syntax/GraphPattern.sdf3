@@ -13,11 +13,17 @@ template options
 
 context-free syntax
 
-  MatchClause.GraphPattern = 
+  Pgql11FromClause.Pgql11FromClause = <FROM <Identifier>> {case-insensitive}
+
+  Pgql11MatchClause.GraphPattern =
     <
       MATCH
         <{PathPattern ",\n"}+>
     > {case-insensitive}
+
+  GraphName.GraphName = Identifier
+
+  GraphPattern.GraphPattern = <<{PathPattern ",\n"}+>>
 
 context-free syntax
 
@@ -35,8 +41,8 @@ context-free syntax
 
   Connection.ParenthesizedPath = <( <Vertex?> <Connection> <Vertex?> <WhereClause?> )<PathQuantifier?>>
 
-  PathPattern.Shortest = <<TopK?> shortest <PathPattern>> {case-insensitive}
-  TopK.TopK = <top <UNSIGNED-INT>> {case-insensitive}
+  PathPattern.Shortest = <<TopK?> SHORTEST <PathPattern>> {case-insensitive}
+  TopK.TopK = <TOP <UNSIGNED-INT>> {case-insensitive}
 
   EdgeContents.EdgeContents = <[<ElemContents>]>
   EdgeOrPathContents = EdgeContents

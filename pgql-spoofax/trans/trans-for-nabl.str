@@ -29,8 +29,8 @@ rules
 rules
 
   trans-query(|variables):
-    NormalizedQuery(CommonPathExpressions(pathExpressions), selectClause, fromClause, GraphPattern(vertices, connections, valueExpression), groupBy, having, orderBy, limitOffsets, error-messages, version) ->
-        NormalizedQuery(CommonPathExpressions(pathExpressions'), selectClause', fromClause, GraphPattern(vertices', connections'', valueExpression'), groupBy', having', orderBy', limitOffsets, error-messages, version)
+    NormalizedQuery(CommonPathExpressions(pathExpressions), selectOrUpdateClause, optionalGraphName, GraphPattern(vertices, connections, valueExpression), groupBy, having, orderBy, limitOffsets, error-messages, version) ->
+        NormalizedQuery(CommonPathExpressions(pathExpressions'), selectOrUpdateClause', optionalGraphName, GraphPattern(vertices', connections'', valueExpression'), groupBy', having', orderBy', limitOffsets, error-messages, version)
     with variables' := <guarantee-size-two-or-more> variables
 
        // PATH
@@ -50,25 +50,28 @@ rules
 
        ; connections'' := <alltd(resolve-var-refs-in-path-expression(|variables''))> connections'
 
+       // only in PGQL 1.3 and up, column names specified in the SELECT clause are visible in GROUP BY, HAVING and ORDER BY (but only outside of aggregations and subqueries)
+       ; expAsVars := <(?"v1.0" + ?"v1.1"); ![] <+ !selectOrUpdateClause; ?SelectClause(_, ExpAsVars(<id>)) <+ ![]> version
+
        // WHERE
-       ; valueExpression' := <resolve-where-clause(|variables'')> valueExpression
+       ; valueExpression' := <resolve-where-clause(|variables'', expAsVars)> valueExpression
 
        // GROUP BY
-       ; if (!groupBy; ?Some(_)) + (!selectClause; create-one-group(|variables'')) + (!having; ?Some(_))
+       ; if (!groupBy; ?Some(_)) + (!selectOrUpdateClause; create-one-group(|variables'')) + (!having; ?Some(_))
          then hasGroupBy := True()
-            ; (groupBy', variables''') := <resolve-group-by(|variables'')> groupBy
-         else (groupBy', variables''') := (groupBy, variables'')
-            ; hasGroupBy := False()
+            ; (groupBy', variables''') := <resolve-group-by(|variables'', expAsVars)> groupBy
+         else hasGroupBy := False()
+            ; (groupBy', variables''') := (groupBy, variables'')
          end
 
-       // SELECT
-       ; (selectClause', variables'''') := <resolve-select-clause(|variables''')> selectClause
+       // SELECT / UPDATE
+       ; (selectOrUpdateClause', variables'''') := <resolve-select-or-update-clause(|variables''')> selectOrUpdateClause
 
        // HAVING
-       ; having' := <resolve-var-refs(|variables'''')> having
+       ; having' := <resolve-having(|variables''', variables'''')> having // having resolves to GROUP BY variables first, then to SELECT variables
 
        // ORDER BY
-       ; orderBy' := <resolve-prop-refs(|variables'', hasGroupBy); resolve-var-refs(|variables''''); alltd(optimize-order-by)> orderBy // ORDER BY resolves to SELECT variables first (except in case of a VarRef in a PropRef, which is resolved to FROM first), then to GROUP BY variables
+       ; orderBy' := <resolve-prop-refs(|variables'''); resolve-var-refs(|variables''''); alltd(optimize-order-by)> orderBy // ORDER BY resolves to SELECT variables first, then to GROUP BY variables (except in case of a VarRef in a PropRef, in which case it is resolved to MATCH or GROUP BY first)
 
   path-with-at-most-one-binding:
     t@Path(_, _, _, quantifier, _, _, _, _) -> t
@@ -109,39 +112,89 @@ rules
          else varDefs' := <conc> (varDefs, [vd])
          end
 
-  resolve-where-clause(|variables):
+  resolve-where-clause(|variables, expAsVars):
     valueExpression -> valueExpression'
-    with valueExpression' := <resolve-var-refs(|variables)> valueExpression
+    with valueExpression' := <resolve-var-refs(|variables, expAsVars)> valueExpression
 
-  resolve-group-by(|variables):
+  resolve-group-by(|variables, expAsVarsFromSelectClause):
     Some(GroupByClause(expAsVars)) -> (Some(GroupByClause(expAsVars')), variables')
-    with (expAsVars', vars') := <foldl(resolve-exp-as-var(|variables))> (expAsVars, ([], []))
+    with (expAsVars', vars') := <foldl(resolve-exp-as-var-in-group-by(|variables, expAsVarsFromSelectClause))> (expAsVars, ([], []))
        ; variables' := [vars'|variables]
 
-  resolve-group-by(|variables):
+  resolve-group-by(|variables, expAsVars):
     None() -> (CreateOneGroup(), variables')
     with vars' := []
        ; variables' := [vars'|variables]
 
-  resolve-select-clause(|variables):
+  resolve-select-or-update-clause(|variables):
     SelectClause(distinct, eav@ExpAsVars(expAsVars)) -> (SelectClause(distinct, eav'), variables')
     with if Star() := expAsVars
          then eav' := expAsVars
             ; variables':= variables
-         else (expAsVars', vars') := <foldl(resolve-exp-as-var(|variables))> (expAsVars, ([], <Hd> variables))
+         else varsInCurrentScope := <Hd> variables
+            ; (expAsVars', vars') := <foldl(resolve-exp-as-var-in-select(|variables))> (expAsVars, ([], varsInCurrentScope))
             ; eav' := <origin-track-forced(!ExpAsVars(expAsVars'))> eav
             ; variables' := [vars'|<Tl> variables]
          end
 
-  resolve-exp-as-var(|variables):
+  resolve-select-or-update-clause(|variables):
+    t@UpdateClause(updateExpressions) -> (updateClause', variables)
+    with updateExpressions' := <origin-track-forced(resolve-var-refs(|variables))> updateExpressions
+       ; updateClause' := <origin-track-forced(!UpdateClause(updateExpressions'))> t
+
+  resolve-exp-as-var-in-group-by(|variables, expAsVarsFromSelectClause):
     (t@ExpAsVar(exp, v, anonymous), (result, vars)) -> (result', vars')
-    with exp' := <resolve-var-refs(|variables)> exp
-       ; vars' := <replace-or-add> (VarDef(v, <origin-offset> v, exp, exp'), vars)
-       ; expAsVar' := <origin-track-forced(!ExpAsVar(exp', v, anonymous, <origin-offset> v))> t
+    with exp' := <resolve-var-refs(|variables, expAsVarsFromSelectClause)> exp
+       ; exp'' := <alltd(?VarRef(<id>, _); !VarRef(<id>))> exp'
+       ; originOffset := <origin-offset> v
+       ; vars' := <replace-or-add> (VarDef(v, originOffset, exp'', exp'), vars)
+       ; expAsVar' := <origin-track-forced(!ExpAsVar(exp', v, anonymous, originOffset))> t
        ; result' := <conc> (result, [expAsVar'])
 
+  resolve-exp-as-var-in-select(|variables):
+    (t@ExpAsVar(exp, v, anonymous), (result, vars)) -> (result', vars')
+    with exp' := <resolve-var-refs(|variables)> exp
+       ; originOffset := <origin-offset> v
+       ; if <?Anonymous(); !v; origin-text; ?"*"> anonymous
+         then // in case of SELECT * make sure each ExpAsVar gets a unique origin assigned
+              unique-origin := <conc-strings> ("*_", <write-to-string> originOffset, "_", <write-to-string> v)
+         else unique-origin := originOffset
+         end
+       ; vars' := <replace-or-add> (VarDef(v, unique-origin, exp, exp'), vars)
+       ; expAsVar' := <origin-track-forced(!ExpAsVar(exp', v, anonymous, unique-origin))> t
+       ; result' := <conc> (result, [expAsVar'])
+
+  resolve-having(|variables-after-group-by, variables-after-select):
+    having -> having'
+    with [x|xs] := variables-after-select
+       ; [y|_] := variables-after-group-by
+       ; z := <replace-or-add-all> (y, x)
+       ; variables := [z|xs]
+       ; having' := <resolve-var-refs(|variables)> having
+
+  /*
+     First try to resolve variables as usual.
+     For example, in "SELECT n.prop AS m FROM MATCH( (n) -> (m) ) WHERE m.prop = 123", the "m" in the WHERE clause should reference the "m" in the MATCH clause.
+     Only if it fails, try to replace variables with expressions from SELECT before trying to resolve again.
+     For example, in "SELECT n.prop AS m FROM MATCH( (n) ) WHERE m.prop = 123", the "m" in the WHERE clause should reference the "m" in the SELECT clause.
+     Note that in the final AST, we only want the SELECT to refer to variables in GROUP BY, even though for the user it typically appears like it's the other way arround.
+     For example:
+        Actual query: SELECT n.age + 2 FROM MATCH( (n) ) GROUP BY n.age + 2
+        Final AST:    SELECT generatedVar FROM MATCH( (n) ) GROUP BY n.age + 2 AS generatedVar
+     For example:
+        Actual query: SELECT (n.age + 2)*(n.age + 2) FROM MATCH( (n) ) GROUP BY n.age + 2
+        Final AST:    SELECT generatedVar*generatedVar FROM MATCH( (n) ) GROUP BY n.age + 2 AS generatedVar
+     For example:
+        Actual query: SELECT n.age + 2 AS v FROM MATCH( (n) ) GROUP BY v
+        Final AST:    SELECT v FROM MATCH( (n) ) GROUP BY n.age + 2 AS v
+  */
+  resolve-var-refs(|variables, expAsVarsFromSelectClause) =
+    resolve-var-refs(|variables)
+  ; alltd-in-outer-query-outside-aggregation(replace-ref-with-exp(|expAsVarsFromSelectClause))
+  ; alltd-in-outer-query-outside-aggregation(resolve-var-ref(|variables))
+
   resolve-var-refs(|variables) = alltd(resolve-var-ref(|variables))
-                               ; alltd-in-outer-query-outside-aggregation(replace-exp-with-ref(|variables))
+                               ; alltd(replace-exp-with-ref(|variables) <+ is-subquery <+ is-aggregate)
 
   resolve-var-refs-in-path-expression(|variables):
     t@Path(_, _, _, quantifier, _, _, _, _) -> t'
@@ -179,24 +232,25 @@ rules
   replace-exp-with-ref-helper(|exp) = ?VarDef(v, origin-offset, original-exp, _); where ( <eq> (exp, original-exp)); !VarRef(v, origin-offset)
   replace-exp-with-ref-helper(|exp) = ?VarDef(v, origin-offset, _, resolved-exp); where ( <eq> (exp, resolved-exp)); !VarRef(v, origin-offset)
 
-  resolve-prop-refs(|variables, hasGroupBy):
-    t -> t'
-    with if True() := hasGroupBy
-         then t' := t
-         else t' := <alltd(resolve-prop-ref(|variables))> t
-         end
-   resolve-prop-ref(|variables):
+  replace-ref-with-exp(|expAsVars):
+    VarRef(v) -> exp
+    where ExpAsVar(exp, _, _) := <filter(?ExpAsVar(_, v, NonAnonymous())); Hd> expAsVars
+
+  resolve-prop-refs(|variables) = alltd(resolve-prop-ref(|variables))
+
+  resolve-prop-ref(|variables):
     t@PropRef(varRef, prop) -> PropRef(varRef', prop)
     with varRef' := <resolve-var-ref(|variables)> varRef
 
-  /* if the query has no GROUP BY but there are one ore more aggregations in the SELECT, then we generate an
+  /*
+     if the query has no GROUP BY but there are one ore more aggregations in the SELECT, then we generate an
      implicit group, but only if there is no (non-nested) aggregation over a group variable
   */
   create-one-group(|variables):
-    t@select-clause -> t
+    t@select-or-update-clause -> t
     with [vars|[groupVars|_]] := variables
-       ; aggregations := <collect-in-outer-query(is-aggregate)> select-clause
-       ; exps-from-aggregations := <collect(get-exp-from-aggregation)> select-clause
+       ; aggregations := <collect-in-outer-query(is-aggregate)> select-or-update-clause
+       ; exps-from-aggregations := <collect(get-exp-from-aggregation)> select-or-update-clause
        ; varsInAggregations := <collect-in-outer-query-outside-aggregation(varRef-is-visible-var(|vars))> exps-from-aggregations
        ; groupVarsInAggregations := <collect-in-outer-query-outside-aggregation(varRef-is-visible-var(|groupVars))> exps-from-aggregations
        ; groupVarsInAggregations' := <diff> (groupVarsInAggregations, varsInAggregations)
@@ -218,7 +272,7 @@ rules
 
        // WHERE
        ; variables' := [visible-vars|xs]
-       ; valueExpression' := <resolve-where-clause(|variables')> valueExpression
+       ; valueExpression' := <resolve-where-clause(|variables', [])> valueExpression
 
   optimize-order-by:
     OrderByClause(elems) -> OrderByClause(elems')

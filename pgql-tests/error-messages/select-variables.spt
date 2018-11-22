@@ -1,0 +1,17 @@
+module common-path-expressions
+
+language pgql-lang
+
+test Reference within SELECT [[
+
+    SELECT n.prop AS v1, [[v1]] + 2 AS v2
+      FROM g MATCH (n)
+
+]] error like "Unresolved variable" at #1
+
+test Reference within SELECT [[
+
+    SELECT n.prop AS v1, [[v1]] + 2 AS v2
+      FROM g MATCH (n)
+
+]] error like "Unresolved variable" at #1

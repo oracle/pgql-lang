@@ -38,6 +38,7 @@ import oracle.pgql.lang.ir.Projection;
 import oracle.pgql.lang.ir.QueryEdge;
 import oracle.pgql.lang.ir.QueryExpression;
 import oracle.pgql.lang.ir.QueryExpression.LogicalExpression.And;
+import oracle.pgql.lang.ir.QueryExpression.PropertyAccess;
 import oracle.pgql.lang.ir.QueryExpression.ScalarSubquery;
 import oracle.pgql.lang.ir.QueryExpression.Constant.ConstBoolean;
 import oracle.pgql.lang.ir.QueryExpression.Constant.ConstDate;
@@ -57,10 +58,15 @@ import oracle.pgql.lang.ir.QueryExpression.InPredicate.InValueList;
 import oracle.pgql.lang.ir.QueryExpression.IsNull;
 import oracle.pgql.lang.ir.QueryExpression.VarRef;
 import oracle.pgql.lang.ir.QueryPath;
+import oracle.pgql.lang.ir.QueryType;
 import oracle.pgql.lang.ir.QueryVariable;
 import oracle.pgql.lang.ir.QueryVariable.VariableType;
 import oracle.pgql.lang.ir.QueryVertex;
+import oracle.pgql.lang.ir.SelectQuery;
 import oracle.pgql.lang.ir.VertexPairConnection;
+import oracle.pgql.lang.ir.update.GraphUpdate;
+import oracle.pgql.lang.ir.update.GraphUpdateQuery;
+import oracle.pgql.lang.ir.update.PropertyUpdate;
 import oracle.pgql.lang.util.SqlDateTimeFormatter;
 
 public class SpoofaxAstToGraphQuery {
@@ -68,9 +74,9 @@ public class SpoofaxAstToGraphQuery {
   private static final String GENERATED_VAR_SUBSTR = "<<anonymous>>";
 
   private static final int POS_COMMON_PATH_EXPRESSIONS = 0;
-  private static final int POS_PROJECTION = 1;
-  private static final int POS_FROM = 2;
-  private static final int POS_WHERE = 3;
+  private static final int POS_SELECT_OR_UPDATE = 1;
+  private static final int POS_GRAPH_NAME = 2;
+  private static final int POS_GRAPH_PATTERN = 3;
   private static final int POS_GROUPBY = 4;
   private static final int POS_HAVING = 5;
   private static final int POS_ORDERBY = 6;
@@ -83,6 +89,10 @@ public class SpoofaxAstToGraphQuery {
 
   private static final int POS_PROJECTION_DISTINCT = 0;
   private static final int POS_PROJECTION_ELEMS = 1;
+
+  private static final int POS_UPDATE_ELEMS = 0;
+  private static final int POS_PROPERTY_UPDATE_PROPERTY_REFERENCE = 0;
+  private static final int POS_PROPERTY_UPDATE_VALUE_EXPRESSION = 1;
 
   private static final int POS_VERTICES = 0;
   private static final int POS_CONNECTIONS = 1;
@@ -165,8 +175,8 @@ public class SpoofaxAstToGraphQuery {
     IStrategoTerm commonPathExpressionsT = getList(ast.getSubterm(POS_COMMON_PATH_EXPRESSIONS));
     List<CommonPathExpression> commonPathExpressions = getCommonPathExpressions(commonPathExpressionsT, ctx);
 
-    // WHERE
-    IStrategoTerm graphPatternT = ast.getSubterm(POS_WHERE);
+    // graph pattern
+    IStrategoTerm graphPatternT = ast.getSubterm(POS_GRAPH_PATTERN);
 
     // vertices
     IStrategoTerm verticesT = getList(graphPatternT.getSubterm(POS_VERTICES));
@@ -192,26 +202,24 @@ public class SpoofaxAstToGraphQuery {
     IStrategoTerm groupByT = ast.getSubterm(POS_GROUPBY);
     GroupBy groupBy = getGroupBy(ctx, groupByT);
 
-    // SELECT
-    IStrategoTerm projectionT = ast.getSubterm(POS_PROJECTION);
-    IStrategoTerm distinctT = projectionT.getSubterm(POS_PROJECTION_DISTINCT);
-    boolean distinct = isSome(distinctT);
-
-    IStrategoTerm projectionElemsT = projectionT.getSubterm(POS_PROJECTION_ELEMS);
-    List<ExpAsVar> selectElems;
-    if (projectionElemsT.getTermType() == IStrategoTerm.APPL
-        && ((IStrategoAppl) projectionElemsT).getConstructor().getName().equals("Star")) {
-      // GROUP BY in combination with SELECT *. Even though the parser will generate an error for it, the translation to
-      // GraphQuery should succeed (error recovery)
-      selectElems = new ArrayList<>();
-    } else {
-      projectionElemsT = projectionElemsT.getSubterm(0);
-      selectElems = getExpAsVars(ctx, projectionElemsT);
+    // SELECT or UPDATE
+    Projection projection = null;
+    GraphUpdate graphUpdate = null;
+    IStrategoTerm selectOrUpdateT = ast.getSubterm(POS_SELECT_OR_UPDATE);
+    String selectOrUpdate = ((IStrategoAppl) selectOrUpdateT).getConstructor().getName();
+    switch (selectOrUpdate) {
+      case "SelectClause":
+        projection = translateSelectClause(ctx, selectOrUpdateT);
+        break;
+      case "UpdateClause":
+        graphUpdate = translateUpdateClause(ctx, selectOrUpdateT);
+        break;
+      default:
+        throw new IllegalStateException(selectOrUpdate);
     }
-    Projection projection = new Projection(distinct, selectElems);
 
-    // FROM
-    IStrategoTerm fromT = ast.getSubterm(POS_FROM);
+    // input graph name
+    IStrategoTerm fromT = ast.getSubterm(POS_GRAPH_NAME);
     String inputGraphName = isNone(fromT) ? null : getString(fromT);
 
     // HAVING
@@ -227,8 +235,58 @@ public class SpoofaxAstToGraphQuery {
     QueryExpression limit = tryGetExpression(limitOffsetT.getSubterm(POS_LIMIT), ctx);
     QueryExpression offset = tryGetExpression(limitOffsetT.getSubterm(POS_OFFSET), ctx);
 
-    return new GraphQuery(commonPathExpressions, projection, inputGraphName, graphPattern, groupBy, having, orderBy,
-        limit, offset);
+    switch (selectOrUpdate) {
+      case "SelectClause":
+        return new SelectQuery(commonPathExpressions, projection, inputGraphName, graphPattern, groupBy, having,
+            orderBy, limit, offset);
+      case "UpdateClause":
+        return new GraphUpdateQuery(commonPathExpressions, graphUpdate, inputGraphName, graphPattern, groupBy, having,
+            orderBy, limit, offset);
+      default:
+        throw new IllegalStateException(selectOrUpdate);
+    }
+  }
+
+  private static Projection translateSelectClause(TranslationContext ctx, IStrategoTerm selectOrUpdateT)
+      throws PgqlException {
+    Projection projection;
+    IStrategoTerm distinctT = selectOrUpdateT.getSubterm(POS_PROJECTION_DISTINCT);
+    boolean distinct = isSome(distinctT);
+
+    IStrategoTerm projectionElemsT = selectOrUpdateT.getSubterm(POS_PROJECTION_ELEMS);
+    List<ExpAsVar> selectElems;
+    if (projectionElemsT.getTermType() == IStrategoTerm.APPL
+        && ((IStrategoAppl) projectionElemsT).getConstructor().getName().equals("Star")) {
+      // GROUP BY in combination with SELECT *. Even though the parser will generate an error for it, the
+      // translation to GraphQuery should succeed (error recovery)
+      selectElems = new ArrayList<>();
+    } else {
+      projectionElemsT = projectionElemsT.getSubterm(0);
+      selectElems = getExpAsVars(ctx, projectionElemsT, true);
+    }
+    projection = new Projection(distinct, selectElems);
+    return projection;
+  }
+
+  private static GraphUpdate translateUpdateClause(TranslationContext ctx, IStrategoTerm selectOrUpdateT)
+      throws PgqlException {
+    GraphUpdate graphUpdate;
+    IStrategoTerm propertyUpdatesT = selectOrUpdateT.getSubterm(POS_UPDATE_ELEMS);
+    List<PropertyUpdate> propertyUpdates = new ArrayList<>();
+    for (IStrategoTerm propertyUpdateT : propertyUpdatesT) {
+      IStrategoTerm propertyAccessT = propertyUpdateT.getSubterm(POS_PROPERTY_UPDATE_PROPERTY_REFERENCE);
+      QueryExpression propertyAccess = translateExp(propertyAccessT, ctx);
+      if (!(propertyAccess instanceof PropertyAccess)) {
+        continue; // error recovery for UPDATE n.prop .... GROUP BY n.prop. Even though the parser will generate an
+      }
+
+      IStrategoTerm valueExpressionT = propertyUpdateT.getSubterm(POS_PROPERTY_UPDATE_VALUE_EXPRESSION);
+      QueryExpression valueExpression = translateExp(valueExpressionT, ctx);
+
+      propertyUpdates.add(new PropertyUpdate((PropertyAccess) propertyAccess, valueExpression));
+    }
+    graphUpdate = new GraphUpdate(propertyUpdates);
+    return graphUpdate;
   }
 
   private static QueryExpression tryGetExpression(IStrategoTerm term, TranslationContext ctx) throws PgqlException {
@@ -502,7 +560,7 @@ public class SpoofaxAstToGraphQuery {
     switch (consName) {
       case "Some": // explicit GROUP BY
         IStrategoTerm groupByElemsT = getList(groupByT);
-        return new GroupBy(getExpAsVars(ctx, groupByElemsT));
+        return new GroupBy(getExpAsVars(ctx, groupByElemsT, false));
       case "CreateOneGroup": // implicit GROUP BY (e.g. SELECT has aggregation)
         return new GroupBy(Collections.emptyList());
       case "None": // no GROUP BY
@@ -512,7 +570,9 @@ public class SpoofaxAstToGraphQuery {
     }
   }
 
-  private static List<ExpAsVar> getExpAsVars(TranslationContext ctx, IStrategoTerm expAsVarsT) throws PgqlException {
+  private static List<ExpAsVar> getExpAsVars(TranslationContext ctx, IStrategoTerm expAsVarsT,
+      boolean isContainedInSelectClause)
+      throws PgqlException {
     List<ExpAsVar> expAsVars = new ArrayList<>(expAsVarsT.getSubtermCount());
     for (IStrategoTerm expAsVarT : expAsVarsT) {
       QueryExpression exp = translateExp(expAsVarT.getSubterm(POS_EXPASVAR_EXP), ctx);
@@ -521,7 +581,7 @@ public class SpoofaxAstToGraphQuery {
           .equals("Anonymous");
       IStrategoTerm originPosition = expAsVarT.getSubterm(POS_EXPASVAR_ORIGIN_OFFSET);
 
-      ExpAsVar expAsVar = new ExpAsVar(exp, varName, anonymous);
+      ExpAsVar expAsVar = new ExpAsVar(exp, varName, anonymous, isContainedInSelectClause);
       expAsVars.add(expAsVar);
       ctx.addVar(expAsVar, varName, originPosition);
     }
@@ -613,6 +673,7 @@ public class SpoofaxAstToGraphQuery {
         double d = Double.parseDouble(getString(t));
         return new QueryExpression.Constant.ConstDecimal(d);
       case "String":
+      case "Identifier": // identifier "hello" in (n:hello) becomes string 'hello' in has_label(n, 'hello')
         String s = getString(t);
         return new QueryExpression.Constant.ConstString(s);
       case "True":
@@ -680,12 +741,12 @@ public class SpoofaxAstToGraphQuery {
         return new QueryExpression.Function.Cast(exp, targetTypeName);
       case "Exists":
         IStrategoTerm subqueryT = t.getSubterm(POS_EXISTS_SUBQUERY);
-        GraphQuery query = translateSubquery(ctx, subqueryT);
-        return new QueryExpression.Function.Exists(query);
+        SelectQuery selectQuery = translateSubquery(ctx, subqueryT);
+        return new QueryExpression.Function.Exists(selectQuery);
       case "ScalarSubquery":
         subqueryT = t.getSubterm(POS_SCALARSUBQUERY_SUBQUERY);
-        query = translateSubquery(ctx, subqueryT);
-        return new ScalarSubquery(query);
+        selectQuery = translateSubquery(ctx, subqueryT);
+        return new ScalarSubquery(selectQuery);
       case "CallStatement":
       case "FunctionCall":
         IStrategoTerm packageDeclT = t.getSubterm(POS_FUNCTION_CALL_PACKAGE_NAME);
@@ -859,9 +920,14 @@ public class SpoofaxAstToGraphQuery {
     }
   }
 
-  private static GraphQuery translateSubquery(TranslationContext ctx, IStrategoTerm t) throws PgqlException {
+  private static SelectQuery translateSubquery(TranslationContext ctx, IStrategoTerm t) throws PgqlException {
     IStrategoTerm subqueryT = t.getSubterm(POS_SUBQUERY);
-    return translate(subqueryT, ctx);
+    GraphQuery query = translate(subqueryT, ctx);
+    if (query.getQueryType() == QueryType.SELECT) {
+      return (SelectQuery) query;
+    } else {
+      return null; // error recovery (translation should succeed even for syntactically invalid queries)
+    }
   }
 
   private static boolean aggregationHasDistinct(IStrategoTerm t) {

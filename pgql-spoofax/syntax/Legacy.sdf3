@@ -13,13 +13,13 @@ template options
 
   keyword -/- [a-zA-Z0-9]
 
-context-free syntax // pgql-lang
+context-free syntax // pgql-lang.sdf3 for PGQL 1.0
 
   Legacy10Query.Pgql10Query =
     <
       <{CommonPathExpression "\n"}*>
       <SelectClause>
-      <FromClause?>
+      <Pgql11FromClause?>
       <Legacy10GraphPattern>
       <GroupByClause?>
       <OrderByClause?>
@@ -32,10 +32,11 @@ context-free syntax // pgql-lang
 
 lexical syntax
 
-  LEGACY10-STRING = STRING | LEGACY10-DOULBE-QUOTED-STRING
-  LEGACY10-DOULBE-QUOTED-STRING = '"' (~[\"\n\\] | ESCAPE-CHAR)* '"'
+  LEGACY10-STRING = STRING | LEGACY10-DOUBLE-QUOTED-STRING
+  LEGACY10-DOUBLE-QUOTED-STRING = '"' (~[\"\n\\] | LEGACY10-DOUBLE-QUOTED-STRING-ESCAPE-CHAR)* '"'
+  LEGACY10-DOUBLE-QUOTED-STRING-ESCAPE-CHAR =  ( "\\" [tbnrf\\\"\'] ) | ( '""' )
 
-context-free syntax // GraphPattern.sdf3
+context-free syntax // GraphPattern.sdf3 for PGQL 1.0
 
   Legacy10GraphPattern.GraphPattern = 
     <
@@ -47,15 +48,15 @@ context-free syntax // GraphPattern.sdf3
 
   Legacy10PatternElem.Constraint = Exp {avoid} // see Expressions.sdf3. Note: 'avoid' disambiguates 'select * where (X.p1)' ('(X.p1)' can be a Constraint or a Vertex)
 
-  Vertex.VertexWithoutBrackets = <<IDENTIFIER>> // deprecated
+  Vertex.VertexWithoutBrackets = <<REGULAR-IDENTIFIER>> // deprecated
 
   Legacy10Ids.Ids = <@<AltLit>>
   Legacy10WithInlinedConstraints.InlinedConstraint = < with <{Legacy10InlinedExp ", "}+>> {case-insensitive}
   AltLit.Or              = <<AltLit>|<AltLit>> {left}
   AltLit                 = Literal
-  AltLit.String          = IDENTIFIER
+  AltLit.String          = REGULAR-IDENTIFIER
   AltPath.Or             = <<AltPath>|<AltPath>> {left}
-  AltPath.PathPatternRef = IDENTIFIER
+  AltPath.PathPatternRef = REGULAR-IDENTIFIER
 
   AsignSymbol.Pgql10AsignSymbol = <:=>
 
@@ -84,8 +85,8 @@ context-free syntax // Expressions.sdf3
   Legacy10InlinedExp = Literal {prefer}
   Legacy10InlinedExp = InlinedCall
   
-  Legacy10InlinedExp.SelfPropRef = <<IDENTIFIER>>
-  Legacy10InlinedExp.SelfPropRef = <<Dot><IDENTIFIER>>
+  Legacy10InlinedExp.SelfPropRef = <<REGULAR-IDENTIFIER>>
+  Legacy10InlinedExp.SelfPropRef = <<Dot><REGULAR-IDENTIFIER>>
   
   Legacy10InlinedExp.Legacy10Not = <!<Legacy10InlinedExp>> {right}
   Legacy10InlinedExp.Not = <not <Legacy10InlinedExp>> {right, case-insensitive}

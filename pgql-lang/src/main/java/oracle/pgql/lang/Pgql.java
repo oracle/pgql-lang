@@ -51,6 +51,7 @@ import oracle.pgql.lang.completion.PgqlCompletionGenerator;
 import oracle.pgql.lang.editor.completion.PgqlCompletion;
 import oracle.pgql.lang.editor.completion.PgqlCompletionContext;
 import oracle.pgql.lang.ir.GraphQuery;
+import oracle.pgql.lang.ir.QueryType;
 
 public class Pgql implements Closeable {
 
@@ -58,6 +59,11 @@ public class Pgql implements Closeable {
 
   private static final String NON_BREAKING_WHITE_SPACE_ERROR = "Illegal character '\u00a0' (non-breaking white space)"
       + "; use a normal space instead";
+
+  private final static String ESCAPED_BETA_FEATURES_FLAG = "\\/\\*beta\\*\\/";
+
+  private static final String UPDATE_BETA_ERROR = "UPDATE is a beta feature and the syntax and semantics may change in a future version; "
+      + "to use this feature, change UPDATE into UPDATE/*beta*/";
 
   private static final String ERROR_MESSSAGE_INDENTATION = "\t";
 
@@ -155,7 +161,7 @@ public class Pgql implements Closeable {
 
       String prettyMessages = null;
       boolean queryValid = parseResult.success();
-      GraphQuery queryGraph = null;
+      GraphQuery graphQuery = null;
       if (!queryValid) {
         prettyMessages = getMessages(parseResult.messages(), queryString);
       }
@@ -173,9 +179,11 @@ public class Pgql implements Closeable {
         queryValid = analysisResult.success();
         prettyMessages = getMessages(analysisResult.messages(), queryString);
       }
-      queryGraph = SpoofaxAstToGraphQuery.translate(analysisResult.ast());
+      graphQuery = SpoofaxAstToGraphQuery.translate(analysisResult.ast());
 
-      return new PgqlResult(queryString, queryValid, prettyMessages, queryGraph, parseResult);
+      checkBetaFeatureToken(queryString, graphQuery);
+
+      return new PgqlResult(queryString, queryValid, prettyMessages, graphQuery, parseResult);
     } catch (IOException | ParseException | AnalysisException | ContextException e) {
       throw new PgqlException("Failed to parse PGQL query", e);
     } finally {
@@ -183,6 +191,13 @@ public class Pgql implements Closeable {
         context.close();
       }
       quietlyDelete(dummyFile);
+    }
+  }
+
+  private void checkBetaFeatureToken(String queryString, GraphQuery graphQuery) throws PgqlException {
+    if (graphQuery != null && graphQuery.getQueryType() == QueryType.GRAPH_UPDATE
+        && !queryString.matches("(?i)(.*)UPDATE" + ESCAPED_BETA_FEATURES_FLAG + "(.*)")) {
+      throw new PgqlException(UPDATE_BETA_ERROR);
     }
   }
 
@@ -276,8 +291,7 @@ public class Pgql implements Closeable {
   /**
    * Generate code completions, given a (partial) query and cursor location.
    */
-  public List<PgqlCompletion> complete(String queryString, int cursor, PgqlCompletionContext ctx)
-      throws PgqlException {
+  public List<PgqlCompletion> complete(String queryString, int cursor, PgqlCompletionContext ctx) throws PgqlException {
     PgqlResult pgqlResult = null;
     try {
       pgqlResult = parse(queryString);
