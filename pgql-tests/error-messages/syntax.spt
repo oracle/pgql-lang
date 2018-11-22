@@ -5,14 +5,14 @@ language pgql-lang
 test Empty SELECT [[
 
   SELECT
-   FROM MATCH( (x) )
+   FROM g MATCH (x)
 
 ]] parse fails
 
 test Empty WHERE [[
 
   SELECT *
-   FROM MATCH()
+   FROM g MATCH
    MATCH
 
 ]] parse fails
@@ -20,7 +20,7 @@ test Empty WHERE [[
 test Empty GROUP BY [[
 
     SELECT *
-      FROM MATCH( (n) )
+      FROM g MATCH (n)
   GROUP BY
 
 ]] parse fails
@@ -28,7 +28,7 @@ test Empty GROUP BY [[
 test Empty ORDER BY [[
 
     SELECT *
-      FROM MATCH( (n) )
+      FROM g MATCH (n)
   ORDER BY
 
 ]] parse fails
@@ -36,7 +36,7 @@ test Empty ORDER BY [[
 test Single-quoted labels [[
 
   SELECT x AS y
-    FROM MATCH( (x:[['lbl']]) )
+    FROM g MATCH (x:[['lbl']])
 
 ]] error like "Use double quotes to delimit labels"
 
@@ -45,7 +45,7 @@ test Invalid date [[
   SELECT [[DATE '2018-13-13']] AS date1
        , [[DATE '']] AS date2
        , [[DATE '12:15:00']] AS date3
-    FROM MATCH( (n) )
+    FROM g MATCH (n)
 
 ]] error like "Not a valid date: Text '2018-13-13' could not be parsed: Invalid value for MonthOfYear (valid values 1 - 12): 13. An example of a valid date is '2018-01-15'." at #1
    error like "Not a valid date: Text '' could not be parsed at index 0. An example of a valid date is '2018-01-15'." at #2
@@ -57,7 +57,7 @@ test Invalid time [[
        , [[TIME '']] AS time2
        , [[TIME '2018-13-13']] AS time3
        , [[TIME '25:00']] AS time4
-    FROM MATCH( (n) )
+    FROM g MATCH (n)
 
 ]] error like "Not a valid time: Text '25:00:00' could not be parsed: Invalid value for HourOfDay (valid values 0 - 23): 25. Examples of valid times are '16:30:00' and '15:30:00+01:00'." at #1
    error like "Not a valid time: Text '' could not be parsed at index 0. Examples of valid times are '16:30:00' and '15:30:00+01:00'." at #2
@@ -70,24 +70,9 @@ test Invalid timestamp [[
        , [[TIMESTAMP '2018-13-13']] AS timestamp2
        , [[TIMESTAMP '']] AS timestamp3
        , [[TIMESTAMP '2018-01-15T16:30:00']] AS timestamp4
-    FROM MATCH( (n) )
+    FROM g MATCH (n)
 
 ]] error like "Not a valid timestamp: Text '25:00:00' could not be parsed at index 0. Examples of valid timestamps are '2018-01-15 16:30:00' and '2018-01-15 15:30:00+01:00'." at #1
    error like "Not a valid timestamp: Text '2018-13-13' could not be parsed at index 10. Examples of valid timestamps are '2018-01-15 16:30:00' and '2018-01-15 15:30:00+01:00'." at #2
    error like "Not a valid timestamp: Text '' could not be parsed at index 0. Examples of valid timestamps are '2018-01-15 16:30:00' and '2018-01-15 15:30:00+01:00'." at #3
    error like "Not a valid timestamp: Text '2018-01-15T16:30:00' could not be parsed at index 10. Examples of valid timestamps are '2018-01-15 16:30:00' and '2018-01-15 15:30:00+01:00'." at #4
-
-test Invalid escaping in string literal [[
-
-  SELECT [['single\'quote']] AS v
-    FROM MATCH ( (n) )
-
-]] error like "Use '' instead of \' to escape a single quote" at #1
-
-test Invalid escaping in identifier [[
-
-  SELECT n
-    FROM [["double\"quote"]] MATCH ( (n:[["double\"quote"]]) )
-   WHERE n.[["double\"quote"]]
-
-]] error like "instead of \" to escape a double quote" at #1, #2, #3

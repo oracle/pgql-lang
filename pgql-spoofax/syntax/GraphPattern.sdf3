@@ -13,13 +13,12 @@ template options
 
 context-free syntax
 
-  FromClause.FromClause = <FROM <GraphMatch>> {case-insensitive}
+  Pgql11FromClause.Pgql11FromClause = <FROM <Identifier>> {case-insensitive}
 
-  GraphMatch.GraphMatch =
+  Pgql11MatchClause.GraphPattern =
     <
-      <GraphName?> MATCH(
-        <GraphPattern>
-      )
+      MATCH
+        <{PathPattern ",\n"}+>
     > {case-insensitive}
 
   GraphName.GraphName = Identifier

@@ -5,17 +5,16 @@ language pgql-lang
 test Duplicate group variable (1) [[
 
   SELECT n
-    FROM MATCH(
+    FROM g MATCH
            (n) -[ [[e]] ]-> (m)
          , TOP 10 SHORTEST (n) -[ [[e]]:likes]->* (m)
-         )
 
 ]] error like "Duplicate variable" at #1, #2
 
 test Quantifier not enclosed by SHORTEST [[
 
-  SELECT n
-    FROM MATCH(
+  SELECT n AS c1
+    FROM g MATCH
            (n) ->[[*]] (m)
          , (n) ->[[+]] (m)
          , (n) ->[[?]] (m)
@@ -23,124 +22,119 @@ test Quantifier not enclosed by SHORTEST [[
          , (n) ->[[{,2}]] (m)
          , (n) ->[[{2,}]] (m)
          , (n) ->[[{2,3}]] (m)
-         )
 
 ]] error like "Quantifier needs to be enclosed by SHORTEST" at #1, #2, #3, #4, #5, #6, #7
 
 test K equals zero [[
 
-  SELECT n FROM MATCH( TOP [[0]] SHORTEST (n) ->* (m) )
+  SELECT n AS c1 FROM g MATCH TOP [[0]] SHORTEST (n) ->* (m)
 
 ]]  error like "Value should be greater than 0" at #1
 
 test Multiple edges in SHORTEST [[
 
   SELECT n.prop AS nProp
-    FROM MATCH( SHORTEST (n) [[-[e1]->* (m) ->*]] (o) )
+    FROM g MATCH SHORTEST (n) [[-[e1]->* (m) ->*]] (o)
 
 ]] error like "Not yet supported: multiple edges in SHORTEST" at #1
 
 test No Kleene star in SHORTEST (1) [[
 
   SELECT n.prop AS nProp
-    FROM MATCH( SHORTEST (n) -[e1]->[[+]] (m) )
+    FROM g MATCH SHORTEST (n) -[e1]->[[+]] (m)
 
 ]] error like "Kleene star (*) required for now" at #1
 
 test No Kleene star in SHORTEST (2) [[
 
   SELECT n.prop AS nProp
-    FROM MATCH( SHORTEST (n) [[-[e1]-> (m)]] )
+    FROM g MATCH SHORTEST (n) [[-[e1]-> (m)]]
 
 ]] error like "Kleene star (*) required for now" at #1
 
 test No Kleene star in SHORTEST (2) [[
 
   SELECT n.prop AS nProp
-    FROM MATCH( SHORTEST (n) (-[e1]->)[[+]] (m) )
+    FROM g MATCH SHORTEST (n) (-[e1]->)[[+]] (m)
 
 ]] error like "Kleene star (*) required for now" at #1
 
 test No Kleene star in SHORTEST (2) [[
 
   SELECT n.prop AS nProp
-    FROM MATCH( SHORTEST (n) [[(-[e1]->)]] (m) )
+    FROM g MATCH SHORTEST (n) [[(-[e1]->)]] (m)
 
 ]] error like "Kleene star (*) required for now" at #1
 
 test Duplicate variables (1) [[
 
   SELECT n.prop AS nProp
-    FROM MATCH(
+    FROM g MATCH
            SHORTEST (n) -[ [[e]] ]-> (m)
          , (n) -[ [[e]] ]-> (m)
-         )
 
 ]] error like "Duplicate variable" at #1, #2
 
 test Duplicate variables (2) [[
 
   SELECT n.prop AS nProp
-    FROM MATCH(
+    FROM g MATCH
            SHORTEST (n) (-> ([[dst]]))* (m)
          , ([[dst]])
-         )
 
 ]] error like "Duplicate variable" at #1, #2
 
 test Duplicate variables (3) [[
 
   SELECT n.prop AS nProp
-    FROM MATCH( SHORTEST (n) (-> ([[m]]))* ([[m]]) )
+    FROM g MATCH SHORTEST (n) (-> ([[m]]))* ([[m]])
 
 ]] error like "Duplicate variable" at #1, #2
 
 test Duplicate variables (4) [[
 
   SELECT n.prop AS nProp
-    FROM MATCH( SHORTEST ([[n]]) (-[ [[n]] ]->)* (m) )
+    FROM g MATCH SHORTEST ([[n]]) (-[ [[n]] ]->)* (m)
 
 ]] error like "Duplicate variable" at #1, #2
 
 test Duplicate variables (5) [[
 
   SELECT n.prop AS nProp
-    FROM MATCH( SHORTEST (n) [[(-> (m)) (m) )]]
+    FROM g MATCH SHORTEST (n) [[(-> (m)) (m)]]
 
 ]] error like "Duplicate variable" at #1
 
 test Duplicate variables (6) [[
 
   SELECT n.prop AS nProp
-    FROM MATCH(
+    FROM g MATCH
            SHORTEST (n) -[ [[e]] ]->* (m)
          , SHORTEST (n) -[ [[e]] ]->* (m)
-         )
 
 ]] error like "Duplicate variable" at #1, #2
 
 test Duplicate variables (7) [[
 
   SELECT n.prop AS nProp
-    FROM MATCH(
+    FROM g MATCH
            SHORTEST (n) (-> ([[x]]))* (m)
          , SHORTEST (n) -[ [[x]] ]->* (m)
-         )
 
 ]] error like "Duplicate variable" at #1, #2
 
 test Duplicate variables (8) [[
 
-  SELECT dst
-   FROM MATCH( SHORTEST (n) -[e]->* (m) )
+  SELECT dst AS c1
+   FROM g MATCH SHORTEST (n) -[e]->* (m)
    GROUP BY n AS [[e]]
 
 ]] error like "Duplicate variable: variable already defined in the MATCH clause" at #1
 
 test Duplicate variables (9) [[
 
-  SELECT dst
-    FROM MATCH( SHORTEST (n) (-> (dst))* (m) )
+  SELECT dst AS c1
+    FROM g MATCH SHORTEST (n) (-> (dst))* (m)
    GROUP BY n AS [[dst]]
 
 ]] error like "Duplicate variable: variable already defined in the MATCH clause" at #1
@@ -148,23 +142,23 @@ test Duplicate variables (9) [[
 test Nested regex (1) [[
 
     PATH p AS SHORTEST (n) -[e]->* (m)
-  SELECT n
-    FROM MATCH( (n) )
+  SELECT n AS c1
+    FROM g MATCH (n)
 
 ]] error like "Nested regular expressions not yet supported"
 
 test Nested regex (2) [[
 
     PATH p AS (n) -/:likes/-> (m)
-  SELECT n
-    FROM MATCH( (n) )
+  SELECT n AS c1
+    FROM g MATCH (n)
 
 ]] error like "Nested regular expressions not yet supported"
 
 test Nested regex (3) [[
 
-  SELECT n
-    FROM MATCH( SHORTEST (n) [[-/:likes/->]]* (m) )
+  SELECT n AS c1
+    FROM g MATCH SHORTEST (n) [[-/:likes/->]]* (m)
 
 ]] error like "Nested regular expressions not yet supported" at #1
 
@@ -176,7 +170,7 @@ test Multiple group variables in aggregation (1) [[
        , [[SUM(e.prop + x.prop)]] AS aggr4
        , [[AVG(e.prop + x.prop)]] AS aggr5
        , [[ARRAY_AGG(e.prop + x.prop)]] AS aggr6
-    FROM MATCH( SHORTEST (n) (-[e]-> (x))* (m) )
+    FROM g MATCH SHORTEST (n) (-[e]-> (x))* (m)
 
 ]] error like "Accessing multiple group variables in a single aggregation is not yet supported" at #1, #2, #3, #4, #5, #6
 
@@ -188,9 +182,9 @@ test Multiple group variables in aggregation (2) [[
        , [[SUM(e1.prop + e2.prop)]] AS aggr4
        , [[AVG(e1.prop + e2.prop)]] AS aggr5
        , [[ARRAY_AGG(e1.prop + e2.prop)]] AS aggr6
-    FROM MATCH(
-           SHORTEST (n) -[e1]->* (m)
-         , SHORTEST (n) -[e2]->* (m)
-         )
-
+    FROM g
+      MATCH
+        SHORTEST (n) -[e1]->* (m),
+        SHORTEST (n) -[e2]->* (m)
+             
 ]] error like "Accessing multiple group variables in a single aggregation is not yet supported" at #1, #2, #3, #4, #5, #6

@@ -4,30 +4,30 @@ language pgql-lang
 
 test Double dash (1) [[
 
-  SELECT n
-   MATCH (n) [[-- (o)]]
+  SELECT n AS c1
+    FROM g MATCH (n) [[-- (o)]]
 
 ]] error like "Use [-] instead of [--]" at #1
 
 test Double dash (2) [[
 
-  SELECT n
-   MATCH (n) [[--> (o)]]
+  SELECT n AS c1
+    FROM g MATCH (n) [[--> (o)]]
 
 ]] error like "Use [-] instead of [--]" at #1
 
 test Double dash (3) [[
 
-  SELECT n
-   MATCH (n) [[<-- (o)]]
+  SELECT n AS c1
+    FROM g MATCH (n) [[<-- (o)]]
 
 ]] error like "Use [-] instead of [--]" at #1
 
 test := [[
 
     PATH a [[:=]] ()
-  SELECT n
-   MATCH (n)
+  SELECT n AS c1
+    FROM g MATCH (n)
 
 ]] error like "Use [AS] instead of [:=]" at #1
 
@@ -40,7 +40,7 @@ test OO-style function call[[
        , [[n.has('prop1', 'prop2')]] AS has
        , [[n.inDegree()]] AS inDegree
        , [[n.outDegree()]] AS outDegree
-   MATCH (n) -[e]-> (m)
+    FROM g MATCH (n) -[e]-> (m)
 
 ]] error like "Use [labels(x)] instead of [x.labels()]" at #1
    error like "Use [label(x)] instead of [x.label()]" at #2
@@ -52,8 +52,8 @@ test OO-style function call[[
 
 test Double-quoted strings and labels [[
 
-  SELECT n
-   MATCH (n:[['lbl']])
+  SELECT n AS c1
+    FROM g MATCH (n:[['lbl']])
    WHERE n.prop = [["string"]]
 
 ]] error like "Use double quotes to delimit labels" at #1
@@ -61,52 +61,52 @@ test Double-quoted strings and labels [[
 
 test ID testing through @ [[
 
-  SELECT n
-   MATCH (n[[@123]])
+  SELECT n AS c1
+    FROM g MATCH (n[[@123]])
 
 ]] error like "Use [id(x) = xyz] instead of [@xyz]" at #1
 
 test Constraints in MATCH [[
 
-  SELECT n
-   MATCH (n [[WITH prop = 123]])
+  SELECT n AS c1
+    FROM g MATCH (n [[WITH prop = 123]])
 
 ]] error like "Constraints should be specified in the WHERE clause instead of the WITH" at #1
 
 test Constraints in MATCH [[
 
-  SELECT n
-   MATCH (n)
+  SELECT n AS c1
+    FROM g MATCH (n)
    WHERE [[!n.married]]
 
 ]] error like "Use [NOT] instead of [!]" at #1
 
 test Constraints in MATCH [[
 
-  SELECT n
-   MATCH (n)
+  SELECT n AS c1
+    FROM g MATCH (n)
    WHERE [[n.name =~ 'string']]
 
 ]] error like "Use [java_regexp_like(exp1, exp2)] instead of [exp1 =~ exp2]" at #1
 
 test MATCH (1) [[
 
-  SELECT n
-    [[FROM g]]
+  SELECT n AS c1
+  [[FROM g]]
    WHERE (n)
 
 ]] error like "Use [SELECT .. FROM MATCH( .. ) WHERE ..] or [SELECT .. FROM graphName MATCH( .. ) WHERE ..]" at #1
 
 test MATCH (2) [[
 
-  SELECT n
-   WHERE (n), EXISTS [[( SELECT * MATCH (n) )]]
+  SELECT n AS c1
+   WHERE (n), EXISTS [[( SELECT n AS c1 MATCH (n) )]]
 
 ]] error like "Use [SELECT .. FROM MATCH( .. ) WHERE ..] or [SELECT .. FROM graphName MATCH( .. ) WHERE ..]" at #1
 
 test MATCH (3) [[
 
-  SELECT n
+  SELECT n AS c1
    WHERE (n), n.prop = [[( SELECT n.prop AS prop MATCH (n) )]]
 
 ]] error like "Use [SELECT .. FROM MATCH( .. ) WHERE ..] or [SELECT .. FROM graphName MATCH( .. ) WHERE ..]" at #1
@@ -114,7 +114,7 @@ test MATCH (3) [[
 test MATCH (4) [[
 
     PATH p [[AS]] ()
-  SELECT n
+  SELECT n AS c1
    WHERE (n)
 
 ]] error like "Use [SELECT .. FROM MATCH( .. ) WHERE ..] or [SELECT .. FROM graphName MATCH( .. ) WHERE ..]" at #1
@@ -135,7 +135,7 @@ test MATCH (6) [[
 
 test MATCH (7) [[
 
-  SELECT n
+  SELECT n AS c1
    WHERE [[SHORTEST (n) ->* (m)]]
 
 ]] error like "Use [SELECT .. FROM MATCH( .. ) WHERE ..] or [SELECT .. FROM graphName MATCH( .. ) WHERE ..]" at #1

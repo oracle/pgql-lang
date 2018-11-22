@@ -1,0 +1,32 @@
+package oracle.pgql.lang;
+
+import static org.junit.Assert.assertTrue;
+
+import org.junit.Test;
+
+public class Experimental extends AbstractPgqlTest {
+
+  @Test
+  public void testReferencesToSelectExpression1() throws Exception {
+    String query = "SELECT n.age * 2 AS doubleAge "//
+        + "    FROM g EXPERIMENTAL_MATCH ( (n) ) "//
+        + "   WHERE doubleAge = n.age + n.age "//
+        + "GROUP BY doubleAge "//
+        + "  HAVING doubleAge = n.age * 2 "//
+        + "ORDER BY 2 * doubleAge ASC, 2 * (n.age * 2) DESC";
+    PgqlResult result = pgql.parse(query);
+    assertTrue(result.isQueryValid());
+  }
+
+  @Test
+  public void testReferencesToSelectExpression2() throws Exception {
+    String query = "SELECT n.age * 2 AS doubleAge "//
+        + "    FROM g EXPERIMENTAL_MATCH ( (n) ) "//
+        + "   WHERE doubleAge = n.age + n.age "//
+        + "GROUP BY n.age * 2 "//
+        + "  HAVING doubleAge = n.age * 2 "//
+        + "ORDER BY 2* doubleAge ASC, 2 * (n.age * 2) DESC";
+    PgqlResult result = pgql.parse(query);
+    assertTrue(result.isQueryValid());
+  }
+}

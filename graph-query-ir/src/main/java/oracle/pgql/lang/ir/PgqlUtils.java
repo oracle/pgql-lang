@@ -151,8 +151,20 @@ public class PgqlUtils {
     if (identifier.matches("^[a-zA-Z0-9_]*$")) {
       return identifier;
     } else {
-      return "\"" + identifier.replace("\"", "\"\"") + "\"";
+      return "\"" + escape(identifier) //
+          .replace("\"", "\\\"") //
+          + "\"";
     }
+  }
+
+  private static String escape(String s) {
+    return s //
+        .replace("\\", "\\\\") //
+        .replace("\t", "\\t") //
+        .replace("\n", "\\n") //
+        .replace("\r", "\\r") //
+        .replace("\b", "\\b") //
+        .replace("\f", "\\f");
   }
 
   protected static String printPgqlString(GraphQuery graphQuery) {
@@ -170,9 +182,9 @@ public class PgqlUtils {
         throw new IllegalArgumentException(graphQuery.getQueryType().toString());
     }
 
-    result += "\nFROM ";
+    result += "\n";
     if (graphQuery.getInputGraphName() != null) {
-      result += printIdentifier(graphQuery.getInputGraphName()) + " ";
+      result += "FROM " + printIdentifier(graphQuery.getInputGraphName()) + " ";
     }
     result += graphPattern;
     GroupBy groupBy = graphQuery.getGroupBy();
@@ -216,8 +228,8 @@ public class PgqlUtils {
         // "x.prop1 + x.prop2" is a VarRef to the anonymous SELECT expression "x.prop1 + x.prop2"
         return expAsVar.getExp().toString();
       } else if (!expAsVar.isContainedInSelectClause()) {
-        // e.g. "SELECT 123 FROM g MATCH( (n) ) GROUP BY n.age AS age" is not a valid PGQL query since GROUP BY may not
-        // introduce new variables since PGQL v1.2
+        // e.g. "SELECT 123 FROM g EXPERIMENTAL_MATCH ( (n) ) GROUP BY n.age AS age" is not a valid PGQL query since GROUP BY may not
+        // introduce new variables since PGQL v1.3
         return expAsVar.getExp().toString();
       }
     }
@@ -232,7 +244,7 @@ public class PgqlUtils {
   }
 
   protected static String printPgqlString(GraphPattern graphPattern, List<QueryPath> queryPaths) {
-    String result = "MATCH(";
+    String result = "MATCH";
     int indentation = 7;
     Set<QueryExpression> constraintsCopy = new HashSet<>(graphPattern.getConstraints());
     QueryVertex lastVertex = null;
@@ -265,8 +277,6 @@ public class PgqlUtils {
       result += printVertex(constraintsCopy, vertex, lastVertex, indentation);
       lastVertex = vertex;
     }
-
-    result += "\n     )";
 
     // print filter expressions
     if (!constraintsCopy.isEmpty()) {
@@ -542,7 +552,9 @@ public class PgqlUtils {
   }
 
   protected static String printLiteral(String val) {
-    return "'" + val.replace("'", "''") + "'";
+    return "'" + escape(val) //
+        .replace("'", "\\'") //
+        + "'";
   }
 
   protected static String printLiteral(LocalDate val) {

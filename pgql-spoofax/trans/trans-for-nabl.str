@@ -50,7 +50,7 @@ rules
 
        ; connections'' := <alltd(resolve-var-refs-in-path-expression(|variables''))> connections'
 
-       // only in PGQL 1.2 and up, column names specified in the SELECT clause are visible in GROUP BY, HAVING and ORDER BY (but only outside of aggregations and subqueries)
+       // only in PGQL 1.3 and up, column names specified in the SELECT clause are visible in GROUP BY, HAVING and ORDER BY (but only outside of aggregations and subqueries)
        ; expAsVars := <(?"v1.0" + ?"v1.1"); ![] <+ !selectOrUpdateClause; ?SelectClause(_, ExpAsVars(<id>)) <+ ![]> version
 
        // WHERE

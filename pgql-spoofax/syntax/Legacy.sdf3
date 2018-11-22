@@ -13,38 +13,13 @@ template options
 
   keyword -/- [a-zA-Z0-9]
 
-context-free syntax // pgql-lang.sdf3 for PGQL 1.1
-
-  Legacy11Query.Pgql11Query =
-    <
-      <{CommonPathExpression "\n"}*>
-      <SelectOrUpdateClause>
-      <Legacy11FromClause?>
-      <Pgql11MatchClause>
-      <WhereClause?>
-      <GroupByClause?>
-      <HavingClause?>
-      <OrderByClause?>
-      <LimitOffsetClauses?>
-    >
-
-  Legacy11FromClause.Pgql11FromClause = <FROM <Identifier>> {case-insensitive}
-
-context-free syntax // GraphPattern.sdf3 for PGQL 1.1
-
-  Pgql11MatchClause.GraphPattern =
-    <
-      MATCH
-        <{PathPattern ",\n"}+>
-    > {case-insensitive}
-
 context-free syntax // pgql-lang.sdf3 for PGQL 1.0
 
   Legacy10Query.Pgql10Query =
     <
       <{CommonPathExpression "\n"}*>
       <SelectClause>
-      <Legacy11FromClause?>
+      <Pgql11FromClause?>
       <Legacy10GraphPattern>
       <GroupByClause?>
       <OrderByClause?>

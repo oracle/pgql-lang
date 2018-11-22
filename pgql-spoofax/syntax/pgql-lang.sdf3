@@ -9,6 +9,7 @@ imports
   SolutionModifiers
   Legacy
   Expressions
+  Experimental
 
 context-free start-symbols
 
@@ -22,11 +23,12 @@ context-free syntax
 
   Start = Query
 
-  Query.Query =
+  Query.Pgql11Query =
     <
       <{CommonPathExpression "\n"}*>
       <SelectOrUpdateClause>
-      <FromClause>
+      <Pgql11FromClause?>
+      <Pgql11MatchClause>
       <WhereClause?>
       <GroupByClause?>
       <HavingClause?>
@@ -34,9 +36,8 @@ context-free syntax
       <LimitOffsetClauses?>
     >
 
-  Query = Legacy11Query
-
   Query = Legacy10Query
+  Query = ExperimentalQuery
 
   CommonPathExpression.CommonPathExpression = <PATH <REGULAR-IDENTIFIER> <AsignSymbol> <PathPattern> <WhereClause?>> {case-insensitive}
   AsignSymbol.Pgql11AsignSymbol = <AS>  {case-insensitive}

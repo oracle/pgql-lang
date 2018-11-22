@@ -4,8 +4,8 @@ language pgql-lang
 
 test Order by vertex (1) [[
 
-    SELECT n
-      FROM MATCH( (n) )
+    SELECT n AS c1
+      FROM g MATCH (n)
   ORDER BY [[n]]
 
 ]] error like "Cannot order by vertex" at #1
@@ -13,7 +13,7 @@ test Order by vertex (1) [[
 test Order by vertex (2) [[
 
     SELECT n AS n2
-      FROM MATCH( (n) )
+      FROM g MATCH (n)
   ORDER BY [[n2]]
 
 ]] error like "Cannot order by vertex" at #1
@@ -21,7 +21,7 @@ test Order by vertex (2) [[
 test Order by vertex (3) [[
 
     SELECT n AS n
-      FROM MATCH( (n) )
+      FROM g MATCH (n)
   ORDER BY [[n]]
 
 ]] error like "Cannot order by vertex" at #1
@@ -29,39 +29,39 @@ test Order by vertex (3) [[
 test Order by array [[
 
     SELECT ARRAY_AGG(e.prop) AS array
-      FROM MATCH( SHORTEST (n) -[e]->* (m) )
+      FROM g MATCH SHORTEST (n) -[e]->* (m)
   ORDER BY [[ARRAY_AGG(e.prop)]]
 
 ]] error like "Cannot order by array" at #1
 
 test Order by vertex (4) [[
 
-    SELECT n, ( SELECT [[m AS m]] FROM MATCH( (m) ) LIMIT 1 ) AS o
-      FROM MATCH( (n) )
+    SELECT n AS c1, ( SELECT [[m AS m]] FROM g MATCH (m) LIMIT 1 ) AS o
+      FROM g MATCH (n)
   ORDER BY o
 
 ]] error like "Scalar subquery not allowed to return a vertex or an edge" at #1
 
 test Order by vertex (5) [[
 
-    SELECT n
-      FROM MATCH( (n) )
-  ORDER BY [[( SELECT m FROM MATCH( (m) ) LIMIT 1 )]]
+    SELECT n AS c1
+      FROM g MATCH (n)
+  ORDER BY [[( SELECT m AS c1 FROM g MATCH (m) LIMIT 1 )]]
 
 ]] error like "Scalar subquery not allowed to return a vertex or an edge" at #1
 
 test Order by vertex (6) [[
 
-    SELECT n, ( SELECT m FROM MATCH( (m) ) LIMIT 1 ) AS o
+    SELECT n AS c1, ( SELECT m AS c1 FROM g MATCH (m) LIMIT 1 ) AS o
      MATCH (n)
-  ORDER BY [[( SELECT m FROM MATCH( (m) ) LIMIT 1 )]]
+  ORDER BY [[( SELECT m AS c1 FROM g MATCH (m) LIMIT 1 )]]
 
 ]] error like "Scalar subquery not allowed to return a vertex or an edge" at #1
 
 test Order by vertex (7) [[
 
     SELECT n AS q
-      FROM MATCH( (n) )
+      FROM g MATCH (n)
   GROUP BY n
   ORDER BY [[q]]
 
@@ -70,7 +70,7 @@ test Order by vertex (7) [[
 test Order by vertex (7) [[
 
     SELECT p AS q
-      FROM MATCH( (n) )
+      FROM g MATCH (n)
   GROUP BY n AS p
   ORDER BY [[n]]
 
@@ -79,7 +79,7 @@ test Order by vertex (7) [[
 test Order by vertex (8) [[
 
     SELECT p AS q
-      FROM MATCH( (n) )
+      FROM g MATCH (n)
   GROUP BY n AS p
   ORDER BY [[p]]
 
@@ -88,7 +88,7 @@ test Order by vertex (8) [[
 test Order by vertex (9) [[
 
     SELECT p AS q
-      FROM MATCH( (n) )
+      FROM g MATCH (n)
   GROUP BY n AS p
   ORDER BY [[q]]
 
@@ -96,8 +96,8 @@ test Order by vertex (9) [[
 
 test Order by edge (1) [[
 
-    SELECT e
-      FROM MATCH( () -[e]-> () )
+    SELECT e AS c1
+      FROM g MATCH () -[e]-> ()
   GROUP BY e
   ORDER BY [[e]]
 
@@ -106,7 +106,7 @@ test Order by edge (1) [[
 test DISTINCT projection with ORDER BY [[
 
   SELECT DISTINCT n.age AS nAge
-    FROM MATCH( (n) )
+    FROM g MATCH (n)
 ORDER BY [[n.name]], n.age, nAge, [[1+2]]
 
 ]] error like "Because of DISTINCT projection, the expression in ORDER BY should be one of the expressions in the SELECT" at #1, #2
@@ -114,7 +114,7 @@ ORDER BY [[n.name]], n.age, nAge, [[1+2]]
 test DISTINCT projection with ORDER BY in GROUP BY [[
 
   SELECT DISTINCT nAge AS age
-    FROM MATCH( (n) )
+    FROM g MATCH (n)
 GROUP BY n.Age AS nAge
 ORDER BY [[n.name]], age, nAge, [[1+2]]
 
@@ -123,9 +123,9 @@ ORDER BY [[n.name]], age, nAge, [[1+2]]
 test DISTINCT projection with ORDER BY in EXISTS [[
 
 SELECT n.age AS nAGE
-  FROM MATCH( (n) )
+  FROM g MATCH (n)
  WHERE EXISTS (   SELECT DISTINCT n.age AS nAge
-                    FROM MATCH( (n) )
+                    FROM g MATCH (n)
                 ORDER BY [[n.name]], n.age, nAge, [[1+2]]
               )
 

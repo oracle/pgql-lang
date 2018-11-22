@@ -4,20 +4,20 @@ language pgql-lang
 
 test Aggregation in subquery and referencing variable from outer query outside of aggregation (1) [[
 
-  SELECT n
-    FROM MATCH( (n) )
-   WHERE EXISTS ( SELECT COUNT(*) AS cnt, [[n]]
-                    FROM MATCH( (m) )
+  SELECT n AS c1
+    FROM g MATCH (n)
+   WHERE EXISTS ( SELECT COUNT(*) AS cnt, [[n]] AS c2
+                    FROM g MATCH (m)
                 )
 
 ]] error like "Unresolved variable (did you mean to use an aggregation?)" at #1
 
 test Aggregation in subquery and referencing variable from outer query outside of aggregation (2) [[
 
-  SELECT 123 AS x
-    FROM MATCH( (n) )
+  SELECT 123 AS c1
+    FROM g MATCH (n)
    WHERE EXISTS (   SELECT COUNT(*) AS cnt
-                      FROM MATCH( (m) )
+                      FROM g MATCH (m)
                   ORDER BY [[n]].prop
                 )
 
@@ -25,10 +25,10 @@ test Aggregation in subquery and referencing variable from outer query outside o
 
 test Reference variable from outer query after GROUP BY (1) [[
 
-    SELECT n
-      FROM MATCH( (n) )
-     WHERE EXISTS (    SELECT m
-                         FROM MATCH( (m) )
+    SELECT n AS c1
+      FROM g MATCH (n)
+     WHERE EXISTS (    SELECT m AS c1
+                         FROM g MATCH (m)
                      GROUP BY m
                      ORDER BY [[n]].prop
                   )
@@ -37,10 +37,10 @@ test Reference variable from outer query after GROUP BY (1) [[
 
 test Reference variable from outer query after GROUP BY (2) [[
 
-    SELECT n
-      FROM MATCH( (n) )
-     WHERE EXISTS (    SELECT m
-                         FROM MATCH( (m) )
+    SELECT n AS c1
+      FROM g MATCH (n)
+     WHERE EXISTS (    SELECT m AS c1
+                         FROM g MATCH (m)
                      GROUP BY m
                      ORDER BY [[n]].prop
                   )
@@ -50,10 +50,10 @@ test Reference variable from outer query after GROUP BY (2) [[
 
 test Reference variable from outer query after GROUP BY (3) [[
 
-    SELECT n
-      FROM MATCH( (n) )
+    SELECT n AS c1
+      FROM g MATCH (n)
      WHERE EXISTS (    SELECT [[n]].prop AS prop
-                         FROM MATCH( (m) )
+                         FROM g MATCH (m)
                      GROUP BY m
                   )
   GROUP BY n
@@ -63,9 +63,9 @@ test Reference variable from outer query after GROUP BY (3) [[
 test Reference variable from outer query after GROUP BY (4) [[
 
    SELECT n AS n
-     FROM MATCH( (n) )
+     FROM g MATCH (n)
     WHERE EXISTS (   SELECT AVG(m.age) AS avg
-                       FROM MATCH( (n) -> (m) )
+                       FROM g MATCH (n) -> (m)
                    GROUP BY m.age AS nAge
                    ORDER BY [[n]].age
                  )
@@ -75,9 +75,9 @@ test Reference variable from outer query after GROUP BY (4) [[
 test Reference variable from outer query after aggregation (1) [[
 
   SELECT n AS x
-    FROM MATCH( (n) )
+    FROM g MATCH (n)
    WHERE EXISTS (   SELECT COUNT(*) AS cnt
-                      FROM MATCH( (m) )
+                      FROM g MATCH (m)
                   ORDER BY [[x]].prop
                 )
 
@@ -85,10 +85,10 @@ test Reference variable from outer query after aggregation (1) [[
 
 test Reference variable from outer query after aggregation (2) [[
 
-    SELECT n
-      FROM MATCH( (n) )
+    SELECT n AS c1
+      FROM g MATCH (n)
      WHERE EXISTS (   SELECT COUNT(*) AS cnt, [[x]].prop AS prop
-                        FROM MATCH( (m) )
+                        FROM g MATCH (m)
                     ORDER BY x.prop
                   )
   GROUP BY n AS x
@@ -98,9 +98,9 @@ test Reference variable from outer query after aggregation (2) [[
 test Reference variable from outer query after aggregation (3) [[
 
   SELECT n AS n
-    FROM MATCH( (n) )
+    FROM g MATCH (n)
    WHERE EXISTS (   SELECT AVG(m.age) AS avg
-                      FROM MATCH( (n) -> (m) )
+                      FROM g MATCH (n) -> (m)
                   ORDER BY [[n]].age
                 )
 
@@ -109,11 +109,11 @@ test Reference variable from outer query after aggregation (3) [[
 test Variable from outer query not visible in inner query (1) [[
 
     SELECT COUNT(*) AS cnt
-      FROM MATCH( (n) -> (m) )
+      FROM g MATCH (n) -> (m)
   GROUP BY n
   ORDER BY EXISTS (
-                    SELECT *
-                      FROM MATCH( (n) -> (n) )
+                    SELECT n AS c1
+                      FROM g MATCH (n) -> (n)
                      WHERE [[m]].age = n.age
                   )
 
@@ -122,76 +122,76 @@ test Variable from outer query not visible in inner query (1) [[
 test Scalar subquery with zero columns (1) [[
 
   SELECT ( SELECT [[*]] MATCH () ) AS x
-    FROM MATCH( (n) )
+    FROM g MATCH (n)
 
 ]] error like "Scalar subquery is expected to return a single column, but zero columns were returned" at #1
 
 test Scalar subquery with zero columns (2) [[
 
-  SELECT ( SELECT [[*]] FROM MATCH( () ) WHERE ( SELECT [[*]] FROM MATCH( () ) )) AS x
-    FROM MATCH( (n) )
+  SELECT ( SELECT [[*]] FROM g MATCH () WHERE ( SELECT [[*]] FROM g MATCH () ) ) AS x
+    FROM g MATCH (n)
 
 ]] error like "Scalar subquery is expected to return a single column, but zero columns were returned" at #1, #2
 
 test Scalar subquery with multiple columns (1) [[
 
-  SELECT ( SELECT [[n.prop1 AS p1, n.prop2 AS p2]] FROM MATCH( (n) ) ) AS x
-    FROM MATCH( (n) )
+  SELECT ( SELECT [[n.prop1 AS p1, n.prop2 AS p2]] FROM g MATCH (n) ) AS x
+    FROM g MATCH (n)
 
 ]] error like "Scalar subquery is expected to return a single column, but multiple columns were returned" at #1
 
 test Scalar subquery with multiple columns (2) [[
 
   SELECT ( SELECT [[n.prop1 AS p1, n.prop2 AS p2]] 
-             FROM MATCH( (n) )
-            WHERE ( SELECT [[n.prop1 AS p1, n.prop2 AS p2]] FROM MATCH( (n) ))
+             FROM g MATCH (n)
+            WHERE ( SELECT [[n.prop1 AS p1, n.prop2 AS p2]] FROM g MATCH (n) )
          ) AS x
-    FROM MATCH( (n) )
+    FROM g MATCH (n)
 
 ]] error like "Scalar subquery is expected to return a single column, but multiple columns were returned" at #1, #2
 
 test Duplicate variable passed from outer query (1) [[
 
-  SELECT EXISTS ( SELECT e FROM MATCH( (n) <-[ [[e]] ]- (m) )) AS x
-    FROM MATCH( (n) -[e]-> (m) )
+  SELECT EXISTS ( SELECT e AS c1 FROM g MATCH (n) <-[ [[e]] ]- (m) ) AS x
+    FROM g MATCH (n) -[e]-> (m)
 
 ]] error like "Duplicate variable (variable with same name is passed from an outer query)" at #1
 
 test Duplicate variable passed from outer query (2) [[
 
-  SELECT EXISTS ( SELECT e FROM MATCH( ([[e]]) )) AS x
-    FROM MATCH( (n) -[e]-> (m) )
+  SELECT EXISTS ( SELECT e AS c1 FROM g MATCH ([[e]]) ) AS x
+    FROM g MATCH (n) -[e]-> (m)
 
 ]] error like "Duplicate variable (variable with same name is passed from an outer query)" at #1
 
 test Duplicate variable passed from outer query (3) [[
 
-  SELECT EXISTS ( SELECT e FROM MATCH( (n) <-[ [[e]] ]- (m) )) AS x
-    FROM MATCH( (n) -[e]-> (m) )
+  SELECT EXISTS ( SELECT e AS c1 FROM g MATCH (n) <-[ [[e]] ]- (m) ) AS x
+    FROM g MATCH (n) -[e]-> (m)
   GROUP BY e
 
 ]] error like "Duplicate variable (variable with same name is passed from an outer query)" at #1
 
 test Duplicate variable passed from outer query (4) [[
 
-  SELECT 123 AS b, e
-    FROM MATCH( (a) -[e]-> () )
-  ORDER BY EXISTS ( SELECT 123 AS c FROM MATCH( ([[b]]), ([[e]]) ))
+  SELECT 123 AS b, e AS c2
+    FROM g MATCH (a) -[e]-> ()
+  ORDER BY EXISTS ( SELECT 123 AS c FROM g MATCH ([[b]]), ([[e]]) )
 
 ]] error like "Duplicate variable (variable with same name is passed from an outer query)" at #1, #2
 
 test Duplicate variable passed from outer query (5) [[
 
-  SELECT 123 AS b, e, a
-    FROM MATCH( (a) -[e]-> () )
-  ORDER BY EXISTS ( SELECT 123 AS c FROM MATCH( () -[ [[b]] ]-> () -[ [[e]] ]-> ()  -[ [[a]] ]-> () ))
+  SELECT 123 AS b, e AS c2, a AS c3
+    FROM g MATCH (a) -[e]-> ()
+  ORDER BY EXISTS ( SELECT 123 AS c FROM g MATCH () -[ [[b]] ]-> () -[ [[e]] ]-> ()  -[ [[a]] ]-> () )
 
 ]] error like "Duplicate variable (variable with same name is passed from an outer query)" at #1, #2, #3
 
 test Scalar subquery return vertex or edge [[
 
-  SELECT ( SELECT [[m AS vertex]] FROM MATCH( (m) ) LIMIT 1 ) AS o
-       , ( SELECT [[e AS edge]] FROM MATCH( () -[e]-> () ) LIMIT 1 ) AS o
-    FROM MATCH( (n) )
+  SELECT ( SELECT [[m AS vertex]] FROM g MATCH (m) LIMIT 1 ) AS o
+       , ( SELECT [[e AS edge]] FROM g MATCH () -[e]-> () LIMIT 1 ) AS o
+    FROM g MATCH (n)
 
 ]] error like "Scalar subquery not allowed to return a vertex or an edge" at #1, #2

@@ -4,23 +4,23 @@ language pgql-lang
 
 test Unresolved variable in SELECT [[
 
-  SELECT ( [[UPDATE x.prop = 3]] FROM MATCH( (x) ) ) AS v
-    FROM MATCH( (n) )
+  SELECT ( [[UPDATE x.prop = 3]] FROM g MATCH(x) ) AS v
+    FROM g MATCH(n)
 
 ]] error like "SELECT clause expected here" at #1
 
 test Unresolved variable in SELECT [[
 
   SELECT n AS n
-    FROM MATCH( (n) )
-   WHERE EXISTS ( [[UPDATE x.prop = 3]] FROM MATCH( (x) ) )
+    FROM g MATCH (n)
+   WHERE EXISTS ( [[UPDATE x.prop = 3]] FROM g MATCH(x) )
 
 ]] error like "SELECT clause expected here" at #1
 
 test Set a property that is grouped by [[
 
     UPDATE [[n.prop]] = 123
-      FROM g MATCH ( (n) )
+      FROM g MATCH (n)
   GROUP BY n.prop AS nProp
 
 ]] error like "Cannot set a property that is grouped by" at #1
@@ -30,21 +30,21 @@ test Update property value to vertex or edge (1) [[
   UPDATE n.prop = [[n]]
        , n.prop = [[m]]
        , n.prop = [[e]]
-    FROM g MATCH ( (n) -[e]-> (m) )
+    FROM g MATCH (n) -[e]-> (m)
 
 ]] error like "Cannot set the value of a property to a vertex or an edge" at #1, #2, #3
 
 test Update property value to vertex or edge (2) [[
 
-  UPDATE n.prop = ( SELECT [[x AS x FROM]] MATCH ( (x) ) LIMIT 1 )
-    FROM g MATCH ( (n) -[e]-> (m) )
+  UPDATE n.prop = ( SELECT [[x AS x]] FROM g MATCH (x) LIMIT 1 )
+    FROM g MATCH (n) -[e]-> (m)
 
 ]] error like "Scalar subquery not allowed to return a vertex or an edge" at #1
 
 test Update property value to vertex or edge (3) [[
 
   UPDATE n.prop = [[n]]
-    FROM g MATCH ( (n) )
+    FROM g MATCH (n)
   GROUP BY n
 
 ]] error like "Cannot set the value of a property to a vertex or an edge" at #1
@@ -52,6 +52,6 @@ test Update property value to vertex or edge (3) [[
 test Set a property multiple times [[
 
   UPDATE [[n.prop]] = 1, [[n.prop]] = 2
-    FROM g MATCH ( (n) )
+    FROM g MATCH (n)
 
 ]] error like "Property is set multiple times" at #1, #2
