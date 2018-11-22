@@ -49,14 +49,14 @@ The 'master' branch of this repository contains a parser for PGQL with the follo
  - __Pretty printing__: invoking `GraphQuery.toString()` will "pretty print" the graph query, which turns unformatted queries into formatted ones:
 
    ```sql
-   SELECT n.name MATCH
+   SELECT n.name FROM g MATCH
    (n:Person) WHERE n.name = 'Anthony'
    OR n.name = 'James'
    ```
 
    ```sql
    SELECT n.name
-    MATCH (n:person)
+     FROM g MATCH (n:person)
     WHERE n.name = 'Anthony'
        OR n.name = 'James'
    ```
@@ -102,7 +102,7 @@ public class Main {
       System.out.println(result1.getGraphQuery());
 
       // parse query with errors and print error messages
-      PgqlResult result2 = pgql.parse("SELECT x, y, WHERE (n) -[e]-> (m)");
+      PgqlResult result2 = pgql.parse("SELECT x, y, FROM g MATCH (n) -[e]-> (m)");
       System.out.println(result2.getErrorMessages());
 
     }
