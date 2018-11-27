@@ -261,23 +261,23 @@ entries:
       output: web
       subfolderitems:
 
-      - title: String Functions
+      - title: String functions
         url: /spec/1.2/#string-functions
         output: web
 
-      - title: Numeric Functions
+      - title: Numeric functions
         url: /spec/1.2/#numeric-functions
         output: web
 
-      - title: Datetime Functions
+      - title: Datetime functions
         url: /spec/1.2/#datetime-functions
         output: web
 
-      - title: Vertex and Edge Functions
+      - title: Vertex and Edge functions
         url: /spec/1.2/#vertex-and-edge-functions
         output: web
 
-      - title: User-Defined Functions
+      - title: User-Defined functions
         url: /spec/1.2/#user-defined-functions
         output: web
 

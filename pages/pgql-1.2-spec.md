@@ -1280,13 +1280,13 @@ A function invocation has an optional package name, a function name, and, zero o
 
 Function and package names are case-insensitive such that e.g. `in_degree(..)` is the same function as `In_Degree(..)` or `IN_DEGREE(..)`.
 
-### String Functions
+### String functions
 
 Signature | Return value | Description
 --- | --- | ---
 `java_regexp_like(string, pattern)` | boolean | returns whether the string matches the [pattern](https://docs.oracle.com/javase/7/docs/api/java/util/regex/Pattern.html)
 
-### Numeric Functions
+### Numeric functions
 
 Signature | Return value | Description
 --- | --- | ---
@@ -1304,7 +1304,7 @@ For example:
  - `round(3.2)` ==> `3.0`
  - `round(2.8)` ==> `3.0`
 
-### Datetime Functions
+### Datetime functions
 
 The `EXTRACT` function allows for extracting a datetime field, such as a year, month or day, from a datetime value.
 
@@ -1346,7 +1346,7 @@ For example:
  - `EXTRACT(TIMEZONE_HOUR FROM TIMESTAMP '2018-01-01 12:30:00-02:30')` ==> `-2`
  - `EXTRACT(TIMEZONE_MINUTE FROM TIMESTAMP '2018-01-01 12:30:00-02:30')` ==> `-30`
 
-### Vertex and Edge Functions
+### Vertex and Edge functions
 
 Signature | Return value | Description
 --- | --- | ---
@@ -1368,7 +1368,7 @@ SELECT id(y)
 
 Here, `in_degree(x)` returns the number of incoming neighbors of `x`, whereas `id(y)` returns the identifier of the vertex `y`.
 
-### User-Defined Functions
+### User-Defined functions
 
 PGQL does not specify how user-defined functions (UDFs) are registered to a database system and only considers function _invocation_:
 
