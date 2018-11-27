@@ -25,7 +25,7 @@ entries:
       url: /spec/1.2/#property-graph-data-model
       output: web
 
-    - title: Basic Query Structure
+    - title: Basic query structure
       url: /spec/1.2/#basic-query-structure
       output: web
 
@@ -34,7 +34,7 @@ entries:
     output: web
     folderitems:
 
-    - title: Input Graph (FROM)
+    - title: Input graph (FROM)
       url: /spec/1.2/#input-graph-from
       output: web
 
@@ -43,19 +43,19 @@ entries:
       output: web
       subfolderitems:
 
-      - title: Repeated Variables
+      - title: Repeated variables
         url: /spec/1.2/#repeated-variables
         output: web
 
-      - title: Alternatives for Specifying Graph Patterns
+      - title: Alternatives for specifying graph patterns
         url: /spec/1.2/#alternatives-for-specifying-graph-patterns
         output: web
 
-      - title: Disconnected Graph Patterns
+      - title: Disconnected graph patterns
         url: /spec/1.2/#disconnected-graph-patterns
         output: web
 
-    - title: Label Predicates
+    - title: Label predicates
       url: /spec/1.2/#label-predicates
       output: web
 
@@ -76,21 +76,16 @@ entries:
         url: /spec/1.2/#subgraph-isomorphism
         output: web
 
-    - title: Undirected Query Edges
-      url: /spec/1.2/#undirected-query-edges
+    - title: Any-directional edges
+      url: /spec/1.2/#any-directional-edges
       output: web
 
-  - title: Table Operations
-    url: /spec/1.2/#table-operations
-    output: web
-    folderitems:
-
-    - title: Projection (SELECT)
-      url: /spec/1.2/#projection-select
+    - title: Tabular Projection (SELECT)
+      url: /spec/1.2/#tabular-projection-select
       output: web
       subfolderitems:
 
-      - title: Assigning Variable Name to Select Expression
+      - title: Assigning variable name to Select Expression
         url: /spec/1.2/#assigning-variable-name-to-select-expression
         output: web
 
@@ -98,8 +93,60 @@ entries:
         url: /spec/1.2/#select-
         output: web
 
-    - title: Sorting (ORDER BY)
-      url: /spec/1.2/#sorting-order-by
+  - title: Grouping and Aggregation
+    url: /spec/1.2/#grouping-and-aggregation
+    output: web
+    folderitems:
+
+    - title: GROUP BY
+      url: /spec/1.2/#group-by
+      output: web
+      subfolderitems:
+
+      - title: Multiple Terms in GROUP BY
+        url: /spec/1.2/#multiple-terms-in-group-by
+        output: web
+
+      - title: GROUP BY and NULL values
+        url: /spec/1.2/#group-by-and-null-values
+        output: web
+
+      - title: Repetition of Group Expression in Select or Order Expression
+        url: /spec/1.2/#repetition-of-group-expression-in-select-or-order-expression
+        output: web
+
+    - title: Aggregation
+      url: /spec/1.2/#aggregation
+      output: web
+      subfolderitems:
+
+      - title: Aggregation with GROUP BY
+        url: /spec/1.2/#aggregation-with-group-by
+        output: web
+
+      - title: Aggregation without GROUP BY
+        url: /spec/1.2/#aggregation-without-group-by
+        output: web
+
+      - title: COUNT(*)
+        url: /spec/1.2/#count
+        output: web
+
+      - title: DISTINCT in aggregation
+        url: /spec/1.2/#distinct-in-aggregation
+        output: web
+
+    - title: Filtering of groups (HAVING)
+      url: /spec/1.2/#filtering-of-groups-having
+      output: web
+
+  - title: Sorting and Row Limiting
+    url: /spec/1.2/#sorting-and-row-limiting
+    output: web
+    folderitems:
+
+    - title: ORDER BY
+      url: /spec/1.2/#order-by
       output: web
       subfolderitems:
 
@@ -111,12 +158,12 @@ entries:
         url: /spec/1.2/#data-types-for-order-by
         output: web
 
-    - title: Pagination (LIMIT and OFFSET)
-      url: /spec/1.2/#pagination-limit-and-offset
+    - title: LIMIT and OFFSET
+      url: /spec/1.2/#limit-and-offset
       output: web
 
-  - title: Regular Path Expressions
-    url: /spec/1.2/#regular-path-expressions
+  - title: Reachability
+    url: /spec/1.2/#reachability
     output: web
     folderitems:
 
@@ -153,76 +200,50 @@ entries:
       url: /spec/1.2/#common-path-expressions
       output: web
 
-  - title: Grouping and Aggregation
-    url: /spec/1.2/#grouping-and-aggregation
+  - title: Shortest Path
+    url: /spec/1.2/#shortest-path
+    output: web
+
+  - title: Functions and Expressions
+    url: /spec/1.2/#functions-and-expressions
     output: web
     folderitems:
 
-    - title: Grouping
-      url: /spec/1.2/#grouping
+    - title: Data Types and Literals
+      url: /spec/1.2/#data-types-and-literals
       output: web
       subfolderitems:
 
-      - title: Assigning Variable Name to Group Expression
-        url: /spec/1.2/#assigning-variable-name-to-group-expression
+      - title: Data Types
+        url: /spec/1.2/#data-types
         output: web
 
-      - title: Multiple Terms in GROUP BY
-        url: /spec/1.2/#multiple-terms-in-group-by
+      - title: Literals
+        url: /spec/1.2/#literals
         output: web
 
-      - title: GROUP BY and NULL values
-        url: /spec/1.2/#group-by-and-null-values
+      - title: Bind Variables
+        url: /spec/1.2/#bind-variables
         output: web
-
-      - title: Repetition of Group Expression in Select or Order Expression
-        url: /spec/1.2/#repetition-of-group-expression-in-select-or-order-expression
-        output: web
-
-    - title: Aggregation
-      url: /spec/1.2/#aggregation
-      output: web
-      subfolderitems:
-
-      - title: Aggregation with GROUP BY
-        url: /spec/1.2/#aggregation-with-group-by
-        output: web
-
-      - title: Aggregation without GROUP BY
-        url: /spec/1.2/#aggregation-without-group-by
-        output: web
-
-      - title: COUNT(*)
-        url: /spec/1.2/#count
-        output: web
-
-      - title: DISTINCT Aggregation
-        url: /spec/1.2/#distinct-aggregation
-        output: web
-
-    - title: Filtering of Groups (HAVING)
-      url: /spec/1.2/#filtering-of-groups-having
-      output: web
-
-  - title: Value Expressions
-    url: /spec/1.2/#value-expressions
-    output: web
-    folderitems:
 
     - title: Operators
       url: /spec/1.2/#operators
       output: web
       subfolderitems:
 
-      - title: Comparison of Temporal Values with Time Zones
-        url: /spec/1.2/#comparison-of-temporal-values-with-time-zones
+      - title: Arithmetic, Relational and Logical Operators
+        url: /spec/1.2/#arithmetic-relational-and-logical-operators
         output: web
 
       - title: Operator Precedence
         url: /spec/1.2/#operator-precedence
         output: web
 
-    - title: Null Values
+      - title: Type Coercion
+        url: /spec/1.2/#type-coercion
+        output: web
+
+    - title: Null values
       url: /spec/1.2/#null-values
       output: web
       subfolderitems:
@@ -235,42 +256,41 @@ entries:
         url: /spec/1.2/#is-null-and-is-not-null
         output: web
 
-    - title: Literals
-      url: /spec/1.2/#literals
-      output: web
-
-    - title: Bind Variables
-      url: /spec/1.2/#bind-variables
-      output: web
-
     - title: Functions
       url: /spec/1.2/#functions
       output: web
       subfolderitems:
 
-      - title: Built-In Functions
-        url: /spec/1.2/#built-in-functions
+      - title: String Functions
+        url: /spec/1.2/#string-functions
+        output: web
+
+      - title: Numeric Functions
+        url: /spec/1.2/#numeric-functions
+        output: web
+
+      - title: Datetime Functions
+        url: /spec/1.2/#datetime-functions
+        output: web
+
+      - title: Vertex and Edge Functions
+        url: /spec/1.2/#vertex-and-edge-functions
         output: web
 
       - title: User-Defined Functions
         url: /spec/1.2/#user-defined-functions
         output: web
 
-    - title: Type Conversion
-      url: /spec/1.2/#type-conversion
+    - title: CAST function
+      url: /spec/1.2/#cast-function
       output: web
-      subfolderitems:
 
-      - title: Implicit Type Conversion
-        url: /spec/1.2/#implicit-type-conversion
-        output: web
+    - title: CASE expression
+      url: /spec/1.2/#case-expression
+      output: web
 
-      - title: Explicit Type Conversion (CAST)
-        url: /spec/1.2/#explicit-type-conversion-cast
-        output: web
-
-    - title: Temporal Types
-      url: /spec/1.2/#temporal-types
+    - title: IN and NOT IN predicates
+      url: /spec/1.2/#in-and-not-in-predicates
       output: web
 
   - title: Subqueries
@@ -278,20 +298,24 @@ entries:
     output: web
     folderitems:
 
-    - title: Existential Subqueries (EXISTS)
+    - title: Existential subqueries (EXISTS)
       url: /spec/1.2/#existential-subqueries-exists
       output: web
 
-    - title: Subqueries without FROM Clause
+    - title: Scalar subqueries
+      url: /spec/1.2/#scalar-subqueries
+      output: web
+
+    - title: Subqueries without FROM clause
       url: /spec/1.2/#subqueries-without-from-clause
       output: web
 
-    - title: Querying Multiple Graphs
+    - title: Querying multiple graphs
       url: /spec/1.2/#querying-multiple-graphs
       output: web
 
-    - title: Subqueries inside PATH Clause
-      url: /spec/1.2/#subqueries-inside-path-clause
+    - title: Subqueries inside PATH expression
+      url: /spec/1.2/#subqueries-inside-path-expression
       output: web
 
   - title: Other Syntactic Rules

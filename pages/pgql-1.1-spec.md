@@ -1,8 +1,8 @@
 ---
 title:  "PGQL 1.1 Specification"
 permalink: /spec/1.1/
-summary: "PGQL is an SQL-like query language for the property graph data model with Cypher-like ASCII-art syntax.
-The language is based on the paradigm of graph pattern matching, which allows you to specify patterns that are matched against vertices and edges in a data graph.
+summary: "PGQL is an SQL-like query language for the property graph data model and is based on the paradigm of graph pattern matching,
+allowing you to specify patterns that are then matched against vertices and edges in a graph.
 Like SQL, PGQL has support for grouping (GROUP BY), aggregation (e.g. MIN, MAX, AVG, SUM), sorting (ORDER BY) and many other familiar constructs.
 In addition, PGQL has regular path expressions for applications such as reachability analysis."
 sidebar: spec_1_1_sidebar
@@ -159,8 +159,7 @@ A property graph has a name, which is a (character) string, and contains:
 
 Labels as well as property names are strings. Property values are scalars such as numbers, strings or booleans.
 
-Note: the property graph model in PGQL 1.1 does not support multi-valued properties like in [TinkerPop](http://tinkerpop.apache.org/docs/current/reference/#vertex-properties)
-or [Neo4j](https://neo4j.com/docs/developer-manual/current/cypher/syntax/values/#composite-types).
+Note: the property graph model in PGQL 1.1 does not support multi-valued properties like in [TinkerPop](http://tinkerpop.apache.org/docs/current/reference/#vertex-properties).
 
 ## Basic Query Structure
 

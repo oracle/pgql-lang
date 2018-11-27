@@ -8,5 +8,6 @@ java GenerateMenuFromMarkdown 1.2
 
 # regenerate anchor points and links for grammar:
 javac GeneratePostProcessingRules.java
-java GeneratePostProcessingRules
+java GeneratePostProcessingRules 1.1
+java GeneratePostProcessingRules 1.2
 

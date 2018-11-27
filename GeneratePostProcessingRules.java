@@ -9,15 +9,23 @@ import java.util.regex.Pattern;
 public class GeneratePostProcessingRules {
 
   private static final String[] ADDITIONAL_KEYWORDS = { "PATH", "DATE", "TIME", "TIMEZONE", "INTEGER", "BOOLEAN",
-      "STRING" };
+      "STRING", "ARRAY_AGG" };
 
-  private static final String[] NO_KEYWORDS = { "source", "Class", "c", "location", "g" };
+  private static final String[] NO_KEYWORDS = { "source", "Class", "c", "location", "g", "level" };
 
   private static final String RULE_IDENTIFIER = "[A-Za-z][A-Za-z0-9_]*";
 
   private static final Pattern RULE_DECLARATION_START = Pattern.compile(RULE_IDENTIFIER + "( )+" + "::");
 
   public static void main(String[] args) throws Exception {
+
+    if (args.length != 1) {
+      System.out.println("One argument expected:\n - PGQL version (e.g. '1.1')");
+      System.exit(1);
+    }
+
+    String pgqlVersion = args[0];
+
     StringBuilder sb = new StringBuilder();
 
     for (String keyword : ADDITIONAL_KEYWORDS) {
@@ -32,7 +40,7 @@ public class GeneratePostProcessingRules {
       sb.append(toReplacement(from, to));
     }
 
-    File f = new File("pages/pgql-1.1-spec.md");
+    File f = new File("pages/pgql-" + pgqlVersion + "-spec.md");
     BufferedReader b = new BufferedReader(new FileReader(f));
 
     String line = "";

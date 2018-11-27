@@ -1,10 +1,10 @@
 ---
-title:  "PGQL 1.2 Specification"
+title:  "PGQL 1.2 Specification (TODO)"
 permalink: /spec/1.2/
-summary: "PGQL is an SQL-like query language for the property graph data model with Cypher-like ASCII-art syntax.
-The language is based on the paradigm of graph pattern matching, which allows you to specify patterns that are matched against vertices and edges in a data graph.
+summary: "PGQL is an SQL-like query language for the property graph data model and is based on the paradigm of graph pattern matching,
+allowing you to specify patterns that are then matched against vertices and edges in a graph.
 Like SQL, PGQL has support for grouping (GROUP BY), aggregation (e.g. MIN, MAX, AVG, SUM), sorting (ORDER BY) and many other familiar constructs.
-In addition, PGQL has regular path expressions for applications such as reachability analysis."
+Furthermore, PGQL has powerful regular expression constructs for reachability and shortest path finding."
 sidebar: spec_1_2_sidebar
 toc: true
 ---
@@ -31,7 +31,7 @@ Consider the following example PGQL query:
 
 ```sql
 SELECT m.name, o.name
-  FROM sn_graph 
+  FROM sn_graph
  MATCH (n:Person) -[e1:friend_of]-> (m:Person) <-[e2:belongs_to]- (o:Car)
  WHERE n.name = 'John'
 ```
@@ -62,20 +62,19 @@ A property graph has a name, which is a (character) string, and contains:
  - A set of vertices (or nodes).
 
    - Each vertex has zero or more labels.
-   - Each vertex has zero or more properties, which are arbitrary key-value pairs.
+   - Each vertex has zero or more properties (or attributes), which are arbitrary key-value pairs.
 
- - A set of edges.
+ - A set of edges (or relationships).
 
-   - Each edge has a source and a destination vertex.
+   - Each edge is either directed or undirected.
    - Each edge has zero or more labels.
-   - Each edge has zero or more properties, which are arbitrary key-value pairs.
+   - Each edge has zero or more properties (or attributes), which are arbitrary key-value pairs.
 
 Labels as well as property names are strings. Property values are scalars such as numbers, strings or booleans.
 
-Note: the property graph model in PGQL 1.2 does not support multi-valued properties like in [TinkerPop](http://tinkerpop.apache.org/docs/current/reference/#vertex-properties)
-or [Neo4j](https://neo4j.com/docs/developer-manual/current/cypher/syntax/values/#composite-types).
+Note: the data model of PGQL 1.2 does not support multi-valued properties like in [TinkerPop](http://tinkerpop.apache.org/docs/current/reference/#vertex-properties).
 
-## Basic Query Structure
+## Basic query structure
 
 The syntax of PGQL resembles that of SQL (Standard Query Language) of relational database systems. A basic PGQL query consists of the following clauses:
 
@@ -83,24 +82,27 @@ The syntax of PGQL resembles that of SQL (Standard Query Language) of relational
 Query ::=
   <CommonPathExpressions>?
   <SelectClause>
-  <FromClause>? <MatchClause>
-  <WhereClause>?
-  <GroupByClause>? <HavingClause>?
+  <FromMatchWhereClauses>
+  <GroupByHavingClauses>?
   <OrderByClause>?
   <LimitOffsetClauses>?
+
+FromMatchWhereClauses ::= <FromClause>? <MatchClause> <WhereClause>?
+
+GroupByHavingClauses ::= <GroupByClause> <HavingClause>?
 ```
 
 The most important ones are as follows:
 
 - The `SelectClause` defines the data entities that are returned in the result.
 - The `MatchClause` defines the graph pattern that is matched against the data graph instance.
-- The `WhereClause` defines the filters. 
+- The `WhereClause` defines the filters.
 
 The detailed syntax and semantic of each clause are explained in following sections.
 
 # Graph Pattern Matching
 
-## Input Graph (FROM)
+## Input graph (FROM)
 
 The `FROM` clause specifies the name of the input graph to be queried:
 
@@ -138,7 +140,7 @@ Relation              ::= <Edge>
 
 Edge                  ::= <OutgoingEdge>
                         | <IncomingEdge>
-                        | <UndirectedEdge>
+                        | <AnyDirectionalEdge>
 
 OutgoingEdge          ::= '->'
                         | '-[' <VariableSpecification> ']->'
@@ -165,7 +167,7 @@ More specifically, a vertex term is written as a variable name inside a pair of 
 
 There can be multiple path patterns in the `MATCH` clause of a PGQL query. Semantically, all constraints are conjunctive – that is, each matched result should satisfy every constraint in the `MATCH` clause.
 
-### Repeated Variables
+### Repeated variables
 
 There can be multiple topology constraints in the `WHERE` clause of a PGQL query. In such a case, vertex terms that have the same variable name correspond to the same vertex entity. For example, consider the following two lines of topology constraints:
 
@@ -176,7 +178,7 @@ There can be multiple topology constraints in the `WHERE` clause of a PGQL query
 
 Here, the vertex term `(n)` in the first constraint indeed refers to the same vertex as the vertex term `(n)` in the second constraint. It is an error, however, if two edge terms have the same variable name, or, if the same variable name is assigned to an edge term as well as to a vertex term in a single query.
 
-### Alternatives for Specifying Graph Patterns
+### Alternatives for specifying graph patterns
 
 There are various ways in which a particular graph pattern can be specified.
 
@@ -216,7 +218,7 @@ Omit variable name of the destination vertex | `(n) -[e]-> ()`
 Omit variable names in both vertices | `() -[e]-> ()`
 Omit variable name in edge | `(n) -> (m)`
 
-### Disconnected Graph Patterns
+### Disconnected graph patterns
 
 In the case the `MATCH` clause contains two or more disconnected graph patterns (i.e. groups of vertices and relations that are not connected to each other), the different groups are matched independently and the final result is produced by taking the Cartesian product of the result sets of the different groups. The following is an example:
 
@@ -227,7 +229,7 @@ SELECT *
 
 Here, vertices `n2` and `m2` are not connected to vertices `n1` and `m1`, resulting in a Cartesian product.
 
-## Label Predicates
+## Label predicates
 
 In the property graph model, vertices and edge may have labels, which are arbitrary (character) strings. Typically, labels are used to encode types of entities. For example, a graph may contain a set of vertices with the label `Person`, a set of vertices with the label `Movie`, and, a set of edges with the label `likes`. A label predicate specifies that a vertex or edge only matches if it has ony of the specified labels. The syntax for specifying a label predicate is through a (`:`) followed by one or more labels that are separate by a vertical bar (`|`).
 
@@ -349,18 +351,18 @@ SELECT x, y
  WHERE all_different(x, y)
 ```
 
-## Undirected Query Edges
+## Any-directional edges
 
-Undirected query edges match with both incoming and outgoing data edges.
+Any-directional edges match edges in the graph no matter if they are incoming, outgoing, or undirected.
 
 The syntactic structure is as follows:
 
 ```bash
-UndirectedEdge ::= '-'
-                 | '-[' <VariableSpecification> ']-'
+AnyDirectionalEdge ::= '-'
+                     | '-[' <VariableSpecification> ']-'
 ```
 
-An example PGQL query with undirected edges is as follows:
+An example query with two any-directional edges is as follows:
 
 ```sql
 SELECT *
@@ -369,7 +371,7 @@ SELECT *
 
 Note that in case there are both incoming and outgoing data edges between two data vertices, there will be separate result bindings for each of the edges.
 
-Undirected edges may also be used inside [common path expressions](#common-path-expressions):
+Any-directional edges may also be used inside [common path expressions](#common-path-expressions):
 
 ```sql
   PATH two_hops AS () -[e1]- () -[e2]- ()
@@ -379,9 +381,7 @@ SELECT *
 
 The above query will return all pairs of vertices `n` and `m` that are reachable via a multiple of two edges, each edge being either an incoming or an outgoing edge.
 
-# Table Operations
-
-## Projection (SELECT)
+## Tabular Projection (SELECT)
 
 In a PGQL query, the SELECT clause defines the data entities to be returned in the result. In other words, the select clause defines the columns of the result table.
 
@@ -410,7 +410,7 @@ Per each matched subgraph, the query returns two vertices `n` and `m` and the va
 
 The `DISTINCT` modifier allows for filtering out duplicate results. The operation applies to an entire result row, such that rows are only considered duplicates of each other if they contain the same set of values.
 
-### Assigning Variable Name to Select Expression
+### Assigning variable name to Select Expression
 
 It is possible to assign a variable name to any of the selection expression, by appending the keyword `AS` and a variable name. The variable name is used as the column name of the result set. In addition, the variable name can be later used in the `ORDER BY` clause. See the related section later in this document.
 
@@ -443,7 +443,190 @@ SELECT n, m, w
 `SELECT *` is not allowed when the graph pattern has zero variables. This is the case when all the vertices and edges in the pattern are anonymous (e.g. `MATCH () -> (:Person)`).
 Futhermore, `SELECT *` in combination with `GROUP BY` is not allowed.
 
-## Sorting (ORDER BY)
+# Grouping and Aggregation
+
+## GROUP BY
+
+`GROUP BY` allows for grouping of solutions and is typically used in combination with aggregation to aggregate over groups of solutions instead of over the total set of solutions.
+
+The following explains the syntactic structure of the `GROUP BY` clause:
+
+```bash
+GroupByClause        ::= 'GROUP' 'BY' <ValueExpression> ( ',' <ValueExpression> )*
+```
+
+The `GROUP BY` clause starts with the keywords GROUP BY and is followed by a comma-separated list of group terms. Each group term consists of:
+
+- An expression.
+- An optional variable definition that is specified by appending the keyword `AS` and the name of the variable.
+
+Consider the following query:
+
+```sql
+  SELECT n.first_name, COUNT(*), AVG(n.age)
+    FROM g MATCH (n:Person)
+GROUP BY n.first_name
+```
+
+Matches are grouped by their values for `n.first_name`. For each group, the query selects `n.first_name` (i.e. the group key), the number of solutions in the group (i.e. `COUNT(*)`), and the average value of the property age for vertex n (i.e. `AVG(n.age)`).
+
+### Multiple Terms in GROUP BY
+
+It is possible that the `GROUP BY` clause consists of multiple terms. In such a case, matches are grouped together only if they hold the same result for each of the group expressions.
+
+Consider the following query:
+
+```sql
+  SELECT n.first_name, n.last_name, COUNT(*)
+    FROM g MATCH (n:Person)
+GROUP BY n.first_name, n.last_name
+```
+
+Matches will be grouped together only if they hold the same values for `n.first_name` and the same values for `n.last_name`.
+
+### GROUP BY and NULL values
+
+The group for which all the group keys are null is a valid group and takes part in further query processing.
+
+To filter out such a group, use a `HAVING` clause (see [Filtering of groups (HAVING)](#filtering-of-groups-having)), for example:
+
+```sql
+  SELECT n.prop1, n.prop2, COUNT(*)
+    FROM g MATCH (n)
+GROUP BY n.prop1, n.prop2
+  HAVING n.prop1 IS NOT NULL AND n.prop2 IS NOT NULL
+```
+
+### Repetition of Group Expression in Select or Order Expression
+
+Group expressions may be repeated in select or order expressions.
+
+Consider the following query:
+
+```sql
+  SELECT n.age, COUNT(*)
+    FROM g MATCH (n)
+GROUP BY n.age
+ORDER BY n.age
+```
+
+Here, the group expression `n.age` is repeated in the SELECT and ORDER BY.
+
+## Aggregation
+
+Aggregates `COUNT`, `MIN`, `MAX`, `AVG` and `SUM` can aggregate over groups of solutions.
+
+The syntax is as follows:
+
+```bash
+Aggregation      ::= <CountAggregation>
+                   | <MinAggregation>
+                   | <MaxAggregation>
+                   | <AvgAggregation>
+                   | <SumAggregation>
+                   | <ArrayAggregation>
+
+CountAggregation ::= 'COUNT' '(' '*' ')'
+                   | 'COUNT' '(' 'DISTINCT'? <ValueExpression> ')'
+
+MinAggregation   ::= 'MIN' '(' 'DISTINCT'? <ValueExpression> ')'
+
+MaxAggregation   ::= 'MAX' '(' 'DISTINCT'? <ValueExpression> ')'
+
+AvgAggregation   ::= 'AVG' '(' 'DISTINCT'? <ValueExpression> ')'
+
+SumAggregation   ::= 'SUM' '(' 'DISTINCT'? <ValueExpression> ')'
+
+ArrayAggregation ::= 'ARRAY_AGG' '(' 'DISTINCT'? <ValueExpression> ')'
+```
+
+Syntactically, an aggregation takes the form of aggregate followed by an optional `DISTINCT` modifier and a `<ValueExpression>`.
+
+The following table gives an overview of the different aggregates and their supported input types.
+
+Aggregate Operator | Semantic | Required Input Type
+--- | --- | ---
+`COUNT` | counts the number of times the given expression has a bound (i.e. is not null). | any type, including vertex and edge
+`MIN` | takes the minimum of the values for the given expression. | numeric, string, boolean, date, time (with time zone), or, timestamp (with time zone)
+`MAX` | takes the maximum of the values for the given expression. | numeric, string, boolean, date, time (with time zone), or, timestamp (with time zone)
+`SUM` | sums over the values for the given expression. | numeric
+`AVG` | takes the average of the values for the given. | numeric
+`ARRAY_AGG` | takes a set of values and puts them into an array/list | numeric, string, boolean, date, time (with time zone), or, timestamp (with time zone)
+
+### Aggregation with GROUP BY
+
+If a `GROUP BY` is specified, aggregations are applied to each individual group of solutions.
+
+An example is as follows:
+
+```sql
+  SELECT AVG(m.salary)
+    FROM g MATCH (m:Person)
+GROUP BY m.age
+```
+
+Here, we group people by their age and compute the average salary for each such a group.
+
+### Aggregation without GROUP BY
+
+If _no_ `GROUP BY` is specified, aggregations are applied to the entire set of solutions.
+
+An example is as follows:
+
+```sql
+SELECT AVG(m.salary)
+  FROM g MATCH (m:Person)
+```
+
+Here, we aggregate over the entire set of vertices with label `Person`, to compute the average salary.
+
+### COUNT(*)
+
+`COUNT(*)` is a special construct that simply counts the number of solutions without evaluating an expression. An example is as follows:
+
+```sql
+SELECT COUNT(*)
+  FROM g MATCH (m:Person)
+```
+
+### DISTINCT in aggregation
+
+The `DISTINCT` modifier specifies that duplicate values should be removed before performing aggregation.
+
+For example:
+
+```sql
+SELECT AVG(DISTINCT m.age)
+  FROM g MATCH (m:Person)
+```
+
+Here, we aggregate only over distinct `m.age` values.
+
+## Filtering of groups (HAVING)
+
+The `HAVING` clause is an optional clause that can be placed after a `GROUP BY` clause to filter out particular groups of solutions.
+The syntactic structure is as follows:
+
+```bash
+HavingClause ::= 'HAVING' <ValueExpression>
+```
+
+An example is as follows:
+
+```sql
+  SELECT n.name
+    FROM g MATCH (n) -[:has_friend]-> (m)
+GROUP BY n
+  HAVING COUNT(m) > 10
+```
+
+This query returns the names of people who have more than 10 friends.
+
+
+# Sorting and Row Limiting
+
+
+## ORDER BY
 
 When there are multiple matched subgraph instances to a given query, in general, the ordering between those instances are not defined; the query execution engine can present the result in any order. Still, the user can specify the ordering between the answers in the result using `ORDER BY` clause.
 
@@ -490,7 +673,7 @@ A partial ordering is defined for the different data types as follows:
 
 Vertices and edges cannot be ordered.
 
-## Pagination (LIMIT and OFFSET)
+## LIMIT and OFFSET
 
 The `LIMIT` puts an upper bound on the number of solutions returned, whereas the `OFFSET` specifies the start of the first solution that should be returned.
 
@@ -521,7 +704,7 @@ SELECT n
 OFFSET 5
 ```
 
-# Regular Path Expressions
+# Reachability
 
 Path queries test for the existence of arbitrary-length paths between pairs of vertices, or, retrieve actual paths between pairs of vertices.
 
@@ -718,7 +901,7 @@ SELECT y.name
 | Judith |
 +--------+
 ```
- 
+
 Here, `John` is returned since there exists a path of length one (i.e. `100 -> 200`);
 `Albert` is returned since there exists a path of length two (i.e. `100 -> 200 -> 300`);
 `Judith` is returned since there exists a path of length one (i.e. `100 -> 400`).
@@ -782,223 +965,29 @@ SELECT generatorA.location, generatorB.location
 
 The above query outputs all generators that are connected to each other via one or more connectors that are all operational.
 
-# Grouping and Aggregation
+# Shortest Path
 
-## Grouping
+TODO
 
-`GROUP BY` allows for grouping of solutions and is typically used in combination with aggregation to aggregate over groups of solutions instead of over the total set of solutions.
-
-The following explains the syntactic structure of the `GROUP BY` clause:
-
-```bash
-GroupByClause ::= 'GROUP' 'BY' <ExpAsVar> ( ',' <ExpAsVar> )*
-```
-
-The `GROUP BY` clause starts with the keywords GROUP BY and is followed by a comma-separated list of group terms. Each group term consists of:
-
-- An expression.
-- An optional variable definition that is specified by appending the keyword `AS` and the name of the variable.
-
-Consider the following query:
-
-```sql
-  SELECT n.first_name, COUNT(*), AVG(n.age)
-    FROM g MATCH (n:Person)
-GROUP BY n.first_name
-```
-
-Matches are grouped by their values for `n.first_name`. For each group, the query selects `n.first_name` (i.e. the group key), the number of solutions in the group (i.e. `COUNT(*)`), and the average value of the property age for vertex n (i.e. `AVG(n.age)`).
-
-### Assigning Variable Name to Group Expression
-
-It is possible to assign a variable name to any of the group expression, by appending the keyword `AS` and a variable name. The variable name can be used in the `SELECT` to select a group key, or in the `ORDER BY` to order by a group key. See the related section later in this document.
-
-```sql
-  SELECT nAge, COUNT(*)
-    FROM g MATCH (n:Person)
-GROUP BY n.age AS nAge
-ORDER BY nAge
-```
-
-### Multiple Terms in GROUP BY
-
-It is possible that the `GROUP BY` clause consists of multiple terms. In such a case, matches are grouped together only if they hold the same result for each of the group expressions.
-
-Consider the following query:
-
-```sql
-  SELECT n.first_name, n.last_name, COUNT(*)
-    FROM g MATCH (n:Person)
-GROUP BY n.first_name, n.last_name
-```
-
-Matches will be grouped together only if they hold the same values for `n.first_name` and the same values for `n.last_name`.
-
-### GROUP BY and NULL values
-
-The group for which all the group keys are null is a valid group and takes part in further query processing.
-
-To filter out such a group, use a `HAVING` clause (see [Filtering of Groups (HAVING)](#filtering-of-groups-having)), for example:
-
-```sql
-  SELECT n.prop1, n.prop2, COUNT(*)
-    FROM g MATCH (n)
-GROUP BY n.prop1, n.prop2
-  HAVING n.prop1 IS NOT NULL
-     AND n.prop2 IS NOT NULL
-```
-
-### Repetition of Group Expression in Select or Order Expression
-
-Group expressions that are variable accesses, property accesses, or built-in function calls may be repeated in select or order expressions. This is a short-cut that allows you to neglect introducing new variables for simple expressions.
-
-Consider the following query:
-
-```sql
-  SELECT n.age, COUNT(*)
-    FROM g MATCH (n)
-GROUP BY n.age
-ORDER BY n.age
-```
-
-Here, the group expression `n.age` is repeated as select and order expressions.
-
-This repetition of group expressions introduces an exception to the variable visibility rules described above, since variable n is not inside an aggregation in the select/order expression. However, semantically, the query is treated as if there were a variable for the group expression:
-
-```sql
-  SELECT nAge, COUNT(*)
-    FROM g MATCH (n)
-GROUP BY n.age AS nAge
-ORDER BY nAge
-```
-
-## Aggregation
-
-Aggregates `COUNT`, `MIN`, `MAX`, `AVG` and `SUM` can aggregate over groups of solutions.
-
-The syntax is as follows:
-
-```bash
-Aggregation      ::= <CountAggregation>
-                   | <MinAggregation>
-                   | <MaxAggregation>
-                   | <AvgAggregation>
-                   | <SumAggregation>
-
-CountAggregation ::= 'COUNT' '(' '*' ')'
-                   | 'COUNT' '(' 'DISTINCT'? <ValueExpression> ')'
-
-MinAggregation   ::= 'MIN' '(' 'DISTINCT'? <ValueExpression> ')'
-
-MaxAggregation   ::= 'MAX' '(' 'DISTINCT'? <ValueExpression> ')'
-
-AvgAggregation   ::= 'AVG' '(' 'DISTINCT'? <ValueExpression> ')'
-
-SumAggregation   ::= 'SUM' '(' 'DISTINCT'? <ValueExpression> ')'
-```
-
-Syntactically, an aggregation takes the form of aggregate followed by an optional `DISTINCT` modifier and a `<ValueExpression>`.
-
-The following table gives an overview of the different aggregates and their supported input types.
-
-Aggregate Operator | Semantic | Required Input Type
---- | --- | ---
-`COUNT` | counts the number of times the given expression has a bound (i.e. is not null). | any type, including vertex and edge
-`MIN` | takes the minimum of the values for the given expression. | numeric, string, boolean, date, time (with time zone), or, timestamp (with time zone)
-`MAX` | takes the maximum of the values for the given expression. | numeric, string, boolean, date, time (with time zone), or, timestamp (with time zone)
-`SUM` | sums over the values for the given expression. | numeric
-`AVG` | takes the average of the values for the given. | numeric
-
-### Aggregation with GROUP BY
-
-If a `GROUP BY` is specified, aggregations are applied to each individual group of solutions.
-
-An example is as follows:
-
-```sql
-  SELECT AVG(m.salary)
-    FROM g MATCH (m:Person)
-GROUP BY m.age
-```
-
-Here, we group people by their age and compute the average salary for each such a group.
-
-### Aggregation without GROUP BY
-
-If _no_ `GROUP BY` is specified, aggregations are applied to the entire set of solutions.
-
-An example is as follows:
-
-```sql
-SELECT AVG(m.salary)
-  FROM g MATCH (m:Person)
-```
-
-Here, we aggregate over the entire set of vertices with label `Person`, to compute the average salary.
-
-### COUNT(*)
-
-`COUNT(*)` is a special construct that simply counts the number of solutions without evaluating an expression. An example is as follows:
-
-```sql
-SELECT COUNT(*)
-  FROM g MATCH (m:Person)
-```
-
-### DISTINCT Aggregation
-
-The `DISTINCT` modifier specifies that duplicate values should be removed before performing aggregation.
-
-For example:
-
-```sql
-SELECT AVG(DISTINCT m.age)
-  FROM g MATCH (m:Person)
-```
-
-Here, we aggregate only over distinct `m.age` values.
-
-## Filtering of Groups (HAVING)
-
-The `HAVING` clause is an optional clause that can be placed after a `GROUP BY` clause to filter out particular groups of solutions.
-The syntactic structure is as follows:
-
-```bash
-HavingClause ::= 'HAVING' <ValueExpression>
-```
-
-An example is as follows:
-
-```sql
-  SELECT n.name
-    FROM g MATCH (n) -[:has_friend]-> (m)
-GROUP BY n
-  HAVING COUNT(m) > 10
-```
-
-This query returns the names of people who have more than 10 friends.
-
-# Value Expressions
+# Functions and Expressions
 
 Value expressions are used in various parts of the language, for example, to filter solutions (`WHERE` and `HAVING`), to project out computed values (`SELECT`), or, to group by or order by computed values (`GROUP BY` and `ORDER BY`).
 
 The following are the relevant grammar rules:
 
 ```bash
-ValueExpression          ::= <VariableReference>
-                           | <PropertyAccess>
-                           | <Literal>
-                           | <BindVariable>
-                           | <ArithmeticExpression>
-                           | <RelationalExpression>
-                           | <LogicalExpression>
+ValueExpression          ::= <VariableReference> | <PropertyAccess>
+                           | <Literal> | <BindVariable>
+                           | <ArithmeticExpression> | <RelationalExpression> | <LogicalExpression>
                            | <BracketedValueExpression>
+                           | <FunctionInvocation> | <Aggregation>
+                           | <ExtractFunction>
+                           | <IsNullPredicate> | <IsNotNullPredicate>
                            | <CastSpecification>
-                           | <FunctionCall>
-                           | <IsNullPredicate>
-                           | <IsNotNullPredicate>
+                           | <CaseExpression>
+                           | <InPredicate> | <NotInPredicate>
                            | <ExistsPredicate>
-                           | <Aggregation>
+                           | <ScalarSubquery>
 
 VariableReference        ::= <VariableName>
 
@@ -1017,12 +1006,114 @@ A value expression is one of:
  - A bind variable (see [Bind Variables](#bind-variables)).
  - An arithmetic, relational, or, logical expression (see [Operators](#operators)).
  - A bracketed value expression, which syntactically takes the form of a value expression between rounded brackets. The brackets allow for controlling precedence.
- - A function call (see [Functions](#functions)).
+ - A function invocation (see [Functions](#functions)).
  - The `IS NULL` and `IS NOT NULL` predicates (see [IS NULL and IS NOT NULL](#is-null-and-is-not-null)).
  - The `EXISTS` predicate (see [Existential Subqueries (EXISTS)](#existential-subqueries-exists)).
  - An aggregation (see [Aggregation](#aggregation)).
 
+## Data Types and Literals
+
+### Data Types
+
+The following is a list of data types in PGQL
+
+ - `STRING`
+ - `NUMERIC` (e.g. `INT`/`INTEGER`, `LONG`, `FLOAT`, `DOUBLE`)
+ - `BOOLEAN`
+ - `DATE`
+ - `TIME`
+ - `TIMESTAMP`
+ - `TIME WITH TIME ZONE`
+ - `TIMESTAMP WITH TIME ZONE`
+
+### Literals
+
+Syntax for the corresponding literals is as follows:
+
+```bash
+Literal                      ::= <StringLiteral>
+                               | <NumericLiteral>
+                               | <BooleanLiteral>
+                               | <DateLiteral>
+                               | <TimeLiteral>
+                               | <TimestampLiteral>
+                               | <TimeWithTimeZoneLiteral>
+                               | <TimestampWithTimeZoneLiteral>
+
+StringLiteral                ::= <SINGLE_QUOTED_STRING>
+
+NumericLiteral               ::= <UNSIGNED_INTEGER>
+                               | <UNSIGNED_DECIMAL>
+
+BooleanLiteral               ::= 'true'
+                               | 'false'
+
+DateLiteral                  ::= 'DATE' "'" <yyyy-MM-dd> "'"
+
+TimeLiteral                  ::= 'TIME' "'" <HH:mm:ss> "'"
+
+TimestampLiteral             ::= 'TIMESTAMP' "'" <yyyy-MM-dd HH:mm:ss> "'"
+
+TimeWithTimeZoneLiteral      ::= 'TIME' "'" <HH:mm:ss+HH:MM> "'"
+
+TimestampWithTimeZoneLiteral ::= 'TIMESTAMP' "'" <yyyy-MM-dd HH:mm:ss+HH:MM> "'"
+```
+
+For example:
+
+| Literal type             | Example literal                         |
+|--------------------------|-----------------------------------------|
+| string                   | `'Clara'`                               |
+| integer                  | `12`                                    |
+| decimal                  | `12.3`                                  |
+| boolean                  | `true`                                  |
+| date                     | `DATE '2017-09-21'`                     |
+| time                     | `TIME '16:15:00'`                       |
+| timestamp                | `TIMESTAMP '2017-09-21 16:15:00'`       |
+| time with time zone      | `TIME '16:15:00+01:00'`                 |
+| timestamp with time zone | `TIMESTAMP '2017-09-21 16:15:00-03:00'` |
+
+Note that according to the grammar rules, numeric literals (integer and decimal) are unsigned. However, signed values can be generated by using the unary minus operator (`-`).
+
+### Bind Variables
+
+In place of a literal, one may specify a bind variable (`?`). This allows for specifying parameterized queries.
+
+```bash
+BindVariable ::= '?'
+```
+
+An example query with two bind variables is as follows:
+
+```sql
+SELECT n.age
+  FROM g MATCH (n)
+ WHERE n.name = ?
+    OR n.age > ?
+```
+
+In the following query, bind variables are used in `LIMIT` and `OFFSET`:
+
+```sql
+  SELECT n.name, n.age
+    FROM g MATCH (n)
+ORDER BY n.age
+   LIMIT ?
+  OFFSET ?
+```
+
+The following example shows a bind variable in the position of a label:
+
+```sql
+  SELECT n.name
+    FROM g MATCH (n)
+   WHERE has_label(n, ?)
+```
+
+
 ## Operators
+
+### Arithmetic, Relational and Logical Operators
 
 The following table is an overview of the operators:
 
@@ -1094,9 +1185,7 @@ A `=` B<br>A `<>` B                                 | numeric, string, boolean,<
 A `<` B<br>A `>` B<br>A `<=` B<br>A `>=` B          | numeric, string, boolean,<br>date, time (with time zone), timestamp (with time zone)                  | boolean
 `NOT` A<br>A `AND` B<br>A `OR` B                    | boolean                                                                                               | boolean
 
-*For precision and scale, see [Implicit Type Conversion](#implicit-type-conversion). 
-
-### Comparison of Temporal Values with Time Zones
+*For precision and scale, see [Type Coercion](#type-coercion).
 
 Binary operations are only allowed if both operands are of the same type, with the following two exceptions:
 
@@ -1104,7 +1193,7 @@ Binary operations are only allowed if both operands are of the same type, with t
 - _timestamp_ values can be compared to _timestamp with time zone_ values
 
 To compare such _time(stamp) with time zone_ values to other time(stamp) values (with or without time zone), values are first normalized to have the same time zone, before they are compared.
-Comparison with other operand type combinations, such as dates and timestamp, is not possible. However, it is possible to cast between e.g. dates and timestamps (see [Explicit Type Conversion (CAST)](#explicit-type-conversion-cast)).
+Comparison with other operand type combinations, such as dates and timestamp, is not possible. However, it is possible to cast between e.g. dates and timestamps (see [CAST Function](#cast-function)).
 
 ### Operator Precedence
 
@@ -1120,7 +1209,15 @@ Level | Operator Precedence
 6     | `AND`
 7     | `OR`
 
-## Null Values
+### Type Coercion
+
+Performing arithmetic operations with different numeric types will lead to implicit type conversion (i.e. coercion).
+Coercion is only defined for numeric types. Given a binary arithmetic operation (i.e. `+`, `-`, `*`, `/`, `%`), the rules are as follows:
+
+ - If both operands are exact numerics (e.g. integer or long), then the result is also an exact numeric with a scale that is at least as large as the scales of each operand.
+ - If one or both of the operands is approximate numeric (e.g. float, double), the result is an approximate numeric with a scale that is at least as large as the scales of each operand. The precision will also be at least as high as the precision of each operand.
+
+## Null values
 
 The property graph data model does not allow properties with `null` value. Instead, missing or undefined data can be modeled through the _absence_ of properties.
 A `null` value is generated when trying to access a property of a vertex or edge wile the property appears to be missing.
@@ -1161,97 +1258,14 @@ SELECT n.name
 
 Here, we find all the vertices in the graph that have the property `name` and then return the property.
 
-## Literals
-
-The following are the available literals in PGQL:
-
-```bash
-Literal                      ::= <StringLiteral>
-                               | <NumericLiteral>
-                               | <BooleanLiteral>
-                               | <DateLiteral>
-                               | <TimeLiteral>
-                               | <TimestampLiteral>
-                               | <TimeWithTimeZoneLiteral>
-                               | <TimestampWithTimeZoneLiteral>
-
-StringLiteral                ::= <SINGLE_QUOTED_STRING>
-
-NumericLiteral               ::= <UNSIGNED_INTEGER>
-                               | <UNSIGNED_DECIMAL>
-
-BooleanLiteral               ::= 'true'
-                               | 'false'
-
-DateLiteral                  ::= 'DATE' "'" <yyyy-MM-dd> "'"
-
-TimeLiteral                  ::= 'TIME' "'" <HH:mm:ss> "'"
-
-TimestampLiteral             ::= 'TIMESTAMP' "'" <yyyy-MM-dd HH:mm:ss> "'"
-
-TimeWithTimeZoneLiteral      ::= 'TIME' "'" <HH:mm:ss+HH:MM> "'"
-
-TimestampWithTimeZoneLiteral ::= 'TIMESTAMP' "'" <yyyy-MM-dd HH:mm:ss+HH:MM> "'"
-```
-
-| Literal type             | Example literal                         |
-|--------------------------|-----------------------------------------|
-| string                   | `'Clara'`                               |
-| integer                  | `12`                                    |
-| decimal                  | `12.3`                                  |
-| boolean                  | `true`                                  |
-| date                     | `DATE '2017-09-21'`                     |
-| time                     | `TIME '16:15:00'`                       |
-| timestamp                | `TIMESTAMP '2017-09-21 16:15:00'`       |
-| time with time zone      | `TIME '16:15:00+01:00'`                 |
-| timestamp with time zone | `TIMESTAMP '2017-09-21 16:15:00-03:00'` |
-
-Note that the numeric literals (integer and decimal) are unsigned. However, signed values can be generated by using the unary minus operator (`-`).
-
-## Bind Variables
-
-In place of a literal, one may specify a bind variable (`?`). This allows for specifying parameterized queries.
-
-```bash
-BindVariable ::= '?'
-```
-
-An example query with two bind variables is as follows:
-
-```sql
-SELECT n.age
-  FROM g MATCH (n)
- WHERE n.name = ?
-    OR n.age > ?
-```
-
-In the following query, bind variables are used in `LIMIT` and `OFFSET`:
-
-```sql
-  SELECT n.name, n.age
-    FROM g MATCH (n)
-ORDER BY n.age
-   LIMIT ?
-  OFFSET ?
-```
-
-The following example shows a bind variable in the position of a label:
-
-```sql
-  SELECT n.name
-    FROM g MATCH (n)
-   WHERE has_label(n, ?)
-```
-
- 
 ## Functions
 
 PGQL has a set of built-in functions (see [Built-in Functions](#built-in-functions)), and, provides language extension through user-defined functions (see [User-Defined Functions](#user-defined-functions)).
 
-The syntactic structure for function calls is as follows:
+The syntactic structure for function invocation is as follows:
 
 ```bash
-FunctionCall         ::= <PackageSpecification>? <FunctionName> '(' <ArgumentList> ')'
+FunctionInvocation   ::= <PackageSpecification>? <FunctionName> '(' <ArgumentList> ')'
 
 PackageSpecification ::= <PackageName> '.'
 
@@ -1262,15 +1276,80 @@ FunctionName         ::= <IDENTIFIER>
 ArgumentList         ::= ( <ValueExpression> ( ',' <ValueExpression> )* )?
 ```
 
-A function call has an optional package name, a function name, and, zero or more arguments which are arbitrary value expressions.
+A function invocation has an optional package name, a function name, and, zero or more arguments which are arbitrary value expressions.
 
 Function and package names are case-insensitive such that e.g. `in_degree(..)` is the same function as `In_Degree(..)` or `IN_DEGREE(..)`.
 
-### Built-In Functions
-
-The following is an overview of the built-in functions:
+### String Functions
 
 Signature | Return value | Description
+--- | --- | ---
+`java_regexp_like(string, pattern)` | boolean | returns whether the string matches the [pattern](https://docs.oracle.com/javase/7/docs/api/java/util/regex/Pattern.html)
+
+### Numeric Functions
+
+Signature | Return value | Description
+--- | --- | ---
+`abs(numeric)` | numeric | The abs function returns the absolute value of an argument.
+`ceil(numeric)` or `ceiling(numeric)` | numeric | The ceiling function, which can also be invoked as ceil function returns the smallest integer value that is greater than or equal to the given argument.
+`floor(numeric)` | numeric | The floor function returns the biggest integer value that is smaller than or equal to the given argument.
+`round(numeric)` | numeric | The round function returns the closest integer to the given argument.
+
+For example:
+
+ - `abs(-1.3)` ==> `1.3`
+ - `abs(1.3)` ==> `1.3`
+ - `ceil(3.2)` (same as `ceiling(3.2)`) ==> `4.0`
+ - `floor(2.8)` ==> `2.0`
+ - `round(3.2)` ==> `3.0`
+ - `round(2.8)` ==> `3.0`
+
+### Datetime Functions
+
+The `EXTRACT` function allows for extracting a datetime field, such as a year, month or day, from a datetime value.
+
+The syntactic structure is as follows:
+
+```bash
+ExtractFunction ::= 'EXTRACT' '(' <ExtractField> 'FROM' <ValueExpression> ')'
+
+ExtractField    ::= 'YEAR'
+                  | 'MONTH'
+                  | 'DAY'
+                  | 'HOUR'
+                  | 'MINUTE'
+                  | 'SECOND'
+                  | 'TIMEZONE_HOUR'
+                  | 'TIMEZONE_MINUTE'
+```
+
+The fields `YEAR`, `MONTH` and `DAY` can be extracted from a date, a timestamp, or a timestamp with time zone.
+
+For example:
+
+ - `EXTRACT(YEAR FROM DATE '2017-02-13')` ==> `2017`
+ - `EXTRACT(MONTH FROM DATE '2017-02-13')` ==> `2`
+ - `EXTRACT(DAY FROM DATE '2017-02-13')` ==> `13`
+
+The fields `HOUR`, `MINUTE` and `SECOND` can be extracted from a time, a timestamp, a time with time zone, or a timestamp with time zone.
+
+For example:
+
+ - `EXTRACT(HOUR FROM TIME '12:05:03.201')` ==> `12`
+ - `EXTRACT(MINUTE FROM TIME '12:05:03.201')` ==> `5`
+ - `EXTRACT(SECOND FROM TIME '12:05:03.201')` ==> `3.201`
+
+The fields `TIMEZONE_HOUR` and `TIMEZONE_MINUTE` can be extracted from a time with time zone or a timestamp with time zone.
+
+For example:
+
+ - `EXTRACT(TIMEZONE_HOUR FROM TIMESTAMP '2018-01-01 12:30:00-02:30')` ==> `-2`
+ - `EXTRACT(TIMEZONE_MINUTE FROM TIMESTAMP '2018-01-01 12:30:00-02:30')` ==> `-30`
+
+### Vertex and Edge Functions
+
+Signature | Return value | Description
+--- | --- | ---
 `id(element)` | `object` | returns an identifier for the vertex/edge, if one exists.
 `has_label(element, string)` | boolean | returns true if the vertex or edge (first argument) has the given label (second argument).
 `labels(element)` | `set<string>` | returns the labels of the vertex or edge in the case it has multiple labels.
@@ -1278,7 +1357,6 @@ Signature | Return value | Description
 `all_different(val1, val2, .., valn)` | boolean | returns true if the values are all different, a function typically used for specifying isomorphic constraints (see [Subgraph Isomorphism](#subgraph-isomorphism)).
 `in_degree(vertex)` | exact numeric | returns the number of incoming neighbors.
 `out_degree(vertex)` | exact numeric | returns the number of outgoing neighbors.
-`java_regexp_like(string, pattern)` | boolean | returns whether the string matches the [pattern](https://docs.oracle.com/javase/7/docs/api/java/util/regex/Pattern.html)
 
 Consider the following query:
 
@@ -1305,30 +1383,16 @@ ORDER BY tangent
 
 If a UDF is registered that has the same name as a built-in function, then, upon function invocation, the UDF is invoked and not the built-in function. UDFs can thus override built-ins.
 
-## Type Conversion
+## CAST function
 
-Implicit type conversion is supported for numeric types (see [Implicit Type Conversion](#implicit-type-conversion)). Other type conversions require explicit type conversion (see [Explicit Type Conversion (CAST)](#explicit-type-conversion-cast)).
-
-### Implicit Type Conversion
-
-Performing arithmetic operations with different numeric types will lead to implicit type conversion (i.e. coercion).
-Coercion is only defined for numeric types. Given a binary arithmetic operation (i.e. `+`, `-`, `*`, `/`, `%`), the rules are as follows:
-
- - If both operands are exact numerics (e.g. integer or long), then the result is also an exact numeric with a scale that is at least as large as the scales of each operand.
- - If one or both of the operands is approximate numeric (e.g. float, double), the result is an approximate numeric with a scale that is at least as large as the scales of each operand. The precision will also be at least as high as the precision of each operand.
-
-### Explicit Type Conversion (CAST)
-
-Explicit type conversion is supported through type "casting".
-
-The syntax is as follows: 
+Implicit type conversion is supported for numeric types (see [Implicit Type Conversion](#implicit-type-conversion)). Other type conversions require explicit type conversion through `CAST`.
+The syntax is as follows:
 
 ```bash
 CastSpecification ::= 'CAST' '(' <ValueExpression> 'AS' <DataType> ')'
 
-DataType          ::= 'STRING'
+DataType          ::= 'STRING' | 'BOOLEAN'
                     | 'INTEGER' | 'INT' | 'LONG' | 'FLOAT' | 'DOUBLE'
-                    | 'BOOLEAN'
                     | 'DATE' | 'TIME' | 'TIME WITH TIME ZONE' | 'TIMESTAMP' | 'TIMESTAMP WITH TIME ZONE'
 ```
 
@@ -1357,18 +1421,96 @@ Casting is allowed between the following data types:
 
 In the table above, `Y` indicates that casting is supported, `N` indicates that casting is not supported, and `M` indicates that casting is supported only if the numeric value is within the precision bounds of the specified target type.
 
-## Temporal Types
+## CASE expression
 
-PGQL has five temporal data types: `DATE`, `TIME`, `TIMESTAMP`, `TIME WITH TIME ZONE` and `TIMESTAMP WITH TIME ZONE`.
-For each of the data types, there exists a corresponding literal (see [Literals](#literals)).
+The `CASE` predicate returns an expression based on the evaluation of some given Boolean conditions.
 
-In PGQL 1.2, the supported operations on temporal values are limited to comparison (see [Operators](#operators) and [Comparison of Temporal Values with Time Zones](#comparison-of-temporal-values-with-time-zones)).
+There are two types of `CASE` expressions: Simple Case and Searched Case.
+
+The grammar is as follows:
+
+```bash
+CaseExpression ::= <SimpleCase> | <SearchedCase>
+
+SimpleCase     ::= 'CASE' <ValueExpression> <WhenClause>+ <ElseClause>? 'END'
+
+SearchedCase   ::= 'CASE' <WhenClause>+ <ElseClause>? 'END'
+
+WhenClause     ::= 'WHEN' <ValueExpression> 'THEN' <ValueExpression>
+
+ElseClause     ::= 'ELSE' <ValueExpression>
+```
+
+The Simple Case provides a list of pairs (`WHEN` compare value, `THEN` return value) and optionally
+an else clause (`ELSE` else value). PGQL compares a given expression to each compare value and
+returns the corresponding return value when compared expressions are equal. If no equal expression
+is found and an `ELSE` clause exists, then PGQL returns the given else value. Otherwise, null is
+returned:
+
+```sql
+CASE n.age
+ WHEN 1 THEN "One"
+ WHEN 2 THEN "Two"
+ WHEN 3 THEN "Three"
+ ELSE "Older than three"
+END
+```
+
+The Searched Case provides a list of pairs (`WHEN` boolean expression, `THEN` return value) and optionally
+an else clause (`ELSE` else value). PGQL evaluates each boolean expression until one of them evaluates
+to true, and returns the corresponding return value. If no expression evaluates to true, and an `ELSE`
+clause exists, then PGQL returns the given else value. Otherwise, null is returned:
+
+```sql
+CASE
+ WHEN n.level = 'user' THEN 0
+ WHEN n.authorized THEN 1
+ ELSE -1
+END
+```
+
+## IN and NOT IN predicates
+
+The `IN` and `NOT IN` predicates test a value for membership in a list of values.
+The PGQL literal types `INTEGER`, `DECIMAL`, `BOOLEAN`, `STRING`, `DATE`, `TIME (WITH TIME ZONE)`, `TIMESTAMP (WITH TIME ZONE)` are allowed in the list.
+
+The syntactic structure is as follows:
+
+```bash
+InPredicate    ::= <ValueExpression> 'IN' <InValueList>
+
+NotInPredicate ::= <ValueExpression> 'NOT' 'IN' <InValueList>
+
+InValueList    ::= '(' <ValueExpression> ( ',' <ValueExpression> )* ')'
+                 | <BindVariable>
+```
+
+For example:
+
+ - `2 IN (2, 3, 5)` ==> `true`
+ - `3.2 IN (5, 4.8, 3.2)` ==> `true`
+ - `false IN (true, true)` ==> `false`
+ - `'Emily' IN ('Emily', 'Carl')` ==> `true`
+ - `DATE '1990-07-03' IN (DATE '1990-07-03', DATE '1993-05-28')` ==> `true`
+ - `TIME '12:00:10' IN (TIME '11:55:10', TIME '06:50:00.999+05:00')` ==> `false`
+ - `TIMESTAMP '2016-03-20 22:09:59.999' IN (TIMESTAMP '2016-03-20 23:09:59')` ==> `false`
+```
+
+Bind variables are also supported in the position of the list. For example:
+
+```sql
+SELECT n.date_of_birth
+  FROM g MATCH (n:Person)
+ WHERE n.date_of_birth IN ? /* use PreparedStatement.setArray(int, java.util.List) */
+```
 
 # Subqueries
 
-Subqueries in PGQL 1.2 are limited to existential subqueries and scalar subqueries.
+There are two types of subqueries in PGQL 1.2:
+[Existential Subqueries (EXISTS)](#existential-subqueries-exists) and
+[Scalar Subqueries](#scalar-subqueries).
 
-## Existential Subqueries (EXISTS)
+## Existential subqueries (EXISTS)
 
 `EXISTS` returns true/false depending on whether the subquery produces at least one result, given the bindings obtained in the current (outer) query. No additional binding of variables occurs.
 
@@ -1392,11 +1534,27 @@ SELECT fof.name, COUNT(friend) AS num_common_friends
 
 Here, vertices `p` and `fof` are passed from the outer query to the inner query. The `EXISTS` returns true if there is at least one `has_friend` edge between vertices `p` and `fof`.
 
-## Subqueries without FROM Clause
+## Scalar subqueries
+
+The syntactic structure is as follows:
+
+```bash
+ScalarSubquery ::= <Subquery>
+```
+
+For example:
+
+```sql
+SELECT a.name
+  FROM g MATCH (a)
+ WHERE a.age > ( SELECT AVG(b.age) MATCH (a) -[:friendOf]-> (b) )
+```
+
+## Subqueries without FROM clause
 
 If the `FROM` clause is omitted from a subquery, then the graph to process the subquery against, is the same graph as used for the outer query.
 
-## Querying Multiple Graphs
+## Querying multiple graphs
 
 Through subqueries, PGQL allows for comparing data from different graphs.
 
@@ -1416,9 +1574,9 @@ SELECT p1.name
 
 Above, we compare two string properties from different graphs. Besides properties, it is also possible to compare vertices and edges from different graphs. However, because PGQL 1.2 does not have concepts like graph views, base graphs, or sharing of vertices/edges between graphs, such comparisons will always yield `false`.
 
-## Subqueries inside PATH Clause
+## Subqueries inside PATH expression
 
-Users can add a sub-query in the `WHERE` clause of the `PATH` definition. One might be interested in asserting for specific properties for a vertex in the `PATH`. The following example defines a path ending in a vertex which is not the oldest in the graph:
+Users can add a subquery in the `WHERE` clause of the `PATH` definition. One might be interested in asserting for specific properties for a vertex in the `PATH`. The following example defines a path ending in a vertex which is not the oldest in the graph:
 
 ```sql
   PATH p AS (a) -> (b) WHERE EXISTS ( SELECT * FROM g MATCH (x) WHERE x.age > b.age )
@@ -1426,7 +1584,7 @@ SELECT ...
   FROM ...
 ```
 
-Topology related constraints can be also imposed. The following example defines a path ending in a vertex which has at least one out-neighbor:
+Topology related constraints can also be imposed. The following example defines a path ending in a vertex which has at least one outgoing edge to some neighbor `c`:
 
 ```sql
   PATH p AS (a) -> (b) WHERE EXISTS ( SELECT * FROM g MATCH (b) -> (c) )
@@ -1438,7 +1596,7 @@ SELECT ...
 
 ## Lexical Constructs
 
-The following are the lexical grammar constructs: 
+The following are the lexical grammar constructs:
 
 ```bash
 IDENTIFIER           ::= [a-zA-Z][a-zA-Z0-9\_]*
@@ -1491,12 +1649,13 @@ In string literals, it is optional to escape double quotes. For example, the fol
 
 The following is a list of keywords in PGQL.
 
-```
+```sql
 PATH, SELECT, AS, MATCH, WHERE, GROUP, BY,
 HAVING, ORDER, ASC, DESC, LIMIT, OFFSET,
 AND, OR, NOT, true, false, IS, NULL,
 DATE, TIME, TIMESTAMP, WITH, ZONE,
-COUNT, MIN, MAX, AVG, SUM, EXISTS, CAST
+COUNT, MIN, MAX, AVG, SUM, ARRAY_AGG,
+EXISTS, CAST, CASE, WHEN, THEN, ELSE, IN
 ```
 
 Keywords are case-insensitive and variations such as `SELECT`, `Select` and `sELeCt` can be used interchangeably.
