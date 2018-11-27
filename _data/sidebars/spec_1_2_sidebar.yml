@@ -136,8 +136,8 @@ entries:
         url: /spec/1.2/#distinct-in-aggregation
         output: web
 
-    - title: Filtering of groups (HAVING)
-      url: /spec/1.2/#filtering-of-groups-having
+    - title: HAVING
+      url: /spec/1.2/#having
       output: web
 
   - title: Sorting and Row Limiting
@@ -281,16 +281,16 @@ entries:
         url: /spec/1.2/#user-defined-functions
         output: web
 
-    - title: CAST function
-      url: /spec/1.2/#cast-function
+    - title: CAST
+      url: /spec/1.2/#cast
       output: web
 
-    - title: CASE expression
-      url: /spec/1.2/#case-expression
+    - title: CASE
+      url: /spec/1.2/#case
       output: web
 
-    - title: IN and NOT IN predicates
-      url: /spec/1.2/#in-and-not-in-predicates
+    - title: IN and NOT IN
+      url: /spec/1.2/#in-and-not-in
       output: web
 
   - title: Subqueries

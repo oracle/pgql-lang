@@ -33,7 +33,7 @@ Consider the following example PGQL query:
 SELECT m.name, o.name
   FROM sn_graph
  MATCH (n:Person) -[e1:friend_of]-> (m:Person) <-[e2:belongs_to]- (o:Car)
- WHERE n.name = 'John'
+ WHERE n.name = 'Jake'
 ```
 
 In the `FROM` clause, we specify the graph that is queried:
@@ -49,7 +49,7 @@ In the `MATCH` clause, the above query defines the pattern to be found.
 
 The `WHERE` clause contains filters:
 
- - Vertex `n` has a property `name` with the value `John`.
+ - Vertex `n` has a property `name` with the value `Jake`.
 
 The `SELECT` clause specifies what should be projected out from the query:
 
@@ -277,11 +277,11 @@ For example:
 ```sql
 SELECT y.name
   FROM g MATCH (x) -> (y)
- WHERE x.name = 'John'
+ WHERE x.name = 'Jake'
    AND y.age > 25
 ```
 
-Here, the first filter describes that the vertex `x` has a property `name` and its value is `John`. Similarly, the second filter describes that the vertex `y` has a property `age` and its value is larger than `25`. Here, in the filter, the dot (`.`) operator is used for property access. For the detailed syntax and semantic of expressions, see [Value Expressions](#value-expressions).
+Here, the first filter describes that the vertex `x` has a property `name` and its value is `Jake`. Similarly, the second filter describes that the vertex `y` has a property `age` and its value is larger than `25`. Here, in the filter, the dot (`.`) operator is used for property access. For the detailed syntax and semantic of expressions, see [Value Expressions](#value-expressions).
 
 Note that the ordering of constraints does not have an affect on the result, such that query from the previous example is equivalent to:
 
@@ -289,7 +289,7 @@ Note that the ordering of constraints does not have an affect on the result, suc
 SELECT y.name
  FROM g MATCH (x) -> (y)
 WHERE y.age > 25
-  AND x.name = 'John'
+  AND x.name = 'Jake'
 ```
 
 ## Graph Pattern Matching Semantic
@@ -488,7 +488,7 @@ Matches will be grouped together only if they hold the same values for `n.first_
 
 The group for which all the group keys are null is a valid group and takes part in further query processing.
 
-To filter out such a group, use a `HAVING` clause (see [Filtering of groups (HAVING)](#filtering-of-groups-having)), for example:
+To filter out such a group, use a `HAVING` clause (see [HAVING](#filtering-of-groups-having)), for example:
 
 ```sql
   SELECT n.prop1, n.prop2, COUNT(*)
@@ -602,7 +602,7 @@ SELECT AVG(DISTINCT m.age)
 
 Here, we aggregate only over distinct `m.age` values.
 
-## Filtering of groups (HAVING)
+## HAVING
 
 The `HAVING` clause is an optional clause that can be placed after a `GROUP BY` clause to filter out particular groups of solutions.
 The syntactic structure is as follows:
@@ -1383,7 +1383,7 @@ ORDER BY tangent
 
 If a UDF is registered that has the same name as a built-in function, then, upon function invocation, the UDF is invoked and not the built-in function. UDFs can thus override built-ins.
 
-## CAST function
+## CAST
 
 Implicit type conversion is supported for numeric types (see [Implicit Type Conversion](#implicit-type-conversion)). Other type conversions require explicit type conversion through `CAST`.
 The syntax is as follows:
@@ -1402,7 +1402,7 @@ For example:
 
 ```sql
 SELECT CAST(n.age AS STRING), CAST('123' AS INTEGER), CAST('09:15:00+01:00' AS TIME WITH TIME ZONE)
- MATCH (n:Person)
+  FROM g MATCH (n:Person)
 ```
 
 Casting is allowed between the following data types:
@@ -1421,7 +1421,7 @@ Casting is allowed between the following data types:
 
 In the table above, `Y` indicates that casting is supported, `N` indicates that casting is not supported, and `M` indicates that casting is supported only if the numeric value is within the precision bounds of the specified target type.
 
-## CASE expression
+## CASE
 
 The `CASE` predicate returns an expression based on the evaluation of some given Boolean conditions.
 
@@ -1469,7 +1469,7 @@ CASE
 END
 ```
 
-## IN and NOT IN predicates
+## IN and NOT IN
 
 The `IN` and `NOT IN` predicates test a value for membership in a list of values.
 The PGQL literal types `INTEGER`, `DECIMAL`, `BOOLEAN`, `STRING`, `DATE`, `TIME (WITH TIME ZONE)`, `TIMESTAMP (WITH TIME ZONE)` are allowed in the list.
