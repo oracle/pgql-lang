@@ -13,7 +13,7 @@ test Reference to aggregation (1) [[
 test Reference to aggregation (2) [[
 
     SELECT [[COUNT(e.prop)]] AS v
-      FROM g EXPERIMENTAL_MATCH ( SHORTEST (n) -[e]->* (m) )
+      FROM g EXPERIMENTAL_MATCH ( SHORTEST ( (n) -[e]->* (m) ) )
   GROUP BY v
 
 ]] error like "Aggregation without group variables not allowed in GROUP BY" at #1

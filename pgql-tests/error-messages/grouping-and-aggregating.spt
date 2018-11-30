@@ -115,6 +115,6 @@ test Subquery with non-group key variable in SELECT (3) [[
 test Aggregate group variable and non-group variable simultaneously [[
 
   SELECT AVG([[n]].age) AS avg1, AVG(e.age) AS avg2
-    FROM g MATCH TOP 10 SHORTEST (n) -[e]->* (m)
+    FROM g MATCH TOP 10 SHORTEST ( (n) -[e]->* (m) )
 
 ]] error like "Unresolved variable" at #1
