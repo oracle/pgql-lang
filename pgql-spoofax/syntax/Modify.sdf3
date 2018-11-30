@@ -1,0 +1,23 @@
+module Modify
+
+imports
+
+  Expressions
+  Names
+
+template options
+
+  keyword -/- [a-zA-Z0-9]
+
+context-free syntax
+
+  ModifyClause.ModifyClause = <MODIFY <Identifier> <Modification+>> {case-insensitive}
+
+  Modification = Insertion
+
+  Insertion.VertexInsertion = <INSERT VERTEX <Identifier>> {case-insensitive}
+  Insertion.EdgeInsertion = <INSERT <Directed?> EDGE <Identifier> FROM <VarRef> TO <VarRef>> {case-insensitive}
+  Directed.Directed = <DIRECTED> {case-insensitive}
+
+  UpdateClause.UpdateClause = <UPDATE <{UpdateExp ", "}+>> {case-insensitive}
+  UpdateExp.UpdateExp = <<PropRef> = <Exp>>

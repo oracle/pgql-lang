@@ -139,8 +139,13 @@ rules
 
   resolve-select-or-update-clause(|variables):
     t@UpdateClause(updateExpressions) -> (updateClause', variables)
-    with updateExpressions' := <origin-track-forced(resolve-var-refs(|variables))> updateExpressions
+    with updateExpressions' := <resolve-var-refs(|variables)> updateExpressions
        ; updateClause' := <origin-track-forced(!UpdateClause(updateExpressions'))> t
+
+  resolve-select-or-update-clause(|variables):
+    t@ModifyClause(graphName, modifications) -> (modifyClause', variables)
+    with modifications' := <resolve-var-refs(|variables)> modifications
+       ; modifyClause' := <origin-track-forced(!ModifyClause(graphName, modifications'))> t
 
   resolve-exp-as-var-in-group-by(|variables, expAsVarsFromSelectClause):
     (t@ExpAsVar(exp, v, anonymous), (result, vars)) -> (result', vars')

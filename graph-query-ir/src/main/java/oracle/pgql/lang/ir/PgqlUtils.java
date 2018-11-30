@@ -36,6 +36,7 @@ import oracle.pgql.lang.ir.QueryExpression.LogicalExpression.Or;
 import oracle.pgql.lang.ir.QueryExpression.Function.Exists;
 import oracle.pgql.lang.ir.QueryVariable.VariableType;
 import oracle.pgql.lang.ir.QueryVertex;
+import oracle.pgql.lang.ir.modify.ModifyQuery;
 import oracle.pgql.lang.ir.update.GraphUpdateQuery;
 
 public class PgqlUtils {
@@ -178,6 +179,12 @@ public class PgqlUtils {
       case GRAPH_UPDATE:
         result += ((GraphUpdateQuery) graphQuery).getGraphUpdate();
         break;
+      case MODIFY:
+        ModifyQuery modifyQuery = (ModifyQuery) graphQuery;
+        result += "MODIFY " + modifyQuery.getGraphName() + "\n  " + modifyQuery.getModifications().stream() //
+            .map(x -> x.toString()) //
+            .collect(Collectors.joining("\n  "));
+        break;
       default:
         throw new IllegalArgumentException(graphQuery.getQueryType().toString());
     }
@@ -228,7 +235,8 @@ public class PgqlUtils {
         // "x.prop1 + x.prop2" is a VarRef to the anonymous SELECT expression "x.prop1 + x.prop2"
         return expAsVar.getExp().toString();
       } else if (!expAsVar.isContainedInSelectClause()) {
-        // e.g. "SELECT 123 FROM g EXPERIMENTAL_MATCH ( (n) ) GROUP BY n.age AS age" is not a valid PGQL query since GROUP BY may not
+        // e.g. "SELECT 123 FROM g EXPERIMENTAL_MATCH ( (n) ) GROUP BY n.age AS age" is not a valid PGQL query since
+        // GROUP BY may not
         // introduce new variables since PGQL v1.3
         return expAsVar.getExp().toString();
       }

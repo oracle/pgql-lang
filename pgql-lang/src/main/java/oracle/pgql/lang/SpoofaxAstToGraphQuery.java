@@ -64,6 +64,10 @@ import oracle.pgql.lang.ir.QueryVariable.VariableType;
 import oracle.pgql.lang.ir.QueryVertex;
 import oracle.pgql.lang.ir.SelectQuery;
 import oracle.pgql.lang.ir.VertexPairConnection;
+import oracle.pgql.lang.ir.modify.EdgeInsertion;
+import oracle.pgql.lang.ir.modify.Modification;
+import oracle.pgql.lang.ir.modify.ModifyQuery;
+import oracle.pgql.lang.ir.modify.VertexInsertion;
 import oracle.pgql.lang.ir.update.GraphUpdate;
 import oracle.pgql.lang.ir.update.GraphUpdateQuery;
 import oracle.pgql.lang.ir.update.PropertyUpdate;
@@ -74,7 +78,7 @@ public class SpoofaxAstToGraphQuery {
   private static final String GENERATED_VAR_SUBSTR = "<<anonymous>>";
 
   private static final int POS_COMMON_PATH_EXPRESSIONS = 0;
-  private static final int POS_SELECT_OR_UPDATE = 1;
+  private static final int POS_SELECT_OR_MODIFY = 1;
   private static final int POS_GRAPH_NAME = 2;
   private static final int POS_GRAPH_PATTERN = 3;
   private static final int POS_GROUPBY = 4;
@@ -89,6 +93,13 @@ public class SpoofaxAstToGraphQuery {
 
   private static final int POS_PROJECTION_DISTINCT = 0;
   private static final int POS_PROJECTION_ELEMS = 1;
+
+  private static final int POS_MODIFY_GRAPH_NAME = 0;
+  private static final int POS_MODIFY_MODIFICATIONS = 1;
+  private static final int POS_VERTEX_INSERTION_NAME = 0;
+  private static final int POS_EDGE_INSERTION_NAME = 1;
+  private static final int POS_EDGE_INSERTION_SRC = 2;
+  private static final int POS_EDGE_INSERTION_DST = 3;
 
   private static final int POS_UPDATE_ELEMS = 0;
   private static final int POS_PROPERTY_UPDATE_PROPERTY_REFERENCE = 0;
@@ -202,17 +213,24 @@ public class SpoofaxAstToGraphQuery {
     IStrategoTerm groupByT = ast.getSubterm(POS_GROUPBY);
     GroupBy groupBy = getGroupBy(ctx, groupByT);
 
-    // SELECT or UPDATE
+    // SELECT or UPDATE or MODIFY
     Projection projection = null;
     GraphUpdate graphUpdate = null;
-    IStrategoTerm selectOrUpdateT = ast.getSubterm(POS_SELECT_OR_UPDATE);
-    String selectOrUpdate = ((IStrategoAppl) selectOrUpdateT).getConstructor().getName();
+    IStrategoTerm selectOrModifyT = ast.getSubterm(POS_SELECT_OR_MODIFY);
+    String selectOrUpdate = ((IStrategoAppl) selectOrModifyT).getConstructor().getName();
+    String modifyGraphName = null;
+    List<Modification> modifications = null;
     switch (selectOrUpdate) {
       case "SelectClause":
-        projection = translateSelectClause(ctx, selectOrUpdateT);
+        projection = translateSelectClause(ctx, selectOrModifyT);
         break;
       case "UpdateClause":
-        graphUpdate = translateUpdateClause(ctx, selectOrUpdateT);
+        graphUpdate = translateUpdateClause(ctx, selectOrModifyT);
+        break;
+      case "ModifyClause":
+        modifyGraphName = getString(selectOrModifyT.getSubterm(POS_MODIFY_GRAPH_NAME));
+        IStrategoTerm modificationsT = selectOrModifyT.getSubterm(POS_MODIFY_MODIFICATIONS);
+        modifications = translateModifications(ctx, modificationsT);
         break;
       default:
         throw new IllegalStateException(selectOrUpdate);
@@ -242,6 +260,9 @@ public class SpoofaxAstToGraphQuery {
       case "UpdateClause":
         return new GraphUpdateQuery(commonPathExpressions, graphUpdate, inputGraphName, graphPattern, groupBy, having,
             orderBy, limit, offset);
+      case "ModifyClause":
+        return new ModifyQuery(commonPathExpressions, modifyGraphName, modifications, inputGraphName, graphPattern,
+            groupBy, having, orderBy, limit, offset);
       default:
         throw new IllegalStateException(selectOrUpdate);
     }
@@ -266,6 +287,43 @@ public class SpoofaxAstToGraphQuery {
     }
     projection = new Projection(distinct, selectElems);
     return projection;
+  }
+
+  private static List<Modification> translateModifications(TranslationContext ctx, IStrategoTerm modificationsT) {
+    List<Modification> result = new ArrayList<>();
+    for (IStrategoTerm modificationT : modificationsT) {
+      String constructorName = ((IStrategoAppl) modificationT).getConstructor().getName();
+      switch (constructorName) {
+        case "VertexInsertion": {
+          String vertexName = getString(modificationT.getSubterm(POS_VERTEX_INSERTION_NAME));
+          QueryVertex vertex = new QueryVertex(vertexName, false);
+          result.add(new VertexInsertion(vertex));
+
+          IStrategoTerm originPosition = modificationT; // TODO
+          ctx.addVar(vertex, vertexName, originPosition);
+          break;
+        }
+        case "EdgeInsertion": {
+          String edgeName = getString(modificationT.getSubterm(POS_EDGE_INSERTION_NAME));
+
+          IStrategoTerm srcVarRefT = modificationT.getSubterm(POS_EDGE_INSERTION_SRC);
+          QueryVertex src = (QueryVertex) ctx.getVariable(srcVarRefT.getSubterm(POS_VARREF_ORIGIN_OFFSET));
+
+          IStrategoTerm dstVarRefT = modificationT.getSubterm(POS_EDGE_INSERTION_DST);
+          QueryVertex dst = (QueryVertex) ctx.getVariable(dstVarRefT.getSubterm(POS_VARREF_ORIGIN_OFFSET));
+
+          QueryEdge edge = new QueryEdge(dst, src, edgeName, false, Direction.OUTGOING);
+          result.add(new EdgeInsertion(edge));
+
+          IStrategoTerm originPosition = modificationT; // TODO
+          ctx.addVar(edge, edgeName, originPosition);
+          break;
+        }
+        default:
+          throw new IllegalArgumentException(constructorName);
+      }
+    }
+    return result;
   }
 
   private static GraphUpdate translateUpdateClause(TranslationContext ctx, IStrategoTerm selectOrUpdateT)

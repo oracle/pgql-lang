@@ -442,9 +442,9 @@ rules
       expAsGroupVars' := <map(norm-ExpAsVar)> expAsGroupVars;
       groupByClause' := <?Some(_); !Some(GroupByClause(expAsGroupVars')) <+ !None()> groupByClause;
 
-      selectOrUpdateClause' := <?UpdateClause(_) + ?SelectClause(_, _); (norm-ExpAsVars(|expAsGroupVars') <+ norm-select-star(|graphPattern, expAsGroupVars'))> selectOrUpdateClause;
+      selectOrUpdateClause' := <?UpdateClause(_) + ?ModifyClause(_, _) + ?SelectClause(_, _); (norm-ExpAsVars(|expAsGroupVars') <+ norm-select-star(|graphPattern, expAsGroupVars'))> selectOrUpdateClause;
 
-      expAsSelectVars := <?UpdateClause(_); ![] + ?SelectClause(_, ExpAsVars(<id>))> selectOrUpdateClause';
+      expAsSelectVars := <(?UpdateClause(_) + ?ModifyClause(_, _)); ![] + ?SelectClause(_, ExpAsVars(<id>))> selectOrUpdateClause';
       allExpAsVars := <conc> (expAsGroupVars', <try(?Star(); ![])> expAsSelectVars);
       orderByElems := <try(norm-orderBy(|allExpAsVars, version))> orderByClause;
 

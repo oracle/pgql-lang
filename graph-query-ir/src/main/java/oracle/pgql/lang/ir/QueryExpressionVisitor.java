@@ -47,6 +47,9 @@ import oracle.pgql.lang.ir.QueryExpression.RelationalExpression.GreaterEqual;
 import oracle.pgql.lang.ir.QueryExpression.RelationalExpression.Less;
 import oracle.pgql.lang.ir.QueryExpression.RelationalExpression.LessEqual;
 import oracle.pgql.lang.ir.QueryExpression.RelationalExpression.NotEqual;
+import oracle.pgql.lang.ir.modify.ModifyQuery;
+import oracle.pgql.lang.ir.modify.VertexInsertion;
+import oracle.pgql.lang.ir.modify.EdgeInsertion;
 import oracle.pgql.lang.ir.QueryExpression.ScalarSubquery;
 import oracle.pgql.lang.ir.QueryExpression.Star;
 import oracle.pgql.lang.ir.QueryExpression.VarRef;
@@ -158,6 +161,12 @@ public interface QueryExpressionVisitor {
   public void visit(OrderBy orderBy);
 
   public void visit(OrderByElem orderByElem);
+
+  public void visit(ModifyQuery modifyQuery);
+
+  public void visit(VertexInsertion vertexInsertion);
+
+  public void visit(EdgeInsertion edgeInsertion);
 
   public void visit(GraphUpdateQuery updateQuery);
 

@@ -16,7 +16,7 @@ context-free syntax
   ExperimentalQuery.Query =
     <
       <{CommonPathExpression "\n"}*>
-      <SelectOrUpdateClause>
+      <SelectOrModify>
       <ExperimentalFromClause>
       <WhereClause?>
       <GroupByClause?>

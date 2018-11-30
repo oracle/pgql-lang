@@ -51,6 +51,9 @@ import oracle.pgql.lang.ir.QueryExpression.RelationalExpression.GreaterEqual;
 import oracle.pgql.lang.ir.QueryExpression.RelationalExpression.Less;
 import oracle.pgql.lang.ir.QueryExpression.RelationalExpression.LessEqual;
 import oracle.pgql.lang.ir.QueryExpression.RelationalExpression.NotEqual;
+import oracle.pgql.lang.ir.modify.EdgeInsertion;
+import oracle.pgql.lang.ir.modify.ModifyQuery;
+import oracle.pgql.lang.ir.modify.VertexInsertion;
 import oracle.pgql.lang.ir.QueryExpression.ScalarSubquery;
 import oracle.pgql.lang.ir.QueryExpression.Star;
 import oracle.pgql.lang.ir.QueryExpression.VarRef;
@@ -350,6 +353,22 @@ public abstract class AbstractQueryExpressionVisitor implements QueryExpressionV
   @Override
   public void visit(OrderByElem orderByElem) {
     orderByElem.getExp().accept(this);
+  }
+
+  @Override
+  public void visit(ModifyQuery modifyQuery) {
+    modifyQuery.getModifications().stream().forEach(modification -> modification.accept(this));
+    visitQuery(modifyQuery);
+  }
+
+  @Override
+  public void visit(VertexInsertion vertexInsertion) {
+    vertexInsertion.getVertex().accept(this);
+  }
+
+  @Override
+  public void visit(EdgeInsertion edgeInsertion) {
+    edgeInsertion.getEdge().accept(this);
   }
 
   @Override

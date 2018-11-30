@@ -10,6 +10,7 @@ imports
   Legacy
   Expressions
   Experimental
+  Modify
 
 context-free start-symbols
 
@@ -26,7 +27,7 @@ context-free syntax
   Query.Pgql11Query =
     <
       <{CommonPathExpression "\n"}*>
-      <SelectOrUpdateClause>
+      <SelectOrModify>
       <Pgql11FromClause?>
       <Pgql11MatchClause>
       <WhereClause?>
@@ -42,12 +43,10 @@ context-free syntax
   CommonPathExpression.CommonPathExpression = <PATH <REGULAR-IDENTIFIER> <AsignSymbol> <PathPattern> <WhereClause?>> {case-insensitive}
   AsignSymbol.Pgql11AsignSymbol = <AS>  {case-insensitive}
 
-  SelectOrUpdateClause = SelectClause
-  SelectOrUpdateClause = UpdateClause
+  SelectOrModify = SelectClause
+  SelectOrModify = ModifyClause
+  SelectOrModify = UpdateClause
 
   SelectClause.SelectClause = <SELECT <Distinct?> <Projection>> {case-insensitive}
   Projection.ExpAsVars = <<{ExpAsVar ", "}+>>
   Projection.Star = <*>
-
-  UpdateClause.UpdateClause = <UPDATE <{UpdateExp ", "}+>> {case-insensitive}
-  UpdateExp.UpdateExp = <<PropRef> = <Exp>>
