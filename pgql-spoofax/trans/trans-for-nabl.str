@@ -143,9 +143,30 @@ rules
        ; updateClause' := <origin-track-forced(!UpdateClause(updateExpressions'))> t
 
   resolve-select-or-update-clause(|variables):
-    t@ModifyClause(graphName, modifications) -> (modifyClause', variables)
-    with modifications' := <resolve-var-refs(|variables)> modifications
+    t@ModifyClause(graphName, modifications) -> (modifyClause', variables')
+    with varsInCurrentScope := <Hd> variables
+       ; (modifications', variables') := <foldl(resolve-modification)> (modifications, ([], variables))
        ; modifyClause' := <origin-track-forced(!ModifyClause(graphName, modifications'))> t
+
+  resolve-modification:
+    (modification, (result, variables)) -> (result', variables')
+    with varsInCurrentScope := <Hd> variables
+       ; (modification', varsInCurrentScope') := <create-variable-for-insertion(|varsInCurrentScope)> modification
+       ; variables' := [varsInCurrentScope'|<Tl> variables]
+       ; modification'' := <resolve-var-refs(|variables')> modification'
+       ; result' := <conc> (result, [modification''])
+
+  create-variable-for-insertion(|vars):
+    t@DirectedEdgeInsertion(_, Identifier(v), src, dst, labels, properties) -> (insertion', vars')
+    with originOffset := <origin-offset> v
+       ; insertion' := <origin-track-forced(!DirectedEdgeInsertion(v, originOffset, src, dst, labels, properties))> t
+       ; vars' := <replace-or-add> (VarDef(v, originOffset, None(), None()), vars)
+
+  create-variable-for-insertion(|vars):
+    t@VertexInsertion(Identifier(v), labels, properties) -> (insertion', vars')
+    with originOffset := <origin-offset> v
+       ; insertion' := <origin-track-forced(!VertexInsertion(v, <origin-offset> v, labels, properties))> t
+       ; vars' := <replace-or-add> (VarDef(v, originOffset, None(), None()), vars)
 
   resolve-exp-as-var-in-group-by(|variables, expAsVarsFromSelectClause):
     (t@ExpAsVar(exp, v, anonymous), (result, vars)) -> (result', vars')

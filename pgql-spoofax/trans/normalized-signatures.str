@@ -54,6 +54,8 @@ signature constructors // for the normalized AST (see trans/normalize.str)
   Shortest              : Shortest
   INTEGER               : KValue
 
+  VertexInsertion       : Identifier * OriginPosition * LabelsSpecification * PropertiesSpecification -> VertexInsertion
+
 signature constructors // for name binding (see trans/trans-for-nabl.str)
 
 

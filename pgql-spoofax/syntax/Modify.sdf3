@@ -15,9 +15,17 @@ context-free syntax
 
   Modification = Insertion
 
-  Insertion.VertexInsertion = <INSERT VERTEX <Identifier>> {case-insensitive}
-  Insertion.EdgeInsertion = <INSERT <Directed?> EDGE <Identifier> FROM <VarRef> TO <VarRef>> {case-insensitive}
+  Insertion.VertexInsertion = <INSERT VERTEX <Identifier> <LabelsSpecification?> <PropertiesSpecification?>> {case-insensitive}
+  Insertion.DirectedEdgeInsertion = <INSERT <Directed?> EDGE <Identifier> FROM <VarRef> TO <VarRef> <LabelsSpecification?> <PropertiesSpecification?>> {case-insensitive}
   Directed.Directed = <DIRECTED> {case-insensitive}
+  LabelsSpecification.Labels = <<LabelsKeyword> <{Identifier ", "}+>>
+  PropertiesSpecification.Properties = <<PropertiesKeyword> <{SetPropertyExpression ", "}+>>
+  SetPropertyExpression.Set = <<PropRef> = <Exp>>
+
+  LabelsKeyword.Labels = <LABELS> {case-insensitive}
+  LabelsKeyword.Label = <LABEL> {case-insensitive}
+  PropertiesKeyword.Properties = <PROPERTIES> {case-insensitive}
+  PropertiesKeyword.Property = <PROPERTY> {case-insensitive}
 
   UpdateClause.UpdateClause = <UPDATE <{UpdateExp ", "}+>> {case-insensitive}
   UpdateExp.UpdateExp = <<PropRef> = <Exp>>

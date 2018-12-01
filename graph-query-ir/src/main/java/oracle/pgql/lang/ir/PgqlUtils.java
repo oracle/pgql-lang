@@ -236,8 +236,7 @@ public class PgqlUtils {
         return expAsVar.getExp().toString();
       } else if (!expAsVar.isContainedInSelectClause()) {
         // e.g. "SELECT 123 FROM g EXPERIMENTAL_MATCH ( (n) ) GROUP BY n.age AS age" is not a valid PGQL query since
-        // GROUP BY may not
-        // introduce new variables since PGQL v1.3
+        // GROUP BY may not introduce new variables since PGQL v1.3
         return expAsVar.getExp().toString();
       }
     }

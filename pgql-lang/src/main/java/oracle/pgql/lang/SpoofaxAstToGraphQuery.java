@@ -97,7 +97,9 @@ public class SpoofaxAstToGraphQuery {
   private static final int POS_MODIFY_GRAPH_NAME = 0;
   private static final int POS_MODIFY_MODIFICATIONS = 1;
   private static final int POS_VERTEX_INSERTION_NAME = 0;
-  private static final int POS_EDGE_INSERTION_NAME = 1;
+  private static final int POS_VERTEX_INSERTION_ORIGIN_OFFSET = 1;
+  private static final int POS_EDGE_INSERTION_NAME = 0;
+  private static final int POS_EDGE_INSERTION_ORIGIN_OFFSET = 1;
   private static final int POS_EDGE_INSERTION_SRC = 2;
   private static final int POS_EDGE_INSERTION_DST = 3;
 
@@ -299,11 +301,11 @@ public class SpoofaxAstToGraphQuery {
           QueryVertex vertex = new QueryVertex(vertexName, false);
           result.add(new VertexInsertion(vertex));
 
-          IStrategoTerm originPosition = modificationT; // TODO
+          IStrategoTerm originPosition = modificationT.getSubterm(POS_VERTEX_INSERTION_ORIGIN_OFFSET);
           ctx.addVar(vertex, vertexName, originPosition);
           break;
         }
-        case "EdgeInsertion": {
+        case "DirectedEdgeInsertion": {
           String edgeName = getString(modificationT.getSubterm(POS_EDGE_INSERTION_NAME));
 
           IStrategoTerm srcVarRefT = modificationT.getSubterm(POS_EDGE_INSERTION_SRC);
@@ -312,10 +314,10 @@ public class SpoofaxAstToGraphQuery {
           IStrategoTerm dstVarRefT = modificationT.getSubterm(POS_EDGE_INSERTION_DST);
           QueryVertex dst = (QueryVertex) ctx.getVariable(dstVarRefT.getSubterm(POS_VARREF_ORIGIN_OFFSET));
 
-          QueryEdge edge = new QueryEdge(dst, src, edgeName, false, Direction.OUTGOING);
+          QueryEdge edge = new QueryEdge(src, dst, edgeName, false, Direction.OUTGOING);
           result.add(new EdgeInsertion(edge));
 
-          IStrategoTerm originPosition = modificationT; // TODO
+          IStrategoTerm originPosition = modificationT.getSubterm(POS_EDGE_INSERTION_ORIGIN_OFFSET);
           ctx.addVar(edge, edgeName, originPosition);
           break;
         }
