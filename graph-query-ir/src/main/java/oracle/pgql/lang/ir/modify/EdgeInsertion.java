@@ -3,14 +3,20 @@
  */
 package oracle.pgql.lang.ir.modify;
 
+import java.util.Map;
+import java.util.Set;
+
 import oracle.pgql.lang.ir.QueryEdge;
+import oracle.pgql.lang.ir.QueryExpression;
+import oracle.pgql.lang.ir.QueryExpression.PropertyAccess;
 import oracle.pgql.lang.ir.QueryExpressionVisitor;
 
-public class EdgeInsertion implements Insertion {
+public class EdgeInsertion extends AbstractInsertion {
 
   private QueryEdge edge;
 
-  public EdgeInsertion(QueryEdge edge) {
+  public EdgeInsertion(QueryEdge edge, Set<String> labels, Map<PropertyAccess, QueryExpression> properties) {
+    super(labels, properties);
     this.edge = edge;
   }
 
@@ -18,9 +24,14 @@ public class EdgeInsertion implements Insertion {
     return edge;
   }
 
+  public void setEdge(QueryEdge edge) {
+    this.edge = edge;
+  }
+
   @Override
   public String toString() {
-    return "INSERT EDGE " + edge.getName() + " FROM " + edge.getSrc().getName() + " TO " + edge.getDst().getName();
+    return "INSERT EDGE " + edge.getName() + " FROM " + edge.getSrc().getName() + " TO " + edge.getDst().getName()
+        + printLabels() + printProperties();
   }
 
   @Override
@@ -30,11 +41,7 @@ public class EdgeInsertion implements Insertion {
 
   @Override
   public boolean equals(Object obj) {
-    if (this == obj)
-      return true;
-    if (obj == null)
-      return false;
-    if (getClass() != obj.getClass())
+    if (!super.equals(obj))
       return false;
     EdgeInsertion other = (EdgeInsertion) obj;
     if (edge == null) {

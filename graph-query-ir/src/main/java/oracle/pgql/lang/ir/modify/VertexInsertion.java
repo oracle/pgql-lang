@@ -3,14 +3,20 @@
  */
 package oracle.pgql.lang.ir.modify;
 
+import java.util.Map;
+import java.util.Set;
+
+import oracle.pgql.lang.ir.QueryExpression;
+import oracle.pgql.lang.ir.QueryExpression.PropertyAccess;
 import oracle.pgql.lang.ir.QueryExpressionVisitor;
 import oracle.pgql.lang.ir.QueryVertex;
 
-public class VertexInsertion implements Insertion {
+public class VertexInsertion extends AbstractInsertion {
 
   private QueryVertex vertex;
 
-  public VertexInsertion(QueryVertex vertex) {
+  public VertexInsertion(QueryVertex vertex, Set<String> labels, Map<PropertyAccess, QueryExpression> properties) {
+    super(labels, properties);
     this.vertex = vertex;
   }
 
@@ -20,8 +26,7 @@ public class VertexInsertion implements Insertion {
 
   @Override
   public String toString() {
-    return "INSERT VERTEX " + vertex.getName();
-
+    return "INSERT VERTEX " + vertex.getName() + printLabels() + printProperties();
   }
 
   @Override
@@ -31,11 +36,7 @@ public class VertexInsertion implements Insertion {
 
   @Override
   public boolean equals(Object obj) {
-    if (this == obj)
-      return true;
-    if (obj == null)
-      return false;
-    if (getClass() != obj.getClass())
+    if (!super.equals(obj))
       return false;
     VertexInsertion other = (VertexInsertion) obj;
     if (vertex == null) {

@@ -4,7 +4,6 @@
 package oracle.pgql.lang.ir.modify;
 
 import java.util.List;
-import java.util.stream.Collectors;
 
 import oracle.pgql.lang.ir.CommonPathExpression;
 import oracle.pgql.lang.ir.GraphPattern;
