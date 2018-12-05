@@ -64,6 +64,7 @@ import oracle.pgql.lang.ir.QueryVariable.VariableType;
 import oracle.pgql.lang.ir.QueryVertex;
 import oracle.pgql.lang.ir.SelectQuery;
 import oracle.pgql.lang.ir.VertexPairConnection;
+import oracle.pgql.lang.ir.modify.Deletion;
 import oracle.pgql.lang.ir.modify.EdgeInsertion;
 import oracle.pgql.lang.ir.modify.Modification;
 import oracle.pgql.lang.ir.modify.ModifyQuery;
@@ -112,6 +113,8 @@ public class SpoofaxAstToGraphQuery {
 	private static final int POS_UPDATE_ELEMS = 0;
 	private static final int POS_SET_PROPERTY_PROPERTY_ACCESS = 0;
 	private static final int POS_PROPERTY_VALUE_EXPRESSION = 1;
+
+	private static final int POS_DELETION_ELEMENTS = 0;
 
 	private static final int POS_VERTICES = 0;
 	private static final int POS_CONNECTIONS = 1;
@@ -343,6 +346,18 @@ public class SpoofaxAstToGraphQuery {
 
 				break;
 			}
+      case "Deletion": {
+        IStrategoTerm elementsT = modificationT.getSubterm(POS_DELETION_ELEMENTS);
+
+        List<VarRef> elements = new ArrayList<>();
+        for (IStrategoTerm elementT : elementsT) {
+          elements.add((VarRef) translateExp(elementT, ctx));
+        }
+
+        result.add(new Deletion(elements));
+
+        break;
+      }
 			default:
 				throw new IllegalArgumentException(constructorName);
 			}

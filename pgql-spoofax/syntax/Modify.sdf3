@@ -14,6 +14,7 @@ context-free syntax
   ModifyClause.ModifyClause = <MODIFY <Identifier> <Modification+>> {case-insensitive}
 
   Modification = Insertion
+  Modification = Deletion
 
   Insertion.VertexInsertion = <INSERT VERTEX <Identifier> <LabelsSpecification?> <PropertiesSpecification?>> {case-insensitive}
   Insertion.DirectedEdgeInsertion = <INSERT <Directed?> EDGE <Identifier> FROM <VarRef> TO <VarRef> <LabelsSpecification?> <PropertiesSpecification?>> {case-insensitive}
@@ -29,3 +30,5 @@ context-free syntax
 
   UpdateClause.UpdateClause = <UPDATE <{UpdateExp ", "}+>> {case-insensitive}
   UpdateExp.UpdateExp = <<PropRef> = <Exp>>
+
+  Deletion.Deletion = <DELETE <{VarRef ", "}+>> {case-insensitive}

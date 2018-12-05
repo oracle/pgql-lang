@@ -168,6 +168,9 @@ rules
        ; insertion' := <origin-track-forced(!VertexInsertion(v, <origin-offset> v, labels, properties))> t
        ; vars' := <replace-or-add> (VarDef(v, originOffset, None(), None()), vars)
 
+  create-variable-for-insertion(|vars):
+    t@Deletion(_) -> (t, vars) // just pass through
+
   resolve-exp-as-var-in-group-by(|variables, expAsVarsFromSelectClause):
     (t@ExpAsVar(exp, v, anonymous), (result, vars)) -> (result', vars')
     with exp' := <resolve-var-refs(|variables, expAsVarsFromSelectClause)> exp

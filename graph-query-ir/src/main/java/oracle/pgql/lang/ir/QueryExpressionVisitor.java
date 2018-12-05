@@ -49,6 +49,7 @@ import oracle.pgql.lang.ir.QueryExpression.RelationalExpression.LessEqual;
 import oracle.pgql.lang.ir.QueryExpression.RelationalExpression.NotEqual;
 import oracle.pgql.lang.ir.modify.ModifyQuery;
 import oracle.pgql.lang.ir.modify.VertexInsertion;
+import oracle.pgql.lang.ir.modify.Deletion;
 import oracle.pgql.lang.ir.modify.EdgeInsertion;
 import oracle.pgql.lang.ir.QueryExpression.ScalarSubquery;
 import oracle.pgql.lang.ir.QueryExpression.Star;
@@ -173,4 +174,6 @@ public interface QueryExpressionVisitor {
   public void visit(GraphUpdate graphUpdate);
 
   public void visit(PropertyUpdate propertyUpdate);
+
+  public void visit(Deletion deletion);
 }
