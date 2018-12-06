@@ -1,3 +1,7 @@
+
+/*
+ * Copyright (C) 2013 - 2018 Oracle and/or its affiliates. All rights reserved.
+ */
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileReader;
@@ -19,12 +23,10 @@ public class GeneratePostProcessingRules {
 
   public static void main(String[] args) throws Exception {
 
-    if (args.length != 1) {
-      System.out.println("One argument expected:\n - PGQL version (e.g. '1.1')");
+    if (args.length != 0) {
+      System.out.println("No arguments expected");
       System.exit(1);
     }
-
-    String pgqlVersion = args[0];
 
     StringBuilder sb = new StringBuilder();
 
@@ -40,6 +42,16 @@ public class GeneratePostProcessingRules {
       sb.append(toReplacement(from, to));
     }
 
+    generateForVersion("1.1", sb);
+    generateForVersion("1.2", sb);
+
+    String originalContent = new String(Files.readAllBytes(Paths.get("_layouts/page_orig.html")));
+    String newContent = originalContent.replaceFirst("\\{\\{content\\}\\}", "{{content\n" + sb.toString() + "}}");
+
+    Files.write(Paths.get("_layouts/page.html"), newContent.getBytes());
+  }
+
+  private static void generateForVersion(String pgqlVersion, StringBuilder sb) throws Exception {
     File f = new File("pages/pgql-" + pgqlVersion + "-spec.md");
     BufferedReader b = new BufferedReader(new FileReader(f));
 
@@ -60,11 +72,6 @@ public class GeneratePostProcessingRules {
     }
 
     b.close();
-    
-    String originalContent = new String ( Files.readAllBytes( Paths.get("_layouts/page_orig.html") ) );
-    String newContent = originalContent.replaceFirst("\\{\\{content\\}\\}", "{{content\n" + sb.toString() + "}}");
-    
-    Files.write(Paths.get("_layouts/page.html"), newContent.getBytes());
   }
 
   private static String matchPattern(String s, Pattern pattern) {
