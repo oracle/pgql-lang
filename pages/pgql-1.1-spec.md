@@ -768,6 +768,24 @@ Here, `Judith` is returned since there exists the empty path that starts in `400
 
 ### Exactly n
 
+The following query finds all people that can be reached from `Amy` by following exactly two `likes` edges.
+
+SELECT y.name
+  FROM g MATCH (x:Person) -/:likes{2}/-> (y)
+ WHERE x.name = 'Amy'
+
+```
++--------+
+| y.name |
++--------+
+| Albert |
++--------+
+```
+
+Here, `Albert` is returned since there exists the following path that has `likes` edges only: `100 -> 200 -> 300`.
+
+### n or more
+
 The following query finds all people that can be reached from `Amy` by following 2 or more `likes` edges.
 
 ```sql
@@ -786,7 +804,7 @@ SELECT y.name
 ```
 Here, `Albert` is returned since there exists the following path of length two: `100 -> 200 -> 300`. `Judith` is returned since there exists a path of length three: `100 -> 200 -> 300 -> 400`.
 
-### n or more
+### Between n and m
 
 The following query finds all people that can be reached from `Amy` by following between 1 and 2 `likes` edges.
 
@@ -805,7 +823,7 @@ SELECT y.name
 | Judith |
 +--------+
 ```
- 
+
 Here, `John` is returned since there exists a path of length one (i.e. `100 -> 200`);
 `Albert` is returned since there exists a path of length two (i.e. `100 -> 200 -> 300`);
 `Judith` is returned since there exists a path of length one (i.e. `100 -> 400`).

@@ -145,6 +145,10 @@ entries:
         url: /spec/1.1/#n-or-more
         output: web
 
+      - title: Between n and m
+        url: /spec/1.1/#between-n-and-m
+        output: web
+
       - title: Between zero and m
         url: /spec/1.1/#between-zero-and-m
         output: web
