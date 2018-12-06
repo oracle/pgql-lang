@@ -181,9 +181,10 @@ public class PgqlUtils {
         break;
       case MODIFY:
         ModifyQuery modifyQuery = (ModifyQuery) graphQuery;
-        result += "MODIFY " + modifyQuery.getGraphName() + "\n  " + modifyQuery.getModifications().stream() //
-            .map(x -> x.toString()) //
-            .collect(Collectors.joining("\n  "));
+        result += "MODIFY" + BETA_FEATURES_FLAG + " " + modifyQuery.getGraphName() + "\n  "
+            + modifyQuery.getModifications().stream() //
+                .map(x -> x.toString()) //
+                .collect(Collectors.joining("\n  "));
         break;
       default:
         throw new IllegalArgumentException(graphQuery.getQueryType().toString());

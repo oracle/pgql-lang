@@ -54,6 +54,8 @@ import oracle.pgql.lang.ir.QueryExpression.RelationalExpression.NotEqual;
 import oracle.pgql.lang.ir.modify.Deletion;
 import oracle.pgql.lang.ir.modify.EdgeInsertion;
 import oracle.pgql.lang.ir.modify.ModifyQuery;
+import oracle.pgql.lang.ir.modify.SetPropertyExpression;
+import oracle.pgql.lang.ir.modify.Update;
 import oracle.pgql.lang.ir.modify.VertexInsertion;
 import oracle.pgql.lang.ir.QueryExpression.ScalarSubquery;
 import oracle.pgql.lang.ir.QueryExpression.Star;
@@ -387,6 +389,18 @@ public abstract class AbstractQueryExpressionVisitor implements QueryExpressionV
   public void visit(PropertyUpdate propertyUpdate) {
     propertyUpdate.getPropertyAccess().accept(this);
     propertyUpdate.getValueExpression().accept(this);
+  }
+
+  @Override
+  public void visit(Update update) {
+    update.getElements().stream().forEach(element -> element.accept(this));
+    update.getSetPropertyExpressions().stream().forEach(setPropertyExpression -> setPropertyExpression.accept(this));
+  }
+
+  @Override
+  public void visit(SetPropertyExpression setPropertyExpression) {
+    setPropertyExpression.getPropertyAccess().accept(this);
+    setPropertyExpression.getValueExpression().accept(this);
   }
 
   @Override

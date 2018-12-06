@@ -62,8 +62,14 @@ public class Pgql implements Closeable {
 
   private final static String ESCAPED_BETA_FEATURES_FLAG = "\\/\\*beta\\*\\/";
 
+  @Deprecated
   private static final String UPDATE_BETA_ERROR = "UPDATE is a beta feature and the syntax and semantics may change in a future version; "
       + "to use this feature, change UPDATE into UPDATE/*beta*/";
+
+  private static final String MODIFY_BETA_ERROR = "MODIFY is a beta feature and the syntax and semantics may change in a future version; "
+      + "to use this feature, change UPDATE into MODIFY/*beta*/";
+
+  private static final String ANY_STRING = "[\\s\\S]*";
 
   private static final String ERROR_MESSSAGE_INDENTATION = "\t";
 
@@ -196,8 +202,11 @@ public class Pgql implements Closeable {
 
   private void checkBetaFeatureToken(String queryString, GraphQuery graphQuery) throws PgqlException {
     if (graphQuery != null && graphQuery.getQueryType() == QueryType.GRAPH_UPDATE
-        && !queryString.matches("(?i)(.*)UPDATE" + ESCAPED_BETA_FEATURES_FLAG + "(.*)")) {
+        && !queryString.matches("(?i)" + ANY_STRING + "UPDATE" + ESCAPED_BETA_FEATURES_FLAG + ANY_STRING)) {
       throw new PgqlException(UPDATE_BETA_ERROR);
+    } else if (graphQuery != null && graphQuery.getQueryType() == QueryType.MODIFY
+        && !queryString.matches("(?i)" + ANY_STRING + "MODIFY" + ESCAPED_BETA_FEATURES_FLAG + ANY_STRING)) {
+      throw new PgqlException(MODIFY_BETA_ERROR);
     }
   }
 

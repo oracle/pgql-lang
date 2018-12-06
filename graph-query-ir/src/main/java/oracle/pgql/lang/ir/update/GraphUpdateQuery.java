@@ -15,6 +15,7 @@ import oracle.pgql.lang.ir.QueryExpression;
 import oracle.pgql.lang.ir.QueryExpressionVisitor;
 import oracle.pgql.lang.ir.QueryType;
 
+@Deprecated
 public class GraphUpdateQuery extends GraphQuery {
 
   private static final String PROJECTION_ERROR = "An update query does not have a SELECT";

@@ -10,6 +10,7 @@ import oracle.pgql.lang.ir.QueryExpressionVisitor;
 
 import static oracle.pgql.lang.ir.PgqlUtils.BETA_FEATURES_FLAG;
 
+@Deprecated
 public class GraphUpdate {
 
   private List<PropertyUpdate> propertyUpdates;

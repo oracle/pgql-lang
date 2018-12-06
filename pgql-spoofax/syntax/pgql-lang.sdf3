@@ -41,7 +41,7 @@ context-free syntax
   Query = ExperimentalQuery
 
   CommonPathExpression.CommonPathExpression = <PATH <REGULAR-IDENTIFIER> <AsignSymbol> <PathPattern> <WhereClause?>> {case-insensitive}
-  AsignSymbol.Pgql11AsignSymbol = <AS>  {case-insensitive}
+  AsignSymbol.Pgql11AsignSymbol = <AS> {case-insensitive}
 
   SelectOrModify = SelectClause
   SelectOrModify = ModifyClause
