@@ -79,17 +79,17 @@ Note: the data model of PGQL 1.2 does not support multi-valued properties like i
 The syntax of PGQL resembles that of SQL (Standard Query Language) of relational database systems. A basic PGQL query consists of the following clauses:
 
 ```bash
-Query ::=
-  <CommonPathExpressions>?
-  <SelectClause>
-  <FromMatchWhereClauses>
-  <GroupByHavingClauses>?
-  <OrderByClause>?
-  <LimitOffsetClauses>?
+Query                 ::= <CommonPathExpressions>?
+                          <SelectClause>
+                          <FromMatchWhereClauses>
+                          <GroupByClause>?
+                          <HavingClause>?
+                          <OrderByClause>?
+                          <LimitOffsetClauses>?
 
 FromMatchWhereClauses ::= <FromClause>? <MatchClause> <WhereClause>?
 
-GroupByHavingClauses ::= <GroupByClause> <HavingClause>?
+GroupByHavingClauses  ::= <GroupByClause> <HavingClause>?
 ```
 
 The most important ones are as follows:
@@ -135,18 +135,18 @@ PathPattern           ::= <Vertex> ( <Relation> <Vertex> )*
 
 Vertex                ::= '(' <VariableSpecification> ')'
 
-Relation              ::= <Edge>
-                        | <Path>
+Relation              ::=   <Edge>
+                          | <Path>
 
-Edge                  ::= <OutgoingEdge>
-                        | <IncomingEdge>
-                        | <AnyDirectionalEdge>
+Edge                  ::=   <OutgoingEdge>
+                          | <IncomingEdge>
+                          | <AnyDirectionalEdge>
 
-OutgoingEdge          ::= '->'
-                        | '-[' <VariableSpecification> ']->'
+OutgoingEdge          ::=   '->'
+                          | '-[' <VariableSpecification> ']->'
 
-IncomingEdge          ::= '<-'
-                        | '<-[' <VariableSpecification> ']-'
+IncomingEdge          ::=   '<-'
+                          | '<-[' <VariableSpecification> ']-'
 
 VariableSpecification ::= <VariableName>? <LabelPredicate>?
 
@@ -519,15 +519,15 @@ Aggregates `COUNT`, `MIN`, `MAX`, `AVG` and `SUM` can aggregate over groups of s
 The syntax is as follows:
 
 ```bash
-Aggregation      ::= <CountAggregation>
-                   | <MinAggregation>
-                   | <MaxAggregation>
-                   | <AvgAggregation>
-                   | <SumAggregation>
-                   | <ArrayAggregation>
+Aggregation      ::=   <CountAggregation>
+                     | <MinAggregation>
+                     | <MaxAggregation>
+                     | <AvgAggregation>
+                     | <SumAggregation>
+                     | <ArrayAggregation>
 
-CountAggregation ::= 'COUNT' '(' '*' ')'
-                   | 'COUNT' '(' 'DISTINCT'? <ValueExpression> ')'
+CountAggregation ::=   'COUNT' '(' '*' ')'
+                     | 'COUNT' '(' 'DISTINCT'? <ValueExpression> ')'
 
 MinAggregation   ::= 'MIN' '(' 'DISTINCT'? <ValueExpression> ')'
 
@@ -680,11 +680,11 @@ The `LIMIT` puts an upper bound on the number of solutions returned, whereas the
 The following explains the syntactic structure for the LIMIT and OFFSET clauses:
 
 ```bash
-LimitOffsetClauses ::= 'LIMIT' <LimitOffsetValue> ( 'OFFSET' <LimitOffsetValue> )?
-                     | 'OFFSET' <LimitOffsetValue> ( 'LIMIT' <LimitOffsetValue> )?
+LimitOffsetClauses ::=   'LIMIT' <LimitOffsetValue> ( 'OFFSET' <LimitOffsetValue> )?
+                       | 'OFFSET' <LimitOffsetValue> ( 'LIMIT' <LimitOffsetValue> )?
 
-LimitOffsetValue   ::= <UNSIGNED_INTEGER>
-                     | <BindVariable>
+LimitOffsetValue   ::=   <UNSIGNED_INTEGER>
+                       | <BindVariable>
 ```
 
 The `LIMIT` clause starts with the keyword `LIMIT` and is followed by an integer that defines the limit. Similarly, the `OFFSET` clause starts with the keyword `OFFSET` and is followed by an integer that defines the offset. Furthermore:
@@ -711,25 +711,25 @@ Path queries test for the existence of arbitrary-length paths between pairs of v
 The syntactic structure of a query path is similar to a query edge, but it uses forward slashes (`-/` and `/->`) instead of square brackets (`-[` and `]->`). The syntax rules are as follows:
 
 ```bash
-Path                 ::= <OutgoingPath>
-                       | <IncomingPath>
+Path                 ::=   <OutgoingPath>
+                         | <IncomingPath>
 
 OutgoingPath         ::= '-/' <PathSpecification> '/->'
 
 IncomingPath         ::= '<-/' <PathSpecification> '/-'
 
-PathSpecification    ::= <LabelPredicate>
-                       | <PathPredicate>
+PathSpecification    ::=   <LabelPredicate>
+                         | <PathPredicate>
 
 PathPredicate        ::= ':' <Label> <RepetitionQuantifier>
 
-RepetitionQuantifier ::= <ZeroOrMore>
-                       | <OneOrMore>
-                       | <Optional>
-                       | <ExactlyN>
-                       | <NOrMore>
-                       | <BetweenNAndM>
-                       | <BetweenZeroAndM>
+RepetitionQuantifier ::=   <ZeroOrMore>
+                         | <OneOrMore>
+                         | <Optional>
+                         | <ExactlyN>
+                         | <NOrMore>
+                         | <BetweenNAndM>
+                         | <BetweenZeroAndM>
 
 ZeroOrMore           ::= '*'
 
@@ -994,18 +994,25 @@ Value expressions are used in various parts of the language, for example, to fil
 The following are the relevant grammar rules:
 
 ```bash
-ValueExpression          ::= <VariableReference> | <PropertyAccess>
-                           | <Literal> | <BindVariable>
-                           | <ArithmeticExpression> | <RelationalExpression> | <LogicalExpression>
-                           | <BracketedValueExpression>
-                           | <FunctionInvocation> | <Aggregation>
-                           | <ExtractFunction>
-                           | <IsNullPredicate> | <IsNotNullPredicate>
-                           | <CastSpecification>
-                           | <CaseExpression>
-                           | <InPredicate> | <NotInPredicate>
-                           | <ExistsPredicate>
-                           | <ScalarSubquery>
+ValueExpression          ::=   <VariableReference>
+                             | <PropertyAccess>
+                             | <Literal>
+                             | <BindVariable>
+                             | <ArithmeticExpression>
+                             | <RelationalExpression>
+                             | <LogicalExpression>
+                             | <BracketedValueExpression>
+                             | <FunctionInvocation>
+                             | <Aggregation>
+                             | <ExtractFunction>
+                             | <IsNullPredicate>
+                             | <IsNotNullPredicate>
+                             | <CastSpecification>
+                             | <CaseExpression>
+                             | <InPredicate>
+                             | <NotInPredicate>
+                             | <ExistsPredicate>
+                             | <ScalarSubquery>
 
 VariableReference        ::= <VariableName>
 
@@ -1049,22 +1056,22 @@ The following is a list of data types in PGQL
 Syntax for the corresponding literals is as follows:
 
 ```bash
-Literal                      ::= <StringLiteral>
-                               | <NumericLiteral>
-                               | <BooleanLiteral>
-                               | <DateLiteral>
-                               | <TimeLiteral>
-                               | <TimestampLiteral>
-                               | <TimeWithTimeZoneLiteral>
-                               | <TimestampWithTimeZoneLiteral>
+Literal                      ::=   <StringLiteral>
+                                 | <NumericLiteral>
+                                 | <BooleanLiteral>
+                                 | <DateLiteral>
+                                 | <TimeLiteral>
+                                 | <TimestampLiteral>
+                                 | <TimeWithTimeZoneLiteral>
+                                 | <TimestampWithTimeZoneLiteral>
 
 StringLiteral                ::= <SINGLE_QUOTED_STRING>
 
-NumericLiteral               ::= <UNSIGNED_INTEGER>
-                               | <UNSIGNED_DECIMAL>
+NumericLiteral               ::=   <UNSIGNED_INTEGER>
+                                 | <UNSIGNED_DECIMAL>
 
-BooleanLiteral               ::= 'true'
-                               | 'false'
+BooleanLiteral               ::=   'true'
+                                 | 'false'
 
 DateLiteral                  ::= 'DATE' "'" <yyyy-MM-dd> "'"
 
@@ -1144,12 +1151,12 @@ Logical       | `AND`, `OR`, `NOT`
 The corresponding grammar rules are:
 
 ```bash
-ArithmeticExpression ::= <UnaryMinus>
-                       | <Multiplication>
-                       | <Division>
-                       | <Modulo>
-                       | <Addition>
-                       | <Subtraction>
+ArithmeticExpression ::=   <UnaryMinus>
+                         | <Multiplication>
+                         | <Division>
+                         | <Modulo>
+                         | <Addition>
+                         | <Subtraction>
 
 UnaryMinus           ::= '-' <ValueExpression>
 
@@ -1163,12 +1170,12 @@ Addition             ::= <ValueExpression> '+' <ValueExpression>
 
 Subtraction          ::= <ValueExpression> '-' <ValueExpression>
 
-RelationalExpression ::= <Equals>
-                       | <NotEquals>
-                       | <Greater>
-                       | <Less>
-                       | <GreaterEqual>
-                       | <LessEquals>
+RelationalExpression ::=   <Equals>
+                         | <NotEquals>
+                         | <Greater>
+                         | <Less>
+                         | <GreaterEqual>
+                         | <LessEquals>
 
 Equals               ::= <ValueExpression> '=' <ValueExpression>
 
@@ -1182,9 +1189,9 @@ GreaterEqual         ::= <ValueExpression> '>=' <ValueExpression>
 
 LessEquals           ::= <ValueExpression> '<=' <ValueExpression>
 
-LogicalExpression    ::= <Not>
-                       | <And>
-                       | <Or>
+LogicalExpression    ::=   <Not>
+                         | <And>
+                         | <Or>
 
 Not                  ::= 'NOT' <ValueExpression>
 
@@ -1331,14 +1338,14 @@ The syntactic structure is as follows:
 ```bash
 ExtractFunction ::= 'EXTRACT' '(' <ExtractField> 'FROM' <ValueExpression> ')'
 
-ExtractField    ::= 'YEAR'
-                  | 'MONTH'
-                  | 'DAY'
-                  | 'HOUR'
-                  | 'MINUTE'
-                  | 'SECOND'
-                  | 'TIMEZONE_HOUR'
-                  | 'TIMEZONE_MINUTE'
+ExtractField    ::=   'YEAR'
+                    | 'MONTH'
+                    | 'DAY'
+                    | 'HOUR'
+                    | 'MINUTE'
+                    | 'SECOND'
+                    | 'TIMEZONE_HOUR'
+                    | 'TIMEZONE_MINUTE'
 ```
 
 The fields `YEAR`, `MONTH` and `DAY` can be extracted from a date, a timestamp, or a timestamp with time zone.
@@ -1409,9 +1416,18 @@ The syntax is as follows:
 ```bash
 CastSpecification ::= 'CAST' '(' <ValueExpression> 'AS' <DataType> ')'
 
-DataType          ::= 'STRING' | 'BOOLEAN'
-                    | 'INTEGER' | 'INT' | 'LONG' | 'FLOAT' | 'DOUBLE'
-                    | 'DATE' | 'TIME' | 'TIME WITH TIME ZONE' | 'TIMESTAMP' | 'TIMESTAMP WITH TIME ZONE'
+DataType          ::=   'STRING'
+                      | 'BOOLEAN'
+                      | 'INTEGER'
+                      | 'INT'
+                      | 'LONG'
+                      | 'FLOAT'
+                      | 'DOUBLE'
+                      | 'DATE'
+                      | 'TIME'
+                      | 'TIME WITH TIME ZONE'
+                      | 'TIMESTAMP'
+                      | 'TIMESTAMP WITH TIME ZONE'
 ```
 
 Note that the syntax of a data type is one or more identifiers separated by a space, allowing the encoding of data types such as `STRING` and `TIME WITH TIME ZONE`.
@@ -1499,8 +1515,8 @@ InPredicate    ::= <ValueExpression> 'IN' <InValueList>
 
 NotInPredicate ::= <ValueExpression> 'NOT' 'IN' <InValueList>
 
-InValueList    ::= '(' <ValueExpression> ( ',' <ValueExpression> )* ')'
-                 | <BindVariable>
+InValueList    ::=   '(' <ValueExpression> ( ',' <ValueExpression> )* ')'
+                   | <BindVariable>
 ```
 
 For example:
