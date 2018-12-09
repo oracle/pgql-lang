@@ -294,7 +294,7 @@ WHERE y.age > 25
 
 ## Graph Pattern Matching Semantic
 
-There are two popular graph pattern matching semantics: graph homomorphism and graph isomorphism. The built-in semantic of PGQL is based on graph homomorphism, but patterns can still be matched in an isomorphic manner by specifying non-equality constraints between vertices and/or edges, or, by using the built-in function `all_different(exp1, exp2, .., expN)` (see [Built-in Functions](#built-in-functions)).
+There are two popular graph pattern matching semantics: graph homomorphism and graph isomorphism. The built-in semantic of PGQL is based on graph homomorphism, but patterns can still be matched in an isomorphic manner by specifying non-equality constraints between vertices and/or edges, or, by using the built-in function `all_different(exp1, exp2, .., expN)` (see [ALL_DIFFERENT](#alldifferent)).
 
 ### Subgraph Homomorphism
 
@@ -343,7 +343,7 @@ x | y
 --- | ---
 0 | 1
 
-Alternatively, one can use the built-in function `all_different(exp1, exp2, .., expN)` (see [Built-in Functions](#built-in-functions)), which takes an arbitrary number of vertices or edges as input, and automatically applies non-equality constraints between all of them:
+Alternatively, one can use the built-in function `all_different(exp1, exp2, .., expN)` (see [ALL_DIFFERENT](#alldifferent)), which takes an arbitrary number of vertices or edges as input, and automatically applies non-equality constraints between all of them:
 
 ```sql
 SELECT x, y
@@ -1283,53 +1283,133 @@ SELECT n.name
 
 Here, we find all the vertices in the graph that have the property `name` and then return the property.
 
-## Functions
+## String functions
 
-PGQL has a set of built-in functions (see [Built-in Functions](#built-in-functions)), and, provides language extension through user-defined functions (see [User-Defined Functions](#user-defined-functions)).
+### JAVA_REGEXP_LIKE
 
-The syntactic structure for function invocation is as follows:
+The JAVA_REGEXP_LIKE returns whether the string matches the given [Java regular expression pattern](https://docs.oracle.com/javase/8/docs/api/java/util/regex/Pattern.html).
 
-```bash
-FunctionInvocation   ::= <PackageSpecification>? <FunctionName> '(' <ArgumentList> ')'
+The syntax is:
 
-PackageSpecification ::= <PackageName> '.'
-
-PackageName          ::= <IDENTIFIER>
-
-FunctionName         ::= <IDENTIFIER>
-
-ArgumentList         ::= ( <ValueExpression> ( ',' <ValueExpression> )* )?
 ```
-
-A function invocation has an optional package name, a function name, and, zero or more arguments which are arbitrary value expressions.
-
-Function and package names are case-insensitive such that e.g. `in_degree(..)` is the same function as `In_Degree(..)` or `IN_DEGREE(..)`.
-
-### String functions
-
-Signature | Return value | Description
---- | --- | ---
-`java_regexp_like(string, pattern)` | boolean | returns whether the string matches the [pattern](https://docs.oracle.com/javase/7/docs/api/java/util/regex/Pattern.html)
-
-### Numeric functions
-
-Signature | Return value | Description
---- | --- | ---
-`abs(numeric)` | numeric | The abs function returns the absolute value of an argument.
-`ceil(numeric)` or `ceiling(numeric)` | numeric | The ceiling function, which can also be invoked as ceil function returns the smallest integer value that is greater than or equal to the given argument.
-`floor(numeric)` | numeric | The floor function returns the biggest integer value that is smaller than or equal to the given argument.
-`round(numeric)` | numeric | The round function returns the closest integer to the given argument.
+JAVA_REGEXP_LIKE( string, pattern )
+```
 
 For example:
 
- - `abs(-1.3)` ==> `1.3`
- - `abs(1.3)` ==> `1.3`
- - `ceil(3.2)` (same as `ceiling(3.2)`) ==> `4.0`
- - `floor(2.8)` ==> `2.0`
- - `round(3.2)` ==> `3.0`
- - `round(2.8)` ==> `3.0`
+```sql
+JAVA_REGEXP_LIKE('aaaaab', 'a*b')
+Result: true
+```
 
-### Datetime functions
+## Numeric functions
+
+### ABS
+
+The ABS function returns the absolute value of a number.
+The function returns the same datatype as the numeric datatype of the argument.
+
+The syntax is:
+
+```
+ABS( number )
+```
+
+For example:
+
+```sql
+ABS(-23)
+Result: 23
+
+ABS(-23.6)
+Result: 23.6
+
+ABS(-23.65)
+Result: 23.65
+
+ABS(23.65)
+Result: 23.65
+
+ABS(23.65 * -1)
+Result: 23.65
+```
+
+### CEIL or CEILING
+
+The CEIL and CEILING functions round the specified number up, and return the smallest number that is greater than or equal to the specified number.
+The function returns the same datatype as the numeric datatype of the argument.
+
+The syntax is:
+
+```
+CEIL ( number )
+CEILING ( number )
+```
+
+For example:
+
+```sql
+CEIL(3.2)
+Result: 4.0
+
+CEIL(2.8)
+Result: 3.0
+
+CEIL(3)
+Result: 3
+```
+
+### FLOOR
+
+The floor function returns the largest integer value that is smaller than or equal to the given argument.
+The function returns the same datatype as the numeric datatype of the argument.
+
+The syntax is:
+
+```
+FLOOR( number )
+```
+
+For example:
+
+```sql
+FLOOR(3.2)
+Result: 3.0
+
+FLOOR(2.8)
+Result: 2.0
+
+FLOOR(3)
+Result: 3
+```
+
+### ROUND
+
+The round function returns the integer closest to the given argument.
+The function returns the same datatype as the numeric datatype of the argument.
+
+The syntax is:
+
+```
+ROUND ( number )
+```
+
+For example:
+
+```sql
+ROUND(3.2)
+Result: 3.0
+
+ROUND(2.8)
+Result: 3.0
+
+ROUND(3)
+Result: 3
+```
+
+## Datetime functions
+
+### EXTRACT
 
 The `EXTRACT` function allows for extracting a datetime field, such as a year, month or day, from a datetime value.
 
@@ -1352,52 +1432,181 @@ The fields `YEAR`, `MONTH` and `DAY` can be extracted from a date, a timestamp, 
 
 For example:
 
- - `EXTRACT(YEAR FROM DATE '2017-02-13')` ==> `2017`
- - `EXTRACT(MONTH FROM DATE '2017-02-13')` ==> `2`
- - `EXTRACT(DAY FROM DATE '2017-02-13')` ==> `13`
+```sql
+EXTRACT(YEAR FROM DATE '2017-02-13')
+Result: 2017
+
+EXTRACT(MONTH FROM DATE '2017-02-13')
+Result: 2
+
+EXTRACT(DAY FROM DATE '2017-02-13')
+Result: 13
+```
 
 The fields `HOUR`, `MINUTE` and `SECOND` can be extracted from a time, a timestamp, a time with time zone, or a timestamp with time zone.
 
 For example:
 
- - `EXTRACT(HOUR FROM TIME '12:05:03.201')` ==> `12`
- - `EXTRACT(MINUTE FROM TIME '12:05:03.201')` ==> `5`
- - `EXTRACT(SECOND FROM TIME '12:05:03.201')` ==> `3.201`
+```sql
+EXTRACT(HOUR FROM TIME '12:05:03.201')
+Result: 12
+
+EXTRACT(MINUTE FROM TIME '12:05:03.201')
+Result: 5
+
+EXTRACT(SECOND FROM TIME '12:05:03.201')
+Result: 3.201
+```
 
 The fields `TIMEZONE_HOUR` and `TIMEZONE_MINUTE` can be extracted from a time with time zone or a timestamp with time zone.
 
 For example:
 
- - `EXTRACT(TIMEZONE_HOUR FROM TIMESTAMP '2018-01-01 12:30:00-02:30')` ==> `-2`
- - `EXTRACT(TIMEZONE_MINUTE FROM TIMESTAMP '2018-01-01 12:30:00-02:30')` ==> `-30`
-
-### Vertex and Edge functions
-
-Signature | Return value | Description
---- | --- | ---
-`id(element)` | `object` | returns an identifier for the vertex/edge, if one exists.
-`has_label(element, string)` | boolean | returns true if the vertex or edge (first argument) has the given label (second argument).
-`labels(element)` | `set<string>` | returns the labels of the vertex or edge in the case it has multiple labels.
-`label(element)` | string | returns the label of the vertex or edge in the case it has a single label.
-`all_different(val1, val2, .., valn)` | boolean | returns true if the values are all different, a function typically used for specifying isomorphic constraints (see [Subgraph Isomorphism](#subgraph-isomorphism)).
-`in_degree(vertex)` | exact numeric | returns the number of incoming neighbors.
-`out_degree(vertex)` | exact numeric | returns the number of outgoing neighbors.
-
-Consider the following query:
-
 ```sql
-SELECT id(y)
-  FROM g MATCH (x) -> (y)
- WHERE in_degree(x) > 10
+EXTRACT(TIMEZONE_HOUR FROM TIMESTAMP '2018-01-01 12:30:00-02:30')
+Result: -2
+
+EXTRACT(TIMEZONE_MINUTE FROM TIMESTAMP '2018-01-01 12:30:00-02:30')
+Result: -30
 ```
 
-Here, `in_degree(x)` returns the number of incoming neighbors of `x`, whereas `id(y)` returns the identifier of the vertex `y`.
+## Vertex and Edge functions
 
-### User-Defined functions
+### ID
 
-PGQL does not specify how user-defined functions (UDFs) are registered to a database system and only considers function _invocation_:
+The ID functions returns an identifier for the vertex/edge, if one exists.
 
-UDFs are invoked similarly to built-in functions. For example, a user may have registered a function `math.tan` that returns the tangent of a given angle.
+The syntax is:
+
+```
+ID( vertex/edge )
+```
+
+### LABELS
+
+The LABELS function returns the set of labels of a vertex or an edge. This function only applies when metadata specifies that the vertex or edge has a set of labels, rather than a single label or no label.
+The return type of the function is a set of strings.
+
+The syntax is:
+
+```
+LABELS( vertex/edge )
+```
+
+For example:
+
+```sql
+SELECT LABELS(n)
+  FROM g MATCH (n:Employee|Manager)
+```
+
+```
++---------------------+
+| LABELS(n)           |
++---------------------+
+| [Employee]          |
+| [Manager]           |
+| [Employee, Manager] |
++---------------------+
+```
+
+### LABEL
+
+The LABEL function returns the label of a vertex or an edge. This function only applies when metadata specifies that the vertex or edge has a single label, rather than a set of labels or no label.
+The return type of the function is a string.
+
+The syntax is:
+
+```
+LABEL( vertex/edge )
+```
+
+For example:
+
+```sql
+SELECT LABEL(e)
+  FROM g MATCH (n:Person) -[e]-> (m:Person)
+```
+
+```
++----------+
+| LABEL(e) |
++----------+
+| likes    |
+| knows    |
+| likes    |
++----------+
+```
+
+### HAS_LABEL
+
+The HAS_LABEL functions returns true if the vertex or edge (first argument) has the given label (second argument), and false otherwise.
+
+The syntax is:
+
+```
+HAS_LABEL( vertex/edge, string )
+```
+
+### ALL_DIFFERENT
+
+The ALL_DIFFERENT function returns true if the provided values are all different from each other, and false otherwise. The function is typically used for specifying that a particular set of vertices or edges are all different from each other. However, the function can be used for values of any data type, as long as the provided values can be compared for equality.
+
+The syntax is:
+
+```
+ALL_DIFFERENT ( val1, val2, val3, ..., valN )
+```
+
+For example:
+
+```sql
+SELECT n.id, m.id, o.id
+  FROM g MATCH (n) -> (m) -> (o)
+ WHERE ALL_DIFFERENT( n, m, o )
+```
+
+Note that the above query can be rewritten using non-equality constraints as follows:
+
+```sql
+SELECT *
+  FROM g MATCH (n) -> (m) <- (o) -> (n)
+ WHERE n <> m AND n <> o AND m <> o
+```
+
+Another example is:
+
+```sql
+ALL_DIFFERENT( 1, 2, 3 )
+Result: true
+
+ALL_DIFFERENT( 1, 1.0 )
+Result: false
+```
+
+### IN_DEGREE
+
+The IN_DEGREE function returns the number of incoming neighbors of a vertex. The return type is an exact numeric.
+
+The syntax is:
+
+```
+IN_DEGREE( vertex )
+```
+
+### OUT_DEGREE
+
+The OUT_DEGREE function returns the number of outgoing neighbors of a vertex.  The return type is an exact numeric.
+
+The syntax is:
+
+```
+OUT_DEGREE( vertex )
+```
+
+## User-Defined functions
+
+User-defined functions (UDFs) are invoked similarly to built-in functions. For example, a user may have registered a function `math.tan` that returns the tangent of a given angle.
 An example invocation of this function is then:
 
 ```sql
@@ -1405,6 +1614,24 @@ An example invocation of this function is then:
     FROM g MATCH (n)
 ORDER BY tangent
 ```
+
+The syntax is:
+
+```bash
+FunctionInvocation   ::= <PackageSpecification>? <FunctionName> '(' <ArgumentList>? ')'
+
+PackageSpecification ::= <PackageName> '.'
+
+PackageName          ::= <IDENTIFIER>
+
+FunctionName         ::= <IDENTIFIER>
+
+ArgumentList         ::= <ValueExpression> ( ',' <ValueExpression> )*
+```
+
+Note that a function invocation has an optional package name, a (non-optional) function name, and, zero or more arguments which are arbitrary value expressions.
+
+Function and package names are case-insensitive such that e.g. `in_degree(..)` is the same as `In_Degree(..)` or `IN_DEGREE(..)`.
 
 If a UDF is registered that has the same name as a built-in function, then, upon function invocation, the UDF is invoked and not the built-in function. UDFs can thus override built-ins.
 
@@ -1479,7 +1706,9 @@ The Simple Case provides a list of pairs (`WHEN` compare value, `THEN` return va
 an else clause (`ELSE` else value). PGQL compares a given expression to each compare value and
 returns the corresponding return value when compared expressions are equal. If no equal expression
 is found and an `ELSE` clause exists, then PGQL returns the given else value. Otherwise, null is
-returned:
+returned.
+
+For example:
 
 ```sql
 CASE n.age
@@ -1493,7 +1722,9 @@ END
 The Searched Case provides a list of pairs (`WHEN` boolean expression, `THEN` return value) and optionally
 an else clause (`ELSE` else value). PGQL evaluates each boolean expression until one of them evaluates
 to true, and returns the corresponding return value. If no expression evaluates to true, and an `ELSE`
-clause exists, then PGQL returns the given else value. Otherwise, null is returned:
+clause exists, then PGQL returns the given else value. Otherwise, null is returned.
+
+For example:
 
 ```sql
 CASE
@@ -1521,13 +1752,27 @@ InValueList    ::=   '(' <ValueExpression> ( ',' <ValueExpression> )* ')'
 
 For example:
 
- - `2 IN (2, 3, 5)` ==> `true`
- - `3.2 IN (5, 4.8, 3.2)` ==> `true`
- - `false IN (true, true)` ==> `false`
- - `'Emily' IN ('Emily', 'Carl')` ==> `true`
- - `DATE '1990-07-03' IN (DATE '1990-07-03', DATE '1993-05-28')` ==> `true`
- - `TIME '12:00:10' IN (TIME '11:55:10', TIME '06:50:00.999+05:00')` ==> `false`
- - `TIMESTAMP '2016-03-20 22:09:59.999' IN (TIMESTAMP '2016-03-20 23:09:59')` ==> `false`
+```sql
+2 IN (2, 3, 5)
+Result: true
+
+3.2 IN (5, 4.8, 3.2)
+Result: true
+
+false IN (true, true)
+Result: false
+
+'Emily' IN ('Emily', 'Carl')
+Result: true
+
+DATE '1990-07-03' IN (DATE '1990-07-03', DATE '1993-05-28')
+Result: true
+
+TIME '12:00:10' IN (TIME '11:55:10', TIME '06:50:00.999+05:00')
+Result: false
+
+TIMESTAMP '2016-03-20 22:09:59.999' IN (TIMESTAMP '2016-03-20 23:09:59')
+Result: false
 ```
 
 Bind variables are also supported in the position of the list. For example:
@@ -1543,6 +1788,8 @@ SELECT n.date_of_birth
 There are two types of subqueries in PGQL 1.2:
 [Existential Subqueries (EXISTS)](#existential-subqueries-exists) and
 [Scalar Subqueries](#scalar-subqueries).
+
+If the `FROM` clause is omitted from a subquery, then the graph to process the subquery against, is the same graph as used for the outer query.
 
 ## Existential subqueries (EXISTS)
 
@@ -1568,48 +1815,6 @@ SELECT fof.name, COUNT(friend) AS num_common_friends
 
 Here, vertices `p` and `fof` are passed from the outer query to the inner query. The `EXISTS` returns true if there is at least one `has_friend` edge between vertices `p` and `fof`.
 
-## Scalar subqueries
-
-The syntactic structure is as follows:
-
-```bash
-ScalarSubquery ::= <Subquery>
-```
-
-For example:
-
-```sql
-SELECT a.name
-  FROM g MATCH (a)
- WHERE a.age > ( SELECT AVG(b.age) MATCH (a) -[:friendOf]-> (b) )
-```
-
-## Subqueries without FROM clause
-
-If the `FROM` clause is omitted from a subquery, then the graph to process the subquery against, is the same graph as used for the outer query.
-
-## Querying multiple graphs
-
-Through subqueries, PGQL allows for comparing data from different graphs.
-
-For example, the following query finds people who are on Facebook but not on Twitter:
-
-```sql
-SELECT p1.name
-  FROM facebook_graph
- MATCH (p1:Person)                           /* Match persons in the Facebook graph.. */
- WHERE NOT EXISTS (                          /* ..such that there does not exist..    */
-                    SELECT p2
-                      FROM twitter_graph
-                     MATCH (p2:Person)       /* ..a person in the Twitter graph..     */
-                     WHERE p1.name = p2.name /* ..with the same name.                 */
-                  )
-```
-
-Above, we compare two string properties from different graphs. Besides properties, it is also possible to compare vertices and edges from different graphs. However, because PGQL 1.2 does not have concepts like graph views, base graphs, or sharing of vertices/edges between graphs, such comparisons will always yield `false`.
-
-## Subqueries inside PATH expression
-
 Users can add a subquery in the `WHERE` clause of the `PATH` definition. One might be interested in asserting for specific properties for a vertex in the `PATH`. The following example defines a path ending in a vertex which is not the oldest in the graph:
 
 ```sql
@@ -1624,6 +1829,22 @@ Topology related constraints can also be imposed. The following example defines 
   PATH p AS (a) -> (b) WHERE EXISTS ( SELECT * FROM g MATCH (b) -> (c) )
 SELECT ...
   FROM ...
+```
+
+## Scalar subqueries
+
+The syntactic structure is as follows:
+
+```bash
+ScalarSubquery ::= <Subquery>
+```
+
+For example:
+
+```sql
+SELECT a.name
+  FROM g MATCH (a)
+ WHERE a.age > ( SELECT AVG(b.age) MATCH (a) -[:friendOf]-> (b) )
 ```
 
 # Other Syntactic Rules

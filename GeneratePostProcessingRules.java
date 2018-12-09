@@ -13,7 +13,8 @@ import java.util.regex.Pattern;
 public class GeneratePostProcessingRules {
 
   private static final String[] ADDITIONAL_KEYWORDS = { "PATH", "DATE", "TIME", "TIMEZONE", "INTEGER", "BOOLEAN",
-      "STRING", "ARRAY_AGG" };
+      "STRING", "ARRAY_AGG", "ID", "LABELS", "LABEL", "HAS_LABEL", "ALL_DIFFERENT", "IN_DEGREE", "OUT_DEGREE",
+      "CEIL", "CEILING", "FLOOR", "ROUND", "JAVA_REGEXP_LIKE" };
 
   private static final String[] NO_KEYWORDS = { "source", "Class", "c", "location", "g", "level" };
 

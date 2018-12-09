@@ -260,30 +260,81 @@ entries:
         url: /spec/1.2/#is-null-and-is-not-null
         output: web
 
-    - title: Functions
-      url: /spec/1.2/#functions
+    - title: String functions
+      url: /spec/1.2/#string-functions
       output: web
       subfolderitems:
 
-      - title: String functions
-        url: /spec/1.2/#string-functions
+      - title: JAVA_REGEXP_LIKE
+        url: /spec/1.2/#javaregexplike
         output: web
 
-      - title: Numeric functions
-        url: /spec/1.2/#numeric-functions
+    - title: Numeric functions
+      url: /spec/1.2/#numeric-functions
+      output: web
+      subfolderitems:
+
+      - title: ABS
+        url: /spec/1.2/#abs
         output: web
 
-      - title: Datetime functions
-        url: /spec/1.2/#datetime-functions
+      - title: CEIL or CEILING
+        url: /spec/1.2/#ceil-or-ceiling
         output: web
 
-      - title: Vertex and Edge functions
-        url: /spec/1.2/#vertex-and-edge-functions
+      - title: FLOOR
+        url: /spec/1.2/#floor
         output: web
 
-      - title: User-Defined functions
-        url: /spec/1.2/#user-defined-functions
+      - title: ROUND
+        url: /spec/1.2/#round
         output: web
+
+    - title: Datetime functions
+      url: /spec/1.2/#datetime-functions
+      output: web
+      subfolderitems:
+
+      - title: EXTRACT
+        url: /spec/1.2/#extract
+        output: web
+
+    - title: Vertex and Edge functions
+      url: /spec/1.2/#vertex-and-edge-functions
+      output: web
+      subfolderitems:
+
+      - title: ID
+        url: /spec/1.2/#id
+        output: web
+
+      - title: LABELS
+        url: /spec/1.2/#labels
+        output: web
+
+      - title: LABEL
+        url: /spec/1.2/#label
+        output: web
+
+      - title: HAS_LABEL
+        url: /spec/1.2/#haslabel
+        output: web
+
+      - title: ALL_DIFFERENT
+        url: /spec/1.2/#alldifferent
+        output: web
+
+      - title: IN_DEGREE
+        url: /spec/1.2/#indegree
+        output: web
+
+      - title: OUT_DEGREE
+        url: /spec/1.2/#outdegree
+        output: web
+
+    - title: User-Defined functions
+      url: /spec/1.2/#user-defined-functions
+      output: web
 
     - title: CAST
       url: /spec/1.2/#cast
@@ -308,18 +359,6 @@ entries:
 
     - title: Scalar subqueries
       url: /spec/1.2/#scalar-subqueries
-      output: web
-
-    - title: Subqueries without FROM clause
-      url: /spec/1.2/#subqueries-without-from-clause
-      output: web
-
-    - title: Querying multiple graphs
-      url: /spec/1.2/#querying-multiple-graphs
-      output: web
-
-    - title: Subqueries inside PATH expression
-      url: /spec/1.2/#subqueries-inside-path-expression
       output: web
 
   - title: Other Syntactic Rules
