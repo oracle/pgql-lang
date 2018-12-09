@@ -266,7 +266,7 @@ entries:
       subfolderitems:
 
       - title: JAVA_REGEXP_LIKE
-        url: /spec/1.2/#javaregexplike
+        url: /spec/1.2/#java_regexp_like
         output: web
 
     - title: Numeric functions
@@ -317,19 +317,19 @@ entries:
         output: web
 
       - title: HAS_LABEL
-        url: /spec/1.2/#haslabel
+        url: /spec/1.2/#has_label
         output: web
 
       - title: ALL_DIFFERENT
-        url: /spec/1.2/#alldifferent
+        url: /spec/1.2/#all_different
         output: web
 
       - title: IN_DEGREE
-        url: /spec/1.2/#indegree
+        url: /spec/1.2/#in_degree
         output: web
 
       - title: OUT_DEGREE
-        url: /spec/1.2/#outdegree
+        url: /spec/1.2/#out_degree
         output: web
 
     - title: User-Defined functions
