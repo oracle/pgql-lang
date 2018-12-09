@@ -1894,10 +1894,13 @@ Escape | Unicode code point
 `\'` | U+0027 (apostrophe-quote, single quote mark)
 `\\` | U+005C (backslash)
 
-In string literals, it is optional to escape double quotes. For example, the following expression yields `true`:
+In string literals, it is optional to escape double quotes.
+
+For example:
 
 ```sql
-'abc\"d\"efg' = 'abc"d"efg' /* this expression yields true */
+'abc\"d\"efg' = 'abc"d"efg'
+Result: true
 ```
 
 ## Keywords
@@ -1910,22 +1913,25 @@ HAVING, ORDER, ASC, DESC, LIMIT, OFFSET,
 AND, OR, NOT, true, false, IS, NULL,
 DATE, TIME, TIMESTAMP, WITH, ZONE,
 COUNT, MIN, MAX, AVG, SUM, ARRAY_AGG,
-EXISTS, CAST, CASE, WHEN, THEN, ELSE, IN
+EXISTS, CAST, CASE, WHEN, THEN, ELSE, IN,
+EXTRACT, YEAR, MONTH, DAY, HOUR, MINUTE,
+SECOND, TIMEZONE_HOUR, TIMEZONE_MINUTE
+TOP, SHORTEST
 ```
 
 Keywords are case-insensitive and variations such as `SELECT`, `Select` and `sELeCt` can be used interchangeably.
 
-Keywords are reserved names such that an `<IDENTIFIER>` (e.g. variable name or property name) may not correspond to one of the keywords.
-
 ## Comments
 
-Comments are delimited by `/*` and `*/`. The following is the syntactic structure:
+Comments are delimited by `/*` and `*/`.
+
+The syntax is:
 
 ```bash
 COMMENT ::= '/*' ~[\*]* '*/'
 ```
 
-An example query with both single-line and multi-line comments is as follows:
+For example:
 
 ```sql
 /* This is a
