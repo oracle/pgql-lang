@@ -37,6 +37,11 @@ public class Update implements Modification {
   }
 
   @Override
+  public ModificationType getModificationType() {
+    return ModificationType.UPDATE;
+  }
+
+  @Override
   public String toString() {
     String result = "UPDATE " + elements.stream().map(x -> x.toString()).collect(Collectors.joining(", "));
     if (!elements.isEmpty()) {

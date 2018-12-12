@@ -8,4 +8,6 @@ import oracle.pgql.lang.ir.QueryExpressionVisitor;
 public interface Modification {
 
   void accept(QueryExpressionVisitor v);
+
+  ModificationType getModificationType();
 }

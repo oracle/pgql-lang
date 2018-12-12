@@ -3,20 +3,17 @@
  */
 package oracle.pgql.lang.ir.modify;
 
-import java.util.Map;
+import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
-
-import oracle.pgql.lang.ir.QueryExpression;
-import oracle.pgql.lang.ir.QueryExpression.PropertyAccess;
 
 public abstract class AbstractInsertion implements Modification {
 
   protected Set<String> labels;
 
-  protected Map<PropertyAccess, QueryExpression> properties;
+  protected List<SetPropertyExpression> properties;
 
-  public AbstractInsertion(Set<String> labels, Map<PropertyAccess, QueryExpression> properties) {
+  public AbstractInsertion(Set<String> labels, List<SetPropertyExpression> properties) {
     this.labels = labels;
     this.properties = properties;
   }
@@ -29,11 +26,11 @@ public abstract class AbstractInsertion implements Modification {
     this.labels = labels;
   }
 
-  public Map<PropertyAccess, QueryExpression> getProperties() {
+  public List<SetPropertyExpression> getProperties() {
     return properties;
   }
 
-  public void setProperties(Map<PropertyAccess, QueryExpression> properties) {
+  public void setProperties(List<SetPropertyExpression> properties) {
     this.properties = properties;
   }
 
@@ -49,8 +46,8 @@ public abstract class AbstractInsertion implements Modification {
     if (properties.isEmpty()) {
       return "";
     } else {
-      return " PROPERTIES " + properties.entrySet().stream() //
-          .map(x -> x.getKey() + " = " + x.getValue()) //
+      return " PROPERTIES " + properties.stream() //
+          .map(x -> x.toString()) //
           .collect(Collectors.joining(", "));
     }
   }

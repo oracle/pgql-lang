@@ -367,11 +367,13 @@ public abstract class AbstractQueryExpressionVisitor implements QueryExpressionV
   @Override
   public void visit(VertexInsertion vertexInsertion) {
     vertexInsertion.getVertex().accept(this);
+    vertexInsertion.getProperties().stream().forEach(setProperty -> setProperty.accept(this));
   }
 
   @Override
   public void visit(EdgeInsertion edgeInsertion) {
     edgeInsertion.getEdge().accept(this);
+    edgeInsertion.getProperties().stream().forEach(setProperty -> setProperty.accept(this));
   }
 
   @Override

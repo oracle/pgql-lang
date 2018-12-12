@@ -3,19 +3,17 @@
  */
 package oracle.pgql.lang.ir.modify;
 
-import java.util.Map;
+import java.util.List;
 import java.util.Set;
 
 import oracle.pgql.lang.ir.QueryEdge;
-import oracle.pgql.lang.ir.QueryExpression;
-import oracle.pgql.lang.ir.QueryExpression.PropertyAccess;
 import oracle.pgql.lang.ir.QueryExpressionVisitor;
 
 public class EdgeInsertion extends AbstractInsertion {
 
   private QueryEdge edge;
 
-  public EdgeInsertion(QueryEdge edge, Set<String> labels, Map<PropertyAccess, QueryExpression> properties) {
+  public EdgeInsertion(QueryEdge edge, Set<String> labels, List<SetPropertyExpression> properties) {
     super(labels, properties);
     this.edge = edge;
   }
@@ -26,6 +24,11 @@ public class EdgeInsertion extends AbstractInsertion {
 
   public void setEdge(QueryEdge edge) {
     this.edge = edge;
+  }
+
+  @Override
+  public ModificationType getModificationType() {
+    return ModificationType.INSERT_EDGE;
   }
 
   @Override
@@ -56,4 +59,5 @@ public class EdgeInsertion extends AbstractInsertion {
   public void accept(QueryExpressionVisitor v) {
     v.visit(this);
   }
+
 }

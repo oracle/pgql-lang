@@ -324,7 +324,7 @@ public class SpoofaxAstToGraphQuery {
           Set<String> labels = getLabels(ctx, labelsT);
 
           IStrategoTerm propertiesT = modificationT.getSubterm(POS_VERTEX_INSERTION_PROPERTIES);
-          Map<PropertyAccess, QueryExpression> properties = getProperties(ctx, propertiesT);
+          List<SetPropertyExpression> properties = getProperties(ctx, propertiesT);
 
           result.add(new VertexInsertion(vertex, labels, properties));
 
@@ -347,7 +347,7 @@ public class SpoofaxAstToGraphQuery {
           Set<String> labels = getLabels(ctx, labelsT);
 
           IStrategoTerm propertiesT = modificationT.getSubterm(POS_EDGE_INSERTION_PROPERTIES);
-          Map<PropertyAccess, QueryExpression> properties = getProperties(ctx, propertiesT);
+          List<SetPropertyExpression> properties = getProperties(ctx, propertiesT);
 
           result.add(new EdgeInsertion(edge, labels, properties));
 
@@ -390,22 +390,13 @@ public class SpoofaxAstToGraphQuery {
     return result;
   }
 
-  private static Map<PropertyAccess, QueryExpression> getProperties(TranslationContext ctx, IStrategoTerm propertiesT)
+  private static List<SetPropertyExpression> getProperties(TranslationContext ctx, IStrategoTerm propertiesT)
       throws PgqlException {
-    Map<PropertyAccess, QueryExpression> result = new HashMap<>();
-
     if (isSome(propertiesT)) {
-      IStrategoTerm propertiesListT = getSome(propertiesT).getSubterm(POS_PROPERTIES_LIST);
-      for (IStrategoTerm setPropertyT : propertiesListT) {
-        IStrategoTerm propertyAccessT = setPropertyT.getSubterm(POS_SET_PROPERTY_EXPRESSION_PROPERTY_ACCESS);
-        PropertyAccess propertyAccess = (PropertyAccess) translateExp(propertyAccessT, ctx);
-        IStrategoTerm valueExpressionT = setPropertyT.getSubterm(POS_SET_PROPERTY_EXPRESSION_VALUE_EXPRESSION);
-        QueryExpression valueExpression = translateExp(valueExpressionT, ctx);
-        result.put(propertyAccess, valueExpression);
-      }
+      return getSetPropertyExpressions(ctx, getSome(propertiesT));
+    } else {
+      return new ArrayList<>();
     }
-
-    return result;
   }
 
   private static List<SetPropertyExpression> getSetPropertyExpressions(TranslationContext ctx,

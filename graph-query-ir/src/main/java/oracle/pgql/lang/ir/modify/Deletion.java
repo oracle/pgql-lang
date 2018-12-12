@@ -26,6 +26,11 @@ public class Deletion implements Modification {
   }
 
   @Override
+  public ModificationType getModificationType() {
+    return ModificationType.DELETE;
+  }
+
+  @Override
   public String toString() {
     return "DELETE " + elements.stream() //
         .map(x -> x.toString()) //
