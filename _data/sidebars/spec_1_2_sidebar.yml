@@ -34,7 +34,7 @@ entries:
     output: web
     folderitems:
 
-    - title: Property Graph data model
+    - title: Property graph data model
       url: /spec/1.2/#property-graph-data-model
       output: web
 

@@ -71,7 +71,7 @@ An example is:
 ### Mapping variables to vertices and edges
 
 
-There are two popular graph pattern matching semantics: graph homomorphism and graph isomorphism. The built-in semantic of PGQL is based on graph homomorphism, but patterns can still be matched in an isomorphic manner by specifying non-equality constraints between vertices and/or edges, or, by using the built-in function `all_different(exp1, exp2, .., expN)` (see [ALL_DIFFERENT](#alldifferent)).
+There are two popular graph pattern matching semantics: graph homomorphism and graph isomorphism. The built-in semantic of PGQL is based on graph homomorphism, but patterns can still be matched in an isomorphic manner by specifying non-equality constraints between vertices and/or edges, or, by using the built-in function `all_different(exp1, exp2, .., expN)` (see [ALL_DIFFERENT](#all_different)).
 
 #### Subgraph Homomorphism
 
