@@ -59,6 +59,19 @@ entries:
       url: /spec/1.2/#from
       output: web
 
+    - title: SELECT
+      url: /spec/1.2/#select
+      output: web
+      subfolderitems:
+
+      - title: Assigning variable name to Select Expression
+        url: /spec/1.2/#assigning-variable-name-to-select-expression
+        output: web
+
+      - title: SELECT *
+        url: /spec/1.2/#select-
+        output: web
+
     - title: MATCH
       url: /spec/1.2/#match
       output: web
@@ -83,19 +96,6 @@ entries:
     - title: WHERE
       url: /spec/1.2/#where
       output: web
-
-    - title: SELECT
-      url: /spec/1.2/#select
-      output: web
-      subfolderitems:
-
-      - title: Assigning variable name to Select Expression
-        url: /spec/1.2/#assigning-variable-name-to-select-expression
-        output: web
-
-      - title: SELECT *
-        url: /spec/1.2/#select-
-        output: web
 
   - title: Grouping and Aggregation
     url: /spec/1.2/#grouping-and-aggregation

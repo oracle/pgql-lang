@@ -206,6 +206,68 @@ The `FROM` clause may be omitted if the system does not require the specificatio
 
 Subqueries may have their own `FROM` clause (see [Querying Multiple Graphs](#querying-multiple-graphs)). Subqueries may also omit the `FROM` clause (see [Subqueries without FROM Clause](#subqueries-without-from-clause)).
 
+## SELECT
+
+In a PGQL query, the SELECT clause defines the data entities to be returned in the result. In other words, the select clause defines the columns of the result table.
+
+The following explains the syntactic structure of SELECT clause.
+
+```bash
+SelectClause ::= 'SELECT' 'DISTINCT'? <ExpAsVar> ( ',' <ExpAsVar> )*
+               | 'SELECT' '*'
+
+ExpAsVar     ::= <ValueExpression> ( 'AS' <VariableName> )?
+```
+
+A `SELECT` clause consists of the keyword `SELECT` followed by either an optional `DISTINCT` modifier and comma-separated sequence of `<ExpAsVar>` ("expression as variable") elements, or, a special character star `*`. An `<ExpAsVar>` consists of:
+
+- A `<ValueExpression>`.
+- An optional `<VariableName>`, specified by appending the keyword `AS` and the name of the variable.
+
+Consider the following example:
+
+```sql
+SELECT n, m, n.age AS age
+  FROM g MATCH (n:Person) -[e:friend_of]-> (m:Person)
+```
+
+Per each matched subgraph, the query returns two vertices `n` and `m` and the value for property age of vertex `n`.  Note that edge `e` is omitted from the result even though it is used for describing the pattern.
+
+The `DISTINCT` modifier allows for filtering out duplicate results. The operation applies to an entire result row, such that rows are only considered duplicates of each other if they contain the same set of values.
+
+### Assigning variable name to Select Expression
+
+It is possible to assign a variable name to any of the selection expression, by appending the keyword `AS` and a variable name. The variable name is used as the column name of the result set. In addition, the variable name can be later used in the `ORDER BY` clause. See the related section later in this document.
+
+```sql
+  SELECT n.age * 2 - 1 AS pivot, n.name, n
+    FROM g MATCH (n:Person) -> (m:Car)
+ORDER BY pivot
+```
+
+### SELECT *
+
+`SELECT *` is a special `SELECT` clause. The semantic of `SELECT *` is to select all the variables in the graph pattern.
+
+Consider the following query:
+
+```sql
+SELECT *
+  FROM g MATCH (n:Person) -> (m) -> (w)
+     , (n) -> (w) -> (m)
+```
+
+This query is semantically equivalent to:
+
+```sql
+SELECT n, m, w
+  FROM g MATCH (n:Person) -> (m) -> ()
+     , (n) -> (w) -> (m)
+```
+
+`SELECT *` is not allowed when the graph pattern has zero variables. This is the case when all the vertices and edges in the pattern are anonymous (e.g. `MATCH () -> (:Person)`).
+Futhermore, `SELECT *` in combination with `GROUP BY` is not allowed.
+
 ## MATCH
 
 In a PGQL query, the `MATCH` clause defines the graph pattern to be matched.
@@ -377,68 +439,6 @@ SELECT y.name
 WHERE y.age > 25
   AND x.name = 'Jake'
 ```
-
-## SELECT
-
-In a PGQL query, the SELECT clause defines the data entities to be returned in the result. In other words, the select clause defines the columns of the result table.
-
-The following explains the syntactic structure of SELECT clause.
-
-```bash
-SelectClause ::= 'SELECT' 'DISTINCT'? <ExpAsVar> ( ',' <ExpAsVar> )*
-               | 'SELECT' '*'
-
-ExpAsVar     ::= <ValueExpression> ( 'AS' <VariableName> )?
-```
-
-A `SELECT` clause consists of the keyword `SELECT` followed by either an optional `DISTINCT` modifier and comma-separated sequence of `<ExpAsVar>` ("expression as variable") elements, or, a special character star `*`. An `<ExpAsVar>` consists of:
-
-- A `<ValueExpression>`.
-- An optional `<VariableName>`, specified by appending the keyword `AS` and the name of the variable.
-
-Consider the following example:
-
-```sql
-SELECT n, m, n.age AS age
-  FROM g MATCH (n:Person) -[e:friend_of]-> (m:Person)
-```
-
-Per each matched subgraph, the query returns two vertices `n` and `m` and the value for property age of vertex `n`.  Note that edge `e` is omitted from the result even though it is used for describing the pattern.
-
-The `DISTINCT` modifier allows for filtering out duplicate results. The operation applies to an entire result row, such that rows are only considered duplicates of each other if they contain the same set of values.
-
-### Assigning variable name to Select Expression
-
-It is possible to assign a variable name to any of the selection expression, by appending the keyword `AS` and a variable name. The variable name is used as the column name of the result set. In addition, the variable name can be later used in the `ORDER BY` clause. See the related section later in this document.
-
-```sql
-  SELECT n.age * 2 - 1 AS pivot, n.name, n
-    FROM g MATCH (n:Person) -> (m:Car)
-ORDER BY pivot
-```
-
-### SELECT *
-
-`SELECT *` is a special `SELECT` clause. The semantic of `SELECT *` is to select all the variables in the graph pattern.
-
-Consider the following query:
-
-```sql
-SELECT *
-  FROM g MATCH (n:Person) -> (m) -> (w)
-     , (n) -> (w) -> (m)
-```
-
-This query is semantically equivalent to:
-
-```sql
-SELECT n, m, w
-  FROM g MATCH (n:Person) -> (m) -> ()
-     , (n) -> (w) -> (m)
-```
-
-`SELECT *` is not allowed when the graph pattern has zero variables. This is the case when all the vertices and edges in the pattern are anonymous (e.g. `MATCH () -> (:Person)`).
-Futhermore, `SELECT *` in combination with `GROUP BY` is not allowed.
 
 # Grouping and Aggregation
 
