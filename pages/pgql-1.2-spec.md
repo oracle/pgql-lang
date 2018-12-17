@@ -43,7 +43,7 @@ PGQL 1.2 has no breaking changes since PGQL 1.1.
 
 # Graph Pattern Matching
 
-## Property Graph data model
+## Property graph data model
 
 A property graph has a name, which is a (character) string, and contains:
 
@@ -120,7 +120,7 @@ x | y
 --- | ---
 0 | 1
 
-Alternatively, one can use the built-in function `all_different(exp1, exp2, .., expN)` (see [ALL_DIFFERENT](#alldifferent)), which takes an arbitrary number of vertices or edges as input, and automatically applies non-equality constraints between all of them:
+Alternatively, one can use the built-in function `all_different(exp1, exp2, .., expN)` (see [ALL_DIFFERENT](#all_different)), which takes an arbitrary number of vertices or edges as input, and automatically applies non-equality constraints between all of them:
 
 ```sql
 SELECT x, y
@@ -444,7 +444,7 @@ WHERE y.age > 25
 
 ## GROUP BY
 
-`GROUP BY` allows for grouping of solutions and is typically used in combination with aggregation to aggregate over groups of solutions instead of over the total set of solutions.
+`GROUP BY` allows for grouping of solutions and is typically used in combination with aggregates like `MIN` and `MAX` to compute aggregations over groups of solutions.
 
 The following explains the syntactic structure of the `GROUP BY` clause:
 
@@ -452,10 +452,7 @@ The following explains the syntactic structure of the `GROUP BY` clause:
 GroupByClause ::= 'GROUP' 'BY' <ValueExpression> ( ',' <ValueExpression> )*
 ```
 
-The `GROUP BY` clause starts with the keywords GROUP BY and is followed by a comma-separated list of group terms. Each group term consists of:
-
-- An expression.
-- An optional variable definition that is specified by appending the keyword `AS` and the name of the variable.
+The `GROUP BY` clause starts with the keywords GROUP BY and is followed by a comma-separated list of value expressions that can be of any type.
 
 Consider the following query:
 

@@ -80,9 +80,9 @@ ORDER BY d2.name
 +--------+-------------+
 ```
 
-Temporal Data Types
+Datetime data types
 -------------------
-In addition to numbers, (character) strings, and booleans, PGQL has the following temporal data types:
+In addition to numerics, (character) strings, and booleans, PGQL has the following temporal data types:
 
  - `DATE` (java.time.LocalDate)
  - `TIME` (java.time.LocalTime)
@@ -90,7 +90,7 @@ In addition to numbers, (character) strings, and booleans, PGQL has the followin
  - `TIME WITH TIME ZONE` (java.time.OffsetTime)
  - `TIMESTAMP WITH TIME ZONE` (java.time.OffsetDateTime)
 
-PGQL's Java result set API
+PGQL's Java ResultSet API
 (see [ResultSet.java](https://github.com/oracle/pgql-lang/blob/master/graph-query-ir/src/main/java/oracle/pgql/lang/ResultSet.java)
 and [ResultAccess.java](https://github.com/oracle/pgql-lang/blob/master/graph-query-ir/src/main/java/oracle/pgql/lang/ResultAccess.java))
  is based on the [__new Java 8 Date and Time Library__](http://www.oracle.com/technetwork/articles/java/jf14-date-time-2125367.html) (`java.time.*`), offering greatly improved safety and functionality for Java developers.
