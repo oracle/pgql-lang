@@ -188,24 +188,6 @@ Details of the different clauses can be found in the following sections:
  - The [ORDER BY](#order-by) clause allows for sorting of results.
  - The [LIMIT and OFFSET](#limit-and-offset) clauses allow for pagination of results.
 
-## FROM
-
-The `FROM` clause specifies the name of the input graph to be queried:
-
-```bash
-FromClause ::= 'FROM' <GraphName>
-
-GraphName  ::= <IDENTIFIER>
-```
-
-The `FROM` clause may be omitted if the system does not require the specification of an input graph for reasons such as:
-
- - The input graph is implicit because the system only handles single graphs.
- - The system has a notion of a "default graph" like in certain SPARQL systems.
- - The system provides an API such as `Graph.queryPgql(..)`, such that it is already clear from the context what the input graph is.
-
-Subqueries may have their own `FROM` clause (see [Querying Multiple Graphs](#querying-multiple-graphs)). Subqueries may also omit the `FROM` clause (see [Subqueries without FROM Clause](#subqueries-without-from-clause)).
-
 ## SELECT
 
 In a PGQL query, the SELECT clause defines the data entities to be returned in the result. In other words, the select clause defines the columns of the result table.
@@ -267,6 +249,24 @@ SELECT n, m, w
 
 `SELECT *` is not allowed when the graph pattern has zero variables. This is the case when all the vertices and edges in the pattern are anonymous (e.g. `MATCH () -> (:Person)`).
 Futhermore, `SELECT *` in combination with `GROUP BY` is not allowed.
+
+## FROM
+
+The `FROM` clause specifies the name of the input graph to be queried:
+
+```bash
+FromClause ::= 'FROM' <GraphName>
+
+GraphName  ::= <IDENTIFIER>
+```
+
+The `FROM` clause may be omitted if the system does not require the specification of an input graph for reasons such as:
+
+ - The input graph is implicit because the system only handles single graphs.
+ - The system has a notion of a "default graph" like in certain SPARQL systems.
+ - The system provides an API such as `Graph.queryPgql(..)`, such that it is already clear from the context what the input graph is.
+
+Subqueries may have their own `FROM` clause (see [Querying Multiple Graphs](#querying-multiple-graphs)). Subqueries may also omit the `FROM` clause (see [Subqueries without FROM Clause](#subqueries-without-from-clause)).
 
 ## MATCH
 

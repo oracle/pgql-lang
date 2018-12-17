@@ -55,10 +55,6 @@ entries:
       url: /spec/1.2/#main-query-structure
       output: web
 
-    - title: FROM
-      url: /spec/1.2/#from
-      output: web
-
     - title: SELECT
       url: /spec/1.2/#select
       output: web
@@ -71,6 +67,10 @@ entries:
       - title: SELECT *
         url: /spec/1.2/#select-
         output: web
+
+    - title: FROM
+      url: /spec/1.2/#from
+      output: web
 
     - title: MATCH
       url: /spec/1.2/#match
