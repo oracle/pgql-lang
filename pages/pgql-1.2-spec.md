@@ -6,56 +6,44 @@ allowing you to specify patterns that are then matched against vertices and edge
 Like SQL, PGQL has support for grouping (GROUP BY), aggregation (e.g. MIN, MAX, AVG, SUM), sorting (ORDER BY) and many other familiar constructs.
 Furthermore, PGQL has powerful regular expression constructs for reachability and shortest path finding."
 sidebar: spec_1_2_sidebar
-toc: true
+toc: false
 ---
-
-# Changelog
-
-The following are the changes since PGQL 1.1:
-
-## New Querying Capabilities in PGQL 1.2
-
-TODO
-
-## Breaking Syntax Changes since PGQL 1.1
-
-None.
 
 # Introduction
 
-PGQL (Property Graph Query Language) is a query language for the [property graph data model](#property-graph-data-model). This specification defines the syntax and semantics of PGQL.
+PGQL is a graph pattern-matching query language for the [property graph data model](#property-graph-data-model). This document specifies the syntax and semantics of the language.
 
-Essentially, PGQL is a graph pattern-matching query language. A PGQL query describes a graph pattern consisting of vertices and edges. When the query is evaluated against a property graph, all the possible subgraphs that match the pattern are returned.
+## Document Outline
 
-Consider the following example PGQL query:
+ - [Introduction](#introduction) contains an outline of this document as well as details on the grammar and a changelog that lists the changes since PGQL 1.1.
+ - [Graph Pattern Matching](#graph-pattern-matching) introduces the basic concepts of graph querying.
+ - [Grouping and Aggregation](#grouping-and-aggregation) describes the mechanism to group and aggregate results.
+ - [Sorting and Row Limiting](#sorting-and-row-limiting) describes the ability to sort and paginate results.
+ - [Reachability](#reachability) introduces the constructs for testing for the existence of paths between pairs of vertices.
+ - [Shortest Path](#shortest-path) introduces the constructs for retrieving shortest paths between pairs of vertices.
+ - [Functions and Expressions](#functions-and-expressions) introduces the various data types and functions and operations on these data types.
+ - [Subqueries](#subqueries) introduces the syntax and semantics of subqueries, which allow for composing queries of other queries to support more complex use cases.
+ - [Other Syntactic rules](#other-syntactic-rules) defines syntactic rules that are not covered by other sections, such as syntax for identifiers and comments.
 
-```sql
-SELECT m.name, o.name
-  FROM sn_graph
- MATCH (n:Person) -[e1:friend_of]-> (m:Person) <-[e2:belongs_to]- (o:Car)
- WHERE n.name = 'Jake'
-```
+## Grammar
 
-In the `FROM` clause, we specify the graph that is queried:
+This document contains a complete grammar definition of PGQL, spread throughout the different sections. There is a single entry point into the grammar: `<Query>`.
 
- - The input graph is named `sn_graph`
+## Changelog
 
-In the `MATCH` clause, the above query defines the pattern to be found.
+The following are the changes since PGQL 1.1:
 
- - The pattern has three vertices, `n`, `m` and `o`, and two edges, `e1` and `e2`.
- - The edge `e1` goes from `n` to `m` and the edge `e2` goes from `o` to `m`.
- - Vertices `n` and `m` have a label `Person`, while vertex `o` has a label `Car`.
- - Edges `e1` and `e2` have labels `friend_of` and `belongs_to` respectively.
+### New features since PGQL 1.1
 
-The `WHERE` clause contains filters:
+TODO
 
- - Vertex `n` has a property `name` with the value `Jake`.
+### Breaking changes
 
-The `SELECT` clause specifies what should be projected out from the query:
+PGQL 1.2 has no breaking changes since PGQL 1.1.
 
- - For each of the matched subgraphs, we project the property `name` of vertex `m` and the property `name` of vertex `o`.
+# Graph Pattern Matching
 
-## Property Graph Data Model
+## Property Graph data model
 
 A property graph has a name, which is a (character) string, and contains:
 
@@ -70,39 +58,137 @@ A property graph has a name, which is a (character) string, and contains:
    - Each edge has zero or more labels.
    - Each edge has zero or more properties (or attributes), which are arbitrary key-value pairs.
 
-Labels as well as property names are strings. Property values are scalars such as numbers, strings or booleans.
+Labels as well as names of properties are strings. Property values are scalars such as numerics, strings or booleans.
 
-Note: the data model of PGQL 1.2 does not support multi-valued properties like in [TinkerPop](http://tinkerpop.apache.org/docs/current/reference/#vertex-properties).
+An example is:
 
-## Basic query structure
+{% include image.html file="example_graphs/student_network.png" %}
 
-The syntax of PGQL resembles that of SQL (Standard Query Language) of relational database systems. A basic PGQL query consists of the following clauses:
+## Writing simple queries
 
-```bash
-Query                 ::= <CommonPathExpressions>?
-                          <SelectClause>
-                          <FromMatchWhereClauses>
-                          <GroupByClause>?
-                          <HavingClause>?
-                          <OrderByClause>?
-                          <LimitOffsetClauses>?
 
-FromMatchWhereClauses ::= <FromClause>? <MatchClause> <WhereClause>?
 
-GroupByHavingClauses  ::= <GroupByClause> <HavingClause>?
+### Mapping variables to vertices and edges
+
+
+There are two popular graph pattern matching semantics: graph homomorphism and graph isomorphism. The built-in semantic of PGQL is based on graph homomorphism, but patterns can still be matched in an isomorphic manner by specifying non-equality constraints between vertices and/or edges, or, by using the built-in function `all_different(exp1, exp2, .., expN)` (see [ALL_DIFFERENT](#alldifferent)).
+
+#### Subgraph Homomorphism
+
+Under graph homomorphism, multiple vertices (or edges) in the query pattern may match with the same vertex (or edge) in the data graph as long as all topology and value constraints of the different query vertices (or edges) are satisfied by the data vertex (or edge).
+
+Consider the following example graph and query:
+
+```
+Vertex 0
+Vertex 1
+Edge 0: 0 -> 0
+Edge 1: 0 -> 1
 ```
 
-The most important ones are as follows:
+```sql
+SELECT x, y
+  FROM g MATCH (x) -> (y)
+```
 
-- The `SelectClause` defines the data entities that are returned in the result.
-- The `MatchClause` defines the graph pattern that is matched against the data graph instance.
-- The `WhereClause` defines the filters.
+Under graph homomorphism the output of this query is as follows:
 
-The detailed syntax and semantic of each clause are explained in following sections.
+x | y
+--- | ---
+0 | 0
+0 | 1
 
-# Graph Pattern Matching
+Note that in case of the first result, both query vertex `x` and query vertex `y` are bound to the same data vertex `0`.
 
-## Input graph (FROM)
+#### Subgraph Isomorphism
+
+Under graph isomorphism, two distinct query vertices must not match with the same data vertex.
+
+Consider the example from above. Under graph isomorphism, only the second solution is a valid one since the first solution binds both query vertices `x` and `y` to the same data vertex.
+
+In PGQL, to specify that a pattern should be matched in an isomorphic way, one can introduce non-equality constraints:
+
+```sql
+SELECT x, y
+  FROM g MATCH (x) -> (y)
+ WHERE x <> y
+```
+
+The output of this query is as follows:
+
+x | y
+--- | ---
+0 | 1
+
+Alternatively, one can use the built-in function `all_different(exp1, exp2, .., expN)` (see [ALL_DIFFERENT](#alldifferent)), which takes an arbitrary number of vertices or edges as input, and automatically applies non-equality constraints between all of them:
+
+```sql
+SELECT x, y
+  FROM g MATCH (x) -> (y)
+ WHERE all_different(x, y)
+```
+
+
+### Any-directional edges
+
+Any-directional edges match edges in the graph no matter if they are incoming, outgoing, or undirected.
+
+The syntactic structure is as follows:
+
+```bash
+AnyDirectionalEdge ::= '-'
+                     | '-[' <VariableSpecification> ']-'
+```
+
+An example query with two any-directional edges is as follows:
+
+```sql
+SELECT *
+  FROM g MATCH (n) -[e1]- (m) -[e2]- (o)
+```
+
+Note that in case there are both incoming and outgoing data edges between two data vertices, there will be separate result bindings for each of the edges.
+
+Any-directional edges may also be used inside [common path expressions](#common-path-expressions):
+
+```sql
+  PATH two_hops AS () -[e1]- () -[e2]- ()
+SELECT *
+  FROM g MATCH (n) -/:two_hops*/-> (m)
+```
+
+The above query will return all pairs of vertices `n` and `m` that are reachable via a multiple of two edges, each edge being either an incoming or an outgoing edge.
+
+
+## Main query structure
+
+The following is the main query structure:
+
+```bash
+Query ::= <CommonPathExpressions>?
+          <SelectClause>
+          <FromClause>?
+          <MatchClause>
+          <WhereClause>?
+          <GroupByClause>?
+          <HavingClause>?
+          <OrderByClause>?
+          <LimitOffsetClauses>?
+```
+
+Details of the different clauses can be found in the following sections:
+
+ - [Common Path Expressions](#common-path-expressions) allow for specifying complex reachability queries.
+ - The [SELECT](#select) clause specifies what should be returned.
+ - The [FROM](#from) clause specifies the name of the input graph.
+ - The [MATCH](#match) clause specifies the graph pattern that is to be matched.
+ - The [WHERE](#where) clause specifies filters.
+ - The [GROUP BY](#group-by) clause allows for creating groups of results.
+ - The [HAVING](#having) clause allows for filtering entire groups of results.
+ - The [ORDER BY](#order-by) clause allows for sorting of results.
+ - The [LIMIT and OFFSET](#limit-and-offset) clauses allow for pagination of results.
+
+## FROM
 
 The `FROM` clause specifies the name of the input graph to be queried:
 
@@ -120,7 +206,7 @@ The `FROM` clause may be omitted if the system does not require the specificatio
 
 Subqueries may have their own `FROM` clause (see [Querying Multiple Graphs](#querying-multiple-graphs)). Subqueries may also omit the `FROM` clause (see [Subqueries without FROM Clause](#subqueries-without-from-clause)).
 
-## Graph Pattern Specification (MATCH)
+## MATCH
 
 In a PGQL query, the `MATCH` clause defines the graph pattern to be matched.
 
@@ -229,7 +315,7 @@ SELECT *
 
 Here, vertices `n2` and `m2` are not connected to vertices `n1` and `m1`, resulting in a Cartesian product.
 
-## Label predicates
+### Label predicates
 
 In the property graph model, vertices and edge may have labels, which are arbitrary (character) strings. Typically, labels are used to encode types of entities. For example, a graph may contain a set of vertices with the label `Person`, a set of vertices with the label `Movie`, and, a set of edges with the label `likes`. A label predicate specifies that a vertex or edge only matches if it has ony of the specified labels. The syntax for specifying a label predicate is through a (`:`) followed by one or more labels that are separate by a vertical bar (`|`).
 
@@ -263,7 +349,7 @@ There are also built-in functions available for labels (see [Built-in Functions]
  - `labels(element)` returns the set of labels of a vertex or edge in the case the vertex/edge has multiple labels.
  - `label(element)` returns the label of a vertex or edge in the case the vertex/edge has only a single label.
 
-## Filters (WHERE)
+## WHERE
 
 Filters are applied after pattern matching to remove certain solutions. A filter takes the form of a boolean value expression which typically involves certain property values of the vertices and edges in the graph pattern. The syntactic structure is as follows:
 
@@ -281,7 +367,7 @@ SELECT y.name
    AND y.age > 25
 ```
 
-Here, the first filter describes that the vertex `x` has a property `name` and its value is `Jake`. Similarly, the second filter describes that the vertex `y` has a property `age` and its value is larger than `25`. Here, in the filter, the dot (`.`) operator is used for property access. For the detailed syntax and semantic of expressions, see [Value Expressions](#value-expressions).
+Here, the first filter describes that the vertex `x` has a property `name` and its value is `Jake`. Similarly, the second filter describes that the vertex `y` has a property `age` and its value is larger than `25`. Here, in the filter, the dot (`.`) operator is used for property access. For the detailed syntax and semantic of expressions, see [Functions and Expressions](#functions-and-expressions).
 
 Note that the ordering of constraints does not have an affect on the result, such that query from the previous example is equivalent to:
 
@@ -292,96 +378,7 @@ WHERE y.age > 25
   AND x.name = 'Jake'
 ```
 
-## Graph Pattern Matching Semantic
-
-There are two popular graph pattern matching semantics: graph homomorphism and graph isomorphism. The built-in semantic of PGQL is based on graph homomorphism, but patterns can still be matched in an isomorphic manner by specifying non-equality constraints between vertices and/or edges, or, by using the built-in function `all_different(exp1, exp2, .., expN)` (see [ALL_DIFFERENT](#alldifferent)).
-
-### Subgraph Homomorphism
-
-Under graph homomorphism, multiple vertices (or edges) in the query pattern may match with the same vertex (or edge) in the data graph as long as all topology and value constraints of the different query vertices (or edges) are satisfied by the data vertex (or edge).
-
-Consider the following example graph and query:
-
-```
-Vertex 0
-Vertex 1
-Edge 0: 0 -> 0
-Edge 1: 0 -> 1
-```
-
-```sql
-SELECT x, y
-  FROM g MATCH (x) -> (y)
-```
-
-Under graph homomorphism the output of this query is as follows:
-
-x | y
---- | ---
-0 | 0
-0 | 1
-
-Note that in case of the first result, both query vertex `x` and query vertex `y` are bound to the same data vertex `0`.
-
-### Subgraph Isomorphism
-
-Under graph isomorphism, two distinct query vertices must not match with the same data vertex.
-
-Consider the example from above. Under graph isomorphism, only the second solution is a valid one since the first solution binds both query vertices `x` and `y` to the same data vertex.
-
-In PGQL, to specify that a pattern should be matched in an isomorphic way, one can introduce non-equality constraints:
-
-```sql
-SELECT x, y
-  FROM g MATCH (x) -> (y)
- WHERE x <> y
-```
-
-The output of this query is as follows:
-
-x | y
---- | ---
-0 | 1
-
-Alternatively, one can use the built-in function `all_different(exp1, exp2, .., expN)` (see [ALL_DIFFERENT](#alldifferent)), which takes an arbitrary number of vertices or edges as input, and automatically applies non-equality constraints between all of them:
-
-```sql
-SELECT x, y
-  FROM g MATCH (x) -> (y)
- WHERE all_different(x, y)
-```
-
-## Any-directional edges
-
-Any-directional edges match edges in the graph no matter if they are incoming, outgoing, or undirected.
-
-The syntactic structure is as follows:
-
-```bash
-AnyDirectionalEdge ::= '-'
-                     | '-[' <VariableSpecification> ']-'
-```
-
-An example query with two any-directional edges is as follows:
-
-```sql
-SELECT *
-  FROM g MATCH (n) -[e1]- (m) -[e2]- (o)
-```
-
-Note that in case there are both incoming and outgoing data edges between two data vertices, there will be separate result bindings for each of the edges.
-
-Any-directional edges may also be used inside [common path expressions](#common-path-expressions):
-
-```sql
-  PATH two_hops AS () -[e1]- () -[e2]- ()
-SELECT *
-  FROM g MATCH (n) -/:two_hops*/-> (m)
-```
-
-The above query will return all pairs of vertices `n` and `m` that are reachable via a multiple of two edges, each edge being either an incoming or an outgoing edge.
-
-## Tabular Projection (SELECT)
+## SELECT
 
 In a PGQL query, the SELECT clause defines the data entities to be returned in the result. In other words, the select clause defines the columns of the result table.
 
@@ -452,7 +449,7 @@ Futhermore, `SELECT *` in combination with `GROUP BY` is not allowed.
 The following explains the syntactic structure of the `GROUP BY` clause:
 
 ```bash
-GroupByClause        ::= 'GROUP' 'BY' <ValueExpression> ( ',' <ValueExpression> )*
+GroupByClause ::= 'GROUP' 'BY' <ValueExpression> ( ',' <ValueExpression> )*
 ```
 
 The `GROUP BY` clause starts with the keywords GROUP BY and is followed by a comma-separated list of group terms. Each group term consists of:
@@ -1847,9 +1844,9 @@ SELECT a.name
  WHERE a.age > ( SELECT AVG(b.age) MATCH (a) -[:friendOf]-> (b) )
 ```
 
-# Other Syntactic Rules
+# Other Syntactic rules
 
-## Lexical Constructs
+## Lexical constructs
 
 The following are the lexical grammar constructs:
 
@@ -1875,7 +1872,7 @@ These rules describe the following:
  - Unsigned integers consist of one or more digits.
  - Unsigned decimals consist of zero or more digits followed by a dot (`.`) and one or more digits, or, one or more digits followed by only a dot (`.`).
 
-## Escaped Characters in Strings
+## Escaped characters in strings
 
 Escaping in string literals is necessary to support having white space, quotation marks and the backslash character as a part of the literal value. The following explains the syntax of an escaped character.
 

@@ -3,43 +3,64 @@ entries:
   product: PGQL 1.2 Specification
   folders:
 
-  - title: Changelog
-    url: /spec/1.2/#changelog
-    output: web
-    folderitems:
-
-    - title: New Querying Capabilities in PGQL 1.2
-      url: /spec/1.2/#new-querying-capabilities-in-pgql-12
-      output: web
-
-    - title: Breaking Syntax Changes since PGQL 1.1
-      url: /spec/1.2/#breaking-syntax-changes-since-pgql-11
-      output: web
-
   - title: Introduction
     url: /spec/1.2/#introduction
     output: web
     folderitems:
 
-    - title: Property Graph Data Model
-      url: /spec/1.2/#property-graph-data-model
+    - title: Document Outline
+      url: /spec/1.2/#document-outline
       output: web
 
-    - title: Basic query structure
-      url: /spec/1.2/#basic-query-structure
+    - title: Grammar
+      url: /spec/1.2/#grammar
       output: web
+
+    - title: Changelog
+      url: /spec/1.2/#changelog
+      output: web
+      subfolderitems:
+
+      - title: New features since PGQL 1.1
+        url: /spec/1.2/#new-features-since-pgql-11
+        output: web
+
+      - title: Breaking changes
+        url: /spec/1.2/#breaking-changes
+        output: web
 
   - title: Graph Pattern Matching
     url: /spec/1.2/#graph-pattern-matching
     output: web
     folderitems:
 
-    - title: Input graph (FROM)
-      url: /spec/1.2/#input-graph-from
+    - title: Property Graph data model
+      url: /spec/1.2/#property-graph-data-model
       output: web
 
-    - title: Graph Pattern Specification (MATCH)
-      url: /spec/1.2/#graph-pattern-specification-match
+    - title: Writing simple queries
+      url: /spec/1.2/#writing-simple-queries
+      output: web
+      subfolderitems:
+
+      - title: Mapping variables to vertices and edges
+        url: /spec/1.2/#mapping-variables-to-vertices-and-edges
+        output: web
+
+      - title: Any-directional edges
+        url: /spec/1.2/#any-directional-edges
+        output: web
+
+    - title: Main query structure
+      url: /spec/1.2/#main-query-structure
+      output: web
+
+    - title: FROM
+      url: /spec/1.2/#from
+      output: web
+
+    - title: MATCH
+      url: /spec/1.2/#match
       output: web
       subfolderitems:
 
@@ -55,33 +76,16 @@ entries:
         url: /spec/1.2/#disconnected-graph-patterns
         output: web
 
-    - title: Label predicates
-      url: /spec/1.2/#label-predicates
-      output: web
-
-    - title: Filters (WHERE)
-      url: /spec/1.2/#filters-where
-      output: web
-
-    - title: Graph Pattern Matching Semantic
-      url: /spec/1.2/#graph-pattern-matching-semantic
-      output: web
-      subfolderitems:
-
-      - title: Subgraph Homomorphism
-        url: /spec/1.2/#subgraph-homomorphism
+      - title: Label predicates
+        url: /spec/1.2/#label-predicates
         output: web
 
-      - title: Subgraph Isomorphism
-        url: /spec/1.2/#subgraph-isomorphism
-        output: web
-
-    - title: Any-directional edges
-      url: /spec/1.2/#any-directional-edges
+    - title: WHERE
+      url: /spec/1.2/#where
       output: web
 
-    - title: Tabular Projection (SELECT)
-      url: /spec/1.2/#tabular-projection-select
+    - title: SELECT
+      url: /spec/1.2/#select
       output: web
       subfolderitems:
 
@@ -361,16 +365,16 @@ entries:
       url: /spec/1.2/#scalar-subqueries
       output: web
 
-  - title: Other Syntactic Rules
+  - title: Other Syntactic rules
     url: /spec/1.2/#other-syntactic-rules
     output: web
     folderitems:
 
-    - title: Lexical Constructs
+    - title: Lexical constructs
       url: /spec/1.2/#lexical-constructs
       output: web
 
-    - title: Escaped Characters in Strings
+    - title: Escaped characters in strings
       url: /spec/1.2/#escaped-characters-in-strings
       output: web
 

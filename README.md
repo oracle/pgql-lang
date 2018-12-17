@@ -2,8 +2,8 @@
 
 To host the website locally, first install the necessary tools:
 
- - `apt-get install ruby2.3 ruby2.3-dev bundler`
- - `bundle install`
+ - `sudo apt-get install ruby2.5 ruby2.5-dev bundler`
+ - `bundle install` (don't use `sudo`)
 
 Then build and deploy the site:
 
