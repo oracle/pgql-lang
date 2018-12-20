@@ -287,4 +287,40 @@ public interface ResultAccess {
    * @return {@link List}
    */
   public <T> List<T> getList(String elementName) throws PgqlException;
+
+  /**
+   * Gets the value of the designated element by element name as an {@link VertexHandle}
+   *
+   * @param elementIdx
+   *          element index
+   * @return {@link VertexHandle}
+   */
+  public VertexHandle getVertexHandle(int elementIdx) throws PgqlException;
+
+  /**
+   * Gets the value of the designated element by element name as a {@link VertexHandle}
+   *
+   * @param elementName
+   *          element name
+   * @return {@link VertexHandle}
+   */
+  public VertexHandle getVertexHandle(String elementName) throws PgqlException;
+
+  /**
+   * Gets the value of the designated element by element name as an {@link EdgeHandle}
+   *
+   * @param elementIdx
+   *          element index
+   * @return {@link EdgeHandle}
+   */
+  public EdgeHandle getEdgeHandle(int elementIdx) throws PgqlException;
+
+  /**
+   * Gets the value of the designated element by element name as a {@link EdgeHandle}
+   *
+   * @param elementName
+   *          element name
+   * @return {@link EdgeHandle}
+   */
+  public EdgeHandle getEdgeHandle(String elementName) throws PgqlException;
 }

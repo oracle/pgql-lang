@@ -152,6 +152,27 @@ public interface PreparedStatement extends AutoCloseable {
    * 
    * Note: When a statement is closed, its associated ResultSet objects are also closed.
    */
+
+  /**
+   * Sets the designated parameter to the given vertex value.
+   *
+   * @param parameterIndex
+   *          the first parameter is 1, the second is 2, ...
+   * @param x
+   *          the parameter value
+   */
+  void setVertexHandle(int parameterIndex, VertexHandle x) throws PgqlException;
+
+  /**
+   * Sets the designated parameter to the given vertex value.
+   *
+   * @param parameterIndex
+   *          the first parameter is 1, the second is 2, ...
+   * @param x
+   *          the parameter value
+   */
+  void setEdgeHandle(int parameterIndex, EdgeHandle x) throws PgqlException;
+
   @Override
   void close() throws PgqlException;
 }
