@@ -62,7 +62,11 @@ Labels as well as names of properties are strings. Property values are scalars s
 
 An example is:
 
-{% include image.html file="example_graphs/student_network.png" %}
+{% include image.html file="example_graphs/student_network.png"  %}
+
+{% include image.html file="example_graphs/paris_metro.png" %}
+
+{% include image.html file="example_graphs/financial_transactions.png" style="width:680px;" %}
 
 ## Writing simple queries
 

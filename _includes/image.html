@@ -1,1 +1,1 @@
-<figure>{% if {{include.url}} %}<a class="no_icon" target="_blank" href="{{include.url}}">{% endif %}<img class="docimage" src="../../images/{{include.file}}" alt="{{include.alt}}" />{% if {{include.url}} %}</a>{% endif %}</figure>
+<figure>{% if {{include.url}} %}<a class="no_icon" target="_blank" href="{{include.url}}">{% endif %}<img class="docimage" src="../../images/{{include.file}}" alt="{{include.alt}}" {% if include.style %} style="{{ include.style }}" {% endif %} />{% if {{include.url}} %}</a>{% endif %}</figure>
