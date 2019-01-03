@@ -1,5 +1,5 @@
 ---
-title:  "PGQL 1.2 Specification (TODO)"
+title:  "PGQL 1.2 Specification (UNRELEASED)"
 permalink: /spec/1.2/
 summary: "PGQL is an SQL-like query language for the property graph data model and is based on the paradigm of graph pattern matching,
 allowing you to specify patterns that are then matched against vertices and edges in a graph.
@@ -25,7 +25,7 @@ PGQL is a graph pattern-matching query language for the [property graph data mod
  - [Subqueries](#subqueries) introduces the syntax and semantics of subqueries, which allow for composing queries of other queries to support more complex use cases.
  - [Other Syntactic rules](#other-syntactic-rules) defines syntactic rules that are not covered by other sections, such as syntax for identifiers and comments.
 
-## Grammar
+## Notes on the Grammar
 
 This document contains a complete grammar definition of PGQL, spread throughout the different sections. There is a single entry point into the grammar: `<Query>`.
 
@@ -35,7 +35,15 @@ The following are the changes since PGQL 1.1:
 
 ### New features since PGQL 1.1
 
-TODO
+ - [Shortest path finding](#shortest-path)
+ - Matching of undirected edges
+ - [Scalar subqueries](#scalar-subqueries)
+ - New aggregation [ARRAY_AGG](#ArrayAggregation)
+ - [EXTRACT](#extract) function for extracting the `year`/`month`/`day`/`hour`/`minute`/`second`/`time_zone` from a datetime value
+ - Math function [ABS](#abs), [CEIL/CEILING](#ceil-or-ceiling), [FLOOR](#floor), [ROUND](#round)
+ - [IN and NOT IN](#in-and-not-in) predicates
+ - [CASE](#case) statement
+ - Support for special characters in graph names, labels, and property names
 
 ### Breaking changes
 
@@ -60,15 +68,31 @@ A property graph has a name, which is a (character) string, and contains:
 
 Labels as well as names of properties are strings. Property values are scalars such as numerics, strings or booleans.
 
+### Example 1: Student Network
+
 An example is:
 
 {% include image.html file="example_graphs/student_network.png"  %}
 
+Here, `student_network` is the name of the graph. The graph has three vertices labeled `Person` and one vertex labeled `University`. There are six directed edges that connect the vertices. Three of them go from person to person vertices, and they have the label `knows`. Three others go from person to university vertices and are labeled `studentOf`. The person vertices have two properties, namely `name` for encoding the name of the person and `dob` for encoding the date of birth of the person. The university vertex has only a single property `name` for encoding the name of the university. The edges have no properties.
+
+### Example 2: Paris Métro
+
+Another example is:
+
 {% include image.html file="example_graphs/paris_metro.png" %}
 
-{% include image.html file="example_graphs/financial_transactions.png" style="width:680px;" %}
+Here, `paris_metro` is the name of the graph. The graph has seven vertices that are all labeled `Station`. The vertices are connected by undirected edges labeled `connection`. Each vertex has two properties, `name` and `zone`. Each edge has a single property, `line`.
 
 ## Writing simple queries
+
+
+
+
+
+
+
+{% include image.html file="example_graphs/financial_transactions.png" style="width:680px;" %}
 
 
 
@@ -136,13 +160,6 @@ SELECT x, y
 ### Any-directional edges
 
 Any-directional edges match edges in the graph no matter if they are incoming, outgoing, or undirected.
-
-The syntactic structure is as follows:
-
-```bash
-AnyDirectionalEdge ::= '-'
-                     | '-[' <VariableSpecification> ']-'
-```
 
 An example query with two any-directional edges is as follows:
 
@@ -299,6 +316,9 @@ OutgoingEdge          ::=   '->'
 
 IncomingEdge          ::=   '<-'
                           | '<-[' <VariableSpecification> ']-'
+
+AnyDirectionalEdge    ::=   '-'
+                          | '-[' <VariableSpecification> ']-'
 
 VariableSpecification ::= <VariableName>? <LabelPredicate>?
 
@@ -983,7 +1003,65 @@ The above query outputs all generators that are connected to each other via one 
 
 # Shortest Path
 
-TODO
+Users can now find `TOP k SHORTEST` paths between any pair of matched source and destination
+and compute aggregations over their vertices/edges. The distance metric is represented by the number of hops.
+
+For example the following query will output the sum of the edge weights along each of the top 3 shortest paths between
+each of the matched source and destination pairs:
+
+```sql
+SELECT src, SUM(e.weight), dst
+ MATCH TOP 3 SHORTEST ( (src) (-[e]->)* (dst) )
+ WHERE src.age < dst.age
+```
+Notice that the sum aggregation is computed for every matching path. In other words the number of rows returned by the
+previous query is equal to the number of matching paths which is at most 3 times the number of matching source and
+destination pairs.
+
+
+The `ARRAY_AGG` construct allows users to output properties of edges/vertices along the path. For example, in the following query:
+
+```sql
+SELECT src, ARRAY_AGG(e.weight), ARRAY_AGG(v1.age), ARRAY_AGG(v2.age), dst
+ MATCH TOP 3 SHORTEST ( (src) ((v1)-[e]->(v2))* (dst) )
+ WHERE src.age < dst.age
+```
+
+the `ARRAY_AGG(e.weight)` outputs a list containing the weight property of all the edges along the path,
+
+the `ARRAY_AGG(v1.cost)` outputs a list containing the age property of all the vertices along the path except the last one,
+
+the `ARRAY_AGG(v2.cost)` outputs a list containing the age property of all the vertices along the path except the first one.
+
+
+Users can also compose shortest path constructs with other matching operators:
+
+```sql
+SELECT ARRAY_AGG(e1.weight), ARRAY_AGG(e2.weight)
+ MATCH (start) -> (src)
+     , TOP 3 SHORTEST (src) (-[e1]->)* (mid)
+     , SHORTEST (mid) (-[e2]->)* (dst)
+     , (dst) -> (end)
+```
+
+
+Filters along the path vertex/edge are also supported. For example the following query will only consider path containing edges with weight
+greater than 10 when generating the shortest path:
+
+```sql
+ SELECT src, ARRAY_AGG(e.weight), dst
+ MATCH SHORTEST ( (src) ((v1)-[e]->(v2) WHERE e.weight > 10)* (dst) )
+```
+
+For the case of filters involving aggregations over the path:
+
+```sql
+SELECT src, ARRAY_AGG(e.weight), dst
+ MATCH TOP 3 SHORTEST ( (src) ((v1)-[e]->(v2))* (dst) ) WHERE SUM(e.cost) < 100
+```
+
+we have a slightly different semantic. The filter is applied once the top 3 shortest path are already generated and not
+during their construction.
 
 # Functions and Expressions
 
@@ -1553,7 +1631,7 @@ The ALL_DIFFERENT function returns true if the provided values are all different
 The syntax is:
 
 ```
-ALL_DIFFERENT ( val1, val2, val3, ..., valN )
+ALL_DIFFERENT( val1, val2, val3, ..., valN )
 ```
 
 For example:

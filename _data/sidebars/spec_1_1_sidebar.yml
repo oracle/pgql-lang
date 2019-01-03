@@ -3,318 +3,318 @@ entries:
   product: PGQL 1.1 Specification
   folders:
 
-  - title: Changelog
+  - title: 'Changelog'
     url: /spec/1.1/#changelog
     output: web
     folderitems:
 
-    - title: New Querying Capabilities in PGQL 1.1
+    - title: 'New Querying Capabilities in PGQL 1.1'
       url: /spec/1.1/#new-querying-capabilities-in-pgql-11
       output: web
 
-    - title: Breaking Syntax Changes since PGQL 1.0
+    - title: 'Breaking Syntax Changes since PGQL 1.0'
       url: /spec/1.1/#breaking-syntax-changes-since-pgql-10
       output: web
 
-  - title: Introduction
+  - title: 'Introduction'
     url: /spec/1.1/#introduction
     output: web
     folderitems:
 
-    - title: Property Graph Data Model
+    - title: 'Property Graph Data Model'
       url: /spec/1.1/#property-graph-data-model
       output: web
 
-    - title: Basic Query Structure
+    - title: 'Basic Query Structure'
       url: /spec/1.1/#basic-query-structure
       output: web
 
-  - title: Graph Pattern Matching
+  - title: 'Graph Pattern Matching'
     url: /spec/1.1/#graph-pattern-matching
     output: web
     folderitems:
 
-    - title: Input Graph (FROM)
+    - title: 'Input Graph (FROM)'
       url: /spec/1.1/#input-graph-from
       output: web
 
-    - title: Graph Pattern Specification (MATCH)
+    - title: 'Graph Pattern Specification (MATCH)'
       url: /spec/1.1/#graph-pattern-specification-match
       output: web
       subfolderitems:
 
-      - title: Repeated Variables
+      - title: 'Repeated Variables'
         url: /spec/1.1/#repeated-variables
         output: web
 
-      - title: Alternatives for Specifying Graph Patterns
+      - title: 'Alternatives for Specifying Graph Patterns'
         url: /spec/1.1/#alternatives-for-specifying-graph-patterns
         output: web
 
-      - title: Disconnected Graph Patterns
+      - title: 'Disconnected Graph Patterns'
         url: /spec/1.1/#disconnected-graph-patterns
         output: web
 
-    - title: Label Predicates
+    - title: 'Label Predicates'
       url: /spec/1.1/#label-predicates
       output: web
 
-    - title: Filters (WHERE)
+    - title: 'Filters (WHERE)'
       url: /spec/1.1/#filters-where
       output: web
 
-    - title: Graph Pattern Matching Semantic
+    - title: 'Graph Pattern Matching Semantic'
       url: /spec/1.1/#graph-pattern-matching-semantic
       output: web
       subfolderitems:
 
-      - title: Subgraph Homomorphism
+      - title: 'Subgraph Homomorphism'
         url: /spec/1.1/#subgraph-homomorphism
         output: web
 
-      - title: Subgraph Isomorphism
+      - title: 'Subgraph Isomorphism'
         url: /spec/1.1/#subgraph-isomorphism
         output: web
 
-    - title: Undirected Query Edges
+    - title: 'Undirected Query Edges'
       url: /spec/1.1/#undirected-query-edges
       output: web
 
-  - title: Table Operations
+  - title: 'Table Operations'
     url: /spec/1.1/#table-operations
     output: web
     folderitems:
 
-    - title: Projection (SELECT)
+    - title: 'Projection (SELECT)'
       url: /spec/1.1/#projection-select
       output: web
       subfolderitems:
 
-      - title: Assigning Variable Name to Select Expression
+      - title: 'Assigning Variable Name to Select Expression'
         url: /spec/1.1/#assigning-variable-name-to-select-expression
         output: web
 
-      - title: SELECT *
+      - title: 'SELECT *'
         url: /spec/1.1/#select-
         output: web
 
-    - title: Sorting (ORDER BY)
+    - title: 'Sorting (ORDER BY)'
       url: /spec/1.1/#sorting-order-by
       output: web
       subfolderitems:
 
-      - title: Multiple Terms in ORDER BY
+      - title: 'Multiple Terms in ORDER BY'
         url: /spec/1.1/#multiple-terms-in-order-by
         output: web
 
-      - title: Data Types for ORDER BY
+      - title: 'Data Types for ORDER BY'
         url: /spec/1.1/#data-types-for-order-by
         output: web
 
-    - title: Pagination (LIMIT and OFFSET)
+    - title: 'Pagination (LIMIT and OFFSET)'
       url: /spec/1.1/#pagination-limit-and-offset
       output: web
 
-  - title: Regular Path Expressions
+  - title: 'Regular Path Expressions'
     url: /spec/1.1/#regular-path-expressions
     output: web
     folderitems:
 
-    - title: Min and Max Quantifiers
+    - title: 'Min and Max Quantifiers'
       url: /spec/1.1/#min-and-max-quantifiers
       output: web
       subfolderitems:
 
-      - title: Zero or more
+      - title: 'Zero or more'
         url: /spec/1.1/#zero-or-more
         output: web
 
-      - title: One or more
+      - title: 'One or more'
         url: /spec/1.1/#one-or-more
         output: web
 
-      - title: Optional
+      - title: 'Optional'
         url: /spec/1.1/#optional
         output: web
 
-      - title: Exactly n
+      - title: 'Exactly n'
         url: /spec/1.1/#exactly-n
         output: web
 
-      - title: n or more
+      - title: 'n or more'
         url: /spec/1.1/#n-or-more
         output: web
 
-      - title: Between n and m
+      - title: 'Between n and m'
         url: /spec/1.1/#between-n-and-m
         output: web
 
-      - title: Between zero and m
+      - title: 'Between zero and m'
         url: /spec/1.1/#between-zero-and-m
         output: web
 
-    - title: Common Path Expressions
+    - title: 'Common Path Expressions'
       url: /spec/1.1/#common-path-expressions
       output: web
 
-  - title: Grouping and Aggregation
+  - title: 'Grouping and Aggregation'
     url: /spec/1.1/#grouping-and-aggregation
     output: web
     folderitems:
 
-    - title: Grouping
+    - title: 'Grouping'
       url: /spec/1.1/#grouping
       output: web
       subfolderitems:
 
-      - title: Assigning Variable Name to Group Expression
+      - title: 'Assigning Variable Name to Group Expression'
         url: /spec/1.1/#assigning-variable-name-to-group-expression
         output: web
 
-      - title: Multiple Terms in GROUP BY
+      - title: 'Multiple Terms in GROUP BY'
         url: /spec/1.1/#multiple-terms-in-group-by
         output: web
 
-      - title: GROUP BY and NULL values
+      - title: 'GROUP BY and NULL values'
         url: /spec/1.1/#group-by-and-null-values
         output: web
 
-      - title: Repetition of Group Expression in Select or Order Expression
+      - title: 'Repetition of Group Expression in Select or Order Expression'
         url: /spec/1.1/#repetition-of-group-expression-in-select-or-order-expression
         output: web
 
-    - title: Aggregation
+    - title: 'Aggregation'
       url: /spec/1.1/#aggregation
       output: web
       subfolderitems:
 
-      - title: Aggregation with GROUP BY
+      - title: 'Aggregation with GROUP BY'
         url: /spec/1.1/#aggregation-with-group-by
         output: web
 
-      - title: Aggregation without GROUP BY
+      - title: 'Aggregation without GROUP BY'
         url: /spec/1.1/#aggregation-without-group-by
         output: web
 
-      - title: COUNT(*)
+      - title: 'COUNT(*)'
         url: /spec/1.1/#count
         output: web
 
-      - title: DISTINCT Aggregation
+      - title: 'DISTINCT Aggregation'
         url: /spec/1.1/#distinct-aggregation
         output: web
 
-    - title: Filtering of Groups (HAVING)
+    - title: 'Filtering of Groups (HAVING)'
       url: /spec/1.1/#filtering-of-groups-having
       output: web
 
-  - title: Value Expressions
+  - title: 'Value Expressions'
     url: /spec/1.1/#value-expressions
     output: web
     folderitems:
 
-    - title: Operators
+    - title: 'Operators'
       url: /spec/1.1/#operators
       output: web
       subfolderitems:
 
-      - title: Comparison of Temporal Values with Time Zones
+      - title: 'Comparison of Temporal Values with Time Zones'
         url: /spec/1.1/#comparison-of-temporal-values-with-time-zones
         output: web
 
-      - title: Operator Precedence
+      - title: 'Operator Precedence'
         url: /spec/1.1/#operator-precedence
         output: web
 
-    - title: Null Values
+    - title: 'Null Values'
       url: /spec/1.1/#null-values
       output: web
       subfolderitems:
 
-      - title: Three-Valued Logic
+      - title: 'Three-Valued Logic'
         url: /spec/1.1/#three-valued-logic
         output: web
 
-      - title: IS NULL and IS NOT NULL
+      - title: 'IS NULL and IS NOT NULL'
         url: /spec/1.1/#is-null-and-is-not-null
         output: web
 
-    - title: Literals
+    - title: 'Literals'
       url: /spec/1.1/#literals
       output: web
 
-    - title: Bind Variables
+    - title: 'Bind Variables'
       url: /spec/1.1/#bind-variables
       output: web
 
-    - title: Functions
+    - title: 'Functions'
       url: /spec/1.1/#functions
       output: web
       subfolderitems:
 
-      - title: Built-In Functions
+      - title: 'Built-In Functions'
         url: /spec/1.1/#built-in-functions
         output: web
 
-      - title: User-Defined Functions
+      - title: 'User-Defined Functions'
         url: /spec/1.1/#user-defined-functions
         output: web
 
-    - title: Type Conversion
+    - title: 'Type Conversion'
       url: /spec/1.1/#type-conversion
       output: web
       subfolderitems:
 
-      - title: Implicit Type Conversion
+      - title: 'Implicit Type Conversion'
         url: /spec/1.1/#implicit-type-conversion
         output: web
 
-      - title: Explicit Type Conversion (CAST)
+      - title: 'Explicit Type Conversion (CAST)'
         url: /spec/1.1/#explicit-type-conversion-cast
         output: web
 
-    - title: Temporal Types
+    - title: 'Temporal Types'
       url: /spec/1.1/#temporal-types
       output: web
 
-  - title: Subqueries
+  - title: 'Subqueries'
     url: /spec/1.1/#subqueries
     output: web
     folderitems:
 
-    - title: Existential Subqueries (EXISTS)
+    - title: 'Existential Subqueries (EXISTS)'
       url: /spec/1.1/#existential-subqueries-exists
       output: web
 
-    - title: Subqueries without FROM Clause
+    - title: 'Subqueries without FROM Clause'
       url: /spec/1.1/#subqueries-without-from-clause
       output: web
 
-    - title: Querying Multiple Graphs
+    - title: 'Querying Multiple Graphs'
       url: /spec/1.1/#querying-multiple-graphs
       output: web
 
-    - title: Subqueries inside PATH Clause
+    - title: 'Subqueries inside PATH Clause'
       url: /spec/1.1/#subqueries-inside-path-clause
       output: web
 
-  - title: Other Syntactic Rules
+  - title: 'Other Syntactic Rules'
     url: /spec/1.1/#other-syntactic-rules
     output: web
     folderitems:
 
-    - title: Lexical Constructs
+    - title: 'Lexical Constructs'
       url: /spec/1.1/#lexical-constructs
       output: web
 
-    - title: Escaped Characters in Strings
+    - title: 'Escaped Characters in Strings'
       url: /spec/1.1/#escaped-characters-in-strings
       output: web
 
-    - title: Keywords
+    - title: 'Keywords'
       url: /spec/1.1/#keywords
       output: web
 
-    - title: Comments
+    - title: 'Comments'
       url: /spec/1.1/#comments
       output: web

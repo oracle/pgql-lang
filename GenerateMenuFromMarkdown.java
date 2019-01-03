@@ -59,8 +59,8 @@ public class GenerateMenuFromMarkdown {
       }
       level = newLevel;
 
-      result += indent.substring(2) + "- title: " + title + "\n";
-      result += indent + "url: " + url_prefix + title.toLowerCase().replace(" ", "-").replace("*", "").replace("/", "").replace("(", "").replace(")", "").replace(".", "").replace(",", "") + "\n";
+      result += indent.substring(2) + "- title: '" + title + "'\n";
+      result += indent + "url: " + url_prefix + title.toLowerCase().replace(" ", "-").replace("*", "").replace("/", "").replace("(", "").replace(")", "").replace(".", "").replace(",", "").replace(":", "") + "\n";
       result += indent + "output: web\n";
     }
 
