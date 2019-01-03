@@ -36,13 +36,13 @@ The following are the changes since PGQL 1.1:
 ### New features since PGQL 1.1
 
  - [Shortest path finding](#shortest-path)
- - Matching of undirected edges
  - [Scalar subqueries](#scalar-subqueries)
- - New aggregation [ARRAY_AGG](#ArrayAggregation)
- - [EXTRACT](#extract) function for extracting the `year`/`month`/`day`/`hour`/`minute`/`second`/`time_zone` from a datetime value
+ - Graphs with undirected edges
+ - New aggregation: [ARRAY_AGG](#ArrayAggregation)
  - Math function [ABS](#abs), [CEIL/CEILING](#ceil-or-ceiling), [FLOOR](#floor), [ROUND](#round)
- - [IN and NOT IN](#in-and-not-in) predicates
+ - [EXTRACT](#extract) function for extracting the `year`/`month`/`day`/`hour`/`minute`/`second`/`time_zone` from a datetime value
  - [CASE](#case) statement
+ - [IN and NOT IN](#in-and-not-in) predicates
  - Support for special characters in graph names, labels, and property names
 
 ### Breaking changes

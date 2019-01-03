@@ -17,14 +17,25 @@ and [GSQL](https://doc.tigergraph.com/GSQL-101.html).
 PGQL combines graph pattern matching with familiar constructs from SQL, such as `SELECT`, `FROM` and `WHERE`.
 PGQL also provides powerful constructs for matching regular path expressions (e.g. `PATH`).
 
-An example PGQL query is as follows:
+An example is as follows:
 
+{% include image.html file="example_graphs/financial_transactions.png" style="width:680px;" %}
 
 ```sql
-SELECT p2.name AS friend_of_friend
-  FROM facebook_graph                             /* In the Facebook graph..   */
- MATCH (p1:Person) -/:friend_of{2}/-> (p2:Person) /* ..match two-hop friends.. */
- WHERE p1.name = 'Mark'                           /* ..of Mark.                */
+  SELECT owner.name AS accountHolder, SUM(t.amount) AS totalTransacted
+    FROM financial_transactions
+   MATCH (p:Person) -[:ownerOf]-> (:Account) -[t:transaction]- (:Account) <-[:ownerOf]- (owner:Person|Company)
+   WHERE p.name = 'Nikita'
+GROUP BY owner
+```
+
+```
++---------------+-----------------+
+| accountHolder | totalTransacted |
++---------------+-----------------|
+| Camille       | 1000.00         |
+| Oracle        | 4501.00         |
++---------------+-----------------+
 ```
 
 See [PGQL 1.1 Specification](spec/1.1/) for a detailed specification of the language.

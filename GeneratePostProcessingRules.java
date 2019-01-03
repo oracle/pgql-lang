@@ -16,7 +16,7 @@ public class GeneratePostProcessingRules {
       "STRING", "ARRAY_AGG", "ID", "LABELS", "LABEL", "HAS_LABEL", "ALL_DIFFERENT", "IN_DEGREE", "OUT_DEGREE",
       "CEIL", "CEILING", "FLOOR", "ROUND", "JAVA_REGEXP_LIKE", "HOUR", "TOP", "SHORTEST" };
 
-  private static final String[] NO_KEYWORDS = { "source", "Class", "c", "location", "g", "level", "Result" };
+  private static final String[] NO_KEYWORDS = { "source", "Class", "c", "location", "g", "level", "Result", "owner" };
 
   private static final String RULE_IDENTIFIER = "[A-Za-z][A-Za-z0-9_]*";
 
