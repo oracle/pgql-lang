@@ -22,7 +22,7 @@ An example is as follows:
 {% include image.html file="example_graphs/financial_transactions.png" style="width:680px;" %}
 
 ```sql
-  SELECT owner.name AS accountHolder, SUM(t.amount) AS totalTransacted
+  SELECT owner.name AS account_holder, SUM(t.amount) AS total_transacted_with_Nikita
     FROM financial_transactions
    MATCH (p:Person) -[:ownerOf]-> (:Account) -[t:transaction]- (:Account) <-[:ownerOf]- (owner:Person|Company)
    WHERE p.name = 'Nikita'
@@ -30,12 +30,12 @@ GROUP BY owner
 ```
 
 ```
-+---------------+-----------------+
-| accountHolder | totalTransacted |
-+---------------+-----------------|
-| Camille       | 1000.00         |
-| Oracle        | 4501.00         |
-+---------------+-----------------+
++----------------+------------------------------+
+| account_holder | total_transacted_with_Nikita |
++----------------+------------------------------|
+| Camille        | 1000.00                      |
+| Oracle         | 4501.00                      |
++----------------+------------------------------+
 ```
 
 See [PGQL 1.1 Specification](spec/1.1/) for a detailed specification of the language.
