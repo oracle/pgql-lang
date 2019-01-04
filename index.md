@@ -5,6 +5,9 @@ toc: false
 keywords: pgql property graph model query language database analytics oracle cypher opencypher sparql
 ---
 
+<br/><br/>
+{% include note.html content="Find our statement on __GQL__, a __standard__ for property graph querying, [__here__](gql-statement.html)." %}
+
 Graphs & SQL
 ====================================
 
@@ -125,4 +128,4 @@ Resources
  - __White Paper__
      - [White Paper](http://dl.acm.org/citation.cfm?id=2960421) ([pdf](http://event.cwi.nl/grades/2016/07-VanRest.pdf)) (_2016-06-24_)
  - __Standardization__
-     - See our [Statement on GQL](gql-statement/)
+     - See our [Statement on GQL](gql-statement.html)

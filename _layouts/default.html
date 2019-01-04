@@ -79,7 +79,7 @@
 <div class="container">
   <div class="col-lg-12">&nbsp;</div>
 
-    {% if page.url contains 'index.html' %}
+    {% if page.url contains 'index.html' or page.url contains 'gql-statement.html' %}
       <!-- don't show the sidebar --!>
     {% else %}
 
@@ -92,7 +92,7 @@
     {% endif %}
     <!-- Content Column -->
 
-    {% if page.url contains 'index.html' %}
+    {% if page.url contains 'index.html' or page.url contains 'gql-statement.html' %}
     <div style="margin-top:-80px;"> <!-- make it span over the entire page and don't put too much white space on top -->
     {% else %}
     <div class="col-md-9">

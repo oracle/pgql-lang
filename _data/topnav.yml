@@ -26,7 +26,7 @@ topnav:
 topnav_dropdowns:
 - title: Topnav dropdowns
   folders:
-    - title: Oracle Resources
+    - title: Oracle
       folderitems:
         - title: Oracle Spatial and Graph
           external_url: https://www.oracle.com/database/spatial/index.html
