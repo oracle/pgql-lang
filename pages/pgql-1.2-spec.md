@@ -43,7 +43,6 @@ The following are the changes since PGQL 1.1:
  - [EXTRACT](#extract) function for extracting the `year`/`month`/`day`/`hour`/`minute`/`second`/`time_zone` from a datetime value
  - [CASE](#case) statement
  - [IN and NOT IN](#in-and-not-in) predicates
- - Support for special characters in graph names, labels, and property names
 
 ### Breaking changes
 
@@ -300,7 +299,10 @@ MatchClause           ::= 'MATCH' <GraphPattern>
 
 GraphPattern          ::= <PathPattern> ( ',' <PathPattern> )*
 
-PathPattern           ::= <Vertex> ( <Relation> <Vertex> )*
+PathPattern           ::=   <SimplePathPattern>
+                          | <ShortestPathPattern>
+
+SimplePathPattern     ::= <Vertex> ( <Relation> <Vertex> )*
 
 Vertex                ::= '(' <VariableSpecification> ')'
 
@@ -1002,6 +1004,10 @@ SELECT generatorA.location, generatorB.location
 The above query outputs all generators that are connected to each other via one or more connectors that are all operational.
 
 # Shortest Path
+
+```bash
+ShortestPathPattern ::= 'SHORTEST' '(' <SimplePathPattern> ')'
+```
 
 Users can now find `TOP k SHORTEST` paths between any pair of matched source and destination
 and compute aggregations over their vertices/edges. The distance metric is represented by the number of hops.

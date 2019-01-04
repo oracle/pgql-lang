@@ -11,7 +11,7 @@ keywords: pgql property graph model query language database analytics oracle cyp
 Graphs & SQL
 ====================================
 
-PGQL is a graph pattern matching query language for the [property graph data model](spec/1.1/#property-graph-data-model), inspired by
+PGQL is a graph pattern-matching query language for the [property graph data model](spec/1.1/#property-graph-data-model), inspired by
 [SQL](https://en.wikipedia.org/wiki/SQL),
 [openCypher](http://www.opencypher.org/),
 [G-CORE](http://g-core.org/),
@@ -46,7 +46,7 @@ See [PGQL 1.1 Specification](spec/1.1/) for a detailed specification of the lang
 Graph Pattern Matching
 ----------------------
 
-PGQL uses [ASCII art syntax](https://neo4j.com/developer/cypher-query-language/) for matching vertices, edges, and paths:
+PGQL uses [ASCII-art syntax](https://neo4j.com/developer/cypher-query-language/) for matching vertices, edges, and paths:
 
  * `(n:Person)` matches a __vertex__ (node) `n` with label `Person`
  * `-[e:friend_of]->` matches an __edge__ `e` with label `friend_of`
@@ -128,4 +128,4 @@ Resources
  - __White Paper__
      - [White Paper](http://dl.acm.org/citation.cfm?id=2960421) ([pdf](http://event.cwi.nl/grades/2016/07-VanRest.pdf)) (_2016-06-24_)
  - __Standardization__
-     - See our [Statement on GQL](gql-statement.html)
+     - See our [Statement on GQL](gql-statement.html) (_2019-01-04_)
