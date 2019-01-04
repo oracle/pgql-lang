@@ -6,6 +6,7 @@ sidebar: false
 ---
 
 <br/><br/>
+<p style="text-align: right">January 4, 2019</p>
 ## Towards GQL: a standard for property graph querying
 
 GQL is the name of a newly proposed ANSI/ISO standard query language for property graphs developed by same committees that have been standardizing ANSI/ISO SQL for more than three decades. For more details, see [https://www.gqlstandards.org/](https://www.gqlstandards.org/).
