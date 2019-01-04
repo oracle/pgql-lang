@@ -1,4 +1,5 @@
 ---
+title: ""
 permalink: /gql-statement.html
 toc: false
 sidebar: false
