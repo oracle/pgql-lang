@@ -220,11 +220,6 @@ entries:
   - title: 'Shortest Path'
     url: /spec/1.2/#shortest-path
     output: web
-    folderitems:
-
-    - title: 'Single'
-      url: /spec/1.2/#single
-      output: web
 
   - title: 'Functions and Expressions'
     url: /spec/1.2/#functions-and-expressions

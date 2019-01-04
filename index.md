@@ -9,11 +9,11 @@ Graphs & SQL
 ====================================
 
 PGQL is a graph pattern matching query language for the [property graph data model](spec/1.1/#property-graph-data-model), inspired by
-[Cypher](https://homepages.inf.ed.ac.uk/libkin/papers/sigmod18.pdf),
 [SQL](https://en.wikipedia.org/wiki/SQL),
+[openCypher](http://www.opencypher.org/),
 [G-CORE](http://g-core.org/),
-[SPARQL](https://www.w3.org/TR/sparql11-query/)
-and [GSQL](https://doc.tigergraph.com/GSQL-101.html).
+[GSQL](https://doc.tigergraph.com/GSQL-101.html),
+and [SPARQL](https://www.w3.org/TR/sparql11-query/).
 PGQL combines graph pattern matching with familiar constructs from SQL, such as `SELECT`, `FROM` and `WHERE`.
 PGQL also provides powerful constructs for matching regular path expressions (e.g. `PATH`).
 
@@ -111,9 +111,10 @@ Resources
 
  - __Parser__
      - [Open-sourced parser and static query validator](https://github.com/oracle/pgql-lang) on GitHub
- - __Implementations__
-     - [PGX](http://www.oracle.com/technetwork/oracle-labs/parallel-graph-analytics/overview/index.html), an in-memory graph analytics toolkit
-     - [Oracle Spatial and Graph](https://www.oracle.com/database/spatial/index.html), which bundles PGX and additionally supports a PGQL-to-SQL translation on top of the Oracle RDBMS
+ - __Oracle__
+     - [Oracle Spatial and Graph](https://www.oracle.com/database/spatial/index.html)
+     - [Oracle Big Data Spatial and Graph](https://www.oracle.com/technetwork/database/database-technologies/bigdata-spatialandgraph/overview/index.html)
+     - [Oracle Labs PGX](https://www.oracle.com/technetwork/oracle-labs/parallel-graph-analytix/overview/index.html)
  - __Blog Posts__
      - [Using PGQL in Python](https://blogs.oracle.com/bigdataspatialgraph/using-pgql-in-python) (_2018-05-22_)
      - [How Many Ways to Run Property Graph Query Language (PGQL) in BDSG? (II)](https://blogs.oracle.com/bigdataspatialgraph/how-many-ways-to-run-property-graph-query-language-pgql-in-bdsg-ii) (_2017-03-23_)
@@ -122,7 +123,6 @@ Resources
  - __Training Videos__
      - [PGQL: A Query Language for Graphs](https://asktom.oracle.com/pls/apex/f?p=100:551:::NO:551:P551_CLASS_ID:4197&cs=1F6BF819D61CFBE3F44500E3F8E156C5C) (_2018-10-02_)
  - __White Paper__
-     - [White Paper](http://dl.acm.org/citation.cfm?id=2960421) ([pdf](http://event.cwi.nl/grades/2016/07-VanRest.pdf)) that also outlines some future directions of PGQL
-       (e.g. shortest/cheapest path finding, graph construction)
+     - [White Paper](http://dl.acm.org/citation.cfm?id=2960421) ([pdf](http://event.cwi.nl/grades/2016/07-VanRest.pdf)) (_2016-06-24_)
  - __Standardization__
-     - [GQL Standard](https://www.gqlstandards.org/)
+     - See our [Statement on GQL](gql-statement/)

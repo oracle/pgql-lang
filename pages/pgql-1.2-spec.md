@@ -1,5 +1,5 @@
 ---
-title:  "PGQL 1.2 Specification (UNRELEASED)"
+title:  "PGQL 1.2 Specification [UNDER CONSTRUCTION]"
 permalink: /spec/1.2/
 summary: "PGQL is an SQL-like query language for the property graph data model and is based on the paradigm of graph pattern matching,
 allowing you to specify patterns that are then matched against vertices and edges in a graph.
@@ -37,7 +37,7 @@ The following are the changes since PGQL 1.1:
 
  - [Shortest path finding](#shortest-path)
  - [Scalar subqueries](#scalar-subqueries)
- - Graphs with undirected edges
+ - Pattern matching on graphs with _undirected_ edges
  - New aggregation: [ARRAY_AGG](#ArrayAggregation)
  - Math function [ABS](#abs), [CEIL/CEILING](#ceil-or-ceiling), [FLOOR](#floor), [ROUND](#round)
  - [EXTRACT](#extract) function for extracting the `year`/`month`/`day`/`hour`/`minute`/`second`/`time_zone` from a datetime value
@@ -70,7 +70,7 @@ Labels as well as names of properties are strings. Property values are scalars s
 
 ### Example 1: Student Network
 
-An example is:
+An example graph is:
 
 {% include image.html file="example_graphs/student_network.png"  %}
 
@@ -78,7 +78,7 @@ Here, `student_network` is the name of the graph. The graph has three vertices l
 
 ### Example 2: Paris Métro
 
-Another example is:
+Another example graph is:
 
 {% include image.html file="example_graphs/paris_metro.png" %}
 

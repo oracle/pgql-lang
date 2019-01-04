@@ -1,19 +1,14 @@
 entries:
 - title: Sidebar
-  product: PGQL Home
   folders:
 
-  - title: Overview
+  - title: Homepage
     url: /
     output: web
     folderitems:
 
-    - title: Getting Started with PGQL
-      url: /index.html
+    - title: Homepage
+      url: /
       output: web
       type: homepage
-
-    - title: PGQL 1.0 Specification
-      url: /spec/1.0/
-      output: web
 
