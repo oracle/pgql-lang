@@ -31,16 +31,18 @@ This document contains a complete grammar definition of PGQL, spread throughout 
 
 ## Changelog
 
-The following are the changes since PGQL 1.1:
+The following are the changes between PGQL 1.1 and PGQL 1.2:
 
 ### New features since PGQL 1.1
+
+The new features in PGQL 1.2 are:
 
  - [Shortest path finding](#shortest-path)
  - [Scalar subqueries](#scalar-subqueries)
  - [Undirected edges](#matching-undirected-edges) (and matching thereof)
  - [ARRAY_AGG](#ArrayAggregation) aggregation
  - [ABS](#abs), [CEIL/CEILING](#ceil-or-ceiling), [FLOOR](#floor) and [ROUND](#round) math functions
- - [EXTRACT](#extract) function for extracting the `year`/`month`/`day`/`hour`/`minute`/`second`/`time_zone` from a datetime value
+ - [EXTRACT](#extract) function for extracting the `year`/`month`/`day`/`hour`/`minute`/`second`/`time_zone` from datetime values
  - [CASE](#case) statement
  - [IN and NOT IN](#in-and-not-in) predicates
 
