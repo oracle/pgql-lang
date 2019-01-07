@@ -37,9 +37,9 @@ The following are the changes since PGQL 1.1:
 
  - [Shortest path finding](#shortest-path)
  - [Scalar subqueries](#scalar-subqueries)
- - Pattern matching on graphs with _undirected_ edges
- - New aggregation: [ARRAY_AGG](#ArrayAggregation)
- - Math function [ABS](#abs), [CEIL/CEILING](#ceil-or-ceiling), [FLOOR](#floor), [ROUND](#round)
+ - [Graph with undirected edges](#example-2-paris-m%C3%A9tro) and matching of such undirected edges
+ - [ARRAY_AGG](#ArrayAggregation) aggregation
+ - [ABS](#abs), [CEIL/CEILING](#ceil-or-ceiling), [FLOOR](#floor) and [ROUND](#round) math functions
  - [EXTRACT](#extract) function for extracting the `year`/`month`/`day`/`hour`/`minute`/`second`/`time_zone` from a datetime value
  - [CASE](#case) statement
  - [IN and NOT IN](#in-and-not-in) predicates
@@ -85,78 +85,138 @@ Here, `paris_metro` is the name of the graph. The graph has seven vertices that 
 
 ## Writing simple queries
 
+This section is mostly example-based and is meant for beginning users.
 
+### Vertex patterns
 
+The following query matches all the vertices with the label `Person` and retrieves their properties `name` and `dob`:
 
-
-
-
-{% include image.html file="example_graphs/financial_transactions.png" style="width:680px;" %}
-
-
-
-### Mapping variables to vertices and edges
-
-
-There are two popular graph pattern matching semantics: graph homomorphism and graph isomorphism. The built-in semantic of PGQL is based on graph homomorphism, but patterns can still be matched in an isomorphic manner by specifying non-equality constraints between vertices and/or edges, or, by using the built-in function `all_different(exp1, exp2, .., expN)` (see [ALL_DIFFERENT](#all_different)).
-
-#### Subgraph Homomorphism
-
-Under graph homomorphism, multiple vertices (or edges) in the query pattern may match with the same vertex (or edge) in the data graph as long as all topology and value constraints of the different query vertices (or edges) are satisfied by the data vertex (or edge).
-
-Consider the following example graph and query:
-
-```
-Vertex 0
-Vertex 1
-Edge 0: 0 -> 0
-Edge 1: 0 -> 1
-```
+{% include image.html file="example_graphs/student_network.png"  %}
 
 ```sql
-SELECT x, y
-  FROM g MATCH (x) -> (y)
+SELECT n.name, n.dob
+  FROM student_network
+ MATCH (n:Person)
 ```
 
-Under graph homomorphism the output of this query is as follows:
+```
++-----------------------+
+| n.name   | n.dob      |
++-----------------------+
+| Riya     | 1995-03-20 |
+| Kathrine | 1994-01-15 |
+| Lee      | 1996-01-29 |
++-----------------------+
+```
 
-x | y
---- | ---
-0 | 0
-0 | 1
+In the query above:
+ - `student_network` is the name of the input graph.
+ - `(n:Person)` is a vertex pattern in which `n` is a variable name and `:Person` a label expression.
+ - Variable names like `n` can be freely chosen by the user. The vertices that match the pattern are said to "bind to the variable".
+ - The label expression `:Person` specifies that we match only vertices that have the label `Person`.
+ - `n.name` and `n.dob` are property references. `n.name` and `n.dob` access the properties `name` and `dob` of the vertices that bind to `n`, respectively.
 
-Note that in case of the first result, both query vertex `x` and query vertex `y` are bound to the same data vertex `0`.
+The query produces three results, which are returned as a table. The results are unordered.
 
-#### Subgraph Isomorphism
+### Edge patterns
 
-Under graph isomorphism, two distinct query vertices must not match with the same data vertex.
+Edge patterns take the form of arrows like `-[e]->` (match an outgoing edge) and `<-[e]-` (match an incoming edge).
 
-Consider the example from above. Under graph isomorphism, only the second solution is a valid one since the first solution binds both query vertices `x` and `y` to the same data vertex.
+For example:
 
-In PGQL, to specify that a pattern should be matched in an isomorphic way, one can introduce non-equality constraints:
+{% include image.html file="example_graphs/student_network.png"  %}
 
 ```sql
-SELECT x, y
-  FROM g MATCH (x) -> (y)
- WHERE x <> y
+SELECT a.name, b.name
+  FROM student_network
+ MATCH (a:Person) -[e:knows]-> (b:Person)
 ```
 
-The output of this query is as follows:
+```
++---------------------+
+| a.name   | b.name   |
++---------------------+
+| Kathrine | Riya     |
+| Kathrine | Lee      |
+| Lee      | Kathrine |
++---------------------+
+```
 
-x | y
---- | ---
-0 | 1
+In the above query:
+ - `-[e:knows]->` is an edge pattern in which `e` is a variable name and `:knows` a label expression.
+ - The arrowhead `->` specifies that the pattern matches edges that are outgoing from `a` and incoming to `b`.
 
-Alternatively, one can use the built-in function `all_different(exp1, exp2, .., expN)` (see [ALL_DIFFERENT](#all_different)), which takes an arbitrary number of vertices or edges as input, and automatically applies non-equality constraints between all of them:
+### Label expressions
+
+More complex label expressions are supported through [label disjunction](#label-disjunction). Furthermore, it is possible to [omit a label expression](#omitting-a-label-expression).
+
+#### Label disjunction
+
+The bar operator (`|`) is a logical OR for specifying that a vertex or edge should match as long as it has either of the specified labels.
+
+For example:
+
+{% include image.html file="example_graphs/student_network.png"  %}
 
 ```sql
-SELECT x, y
-  FROM g MATCH (x) -> (y)
- WHERE all_different(x, y)
+SELECT n.name, n.dob
+  FROM student_network
+ MATCH (n:Person|University)
 ```
 
+```
++--------------------------+
+| n.name      | n.dob      |
++--------------------------+
+| Riya        | 1995-03-20 |
+| Kathrine    | 1994-01-15 |
+| Lee         | 1996-01-29 |
+| UC Berkeley | <null>     |
++--------------------------+
+```
 
-### Any-directional edges
+In the query above, `(n:Person|University)` matches vertices that have either the label `Person` or the label `University`. Note that in the result, there is a `<null>` value in the last row because the corresponding vertex does not have a property `dob`.
+
+#### Omitting a label expression
+
+Label expressions may be omitted altogether. The vertex or edge pattern will then match any vertex or edge, no matter its labels.
+
+For example:
+
+{% include image.html file="example_graphs/student_network.png"  %}
+
+```sql
+SELECT n.name, n.dob
+  FROM student_network
+ MATCH (n)
+```
+
+```
++--------------------------+
+| n.name      | n.dob      |
++--------------------------+
+| Riya        | 1995-03-20 |
+| Kathrine    | 1994-01-15 |
+| Lee         | 1996-01-29 |
+| UC Berkeley | <null>     |
++--------------------------+
+```
+
+Note that the query gives the same results as before since both patterns `(n)` and `(n:Person|University)` match all the vertices in the example graph.
+
+### Filters on property values
+
+TODO
+
+### Multiple edge patterns
+
+TODO
+
+### Matching the same graph element to different patterns
+
+TODO
+
+### Matching edges in any direction
 
 Any-directional edges match edges in the graph no matter if they are incoming, outgoing, or undirected.
 
@@ -179,6 +239,49 @@ SELECT *
 
 The above query will return all pairs of vertices `n` and `m` that are reachable via a multiple of two edges, each edge being either an incoming or an outgoing edge.
 
+### Matching undirected edges
+
+Undirected edges (in the graph) are matched through [any-directional edge patterns](#matching-edges-in-any-direction).
+
+For example:
+
+{% include image.html file="example_graphs/paris_metro.png" %}
+
+```sql
+SELECT n.name, m.name
+  FROM paris_metro
+ MATCH (n:Station) -[e:connection]- (m:Station)
+ WHERE e.line = 2
+```
+
+```
++---------------------------------------------------------+
+| n.name                     | m.name                     |
++---------------------------------------------------------+
+| Charles de Gaulle - Étoile | Pigalle                    |
+| Pigalle                    | Charles de Gaulle - Étoile |
+| Pigalle                    | Gare du Nord               |
+| Gare du Nord               | Pigalle                    |
++---------------------------------------------------------+
+```
+
+Note that above, each undirected edge matches twice because each station binds to both `n` and `m`. If this is not desired, one can filter out the "duplicates", for example through a filter like `n.name > m.name`:
+
+```sql
+SELECT n.name, m.name
+  FROM paris_metro
+ MATCH (n:Station) -[e:connection]- (m:Station)
+ WHERE e.line = 2 AND n.name > m.name
+```
+
+```
++--------------------------------------+
+| n.name  | m.name                     |
++--------------------------------------+
+| Pigalle | Charles de Gaulle - Étoile |
+| Pigalle | Gare du Nord               |
++--------------------------------------+
+```
 
 ## Main query structure
 
@@ -295,36 +398,36 @@ In a PGQL query, the `MATCH` clause defines the graph pattern to be matched.
 Syntactically, a `MATCH` clause is composed of the keyword `MATCH` followed by a comma-separated sequence of path patterns:
 
 ```bash
-MatchClause           ::= 'MATCH' <GraphPattern>
+MatchClause               ::= 'MATCH' <GraphPattern>
 
-GraphPattern          ::= <PathPattern> ( ',' <PathPattern> )*
+GraphPattern              ::= <PathPattern> ( ',' <PathPattern> )*
 
-PathPattern           ::=   <SimplePathPattern>
-                          | <ShortestPathPattern>
+PathPattern               ::=   <SimplePathPattern>
+                              | <ShortestPathPattern>
 
-SimplePathPattern     ::= <Vertex> ( <Relation> <Vertex> )*
+SimplePathPattern         ::= <VertexPattern> ( <PathPrimary> <VertexPattern> )*
 
-Vertex                ::= '(' <VariableSpecification> ')'
+VertexPattern             ::= '(' <VariableSpecification> ')'
 
-Relation              ::=   <Edge>
-                          | <Path>
+PathPrimary               ::=   <EdgePattern>
+                              | <ReachabilityPathExpression>
 
-Edge                  ::=   <OutgoingEdge>
-                          | <IncomingEdge>
-                          | <AnyDirectionalEdge>
+EdgePattern               ::=   <OutgoingEdgePattern>
+                              | <IncomingEdgePattern>
+                              | <AnyDirectionalEdgePattern>
 
-OutgoingEdge          ::=   '->'
-                          | '-[' <VariableSpecification> ']->'
+OutgoingEdgePattern       ::=   '->'
+                              | '-[' <VariableSpecification> ']->'
 
-IncomingEdge          ::=   '<-'
-                          | '<-[' <VariableSpecification> ']-'
+IncomingEdgePattern       ::=   '<-'
+                              | '<-[' <VariableSpecification> ']-'
 
-AnyDirectionalEdge    ::=   '-'
-                          | '-[' <VariableSpecification> ']-'
+AnyDirectionalEdgePattern ::=   '-'
+                              | '-[' <VariableSpecification> ']-'
 
-VariableSpecification ::= <VariableName>? <LabelPredicate>?
+VariableSpecification     ::= <VariableName>? <LabelPredicate>?
 
-VariableName          ::= <IDENTIFIER>
+VariableName              ::= <IDENTIFIER>
 ```
 
 A path pattern that describes a partial topology of the subgraph pattern. In other words, a topology constraint describes some connectivity relationships between vertices and edges in the pattern, whereas the whole topology of the pattern is described with one or multiple topology constraints.
@@ -731,39 +834,39 @@ Path queries test for the existence of arbitrary-length paths between pairs of v
 The syntactic structure of a query path is similar to a query edge, but it uses forward slashes (`-/` and `/->`) instead of square brackets (`-[` and `]->`). The syntax rules are as follows:
 
 ```bash
-Path                 ::=   <OutgoingPath>
-                         | <IncomingPath>
+ReachabilityPathExpression ::=   <OutgoingPathPattern>
+                               | <IncomingPathPattern>
 
-OutgoingPath         ::= '-/' <PathSpecification> '/->'
+OutgoingPathPattern        ::= '-/' <PathSpecification> '/->'
 
-IncomingPath         ::= '<-/' <PathSpecification> '/-'
+IncomingPathPattern        ::= '<-/' <PathSpecification> '/-'
 
-PathSpecification    ::=   <LabelPredicate>
-                         | <PathPredicate>
+PathSpecification          ::=   <LabelPredicate>
+                               | <PathPredicate>
 
-PathPredicate        ::= ':' <Label> <RepetitionQuantifier>
+PathPredicate              ::= ':' <Label> <GraphPatternQuantifier>
 
-RepetitionQuantifier ::=   <ZeroOrMore>
-                         | <OneOrMore>
-                         | <Optional>
-                         | <ExactlyN>
-                         | <NOrMore>
-                         | <BetweenNAndM>
-                         | <BetweenZeroAndM>
+GraphPatternQuantifier     ::=   <ZeroOrMore>
+                               | <OneOrMore>
+                               | <Optional>
+                               | <ExactlyN>
+                               | <NOrMore>
+                               | <BetweenNAndM>
+                               | <BetweenZeroAndM>
 
-ZeroOrMore           ::= '*'
+ZeroOrMore                 ::= '*'
 
-OneOrMore            ::= '+'
+OneOrMore                  ::= '+'
 
-Optional             ::= '?'
+Optional                   ::= '?'
 
-ExactlyN             ::= '{' <UNSIGNED_INTEGER> '}'
+ExactlyN                   ::= '{' <UNSIGNED_INTEGER> '}'
 
-NOrMore              ::= '{' <UNSIGNED_INTEGER> ',' '}'
+NOrMore                    ::= '{' <UNSIGNED_INTEGER> ',' '}'
 
-BetweenNAndM         ::= '{' <UNSIGNED_INTEGER> ',' <UNSIGNED_INTEGER> '}'
+BetweenNAndM               ::= '{' <UNSIGNED_INTEGER> ',' <UNSIGNED_INTEGER> '}'
 
-BetweenZeroAndM      ::= '{' ',' <UNSIGNED_INTEGER> '}'
+BetweenZeroAndM            ::= '{' ',' <UNSIGNED_INTEGER> '}'
 ```
 
 An example is as follows:
@@ -1005,12 +1108,27 @@ The above query outputs all generators that are connected to each other via one 
 
 # Shortest Path
 
-```bash
-ShortestPathPattern ::= 'SHORTEST' '(' <SimplePathPattern> ')'
-```
-
 Users can now find `TOP k SHORTEST` paths between any pair of matched source and destination
 and compute aggregations over their vertices/edges. The distance metric is represented by the number of hops.
+
+The syntax is:
+
+```bash
+ShortestPathPattern                ::= 'SHORTEST' '(' <SourceVertexPattern>
+                                                      <QuantifiedShortestPathPrimary>
+                                                      <DestinationVertexPattern> ')'
+
+SourceVertexPattern                ::= <VertexPattern>
+
+DestinationVertexPattern           ::= <VertexPattern>
+
+QuantifiedShortestPathPrimary      ::= <ShortestPathPrimary> <GraphPatternQuantifier>
+
+ShortestPathPrimary                ::=   <EdgePattern>
+                                       | <ParenthesizedPathPatternExpression>
+
+ParenthesizedPathPatternExpression ::= '(' <VertexPattern>? <EdgePattern> <VertexPattern>? <WhereClause>? ')'
+```
 
 For example the following query will output the sum of the edge weights along each of the top 3 shortest paths between
 each of the matched source and destination pairs:
@@ -1107,7 +1225,7 @@ BracketedValueExpression ::= '(' <ValueExpression> ')'
 
 A value expression is one of:
 
- - A variable reference, being either a reference to a `<Vertex>`, an `<Edge>`, or, an `<ExpAsVar>`.
+ - A variable reference, being either a reference to a `<VertexPattern>`, an `<EdgePattern>`, or, an `<ExpAsVar>`.
  - A property access, which syntactically takes the form of a variable reference, followed by a dot (`.`) and the name of a property.
  - A literal (see [Literals](#literals)).
  - A bind variable (see [Bind Variables](#bind-variables)).

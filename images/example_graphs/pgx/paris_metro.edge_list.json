@@ -1,0 +1,29 @@
+{
+  "format":"edge_list",
+  "uri":"paris_metro.edge_list",
+  "vertex_id_type":"long",
+  "vertex_labels":true,
+  "edge_label":true,
+  "vertex_props":[
+    {
+      "name":"name",
+      "type":"string"
+    },
+    {
+      "name":"zone",
+      "type":"integer"
+    }
+  ],
+  "edge_props":[
+    {
+      "name":"line",
+      "type":"integer"
+    }
+  ],
+  "loading":{
+    "load_vertex_labels":true,
+    "load_edge_label":true,
+    "create_label_histogram": true
+  },
+  "separator":" "
+}

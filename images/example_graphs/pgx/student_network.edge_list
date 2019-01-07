@@ -1,0 +1,10 @@
+1 * {Person} Riya 1995-03-20
+2 * {Person} Kathrine 1994-01-15
+3 * {Person} Lee 1996-01-29
+4 * {University} "UC Berkeley" 2000-01-01
+2 1 knows
+2 3 knows
+3 2 knows
+1 4 studentOf
+2 4 studentOf
+3 4 studentOf

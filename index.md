@@ -128,4 +128,4 @@ Resources
  - __White Paper__
      - [White Paper](http://dl.acm.org/citation.cfm?id=2960421) ([pdf](http://event.cwi.nl/grades/2016/07-VanRest.pdf)) (_2016-06-24_)
  - __Standardization__
-     - See our [Statement on GQL](gql-statement.html) (_2019-01-04_)
+     - See our [statement on GQL](gql-statement.html) (_2019-01-04_)

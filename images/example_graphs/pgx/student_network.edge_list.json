@@ -1,0 +1,25 @@
+{
+  "format":"edge_list",
+  "uri":"student_network.edge_list",
+  "vertex_id_type":"long",
+  "vertex_labels":true,
+  "edge_label":true,
+  "vertex_props":[
+    {
+      "name":"name",
+      "type":"string"
+    },
+    {
+      "name":"dob",
+      "type":"local_date"
+    }
+  ],
+  "edge_props":[
+  ],
+  "loading":{
+    "load_vertex_labels":true,
+    "load_edge_label":true,
+    "create_label_histogram": true
+  },
+  "separator":" "
+}

@@ -52,12 +52,36 @@ entries:
       output: web
       subfolderitems:
 
-      - title: 'Mapping variables to vertices and edges'
-        url: /spec/1.2/#mapping-variables-to-vertices-and-edges
+      - title: 'Vertex patterns'
+        url: /spec/1.2/#vertex-patterns
         output: web
 
-      - title: 'Any-directional edges'
-        url: /spec/1.2/#any-directional-edges
+      - title: 'Edge patterns'
+        url: /spec/1.2/#edge-patterns
+        output: web
+
+      - title: 'Label expressions'
+        url: /spec/1.2/#label-expressions
+        output: web
+
+      - title: 'Filters on property values'
+        url: /spec/1.2/#filters-on-property-values
+        output: web
+
+      - title: 'Multiple edge patterns'
+        url: /spec/1.2/#multiple-edge-patterns
+        output: web
+
+      - title: 'Matching the same graph element to different patterns'
+        url: /spec/1.2/#matching-the-same-graph-element-to-different-patterns
+        output: web
+
+      - title: 'Matching edges in any direction'
+        url: /spec/1.2/#matching-edges-in-any-direction
+        output: web
+
+      - title: 'Matching undirected edges'
+        url: /spec/1.2/#matching-undirected-edges
         output: web
 
     - title: 'Main query structure'
