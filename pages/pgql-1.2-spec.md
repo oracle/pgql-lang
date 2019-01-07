@@ -37,7 +37,7 @@ The following are the changes since PGQL 1.1:
 
  - [Shortest path finding](#shortest-path)
  - [Scalar subqueries](#scalar-subqueries)
- - [Graph with undirected edges](#example-2-paris-m%C3%A9tro) and matching of such undirected edges
+ - [Undirected edges](#matching-undirected-edges) (and matching thereof)
  - [ARRAY_AGG](#ArrayAggregation) aggregation
  - [ABS](#abs), [CEIL/CEILING](#ceil-or-ceiling), [FLOOR](#floor) and [ROUND](#round) math functions
  - [EXTRACT](#extract) function for extracting the `year`/`month`/`day`/`hour`/`minute`/`second`/`time_zone` from a datetime value
@@ -265,7 +265,7 @@ SELECT n.name, m.name
 +---------------------------------------------------------+
 ```
 
-Note that above, each undirected edge matches twice because each station binds to both `n` and `m`. If this is not desired, one can filter out the "duplicates", for example through a filter like `n.name > m.name`:
+Note that above, each undirected edge matches twice because each station along line 2 (note: `e.line = 2`) binds once to `n` and once to `m`, for each edge. If this is not desired, one can filter out the "duplicates", for example through a filter like `n.name > m.name`:
 
 ```sql
 SELECT n.name, m.name
@@ -285,7 +285,9 @@ SELECT n.name, m.name
 
 ## Main query structure
 
-The following is the main query structure:
+The previous section on [writing simple queries](#writing-simple-queries) provided a basic introduction to graph pattern matching. The rest of this document introduces the different functionalities in more detail.
+
+The following is the syntax of the main query structure:
 
 ```bash
 Query ::= <CommonPathExpressions>?
@@ -299,7 +301,7 @@ Query ::= <CommonPathExpressions>?
           <LimitOffsetClauses>?
 ```
 
-Details of the different clauses can be found in the following sections:
+Details of the different clauses of a query can be found in the following sections:
 
  - [Common Path Expressions](#common-path-expressions) allow for specifying complex reachability queries.
  - The [SELECT](#select) clause specifies what should be returned.

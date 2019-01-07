@@ -49,7 +49,7 @@ Graph Pattern Matching
 PGQL uses [ASCII-art syntax](https://neo4j.com/developer/cypher-query-language/) for matching vertices, edges, and paths:
 
  * `(n:Person)` matches a __vertex__ (node) `n` with label `Person`
- * `-[e:friend_of]->` matches an __edge__ `e` with label `friend_of`
+ * `-[e:friend_of]->` matches an __edge__ (relationship) `e` with label `friend_of`
  * `-/:friend_of+/->` matches a __path__ consisting of one or more (`+`) edges, each with label `friend_of`
 
 SQL Capabilities
