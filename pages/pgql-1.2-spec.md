@@ -974,9 +974,11 @@ Here, `Judith` is returned since there exists the empty path that starts in `400
 
 The following query finds all people that can be reached from `Amy` by following exactly two `likes` edges.
 
+```sql
 SELECT y.name
   FROM g MATCH (x:Person) -/:likes{2}/-> (y)
  WHERE x.name = 'Amy'
+```
 
 ```
 +--------+
@@ -1153,6 +1155,7 @@ SELECT src, SUM(e.weight), dst
  MATCH TOP 3 SHORTEST ( (src) (-[e]->)* (dst) )
  WHERE src.age < dst.age
 ```
+
 Notice that the sum aggregation is computed for every matching path. In other words the number of rows returned by the
 previous query is equal to the number of matching paths which is at most 3 times the number of matching source and
 destination pairs.
@@ -1178,8 +1181,8 @@ Users can also compose shortest path constructs with other matching operators:
 ```sql
 SELECT ARRAY_AGG(e1.weight), ARRAY_AGG(e2.weight)
  MATCH (start) -> (src)
-     , TOP 3 SHORTEST (src) (-[e1]->)* (mid)
-     , SHORTEST (mid) (-[e2]->)* (dst)
+     , TOP 3 SHORTEST ( (src) (-[e1]->)* (mid) )
+     , SHORTEST ( (mid) (-[e2]->)* (dst) )
      , (dst) -> (end)
 ```
 
