@@ -199,13 +199,13 @@ entries:
       url: /spec/1.2/#limit-and-offset
       output: web
 
-  - title: 'Reachability'
-    url: /spec/1.2/#reachability
+  - title: 'Variable-Length Paths'
+    url: /spec/1.2/#variable-length-paths
     output: web
     folderitems:
 
-    - title: 'Min and Max Quantifiers'
-      url: /spec/1.2/#min-and-max-quantifiers
+    - title: 'Quantifiers'
+      url: /spec/1.2/#quantifiers
       output: web
       subfolderitems:
 
@@ -237,13 +237,18 @@ entries:
         url: /spec/1.2/#between-zero-and-m
         output: web
 
-    - title: 'Common Path Expressions'
-      url: /spec/1.2/#common-path-expressions
+    - title: 'Reachability'
+      url: /spec/1.2/#reachability
       output: web
+      subfolderitems:
 
-  - title: 'Shortest Path'
-    url: /spec/1.2/#shortest-path
-    output: web
+      - title: 'Common Path Expressions'
+        url: /spec/1.2/#common-path-expressions
+        output: web
+
+    - title: 'Shortest Path'
+      url: /spec/1.2/#shortest-path
+      output: web
 
   - title: 'Functions and Expressions'
     url: /spec/1.2/#functions-and-expressions
@@ -396,6 +401,23 @@ entries:
 
     - title: 'Scalar subqueries'
       url: /spec/1.2/#scalar-subqueries
+      output: web
+
+  - title: 'Graph Modification'
+    url: /spec/1.2/#graph-modification
+    output: web
+    folderitems:
+
+    - title: 'INSERT'
+      url: /spec/1.2/#insert
+      output: web
+
+    - title: 'UPDATE'
+      url: /spec/1.2/#update
+      output: web
+
+    - title: 'DELETE'
+      url: /spec/1.2/#delete
       output: web
 
   - title: 'Other Syntactic rules'

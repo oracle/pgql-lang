@@ -19,10 +19,10 @@ PGQL is a graph pattern-matching query language for the [property graph data mod
  - [Graph Pattern Matching](#graph-pattern-matching) introduces the basic concepts of graph querying.
  - [Grouping and Aggregation](#grouping-and-aggregation) describes the mechanism to group and aggregate results.
  - [Sorting and Row Limiting](#sorting-and-row-limiting) describes the ability to sort and paginate results.
- - [Reachability](#reachability) introduces the constructs for testing for the existence of paths between pairs of vertices.
- - [Shortest Path](#shortest-path) introduces the constructs for retrieving shortest paths between pairs of vertices.
+ - [Variable-Length Paths](#variable-length-paths) introduces the constructs for testing for the existence of paths between pairs of vertices (i.e. "reachability testing") as well as for retrieving shortest paths between pairs of vertices.
  - [Functions and Expressions](#functions-and-expressions) introduces the various data types and functions and operations on these data types.
  - [Subqueries](#subqueries) introduces the syntax and semantics of subqueries, which allow for composing queries of other queries to support more complex use cases.
+ - [Graph Modification](#graph-modification) describes the ability to insert new vertices and edges into a graph, and to update or delete existing vertices and edges from graphs.
  - [Other Syntactic rules](#other-syntactic-rules) defines syntactic rules that are not covered by other sections, such as syntax for identifiers and comments.
 
 ## Notes on the Grammar
@@ -31,13 +31,14 @@ This document contains a complete grammar definition of PGQL, spread throughout 
 
 ## Changelog
 
-The following are the changes between PGQL 1.1 and PGQL 1.2:
+The following are the changes since PGQL 1.1:
 
 ### New features since PGQL 1.1
 
 The new features in PGQL 1.2 are:
 
  - [Shortest path finding](#shortest-path)
+ - [Graph modification](#graph-modification)
  - [Scalar subqueries](#scalar-subqueries)
  - [Undirected edges](#matching-undirected-edges) (and matching thereof)
  - [ARRAY_AGG](#ArrayAggregation) aggregation
@@ -831,25 +832,17 @@ SELECT n
 OFFSET 5
 ```
 
-# Reachability
+# Variable-Length Paths
 
 Path queries test for the existence of arbitrary-length paths between pairs of vertices, or, retrieve actual paths between pairs of vertices.
 
-The syntactic structure of a query path is similar to a query edge, but it uses forward slashes (`-/` and `/->`) instead of square brackets (`-[` and `]->`). The syntax rules are as follows:
+## Quantifiers
+
+Quantifiers in path patterns allow for specifying lower and upper limits on the number of times a pattern should match.
+
+The syntax is as follows:
 
 ```bash
-ReachabilityPathExpression ::=   <OutgoingPathPattern>
-                               | <IncomingPathPattern>
-
-OutgoingPathPattern        ::= '-/' <PathSpecification> '/->'
-
-IncomingPathPattern        ::= '<-/' <PathSpecification> '/-'
-
-PathSpecification          ::=   <LabelPredicate>
-                               | <PathPredicate>
-
-PathPredicate              ::= ':' <Label> <GraphPatternQuantifier>
-
 GraphPatternQuantifier     ::=   <ZeroOrMore>
                                | <OneOrMore>
                                | <Optional>
@@ -873,19 +866,7 @@ BetweenNAndM               ::= '{' <UNSIGNED_INTEGER> ',' <UNSIGNED_INTEGER> '}'
 BetweenZeroAndM            ::= '{' ',' <UNSIGNED_INTEGER> '}'
 ```
 
-An example is as follows:
-
-```sql
-SELECT c.name
-  FROM g MATCH (c:Class) -/:subclass_of*/-> (arrayList:Class)
- WHERE arrayList.name = 'ArrayList'
-```
-
-Here, we find all classes that are a subclass of `'ArrayList'`. The regular path pattern `subclass_of*` matches a path consisting of zero or more edges with the label `subclass_of`. Because the pattern may match a path with zero edges, the two query vertices can be bound to the same data vertex if the data vertex satisfies the constraints specified in both source and destination vertices (i.e. the vertex has a label `Class` and a property `name` with a value `ArrayList`).
-
-## Min and Max Quantifiers
-
-Quantifiers in regular path expressions allow for specifying lower and upper limits on the number of times a pattern should match.
+The meaning of the different quantifiers is:
 
 | quantifier | meaning                              | matches                                                                                                                             | example path        |
 |------------|--------------------------------------|-------------------------------------------------------------------------------------------------------------------------------------|---------------------|
@@ -897,7 +878,7 @@ Quantifiers in regular path expressions allow for specifying lower and upper lim
 | { n, m }   | between _n_ and _m_ (inclusive)      | A path that connects the source and destination of the path by at least _n_ and at most _m_ (inclusive) matches of a given pattern. | `-/:lbl{2,3}/->                      ` |
 | { , m }    | between zero (0) and _m_ (inclusive) | A path that connects the source and destination of the path by at least 0 and at most _m_ (inclusive) matches of a given pattern.   | `-/:lbl{,3}/->`     |
 
-Paths considered include those that repeat the same vertices and/or edges multiple times. This means that even cycles are considered. However, because the semantic is to test for the existence of paths between pairs of vertices, there is only at most one result per pair of vertices. Thus, even though an unbounded number of paths may exist between a pair of vertices (because of cycles), the result is always bounded.
+Paths considered include those that repeat the same vertices and/or edges multiple times. This means that even cycles are considered.
 
 Take the following graph as example:
 
@@ -925,7 +906,7 @@ SELECT y.name
 ```
 
 Note that here, `Amy` is returned since `Amy` connects to `Amy` by following zero `likes` edges. In other words, there exists an empty path for the vertex pair.
-For `Judith`, there exist two paths (`100 -> 200 -> 300 -> 400` and `100 -> 400`). However, `Judith` is still only returned once.
+For `Judith`, there exist two paths (`100 -> 200 -> 300 -> 400` and `100 -> 400`). However, `Judith` is still only returned once since the semantic of `-/ .. /->` is to test for the existence of paths between pairs of vertices (i.e. "reachability"), so there is only at most one result per pair of vertices.
 
 ### One or more
 
@@ -1074,7 +1055,37 @@ Here, `Jonas` is returned since there exists a path of length one (i.e. `400 -> 
 For `Judith`, there exists an empty path of length zero (i.e. `400`) as well as a non-empty path of length two (i.e. `400 -> 500 -> 400`).
 Yet, `Judith` is only returned once.
 
-## Common Path Expressions
+## Reachability
+
+In graph reachability we test for the existence of paths (true/false) between pairs of vertices. PGQL uses forward slashes (`-/` and `/->`) instead of square brackets (`-[` and `]->`) to indicate reachability semantic.
+
+The syntax is:
+
+```bash
+ReachabilityPathExpression ::=   <OutgoingPathPattern>
+                               | <IncomingPathPattern>
+
+OutgoingPathPattern        ::= '-/' <PathSpecification> '/->'
+
+IncomingPathPattern        ::= '<-/' <PathSpecification> '/-'
+
+PathSpecification          ::=   <LabelPredicate>
+                               | <PathPredicate>
+
+PathPredicate              ::= ':' <Label> <GraphPatternQuantifier>
+```
+
+For example:
+
+```sql
+SELECT c.name
+  FROM g MATCH (c:Class) -/:subclass_of*/-> (arrayList:Class)
+ WHERE arrayList.name = 'ArrayList'
+```
+
+Here, we find all classes that are a subclass of `'ArrayList'`. The regular path pattern `subclass_of*` matches a path consisting of zero or more edges with the label `subclass_of`. Because the pattern may match a path with zero edges, the two query vertices can be bound to the same data vertex if the data vertex satisfies the constraints specified in both source and destination vertices (i.e. the vertex has a label `Class` and a property `name` with a value `ArrayList`).
+
+### Common Path Expressions
 
 One or more "common path expression" may be declared at the beginning of the query. These can be seen as macros that allow for expressing complex regular expressions.
 
@@ -1110,7 +1121,7 @@ SELECT generatorA.location, generatorB.location
 
 The above query outputs all generators that are connected to each other via one or more connectors that are all operational.
 
-# Shortest Path
+## Shortest Path
 
 Users can now find `TOP k SHORTEST` paths between any pair of matched source and destination
 and compute aggregations over their vertices/edges. The distance metric is represented by the number of hops.
@@ -2050,6 +2061,20 @@ SELECT a.name
   FROM g MATCH (a)
  WHERE a.age > ( SELECT AVG(b.age) MATCH (a) -[:friendOf]-> (b) )
 ```
+
+# Graph Modification
+
+## INSERT
+
+TODO
+
+## UPDATE
+
+TODO
+
+## DELETE
+
+TODO
 
 # Other Syntactic rules
 
