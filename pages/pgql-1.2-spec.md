@@ -1125,8 +1125,7 @@ The above query outputs all generators that are connected to each other via one 
 
 ## Shortest Path
 
-Users can now find `TOP k SHORTEST` paths between any pair of matched source and destination
-and compute aggregations over their vertices/edges. The distance metric is represented by the number of hops.
+TODO
 
 The syntax is:
 
@@ -1147,11 +1146,17 @@ ShortestPathPrimary                ::=   <EdgePattern>
 ParenthesizedPathPatternExpression ::= '(' <VertexPattern>? <EdgePattern> <VertexPattern>? <WhereClause>? ')'
 ```
 
+## Top-K Shortest Path
+
+Users can now find `TOP k SHORTEST` paths between any pair of matched source and destination
+and compute aggregations over their vertices/edges. The distance metric is represented by the number of hops.
+
 For example the following query will output the sum of the edge weights along each of the top 3 shortest paths between
 each of the matched source and destination pairs:
 
 ```sql
 SELECT src, SUM(e.weight), dst
+  FROM g
  MATCH TOP 3 SHORTEST ( (src) (-[e]->)* (dst) )
  WHERE src.age < dst.age
 ```
@@ -1165,6 +1170,7 @@ The `ARRAY_AGG` construct allows users to output properties of edges/vertices al
 
 ```sql
 SELECT src, ARRAY_AGG(e.weight), ARRAY_AGG(v1.age), ARRAY_AGG(v2.age), dst
+  FROM g
  MATCH TOP 3 SHORTEST ( (src) ((v1)-[e]->(v2))* (dst) )
  WHERE src.age < dst.age
 ```
@@ -1180,6 +1186,7 @@ Users can also compose shortest path constructs with other matching operators:
 
 ```sql
 SELECT ARRAY_AGG(e1.weight), ARRAY_AGG(e2.weight)
+  FROM g
  MATCH (start) -> (src)
      , TOP 3 SHORTEST ( (src) (-[e1]->)* (mid) )
      , SHORTEST ( (mid) (-[e2]->)* (dst) )
@@ -1191,7 +1198,8 @@ Filters along the path vertex/edge are also supported. For example the following
 greater than 10 when generating the shortest path:
 
 ```sql
- SELECT src, ARRAY_AGG(e.weight), dst
+SELECT src, ARRAY_AGG(e.weight), dst
+  FROM g
  MATCH SHORTEST ( (src) ((v1)-[e]->(v2) WHERE e.weight > 10)* (dst) )
 ```
 
@@ -1199,6 +1207,7 @@ For the case of filters involving aggregations over the path:
 
 ```sql
 SELECT src, ARRAY_AGG(e.weight), dst
+  FROM g
  MATCH TOP 3 SHORTEST ( (src) ((v1)-[e]->(v2))* (dst) ) WHERE SUM(e.cost) < 100
 ```
 

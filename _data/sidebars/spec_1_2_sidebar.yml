@@ -250,6 +250,10 @@ entries:
       url: /spec/1.2/#shortest-path
       output: web
 
+    - title: 'Top-K Shortest Path'
+      url: /spec/1.2/#top-k-shortest-path
+      output: web
+
   - title: 'Functions and Expressions'
     url: /spec/1.2/#functions-and-expressions
     output: web
