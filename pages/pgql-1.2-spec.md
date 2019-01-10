@@ -1130,9 +1130,11 @@ TODO
 The syntax is:
 
 ```bash
-ShortestPathPattern                ::= 'SHORTEST' '(' <SourceVertexPattern>
-                                                      <QuantifiedShortestPathPrimary>
-                                                      <DestinationVertexPattern> ')'
+ShortestPathPattern                ::= <TopK>? 'SHORTEST' '(' <SourceVertexPattern>
+                                                              <QuantifiedShortestPathPrimary>
+                                                                <DestinationVertexPattern> ')'
+
+TopK                               ::= 'TOP' <UNSIGNED_INTEGER>
 
 SourceVertexPattern                ::= <VertexPattern>
 
