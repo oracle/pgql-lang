@@ -5,7 +5,7 @@ language pgql-lang
 test Reference group variable in path (1) [[
 
   SELECT MIN([[n]].age) AS min, MIN(AVG([[e]].weight)) AS minAvg
-    FROM g MATCH SHORTEST ([[n]]) -[ [[e]] ]->* (m)
+    FROM g MATCH SHORTEST ( ([[n]]) -[ [[e]] ]->* (m) )
 
 ]] resolve #1 to #3
    resolve #2 to #4
@@ -13,7 +13,7 @@ test Reference group variable in path (1) [[
 test Reference group variable in path (2) [[
 
   SELECT MIN([[n]].age) AS min, MIN(AVG([[e]].weight)) AS avg
-    FROM g MATCH SHORTEST ([[n]]) -[ [[e]] ]->* (m)
+    FROM g MATCH SHORTEST ( ([[n]]) -[ [[e]] ]->* (m) )
    GROUP BY n.name AS nName
 
 ]] resolve #1 to #3
@@ -22,7 +22,7 @@ test Reference group variable in path (2) [[
 test Reference group variable in path (3) [[
 
   SELECT MIN(AVG([[e]].weight)) AS minAvg
-    FROM g MATCH SHORTEST (n) -[ [[e]] ]->* (m)
+    FROM g MATCH SHORTEST ( (n) -[ [[e]] ]->* (m) )
 
 ]] resolve #1 to #2
 
@@ -35,12 +35,12 @@ test Mixed group and non-group variables [[
        , AVG([[e5]].weight) AS avg4
        , MIN(AVG([[e6]].weight)) AS minAvg2
     FROM g MATCH
-           SHORTEST (n) -[ [[e1]] ]->* (m)
-         , SHORTEST (n) -[ [[e2]] ]-> (m)
-         , SHORTEST (n) -[ [[e3]] ]->? (m)
-         , SHORTEST (n) -[ [[e4]] ]->{0,1} (m)
-         , SHORTEST (n) -[ [[e5]] ]->{1} (m)
-         , SHORTEST (n) -[ [[e6]] ]->{1,2} (m)
+           SHORTEST ( (n) -[ [[e1]] ]->* (m) )
+         , SHORTEST ( (n) -[ [[e2]] ]-> (m) )
+         , SHORTEST ( (n) -[ [[e3]] ]->? (m) )
+         , SHORTEST ( (n) -[ [[e4]] ]->{0,1} (m) )
+         , SHORTEST ( (n) -[ [[e5]] ]->{1} (m) )
+         , SHORTEST ( (n) -[ [[e6]] ]->{1,2} (m) )
 
 ]] resolve #1 to #7
    resolve #2 to #8
@@ -52,7 +52,7 @@ test Mixed group and non-group variables [[
 test Group variable in WHERE [[
 
   SELECT MIN(AVG([[e]].weight)) AS minAvg
-    FROM g MATCH SHORTEST (n) -[ [[e]] ]->* (m)
+    FROM g MATCH SHORTEST ( (n) -[ [[e]] ]->* (m) )
    WHERE AVG([[e]].weight) > 1.1
 
 ]] resolve #1 to #2
@@ -61,7 +61,7 @@ test Group variable in WHERE [[
 test Non-group variable in WHERE [[
 
   SELECT AVG([[e]].weight) AS avg
-    FROM g MATCH SHORTEST (n) -[ [[e]] ]->? (m)
+    FROM g MATCH SHORTEST ( (n) -[ [[e]] ]->? (m) )
    WHERE [[e]].weight > 1.1
 
 ]] resolve #1 to #2
@@ -70,7 +70,7 @@ test Non-group variable in WHERE [[
 test Group variable in GROUP BY [[
 
     SELECT MIN(AVG([[e]].weight)) AS minAvg
-      FROM g MATCH SHORTEST (n) -[ [[e]] ]->* (m)
+      FROM g MATCH SHORTEST ( (n) -[ [[e]] ]->* (m) )
   GROUP BY AVG([[e]].weight) AS avg
 
 ]] resolve #1 to #2
@@ -79,7 +79,7 @@ test Group variable in GROUP BY [[
 test Non-group variable in GROUP BY [[
 
     SELECT AVG([[e]].weight) AS avg
-      FROM g MATCH SHORTEST (n) -[ [[e]] ]->? (m)
+      FROM g MATCH SHORTEST ( (n) -[ [[e]] ]->? (m) )
   GROUP BY [[e]].weight AS weight
 
 ]] resolve #1 to #2

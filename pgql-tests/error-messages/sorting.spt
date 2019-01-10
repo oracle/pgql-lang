@@ -29,7 +29,7 @@ test Order by vertex (3) [[
 test Order by array [[
 
     SELECT ARRAY_AGG(e.prop) AS array
-      FROM g MATCH SHORTEST (n) -[e]->* (m)
+      FROM g MATCH SHORTEST ( (n) -[e]->* (m) )
   ORDER BY [[ARRAY_AGG(e.prop)]]
 
 ]] error like "Cannot order by array" at #1

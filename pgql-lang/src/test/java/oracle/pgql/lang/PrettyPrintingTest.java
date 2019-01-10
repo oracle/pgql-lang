@@ -180,19 +180,19 @@ public class PrettyPrintingTest extends AbstractPgqlTest {
 
   @Test
   public void testShortest1() throws Exception {
-    String query = "SELECT n.prop FROM g MATCH SHORTEST (n) (-[e:lbl]-> WHERE e.prop = 123)* (o)";
+    String query = "SELECT n.prop MATCH SHORTEST ( (n) (-[e:lbl]-> WHERE e.prop = 123)* (o) )";
     checkRoundTrip(query);
   }
 
   @Test
   public void testShortest2() throws Exception {
-    String query = "SELECT ARRAY_AGG(e.weight) AS weights FROM g MATCH () -> (n), SHORTEST (n) -[e]->* (m), (m) -> (o)";
+    String query = "SELECT ARRAY_AGG(e.weight) AS weights FROM g MATCH () -> (n), SHORTEST ( (n) -[e]->* (m) ), (m) -> (o)";
     checkRoundTrip(query);
   }
 
   @Test
   public void testShortest3() throws Exception {
-    String query = "SELECT SUM(e.weight), COUNT(COUNT(e.weight)) FROM g MATCH SHORTEST (a) -[e]->* (b) GROUP BY SUM(e.weight) ORDER BY SUM(e.weight)";
+    String query = "SELECT SUM(e.weight), COUNT(COUNT(e.weight)) FROM g MATCH SHORTEST ( (a) -[e]->* (b) ) GROUP BY SUM(e.weight) ORDER BY SUM(e.weight)";
     checkRoundTrip(query);
   }
 
