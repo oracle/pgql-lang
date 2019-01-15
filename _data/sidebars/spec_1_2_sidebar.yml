@@ -412,12 +412,21 @@ entries:
     output: web
     folderitems:
 
-    - title: 'Lexical constructs'
-      url: /spec/1.2/#lexical-constructs
+    - title: 'Identifiers'
+      url: /spec/1.2/#identifiers
+      output: web
+      subfolderitems:
+
+      - title: 'Special characters in property names, graph names, and labels'
+        url: /spec/1.2/#special-characters-in-property-names-graph-names-and-labels
+        output: web
+
+    - title: 'Lexical constructs for literals'
+      url: /spec/1.2/#lexical-constructs-for-literals
       output: web
 
-    - title: 'Escaped characters in strings'
-      url: /spec/1.2/#escaped-characters-in-strings
+    - title: 'Escaped characters'
+      url: /spec/1.2/#escaped-characters
       output: web
 
     - title: 'Keywords'

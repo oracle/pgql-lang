@@ -1864,7 +1864,7 @@ If a UDF is registered that has the same name as a built-in function, then, upon
 
 ## CAST
 
-Implicit type conversion is supported for numeric types (see [Implicit Type Conversion](#implicit-type-conversion)). Other type conversions require explicit type conversion through `CAST`.
+_Implicit_ type conversion is supported for numeric types (see [Type Coercion](#type-coercion)). Other type conversions require _explicit_ conversion through `CAST`.
 The syntax is as follows:
 
 ```bash
@@ -2076,13 +2076,28 @@ SELECT a.name
 
 # Other Syntactic rules
 
-## Lexical constructs
+## Identifiers
+
+Identifiers (used for e.g. graph names, property names, etc.) take the form of an alphabetic character followed by zero or more alphanumeric or underscore (i.e. `_`) characters.
+
+The syntax is:
+
+```bash
+IDENTIFIER           ::= [a-zA-Z][a-zA-Z0-9\_]*
+```
+
+TODO: update.
+
+### Special characters in property names, graph names, and labels
+
+Identifiers like graph names, property names, and labels can be delimited with double quotes to allow for encoding of special characters (e.g. the space in the property name `n."my prop"`).
+Any Unicode character may be used inside the delimiters.
+
+## Lexical constructs for literals
 
 The following are the lexical grammar constructs:
 
 ```bash
-IDENTIFIER           ::= [a-zA-Z][a-zA-Z0-9\_]*
-
 SINGLE_QUOTED_STRING ::= "'" ( ~[\'\n\\] | <ESCAPED_CHARACTER> )* "'"
 
 UNSIGNED_INTEGER     ::= [0-9]+
@@ -2092,7 +2107,6 @@ UNSIGNED_DECIMAL     ::= ( [0-9]* '.' [0-9]+ ) | ( [0-9]+ '.' )
 
 These rules describe the following:
 
- - Identifiers (used for e.g. graph names, property names, etc.) take the form of an alphabetic character followed by zero or more alphanumeric or underscore (i.e. `_`) characters.
  - Single quoted strings (used for string literals) consist of:
      - A starting single quote.
      - Any number of characters that are either:
@@ -2102,13 +2116,17 @@ These rules describe the following:
  - Unsigned integers consist of one or more digits.
  - Unsigned decimals consist of zero or more digits followed by a dot (`.`) and one or more digits, or, one or more digits followed by only a dot (`.`).
 
-## Escaped characters in strings
+## Escaped characters
 
-Escaping in string literals is necessary to support having white space, quotation marks and the backslash character as a part of the literal value. The following explains the syntax of an escaped character.
+Escaping in string literals and identifiers is necessary to support white space, quotation marks, and backslash characters.
+
+The syntax is:
 
 ```bash
 ESCAPED_CHARACTER ::= '\\' [tnr\"\'\\]
 ```
+
+TODO: fix the grammar.
 
 Note that an escaped character is either a tab (`\t`), a line feed (`\n`), a carriage return (`\r`), a single (`\'`) or double quote (`\"`), or a backslash (`\\`). Corresponding Unicode code points are shown in the table below.
 
@@ -2121,6 +2139,8 @@ Escape | Unicode code point
 `\'` | U+0027 (apostrophe-quote, single quote mark)
 `\\` | U+005C (backslash)
 
+TODO: fix the table.
+
 In string literals, it is optional to escape double quotes.
 
 For example:
@@ -2129,6 +2149,9 @@ For example:
 'abc\"d\"efg' = 'abc"d"efg'
 Result: true
 ```
+
+In addition to Java-like escaping, string literals in PGQL queries can be escaped in a SQL-like fashion by repeating the quote.
+For example, `n.prop = 'string''value'` is an alternative for `n.prop = 'string\'value'`, and `FROM "my""graph"` is an alternative for `FROM "my\"graph"`.
 
 ## Keywords
 
