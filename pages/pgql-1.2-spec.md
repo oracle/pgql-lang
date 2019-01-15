@@ -22,7 +22,6 @@ PGQL is a graph pattern-matching query language for the [property graph data mod
  - [Variable-Length Paths](#variable-length-paths) introduces the constructs for testing for the existence of paths between pairs of vertices (i.e. "reachability testing") as well as for retrieving shortest paths between pairs of vertices.
  - [Functions and Expressions](#functions-and-expressions) introduces the various data types and functions and operations on these data types.
  - [Subqueries](#subqueries) introduces the syntax and semantics of subqueries, which allow for composing queries of other queries to support more complex use cases.
- - [Graph Modification](#graph-modification) describes the ability to insert new vertices and edges into a graph, and to update or delete existing vertices and edges from graphs.
  - [Other Syntactic rules](#other-syntactic-rules) defines syntactic rules that are not covered by other sections, such as syntax for identifiers and comments.
 
 ## Notes on the Grammar
@@ -38,7 +37,6 @@ The following are the changes since PGQL 1.1:
 The new features in PGQL 1.2 are:
 
  - [Shortest path finding](#shortest-path)
- - [Graph modification](#graph-modification)
  - [Scalar subqueries](#scalar-subqueries)
  - [Undirected edges](#matching-undirected-edges) (and matching thereof)
  - [ARRAY_AGG](#ArrayAggregation) aggregation
@@ -2075,20 +2073,6 @@ SELECT a.name
   FROM g MATCH (a)
  WHERE a.age > ( SELECT AVG(b.age) MATCH (a) -[:friendOf]-> (b) )
 ```
-
-# Graph Modification
-
-## INSERT
-
-TODO
-
-## UPDATE
-
-TODO
-
-## DELETE
-
-TODO
 
 # Other Syntactic rules
 
