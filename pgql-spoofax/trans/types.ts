@@ -86,7 +86,7 @@ type rules
   where expAsVar : ty
     and not ( ty == VertexTy() or ty == EdgeTy() ) else error $[Scalar subquery not allowed to return a vertex or an edge] on expAsVar
 
-  ScalarSubquery(Subquery(NormalizedQuery(_, UpdateClause(_), _, _, _, _, _, _, _, _))) : None()
+  ScalarSubquery(Subquery(NormalizedQuery(_, ModifyClause(_, _), _, _, _, _, _, _, _, _))) : None()
 
   True() + False()        : BooleanTy()
   Date(_)                 : DateTy()
@@ -101,6 +101,6 @@ type rules
     and ( not version == "v1.0" and not ty == EdgeTy() ) else error $[Cannot order by edge] on exp
     and not ty == ArrayTy() else error $[Cannot order by array] on exp
 
-  UpdateExp(_, exp) : ty
+  SetProperty(_, exp) + Set(_, exp) : ty
   where exp : ty
     and not ( ty == VertexTy() or ty == EdgeTy() ) else error $[Cannot set the value of a property to a vertex or an edge] on exp

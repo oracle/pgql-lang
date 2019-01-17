@@ -29,8 +29,7 @@ context-free syntax
       <{CommonPathExpression "\n"}*>
       <SelectOrModify>
       <Pgql11FromClause?>
-      <Pgql11MatchClause>
-      <WhereClause?>
+      <MatchWhereClauses?>
       <GroupByClause?>
       <HavingClause?>
       <OrderByClause?>
@@ -45,7 +44,6 @@ context-free syntax
 
   SelectOrModify = SelectClause
   SelectOrModify = ModifyClause
-  SelectOrModify = UpdateClause
 
   SelectClause.SelectClause = <SELECT <Distinct?> <Projection>> {case-insensitive}
   Projection.ExpAsVars = <<{ExpAsVar ", "}+>>

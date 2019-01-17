@@ -24,48 +24,54 @@ imports
 rules
 
   trans-for-nabl = trans-query(|[])
-                   + Start-Plhdr() // for empty query string
+                   + ?Start-Plhdr() // for empty query string
 
 rules
 
   trans-query(|variables):
-    NormalizedQuery(CommonPathExpressions(pathExpressions), selectOrUpdateClause, optionalGraphName, GraphPattern(vertices, connections, valueExpression), groupBy, having, orderBy, limitOffsets, error-messages, version) ->
-        NormalizedQuery(CommonPathExpressions(pathExpressions'), selectOrUpdateClause', optionalGraphName, GraphPattern(vertices', connections'', valueExpression'), groupBy', having', orderBy', limitOffsets, error-messages, version)
+    NormalizedQuery(CommonPathExpressions(pathExpressions), selectOrModifyClause, optionalGraphName, graphPattern, groupBy, having, orderBy, limitOffsets, error-messages, version) ->
+        NormalizedQuery(CommonPathExpressions(pathExpressions'), selectOrModifyClause', optionalGraphName, graphPattern', groupBy', having', orderBy', limitOffsets, error-messages, version)
     with variables' := <guarantee-size-two-or-more> variables
 
        // PATH
        ; pathExpressions' := <map(trans-path-expression(|variables'))> pathExpressions
 
-       // FROM + MATCH
-       ; (vertices', connections') := <alltd(trans-elem(|variables'))> (vertices, connections)
-       ; edges := <filter(?Edge(_, _, _, _, _, _) + path-with-at-most-one-binding)> connections'
-       ; paths := <filter(path-with-two-or-more-bindings)> connections'
-
-       ; new-vars := <collect(to-varDef)> (vertices', edges)
-       ; new-groupVars := <collect(to-varDef)> paths
-       ; <?[x|[y|ys]]> variables'
-       ; visible-vars := <replace-or-add-all> (new-vars, x)
-       ; visible-groupVars := <replace-or-add-all> (new-groupVars, y)
-       ; variables'' := [visible-vars|[visible-groupVars|ys]]
-
-       ; connections'' := <alltd(resolve-var-refs-in-path-expression(|variables''))> connections'
-
        // only in PGQL 1.3 and up, column names specified in the SELECT clause are visible in GROUP BY, HAVING and ORDER BY (but only outside of aggregations and subqueries)
-       ; expAsVars := <(?"v1.0" + ?"v1.1"); ![] <+ !selectOrUpdateClause; ?SelectClause(_, ExpAsVars(<id>)) <+ ![]> version
+       ; expAsVars := <(?"v1.0" + ?"v1.1"); ![] <+ !selectOrModifyClause; ?SelectClause(_, ExpAsVars(<id>)) <+ ![]> version
 
-       // WHERE
-       ; valueExpression' := <resolve-where-clause(|variables'', expAsVars)> valueExpression
+       ; if <?Some(GraphPattern(vertices, connections, valueExpression))> := graphPattern
+         then // MATCH
+              (vertices', connections') := <alltd(trans-elem(|variables'))> (vertices, connections)
+              ; edges := <filter(?Edge(_, _, _, _, _, _) + path-with-at-most-one-binding)> connections'
+              ; paths := <filter(path-with-two-or-more-bindings)> connections'
+
+              ; new-vars := <collect(to-varDef)> (vertices', edges)
+              ; new-groupVars := <collect(to-varDef)> paths
+              ; <?[x|[y|ys]]> variables'
+              ; visible-vars := <replace-or-add-all> (new-vars, x)
+              ; visible-groupVars := <replace-or-add-all> (new-groupVars, y)
+              ; variables'' := [visible-vars|[visible-groupVars|ys]]
+
+             ; connections'' := <alltd(resolve-var-refs-in-path-expression(|variables''))> connections'
+       
+              // WHERE
+              ; valueExpression' := <resolve-where-clause(|variables'', expAsVars)> valueExpression
+
+              ; graphPattern' := Some(GraphPattern(vertices', connections'', valueExpression'))
+         else graphPattern' := None()
+            ; variables'' := variables'
+         end
 
        // GROUP BY
-       ; if (!groupBy; ?Some(_)) + (!selectOrUpdateClause; create-one-group(|variables'')) + (!having; ?Some(_))
+       ; if (!groupBy; ?Some(_)) + (!selectOrModifyClause; create-one-group(|variables'')) + (!having; ?Some(_))
          then hasGroupBy := True()
             ; (groupBy', variables''') := <resolve-group-by(|variables'', expAsVars)> groupBy
          else hasGroupBy := False()
             ; (groupBy', variables''') := (groupBy, variables'')
          end
 
-       // SELECT / UPDATE
-       ; (selectOrUpdateClause', variables'''') := <resolve-select-or-update-clause(|variables''')> selectOrUpdateClause
+       // SELECT / MODIFY
+       ; (selectOrModifyClause', variables'''') := <resolve-select-or-modify-clause(|variables''')> selectOrModifyClause
 
        // HAVING
        ; having' := <resolve-having(|variables''', variables'''')> having // having resolves to GROUP BY variables first, then to SELECT variables
@@ -126,7 +132,7 @@ rules
     with vars' := []
        ; variables' := [vars'|variables]
 
-  resolve-select-or-update-clause(|variables):
+  resolve-select-or-modify-clause(|variables):
     SelectClause(distinct, eav@ExpAsVars(expAsVars)) -> (SelectClause(distinct, eav'), variables')
     with if Star() := expAsVars
          then eav' := expAsVars
@@ -137,12 +143,7 @@ rules
             ; variables' := [vars'|<Tl> variables]
          end
 
-  resolve-select-or-update-clause(|variables):
-    t@UpdateClause(updateExpressions) -> (updateClause', variables)
-    with updateExpressions' := <resolve-var-refs(|variables)> updateExpressions
-       ; updateClause' := <origin-track-forced(!UpdateClause(updateExpressions'))> t
-
-  resolve-select-or-update-clause(|variables):
+  resolve-select-or-modify-clause(|variables):
     t@ModifyClause(graphName, modifications) -> (modifyClause', variables')
     with varsInCurrentScope := <Hd> variables
        ; (modifications', variables') := <foldl(resolve-modification)> (modifications, ([], variables))
@@ -279,10 +280,10 @@ rules
      implicit group, but only if there is no (non-nested) aggregation over a group variable
   */
   create-one-group(|variables):
-    t@select-or-update-clause -> t
+    t@select-or-modify-clause -> t
     with [vars|[groupVars|_]] := variables
-       ; aggregations := <collect-in-outer-query(is-aggregate)> select-or-update-clause
-       ; exps-from-aggregations := <collect(get-exp-from-aggregation)> select-or-update-clause
+       ; aggregations := <collect-in-outer-query(is-aggregate)> select-or-modify-clause
+       ; exps-from-aggregations := <collect(get-exp-from-aggregation)> select-or-modify-clause
        ; varsInAggregations := <collect-in-outer-query-outside-aggregation(varRef-is-visible-var(|vars))> exps-from-aggregations
        ; groupVarsInAggregations := <collect-in-outer-query-outside-aggregation(varRef-is-visible-var(|groupVars))> exps-from-aggregations
        ; groupVarsInAggregations' := <diff> (groupVarsInAggregations, varsInAggregations)

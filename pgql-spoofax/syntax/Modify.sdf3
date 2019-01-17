@@ -11,14 +11,14 @@ template options
 
 context-free syntax
 
-  ModifyClause.ModifyClause = <MODIFY <Identifier> <Modification+>> {case-insensitive}
+  ModifyClause.ModifyClause = <MODIFY <Identifier?> <Modification+>> {case-insensitive}
 
   Modification = Insertion
   Modification = Deletion
   Modification = Update
 
   Insertion.VertexInsertion = <INSERT VERTEX <Identifier> <LabelsSpecification?> <PropertiesSpecification?>> {case-insensitive}
-  Insertion.DirectedEdgeInsertion = <INSERT <Directed?> EDGE <Identifier> FROM <VarRef> TO <VarRef> <LabelsSpecification?> <PropertiesSpecification?>> {case-insensitive}
+  Insertion.DirectedEdgeInsertion = <INSERT <Directed?> EDGE <Identifier> BETWEEN <VarRef> AND <VarRef> <LabelsSpecification?> <PropertiesSpecification?>> {case-insensitive}
   Directed.Directed = <DIRECTED> {case-insensitive}
   LabelsSpecification.Labels = <<LabelsKeyword> <{Identifier ", "}+>>
   PropertiesSpecification.Properties = <<PropertiesKeyword> <{SetPropertyExpression ", "}+>>
@@ -33,7 +33,3 @@ context-free syntax
   SetProperties.SetProperties = <SET <PropertiesKeyword> <{SetProperty ", "}+>> {case-insensitive}
   SetProperty.SetProperty = <<PropRef> = <Exp>>
   Deletion.Deletion = <DELETE <{VarRef ", "}+>> {case-insensitive}
-
-  /* deprecated below */
-  UpdateClause.UpdateClause = <UPDATE <{UpdateExp ", "}+>> {case-insensitive}
-  UpdateExp.UpdateExp = <<PropRef> = <Exp>>

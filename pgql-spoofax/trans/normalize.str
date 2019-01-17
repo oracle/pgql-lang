@@ -46,7 +46,7 @@ rules
       	alltd(norm-edgeContents);
         ( (is-pgql10 + is-pgql11); alltd(norm-legacy-string-literal + norm-legacy-identifier) +
           is-pgql13; alltd(norm-string-literal + norm-identifier) +
-          Start-Plhdr() // empty query string
+          ?Start-Plhdr() // empty query string
         );
         alltd(norm-timezone);
         alltd(norm-datetime-literal);
@@ -63,7 +63,7 @@ rules
 rules
 
   is-pgql10 = ?Pgql10Query(_, _, _, _, _, _, _)
-  is-pgql11 = ?Pgql11Query(_, _, _, _, _, _, _, _, _)
+  is-pgql11 = ?Pgql11Query(_, _, _, _, _, _, _, _)
   is-pgql13 = ?Query(_, _, _, _, _, _, _, _)
 
   get-pgql11-deprecation = (?OutConn(None(), _) + ?InConn(None(), _) + ?UndirectedEdge(None(), _)); to-error-message(|"Use [-] instead of [--]")
@@ -210,7 +210,7 @@ rules
 
   norm-edgeContents = ?Some(EdgeContents(<id>))
 
-  name-unnamed-elems(|c) = (?CommonPathExpression(_, _, _, _) + ?GraphPattern(_)); alltd(name-unnamed-elem(|c))
+  name-unnamed-elems(|c) = (?CommonPathExpression(_, _, _, _) + ?GraphPattern(_) + ?MatchWhereClauses(_, _)); alltd(name-unnamed-elem(|c))
   name-unnamed-elem(|c) = ?ElemContents(None(), type, id', constraints); ?origin; !ElemContents(Some(<unique-name(|c, origin)>), type, id', constraints)
   name-unnamed-elem(|c) = ?origin; (OutConn(?None(); name-unnamed-elem-helper(|c, origin), id) +
                            InConn(?None(); name-unnamed-elem-helper(|c, origin), id) +
@@ -231,6 +231,12 @@ rules
     (?SelfPropRef(propName) + ?SelfPropRef(dot, propName)); !PropRef(VarRef(varName), propName)
 
 rules
+
+  norm-matchElems(|variable-counter):
+    MatchWhereClauses(elems, whereClause) -> GraphPattern(vertices, connections, constraints)
+    with <?GraphPattern(vertices, connections, Constraints(inlined-constraints))> := <norm-matchElems(|variable-counter)> GraphPattern(elems)
+       ; non-inlined-constraints := <?Some(WhereClause(<id>)); ![<id>] + ?None(); ![]> whereClause
+       ; constraints := Constraints(<conc> (inlined-constraints,  non-inlined-constraints))
 
   norm-matchElems(|variable-counter):
     GraphPattern(elems) -> GraphPattern(vertices, connections, constraints)
@@ -408,8 +414,8 @@ rules
 
   // pgql 1.3
   norm-query(|error-messages, variable-counter):
-    Query(commonPathExpressions, selectOrUpdateClause, FromClause(GraphMatch(optionalGraphName, graphPattern)), whereClause, groupByClause, havingClause, orderByClause, limitOffsets) ->
-      <norm-query(|error-messages, "v1.3", variable-counter)> (commonPathExpressions, selectOrUpdateClause, optionalGraphName, graphPattern', groupByClause, havingClause, orderByClause, limitOffsets)
+    Query(commonPathExpressions, selectOrModifyClause, FromClause(GraphMatch(optionalGraphName, graphPattern)), whereClause, groupByClause, havingClause, orderByClause, limitOffsets) ->
+      <norm-query(|error-messages, "v1.3", variable-counter)> (commonPathExpressions, selectOrModifyClause, optionalGraphName, Some(graphPattern'), groupByClause, havingClause, orderByClause, limitOffsets)
     with <?GraphPattern(vertices, connections, Constraints(inlined-constraints))> graphPattern
        ; non-inlined-constraints := <?Some(WhereClause(<id>)); ![<id>] + ?None(); ![]> whereClause
        ; constraints := Constraints(<conc> (inlined-constraints,  non-inlined-constraints))
@@ -417,24 +423,20 @@ rules
 
   // pgql 1.1 + 1.2
   norm-query(|error-messages, variable-counter):
-    Pgql11Query(commonPathExpressions, selectOrUpdateClause, fromClause, graphPattern, whereClause, groupByClause, havingClause, orderByClause, limitOffsets) ->
-      <norm-query(|error-messages, "v1.1", variable-counter)> (commonPathExpressions, selectOrUpdateClause, optionalGraphName, graphPattern', groupByClause, havingClause, orderByClause, limitOffsets)
-    with optionalGraphName := <?None() + ?Some(Pgql11FromClause(graphName)); !Some(GraphName(graphName))> fromClause
-       ; <?GraphPattern(vertices, connections, Constraints(inlined-constraints))> graphPattern
-       ; non-inlined-constraints := <?Some(WhereClause(<id>)); ![<id>] + ?None(); ![]> whereClause
-       ; constraints := Constraints(<conc> (inlined-constraints,  non-inlined-constraints))
-       ; graphPattern' := GraphPattern(vertices, connections, constraints)
+    Pgql11Query(commonPathExpressions, selectOrModifyClause, fromClause, graphPattern, groupByClause, havingClause, orderByClause, limitOffsets) ->
+      <norm-query(|error-messages, "v1.1", variable-counter)> (commonPathExpressions, selectOrModifyClause, optionalGraphName, graphPattern, groupByClause, havingClause, orderByClause, limitOffsets)
+    with optionalGraphName := <?None() + ?Some(Pgql11FromClause(None())); !None() + ?Some(Pgql11FromClause(Some(graphName))); !Some(GraphName(graphName))> fromClause
 
   // pgql 1.0
   norm-query(|error-messages, variable-counter):
     q@Pgql10Query(commonPathExpressions, selectClause, fromClause, graphPattern, groupByClause, orderByClause, limitOffsets) ->
-      <norm-query(|error-messages, "v1.0", variable-counter)> (commonPathExpressions, selectClause, optionalGraphName, graphPattern, groupByClause, havingClause, orderByClause, limitOffsets)
+      <norm-query(|error-messages, "v1.0", variable-counter)> (commonPathExpressions, selectClause, optionalGraphName, Some(graphPattern), groupByClause, havingClause, orderByClause, limitOffsets)
       with optionalGraphName := <?None() + ?Some(Pgql11FromClause(graphName)); !Some(GraphName(graphName))> fromClause
          ; havingClause := None()
 
   norm-query(|error-messages, version, variable-counter):
-    (commonPathExpressions, selectOrUpdateClause, optionalGraphName, graphPattern, groupByClause, havingClause, orderByClause, limitOffsets) ->
-        NormalizedQuery(commonPathExpressions', selectOrUpdateClause', optionalGraphName, graphPattern, groupByClause', havingClause, orderByElems, limitOffsets', error-messages, version)
+    (commonPathExpressions, selectOrModifyClause, optionalGraphName, graphPattern, groupByClause, havingClause, orderByClause, limitOffsets) ->
+        NormalizedQuery(commonPathExpressions', selectOrModifyClause', optionalGraphName, graphPattern, groupByClause', havingClause, orderByElems, limitOffsets', error-messages, version)
     with
       commonPathExpressions' := <map(norm-common-path-expression(|variable-counter)); !CommonPathExpressions(<id>)> commonPathExpressions;
 
@@ -442,9 +444,9 @@ rules
       expAsGroupVars' := <map(norm-ExpAsVar)> expAsGroupVars;
       groupByClause' := <?Some(_); !Some(GroupByClause(expAsGroupVars')) <+ !None()> groupByClause;
 
-      selectOrUpdateClause' := <?UpdateClause(_) + ?ModifyClause(_, _) + ?SelectClause(_, _); (norm-ExpAsVars(|expAsGroupVars') <+ norm-select-star(|graphPattern, expAsGroupVars'))> selectOrUpdateClause;
+      selectOrModifyClause' := <?ModifyClause(_, _) + ?SelectClause(_, _); (norm-ExpAsVars(|expAsGroupVars') <+ norm-select-star(|graphPattern, expAsGroupVars'))> selectOrModifyClause;
 
-      expAsSelectVars := <(?UpdateClause(_) + ?ModifyClause(_, _)); ![] + ?SelectClause(_, ExpAsVars(<id>))> selectOrUpdateClause';
+      expAsSelectVars := <(?ModifyClause(_, _)); ![] + ?SelectClause(_, ExpAsVars(<id>))> selectOrModifyClause';
       allExpAsVars := <conc> (expAsGroupVars', <try(?Star(); ![])> expAsSelectVars);
       orderByElems := <try(norm-orderBy(|allExpAsVars, version))> orderByClause;
 

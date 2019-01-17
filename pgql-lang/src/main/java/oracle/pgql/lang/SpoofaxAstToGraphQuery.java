@@ -71,9 +71,6 @@ import oracle.pgql.lang.ir.modify.ModifyQuery;
 import oracle.pgql.lang.ir.modify.SetPropertyExpression;
 import oracle.pgql.lang.ir.modify.Update;
 import oracle.pgql.lang.ir.modify.VertexInsertion;
-import oracle.pgql.lang.ir.update.GraphUpdate;
-import oracle.pgql.lang.ir.update.GraphUpdateQuery;
-import oracle.pgql.lang.ir.update.PropertyUpdate;
 import oracle.pgql.lang.util.SqlDateTimeFormatter;
 
 public class SpoofaxAstToGraphQuery {
@@ -111,9 +108,6 @@ public class SpoofaxAstToGraphQuery {
   private static final int POS_EDGE_INSERTION_PROPERTIES = 5;
   private static final int POS_LABELS_LIST = 1;
   private static final int POS_PROPERTIES_LIST = 1;
-
-  @Deprecated
-  private static final int POS_UPDATE_ELEMS = 0;
 
   private static final int POS_UPDATE_ELEMENTS = 0;
   private static final int POS_UPDATE_PROPERTIES = 1;
@@ -207,25 +201,32 @@ public class SpoofaxAstToGraphQuery {
     // graph pattern
     IStrategoTerm graphPatternT = ast.getSubterm(POS_GRAPH_PATTERN);
 
-    // vertices
-    IStrategoTerm verticesT = getList(graphPatternT.getSubterm(POS_VERTICES));
-    Set<QueryVertex> vertices = new HashSet<>(getQueryVertices(verticesT, ctx));
-    Map<String, QueryVertex> vertexMap = new HashMap<>();
-    vertices.stream().forEach(vertex -> vertexMap.put(vertex.getName(), vertex));
+    GraphPattern graphPattern;
+    if (isNone(graphPatternT)) {
+      graphPattern = null;
+    } else {
+      graphPatternT = getSome(graphPatternT);
 
-    // connections
-    IStrategoTerm connectionsT = getList(graphPatternT.getSubterm(POS_CONNECTIONS));
-    LinkedHashSet<VertexPairConnection> connections = getConnections(connectionsT, ctx, vertexMap);
+      // vertices
+      IStrategoTerm verticesT = getList(graphPatternT.getSubterm(POS_VERTICES));
+      Set<QueryVertex> vertices = new HashSet<>(getQueryVertices(verticesT, ctx));
+      Map<String, QueryVertex> vertexMap = new HashMap<>();
+      vertices.stream().forEach(vertex -> vertexMap.put(vertex.getName(), vertex));
 
-    giveAnonymousVariablesUniqueHiddenName(vertices, ctx);
-    giveAnonymousVariablesUniqueHiddenName(connections, ctx);
+      // connections
+      IStrategoTerm connectionsT = getList(graphPatternT.getSubterm(POS_CONNECTIONS));
+      LinkedHashSet<VertexPairConnection> connections = getConnections(connectionsT, ctx, vertexMap);
 
-    // constraints
-    IStrategoTerm constraintsT = getList(graphPatternT.getSubterm(POS_CONSTRAINTS));
-    LinkedHashSet<QueryExpression> constraints = getQueryExpressions(constraintsT, ctx);
+      giveAnonymousVariablesUniqueHiddenName(vertices, ctx);
+      giveAnonymousVariablesUniqueHiddenName(connections, ctx);
 
-    // graph pattern
-    GraphPattern graphPattern = new GraphPattern(vertices, connections, constraints);
+      // constraints
+      IStrategoTerm constraintsT = getList(graphPatternT.getSubterm(POS_CONSTRAINTS));
+      LinkedHashSet<QueryExpression> constraints = getQueryExpressions(constraintsT, ctx);
+
+      // graph pattern
+      graphPattern = new GraphPattern(vertices, connections, constraints);
+    }
 
     // GROUP BY
     IStrategoTerm groupByT = ast.getSubterm(POS_GROUPBY);
@@ -233,7 +234,6 @@ public class SpoofaxAstToGraphQuery {
 
     // SELECT or UPDATE or MODIFY
     Projection projection = null;
-    GraphUpdate graphUpdate = null;
     IStrategoTerm selectOrModifyT = ast.getSubterm(POS_SELECT_OR_MODIFY);
     String selectOrUpdate = ((IStrategoAppl) selectOrModifyT).getConstructor().getName();
     String modifyGraphName = null;
@@ -242,11 +242,9 @@ public class SpoofaxAstToGraphQuery {
       case "SelectClause":
         projection = translateSelectClause(ctx, selectOrModifyT);
         break;
-      case "UpdateClause":
-        graphUpdate = translateUpdateClause(ctx, selectOrModifyT);
-        break;
       case "ModifyClause":
-        modifyGraphName = getString(selectOrModifyT.getSubterm(POS_MODIFY_GRAPH_NAME));
+        IStrategoTerm graphNameT = selectOrModifyT.getSubterm(POS_MODIFY_GRAPH_NAME);
+        modifyGraphName = isNone(graphNameT) ? null : getString(selectOrModifyT.getSubterm(POS_MODIFY_GRAPH_NAME));
         IStrategoTerm modificationsT = selectOrModifyT.getSubterm(POS_MODIFY_MODIFICATIONS);
         modifications = translateModifications(ctx, modificationsT);
         break;
@@ -274,9 +272,6 @@ public class SpoofaxAstToGraphQuery {
     switch (selectOrUpdate) {
       case "SelectClause":
         return new SelectQuery(commonPathExpressions, projection, inputGraphName, graphPattern, groupBy, having,
-            orderBy, limit, offset);
-      case "UpdateClause":
-        return new GraphUpdateQuery(commonPathExpressions, graphUpdate, inputGraphName, graphPattern, groupBy, having,
             orderBy, limit, offset);
       case "ModifyClause":
         return new ModifyQuery(commonPathExpressions, modifyGraphName, modifications, inputGraphName, graphPattern,
@@ -407,35 +402,16 @@ public class SpoofaxAstToGraphQuery {
     IStrategoTerm expressionsT = setPropertiesT.getSubterm(POS_SET_PROPERTIES_EXPRESSIONS);
     for (IStrategoTerm expressionT : expressionsT) {
       IStrategoTerm propertyAccessT = expressionT.getSubterm(POS_SET_PROPERTY_EXPRESSION_PROPERTY_ACCESS);
-      PropertyAccess propertyAccess = (PropertyAccess) translateExp(propertyAccessT, ctx);
+      QueryExpression propertyAccess = translateExp(propertyAccessT, ctx);
       IStrategoTerm valueExpressionT = expressionT.getSubterm(POS_SET_PROPERTY_EXPRESSION_VALUE_EXPRESSION);
       QueryExpression valueExpression = translateExp(valueExpressionT, ctx);
-      result.add(new SetPropertyExpression(propertyAccess, valueExpression));
+      if (propertyAccess.getExpType() == ExpressionType.PROP_ACCESS) {
+        // error recovery: if it is a reference to a group by key it is not a property access
+        result.add(new SetPropertyExpression((PropertyAccess) propertyAccess, valueExpression));
+      }
     }
 
     return result;
-  }
-
-  @Deprecated
-  private static GraphUpdate translateUpdateClause(TranslationContext ctx, IStrategoTerm selectOrUpdateT)
-      throws PgqlException {
-    GraphUpdate graphUpdate;
-    IStrategoTerm propertyUpdatesT = selectOrUpdateT.getSubterm(POS_UPDATE_ELEMS);
-    List<PropertyUpdate> propertyUpdates = new ArrayList<>();
-    for (IStrategoTerm propertyUpdateT : propertyUpdatesT) {
-      IStrategoTerm propertyAccessT = propertyUpdateT.getSubterm(POS_SET_PROPERTY_EXPRESSION_PROPERTY_ACCESS);
-      QueryExpression propertyAccess = translateExp(propertyAccessT, ctx);
-      if (!(propertyAccess instanceof PropertyAccess)) {
-        continue; // error recovery for UPDATE n.prop .... GROUP BY n.prop
-      }
-
-      IStrategoTerm valueExpressionT = propertyUpdateT.getSubterm(POS_SET_PROPERTY_EXPRESSION_VALUE_EXPRESSION);
-      QueryExpression valueExpression = translateExp(valueExpressionT, ctx);
-
-      propertyUpdates.add(new PropertyUpdate((PropertyAccess) propertyAccess, valueExpression));
-    }
-    graphUpdate = new GraphUpdate(propertyUpdates);
-    return graphUpdate;
   }
 
   private static List<VarRef> getElements(TranslationContext ctx, IStrategoTerm elementsT) throws PgqlException {

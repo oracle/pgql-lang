@@ -14,6 +14,7 @@ import org.junit.rules.ExpectedException;
 import oracle.pgql.lang.ir.GraphQuery;
 import oracle.pgql.lang.ir.QueryExpression.FunctionCall;
 import oracle.pgql.lang.ir.QueryExpression.PropertyAccess;
+import oracle.pgql.lang.ir.SelectQuery;
 
 public class BugFixTest extends AbstractPgqlTest {
 
@@ -25,8 +26,8 @@ public class BugFixTest extends AbstractPgqlTest {
   public void testDuplicateOrderByElems() throws Exception {
     String query = "SELECT NOTfunc() MATCH (n)";
 
-    FunctionCall funcCall = (FunctionCall) pgql.parse(query).getGraphQuery().getProjection().getElements().get(0)
-        .getExp();
+    SelectQuery selectQuery = (SelectQuery) pgql.parse(query).getGraphQuery();
+    FunctionCall funcCall = (FunctionCall) selectQuery.getProjection().getElements().get(0).getExp();
 
     assertEquals("NOTfunc", funcCall.getFunctionName());
   }
@@ -52,7 +53,7 @@ public class BugFixTest extends AbstractPgqlTest {
 
   @Test
   public void testUpdate() throws Exception {
-    String query = "UPDATE/*beta*/ [[n.prop]] = 123 " + //
+    String query = "MODIFY/*beta*/ UPDATE n SET PROPERTY [[n.prop]] = 123 " + //
         "FROM g MATCH (n) " + //
         "GROUP BY n.prop AS nProp";
     assertFalse(pgql.parse(query).isQueryValid());

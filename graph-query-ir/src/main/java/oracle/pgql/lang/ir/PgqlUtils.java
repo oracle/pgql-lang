@@ -37,7 +37,6 @@ import oracle.pgql.lang.ir.QueryExpression.Function.Exists;
 import oracle.pgql.lang.ir.QueryVariable.VariableType;
 import oracle.pgql.lang.ir.QueryVertex;
 import oracle.pgql.lang.ir.modify.ModifyQuery;
-import oracle.pgql.lang.ir.update.GraphUpdateQuery;
 
 public class PgqlUtils {
 
@@ -176,15 +175,17 @@ public class PgqlUtils {
       case SELECT:
         result += ((SelectQuery) graphQuery).getProjection();
         break;
-      case GRAPH_UPDATE:
-        result += ((GraphUpdateQuery) graphQuery).getGraphUpdate();
-        break;
       case MODIFY:
         ModifyQuery modifyQuery = (ModifyQuery) graphQuery;
-        result += "MODIFY" + BETA_FEATURES_FLAG + " " + modifyQuery.getGraphName() + "\n  "
-            + modifyQuery.getModifications().stream() //
-                .map(x -> x.toString()) //
-                .collect(Collectors.joining("\n  "));
+        result += "MODIFY" + BETA_FEATURES_FLAG;
+
+        if (modifyQuery.getGraphName() != null) {
+          result += " " + modifyQuery.getGraphName();
+        }
+
+        result += "\n  " + modifyQuery.getModifications().stream() //
+            .map(x -> x.toString()) //
+            .collect(Collectors.joining("\n  "));
         break;
       default:
         throw new IllegalArgumentException(graphQuery.getQueryType().toString());

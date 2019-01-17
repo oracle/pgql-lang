@@ -84,16 +84,16 @@ public class PgqlCompletionGenerator {
       result.add(EMPTY_STRING_COMPLETION);
       return result;
     }
-    
+
     String stringBeforeCursor = queryString.substring(0, cursor);
     String trimmedStringBeforeCursor = stringBeforeCursor.trim().toUpperCase();
     String stringAfterCursor = queryString.substring(cursor);
     String trimmedStringAfterCursor = stringAfterCursor.trim().toUpperCase();
 
     ClauseOrAggregate currentClause = getCurrentClauseOrAggregate(trimmedStringBeforeCursor);
-    
-    List<PgqlCompletion> incompleteKeywords = getIncompleteKeywords(stringBeforeCursor.trim(), 
-        trimmedStringAfterCursor, currentClause);
+
+    List<PgqlCompletion> incompleteKeywords = getIncompleteKeywords(stringBeforeCursor.trim(), trimmedStringAfterCursor,
+        currentClause);
     if (!incompleteKeywords.isEmpty()) {
       result.addAll(incompleteKeywords);
       return result;
@@ -213,6 +213,10 @@ public class PgqlCompletionGenerator {
     }
 
     GraphPattern graphPattern = graphQuery.getGraphPattern();
+    if (graphPattern == null) {
+      return variables;
+    }
+
     for (QueryVertex vertex : graphPattern.getVertices()) {
       if (vertex.getName().contains("<<vertex-without-brackets>>")) {
         continue;
@@ -238,6 +242,9 @@ public class PgqlCompletionGenerator {
       return Collections.emptyList();
     }
     GraphPattern graphPattern = pgqlResult.getGraphQuery().getGraphPattern();
+    if (graphPattern == null) {
+      return Collections.emptyList();
+    }
 
     Set<QueryVertex> vertices = graphPattern.getVertices();
     boolean isVertexVariable = vertices.stream() //
@@ -287,36 +294,35 @@ public class PgqlCompletionGenerator {
 
     return result;
   }
-  
-  private static final Map<ClauseOrAggregate, List<Keyword>> allowedClauseKeywords = 
-      initAllowedClauseKeywords();
-  
+
+  private static final Map<ClauseOrAggregate, List<Keyword>> allowedClauseKeywords = initAllowedClauseKeywords();
+
   private static final Map<ClauseOrAggregate, List<Keyword>> initAllowedClauseKeywords() {
-    
+
     List<ClauseOrAggregate> aggregates = new ArrayList<>();
     aggregates.add(ClauseOrAggregate.COUNT);
     aggregates.add(ClauseOrAggregate.MIN);
     aggregates.add(ClauseOrAggregate.MAX);
     aggregates.add(ClauseOrAggregate.AVG);
     aggregates.add(ClauseOrAggregate.SUM);
-    
+
     List<Function> functions = new ArrayList<>();
-    for(Function f: Function.values()) {
+    for (Function f : Function.values()) {
       functions.add(f);
     }
-    
+
     Map<ClauseOrAggregate, List<Keyword>> allowedKeywords = new HashMap<>();
 
     // Aggregates
-    for(ClauseOrAggregate c : aggregates) {
+    for (ClauseOrAggregate c : aggregates) {
       allowedKeywords.put(c, Collections.emptyList());
     }
-    
+
     // null means that we haven't even completed SELECT clause
     List<Keyword> nullList = new ArrayList<>();
     nullList.add(ClauseOrAggregate.SELECT);
     allowedKeywords.put(null, nullList);
-    
+
     // SELECT
     List<Keyword> selectList = new ArrayList<>();
     selectList.addAll(aggregates);
@@ -324,12 +330,12 @@ public class PgqlCompletionGenerator {
     selectList.add(ClauseOrAggregate.FROM);
     selectList.add(ClauseOrAggregate.MATCH);
     allowedKeywords.put(ClauseOrAggregate.SELECT, selectList);
-    
+
     // FROM
     List<Keyword> fromList = new ArrayList<>();
     fromList.add(ClauseOrAggregate.MATCH);
     allowedKeywords.put(ClauseOrAggregate.FROM, fromList);
-    
+
     // MATCH
     List<Keyword> matchList = new ArrayList<>();
     matchList.add(ClauseOrAggregate.WHERE);
@@ -339,7 +345,7 @@ public class PgqlCompletionGenerator {
     matchList.add(ClauseOrAggregate.LIMIT);
     matchList.add(ClauseOrAggregate.OFFSET);
     allowedKeywords.put(ClauseOrAggregate.MATCH, matchList);
-    
+
     // WHERE
     List<Keyword> whereList = new ArrayList<>();
     whereList.addAll(aggregates);
@@ -350,7 +356,7 @@ public class PgqlCompletionGenerator {
     whereList.add(ClauseOrAggregate.LIMIT);
     whereList.add(ClauseOrAggregate.OFFSET);
     allowedKeywords.put(ClauseOrAggregate.WHERE, whereList);
-    
+
     // GROUP BY
     List<Keyword> groupByList = new ArrayList<>();
     groupByList.add(ClauseOrAggregate.HAVING);
@@ -358,7 +364,7 @@ public class PgqlCompletionGenerator {
     groupByList.add(ClauseOrAggregate.LIMIT);
     groupByList.add(ClauseOrAggregate.OFFSET);
     allowedKeywords.put(ClauseOrAggregate.GROUP_BY, groupByList);
-    
+
     // HAVING
     List<Keyword> havingList = new ArrayList<>();
     havingList.addAll(aggregates);
@@ -367,7 +373,7 @@ public class PgqlCompletionGenerator {
     havingList.add(ClauseOrAggregate.LIMIT);
     havingList.add(ClauseOrAggregate.OFFSET);
     allowedKeywords.put(ClauseOrAggregate.HAVING, havingList);
-    
+
     // ORDER BY
     List<Keyword> orderByList = new ArrayList<>();
     orderByList.addAll(aggregates);
@@ -375,20 +381,20 @@ public class PgqlCompletionGenerator {
     orderByList.add(ClauseOrAggregate.LIMIT);
     orderByList.add(ClauseOrAggregate.OFFSET);
     allowedKeywords.put(ClauseOrAggregate.ORDER_BY, orderByList);
-    
+
     // LIMIT
     List<Keyword> limitList = new ArrayList<>();
     limitList.add(ClauseOrAggregate.OFFSET);
     allowedKeywords.put(ClauseOrAggregate.LIMIT, limitList);
-    
+
     // OFFSET
     List<Keyword> offsetList = new ArrayList<>();
     offsetList.add(ClauseOrAggregate.LIMIT);
     allowedKeywords.put(ClauseOrAggregate.OFFSET, offsetList);
-    
+
     return allowedKeywords;
   }
-  
+
   private static PgqlCompletion getKeywordCompletion(String beforeQuery, String afterQuery, Keyword keyword) {
     String keywordExpression = keyword.getStringExpression();
     if (afterQuery.contains(keywordExpression)) {
@@ -401,14 +407,14 @@ public class PgqlCompletionGenerator {
     int partsIdx;
     // Check if last word before cursor is a prefix of some of the keyword parts
     for (partsIdx = keywordParts.length - 1; partsIdx >= 0 && !isKeyword; partsIdx--) {
-      String currentPart = keywordParts[partsIdx];      
+      String currentPart = keywordParts[partsIdx];
       // If last word is prefix of some of the keyword parts, then all the previous
       // words should be equal to the corresponding previous keyword parts, for example:
-      // IS         NOT        NULL      <-- keyword parts
-      //  |equal    | prefix
-      // IS         N                    <-- words
+      // IS NOT NULL <-- keyword parts
+      // |equal | prefix
+      // IS N <-- words
       isKeyword = currentPart.startsWith(words[idxLastWord]);
-      for(int idx = 1; isKeyword && idx <= partsIdx; idx++) {
+      for (int idx = 1; isKeyword && idx <= partsIdx; idx++) {
         isKeyword = keywordParts[partsIdx - idx].equals(words[idxLastWord - idx]);
       }
     }
@@ -430,7 +436,7 @@ public class PgqlCompletionGenerator {
   private static List<PgqlCompletion> getIncompleteKeywords(String beforeQuery, String afterQuery,
       ClauseOrAggregate currentClause) {
     List<PgqlCompletion> keywords = new ArrayList<>();
-    for(Keyword allowedKeyword: allowedClauseKeywords.get(currentClause)) {
+    for (Keyword allowedKeyword : allowedClauseKeywords.get(currentClause)) {
       PgqlCompletion completion = getKeywordCompletion(beforeQuery, afterQuery, allowedKeyword);
       if (completion != null) {
         keywords.add(completion);
@@ -438,7 +444,7 @@ public class PgqlCompletionGenerator {
     }
     return keywords;
   }
-   
+
   private static String parseIdentifierAtBeginning(String s) {
     return matchPattern(s, IDENTIFIER_PATTERN);
   }
@@ -466,7 +472,7 @@ public class PgqlCompletionGenerator {
 
   public static List<PgqlCompletion> functions() {
     List<PgqlCompletion> functions = new ArrayList<>();
-    for(Function f: Function.values() ) {
+    for (Function f : Function.values()) {
       functions.add(f.getCompletion());
     }
     return functions;
