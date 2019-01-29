@@ -293,7 +293,9 @@ public abstract class AbstractQueryExpressionVisitor implements QueryExpressionV
   }
 
   private void visitQuery(GraphQuery query) {
-    query.getGraphPattern().accept(this);
+    if (query.getGraphPattern() != null) {
+      query.getGraphPattern().accept(this);
+    }
     if (query.getGroupBy() != null) {
       query.getGroupBy().accept(this);
     }
