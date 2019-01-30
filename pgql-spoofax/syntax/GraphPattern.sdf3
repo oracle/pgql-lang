@@ -13,13 +13,9 @@ template options
 
 context-free syntax
 
-  Pgql11FromClause.Pgql11FromClause = <FROM <Identifier>> {case-insensitive}
+  Pgql11FromClause.Pgql11FromClause = <FROM <Identifier?>> {case-insensitive}
 
-  Pgql11MatchClause.GraphPattern =
-    <
-      MATCH
-        <{PathPattern ",\n"}+>
-    > {case-insensitive}
+  MatchWhereClauses.MatchWhereClauses = <MATCH <{PathPattern ",\n"}+> <WhereClause?>> {case-insensitive}
 
   GraphName.GraphName = Identifier
 

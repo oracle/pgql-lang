@@ -51,6 +51,12 @@ import oracle.pgql.lang.ir.QueryExpression.RelationalExpression.GreaterEqual;
 import oracle.pgql.lang.ir.QueryExpression.RelationalExpression.Less;
 import oracle.pgql.lang.ir.QueryExpression.RelationalExpression.LessEqual;
 import oracle.pgql.lang.ir.QueryExpression.RelationalExpression.NotEqual;
+import oracle.pgql.lang.ir.modify.Deletion;
+import oracle.pgql.lang.ir.modify.EdgeInsertion;
+import oracle.pgql.lang.ir.modify.ModifyQuery;
+import oracle.pgql.lang.ir.modify.SetPropertyExpression;
+import oracle.pgql.lang.ir.modify.Update;
+import oracle.pgql.lang.ir.modify.VertexInsertion;
 import oracle.pgql.lang.ir.QueryExpression.ScalarSubquery;
 import oracle.pgql.lang.ir.QueryExpression.Star;
 import oracle.pgql.lang.ir.QueryExpression.VarRef;
@@ -58,9 +64,6 @@ import oracle.pgql.lang.ir.QueryExpressionVisitor;
 import oracle.pgql.lang.ir.QueryPath;
 import oracle.pgql.lang.ir.QueryVertex;
 import oracle.pgql.lang.ir.SelectQuery;
-import oracle.pgql.lang.ir.update.GraphUpdate;
-import oracle.pgql.lang.ir.update.GraphUpdateQuery;
-import oracle.pgql.lang.ir.update.PropertyUpdate;
 
 public abstract class AbstractQueryExpressionVisitor implements QueryExpressionVisitor {
 
@@ -290,7 +293,9 @@ public abstract class AbstractQueryExpressionVisitor implements QueryExpressionV
   }
 
   private void visitQuery(GraphQuery query) {
-    query.getGraphPattern().accept(this);
+    if (query.getGraphPattern() != null) {
+      query.getGraphPattern().accept(this);
+    }
     if (query.getGroupBy() != null) {
       query.getGroupBy().accept(this);
     }
@@ -353,19 +358,37 @@ public abstract class AbstractQueryExpressionVisitor implements QueryExpressionV
   }
 
   @Override
-  public void visit(GraphUpdateQuery updateQuery) {
-    updateQuery.getGraphUpdate().accept(this);
-    visitQuery(updateQuery);
+  public void visit(ModifyQuery modifyQuery) {
+    modifyQuery.getModifications().stream().forEach(modification -> modification.accept(this));
+    visitQuery(modifyQuery);
   }
 
   @Override
-  public void visit(GraphUpdate graphUpdate) {
-    graphUpdate.getPropertyUpdates().stream().forEach(propertyUpdate -> propertyUpdate.accept(this));
+  public void visit(VertexInsertion vertexInsertion) {
+    vertexInsertion.getVertex().accept(this);
+    vertexInsertion.getProperties().stream().forEach(setProperty -> setProperty.accept(this));
   }
 
   @Override
-  public void visit(PropertyUpdate propertyUpdate) {
-    propertyUpdate.getPropertyAccess().accept(this);
-    propertyUpdate.getValueExpression().accept(this);
+  public void visit(EdgeInsertion edgeInsertion) {
+    edgeInsertion.getEdge().accept(this);
+    edgeInsertion.getProperties().stream().forEach(setProperty -> setProperty.accept(this));
+  }
+
+  @Override
+  public void visit(Update update) {
+    update.getElements().stream().forEach(element -> element.accept(this));
+    update.getSetPropertyExpressions().stream().forEach(setPropertyExpression -> setPropertyExpression.accept(this));
+  }
+
+  @Override
+  public void visit(SetPropertyExpression setPropertyExpression) {
+    setPropertyExpression.getPropertyAccess().accept(this);
+    setPropertyExpression.getValueExpression().accept(this);
+  }
+
+  @Override
+  public void visit(Deletion deletion) {
+    deletion.getElements().stream().forEach(element -> element.accept(this));
   }
 }

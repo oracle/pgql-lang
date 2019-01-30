@@ -64,9 +64,13 @@ import oracle.pgql.lang.ir.QueryVariable.VariableType;
 import oracle.pgql.lang.ir.QueryVertex;
 import oracle.pgql.lang.ir.SelectQuery;
 import oracle.pgql.lang.ir.VertexPairConnection;
-import oracle.pgql.lang.ir.update.GraphUpdate;
-import oracle.pgql.lang.ir.update.GraphUpdateQuery;
-import oracle.pgql.lang.ir.update.PropertyUpdate;
+import oracle.pgql.lang.ir.modify.Deletion;
+import oracle.pgql.lang.ir.modify.EdgeInsertion;
+import oracle.pgql.lang.ir.modify.Modification;
+import oracle.pgql.lang.ir.modify.ModifyQuery;
+import oracle.pgql.lang.ir.modify.SetPropertyExpression;
+import oracle.pgql.lang.ir.modify.Update;
+import oracle.pgql.lang.ir.modify.VertexInsertion;
 import oracle.pgql.lang.util.SqlDateTimeFormatter;
 
 public class SpoofaxAstToGraphQuery {
@@ -74,7 +78,7 @@ public class SpoofaxAstToGraphQuery {
   private static final String GENERATED_VAR_SUBSTR = "<<anonymous>>";
 
   private static final int POS_COMMON_PATH_EXPRESSIONS = 0;
-  private static final int POS_SELECT_OR_UPDATE = 1;
+  private static final int POS_SELECT_OR_MODIFY = 1;
   private static final int POS_GRAPH_NAME = 2;
   private static final int POS_GRAPH_PATTERN = 3;
   private static final int POS_GROUPBY = 4;
@@ -90,9 +94,28 @@ public class SpoofaxAstToGraphQuery {
   private static final int POS_PROJECTION_DISTINCT = 0;
   private static final int POS_PROJECTION_ELEMS = 1;
 
-  private static final int POS_UPDATE_ELEMS = 0;
-  private static final int POS_PROPERTY_UPDATE_PROPERTY_REFERENCE = 0;
-  private static final int POS_PROPERTY_UPDATE_VALUE_EXPRESSION = 1;
+  private static final int POS_MODIFY_GRAPH_NAME = 0;
+  private static final int POS_MODIFY_MODIFICATIONS = 1;
+  private static final int POS_VERTEX_INSERTION_NAME = 0;
+  private static final int POS_VERTEX_INSERTION_ORIGIN_OFFSET = 1;
+  private static final int POS_VERTEX_INSERTION_LABELS = 2;
+  private static final int POS_VERTEX_INSERTION_PROPERTIES = 3;
+  private static final int POS_EDGE_INSERTION_NAME = 0;
+  private static final int POS_EDGE_INSERTION_ORIGIN_OFFSET = 1;
+  private static final int POS_EDGE_INSERTION_SRC = 2;
+  private static final int POS_EDGE_INSERTION_DST = 3;
+  private static final int POS_EDGE_INSERTION_LABELS = 4;
+  private static final int POS_EDGE_INSERTION_PROPERTIES = 5;
+  private static final int POS_LABELS_LIST = 1;
+  private static final int POS_PROPERTIES_LIST = 1;
+
+  private static final int POS_UPDATE_ELEMENTS = 0;
+  private static final int POS_UPDATE_PROPERTIES = 1;
+  private static final int POS_SET_PROPERTIES_EXPRESSIONS = 1;
+  private static final int POS_SET_PROPERTY_EXPRESSION_PROPERTY_ACCESS = 0;
+  private static final int POS_SET_PROPERTY_EXPRESSION_VALUE_EXPRESSION = 1;
+
+  private static final int POS_DELETION_ELEMENTS = 0;
 
   private static final int POS_VERTICES = 0;
   private static final int POS_CONNECTIONS = 1;
@@ -178,41 +201,52 @@ public class SpoofaxAstToGraphQuery {
     // graph pattern
     IStrategoTerm graphPatternT = ast.getSubterm(POS_GRAPH_PATTERN);
 
-    // vertices
-    IStrategoTerm verticesT = getList(graphPatternT.getSubterm(POS_VERTICES));
-    Set<QueryVertex> vertices = new HashSet<>(getQueryVertices(verticesT, ctx));
-    Map<String, QueryVertex> vertexMap = new HashMap<>();
-    vertices.stream().forEach(vertex -> vertexMap.put(vertex.getName(), vertex));
+    GraphPattern graphPattern;
+    if (isNone(graphPatternT)) {
+      graphPattern = null;
+    } else {
+      graphPatternT = getSome(graphPatternT);
 
-    // connections
-    IStrategoTerm connectionsT = getList(graphPatternT.getSubterm(POS_CONNECTIONS));
-    LinkedHashSet<VertexPairConnection> connections = getConnections(connectionsT, ctx, vertexMap);
+      // vertices
+      IStrategoTerm verticesT = getList(graphPatternT.getSubterm(POS_VERTICES));
+      Set<QueryVertex> vertices = new HashSet<>(getQueryVertices(verticesT, ctx));
+      Map<String, QueryVertex> vertexMap = new HashMap<>();
+      vertices.stream().forEach(vertex -> vertexMap.put(vertex.getName(), vertex));
 
-    giveAnonymousVariablesUniqueHiddenName(vertices, ctx);
-    giveAnonymousVariablesUniqueHiddenName(connections, ctx);
+      // connections
+      IStrategoTerm connectionsT = getList(graphPatternT.getSubterm(POS_CONNECTIONS));
+      LinkedHashSet<VertexPairConnection> connections = getConnections(connectionsT, ctx, vertexMap);
 
-    // constraints
-    IStrategoTerm constraintsT = getList(graphPatternT.getSubterm(POS_CONSTRAINTS));
-    LinkedHashSet<QueryExpression> constraints = getQueryExpressions(constraintsT, ctx);
+      giveAnonymousVariablesUniqueHiddenName(vertices, ctx);
+      giveAnonymousVariablesUniqueHiddenName(connections, ctx);
 
-    // graph pattern
-    GraphPattern graphPattern = new GraphPattern(vertices, connections, constraints);
+      // constraints
+      IStrategoTerm constraintsT = getList(graphPatternT.getSubterm(POS_CONSTRAINTS));
+      LinkedHashSet<QueryExpression> constraints = getQueryExpressions(constraintsT, ctx);
+
+      // graph pattern
+      graphPattern = new GraphPattern(vertices, connections, constraints);
+    }
 
     // GROUP BY
     IStrategoTerm groupByT = ast.getSubterm(POS_GROUPBY);
     GroupBy groupBy = getGroupBy(ctx, groupByT);
 
-    // SELECT or UPDATE
+    // SELECT or UPDATE or MODIFY
     Projection projection = null;
-    GraphUpdate graphUpdate = null;
-    IStrategoTerm selectOrUpdateT = ast.getSubterm(POS_SELECT_OR_UPDATE);
-    String selectOrUpdate = ((IStrategoAppl) selectOrUpdateT).getConstructor().getName();
+    IStrategoTerm selectOrModifyT = ast.getSubterm(POS_SELECT_OR_MODIFY);
+    String selectOrUpdate = ((IStrategoAppl) selectOrModifyT).getConstructor().getName();
+    String modifyGraphName = null;
+    List<Modification> modifications = null;
     switch (selectOrUpdate) {
       case "SelectClause":
-        projection = translateSelectClause(ctx, selectOrUpdateT);
+        projection = translateSelectClause(ctx, selectOrModifyT);
         break;
-      case "UpdateClause":
-        graphUpdate = translateUpdateClause(ctx, selectOrUpdateT);
+      case "ModifyClause":
+        IStrategoTerm graphNameT = selectOrModifyT.getSubterm(POS_MODIFY_GRAPH_NAME);
+        modifyGraphName = isNone(graphNameT) ? null : getString(selectOrModifyT.getSubterm(POS_MODIFY_GRAPH_NAME));
+        IStrategoTerm modificationsT = selectOrModifyT.getSubterm(POS_MODIFY_MODIFICATIONS);
+        modifications = translateModifications(ctx, modificationsT);
         break;
       default:
         throw new IllegalStateException(selectOrUpdate);
@@ -239,9 +273,9 @@ public class SpoofaxAstToGraphQuery {
       case "SelectClause":
         return new SelectQuery(commonPathExpressions, projection, inputGraphName, graphPattern, groupBy, having,
             orderBy, limit, offset);
-      case "UpdateClause":
-        return new GraphUpdateQuery(commonPathExpressions, graphUpdate, inputGraphName, graphPattern, groupBy, having,
-            orderBy, limit, offset);
+      case "ModifyClause":
+        return new ModifyQuery(commonPathExpressions, modifyGraphName, modifications, inputGraphName, graphPattern,
+            groupBy, having, orderBy, limit, offset);
       default:
         throw new IllegalStateException(selectOrUpdate);
     }
@@ -257,7 +291,8 @@ public class SpoofaxAstToGraphQuery {
     List<ExpAsVar> selectElems;
     if (projectionElemsT.getTermType() == IStrategoTerm.APPL
         && ((IStrategoAppl) projectionElemsT).getConstructor().getName().equals("Star")) {
-      // GROUP BY in combination with SELECT *. Even though the parser will generate an error for it, the
+      // GROUP BY in combination with SELECT *. Even though the parser will generate
+      // an error for it, the
       // translation to GraphQuery should succeed (error recovery)
       selectElems = new ArrayList<>();
     } else {
@@ -268,25 +303,123 @@ public class SpoofaxAstToGraphQuery {
     return projection;
   }
 
-  private static GraphUpdate translateUpdateClause(TranslationContext ctx, IStrategoTerm selectOrUpdateT)
+  private static List<Modification> translateModifications(TranslationContext ctx, IStrategoTerm modificationsT)
       throws PgqlException {
-    GraphUpdate graphUpdate;
-    IStrategoTerm propertyUpdatesT = selectOrUpdateT.getSubterm(POS_UPDATE_ELEMS);
-    List<PropertyUpdate> propertyUpdates = new ArrayList<>();
-    for (IStrategoTerm propertyUpdateT : propertyUpdatesT) {
-      IStrategoTerm propertyAccessT = propertyUpdateT.getSubterm(POS_PROPERTY_UPDATE_PROPERTY_REFERENCE);
-      QueryExpression propertyAccess = translateExp(propertyAccessT, ctx);
-      if (!(propertyAccess instanceof PropertyAccess)) {
-        continue; // error recovery for UPDATE n.prop .... GROUP BY n.prop. Even though the parser will generate an
+    List<Modification> result = new ArrayList<>();
+    for (IStrategoTerm modificationT : modificationsT) {
+      String constructorName = ((IStrategoAppl) modificationT).getConstructor().getName();
+      switch (constructorName) {
+        case "VertexInsertion": {
+          String vertexName = getString(modificationT.getSubterm(POS_VERTEX_INSERTION_NAME));
+          QueryVertex vertex = new QueryVertex(vertexName, false);
+          IStrategoTerm originPosition = modificationT.getSubterm(POS_VERTEX_INSERTION_ORIGIN_OFFSET);
+          ctx.addVar(vertex, vertexName, originPosition);
+
+          IStrategoTerm labelsT = modificationT.getSubterm(POS_VERTEX_INSERTION_LABELS);
+          Set<String> labels = getLabels(ctx, labelsT);
+
+          IStrategoTerm propertiesT = modificationT.getSubterm(POS_VERTEX_INSERTION_PROPERTIES);
+          List<SetPropertyExpression> properties = getProperties(ctx, propertiesT);
+
+          result.add(new VertexInsertion(vertex, labels, properties));
+
+          break;
+        }
+        case "DirectedEdgeInsertion": {
+          String edgeName = getString(modificationT.getSubterm(POS_EDGE_INSERTION_NAME));
+
+          IStrategoTerm srcVarRefT = modificationT.getSubterm(POS_EDGE_INSERTION_SRC);
+          QueryVertex src = (QueryVertex) ctx.getVariable(srcVarRefT.getSubterm(POS_VARREF_ORIGIN_OFFSET));
+
+          IStrategoTerm dstVarRefT = modificationT.getSubterm(POS_EDGE_INSERTION_DST);
+          QueryVertex dst = (QueryVertex) ctx.getVariable(dstVarRefT.getSubterm(POS_VARREF_ORIGIN_OFFSET));
+
+          QueryEdge edge = new QueryEdge(src, dst, edgeName, false, Direction.OUTGOING);
+          IStrategoTerm originPosition = modificationT.getSubterm(POS_EDGE_INSERTION_ORIGIN_OFFSET);
+          ctx.addVar(edge, edgeName, originPosition);
+
+          IStrategoTerm labelsT = modificationT.getSubterm(POS_EDGE_INSERTION_LABELS);
+          Set<String> labels = getLabels(ctx, labelsT);
+
+          IStrategoTerm propertiesT = modificationT.getSubterm(POS_EDGE_INSERTION_PROPERTIES);
+          List<SetPropertyExpression> properties = getProperties(ctx, propertiesT);
+
+          result.add(new EdgeInsertion(edge, labels, properties));
+
+          break;
+        }
+        case "Update": {
+          IStrategoTerm elementsT = modificationT.getSubterm(POS_UPDATE_ELEMENTS);
+          List<VarRef> elements = getElements(ctx, elementsT);
+
+          IStrategoTerm setPropertiesT = modificationT.getSubterm(POS_UPDATE_PROPERTIES);
+          List<SetPropertyExpression> setPropertyExpressions = getSetPropertyExpressions(ctx, setPropertiesT);
+
+          result.add(new Update(elements, setPropertyExpressions));
+
+          break;
+        }
+        case "Deletion": {
+          IStrategoTerm elementsT = modificationT.getSubterm(POS_DELETION_ELEMENTS);
+          List<VarRef> elements = getElements(ctx, elementsT);
+
+          result.add(new Deletion(elements));
+
+          break;
+        }
+        default:
+          throw new IllegalArgumentException(constructorName);
       }
-
-      IStrategoTerm valueExpressionT = propertyUpdateT.getSubterm(POS_PROPERTY_UPDATE_VALUE_EXPRESSION);
-      QueryExpression valueExpression = translateExp(valueExpressionT, ctx);
-
-      propertyUpdates.add(new PropertyUpdate((PropertyAccess) propertyAccess, valueExpression));
     }
-    graphUpdate = new GraphUpdate(propertyUpdates);
-    return graphUpdate;
+    return result;
+  }
+
+  private static Set<String> getLabels(TranslationContext ctx, IStrategoTerm labelsT) {
+    Set<String> result = new HashSet<>();
+    if (isSome(labelsT)) {
+      IStrategoTerm labelsListT = getSome(labelsT).getSubterm(POS_LABELS_LIST);
+      for (IStrategoTerm labelT : labelsListT) {
+        result.add(getString(labelT));
+      }
+    }
+    return result;
+  }
+
+  private static List<SetPropertyExpression> getProperties(TranslationContext ctx, IStrategoTerm propertiesT)
+      throws PgqlException {
+    if (isSome(propertiesT)) {
+      return getSetPropertyExpressions(ctx, getSome(propertiesT));
+    } else {
+      return new ArrayList<>();
+    }
+  }
+
+  private static List<SetPropertyExpression> getSetPropertyExpressions(TranslationContext ctx,
+      IStrategoTerm setPropertiesT)
+      throws PgqlException {
+    List<SetPropertyExpression> result = new ArrayList<>();
+
+    IStrategoTerm expressionsT = setPropertiesT.getSubterm(POS_SET_PROPERTIES_EXPRESSIONS);
+    for (IStrategoTerm expressionT : expressionsT) {
+      IStrategoTerm propertyAccessT = expressionT.getSubterm(POS_SET_PROPERTY_EXPRESSION_PROPERTY_ACCESS);
+      QueryExpression propertyAccess = translateExp(propertyAccessT, ctx);
+      IStrategoTerm valueExpressionT = expressionT.getSubterm(POS_SET_PROPERTY_EXPRESSION_VALUE_EXPRESSION);
+      QueryExpression valueExpression = translateExp(valueExpressionT, ctx);
+      if (propertyAccess.getExpType() == ExpressionType.PROP_ACCESS) {
+        // error recovery: if it is a reference to a group by key it is not a property access
+        result.add(new SetPropertyExpression((PropertyAccess) propertyAccess, valueExpression));
+      }
+    }
+
+    return result;
+  }
+
+  private static List<VarRef> getElements(TranslationContext ctx, IStrategoTerm elementsT) throws PgqlException {
+    List<VarRef> result = new ArrayList<>();
+    for (IStrategoTerm elementT : elementsT) {
+      result.add((VarRef) translateExp(elementT, ctx));
+    }
+    return result;
   }
 
   private static QueryExpression tryGetExpression(IStrategoTerm term, TranslationContext ctx) throws PgqlException {
@@ -426,7 +559,8 @@ public class SpoofaxAstToGraphQuery {
     if (queryVariable.getVariableType() == VariableType.VERTEX) {
       return (QueryVertex) queryVariable;
     } else {
-      // query has syntactic error and although Spoofax generates a grammatically correct AST, the AST is not
+      // query has syntactic error and although Spoofax generates a grammatically
+      // correct AST, the AST is not
       // semantically correct
       QueryVertex dummyVertex = new QueryVertex(vertexName, false);
       return dummyVertex;
@@ -673,7 +807,8 @@ public class SpoofaxAstToGraphQuery {
         double d = Double.parseDouble(getString(t));
         return new QueryExpression.Constant.ConstDecimal(d);
       case "String":
-      case "Identifier": // identifier "hello" in (n:hello) becomes string 'hello' in has_label(n, 'hello')
+      case "Identifier": // identifier "hello" in (n:hello) becomes string 'hello' in has_label(n,
+        // 'hello')
         String s = getString(t);
         return new QueryExpression.Constant.ConstString(s);
       case "True":
@@ -715,7 +850,8 @@ public class SpoofaxAstToGraphQuery {
                 SqlDateTimeFormatter.SQL_TIMESTAMP_WITH_TIMEZONE);
             return new QueryExpression.Constant.ConstTimestampWithTimezone(timestampWithTimezone);
           } catch (DateTimeParseException e2) {
-            // can return any timestamp here; parser already generated an error message for it
+            // can return any timestamp here; parser already generated an error message for
+            // it
             return new QueryExpression.Constant.ConstTimestamp(LocalDateTime.MIN);
           }
         }
@@ -926,7 +1062,8 @@ public class SpoofaxAstToGraphQuery {
     if (query.getQueryType() == QueryType.SELECT) {
       return (SelectQuery) query;
     } else {
-      return null; // error recovery (translation should succeed even for syntactically invalid queries)
+      return null; // error recovery (translation should succeed even for syntactically invalid
+      // queries)
     }
   }
 

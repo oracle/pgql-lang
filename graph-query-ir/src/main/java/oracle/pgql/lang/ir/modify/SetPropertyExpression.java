@@ -1,19 +1,19 @@
 /*
  * Copyright (C) 2013 - 2018 Oracle and/or its affiliates. All rights reserved.
  */
-package oracle.pgql.lang.ir.update;
+package oracle.pgql.lang.ir.modify;
 
 import oracle.pgql.lang.ir.QueryExpression;
 import oracle.pgql.lang.ir.QueryExpressionVisitor;
 import oracle.pgql.lang.ir.QueryExpression.PropertyAccess;
 
-public class PropertyUpdate {
+public class SetPropertyExpression {
 
   public PropertyAccess propertyAccess;
 
   public QueryExpression valueExpression;
 
-  public PropertyUpdate(PropertyAccess propertyAccess, QueryExpression valueExpression) {
+  public SetPropertyExpression(PropertyAccess propertyAccess, QueryExpression valueExpression) {
     this.propertyAccess = propertyAccess;
     this.valueExpression = valueExpression;
   }
@@ -52,7 +52,7 @@ public class PropertyUpdate {
       return false;
     if (getClass() != obj.getClass())
       return false;
-    PropertyUpdate other = (PropertyUpdate) obj;
+    SetPropertyExpression other = (SetPropertyExpression) obj;
     if (propertyAccess == null) {
       if (other.propertyAccess != null)
         return false;

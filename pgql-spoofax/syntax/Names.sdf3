@@ -58,6 +58,7 @@ lexical syntax // reserved keywords
   FUNCTION-NAME = 'select' {reject}
   FUNCTION-NAME = 'from' {reject}
   FUNCTION-NAME = 'match' {reject}
+  FUNCTION-NAME = 'where' {reject}
   FUNCTION-NAME = 'group' {reject}
   FUNCTION-NAME = 'order' {reject}
   FUNCTION-NAME = 'by' {reject}

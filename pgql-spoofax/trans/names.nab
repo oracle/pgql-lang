@@ -42,6 +42,16 @@ binding rules // variable definition
       of OriginOffset origin-offset
       of type ty where exp has type ty
 
+  VertexInsertion(v, origin-offset, _, _):
+    defines unique Var v
+      of OriginOffset origin-offset
+      of type VertexTy()
+
+  DirectedEdgeInsertion(v, origin-offset, _, _, _, _):
+    defines unique Var v
+      of OriginOffset origin-offset
+      of type EdgeTy()
+
 binding rules // variable reference
 
   PathPatternRef(p):

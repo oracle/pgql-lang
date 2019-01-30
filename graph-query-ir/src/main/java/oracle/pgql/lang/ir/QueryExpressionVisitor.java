@@ -17,9 +17,6 @@ import oracle.pgql.lang.ir.QueryExpression.ArithmeticExpression.Sub;
 import oracle.pgql.lang.ir.QueryExpression.ArithmeticExpression.UMin;
 import oracle.pgql.lang.ir.QueryExpression.BindVariable;
 import oracle.pgql.lang.ir.QueryExpressionVisitor;
-import oracle.pgql.lang.ir.update.GraphUpdate;
-import oracle.pgql.lang.ir.update.GraphUpdateQuery;
-import oracle.pgql.lang.ir.update.PropertyUpdate;
 import oracle.pgql.lang.ir.QueryExpression.Constant.ConstBoolean;
 import oracle.pgql.lang.ir.QueryExpression.Constant.ConstDate;
 import oracle.pgql.lang.ir.QueryExpression.Constant.ConstDecimal;
@@ -47,6 +44,12 @@ import oracle.pgql.lang.ir.QueryExpression.RelationalExpression.GreaterEqual;
 import oracle.pgql.lang.ir.QueryExpression.RelationalExpression.Less;
 import oracle.pgql.lang.ir.QueryExpression.RelationalExpression.LessEqual;
 import oracle.pgql.lang.ir.QueryExpression.RelationalExpression.NotEqual;
+import oracle.pgql.lang.ir.modify.ModifyQuery;
+import oracle.pgql.lang.ir.modify.SetPropertyExpression;
+import oracle.pgql.lang.ir.modify.Update;
+import oracle.pgql.lang.ir.modify.VertexInsertion;
+import oracle.pgql.lang.ir.modify.Deletion;
+import oracle.pgql.lang.ir.modify.EdgeInsertion;
 import oracle.pgql.lang.ir.QueryExpression.ScalarSubquery;
 import oracle.pgql.lang.ir.QueryExpression.Star;
 import oracle.pgql.lang.ir.QueryExpression.VarRef;
@@ -159,9 +162,15 @@ public interface QueryExpressionVisitor {
 
   public void visit(OrderByElem orderByElem);
 
-  public void visit(GraphUpdateQuery updateQuery);
+  public void visit(ModifyQuery modifyQuery);
 
-  public void visit(GraphUpdate graphUpdate);
+  public void visit(VertexInsertion vertexInsertion);
 
-  public void visit(PropertyUpdate propertyUpdate);
+  public void visit(EdgeInsertion edgeInsertion);
+
+  public void visit(Update update);
+
+  public void visit(SetPropertyExpression setPropertyExpression);
+
+  public void visit(Deletion deletion);
 }
