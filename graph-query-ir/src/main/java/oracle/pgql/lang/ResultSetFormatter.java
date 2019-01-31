@@ -4,6 +4,7 @@
 package oracle.pgql.lang;
 
 import java.io.PrintStream;
+import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
 
@@ -53,6 +54,7 @@ public class ResultSetFormatter {
       }
     }
 
+    List<Object[]> rows = new ArrayList<>();
     Iterator<? extends ResultAccess> results = resultSet.iterator();
     for (int i = 0; i < from; i++) {
       resultSet.next();
@@ -60,8 +62,11 @@ public class ResultSetFormatter {
     int count = 0;
     while (results.hasNext() && count < numResults) {
       ResultAccess result = results.next();
+      Object[] row = new Object[numElements];
+      rows.add(row);
       for (int i = 0; i < numElements; i++) {
         Object elem = result.getObject(i + 1);
+        row[i] = elem;
         int length = getLengthOfElem(elem);
         if (length > columnWidth[i]) {
           columnWidth[i] = length;
@@ -115,14 +120,9 @@ public class ResultSetFormatter {
 
     printHorizontalLine(printStream, totalWidth);
 
-    results = resultSet.iterator();
-    for (int i = 0; i < from; i++) {
-      results.next();
-    }
-    count = 0;
-    while (results.hasNext() && count < numResults) {
+    for (int idx = 0; idx < count; idx++) {
       printStream.print("|");
-      ResultAccess result = results.next();
+      Object[] row = rows.get(idx);
       if (numElements == 0) {
         for (int i = 0; i < totalWidth; i++) {
           printStream.print(" ");
@@ -130,11 +130,10 @@ public class ResultSetFormatter {
         printStream.print("|"); // zero columns
       } else {
         for (int i = 0; i < numElements; i++) {
-          printElem(printStream, result.getObject(i + 1), columnWidth[i]);
+          printElem(printStream, row[i], columnWidth[i]);
         }
       }
       printStream.println();
-      count++;
     }
 
     if (truncate && countResults > numResults) {
