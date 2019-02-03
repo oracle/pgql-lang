@@ -19,7 +19,7 @@ topnav:
 
 - title: Topnav
   items:
-    - title: Parser
+    - title: Open-Sourced Parser
       external_url: https://github.com/oracle/pgql-lang/
 
 ## Topnav dropdowns

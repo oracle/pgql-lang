@@ -19,8 +19,7 @@ PGQL is a graph pattern-matching query language for the [property graph data mod
  - [Graph Pattern Matching](#graph-pattern-matching) introduces the basic concepts of graph querying.
  - [Grouping and Aggregation](#grouping-and-aggregation) describes the mechanism to group and aggregate results.
  - [Sorting and Row Limiting](#sorting-and-row-limiting) describes the ability to sort and paginate results.
- - [Reachability](#reachability) introduces the constructs for testing for the existence of paths between pairs of vertices.
- - [Shortest Path](#shortest-path) introduces the constructs for retrieving shortest paths between pairs of vertices.
+ - [Variable-Length Paths](#variable-length-paths) introduces the constructs for testing for the existence of paths between pairs of vertices (i.e. "reachability testing") as well as for retrieving shortest paths between pairs of vertices.
  - [Functions and Expressions](#functions-and-expressions) introduces the various data types and functions and operations on these data types.
  - [Subqueries](#subqueries) introduces the syntax and semantics of subqueries, which allow for composing queries of other queries to support more complex use cases.
  - [Other Syntactic rules](#other-syntactic-rules) defines syntactic rules that are not covered by other sections, such as syntax for identifiers and comments.
@@ -35,12 +34,14 @@ The following are the changes since PGQL 1.1:
 
 ### New features since PGQL 1.1
 
+The new features in PGQL 1.2 are:
+
  - [Shortest path finding](#shortest-path)
  - [Scalar subqueries](#scalar-subqueries)
  - [Undirected edges](#matching-undirected-edges) (and matching thereof)
  - [ARRAY_AGG](#ArrayAggregation) aggregation
  - [ABS](#abs), [CEIL/CEILING](#ceil-or-ceiling), [FLOOR](#floor) and [ROUND](#round) math functions
- - [EXTRACT](#extract) function for extracting the `year`/`month`/`day`/`hour`/`minute`/`second`/`time_zone` from a datetime value
+ - [EXTRACT](#extract) function for extracting the `year`/`month`/`day`/`hour`/`minute`/`second`/`time_zone` from datetime values
  - [CASE](#case) statement
  - [IN and NOT IN](#in-and-not-in) predicates
 
@@ -831,25 +832,17 @@ SELECT n
 OFFSET 5
 ```
 
-# Reachability
+# Variable-Length Paths
 
 Path queries test for the existence of arbitrary-length paths between pairs of vertices, or, retrieve actual paths between pairs of vertices.
 
-The syntactic structure of a query path is similar to a query edge, but it uses forward slashes (`-/` and `/->`) instead of square brackets (`-[` and `]->`). The syntax rules are as follows:
+## Quantifiers
+
+Quantifiers in path patterns allow for specifying lower and upper limits on the number of times a pattern should match.
+
+The syntax is as follows:
 
 ```bash
-ReachabilityPathExpression ::=   <OutgoingPathPattern>
-                               | <IncomingPathPattern>
-
-OutgoingPathPattern        ::= '-/' <PathSpecification> '/->'
-
-IncomingPathPattern        ::= '<-/' <PathSpecification> '/-'
-
-PathSpecification          ::=   <LabelPredicate>
-                               | <PathPredicate>
-
-PathPredicate              ::= ':' <Label> <GraphPatternQuantifier>
-
 GraphPatternQuantifier     ::=   <ZeroOrMore>
                                | <OneOrMore>
                                | <Optional>
@@ -873,19 +866,7 @@ BetweenNAndM               ::= '{' <UNSIGNED_INTEGER> ',' <UNSIGNED_INTEGER> '}'
 BetweenZeroAndM            ::= '{' ',' <UNSIGNED_INTEGER> '}'
 ```
 
-An example is as follows:
-
-```sql
-SELECT c.name
-  FROM g MATCH (c:Class) -/:subclass_of*/-> (arrayList:Class)
- WHERE arrayList.name = 'ArrayList'
-```
-
-Here, we find all classes that are a subclass of `'ArrayList'`. The regular path pattern `subclass_of*` matches a path consisting of zero or more edges with the label `subclass_of`. Because the pattern may match a path with zero edges, the two query vertices can be bound to the same data vertex if the data vertex satisfies the constraints specified in both source and destination vertices (i.e. the vertex has a label `Class` and a property `name` with a value `ArrayList`).
-
-## Min and Max Quantifiers
-
-Quantifiers in regular path expressions allow for specifying lower and upper limits on the number of times a pattern should match.
+The meaning of the different quantifiers is:
 
 | quantifier | meaning                              | matches                                                                                                                             | example path        |
 |------------|--------------------------------------|-------------------------------------------------------------------------------------------------------------------------------------|---------------------|
@@ -897,7 +878,7 @@ Quantifiers in regular path expressions allow for specifying lower and upper lim
 | { n, m }   | between _n_ and _m_ (inclusive)      | A path that connects the source and destination of the path by at least _n_ and at most _m_ (inclusive) matches of a given pattern. | `-/:lbl{2,3}/->                      ` |
 | { , m }    | between zero (0) and _m_ (inclusive) | A path that connects the source and destination of the path by at least 0 and at most _m_ (inclusive) matches of a given pattern.   | `-/:lbl{,3}/->`     |
 
-Paths considered include those that repeat the same vertices and/or edges multiple times. This means that even cycles are considered. However, because the semantic is to test for the existence of paths between pairs of vertices, there is only at most one result per pair of vertices. Thus, even though an unbounded number of paths may exist between a pair of vertices (because of cycles), the result is always bounded.
+Paths considered include those that repeat the same vertices and/or edges multiple times. This means that even cycles are considered.
 
 Take the following graph as example:
 
@@ -925,7 +906,7 @@ SELECT y.name
 ```
 
 Note that here, `Amy` is returned since `Amy` connects to `Amy` by following zero `likes` edges. In other words, there exists an empty path for the vertex pair.
-For `Judith`, there exist two paths (`100 -> 200 -> 300 -> 400` and `100 -> 400`). However, `Judith` is still only returned once.
+For `Judith`, there exist two paths (`100 -> 200 -> 300 -> 400` and `100 -> 400`). However, `Judith` is still only returned once since the semantic of `-/ .. /->` is to test for the existence of paths between pairs of vertices (i.e. "reachability"), so there is only at most one result per pair of vertices.
 
 ### One or more
 
@@ -993,9 +974,11 @@ Here, `Judith` is returned since there exists the empty path that starts in `400
 
 The following query finds all people that can be reached from `Amy` by following exactly two `likes` edges.
 
+```sql
 SELECT y.name
   FROM g MATCH (x:Person) -/:likes{2}/-> (y)
  WHERE x.name = 'Amy'
+```
 
 ```
 +--------+
@@ -1074,7 +1057,37 @@ Here, `Jonas` is returned since there exists a path of length one (i.e. `400 -> 
 For `Judith`, there exists an empty path of length zero (i.e. `400`) as well as a non-empty path of length two (i.e. `400 -> 500 -> 400`).
 Yet, `Judith` is only returned once.
 
-## Common Path Expressions
+## Reachability
+
+In graph reachability we test for the existence of paths (true/false) between pairs of vertices. PGQL uses forward slashes (`-/` and `/->`) instead of square brackets (`-[` and `]->`) to indicate reachability semantic.
+
+The syntax is:
+
+```bash
+ReachabilityPathExpression ::=   <OutgoingPathPattern>
+                               | <IncomingPathPattern>
+
+OutgoingPathPattern        ::= '-/' <PathSpecification> '/->'
+
+IncomingPathPattern        ::= '<-/' <PathSpecification> '/-'
+
+PathSpecification          ::=   <LabelPredicate>
+                               | <PathPredicate>
+
+PathPredicate              ::= ':' <Label> <GraphPatternQuantifier>
+```
+
+For example:
+
+```sql
+SELECT c.name
+  FROM g MATCH (c:Class) -/:subclass_of*/-> (arrayList:Class)
+ WHERE arrayList.name = 'ArrayList'
+```
+
+Here, we find all classes that are a subclass of `'ArrayList'`. The regular path pattern `subclass_of*` matches a path consisting of zero or more edges with the label `subclass_of`. Because the pattern may match a path with zero edges, the two query vertices can be bound to the same data vertex if the data vertex satisfies the constraints specified in both source and destination vertices (i.e. the vertex has a label `Class` and a property `name` with a value `ArrayList`).
+
+### Common Path Expressions
 
 One or more "common path expression" may be declared at the beginning of the query. These can be seen as macros that allow for expressing complex regular expressions.
 
@@ -1110,17 +1123,18 @@ SELECT generatorA.location, generatorB.location
 
 The above query outputs all generators that are connected to each other via one or more connectors that are all operational.
 
-# Shortest Path
+## Shortest Path
 
-Users can now find `TOP k SHORTEST` paths between any pair of matched source and destination
-and compute aggregations over their vertices/edges. The distance metric is represented by the number of hops.
+TODO
 
 The syntax is:
 
 ```bash
-ShortestPathPattern                ::= 'SHORTEST' '(' <SourceVertexPattern>
-                                                      <QuantifiedShortestPathPrimary>
-                                                      <DestinationVertexPattern> ')'
+ShortestPathPattern                ::= <TopK>? 'SHORTEST' '(' <SourceVertexPattern>
+                                                              <QuantifiedShortestPathPrimary>
+                                                                <DestinationVertexPattern> ')'
+
+TopK                               ::= 'TOP' <UNSIGNED_INTEGER>
 
 SourceVertexPattern                ::= <VertexPattern>
 
@@ -1134,14 +1148,21 @@ ShortestPathPrimary                ::=   <EdgePattern>
 ParenthesizedPathPatternExpression ::= '(' <VertexPattern>? <EdgePattern> <VertexPattern>? <WhereClause>? ')'
 ```
 
+## Top-K Shortest Path
+
+Users can now find `TOP k SHORTEST` paths between any pair of matched source and destination
+and compute aggregations over their vertices/edges. The distance metric is represented by the number of hops.
+
 For example the following query will output the sum of the edge weights along each of the top 3 shortest paths between
 each of the matched source and destination pairs:
 
 ```sql
 SELECT src, SUM(e.weight), dst
+  FROM g
  MATCH TOP 3 SHORTEST ( (src) (-[e]->)* (dst) )
  WHERE src.age < dst.age
 ```
+
 Notice that the sum aggregation is computed for every matching path. In other words the number of rows returned by the
 previous query is equal to the number of matching paths which is at most 3 times the number of matching source and
 destination pairs.
@@ -1151,6 +1172,7 @@ The `ARRAY_AGG` construct allows users to output properties of edges/vertices al
 
 ```sql
 SELECT src, ARRAY_AGG(e.weight), ARRAY_AGG(v1.age), ARRAY_AGG(v2.age), dst
+  FROM g
  MATCH TOP 3 SHORTEST ( (src) ((v1)-[e]->(v2))* (dst) )
  WHERE src.age < dst.age
 ```
@@ -1166,9 +1188,10 @@ Users can also compose shortest path constructs with other matching operators:
 
 ```sql
 SELECT ARRAY_AGG(e1.weight), ARRAY_AGG(e2.weight)
+  FROM g
  MATCH (start) -> (src)
-     , TOP 3 SHORTEST (src) (-[e1]->)* (mid)
-     , SHORTEST (mid) (-[e2]->)* (dst)
+     , TOP 3 SHORTEST ( (src) (-[e1]->)* (mid) )
+     , SHORTEST ( (mid) (-[e2]->)* (dst) )
      , (dst) -> (end)
 ```
 
@@ -1177,7 +1200,8 @@ Filters along the path vertex/edge are also supported. For example the following
 greater than 10 when generating the shortest path:
 
 ```sql
- SELECT src, ARRAY_AGG(e.weight), dst
+SELECT src, ARRAY_AGG(e.weight), dst
+  FROM g
  MATCH SHORTEST ( (src) ((v1)-[e]->(v2) WHERE e.weight > 10)* (dst) )
 ```
 
@@ -1185,6 +1209,7 @@ For the case of filters involving aggregations over the path:
 
 ```sql
 SELECT src, ARRAY_AGG(e.weight), dst
+  FROM g
  MATCH TOP 3 SHORTEST ( (src) ((v1)-[e]->(v2))* (dst) ) WHERE SUM(e.cost) < 100
 ```
 
@@ -1841,7 +1866,7 @@ If a UDF is registered that has the same name as a built-in function, then, upon
 
 ## CAST
 
-Implicit type conversion is supported for numeric types (see [Implicit Type Conversion](#implicit-type-conversion)). Other type conversions require explicit type conversion through `CAST`.
+_Implicit_ type conversion is supported for numeric types (see [Type Coercion](#type-coercion)). Other type conversions require _explicit_ conversion through `CAST`.
 The syntax is as follows:
 
 ```bash
@@ -2053,13 +2078,28 @@ SELECT a.name
 
 # Other Syntactic rules
 
-## Lexical constructs
+## Identifiers
+
+Identifiers (used for e.g. graph names, property names, etc.) take the form of an alphabetic character followed by zero or more alphanumeric or underscore (i.e. `_`) characters.
+
+The syntax is:
+
+```bash
+IDENTIFIER           ::= [a-zA-Z][a-zA-Z0-9\_]*
+```
+
+TODO: update.
+
+### Special characters in property names, graph names, and labels
+
+Identifiers like graph names, property names, and labels can be delimited with double quotes to allow for encoding of special characters (e.g. the space in the property name `n."my prop"`).
+Any Unicode character may be used inside the delimiters.
+
+## Lexical constructs for literals
 
 The following are the lexical grammar constructs:
 
 ```bash
-IDENTIFIER           ::= [a-zA-Z][a-zA-Z0-9\_]*
-
 SINGLE_QUOTED_STRING ::= "'" ( ~[\'\n\\] | <ESCAPED_CHARACTER> )* "'"
 
 UNSIGNED_INTEGER     ::= [0-9]+
@@ -2069,7 +2109,6 @@ UNSIGNED_DECIMAL     ::= ( [0-9]* '.' [0-9]+ ) | ( [0-9]+ '.' )
 
 These rules describe the following:
 
- - Identifiers (used for e.g. graph names, property names, etc.) take the form of an alphabetic character followed by zero or more alphanumeric or underscore (i.e. `_`) characters.
  - Single quoted strings (used for string literals) consist of:
      - A starting single quote.
      - Any number of characters that are either:
@@ -2079,13 +2118,17 @@ These rules describe the following:
  - Unsigned integers consist of one or more digits.
  - Unsigned decimals consist of zero or more digits followed by a dot (`.`) and one or more digits, or, one or more digits followed by only a dot (`.`).
 
-## Escaped characters in strings
+## Escaped characters
 
-Escaping in string literals is necessary to support having white space, quotation marks and the backslash character as a part of the literal value. The following explains the syntax of an escaped character.
+Escaping in string literals and identifiers is necessary to support white space, quotation marks, and backslash characters.
+
+The syntax is:
 
 ```bash
 ESCAPED_CHARACTER ::= '\\' [tnr\"\'\\]
 ```
+
+TODO: fix the grammar.
 
 Note that an escaped character is either a tab (`\t`), a line feed (`\n`), a carriage return (`\r`), a single (`\'`) or double quote (`\"`), or a backslash (`\\`). Corresponding Unicode code points are shown in the table below.
 
@@ -2098,6 +2141,8 @@ Escape | Unicode code point
 `\'` | U+0027 (apostrophe-quote, single quote mark)
 `\\` | U+005C (backslash)
 
+TODO: fix the table.
+
 In string literals, it is optional to escape double quotes.
 
 For example:
@@ -2106,6 +2151,9 @@ For example:
 'abc\"d\"efg' = 'abc"d"efg'
 Result: true
 ```
+
+In addition to Java-like escaping, string literals in PGQL queries can be escaped in a SQL-like fashion by repeating the quote.
+For example, `n.prop = 'string''value'` is an alternative for `n.prop = 'string\'value'`, and `FROM "my""graph"` is an alternative for `FROM "my\"graph"`.
 
 ## Keywords
 

@@ -774,9 +774,11 @@ Here, `Judith` is returned since there exists the empty path that starts in `400
 
 The following query finds all people that can be reached from `Amy` by following exactly two `likes` edges.
 
+```sql
 SELECT y.name
   FROM g MATCH (x:Person) -/:likes{2}/-> (y)
  WHERE x.name = 'Amy'
+```
 
 ```
 +--------+

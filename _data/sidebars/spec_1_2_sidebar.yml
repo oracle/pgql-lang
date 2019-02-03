@@ -199,13 +199,13 @@ entries:
       url: /spec/1.2/#limit-and-offset
       output: web
 
-  - title: 'Reachability'
-    url: /spec/1.2/#reachability
+  - title: 'Variable-Length Paths'
+    url: /spec/1.2/#variable-length-paths
     output: web
     folderitems:
 
-    - title: 'Min and Max Quantifiers'
-      url: /spec/1.2/#min-and-max-quantifiers
+    - title: 'Quantifiers'
+      url: /spec/1.2/#quantifiers
       output: web
       subfolderitems:
 
@@ -237,13 +237,22 @@ entries:
         url: /spec/1.2/#between-zero-and-m
         output: web
 
-    - title: 'Common Path Expressions'
-      url: /spec/1.2/#common-path-expressions
+    - title: 'Reachability'
+      url: /spec/1.2/#reachability
+      output: web
+      subfolderitems:
+
+      - title: 'Common Path Expressions'
+        url: /spec/1.2/#common-path-expressions
+        output: web
+
+    - title: 'Shortest Path'
+      url: /spec/1.2/#shortest-path
       output: web
 
-  - title: 'Shortest Path'
-    url: /spec/1.2/#shortest-path
-    output: web
+    - title: 'Top-K Shortest Path'
+      url: /spec/1.2/#top-k-shortest-path
+      output: web
 
   - title: 'Functions and Expressions'
     url: /spec/1.2/#functions-and-expressions
@@ -403,12 +412,21 @@ entries:
     output: web
     folderitems:
 
-    - title: 'Lexical constructs'
-      url: /spec/1.2/#lexical-constructs
+    - title: 'Identifiers'
+      url: /spec/1.2/#identifiers
+      output: web
+      subfolderitems:
+
+      - title: 'Special characters in property names, graph names, and labels'
+        url: /spec/1.2/#special-characters-in-property-names-graph-names-and-labels
+        output: web
+
+    - title: 'Lexical constructs for literals'
+      url: /spec/1.2/#lexical-constructs-for-literals
       output: web
 
-    - title: 'Escaped characters in strings'
-      url: /spec/1.2/#escaped-characters-in-strings
+    - title: 'Escaped characters'
+      url: /spec/1.2/#escaped-characters
       output: web
 
     - title: 'Keywords'
