@@ -13,21 +13,6 @@ toc: false
 
 PGQL is a graph pattern-matching query language for the [property graph data model](#property-graph-data-model). This document specifies the syntax and semantics of the language.
 
-## Document Outline
-
- - [Introduction](#introduction) contains an outline of this document as well as details on the grammar and a changelog that lists the changes since PGQL 1.1.
- - [Graph Pattern Matching](#graph-pattern-matching) introduces the basic concepts of graph querying.
- - [Grouping and Aggregation](#grouping-and-aggregation) describes the mechanism to group and aggregate results.
- - [Sorting and Row Limiting](#sorting-and-row-limiting) describes the ability to sort and paginate results.
- - [Variable-Length Paths](#variable-length-paths) introduces the constructs for testing for the existence of paths between pairs of vertices (i.e. "reachability testing") as well as for retrieving shortest paths between pairs of vertices.
- - [Functions and Expressions](#functions-and-expressions) introduces the various data types and functions and operations on these data types.
- - [Subqueries](#subqueries) introduces the syntax and semantics of subqueries, which allow for composing queries of other queries to support more complex use cases.
- - [Other Syntactic rules](#other-syntactic-rules) defines syntactic rules that are not covered by other sections, such as syntax for identifiers and comments.
-
-## Notes on the Grammar
-
-This document contains a complete grammar definition of PGQL, spread throughout the different sections. There is a single entry point into the grammar: `<Query>`.
-
 ## Changelog
 
 The following are the changes since PGQL 1.1:
@@ -36,7 +21,7 @@ The following are the changes since PGQL 1.1:
 
 The new features in PGQL 1.2 are:
 
- - [Shortest path finding](#shortest-path)
+ - [Shortest path finding](#shortest-path) and [Top-k shortest path finding](#top-k-shortest-path)
  - [Scalar subqueries](#scalar-subqueries)
  - [Undirected edges](#matching-undirected-edges) (and matching thereof)
  - [ARRAY_AGG](#ArrayAggregation) aggregation
@@ -50,6 +35,21 @@ The new features in PGQL 1.2 are:
 PGQL 1.2 is a superset of PGQL 1.1. There are no changes to existing syntax, only additions.
 
 {% include note.html content="The following products or tools are fully backwards compatible by accepting both PGQL 1.0, PGQL 1.1, and PGQL 1.2 queries: Oracle Spatial and Graph, Oracle Big Data Spatial and Graph, PGX." %}
+
+## A note on the Grammar
+
+This document contains a complete grammar definition of PGQL, spread throughout the different sections. There is a single entry point into the grammar: `<Query>`.
+
+## Document Outline
+
+ - [Introduction](#introduction) contains a changelog, a note on the grammar, and this outline.
+ - [Graph Pattern Matching](#graph-pattern-matching) introduces the basic concepts of graph querying.
+ - [Grouping and Aggregation](#grouping-and-aggregation) describes the mechanism to group and aggregate results.
+ - [Sorting and Row Limiting](#sorting-and-row-limiting) describes the ability to sort and paginate results.
+ - [Variable-Length Paths](#variable-length-paths) introduces the constructs for testing for the existence of paths between pairs of vertices (i.e. "reachability testing") as well as for retrieving shortest paths between pairs of vertices.
+ - [Functions and Expressions](#functions-and-expressions) describes the supported data types and corresponding functions and operations.
+ - [Subqueries](#subqueries) describes the syntax and semantics of subqueries for creating more complex queries that nest other queries.
+ - [Other Syntactic rules](#other-syntactic-rules) describes additional syntactic rules that are not covered by the other sections, such as syntax for identifiers and comments.
 
 # Graph Pattern Matching
 
@@ -880,11 +880,43 @@ The meaning of the different quantifiers is:
 
 Paths considered include those that repeat the same vertices and/or edges multiple times. This means that even cycles are considered.
 
+## Reachability
+
+In graph reachability we test for the existence of paths (true/false) between pairs of vertices. PGQL uses forward slashes (`-/` and `/->`) instead of square brackets (`-[` and `]->`) to indicate reachability semantic.
+
+The syntax is:
+
+```bash
+ReachabilityPathExpression ::=   <OutgoingPathPattern>
+                               | <IncomingPathPattern>
+
+OutgoingPathPattern        ::= '-/' <PathSpecification> '/->'
+
+IncomingPathPattern        ::= '<-/' <PathSpecification> '/-'
+
+PathSpecification          ::=   <LabelPredicate>
+                               | <PathPredicate>
+
+PathPredicate              ::= ':' <Label> <GraphPatternQuantifier>
+```
+
+For example:
+
+```sql
+SELECT c.name
+  FROM g MATCH (c:Class) -/:subclass_of*/-> (arrayList:Class)
+ WHERE arrayList.name = 'ArrayList'
+```
+
+Here, we find all classes that are a subclass of `'ArrayList'`. The regular path pattern `subclass_of*` matches a path consisting of zero or more edges with the label `subclass_of`. Because the pattern may match a path with zero edges, the two query vertices can be bound to the same data vertex if the data vertex satisfies the constraints specified in both source and destination vertices (i.e. the vertex has a label `Class` and a property `name` with a value `ArrayList`).
+
+### Examples with various quantifiers
+
 Take the following graph as example:
 
 {% include image.html file="example_graphs/pgql_min_max_hop.png" %}
 
-### Zero or more
+#### Zero or more
 
 The following query finds all vertices `y` that can be reached from `Amy` by following zero or more `likes` edges.
 
@@ -908,7 +940,7 @@ SELECT y.name
 Note that here, `Amy` is returned since `Amy` connects to `Amy` by following zero `likes` edges. In other words, there exists an empty path for the vertex pair.
 For `Judith`, there exist two paths (`100 -> 200 -> 300 -> 400` and `100 -> 400`). However, `Judith` is still only returned once since the semantic of `-/ .. /->` is to test for the existence of paths between pairs of vertices (i.e. "reachability"), so there is only at most one result per pair of vertices.
 
-### One or more
+#### One or more
 
 The following query finds all people that can be reached from `Amy` by following one or more `likes` edges.
 
@@ -949,7 +981,7 @@ SELECT y.name
 
 Here, in addition to `Jonas`, `Judith` is returned since there exist paths from `Judith` back to `Judith` that has a length greater than zero. Examples of such paths are `400 -> 500 -> 400` and `400 -> 500 -> 400 -> 500 -> 400`.
 
-### Optional
+#### Optional
 
 The following query finds all people that can be reached from `Judith` by following zero or one `knows` edges.
 
@@ -970,7 +1002,7 @@ SELECT y.name
 
 Here, `Judith` is returned since there exists the empty path that starts in `400` and ends in `400`. `Jonas` is returned because of the following path that has length one: `400 -> 500`.
 
-### Exactly n
+#### Exactly n
 
 The following query finds all people that can be reached from `Amy` by following exactly two `likes` edges.
 
@@ -990,7 +1022,7 @@ SELECT y.name
 
 Here, `Albert` is returned since there exists the following path that has `likes` edges only: `100 -> 200 -> 300`.
 
-### n or more
+#### n or more
 
 The following query finds all people that can be reached from `Amy` by following 2 or more `likes` edges.
 
@@ -1010,7 +1042,7 @@ SELECT y.name
 ```
 Here, `Albert` is returned since there exists the following path of length two: `100 -> 200 -> 300`. `Judith` is returned since there exists a path of length three: `100 -> 200 -> 300 -> 400`.
 
-### Between n and m
+#### Between n and m
 
 The following query finds all people that can be reached from `Amy` by following between 1 and 2 `likes` edges.
 
@@ -1034,7 +1066,7 @@ Here, `John` is returned since there exists a path of length one (i.e. `100 -> 2
 `Albert` is returned since there exists a path of length two (i.e. `100 -> 200 -> 300`);
 `Judith` is returned since there exists a path of length one (i.e. `100 -> 400`).
 
-### Between zero and m
+#### Between zero and m
 
 The following query finds all people that can be reached from `Judith` by following at most 2 `knows` edges.
 
@@ -1056,36 +1088,6 @@ SELECT y.name
 Here, `Jonas` is returned since there exists a path of length one (i.e. `400 -> 500`).
 For `Judith`, there exists an empty path of length zero (i.e. `400`) as well as a non-empty path of length two (i.e. `400 -> 500 -> 400`).
 Yet, `Judith` is only returned once.
-
-## Reachability
-
-In graph reachability we test for the existence of paths (true/false) between pairs of vertices. PGQL uses forward slashes (`-/` and `/->`) instead of square brackets (`-[` and `]->`) to indicate reachability semantic.
-
-The syntax is:
-
-```bash
-ReachabilityPathExpression ::=   <OutgoingPathPattern>
-                               | <IncomingPathPattern>
-
-OutgoingPathPattern        ::= '-/' <PathSpecification> '/->'
-
-IncomingPathPattern        ::= '<-/' <PathSpecification> '/-'
-
-PathSpecification          ::=   <LabelPredicate>
-                               | <PathPredicate>
-
-PathPredicate              ::= ':' <Label> <GraphPatternQuantifier>
-```
-
-For example:
-
-```sql
-SELECT c.name
-  FROM g MATCH (c:Class) -/:subclass_of*/-> (arrayList:Class)
- WHERE arrayList.name = 'ArrayList'
-```
-
-Here, we find all classes that are a subclass of `'ArrayList'`. The regular path pattern `subclass_of*` matches a path consisting of zero or more edges with the label `subclass_of`. Because the pattern may match a path with zero edges, the two query vertices can be bound to the same data vertex if the data vertex satisfies the constraints specified in both source and destination vertices (i.e. the vertex has a label `Class` and a property `name` with a value `ArrayList`).
 
 ### Common Path Expressions
 
@@ -1213,7 +1215,7 @@ SELECT src, ARRAY_AGG(e.weight), dst
  MATCH TOP 3 SHORTEST ( (src) ((v1)-[e]->(v2))* (dst) ) WHERE SUM(e.cost) < 100
 ```
 
-we have a slightly different semantic. The filter is applied once the top 3 shortest path are already generated and not
+we have a slightly different semantic. The filter is applied once the top 3 shortest paths are already generated and not
 during their construction.
 
 # Functions and Expressions

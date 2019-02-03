@@ -8,14 +8,6 @@ entries:
     output: web
     folderitems:
 
-    - title: 'Document Outline'
-      url: /spec/1.2/#document-outline
-      output: web
-
-    - title: 'Notes on the Grammar'
-      url: /spec/1.2/#notes-on-the-grammar
-      output: web
-
     - title: 'Changelog'
       url: /spec/1.2/#changelog
       output: web
@@ -28,6 +20,14 @@ entries:
       - title: 'Syntax changes since PGQL 1.1'
         url: /spec/1.2/#syntax-changes-since-pgql-11
         output: web
+
+    - title: 'A note on the Grammar'
+      url: /spec/1.2/#a-note-on-the-grammar
+      output: web
+
+    - title: 'Document Outline'
+      url: /spec/1.2/#document-outline
+      output: web
 
   - title: 'Graph Pattern Matching'
     url: /spec/1.2/#graph-pattern-matching
@@ -207,40 +207,15 @@ entries:
     - title: 'Quantifiers'
       url: /spec/1.2/#quantifiers
       output: web
-      subfolderitems:
-
-      - title: 'Zero or more'
-        url: /spec/1.2/#zero-or-more
-        output: web
-
-      - title: 'One or more'
-        url: /spec/1.2/#one-or-more
-        output: web
-
-      - title: 'Optional'
-        url: /spec/1.2/#optional
-        output: web
-
-      - title: 'Exactly n'
-        url: /spec/1.2/#exactly-n
-        output: web
-
-      - title: 'n or more'
-        url: /spec/1.2/#n-or-more
-        output: web
-
-      - title: 'Between n and m'
-        url: /spec/1.2/#between-n-and-m
-        output: web
-
-      - title: 'Between zero and m'
-        url: /spec/1.2/#between-zero-and-m
-        output: web
 
     - title: 'Reachability'
       url: /spec/1.2/#reachability
       output: web
       subfolderitems:
+
+      - title: 'Examples with various quantifiers'
+        url: /spec/1.2/#examples-with-various-quantifiers
+        output: web
 
       - title: 'Common Path Expressions'
         url: /spec/1.2/#common-path-expressions
