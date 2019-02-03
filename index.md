@@ -1,8 +1,8 @@
 ---
-title: Home
+title: PGQL
 permalink: /index.html
 toc: false
-keywords: pgql property graph model query language database analytics oracle cypher opencypher sparql
+keywords: pgql property graph query language database analytics oracle sql standard gql cypher opencypher sparql gsql pgx big data spatial
 ---
 
 <br/><br/>
@@ -48,8 +48,8 @@ Graph Pattern Matching
 
 PGQL uses [ASCII-art syntax](https://neo4j.com/developer/cypher-query-language/) for matching vertices, edges, and paths:
 
- * `(n:Person)` matches a __vertex__ (node) `n` with label `Person`
- * `-[e:friend_of]->` matches an __edge__ (relationship) `e` with label `friend_of`
+ * `(n:Person)` matches a __vertex__ (or node) `n` with label `Person`
+ * `-[e:friend_of]->` matches an __edge__ (or relationship) `e` with label `friend_of`
  * `-/:friend_of+/->` matches a __path__ consisting of one or more (`+`) edges, each with label `friend_of`
 
 SQL Capabilities
@@ -112,12 +112,24 @@ and [ResultAccess.java](https://github.com/oracle/pgql-lang/blob/master/graph-qu
 Resources
 ---------
 
+ - __Specifications__
+     - [PGQL 1.1 Specification](spec/1.1/)
+     - [PGQL 1.0 Specification](spec/1.1/)
+     - [PGQL 0.9 Specification](https://docs.oracle.com/cd/E56133_01/1.2.1/PGQL_Specification.pdf)
  - __Parser__
      - [Open-sourced parser and static query validator](https://github.com/oracle/pgql-lang) on GitHub
  - __Oracle__
      - [Oracle Spatial and Graph](https://www.oracle.com/database/spatial/index.html)
+         - [Spatial and Graph Property Graph Developer's Guide for Oracle Database 18c](https://docs.oracle.com/en/database/oracle/oracle-database/18/spgdg/index.html)
+         - [Property Graph Query Language (PGQL)](https://docs.oracle.com/en/database/oracle/oracle-database/18/spgdg/sql-based-property-graph-query-analytics.html#GUID-301FF092-1A07-43D2-91E5-0C5AFF3467CC)
      - [Oracle Big Data Spatial and Graph](https://www.oracle.com/technetwork/database/database-technologies/bigdata-spatialandgraph/overview/index.html)
-     - [Oracle Labs PGX](https://www.oracle.com/technetwork/oracle-labs/parallel-graph-analytix/overview/index.html)
+         - [Using Pattern-Matching Queries with Graphs](https://docs.oracle.com/en/bigdata/big-data-spatial-graph/2.5/bdspa/using-in-memory-analyst.html#GUID-96D9C0AA-CE52-48E6-A09E-D97E872A79A1)
+     - [PGX - Parallel Graph AnalytiX](https://www.oracle.com/technetwork/oracle-labs/parallel-graph-analytix/overview/index.html)
+         - [PGQL extensions and limitations in PGX](https://docs.oracle.com/cd/E56133_01/latest/reference/pgql-specification.html)
+         - [Relevant Java API documentation](https://docs.oracle.com/cd/E56133_01/latest/reference/api/graph-pattern-matching.html)
+         - [Use case: Analyzing Superhero Network with Patterns and Computations](https://docs.oracle.com/cd/E56133_01/latest/use-cases/superhero/index.html)
+         - [Tutorial on invoking PGQL queries from the Java API or Groovy shell](https://docs.oracle.com/cd/E56133_01/latest/tutorials/graph-pattern-matching.html)
+         - [Tutorial on working with datetime data types](https://docs.oracle.com/cd/E56133_01/latest/tutorials/datetime-data-types.html)
  - __Blog Posts__
      - [Using PGQL in Python](https://blogs.oracle.com/bigdataspatialgraph/using-pgql-in-python) (_2018-05-22_)
      - [How Many Ways to Run Property Graph Query Language (PGQL) in BDSG? (II)](https://blogs.oracle.com/bigdataspatialgraph/how-many-ways-to-run-property-graph-query-language-pgql-in-bdsg-ii) (_2017-03-23_)

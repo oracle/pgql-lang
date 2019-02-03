@@ -29,7 +29,11 @@ The following are the changes since PGQL 1.0:
  - Existential (`EXISTS`) subqueries (see [Existential Subqueries (EXISTS)](#existential-subqueries-exists))
  - Bind variables (`?`) for creating parameterized queries (see [Bind Variables](#bind-variables))
 
-## Breaking Syntax Changes since PGQL 1.0
+## Syntax Changes since PGQL 1.0
+
+{% include note.html content="The following products or tools are fully backwards compatible by accepting both PGQL 1.0 and PGQL 1.1 queries: Oracle Spatial and Graph, Oracle Big Data Spatial, PGX." %}
+
+The following are the syntax changes in PGQL 1.1:
 
  - The `WHERE` clause is changed into a `MATCH` clause and an optional `WHERE` clause such that the `MATCH` contains the pattern (vertices and edges) while the `WHERE` contains the filters if there are any.
    The inlined filters (`WITH` construct) should also be specified in the `WHERE` clause.

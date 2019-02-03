@@ -1,5 +1,5 @@
 ---
-title:  "PGQL 1.2 Specification [UNDER CONSTRUCTION]"
+title:  "PGQL 1.2 Specification"
 permalink: /spec/1.2/
 summary: "PGQL is an SQL-like query language for the property graph data model and is based on the paradigm of graph pattern matching,
 allowing you to specify patterns that are then matched against vertices and edges in a graph.
@@ -44,9 +44,11 @@ The following are the changes since PGQL 1.1:
  - [CASE](#case) statement
  - [IN and NOT IN](#in-and-not-in) predicates
 
-### Breaking changes
+### Syntax changes since PGQL 1.1
 
-PGQL 1.2 has no breaking changes since PGQL 1.1.
+PGQL 1.2 is a superset of PGQL 1.1. There are no changes to existing syntax, only additions.
+
+{% include note.html content="The following products or tools are fully backwards compatible by accepting both PGQL 1.0, PGQL 1.1, and PGQL 1.2 queries: Oracle Spatial and Graph, Oracle Big Data Spatial and Graph, PGX." %}
 
 # Graph Pattern Matching
 

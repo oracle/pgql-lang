@@ -12,8 +12,8 @@ entries:
       url: /spec/1.1/#new-querying-capabilities-in-pgql-11
       output: web
 
-    - title: 'Breaking Syntax Changes since PGQL 1.0'
-      url: /spec/1.1/#breaking-syntax-changes-since-pgql-10
+    - title: 'Syntax Changes since PGQL 1.0'
+      url: /spec/1.1/#syntax-changes-since-pgql-10
       output: web
 
   - title: 'Introduction'
