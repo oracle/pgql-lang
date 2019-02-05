@@ -48,21 +48,21 @@ Graph Pattern Matching
 
 PGQL uses [ASCII-art syntax](https://neo4j.com/developer/cypher-query-language/) for matching vertices, edges, and paths:
 
- * `(n:Person)` matches a __vertex__ (or node) `n` with label `Person`
- * `-[e:friend_of]->` matches an __edge__ (or relationship) `e` with label `friend_of`
- * `-/:friend_of+/->` matches a __path__ consisting of one or more (`+`) edges, each with label `friend_of`
+ * `(n:Person)` matches a __vertex__ (or node) `n` with label `Person`.
+ * `-[e:friend_of]->` matches an __edge__ (or relationship) `e` with label `friend_of`.
+ * `-/:friend_of+/->` matches a __path__ consisting of one or more (`+`) edges, each with label `friend_of`.
 
 SQL Capabilities
 -------------------
 
 PGQL has the following SQL-like capabilities:
 
- * `DISTINCT` to remove duplicates
- * `GROUP BY` to create groups of solutions, and, `HAVING` to filter out groups of solutions
- * `COUNT`, `MIN`, `MAX`, `AVG` and `SUM` to aggregate over groups of solutions
- * `ORDER BY` to sort results
- * (`NOT`) `EXISTS` subqueries to test whether a graph pattern exists, or, does not exist
- * `DATE`, `TIME`, `TIMESTAMP`, `TIME WITH TIME ZONE`, and `TIMESTAMP WITH TIME ZONE` temporal data types
+ * `DISTINCT` to remove duplicates.
+ * `GROUP BY` to create groups of solutions and `HAVING` to filter out groups of solutions.
+ * `COUNT`, `MIN`, `MAX`, `AVG` and `SUM` to aggregate over groups of solutions.
+ * `ORDER BY` to sort results.
+ * (`NOT`) `EXISTS` subqueries to test whether a graph pattern exists, or, does not exist.
+ * `DATE`, `TIME`, `TIMESTAMP`, `TIME WITH TIME ZONE`, and `TIMESTAMP WITH TIME ZONE` temporal data types.
 
 Regular Path Expressions
 ------------------------

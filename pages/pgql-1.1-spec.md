@@ -31,7 +31,7 @@ The following are the changes since PGQL 1.0:
 
 ## Syntax Changes since PGQL 1.0
 
-{% include note.html content="The following products or tools are fully backwards compatible by accepting both PGQL 1.0 and PGQL 1.1 queries: Oracle Spatial and Graph, Oracle Big Data Spatial, PGX." %}
+{% include note.html content="Oracle Spatial and Graph, Oracle Big Data Spatial and Graph, and Parallel Graph AnalytiX (PGX) maintain backwards compatibility by supporting both PGQL 1.0 and PGQL 1.1 queries." %}
 
 The following are the syntax changes in PGQL 1.1:
 
