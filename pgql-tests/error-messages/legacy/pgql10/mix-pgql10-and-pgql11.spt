@@ -139,3 +139,10 @@ test MATCH (7) [[
    WHERE [[SHORTEST( (n) ->* (m) )]]
 
 ]] error like "Use [SELECT .. MATCH .. WHERE ..] or [SELECT .. FROM graphName MATCH .. WHERE ..]" at #1
+
+test FROM clause without graph name [[
+
+  SELECT n AS c1
+    [[FROM WHERE]] (n)
+
+]] error like "Use [SELECT .. MATCH .. WHERE ..] or [SELECT .. FROM graphName MATCH .. WHERE ..]" at #1

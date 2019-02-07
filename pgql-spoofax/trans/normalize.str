@@ -28,6 +28,7 @@ rules
         <+ is-pgql11; (collect(get-pgql11-limitation); not(?[]) <+ collect(get-pgql11-deprecation))
         <+ is-pgql13; collect(get-pgql13-deprecation); flatten-list
         )
+        ; add-errors-on-from-clauses-without-graph-name(|ast)
         ; not(?[]) <+ get-path-limitations <+ ![]> ast;
       result := <
         alltd(norm-has-prop);
@@ -114,6 +115,8 @@ rules
   shortest-or-reaches = ?Shortest(_, _)
                       + ?OutConn(Some(Path(_, _, _)), _)
                       + ?InConn(Some(Path(_, _, _)), _)
+
+  add-errors-on-from-clauses-without-graph-name(|ast) = !(<collect(?Pgql11FromClause(None()); to-error-message(|"Missing graph name"))> ast, <id>); conc
 
   norm-pgql10 = ?Legacy10Label(x); <to-function(|"label")> [x]
   norm-pgql10 = ?Legacy10Labels(x); <to-function(|"labels")> [x]
