@@ -95,21 +95,21 @@ test MATCH (1) [[
   [[FROM g]]
    WHERE (n)
 
-]] error like "Use [SELECT .. FROM MATCH( .. ) WHERE ..] or [SELECT .. FROM graphName MATCH( .. ) WHERE ..]" at #1
+]] error like "Use [SELECT .. MATCH .. WHERE ..] or [SELECT .. FROM graphName MATCH .. WHERE ..]" at #1
 
 test MATCH (2) [[
 
   SELECT n AS c1
    WHERE (n), EXISTS [[( SELECT n AS c1 MATCH (n) )]]
 
-]] error like "Use [SELECT .. FROM MATCH( .. ) WHERE ..] or [SELECT .. FROM graphName MATCH( .. ) WHERE ..]" at #1
+]] error like "Use [SELECT .. MATCH .. WHERE ..] or [SELECT .. FROM graphName MATCH .. WHERE ..]" at #1
 
 test MATCH (3) [[
 
   SELECT n AS c1
    WHERE (n), n.prop = [[( SELECT n.prop AS prop MATCH (n) )]]
 
-]] error like "Use [SELECT .. FROM MATCH( .. ) WHERE ..] or [SELECT .. FROM graphName MATCH( .. ) WHERE ..]" at #1
+]] error like "Use [SELECT .. MATCH .. WHERE ..] or [SELECT .. FROM graphName MATCH .. WHERE ..]" at #1
 
 test MATCH (4) [[
 
@@ -117,25 +117,25 @@ test MATCH (4) [[
   SELECT n AS c1
    WHERE (n)
 
-]] error like "Use [SELECT .. FROM MATCH( .. ) WHERE ..] or [SELECT .. FROM graphName MATCH( .. ) WHERE ..]" at #1
+]] error like "Use [SELECT .. MATCH .. WHERE ..] or [SELECT .. FROM graphName MATCH .. WHERE ..]" at #1
 
 test MATCH (5) [[
 
   SELECT [[EXTRACT(MONTH FROM n.dob)]] AS month
    WHERE (n)
 
-]] error like "Use [SELECT .. FROM MATCH( .. ) WHERE ..] or [SELECT .. FROM graphName MATCH( .. ) WHERE ..]" at #1
+]] error like "Use [SELECT .. MATCH .. WHERE ..] or [SELECT .. FROM graphName MATCH .. WHERE ..]" at #1
 
 test MATCH (6) [[
 
   SELECT [[ARRAY_AGG(n.prop)]] AS array
    WHERE (n)
 
-]] error like "Use [SELECT .. FROM MATCH( .. ) WHERE ..] or [SELECT .. FROM graphName MATCH( .. ) WHERE ..]" at #1
+]] error like "Use [SELECT .. MATCH .. WHERE ..] or [SELECT .. FROM graphName MATCH .. WHERE ..]" at #1
 
 test MATCH (7) [[
 
   SELECT n AS c1
    WHERE [[SHORTEST( (n) ->* (m) )]]
 
-]] error like "Use [SELECT .. FROM MATCH( .. ) WHERE ..] or [SELECT .. FROM graphName MATCH( .. ) WHERE ..]" at #1
+]] error like "Use [SELECT .. MATCH .. WHERE ..] or [SELECT .. FROM graphName MATCH .. WHERE ..]" at #1

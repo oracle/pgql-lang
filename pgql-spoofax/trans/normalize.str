@@ -99,7 +99,7 @@ rules
                           + ?Shortest(_, _)
                           + get-pgql11-limitation
                           )
-                        ; to-error-message(|"Use [SELECT .. FROM MATCH( .. ) WHERE ..] or [SELECT .. FROM graphName MATCH( .. ) WHERE ..]")
+                        ; to-error-message(|"Use [SELECT .. MATCH .. WHERE ..] or [SELECT .. FROM graphName MATCH .. WHERE ..]")
 
   get-pgql11-limitation = fail // currently all PGQL 1.3 features are also supported in PGQL 1.1
 
