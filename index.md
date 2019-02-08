@@ -6,7 +6,7 @@ keywords: pgql property graph query language database analytics oracle sql stand
 ---
 
 <br/><br/>
-{% include note.html content="Find our statement on __GQL__, a __standard__ for property graph querying, [__here__](gql-statement.html)." %}
+{% include note.html content="Find our statement on __GQL__, a __standard__ for property graph querying, [__here__](gql-statement.html). (_2019-01-04_)" %}
 
 Graphs & SQL
 ====================================
