@@ -255,7 +255,14 @@ rules
 
   resolve-var-ref(|variables):
     Subquery(query) -> Subquery(query')
-    with query' := <trans-query(|variables)> query
+    with // In addition to vertex and edge variables from the MATCH clause, other variables — such as aliases in SELECT — are visible inside subqueries.
+         // However, we don't want to _implicitly replace_ expressions in subqueries with references to such variables (references from inner to outer query).
+         // So, here we keep the variables but remove their associated expressions such that nothing will get replaces for them. Also see GM-17397.
+         variables' := <alltd(remove-expression-information)> variables
+       ; query' := <trans-query(|variables')> query
+
+  remove-expression-information:
+    VarDef(v, originPosition, _, _) -> VarDef(v, originPosition, None(), None())
 
   replace-exp-with-ref(|variables):
     exp -> varRef
