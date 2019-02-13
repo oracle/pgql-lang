@@ -52,7 +52,7 @@ rules
               ; visible-groupVars := <replace-or-add-all> (new-groupVars, y)
               ; variables'' := [visible-vars|[visible-groupVars|ys]]
 
-              ; connections'' := <alltd(resolve-var-refs-in-path-expression(|variables''))> connections'
+             ; connections'' := <alltd(resolve-var-refs-in-path-expression(|variables''))> connections'
        
               // WHERE
               ; valueExpression' := <resolve-where-clause(|variables'', expAsVars)> valueExpression
@@ -227,7 +227,7 @@ rules
   ; alltd-in-outer-query-outside-aggregation(resolve-var-ref(|variables))
 
   resolve-var-refs(|variables) = alltd(resolve-var-ref(|variables))
-                               ; alltd-in-outer-query-outside-aggregation(replace-exp-with-ref(|variables))
+                               ; alltd(replace-exp-with-ref(|variables) <+ is-subquery <+ is-aggregate)
 
   resolve-var-refs-in-path-expression(|variables):
     t@Path(_, _, _, quantifier, _, _, _, _) -> t'
