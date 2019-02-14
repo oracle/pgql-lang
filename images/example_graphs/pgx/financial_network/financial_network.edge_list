@@ -1,0 +1,19 @@
+1 * {Account} "" 10039
+2 * {Account} "" 2090
+3 * {Account} "" 8021
+4 * {Account} "" 1001
+5 * {Person} Nikita
+6 * {Person} Camille
+7 * {Person} Liam
+8 * {Company} Oracle
+1 2 transaction 9900.00
+1 3 transaction 1000.00
+3 4 transaction 1500.30
+3 4 transaction 3000.70
+4 2 transaction 9999.50
+5 2 ownerOf
+6 1 ownerOf
+8 4 ownerOf
+7 3 ownerOf
+6 8 worksFor
+
