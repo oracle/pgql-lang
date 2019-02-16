@@ -1,5 +1,5 @@
 {
-  "name": "financial_network",
+  "name": "financial_transactions",
   "vertex_id_type" : "long",
   "edge_id_type" : "long",
   "edge_id_strategy" : "keys_as_ids",
