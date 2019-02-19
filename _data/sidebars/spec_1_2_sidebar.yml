@@ -43,8 +43,13 @@ entries:
         url: /spec/1.2/#example-1-student-network
         output: web
 
-      - title: 'Example 2: Paris Métro'
-        url: /spec/1.2/#example-2-paris-métro
+    - title: 'Example 2: Financial Transactions'
+      url: /spec/1.2/#example-2-financial-transactions
+      output: web
+      subfolderitems:
+
+      - title: 'Example 3: Paris Métro'
+        url: /spec/1.2/#example-3-paris-métro
         output: web
 
     - title: 'Writing simple queries'
@@ -374,11 +379,11 @@ entries:
     output: web
     folderitems:
 
-    - title: 'Existential subqueries (EXISTS)'
-      url: /spec/1.2/#existential-subqueries-exists
+    - title: 'EXISTS and NOT EXISTS Subqueries'
+      url: /spec/1.2/#exists-and-not-exists-subqueries
       output: web
 
-    - title: 'Scalar subqueries'
+    - title: 'Scalar Subqueries'
       url: /spec/1.2/#scalar-subqueries
       output: web
 

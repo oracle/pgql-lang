@@ -78,7 +78,15 @@ An example graph is:
 
 Here, `student_network` is the name of the graph. The graph has three vertices labeled `Person` and one vertex labeled `University`. There are six directed edges that connect the vertices. Three of them go from person to person vertices, and they have the label `knows`. Three others go from person to university vertices and are labeled `studentOf`. The person vertices have two properties, namely `name` for encoding the name of the person and `dob` for encoding the date of birth of the person. The university vertex has only a single property `name` for encoding the name of the university. The edges have no properties.
 
-### Example 2: Paris Métro
+## Example 2: Financial Transactions
+
+An example graph with financial transactions is:
+
+{% include image.html file="example_graphs/financial_transactions.png" %}
+
+Here, `financial_transactions` is the name of the graph. The graph has three types of vertices. Vertices labeled `Person` or `Company` have a property `name`, while vertices labeled `Account` have a property `number`. There are edges labeled `ownerOf` from persons to accounts and from companies to accounts, and there are edges labeled `transaction` from accounts to accounts. Note that only the transaction edges have a property (`amount`).
+
+### Example 3: Paris Métro
 
 Another example graph is:
 
@@ -1264,7 +1272,7 @@ A value expression is one of:
  - A bracketed value expression, which syntactically takes the form of a value expression between rounded brackets. The brackets allow for controlling precedence.
  - A function invocation (see [Functions](#functions)).
  - The `IS NULL` and `IS NOT NULL` predicates (see [IS NULL and IS NOT NULL](#is-null-and-is-not-null)).
- - The `EXISTS` predicate (see [Existential Subqueries (EXISTS)](#existential-subqueries-exists)).
+ - The `EXISTS` predicate (see [EXISTS and NOT EXISTS Subqueries](#exists-and-not-exists-subqueries)).
  - An aggregation (see [Aggregation](#aggregation)).
 
 ## Data Types and Literals
@@ -2017,12 +2025,12 @@ SELECT n.date_of_birth
 # Subqueries
 
 There are two types of subqueries in PGQL 1.2:
-[Existential Subqueries (EXISTS)](#existential-subqueries-exists) and
+[EXISTS and NOT EXISTS Subqueries](#exists-and-not-exists-subqueries) and
 [Scalar Subqueries](#scalar-subqueries).
 
 If the `FROM` clause is omitted from a subquery, then the graph to process the subquery against, is the same graph as used for the outer query.
 
-## Existential subqueries (EXISTS)
+## EXISTS and NOT EXISTS Subqueries
 
 `EXISTS` returns true/false depending on whether the subquery produces at least one result, given the bindings obtained in the current (outer) query. No additional binding of variables occurs.
 
@@ -2062,9 +2070,11 @@ SELECT ...
   FROM ...
 ```
 
-## Scalar subqueries
+## Scalar Subqueries
 
-The syntactic structure is as follows:
+Scalar subqueries are queries that return a scalar value (exactly one row and exactly one column) such that they can be part of an expression in a `SELECT`, `WHERE`, `GROUP BY`, `HAVING` or `ORDER BY` clause.
+
+The syntax is:
 
 ```bash
 ScalarSubquery ::= <Subquery>
@@ -2072,10 +2082,41 @@ ScalarSubquery ::= <Subquery>
 
 For example:
 
+{% include image.html file="example_graphs/financial_transactions.png" %}
+
 ```sql
-SELECT a.name
-  FROM g MATCH (a)
- WHERE a.age > ( SELECT AVG(b.age) MATCH (a) -[:friendOf]-> (b) )
+  SELECT p.name AS name
+       , ( SELECT SUM(t.amount)
+             FROM financial_transactions
+            MATCH (p) -[:ownerOf]-> (:Account) <-[t:transaction]- (:Account)
+         ) AS sum_incoming
+       , ( SELECT SUM(t.amount)
+             FROM financial_transactions
+            MATCH (p) -[:ownerOf]-> (:Account) -[t:transaction]-> (:Account)
+         ) AS sum_outgoing
+       , ( SELECT COUNT(DISTINCT p2)
+             FROM financial_transactions
+            MATCH (p) -[:ownerOf]-> (:Account) -[t:transaction]- (a:Account) <-[:ownerOf1]- (p2:Person)
+            WHERE p2 <> p
+         ) AS num_persons_transacted_with
+       , ( SELECT COUNT(DISTINCT p2)
+             FROM financial_transactions
+            MATCH (p) -[:ownerOf]-> (:Account) -[t:transaction]- (a:Account) <-[:ownerOf2]- (p2:Company)
+            WHERE p2 <> p
+         ) AS num_companies_transacted_with
+    FROM financial_transactions
+   MATCH (p:Person)
+ORDER BY sum_outgoing + sum_incoming DESC
+```
+
+```
++-----------------------------------------------------------------------------------------------------+
+| name    | sum_incoming | sum_outgoing | num_persons_transacted_with | num_companies_transacted_with |
++-----------------------------------------------------------------------------------------------------+
+| Nikita  | 9999.5       | 9900.0       | 1                           | 1                             |
+| Camille | 9900.0       | 1000.0       | 2                           | 0                             |
+| Liam    | 1000.0       | 4501.0       | 1                           | 1                             |
++-----------------------------------------------------------------------------------------------------+
 ```
 
 # Other Syntactic rules
