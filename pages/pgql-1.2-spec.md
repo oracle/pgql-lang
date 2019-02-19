@@ -2088,24 +2088,23 @@ For example:
   SELECT p.name AS name
        , ( SELECT SUM(t.amount)
              FROM financial_transactions
-            MATCH (p) -[:ownerOf]-> (:Account) <-[t:transaction]- (:Account)
+            MATCH (a) <-[t:transaction]- (:Account)
          ) AS sum_incoming
        , ( SELECT SUM(t.amount)
              FROM financial_transactions
-            MATCH (p) -[:ownerOf]-> (:Account) -[t:transaction]-> (:Account)
+            MATCH (a) -[t:transaction]-> (:Account)
          ) AS sum_outgoing
        , ( SELECT COUNT(DISTINCT p2)
              FROM financial_transactions
-            MATCH (p) -[:ownerOf]-> (:Account) -[t:transaction]- (a:Account) <-[:ownerOf1]- (p2:Person)
+            MATCH (a) -[t:transaction]- (:Account) <-[:ownerOf]- (p2:Person)
             WHERE p2 <> p
          ) AS num_persons_transacted_with
-       , ( SELECT COUNT(DISTINCT p2)
+       , ( SELECT COUNT(DISTINCT c)
              FROM financial_transactions
-            MATCH (p) -[:ownerOf]-> (:Account) -[t:transaction]- (a:Account) <-[:ownerOf2]- (p2:Company)
-            WHERE p2 <> p
+            MATCH (a) -[t:transaction]- (:Account) <-[:ownerOf]- (c:Company)
          ) AS num_companies_transacted_with
     FROM financial_transactions
-   MATCH (p:Person)
+   MATCH (p:Person) -[:ownerOf]-> (a:Account)
 ORDER BY sum_outgoing + sum_incoming DESC
 ```
 
