@@ -34,7 +34,7 @@ The new features in PGQL 1.2 are:
 
 PGQL 1.2 is a superset of PGQL 1.1. There are no changes to existing syntax other than additions.
 
-{% include note.html content="Oracle Spatial and Graph, Oracle Big Data Spatial and Graph, and Parallel Graph AnalytiX (PGX) maintain backwards compatibility by supporting PGQL 1.0, PGQL 1.1 and PGQL 1.2 queries interchangeably." %}
+{% include note.html content="Oracle Spatial and Graph, Oracle Big Data Spatial and Graph, and Parallel Graph AnalytiX (PGX) maintain backwards compatibility by accepting PGQL 1.0, PGQL 1.1 and PGQL 1.2 queries interchangeably." %}
 
 ## A note on the Grammar
 
