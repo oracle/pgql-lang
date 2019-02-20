@@ -78,7 +78,7 @@ An example graph is:
 
 Here, `student_network` is the name of the graph. The graph has three vertices labeled `Person` and one vertex labeled `University`. There are six directed edges that connect the vertices. Three of them go from person to person vertices, and they have the label `knows`. Three others go from person to university vertices and are labeled `studentOf`. The person vertices have two properties, namely `name` for encoding the name of the person and `dob` for encoding the date of birth of the person. The university vertex has only a single property `name` for encoding the name of the university. The edges have no properties.
 
-## Example 2: Financial Transactions
+### Example 2: Financial Transactions
 
 An example graph with financial transactions is:
 
