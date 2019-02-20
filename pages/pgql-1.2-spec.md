@@ -1150,7 +1150,7 @@ The above query outputs all generators that are connected to each other via one 
 
 ## Shortest Path
 
-TODO
+`SHORTEST` allows for matching a shortest path (i.e. minimal number of edges) between a source vertex and a destination vertex. In case multiple shortest paths exist, an arbitrary one is retrieved.
 
 The syntax is:
 
@@ -1173,10 +1173,54 @@ ShortestPathPrimary                ::=   <EdgePattern>
 ParenthesizedPathPatternExpression ::= '(' <VertexPattern>? <EdgePattern> <VertexPattern>? <WhereClause>? ')'
 ```
 
+For example:
+
+{% include image.html file="example_graphs/financial_transactions.png" %}
+
+```sql
+  SELECT COUNT(e) AS num_hops
+       , p1.name AS start
+       , ARRAY_AGG ( CASE label(dst)
+                     WHEN 'Account' THEN CAST(dst.number AS STRING)
+                     ELSE dst.name END
+                   ) AS path
+    FROM financial_transactions
+   MATCH SHORTEST ( (p1:Person) (-[e]- (dst))* (p2:Person) )
+   WHERE p1.name = 'Camille' AND p2.name = 'Liam'
+ORDER BY num_hops
+```
+
+```
++------------------------------------------+
+| num_hops | start   | path                |
++------------------------------------------+
+| 3        | Camille | [10039, 8021, Liam] |
++------------------------------------------+
+```
+
+Filters along the path vertex/edge are also supported. For example the following query will only consider path containing edges with weight
+greater than 10 when generating the shortest path:
+
+```sql
+SELECT src, ARRAY_AGG(e.weight), dst
+  FROM g
+ MATCH SHORTEST ( (src) ((v1)-[e]->(v2) WHERE e.weight > 10)* (dst) )
+```
+
+For the case of filters involving aggregations over the path:
+
+```sql
+SELECT src, ARRAY_AGG(e.weight), dst
+  FROM g
+ MATCH SHORTEST ( (src) ((v1)-[e]->(v2))* (dst) ) WHERE SUM(e.cost) < 100
+```
+
+we have a slightly different semantic. The filter is applied once the top 3 shortest paths are already generated and not
+during their construction.
+
 ## Top-K Shortest Path
 
-Users can now find `TOP k SHORTEST` paths between any pair of matched source and destination
-and compute aggregations over their vertices/edges. The distance metric is represented by the number of hops.
+`TOP` k `SHORTEST` path matches the k shortest paths for each pair of source and destination vertices. Aggregations can then be computed over their vertices/edges.
 
 For example the following query will output the sum of the edge weights along each of the top 3 shortest paths between
 each of the matched source and destination pairs:
@@ -1184,7 +1228,7 @@ each of the matched source and destination pairs:
 ```sql
 SELECT src, SUM(e.weight), dst
   FROM g
- MATCH TOP 3 SHORTEST ( (src) (-[e]->)* (dst) )
+ MATCH TOP 3 SHORTEST ( (src) -[e]->* (dst) )
  WHERE src.age < dst.age
 ```
 
@@ -1198,7 +1242,7 @@ The `ARRAY_AGG` construct allows users to output properties of edges/vertices al
 ```sql
 SELECT src, ARRAY_AGG(e.weight), ARRAY_AGG(v1.age), ARRAY_AGG(v2.age), dst
   FROM g
- MATCH TOP 3 SHORTEST ( (src) ((v1)-[e]->(v2))* (dst) )
+ MATCH TOP 3 SHORTEST ( (src) ((v1) -[e]-> (v2))* (dst) )
  WHERE src.age < dst.age
 ```
 
@@ -1220,26 +1264,80 @@ SELECT ARRAY_AGG(e1.weight), ARRAY_AGG(e2.weight)
      , (dst) -> (end)
 ```
 
+Here are more examples:
 
-Filters along the path vertex/edge are also supported. For example the following query will only consider path containing edges with weight
-greater than 10 when generating the shortest path:
+{% include image.html file="example_graphs/financial_transactions.png" %}
 
-```sql
-SELECT src, ARRAY_AGG(e.weight), dst
-  FROM g
- MATCH SHORTEST ( (src) ((v1)-[e]->(v2) WHERE e.weight > 10)* (dst) )
-```
-
-For the case of filters involving aggregations over the path:
 
 ```sql
-SELECT src, ARRAY_AGG(e.weight), dst
-  FROM g
- MATCH TOP 3 SHORTEST ( (src) ((v1)-[e]->(v2))* (dst) ) WHERE SUM(e.cost) < 100
+SELECT COUNT(e) AS num_hops
+     , SUM(e.amount) AS total_amount
+     , ARRAY_AGG(e.amount) AS amounts_along_path
+  FROM financial_transactions
+ MATCH TOP 7 SHORTEST ( (a:Account) -[e:transaction]->* (b:Account) )
+ WHERE a.number = 10039 AND a = b
+ORDER BY num_hops, total_amount
 ```
 
-we have a slightly different semantic. The filter is applied once the top 3 shortest paths are already generated and not
-during their construction.
+```
++--------------------------------------------------------------------------------------------+
+| num_hops | total_amount | amounts_along_path                                               |
++--------------------------------------------------------------------------------------------+
+| 0        | <null>       | <null>                                                           |
+| 4        | 22399.8      | [1000.0, 1500.3, 9999.5, 9900.0]                                 |
+| 4        | 23900.2      | [1000.0, 3000.7, 9999.5, 9900.0]                                 |
+| 8        | 44799.6      | [1000.0, 1500.3, 9999.5, 9900.0, 1000.0, 1500.3, 9999.5, 9900.0] |
+| 8        | 46300.0      | [1000.0, 1500.3, 9999.5, 9900.0, 1000.0, 3000.7, 9999.5, 9900.0] |
+| 8        | 46300.0      | [1000.0, 3000.7, 9999.5, 9900.0, 1000.0, 1500.3, 9999.5, 9900.0] |
+| 8        | 47800.4      | [1000.0, 3000.7, 9999.5, 9900.0, 1000.0, 3000.7, 9999.5, 9900.0] |
++--------------------------------------------------------------------------------------------+
+```
+
+Filter out empty paths as well as paths that repeat edges:
+
+{% include image.html file="example_graphs/financial_transactions.png" %}
+
+```sql
+  SELECT COUNT(e) AS num_hops
+       , SUM(e.amount) AS total_amount
+       , ARRAY_AGG(e.amount) AS amounts_along_path
+    FROM financial_transactions
+   MATCH TOP 7 SHORTEST ( (a:Account) -[e:transaction]->* (b:Account) )
+   WHERE a.number = 10039 AND a = b AND COUNT(DISTINCT e) = COUNT(e) AND COUNT(e) > 0
+ORDER BY num_hops, total_amount
+```
+
+```
++------------------------------------------------------------+
+| num_hops | total_amount | amounts_along_path               |
++------------------------------------------------------------+
+| 4        | 22399.8      | [1000.0, 1500.3, 9999.5, 9900.0] |
+| 4        | 23900.2      | [1000.0, 3000.7, 9999.5, 9900.0] |
++------------------------------------------------------------+
+```
+
+{% include image.html file="example_graphs/paris_metro.png" %}
+
+```sql
+  SELECT s1.name AS start
+       , ARRAY_AGG(dst.name) AS stations
+       , COUNT(DISTINCT e.line) AS lines
+       , COUNT(e) AS stops
+    FROM paris_metro
+   MATCH TOP 3 SHORTEST ( (s1) (-[e]- (dst))* (s2) )
+   WHERE s1.name = 'Gare du Nord' AND s2.name = 'Champs-Élysées - Clemenceau'
+ORDER BY lines, stops
+```
+
+```
++---------------------------------------------------------------------------------------------------+
+| stations                                                                          | lines | stops |
++---------------------------------------------------------------------------------------------------+
+| [Pigalle, Charles de Gaulle - Étoile, Champs-Élysées - Clemenceau]                | 2     | 3     |
+| [Châtelet, Palais Royal - Musée du Louvre, Concorde, Champs-Élysées - Clemenceau] | 2     | 4     |
+| [Pigalle, Concorde, Champs-Élysées - Clemenceau]                                  | 3     | 3     |
++---------------------------------------------------------------------------------------------------+
+```
 
 # Functions and Expressions
 
