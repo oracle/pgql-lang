@@ -432,6 +432,7 @@ GraphPattern              ::= <PathPattern> ( ',' <PathPattern> )*
 
 PathPattern               ::=   <SimplePathPattern>
                               | <ShortestPathPattern>
+                              | <TopKShortestPathPattern>
 
 SimplePathPattern         ::= <VertexPattern> ( <PathPrimary> <VertexPattern> )*
 
@@ -1155,11 +1156,9 @@ The above query outputs all generators that are connected to each other via one 
 The syntax is:
 
 ```bash
-ShortestPathPattern                ::= <TopK>? 'SHORTEST' '(' <SourceVertexPattern>
+ShortestPathPattern                ::= 'SHORTEST' '(' <SourceVertexPattern>
                                                               <QuantifiedShortestPathPrimary>
                                                                 <DestinationVertexPattern> ')'
-
-TopK                               ::= 'TOP' <UNSIGNED_INTEGER>
 
 SourceVertexPattern                ::= <VertexPattern>
 
@@ -1221,6 +1220,12 @@ during their construction.
 ## Top-K Shortest Path
 
 `TOP` k `SHORTEST` path matches the k shortest paths for each pair of source and destination vertices. Aggregations can then be computed over their vertices/edges.
+
+The syntax is:
+
+```bash
+TopKShortestPathPattern ::= 'TOP' <UNSIGNED_INTEGER> <ShortestPathPattern>
+```
 
 For example the following query will output the sum of the edge weights along each of the top 3 shortest paths between
 each of the matched source and destination pairs:
