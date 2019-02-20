@@ -1319,24 +1319,23 @@ ORDER BY num_hops, total_amount
 {% include image.html file="example_graphs/paris_metro.png" %}
 
 ```sql
-  SELECT s1.name AS start
-       , ARRAY_AGG(dst.name) AS stations
-       , COUNT(DISTINCT e.line) AS lines
-       , COUNT(e) AS stops
+  SELECT ARRAY_AGG(dst.name) AS stations
+       , COUNT(DISTINCT e.line) AS lineCnt
+       , COUNT(e) AS stopCnt
     FROM paris_metro
    MATCH TOP 3 SHORTEST ( (s1) (-[e]- (dst))* (s2) )
    WHERE s1.name = 'Gare du Nord' AND s2.name = 'Champs-Élysées - Clemenceau'
-ORDER BY lines, stops
+ORDER BY lineCnt, stopCnt
 ```
 
 ```
-+---------------------------------------------------------------------------------------------------+
-| stations                                                                          | lines | stops |
-+---------------------------------------------------------------------------------------------------+
-| [Pigalle, Charles de Gaulle - Étoile, Champs-Élysées - Clemenceau]                | 2     | 3     |
-| [Châtelet, Palais Royal - Musée du Louvre, Concorde, Champs-Élysées - Clemenceau] | 2     | 4     |
-| [Pigalle, Concorde, Champs-Élysées - Clemenceau]                                  | 3     | 3     |
-+---------------------------------------------------------------------------------------------------+
++-------------------------------------------------------------------------------------------------------+
+| stations                                                                          | lineCnt | stopCnt |
++-------------------------------------------------------------------------------------------------------+
+| [Pigalle, Charles de Gaulle - Étoile, Champs-Élysées - Clemenceau]                | 2       | 3       |
+| [Châtelet, Palais Royal - Musée du Louvre, Concorde, Champs-Élysées - Clemenceau] | 2       | 4       |
+| [Pigalle, Concorde, Champs-Élysées - Clemenceau]                                  | 3       | 3       |
++-------------------------------------------------------------------------------------------------------+
 ```
 
 # Functions and Expressions
