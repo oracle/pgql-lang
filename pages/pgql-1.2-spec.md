@@ -2136,11 +2136,12 @@ SELECT n.date_of_birth
 
 # Subqueries
 
-There are two types of subqueries in PGQL 1.2:
-[EXISTS and NOT EXISTS subqueries](#exists-and-not-exists-subqueries) and
-[Scalar subqueries](#scalar-subqueries).
+There are two types of subqueries:
 
-If the `FROM` clause is omitted from a subquery, then the graph to process the subquery against, is the same graph as used for the outer query.
+ - [EXISTS and NOT EXISTS subqueries](#exists-and-not-exists-subqueries).
+ - [Scalar subqueries](#scalar-subqueries).
+
+Both types of subqueries can be used as a value expression in `SELECT`, `WHERE`, `GROUP BY`, `HAVING` and `ORDER BY` clauses. An `EXISTS` or `NOT EXISTS` subquery returns a boolean while a scalar subquery returns a value of any of the supported [data types](#data-types-and-literals).
 
 ## EXISTS and NOT EXISTS subqueries
 
