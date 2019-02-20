@@ -11,7 +11,7 @@ keywords: pgql property graph query language database analytics oracle sql stand
 Graphs & SQL
 ====================================
 
-PGQL is a graph pattern-matching query language for the [property graph data model](spec/1.1/#property-graph-data-model), inspired by
+PGQL is a graph pattern-matching query language for the [property graph data model](spec/1.2/#property-graph-data-model), inspired by
 [SQL](https://en.wikipedia.org/wiki/SQL),
 [openCypher](http://www.opencypher.org/),
 [G-CORE](http://g-core.org/),
@@ -41,7 +41,7 @@ GROUP BY owner
 +----------------+------------------------------+
 ```
 
-See [PGQL 1.1 Specification](spec/1.1/) for a detailed specification of the language.
+See [PGQL 1.2 Specification](spec/1.2/) for a detailed specification of the language.
 
 Graph Pattern Matching
 ----------------------
@@ -113,8 +113,9 @@ Resources
 ---------
 
  - __Specifications__
+     - [PGQL 1.2 Specification](spec/1.2/)
      - [PGQL 1.1 Specification](spec/1.1/)
-     - [PGQL 1.0 Specification](spec/1.1/)
+     - [PGQL 1.0 Specification](spec/1.0/)
      - [PGQL 0.9 Specification](https://docs.oracle.com/cd/E56133_01/1.2.1/PGQL_Specification.pdf)
  - __Parser__
      - [Open-sourced parser and static query validator](https://github.com/oracle/pgql-lang) on GitHub
