@@ -920,7 +920,7 @@ IncomingPathPattern        ::= '<-/' <PathSpecification> '/-'
 PathSpecification          ::=   <LabelPredicate>
                                | <PathPredicate>
 
-PathPredicate              ::= ':' <Label> <GraphPatternQuantifier>
+PathPredicate              ::= ':' <Label> <GraphPatternQuantifier>?
 ```
 
 For example:
@@ -1165,7 +1165,7 @@ SourceVertexPattern                ::= <VertexPattern>
 
 DestinationVertexPattern           ::= <VertexPattern>
 
-QuantifiedShortestPathPrimary      ::= <ShortestPathPrimary> <GraphPatternQuantifier>
+QuantifiedShortestPathPrimary      ::= <ShortestPathPrimary> <GraphPatternQuantifier>?
 
 ShortestPathPrimary                ::=   <EdgePattern>
                                        | <ParenthesizedPathPatternExpression>
