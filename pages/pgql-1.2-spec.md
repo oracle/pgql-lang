@@ -1174,6 +1174,15 @@ ParenthesizedPathPatternExpression ::= '(' <VertexPattern>? <EdgePattern> <Verte
 
 For example:
 
+```sql
+SELECT src, SUM(e.weight), dst
+  FROM g
+ MATCH SHORTEST ( (src) -[e]->* (dst) )
+ WHERE src.age < dst.age
+```
+
+Another example is:
+
 {% include image.html file="example_graphs/financial_transactions.png" %}
 
 ```sql
@@ -2199,6 +2208,14 @@ ScalarSubquery ::= <Subquery>
 ```
 
 For example:
+
+```sql
+SELECT a.name
+  FROM g MATCH (a)
+ WHERE a.age > ( SELECT AVG(b.age) MATCH (a) -[:friendOf]-> (b) )
+```
+
+Another example is:
 
 {% include image.html file="example_graphs/financial_transactions.png" %}
 
