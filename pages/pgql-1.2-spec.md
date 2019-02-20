@@ -1272,7 +1272,7 @@ A value expression is one of:
  - A bracketed value expression, which syntactically takes the form of a value expression between rounded brackets. The brackets allow for controlling precedence.
  - A function invocation (see [Functions](#functions)).
  - The `IS NULL` and `IS NOT NULL` predicates (see [IS NULL and IS NOT NULL](#is-null-and-is-not-null)).
- - The `EXISTS` predicate (see [EXISTS and NOT EXISTS Subqueries](#exists-and-not-exists-subqueries)).
+ - The `EXISTS` predicate (see [EXISTS and NOT EXISTS subqueries](#exists-and-not-exists-subqueries)).
  - An aggregation (see [Aggregation](#aggregation)).
 
 ## Data Types and Literals
@@ -2025,12 +2025,12 @@ SELECT n.date_of_birth
 # Subqueries
 
 There are two types of subqueries in PGQL 1.2:
-[EXISTS and NOT EXISTS Subqueries](#exists-and-not-exists-subqueries) and
-[Scalar Subqueries](#scalar-subqueries).
+[EXISTS and NOT EXISTS subqueries](#exists-and-not-exists-subqueries) and
+[Scalar subqueries](#scalar-subqueries).
 
 If the `FROM` clause is omitted from a subquery, then the graph to process the subquery against, is the same graph as used for the outer query.
 
-## EXISTS and NOT EXISTS Subqueries
+## EXISTS and NOT EXISTS subqueries
 
 `EXISTS` returns true/false depending on whether the subquery produces at least one result, given the bindings obtained in the current (outer) query. No additional binding of variables occurs.
 
@@ -2070,7 +2070,7 @@ SELECT ...
   FROM ...
 ```
 
-## Scalar Subqueries
+## Scalar subqueries
 
 Scalar subqueries are queries that return a scalar value (exactly one row and exactly one column) such that they can be part of an expression in a `SELECT`, `WHERE`, `GROUP BY`, `HAVING` or `ORDER BY` clause.
 

@@ -379,11 +379,11 @@ entries:
     output: web
     folderitems:
 
-    - title: 'EXISTS and NOT EXISTS Subqueries'
+    - title: 'EXISTS and NOT EXISTS subqueries'
       url: /spec/1.2/#exists-and-not-exists-subqueries
       output: web
 
-    - title: 'Scalar Subqueries'
+    - title: 'Scalar subqueries'
       url: /spec/1.2/#scalar-subqueries
       output: web
 
