@@ -109,6 +109,11 @@ entries:
     - title: 'FROM'
       url: /spec/1.2/#from
       output: web
+      subfolderitems:
+
+      - title: 'Default graphs'
+        url: /spec/1.2/#default-graphs
+        output: web
 
     - title: 'MATCH'
       url: /spec/1.2/#match

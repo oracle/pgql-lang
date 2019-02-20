@@ -396,13 +396,28 @@ FromClause ::= 'FROM' <GraphName>
 GraphName  ::= <IDENTIFIER>
 ```
 
-The `FROM` clause may be omitted if the system does not require the specification of an input graph for reasons such as:
+For example, the input graph of the following query is `my_graph`:
 
- - The input graph is implicit because the system only handles single graphs.
- - The system has a notion of a "default graph" like in certain SPARQL systems.
- - The system provides an API such as `Graph.queryPgql(..)`, such that it is already clear from the context what the input graph is.
+```sql
+  SELECT p.first_name, p.last_name
+    FROM my_graph
+   MATCH (p:Person)
+ORDER BY p.first_name, p.last_name
+```
 
-Subqueries may have their own `FROM` clause (see [Querying Multiple Graphs](#querying-multiple-graphs)). Subqueries may also omit the `FROM` clause (see [Subqueries without FROM Clause](#subqueries-without-from-clause)).
+### Default graphs
+
+The `FROM` clause may be omitted if there is a "default graph" such that specifying the graph name inside the query is only redundant.
+
+PGQL itself does not (yet) provide syntax for specifying a default graph. However, PGQL engines like PGX provide APIs like `PgxGraph.queryPgql(..)` that provide a default graph (whose name corresponds to `PgxGraph.getName()`). This in contrast to APIs like `PgxSession.queryPgql(..)` which do not provide default graphs.
+
+If a default graph is provided then the `FROM` clause can be omitted from a query like in this example:
+
+```sql
+  SELECT p.first_name, p.last_name
+   MATCH (p:Person)
+ORDER BY p.first_name, p.last_name
+```
 
 ## MATCH
 
@@ -2116,6 +2131,27 @@ ORDER BY sum_outgoing + sum_incoming DESC
 | Camille | 9900.0       | 1000.0       | 2                           | 0                             |
 | Liam    | 1000.0       | 4501.0       | 1                           | 1                             |
 +-----------------------------------------------------------------------------------------------------+
+```
+
+Note that in the query, the graph name `financial_transactions` is repeatedly specified. Such repetition may be avoided by relying on a [default graph](#default-graphs) such that the query can be simplified to:
+
+```sql
+  SELECT p.name AS name
+       , ( SELECT SUM(t.amount)
+            MATCH (a) <-[t:transaction]- (:Account)
+         ) AS sum_incoming
+       , ( SELECT SUM(t.amount)
+            MATCH (a) -[t:transaction]-> (:Account)
+         ) AS sum_outgoing
+       , ( SELECT COUNT(DISTINCT p2)
+            MATCH (a) -[t:transaction]- (:Account) <-[:ownerOf]- (p2:Person)
+            WHERE p2 <> p
+         ) AS num_persons_transacted_with
+       , ( SELECT COUNT(DISTINCT c)
+            MATCH (a) -[t:transaction]- (:Account) <-[:ownerOf]- (c:Company)
+         ) AS num_companies_transacted_with
+   MATCH (p:Person) -[:ownerOf]-> (a:Account)
+ORDER BY sum_outgoing + sum_incoming DESC
 ```
 
 # Other Syntactic rules
