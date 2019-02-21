@@ -1157,8 +1157,8 @@ The syntax is:
 
 ```bash
 ShortestPathPattern                ::= 'SHORTEST' '(' <SourceVertexPattern>
-                                                              <QuantifiedShortestPathPrimary>
-                                                                <DestinationVertexPattern> ')'
+                                                        <QuantifiedShortestPathPrimary>
+                                                          <DestinationVertexPattern> ')'
 
 SourceVertexPattern                ::= <VertexPattern>
 
@@ -2051,9 +2051,9 @@ In the table above, `Y` indicates that casting is supported, `N` indicates that 
 
 The `CASE` predicate returns an expression based on the evaluation of some given Boolean conditions.
 
-There are two types of `CASE` expressions: Simple Case and Searched Case.
+There are two types of `CASE` expressions: "simple case" and "searched case".
 
-The grammar is as follows:
+The syntax is:
 
 ```bash
 CaseExpression ::= <SimpleCase> | <SearchedCase>
@@ -2067,11 +2067,11 @@ WhenClause     ::= 'WHEN' <ValueExpression> 'THEN' <ValueExpression>
 ElseClause     ::= 'ELSE' <ValueExpression>
 ```
 
-The Simple Case provides a list of pairs (`WHEN` compare value, `THEN` return value) and optionally
-an else clause (`ELSE` else value). PGQL compares a given expression to each compare value and
+The simple case provides a list of pairs (`WHEN` compare value, `THEN` return value) and optionally
+an else clause (`ELSE` return value). PGQL compares a given expression to each compare value and
 returns the corresponding return value when compared expressions are equal. If no equal expression
-is found and an `ELSE` clause exists, then PGQL returns the given else value. Otherwise, null is
-returned.
+is found and an `ELSE` clause exists, then PGQL returns the given else value. If no `ELSE` clause
+exists, null is returned.
 
 For example:
 
@@ -2084,10 +2084,10 @@ CASE n.age
 END
 ```
 
-The Searched Case provides a list of pairs (`WHEN` boolean expression, `THEN` return value) and optionally
-an else clause (`ELSE` else value). PGQL evaluates each boolean expression until one of them evaluates
+The searched case provides a list of pairs (`WHEN` boolean expression, `THEN` return value) and optionally
+an `else` clause (`ELSE` return value). PGQL evaluates each boolean expression until one of them evaluates
 to true, and returns the corresponding return value. If no expression evaluates to true, and an `ELSE`
-clause exists, then PGQL returns the given else value. Otherwise, null is returned.
+clause exists, then PGQL returns the given else value. If no `ELSE` clause exists, null is returned.
 
 For example:
 
@@ -2102,9 +2102,9 @@ END
 ## IN and NOT IN
 
 The `IN` and `NOT IN` predicates test a value for membership in a list of values.
-The PGQL literal types `INTEGER`, `DECIMAL`, `BOOLEAN`, `STRING`, `DATE`, `TIME (WITH TIME ZONE)`, `TIMESTAMP (WITH TIME ZONE)` are allowed in the list.
+The PGQL literal types `INTEGER`, `DECIMAL`, `BOOLEAN`, `STRING`, `DATE`, `TIME [WITH TIME ZONE]`, `TIMESTAMP [WITH TIME ZONE]` are allowed in the list.
 
-The syntactic structure is as follows:
+The syntax is:
 
 ```bash
 InPredicate    ::= <ValueExpression> 'IN' <InValueList>
@@ -2161,7 +2161,7 @@ Both types of subqueries can be used as a value expression in `SELECT`, `WHERE`,
 
 `EXISTS` returns true/false depending on whether the subquery produces at least one result, given the bindings obtained in the current (outer) query. No additional binding of variables occurs.
 
-The syntax is as follows:
+The syntax is:
 
 ```bash
 ExistsPredicate ::= 'EXISTS' <Subquery>
