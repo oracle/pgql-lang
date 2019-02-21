@@ -273,8 +273,8 @@ entries:
         url: /spec/1.2/#operator-precedence
         output: web
 
-      - title: 'Type Coercion'
-        url: /spec/1.2/#type-coercion
+      - title: 'Implicit Type Conversion'
+        url: /spec/1.2/#implicit-type-conversion
         output: web
 
     - title: 'Null values'

@@ -1188,9 +1188,11 @@ Another example is:
 ```sql
   SELECT COUNT(e) AS num_hops
        , p1.name AS start
-       , ARRAY_AGG ( CASE label(dst)
-                     WHEN 'Account' THEN CAST(dst.number AS STRING)
-                     ELSE dst.name END
+       , ARRAY_AGG ( CASE
+                       WHEN has_label(dst, 'Account')
+                         THEN CAST(dst.number AS STRING)
+                       ELSE dst.name
+                     END
                    ) AS path
     FROM financial_transactions
    MATCH SHORTEST ( (p1:Person) (-[e]- (dst))* (p2:Person) )
@@ -1575,8 +1577,6 @@ A `=` B<br>A `<>` B                                 | numeric, string, boolean,<
 A `<` B<br>A `>` B<br>A `<=` B<br>A `>=` B          | numeric, string, boolean,<br>date, time (with time zone), timestamp (with time zone)                  | boolean
 `NOT` A<br>A `AND` B<br>A `OR` B                    | boolean                                                                                               | boolean
 
-*For precision and scale, see [Type Coercion](#type-coercion).
-
 Binary operations are only allowed if both operands are of the same type, with the following two exceptions:
 
 - _time_ values can be compared to _time with time zone_ values
@@ -1599,7 +1599,7 @@ Level | Operator Precedence
 6     | `AND`
 7     | `OR`
 
-### Type Coercion
+### Implicit Type Conversion
 
 Performing arithmetic operations with different numeric types will lead to implicit type conversion (i.e. coercion).
 Coercion is only defined for numeric types. Given a binary arithmetic operation (i.e. `+`, `-`, `*`, `/`, `%`), the rules are as follows:
@@ -2002,8 +2002,9 @@ If a UDF is registered that has the same name as a built-in function, then, upon
 
 ## CAST
 
-_Implicit_ type conversion is supported for numeric types (see [Type Coercion](#type-coercion)). Other type conversions require _explicit_ conversion through `CAST`.
-The syntax is as follows:
+While [_implicity_ type conversion](#implicit-type-conversion) is supported between numeric types, between time types, and between timezone types, other type conversions require _explicit_ conversion through casting (`CAST`).
+
+The syntax is:
 
 ```bash
 CastSpecification ::= 'CAST' '(' <ValueExpression> 'AS' <DataType> ')'
@@ -2021,8 +2022,6 @@ DataType          ::=   'STRING'
                       | 'TIMESTAMP'
                       | 'TIMESTAMP WITH TIME ZONE'
 ```
-
-Note that the syntax of a data type is one or more identifiers separated by a space, allowing the encoding of data types such as `STRING` and `TIME WITH TIME ZONE`.
 
 For example:
 
