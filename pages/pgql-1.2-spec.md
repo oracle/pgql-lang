@@ -2175,6 +2175,7 @@ SELECT fof.name, COUNT(friend) AS num_common_friends
   FROM g MATCH (p:Person) -[:has_friend]-> (friend:Person) -[:has_friend]-> (fof:Person)
  WHERE NOT EXISTS (
                     SELECT *
+                      FROM g
                      MATCH (p) -[:has_friend]-> (fof)
                   )
 ```
@@ -2212,7 +2213,7 @@ For example:
 ```sql
 SELECT a.name
   FROM g MATCH (a)
- WHERE a.age > ( SELECT AVG(b.age) MATCH (a) -[:friendOf]-> (b) )
+ WHERE a.age > ( SELECT AVG(b.age) FROM g MATCH (a) -[:friendOf]-> (b) )
 ```
 
 Another example is:
