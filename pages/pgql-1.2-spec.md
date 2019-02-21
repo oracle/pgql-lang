@@ -699,11 +699,11 @@ The following table gives an overview of the different aggregates and their supp
 Aggregate Operator | Semantic | Required Input Type
 --- | --- | ---
 `COUNT` | counts the number of times the given expression has a bound (i.e. is not null). | any type, including vertex and edge
-`MIN` | takes the minimum of the values for the given expression. | numeric, string, boolean, date, time (with time zone), or, timestamp (with time zone)
-`MAX` | takes the maximum of the values for the given expression. | numeric, string, boolean, date, time (with time zone), or, timestamp (with time zone)
+`MIN` | takes the minimum of the values for the given expression. | numeric, string, boolean, date, time [with time zone], or, timestamp [with time zone]
+`MAX` | takes the maximum of the values for the given expression. | numeric, string, boolean, date, time [with time zone], or, timestamp [with time zone]
 `SUM` | sums over the values for the given expression. | numeric
-`AVG` | takes the average of the values for the given. | numeric
-`ARRAY_AGG` | takes a set of values and puts them into an array/list | numeric, string, boolean, date, time (with time zone), or, timestamp (with time zone)
+`AVG` | takes the average of the values for the given expression. | numeric
+`ARRAY_AGG` | constructs an array/list of the values for the given expression. | numeric, string, boolean, date, time [with time zone], or, timestamp [with time zone]
 
 ### Aggregation with GROUP BY
 
@@ -1573,8 +1573,8 @@ Operator                                            | type of A (and B)         
 --------------------------------------------------- | ----------------------------------------------------------------------------------------------------- | -----------
 A `+` B<br>A `-` B<br>A `*` B<br>A `/` B<br>A `%` B | numeric                                                                                               | numeric*
 `-`A (unary minus)                                  | numeric                                                                                               | type of A
-A `=` B<br>A `<>` B                                 | numeric, string, boolean,<br>date, time (with time zone), timestamp (with time zone),<br>vertex, edge | boolean
-A `<` B<br>A `>` B<br>A `<=` B<br>A `>=` B          | numeric, string, boolean,<br>date, time (with time zone), timestamp (with time zone)                  | boolean
+A `=` B<br>A `<>` B                                 | numeric, string, boolean,<br>date, time [with time zone], timestamp [with time zone],<br>vertex, edge | boolean
+A `<` B<br>A `>` B<br>A `<=` B<br>A `>=` B          | numeric, string, boolean,<br>date, time [with time zone], timestamp [with time zone]                  | boolean
 `NOT` A<br>A `AND` B<br>A `OR` B                    | boolean                                                                                               | boolean
 
 Binary operations are only allowed if both operands are of the same type, with the following two exceptions:
