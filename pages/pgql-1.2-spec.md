@@ -804,26 +804,26 @@ The following is an example in which the results are ordered by property access 
 ORDER BY n.age ASC
 ```
 
-### Multiple Terms in ORDER BY
+### Data types for ORDER BY
 
-It is possible that `ORDER BY` clause consists of multiple terms. In such a case, these terms are evaluated from left to right. That is, (n+1)th ordering term is used only for the tie-break rule for n-th ordering term. Note that each term can have different ascending or descending decorator.
+A partial ordering is defined for the following data types:
+
+- Numeric data values are ordered from small to large.
+- Strings are ordered lexicographically.
+- Boolean values are ordered such that `false` comes before `true`.
+- Temporal data types (dates, time, timestamps) are ordered such that earlier points in time come before later points in time.
+
+Vertices and edges cannot be ordered by directly.
+
+### Multiple expressions in ORDER BY
+
+An `ORDER BY` may contain more than one expression, in which case the expresisons are evaluated from left to right. That is, (n+1)th ordering term is used only for the tie-break rule for n-th ordering term. Note that different expressions can have different ascending or descending decorators.
 
 ```sql
   SELECT f.name
     FROM g MATCH (f:Person)
 ORDER BY f.age ASC, f.salary DESC
 ```
-
-### Data Types for ORDER BY
-
-A partial ordering is defined for the different data types as follows:
-
-- Numeric data values are ordered from small to large.
-- Strings are ordered lexicographically.
-- Boolean values are ordered such that `false` comes before `true`
-- Temporal data types (dates, time, timestamps) are ordered such that earlier points in time come before later points in time.
-
-Vertices and edges cannot be ordered.
 
 ## LIMIT and OFFSET
 
@@ -1390,11 +1390,11 @@ BracketedValueExpression ::= '(' <ValueExpression> ')'
 
 A value expression is one of:
 
- - A variable reference, being either a reference to a `<VertexPattern>`, an `<EdgePattern>`, or, an `<ExpAsVar>`.
+ - A variable reference, being either a reference to a `<VertexPattern>`, an `<EdgePattern>`, or an `<ExpAsVar>`.
  - A property access, which syntactically takes the form of a variable reference, followed by a dot (`.`) and the name of a property.
  - A literal (see [Literals](#literals)).
  - A bind variable (see [Bind Variables](#bind-variables)).
- - An arithmetic, relational, or, logical expression (see [Operators](#operators)).
+ - An arithmetic, relational, or logical expression (see [Operators](#operators)).
  - A bracketed value expression, which syntactically takes the form of a value expression between rounded brackets. The brackets allow for controlling precedence.
  - A function invocation (see [Functions](#functions)).
  - The `IS NULL` and `IS NOT NULL` predicates (see [IS NULL and IS NOT NULL](#is-null-and-is-not-null)).

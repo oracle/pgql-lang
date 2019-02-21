@@ -196,12 +196,12 @@ entries:
       output: web
       subfolderitems:
 
-      - title: 'Multiple Terms in ORDER BY'
-        url: /spec/1.2/#multiple-terms-in-order-by
+      - title: 'Data types for ORDER BY'
+        url: /spec/1.2/#data-types-for-order-by
         output: web
 
-      - title: 'Data Types for ORDER BY'
-        url: /spec/1.2/#data-types-for-order-by
+      - title: 'Multiple expressions in ORDER BY'
+        url: /spec/1.2/#multiple-expressions-in-order-by
         output: web
 
     - title: 'LIMIT and OFFSET'
