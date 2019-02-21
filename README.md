@@ -1,10 +1,10 @@
 # PGQL: a Property Graph Query Language
 
-PGQL is an SQL-like query language for the [property graph data model](http://pgql-lang.org/spec/1.1/#property-graph-data-model).
+PGQL is an SQL-like query language for the [property graph data model](http://pgql-lang.org/spec/1.2/#property-graph-data-model).
 See:
 
  - PGQL website: [http://pgql-lang.org/](http://pgql-lang.org/)
- - Specification: [http://pgql-lang.org/spec/1.1/](http://pgql-lang.org/spec/1.1/).
+ - Specification: [http://pgql-lang.org/spec/1.2/](http://pgql-lang.org/spec/1.2/).
 
 ## PGQL Parser and Static Query Validator
 
@@ -114,7 +114,7 @@ The AST returned by the parser is a [GraphQuery](graph-query-ir/src/main/java/or
 
 ## Documentation
 
-See [PGQL 1.1 Specification](http://pgql-lang.org/spec/1.1/).
+See [PGQL 1.2 Specification](http://pgql-lang.org/spec/1.2/).
 
 ## Development
 
