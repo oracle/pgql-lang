@@ -1398,7 +1398,7 @@ A value expression is one of:
  - A bind variable (see [Bind Variables](#bind-variables)).
  - An arithmetic, relational, or logical expression (see [Operators](#operators)).
  - A bracketed value expression, which syntactically takes the form of a value expression between rounded brackets. The brackets allow for controlling precedence.
- - A function invocation (see [Functions](#functions)).
+ - A function invocation (see [String functions](#string-functions), [Numeric functions](#numeric-functions), [Datetime functions](#datetime-functions) and [Vertex and Edge functions](#vertex-and-edge-functions)).
  - The `IS NULL` and `IS NOT NULL` predicates (see [IS NULL and IS NOT NULL](#is-null-and-is-not-null)).
  - The `EXISTS` predicate (see [EXISTS and NOT EXISTS subqueries](#exists-and-not-exists-subqueries)).
  - An aggregation (see [Aggregation](#aggregation)).
