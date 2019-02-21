@@ -1215,7 +1215,7 @@ SELECT src, ARRAY_AGG(e.weight), dst
  MATCH SHORTEST ( (src) ((v1)-[e]->(v2) WHERE e.weight > 10)* (dst) )
 ```
 
-For the case of filters involving aggregations over the path:
+Also note the cqase where the `WHERE` clause is placed outside of the `SHORTEST ( .. )`, like so:
 
 ```sql
 SELECT src, ARRAY_AGG(e.weight), dst
@@ -1223,8 +1223,7 @@ SELECT src, ARRAY_AGG(e.weight), dst
  MATCH SHORTEST ( (src) ((v1)-[e]->(v2))* (dst) ) WHERE SUM(e.cost) < 100
 ```
 
-we have a slightly different semantic. The filter is applied once the top 3 shortest paths are already generated and not
-during their construction.
+Here, the filter is applied only after a shortest path is matched such that if the `WHERE` condition is not satisfied, the path is filtered out. Note that even if another path exists that satisfied the condition, this path is not retrieved.
 
 ## Top-K Shortest Path
 
@@ -1233,7 +1232,9 @@ during their construction.
 The syntax is:
 
 ```bash
-TopKShortestPathPattern ::= 'TOP' <UNSIGNED_INTEGER> <ShortestPathPattern>
+TopKShortestPathPattern ::= 'TOP' <KValue> <ShortestPathPattern>
+
+KValue                  ::= <UNSIGNED_INTEGER>
 ```
 
 For example the following query will output the sum of the edge weights along each of the top 3 shortest paths between
@@ -1246,9 +1247,8 @@ SELECT src, SUM(e.weight), dst
  WHERE src.age < dst.age
 ```
 
-Notice that the sum aggregation is computed for every matching path. In other words the number of rows returned by the
-previous query is equal to the number of matching paths which is at most 3 times the number of matching source and
-destination pairs.
+Notice that the sum aggregation is computed for each matching path. In other words, the number of rows returned by the
+query is equal to the number of paths that match, which is at most three times the number of possible source-destination pairs.
 
 
 The `ARRAY_AGG` construct allows users to output properties of edges/vertices along the path. For example, in the following query:
