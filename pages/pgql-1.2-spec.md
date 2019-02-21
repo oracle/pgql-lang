@@ -21,14 +21,14 @@ The following are the changes since PGQL 1.1:
 
 The new features in PGQL 1.2 are:
 
- - [Shortest path finding](#shortest-path) and [Top-k shortest path finding](#top-k-shortest-path)
- - [Scalar subqueries](#scalar-subqueries)
- - [Undirected edges](#matching-undirected-edges) (and matching of)
- - [ARRAY_AGG](#ArrayAggregation) aggregation
- - [ABS](#abs), [CEIL/CEILING](#ceil-or-ceiling), [FLOOR](#floor) and [ROUND](#round) math functions
- - [EXTRACT](#extract) function for extracting the `year`/`month`/`day`/`hour`/`minute`/`second`/`time_zone` from datetime values
- - [CASE](#case) statement
- - [IN and NOT IN](#in-and-not-in) predicates
+ - [Shortest path finding](#shortest-path) and [Top-k shortest path finding](#top-k-shortest-path).
+ - [Scalar subqueries](#scalar-subqueries).
+ - [Undirected edges](#matching-undirected-edges) (and matching of).
+ - [ARRAY_AGG](#ArrayAggregation) aggregation.
+ - [ABS](#abs), [CEIL/CEILING](#ceil-or-ceiling), [FLOOR](#floor) and [ROUND](#round) math functions.
+ - [EXTRACT](#extract) function for extracting the `year`/`month`/`day`/`hour`/`minute`/`second`/`time_zone` from datetime values.
+ - [CASE](#case) statement.
+ - [IN and NOT IN](#in-and-not-in) predicates.
 
 ### Syntax changes since PGQL 1.1
 
@@ -806,14 +806,14 @@ ORDER BY n.age ASC
 
 ### Data types for ORDER BY
 
-A partial ordering is defined for the following data types:
+A partial ordering for the different data types is defined as follows:
 
-- Numeric data values are ordered from small to large.
-- Strings are ordered lexicographically.
+- Numeric values are ordered from small to large.
+- String values are ordered lexicographically.
 - Boolean values are ordered such that `false` comes before `true`.
-- Temporal data types (dates, time, timestamps) are ordered such that earlier points in time come before later points in time.
+- Datetime values (i.e. dates, times, or timestamps) are ordered such that earlier points in time come before later points in time.
 
-Vertices and edges cannot be ordered by directly.
+Vertices and edges cannot be ordered directly.
 
 ### Multiple expressions in ORDER BY
 
