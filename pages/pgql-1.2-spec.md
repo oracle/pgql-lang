@@ -640,7 +640,7 @@ Matches will be grouped together only if they hold the same values for `n.first_
 
 The group for which all the group keys are null is a valid group and takes part in further query processing.
 
-To filter out such a group, use a `HAVING` clause (see [HAVING](#filtering-of-groups-having)), for example:
+To filter out such a group, use a `HAVING` clause (see [HAVING](#having)), for example:
 
 ```sql
   SELECT n.prop1, n.prop2, COUNT(*)
@@ -1535,24 +1535,24 @@ Addition             ::= <ValueExpression> '+' <ValueExpression>
 
 Subtraction          ::= <ValueExpression> '-' <ValueExpression>
 
-RelationalExpression ::=   <Equals>
-                         | <NotEquals>
+RelationalExpression ::=   <Equal>
+                         | <NotEqual>
                          | <Greater>
                          | <Less>
-                         | <GreaterEqual>
-                         | <LessEquals>
+                         | <GreaterOrEqual>
+                         | <LessOrEqual>
 
-Equals               ::= <ValueExpression> '=' <ValueExpression>
+Equal                ::= <ValueExpression> '=' <ValueExpression>
 
-NotEquals            ::= <ValueExpression> '<>' <ValueExpression>
+NotEqual             ::= <ValueExpression> '<>' <ValueExpression>
 
 Greater              ::= <ValueExpression> '>' <ValueExpression>
 
 Less                 ::= <ValueExpression> '<' <ValueExpression>
 
-GreaterEqual         ::= <ValueExpression> '>=' <ValueExpression>
+GreaterOrEqual       ::= <ValueExpression> '>=' <ValueExpression>
 
-LessEquals           ::= <ValueExpression> '<=' <ValueExpression>
+LessOrEqual          ::= <ValueExpression> '<=' <ValueExpression>
 
 LogicalExpression    ::=   <Not>
                          | <And>
