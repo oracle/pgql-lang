@@ -1868,37 +1868,9 @@ The syntax is:
 ID( vertex/edge )
 ```
 
-### LABELS
-
-The LABELS function returns the set of labels of a vertex or an edge. This function only applies when metadata specifies that the vertex or edge has a set of labels, rather than a single label or no label.
-The return type of the function is a set of strings.
-
-The syntax is:
-
-```
-LABELS( vertex/edge )
-```
-
-For example:
-
-```sql
-SELECT LABELS(n)
-  FROM g MATCH (n:Employee|Manager)
-```
-
-```
-+---------------------+
-| LABELS(n)           |
-+---------------------+
-| [Employee]          |
-| [Manager]           |
-| [Employee, Manager] |
-+---------------------+
-```
-
 ### LABEL
 
-The LABEL function returns the label of a vertex or an edge. This function only applies when metadata specifies that the vertex or edge has a single label, rather than a set of labels or no label.
+The LABEL function returns the label of a vertex or an edge. It is an error if the vertex or edge does not have a label, or, has more than one label.
 The return type of the function is a string.
 
 The syntax is:
@@ -1922,6 +1894,34 @@ SELECT LABEL(e)
 | knows    |
 | likes    |
 +----------+
+```
+
+### LABELS
+
+The LABELS function returns the set of labels of a vertex or an edge. If the vertex or edge does not have a label, an empty set is returned.
+The return type of the function is a set of strings.
+
+The syntax is:
+
+```
+LABELS( vertex/edge )
+```
+
+For example:
+
+```sql
+SELECT LABELS(n)
+  FROM g MATCH (n:Employee|Manager)
+```
+
+```
++---------------------+
+| LABELS(n)           |
++---------------------+
+| [Employee]          |
+| [Manager]           |
+| [Employee, Manager] |
++---------------------+
 ```
 
 ### HAS_LABEL

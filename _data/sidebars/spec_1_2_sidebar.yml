@@ -338,12 +338,12 @@ entries:
         url: /spec/1.2/#id
         output: web
 
-      - title: 'LABELS'
-        url: /spec/1.2/#labels
-        output: web
-
       - title: 'LABEL'
         url: /spec/1.2/#label
+        output: web
+
+      - title: 'LABELS'
+        url: /spec/1.2/#labels
         output: web
 
       - title: 'HAS_LABEL'
