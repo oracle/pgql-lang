@@ -2174,7 +2174,7 @@ There are two types of subqueries:
  - [EXISTS and NOT EXISTS subqueries](#exists-and-not-exists-subqueries).
  - [Scalar subqueries](#scalar-subqueries).
 
-Both types of subqueries can be used as a value expression in `SELECT`, `WHERE`, `GROUP BY`, `HAVING` and `ORDER BY` clauses. An `EXISTS` or `NOT EXISTS` subquery returns a boolean while a scalar subquery returns a value of any of the supported [data types](#data-types-and-literals).
+Both types of subqueries can be used as a value expression in a `SELECT`, `WHERE`, `GROUP BY`, `HAVING` and `ORDER BY` clauses (including `WHERE` clauses of `PATH` expressions). An `EXISTS` or `NOT EXISTS` subquery returns a boolean while a scalar subquery returns a value of any of the supported [data types](#data-types-and-literals).
 
 ## EXISTS and NOT EXISTS subqueries
 
