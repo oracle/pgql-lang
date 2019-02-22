@@ -1227,24 +1227,25 @@ ORDER BY num_hops
 +------------------------------------------+
 ```
 
-Filters along the path vertex/edge are also supported. For example the following query will only consider path containing edges with weight
-greater than 10 when generating the shortest path:
+Filters on vertices and edges along paths can be specified by adding a `WHERE` clause inside the quantified pattern.
+
+For example, the following query matches a shortest path (if one exists) such that each edge along the path has a property `weight` with a value greater than `10`:
 
 ```sql
 SELECT src, ARRAY_AGG(e.weight), dst
   FROM g
- MATCH SHORTEST ( (src) ((v1)-[e]->(v2) WHERE e.weight > 10)* (dst) )
+ MATCH SHORTEST ( (src) (-[e]-> WHERE e.weight > 10)* (dst) )
 ```
 
-Also note the cqase where the `WHERE` clause is placed outside of the `SHORTEST ( .. )`, like so:
+Note that this is different from a `WHERE` clause that is placed outside of the quantified pattern:
 
 ```sql
 SELECT src, ARRAY_AGG(e.weight), dst
   FROM g
- MATCH SHORTEST ( (src) ((v1)-[e]->(v2))* (dst) ) WHERE SUM(e.cost) < 100
+ MATCH SHORTEST ( (src) -[e]->* (dst) ) WHERE SUM(e.cost) < 100
 ```
 
-Here, the filter is applied only after a shortest path is matched such that if the `WHERE` condition is not satisfied, the path is filtered out. Note that even if another path exists that satisfied the condition, this path is not retrieved.
+Here, the filter is applied only _after_ a shortest path is matched such that if the `WHERE` condition is not satisfied, the path is filtered out and no other path is considered even though one may exists that satisfies the condition.
 
 ## Top-K Shortest Path
 
