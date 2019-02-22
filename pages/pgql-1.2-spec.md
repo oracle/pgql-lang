@@ -1245,7 +1245,7 @@ SELECT src, ARRAY_AGG(e.weight), dst
  MATCH SHORTEST ( (src) -[e]->* (dst) ) WHERE SUM(e.cost) < 100
 ```
 
-Here, the filter is applied only _after_ a shortest path is matched such that if the `WHERE` condition is not satisfied, the path is filtered out and no other path is considered even though one may exists that satisfies the condition.
+Here, the filter is applied only _after_ a shortest path is matched such that if the `WHERE` condition is not satisfied, the path is filtered out and no other path is considered even though another path may exist that does satisfy the `WHERE` condition.
 
 ## Top-K Shortest Path
 
