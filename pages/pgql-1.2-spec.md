@@ -941,13 +941,11 @@ Here, we find all classes that are a subclass of `'ArrayList'`. The regular path
 
 ### Examples with various quantifiers
 
-Take the following graph as example:
-
-{% include image.html file="example_graphs/pgql_min_max_hop.png" %}
-
 #### Zero or more
 
-The following query finds all vertices `y` that can be reached from `Amy` by following zero or more `likes` edges.
+The following example finds all vertices `y` that can be reached from `Amy` by following zero or more `likes` edges.
+
+{% include image.html file="example_graphs/pgql_min_max_hop.png" %}
 
 ```sql
 SELECT y.name
@@ -971,7 +969,9 @@ For `Judith`, there exist two paths (`100 -> 200 -> 300 -> 400` and `100 -> 400`
 
 #### One or more
 
-The following query finds all people that can be reached from `Amy` by following one or more `likes` edges.
+The following example finds all people that can be reached from `Amy` by following one or more `likes` edges.
+
+{% include image.html file="example_graphs/pgql_min_max_hop.png" %}
 
 ```sql
 SELECT y.name
@@ -991,7 +991,9 @@ SELECT y.name
 
 This time, `Amy` is not returned since there does not exist a path that connects `Amy` to `Amy` that has a length greater than zero.
 
-Another example is a query that finds all people that can be reached from `Judith` by following one or more `knows` edges:
+The following example finds all people that can be reached from `Judith` by following one or more `knows` edges:
+
+{% include image.html file="example_graphs/pgql_min_max_hop.png" %}
 
 ```sql
 SELECT y.name
@@ -1012,7 +1014,10 @@ Here, in addition to `Jonas`, `Judith` is returned since there exist paths from 
 
 #### Optional
 
-The following query finds all people that can be reached from `Judith` by following zero or one `knows` edges.
+The following example finds all people that can be reached from `Judith` by following zero or one `knows` edges.
+
+
+{% include image.html file="example_graphs/pgql_min_max_hop.png" %}
 
 ```sql
 SELECT y.name
@@ -1033,7 +1038,9 @@ Here, `Judith` is returned since there exists the empty path that starts in `400
 
 #### Exactly n
 
-The following query finds all people that can be reached from `Amy` by following exactly two `likes` edges.
+The following example finds all people that can be reached from `Amy` by following exactly two `likes` edges.
+
+{% include image.html file="example_graphs/pgql_min_max_hop.png" %}
 
 ```sql
 SELECT y.name
@@ -1053,7 +1060,9 @@ Here, `Albert` is returned since there exists the following path that has `likes
 
 #### n or more
 
-The following query finds all people that can be reached from `Amy` by following 2 or more `likes` edges.
+The following example finds all people that can be reached from `Amy` by following 2 or more `likes` edges.
+
+{% include image.html file="example_graphs/pgql_min_max_hop.png" %}
 
 ```sql
 SELECT y.name
@@ -1069,11 +1078,14 @@ SELECT y.name
 | Judith |
 +--------+
 ```
+
 Here, `Albert` is returned since there exists the following path of length two: `100 -> 200 -> 300`. `Judith` is returned since there exists a path of length three: `100 -> 200 -> 300 -> 400`.
 
 #### Between n and m
 
-The following query finds all people that can be reached from `Amy` by following between 1 and 2 `likes` edges.
+The following example finds all people that can be reached from `Amy` by following between 1 and 2 `likes` edges.
+
+{% include image.html file="example_graphs/pgql_min_max_hop.png" %}
 
 ```sql
 SELECT y.name
@@ -1097,7 +1109,9 @@ Here, `John` is returned since there exists a path of length one (i.e. `100 -> 2
 
 #### Between zero and m
 
-The following query finds all people that can be reached from `Judith` by following at most 2 `knows` edges.
+The following example finds all people that can be reached from `Judith` by following at most 2 `knows` edges.
+
+{% include image.html file="example_graphs/pgql_min_max_hop.png" %}
 
 ```sql
 SELECT y.name
@@ -1120,7 +1134,7 @@ Yet, `Judith` is only returned once.
 
 ### Common Path Expressions
 
-One or more "common path expression" may be declared at the beginning of the query. These can be seen as macros that allow for expressing complex regular expressions.
+One or more "common path expression" may be declared at the beginning of the query. These can be seen as macros that allow for expressing complex regular expressions. PGQL 1.2 allows common path expressions only for reachability, not for (top-k) shortest path.
 
 ```bash
 CommonPathExpressions ::= <CommonPathExpression>+
