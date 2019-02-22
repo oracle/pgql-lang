@@ -1860,7 +1860,7 @@ Result: -30
 
 ### ID
 
-The ID functions returns an identifier for the vertex/edge, if one exists.
+The ID functions returns a system-generated identifier for the vertex/edge (unique within a graph).
 
 The syntax is:
 
