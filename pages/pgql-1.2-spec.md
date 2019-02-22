@@ -231,7 +231,7 @@ TODO
 
 Any-directional edges match edges in the graph no matter if they are incoming, outgoing, or undirected.
 
-An example query with two any-directional edges is as follows:
+An example query with two any-directional edges is:
 
 ```sql
 SELECT *
@@ -571,7 +571,9 @@ There are also built-in functions available for labels (see [Built-in Functions]
 
 ## WHERE
 
-Filters are applied after pattern matching to remove certain solutions. A filter takes the form of a boolean value expression which typically involves certain property values of the vertices and edges in the graph pattern. The syntactic structure is as follows:
+Filters are applied after pattern matching to remove certain solutions. A filter takes the form of a boolean value expression which typically involves certain property values of the vertices and edges in the graph pattern.
+
+The syntax is:
 
 
 ```bash
@@ -668,7 +670,7 @@ Here, the group expression `n.age` is repeated in the SELECT and ORDER BY.
 
 Aggregates `COUNT`, `MIN`, `MAX`, `AVG` and `SUM` can aggregate over groups of solutions.
 
-The syntax is as follows:
+The syntax is:
 
 ```bash
 Aggregation      ::=   <CountAggregation>
@@ -709,7 +711,7 @@ Aggregate Operator | Semantic | Required Input Type
 
 If a `GROUP BY` is specified, aggregations are applied to each individual group of solutions.
 
-An example is as follows:
+For example:
 
 ```sql
   SELECT AVG(m.salary)
@@ -723,7 +725,7 @@ Here, we group people by their age and compute the average salary for each such 
 
 If _no_ `GROUP BY` is specified, aggregations are applied to the entire set of solutions.
 
-An example is as follows:
+For example:
 
 ```sql
 SELECT AVG(m.salary)
@@ -734,7 +736,9 @@ Here, we aggregate over the entire set of vertices with label `Person`, to compu
 
 ### COUNT(*)
 
-`COUNT(*)` is a special construct that simply counts the number of solutions without evaluating an expression. An example is as follows:
+`COUNT(*)` is a special construct that simply counts the number of solutions without evaluating an expression.
+
+For example:
 
 ```sql
 SELECT COUNT(*)
@@ -757,13 +761,14 @@ Here, we aggregate only over distinct `m.age` values.
 ## HAVING
 
 The `HAVING` clause is an optional clause that can be placed after a `GROUP BY` clause to filter out particular groups of solutions.
-The syntactic structure is as follows:
+
+The syntax is:
 
 ```bash
 HavingClause ::= 'HAVING' <ValueExpression>
 ```
 
-An example is as follows:
+For example:
 
 ```sql
   SELECT n.name
@@ -864,7 +869,7 @@ Path queries test for the existence of arbitrary-length paths between pairs of v
 
 Quantifiers in path patterns allow for specifying lower and upper limits on the number of times a pattern should match.
 
-The syntax is as follows:
+The syntax is:
 
 ```bash
 GraphPatternQuantifier     ::=   <ZeroOrMore>
@@ -1125,7 +1130,7 @@ CommonPathExpression  ::= 'PATH' <IDENTIFIER> 'AS' <PathPattern> <WhereClause>?
 
 A path pattern declaration starts with the keyword `PATH`, followed by an expression name, the assignment operator `AS`, and a path pattern consisting of at least one vertex. The syntactic structure of the path pattern is the same as a path pattern in the `MATCH` clause.
 
-An example is as follows:
+For example:
 
 ```sql
   PATH has_parent AS () -[:has_father|has_mother]-> (:Person)
@@ -1138,7 +1143,7 @@ SELECT ancestor.name
 
 The above query finds common ancestors of `Mario` and `Luigi`.
 
-Another example is as follows:
+Another example is:
 
 ```sql
   PATH connects_to AS (:Generator) -[:has_connector]-> (c:Connector) <-[:has_connector]- (:Generator)
@@ -1280,18 +1285,18 @@ SELECT ARRAY_AGG(e1.weight), ARRAY_AGG(e2.weight)
      , (dst) -> (end)
 ```
 
-Here are more examples:
+Another example is:
 
 {% include image.html file="example_graphs/financial_transactions.png" %}
 
 
 ```sql
-SELECT COUNT(e) AS num_hops
-     , SUM(e.amount) AS total_amount
-     , ARRAY_AGG(e.amount) AS amounts_along_path
-  FROM financial_transactions
- MATCH TOP 7 SHORTEST ( (a:Account) -[e:transaction]->* (b:Account) )
- WHERE a.number = 10039 AND a = b
+  SELECT COUNT(e) AS num_hops
+       , SUM(e.amount) AS total_amount
+       , ARRAY_AGG(e.amount) AS amounts_along_path
+    FROM financial_transactions
+   MATCH TOP 7 SHORTEST ( (a:Account) -[e:transaction]->* (b:Account) )
+   WHERE a.number = 10039 AND a = b
 ORDER BY num_hops, total_amount
 ```
 
@@ -1309,7 +1314,8 @@ ORDER BY num_hops, total_amount
 +--------------------------------------------------------------------------------------------+
 ```
 
-Filter out empty paths as well as paths that repeat edges:
+Note that above, we matched a path with zero edges (the first result) and we also matched four paths (the last four results) that visit the same edges multiple times.
+The following example shows how such paths could be filtered out, such that we only keep paths that have at least one edge and that do not visit an edge multiple times:
 
 {% include image.html file="example_graphs/financial_transactions.png" %}
 
@@ -1407,7 +1413,7 @@ A value expression is one of:
 
 ### Data Types
 
-The following is a list of data types in PGQL
+PGQL has the following data types:
 
  - `STRING`
  - `NUMERIC` (e.g. `INT`/`INTEGER`, `LONG`, `FLOAT`, `DOUBLE`)
@@ -1420,7 +1426,7 @@ The following is a list of data types in PGQL
 
 ### Literals
 
-Syntax for the corresponding literals is as follows:
+The syntax is:
 
 ```bash
 Literal                      ::=   <StringLiteral>
@@ -1638,7 +1644,7 @@ IsNullPredicate    ::= <ValueExpression> 'IS' 'NULL'
 IsNotNullPredicate ::= <ValueExpression> 'IS' 'NOT' 'NULL'
 ```
 
-An example is as follows:
+For example:
 
 ```sql
 SELECT n.name
@@ -1778,7 +1784,7 @@ Result: 3
 
 The `EXTRACT` function allows for extracting a datetime field, such as a year, month or day, from a datetime value.
 
-The syntactic structure is as follows:
+The syntax is:
 
 ```bash
 ExtractFunction ::= 'EXTRACT' '(' <ExtractField> 'FROM' <ValueExpression> ')'
