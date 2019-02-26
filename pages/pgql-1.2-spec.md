@@ -26,7 +26,7 @@ The new features in PGQL 1.2 are:
  - [Undirected edges](#matching-undirected-edges) (and matching of).
  - [ARRAY_AGG](#ArrayAggregation) aggregation.
  - [ABS](#abs), [CEIL/CEILING](#ceil-or-ceiling), [FLOOR](#floor) and [ROUND](#round) math functions.
- - [EXTRACT](#extract) function for extracting the `year`/`month`/`day`/`hour`/`minute`/`second`/`time_zone` from datetime values.
+ - [EXTRACT](#extract) function for extracting the `year`/`month`/`day`/`hour`/`minute`/`second`/`timezone_hour`/`timezone_minute` from datetime values.
  - [CASE](#case) statement.
  - [IN and NOT IN](#in-and-not-in) predicates.
 
