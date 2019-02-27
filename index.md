@@ -5,9 +5,6 @@ toc: false
 keywords: pgql property graph query language database analytics oracle sql standard gql cypher opencypher sparql gsql pgx big data spatial
 ---
 
-<br/><br/>
-{% include note.html content="Find our statement on __GQL__, a __standard__ for property graph querying, [__here__](gql-statement.html). (_2019-01-04_)" %}
-
 Graphs & SQL
 ====================================
 
@@ -140,5 +137,3 @@ Resources
      - [PGQL: A Query Language for Graphs](https://asktom.oracle.com/pls/apex/f?p=100:551:::NO:551:P551_CLASS_ID:4197&cs=1F6BF819D61CFBE3F44500E3F8E156C5C) (_2018-10-02_)
  - __White Paper__
      - [White Paper](http://dl.acm.org/citation.cfm?id=2960421) ([pdf](http://event.cwi.nl/grades/2016/07-VanRest.pdf)) (_2016-06-24_)
- - __Standardization__
-     - See our [statement on GQL](gql-statement.html) (_2019-01-04_)
