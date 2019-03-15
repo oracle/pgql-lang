@@ -7,13 +7,13 @@
     {
       "format": "csv",
       "name": "Account",
-      "key_column" : 0,
+      "key_column" : 1,
       "key_type" : "long",
       "props": [
         {
           "name": "number",
           "type": "long",
-          "column": 1
+          "column": 2
         }
       ],
       "separator": " ",
@@ -22,13 +22,13 @@
     {
       "format": "csv",
       "name": "Person",
-      "key_column" : 0,
+      "key_column" : 1,
       "key_type" : "long",
       "props": [
         {
           "name": "name",
           "type": "string",
-          "column": 1
+          "column": 2
         }
       ],
       "separator": " ",
@@ -37,13 +37,13 @@
     {
       "format": "csv",
       "name": "Company",
-      "key_column" : 0,
+      "key_column" : 1,
       "key_type" : "long",
       "props": [
         {
           "name": "name",
           "type": "string",
-          "column": 1
+          "column": 2
         }
       ],
       "separator": " ",
@@ -56,20 +56,20 @@
       "name": "transaction",
       "source_vertex_provider": "Account",
       "destination_vertex_provider": "Account",
-      "key_column" : 0,
+      "key_column" : 1,
       "key_type" : "long",
-      "source_column" : 1,
-      "destination_column" : 2,
+      "source_column" : 2,
+      "destination_column" : 3,
       "props": [
         {
           "name": "key",
           "type": "long",
-          "column": 0
+          "column": 1
         },
         {
           "name": "amount",
           "type": "double",
-          "column": 3
+          "column": 4
         }
       ],
       "loading": {
@@ -83,15 +83,15 @@
       "name": "ownerOf1",
       "source_vertex_provider": "Person",
       "destination_vertex_provider": "Account",
-      "key_column" : 0,
+      "key_column" : 1,
       "key_type" : "long",
-      "source_column" : 1,
-      "destination_column" : 2,
+      "source_column" : 2,
+      "destination_column" : 3,
       "props": [
         {
           "name": "key",
           "type": "long",
-          "column": 0
+          "column": 1
         }
       ],
       "loading": {
@@ -105,15 +105,15 @@
       "name": "ownerOf2",
       "source_vertex_provider": "Company",
       "destination_vertex_provider": "Account",
-      "key_column" : 0,
+      "key_column" : 1,
       "key_type" : "long",
-      "source_column" : 1,
-      "destination_column" : 2,
+      "source_column" : 2,
+      "destination_column" : 3,
       "props": [
         {
           "name": "key",
           "type": "long",
-          "column": 0
+          "column": 1
         }
       ],
       "loading": {
@@ -127,15 +127,15 @@
       "name": "worksFor",
       "source_vertex_provider": "Person",
       "destination_vertex_provider": "Company",
-      "key_column" : 0,
+      "key_column" : 1,
       "key_type" : "long",
-      "source_column" : 1,
-      "destination_column" : 2,
+      "source_column" : 2,
+      "destination_column" : 3,
       "props": [
         {
           "name": "key",
           "type": "long",
-          "column": 0
+          "column": 1
         }
       ],
       "loading": {
