@@ -55,6 +55,11 @@ import oracle.pgql.lang.ir.QueryType;
 
 public class Pgql implements Closeable {
 
+  /**
+   * Spoofax is not thread safe, so any method that uses Spoofax should use the lock.
+   */
+  private final static Object lock = new Object();
+
   private static final Logger LOG = LoggerFactory.getLogger(Pgql.class);
 
   private static final String NON_BREAKING_WHITE_SPACE_ERROR = "Illegal character '\u00a0' (non-breaking white space)"
@@ -75,15 +80,17 @@ public class Pgql implements Closeable {
 
   private static final String SPOOFAX_BINARIES = "pgql-1.1.spoofax-language";
 
-  private final Spoofax spoofax;
+  private static boolean initialized = false;
 
-  private final ILanguageImpl pgqlLang;
+  private static Spoofax spoofax;
 
-  private final FileObject dummyProjectDir;
+  private static ILanguageImpl pgqlLang;
 
-  private final IProject dummyProject;
+  private static FileObject dummyProjectDir;
 
-  private final File spoofaxBinaryFile;
+  private static IProject dummyProject;
+
+  private static File spoofaxBinaryFile;
 
   /**
    * Loads PGQL Spoofax binaries if not done already.
@@ -91,6 +98,15 @@ public class Pgql implements Closeable {
    * @throws IOException
    */
   public Pgql() throws PgqlException {
+    synchronized (lock) {
+      if (!initialized) {
+        initialize();
+        initialized = true;
+      }
+    }
+  }
+
+  private void initialize() throws PgqlException {
     try {
       // initialize a new Spoofax
       spoofax = new Spoofax(new PgqlConfig());
@@ -141,7 +157,7 @@ public class Pgql implements Closeable {
         }
       });
 
-      parse("SELECT * MATCH (initQuery)"); // make Spoofax initialize the language
+      parse("SELECT * FROM g MATCH (initQuery)"); // make Spoofax initialize the language
     } catch (MetaborgException | IOException e) {
       throw new PgqlException("Failed to initialize PGQL", e);
     }
@@ -150,53 +166,53 @@ public class Pgql implements Closeable {
   /**
    * Parse a PGQL query.
    *
-   * NOTE: This method is synchronized as Spoofax is not thread safe.
-   *
    * @param queryString
    *          PGQL query to parse
    * @return parse result holding either an AST or error messages
    * @throws PgqlException
    *           if the query contains errors
    */
-  public synchronized PgqlResult parse(String queryString) throws PgqlException {
-    ITemporaryContext context = null;
-    FileObject dummyFile = null;
-    try {
-      dummyFile = getFileObject(queryString);
-      ISpoofaxParseUnit parseResult = parseHelper(queryString, dummyFile);
+  public PgqlResult parse(String queryString) throws PgqlException {
+    synchronized (lock) {
+      ITemporaryContext context = null;
+      FileObject dummyFile = null;
+      try {
+        dummyFile = getFileObject(queryString);
+        ISpoofaxParseUnit parseResult = parseHelper(queryString, dummyFile);
 
-      String prettyMessages = null;
-      boolean queryValid = parseResult.success();
-      GraphQuery graphQuery = null;
-      if (!queryValid) {
-        prettyMessages = getMessages(parseResult.messages(), queryString);
-      }
-      if (!parseResult.valid()) {
-        throw new PgqlException(prettyMessages);
-      }
+        String prettyMessages = null;
+        boolean queryValid = parseResult.success();
+        GraphQuery graphQuery = null;
+        if (!queryValid) {
+          prettyMessages = getMessages(parseResult.messages(), queryString);
+        }
+        if (!parseResult.valid()) {
+          throw new PgqlException(prettyMessages);
+        }
 
-      context = spoofax.contextService.getTemporary(dummyFile, dummyProject, pgqlLang);
-      ISpoofaxAnalyzeUnit analysisResult = null;
-      try (IClosableLock lock = context.write()) {
-        analysisResult = spoofax.analysisService.analyze(parseResult, context).result();
-      }
+        context = spoofax.contextService.getTemporary(dummyFile, dummyProject, pgqlLang);
+        ISpoofaxAnalyzeUnit analysisResult = null;
+        try (IClosableLock lock = context.write()) {
+          analysisResult = spoofax.analysisService.analyze(parseResult, context).result();
+        }
 
-      if (queryValid) {
-        queryValid = analysisResult.success();
-        prettyMessages = getMessages(analysisResult.messages(), queryString);
-      }
-      graphQuery = SpoofaxAstToGraphQuery.translate(analysisResult.ast());
+        if (queryValid) {
+          queryValid = analysisResult.success();
+          prettyMessages = getMessages(analysisResult.messages(), queryString);
+        }
+        graphQuery = SpoofaxAstToGraphQuery.translate(analysisResult.ast());
 
-      checkBetaFeatureToken(queryString, graphQuery);
+        checkBetaFeatureToken(queryString, graphQuery);
 
-      return new PgqlResult(queryString, queryValid, prettyMessages, graphQuery, parseResult);
-    } catch (IOException | ParseException | AnalysisException | ContextException e) {
-      throw new PgqlException("Failed to parse PGQL query", e);
-    } finally {
-      if (context != null) {
-        context.close();
+        return new PgqlResult(queryString, queryValid, prettyMessages, graphQuery, parseResult);
+      } catch (IOException | ParseException | AnalysisException | ContextException e) {
+        throw new PgqlException("Failed to parse PGQL query", e);
+      } finally {
+        if (context != null) {
+          context.close();
+        }
+        quietlyDelete(dummyFile);
       }
-      quietlyDelete(dummyFile);
     }
   }
 
@@ -308,7 +324,8 @@ public class Pgql implements Closeable {
       // spoofax e.g. throws exception for query "SELECT * FROM g MATCH "
     }
     Iterable<ICompletion> spoofaxCompletions = null;
-    // spoofaxCompletions = spoofaxComplete(pgqlResult.getSpoofaxParseUnit(), cursor); // not used yet
+    // synchronized (lock) { spoofaxCompletions = spoofaxComplete(pgqlResult.getSpoofaxParseUnit(), cursor); } // not
+    // used yet
 
     return PgqlCompletionGenerator.generate(pgqlResult, spoofaxCompletions, queryString, cursor, ctx);
   }
@@ -319,12 +336,14 @@ public class Pgql implements Closeable {
       return; // Windows issue, also see http://yellowgrass.org/issue/Spoofax/88
     }
 
-    if (spoofax != null) {
-      spoofax.close();
-    }
-    if (spoofaxBinaryFile != null) {
-      if (!spoofaxBinaryFile.delete()) {
-        LOG.warn("failed to delete Spoofax binary file: " + spoofaxBinaryFile.getAbsolutePath());
+    synchronized (lock) {
+      if (spoofax != null) {
+        spoofax.close();
+      }
+      if (spoofaxBinaryFile != null) {
+        if (!spoofaxBinaryFile.delete()) {
+          LOG.warn("failed to delete Spoofax binary file: " + spoofaxBinaryFile.getAbsolutePath());
+        }
       }
     }
   }
