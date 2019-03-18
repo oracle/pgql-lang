@@ -16,12 +16,20 @@ public class CommonPathExpression {
 
   private Set<QueryExpression> constraints;
 
+  private QueryExpression cost;
+
   public CommonPathExpression(String name, List<QueryVertex> vertices, List<VertexPairConnection> connections,
       Set<QueryExpression> constraints) {
+    this(name, vertices, connections, constraints, null);
+  }
+
+  public CommonPathExpression(String name, List<QueryVertex> vertices, List<VertexPairConnection> connections,
+      Set<QueryExpression> constraints, QueryExpression cost) {
     this.name = name;
     this.vertices = vertices;
     this.connections = connections;
     this.constraints = constraints;
+    this.cost = cost;
   }
 
   public String getName() {
@@ -54,6 +62,14 @@ public class CommonPathExpression {
 
   public void setConstraints(Set<QueryExpression> constraints) {
     this.constraints = constraints;
+  }
+
+  public QueryExpression getCost() {
+    return cost;
+  }
+
+  public void setCost(QueryExpression cost) {
+    this.cost = cost;
   }
 
   @Override
@@ -89,6 +105,11 @@ public class CommonPathExpression {
       if (other.vertices != null)
         return false;
     } else if (!vertices.equals(other.vertices))
+      return false;
+    if (cost == null) {
+      if (other.cost != null)
+        return false;
+    } else if (!cost.equals(other.cost))
       return false;
     return true;
   }

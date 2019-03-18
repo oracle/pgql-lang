@@ -55,7 +55,7 @@ rules
              ; connections'' := <alltd(resolve-var-refs-in-path-expression(|variables''))> connections'
        
               // WHERE
-              ; valueExpression' := <resolve-where-clause(|variables'', expAsVars)> valueExpression
+              ; valueExpression' := <resolve-value-expression(|variables'', expAsVars)> valueExpression
 
               ; graphPattern' := Some(GraphPattern(vertices', connections'', valueExpression'))
          else graphPattern' := None()
@@ -118,7 +118,7 @@ rules
          else varDefs' := <conc> (varDefs, [vd])
          end
 
-  resolve-where-clause(|variables, expAsVars):
+  resolve-value-expression(|variables, expAsVars):
     valueExpression -> valueExpression'
     with valueExpression' := <resolve-var-refs(|variables, expAsVars)> valueExpression
 
@@ -295,7 +295,7 @@ rules
     where <oncetd(?VarDef(v, _, _, _))> visible-vars
 
   trans-path-expression(|variables):
-    CommonPathExpression(name, vertices, edges, valueExpression) -> CommonPathExpression(name, vertices', edges', valueExpression')
+    CommonPathExpression(name, vertices, edges, valueExpression, costClause) -> CommonPathExpression(name, vertices', edges', valueExpression', costClause')
     with
        // pattern
         (vertices', edges') := <alltd(trans-elem(|variables))> (vertices, edges)
@@ -305,7 +305,9 @@ rules
 
        // WHERE
        ; variables' := [visible-vars|xs]
-       ; valueExpression' := <resolve-where-clause(|variables', [])> valueExpression
+       ; valueExpression' := <resolve-value-expression(|variables', [])> valueExpression
+
+       ; costClause' := <resolve-value-expression(|variables', [])> costClause
 
   optimize-order-by:
     OrderByClause(elems) -> OrderByClause(elems')

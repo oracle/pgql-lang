@@ -52,13 +52,13 @@ rules // Unresolved/duplicate variables
 
   nabl-constraint(|ctx):
     query@NormalizedQuery(_, selectClause, _, Some(GraphPattern(_, edges, _)), _, _, _, _, _, _) -> <fail>
-    with group-variables := <collect-in-outer-query(?CommonPathExpression(_, _, _, _); get-origin-positions-of-variables); concat> query
+    with group-variables := <collect-in-outer-query(?CommonPathExpression(_, _, _, _, _); get-origin-positions-of-variables); concat> query
        ; varRefs-per-aggregation := <collect-in-outer-query(is-aggregate); map(origin-track-forced(collect-in-outer-query(?VarRef(_, <id>)); !Some(<id>)))> query
        ; varRefs-per-aggregation' := <filter(has-multiple-groupVarRefs(|group-variables))> varRefs-per-aggregation
        ; <batch-generate-error(|ctx, "Accessing multiple group variables in a single aggregation is not yet supported")> varRefs-per-aggregation'
 
   get-origin-positions-of-variables:
-    CommonPathExpression(_, Vertices(vertices), Edges(edges), _) -> <conc; make-set> (origins-of-vertices, origins-of-edges)
+    CommonPathExpression(_, Vertices(vertices), Edges(edges), _, _) -> <conc; make-set> (origins-of-vertices, origins-of-edges)
     with origins-of-vertices := <map(?Vertex(_, <id>, _))> vertices
        ; origins-of-edges := <filter(?Edge(_, _, _, _, <id>, _))> edges
 
@@ -205,7 +205,7 @@ rules // helper rules
 rules // temporary limitation
 
   nabl-constraint(|ctx):
-    CommonPathExpression(_, vertices, connections, Constraints([constraint])) -> <fail>
+    CommonPathExpression(_, vertices, connections, Constraints([constraint]), _) -> <fail>
     with vertexVariables := <collect(?Vertex(<id>, _, _))> vertices
        ; connectionsVariables := <collect(?Edge(_, <id>, _, _, _, _) + ?Path(_, _, _, _, <id>, _, _, _))> connections
        ; variablesDefs := <union> (vertexVariables, connectionsVariables)
@@ -226,7 +226,7 @@ rules // temporary limitation
   nabl-constraint(|ctx):
     ComplexRegularExpressionNotSupported(edgesOrPaths) -> <fail>
     with [_|[secondEdgeOrPath|_]] := edgesOrPaths
-       ; <generate-error(|ctx, "Not yet supported: multiple edges in SHORTEST")> edgesOrPaths
+       ; <generate-error(|ctx, "Not yet supported: multiple edges in SHORTEST or CHEAPEST")> edgesOrPaths
 
   nabl-constraint(|ctx):
     Path(_, _, _, _, _, _, _, kValue) -> <fail>
@@ -234,15 +234,16 @@ rules // temporary limitation
     with <generate-error(|ctx, "Value should be greater than 0")> kValue
 
   nabl-constraint(|ctx):
-    Path(_, _, pathExpression, quantifier, _, _, Shortest(), _) -> <fail>
-    where <not(?Some(BetweenNAndM("0", "-1")))> quantifier
+    Path(_, _, pathExpression, quantifier, _, _, goal, _) -> <fail>
+    where <?Shortest() + ?Cheapest()> goal
+        ; <not(?Some(BetweenNAndM("0", "-1")))> quantifier
     with error-term := <?Some(_) <+ !pathExpression; collect-one(?Edge(_, _, _, _, _, _))> quantifier 
        ; <generate-error(|ctx, "Kleene star (*) required for now")> error-term
 
   nabl-constraint(|ctx):
-    t@CommonPathExpression(_, _, connections, _) -> <fail>
+    t@CommonPathExpression(_, _, connections, _, _) -> <fail>
     where <collect-in-outer-query(?Path(_, _, _, _, _, _, _, _)); not(?[])> connections
-    with <generate-error(|ctx, "Nested regular expressions not yet supported")> t
+    with <generate-error(|ctx, "Nested regular expressions not supported")> t
 
 rules // literals
 

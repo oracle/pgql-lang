@@ -20,7 +20,6 @@ signature constructors // for the normalized AST (see trans/normalize.str)
   NormalizedQuery       : CommonPathExpressions * Vars * FromClause * GraphPattern * GroupByClause * HavingClause * List(OrderByElem) * LimitOffsetClauses * List(ErrorMessage) * PgqlVersion -> NormalizedQuery
   PgqlVersion           : STRING
   CommonPathExpressions : List(CommonPathExpression) -> CommonPathExpressions
-  CommonPathExpression  : PATHPATTERNNAME * Vertices * Connections * Constraints -> CommonPathExpression
   GraphPattern          : Vertices * Connections * Constraints -> GraphPattern
   Vertices              : List(Vertex) -> Vertices
   Vertex                : Var -> Vertex
@@ -52,6 +51,7 @@ signature constructors // for the normalized AST (see trans/normalize.str)
 
   Reaches               : Reaches
   Shortest              : Shortest
+  Cheapest              : Cheapest
   INTEGER               : KValue
 
   VertexInsertion       : Identifier * OriginPosition * LabelsSpecification * PropertiesSpecification -> VertexInsertion
