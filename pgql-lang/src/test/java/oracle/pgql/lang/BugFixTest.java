@@ -76,4 +76,27 @@ public class BugFixTest extends AbstractPgqlTest {
     PropertyAccess propertyAccess = (PropertyAccess) graphQuery.getOrderBy().getElements().get(0).getExp();
     assertEquals("v", propertyAccess.getVariable().getName());
   }
+
+  @Test
+  public void multiplePgqlInstances() throws Exception {
+    String dummyQuery = "SELECT * FROM g MATCH (n)";
+    Pgql pgql1 = new Pgql();
+    Pgql pgql2 = new Pgql();
+
+    assertTrue(pgql1.parse(dummyQuery).isQueryValid());
+
+    pgql1.close();
+    thrown.expectMessage("Pgql instance was closed");
+    pgql1.parse(dummyQuery);
+
+    // even though pgql1 was close, we can still use pgql2
+    assertTrue(pgql2.parse(dummyQuery).isQueryValid());
+
+    pgql2.close();
+    thrown.expectMessage("Pgql instance was closed");
+    pgql2.parse(dummyQuery);
+
+    pgql1.close(); // closing things twice is fine
+    pgql2.close(); // closing things twice if fine
+  }
 }

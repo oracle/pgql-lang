@@ -58,14 +58,16 @@ public class Pgql implements Closeable {
   /**
    * Spoofax is not thread safe, so any method that uses Spoofax should use the lock.
    */
-  private final static Object lock = new Object();
+  private static final Object lock = new Object();
+
+  private static final Set<Pgql> instances = new HashSet<>();
 
   private static final Logger LOG = LoggerFactory.getLogger(Pgql.class);
 
   private static final String NON_BREAKING_WHITE_SPACE_ERROR = "Illegal character '\u00a0' (non-breaking white space)"
       + "; use a normal space instead";
 
-  private final static String ESCAPED_BETA_FEATURES_FLAG = "\\/\\*beta\\*\\/";
+  private static final String ESCAPED_BETA_FEATURES_FLAG = "\\/\\*beta\\*\\/";
 
   @Deprecated
   private static final String UPDATE_BETA_ERROR = "UPDATE is a beta feature and the syntax and semantics may change in a future version; "
@@ -80,7 +82,7 @@ public class Pgql implements Closeable {
 
   private static final String SPOOFAX_BINARIES = "pgql-1.1.spoofax-language";
 
-  private static boolean initialized = false;
+  private static boolean isGloballyInitialized = false;
 
   private static Spoofax spoofax;
 
@@ -92,6 +94,8 @@ public class Pgql implements Closeable {
 
   private static File spoofaxBinaryFile;
 
+  private boolean isInitialized;
+
   /**
    * Loads PGQL Spoofax binaries if not done already.
    *
@@ -99,14 +103,15 @@ public class Pgql implements Closeable {
    */
   public Pgql() throws PgqlException {
     synchronized (lock) {
-      if (!initialized) {
-        initialize();
-        initialized = true;
+      if (!isGloballyInitialized) {
+        initializeGlobalInstance();
       }
+      instances.add(this);
+      isInitialized = true;
     }
   }
 
-  private void initialize() throws PgqlException {
+  private void initializeGlobalInstance() throws PgqlException {
     try {
       // initialize a new Spoofax
       spoofax = new Spoofax(new PgqlConfig());
@@ -157,10 +162,12 @@ public class Pgql implements Closeable {
         }
       });
 
-      parse("SELECT * FROM g MATCH (initQuery)"); // make Spoofax initialize the language
+      parseInternal("SELECT * FROM g MATCH (initQuery)"); // make Spoofax initialize the language
     } catch (MetaborgException | IOException e) {
       throw new PgqlException("Failed to initialize PGQL", e);
     }
+
+    isGloballyInitialized = true;
   }
 
   /**
@@ -174,45 +181,56 @@ public class Pgql implements Closeable {
    */
   public PgqlResult parse(String queryString) throws PgqlException {
     synchronized (lock) {
-      ITemporaryContext context = null;
-      FileObject dummyFile = null;
-      try {
-        dummyFile = getFileObject(queryString);
-        ISpoofaxParseUnit parseResult = parseHelper(queryString, dummyFile);
+      checkInitialized();
+      return parseInternal(queryString);
+    }
+  }
 
-        String prettyMessages = null;
-        boolean queryValid = parseResult.success();
-        GraphQuery graphQuery = null;
-        if (!queryValid) {
-          prettyMessages = getMessages(parseResult.messages(), queryString);
-        }
-        if (!parseResult.valid()) {
-          throw new PgqlException(prettyMessages);
-        }
+  private PgqlResult parseInternal(String queryString) throws PgqlException {
+    ITemporaryContext context = null;
+    FileObject dummyFile = null;
+    try {
+      dummyFile = getFileObject(queryString);
+      ISpoofaxParseUnit parseResult = parseHelper(queryString, dummyFile);
 
-        context = spoofax.contextService.getTemporary(dummyFile, dummyProject, pgqlLang);
-        ISpoofaxAnalyzeUnit analysisResult = null;
-        try (IClosableLock lock = context.write()) {
-          analysisResult = spoofax.analysisService.analyze(parseResult, context).result();
-        }
-
-        if (queryValid) {
-          queryValid = analysisResult.success();
-          prettyMessages = getMessages(analysisResult.messages(), queryString);
-        }
-        graphQuery = SpoofaxAstToGraphQuery.translate(analysisResult.ast());
-
-        checkBetaFeatureToken(queryString, graphQuery);
-
-        return new PgqlResult(queryString, queryValid, prettyMessages, graphQuery, parseResult);
-      } catch (IOException | ParseException | AnalysisException | ContextException e) {
-        throw new PgqlException("Failed to parse PGQL query", e);
-      } finally {
-        if (context != null) {
-          context.close();
-        }
-        quietlyDelete(dummyFile);
+      String prettyMessages = null;
+      boolean queryValid = parseResult.success();
+      GraphQuery graphQuery = null;
+      if (!queryValid) {
+        prettyMessages = getMessages(parseResult.messages(), queryString);
       }
+      if (!parseResult.valid()) {
+        throw new PgqlException(prettyMessages);
+      }
+
+      context = spoofax.contextService.getTemporary(dummyFile, dummyProject, pgqlLang);
+      ISpoofaxAnalyzeUnit analysisResult = null;
+      try (IClosableLock lock = context.write()) {
+        analysisResult = spoofax.analysisService.analyze(parseResult, context).result();
+      }
+
+      if (queryValid) {
+        queryValid = analysisResult.success();
+        prettyMessages = getMessages(analysisResult.messages(), queryString);
+      }
+      graphQuery = SpoofaxAstToGraphQuery.translate(analysisResult.ast());
+
+      checkBetaFeatureToken(queryString, graphQuery);
+
+      return new PgqlResult(queryString, queryValid, prettyMessages, graphQuery, parseResult);
+    } catch (IOException | ParseException | AnalysisException | ContextException e) {
+      throw new PgqlException("Failed to parse PGQL query", e);
+    } finally {
+      if (context != null) {
+        context.close();
+      }
+      quietlyDelete(dummyFile);
+    }
+  }
+
+  private void checkInitialized() throws PgqlException {
+    if (!isInitialized) {
+      throw new PgqlException("Pgql instance was closed");
     }
   }
 
@@ -332,17 +350,24 @@ public class Pgql implements Closeable {
 
   @Override
   public void close() {
-    if (System.getProperty("os.name").startsWith("Windows")) {
-      return; // Windows issue, also see http://yellowgrass.org/issue/Spoofax/88
-    }
-
     synchronized (lock) {
-      if (spoofax != null) {
-        spoofax.close();
-      }
-      if (spoofaxBinaryFile != null) {
-        if (!spoofaxBinaryFile.delete()) {
-          LOG.warn("failed to delete Spoofax binary file: " + spoofaxBinaryFile.getAbsolutePath());
+      isInitialized = false;
+      instances.remove(this);
+      if (instances.isEmpty()) {
+        isGloballyInitialized = false;
+        LOG.info("closing the global PGQL instance");
+
+        if (System.getProperty("os.name").startsWith("Windows")) {
+          return; // Windows issue, also see http://yellowgrass.org/issue/Spoofax/88
+        }
+
+        if (spoofax != null) {
+          spoofax.close();
+        }
+        if (spoofaxBinaryFile != null) {
+          if (!spoofaxBinaryFile.delete()) {
+            LOG.warn("failed to delete Spoofax binary file: " + spoofaxBinaryFile.getAbsolutePath());
+          }
         }
       }
     }
