@@ -1300,28 +1300,6 @@ ORDER BY num_hops, total_amount
 +------------------------------------------------------------+
 ```
 
-{% include image.html file="example_graphs/paris_metro.png" %}
-
-```sql
-  SELECT ARRAY_AGG(dst.name) AS stations
-       , COUNT(DISTINCT e.line) AS lineCnt
-       , COUNT(e) AS stopCnt
-    FROM paris_metro
-   MATCH TOP 3 SHORTEST ( (s1) (-[e]- (dst))* (s2) )
-   WHERE s1.name = 'Gare du Nord' AND s2.name = 'Champs-Élysées - Clemenceau'
-ORDER BY lineCnt, stopCnt
-```
-
-```
-+-------------------------------------------------------------------------------------------------------+
-| stations                                                                          | lineCnt | stopCnt |
-+-------------------------------------------------------------------------------------------------------+
-| [Pigalle, Charles de Gaulle - Étoile, Champs-Élysées - Clemenceau]                | 2       | 3       |
-| [Châtelet, Palais Royal - Musée du Louvre, Concorde, Champs-Élysées - Clemenceau] | 2       | 4       |
-| [Pigalle, Concorde, Champs-Élysées - Clemenceau]                                  | 3       | 3       |
-+-------------------------------------------------------------------------------------------------------+
-```
-
 # Functions and Expressions
 
 Value expressions are used in various parts of the language, for example, to filter solutions (`WHERE` and `HAVING`), to project out computed values (`SELECT`), or, to group by or order by computed values (`GROUP BY` and `ORDER BY`).
