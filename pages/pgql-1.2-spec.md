@@ -23,7 +23,6 @@ The new features in PGQL 1.2 are:
 
  - [Shortest path finding](#shortest-path) and [Top-k shortest path finding](#top-k-shortest-path).
  - [Scalar subqueries](#scalar-subqueries).
- - [Undirected edges](#matching-undirected-edges) (and matching of).
  - [ARRAY_AGG](#ArrayAggregation) aggregation.
  - [ABS](#abs), [CEIL/CEILING](#ceil-or-ceiling), [FLOOR](#floor) and [ROUND](#round) math functions.
  - [EXTRACT](#extract) function for extracting the `year`/`month`/`day`/`hour`/`minute`/`second`/`timezone_hour`/`timezone_minute` from datetime values.
@@ -64,7 +63,7 @@ A property graph has a name, which is a (character) string, and contains:
 
  - A set of edges (or relationships).
 
-   - Each edge is either directed or undirected.
+   - Each edge is directed.
    - Each edge has zero or more labels.
    - Each edge has zero or more properties (or attributes), which are arbitrary key-value pairs.
 
@@ -85,14 +84,6 @@ An example graph with financial transactions is:
 {% include image.html file="example_graphs/financial_transactions.png" %}
 
 Here, `financial_transactions` is the name of the graph. The graph has three types of vertices. Vertices labeled `Person` or `Company` have a property `name`, while vertices labeled `Account` have a property `number`. There are edges labeled `ownerOf` from persons to accounts and from companies to accounts, and there are edges labeled `transaction` from accounts to accounts. Note that only the transaction edges have a property (`amount`).
-
-### Example 3: Paris Métro
-
-Another example graph is:
-
-{% include image.html file="example_graphs/paris_metro.png" %}
-
-Here, `paris_metro` is the name of the graph. The graph has seven vertices that are all labeled `Station`. The vertices are connected by undirected edges labeled `connection`. Each vertex has two properties, `name` and `zone`. Each edge has a single property, `line`.
 
 ## Writing simple queries
 
@@ -229,7 +220,7 @@ TODO
 
 ### Matching edges in any direction
 
-Any-directional edges match edges in the graph no matter if they are incoming, outgoing, or undirected.
+Any-directional edges match edges in the graph no matter if they are incoming or outgoing.
 
 An example query with two any-directional edges is:
 
@@ -249,50 +240,6 @@ SELECT *
 ```
 
 The above query will return all pairs of vertices `n` and `m` that are reachable via a multiple of two edges, each edge being either an incoming or an outgoing edge.
-
-### Matching undirected edges
-
-Undirected edges (in the graph) are matched through [any-directional edge patterns](#matching-edges-in-any-direction).
-
-For example:
-
-{% include image.html file="example_graphs/paris_metro.png" %}
-
-```sql
-SELECT n.name, m.name
-  FROM paris_metro
- MATCH (n:Station) -[e:connection]- (m:Station)
- WHERE e.line = 2
-```
-
-```
-+---------------------------------------------------------+
-| n.name                     | m.name                     |
-+---------------------------------------------------------+
-| Charles de Gaulle - Étoile | Pigalle                    |
-| Pigalle                    | Charles de Gaulle - Étoile |
-| Pigalle                    | Gare du Nord               |
-| Gare du Nord               | Pigalle                    |
-+---------------------------------------------------------+
-```
-
-Note that above, each undirected edge matches twice because each station along line 2 (note: `e.line = 2`) binds once to `n` and once to `m`, for each edge. If this is not desired, one can filter out the "duplicates", for example through a filter like `n.name > m.name`:
-
-```sql
-SELECT n.name, m.name
-  FROM paris_metro
- MATCH (n:Station) -[e:connection]- (m:Station)
- WHERE e.line = 2 AND n.name > m.name
-```
-
-```
-+--------------------------------------+
-| n.name  | m.name                     |
-+--------------------------------------+
-| Pigalle | Charles de Gaulle - Étoile |
-| Pigalle | Gare du Nord               |
-+--------------------------------------+
-```
 
 ## Main query structure
 
