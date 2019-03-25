@@ -109,8 +109,8 @@ rules
          else correlation := None()
          end
 
-  to-varDef = ?Vertex(name, origin-offset, _); !VarDef(name, origin-offset, None(), None(), False())
-  to-varDef = ?Edge(_, name, _, _, origin-offset, _); !VarDef(name, origin-offset, None(), None(), False())
+  to-varDef = ?Vertex(name, origin-offset, _); !VarDef(name, origin-offset, None(), None(), ThisQuery())
+  to-varDef = ?Edge(_, name, _, _, origin-offset, _); !VarDef(name, origin-offset, None(), None(), ThisQuery())
 
   replace-or-add-all = foldl(replace-or-add)
 
