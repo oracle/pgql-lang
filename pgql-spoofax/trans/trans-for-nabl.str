@@ -52,7 +52,7 @@ rules
               ; visible-groupVars := <replace-or-add-all> (new-groupVars, y)
               ; variables'' := [visible-vars|[visible-groupVars|ys]]
 
-             ; connections'' := <alltd(resolve-var-refs-in-path-expression(|variables''))> connections'
+              ; connections'' := <alltd(resolve-var-refs-in-path-expression(|variables''))> connections'
        
               // WHERE
               ; valueExpression' := <resolve-where-clause(|variables'', expAsVars)> valueExpression
@@ -77,7 +77,10 @@ rules
        ; having' := <resolve-having(|variables''', variables'''')> having // having resolves to GROUP BY variables first, then to SELECT variables
 
        // ORDER BY
-       ; orderBy' := <resolve-prop-refs(|variables'''); resolve-var-refs(|variables''''); alltd(optimize-order-by)> orderBy // ORDER BY resolves to SELECT variables first, then to GROUP BY variables (except in case of a VarRef in a PropRef, in which case it is resolved to MATCH or GROUP BY first)
+       // resolve to SELECT variables first, then to GROUP BY variables (except in case of a VarRef in a PropRef, in which case it is resolved to MATCH or GROUP BY first)
+       ; orderBy' := < resolve-var-refs(|variables'''')
+                     ; resolve-prop-refs(|variables''')
+                     ; alltd(optimize-order-by)> orderBy
 
   path-with-at-most-one-binding:
     t@Path(_, _, _, quantifier, _, _, _, _) -> t
@@ -245,6 +248,22 @@ rules
         <+ !VarRef(v)
       > variables
 
+  resolve-var-ref(|variables):
+    t@PropRef(VarRef(v), prop) -> PropRef(varRef, prop)
+    with varRef := <
+           Hd
+         ; fetch(?VarDef(v, origin-offset, original-exp, _, _))
+
+          // The original expression needs to be a vertex/edge defintion (i.e. ?None()) or a reference to a vertex/edge definition (i.e. ?VarRef(_)).
+          // Otherwise, it is a more complex ExpAsVar but we don't want to resolve a VarRef of a PropRef to anything other than a vertex or edge.
+          // So, we leave it unresolved for now. Possibly, it will get resolved by "resolve-prop-refs" later.
+         ; where ( <?None() + ?VarRef(_)> original-exp )
+
+         ; !VarRef(v, origin-offset)
+
+        <+ !VarRef(v)
+      > variables
+
   // MIN, MAX, SUM, AVG, ...
   resolve-var-ref(|variables):
     aggr -> <origin-track-forced(!aggr')> aggr
@@ -292,7 +311,7 @@ rules
   resolve-prop-refs(|variables) = alltd(resolve-prop-ref(|variables))
 
   resolve-prop-ref(|variables):
-    t@PropRef(varRef, prop) -> PropRef(varRef', prop)
+    t@PropRef(varRef@VarRef(_), prop) -> PropRef(varRef', prop)
     with varRef' := <resolve-var-ref(|variables)> varRef
 
   /*

@@ -71,3 +71,63 @@ test Reference group key from outer query (2) [[
   ORDER BY ( SELECT AVG([[nAge]]) AS avg FROM g MATCH (n) GROUP BY n LIMIT 1 )
 
 ]] resolve #2 to #1
+
+test Resolve to this query before resolving to outer query (1) [[
+
+    SELECT 1 AS n
+      FROM g MATCH (n)
+  ORDER BY ( SELECT 1 AS c1 MATCH ( [[n]] ) WHERE [[n]].age >= 21 )
+
+]] resolve #2 to #1
+
+test Resolve to this query before resolving to outer query (2) [[
+
+    SELECT 1 AS n
+      FROM g MATCH ( [[n]] )
+  ORDER BY ( SELECT 1 AS c1 MATCH (m) WHERE [[n]].age >= 21 )
+
+]] resolve #2 to #1
+
+test Resolve to this query before resolving to outer query (3) [[
+
+    SELECT 1 AS c2
+      FROM g MATCH ( [[n]] )
+  ORDER BY ( SELECT 1 AS c1 MATCH (m) WHERE [[n]].age >= 21 )
+
+]] resolve #2 to #1
+
+test Resolve to this query before resolving to outer query (4) [[
+
+    SELECT n.age AS c2
+      FROM g MATCH (n)
+  GROUP BY n.age AS c3
+  ORDER BY ( SELECT n.age AS c1 MATCH ( [[n]] ) WHERE [[n]].age >= 21 )
+
+]] resolve #2 to #1
+
+test Resolve to this query before resolving to outer query (5) [[
+
+    SELECT n.age AS c2
+      FROM g MATCH (n)
+  GROUP BY n.age AS c3
+    HAVING ( SELECT n.age AS c1 MATCH ( [[n]] ) WHERE [[n]].age >= 21 )
+
+]] resolve #2 to #1
+
+test Resolve to this query before resolving to outer query (6) [[
+
+    SELECT AVG(n.age) AS c2
+      FROM g MATCH (n)
+    HAVING ( SELECT n.age AS c1 MATCH ( [[n]] ) WHERE [[n]].age >= 21 )
+
+]] resolve #2 to #1
+
+test Resolve to this query before resolving to outer query (7) [[
+
+    SELECT s.fname AS fname, [[s]].age AS age
+      FROM g MATCH ( [[s]] )
+  ORDER BY ( SELECT [[s]].age AS age FROM g MATCH ( [[s]] ) ) ASC, id([[s]]) ASC
+
+]] resolve #1 to #2
+   resolve #3 to #4
+   resolve #5 to #2
