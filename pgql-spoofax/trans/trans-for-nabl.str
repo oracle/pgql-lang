@@ -36,8 +36,8 @@ rules
        // PATH
        ; pathExpressions' := <map(trans-path-expression(|variables'))> pathExpressions
 
-       // only in PGQL 1.3 and up, column names specified in the SELECT clause are visible in GROUP BY, HAVING and ORDER BY (but only outside of aggregations and subqueries)
-       ; expAsVars := <(?"v1.0" + ?"v1.1"); ![] <+ !selectOrModifyClause; ?SelectClause(_, ExpAsVars(<id>)) <+ ![]> version
+       // these expAsVars are used to make the variables defined in SELECT visible in WHERE
+       ; expAsVars := <?SelectClause(_, ExpAsVars(<id>)) <+ ![]> selectOrModifyClause
 
        ; if <?Some(GraphPattern(vertices, connections, valueExpression))> := graphPattern
          then // MATCH
@@ -123,7 +123,7 @@ rules
 
   resolve-where-clause(|variables, expAsVars):
     valueExpression -> valueExpression'
-    with valueExpression' := <resolve-var-refs(|variables, expAsVars)> valueExpression
+    with valueExpression' := <resolve-var-refs-and-use-expAsVarsFromSelectClause(|variables, expAsVars)> valueExpression
 
   resolve-group-by(|variables, expAsVarsFromSelectClause):
     Some(GroupByClause(expAsVars)) -> (Some(GroupByClause(expAsVars')), variables')
@@ -180,7 +180,7 @@ rules
 
   resolve-exp-as-var-in-group-by(|variables, expAsVarsFromSelectClause):
     (t@ExpAsVar(exp, v, anonymous), (result, vars)) -> (result', vars')
-    with exp' := <resolve-var-refs(|variables, expAsVarsFromSelectClause)> exp
+    with exp' := <resolve-var-refs-and-use-expAsVarsFromSelectClause(|variables, expAsVarsFromSelectClause)> exp
        ; exp'' := <alltd(?VarRef(<id>, _); !VarRef(<id>))> exp'
        ; originOffset := <origin-offset> v
        ; vars' := <replace-or-add> (VarDef(v, originOffset, exp'', exp', ThisQuery()), vars)
@@ -208,30 +208,35 @@ rules
        ; variables := [z|xs]
        ; having' := <resolve-var-refs(|variables)> having
 
+  resolve-var-refs(|variables) =
+      alltd(resolve-var-ref(|variables)) // try resolve using only variables defined in this query
+    ; detect-common-subexpressions(|variables)
+
   /*
      First try to resolve variables as usual.
-     For example, in "SELECT n.prop AS m FROM MATCH( (n) -> (m) ) WHERE m.prop = 123", the "m" in the WHERE clause should reference the "m" in the MATCH clause.
+     For example, in "SELECT n.prop AS m FROM MATCH (n) -> (m) WHERE m.prop = 123", the "m" in the WHERE clause should reference the "m" in the MATCH clause.
      Only if it fails, try to replace variables with expressions from SELECT before trying to resolve again.
-     For example, in "SELECT n.prop AS m FROM MATCH( (n) ) WHERE m.prop = 123", the "m" in the WHERE clause should reference the "m" in the SELECT clause.
+     For example, in "SELECT n.prop AS m FROM MATCH (n) WHERE m.prop = 123", the "m" in the WHERE clause should reference the "m" in the SELECT clause.
      Note that in the final AST, we only want the SELECT to refer to variables in GROUP BY, even though for the user it typically appears like it's the other way arround.
      For example:
-        Actual query: SELECT n.age + 2 FROM MATCH( (n) ) GROUP BY n.age + 2
-        Final AST:    SELECT generatedVar FROM MATCH( (n) ) GROUP BY n.age + 2 AS generatedVar
+        Actual query: SELECT n.age + 2 FROM MATCH (n) GROUP BY n.age + 2
+        Final AST:    SELECT generatedVar FROM MATCH (n) GROUP BY n.age + 2 AS generatedVar
      For example:
-        Actual query: SELECT (n.age + 2)*(n.age + 2) FROM MATCH( (n) ) GROUP BY n.age + 2
-        Final AST:    SELECT generatedVar*generatedVar FROM MATCH( (n) ) GROUP BY n.age + 2 AS generatedVar
+        Actual query: SELECT (n.age + 2)*(n.age + 2) FROM MATCH (n) GROUP BY n.age + 2
+        Final AST:    SELECT generatedVar*generatedVar FROM MATCH (n) GROUP BY n.age + 2 AS generatedVar
      For example:
-        Actual query: SELECT n.age + 2 AS v FROM MATCH( (n) ) GROUP BY v
-        Final AST:    SELECT v FROM MATCH( (n) ) GROUP BY n.age + 2 AS v
+        Actual query: SELECT n.age + 2 AS v FROM MATCH (n) GROUP BY v
+        Final AST:    SELECT v FROM MATCH (n) GROUP BY n.age + 2 AS v
   */
-  resolve-var-refs(|variables, expAsVarsFromSelectClause) =
-    resolve-var-refs(|variables)
-  ; alltd-in-outer-query-outside-aggregation(replace-ref-with-exp(|expAsVarsFromSelectClause))
-  ; alltd-in-outer-query-outside-aggregation(resolve-var-ref(|variables))
+  resolve-var-refs-and-use-expAsVarsFromSelectClause(|variables, expAsVarsFromSelectClause) =
+      alltd-in-outer-query-outside-aggregation( resolve-var-ref-within-query(|variables, expAsVarsFromSelectClause);
+                                                try(replace-ref-with-exp(|variables, expAsVarsFromSelectClause)))
+    ; alltd(resolve-var-ref(|variables)) // now also resolve subqueries and also resolve to variables from outer query
+    ; detect-common-subexpressions(|variables)
 
-  resolve-var-refs(|variables) = alltd(resolve-var-ref(|variables))
-                               ; alltd(replace-exp-with-ref-within-this-query(|variables) <+ is-subquery <+ is-aggregate)
-                               ; alltd(replace-exp-with-ref-from-outer-queries(|variables) <+ is-subquery <+ is-aggregate)
+  detect-common-subexpressions(|variables) =
+      alltd(replace-exp-with-ref-within-this-query(|variables) <+ is-subquery <+ is-aggregate)
+    ; alltd(replace-exp-with-ref-from-outer-queries(|variables) <+ is-subquery <+ is-aggregate)
 
   resolve-var-refs-in-path-expression(|variables):
     t@Path(_, _, _, quantifier, _, _, _, _) -> t'
@@ -245,6 +250,14 @@ rules
     t@VarRef(v) -> varRef
     with varRef := <
         Hd; fetch(?VarDef(v, origin-offset, _, _, _)); !VarRef(v, origin-offset)
+        <+ !VarRef(v)
+      > variables
+
+  // within query only, so don't resolve to variables from outer queries
+  resolve-var-ref-within-query(|variables, expAsVarsFromSelectClause):
+  t@VarRef(v) -> varRef
+    with varRef := <
+        Hd; fetch(?VarDef(v, origin-offset, _, _, ThisQuery())); !VarRef(v, origin-offset)
         <+ !VarRef(v)
       > variables
 
@@ -304,9 +317,10 @@ rules
   */
   replace-resolved-exp-with-ref-helper(|exp) = ?VarDef(v, origin-offset, _, resolved-exp, _); where ( <eq> (exp, resolved-exp) ); !VarRef(v, origin-offset)
 
-  replace-ref-with-exp(|expAsVars):
-    VarRef(v) -> exp
-    where ExpAsVar(exp, _, _) := <filter(?ExpAsVar(_, v, NonAnonymous())); Hd> expAsVars
+  replace-ref-with-exp(|variables, expAsVars):
+    VarRef(v) -> resolved-exp
+    where exp := <filter(?ExpAsVar(<id>, v, NonAnonymous())); Hd> expAsVars
+    with resolved-exp := <alltd(resolve-var-ref(|variables))> exp
 
   resolve-prop-refs(|variables) = alltd(resolve-prop-ref(|variables))
 
