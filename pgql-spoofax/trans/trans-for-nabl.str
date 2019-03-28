@@ -36,7 +36,7 @@ rules
        // PATH
        ; pathExpressions' := <map(trans-path-expression(|variables'))> pathExpressions
 
-       // these expAsVars are used to make the variables defined in SELECT visible in WHERE
+       // these expAsVars are used to make the column aliases in SELECT visible in WHERE and GROUP BY
        ; expAsVars := <?SelectClause(_, ExpAsVars(<id>)) <+ ![]> selectOrModifyClause
 
        ; if <?Some(GraphPattern(vertices, connections, valueExpression))> := graphPattern
@@ -209,7 +209,7 @@ rules
        ; having' := <resolve-var-refs(|variables)> having
 
   resolve-var-refs(|variables) =
-      alltd(resolve-var-ref(|variables)) // try resolve using only variables defined in this query
+      alltd(resolve-var-ref(|variables))
     ; detect-common-subexpressions(|variables)
 
   /*
