@@ -148,7 +148,7 @@ public class PgqlUtils {
   // HELPER METHODS FOR PRETTY-PRINTING BELOW
 
   public static String printIdentifier(String identifier) {
-    if (identifier.matches("^[a-zA-Z0-9_]*$")) {
+    if (identifier.matches("^[a-zA-Z][a-zA-Z0-9_]*$")) {
       return identifier;
     } else {
       return "\"" + escape(identifier) //

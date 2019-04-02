@@ -99,4 +99,11 @@ public class BugFixTest extends AbstractPgqlTest {
     pgql1.close(); // closing things twice is fine
     pgql2.close(); // closing things twice if fine
   }
+
+  @Test
+  public void escapingOfIdentifiers() throws Exception {
+    String query = "SELECT n.\"123_property\" FROM \"456_graph\" MATCH (n:\"789_label1\"|\"_label2\")";
+    String prettyPrintedQuery = pgql.parse(query).getGraphQuery().toString();
+    assertTrue(pgql.parse(prettyPrintedQuery).isQueryValid());
+  }
 }
