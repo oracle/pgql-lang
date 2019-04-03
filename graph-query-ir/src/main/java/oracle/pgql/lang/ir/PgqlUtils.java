@@ -183,9 +183,9 @@ public class PgqlUtils {
           result += " " + modifyQuery.getGraphName();
         }
 
-        result += "\n  " + modifyQuery.getModifications().stream() //
+        result += " (\n  " + modifyQuery.getModifications().stream() //
             .map(x -> x.toString()) //
-            .collect(Collectors.joining("\n  "));
+            .collect(Collectors.joining("\n  ")) + "\n)";
         break;
       default:
         throw new IllegalArgumentException(graphQuery.getQueryType().toString());

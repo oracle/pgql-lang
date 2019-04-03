@@ -92,7 +92,7 @@ public class PrettyPrintingTest extends AbstractPgqlTest {
     String query = "SELECT m.name, n.age FROM persons MATCH (m)->(n)";
     checkRoundTrip(query);
   }
-  
+
   @Test
   public void testQueryWithoutFromClause() throws Exception {
     String query = "SELECT m.name, n.age MATCH (m)->(n)";
@@ -199,6 +199,18 @@ public class PrettyPrintingTest extends AbstractPgqlTest {
   @Test
   public void testDeprecatedDefinitionInGroupBy() throws Exception {
     String query = "SELECT age FROM g MATCH (n) GROUP BY n.age AS age";
+    checkRoundTrip(query);
+  }
+
+  @Test
+  public void testModify() throws Exception {
+    String query = "MODIFY/*beta*/ (" //
+        + "  INSERT VERTEX v LABELS ( 'Person' ) PROPERTIES ( v.first_name = 'Scott', v.last_name = 'Tiger' ), " //
+        + "           EDGE e BETWEEN v AND u LABELS ( 'Likes' ) PROPERTIES ( e.weight = 10 )" //
+        + "  UPDATE u SET PROPERTIES ( u.first_name = 'Jane' ) " //
+        + "  DELETE w" //
+        + ")" //
+        + "FROM g MATCH (u) -> (w)";
     checkRoundTrip(query);
   }
 

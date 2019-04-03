@@ -292,15 +292,14 @@ rules // MODIFY
 
   // e.g. UPDATE x.prop = 123 ... GROUP BY x.prop
   nabl-constraint(|ctx):
-    setProperty -> <fail>
-    where <?SetProperty(t@VarRef(_, _), _) + ?Set(t@VarRef(_, _), _)> setProperty
+    SetProperty(t@VarRef(_, _), _) -> <fail>
     with <generate-error(|ctx, "Cannot set a property that is grouped by")> t
 
   // setting a property twice, in either UPDATE or INSERT
   nabl-constraint(|ctx):
     properties -> <fail>
-    where <?SetProperties(_, setPropertyExps) + ?Properties(_, setPropertyExps)> properties
-    with propertyRefs := <map(?SetProperty(<id>, _) + ?Set(<id>, _))> setPropertyExps
+    where <?SetProperties(setPropertyExps) + ?Properties(setPropertyExps)> properties
+    with propertyRefs := <map(?SetProperty(<id>, _))> setPropertyExps
        ; duplicatePropertyRefs := <filter(is-elem-contained-more-than-once(|propertyRefs))> propertyRefs
        ; <batch-generate-error(|ctx, "Property is set multiple times")> duplicatePropertyRefs
 

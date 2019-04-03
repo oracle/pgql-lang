@@ -4,7 +4,7 @@ language pgql-lang
 
 test Unresolved variable in SELECT [[
 
-  SELECT ( [[MODIFY UPDATE x SET PROPERTY x.prop = 3]] FROM g MATCH (x) ) AS v
+  SELECT ( [[MODIFY ( UPDATE x SET PROPERTIES ( x.prop = 3 ) )]] FROM g MATCH (x) ) AS v
     FROM g MATCH(n)
 
 ]] error like "SELECT clause expected here" at #1
@@ -13,13 +13,13 @@ test Unresolved variable in SELECT [[
 
   SELECT n AS n
     FROM g MATCH (n)
-   WHERE EXISTS ( [[MODIFY g UPDATE x SET PROPERTY x.prop = 3]] FROM g MATCH(x) )
+   WHERE EXISTS ( [[MODIFY g ( UPDATE x SET PROPERTIES ( x.prop = 3 ) )]] FROM g MATCH(x) )
 
 ]] error like "SELECT clause expected here" at #1
 
 test Set a property that is grouped by [[
 
-    MODIFY g UPDATE n SET PROPERTY [[n.prop]] = 123
+    MODIFY g ( UPDATE n SET PROPERTIES ( [[n.prop]] = 123 ) )
       FROM g MATCH (n)
   GROUP BY n.prop AS nProp
 
@@ -27,23 +27,23 @@ test Set a property that is grouped by [[
 
 test Update property value to vertex or edge (1) [[
 
-  MODIFY g UPDATE n SET PROPERTIES n.prop1 = [[n]]
-                                 , n.prop2 = [[m]]
-                                 , n.prop3 = [[e]]
+  MODIFY g ( UPDATE n SET PROPERTIES ( n.prop1 = [[n]]
+                                     , n.prop2 = [[m]]
+                                     , n.prop3 = [[e]] ) )
     FROM g MATCH (n) -[e]-> (m)
 
 ]] error like "Cannot set the value of a property to a vertex or an edge" at #1, #2, #3
 
 test Update property value to vertex or edge (2) [[
 
-  MODIFY g UPDATE n SET PROPERTY n.prop = ( SELECT [[x AS x]] FROM g MATCH (x) LIMIT 1 )
+  MODIFY g ( UPDATE n SET PROPERTIES ( n.prop = ( SELECT [[x AS x]] FROM g MATCH (x) LIMIT 1 ) ) )
     FROM g MATCH (n) -[e]-> (m)
 
 ]] error like "Scalar subquery not allowed to return a vertex or an edge" at #1
 
 test Update property value to vertex or edge (3) [[
 
-  MODIFY g UPDATE n SET PROPERTY n.prop = [[n]]
+  MODIFY g ( UPDATE n SET PROPERTIES ( n.prop = [[n]] ) )
     FROM g MATCH (n)
   GROUP BY n
 
@@ -51,23 +51,23 @@ test Update property value to vertex or edge (3) [[
 
 test Insert element with property value of type vertex or edge (1) [[
 
-  MODIFY g INSERT VERTEX m PROPERTIES n.prop1 = [[n]]
-                                    , n.prop2 = [[m]]
-                                    , n.prop3 = [[e]]
+  MODIFY g ( INSERT VERTEX m PROPERTIES ( n.prop1 = [[n]]
+                                        , n.prop2 = [[m]]
+                                        , n.prop3 = [[e]] ) )
     FROM g MATCH (n) -[e]-> (m)
 
 ]] error like "Cannot set the value of a property to a vertex or an edge" at #1, #2, #3
 
 test Insert element with property value of type vertex or edge (2) [[
 
-  MODIFY g INSERT VERTEX m PROPERTY m.prop = ( SELECT [[x AS x]] FROM g MATCH (x) LIMIT 1 )
+  MODIFY g ( INSERT VERTEX m PROPERTIES ( m.prop = ( SELECT [[x AS x]] FROM g MATCH (x) LIMIT 1 ) ) )
     FROM g MATCH (n) -[e]-> (m)
 
 ]] error like "Scalar subquery not allowed to return a vertex or an edge" at #1
 
 test Insert element with property value of type vertex or edge (3) [[
 
-  MODIFY g INSERT VERTEX m PROPERTY m.prop = [[n]]
+  MODIFY g ( INSERT VERTEX m PROPERTIES ( m.prop = [[n]] ) )
     FROM g MATCH (n)
   GROUP BY n
 
@@ -76,14 +76,30 @@ test Insert element with property value of type vertex or edge (3) [[
 
 test Set a property multiple times in UPDATE [[
 
-  MODIFY g UPDATE n SET PROPERTIES [[n.prop]] = 1, [[n.prop]] = 2
+  MODIFY g ( UPDATE n SET PROPERTIES ( [[n.prop]] = 1, [[n.prop]] = 2 ) )
     FROM g MATCH (n)
 
 ]] error like "Property is set multiple times" at #1, #2
 
 test Set a property multiple times in INSERT [[
 
-  MODIFY g INSERT VERTEX m PROPERTIES [[m.prop]] = 1, [[m.prop]] = 2
+  MODIFY g ( INSERT VERTEX m PROPERTIES ( [[m.prop]] = 1, [[m.prop]] = 2 ) )
     FROM g MATCH (n)
 
 ]] error like "Property is set multiple times" at #1, #2
+
+test Cannot reference inserted elements [[
+
+  MODIFY (
+    INSERT VERTEX v1 LABELS ( [[v1]].prop ),
+           VERTEX v2 PROPERTIES ( v2.prop = [[v2]].prop ),
+           VERTEX v3,
+           VERTEX v4,
+           VERTEX v5,
+           EDGE e BETWEEN v1 AND v1 LABELS ( [[e]].prop, [[v3]].prop ) PROPERTIES ( e.prop = [[v4]].prop, [[v5]].prop = 123 ),
+           VERTEX v6
+    UPDATE n SET PROPERTIES ( n.prop1 = [[v6]].prop, n.prop2 = n.prop, [[m]].prop = n.prop )
+  )
+  FROM g MATCH (n) -> (m)
+
+]] error like "Unresolved variable" at #1, #2, #3, #4, #5, #6

@@ -3,11 +3,10 @@
  */
 package oracle.pgql.lang.ir.modify;
 
-public enum ModificationType {
+public enum InsertionType {
 
-  INSERT,
+  VERTEX_INSERTION,
 
-  UPDATE,
+  EDGE_INSERTION
 
-  DELETE
 }
