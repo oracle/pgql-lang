@@ -32,13 +32,13 @@
   <repositories>
     <repository>
       <id>metaborgRepo</id>
-      <url>http://artifacts.metaborg.org/content/repositories/releases/</url>
+      <url>https://artifacts.metaborg.org/content/repositories/releases/</url>
     </repository>
   </repositories>
   <pluginRepositories>
     <pluginRepository>
       <id>metaborgPluginRepo</id>
-      <url>http://artifacts.metaborg.org/content/repositories/releases/</url>
+      <url>https://artifacts.metaborg.org/content/repositories/releases/</url>
     </pluginRepository>
   </pluginRepositories>
 
