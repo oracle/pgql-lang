@@ -20,7 +20,7 @@
   <repositories>
     <repository>
       <id>metaborg-release-repo</id>
-      <url>http://artifacts.metaborg.org/content/repositories/releases/</url>
+      <url>https://artifacts.metaborg.org/content/repositories/releases/</url>
       <releases>
         <enabled>true</enabled>
       </releases>
@@ -33,7 +33,7 @@
   <pluginRepositories>
     <pluginRepository>
       <id>metaborg-release-repo</id>
-      <url>http://artifacts.metaborg.org/content/repositories/releases/</url>
+      <url>https://artifacts.metaborg.org/content/repositories/releases/</url>
       <releases>
         <enabled>true</enabled>
       </releases>
