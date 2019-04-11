@@ -35,20 +35,37 @@ rules // Unresolved/duplicate variables
           end
 
   nabl-constraint(|ctx):
-    NormalizedQuery(_, selectClause, _, Some(GraphPattern(vertices, edges, _)), groupClause, _, _, _, _, _) -> <fail>
-    with matchVars := <collect(is-pattern-elem); collect-om(get-pattern-elem, conc)> (vertices, edges)
+    NormalizedQuery(_, selectOrModifyClause, _, graphPattern, groupClause, _, _, _, _, _) -> <fail>
+    with matchVars := <?None(); ![] <+ ?Some(GraphPattern(vertices, edges, _)); !(vertices, edges); collect(is-pattern-elem); collect-om(get-pattern-elem, conc)> graphPattern
        ; groupExpressions := <collect-om(?ExpAsVar(_, <id>, _, _), conc)> groupClause
-       ; selectExpressions := <collect-om(?ExpAsVar(_, <id>, _, _), conc)> selectClause
        ; <generate-error-on-duplicates(|ctx)> matchVars
        ; <generate-error-on-duplicates(|ctx)> groupExpressions
-       ; <generate-error-on-duplicates(|ctx)> selectExpressions
+       ; if <?SelectClause(_, _)> selectOrModifyClause
+         then selectExpressions := <collect-om(?ExpAsVar(_, <id>, _, _), conc)> selectOrModifyClause
+            ; <generate-error-on-duplicates(|ctx)> selectExpressions
+            ; insertVars := []
+         else // MODIFY query
+              insertVars := <collect-om(?VertexInsertion(<id>, _, _, _) + ?DirectedEdgeInsertion(<id>, _, _, _, _, _), conc)> selectOrModifyClause
+            ; <generate-error-on-duplicates(|ctx)> insertVars
+            ; updateVars := <collect-om(?Update(VarRef(<id>), _), conc)> selectOrModifyClause
+            ; updates-of-inserts := <strip-annos; isect> (updateVars, insertVars)
+            ; <batch-generate-error(|ctx, "Cannot update an element that is being inserted")> updates-of-inserts
+         end
 
        ; groupVars := <collect(?ExpAsVar(_, <id>, NonAnonymous(), _))> groupClause
        ; redefinitions-in-groupBy := <strip-annos; isect> (groupVars, matchVars)
        ; <batch-generate-error(|ctx, "Duplicate variable: variable already defined in the MATCH clause")> redefinitions-in-groupBy
-       ; selectVars := <collect(?ExpAsVar(_, <id>, NonAnonymous(), _))> selectClause
-       ; redefinitions-in-select := <strip-annos; isect> (selectVars, groupVars)
-       ; <batch-generate-error(|ctx, "Duplicate variable: variable already defined in the GROUP BY clause")> redefinitions-in-select
+
+       ; if <?None()> groupClause
+         then redefinition-in-modify := <strip-annos; isect> (insertVars, matchVars)
+            ; <batch-generate-error(|ctx, "Duplicate variable: variable already defined in the MATCH clause")> redefinition-in-modify
+         else if <?SelectClause(_, _)> selectOrModifyClause
+              then selectOrInsertVars := <collect(?ExpAsVar(_, <id>, NonAnonymous(), _))> selectOrModifyClause
+              else selectOrInsertVars := insertVars
+              end
+            ; redefinitions-in-select-or-modify := <strip-annos; isect> (selectOrInsertVars, groupVars)
+            ; <batch-generate-error(|ctx, "Duplicate variable: variable already defined in the GROUP BY clause")> redefinitions-in-select-or-modify
+         end
 
   nabl-constraint(|ctx):
     query@NormalizedQuery(_, selectClause, _, Some(GraphPattern(_, edges, _)), _, _, _, _, _, _) -> <fail>
@@ -288,6 +305,12 @@ rules // IN
   type-to-string = ?Time(_); !"Time"
   type-to-string = ?Timestamp(_); !"Timestamp"
 
+rules // SELECT
+
+  nabl-constraint(|ctx):
+    NormalizedQuery(_, t@SelectClause(_, _), _, None(), _, _, _, _, _, _) -> <fail>
+    with <generate-error(|ctx, "SELECT query without MATCH clause not allowed")> t
+
 rules // MODIFY
 
   // e.g. UPDATE x.prop = 123 ... GROUP BY x.prop
@@ -307,3 +330,21 @@ rules // MODIFY
     elem -> <id>
     where duplicates := <filter(?elem)> elems
         ; <gt> (<length>, 1)
+
+  nabl-constraint(|ctx):
+    t -> <fail>
+    where <?VertexInsertion(v, _, _, Some(Properties(setProperties))) +
+           ?DirectedEdgeInsertion(v, _, _, _, _, Some(Properties(setProperties))) +
+           ?Update(VarRef(v, _), SetProperties(setProperties))> t
+    with v' := <strip-annos> v
+       ; otherVariableThanV := <filter(?SetProperty(PropRef(VarRef(<id>, _), _), _); strip-annos; not(?v'))> setProperties
+       ; <batch-generate-error(|ctx, $<Did you mean <v>?>)> otherVariableThanV
+
+  nabl-constraint(|ctx):
+    ModifyClause(_, insertUpdateDeleteClauses) -> <fail>
+    with additionalInsertClauses := <filter(?InsertClause(_)); try(Tl)> insertUpdateDeleteClauses
+       ; additionalUpdateClauses := <filter(?UpdateClause(_)); try(Tl)> insertUpdateDeleteClauses
+       ; additionalDeleteClauses := <filter(?DeleteClause(_)); try(Tl)> insertUpdateDeleteClauses
+       ; <batch-generate-error(|ctx, "Only a single INSERT clause is allowed per query; use commas to insert multiple elements in one INSERT clause")> additionalInsertClauses
+       ; <batch-generate-error(|ctx, "Only a single UPDATE clause is allowed per query; use commas to update multiple elements in one UPDATE clause")> additionalUpdateClauses
+       ; <batch-generate-error(|ctx, "Only a single DELETE clause is allowed per query; use commas to delete multiple elements in one DELETE clause")> additionalDeleteClauses

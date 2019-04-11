@@ -20,8 +20,7 @@ context-free syntax
   InsertClause.InsertClause = <INSERT <{Insertion ", "}+>> {case-insensitive}
 
   Insertion.VertexInsertion = <VERTEX <Identifier> <LabelsSpecification?> <PropertiesSpecification?>> {case-insensitive}
-  Insertion.DirectedEdgeInsertion = <<Directed?> EDGE <Identifier> BETWEEN <VarRef> AND <VarRef> <LabelsSpecification?> <PropertiesSpecification?>> {case-insensitive}
-  Directed.Directed = <DIRECTED> {case-insensitive}
+  Insertion.DirectedEdgeInsertion = <EDGE <Identifier> BETWEEN <VarRef> AND <VarRef> <LabelsSpecification?> <PropertiesSpecification?>> {case-insensitive}
 
   LabelsSpecification.Labels = <LABELS ( <{Exp ", "}+> )> {case-insensitive}
   PropertiesSpecification.Properties = <PROPERTIES ( <{SetProperty ", "}+> )> {case-insensitive}

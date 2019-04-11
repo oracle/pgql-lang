@@ -206,11 +206,12 @@ public class PrettyPrintingTest extends AbstractPgqlTest {
   public void testModify() throws Exception {
     String query = "MODIFY/*beta*/ (" //
         + "  INSERT VERTEX v LABELS ( 'Person' ) PROPERTIES ( v.first_name = 'Scott', v.last_name = 'Tiger' ), " //
-        + "           EDGE e BETWEEN v AND u LABELS ( 'Likes' ) PROPERTIES ( e.weight = 10 )" //
-        + "  UPDATE u SET PROPERTIES ( u.first_name = 'Jane' ) " //
-        + "  DELETE w" //
+        + "         EDGE e BETWEEN v AND u LABELS ( 'Likes' ) PROPERTIES ( e.weight = 10 )" //
+        + "  UPDATE u SET PROPERTIES ( u.first_name = 'Jane' ), " //
+        + "         x SET PROPERTIES ( x.first_name = 'Bob' ) " //
+        + "  DELETE w, e3" //
         + ")" //
-        + "FROM g MATCH (u) -> (w)";
+        + "FROM g MATCH (u) -> (w) -[e3]-> (x)";
     checkRoundTrip(query);
   }
 

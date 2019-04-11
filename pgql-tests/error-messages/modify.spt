@@ -103,3 +103,111 @@ test Cannot reference inserted elements [[
   FROM g MATCH (n) -> (m)
 
 ]] error like "Unresolved variable" at #1, #2, #3, #4, #5, #6
+
+test Duplicate variable (1) [[
+
+  MODIFY (
+    INSERT VERTEX [[v1]],
+           EDGE [[v1]] BETWEEN v1 AND v1
+  )
+  FROM g MATCH (v1)
+
+]] error like "Duplicate variable: variable already defined in the MATCH clause" at #1, #2
+
+test Duplicate variable (2) [[
+
+  MODIFY (
+    INSERT VERTEX [[v2]],
+           EDGE [[v2]] BETWEEN v1 AND v2
+  )
+  FROM g MATCH (v1)
+  GROUP BY v1.prop AS v2
+
+]] error like "Duplicate variable: variable already defined in the GROUP BY clause" at #1, #2
+
+test Duplicate variable (3) [[
+
+  MODIFY (
+    INSERT VERTEX [[v2]],
+           VERTEX [[v2]],
+           EDGE [[v2]] BETWEEN v2 AND v2
+  )
+
+]] error like "Duplicate variable" at #1, #2, #3
+
+test Duplicate variable (4) [[
+
+  MODIFY (
+    INSERT VERTEX [[v2]],
+           VERTEX [[v2]],
+           EDGE [[v2]] BETWEEN v2 AND v2
+  )
+  FROM g MATCH (v1)
+
+]] error like "Duplicate variable" at #1, #2, #3
+
+test Update an insertion (1) [[
+
+  MODIFY (
+    INSERT VERTEX v3
+    UPDATE [[v3]] SET PROPERTIES ( v3.prop = 3 )
+  )
+
+]] error like "Cannot update an element that is being inserted" at #1
+
+test Update an insertion (2) [[
+
+  MODIFY (
+    INSERT VERTEX v3
+    UPDATE [[v3]] SET PROPERTIES ( v3.prop = 3 )
+  )
+  FROM g MATCH (v1)
+
+]] error like "Cannot update an element that is being inserted" at #1
+
+test Update other element than the one that was meant to be updated [[
+
+  MODIFY (
+    UPDATE n SET PROPERTIES ( [[m]].prop = 3 )
+    UPDATE m SET PROPERTIES ( [[n]].prop = 4 )
+  )
+  FROM g MATCH (n) -> (m)
+
+]] error like "Did you mean n?" at #1
+   error like "Did you mean m?" at #2
+
+test Set properties of other element than the one that is being inserted [[
+
+  MODIFY (
+    INSERT VERTEX m PROPERTIES ( [[n]].prop = 3 )
+         , EDGE e BETWEEN n AND m PROPERTIES ( [[n]].prop = 4 )
+  )
+  FROM g MATCH (n)
+
+]] error like "Did you mean m?" at #1
+   error like "Did you mean e?" at #2
+
+test Duplicate clauses (1) [[
+
+  MODIFY (
+    INSERT VERTEX v
+    [[INSERT VERTEX w
+    UPDATE]] n SET PROPERTIES ( n.prop = 123 )
+    [[INSERT EDGE e3 BETWEEN m AND o
+    DELETE]] e3
+    [[DELETE e4
+  )]]
+  FROM g MATCH (n) -[e1]-> (m) -[e2]-> (o)
+
+]] error like "Only a single INSERT clause is allowed per query; use commas to insert multiple elements in one INSERT clause" at #1, #2
+   error like "Only a single DELETE clause is allowed per query; use commas to delete multiple elements in one DELETE clause" at #3
+
+test Duplicate clauses (2) [[
+
+  MODIFY (
+    UPDATE n SET PROPERTIES ( n.prop = 1 )
+    [[UPDATE m SET PROPERTIES ( m.prop = 2 )
+  )]]
+  FROM g MATCH (n) -[e1]-> (m) -[e2]-> (o)
+
+]] error like "Only a single UPDATE clause is allowed per query; use commas to update multiple elements in one UPDATE clause" at #1

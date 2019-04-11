@@ -140,7 +140,7 @@ rules
        ; variables' := [vars'|variables]
 
   resolve-select-clause(|variables):
-    SelectClause(distinct, eav@ExpAsVars(expAsVars)) -> (SelectClause(distinct, eav'), variables')
+    t@SelectClause(distinct, eav@ExpAsVars(expAsVars)) -> (selectClause', variables')
     with if Star() := expAsVars
          then eav' := expAsVars
             ; variables':= variables
@@ -149,6 +149,7 @@ rules
             ; eav' := <origin-track-forced(!ExpAsVars(expAsVars'))> eav
             ; variables' := [vars'|<Tl> variables]
          end
+       ; selectClause' := <origin-track-forced(!SelectClause(distinct, eav'))> t
 
   resolve-modify-clause(|variables):
     t@ModifyClause(graphName, modifications) -> modifyClause'
@@ -166,24 +167,17 @@ rules
   resolve-modification(|variables) = ?DeleteClause(_); resolve-var-refs(|variables)
 
   resolve-insertion(|original-variables):
-    (t@DirectedEdgeInsertion(_, Identifier(v), src, dst, labels, properties), (result, variables)) -> (result', variables')
-    with originOffset := <origin-offset> v
-       ; src' := <resolve-var-refs(|variables)> src
-       ; dst' := <resolve-var-refs(|variables)> dst
-       ; labels' := <resolve-var-refs(|original-variables)> labels
-       ; properties' := <resolve-set-properties(|v, originOffset, original-variables)> properties
-       ; insertion := <origin-track-forced(!DirectedEdgeInsertion(v, originOffset, src', dst', labels', properties'))> t
-       ; [vars-in-scope|xs] := variables
-       ; vars-in-scope' := <replace-or-add> (VarDef(v, originOffset, None(), None(), ThisQuery()), vars-in-scope)
-       ; variables' := [vars-in-scope'|xs]
-       ; result' := <conc> (result, [insertion])
-
-  resolve-insertion(|original-variables):
-    (t@VertexInsertion(Identifier(v), labels, properties), (result, variables)) -> (result', variables')
+    (t, (result, variables)) -> (result', variables')
+    where <?VertexInsertion(Identifier(v), labels, properties) + ?DirectedEdgeInsertion(Identifier(v), src, dst, labels, properties)> t
     with originOffset := <origin-offset> v
        ; labels' := <resolve-var-refs(|original-variables)> labels
        ; properties' := <resolve-set-properties(|v, originOffset, original-variables)> properties
-       ; insertion := <origin-track-forced(!VertexInsertion(v, <origin-offset> v, labels', properties'))> t
+       ; if <?VertexInsertion(_, _, _)> t
+         then insertion := <origin-track-forced(!VertexInsertion(v, originOffset, labels', properties'))> t
+         else src' := <resolve-var-refs(|variables)> src
+            ; dst' := <resolve-var-refs(|variables)> dst
+        ; insertion := <origin-track-forced(!DirectedEdgeInsertion(v, originOffset, src', dst', labels', properties'))> t
+         end
        ; [vars-in-scope|xs] := variables
        ; vars-in-scope' := <replace-or-add> (VarDef(v, originOffset, None(), None(), ThisQuery()), vars-in-scope)
        ; variables' := [vars-in-scope'|xs]
@@ -193,7 +187,7 @@ rules
 
   resolve-set-property(|v, originOffset, original-variables):
     SetProperty(PropRef(varRef, prop), exp) -> result
-    with varRef' := <try(?VarRef(v); ?VarRef(<id>); !VarRef(<id>, originOffset))> varRef
+    with varRef' := <?VarRef(v); ?VarRef(<id>); !VarRef(<id>, originOffset) <+ resolve-var-refs(|original-variables)> varRef
        ; exp' :=  <resolve-var-refs(|original-variables)> exp
        ; result := SetProperty(PropRef(varRef', prop), exp')
 
