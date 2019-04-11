@@ -332,6 +332,18 @@ rules // MODIFY
         ; <gt> (<length>, 1)
 
   nabl-constraint(|ctx):
+    UpdateClause(updates) -> <fail>
+    with updateElements := <filter(?Update(VarRef(<id>, _), _))> updates
+       ; duplicateUpdateElements := <filter(is-elem-contained-more-than-once(|updateElements))> updateElements
+       ; <batch-generate-error(|ctx, "Element is updated multiple times (merge the two updates together)")> duplicateUpdateElements
+
+  nabl-constraint(|ctx):
+    DeleteClause(deletions) -> <fail>
+    with deleteElements := <filter(?VarRef(<id>, _))> deletions
+       ; duplicateDeleteElements := <filter(is-elem-contained-more-than-once(|deleteElements))> deleteElements
+       ; <batch-generate-error(|ctx, "Element is deleted multiple times")> duplicateDeleteElements
+
+  nabl-constraint(|ctx):
     t -> <fail>
     where <?VertexInsertion(v, _, _, Some(Properties(setProperties))) +
            ?DirectedEdgeInsertion(v, _, _, _, _, Some(Properties(setProperties))) +

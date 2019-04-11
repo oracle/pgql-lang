@@ -211,3 +211,15 @@ test Duplicate clauses (2) [[
   FROM g MATCH (n) -[e1]-> (m) -[e2]-> (o)
 
 ]] error like "Only a single UPDATE clause is allowed per query; use commas to update multiple elements in one UPDATE clause" at #1
+
+test Duplicate updates or deletions [[
+
+  MODIFY g (
+    UPDATE [[v]] SET PROPERTIES ( v.first_name = 'Scott' ),
+           [[v]] SET PROPERTIES ( v.last_name = 'Tiger' )
+    DELETE [[w]], [[w]]
+  )
+  FROM g MATCH (v) -> (w)
+
+]] error like "Element is updated multiple times (merge the two updates together)" at #1, #2
+   error like "Element is deleted multiple times" at #3, #4
