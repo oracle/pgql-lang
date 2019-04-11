@@ -61,4 +61,13 @@ public class SyntaxErrorsTest extends AbstractPgqlTest {
     assertTrue(result.getErrorMessages().contains("Not a valid timestamp"));
     assertFalse(result.getGraphQuery() == null);
   }
+
+  @Test
+  public void testDuplicateInsertUpdateDeleteClausesShouldNotThrowUnexpectedExceptions() throws Exception {
+    String query = "MODIFY/*beta*/ ( INSERT VERTEX v1 INSERT VERTEX v2" //
+        + " DELETE e1 DELETE e2" //
+        + " UPDATE n SET PROPERTIES ( n.prop = 1 ) UPDATE m SET PROPERTIES ( n.prop = 2 ) )" //
+        + " FROM g MATCH (n) -[e1]-> (m) -[e2]-> (o)";
+    assertFalse(pgql.parse(query).isQueryValid());
+  }
 }
