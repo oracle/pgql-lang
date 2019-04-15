@@ -384,10 +384,11 @@ public class SpoofaxAstToGraphQuery {
         String edgeName = getString(insertionT.getSubterm(POS_EDGE_INSERTION_NAME));
 
         IStrategoTerm srcVarRefT = insertionT.getSubterm(POS_EDGE_INSERTION_SRC);
-        QueryVertex src = (QueryVertex) ctx.getVariable(srcVarRefT.getSubterm(POS_VARREF_ORIGIN_OFFSET));
+        QueryVertex src = (QueryVertex) getVariable(ctx, srcVarRefT);
 
         IStrategoTerm dstVarRefT = insertionT.getSubterm(POS_EDGE_INSERTION_DST);
-        QueryVertex dst = (QueryVertex) ctx.getVariable(dstVarRefT.getSubterm(POS_VARREF_ORIGIN_OFFSET));
+
+        QueryVertex dst = (QueryVertex) getVariable(ctx, dstVarRefT);
 
         QueryEdge edge = new QueryEdge(src, dst, edgeName, false, Direction.OUTGOING);
         IStrategoTerm originPosition = insertionT.getSubterm(POS_EDGE_INSERTION_ORIGIN_OFFSET);
@@ -880,12 +881,7 @@ public class SpoofaxAstToGraphQuery {
           }
         }
       case "VarRef":
-        String varName = getString(t.getSubterm(POS_VARREF_VARNAME));
-        IStrategoTerm originPosition = null;
-        if (t.getSubtermCount() > 1) {
-          originPosition = t.getSubterm(POS_VARREF_ORIGIN_OFFSET);
-        }
-        QueryVariable var = getVariable(ctx, originPosition, varName);
+        QueryVariable var = getVariable(ctx, t);
         return new QueryExpression.VarRef(var);
       case "BindVariable":
         int parameterIndex = getInt(t);
@@ -1095,8 +1091,12 @@ public class SpoofaxAstToGraphQuery {
     return isSome(t.getSubterm(POS_AGGREGATE_DISTINCT));
   }
 
-  private static QueryVariable getVariable(TranslationContext ctx, IStrategoTerm originPosition, String varName) {
-    if (originPosition == null) {
+  private static QueryVariable getVariable(TranslationContext ctx, IStrategoTerm varRefT) {
+    String varName = getString(varRefT.getSubterm(POS_VARREF_VARNAME));
+    IStrategoTerm originPosition = null;
+    if (varRefT.getSubtermCount() > 1) {
+      originPosition = varRefT.getSubterm(POS_VARREF_ORIGIN_OFFSET);
+    } else {
       // dangling reference
       return new QueryVertex(varName, false);
     }

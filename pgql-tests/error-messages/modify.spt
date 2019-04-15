@@ -2,14 +2,14 @@ module update
 
 language pgql-lang
 
-test Unresolved variable in SELECT [[
+test MODIFY subquery not allowed (1) [[
 
   SELECT ( [[MODIFY ( UPDATE x SET PROPERTIES ( x.prop = 3 ) )]] FROM g MATCH (x) ) AS v
     FROM g MATCH(n)
 
 ]] error like "SELECT clause expected here" at #1
 
-test Unresolved variable in SELECT [[
+test MODIFY subquery not allowed (2) [[
 
   SELECT n AS n
     FROM g MATCH (n)
@@ -72,7 +72,6 @@ test Insert element with property value of type vertex or edge (3) [[
   GROUP BY n
 
 ]] error like "Cannot set the value of a property to a vertex or an edge" at #1
-
 
 test Set a property multiple times in UPDATE [[
 
