@@ -164,6 +164,26 @@ test Update an insertion (2) [[
 
 ]] error like "Cannot update an element that is being inserted" at #1
 
+test Update a deletion [[
+
+  MODIFY (
+    UPDATE [[n]] SET PROPERTIES ( n.prop = 123 )
+    DELETE n
+  )
+  FROM g MATCH (n)
+
+]] error like "Element is deleted in DELETE clause" at #1
+
+test Set source of destination of edge to deletion [[
+
+  MODIFY (
+  INSERT edge e BETWEEN [[n]] and [[n]]
+    DELETE n
+  )
+  FROM g MATCH (n)
+
+]] error like "Element is deleted in DELETE clause" at #1, #2
+
 test Update other element than the one that was meant to be updated [[
 
   MODIFY (
@@ -198,8 +218,8 @@ test Duplicate clauses (1) [[
   )]]
   FROM g MATCH (n) -[e1]-> (m) -[e2]-> (o)
 
-]] error like "Only a single INSERT clause is allowed per query; use commas to insert multiple elements in one INSERT clause" at #1, #2
-   error like "Only a single DELETE clause is allowed per query; use commas to delete multiple elements in one DELETE clause" at #3
+]] error like "Only a single INSERT clause is allowed per query; use commas to insert multiple elements in a single INSERT clause" at #1, #2
+   error like "Only a single DELETE clause is allowed per query; use commas to delete multiple elements in a single DELETE clause" at #3
 
 test Duplicate clauses (2) [[
 
@@ -209,7 +229,7 @@ test Duplicate clauses (2) [[
   )]]
   FROM g MATCH (n) -[e1]-> (m) -[e2]-> (o)
 
-]] error like "Only a single UPDATE clause is allowed per query; use commas to update multiple elements in one UPDATE clause" at #1
+]] error like "Only a single UPDATE clause is allowed per query; use commas to update multiple elements in a single UPDATE clause" at #1
 
 test Duplicate updates or deletions [[
 

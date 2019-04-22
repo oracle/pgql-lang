@@ -47,9 +47,15 @@ rules // Unresolved/duplicate variables
          else // MODIFY query
               insertVars := <collect-om(?VertexInsertion(<id>, _, _, _) + ?DirectedEdgeInsertion(<id>, _, _, _, _, _), conc)> selectOrModifyClause
             ; <generate-error-on-duplicates(|ctx)> insertVars
-            ; updateVars := <collect-om(?Update(VarRef(<id>), _), conc)> selectOrModifyClause
+            ; updateVars := <collect-om(?Update(VarRef(<id>), _) + ?Update(VarRef(<id>, _), _), conc)> selectOrModifyClause
             ; updates-of-inserts := <strip-annos; isect> (updateVars, insertVars)
             ; <batch-generate-error(|ctx, "Cannot update an element that is being inserted")> updates-of-inserts
+            ; deleteVars := <(collect-one(?DeleteClause(<id>)) <+ ![]); filter(?VarRef(<id>, _))> selectOrModifyClause
+            ; sourceVertices := <collect-om(?DirectedEdgeInsertion(_, _, VarRef(<id>, _), _, _, _), conc)> selectOrModifyClause
+            ; destinationVertices := <collect-om(?DirectedEdgeInsertion(_, _, _, VarRef(<id>, _), _, _), conc)> selectOrModifyClause
+            ; all-updateVars := <conc> (updateVars, sourceVertices, destinationVertices)
+            ; deletes-of-updates := <strip-annos; isect> (all-updateVars, deleteVars)
+            ; <batch-generate-error(|ctx, "Element is deleted in DELETE clause")> deletes-of-updates
          end
 
        ; groupVars := <collect(?ExpAsVar(_, <id>, NonAnonymous(), _))> groupClause
@@ -357,6 +363,6 @@ rules // MODIFY
     with additionalInsertClauses := <filter(?InsertClause(_)); try(Tl)> insertUpdateDeleteClauses
        ; additionalUpdateClauses := <filter(?UpdateClause(_)); try(Tl)> insertUpdateDeleteClauses
        ; additionalDeleteClauses := <filter(?DeleteClause(_)); try(Tl)> insertUpdateDeleteClauses
-       ; <batch-generate-error(|ctx, "Only a single INSERT clause is allowed per query; use commas to insert multiple elements in one INSERT clause")> additionalInsertClauses
-       ; <batch-generate-error(|ctx, "Only a single UPDATE clause is allowed per query; use commas to update multiple elements in one UPDATE clause")> additionalUpdateClauses
-       ; <batch-generate-error(|ctx, "Only a single DELETE clause is allowed per query; use commas to delete multiple elements in one DELETE clause")> additionalDeleteClauses
+       ; <batch-generate-error(|ctx, "Only a single INSERT clause is allowed per query; use commas to insert multiple elements in a single INSERT clause")> additionalInsertClauses
+       ; <batch-generate-error(|ctx, "Only a single UPDATE clause is allowed per query; use commas to update multiple elements in a single UPDATE clause")> additionalUpdateClauses
+       ; <batch-generate-error(|ctx, "Only a single DELETE clause is allowed per query; use commas to delete multiple elements in a single DELETE clause")> additionalDeleteClauses
