@@ -9,14 +9,14 @@ import oracle.pgql.lang.ir.QueryExpression.VarRef;
 
 import oracle.pgql.lang.ir.QueryExpressionVisitor;
 
-public class Update implements Modification {
+public class Update {
 
-  private List<VarRef> elements;
+  private VarRef element;
 
   private List<SetPropertyExpression> setPropertyExpressions;
 
-  public Update(List<VarRef> elements, List<SetPropertyExpression> setPropertyExpressions) {
-    this.elements = elements;
+  public Update(VarRef element, List<SetPropertyExpression> setPropertyExpressions) {
+    this.element = element;
     this.setPropertyExpressions = setPropertyExpressions;
   }
 
@@ -28,25 +28,20 @@ public class Update implements Modification {
     this.setPropertyExpressions = setProperties;
   }
 
-  public List<VarRef> getElements() {
-    return elements;
+  public VarRef getElement() {
+    return element;
   }
 
-  public void setElements(List<VarRef> elements) {
-    this.elements = elements;
-  }
-
-  @Override
-  public ModificationType getModificationType() {
-    return ModificationType.UPDATE;
+  public void setElement(VarRef element) {
+    this.element = element;
   }
 
   @Override
   public String toString() {
-    String result = "UPDATE " + elements.stream().map(x -> x.toString()).collect(Collectors.joining(", "));
-    if (!elements.isEmpty()) {
-      result += " SET PROPERTIES "
-          + setPropertyExpressions.stream().map(x -> x.toString()).collect(Collectors.joining(", "));
+    String result = element.toString();
+    if (!setPropertyExpressions.isEmpty()) {
+      result += " SET PROPERTIES ( "
+          + setPropertyExpressions.stream().map(x -> x.toString()).collect(Collectors.joining(", ")) + " )";
     }
     return result;
   }
@@ -65,10 +60,10 @@ public class Update implements Modification {
     if (getClass() != obj.getClass())
       return false;
     Update other = (Update) obj;
-    if (elements == null) {
-      if (other.elements != null)
+    if (element == null) {
+      if (other.element != null)
         return false;
-    } else if (!elements.equals(other.elements))
+    } else if (!element.equals(other.element))
       return false;
     if (setPropertyExpressions == null) {
       if (other.setPropertyExpressions != null)
@@ -78,7 +73,6 @@ public class Update implements Modification {
     return true;
   }
 
-  @Override
   public void accept(QueryExpressionVisitor v) {
     v.visit(this);
   }

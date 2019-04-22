@@ -51,11 +51,13 @@ import oracle.pgql.lang.ir.QueryExpression.RelationalExpression.GreaterEqual;
 import oracle.pgql.lang.ir.QueryExpression.RelationalExpression.Less;
 import oracle.pgql.lang.ir.QueryExpression.RelationalExpression.LessEqual;
 import oracle.pgql.lang.ir.QueryExpression.RelationalExpression.NotEqual;
-import oracle.pgql.lang.ir.modify.Deletion;
+import oracle.pgql.lang.ir.modify.DeleteClause;
 import oracle.pgql.lang.ir.modify.EdgeInsertion;
+import oracle.pgql.lang.ir.modify.InsertClause;
 import oracle.pgql.lang.ir.modify.ModifyQuery;
 import oracle.pgql.lang.ir.modify.SetPropertyExpression;
 import oracle.pgql.lang.ir.modify.Update;
+import oracle.pgql.lang.ir.modify.UpdateClause;
 import oracle.pgql.lang.ir.modify.VertexInsertion;
 import oracle.pgql.lang.ir.QueryExpression.ScalarSubquery;
 import oracle.pgql.lang.ir.QueryExpression.Star;
@@ -364,20 +366,37 @@ public abstract class AbstractQueryExpressionVisitor implements QueryExpressionV
   }
 
   @Override
+  public void visit(InsertClause insertClause) {
+    insertClause.getInsertions().stream().forEach(element -> element.accept(this));
+  }
+
+  @Override
+  public void visit(UpdateClause updateClause) {
+    updateClause.getUpdates().stream().forEach(element -> element.accept(this));
+  }
+
+  @Override
+  public void visit(DeleteClause deleteClause) {
+    deleteClause.getDeletions().stream().forEach(element -> element.accept(this));
+  }
+
+  @Override
   public void visit(VertexInsertion vertexInsertion) {
     vertexInsertion.getVertex().accept(this);
+    vertexInsertion.getLabels().stream().forEach(label -> label.accept(this));
     vertexInsertion.getProperties().stream().forEach(setProperty -> setProperty.accept(this));
   }
 
   @Override
   public void visit(EdgeInsertion edgeInsertion) {
     edgeInsertion.getEdge().accept(this);
+    edgeInsertion.getLabels().stream().forEach(label -> label.accept(this));
     edgeInsertion.getProperties().stream().forEach(setProperty -> setProperty.accept(this));
   }
 
   @Override
   public void visit(Update update) {
-    update.getElements().stream().forEach(element -> element.accept(this));
+    update.getElement().accept(this);
     update.getSetPropertyExpressions().stream().forEach(setPropertyExpression -> setPropertyExpression.accept(this));
   }
 
@@ -385,10 +404,5 @@ public abstract class AbstractQueryExpressionVisitor implements QueryExpressionV
   public void visit(SetPropertyExpression setPropertyExpression) {
     setPropertyExpression.getPropertyAccess().accept(this);
     setPropertyExpression.getValueExpression().accept(this);
-  }
-
-  @Override
-  public void visit(Deletion deletion) {
-    deletion.getElements().stream().forEach(element -> element.accept(this));
   }
 }

@@ -4,16 +4,16 @@
 package oracle.pgql.lang.ir.modify;
 
 import java.util.List;
-import java.util.Set;
 
 import oracle.pgql.lang.ir.QueryEdge;
+import oracle.pgql.lang.ir.QueryExpression;
 import oracle.pgql.lang.ir.QueryExpressionVisitor;
 
 public class EdgeInsertion extends AbstractInsertion {
 
   private QueryEdge edge;
 
-  public EdgeInsertion(QueryEdge edge, Set<String> labels, List<SetPropertyExpression> properties) {
+  public EdgeInsertion(QueryEdge edge, List<QueryExpression> labels, List<SetPropertyExpression> properties) {
     super(labels, properties);
     this.edge = edge;
   }
@@ -27,13 +27,13 @@ public class EdgeInsertion extends AbstractInsertion {
   }
 
   @Override
-  public ModificationType getModificationType() {
-    return ModificationType.INSERT_EDGE;
+  public InsertionType getInsertionType() {
+    return InsertionType.EDGE_INSERTION;
   }
 
   @Override
   public String toString() {
-    return "INSERT EDGE " + edge.getName() + " FROM " + edge.getSrc().getName() + " TO " + edge.getDst().getName()
+    return "EDGE " + edge.getName() + " BETWEEN " + edge.getSrc().getName() + " AND " + edge.getDst().getName()
         + printLabels() + printProperties();
   }
 
@@ -59,5 +59,4 @@ public class EdgeInsertion extends AbstractInsertion {
   public void accept(QueryExpressionVisitor v) {
     v.visit(this);
   }
-
 }

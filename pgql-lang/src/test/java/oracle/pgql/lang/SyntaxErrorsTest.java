@@ -61,4 +61,46 @@ public class SyntaxErrorsTest extends AbstractPgqlTest {
     assertTrue(result.getErrorMessages().contains("Not a valid timestamp"));
     assertFalse(result.getGraphQuery() == null);
   }
+
+  @Test
+  public void testDuplicateInsertUpdateDeleteClausesShouldNotThrowUnexpectedExceptions() throws Exception {
+    String query = "MODIFY/*beta*/ ( INSERT VERTEX v1 INSERT VERTEX v2" //
+        + " DELETE e1 DELETE e2" //
+        + " UPDATE n SET PROPERTIES ( n.prop = 1 ) UPDATE m SET PROPERTIES ( n.prop = 2 ) )" //
+        + " FROM g MATCH (n) -[e1]-> (m) -[e2]-> (o)";
+    assertFalse(pgql.parse(query).isQueryValid());
+  }
+
+  @Test
+  public void testUnresolvedReferencesInModify1() throws Exception {
+    String query = "MODIFY/*beta*/ g ( INSERT EDGE e BETWEEN x AND y ) MATCH (v)";
+    assertFalse(pgql.parse(query).isQueryValid());
+  }
+
+  @Test
+  public void testUnresolvedReferencesInModify2() throws Exception {
+    String query = "MODIFY/*beta*/ g ( UPDATE x SET PROPERTIES ( x.prop = y.prop + z.prop ) DELETE y ) MATCH (v)";
+    assertFalse(pgql.parse(query).isQueryValid());
+  }
+
+  @Test
+  public void testWrongVariableInInsertAndUpdate() throws Exception {
+    String query = "MODIFY/*beta*/ ( INSERT VERTEX w LABELS ( x, y.prop ) PROPERTIES ( v.prop = 1, u.prop = 2 ) " //
+        + "UPDATE v SET PROPERTIES ( w.prop = 3, u.prop = 4) ) FROM g MATCH (v)";
+    assertFalse(pgql.parse(query).isQueryValid());
+  }
+
+  @Test
+  public void testModifySubquery() throws Exception {
+    String query = "SELECT ( MODIFY/*beta*/ ( INSERT VERTEX v ) ) FROM g MATCH (n)";
+    assertFalse(pgql.parse(query).isQueryValid());
+  }
+
+  @Test
+  public void testSetPropertyThatIsGroupedBy() throws Exception {
+    String query = "MODIFY/*beta*/ g ( UPDATE n SET PROPERTIES ( [[n.prop]] = 123 ) ) " //
+        + "FROM g MATCH (n) " //
+        + "GROUP BY n.prop AS nProp";
+    assertFalse(pgql.parse(query).isQueryValid());
+  }
 }

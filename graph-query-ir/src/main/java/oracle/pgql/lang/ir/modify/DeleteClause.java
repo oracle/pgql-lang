@@ -9,20 +9,20 @@ import java.util.stream.Collectors;
 import oracle.pgql.lang.ir.QueryExpressionVisitor;
 import oracle.pgql.lang.ir.QueryExpression.VarRef;
 
-public class Deletion implements Modification {
+public class DeleteClause implements Modification {
 
-  List<VarRef> elements;
+  List<VarRef> deletions;
 
-  public Deletion(List<VarRef> elements) {
-    this.elements = elements;
+  public DeleteClause(List<VarRef> deletions) {
+    this.deletions = deletions;
   }
 
-  public List<VarRef> getElements() {
-    return elements;
+  public List<VarRef> getDeletions() {
+    return deletions;
   }
 
-  public void setElements(List<VarRef> elements) {
-    this.elements = elements;
+  public void setDeletions(List<VarRef> deletions) {
+    this.deletions = deletions;
   }
 
   @Override
@@ -32,7 +32,7 @@ public class Deletion implements Modification {
 
   @Override
   public String toString() {
-    return "DELETE " + elements.stream() //
+    return "DELETE " + deletions.stream() //
         .map(x -> x.toString()) //
         .collect(Collectors.joining(", "));
   }
@@ -50,11 +50,11 @@ public class Deletion implements Modification {
       return false;
     if (getClass() != obj.getClass())
       return false;
-    Deletion other = (Deletion) obj;
-    if (elements == null) {
-      if (other.elements != null)
+    DeleteClause other = (DeleteClause) obj;
+    if (deletions == null) {
+      if (other.deletions != null)
         return false;
-    } else if (!elements.equals(other.elements))
+    } else if (!deletions.equals(other.deletions))
       return false;
     return true;
   }
