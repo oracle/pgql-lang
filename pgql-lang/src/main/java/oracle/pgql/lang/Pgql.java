@@ -80,7 +80,7 @@ public class Pgql implements Closeable {
 
   private static final String ERROR_MESSSAGE_INDENTATION = "\t";
 
-  private static final String SPOOFAX_BINARIES = "pgql-1.1.spoofax-language";
+  private static final String SPOOFAX_BINARIES = "pgql-1.2.spoofax-language";
 
   private static boolean isGloballyInitialized = false;
 
