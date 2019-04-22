@@ -47,10 +47,6 @@ entries:
         url: /spec/1.2/#example-2-financial-transactions
         output: web
 
-      - title: 'Example 3: Paris Métro'
-        url: /spec/1.2/#example-3-paris-métro
-        output: web
-
     - title: 'Writing simple queries'
       url: /spec/1.2/#writing-simple-queries
       output: web
@@ -68,24 +64,20 @@ entries:
         url: /spec/1.2/#label-expressions
         output: web
 
-      - title: 'Filters on property values'
-        url: /spec/1.2/#filters-on-property-values
+      - title: 'Filter predicates'
+        url: /spec/1.2/#filter-predicates
         output: web
 
-      - title: 'Multiple edge patterns'
-        url: /spec/1.2/#multiple-edge-patterns
+      - title: 'More complex patterns'
+        url: /spec/1.2/#more-complex-patterns
         output: web
 
-      - title: 'Matching the same graph element to different patterns'
-        url: /spec/1.2/#matching-the-same-graph-element-to-different-patterns
+      - title: 'Binding an element multiple times'
+        url: /spec/1.2/#binding-an-element-multiple-times
         output: web
 
       - title: 'Matching edges in any direction'
         url: /spec/1.2/#matching-edges-in-any-direction
-        output: web
-
-      - title: 'Matching undirected edges'
-        url: /spec/1.2/#matching-undirected-edges
         output: web
 
     - title: 'Main query structure'

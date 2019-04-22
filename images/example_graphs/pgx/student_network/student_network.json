@@ -1,0 +1,71 @@
+{
+  "name": "student_network",
+  "vertex_id_type" : "long",
+  "edge_id_type" : "long",
+  "edge_id_strategy" : "no_ids",
+  "vertex_providers": [
+    {
+      "format": "csv",
+      "name": "Person",
+      "key_column" : 1,
+      "key_type" : "long",
+      "props": [
+        {
+          "name": "name",
+          "type": "string",
+          "column": 2
+        },
+        {
+          "name": "dob",
+          "type": "local_date",
+          "column": 3
+        }
+      ],
+      "separator": " ",
+      "uris": ["persons.csv"]
+    },
+    {
+      "format": "csv",
+      "name": "University",
+      "key_column" : 1,
+      "key_type" : "long",
+      "props": [
+        {
+          "name": "name",
+          "type": "string",
+          "column": 2
+        }
+      ],
+      "separator": " ",
+      "uris": ["universities.csv"]
+    }
+  ],
+  "edge_providers": [
+    {
+      "format": "csv",
+      "name": "knows",
+      "source_vertex_provider": "Person",
+      "destination_vertex_provider": "Person",
+      "key_type" : "long",
+      "source_column" : 1,
+      "destination_column" : 2,
+      "props": [
+      ],
+      "separator": " ",
+      "uris": ["person_knows_person.csv"]
+    },
+    {
+      "format": "csv",
+      "name": "studentOf",
+      "source_vertex_provider": "Person",
+      "destination_vertex_provider": "University",
+      "key_type" : "long",
+      "source_column" : 1,
+      "destination_column" : 2,
+      "props": [
+      ],
+      "separator": " ",
+      "uris": ["person_studentOf_university.csv"]
+    }
+  ]
+}

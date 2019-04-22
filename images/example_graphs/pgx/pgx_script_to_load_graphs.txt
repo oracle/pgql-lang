@@ -1,2 +1,3 @@
-session.readGraphWithProperties("student_network.edge_list.json")
+session.readGraphWithProperties("student_network/student_network.json")
+session.readGraphWithProperties("financial_network/financial_network.json")
 session.readGraphWithProperties("paris_metro.edge_list.json", "tmp").undirect("paris_metro")

@@ -181,7 +181,7 @@ In the query above, `(n:Person|University)` matches vertices that have either th
 
 #### Omitting a label expression
 
-Label expressions may be omitted altogether. The vertex or edge pattern will then match any vertex or edge, no matter its labels.
+Label expressions may be omitted so that the vertex or edge pattern will then match any vertex or edge.
 
 For example:
 
@@ -206,17 +206,191 @@ SELECT n.name, n.dob
 
 Note that the query gives the same results as before since both patterns `(n)` and `(n:Person|University)` match all the vertices in the example graph.
 
-### Filters on property values
+### Filter predicates
 
-TODO
+Filter predicates provide a way to further restrict which vertices or edges may bind to patterns.
+A filter predicate is a boolean value expression and is placed in a [WHERE](#where) clause.
 
-### Multiple edge patterns
+For example, "find all persons that have a date of birth (dob) greater than 1995-01-01":
 
-TODO
+{% include image.html file="example_graphs/student_network.png"  %}
 
-### Matching the same graph element to different patterns
+```sql
+SELECT n.name, n.dob
+  FROM student_network
+ MATCH (n)
+ WHERE n.dob > DATE '1995-01-01'
+```
 
-TODO
+```
++---------------------+
+| n.name | n.dob      |
++---------------------+
+| Riya   | 1995-03-20 |
+| Lee    | 1996-01-29 |
++---------------------+
+```
+
+Above, the vertex pattern `(n)` initially matches all three Person vertices in the graph as well as the University vertex, since no label expression is specified.
+However, the filter predicate `n.dob > DATE '1995-01-01'` filters out Kathrine because her date of birth is before 1995-01-01.
+It also filters out UC Berkeley because the vertex does not have a property `dob` so that the reference `n.dob` returns null and since `null > DATE '1995-01-01'` is null (see [three-valued logic](#three-valued-logic)) the final result is null, which has the same affect as `false` and thus this candidate solution gets filtered out.
+
+Another example is to "find people that Kathrine knows and that are old than her":
+
+{% include image.html file="example_graphs/student_network.png"  %}
+
+```sql
+SELECT m.name AS name, m.dob AS dob
+  FROM student_network
+ MATCH (n) -[e]-> (m)
+ WHERE n.name = 'Kathrine' AND n.dob <= m.dob
+```
+
+```
++-------------------+
+| name | dob        |
++-------------------+
+| Riya | 1995-03-20 |
+| Lee  | 1996-01-29 |
++-------------------+
+```
+
+Here, the pattern `(n) -[e]-> (m)` initially matches all the edges in the graph since it does not have any label expression.
+However, the filter expression `n.name = 'Kathrine' AND n.dob <= m.dob` specifies that the source of the edge has a property `name` with the value `Kathrine` and that both the source and destination of the edge have properties `dob` such that the value for the source is smaller than or equal to the value for the destination.
+Only two out of six edges satisfy this filter predicate.
+
+### More complex patterns
+
+More complex patterns are formed either by forming longer path patterns that consist of multiple edge patterns, or by specifying multiple comma-separated path patterns that share one or more vertex variables.
+
+For example, "find people that Lee knows and that are a student at the same university as Lee":
+
+{% include image.html file="example_graphs/student_network.png"  %}
+
+```sql
+SELECT p2.name AS friend, u.name AS university
+  FROM student_network
+ MATCH (u:University) <-[:studentOf]- (p1:Person) -[:knows]-> (p2:Person) -[:studentOf]-> (u)
+ WHERE p1.name = 'Lee'
+```
+
+```
++------------------------+
+| friend   | university  |
++------------------------+
+| Kathrine | UC Berkeley |
++------------------------+
+```
+
+Above, in the `MATCH` clause there is only one path pattern that consists of four vertex patterns and three edge patterns.
+Note that the first and last vertex pattern both have the variable `u`. This means that they are the same variable rather than two different variables. Label expressions may be specified for neither, one, or both of the vertex patterns such that if there are multiple label expressions specified then they are simply evaluated in conjunction such that all expressions need to satisfy for a vertex to bind to the variable.
+
+The same query as above may be expressed through multiple comma-separated path patterns, like this:
+
+```sql
+SELECT p2.name AS friend, u.name AS university
+  FROM student_network
+ MATCH (p1:Person) -[:knows]-> (p2:Person)
+     , (p1) -[:studentOf]-> (u:University)
+     , (p2) -[:studentOf]-> (u)
+ WHERE p1.name = 'Lee'
+```
+
+```
++------------------------+
+| friend   | university  |
++------------------------+
+| Kathrine | UC Berkeley |
++------------------------+
+```
+
+Here again, both occurances of `u` are the same variable, as well as both occurances of `p1` and both occurances of `p2`.
+
+### Binding an element multiple times
+
+In a single solution it is allowed for a vertex or an edge to be bound to multiple variables at the same time.
+
+For example, "find friends of friends of Lee" (friendship being defined by the presence of a 'knows' edge):
+
+{% include image.html file="example_graphs/student_network.png"  %}
+
+```sql
+SELECT p1.name AS p1, p2.name AS p2, p3.name AS p3
+  FROM student_network
+ MATCH (p1:Person) -[:knows]-> (p2:Person) -[:knows]-> (p3:Person)
+ WHERE p1.name = 'Lee'
+```
+
+```
++-----------------------+
+| p1  | p2       | p3   |
++-----------------------+
+| Lee | Kathrine | Riya |
+| Lee | Kathrine | Lee  |
++-----------------------+
+````
+
+Above, in the second solution, Lee is bound to both the variable `p1` and the variable `p3`. This solution is obtained since we can hop from Lee to Kathrine via the edge that is outgoing from Lee, and then we can hop back from Kathrine to Lee via the edge that is incoming to Lee.
+
+If such binding of vertices to multiple variables is not desired, one can use either non-equality constraints or the [ALL_DIFFERENT](#all_different) predicate.
+
+For example, the predicate `p1 <> p3` in the query below adds the restriction that Lee, which has to bind to variable `p1`, cannot also bind to variable `p3`:
+
+```sql
+SELECT p1.name AS p1, p2.name AS p2, p3.name AS p3
+  FROM student_network
+ MATCH (p1:Person) -[:knows]-> (p2:Person) -[:knows]-> (p3:Person)
+ WHERE p1.name = 'Lee' AND p1 <> p3
+```
+
+```
++-----------------------+
+| p1  | p2       | p3   |
++-----------------------+
+| Lee | Kathrine | Riya |
++-----------------------+
+```
+
+An alternative is to use the [ALL_DIFFERENT](#all_different) predicate, which can take any number of vertices or edges as input and specifies non-equality between all of them:
+
+```sql
+SELECT p1.name AS p1, p2.name AS p2, p3.name AS p3
+  FROM student_network
+ MATCH (p1:Person) -[:knows]-> (p2:Person) -[:knows]-> (p3:Person)
+ WHERE p1.name = 'Lee' AND ALL_DIFFERENT(p1, p3)
+```
+
+```
++-----------------------+
+| p1  | p2       | p3   |
++-----------------------+
+| Lee | Kathrine | Riya |
++-----------------------+
+```
+
+Besides vertices binding to multiple variables, it is also possible for edges to bind to multiple variables.
+
+For example, "find two people that both know Riya":
+
+```sql
+SELECT p1.name AS p1, p2.name AS p2, e1 = e2
+  FROM student_network
+ MATCH (p1:Person) -[e1:knows]-> (riya:Person)
+     , (p2:Person) -[e2:knows]-> (riya)
+ WHERE riya.name = 'Riya'
+```
+
+```
++-------------------------------+
+| p1       | p2       | e1 = e2 |
++-------------------------------+
+| Kathrine | Kathrine | true    |
++-------------------------------+
+```
+
+Above, the only solution has Kathrine bound to both variables `p1` and `p2` and the single edge between Kathrine and Riya is bound to both `e1` and `e2`, which is why `e1 = e2` in the `SELECT` clause returns `true`.
+
+Again, if such bindings are not desired then one should add constraints like `e1 <> e2` or `ALL_DIFFERENT(e1, e2)` to the `WHERE` clause.
 
 ### Matching edges in any direction
 
@@ -2224,15 +2398,23 @@ ORDER BY sum_outgoing + sum_incoming DESC
 
 ## Identifiers
 
-Identifiers (used for e.g. graph names, property names, etc.) take the form of an alphabetic character followed by zero or more alphanumeric or underscore (i.e. `_`) characters.
+Graph names, property names, and labels are all identifiers. These identifiers may either take an unquoted or double quoted form.
+
+Identifiers are used for graph names, property names, and labels. They are either unquoted or double quoted.
 
 The syntax is:
 
 ```bash
-IDENTIFIER           ::= [a-zA-Z][a-zA-Z0-9\_]*
+IDENTIFIER          ::= <UNQUOTED_IDENTIFIER> | <QUOTED_IDENTIFIER>
+
+UNQUOTED_IDENTIFIER ::= [a-zA-Z][a-zA-Z0-9\_]*
+
+QUOTED_IDENTIFIER   ::= '"' ( ~[\"\n\\] | <ESCAPED_CHARACTER> )* '"'
 ```
 
-TODO: update.
+Unquoted identifiers take the form of an alphabetic character followed by zero or more alphanumeric or underscore (i.e. `_`) characters. Special characters are not supported.
+
+Double quoted identifiers support the full range of Unicode characters.
 
 ### Special characters in property names, graph names, and labels
 
@@ -2272,8 +2454,6 @@ The syntax is:
 ESCAPED_CHARACTER ::= '\\' [tnr\"\'\\]
 ```
 
-TODO: fix the grammar.
-
 Note that an escaped character is either a tab (`\t`), a line feed (`\n`), a carriage return (`\r`), a single (`\'`) or double quote (`\"`), or a backslash (`\\`). Corresponding Unicode code points are shown in the table below.
 
 Escape | Unicode code point
@@ -2285,8 +2465,6 @@ Escape | Unicode code point
 `\'` | U+0027 (apostrophe-quote, single quote mark)
 `\\` | U+005C (backslash)
 
-TODO: fix the table.
-
 In string literals, it is optional to escape double quotes.
 
 For example:
@@ -2295,6 +2473,8 @@ For example:
 'abc\"d\"efg' = 'abc"d"efg'
 Result: true
 ```
+
+Similarly, in identifiers it is optional to escape single quotes.
 
 In addition to Java-like escaping, string literals in PGQL queries can be escaped in a SQL-like fashion by repeating the quote.
 For example, `n.prop = 'string''value'` is an alternative for `n.prop = 'string\'value'`, and `FROM "my""graph"` is an alternative for `FROM "my\"graph"`.
