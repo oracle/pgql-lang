@@ -2,24 +2,24 @@ module update
 
 language pgql-lang
 
-test Unresolved variable in SELECT [[
+test MODIFY subquery not allowed (1) [[
 
-  SELECT ( [[MODIFY UPDATE x SET PROPERTY x.prop = 3]] FROM g MATCH (x) ) AS v
+  SELECT ( [[MODIFY ( UPDATE x SET PROPERTIES ( x.prop = 3 ) )]] FROM g MATCH (x) ) AS v
     FROM g MATCH(n)
 
 ]] error like "SELECT clause expected here" at #1
 
-test Unresolved variable in SELECT [[
+test MODIFY subquery not allowed (2) [[
 
   SELECT n AS n
     FROM g MATCH (n)
-   WHERE EXISTS ( [[MODIFY g UPDATE x SET PROPERTY x.prop = 3]] FROM g MATCH(x) )
+   WHERE EXISTS ( [[MODIFY g ( UPDATE x SET PROPERTIES ( x.prop = 3 ) )]] FROM g MATCH(x) )
 
 ]] error like "SELECT clause expected here" at #1
 
 test Set a property that is grouped by [[
 
-    MODIFY g UPDATE n SET PROPERTY [[n.prop]] = 123
+    MODIFY g ( UPDATE n SET PROPERTIES ( [[n.prop]] = 123 ) )
       FROM g MATCH (n)
   GROUP BY n.prop AS nProp
 
@@ -27,23 +27,23 @@ test Set a property that is grouped by [[
 
 test Update property value to vertex or edge (1) [[
 
-  MODIFY g UPDATE n SET PROPERTIES n.prop1 = [[n]]
-                                 , n.prop2 = [[m]]
-                                 , n.prop3 = [[e]]
+  MODIFY g ( UPDATE n SET PROPERTIES ( n.prop1 = [[n]]
+                                     , n.prop2 = [[m]]
+                                     , n.prop3 = [[e]] ) )
     FROM g MATCH (n) -[e]-> (m)
 
 ]] error like "Cannot set the value of a property to a vertex or an edge" at #1, #2, #3
 
 test Update property value to vertex or edge (2) [[
 
-  MODIFY g UPDATE n SET PROPERTY n.prop = ( SELECT [[x AS x]] FROM g MATCH (x) LIMIT 1 )
+  MODIFY g ( UPDATE n SET PROPERTIES ( n.prop = ( SELECT [[x AS x]] FROM g MATCH (x) LIMIT 1 ) ) )
     FROM g MATCH (n) -[e]-> (m)
 
 ]] error like "Scalar subquery not allowed to return a vertex or an edge" at #1
 
 test Update property value to vertex or edge (3) [[
 
-  MODIFY g UPDATE n SET PROPERTY n.prop = [[n]]
+  MODIFY g ( UPDATE n SET PROPERTIES ( n.prop = [[n]] ) )
     FROM g MATCH (n)
   GROUP BY n
 
@@ -51,39 +51,194 @@ test Update property value to vertex or edge (3) [[
 
 test Insert element with property value of type vertex or edge (1) [[
 
-  MODIFY g INSERT VERTEX m PROPERTIES n.prop1 = [[n]]
-                                    , n.prop2 = [[m]]
-                                    , n.prop3 = [[e]]
+  MODIFY g ( INSERT VERTEX m PROPERTIES ( n.prop1 = [[n]]
+                                        , n.prop2 = [[m]]
+                                        , n.prop3 = [[e]] ) )
     FROM g MATCH (n) -[e]-> (m)
 
 ]] error like "Cannot set the value of a property to a vertex or an edge" at #1, #2, #3
 
 test Insert element with property value of type vertex or edge (2) [[
 
-  MODIFY g INSERT VERTEX m PROPERTY m.prop = ( SELECT [[x AS x]] FROM g MATCH (x) LIMIT 1 )
+  MODIFY g ( INSERT VERTEX m PROPERTIES ( m.prop = ( SELECT [[x AS x]] FROM g MATCH (x) LIMIT 1 ) ) )
     FROM g MATCH (n) -[e]-> (m)
 
 ]] error like "Scalar subquery not allowed to return a vertex or an edge" at #1
 
 test Insert element with property value of type vertex or edge (3) [[
 
-  MODIFY g INSERT VERTEX m PROPERTY m.prop = [[n]]
+  MODIFY g ( INSERT VERTEX m PROPERTIES ( m.prop = [[n]] ) )
     FROM g MATCH (n)
   GROUP BY n
 
 ]] error like "Cannot set the value of a property to a vertex or an edge" at #1
 
-
 test Set a property multiple times in UPDATE [[
 
-  MODIFY g UPDATE n SET PROPERTIES [[n.prop]] = 1, [[n.prop]] = 2
+  MODIFY g ( UPDATE n SET PROPERTIES ( [[n.prop]] = 1, [[n.prop]] = 2 ) )
     FROM g MATCH (n)
 
 ]] error like "Property is set multiple times" at #1, #2
 
 test Set a property multiple times in INSERT [[
 
-  MODIFY g INSERT VERTEX m PROPERTIES [[m.prop]] = 1, [[m.prop]] = 2
+  MODIFY g ( INSERT VERTEX m PROPERTIES ( [[m.prop]] = 1, [[m.prop]] = 2 ) )
     FROM g MATCH (n)
 
 ]] error like "Property is set multiple times" at #1, #2
+
+test Cannot reference inserted elements [[
+
+  MODIFY (
+    INSERT VERTEX v1 LABELS ( [[v1]].prop ),
+           VERTEX v2 PROPERTIES ( v2.prop = [[v2]].prop ),
+           VERTEX v3,
+           VERTEX v4,
+           VERTEX v5,
+           EDGE e BETWEEN v1 AND v1 LABELS ( [[e]].prop, [[v3]].prop ) PROPERTIES ( e.prop = [[v4]].prop, [[v5]].prop = 123 ),
+           VERTEX v6
+    UPDATE n SET PROPERTIES ( n.prop1 = [[v6]].prop, n.prop2 = n.prop, [[m]].prop = n.prop )
+  )
+  FROM g MATCH (n) -> (m)
+
+]] error like "Unresolved variable" at #1, #2, #3, #4, #5, #6
+
+test Duplicate variable (1) [[
+
+  MODIFY (
+    INSERT VERTEX [[v1]],
+           EDGE [[v1]] BETWEEN v1 AND v1
+  )
+  FROM g MATCH (v1)
+
+]] error like "Duplicate variable: variable already defined in the MATCH clause" at #1, #2
+
+test Duplicate variable (2) [[
+
+  MODIFY (
+    INSERT VERTEX [[v2]],
+           EDGE [[v2]] BETWEEN v1 AND v2
+  )
+  FROM g MATCH (v1)
+  GROUP BY v1.prop AS v2
+
+]] error like "Duplicate variable: variable already defined in the GROUP BY clause" at #1, #2
+
+test Duplicate variable (3) [[
+
+  MODIFY (
+    INSERT VERTEX [[v2]],
+           VERTEX [[v2]],
+           EDGE [[v2]] BETWEEN v2 AND v2
+  )
+
+]] error like "Duplicate variable" at #1, #2, #3
+
+test Duplicate variable (4) [[
+
+  MODIFY (
+    INSERT VERTEX [[v2]],
+           VERTEX [[v2]],
+           EDGE [[v2]] BETWEEN v2 AND v2
+  )
+  FROM g MATCH (v1)
+
+]] error like "Duplicate variable" at #1, #2, #3
+
+test Update an insertion (1) [[
+
+  MODIFY (
+    INSERT VERTEX v3
+    UPDATE [[v3]] SET PROPERTIES ( v3.prop = 3 )
+  )
+
+]] error like "Cannot update an element that is being inserted" at #1
+
+test Update an insertion (2) [[
+
+  MODIFY (
+    INSERT VERTEX v3
+    UPDATE [[v3]] SET PROPERTIES ( v3.prop = 3 )
+  )
+  FROM g MATCH (v1)
+
+]] error like "Cannot update an element that is being inserted" at #1
+
+test Update a deletion [[
+
+  MODIFY (
+    UPDATE [[n]] SET PROPERTIES ( n.prop = 123 )
+    DELETE n
+  )
+  FROM g MATCH (n)
+
+]] error like "Element is deleted in DELETE clause" at #1
+
+test Set source of destination of edge to deletion [[
+
+  MODIFY (
+  INSERT edge e BETWEEN [[n]] and [[n]]
+    DELETE n
+  )
+  FROM g MATCH (n)
+
+]] error like "Element is deleted in DELETE clause" at #1, #2
+
+test Update other element than the one that was meant to be updated [[
+
+  MODIFY (
+    UPDATE n SET PROPERTIES ( [[m]].prop = 3 )
+    UPDATE m SET PROPERTIES ( [[n]].prop = 4 )
+  )
+  FROM g MATCH (n) -> (m)
+
+]] error like "Did you mean n?" at #1
+   error like "Did you mean m?" at #2
+
+test Set properties of other element than the one that is being inserted [[
+
+  MODIFY (
+    INSERT VERTEX m PROPERTIES ( [[n]].prop = 3 )
+         , EDGE e BETWEEN n AND m PROPERTIES ( [[n]].prop = 4 )
+  )
+  FROM g MATCH (n)
+
+]] error like "Did you mean m?" at #1
+   error like "Did you mean e?" at #2
+
+test Duplicate clauses (1) [[
+
+  MODIFY (
+    INSERT VERTEX v
+    [[INSERT VERTEX w
+    UPDATE]] n SET PROPERTIES ( n.prop = 123 )
+    [[INSERT EDGE e3 BETWEEN m AND o
+    DELETE]] e3
+    [[DELETE e4
+  )]]
+  FROM g MATCH (n) -[e1]-> (m) -[e2]-> (o)
+
+]] error like "Only a single INSERT clause is allowed per query; use commas to insert multiple elements in a single INSERT clause" at #1, #2
+   error like "Only a single DELETE clause is allowed per query; use commas to delete multiple elements in a single DELETE clause" at #3
+
+test Duplicate clauses (2) [[
+
+  MODIFY (
+    UPDATE n SET PROPERTIES ( n.prop = 1 )
+    [[UPDATE m SET PROPERTIES ( m.prop = 2 )
+  )]]
+  FROM g MATCH (n) -[e1]-> (m) -[e2]-> (o)
+
+]] error like "Only a single UPDATE clause is allowed per query; use commas to update multiple elements in a single UPDATE clause" at #1
+
+test Duplicate updates or deletions [[
+
+  MODIFY g (
+    UPDATE [[v]] SET PROPERTIES ( v.first_name = 'Scott' ),
+           [[v]] SET PROPERTIES ( v.last_name = 'Tiger' )
+    DELETE [[w]], [[w]]
+  )
+  FROM g MATCH (v) -> (w)
+
+]] error like "Element is updated multiple times (merge the two updates together)" at #1, #2
+   error like "Element is deleted multiple times" at #3, #4

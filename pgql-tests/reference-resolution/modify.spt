@@ -1,0 +1,56 @@
+module modify
+
+language pgql-lang
+
+test Resolve to variables in MATCH [[
+
+  MODIFY (
+    INSERT VERTEX v LABELS ( [[n]].prop ) PROPERTIES ( v.prop = [[n]].prop ),
+           EDGE e BETWEEN [[n]] AND [[n]] LABELS ( [[n]].prop ) PROPERTIES ( e.prop = [[n]].prop )
+    UPDATE n SET PROPERTIES ( [[n]].prop = 123 )
+    DELETE [[n]]
+  )
+  FROM g MATCH ([[n]])
+
+]] resolve #1 to #9
+   resolve #2 to #9
+   resolve #3 to #9
+   resolve #4 to #9
+   resolve #5 to #9
+   resolve #6 to #9
+   resolve #7 to #9
+   resolve #8 to #9
+
+test Resolve to inserted elements [[
+
+  MODIFY (
+    INSERT VERTEX [[v]] LABELS ( n.prop ) PROPERTIES ( [[v]].prop = n.prop ),
+           EDGE [[e]] BETWEEN [[v]] AND [[v]] LABELS ( n.prop ) PROPERTIES ( [[e]].prop = n.prop )
+    UPDATE n SET PROPERTIES ( n.prop = 123 )
+    DELETE n
+  )
+  FROM g MATCH (n)
+
+]] resolve #2 to #1
+   resolve #6 to #3
+   resolve #4 to #1
+   resolve #5 to #1
+
+test Subquery with vertex/edge with same name as inserted vertex/edge in outer query [[
+
+  MODIFY (
+    INSERT VERTEX [[v]]
+                  LABELS ( ( SELECT [[v]].prop AS c1 FROM g MATCH ([[v]]) LIMIT 1 ) )
+                  PROPERTIES ( [[v]].prop = ( SELECT [[v]].prop AS c1 FROM g MATCH ([[v]]) LIMIT 1 ) ),
+             EDGE [[e]]
+                  BETWEEN v AND v
+                  LABELS ( ( SELECT [[e]].prop AS c1 FROM g MATCH () -[ [[e]] ]-> () LIMIT 1 ) )
+                  PROPERTIES ( [[e]].prop = ( SELECT [[e]].prop AS c1 FROM g MATCH () -[ [[e]] ]-> () LIMIT 1 ) )
+  )
+
+]] resolve #2 to #3
+   resolve #4 to #1
+   resolve #5 to #6
+   resolve #8 to #9
+   resolve #10 to #7
+   resolve #11 to #12

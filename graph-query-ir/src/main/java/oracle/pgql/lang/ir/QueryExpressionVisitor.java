@@ -47,9 +47,11 @@ import oracle.pgql.lang.ir.QueryExpression.RelationalExpression.NotEqual;
 import oracle.pgql.lang.ir.modify.ModifyQuery;
 import oracle.pgql.lang.ir.modify.SetPropertyExpression;
 import oracle.pgql.lang.ir.modify.Update;
+import oracle.pgql.lang.ir.modify.UpdateClause;
 import oracle.pgql.lang.ir.modify.VertexInsertion;
-import oracle.pgql.lang.ir.modify.Deletion;
+import oracle.pgql.lang.ir.modify.DeleteClause;
 import oracle.pgql.lang.ir.modify.EdgeInsertion;
+import oracle.pgql.lang.ir.modify.InsertClause;
 import oracle.pgql.lang.ir.QueryExpression.ScalarSubquery;
 import oracle.pgql.lang.ir.QueryExpression.Star;
 import oracle.pgql.lang.ir.QueryExpression.VarRef;
@@ -164,6 +166,12 @@ public interface QueryExpressionVisitor {
 
   public void visit(ModifyQuery modifyQuery);
 
+  public void visit(InsertClause insertClause);
+
+  public void visit(UpdateClause insertClause);
+
+  public void visit(DeleteClause deleteClause);
+
   public void visit(VertexInsertion vertexInsertion);
 
   public void visit(EdgeInsertion edgeInsertion);
@@ -171,6 +179,4 @@ public interface QueryExpressionVisitor {
   public void visit(Update update);
 
   public void visit(SetPropertyExpression setPropertyExpression);
-
-  public void visit(Deletion deletion);
 }

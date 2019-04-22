@@ -71,7 +71,11 @@ rules
          end
 
        // SELECT / MODIFY
-       ; (selectOrModifyClause', variables'''') := <resolve-select-or-modify-clause(|variables''')> selectOrModifyClause
+       ; if <?SelectClause(_, _)> selectOrModifyClause
+         then (selectOrModifyClause', variables'''') := <resolve-select-clause(|variables''')> selectOrModifyClause
+         else selectOrModifyClause' := <resolve-modify-clause(|variables''')> selectOrModifyClause
+           ; variables'''' := variables'''
+        end
 
        // HAVING
        ; having' := <resolve-having(|variables''', variables'''')> having // having resolves to GROUP BY variables first, then to SELECT variables
@@ -135,8 +139,8 @@ rules
     with vars' := []
        ; variables' := [vars'|variables]
 
-  resolve-select-or-modify-clause(|variables):
-    SelectClause(distinct, eav@ExpAsVars(expAsVars)) -> (SelectClause(distinct, eav'), variables')
+  resolve-select-clause(|variables):
+    t@SelectClause(distinct, eav@ExpAsVars(expAsVars)) -> (selectClause', variables')
     with if Star() := expAsVars
          then eav' := expAsVars
             ; variables':= variables
@@ -145,38 +149,47 @@ rules
             ; eav' := <origin-track-forced(!ExpAsVars(expAsVars'))> eav
             ; variables' := [vars'|<Tl> variables]
          end
+       ; selectClause' := <origin-track-forced(!SelectClause(distinct, eav'))> t
 
-  resolve-select-or-modify-clause(|variables):
-    t@ModifyClause(graphName, modifications) -> (modifyClause', variables')
+  resolve-modify-clause(|variables):
+    t@ModifyClause(graphName, modifications) -> modifyClause'
     with varsInCurrentScope := <Hd> variables
-       ; (modifications', variables') := <foldl(resolve-modification)> (modifications, ([], variables))
+       ; modifications' := <map(resolve-modification(|variables))> modifications
        ; modifyClause' := <origin-track-forced(!ModifyClause(graphName, modifications'))> t
 
-  resolve-modification:
-    (modification, (result, variables)) -> (result', variables')
-    with varsInCurrentScope := <Hd> variables
-       ; (modification', varsInCurrentScope') := <create-variable-for-insertion(|varsInCurrentScope)> modification
-       ; variables' := [varsInCurrentScope'|<Tl> variables]
-       ; modification'' := <resolve-var-refs(|variables')> modification'
-       ; result' := <conc> (result, [modification''])
+  resolve-modification(|variables):
+    t@InsertClause(insertions) -> insertClause'
+    with (insertions', _) := <foldl(resolve-insertion(|variables))> (insertions, ([], variables))
+       ; insertClause' := <origin-track-forced(!InsertClause(insertions'))> t
 
-  create-variable-for-insertion(|vars):
-    t@DirectedEdgeInsertion(_, Identifier(v), src, dst, labels, properties) -> (insertion', vars')
+  resolve-modification(|variables) = ?UpdateClause(_); resolve-var-refs(|variables)
+
+  resolve-modification(|variables) = ?DeleteClause(_); resolve-var-refs(|variables)
+
+  resolve-insertion(|original-variables):
+    (t, (result, variables)) -> (result', variables')
+    where <?VertexInsertion(Identifier(v), labels, properties) + ?DirectedEdgeInsertion(Identifier(v), src, dst, labels, properties)> t
     with originOffset := <origin-offset> v
-       ; insertion' := <origin-track-forced(!DirectedEdgeInsertion(v, originOffset, src, dst, labels, properties))> t
-       ; vars' := <replace-or-add> (VarDef(v, originOffset, None(), None(), ThisQuery()), vars)
+       ; labels' := <resolve-var-refs(|original-variables)> labels
+       ; properties' := <resolve-set-properties(|v, originOffset, original-variables)> properties
+       ; if <?VertexInsertion(_, _, _)> t
+         then insertion := <origin-track-forced(!VertexInsertion(v, originOffset, labels', properties'))> t
+         else src' := <resolve-var-refs(|variables)> src
+            ; dst' := <resolve-var-refs(|variables)> dst
+        ; insertion := <origin-track-forced(!DirectedEdgeInsertion(v, originOffset, src', dst', labels', properties'))> t
+         end
+       ; [vars-in-scope|xs] := variables
+       ; vars-in-scope' := <replace-or-add> (VarDef(v, originOffset, None(), None(), ThisQuery()), vars-in-scope)
+       ; variables' := [vars-in-scope'|xs]
+       ; result' := <conc> (result, [insertion])
 
-  create-variable-for-insertion(|vars):
-    t@VertexInsertion(Identifier(v), labels, properties) -> (insertion', vars')
-    with originOffset := <origin-offset> v
-       ; insertion' := <origin-track-forced(!VertexInsertion(v, <origin-offset> v, labels, properties))> t
-       ; vars' := <replace-or-add> (VarDef(v, originOffset, None(), None(), ThisQuery()), vars)
+  resolve-set-properties(|v, originOffset, original-variables) = ?None() + Some(Properties(map(resolve-set-property(|v, originOffset, original-variables))))
 
-  create-variable-for-insertion(|vars):
-    t@Update(_, _) -> (t, vars) // just pass through
-
-  create-variable-for-insertion(|vars):
-    t@Deletion(_) -> (t, vars) // just pass through
+  resolve-set-property(|v, originOffset, original-variables):
+    SetProperty(PropRef(varRef, prop), exp) -> result
+    with varRef' := <?VarRef(v); ?VarRef(<id>); !VarRef(<id>, originOffset) <+ resolve-var-refs(|original-variables)> varRef
+       ; exp' :=  <resolve-var-refs(|original-variables)> exp
+       ; result := SetProperty(PropRef(varRef', prop), exp')
 
   resolve-exp-as-var-in-group-by(|variables, expAsVarsFromSelectClause):
     (t@ExpAsVar(exp, v, anonymous), (result, vars)) -> (result', vars')

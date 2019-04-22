@@ -4,25 +4,26 @@
 package oracle.pgql.lang.ir.modify;
 
 import java.util.List;
-import java.util.Set;
 import java.util.stream.Collectors;
 
-public abstract class AbstractInsertion implements Modification {
+import oracle.pgql.lang.ir.QueryExpression;
 
-  protected Set<String> labels;
+public abstract class AbstractInsertion implements Insertion {
+
+  protected List<QueryExpression> labels;
 
   protected List<SetPropertyExpression> properties;
 
-  public AbstractInsertion(Set<String> labels, List<SetPropertyExpression> properties) {
+  public AbstractInsertion(List<QueryExpression> labels, List<SetPropertyExpression> properties) {
     this.labels = labels;
     this.properties = properties;
   }
 
-  public Set<String> getLabels() {
+  public List<QueryExpression> getLabels() {
     return labels;
   }
 
-  public void setLabels(Set<String> labels) {
+  public void setLabels(List<QueryExpression> labels) {
     this.labels = labels;
   }
 
@@ -38,7 +39,9 @@ public abstract class AbstractInsertion implements Modification {
     if (labels.isEmpty()) {
       return "";
     } else {
-      return " LABELS " + labels.stream().collect(Collectors.joining(", "));
+      return " LABELS ( " + labels.stream() //
+          .map(x -> x.toString()) //
+          .collect(Collectors.joining(", ")) + " )";
     }
   }
 
@@ -46,9 +49,9 @@ public abstract class AbstractInsertion implements Modification {
     if (properties.isEmpty()) {
       return "";
     } else {
-      return " PROPERTIES " + properties.stream() //
+      return " PROPERTIES ( " + properties.stream() //
           .map(x -> x.toString()) //
-          .collect(Collectors.joining(", "));
+          .collect(Collectors.joining(", ")) + " )";
     }
   }
 

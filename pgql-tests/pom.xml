@@ -4,14 +4,14 @@
   <modelVersion>4.0.0</modelVersion>
   <groupId>oracle.pgx</groupId>
   <artifactId>pgql-tests</artifactId>
-  <version>1.1.0-SNAPSHOT</version>
+  <version>1.2.0-SNAPSHOT</version>
   <packaging>spoofax-test</packaging>
 
   <dependencies>
     <dependency>
       <groupId>oracle.pgx</groupId>
       <artifactId>pgqllang</artifactId>
-      <version>1.1.0-SNAPSHOT</version>
+      <version>1.2.0-SNAPSHOT</version>
       <type>spoofax-language</type>
     </dependency>
     <dependency>
@@ -32,13 +32,13 @@
   <repositories>
     <repository>
       <id>metaborgRepo</id>
-      <url>http://artifacts.metaborg.org/content/repositories/releases/</url>
+      <url>https://artifacts.metaborg.org/content/repositories/releases/</url>
     </repository>
   </repositories>
   <pluginRepositories>
     <pluginRepository>
       <id>metaborgPluginRepo</id>
-      <url>http://artifacts.metaborg.org/content/repositories/releases/</url>
+      <url>https://artifacts.metaborg.org/content/repositories/releases/</url>
     </pluginRepository>
   </pluginRepositories>
 
@@ -54,7 +54,7 @@
         <artifactId>spoofax-maven-plugin</artifactId>
         <version>2.5.1</version>
         <configuration>
-          <languageUnderTest>oracle.pgx:pgqllang:1.1.0-SNAPSHOT</languageUnderTest>
+          <languageUnderTest>oracle.pgx:pgqllang:1.2.0-SNAPSHOT</languageUnderTest>
         </configuration>
       </plugin>
     </plugins>

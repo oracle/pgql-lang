@@ -107,9 +107,9 @@ rules
 
   // TODO: move this to check.str (all the information should be in the normalized AST)
   get-path-limitations = collect(shortest-or-cheapest-or-reaches + is-quantifier)
-                           ; remove-all(shortest-or-cheapest-or-reaches)
-                           ; not(?[])
-                           ; map(to-error-message(|"Quantifier needs to be enclosed by SHORTEST or CHEAPEST"))
+                       ; remove-all(shortest-or-cheapest-or-reaches)
+                       ; not(?[])
+                       ; map(to-error-message(|"Quantifier needs to be enclosed by SHORTEST or CHEAPEST"))
 
   get-path-limitations = collect(?Shortest(_, _) + ?Cheapest(_, _)); collect(?Path(_, _, _)); not(?[]); map(to-error-message(|"Nested regular expressions not supported"))
 
@@ -467,20 +467,22 @@ rules
       limitOffsets' := <norm-limitOffsets> limitOffsets
 
   norm-ExpAsVars(|expAsGroupVars'):
-    SelectClause(distinct, t@ExpAsVars(expAsVars)) -> SelectClause(distinct, <origin-track-forced(!ExpAsVars(expAsVars'))> t)
+    t1@SelectClause(distinct, t2@ExpAsVars(expAsVars)) -> result
     with expAsVars' := <map(norm-ExpAsVar)> expAsVars
+       ; result := <origin-track-forced(!SelectClause(distinct, <origin-track-forced(!ExpAsVars(expAsVars'))> t2))> t1 
 
   norm-ExpAsVar = ?ExpAsVar(exp, Some(VarAssign(VarDef(v)))); !ExpAsVar(exp, v, NonAnonymous())
   norm-ExpAsVar = ?ExpAsVar(exp, None()); !ExpAsVar(exp, <?VarRef(<id>) <+ origin-track-forced(origin-text)> exp, Anonymous())
   norm-ExpAsVar = ?ExpAsVar(_, v, _); where (<origin-offset> v)
 
   norm-select-star(|graphPattern, group-exps):
-    SelectClause(distinct, star@Star()) -> SelectClause(star, <origin-track-forced(!ExpAsVars(expAsSelectVars))> star)
+    t@SelectClause(distinct, star@Star()) -> result
     with if [] := group-exps
          then vars := <collect(?Vertex(<id>) + ?NormalizedEdge(_, <id>, _, _, _, _) + ?Subquery(_)); filter(is-string; not(is-substring(GENERATED)))> graphPattern;
               expAsSelectVars := <map(generate-ExpAsVar(|star); norm-ExpAsVar)> vars
          else expAsSelectVars := star
          end
+       ; result := <origin-track-forced(!SelectClause(star, <origin-track-forced(!ExpAsVars(expAsSelectVars))> star))> t
 
   generate-ExpAsVar(|star):
     v -> expAsVar

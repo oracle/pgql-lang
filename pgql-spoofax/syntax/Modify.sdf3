@@ -11,25 +11,23 @@ template options
 
 context-free syntax
 
-  ModifyClause.ModifyClause = <MODIFY <Identifier?> <Modification+>> {case-insensitive}
+  ModifyClause.ModifyClause = <MODIFY <Identifier?> ( <Modification+> )> {case-insensitive}
 
-  Modification = Insertion
-  Modification = Deletion
-  Modification = Update
+  Modification = InsertClause
+  Modification = UpdateClause
+  Modification = DeleteClause
 
-  Insertion.VertexInsertion = <INSERT VERTEX <Identifier> <LabelsSpecification?> <PropertiesSpecification?>> {case-insensitive}
-  Insertion.DirectedEdgeInsertion = <INSERT <Directed?> EDGE <Identifier> BETWEEN <VarRef> AND <VarRef> <LabelsSpecification?> <PropertiesSpecification?>> {case-insensitive}
-  Directed.Directed = <DIRECTED> {case-insensitive}
-  LabelsSpecification.Labels = <<LabelsKeyword> <{Identifier ", "}+>>
-  PropertiesSpecification.Properties = <<PropertiesKeyword> <{SetPropertyExpression ", "}+>>
-  SetPropertyExpression.Set = <<PropRef> = <Exp>>
+  InsertClause.InsertClause = <INSERT <{Insertion ", "}+>> {case-insensitive}
 
-  LabelsKeyword.Labels = <LABELS> {case-insensitive}
-  LabelsKeyword.Label = <LABEL> {case-insensitive}
-  PropertiesKeyword.Properties = <PROPERTIES> {case-insensitive}
-  PropertiesKeyword.Property = <PROPERTY> {case-insensitive}
+  Insertion.VertexInsertion = <VERTEX <Identifier> <LabelsSpecification?> <PropertiesSpecification?>> {case-insensitive}
+  Insertion.DirectedEdgeInsertion = <EDGE <Identifier> BETWEEN <VarRef> AND <VarRef> <LabelsSpecification?> <PropertiesSpecification?>> {case-insensitive}
 
-  Update.Update = <UPDATE <{VarRef ", "}+> <SetProperties>> {case-insensitive}
-  SetProperties.SetProperties = <SET <PropertiesKeyword> <{SetProperty ", "}+>> {case-insensitive}
+  LabelsSpecification.Labels = <LABELS ( <{Exp ", "}+> )> {case-insensitive}
+  PropertiesSpecification.Properties = <PROPERTIES ( <{SetProperty ", "}+> )> {case-insensitive}
   SetProperty.SetProperty = <<PropRef> = <Exp>>
-  Deletion.Deletion = <DELETE <{VarRef ", "}+>> {case-insensitive}
+
+  UpdateClause.UpdateClause = <UPDATE <{Update ", "}+>> {case-insensitive}
+  Update.Update = <<VarRef> <SetProperties>>
+  SetProperties.SetProperties = <SET PROPERTIES ( <{SetProperty ", "}+> )> {case-insensitive}
+
+  DeleteClause.DeleteClause = <DELETE <{VarRef ", "}+>> {case-insensitive}

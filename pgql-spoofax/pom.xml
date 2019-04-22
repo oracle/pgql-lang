@@ -7,7 +7,7 @@
   <modelVersion>4.0.0</modelVersion>
   <groupId>oracle.pgql.lang.spoofax</groupId>
   <artifactId>pgql-spoofax</artifactId>
-  <version>1.1.0-SNAPSHOT</version>
+  <version>1.2.0-SNAPSHOT</version>
 
   <packaging>spoofax-language</packaging>
 
@@ -20,7 +20,7 @@
   <repositories>
     <repository>
       <id>metaborg-release-repo</id>
-      <url>http://artifacts.metaborg.org/content/repositories/releases/</url>
+      <url>https://artifacts.metaborg.org/content/repositories/releases/</url>
       <releases>
         <enabled>true</enabled>
       </releases>
@@ -33,7 +33,7 @@
   <pluginRepositories>
     <pluginRepository>
       <id>metaborg-release-repo</id>
-      <url>http://artifacts.metaborg.org/content/repositories/releases/</url>
+      <url>https://artifacts.metaborg.org/content/repositories/releases/</url>
       <releases>
         <enabled>true</enabled>
       </releases>

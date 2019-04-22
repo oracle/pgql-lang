@@ -64,12 +64,15 @@ import oracle.pgql.lang.ir.QueryVariable.VariableType;
 import oracle.pgql.lang.ir.QueryVertex;
 import oracle.pgql.lang.ir.SelectQuery;
 import oracle.pgql.lang.ir.VertexPairConnection;
-import oracle.pgql.lang.ir.modify.Deletion;
+import oracle.pgql.lang.ir.modify.DeleteClause;
 import oracle.pgql.lang.ir.modify.EdgeInsertion;
+import oracle.pgql.lang.ir.modify.InsertClause;
+import oracle.pgql.lang.ir.modify.Insertion;
 import oracle.pgql.lang.ir.modify.Modification;
 import oracle.pgql.lang.ir.modify.ModifyQuery;
 import oracle.pgql.lang.ir.modify.SetPropertyExpression;
 import oracle.pgql.lang.ir.modify.Update;
+import oracle.pgql.lang.ir.modify.UpdateClause;
 import oracle.pgql.lang.ir.modify.VertexInsertion;
 import oracle.pgql.lang.util.SqlDateTimeFormatter;
 
@@ -99,6 +102,8 @@ public class SpoofaxAstToGraphQuery {
 
   private static final int POS_MODIFY_GRAPH_NAME = 0;
   private static final int POS_MODIFY_MODIFICATIONS = 1;
+
+  private static final int POS_INSERT_CLAUSE_INSERTIONS = 0;
   private static final int POS_VERTEX_INSERTION_NAME = 0;
   private static final int POS_VERTEX_INSERTION_ORIGIN_OFFSET = 1;
   private static final int POS_VERTEX_INSERTION_LABELS = 2;
@@ -109,12 +114,12 @@ public class SpoofaxAstToGraphQuery {
   private static final int POS_EDGE_INSERTION_DST = 3;
   private static final int POS_EDGE_INSERTION_LABELS = 4;
   private static final int POS_EDGE_INSERTION_PROPERTIES = 5;
-  private static final int POS_LABELS_LIST = 1;
-  private static final int POS_PROPERTIES_LIST = 1;
+  private static final int POS_LABELS_LIST = 0;
 
-  private static final int POS_UPDATE_ELEMENTS = 0;
-  private static final int POS_UPDATE_PROPERTIES = 1;
-  private static final int POS_SET_PROPERTIES_EXPRESSIONS = 1;
+  private static final int POS_UPDATE_CLAUSE_ELEMENTS = 0;
+  private static final int POS_UPDATE_NAME = 0;
+  private static final int POS_UPDATE_SET_PROPERTIES = 1;
+  private static final int POS_SET_PROPERTIES_EXPRESSIONS = 0;
   private static final int POS_SET_PROPERTY_EXPRESSION_PROPERTY_ACCESS = 0;
   private static final int POS_SET_PROPERTY_EXPRESSION_VALUE_EXPRESSION = 1;
 
@@ -312,61 +317,45 @@ public class SpoofaxAstToGraphQuery {
     for (IStrategoTerm modificationT : modificationsT) {
       String constructorName = ((IStrategoAppl) modificationT).getConstructor().getName();
       switch (constructorName) {
-        case "VertexInsertion": {
-          String vertexName = getString(modificationT.getSubterm(POS_VERTEX_INSERTION_NAME));
-          QueryVertex vertex = new QueryVertex(vertexName, false);
-          IStrategoTerm originPosition = modificationT.getSubterm(POS_VERTEX_INSERTION_ORIGIN_OFFSET);
-          ctx.addVar(vertex, vertexName, originPosition);
+        case "InsertClause": {
+          IStrategoTerm insertionsT = modificationT.getSubterm(POS_INSERT_CLAUSE_INSERTIONS);
 
-          IStrategoTerm labelsT = modificationT.getSubterm(POS_VERTEX_INSERTION_LABELS);
-          Set<String> labels = getLabels(ctx, labelsT);
+          List<Insertion> insertions = new ArrayList<>();
+          for (IStrategoTerm insertionT : insertionsT) {
+            Insertion insertion = translateInsertion(ctx, insertionT);
+            insertions.add(insertion);
+          }
 
-          IStrategoTerm propertiesT = modificationT.getSubterm(POS_VERTEX_INSERTION_PROPERTIES);
-          List<SetPropertyExpression> properties = getProperties(ctx, propertiesT);
-
-          result.add(new VertexInsertion(vertex, labels, properties));
+          result.add(new InsertClause(insertions));
 
           break;
         }
-        case "DirectedEdgeInsertion": {
-          String edgeName = getString(modificationT.getSubterm(POS_EDGE_INSERTION_NAME));
+        case "UpdateClause": {
+          IStrategoTerm updatesT = modificationT.getSubterm(POS_UPDATE_CLAUSE_ELEMENTS);
 
-          IStrategoTerm srcVarRefT = modificationT.getSubterm(POS_EDGE_INSERTION_SRC);
-          QueryVertex src = (QueryVertex) ctx.getVariable(srcVarRefT.getSubterm(POS_VARREF_ORIGIN_OFFSET));
+          List<Update> updates = new ArrayList<>();
+          for (IStrategoTerm updateT : updatesT) {
+            IStrategoTerm elementT = updateT.getSubterm(POS_UPDATE_NAME);
+            VarRef element = (VarRef) translateExp(elementT, ctx);
 
-          IStrategoTerm dstVarRefT = modificationT.getSubterm(POS_EDGE_INSERTION_DST);
-          QueryVertex dst = (QueryVertex) ctx.getVariable(dstVarRefT.getSubterm(POS_VARREF_ORIGIN_OFFSET));
+            IStrategoTerm setPropertiesT = updateT.getSubterm(POS_UPDATE_SET_PROPERTIES);
+            List<SetPropertyExpression> setPropertyExpressions = getSetPropertyExpressions(ctx, setPropertiesT);
 
-          QueryEdge edge = new QueryEdge(src, dst, edgeName, false, Direction.OUTGOING);
-          IStrategoTerm originPosition = modificationT.getSubterm(POS_EDGE_INSERTION_ORIGIN_OFFSET);
-          ctx.addVar(edge, edgeName, originPosition);
+            updates.add(new Update(element, setPropertyExpressions));
+          }
 
-          IStrategoTerm labelsT = modificationT.getSubterm(POS_EDGE_INSERTION_LABELS);
-          Set<String> labels = getLabels(ctx, labelsT);
-
-          IStrategoTerm propertiesT = modificationT.getSubterm(POS_EDGE_INSERTION_PROPERTIES);
-          List<SetPropertyExpression> properties = getProperties(ctx, propertiesT);
-
-          result.add(new EdgeInsertion(edge, labels, properties));
+          result.add(new UpdateClause(updates));
 
           break;
         }
-        case "Update": {
-          IStrategoTerm elementsT = modificationT.getSubterm(POS_UPDATE_ELEMENTS);
-          List<VarRef> elements = getElements(ctx, elementsT);
-
-          IStrategoTerm setPropertiesT = modificationT.getSubterm(POS_UPDATE_PROPERTIES);
-          List<SetPropertyExpression> setPropertyExpressions = getSetPropertyExpressions(ctx, setPropertiesT);
-
-          result.add(new Update(elements, setPropertyExpressions));
-
-          break;
-        }
-        case "Deletion": {
+        case "DeleteClause": {
           IStrategoTerm elementsT = modificationT.getSubterm(POS_DELETION_ELEMENTS);
-          List<VarRef> elements = getElements(ctx, elementsT);
+          List<VarRef> deletions = new ArrayList<>();
+          for (IStrategoTerm elementT : elementsT) {
+            deletions.add((VarRef) translateExp(elementT, ctx));
+          }
 
-          result.add(new Deletion(elements));
+          result.add(new DeleteClause(deletions));
 
           break;
         }
@@ -377,12 +366,56 @@ public class SpoofaxAstToGraphQuery {
     return result;
   }
 
-  private static Set<String> getLabels(TranslationContext ctx, IStrategoTerm labelsT) {
-    Set<String> result = new HashSet<>();
+  private static Insertion translateInsertion(TranslationContext ctx, IStrategoTerm insertionT) throws PgqlException {
+    String constructorName = ((IStrategoAppl) insertionT).getConstructor().getName();
+    switch (constructorName) {
+      case "VertexInsertion": {
+        String vertexName = getString(insertionT.getSubterm(POS_VERTEX_INSERTION_NAME));
+        QueryVertex vertex = new QueryVertex(vertexName, false);
+        IStrategoTerm originPosition = insertionT.getSubterm(POS_VERTEX_INSERTION_ORIGIN_OFFSET);
+        ctx.addVar(vertex, vertexName, originPosition);
+
+        IStrategoTerm labelsT = insertionT.getSubterm(POS_VERTEX_INSERTION_LABELS);
+        List<QueryExpression> labels = getLabels(ctx, labelsT);
+
+        IStrategoTerm propertiesT = insertionT.getSubterm(POS_VERTEX_INSERTION_PROPERTIES);
+        List<SetPropertyExpression> properties = getProperties(ctx, propertiesT);
+
+        return new VertexInsertion(vertex, labels, properties);
+      }
+      case "DirectedEdgeInsertion": {
+        String edgeName = getString(insertionT.getSubterm(POS_EDGE_INSERTION_NAME));
+
+        IStrategoTerm srcVarRefT = insertionT.getSubterm(POS_EDGE_INSERTION_SRC);
+        QueryVertex src = (QueryVertex) getVariable(ctx, srcVarRefT);
+
+        IStrategoTerm dstVarRefT = insertionT.getSubterm(POS_EDGE_INSERTION_DST);
+
+        QueryVertex dst = (QueryVertex) getVariable(ctx, dstVarRefT);
+
+        QueryEdge edge = new QueryEdge(src, dst, edgeName, false, Direction.OUTGOING);
+        IStrategoTerm originPosition = insertionT.getSubterm(POS_EDGE_INSERTION_ORIGIN_OFFSET);
+        ctx.addVar(edge, edgeName, originPosition);
+
+        IStrategoTerm labelsT = insertionT.getSubterm(POS_EDGE_INSERTION_LABELS);
+        List<QueryExpression> labels = getLabels(ctx, labelsT);
+
+        IStrategoTerm propertiesT = insertionT.getSubterm(POS_EDGE_INSERTION_PROPERTIES);
+        List<SetPropertyExpression> properties = getProperties(ctx, propertiesT);
+        return new EdgeInsertion(edge, labels, properties);
+      }
+
+      default:
+        throw new IllegalArgumentException(constructorName);
+    }
+  }
+
+  private static List<QueryExpression> getLabels(TranslationContext ctx, IStrategoTerm labelsT) throws PgqlException {
+    List<QueryExpression> result = new ArrayList<>();
     if (isSome(labelsT)) {
       IStrategoTerm labelsListT = getSome(labelsT).getSubterm(POS_LABELS_LIST);
       for (IStrategoTerm labelT : labelsListT) {
-        result.add(getString(labelT));
+        result.add(translateExp(labelT, ctx));
       }
     }
     return result;
@@ -414,14 +447,6 @@ public class SpoofaxAstToGraphQuery {
       }
     }
 
-    return result;
-  }
-
-  private static List<VarRef> getElements(TranslationContext ctx, IStrategoTerm elementsT) throws PgqlException {
-    List<VarRef> result = new ArrayList<>();
-    for (IStrategoTerm elementT : elementsT) {
-      result.add((VarRef) translateExp(elementT, ctx));
-    }
     return result;
   }
 
@@ -869,12 +894,7 @@ public class SpoofaxAstToGraphQuery {
           }
         }
       case "VarRef":
-        String varName = getString(t.getSubterm(POS_VARREF_VARNAME));
-        IStrategoTerm originPosition = null;
-        if (t.getSubtermCount() > 1) {
-          originPosition = t.getSubterm(POS_VARREF_ORIGIN_OFFSET);
-        }
-        QueryVariable var = getVariable(ctx, originPosition, varName);
+        QueryVariable var = getVariable(ctx, t);
         return new QueryExpression.VarRef(var);
       case "BindVariable":
         int parameterIndex = getInt(t);
@@ -1084,8 +1104,12 @@ public class SpoofaxAstToGraphQuery {
     return isSome(t.getSubterm(POS_AGGREGATE_DISTINCT));
   }
 
-  private static QueryVariable getVariable(TranslationContext ctx, IStrategoTerm originPosition, String varName) {
-    if (originPosition == null) {
+  private static QueryVariable getVariable(TranslationContext ctx, IStrategoTerm varRefT) {
+    String varName = getString(varRefT.getSubterm(POS_VARREF_VARNAME));
+    IStrategoTerm originPosition = null;
+    if (varRefT.getSubtermCount() > 1) {
+      originPosition = varRefT.getSubterm(POS_VARREF_ORIGIN_OFFSET);
+    } else {
       // dangling reference
       return new QueryVertex(varName, false);
     }
