@@ -46,7 +46,6 @@
       "name": "knows",
       "source_vertex_provider": "Person",
       "destination_vertex_provider": "Person",
-      "key_type" : "long",
       "source_column" : 1,
       "destination_column" : 2,
       "props": [
@@ -59,7 +58,6 @@
       "name": "studentOf",
       "source_vertex_provider": "Person",
       "destination_vertex_provider": "University",
-      "key_type" : "long",
       "source_column" : 1,
       "destination_column" : 2,
       "props": [
