@@ -1,7 +1,6 @@
 {
   "name": "student_network",
   "vertex_id_type" : "long",
-  "edge_id_type" : "long",
   "edge_id_strategy" : "no_ids",
   "vertex_providers": [
     {

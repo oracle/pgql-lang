@@ -1,8 +1,7 @@
 {
   "name": "financial_transactions",
   "vertex_id_type" : "long",
-  "edge_id_type" : "long",
-  "edge_id_strategy" : "keys_as_ids",
+  "edge_id_strategy" : "no_ids",
   "vertex_providers": [
     {
       "format": "csv",
@@ -56,25 +55,15 @@
       "name": "transaction",
       "source_vertex_provider": "Account",
       "destination_vertex_provider": "Account",
-      "key_column" : 1,
-      "key_type" : "long",
-      "source_column" : 2,
-      "destination_column" : 3,
+      "source_column" : 1,
+      "destination_column" : 2,
       "props": [
-        {
-          "name": "key",
-          "type": "long",
-          "column": 1
-        },
         {
           "name": "amount",
           "type": "double",
-          "column": 4
+          "column": 3
         }
       ],
-      "loading": {
-        "create_key_mapping": true
-      },
       "separator": " ",
       "uris": ["transactions.csv"]
     },
@@ -83,20 +72,10 @@
       "name": "ownerOf1",
       "source_vertex_provider": "Person",
       "destination_vertex_provider": "Account",
-      "key_column" : 1,
-      "key_type" : "long",
-      "source_column" : 2,
-      "destination_column" : 3,
+      "source_column" : 1,
+      "destination_column" : 2,
       "props": [
-        {
-          "name": "key",
-          "type": "long",
-          "column": 1
-        }
       ],
-      "loading": {
-        "create_key_mapping": true
-      },
       "separator": " ",
       "uris": ["person_ownerOf_account.csv"]
     },
@@ -105,20 +84,10 @@
       "name": "ownerOf2",
       "source_vertex_provider": "Company",
       "destination_vertex_provider": "Account",
-      "key_column" : 1,
-      "key_type" : "long",
-      "source_column" : 2,
-      "destination_column" : 3,
+      "source_column" : 1,
+      "destination_column" : 2,
       "props": [
-        {
-          "name": "key",
-          "type": "long",
-          "column": 1
-        }
       ],
-      "loading": {
-        "create_key_mapping": true
-      },
       "separator": " ",
       "uris": ["company_ownerOf_account.csv"]
     },
@@ -127,20 +96,10 @@
       "name": "worksFor",
       "source_vertex_provider": "Person",
       "destination_vertex_provider": "Company",
-      "key_column" : 1,
-      "key_type" : "long",
-      "source_column" : 2,
-      "destination_column" : 3,
+      "source_column" : 1,
+      "destination_column" : 2,
       "props": [
-        {
-          "name": "key",
-          "type": "long",
-          "column": 1
-        }
       ],
-      "loading": {
-        "create_key_mapping": true
-      },
       "separator": " ",
       "uris": ["person_worksFor_company.csv"]
     }
