@@ -1132,7 +1132,7 @@ SELECT SUM(COUNT(e)) AS sumOfPathLengths
 
 Above, we first match a shortest path between accounts 10039 and 1001. Notice that the length of this path is 2.
 We also match a shortest path between accounts 10039 and 2090. Notice that the length of this path is 3.
-In the SELECT clause, the aggregation `COUNT(e)` is a horizontal aggregation since `e` is a group variable. For each of the two shortest paths, it computes the path lengths by counting the number of edges. The output will be 2 for one of the two paths, and 3 for the other.
+In the SELECT clause, the aggregation `COUNT(e)` is a horizontal aggregation since `e` is a group variable. For each of the two shortest paths, `COUNT(e)` computes the length by counting the number of edges. The output will be 2 for one of the two paths, and 3 for the other.
 Then it takes the `SUM` to compute the total length of the two paths, which is 5.
 
 ### Horizontal aggregation in WHERE and GROUP BY
