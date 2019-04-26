@@ -984,11 +984,15 @@ OFFSET 5
 
 # Variable-Length Paths
 
-Path queries test for the existence of arbitrary-length paths between pairs of vertices, or, retrieve actual paths between pairs of vertices.
+[Graph Pattern Matching](#graph-pattern-matching) introduced how "fixed-length" patterns can be matched.
+Fixed-length patterns match a fixed number of vertices and edges such that every solution (every row) has the same number of vertices and edges.
+
+However, through the use of quantifiers (introduced below) it is is possible to match "variable-length" paths such as shortest paths.
+Variable-length path patterns match a variable number of vertices and edges such that different solutions (different rows) potentially have different numbers of vertices and edges.
 
 ## Quantifiers
 
-Quantifiers in path patterns allow for specifying lower and upper limits on the number of times a pattern should match.
+Quantifiers allow for matching variable-length paths by specifying lower and upper limits on the number of times a pattern is allowed to match.
 
 The syntax is:
 
@@ -1018,17 +1022,177 @@ BetweenZeroAndM            ::= '{' ',' <UNSIGNED_INTEGER> '}'
 
 The meaning of the different quantifiers is:
 
-| quantifier | meaning                              | matches                                                                                                                             | example path        |
-|------------|--------------------------------------|-------------------------------------------------------------------------------------------------------------------------------------|---------------------|
-| *          | zero (0) or more                     | A path that connects the source and destination of the path by zero or more matches of a given pattern.                             | `-/:lbl*/->`        |
-| +          | one (1) or more                      | A path that connects the source and destination of the path by one or more matches of a given pattern.                              | `-/:lbl+/->`        |
-| ?          | zero or one (1), i.e. "optional"     | A path that connects the source and destination of the path by zero or one matches of a given pattern.                              | `-/:lbl?/->`        |
-| { n }      | exactly _n_                          | A path that connects the source and destination of the path by exactly _n_ matches of a given pattern.                              | `-/:lbl{2}/->`      |
-| { n, }     | _n_ or more                          | A path that connects the source and destination of the path by at least _n_ matches of a given pattern.                             | `-/:lbl{2,}/->`     |
-| { n, m }   | between _n_ and _m_ (inclusive)      | A path that connects the source and destination of the path by at least _n_ and at most _m_ (inclusive) matches of a given pattern. | `-/:lbl{2,3}/->                      ` |
-| { , m }    | between zero (0) and _m_ (inclusive) | A path that connects the source and destination of the path by at least 0 and at most _m_ (inclusive) matches of a given pattern.   | `-/:lbl{,3}/->`     |
+| quantifier | meaning                              | matches                                                                                                                             |
+|------------|--------------------------------------|-------------------------------------------------------------------------------------------------------------------------------------|
+| *          | zero (0) or more                     | A path that connects the source and destination of the path by zero or more matches of a given pattern.                             |
+| +          | one (1) or more                      | A path that connects the source and destination of the path by one or more matches of a given pattern.                              |
+| ?          | zero or one (1), i.e. "optional"     | A path that connects the source and destination of the path by zero or one matches of a given pattern.                              |
+| { n }      | exactly _n_                          | A path that connects the source and destination of the path by exactly _n_ matches of a given pattern.                              |
+| { n, }     | _n_ or more                          | A path that connects the source and destination of the path by at least _n_ matches of a given pattern.                             |
+| { n, m }   | between _n_ and _m_ (inclusive)      | A path that connects the source and destination of the path by at least _n_ and at most _m_ (inclusive) matches of a given pattern. |
+| { , m }    | between zero (0) and _m_ (inclusive) | A path that connects the source and destination of the path by at least 0 and at most _m_ (inclusive) matches of a given pattern.   |
 
-Paths considered include those that repeat the same vertices and/or edges multiple times. This means that even cycles are considered.
+All paths are considered, even the ones that contain a vertex or edge multiple times. In other words, cycles are permitted.
+
+An example is:
+
+{% include image.html file="example_graphs/financial_transactions.png" %}
+
+```sql
+SELECT a.number AS a,
+       b.number AS b,
+       COUNT(e) AS pathLength,
+       ARRAY_AGG(e.amount) AS amounts
+  FROM financial_transactions
+ MATCH SHORTEST ( (a:Account) -[e:transaction]->* (b:Account) )
+ WHERE a.number = 10039 AND b.number = 2090
+```
+
+```
++------------------------------------------------------+
+| a     | b    | pathLength | amounts                  |
++------------------------------------------------------+
+| 10039 | 2090 | 3          | [1000.0, 1500.3, 9999.5] |
++------------------------------------------------------+
+```
+
+Above, we use the quantifier `*` to find a shortest path from account `10039` to account `2090`, following only `transaction` edges.
+Shortest path finding is explained in more detail in [Shortest Path](#shortest-path). `COUNT(e)` and `ARRAY_AGG(e.amount)` are horizontal aggregations which are explained in [Horizontal Aggregation](#horizontal-aggregation).
+
+## Horizontal Aggregation
+
+Aggregations are either applied in a _vertical_ or a _horizontal_ fashion.
+
+### Recap of vertical aggregation
+
+Vertical aggregation was introduced in [Aggregation](#aggregation). This kind of aggregation is what people usually learn first when they start using PGQL or SQL.
+Vertical aggregation takes a group of values from different rows and aggregates the values into a single value, for example by taking the minimum or maximum. If a `GROUP BY` is specified then the output of a query is as many rows as there are groups, while if no `GROUP BY` is specified then the output is a single row. For more details, see [Grouping and Aggregation](#grouping-and-aggregation).
+
+Given the pattern `(n) -[e]-> (m)`, examples of vertical aggregation are:
+
+ - `SUM(e.prop)`
+ - `COUNT(e.prop)`
+ - `SUM(n.prop + m.prop / 2)`
+
+### Group Variables
+
+To understand _horizontal_ aggregation, however, it is neccesary to know the difference between "singleton variables" and "group variables".
+A singleton variable is a variable that binds to only one vertex or edge, whereas a group variable is a variable that may bind to multiple vertices or edges.
+
+Consider the pattern `(n) -[e1]-> (m) -[e2]->* (o)`.
+Here, `e1` is a singleton variable because within a single match of the pattern there is always a single edge bound to `e1`, whereas `e2` is a group variable because within a single match of the pattern there may be multiple edges bound to `e2` because of the quantifier `*`.
+Variables are thus either singleton variables or group variables depending on whether they are enclosed by a quantifier with an upper bound greater than 1.
+
+Here are examples of singleton variables:
+
+ - `-[e]->` (or `-[e]->{1,1}`)
+ - `-[e]->?` (or `-[e]->{0,1}`)
+
+Here are examples of group variables:
+
+ - `-[e]->*`
+ - `-[e]->+`
+ - `-[e]->{1,4}`
+
+Group variables thus form implicit groups without a need to explicitly specify a `GROUP BY`.
+
+### Horizontal aggregation using group variables
+
+Group variables can be used to perform _horizontal_ aggregation. To be precise, an aggregation is applied in a horizontal manner if the expression that is input to the aggregation contains at least one group variable.
+The input values for the aggregation are obtained by evaluating the expression once for each binding of the group variable(s) within the particular match.
+A separate output is generated for each match of the pattern rather than that a single output is generated for an entire group of matches like in case of vertical aggregation.
+
+The same aggregates (`MIN`, `MAX`, `AVG`, etc.) that are used for vertical aggregation are also used for horizontal aggregation.
+Given the pattern `( (n) -[e]-> (m) )*`, examples of horizontal aggregations are:
+
+ - `SUM(e.prop * 2)`
+ - `COUNT(e.prop)`
+ - `ARRAY_AGG(n.prop)`
+
+Aggregations with multiple group variables such as `SUM(n.prop + m.prop / 2)` are not supported in PGQL 1.2 and are planned for a future version.
+
+It is possible to mix vertical and horizontal aggregation in a single query. For example:
+
+{% include image.html file="example_graphs/financial_transactions.png" %}
+
+```sql
+SELECT SUM(COUNT(e)) AS sumOfPathLengths
+  FROM financial_transactions
+ MATCH SHORTEST ( (a:Account) -[e:transaction]->* (b:Account) )
+ WHERE a.number = 10039 AND (b.number = 1001 OR b.number = 2090)
+```
+
+```
++------------------+
+| sumOfPathLengths |
++------------------+
+| 5                |
++------------------+
+```
+
+Above, we first match a shortest path between accounts 10039 and 1001. Notice that the length of this path is 2.
+We also match a shortest path between accounts 10039 and 2090. Notice that the length of this path is 3.
+In the SELECT clause, the aggregation `COUNT(e)` is a horizontal aggregation since `e` is a group variable. For each of the two shortest paths, it computes the path lengths by counting the number of edges. The output will be 2 for one of the two paths, and 3 for the other.
+Then it takes the `SUM` to compute the total length of the two paths, which is 5.
+
+### Horizontal aggregation in WHERE and GROUP BY
+
+While vertical aggregation is only possible in the `SELECT`, `HAVING` and `ORDER BY` clauses, horizontal aggregation is also possible in the `WHERE` and `GROUP BY` clauses.
+
+An example of a horizontal aggregation in `WHERE` is:
+
+{% include image.html file="example_graphs/financial_transactions.png" %}
+
+```sql
+  SELECT b.number AS b,
+         COUNT(e) AS pathLength,
+         ARRAY_AGG(e.amount) AS transactions
+    FROM financial_transactions
+   MATCH SHORTEST ( (a:Account) -[e:transaction]->* (b:Account) )
+   WHERE a.number = 10039 AND
+         (b.number = 8021 OR b.number = 1001 OR b.number = 2090) AND
+         COUNT(e) <= 2
+ORDER BY pathLength
+```
+
+```
++--------------------------------------+
+| b    | pathLength | transactions     |
++--------------------------------------+
+| 8021 | 1          | [1000.0]         |
+| 1001 | 2          | [1000.0, 1500.3] |
++--------------------------------------+
+```
+
+Above, we compute a shortest path from account 10039 to accounts 8021, 1001, and 2090. So three paths in total.
+However, in the `WHERE` clause we only keep paths that have at most two edges (`COUNT(e) <= 2`) such that only the paths to accounts 8021 and 1001 are kept since the path to 2090 has three edges.
+
+An example of a horizontal aggregation in `GROUP BY` is:
+
+{% include image.html file="example_graphs/financial_transactions.png" %}
+
+```sql
+  SELECT COUNT(e) AS pathLength,
+         COUNT(*) AS cnt
+    FROM financial_transactions
+   MATCH SHORTEST ( (a:Account) -[e:transaction]->* (b:Account) )
+   WHERE (a.number = 10039 OR a.number = 8021) AND
+         (b.number = 1001 OR b.number = 2090)
+GROUP BY COUNT(e)
+ORDER BY pathLength
+```
+
+```
++------------------+
+| pathLength | cnt |
++------------------+
+| 1          | 1   |
+| 2          | 2   |
+| 3          | 1   |
++------------------+
+```
+
+Above, we first match shortst paths between four pairs of vertices and then we group by the length of the paths (`GROUP BY COUNT(e)`) by means of horizontal aggregation. Then we perform a vertical aggregation `COUNT(*)` to compute the number of paths that have the particular path length. The result shows that one path has length 1, two paths have length 2, and one path as length 3.
 
 ## Reachability
 

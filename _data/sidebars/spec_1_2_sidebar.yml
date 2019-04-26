@@ -209,6 +209,27 @@ entries:
       url: /spec/1.2/#quantifiers
       output: web
 
+    - title: 'Horizontal Aggregation'
+      url: /spec/1.2/#horizontal-aggregation
+      output: web
+      subfolderitems:
+
+      - title: 'Recap of vertical aggregation'
+        url: /spec/1.2/#recap-of-vertical-aggregation
+        output: web
+
+      - title: 'Group Variables'
+        url: /spec/1.2/#group-variables
+        output: web
+
+      - title: 'Horizontal aggregation using group variables'
+        url: /spec/1.2/#horizontal-aggregation-using-group-variables
+        output: web
+
+      - title: 'Horizontal aggregation in WHERE and GROUP BY'
+        url: /spec/1.2/#horizontal-aggregation-in-where-and-group-by
+        output: web
+
     - title: 'Reachability'
       url: /spec/1.2/#reachability
       output: web
