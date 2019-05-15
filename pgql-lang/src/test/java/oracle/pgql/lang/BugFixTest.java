@@ -106,4 +106,14 @@ public class BugFixTest extends AbstractPgqlTest {
     String prettyPrintedQuery = pgql.parse(query).getGraphQuery().toString();
     assertTrue(pgql.parse(prettyPrintedQuery).isQueryValid());
   }
+
+  @Test /* GM-16464 */
+  public void duplicateVertexInPathMacro() throws Exception {
+    String query = "PATH self AS (a)-(a) SELECT start, end MATCH (start)-/:self*/->(end)";
+    PgqlResult result = pgql.parse(query);
+    assertTrue(result.isQueryValid());
+
+    String prettyPrintedQuery = result.getGraphQuery().toString();
+    assertTrue(pgql.parse(prettyPrintedQuery).isQueryValid());
+  }
 }
