@@ -116,4 +116,12 @@ public class BugFixTest extends AbstractPgqlTest {
     String prettyPrintedQuery = result.getGraphQuery().toString();
     assertTrue(pgql.parse(prettyPrintedQuery).isQueryValid());
   }
+
+  @Test /* GM-18250 */
+  public void multipleEdgesInShortest() throws Exception {
+    String query = "SELECT u, v MATCH SHORTEST( (u) -> (x0) -> (x1) -> (x2) -> (v) ) WHERE u != v ORDER BY id(u)";
+    PgqlResult result = pgql.parse(query); // this used to fail
+    assertFalse(result.isQueryValid());
+    assertTrue(result.getErrorMessages().contains("Not yet supported: multiple edges in SHORTEST"));
+  }
 }
