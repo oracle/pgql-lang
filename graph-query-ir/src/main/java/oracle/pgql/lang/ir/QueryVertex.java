@@ -3,6 +3,8 @@
  */
 package oracle.pgql.lang.ir;
 
+import static oracle.pgql.lang.ir.PgqlUtils.printIdentifier;
+
 public class QueryVertex extends QueryVariable {
 
   public QueryVertex(String name, boolean anonymous) {
@@ -19,7 +21,7 @@ public class QueryVertex extends QueryVariable {
     if (isAnonymous()) {
       return "()";
     } else {
-      return "(" + name + ")";
+      return "(" + printIdentifier(name) + ")";
     }
   }
 

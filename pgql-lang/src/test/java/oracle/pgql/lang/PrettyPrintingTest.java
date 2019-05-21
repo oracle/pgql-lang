@@ -11,7 +11,8 @@ import org.junit.Test;
 import oracle.pgql.lang.ir.GraphQuery;
 import oracle.pgql.lang.ir.QueryExpression.Constant.ConstString;
 import oracle.pgql.lang.ir.QueryExpression.FunctionCall;
-import oracle.pgql.lang.ir.QueryExpression.PropertyAccess;;
+import oracle.pgql.lang.ir.QueryExpression.PropertyAccess;
+import oracle.pgql.lang.ir.SelectQuery;;
 
 public class PrettyPrintingTest extends AbstractPgqlTest {
 
@@ -155,21 +156,52 @@ public class PrettyPrintingTest extends AbstractPgqlTest {
 
   @Test
   public void testIdentifierEscapingPgql11() throws Exception {
-    String identifier = "\"\"";
-    String escapedIdentifier = "\"\\\"\"\"\"";
+    String identifier = "\"\""; // ""
+    String escapedIdentifier = "\"\\\"\"\"\""; // "\""""
     String query = "SELECT n." + escapedIdentifier + " FROM " + escapedIdentifier + " MATCH (n:" + escapedIdentifier
         + ")";
-    GraphQuery graphQuery = pgql.parse(query).getGraphQuery();
+    SelectQuery selectQuery = (SelectQuery) pgql.parse(query).getGraphQuery();
 
-    PropertyAccess propertyAccess = (PropertyAccess) graphQuery.getProjection().getElements().get(0).getExp();
-    assertEquals(propertyAccess.getPropertyName(), identifier);
+    PropertyAccess propertyAccess = (PropertyAccess) selectQuery.getProjection().getElements().get(0).getExp();
+    assertEquals(identifier, propertyAccess.getPropertyName());
 
-    assertEquals(identifier, graphQuery.getInputGraphName());
+    assertEquals(identifier, selectQuery.getInputGraphName());
 
-    FunctionCall funcCall = (FunctionCall) graphQuery.getGraphPattern().getConstraints().iterator().next();
+    FunctionCall funcCall = (FunctionCall) selectQuery.getGraphPattern().getConstraints().iterator().next();
     assertEquals(funcCall.getFunctionName(), "has_label");
     String label = ((ConstString) funcCall.getArgs().get(1)).getValue();
     assertEquals(identifier, label);
+  }
+
+  @Test
+  public void testIdentifierEscapingPgql12() throws Exception {
+    String query = "PATH \"my path\" AS (\"vertex 1\") -[\"edge 1\"]-> (\"vertex 2\") " //
+        + "SELECT n1.\"my prop\" AS \"some column name\"" //
+        + "  FROM \"my graph\"" //
+        + " MATCH (\"n1\":\"my label\") -/:\"my path\"*/-> (\"n 2\")";
+
+    PgqlResult result1 = pgql.parse(query);
+    assertTrue(result1.isQueryValid());
+
+    String prettyPrintedQuery = result1.getGraphQuery().toString();
+
+    PgqlResult result2 = pgql.parse(prettyPrintedQuery);
+    assertTrue(result2.isQueryValid());
+  }
+
+  @Test
+  public void testIdentifierEscapingPgql13() throws Exception {
+    String query = "PATH \"my path\" AS (\"vertex 1\") -[\"edge 1\"]-> (\"vertex 2\") " //
+        + "SELECT \"n1\".\"my prop\" AS \"some column name\"" //
+        + "  FROM \"my graph\" EXPERIMENTAL_MATCH ( (\"n1\":\"my label\") -/:\"my path\"*/-> (\"n 2\") )";
+
+    PgqlResult result1 = pgql.parse(query);
+    assertTrue(result1.isQueryValid());
+
+    String prettyPrintedQuery = result1.getGraphQuery().toString();
+
+    PgqlResult result2 = pgql.parse(prettyPrintedQuery);
+    assertTrue(result2.isQueryValid());
   }
 
   @Test

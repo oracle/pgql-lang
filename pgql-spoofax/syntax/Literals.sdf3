@@ -27,7 +27,7 @@ context-free syntax
 
   Number.Integer            = UNSIGNED-INT
   Number.Decimal            = UNSIGNED-DECIMAL
-  String.String             = LEGACY10-STRING
+  String.String             = STRING
   Boolean.True              = <true> {case-insensitive}
   Boolean.False             = <false> {case-insensitive}
   BindVariable.BindVariable = <?>

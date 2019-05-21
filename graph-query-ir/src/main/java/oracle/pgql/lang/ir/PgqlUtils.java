@@ -152,7 +152,7 @@ public class PgqlUtils {
       return identifier;
     } else {
       return "\"" + escape(identifier) //
-          .replace("\"", "\\\"") //
+          .replace("\"", "\"\"") //
           + "\"";
     }
   }
@@ -243,13 +243,15 @@ public class PgqlUtils {
       }
     }
 
-    return variable.name;
+    return printIdentifier(variable.name);
   }
 
   protected static String printPgqlString(ExpAsVar expAsVar) {
-    String exp = expAsVar.getExp().toString();
-    // replace expAsVar.getExp().toString() with expAsVar.getName() once we no longer have to pretty print PGQL v1.0
-    return expAsVar.isAnonymous() || !expAsVar.isContainedInSelectClause() ? exp : exp + " AS " + expAsVar.getName();
+    if (expAsVar.isAnonymous() || !expAsVar.isContainedInSelectClause()) {
+      return expAsVar.getExp().toString();
+    } else {
+      return expAsVar.getExp() + " AS " + printIdentifier(expAsVar.getName());
+    }
   }
 
   protected static String printPgqlString(GraphPattern graphPattern, List<QueryPath> queryPaths) {
@@ -353,7 +355,7 @@ public class PgqlUtils {
   }
 
   private static String printCommonPathExpression(CommonPathExpression commonPathExpression) {
-    String result = "PATH " + commonPathExpression.getName() + " AS ";
+    String result = "PATH " + printIdentifier(commonPathExpression.getName()) + " AS ";
     result += printPathExpression(commonPathExpression, false);
     return result + "\n";
   }
@@ -422,8 +424,8 @@ public class PgqlUtils {
         }
       case PATH:
         QueryPath queryPath = (QueryPath) var;
-        return "-/" + (queryPath.isAnonymous() ? "" : var.name) + ":" + queryPath.getPathExpressionName()
-            + printHops(queryPath) + "/->";
+        return "-/" + (queryPath.isAnonymous() ? "" : printIdentifier(var.name)) + ":"
+            + printIdentifier(queryPath.getPathExpressionName()) + printHops(queryPath) + "/->";
       case VERTEX:
         return "(" + printVariableAndLabelPredicate(var, printVariableName, labelPredicate) + ")";
       default:
@@ -433,7 +435,7 @@ public class PgqlUtils {
 
   private static String printVariableAndLabelPredicate(QueryVariable var, boolean printVariableName,
       QueryExpression labelPredicate) {
-    String result = printVariableName ? var.getName() : "";
+    String result = printVariableName ? printIdentifier(var.getName()) : "";
     if (labelPredicate != null) {
       result += ":" + printLabelPredicate(labelPredicate);
     }
@@ -562,7 +564,7 @@ public class PgqlUtils {
 
   protected static String printLiteral(String val) {
     return "'" + escape(val) //
-        .replace("'", "\\'") //
+        .replace("'", "''") //
         + "'";
   }
 

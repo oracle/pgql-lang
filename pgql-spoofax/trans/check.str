@@ -101,7 +101,7 @@ rules // Unresolved/duplicate variables
 
   nabl-constraint(|ctx):
     SelectClause(Star(), ExpAsVars(expAsVars)) -> <fail>
-    with group-variables := <filter(get-group-variable-from-select-star)> expAsVars
+    with group-variables := <filter(get-group-variable-from-select-star; ?Identifier(<id>))> expAsVars
        ; <map(generate-error(|ctx, $[Cannot select all variables since [<id>] is a group variable but group variables cannot be selected]))> group-variables
 
   get-group-variable-from-select-star = ?ExpAsVar(VarRef(<id>), _, _, _); ?v; origin-text; ?"*"; !v
@@ -213,12 +213,6 @@ rules // helper rules
     with
       failtask := <task-create-fail(|ctx)>
     ; <task-create-error-on-failure(|ctx, failtask, m)> t
-
-  // TODO
-  nabl-constraint(|ctx):
-    Or(_, PathPatternRef(p)) -> <fail>
-    where
-      <generate-error(|ctx, "Alternative path patterns not yet supported")> p
 
   nabl-constraint(|ctx):
     ErrorMessage(term, m) -> <fail>
@@ -355,8 +349,8 @@ rules // MODIFY
            ?DirectedEdgeInsertion(v, _, _, _, _, Some(Properties(setProperties))) +
            ?Update(VarRef(v, _), SetProperties(setProperties))> t
     with v' := <strip-annos> v
-       ; otherVariableThanV := <filter(?SetProperty(PropRef(VarRef(<id>, _), _), _); strip-annos; not(?v'))> setProperties
-       ; <batch-generate-error(|ctx, $<Did you mean <v>?>)> otherVariableThanV
+       ; otherVariablesThanV := <filter(?SetProperty(PropRef(VarRef(<id>, _), _), _); strip-annos; not(?v'))> setProperties
+       ; <batch-generate-error(|ctx, $<Did you mean <<!v; ?Identifier(<id>)>>?>)> otherVariablesThanV
 
   nabl-constraint(|ctx):
     ModifyClause(_, insertUpdateDeleteClauses) -> <fail>

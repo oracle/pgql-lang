@@ -45,7 +45,7 @@ rules
           norm-case
         );
       	alltd(norm-edgeContents);
-        ( (is-pgql10 + is-pgql11); alltd(norm-legacy-string-literal + norm-legacy-identifier) +
+        ( (is-pgql10 + is-pgql11); alltd((?PropRef(_, _) <+ varRef-to-legacy-string-literal) + norm-legacy-string-literal); alltd(norm-legacy-identifier) +
           is-pgql13; alltd(norm-string-literal + norm-identifier) +
           ?Start-Plhdr() // empty query string
         );
@@ -79,18 +79,13 @@ rules
 
   get-pgql11-deprecation = ?Legacy10Asc(x); to-error-message(|$<Use [<<origin-text> x> ASC] instead of [ASC(<<origin-text> x>)]>)
   get-pgql11-deprecation = ?Legacy10Desc(x); to-error-message(|$<Use [<<origin-text> x> DESC] instead of [DESC(<<origin-text> x>)]>)
-  get-pgql11-deprecation = ?String(<id>); is-double-quoted; to-error-message(|"Use single quotes for character string literals; not double quotes")
   get-pgql11-deprecation = ?Legacy10Identifier(_); to-error-message(|"Use double quotes to delimit labels")
   get-pgql11-deprecation = ?Ids(_); to-error-message(|"Use [id(x) = xyz] instead of [@xyz]")
   get-pgql11-deprecation = ?InlinedConstraint(_); to-error-message(|"Constraints should be specified in the WHERE clause instead of the WITH")
   get-pgql11-deprecation = ?Legacy10Not(_); to-error-message(|"Use [NOT] instead of [!]")
   get-pgql11-deprecation = ?Legacy10Regex(_, _); to-error-message(|"Use [java_regexp_like(exp1, exp2)] instead of [exp1 =~ exp2]")
 
-  get-pgql13-deprecation = get-pgql11-deprecation // inheriting all deprecations from 1.1
-
-  get-pgql13-deprecation:
-    GroupByClause(expAsVars) -> errors
-    with errors := <filter(?ExpAsVar(_, Some(<id>))); map(to-error-message(|"Variable definition not allowed in GROUP BY"))> expAsVars
+  get-pgql13-deprecation = get-pgql11-deprecation // sharing all the deprecations with 1.1
 
   get-pgql10-limitation = ( ?Pgql11FromClause(_)
                           + ?Subquery(_)
@@ -98,11 +93,10 @@ rules
                           + ?ExtractExp(_, _)
                           + ?ARRAY-AGG(_, _)
                           + ?Shortest(_, _)
-                          + get-pgql11-limitation
                           )
                         ; to-error-message(|"Use [SELECT .. MATCH .. WHERE ..] or [SELECT .. FROM graphName MATCH .. WHERE ..]")
 
-  get-pgql11-limitation = fail // currently all PGQL 1.3 features are also supported in PGQL 1.1
+  get-pgql11-limitation = ?VarRef(DelimitedIdentifier(<id>)); to-error-message(|"Double quoted variable references are only available in PGQL 1.3 and up")
 
   // TODO: move this to check.str (all the information should be in the normalized AST)
   get-path-limitations = collect(shortest-or-reaches + is-quantifier)
@@ -142,17 +136,35 @@ rules
   norm-string-literal = String(un-single-quote; unescape-string-literal)
   unescape-string-literal = string-replace(|"''", "'")
 
-  norm-identifier = Identifier(try(un-double-quote; unescape-delimited-identifier))
+  norm-identifier:
+    RegularIdentifier(v) -> Identifier(v)
+
+  norm-identifier:
+    DelimitedIdentifier(v) -> Identifier(v')
+    with v' := <origin-track-forced(un-double-quote; unescape-delimited-identifier)> v
+
   unescape-delimited-identifier = string-replace(|"\"\"", "\"")
 
-  norm-legacy-string-literal = String(unquote-and-unescape-legacy-string-literal)
+  norm-legacy-string-literal:
+    String(s) -> String(s')
+    with s' := <origin-track-forced(un-single-quote; unescape-legacy-string-literal)> s
 
-  norm-legacy-identifier = Identifier(unquote-and-unescape-legacy-identifier)
-                         + Legacy10Identifier(unquote-and-unescape-legacy-string-literal)
+  varRef-to-legacy-string-literal:
+    VarRef(DelimitedIdentifier(s)) -> String(s')
+    with s' := <origin-track-forced(un-double-quote; unescape-legacy-identifier)> s
 
-  unquote-and-unescape-legacy-string-literal = (is-single-quoted; un-single-quote; unescape-legacy-string-literal)
-                                      + (is-double-quoted; un-double-quote; unescape-legacy-identifier) // legacy PGQL 1.0 string literal
-  unquote-and-unescape-legacy-identifier = (is-double-quoted; un-double-quote; unescape-legacy-identifier) <+ id
+  norm-legacy-identifier:
+    RegularIdentifier(v) -> Identifier(v)
+
+  norm-legacy-identifier:
+    DelimitedIdentifier(v) -> Identifier(v')
+    with v' := <origin-track-forced(un-double-quote; unescape-legacy-identifier)> v
+
+  // (n:'lbl')
+  norm-legacy-identifier:
+    Legacy10Identifier(v) -> Legacy10Identifier(v')
+    with v' := <origin-track-forced(un-single-quote; unescape-legacy-string-literal)> v
+
   external unescape-legacy-string-literal(|)
   external unescape-legacy-identifier(|)
 
@@ -224,7 +236,7 @@ rules
                           ?Path(None(), pathPatternRef, kleeneStar); ?origin; !Path(Some(<unique-name(|c, origin)>), pathPatternRef, kleeneStar)
   name-unnamed-elem-helper(|c, origin) = !ElemContents(Some(<unique-name(|c, origin)>), None(), None(), None())
 
-  norm-inlined-references = ?ElemContents(Some(varName), _, _, _); alltd(norm-inlined-reference(|varName))
+  norm-inlined-references = ?ElemContents(Some((varName)), _, _, _); alltd(norm-inlined-reference(|varName))
   norm-inlined-reference(|varName) =
     ?Obj(dot); !VarRef(varName) + (?Obj(VarRef(v), dot) + ?PropRef(VarRef(v), _));
     if <eq> (v, varName)
@@ -284,7 +296,7 @@ rules
   to-label-constraint(|var):
     labels ->  <to-hasLabel-expressions(|var)> labels
   to-hasLabel-expressions(|var) = bottomup(try(![VarRef(var), <to-label>]; to-function(|"has_label")))
-  to-label = ?Label(<id>) + ?Legacy10Identifier(<id>); !Identifier(<id>) + ?BindVariable(_)
+  to-label = ?Label(<id>) + ?Legacy10Identifier(<id>); origin-track-forced(!Identifier(<id>)) + ?BindVariable(_)
   to-id-constraint(|var) = bottomup(try(is-literal; origin-track-forced(!Eq(<to-function(|"id")> [VarRef(var)], <id>))))
 
   // base case: no paths
@@ -460,24 +472,24 @@ rules
     with expAsVars' := <map(norm-ExpAsVar)> expAsVars
        ; result := <origin-track-forced(!SelectClause(distinct, <origin-track-forced(!ExpAsVars(expAsVars'))> t2))> t1 
 
-  norm-ExpAsVar = ?ExpAsVar(exp, Some(VarAssign(VarDef(v)))); !ExpAsVar(exp, v, NonAnonymous())
-  norm-ExpAsVar = ?ExpAsVar(exp, None()); !ExpAsVar(exp, <?VarRef(<id>) <+ origin-track-forced(origin-text)> exp, Anonymous())
-  norm-ExpAsVar = ?ExpAsVar(_, v, _); where (<origin-offset> v)
+  norm-ExpAsVar = ?ExpAsVar(exp, Some(VarAssign(v))); !ExpAsVar(exp, v, NonAnonymous())
+  norm-ExpAsVar = ?ExpAsVar(exp, None()); !ExpAsVar(exp, <(?VarRef(<id>) <+ origin-track-forced(origin-text); origin-track-forced(!Identifier(<id>)))> exp, Anonymous())
 
   norm-select-star(|graphPattern, group-exps):
     t@SelectClause(distinct, star@Star()) -> result
     with if [] := group-exps
-         then vars := <collect(?Vertex(<id>) + ?NormalizedEdge(_, <id>, _, _, _, _) + ?Subquery(_)); filter(is-string; not(is-substring(GENERATED)))> graphPattern;
-              expAsSelectVars := <map(generate-ExpAsVar(|star); norm-ExpAsVar)> vars
+         then vars := <collect(?Vertex(<id>) + ?NormalizedEdge(_, <id>, _, _, _, _) + ?Subquery(_)); filter(Identifier(is-string; not(is-substring(GENERATED))))> graphPattern;
+              expAsSelectVars := <map(generate-ExpAsVar(|star))> vars
          else expAsSelectVars := star
          end
        ; result := <origin-track-forced(!SelectClause(star, <origin-track-forced(!ExpAsVars(expAsSelectVars))> star))> t
 
   generate-ExpAsVar(|star):
-    v -> expAsVar
+    t@Identifier(v) -> expAsVar
     with v' := <origin-track-forced(!(v, ""); conc-strings /* generate a new string to make it loose origin */)> star
-       ; varRef := <origin-track-forced(!VarRef(v'))> star
-       ; expAsVar := <origin-track-forced(!ExpAsVar(varRef, v', Anonymous()))> star
+       ; newIdentifier := <origin-track-forced(!Identifier(v'))> star
+       ; varRef := <origin-track-forced(!VarRef(newIdentifier))> star
+       ; expAsVar := <origin-track-forced(!ExpAsVar(varRef, newIdentifier, Anonymous()))> star
 
   norm-orderBy(|allExpAsVars, version):
     Some(OrderByClause(elems)) -> Some(OrderByClause(elems'))

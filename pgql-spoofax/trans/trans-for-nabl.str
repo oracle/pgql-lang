@@ -168,7 +168,7 @@ rules
 
   resolve-insertion(|original-variables):
     (t, (result, variables)) -> (result', variables')
-    where <?VertexInsertion(Identifier(v), labels, properties) + ?DirectedEdgeInsertion(Identifier(v), src, dst, labels, properties)> t
+    where <?VertexInsertion(v, labels, properties) + ?DirectedEdgeInsertion(v, src, dst, labels, properties)> t
     with originOffset := <origin-offset> v
        ; labels' := <resolve-var-refs(|original-variables)> labels
        ; properties' := <resolve-set-properties(|v, originOffset, original-variables)> properties

@@ -3,6 +3,8 @@
  */
 package oracle.pgql.lang.ir;
 
+import static oracle.pgql.lang.ir.PgqlUtils.printIdentifier;
+
 public class QueryEdge extends VertexPairConnection {
 
   public QueryEdge(QueryVertex src, QueryVertex dst, String name, boolean anonymous, Direction direction) {
@@ -24,7 +26,7 @@ public class QueryEdge extends VertexPairConnection {
     if (isAnonymous()) {
       edge = "-";
     } else {
-      edge = "-[" + name + "]-";
+      edge = "-[" + printIdentifier(name) + "]-";
     }
     if (isDirected()) {
       edge += ">";
