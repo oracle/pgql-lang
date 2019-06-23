@@ -5,8 +5,6 @@ package oracle.pgql.lang.spatial;
 
 import java.io.Serializable;
 
-import org.apache.commons.lang3.StringUtils;
-
 /**
  * A point in a 2-dimensional space
  */
@@ -21,8 +19,10 @@ public class Point2D implements Serializable {
   /**
    * Create a point in a 2-dimensional space
    *
-   * @param x longitude
-   * @param y latitude
+   * @param x
+   *          longitude
+   * @param y
+   *          latitude
    */
   public Point2D(double x, double y) {
     this.x = x;
@@ -33,9 +33,12 @@ public class Point2D implements Serializable {
   /**
    * Create a point in a 2-dimensional space with a linear reference
    *
-   * @param x longitude
-   * @param y latitude
-   * @param m linear reference
+   * @param x
+   *          longitude
+   * @param y
+   *          latitude
+   * @param m
+   *          linear reference
    */
   public Point2D(double x, double y, double m) {
     this.x = x;
@@ -45,7 +48,9 @@ public class Point2D implements Serializable {
 
   /**
    * Create a Point2D object from a well-known text representation
-   * @param wktPoint well-known text representation of a point value
+   *
+   * @param wktPoint
+   *          well-known text representation of a point value
    * @return Point2D object
    */
   public static Point2D fromWkt(String wktPoint) {
@@ -59,22 +64,17 @@ public class Point2D implements Serializable {
     if (xValEndPos == -1) {
       throw new WktParseException(wktPoint + " is not in the right format");
     }
-    Double xVal = Double
-        .parseDouble(values.substring(0, xValEndPos));
+    Double xVal = Double.parseDouble(values.substring(0, xValEndPos));
 
     int yValStartPos = values.indexOf(' ') + 1;
-
     switch (prefix) {
-      case "POINT":
+      case "POINT ":
         Double yVal = Double.parseDouble(values.substring(yValStartPos, values.length()));
         return new Point2D(xVal, yVal);
-      case "POINT M":
-        int yValEndPos = StringUtils.ordinalIndexOf(values, " ", 2);
-        if (yValEndPos <= yValStartPos) {
-          throw new WktParseException(wktPoint + " is not in the right format");
-        }
+      case "POINT M ":
+        int yValEndPos = values.substring(yValStartPos).indexOf(' ') + yValStartPos + 1;
         yVal = Double.parseDouble(values.substring(yValStartPos, yValEndPos));
-        Double mVal = Double.parseDouble(values.substring(yValEndPos + 1, values.length()));
+        Double mVal = Double.parseDouble(values.substring(yValEndPos));
         return new Point2D(xVal, yVal, mVal);
       default:
         throw new WktParseException(wktPoint + " is not in the right format");
