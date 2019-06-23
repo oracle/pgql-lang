@@ -274,7 +274,7 @@ rules
       inlined-constraints-for-edges := <collect-om(?OutConn(<id>, _) + ?InConn(<id>, _) + ?UndirectedEdge(<id>, _)); filter(get-inlined-constraints); concat> path;
       non-inlined-constraints := <(?None(); ![]) <+ (?Some(WhereClause(<id>)); ![<id>])> whereClause;
       constraints := <concat; flatten-list; !Constraints(<id>)> [inlined-constraints-for-vertices, inlined-constraints-for-edges, non-inlined-constraints];
-      vertices := <collect(?Vertex(_)); !Vertices(<id>)> path;
+      vertices := <collect-om(?Vertex(_), conc); !Vertices(<id>)> path;
       connections := <get-connections-from-paths(|variable-counter)> [path]
 
   get-inlined-constraints:

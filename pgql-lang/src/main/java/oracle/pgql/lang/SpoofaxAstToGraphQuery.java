@@ -551,8 +551,10 @@ public class SpoofaxAstToGraphQuery {
 
       if (consName.equals("Edge")) {
         result.add(getQueryEdge(connectionT, ctx, vertexMap));
+      } else if (consName.equals("ComplexRegularExpressionNotSupported")) {
+        // ignore it
       } else {
-        assert consName.equals("Path");
+        assert consName.equals("Path") : consName;
         result.add(getPath(connectionT, ctx, vertexMap));
       }
     }
