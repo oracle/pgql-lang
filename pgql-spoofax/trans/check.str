@@ -101,7 +101,7 @@ rules // Unresolved/duplicate variables
 
   nabl-constraint(|ctx):
     SelectClause(Star(), ExpAsVars(expAsVars)) -> <fail>
-    with group-variables := <filter(get-group-variable-from-select-star; ?Identifier(<id>))> expAsVars
+    with group-variables := <filter(get-group-variable-from-select-star; identifier-to-string)> expAsVars
        ; <map(generate-error(|ctx, $[Cannot select all variables since [<id>] is a group variable but group variables cannot be selected]))> group-variables
 
   get-group-variable-from-select-star = ?ExpAsVar(VarRef(<id>), _, _, _); ?v; origin-text; ?"*"; !v
@@ -281,7 +281,7 @@ rules // literals
     with <generate-error(|ctx, "Use '' instead of \\' to escape a single quote")> t
 
   check-illegal-java-escaping(|ctx):
-    t@Identifier(identifier) -> <fail>
+    t@Identifier(identifier, _) -> <fail>
     where <is-substring(!"\\\"")> identifier
     with <generate-error(|ctx, "Use \"\" instead of \\\" to escape a double quote")> t
 
@@ -350,7 +350,9 @@ rules // MODIFY
            ?Update(VarRef(v, _), SetProperties(setProperties))> t
     with v' := <strip-annos> v
        ; otherVariablesThanV := <filter(?SetProperty(PropRef(VarRef(<id>, _), _), _); strip-annos; not(?v'))> setProperties
-       ; <batch-generate-error(|ctx, $<Did you mean <<!v; ?Identifier(<id>)>>?>)> otherVariablesThanV
+       ; <batch-generate-error(|ctx, $<Did you mean <<!v; identifier-to-string>>?>)> otherVariablesThanV
+
+  identifier-to-string = ?Identifier(<id>, None()) <+ ?Identifier(_, <id>)
 
   nabl-constraint(|ctx):
     ModifyClause(_, insertUpdateDeleteClauses) -> <fail>

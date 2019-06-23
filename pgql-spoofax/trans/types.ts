@@ -6,15 +6,15 @@ imports
 
 type rules
 
-  VarRef(Identifier(v), _) : ty
+  VarRef(Identifier(v, _), _) : ty
   where definition of v : ty
     and not ( ty == PathTy() ) else error $[Path variables not supported in PGQL 1.1] on v
 
-  Vertex(Identifier(v), _, Correlation(varRef)) :-
+  Vertex(Identifier(v, _), _, Correlation(varRef)) :-
   where varRef : ty
     and ty == VertexTy() else error $[Duplicate variable (variable with same name is passed from an outer query)] on v
 
-  Edge(_, Identifier(e), _, _, _, Correlation(VarRef(Identifier(outer-var), _))) :-
+  Edge(_, Identifier(e, _), _, _, _, Correlation(VarRef(Identifier(outer-var, _), _))) :-
   where definition of outer-var : ty
     and not(ty == ty ) /* make it always throw an error */ else error $[Duplicate variable (variable with same name is passed from an outer query)] on e
 

@@ -32,3 +32,11 @@ test Invalid escaping in identifier [[
    WHERE n.[["double\"quote"]]
 
 ]] error like "instead of \" to escape a double quote" at #1, #2, #3
+
+test Implicit property reference [[
+
+    SELECT n.[[prop]]
+      FROM g EXPERIMENTAL_MATCH ( (n) )
+  ORDER BY [[prop]]
+
+]] resolve #2 to #1

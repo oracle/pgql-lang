@@ -44,7 +44,7 @@ signature constructors // for the normalized AST (see trans/normalize.str)
 
   Neq                   : Exp * Exp -> Exp
 
-  Identifier            : IDENTIFIER -> Identifier
+  Identifier            : IDENTIFIER * OriginText -> Identifier
   BindVariable          : INTEGER -> BindVariable
   Version               : STRING
   InPredicate           : Exp * Exp -> InPredicate

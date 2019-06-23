@@ -137,10 +137,10 @@ rules
   unescape-string-literal = string-replace(|"''", "'")
 
   norm-identifier:
-    RegularIdentifier(v) -> Identifier(v)
+    RegularIdentifier(v) -> Identifier(<origin-track-forced(upper-case)> v, v)
 
   norm-identifier:
-    DelimitedIdentifier(v) -> Identifier(v')
+    DelimitedIdentifier(v) -> Identifier(v', None())
     with v' := <origin-track-forced(un-double-quote; unescape-delimited-identifier)> v
 
   unescape-delimited-identifier = string-replace(|"\"\"", "\"")
@@ -154,10 +154,10 @@ rules
     with s' := <origin-track-forced(un-double-quote; unescape-legacy-identifier)> s
 
   norm-legacy-identifier:
-    RegularIdentifier(v) -> Identifier(v)
+    RegularIdentifier(v) -> Identifier(v, None())
 
   norm-legacy-identifier:
-    DelimitedIdentifier(v) -> Identifier(v')
+    DelimitedIdentifier(v) -> Identifier(v', None())
     with v' := <origin-track-forced(un-double-quote; unescape-legacy-identifier)> v
 
   // (n:'lbl')
@@ -296,7 +296,7 @@ rules
   to-label-constraint(|var):
     labels ->  <to-hasLabel-expressions(|var)> labels
   to-hasLabel-expressions(|var) = bottomup(try(![VarRef(var), <to-label>]; to-function(|"has_label")))
-  to-label = ?Label(<id>) + ?Legacy10Identifier(<id>); origin-track-forced(!Identifier(<id>)) + ?BindVariable(_)
+  to-label = ?Label(<id>) + ?Legacy10Identifier(<id>); origin-track-forced(!Identifier(<id>, None())) + ?BindVariable(_)
   to-id-constraint(|var) = bottomup(try(is-literal; origin-track-forced(!Eq(<to-function(|"id")> [VarRef(var)], <id>))))
 
   // base case: no paths
@@ -459,7 +459,7 @@ rules
       expAsGroupVars' := <map(norm-ExpAsVar)> expAsGroupVars;
       groupByClause' := <?Some(_); !Some(GroupByClause(expAsGroupVars')) <+ !None()> groupByClause;
 
-      selectOrModifyClause' := <?ModifyClause(_, _) + ?SelectClause(_, _); (norm-ExpAsVars(|expAsGroupVars') <+ norm-select-star(|graphPattern, expAsGroupVars'))> selectOrModifyClause;
+      selectOrModifyClause' := <?ModifyClause(_, _) + ?SelectClause(_, _); (norm-ExpAsVars(|expAsGroupVars', version) <+ norm-select-star(|graphPattern, expAsGroupVars'))> selectOrModifyClause;
 
       expAsSelectVars := <(?ModifyClause(_, _)); ![] + ?SelectClause(_, ExpAsVars(<id>))> selectOrModifyClause';
       allExpAsVars := <conc> (expAsGroupVars', <try(?Star(); ![])> expAsSelectVars);
@@ -467,27 +467,33 @@ rules
 
       limitOffsets' := <norm-limitOffsets> limitOffsets
 
-  norm-ExpAsVars(|expAsGroupVars'):
+  norm-ExpAsVars(|expAsGroupVars', version):
     t1@SelectClause(distinct, t2@ExpAsVars(expAsVars)) -> result
-    with expAsVars' := <map(norm-ExpAsVar)> expAsVars
+    with if <?"v1.0" + ?"v1.1"> version
+         then expAsVars' := <map(norm-ExpAsVar)> expAsVars
+         else expAsVars' := <map(norm-ExpAsVar-for-select-clause)> expAsVars
+         end
        ; result := <origin-track-forced(!SelectClause(distinct, <origin-track-forced(!ExpAsVars(expAsVars'))> t2))> t1 
 
+  norm-ExpAsVar-for-select-clause = ?ExpAsVar(exp@PropRef(_, p), None()); !ExpAsVar(exp, p, NonAnonymous()) <+ norm-ExpAsVar
+
   norm-ExpAsVar = ?ExpAsVar(exp, Some(VarAssign(v))); !ExpAsVar(exp, v, NonAnonymous())
-  norm-ExpAsVar = ?ExpAsVar(exp, None()); !ExpAsVar(exp, <(?VarRef(<id>) <+ origin-track-forced(origin-text); origin-track-forced(!Identifier(<id>)))> exp, Anonymous())
+  norm-ExpAsVar = ?ExpAsVar(exp, None()); !ExpAsVar(exp, <(?VarRef(<id>) <+ origin-track-forced(origin-text); origin-track-forced(!Identifier(<id>, None())))> exp, Anonymous())
 
   norm-select-star(|graphPattern, group-exps):
     t@SelectClause(distinct, star@Star()) -> result
     with if [] := group-exps
-         then vars := <collect(?Vertex(<id>) + ?NormalizedEdge(_, <id>, _, _, _, _) + ?Subquery(_)); filter(Identifier(is-string; not(is-substring(GENERATED))))> graphPattern;
+         then vars := <collect(?Vertex(<id>) + ?NormalizedEdge(_, <id>, _, _, _, _) + ?Subquery(_)); filter(Identifier(is-string; not(is-substring(GENERATED)), id))> graphPattern;
               expAsSelectVars := <map(generate-ExpAsVar(|star))> vars
          else expAsSelectVars := star
          end
        ; result := <origin-track-forced(!SelectClause(star, <origin-track-forced(!ExpAsVars(expAsSelectVars))> star))> t
 
   generate-ExpAsVar(|star):
-    t@Identifier(v) -> expAsVar
+    t@Identifier(v, originText) -> expAsVar
     with v' := <origin-track-forced(!(v, ""); conc-strings /* generate a new string to make it loose origin */)> star
-       ; newIdentifier := <origin-track-forced(!Identifier(v'))> star
+       ; originText' := <?None() <+ !star; origin-track-forced(!(originText, ""); conc-strings /* generate a new string to make it loose origin */)> originText
+       ; newIdentifier := <origin-track-forced(!Identifier(v', originText'))> star
        ; varRef := <origin-track-forced(!VarRef(newIdentifier))> star
        ; expAsVar := <origin-track-forced(!ExpAsVar(varRef, newIdentifier, Anonymous()))> star
 

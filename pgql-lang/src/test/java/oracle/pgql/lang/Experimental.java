@@ -29,4 +29,24 @@ public class Experimental extends AbstractPgqlTest {
     PgqlResult result = pgql.parse(query);
     assertTrue(result.isQueryValid());
   }
+
+  @Test
+  public void testImplicitPropertyReferences1() throws Exception {
+    String query = "SELECT n.prop"//
+        + "           FROM g EXPERIMENTAL_MATCH ( (n) )"//
+        + "       ORDER BY prop";
+    PgqlResult result = pgql.parse(query);
+    assertTrue(result.isQueryValid());
+  }
+
+  @Test
+  public void testImplicitPropertyReferences2() throws Exception {
+    String query = "SELECT n.prop"//
+        + "           FROM g EXPERIMENTAL_MATCH ( (n) )"//
+        + "          WHERE prop = 3"//
+        + "       GROUP BY prop"//
+        + "         HAVING prop > 10";
+    PgqlResult result = pgql.parse(query);
+    assertTrue(result.isQueryValid());
+  }
 }

@@ -16,9 +16,19 @@ public abstract class QueryVariable {
 
   protected boolean anonymous;
 
-  public QueryVariable(String name, boolean anonymous) {
+  protected boolean isCaseSensitive;
+
+  protected String originText; // null if isCaseSensitive == true
+
+  public QueryVariable(String name, boolean anonymous, boolean isCaseSensitive, String originText) {
     this.name = name;
     this.anonymous = anonymous;
+    this.originText = originText;
+    this.isCaseSensitive = isCaseSensitive;
+  }
+
+  public QueryVariable(String name, boolean anonymous) {
+    this(name, anonymous, true, null);
   }
 
   public QueryVariable(String name) {
