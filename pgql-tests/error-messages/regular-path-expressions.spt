@@ -225,3 +225,19 @@ test Multiple group variables in aggregation (2) [[
         SHORTEST ( (n) -[e2]->* (m) )
 
 ]] error like "Accessing multiple group variables in a single aggregation is not yet supported" at #1, #2, #3, #4, #5, #6
+
+test Missing cost clause (1) [[
+
+  SELECT 1 AS c1
+    FROM g
+   MATCH CHEAPEST ( (n) ([[-[e1]->)]]* (m) )
+
+]] error like "COST clause expected after pattern" at #1
+
+test Missing cost clause (2) [[
+
+  SELECT 1 AS c1
+    FROM g
+   MATCH CHEAPEST ( (n) (-[e1]-> WHERE [[e1.cost > 0]])* (m) )
+
+]] error like "COST clause expected after WHERE clause" at #1

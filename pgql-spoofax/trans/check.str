@@ -272,6 +272,16 @@ rules // temporary limitation
     where <collect-in-outer-query(?Path(_, _, _, _, _, _, _, _)); not(?[])> connections
     with <generate-error(|ctx, "Nested regular expressions not supported")> t
 
+rules // CHEAPEST
+
+  nabl-constraint(|ctx):
+    t@Path(_, _, CommonPathExpression(_, _, _, Constraints(constraints), costClause), _, _, _, Cheapest(), _) -> <fail>
+    where <?None()> costClause
+    with if <?[]> constraints
+    then <generate-error(|ctx, "COST clause expected after pattern")> t
+    else <?[<id>]; generate-error(|ctx, "COST clause expected after WHERE clause")> constraints
+    end
+
 rules // literals
 
   external is-valid-datetime(|)
