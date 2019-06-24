@@ -265,7 +265,7 @@ rules
   reverse-then-union:
     (x, y) -> <union> (y, x)
 
-  ParenthesizedPath = ?ParenthesizedPath(_, _, _, _, _, _)
+  ParenthesizedPath = ?ParenthesizedPath(_, _, _, _)
 
   norm-common-path-expression(|variable-counter):
     CommonPathExpression(name, _, path, whereClause, costClause) -> CommonPathExpression(name, vertices, connections, constraints, costClause)
@@ -380,7 +380,7 @@ rules
       end
 
   to-connection(|variable-counter, pathFindingGoal, kValue):
-    (n1, t@ParenthesizedPath(v1, edge, v2, whereClause, costClause, quantifier), n2) -> path
+    (n1, t@ParenthesizedPath(RelaxedPathPattern(v1, [RelaxedEdgeVertex(edge, v2)|otherEdges]), whereClause, costClause, quantifier), n2) -> path
     with if <has-at-most-one-binding> quantifier
          then srcVertex := <?Some(Vertex(<id>)) <+ ?None(); !n1> v1
             ; dstVertex := <?Some(Vertex(<id>)) <+ ?None(); !n2> v2
@@ -393,7 +393,10 @@ rules
        ; inlinedDstVertexConstraints := <?Some(Vertex(<id>)); get-inlined-constraints <+ ![]> v2
        ; constraints := <?None(); ![] <+ ?Some(WhereClause(constraint)); ![constraint]> whereClause
        ; constraints' := Constraints(<conc> (inlinedSrcVertexConstraints, inlinedEdgeConstraints, inlinedDstVertexConstraints, constraints))
-       ; path := <to-path(|variable-counter, pathFindingGoal, kValue)> (n1, n2, edge', constraints', costClause, quantifier)
+       ; if <?[]> otherEdges
+         then path := <to-path(|variable-counter, pathFindingGoal, kValue)> (n1, n2, edge', constraints', costClause, quantifier)
+         else path := ComplexParenthesizedRegularExpressionNotSupported(otherEdges)
+         end
 
   to-path(|variable-counter, pathFindingGoal, kValue):
     (srcVertex, dstVertex, edge@NormalizedEdge(src, _, dst, direction, _, _), constraints, costClause, quantifier) -> path

@@ -15,19 +15,19 @@ context-free syntax
 
   Pgql11FromClause.Pgql11FromClause = <FROM <Identifier?>> {case-insensitive}
 
-  MatchWhereClauses.MatchWhereClauses = <MATCH <{PathPattern ",\n"}+> <WhereClause?>> {case-insensitive}
+  MatchWhereClauses.MatchWhereClauses = <MATCH <{PathPattern ","}+> <WhereClause?>> {case-insensitive}
 
   GraphName.GraphName = Identifier
 
-  GraphPattern.GraphPattern = <<{PathPattern ",\n"}+>>
+  GraphPattern.GraphPattern = <<{PathPattern ","}+>>
 
 context-free syntax
 
-  PathPattern.PathPattern = <<Vertex><{EdgeVertex ""}+>>
+  PathPattern.PathPattern = <<Vertex> <EdgeVertex+>>
   PathPattern.SingleVertex = <(<ElemContents>)> // PGQL 1.0
   Vertex.Vertex = <(<ElemContents>)>
 
-  EdgeVertex.EdgeVertex = < <Connection> <Vertex>>
+  EdgeVertex.EdgeVertex = <<Connection> <Vertex>>
   Connection.OutConn = [-[EdgeOrPathContents?]->[PathQuantifier?]]
   Connection.InConn = [<-[EdgeOrPathContents?]-[PathQuantifier?]]
   Connection.UndirectedEdge = [-[EdgeContents?]-[PathQuantifier?]]
@@ -35,7 +35,10 @@ context-free syntax
   Connection.InEdge = [<-[PathQuantifier?]]
   Connection.UndirectedEdge = [-[PathQuantifier?]]
 
-  Connection.ParenthesizedPath = <( <Vertex?> <Connection> <Vertex?> <WhereClause?> <CostClause?> )<PathQuantifier?>>
+  RelaxedPathPattern.RelaxedPathPattern = <<Vertex?> <RelaxedEdgeVertex+>> // relaxed means that the vertices can be omitted
+  RelaxedEdgeVertex.RelaxedEdgeVertex = <<Connection> <Vertex?>>
+
+  Connection.ParenthesizedPath = <( <RelaxedPathPattern> <WhereClause?> <CostClause?> )<PathQuantifier?>>
 
   PathPattern.Shortest = <<TopK?> SHORTEST ( <PathPattern> )> {case-insensitive}
   PathPattern.Cheapest = <<TopK?> CHEAPEST ( <PathPattern> )> {case-insensitive}

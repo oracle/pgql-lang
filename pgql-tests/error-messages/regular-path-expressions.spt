@@ -40,12 +40,33 @@ test K equals zero [[
 
 ]]  error like "Value should be greater than 0" at #1
 
-test Multiple edges in SHORTEST [[
+test Multiple edges in SHORTEST (1) [[
 
   SELECT n.prop AS nProp
     FROM g MATCH SHORTEST ( (n) [[-[e1]->* (m) ->*]] (o) )
 
-]] error like "Not yet supported: multiple edges in SHORTEST or CHEAPEST" at #1
+]] error like "Not yet supported: multiple edge patterns in SHORTEST or CHEAPEST" at #1
+
+test Multiple edges in SHORTEST (2) [[
+
+  SELECT n.prop AS nProp
+    FROM g MATCH SHORTEST ( (n) (-[e1]-> () [[-[e2]->)]]* (m) )
+
+]] error like "Not yet supported: multiple edge patterns in SHORTEST or CHEAPEST" at #1
+
+test Multiple edges in CHEAPEST (1) [[
+
+  SELECT n.prop AS nProp
+    FROM g MATCH CHEAPEST ( (n) [[-[e1]->* (m) ->*]] (o) )
+
+]] error like "Not yet supported: multiple edge patterns in SHORTEST or CHEAPEST" at #1
+
+test Multiple edges in CHEAPEST (2) [[
+
+  SELECT n.prop AS nProp
+    FROM g MATCH CHEAPEST ( (n) (-[e1]-> () [[-[e2]->)]]* (m) )
+
+]] error like "Not yet supported: multiple edge patterns in SHORTEST or CHEAPEST" at #1
 
 test No Kleene star in SHORTEST (1) [[
 
@@ -202,5 +223,5 @@ test Multiple group variables in aggregation (2) [[
       MATCH
         SHORTEST ( (n) -[e1]->* (m) ),
         SHORTEST ( (n) -[e2]->* (m) )
-             
+
 ]] error like "Accessing multiple group variables in a single aggregation is not yet supported" at #1, #2, #3, #4, #5, #6

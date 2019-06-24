@@ -83,7 +83,8 @@ signature constructors // for name binding (see trans/trans-for-nabl.str)
 
 signature constructors // for error checking (see trans/check.str)
 
-  ReferenceInInlinedConstraint         : Var -> ReferenceInInlinedConstraint
-  CrossReferenceInInlinedConstraint    : Var -> CrossReferenceInInlinedConstraint
-  ErrorMessage                         : Term * STRING -> ErrorMessage
-  ComplexRegularExpressionNotSupported : Term -> ComplexRegularExpressionNotSupported
+  ReferenceInInlinedConstraint                      : Var -> ReferenceInInlinedConstraint
+  CrossReferenceInInlinedConstraint                 : Var -> CrossReferenceInInlinedConstraint
+  ErrorMessage                                      : Term * STRING -> ErrorMessage
+  ComplexRegularExpressionNotSupported              : Term -> ComplexRegularExpressionNotSupported
+  ComplexParenthesizedRegularExpressionNotSupported : Term -> ComplexParenthesizedRegularExpressionNotSupported

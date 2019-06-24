@@ -249,7 +249,11 @@ rules // temporary limitation
   nabl-constraint(|ctx):
     ComplexRegularExpressionNotSupported(edgesOrPaths) -> <fail>
     with [_|[secondEdgeOrPath|_]] := edgesOrPaths
-       ; <generate-error(|ctx, "Not yet supported: multiple edges in SHORTEST or CHEAPEST")> edgesOrPaths
+       ; <generate-error(|ctx, "Not yet supported: multiple edge patterns in SHORTEST or CHEAPEST")> edgesOrPaths
+
+  nabl-constraint(|ctx):
+    ComplexParenthesizedRegularExpressionNotSupported(edges) -> <fail>
+    with <generate-error(|ctx, "Not yet supported: multiple edge patterns in SHORTEST or CHEAPEST")> edges
 
   nabl-constraint(|ctx):
     Path(_, _, _, _, _, _, _, kValue) -> <fail>

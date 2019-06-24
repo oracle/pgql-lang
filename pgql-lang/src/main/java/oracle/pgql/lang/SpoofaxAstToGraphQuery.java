@@ -549,13 +549,19 @@ public class SpoofaxAstToGraphQuery {
     for (IStrategoTerm connectionT : connectionsT) {
       String consName = ((IStrategoAppl) connectionT).getConstructor().getName();
 
-      if (consName.equals("Edge")) {
-        result.add(getQueryEdge(connectionT, ctx, vertexMap));
-      } else if (consName.equals("ComplexRegularExpressionNotSupported")) {
-        // ignore it
-      } else {
-        assert consName.equals("Path") : consName;
-        result.add(getPath(connectionT, ctx, vertexMap));
+      switch (consName) {
+        case "Edge":
+          result.add(getQueryEdge(connectionT, ctx, vertexMap));
+          break;
+        case "Path":
+          result.add(getPath(connectionT, ctx, vertexMap));
+          break;
+        case "ComplexRegularExpressionNotSupported":
+        case "ComplexParenthesizedRegularExpressionNotSupported":
+          // ignore it
+          break;
+        default:
+          throw new IllegalArgumentException(consName);
       }
     }
 
@@ -617,7 +623,7 @@ public class SpoofaxAstToGraphQuery {
       case "Shortest":
         return getShortestCheapest(pathT, ctx, vertexMap, PathFindingGoal.SHORTEST);
       case "Cheapest":
-          return getShortestCheapest(pathT, ctx, vertexMap, PathFindingGoal.CHEAPEST);
+        return getShortestCheapest(pathT, ctx, vertexMap, PathFindingGoal.CHEAPEST);
       default:
         throw new UnsupportedOperationException(pathFindingGoal);
     }
@@ -687,7 +693,8 @@ public class SpoofaxAstToGraphQuery {
     }
   }
 
-  private static QueryPath getShortestCheapest(IStrategoTerm pathT, TranslationContext ctx, Map<String, QueryVertex> vertexMap, PathFindingGoal goal)
+  private static QueryPath getShortestCheapest(IStrategoTerm pathT, TranslationContext ctx,
+      Map<String, QueryVertex> vertexMap, PathFindingGoal goal)
       throws PgqlException {
     String srcName = getString(pathT.getSubterm(POS_PATH_SRC));
     String dstName = getString(pathT.getSubterm(POS_PATH_DST));
@@ -1175,7 +1182,7 @@ public class SpoofaxAstToGraphQuery {
   }
 
   // helper method
-	private static boolean isSome(IStrategoTerm t) {
+  private static boolean isSome(IStrategoTerm t) {
     return ((IStrategoAppl) t).getConstructor().getName().equals("Some");
   }
 
@@ -1186,6 +1193,6 @@ public class SpoofaxAstToGraphQuery {
 
   // helper method
   private static String getConstructorName(IStrategoTerm t) {
-		return ((IStrategoAppl) t).getConstructor().getName();
-	}
+    return ((IStrategoAppl) t).getConstructor().getName();
+  }
 }
