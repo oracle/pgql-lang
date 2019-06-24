@@ -67,11 +67,11 @@ public class Point2D implements Serializable {
     Double xVal = Double.parseDouble(values.substring(0, xValEndPos));
 
     int yValStartPos = values.indexOf(' ') + 1;
-    switch (prefix) {
-      case "POINT ":
+    switch (prefix.trim()) {
+      case "POINT":
         Double yVal = Double.parseDouble(values.substring(yValStartPos, values.length()));
         return new Point2D(xVal, yVal);
-      case "POINT M ":
+      case "POINT M":
         int yValEndPos = values.substring(yValStartPos).indexOf(' ') + yValStartPos + 1;
         yVal = Double.parseDouble(values.substring(yValStartPos, yValEndPos));
         Double mVal = Double.parseDouble(values.substring(yValEndPos));
