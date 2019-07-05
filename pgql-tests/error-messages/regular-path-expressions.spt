@@ -257,3 +257,11 @@ test Cross constraint in COST clause not yet supported (2) [[
    MATCH CHEAPEST ( (n) ((src) -[e]-> (dst) COST [[e.prop + dst.prop]])* (m) )
 
 ]] error like "Not yet supported: expressions with multiple variables" at #1
+
+test Cost clause in SHORTEST [[
+
+  SELECT 1 AS c1
+    FROM g
+   MATCH SHORTEST ( (n) (-[e1]-> [[COST e1.prop]])* (m) )
+
+]] error like "COST clause only allowed in combination with CHEAPEST" at #1

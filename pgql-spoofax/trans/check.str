@@ -289,6 +289,11 @@ rules // CHEAPEST
     with variablesDefs := [v1, v2, e]
        ; <generate-error-on-cross-constraint(|ctx, variablesDefs)> costExpression
 
+  nabl-constraint(|ctx):
+    Path(_, _, CommonPathExpression(_, _, _, _, Some(t@CostClause(_))), _, _, _, pathFindingGoal, _) -> <fail>
+    where not ( <?Cheapest()> pathFindingGoal )
+    with <generate-error(|ctx, "COST clause only allowed in combination with CHEAPEST")> t
+
 rules // literals
 
   external is-valid-datetime(|)
