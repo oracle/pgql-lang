@@ -1,0 +1,115 @@
+/*
+ * Copyright (C) 2013 - 2019 Oracle and/or its affiliates. All rights reserved.
+ */
+package oracle.pgql.lang.ddl.createpropertygraph;
+
+import java.util.List;
+import java.util.stream.Collectors;
+
+public class CreatePropertyGraph {
+
+  /**
+   * The name of the property graph.
+   */
+  private String graphName;
+
+  /**
+   * Vertex tables. List may be empty but cannot be null.
+   */
+  private List<VertexTable> vertexTables;
+
+  /**
+   * Edge tables. List may be empty but cannot be null.
+   */
+  private List<EdgeTable> edgeTables;
+
+  /**
+   * The constructor.
+   */
+  public CreatePropertyGraph(String graphName, List<VertexTable> vertexTables, List<EdgeTable> edgeTables) {
+    this.graphName = graphName;
+    this.vertexTables = vertexTables;
+    this.edgeTables = edgeTables;
+  }
+
+  public String getGraphName() {
+    return graphName;
+  }
+
+  public void setGraphName(String graphName) {
+    this.graphName = graphName;
+  }
+
+  public List<VertexTable> getVertexTables() {
+    return vertexTables;
+  }
+
+  public void setVertexTables(List<VertexTable> vertexTables) {
+    this.vertexTables = vertexTables;
+  }
+
+  public List<EdgeTable> getEdgeTables() {
+    return edgeTables;
+  }
+
+  public void setEdgeTables(List<EdgeTable> edgeTables) {
+    this.edgeTables = edgeTables;
+  }
+
+  @Override
+  public String toString() {
+    return "CREATE PROPERTY GRAPH " + graphName + printVertexTables() + printEdgeTables();
+  }
+
+  private String printVertexTables() {
+    if (vertexTables.isEmpty()) {
+      return "";
+    } else {
+      return "\n  VERTEX TABLES ( " + vertexTables.stream() //
+          .map(x -> x.toString()) //
+          .collect(Collectors.joining(", ")) + " )";
+    }
+  }
+
+  private String printEdgeTables() {
+    if (edgeTables.isEmpty()) {
+      return "";
+    } else {
+      return "\n  EDGE TABLES ( " + edgeTables.stream() //
+          .map(x -> x.toString()) //
+          .collect(Collectors.joining(", ")) + " )";
+    }
+  }
+
+  @Override
+  public int hashCode() {
+    return 31;
+  }
+
+  @Override
+  public boolean equals(Object obj) {
+    if (this == obj)
+      return true;
+    if (obj == null)
+      return false;
+    if (getClass() != obj.getClass())
+      return false;
+    CreatePropertyGraph other = (CreatePropertyGraph) obj;
+    if (edgeTables == null) {
+      if (other.edgeTables != null)
+        return false;
+    } else if (!edgeTables.equals(other.edgeTables))
+      return false;
+    if (graphName == null) {
+      if (other.graphName != null)
+        return false;
+    } else if (!graphName.equals(other.graphName))
+      return false;
+    if (vertexTables == null) {
+      if (other.vertexTables != null)
+        return false;
+    } else if (!vertexTables.equals(other.vertexTables))
+      return false;
+    return true;
+  }
+}
