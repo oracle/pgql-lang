@@ -4,14 +4,23 @@ language pgql-lang
 
 test Duplicate group variable (1) [[
 
-  SELECT n
+  SELECT n AS n
     FROM g MATCH
            (n) -[ [[e]] ]-> (m)
          , TOP 10 SHORTEST ( (n) -[ [[e]]:likes]->* (m) )
 
 ]] error like "Duplicate variable" at #1, #2
 
-test Quantifier not enclosed by SHORTEST [[
+test Duplicate group variable (2) [[
+
+  SELECT n AS n
+    FROM g MATCH
+           CHEAPEST ( (n) -[ [[e]] ]-> (m) )
+         , TOP 10 SHORTEST ( (n) -[ [[e]]:likes]->* (m) )
+
+]] error like "Duplicate variable" at #1, #2
+
+test Quantifier not enclosed by SHORTEST or CHEAPEST [[
 
   SELECT n AS c1
     FROM g MATCH
@@ -23,7 +32,7 @@ test Quantifier not enclosed by SHORTEST [[
          , (n) ->[[{2,}]] (m)
          , (n) ->[[{2,3}]] (m)
 
-]] error like "Quantifier needs to be enclosed by SHORTEST" at #1, #2, #3, #4, #5, #6, #7
+]] error like "Quantifier needs to be enclosed by SHORTEST or CHEAPEST" at #1, #2, #3, #4, #5, #6, #7
 
 test K equals zero [[
 
@@ -31,12 +40,33 @@ test K equals zero [[
 
 ]]  error like "Value should be greater than 0" at #1
 
-test Multiple edges in SHORTEST [[
+test Multiple edges in SHORTEST (1) [[
 
   SELECT n.prop AS nProp
     FROM g MATCH SHORTEST ( (n) [[-[e1]->* (m) ->*]] (o) )
 
-]] error like "Not yet supported: multiple edges in SHORTEST" at #1
+]] error like "Not yet supported: multiple edge patterns in SHORTEST or CHEAPEST" at #1
+
+test Multiple edges in SHORTEST (2) [[
+
+  SELECT n.prop AS nProp
+    FROM g MATCH SHORTEST ( (n) (-[e1]-> () [[-[e2]->)]]* (m) )
+
+]] error like "Not yet supported: multiple edge patterns in SHORTEST or CHEAPEST" at #1
+
+test Multiple edges in CHEAPEST (1) [[
+
+  SELECT n.prop AS nProp
+    FROM g MATCH CHEAPEST ( (n) [[-[e1]->* (m) ->*]] (o) )
+
+]] error like "Not yet supported: multiple edge patterns in SHORTEST or CHEAPEST" at #1
+
+test Multiple edges in CHEAPEST (2) [[
+
+  SELECT n.prop AS nProp
+    FROM g MATCH CHEAPEST ( (n) (-[e1]-> () [[-[e2]->)]]* (m) )
+
+]] error like "Not yet supported: multiple edge patterns in SHORTEST or CHEAPEST" at #1
 
 test No Kleene star in SHORTEST (1) [[
 
@@ -63,6 +93,13 @@ test No Kleene star in SHORTEST (2) [[
 
   SELECT n.prop AS nProp
     FROM g MATCH SHORTEST ( (n) [[(-[e1]->)]] (m) )
+
+]] error like "Kleene star (*) required for now" at #1
+
+test No Kleene star in CHEAPEST (2) [[
+
+  SELECT n.prop AS nProp
+    FROM g MATCH CHEAPEST ( (n) [[(-[e1]-> COST e1.prop)]] (m) )
 
 ]] error like "Kleene star (*) required for now" at #1
 
@@ -145,7 +182,7 @@ test Nested regex (1) [[
   SELECT n AS c1
     FROM g MATCH (n)
 
-]] error like "Nested regular expressions not yet supported"
+]] error like "Nested regular expressions not supported"
 
 test Nested regex (2) [[
 
@@ -153,14 +190,14 @@ test Nested regex (2) [[
   SELECT n AS c1
     FROM g MATCH (n)
 
-]] error like "Nested regular expressions not yet supported"
+]] error like "Nested regular expressions not supported"
 
 test Nested regex (3) [[
 
   SELECT n AS c1
     FROM g MATCH SHORTEST ( (n) [[-/:likes/->]]* (m) )
 
-]] error like "Nested regular expressions not yet supported" at #1
+]] error like "Nested regular expressions not supported" at #1
 
 test Multiple group variables in aggregation (1) [[
 
@@ -186,5 +223,45 @@ test Multiple group variables in aggregation (2) [[
       MATCH
         SHORTEST ( (n) -[e1]->* (m) ),
         SHORTEST ( (n) -[e2]->* (m) )
-             
+
 ]] error like "Accessing multiple group variables in a single aggregation is not yet supported" at #1, #2, #3, #4, #5, #6
+
+test Missing cost clause (1) [[
+
+  SELECT 1 AS c1
+    FROM g
+   MATCH CHEAPEST ( (n) ([[-[e1]->)]]* (m) )
+
+]] error like "COST clause expected after pattern" at #1
+
+test Missing cost clause (2) [[
+
+  SELECT 1 AS c1
+    FROM g
+   MATCH CHEAPEST ( (n) (-[e1]-> WHERE [[e1.cost > 0]])* (m) )
+
+]] error like "COST clause expected after WHERE clause" at #1
+
+test Cross constraint in COST clause not yet supported (1) [[
+
+  SELECT 1 AS c1
+    FROM g
+   MATCH CHEAPEST ( (n) ((src) -[e]-> (dst) COST [[src.prop + dst.prop]])* (m) )
+
+]] error like "Not yet supported: expressions with multiple variables" at #1
+
+test Cross constraint in COST clause not yet supported (2) [[
+
+  SELECT 1 AS c1
+    FROM g
+   MATCH CHEAPEST ( (n) ((src) -[e]-> (dst) COST [[e.prop + dst.prop]])* (m) )
+
+]] error like "Not yet supported: expressions with multiple variables" at #1
+
+test Cost clause in SHORTEST [[
+
+  SELECT 1 AS c1
+    FROM g
+   MATCH SHORTEST ( (n) (-[e1]-> [[COST e1.prop]])* (m) )
+
+]] error like "COST clause only allowed in combination with CHEAPEST" at #1

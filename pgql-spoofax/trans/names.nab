@@ -20,7 +20,7 @@ binding rules // scoping
 
 binding rules // variable definition
 
-  CommonPathExpression(p, _, _, _):
+  CommonPathExpression(p, _, _, _, _):
     defines unique CommonPathExpression p
 
   Vertex(n, origin-offset, _):
