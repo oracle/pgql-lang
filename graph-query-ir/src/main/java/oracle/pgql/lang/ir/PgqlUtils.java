@@ -268,8 +268,8 @@ public class PgqlUtils {
       uncoveredVertices.remove(connection.getSrc());
       uncoveredVertices.remove(connection.getDst());
 
-      if (isShortest(connection)) {
-        // if the goal is SHORTEST we don't concatenate the connection to other connections but instead
+      if (isShortestCheapest(connection)) {
+        // if the goal is SHORTEST or CHEAPEST we don't concatenate the connection to other connections but instead
         // comma-separate it
         result += printConnection(constraintsCopy, connection, lastVertex, tryConcatenateNextConnection, indentation);
         lastVertex = connection.getDst();
@@ -299,9 +299,13 @@ public class PgqlUtils {
     return result;
   }
 
-  private static boolean isShortest(VertexPairConnection connection) {
-    return connection.getVariableType() == VariableType.PATH
-        && ((QueryPath) connection).getPathFindingGoal() == PathFindingGoal.SHORTEST;
+  private static boolean isShortestCheapest(VertexPairConnection connection) {
+    if (connection.getVariableType() != VariableType.PATH) {
+      return false;
+    }
+
+    PathFindingGoal goal = ((QueryPath) connection).getPathFindingGoal();
+    return goal == PathFindingGoal.SHORTEST || goal == PathFindingGoal.CHEAPEST;
   }
 
   private static String printConnection(Set<QueryExpression> constraintsCopy, VertexPairConnection connection,
@@ -309,11 +313,12 @@ public class PgqlUtils {
 
     String result = "\n" + printIndentation(indentation - 2);
 
-    if (isShortest(connection)) {
+    if (isShortestCheapest(connection)) {
       result += lastVertex == null ? "  " : ", ";
       result += connection.toString();
 
-      // if the goal is SHORTEST, we don't try to concatenate the connection to the previous connection but instead
+      // if the goal is SHORTEST or CHEAPEST, we don't try to concatenate the connection to the previous connection but
+      // instead
       // comma-separate it
       return result;
     }
@@ -385,6 +390,10 @@ public class PgqlUtils {
       result += " WHERE " + constraintsCopy.stream() //
           .map(x -> x.toString()) //
           .collect(Collectors.joining(" AND "));
+    }
+
+    if (commonPathExpression.getCost() != null) {
+      result += " COST " + commonPathExpression.getCost();
     }
 
     return result;

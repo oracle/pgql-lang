@@ -5,6 +5,7 @@ package oracle.pgql.lang.ir;
 
 public enum PathFindingGoal {
 
-  REACHES, 
-  SHORTEST
+  REACHES,
+  SHORTEST,
+  CHEAPEST
 }
