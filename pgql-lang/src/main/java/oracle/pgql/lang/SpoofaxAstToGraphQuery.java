@@ -93,6 +93,9 @@ public class SpoofaxAstToGraphQuery {
   private static final int POS_COMMON_PATH_EXPRESSION_VERTICES = 1;
   private static final int POS_COMMON_PATH_EXPRESSION_CONNECTIONS = 2;
   private static final int POS_COMMON_PATH_EXPRESSION_CONSTRAINTS = 3;
+  private static final int POS_COMMON_PATH_EXPRESSION_COST = 4;
+
+  private static final int POS_COST_EXP = 0;
 
   private static final int POS_PROJECTION_DISTINCT = 0;
   private static final int POS_PROJECTION_ELEMS = 1;
@@ -490,7 +493,17 @@ public class SpoofaxAstToGraphQuery {
     // constraints
     IStrategoTerm constraintsT = getList(pathPatternT.getSubterm(POS_COMMON_PATH_EXPRESSION_CONSTRAINTS));
     LinkedHashSet<QueryExpression> constraints = getQueryExpressions(constraintsT, ctx);
-    return new CommonPathExpression(name, vertices, connections, constraints);
+
+    // COST clause
+    IStrategoTerm costT = pathPatternT.getSubterm(POS_COMMON_PATH_EXPRESSION_COST);
+    QueryExpression cost;
+    if (isNone(costT)) {
+      cost = null;
+    } else {
+      cost = translateExp(getSome(costT).getSubterm(POS_COST_EXP), ctx);
+    }
+
+    return new CommonPathExpression(name, vertices, connections, constraints, cost);
   }
 
   private static List<QueryVertex> getQueryVertices(IStrategoTerm verticesT, TranslationContext ctx) {
@@ -536,13 +549,19 @@ public class SpoofaxAstToGraphQuery {
     for (IStrategoTerm connectionT : connectionsT) {
       String consName = ((IStrategoAppl) connectionT).getConstructor().getName();
 
-      if (consName.equals("Edge")) {
-        result.add(getQueryEdge(connectionT, ctx, vertexMap));
-      } else if (consName.equals("ComplexRegularExpressionNotSupported")) {
-        // ignore it
-      } else {
-        assert consName.equals("Path") : consName;
-        result.add(getPath(connectionT, ctx, vertexMap));
+      switch (consName) {
+        case "Edge":
+          result.add(getQueryEdge(connectionT, ctx, vertexMap));
+          break;
+        case "Path":
+          result.add(getPath(connectionT, ctx, vertexMap));
+          break;
+        case "ComplexRegularExpressionNotSupported":
+        case "ComplexParenthesizedRegularExpressionNotSupported":
+          // ignore it
+          break;
+        default:
+          throw new IllegalArgumentException(consName);
       }
     }
 
@@ -602,7 +621,9 @@ public class SpoofaxAstToGraphQuery {
       case "Reaches":
         return getReaches(pathT, ctx, vertexMap);
       case "Shortest":
-        return getShortest(pathT, ctx, vertexMap);
+        return getShortestCheapest(pathT, ctx, vertexMap, PathFindingGoal.SHORTEST);
+      case "Cheapest":
+        return getShortestCheapest(pathT, ctx, vertexMap, PathFindingGoal.CHEAPEST);
       default:
         throw new UnsupportedOperationException(pathFindingGoal);
     }
@@ -672,7 +693,8 @@ public class SpoofaxAstToGraphQuery {
     }
   }
 
-  private static QueryPath getShortest(IStrategoTerm pathT, TranslationContext ctx, Map<String, QueryVertex> vertexMap)
+  private static QueryPath getShortestCheapest(IStrategoTerm pathT, TranslationContext ctx,
+      Map<String, QueryVertex> vertexMap, PathFindingGoal goal)
       throws PgqlException {
     String srcName = getString(pathT.getSubterm(POS_PATH_SRC));
     String dstName = getString(pathT.getSubterm(POS_PATH_DST));
@@ -685,8 +707,6 @@ public class SpoofaxAstToGraphQuery {
 
     IStrategoTerm pathExpressionT = pathT.getSubterm(POS_PATH_EXPRESSION);
     CommonPathExpression pathExpression = getPathExpression(pathExpressionT, ctx);
-
-    PathFindingGoal goal = PathFindingGoal.SHORTEST;
 
     int kValue = parseInt(pathT.getSubterm(POS_PATH_K_VALUE));
 
