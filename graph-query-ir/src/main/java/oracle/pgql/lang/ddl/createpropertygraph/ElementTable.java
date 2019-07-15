@@ -43,7 +43,7 @@ public abstract class ElementTable {
   }
 
   protected String printLabels(String indentation) {
-    return labels.stream() //
+    return indentation + labels.stream() //
         .map(x -> x.toString()) //
         .collect(Collectors.joining(indentation));
   }
