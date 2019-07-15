@@ -30,7 +30,7 @@ public class VertexTable extends ElementTable {
 
   @Override
   public String toString() {
-    return getTableName() + " " + key + " " + printLabels();
+    return getTableName() + "\n      " + key + printLabels("\n      ");
   }
 
   @Override

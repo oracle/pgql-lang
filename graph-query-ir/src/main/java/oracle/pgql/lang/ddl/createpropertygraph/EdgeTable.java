@@ -10,78 +10,126 @@ public class EdgeTable extends ElementTable {
   /**
    * The source vertex table.
    */
-  VertexTable source;
+  VertexTable sourceVertexTable;
 
   /**
-   * The columns in this table that make up the foreign key into the source vertex table.
+   * One or more columns (of the edge table) uniquely referencing a row in the source vertex table
    */
-  Key sourceKey;
+  Key edgeSourceKey;
+
+  /**
+   * One or more columns (of the source vertex table) that correspond to the edge source key. If NULL, the source vertex
+   * key defaults to the key defined as part of the source vertex table.
+   */
+  Key sourceVertexKey;
 
   /**
    * The destination vertex table.
    */
-  VertexTable destination;
+  VertexTable destinationVertexTable;
 
   /**
-   * The column in this table that make up the foreign key into the destination vertex table.
+   * One or more columns (of the edge table) uniquely referencing a row in the destination vertex table.
    */
-  Key destinationKey;
+  Key edgeDestinationKey;
 
   /**
-   * The constructor.
+   * One or more columns (of the destination vertex table) that correspond to the edge destination key. If NULL, the
+   * destination vertex key defaults to the key defined as part of the destination vertex table.
    */
-  public EdgeTable(String tableName, VertexTable source, Key sourceKey, VertexTable destination, Key destinationKey,
-      List<Label> labels) {
+  Key destinationVertexKey;
+
+  /**
+   * Constructor without source vertex key and destination vertex key (relies on the presence of keys of vertex tables).
+   */
+  public EdgeTable(String tableName, VertexTable sourceVertexTable, Key edgeSourceKey,
+      VertexTable destinationVertexTable, Key edgeDestinationKey, List<Label> labels) {
+    this(tableName, sourceVertexTable, edgeSourceKey, null, destinationVertexTable, edgeDestinationKey, null, labels);
+  }
+
+  /**
+   * Constructor with source vertex key and destination vertex key.
+   */
+  public EdgeTable(String tableName, VertexTable sourceVertexTable, Key edgeSourceKey, Key sourceVertexKey,
+      VertexTable destinationVertexTable, Key edgeDestinationKey, Key destinationVertexKey, List<Label> labels) {
     super(tableName, labels);
-    this.source = source;
-    this.sourceKey = sourceKey;
-    this.destination = destination;
-    this.destinationKey = destinationKey;
+    this.sourceVertexTable = sourceVertexTable;
+    this.edgeSourceKey = edgeSourceKey;
+    this.sourceVertexKey = sourceVertexKey;
+    this.destinationVertexTable = destinationVertexTable;
+    this.edgeDestinationKey = edgeDestinationKey;
+    this.destinationVertexKey = destinationVertexKey;
   }
 
-  public VertexTable getSource() {
-    return source;
+  public VertexTable getSourceVertexTable() {
+    return sourceVertexTable;
   }
 
-  public void setSource(VertexTable source) {
-    this.source = source;
+  public void setSourceVertexTable(VertexTable sourceVertexTable) {
+    this.sourceVertexTable = sourceVertexTable;
   }
 
-  public Key getSourceKey() {
-    return sourceKey;
+  public Key getEdgeSourceKey() {
+    return edgeSourceKey;
   }
 
-  public void setSourceKey(Key sourceKey) {
-    this.sourceKey = sourceKey;
+  public void setEdgeSourceKey(Key edgeSourceKey) {
+    this.edgeSourceKey = edgeSourceKey;
   }
 
-  public VertexTable getDestination() {
-    return destination;
+  public Key getSourceVertexKey() {
+    return sourceVertexKey;
   }
 
-  public void setDestination(VertexTable destination) {
-    this.destination = destination;
+  public void setSourceVertexKey(Key sourceVertexKey) {
+    this.sourceVertexKey = sourceVertexKey;
   }
 
-  public Key getDestinationKey() {
-    return destinationKey;
+  public VertexTable getDestinationVertexTable() {
+    return destinationVertexTable;
   }
 
-  public void setDestinationKey(Key destinationKey) {
-    this.destinationKey = destinationKey;
+  public void setDestinationVertexTable(VertexTable destinationVertexTable) {
+    this.destinationVertexTable = destinationVertexTable;
+  }
+
+  public Key getEdgeDestinationKey() {
+    return edgeDestinationKey;
+  }
+
+  public void setEdgeDestinationKey(Key edgeDestinationKey) {
+    this.edgeDestinationKey = edgeDestinationKey;
+  }
+
+  public Key getDestinationVertexKey() {
+    return destinationVertexKey;
+  }
+
+  public void setDestinationVertexKey(Key destinationVertexKey) {
+    this.destinationVertexKey = destinationVertexKey;
   }
 
   @Override
   public String toString() {
-    return getTableName() + " " + printSource() + " " + printDestination() + " " + printLabels();
+    return getTableName() + printSource() + printDestination() + printLabels("\n      ");
   }
 
   private String printSource() {
-    return "SOURCE " + sourceKey + " REFERENCES " + source.getTableName();
+    return "\n      SOURCE " + edgeSourceKey + " REFERENCES " + sourceVertexTable.getTableName()
+        + printKeyForReferencedVertexTable(sourceVertexKey);
   }
 
   private String printDestination() {
-    return "DESTINATION " + destinationKey + " REFERENCES " + destination.getTableName();
+    return "\n      DESTINATION " + edgeDestinationKey + " REFERENCES " + destinationVertexTable.getTableName()
+        + printKeyForReferencedVertexTable(destinationVertexKey);
+  }
+
+  private String printKeyForReferencedVertexTable(Key vertexKey) {
+    if (vertexKey == null) {
+      return "";
+    } else {
+      return " (" + vertexKey + ")";
+    }
   }
 
   @Override
@@ -98,25 +146,35 @@ public class EdgeTable extends ElementTable {
     if (getClass() != obj.getClass())
       return false;
     EdgeTable other = (EdgeTable) obj;
-    if (destination == null) {
-      if (other.destination != null)
+    if (destinationVertexKey == null) {
+      if (other.destinationVertexKey != null)
         return false;
-    } else if (!destination.equals(other.destination))
+    } else if (!destinationVertexKey.equals(other.destinationVertexKey))
       return false;
-    if (destinationKey == null) {
-      if (other.destinationKey != null)
+    if (destinationVertexTable == null) {
+      if (other.destinationVertexTable != null)
         return false;
-    } else if (!destinationKey.equals(other.destinationKey))
+    } else if (!destinationVertexTable.equals(other.destinationVertexTable))
       return false;
-    if (source == null) {
-      if (other.source != null)
+    if (edgeDestinationKey == null) {
+      if (other.edgeDestinationKey != null)
         return false;
-    } else if (!source.equals(other.source))
+    } else if (!edgeDestinationKey.equals(other.edgeDestinationKey))
       return false;
-    if (sourceKey == null) {
-      if (other.sourceKey != null)
+    if (edgeSourceKey == null) {
+      if (other.edgeSourceKey != null)
         return false;
-    } else if (!sourceKey.equals(other.sourceKey))
+    } else if (!edgeSourceKey.equals(other.edgeSourceKey))
+      return false;
+    if (sourceVertexKey == null) {
+      if (other.sourceVertexKey != null)
+        return false;
+    } else if (!sourceVertexKey.equals(other.sourceVertexKey))
+      return false;
+    if (sourceVertexTable == null) {
+      if (other.sourceVertexTable != null)
+        return false;
+    } else if (!sourceVertexTable.equals(other.sourceVertexTable))
       return false;
     return true;
   }

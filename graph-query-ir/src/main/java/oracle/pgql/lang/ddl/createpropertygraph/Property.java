@@ -16,11 +16,18 @@ public class Property {
   String propertyName;
 
   /**
-   * The constructor.
+   * Constructor with column name and property name.
    */
   public Property(String columnName, String propertyName) {
     this.columnName = columnName;
     this.propertyName = propertyName;
+  }
+
+  /**
+   * Constructor with only a name, which is both the column name and the property name.
+   */
+  public Property(String name) {
+    this(name, name);
   }
 
   public String getColumnName() {

@@ -42,9 +42,9 @@ public abstract class ElementTable {
     this.labels = labels;
   }
 
-  protected String printLabels() {
+  protected String printLabels(String indentation) {
     return labels.stream() //
         .map(x -> x.toString()) //
-        .collect(Collectors.joining(" "));
+        .collect(Collectors.joining(indentation));
   }
 }

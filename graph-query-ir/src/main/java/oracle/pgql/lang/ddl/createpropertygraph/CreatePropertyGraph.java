@@ -65,9 +65,9 @@ public class CreatePropertyGraph {
     if (vertexTables.isEmpty()) {
       return "";
     } else {
-      return "\n  VERTEX TABLES ( " + vertexTables.stream() //
+      return "\n  VERTEX TABLES (\n    " + vertexTables.stream() //
           .map(x -> x.toString()) //
-          .collect(Collectors.joining(", ")) + " )";
+          .collect(Collectors.joining(",\n    ")) + " )";
     }
   }
 
@@ -75,9 +75,9 @@ public class CreatePropertyGraph {
     if (edgeTables.isEmpty()) {
       return "";
     } else {
-      return "\n  EDGE TABLES ( " + edgeTables.stream() //
+      return "\n  EDGE TABLES (\n    " + edgeTables.stream() //
           .map(x -> x.toString()) //
-          .collect(Collectors.joining(", ")) + " )";
+          .collect(Collectors.joining(",\n    ")) + " )";
     }
   }
 
