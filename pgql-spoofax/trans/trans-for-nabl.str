@@ -108,7 +108,7 @@ rules
 
   to-Correlation(|variables):
     v -> correlation
-    with if <oncetd(?VarDef(v, _, _, _, _); ?VarDef(v-from-outer-query, origin-position-from-outer-query, _, _, _))> variables
+    with if <Hd; oncetd(?VarDef(v, _, _, _, _); ?VarDef(v-from-outer-query, origin-position-from-outer-query, _, _, _))> variables
          then correlation := Correlation(VarRef(v-from-outer-query, origin-position-from-outer-query))
          else correlation := None()
          end
