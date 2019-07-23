@@ -73,3 +73,5 @@ rules
   origin-offset = fail
 
   has-at-most-one-binding = ?None() + ?Some(BetweenNAndM(_, "0")) + ?Some(BetweenNAndM(_, "1"))
+
+  is-ddl-statement = ?CreatePropertyGraph(_, _, _) + ?DropPropertyGraph(_)

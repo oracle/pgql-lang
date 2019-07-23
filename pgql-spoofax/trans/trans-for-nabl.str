@@ -23,8 +23,9 @@ imports
  */
 rules
 
-  trans-for-nabl = trans-query(|[])
-                   + ?Start-Plhdr() // for empty query string
+  trans-for-nabl = is-ddl-statement
+                 + trans-query(|[])
+                 + ?Start-Plhdr() // for empty query string
 
 rules
 

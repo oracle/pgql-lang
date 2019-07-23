@@ -15,11 +15,18 @@ imports
   runtime/analysis/-
   runtime/editor/-
   names/-
+  normalize-ddl
 
 rules
 
   normalize-before:
     ast -> result
+    where <is-ddl-statement> ast
+    with result := <normalize-ddl> ast
+
+  normalize-before:
+    ast -> result
+    where <not(is-ddl-statement)> ast
     with
       variable-counter := <new-counter>;
       bindVariable-counter := <new-counter>;

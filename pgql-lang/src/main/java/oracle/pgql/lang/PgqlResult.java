@@ -6,21 +6,23 @@ package oracle.pgql.lang;
 import org.metaborg.spoofax.core.unit.ISpoofaxParseUnit;
 
 import oracle.pgql.lang.ir.GraphQuery;
+import oracle.pgql.lang.ir.Statement;
+import oracle.pgql.lang.ir.StatementType;
 
 public class PgqlResult {
 
   private final String queryString;
   private final String errorMessages;
   private final boolean queryValid;
-  private final GraphQuery graphQuery;
+  private final Statement statement;
   private final ISpoofaxParseUnit spoofaxParseUnit;
 
-  public PgqlResult(String queryString, boolean queryValid, String messages, GraphQuery graphQuery,
+  public PgqlResult(String queryString, boolean queryValid, String messages, Statement statement,
       ISpoofaxParseUnit spoofaxParseUnit) {
     this.queryString = queryString;
     this.errorMessages = messages;
     this.queryValid = queryValid;
-    this.graphQuery = graphQuery;
+    this.statement = statement;
     this.spoofaxParseUnit = spoofaxParseUnit;
   }
 
@@ -49,7 +51,19 @@ public class PgqlResult {
    * @return a GraphQuery object if the query is valid; null otherwise
    */
   public GraphQuery getGraphQuery() {
-    return graphQuery;
+    if (statement == null) {
+      return null;
+    } else if (statement.getStatementType() == StatementType.SELECT
+        || statement.getStatementType() == StatementType.GRAPH_MODIFY) {
+      return (GraphQuery) statement;
+    } else {
+      throw new IllegalStateException(
+          "Use getStatement() instead of getGraphQuery() if statment is not a SELECT or graph INSERT/UPDATE/DELETE query");
+    }
+  }
+
+  public Statement getStatement() {
+    return statement;
   }
 
   protected ISpoofaxParseUnit getSpoofaxParseUnit() {

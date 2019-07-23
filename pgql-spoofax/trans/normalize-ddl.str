@@ -1,0 +1,66 @@
+module normalize-ddl
+
+imports
+
+  stratego/-
+  signatures/-
+  normalized-signatures
+  common
+  pp
+  runtime/index/-
+  runtime/nabl/-
+  runtime/properties/-
+  runtime/types/-
+  runtime/task/-
+  runtime/analysis/-
+  runtime/editor/-
+  names/-
+
+rules
+
+  normalize-ddl = normalize-CreatePropertyGraph
+                ; alltd(normalize-VertexTable + normalize-EdgeTable)
+                ; alltd(normalize-LabelAndProperties)
+
+rules
+
+  normalize-CreatePropertyGraph:
+    CreatePropertyGraph(graphName, vertexTables, edgeTables) -> CreatePropertyGraph(graphName, vertexTables', edgeTables')
+    with vertexTables' := <?Some(<id>) + ?None(); !VertexTables([])> vertexTables
+       ; edgeTables' := <?Some(<id>) + ?None(); !EdgeTables([])> edgeTables
+
+  normalize-VertexTable:
+    VertexTable(tableName, keyClause, labelAndPropertiesClause)
+      -> VertexTable(tableName, keyClause, labelAndPropertiesClause')
+    with labelAndPropertiesClause' := <normalize-LabelAndPropertiesClause(|tableName)> labelAndPropertiesClause
+
+  normalize-EdgeTable:
+    EdgeTable(tableName, keyClause, sourceVertexTable, destinationVertexTable, labelAndPropertiesClause)
+      -> EdgeTable(tableName, keyClause, sourceVertexTable, destinationVertexTable, labelAndPropertiesClause')
+    with labelAndPropertiesClause' := <normalize-LabelAndPropertiesClause(|tableName)> labelAndPropertiesClause
+
+  normalize-LabelAndPropertiesClause(|tableName):
+    None() -> LabelAndPropertiesClause([])
+
+  normalize-LabelAndPropertiesClause(|tableName):
+    Some(t@LabelAndPropertiesClause(_)) -> t
+
+  normalize-LabelAndPropertiesClause(|tableName):
+    Some(LabelAndPropertiesClauseWithDefaultLabel(propertiesClause, otherLabelsAndProperties)) -> LabelAndPropertiesClause(allLabelsAndProperties)
+    with defaultLabel := LabelAndProperties(LabelClause(tableName), Some(propertiesClause))
+       ; allLabelsAndProperties := [defaultLabel|otherLabelsAndProperties]
+
+  normalize-LabelAndProperties:
+    LabelAndProperties(labelClause, Some(propertiesClause)) -> LabelAndProperties(labelClause, propertiesClause')
+    with propertiesClause' := <normalize-PropertiesClause> propertiesClause
+
+  normalize-PropertiesClause:
+    PropertiesClause(properties) -> PropertiesClause(properties')
+    with properties' := <map(normalize-property)> properties
+
+  normalize-property:
+    ExpAsVar(exp, Some(VarAssign(VarDef(propertyName)))) -> ExpAsVar(exp, propertyName)
+
+  normalize-property:
+    ExpAsVar(exp@VarRef(columnName), None()) -> ExpAsVar(exp, propertyName)
+    with propertyName := columnName

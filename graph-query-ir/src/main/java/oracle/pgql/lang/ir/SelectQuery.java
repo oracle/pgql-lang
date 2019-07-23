@@ -21,6 +21,11 @@ public class SelectQuery extends GraphQuery {
     return QueryType.SELECT;
   }
 
+  @Override
+  public StatementType getStatementType() {
+    return StatementType.SELECT;
+  }
+
   public Projection getProjection() {
     return projection;
   }

@@ -1,0 +1,42 @@
+module DDL
+
+imports
+
+  Names
+  Expressions
+
+template options
+
+  keyword -/- [a-zA-Z0-9]
+
+context-free syntax
+
+  Statement.CreatePropertyGraph = <CREATE PROPERTY GRAPH <Identifier> <VertexTables?> <EdgeTables?>> {case-insensitive}
+
+  VertexTables.VertexTables = <VERTEX TABLES ( <{VertexTable ","}+> )> {case-insensitive}
+
+  EdgeTables.EdgeTables = <EDGE TABLES ( <{EdgeTable ","}+> )> {case-insensitive}
+
+  VertexTable.VertexTable = <<Identifier> <KeyClause?> <LabelAndPropertiesClause?>>
+
+  EdgeTable.EdgeTable = <<Identifier> <KeyClause?> <SourceVertexTable> <DestinationVertexTable> <LabelAndPropertiesClause?>>
+
+  SourceVertexTable.SourceVertexTable = <SOURCE <ReferencedVertexTableKeyClause?> <Identifier>> {case-insensitive}
+
+  DestinationVertexTable.DestinationVertexTable = <DESTINATION <ReferencedVertexTableKeyClause?> <Identifier>> {case-insensitive}
+
+  ReferencedVertexTableKeyClause.ReferencedVertexTableKeyClause = <<KeyClause> REFERENCES> {case-insensitive}
+
+  LabelAndPropertiesClause.LabelAndPropertiesClause = LabelAndProperties+
+
+  LabelAndPropertiesClause.LabelAndPropertiesClauseWithDefaultLabel = <<PropertiesClause> <LabelAndProperties*>>
+
+  LabelAndProperties.LabelAndProperties = <<LabelClause> <PropertiesClause?>>
+
+  LabelClause.LabelClause = <LABEL <Identifier>> {case-insensitive}
+
+  PropertiesClause.PropertiesClause = <PROPERTIES ( <{ExpAsVar ","}+> )> {case-insensitive}
+
+  KeyClause.KeyClause = <KEY ( <{Identifier ","}+> )> {case-insensitive}
+
+  Statement.DropPropertyGraph = <DROP PROPERTY GRAPH <Identifier>> {case-insensitive}

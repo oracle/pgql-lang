@@ -1,7 +1,7 @@
 /*
  * Copyright (C) 2013 - 2019 Oracle and/or its affiliates. All rights reserved.
  */
-package oracle.pgql.lang.ddl.createpropertygraph;
+package oracle.pgql.lang.ddl.propertygraph;
 
 import java.util.List;
 import java.util.stream.Collectors;
@@ -48,9 +48,13 @@ public class Label {
   }
 
   private String printProperties() {
-    return " PROPERTIES (" + properties.stream() //
-        .map(x -> x.toString()) //
-        .collect(Collectors.joining(", ")) + ")";
+    if (properties.isEmpty()) {
+      return "";
+    } else {
+      return " PROPERTIES (" + properties.stream() //
+          .map(x -> x.toString()) //
+          .collect(Collectors.joining(", ")) + ")";
+    }
   }
 
   @Override

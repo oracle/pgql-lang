@@ -1,12 +1,15 @@
 /*
  * Copyright (C) 2013 - 2019 Oracle and/or its affiliates. All rights reserved.
  */
-package oracle.pgql.lang.ddl.createpropertygraph;
+package oracle.pgql.lang.ddl.propertygraph;
 
 import java.util.List;
 import java.util.stream.Collectors;
 
-public class CreatePropertyGraph {
+import oracle.pgql.lang.ir.Statement;
+import oracle.pgql.lang.ir.StatementType;
+
+public class CreatePropertyGraph implements Statement {
 
   /**
    * The name of the property graph.
@@ -79,6 +82,11 @@ public class CreatePropertyGraph {
           .map(x -> x.toString()) //
           .collect(Collectors.joining(",\n    ")) + " )";
     }
+  }
+
+  @Override
+  public StatementType getStatementType() {
+    return StatementType.CREATE_PROPERTY_GRAPH;
   }
 
   @Override

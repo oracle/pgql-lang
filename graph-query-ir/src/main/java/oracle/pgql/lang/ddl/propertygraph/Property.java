@@ -1,7 +1,7 @@
 /*
  * Copyright (C) 2013 - 2019 Oracle and/or its affiliates. All rights reserved.
  */
-package oracle.pgql.lang.ddl.createpropertygraph;
+package oracle.pgql.lang.ddl.propertygraph;
 
 public class Property {
 

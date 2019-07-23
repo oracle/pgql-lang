@@ -11,6 +11,7 @@ imports
   Expressions
   Experimental
   Modify
+  DDL
 
 context-free start-symbols
 
@@ -22,7 +23,9 @@ template options
 
 context-free syntax
 
-  Start = Query
+  Start = Statement
+
+  Statement = Query
 
   Query.Pgql11Query =
     <
