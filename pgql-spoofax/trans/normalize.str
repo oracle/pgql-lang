@@ -94,7 +94,6 @@ rules
                           + ?ARRAY-AGG(_, _)
                           + ?Shortest(_, _)
                           + ?Cheapest(_, _)
-                          + get-pgql11-limitation
                           )
                         ; to-error-message(|"Use [SELECT .. MATCH .. WHERE ..] or [SELECT .. FROM graphName MATCH .. WHERE ..]")
 
