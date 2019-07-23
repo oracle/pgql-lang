@@ -9,9 +9,11 @@ import oracle.pgql.lang.ddl.propertygraph.CreatePropertyGraph;
 import oracle.pgql.lang.ddl.propertygraph.EdgeTable;
 import oracle.pgql.lang.ddl.propertygraph.Key;
 import oracle.pgql.lang.ddl.propertygraph.Label;
+import oracle.pgql.lang.ddl.propertygraph.Property;
 import oracle.pgql.lang.ddl.propertygraph.VertexTable;
 import oracle.pgql.lang.ir.Statement;
 
+import static oracle.pgql.lang.SpoofaxAstToGraphQuery.isNone;
 import static oracle.pgql.lang.SpoofaxAstToGraphQuery.getString;
 import static oracle.pgql.lang.SpoofaxAstToGraphQuery.getSome;
 
@@ -25,6 +27,10 @@ public class TranslateGraphDDL {
   private static int CREATE_PROPERTY_GRAPH_VERTEX_TABLES = 1;
 
   private static int CREATE_PROPERTY_GRAPH_EDGE_TABLES = 2;
+
+  private static int VERTEX_TABLES_TABLES_LIST = 0;
+
+  private static int EDGE_TABLES_TABLES_LIST = 0;
 
   private static int VERTEX_TABLE_NAME = 0;
 
@@ -50,15 +56,17 @@ public class TranslateGraphDDL {
 
   private static int DESTINATION_VERTEX_TABLE_NAME = 1;
 
+  private static int LABEL_AND_PROPERTIES_CLAUSE_LABEL_AND_PROPERTIES_LIST = 0;
+
   private static int LABEL_AND_PROPERTIES_LABEL_CLAUSE = 0;
 
   private static int LABEL_AND_PROPERTIES_PROPERTIES_CLAUSE = 1;
 
-  private static int PROPERTIES_CLAUSE_PROPERTIES = 0;
+  private static int PROPERTIES_CLAUSE_PROPERTIES_LIST = 0;
 
-  private static int PROPERTY_COLUMN_NAME = 0;
+  private static int EXP_AS_VAR_EXP = 0;
 
-  private static int PROPERTY_PROPERTY_NAME = 1;
+  private static int EXP_AS_VAR_VAR = 1;
 
   protected static Statement translateCreatePropertyGraph(IStrategoTerm ast) {
 
@@ -72,8 +80,9 @@ public class TranslateGraphDDL {
   }
 
   private static List<VertexTable> getVertexTables(IStrategoTerm vertexTablesT) {
+    IStrategoTerm vertexTablesListT = vertexTablesT.getSubterm(VERTEX_TABLES_TABLES_LIST);
     List<VertexTable> result = new ArrayList<>();
-    for (IStrategoTerm vertexTableT : vertexTablesT) {
+    for (IStrategoTerm vertexTableT : vertexTablesListT) {
       String tableName = getString(vertexTableT.getSubterm(VERTEX_TABLE_NAME));
       Key vertexKey = getKey(vertexTableT.getSubterm(VERTEX_TABLE_KEY));
       List<Label> labels = getLabels(vertexTableT.getSubterm(VERTEX_TABLE_LABEL_AND_PROPERTIES));
@@ -83,8 +92,9 @@ public class TranslateGraphDDL {
   }
 
   private static List<EdgeTable> getEdgeTables(IStrategoTerm edgeTablesT, List<VertexTable> vertexTables) {
+    IStrategoTerm edgeTablesListT = edgeTablesT.getSubterm(EDGE_TABLES_TABLES_LIST);
     List<EdgeTable> result = new ArrayList<>();
-    for (IStrategoTerm edgeTableT : edgeTablesT) {
+    for (IStrategoTerm edgeTableT : edgeTablesListT) {
       String tableName = getString(edgeTableT.getSubterm(EDGE_TABLE_NAME));
       // Key edgeKey = getKey(edgeTableT.getSubterm(EDGE_TABLE_KEY)); not used for now
 
@@ -115,6 +125,9 @@ public class TranslateGraphDDL {
   }
 
   private static Key getKey(IStrategoTerm keyClauseT) {
+    if (isNone(keyClauseT)) {
+      return null;
+    }
     keyClauseT = getSome(keyClauseT);
     List<String> columnNames = new ArrayList<>();
     for (IStrategoTerm columnReference : keyClauseT) {
@@ -123,9 +136,30 @@ public class TranslateGraphDDL {
     return new Key(columnNames);
   }
 
-  private static List<Label> getLabels(IStrategoTerm subterm) {
-    // TODO Auto-generated method stub
-    return null;
+  private static List<Label> getLabels(IStrategoTerm labelAndPropertiesClauseT) {
+    IStrategoTerm labelAndPropertiesListT = labelAndPropertiesClauseT
+        .getSubterm(LABEL_AND_PROPERTIES_CLAUSE_LABEL_AND_PROPERTIES_LIST);
+    List<Label> result = new ArrayList<>();
+    for (IStrategoTerm labelAndPropertiesT : labelAndPropertiesListT) {
+      String labelName = getString(labelAndPropertiesT.getSubterm(LABEL_AND_PROPERTIES_LABEL_CLAUSE));
+      List<Property> properties = getProperties(labelAndPropertiesT.getSubterm(LABEL_AND_PROPERTIES_PROPERTIES_CLAUSE));
+      result.add(new Label(labelName, properties));
+    }
+    return result;
   }
 
+  private static List<Property> getProperties(IStrategoTerm propertiesClauseT) {
+    if (isNone(propertiesClauseT)) {
+      return null;
+    }
+
+    IStrategoTerm propertiesListT = getSome(propertiesClauseT).getSubterm(PROPERTIES_CLAUSE_PROPERTIES_LIST);
+    List<Property> result = new ArrayList<>();
+    for (IStrategoTerm expAsVarT : propertiesListT) {
+      String columnName = getString(expAsVarT.getSubterm(EXP_AS_VAR_EXP));
+      String propertyName = getString(expAsVarT.getSubterm(EXP_AS_VAR_VAR));
+      result.add(new Property(columnName, propertyName));
+    }
+    return result;
+  }
 }

@@ -115,20 +115,28 @@ public class EdgeTable extends ElementTable {
   }
 
   private String printSource() {
-    return "\n      SOURCE " + edgeSourceKey + " REFERENCES " + sourceVertexTable.getTableName()
+    return "\n      SOURCE " + printVertexTableReference(edgeSourceKey, sourceVertexTable.getTableName())
         + printKeyForReferencedVertexTable(sourceVertexKey);
   }
 
   private String printDestination() {
-    return "\n      DESTINATION " + edgeDestinationKey + " REFERENCES " + destinationVertexTable.getTableName()
+    return "\n      DESTINATION " + printVertexTableReference(edgeDestinationKey, destinationVertexTable.getTableName())
         + printKeyForReferencedVertexTable(destinationVertexKey);
+  }
+
+  private String printVertexTableReference(Key key, String vertexTableName) {
+    if (key == null) {
+      return vertexTableName;
+    } else {
+      return "KEY " + key + " REFERENCES " + vertexTableName;
+    }
   }
 
   private String printKeyForReferencedVertexTable(Key vertexKey) {
     if (vertexKey == null) {
       return "";
     } else {
-      return " (" + vertexKey + ")";
+      return vertexKey.toString();
     }
   }
 

@@ -70,7 +70,7 @@ public class CreatePropertyGraph implements Statement {
     } else {
       return "\n  VERTEX TABLES (\n    " + vertexTables.stream() //
           .map(x -> x.toString()) //
-          .collect(Collectors.joining(",\n    ")) + " )";
+          .collect(Collectors.joining(",\n    ")) + "\n  )";
     }
   }
 
@@ -80,7 +80,7 @@ public class CreatePropertyGraph implements Statement {
     } else {
       return "\n  EDGE TABLES (\n    " + edgeTables.stream() //
           .map(x -> x.toString()) //
-          .collect(Collectors.joining(",\n    ")) + " )";
+          .collect(Collectors.joining(",\n    ")) + "\n  )";
     }
   }
 

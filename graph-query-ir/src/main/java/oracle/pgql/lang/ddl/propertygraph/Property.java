@@ -48,7 +48,11 @@ public class Property {
 
   @Override
   public String toString() {
-    return columnName + " AS " + propertyName;
+    if (columnName.equals(propertyName)) {
+      return propertyName;
+    } else {
+      return columnName + " AS " + propertyName;
+    }
   }
 
   @Override

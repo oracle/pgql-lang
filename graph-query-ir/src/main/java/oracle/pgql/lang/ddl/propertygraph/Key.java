@@ -30,7 +30,7 @@ public class Key {
 
   @Override
   public String toString() {
-    return "KEY (" + columnNames.stream() //
+    return "(" + columnNames.stream() //
         .map(x -> x.toString()) //
         .collect(Collectors.joining(", ")) + ")";
   }

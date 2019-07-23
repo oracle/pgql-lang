@@ -48,7 +48,7 @@ public class Label {
   }
 
   private String printProperties() {
-    if (properties.isEmpty()) {
+    if (properties == null || properties.isEmpty()) {
       return "";
     } else {
       return " PROPERTIES (" + properties.stream() //

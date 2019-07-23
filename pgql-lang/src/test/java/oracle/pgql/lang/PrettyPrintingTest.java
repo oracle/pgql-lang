@@ -11,7 +11,8 @@ import org.junit.Test;
 import oracle.pgql.lang.ir.GraphQuery;
 import oracle.pgql.lang.ir.QueryExpression.Constant.ConstString;
 import oracle.pgql.lang.ir.QueryExpression.FunctionCall;
-import oracle.pgql.lang.ir.QueryExpression.PropertyAccess;;
+import oracle.pgql.lang.ir.QueryExpression.PropertyAccess;
+import oracle.pgql.lang.ir.Statement;;
 
 public class PrettyPrintingTest extends AbstractPgqlTest {
 
@@ -215,6 +216,28 @@ public class PrettyPrintingTest extends AbstractPgqlTest {
     checkRoundTrip(query);
   }
 
+  @Test
+  public void testCreatePropertyGraph() throws Exception {
+    String statement = "CREATE PROPERTY GRAPH STUDENT_NETWORK\n" + //
+        "  VERTEX TABLES (\n" + //
+        "    PERSON\n" + //
+        "      KEY (ID)\n" + //
+        "      LABEL PERSON PROPERTIES (NAME AS NAME, DOB AS DOB),\n" + //
+        "    UNIVERSITY\n" + //
+        "      KEY (ID)\n" + //
+        "      LABEL UNIVERSITY PROPERTIES (NAME AS NAME) )\n" + //
+        "  EDGE TABLES (\n" + //
+        "    KNOWS\n" + //
+        "      SOURCE KEY (PERSON1_ID) REFERENCES PERSON\n" + //
+        "      DESTINATION KEY (PERSON2_ID) REFERENCES PERSON\n" + //
+        "      LABEL KNOWS,\n" + //
+        "    STUDENTOF\n" + //
+        "      SOURCE KEY (PERSON_ID) REFERENCES PERSON\n" + //
+        "      DESTINATION KEY (UNIVERSITY_ID) REFERENCES UNIVERSITY\n" + //
+        "      LABEL STUDENTOF )";
+    checkRoundTrip(statement);
+  }
+
   private void checkRoundTrip(String query1) throws PgqlException {
 
     /*
@@ -222,11 +245,11 @@ public class PrettyPrintingTest extends AbstractPgqlTest {
      * we obtain a string that is a valid PGQL query.
      */
     PgqlResult result1 = pgql.parse(query1);
-    GraphQuery iR1 = result1.getGraphQuery();
+    Statement iR1 = result1.getStatement();
     assertTrue(result1.getErrorMessages(), result1.isQueryValid() && iR1 != null);
     String query2 = iR1.toString();
     PgqlResult result2 = pgql.parse(query2);
-    GraphQuery iR2 = result2.getGraphQuery();
+    Statement iR2 = result2.getStatement();
     assertTrue(result2.getErrorMessages(), result2.isQueryValid() && iR2 != null);
 
     /*
@@ -235,7 +258,7 @@ public class PrettyPrintingTest extends AbstractPgqlTest {
      * object that is equal to the first.
      */
     String query3 = iR2.toString();
-    GraphQuery iR3 = pgql.parse(query3).getGraphQuery();
+    Statement iR3 = pgql.parse(query3).getStatement();
     assertEquals(iR2, iR3);
   }
 }
