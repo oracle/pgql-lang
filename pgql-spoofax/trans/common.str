@@ -45,7 +45,7 @@ rules
                            + ?AVG(_, <id>)
                            + ?ARRAY-AGG(_, <id>)
 
-  unique-name(|c, origin) = !origin; origin-track-forced(!(<GENERATED>, "_", <next-counter; write-to-string> c); conc-strings)
+  unique-name(|c, origin) = !origin; origin-track-forced(!Identifier(<!origin; origin-track-forced(!(<GENERATED>, "_", <next-counter; write-to-string> c); conc-strings)>, None()))
 
   GENERATED = !"<<anonymous>>"
 

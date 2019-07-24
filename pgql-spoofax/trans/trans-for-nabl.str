@@ -97,12 +97,12 @@ rules
   guarantee-size-two-or-more = ?[]; ![[], []] <+ ?[x]; ![x, []] <+ id
 
   trans-elem(|variables):
-    Vertex(v) -> Vertex(v, origin-offset, correlation)
+    Vertex(iden@Identifier(v, _)) -> Vertex(iden, origin-offset, correlation)
     with origin-offset := <origin-offset> v
        ; correlation := <to-Correlation(|variables)> v
 
   trans-elem(|variables):
-    NormalizedEdge(src, e, dst, direction, _, _) -> Edge(src, e, dst, direction, origin-offset, correlation)
+    NormalizedEdge(src, iden@Identifier(e, _), dst, direction, _, _) -> Edge(src, iden, dst, direction, origin-offset, correlation)
     with origin-offset := <origin-offset> e
        ; correlation := <to-Correlation(|variables)> e
 
@@ -192,12 +192,12 @@ rules
        ; result := SetProperty(PropRef(varRef', prop), exp')
 
   resolve-exp-as-var-in-group-by(|variables, expAsVarsFromSelectClause):
-    (t@ExpAsVar(exp, v, anonymous), (result, vars)) -> (result', vars')
+    (t@ExpAsVar(exp, iden@Identifier(v, _), anonymous), (result, vars)) -> (result', vars')
     with exp' := <resolve-var-refs-and-use-expAsVarsFromSelectClause(|variables, expAsVarsFromSelectClause)> exp
        ; exp'' := <alltd(?VarRef(<id>, _); !VarRef(<id>))> exp'
        ; originOffset := <origin-offset> v
        ; vars' := <replace-or-add> (VarDef(v, originOffset, exp'', exp', ThisQuery()), vars)
-       ; expAsVar' := <origin-track-forced(!ExpAsVar(exp', v, anonymous, originOffset))> t
+       ; expAsVar' := <origin-track-forced(!ExpAsVar(exp', iden, anonymous, originOffset))> t
        ; result' := <conc> (result, [expAsVar'])
 
   resolve-exp-as-var-in-select(|variables):
@@ -262,17 +262,17 @@ rules
   resolve-var-ref(|variables):
     t@VarRef(iden@Identifier(v, _)) -> varRef
     with varRef := <
-        Hd; fetch(?VarDef(Identifier(v, _), origin-offset, _, _, _)); !VarRef(iden, origin-offset)
-        <+ !VarRef(iden)
-      > variables
+           Hd; fetch(?VarDef(v, origin-offset, _, _, _)); !VarRef(iden, origin-offset)
+           <+ !VarRef(iden)
+         > variables
 
   // within query only, so don't resolve to variables from outer queries
   resolve-var-ref-within-query(|variables, expAsVarsFromSelectClause):
   t@VarRef(iden@Identifier(v, _)) -> varRef
     with varRef := <
-        Hd; fetch(?VarDef(v, origin-offset, _, _, ThisQuery())); !VarRef(iden, origin-offset)
-        <+ !VarRef(iden)
-      > variables
+           Hd; fetch(?VarDef(v, origin-offset, _, _, ThisQuery())); !VarRef(iden, origin-offset)
+           <+ !VarRef(iden)
+         > variables
 
   resolve-var-ref(|variables):
     t@PropRef(VarRef(iden@Identifier(v, _)), prop) -> PropRef(varRef, prop)
