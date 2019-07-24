@@ -7,7 +7,6 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
 
-import org.junit.Ignore;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.ExpectedException;
@@ -147,10 +146,10 @@ public class BugFixTest extends AbstractPgqlTest {
         + "SELECT n.prop AS prop, '_\\\"_\"_''_\\'_\\n_\\t_\\\\n_' AS v1, '_\"_\\\"_''_\\'_\\n_\\t_\\\\n_' AS v2" //
         + " MATCH (n:lbl1|lbl2) -[e:\"lbl3\"|\"lbl4\"|\"_\"\"_\\\"_'_\\'_\\n_\\t_\"]-> (m) -/:p*/-> (o)" //
         + " WHERE m.prop = o.prop";
-    String pgql13Query = "PATH p AS (x) -> (y) " //
-        + "SELECT n.prop, '_\"_\"_''_''_\n_\t_\\n_' AS v1, '_\"_\"_''_''_\n_\t_\\n_' AS v2" //
-        + "  FROM EXPERIMENTAL_MATCH ( (n:\"lbl1\"|\"lbl2\") -[e:\"lbl3\"|\"lbl4\"|\"_\"\"_\"\"_'_'_\n_\t_\"]-> (m) -/:p*/-> (o) )" //
-        + " WHERE m.prop = o.prop"; // TODO why is it not equal?
+    String pgql13Query = "PATH \"p\" AS (\"x\") -> (\"y\") " //
+        + "SELECT \"n\".\"prop\", '_\"_\"_''_''_\n_\t_\\n_' AS \"v1\", '_\"_\"_''_''_\n_\t_\\n_' AS \"v2\"" //
+        + "  FROM EXPERIMENTAL_MATCH ( (\"n\":\"lbl1\"|\"lbl2\") -[\"e\":\"lbl3\"|\"lbl4\"|\"_\"\"_\"\"_'_'_\n_\t_\"]-> (\"m\") -/:\"p\"*/-> (\"o\") )" //
+        + " WHERE \"m\".\"prop\" = \"o\".\"prop\"";
 
     PgqlResult result10 = pgql.parse(pgql10Query);
     assertTrue(result10.isQueryValid());

@@ -223,7 +223,7 @@ rules
 
   norm-singleVertex = ?SingleVertex(elemContents); !PathPattern(Vertex(elemContents), []) // SELECT * WHERE ()
 
-  norm-VertexWithoutBrackets = ?VertexWithoutBrackets(v); !Vertex(ElemContents(Some(<origin-track-forced(<conc-strings> (v, <VERTEX_WITHOUT_BRACKETS>))>), None(), None(), None()))
+  norm-VertexWithoutBrackets = ?VertexWithoutBrackets(v); !Vertex(ElemContents(Some(RegularIdentifier(<origin-track-forced(<conc-strings> (v, <VERTEX_WITHOUT_BRACKETS>))>)), None(), None(), None()))
 
   norm-edgeContents = ?Some(EdgeContents(<id>))
 
