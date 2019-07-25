@@ -37,28 +37,28 @@ rules // Unresolved/duplicate variables
   nabl-constraint(|ctx):
     NormalizedQuery(_, selectOrModifyClause, _, graphPattern, groupClause, _, _, _, _, _) -> <fail>
     with matchVars := <?None(); ![] <+ ?Some(GraphPattern(vertices, edges, _)); !(vertices, edges); collect(is-pattern-elem); collect-om(get-pattern-elem, conc)> graphPattern
-       ; groupExpressions := <collect-om(?ExpAsVar(_, <id>, _, _), conc)> groupClause
+       ; groupExpressions := <collect-om(?ExpAsVar(_, Identifier(<id>, _), _, _), conc)> groupClause
        ; <generate-error-on-duplicates(|ctx)> matchVars
        ; <generate-error-on-duplicates(|ctx)> groupExpressions
        ; if <?SelectClause(_, _)> selectOrModifyClause
-         then selectExpressions := <collect-om(?ExpAsVar(_, <id>, _, _), conc)> selectOrModifyClause
+         then selectExpressions := <collect-om(?ExpAsVar(_, Identifier(<id>, _), _, _), conc)> selectOrModifyClause
             ; <generate-error-on-duplicates(|ctx)> selectExpressions
             ; insertVars := []
          else // MODIFY query
-              insertVars := <collect-om(?VertexInsertion(<id>, _, _, _) + ?DirectedEdgeInsertion(<id>, _, _, _, _, _), conc)> selectOrModifyClause
+              insertVars := <collect-om(?VertexInsertion(Identifier(<id>, _), _, _, _) + ?DirectedEdgeInsertion(Identifier(<id>, _), _, _, _, _, _), conc)> selectOrModifyClause
             ; <generate-error-on-duplicates(|ctx)> insertVars
-            ; updateVars := <collect-om(?Update(VarRef(<id>), _) + ?Update(VarRef(<id>, _), _), conc)> selectOrModifyClause
+            ; updateVars := <collect-om(?Update(VarRef(Identifier(<id>, _)), _) + ?Update(VarRef(Identifier(<id>, _), _), _), conc)> selectOrModifyClause
             ; updates-of-inserts := <strip-annos; isect> (updateVars, insertVars)
             ; <batch-generate-error(|ctx, "Cannot update an element that is being inserted")> updates-of-inserts
-            ; deleteVars := <(collect-one(?DeleteClause(<id>)) <+ ![]); filter(?VarRef(<id>, _))> selectOrModifyClause
-            ; sourceVertices := <collect-om(?DirectedEdgeInsertion(_, _, VarRef(<id>, _), _, _, _), conc)> selectOrModifyClause
-            ; destinationVertices := <collect-om(?DirectedEdgeInsertion(_, _, _, VarRef(<id>, _), _, _), conc)> selectOrModifyClause
+            ; deleteVars := <(collect-one(?DeleteClause(<id>)) <+ ![]); filter(?VarRef(Identifier(<id>, _), _))> selectOrModifyClause
+            ; sourceVertices := <collect-om(?DirectedEdgeInsertion(_, _, VarRef(Identifier(<id>, _), _), _, _, _), conc)> selectOrModifyClause
+            ; destinationVertices := <collect-om(?DirectedEdgeInsertion(_, _, _, VarRef(Identifier(<id>, _), _), _, _), conc)> selectOrModifyClause
             ; all-updateVars := <conc> (updateVars, sourceVertices, destinationVertices)
             ; deletes-of-updates := <strip-annos; isect> (all-updateVars, deleteVars)
             ; <batch-generate-error(|ctx, "Element is deleted in DELETE clause")> deletes-of-updates
          end
 
-       ; groupVars := <collect(?ExpAsVar(_, <id>, NonAnonymous(), _))> groupClause
+       ; groupVars := <collect(?ExpAsVar(_, Identifier(<id>, _), NonAnonymous(), _))> groupClause
        ; redefinitions-in-groupBy := <strip-annos; isect> (groupVars, matchVars)
        ; <batch-generate-error(|ctx, "Duplicate variable: variable already defined in the MATCH clause")> redefinitions-in-groupBy
 
@@ -66,7 +66,7 @@ rules // Unresolved/duplicate variables
          then redefinition-in-modify := <strip-annos; isect> (insertVars, matchVars)
             ; <batch-generate-error(|ctx, "Duplicate variable: variable already defined in the MATCH clause")> redefinition-in-modify
          else if <?SelectClause(_, _)> selectOrModifyClause
-              then selectOrInsertVars := <collect(?ExpAsVar(_, <id>, NonAnonymous(), _))> selectOrModifyClause
+              then selectOrInsertVars := <collect(?ExpAsVar(_, Identifier(<id>, _), NonAnonymous(), _))> selectOrModifyClause
               else selectOrInsertVars := insertVars
               end
             ; redefinitions-in-select-or-modify := <strip-annos; isect> (selectOrInsertVars, groupVars)
@@ -90,7 +90,7 @@ rules // Unresolved/duplicate variables
     where group-varRefs := <isect; not(?[] + ?[_])> (group-variables, varRefs-in-aggregation)
 
   is-pattern-elem = ?Vertex(_, _, _) + ?Edge(_, _, _, _, _, _)
-  get-pattern-elem = ?Vertex(<id>, _, _) + ?Edge(_, <id>, _, _, _, _)
+  get-pattern-elem = ?Vertex(Identifier(<id>, _), _, _) + ?Edge(_, Identifier(<id>, _), _, _, _, _)
 
   generate-error-on-duplicates(|ctx) = strip-annos; ?vars; map(generate-error-on-duplicate(|ctx, vars))
 
@@ -104,7 +104,7 @@ rules // Unresolved/duplicate variables
     with group-variables := <filter(get-group-variable-from-select-star; identifier-to-string)> expAsVars
        ; <map(generate-error(|ctx, $[Cannot select all variables since [<id>] is a group variable but group variables cannot be selected]))> group-variables
 
-  get-group-variable-from-select-star = ?ExpAsVar(VarRef(<id>), _, _, _); ?v; origin-text; ?"*"; !v
+  get-group-variable-from-select-star = ?ExpAsVar(VarRef(Identifier(<id>, _)), _, _, _); ?v; origin-text; ?"*"; !v
 
 rules // in-lined constraints
 

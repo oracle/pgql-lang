@@ -1,0 +1,235 @@
+module experimental
+
+language pgql-lang
+
+test Duplicate alias (1) [[
+
+  SELECT n.[[prop]], 123 AS [[Prop]]
+    FROM EXPERIMENTAL_MATCH ( (n) )
+
+]] error like "Duplicate variable" at #1, #2
+
+test Duplicate alias (2) [[
+
+  SELECT 123 AS [[prop]], 456 AS [[Prop]]
+    FROM EXPERIMENTAL_MATCH ( (n) )
+
+]] error like "Duplicate variable" at #1, #2
+
+test Duplicate alias in GOUP BY [[
+
+    SELECT prop AS prop
+      FROM EXPERIMENTAL_MATCH ( (n) )
+  GROUP BY n.prop1 AS [[prop]], n.prop2 AS [[Prop]]
+
+]] error like "Duplicate variable" at #1, #2
+
+// below tests are the same as in subqueries.spt but now also testing it for case insensitive identifiers
+
+test Duplicate variable passed from outer query (1) [[
+
+  SELECT EXISTS ( SELECT e AS c1 FROM g EXPERIMENTAL_MATCH ( (n) <-[ [[E]] ]- (m) ) ) AS x
+    FROM g EXPERIMENTAL_MATCH ( (n) -[e]-> (m) )
+
+]] error like "Duplicate variable (variable with same name is passed from an outer query)" at #1
+
+test Duplicate variable passed from outer query (2) [[
+
+  SELECT EXISTS ( SELECT e AS c1 FROM g EXPERIMENTAL_MATCH ( ([[E]]) ) ) AS x
+    FROM g EXPERIMENTAL_MATCH ( (n) -[e]-> (m) )
+
+]] error like "Duplicate variable (variable with same name is passed from an outer query)" at #1
+
+test Duplicate variable passed from outer query (3) [[
+
+  SELECT EXISTS ( SELECT e AS c1 FROM g EXPERIMENTAL_MATCH ( (n) <-[ [[E]] ]- (m) ) ) AS x
+    FROM g EXPERIMENTAL_MATCH ( (n) -[e]-> (m) )
+  GROUP BY e
+
+]] error like "Duplicate variable (variable with same name is passed from an outer query)" at #1
+
+test Duplicate variable passed from outer query (4) [[
+
+  SELECT 123 AS b, e AS c2
+    FROM g EXPERIMENTAL_MATCH ( (a) -[e]-> () )
+  ORDER BY EXISTS ( SELECT 123 AS c FROM g EXPERIMENTAL_MATCH ( ([[B]]), ([[E]]) ) )
+
+]] error like "Duplicate variable (variable with same name is passed from an outer query)" at #1, #2
+
+test Duplicate variable passed from outer query (5) [[
+
+  SELECT 123 AS b, e AS c2, a AS c3
+    FROM g EXPERIMENTAL_MATCH ( (a) -[e]-> () )
+  ORDER BY EXISTS ( SELECT 123 AS c FROM g EXPERIMENTAL_MATCH ( () -[ [[B]] ]-> () -[ [[E]] ]-> ()  -[ [[A]] ]-> () ) )
+
+]] error like "Duplicate variable (variable with same name is passed from an outer query)" at #1, #2, #3
+
+test Duplicate variable passed from outer query (6) [[
+
+    SELECT 1 AS n
+      FROM g EXPERIMENTAL_MATCH ( (n) )
+    HAVING n.age > 3
+  ORDER BY ( SELECT 1 AS c1
+               FROM g EXPERIMENTAL_MATCH ( ( [[N]] ) ) /* here, "n" from the SELECT of the outer query is visible; rather than overriding it we generate an error */
+              WHERE n.age >= 21
+           )
+
+]] error like "Duplicate variable (variable with same name is passed from an outer query)" at #1
+
+// tests below are the same as in regular-path-expression.spt but now also testing it for case insensitive identifiers
+
+test Duplicate variables (1) [[
+
+  SELECT n.prop AS nProp
+    FROM g EXPERIMENTAL_MATCH (
+           SHORTEST ( (n) -[ [[E]] ]-> (m) )
+         , (n) -[ [[e]] ]-> (m) )
+
+]] error like "Duplicate variable" at #1, #2
+
+test Duplicate variables (2) [[
+
+  SELECT n.prop AS nProp
+    FROM g EXPERIMENTAL_MATCH (
+           SHORTEST ( (n) (-> ([[dst]]))* (m) )
+         , ([[DST]]) )
+
+]] error like "Duplicate variable" at #1, #2
+
+test Duplicate variables (3) [[
+
+  SELECT n.prop AS nProp
+    FROM g EXPERIMENTAL_MATCH ( SHORTEST ( (n) (-> ([[m]]))* ([[M]]) ) )
+
+]] error like "Duplicate variable" at #1, #2
+
+test Duplicate variables (4) [[
+
+  SELECT n.prop AS nProp
+    FROM g EXPERIMENTAL_MATCH ( SHORTEST ( ([[n]]) (-[ [[N]] ]->)* (m) ) )
+
+]] error like "Duplicate variable" at #1, #2
+
+test Duplicate variables (5) [[
+
+  SELECT n.prop AS nProp
+    FROM g EXPERIMENTAL_MATCH ( SHORTEST ( (n) [[(-> (M)) (m)]] ) )
+
+]] error like "Duplicate variable" at #1
+
+test Duplicate variables (6) [[
+
+  SELECT n.prop AS nProp
+    FROM g EXPERIMENTAL_MATCH (
+           SHORTEST ( (n) -[ [[e]] ]->* (m) )
+         , SHORTEST ( (n) -[ [[E]] ]->* (m) ) )
+
+]] error like "Duplicate variable" at #1, #2
+
+test Duplicate variables (7) [[
+
+  SELECT n.prop AS nProp
+    FROM g EXPERIMENTAL_MATCH (
+           SHORTEST ( (n) (-> ([[X]]))* (m) )
+         , SHORTEST ( (n) -[ [[x]] ]->* (m) ) )
+
+]] error like "Duplicate variable" at #1, #2
+
+test Duplicate variables (8) [[
+
+  SELECT e AS c1
+   FROM g EXPERIMENTAL_MATCH ( SHORTEST ( (n) -[e]->* (m) ) )
+   GROUP BY n AS [[E]]
+
+]] error like "Duplicate variable: variable already defined in the MATCH clause" at #1
+
+test Duplicate variables (9) [[
+
+  SELECT e AS c1
+    FROM g EXPERIMENTAL_MATCH ( SHORTEST ( (n) (-> (DST))* (m) ) )
+   GROUP BY n AS [[dst]]
+
+]] error like "Duplicate variable: variable already defined in the MATCH clause" at #1
+
+// tests below are the same as in rmodify.spt but now also testing it for case insensitive identifiers
+
+test Duplicate variable (1) [[
+
+  MODIFY (
+    INSERT VERTEX [[V1]],
+           EDGE [[V1]] BETWEEN v1 AND V1
+  )
+  FROM g EXPERIMENTAL_MATCH ( (v1) )
+
+]] error like "Duplicate variable: variable already defined in the MATCH clause" at #1, #2
+
+test Duplicate variable (2) [[
+
+  MODIFY (
+    INSERT VERTEX [[v2]],
+           EDGE [[V2]] BETWEEN v1 AND V2
+  )
+  FROM g EXPERIMENTAL_MATCH ( (v1) )
+  GROUP BY v1.prop AS v2
+
+]] error like "Duplicate variable: variable already defined in the GROUP BY clause" at #1, #2
+
+test Duplicate variable (3) [[
+
+  MODIFY (
+    INSERT VERTEX [[V2]],
+           VERTEX [[v2]],
+           EDGE [[v2]] BETWEEN v2 AND v2
+  )
+
+]] error like "Duplicate variable" at #1, #2, #3
+
+test Duplicate variable (4) [[
+
+  MODIFY (
+    INSERT VERTEX [[v2]],
+           VERTEX [[v2]],
+           EDGE [[V2]] BETWEEN v2 AND V2
+  )
+  FROM g EXPERIMENTAL_MATCH ( (v1) )
+
+]] error like "Duplicate variable" at #1, #2, #3
+
+test Update an insertion (1) [[
+
+  MODIFY (
+    INSERT VERTEX v3
+    UPDATE [[V3]] SET PROPERTIES ( v3.prop = 3 )
+  )
+
+]] error like "Cannot update an element that is being inserted" at #1
+
+test Update an insertion (2) [[
+
+  MODIFY (
+    INSERT VERTEX v3
+    UPDATE [[V3]] SET PROPERTIES ( v3.prop = 3 )
+  )
+  FROM g EXPERIMENTAL_MATCH ( (v1) )
+
+]] error like "Cannot update an element that is being inserted" at #1
+
+test Update a deletion [[
+
+  MODIFY (
+    UPDATE [[N]] SET PROPERTIES ( n.prop = 123 )
+    DELETE n
+  )
+  FROM g EXPERIMENTAL_MATCH ( (n) )
+
+]] error like "Element is deleted in DELETE clause" at #1
+
+test Set source of destination of edge to deletion [[
+
+  MODIFY (
+    INSERT edge e BETWEEN [[N]] and [[n]]
+    DELETE n
+  )
+  FROM g EXPERIMENTAL_MATCH ( (n) )
+
+]] error like "Element is deleted in DELETE clause" at #1, #2

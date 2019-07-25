@@ -2,7 +2,7 @@ module experimental
 
 language pgql-lang
 
-test Reference to aggregation [[
+test Reference alias from SELECT in GROUP BY, not allowed when aggregation [[
 
     SELECT [[COUNT(n.prop)]] AS v
       FROM g EXPERIMENTAL_MATCH ( (n) )

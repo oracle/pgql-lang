@@ -64,8 +64,10 @@ rules
 rules
 
   is-pgql10 = ?Pgql10Query(_, _, _, _, _, _, _)
-  is-pgql11 = ?Pgql11Query(_, _, _, _, _, _, _, _)
+  is-pgql11 = ?Pgql11Query(_, SelectClause(_, _), _, _, _, _, _, _)
+            + ?Pgql11Query(_, ModifyClause(_, _), _, Some(_), _, _, _, _)
   is-pgql13 = ?Query(_, _, _, _, _, _, _, _)
+  is-pgql13 = ?Pgql11Query(_, ModifyClause(_, _), _, None(), _, _, _, _)
 
   get-pgql11-deprecation = (?OutConn(None(), _) + ?InConn(None(), _) + ?UndirectedEdge(None(), _)); to-error-message(|"Use [-] instead of [--]")
   get-pgql11-deprecation = ?Pgql10AsignSymbol(); to-error-message(|"Use [AS] instead of [:=]")
