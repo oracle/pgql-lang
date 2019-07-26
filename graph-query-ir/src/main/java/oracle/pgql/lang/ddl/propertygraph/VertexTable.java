@@ -37,24 +37,18 @@ public class VertexTable extends ElementTable {
   }
 
   @Override
-  public int hashCode() {
-    return 31;
-  }
-
-  @Override
   public boolean equals(Object obj) {
-    if (this == obj)
-      return true;
-    if (obj == null)
+    if (!super.equals(obj)) {
       return false;
-    if (getClass() != obj.getClass())
-      return false;
+    }
+
     VertexTable other = (VertexTable) obj;
     if (key == null) {
       if (other.key != null)
         return false;
     } else if (!key.equals(other.key))
       return false;
+
     return true;
   }
 }

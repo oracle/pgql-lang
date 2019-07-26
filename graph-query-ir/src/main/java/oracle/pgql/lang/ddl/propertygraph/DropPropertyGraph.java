@@ -8,10 +8,21 @@ import oracle.pgql.lang.ir.StatementType;
 
 public class DropPropertyGraph implements Statement {
 
+  private String schemaName;
+
   private String graphName;
 
-  public DropPropertyGraph(String graphName) {
+  public DropPropertyGraph(String schemaName, String graphName) {
+    this.schemaName = schemaName;
     this.graphName = graphName;
+  }
+
+  public String getSchemaName() {
+    return schemaName;
+  }
+
+  public void setSchemaName(String schemaName) {
+    this.schemaName = schemaName;
   }
 
   public String getGraphName() {
@@ -46,6 +57,12 @@ public class DropPropertyGraph implements Statement {
         return false;
     } else if (!graphName.equals(other.graphName))
       return false;
+    if (schemaName == null) {
+      if (other.schemaName != null)
+        return false;
+    } else if (!schemaName.equals(other.schemaName))
+      return false;
     return true;
   }
+
 }

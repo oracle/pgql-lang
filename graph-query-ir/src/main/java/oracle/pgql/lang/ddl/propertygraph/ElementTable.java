@@ -61,4 +61,36 @@ public abstract class ElementTable {
         .map(x -> x.toString()) //
         .collect(Collectors.joining(indentation));
   }
+
+  @Override
+  public int hashCode() {
+    return 31;
+  }
+
+  @Override
+  public boolean equals(Object obj) {
+    if (this == obj)
+      return true;
+    if (obj == null)
+      return false;
+    if (getClass() != obj.getClass())
+      return false;
+    ElementTable other = (ElementTable) obj;
+    if (labels == null) {
+      if (other.labels != null)
+        return false;
+    } else if (!labels.equals(other.labels))
+      return false;
+    if (schemaName == null) {
+      if (other.schemaName != null)
+        return false;
+    } else if (!schemaName.equals(other.schemaName))
+      return false;
+    if (tableName == null) {
+      if (other.tableName != null)
+        return false;
+    } else if (!tableName.equals(other.tableName))
+      return false;
+    return true;
+  }
 }

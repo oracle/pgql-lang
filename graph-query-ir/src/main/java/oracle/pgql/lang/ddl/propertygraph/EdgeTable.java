@@ -148,18 +148,10 @@ public class EdgeTable extends ElementTable {
   }
 
   @Override
-  public int hashCode() {
-    return 31;
-  }
-
-  @Override
   public boolean equals(Object obj) {
-    if (this == obj)
-      return true;
-    if (obj == null)
+    if (!super.equals(obj)) {
       return false;
-    if (getClass() != obj.getClass())
-      return false;
+    }
     EdgeTable other = (EdgeTable) obj;
     if (destinationVertexKey == null) {
       if (other.destinationVertexKey != null)
