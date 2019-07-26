@@ -101,7 +101,7 @@ rules // Unresolved/duplicate variables
 
   nabl-constraint(|ctx):
     SelectClause(Star(), ExpAsVars(expAsVars)) -> <fail>
-    with group-variables := <filter(get-group-variable-from-select-star; identifier-to-string)> expAsVars
+    with group-variables := <filter(get-group-variable-from-select-star)> expAsVars
        ; <map(generate-error(|ctx, $[Cannot select all variables since [<id>] is a group variable but group variables cannot be selected]))> group-variables
 
   get-group-variable-from-select-star = ?ExpAsVar(VarRef(Identifier(<id>, _)), _, _, _); ?v; origin-text; ?"*"; !v
@@ -349,7 +349,7 @@ rules // MODIFY
   nabl-constraint(|ctx):
     properties -> <fail>
     where <?SetProperties(setPropertyExps) + ?Properties(setPropertyExps)> properties
-    with propertyRefs := <map(?SetProperty(<id>, _))> setPropertyExps
+    with propertyRefs := <filter(?SetProperty(PropRef(_, Identifier(<id>, _)), _))> setPropertyExps
        ; duplicatePropertyRefs := <filter(is-elem-contained-more-than-once(|propertyRefs))> propertyRefs
        ; <batch-generate-error(|ctx, "Property is set multiple times")> duplicatePropertyRefs
 
@@ -360,26 +360,24 @@ rules // MODIFY
 
   nabl-constraint(|ctx):
     UpdateClause(updates) -> <fail>
-    with updateElements := <filter(?Update(VarRef(<id>, _), _))> updates
+    with updateElements := <filter(?Update(VarRef(Identifier(<id>, _), _), _))> updates
        ; duplicateUpdateElements := <filter(is-elem-contained-more-than-once(|updateElements))> updateElements
        ; <batch-generate-error(|ctx, "Element is updated multiple times (merge the two updates together)")> duplicateUpdateElements
 
   nabl-constraint(|ctx):
     DeleteClause(deletions) -> <fail>
-    with deleteElements := <filter(?VarRef(<id>, _))> deletions
+    with deleteElements := <filter(?VarRef(Identifier(<id>, _), _))> deletions
        ; duplicateDeleteElements := <filter(is-elem-contained-more-than-once(|deleteElements))> deleteElements
        ; <batch-generate-error(|ctx, "Element is deleted multiple times")> duplicateDeleteElements
 
   nabl-constraint(|ctx):
     t -> <fail>
-    where <?VertexInsertion(v, _, _, Some(Properties(setProperties))) +
-           ?DirectedEdgeInsertion(v, _, _, _, _, Some(Properties(setProperties))) +
-           ?Update(VarRef(v, _), SetProperties(setProperties))> t
+    where <?VertexInsertion(Identifier(v, _), _, _, Some(Properties(setProperties))) +
+           ?DirectedEdgeInsertion(Identifier(v, _), _, _, _, _, Some(Properties(setProperties))) +
+           ?Update(VarRef(Identifier(v, _), _), SetProperties(setProperties))> t
     with v' := <strip-annos> v
-       ; otherVariablesThanV := <filter(?SetProperty(PropRef(VarRef(<id>, _), _), _); strip-annos; not(?v'))> setProperties
-       ; <batch-generate-error(|ctx, $<Did you mean <<!v; identifier-to-string>>?>)> otherVariablesThanV
-
-  identifier-to-string = ?Identifier(<id>, None()) <+ ?Identifier(_, <id>)
+       ; otherVariablesThanV := <filter(?SetProperty(PropRef(VarRef(Identifier(<id>, _), _), _), _); strip-annos; not(?v'))> setProperties
+       ; <batch-generate-error(|ctx, $<Did you mean <v>?>)> otherVariablesThanV
 
   nabl-constraint(|ctx):
     ModifyClause(_, insertUpdateDeleteClauses) -> <fail>

@@ -24,6 +24,25 @@ test Duplicate alias in GOUP BY [[
 
 ]] error like "Duplicate variable" at #1, #2
 
+test No error on expressions in PATH or COST clauses that mix upper and lower cases for the same variable [[
+    PATH p AS (x) -[e]-> (y) WHERE x.prop > X.prop
+  SELECT 1 AS c1
+    FROM g EXPERIMENTAL_MATCH ( CHEAPEST ( (n) ((src) -[e]-> (dst) COST e.prop + E.prop)* (m) ), (n) -/:p*/-> (m) )
+
+]] analysis succeeds
+
+test No error on group variables in aggregation with mixed upper and lower cases [[
+
+  SELECT [[MIN(e.prop + E.prop)]] AS aggr1
+       , [[MAX(X.prop + x.prop)]] AS aggr2
+       , [[COUNT(e.prop + E.prop)]] AS aggr3
+       , [[SUM(X.prop + x.prop)]] AS aggr4
+       , [[AVG(e.prop + E.prop)]] AS aggr5
+       , [[ARRAY_AGG(X.prop + x.prop)]] AS aggr6
+    FROM g EXPERIMENTAL_MATCH ( SHORTEST ( (n) (-[e]-> (x))* (m) ) )
+
+]] analysis succeeds
+
 // below tests are the same as in subqueries.spt but now also testing it for case insensitive identifiers
 
 test Duplicate variable passed from outer query (1) [[
@@ -151,7 +170,21 @@ test Duplicate variables (9) [[
 
 ]] error like "Duplicate variable: variable already defined in the MATCH clause" at #1
 
-// tests below are the same as in rmodify.spt but now also testing it for case insensitive identifiers
+// tests below are the same as in modify.spt but now also testing it for case insensitive identifiers
+
+test Set a property multiple times in UPDATE [[
+
+  MODIFY g ( UPDATE n SET PROPERTIES ( [[n.pRoP]] = 1, [[n.prop]] = 2 ) )
+    FROM g EXPERIMENTAL_MATCH ( (n) )
+
+]] error like "Property is set multiple times" at #1, #2
+
+test Set a property multiple times in INSERT [[
+
+  MODIFY g ( INSERT VERTEX m PROPERTIES ( [[m.prop]] = 1, [[m.pRoP]] = 2 ) )
+    FROM g EXPERIMENTAL_MATCH ( (n) )
+
+]] error like "Property is set multiple times" at #1, #2
 
 test Duplicate variable (1) [[
 
@@ -233,3 +266,25 @@ test Set source of destination of edge to deletion [[
   FROM g EXPERIMENTAL_MATCH ( (n) )
 
 ]] error like "Element is deleted in DELETE clause" at #1, #2
+
+test Update other element than the one that was meant to be updated [[
+
+  MODIFY (
+    UPDATE n SET PROPERTIES ( [[N]].prop = 3 )
+         , M SET PROPERTIES ( [[m]].prop = 4 )
+  )
+  FROM g EXPERIMENTAL_MATCH ( (n) -> (m) )
+
+]] analysis succeeds
+
+test Duplicate updates or deletions [[
+
+  MODIFY g (
+    UPDATE [[v]] SET PROPERTIES ( v.first_name = 'Scott' ),
+           [[V]] SET PROPERTIES ( v.last_name = 'Tiger' )
+    DELETE [[w]], [[W]]
+  )
+  FROM g EXPERIMENTAL_MATCH ( (v) -> (w) )
+
+]] error like "Element is updated multiple times (merge the two updates together)" at #1, #2
+   error like "Element is deleted multiple times" at #3, #4

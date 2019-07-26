@@ -4,7 +4,7 @@ language pgql-lang
 
 test Nested aggregation (1) [[
 
-  SELECT AVG(MIN([[n]].age)) AS nextedAggr
+  SELECT AVG(MIN([[n]].age)) AS nestedAggr
     FROM g MATCH (n)
 
 ]] error like "Unresolved variable" at #1
