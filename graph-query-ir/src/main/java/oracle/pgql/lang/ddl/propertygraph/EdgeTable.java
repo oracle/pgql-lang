@@ -5,6 +5,8 @@ package oracle.pgql.lang.ddl.propertygraph;
 
 import java.util.List;
 
+import static oracle.pgql.lang.ir.PgqlUtils.printLocalOrSchemaQualifiedName;
+
 public class EdgeTable extends ElementTable {
 
   /**
@@ -42,17 +44,19 @@ public class EdgeTable extends ElementTable {
   /**
    * Constructor without source vertex key and destination vertex key (relies on the presence of keys of vertex tables).
    */
-  public EdgeTable(String tableName, VertexTable sourceVertexTable, Key edgeSourceKey,
+  public EdgeTable(String schemaName, String tableName, VertexTable sourceVertexTable, Key edgeSourceKey,
       VertexTable destinationVertexTable, Key edgeDestinationKey, List<Label> labels) {
-    this(tableName, sourceVertexTable, edgeSourceKey, null, destinationVertexTable, edgeDestinationKey, null, labels);
+    this(schemaName, tableName, sourceVertexTable, edgeSourceKey, null, destinationVertexTable, edgeDestinationKey,
+        null, labels);
   }
 
   /**
    * Constructor with source vertex key and destination vertex key.
    */
-  public EdgeTable(String tableName, VertexTable sourceVertexTable, Key edgeSourceKey, Key sourceVertexKey,
-      VertexTable destinationVertexTable, Key edgeDestinationKey, Key destinationVertexKey, List<Label> labels) {
-    super(tableName, labels);
+  public EdgeTable(String schemaName, String tableName, VertexTable sourceVertexTable, Key edgeSourceKey,
+      Key sourceVertexKey, VertexTable destinationVertexTable, Key edgeDestinationKey, Key destinationVertexKey,
+      List<Label> labels) {
+    super(schemaName, tableName, labels);
     this.sourceVertexTable = sourceVertexTable;
     this.edgeSourceKey = edgeSourceKey;
     this.sourceVertexKey = sourceVertexKey;
@@ -111,24 +115,27 @@ public class EdgeTable extends ElementTable {
 
   @Override
   public String toString() {
-    return getTableName() + printSource() + printDestination() + printLabels("\n      ");
+    return printLocalOrSchemaQualifiedName(getSchemaName(), getTableName()) + printSource() + printDestination()
+        + printLabels("\n      ");
   }
 
   private String printSource() {
-    return "\n      SOURCE " + printVertexTableReference(edgeSourceKey, sourceVertexTable.getTableName())
+    return "\n      SOURCE " + printVertexTableReference(edgeSourceKey, sourceVertexTable)
         + printKeyForReferencedVertexTable(sourceVertexKey);
   }
 
   private String printDestination() {
-    return "\n      DESTINATION " + printVertexTableReference(edgeDestinationKey, destinationVertexTable.getTableName())
+    return "\n      DESTINATION " + printVertexTableReference(edgeDestinationKey, destinationVertexTable)
         + printKeyForReferencedVertexTable(destinationVertexKey);
   }
 
-  private String printVertexTableReference(Key key, String vertexTableName) {
+  private String printVertexTableReference(Key key, VertexTable referencedVertexTable) {
+    String tableName = printLocalOrSchemaQualifiedName(referencedVertexTable.getSchemaName(),
+        referencedVertexTable.getTableName());
     if (key == null) {
-      return vertexTableName;
+      return tableName;
     } else {
-      return "KEY " + key + " REFERENCES " + vertexTableName;
+      return "KEY " + key + " REFERENCES " + tableName;
     }
   }
 

@@ -9,6 +9,11 @@ import java.util.stream.Collectors;
 public abstract class ElementTable {
 
   /**
+   * The name of the schema.
+   */
+  private String schemaName;
+
+  /**
    * The vertex or edge table name.
    */
   private String tableName;
@@ -21,9 +26,18 @@ public abstract class ElementTable {
   /**
    * The constructor.
    */
-  protected ElementTable(String tableName, List<Label> labels) {
+  protected ElementTable(String schemaName, String tableName, List<Label> labels) {
+    this.schemaName = schemaName;
     this.tableName = tableName;
     this.labels = labels;
+  }
+
+  public String getSchemaName() {
+    return schemaName;
+  }
+
+  public void setSchemaName(String schemaName) {
+    this.schemaName = schemaName;
   }
 
   public String getTableName() {

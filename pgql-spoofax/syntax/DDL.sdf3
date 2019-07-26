@@ -11,19 +11,19 @@ template options
 
 context-free syntax
 
-  Statement.CreatePropertyGraph = <CREATE PROPERTY GRAPH <Identifier> <VertexTables?> <EdgeTables?>> {case-insensitive}
+  Statement.CreatePropertyGraph = <CREATE PROPERTY GRAPH <GraphName> <VertexTables?> <EdgeTables?>> {case-insensitive}
 
   VertexTables.VertexTables = <VERTEX TABLES ( <{VertexTable ","}+> )> {case-insensitive}
 
   EdgeTables.EdgeTables = <EDGE TABLES ( <{EdgeTable ","}+> )> {case-insensitive}
 
-  VertexTable.VertexTable = <<Identifier> <KeyClause?> <LabelAndPropertiesClause?>>
+  VertexTable.VertexTable = <<TableName> <KeyClause?> <LabelAndPropertiesClause?>>
 
-  EdgeTable.EdgeTable = <<Identifier> <KeyClause?> <SourceVertexTable> <DestinationVertexTable> <LabelAndPropertiesClause?>>
+  EdgeTable.EdgeTable = <<TableName> <KeyClause?> <SourceVertexTable> <DestinationVertexTable> <LabelAndPropertiesClause?>>
 
-  SourceVertexTable.SourceVertexTable = <SOURCE <ReferencedVertexTableKeyClause?> <Identifier>> {case-insensitive}
+  SourceVertexTable.SourceVertexTable = <SOURCE <ReferencedVertexTableKeyClause?> <TableName>> {case-insensitive}
 
-  DestinationVertexTable.DestinationVertexTable = <DESTINATION <ReferencedVertexTableKeyClause?> <Identifier>> {case-insensitive}
+  DestinationVertexTable.DestinationVertexTable = <DESTINATION <ReferencedVertexTableKeyClause?> <TableName>> {case-insensitive}
 
   ReferencedVertexTableKeyClause.ReferencedVertexTableKeyClause = <<KeyClause> REFERENCES> {case-insensitive}
 
@@ -39,4 +39,4 @@ context-free syntax
 
   KeyClause.KeyClause = <KEY ( <{Identifier ","}+> )> {case-insensitive}
 
-  Statement.DropPropertyGraph = <DROP PROPERTY GRAPH <Identifier>> {case-insensitive}
+  Statement.DropPropertyGraph = <DROP PROPERTY GRAPH <GraphName>> {case-insensitive}

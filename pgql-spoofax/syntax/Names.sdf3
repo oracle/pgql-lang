@@ -19,6 +19,12 @@ context-free syntax
 
   Identifier.Identifier = IDENTIFIER
 
+  TableName = LocalOrSchemaQualifiedName
+  GraphName = LocalOrSchemaQualifiedName
+
+  LocalOrSchemaQualifiedName.Name = <<SchemaNameDot?><Identifier>>
+  SchemaNameDot.SchemaName = <<Identifier>.>
+
 lexical syntax
 
   IDENTIFIER = REGULAR-IDENTIFIER | DELIMITED-IDENTIFIER

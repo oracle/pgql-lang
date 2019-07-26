@@ -5,6 +5,8 @@ package oracle.pgql.lang.ddl.propertygraph;
 
 import java.util.List;
 
+import static oracle.pgql.lang.ir.PgqlUtils.printLocalOrSchemaQualifiedName;
+
 public class VertexTable extends ElementTable {
 
   /**
@@ -15,8 +17,8 @@ public class VertexTable extends ElementTable {
   /**
    * The constructor.
    */
-  public VertexTable(String tableName, Key key, List<Label> labels) {
-    super(tableName, labels);
+  public VertexTable(String schemaName, String tableName, Key key, List<Label> labels) {
+    super(schemaName, tableName, labels);
     this.key = key;
   }
 
@@ -31,7 +33,7 @@ public class VertexTable extends ElementTable {
   @Override
   public String toString() {
     String keyText = key == null ? "" : "\n      KEY " + key;
-    return getTableName() + keyText + printLabels("\n      ");
+    return printLocalOrSchemaQualifiedName(getSchemaName(), getTableName()) + keyText + printLabels("\n      ");
   }
 
   @Override

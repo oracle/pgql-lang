@@ -29,7 +29,7 @@ context-free syntax
 
   ExperimentalGraphMatch.GraphMatch =
     <
-      <GraphName?> EXPERIMENTAL_MATCH (
+      <LocalGraphName?> EXPERIMENTAL_MATCH (
         <GraphPattern>
       )
     > {case-insensitive}

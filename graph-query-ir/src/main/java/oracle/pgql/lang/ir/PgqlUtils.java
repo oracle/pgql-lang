@@ -157,6 +157,14 @@ public class PgqlUtils {
     }
   }
 
+  public static String printLocalOrSchemaQualifiedName(String schemaName, String localName) {
+    if (schemaName == null) {
+      return printIdentifier(localName);
+    } else {
+      return printIdentifier(schemaName) + "." + printIdentifier(localName);
+    }
+  }
+
   private static String escape(String s) {
     return s //
         .replace("\\", "\\\\") //

@@ -238,6 +238,28 @@ public class PrettyPrintingTest extends AbstractPgqlTest {
     checkRoundTrip(statement);
   }
 
+  @Test
+  public void testCreatePropertyGraphSchemaQualifiedNames() throws Exception {
+    String statement = "CREATE PROPERTY GRAPH STUDENTS.STUDENT_NETWORK\n" + //
+        "  VERTEX TABLES (\n" + //
+        "    STUDENTS.PERSON\n" + //
+        "      KEY (ID)\n" + //
+        "      LABEL PERSON PROPERTIES (NAME AS NAME, DOB AS DOB),\n" + //
+        "    STUDENTS.UNIVERSITY\n" + //
+        "      KEY (ID)\n" + //
+        "      LABEL UNIVERSITY PROPERTIES (NAME AS NAME) )\n" + //
+        "  EDGE TABLES (\n" + //
+        "    STUDENTS.KNOWS\n" + //
+        "      SOURCE KEY (PERSON1_ID) REFERENCES STUDENTS.PERSON\n" + //
+        "      DESTINATION KEY (PERSON2_ID) REFERENCES STUDENTS.PERSON\n" + //
+        "      LABEL KNOWS,\n" + //
+        "    STUDENTS.STUDENTOF\n" + //
+        "      SOURCE KEY (PERSON_ID) REFERENCES STUDENTS.PERSON\n" + //
+        "      DESTINATION KEY (UNIVERSITY_ID) REFERENCES STUDENTS.UNIVERSITY\n" + //
+        "      LABEL STUDENTOF )";
+    checkRoundTrip(statement);
+  }
+
   private void checkRoundTrip(String query1) throws PgqlException {
 
     /*

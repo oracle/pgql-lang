@@ -30,8 +30,8 @@ rules
        ; edgeTables' := <?Some(<id>) + ?None(); !EdgeTables([])> edgeTables
 
   normalize-VertexTable:
-    VertexTable(tableName, keyClause, labelAndPropertiesClause)
-      -> VertexTable(tableName, keyClause, labelAndPropertiesClause')
+    VertexTable(name@Name(_, tableName), keyClause, labelAndPropertiesClause)
+      -> VertexTable(name, keyClause, labelAndPropertiesClause')
     with labelAndPropertiesClause' := <normalize-LabelAndPropertiesClause(|tableName)> labelAndPropertiesClause
 
   normalize-EdgeTable:
