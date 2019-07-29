@@ -149,9 +149,6 @@ rules
   norm-string-literal = String(un-single-quote; unescape-string-literal)
   unescape-string-literal = string-replace(|"''", "'")
 
-  norm-identifier = Identifier(try(un-double-quote; unescape-delimited-identifier))
-  unescape-delimited-identifier = string-replace(|"\"\"", "\"")
-
   norm-legacy-string-literal = String(unquote-and-unescape-legacy-string-literal)
 
   norm-legacy-identifier = Identifier(unquote-and-unescape-legacy-identifier)

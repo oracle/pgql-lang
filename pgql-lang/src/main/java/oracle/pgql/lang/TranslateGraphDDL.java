@@ -3,6 +3,7 @@
  */
 package oracle.pgql.lang;
 
+import org.spoofax.interpreter.terms.IStrategoAppl;
 import org.spoofax.interpreter.terms.IStrategoTerm;
 
 import oracle.pgql.lang.ddl.propertygraph.CreatePropertyGraph;
@@ -63,6 +64,10 @@ public class TranslateGraphDDL {
   private static int LABEL_AND_PROPERTIES_PROPERTIES_CLAUSE = 1;
 
   private static int PROPERTIES_CLAUSE_PROPERTIES_LIST = 0;
+
+  private static int PROPERTIES_ARE_ALL_COLUMNS_EXCEPT_PART = 1;
+
+  private static int EXCEPT_COLUMNS_LIST = 0;
 
   private static int EXP_AS_VAR_EXP = 0;
 
@@ -163,25 +168,45 @@ public class TranslateGraphDDL {
     List<Label> result = new ArrayList<>();
     for (IStrategoTerm labelAndPropertiesT : labelAndPropertiesListT) {
       String labelName = getString(labelAndPropertiesT.getSubterm(LABEL_AND_PROPERTIES_LABEL_CLAUSE));
-      List<Property> properties = getProperties(labelAndPropertiesT.getSubterm(LABEL_AND_PROPERTIES_PROPERTIES_CLAUSE));
-      result.add(new Label(labelName, properties));
+      Label label = getLabel(labelName, labelAndPropertiesT.getSubterm(LABEL_AND_PROPERTIES_PROPERTIES_CLAUSE));
+      result.add(label);
     }
     return result;
   }
 
-  private static List<Property> getProperties(IStrategoTerm propertiesClauseT) {
+  private static Label getLabel(String labelName, IStrategoTerm propertiesClauseT) {
     if (isNone(propertiesClauseT)) {
       return null;
+    } else {
+      IStrategoTerm propertiesSpecificationT = getSome(propertiesClauseT);
+      String propertiesSpecificationType = ((IStrategoAppl) propertiesSpecificationT).getConstructor().getName();
+      switch (propertiesSpecificationType) {
+        case "PropertyExpressions":
+          IStrategoTerm propertiesListT = propertiesSpecificationT.getSubterm(PROPERTIES_CLAUSE_PROPERTIES_LIST);
+          List<Property> properties = new ArrayList<>();
+          for (IStrategoTerm expAsVarT : propertiesListT) {
+            String columnName = getString(expAsVarT.getSubterm(EXP_AS_VAR_EXP));
+            String propertyName = getString(expAsVarT.getSubterm(EXP_AS_VAR_VAR));
+            properties.add(new Property(columnName, propertyName));
+          }
+          return new Label(labelName, properties);
+        case "PropertiesAreAllColumns":
+          IStrategoTerm exceptColumnsT = propertiesSpecificationT.getSubterm(PROPERTIES_ARE_ALL_COLUMNS_EXCEPT_PART);
+          boolean propertiesAreAllColumns = true;
+          if (isNone(exceptColumnsT)) {
+            return new Label(labelName, propertiesAreAllColumns);
+          } else {
+            IStrategoTerm exceptColumnsListT = getSome(exceptColumnsT).getSubterm(EXCEPT_COLUMNS_LIST);
+            List<String> columnNames = new ArrayList<>();
+            for (IStrategoTerm columnNameT : exceptColumnsListT) {
+              columnNames.add(getString(columnNameT));
+            }
+            return new Label(labelName, propertiesAreAllColumns, columnNames);
+          }
+        default:
+          throw new IllegalArgumentException(propertiesSpecificationType);
+      }
     }
-
-    IStrategoTerm propertiesListT = getSome(propertiesClauseT).getSubterm(PROPERTIES_CLAUSE_PROPERTIES_LIST);
-    List<Property> result = new ArrayList<>();
-    for (IStrategoTerm expAsVarT : propertiesListT) {
-      String columnName = getString(expAsVarT.getSubterm(EXP_AS_VAR_EXP));
-      String propertyName = getString(expAsVarT.getSubterm(EXP_AS_VAR_VAR));
-      result.add(new Property(columnName, propertyName));
-    }
-    return result;
   }
 
   private static String getLocalName(IStrategoTerm localOrSchemaQualifiedNameT) {

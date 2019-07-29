@@ -35,7 +35,15 @@ context-free syntax
 
   LabelClause.LabelClause = <LABEL <Identifier>> {case-insensitive}
 
-  PropertiesClause.PropertiesClause = <PROPERTIES ( <{ExpAsVar ","}+> )> {case-insensitive}
+  PropertiesClause.PropertyExpressions = <PROPERTIES ( <{ExpAsVar ","}+> )> {case-insensitive}
+
+  PropertiesClause.NoProperties = <NO PROPERTIES> {case-insensitive}
+
+  PropertiesClause.PropertiesAreAllColumns = <PROPERTIES <AreKeyWord?> ALL COLUMNS <ExceptColumns?>> {case-insensitive}
+
+  AreKeyWord.AreKeyWord = <ARE> {case-insensitive}
+
+  ExceptColumns.Except = <EXCEPT ( <{Identifier ","}+> )> {case-insensitive}
 
   KeyClause.KeyClause = <KEY ( <{Identifier ","}+> )> {case-insensitive}
 

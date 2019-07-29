@@ -8,10 +8,10 @@ import static org.junit.Assert.assertTrue;
 
 import org.junit.Test;
 
-import oracle.pgql.lang.ir.GraphQuery;
 import oracle.pgql.lang.ir.QueryExpression.Constant.ConstString;
 import oracle.pgql.lang.ir.QueryExpression.FunctionCall;
 import oracle.pgql.lang.ir.QueryExpression.PropertyAccess;
+import oracle.pgql.lang.ir.SelectQuery;
 import oracle.pgql.lang.ir.Statement;;
 
 public class PrettyPrintingTest extends AbstractPgqlTest {
@@ -160,14 +160,14 @@ public class PrettyPrintingTest extends AbstractPgqlTest {
     String escapedIdentifier = "\"\\\"\"\"\"";
     String query = "SELECT n." + escapedIdentifier + " FROM " + escapedIdentifier + " MATCH (n:" + escapedIdentifier
         + ")";
-    GraphQuery graphQuery = pgql.parse(query).getGraphQuery();
+    SelectQuery selectQuery = (SelectQuery) pgql.parse(query).getStatement();
 
-    PropertyAccess propertyAccess = (PropertyAccess) graphQuery.getProjection().getElements().get(0).getExp();
+    PropertyAccess propertyAccess = (PropertyAccess) selectQuery.getProjection().getElements().get(0).getExp();
     assertEquals(propertyAccess.getPropertyName(), identifier);
 
-    assertEquals(identifier, graphQuery.getInputGraphName());
+    assertEquals(identifier, selectQuery.getInputGraphName());
 
-    FunctionCall funcCall = (FunctionCall) graphQuery.getGraphPattern().getConstraints().iterator().next();
+    FunctionCall funcCall = (FunctionCall) selectQuery.getGraphPattern().getConstraints().iterator().next();
     assertEquals(funcCall.getFunctionName(), "has_label");
     String label = ((ConstString) funcCall.getArgs().get(1)).getValue();
     assertEquals(identifier, label);
@@ -244,19 +244,89 @@ public class PrettyPrintingTest extends AbstractPgqlTest {
         "  VERTEX TABLES (\n" + //
         "    STUDENTS.PERSON\n" + //
         "      KEY (ID)\n" + //
-        "      LABEL PERSON PROPERTIES (NAME AS NAME, DOB AS DOB),\n" + //
-        "    STUDENTS.UNIVERSITY\n" + //
-        "      KEY (ID)\n" + //
-        "      LABEL UNIVERSITY PROPERTIES (NAME AS NAME) )\n" + //
+        "      LABEL PERSON PROPERTIES (NAME AS NAME, DOB AS DOB) )" + //
         "  EDGE TABLES (\n" + //
         "    STUDENTS.KNOWS\n" + //
         "      SOURCE KEY (PERSON1_ID) REFERENCES STUDENTS.PERSON\n" + //
         "      DESTINATION KEY (PERSON2_ID) REFERENCES STUDENTS.PERSON\n" + //
-        "      LABEL KNOWS,\n" + //
-        "    STUDENTS.STUDENTOF\n" + //
-        "      SOURCE KEY (PERSON_ID) REFERENCES STUDENTS.PERSON\n" + //
-        "      DESTINATION KEY (UNIVERSITY_ID) REFERENCES STUDENTS.UNIVERSITY\n" + //
-        "      LABEL STUDENTOF )";
+        "      LABEL KNOWS )";
+    checkRoundTrip(statement);
+  }
+
+  @Test
+  public void testCreatePropertyGraphDefaultLabel() throws Exception {
+    String statement = "CREATE PROPERTY GRAPH STUDENT_NETWORK\n" + //
+        "  VERTEX TABLES (\n" + //
+        "    PERSON\n" + //
+        "      KEY (ID)\n" + //
+        "      PROPERTIES (NAME AS NAME, DOB AS DOB) )\n" + //
+        "  EDGE TABLES (\n" + //
+        "    KNOWS\n" + //
+        "      SOURCE KEY (PERSON1_ID) REFERENCES PERSON\n" + //
+        "      DESTINATION KEY (PERSON2_ID) REFERENCES PERSON )";
+    checkRoundTrip(statement);
+  }
+
+  @Test
+  public void testCreatePropertyGraphNoProperties() throws Exception {
+    String statement = "CREATE PROPERTY GRAPH STUDENT_NETWORK\n" + //
+        "  VERTEX TABLES (\n" + //
+        "    PERSON\n" + //
+        "      KEY (ID)\n" + //
+        "      NO PROPERTIES )\n" + //
+        "  EDGE TABLES (\n" + //
+        "    KNOWS\n" + //
+        "      SOURCE KEY (PERSON1_ID) REFERENCES PERSON\n" + //
+        "      DESTINATION KEY (PERSON2_ID) REFERENCES PERSON\n" + //
+        "    NO PROPERTIES )";
+    checkRoundTrip(statement);
+  }
+
+  @Test
+  public void testCreatePropertyGraphNoEdgeTables() throws Exception {
+    String statement = "CREATE PROPERTY GRAPH STUDENT_NETWORK\n" + //
+        "  VERTEX TABLES (\n" + //
+        "    PERSON )";
+    checkRoundTrip(statement);
+  }
+
+  @Test
+  public void testCreatePropertyGraphNoVertexOrEdgeTables() throws Exception {
+    String statement = "CREATE PROPERTY GRAPH STUDENT_NETWORK";
+    checkRoundTrip(statement);
+  }
+
+  @Test
+  public void testCreatePropertyGraphNoKeys() throws Exception {
+    String statement = "CREATE PROPERTY GRAPH STUDENT_NETWORK\n" + //
+        "  VERTEX TABLES (\n" + //
+        "    PERSON )\n" + //
+        "  EDGE TABLES (\n" + //
+        "    KNOWS\n" + //
+        "      SOURCE PERSON\n" + //
+        "      DESTINATION PERSON )";
+    checkRoundTrip(statement);
+  }
+
+  @Test
+  public void testCreatePropertyGraphPropertiesAreAllColumnsExcept() throws Exception {
+    String statement = "CREATE PROPERTY GRAPH STUDENT_NETWORK\n" + //
+        "  VERTEX TABLES (\n" + //
+        "    PERSON\n" + //
+        "      KEY (ID)\n" + //
+        "      LABEL PERSON PROPERTIES ALL COLUMNS,\n" + //
+        "    UNIVERSITY\n" + //
+        "      KEY (ID)\n" + //
+        "      LABEL UNIVERSITY PROPERTIES ARE ALL COLUMNS EXCEPT ( ID, NAME ) )\n" + //
+        "  EDGE TABLES (\n" + //
+        "    KNOWS\n" + //
+        "      SOURCE PERSON\n" + //
+        "      DESTINATION PERSON\n" + //
+        "      LABEL KNOWS PROPERTIES ARE ALL COLUMNS,\n" + //
+        "    STUDENTOF\n" + //
+        "      SOURCE PERSON\n" + //
+        "      DESTINATION UNIVERSITY\n" + //
+        "      LABEL STUDENTOF PROPERTIES ARE ALL COLUMNS EXCEPT ( PERSONID, UNIVERSITYID ) )";
     checkRoundTrip(statement);
   }
 

@@ -15,12 +15,14 @@ imports
   runtime/analysis/-
   runtime/editor/-
   names/-
+  common
 
 rules
 
   normalize-ddl = normalize-CreatePropertyGraph
                 ; alltd(normalize-VertexTable + normalize-EdgeTable)
                 ; alltd(normalize-LabelAndProperties)
+                ; alltd(norm-identifier)
 
 rules
 
@@ -35,8 +37,8 @@ rules
     with labelAndPropertiesClause' := <normalize-LabelAndPropertiesClause(|tableName)> labelAndPropertiesClause
 
   normalize-EdgeTable:
-    EdgeTable(tableName, keyClause, sourceVertexTable, destinationVertexTable, labelAndPropertiesClause)
-      -> EdgeTable(tableName, keyClause, sourceVertexTable', destinationVertexTable', labelAndPropertiesClause')
+    EdgeTable(name@Name(_, tableName), keyClause, sourceVertexTable, destinationVertexTable, labelAndPropertiesClause)
+      -> EdgeTable(name, keyClause, sourceVertexTable', destinationVertexTable', labelAndPropertiesClause')
     with sourceVertexTable' := <SourceVertexTable(normalize-ReferencedVertexTableKeyClause, id)> sourceVertexTable
        ; destinationVertexTable' := <DestinationVertexTable(normalize-ReferencedVertexTableKeyClause, id)> destinationVertexTable
        ; labelAndPropertiesClause' := <normalize-LabelAndPropertiesClause(|tableName)> labelAndPropertiesClause
@@ -60,11 +62,13 @@ rules
     with propertiesClause' := <normalize-PropertiesClause> propertiesClause
 
   normalize-PropertiesClause:
-    Some(PropertiesClause(properties)) -> Some(PropertiesClause(properties'))
+    Some(PropertyExpressions(properties)) -> Some(PropertyExpressions(properties'))
     with properties' := <map(normalize-property)> properties
 
+  normalize-PropertiesClause = (?None() + ?Some(NoProperties())); !Some(PropertyExpressions([]))
+
   normalize-PropertiesClause:
-    None() -> None()
+    t@Some(PropertiesAreAllColumns(_, _)) -> t
 
   normalize-property:
     ExpAsVar(exp, Some(VarAssign(VarDef(propertyName)))) -> ExpAsVar(exp, propertyName)
@@ -75,3 +79,6 @@ rules
 
   normalize-ReferencedVertexTableKeyClause:
     Some(ReferencedVertexTableKeyClause(keyClause)) -> Some(keyClause)
+
+  normalize-ReferencedVertexTableKeyClause:
+    None() -> None()

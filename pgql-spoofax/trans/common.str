@@ -75,3 +75,6 @@ rules
   has-at-most-one-binding = ?None() + ?Some(BetweenNAndM(_, "0")) + ?Some(BetweenNAndM(_, "1"))
 
   is-ddl-statement = ?CreatePropertyGraph(_, _, _) + ?DropPropertyGraph(_)
+
+  norm-identifier = Identifier(try(un-double-quote; unescape-delimited-identifier))
+  unescape-delimited-identifier = string-replace(|"\"\"", "\"")
