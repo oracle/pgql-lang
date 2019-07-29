@@ -1,0 +1,15 @@
+module common-path-expressions
+
+language pgql-lang
+
+test Undeclared vertex table [[
+
+  CREATE PROPERTY GRAPH MyGraph
+    VERTEX TABLES (
+      Person
+    )
+    EDGE TABLES (
+      studentOf SOURCE [[Student.Person]] DESTINATION [[University]]
+    )
+
+]] error like "Undeclared vertex table" at #1, #2

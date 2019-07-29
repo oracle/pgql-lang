@@ -38,11 +38,11 @@ rules // Unresolved/duplicate variables
     NormalizedQuery(_, selectOrModifyClause, _, graphPattern, groupClause, _, _, _, _, _) -> <fail>
     with matchVars := <?None(); ![] <+ ?Some(GraphPattern(vertices, edges, _)); !(vertices, edges); collect(is-pattern-elem); collect-om(get-pattern-elem, conc)> graphPattern
        ; groupExpressions := <collect-om(?ExpAsVar(_, <id>, _, _), conc)> groupClause
-       ; <generate-error-on-duplicates(|ctx, "Vertex and edge variables cannot have the same name")> matchVars
-       ; <generate-error-on-duplicates(|ctx, "Duplicate alias in GROUP BY")> groupExpressions
+       ; <generate-error-on-duplicates(|ctx, "Duplicate variable")> matchVars
+       ; <generate-error-on-duplicates(|ctx, "Duplicate column name in GROUP BY")> groupExpressions
        ; if <?SelectClause(_, _)> selectOrModifyClause
          then selectExpressions := <collect-om(?ExpAsVar(_, <id>, _, _), conc)> selectOrModifyClause
-            ; <generate-error-on-duplicates(|ctx, "Duplicate alias in SELECT")> selectExpressions
+            ; <generate-error-on-duplicates(|ctx, "Duplicate column name in SELECT")> selectExpressions
             ; insertVars := []
          else // MODIFY query
               insertVars := <collect-om(?VertexInsertion(<id>, _, _, _) + ?DirectedEdgeInsertion(<id>, _, _, _, _, _), conc)> selectOrModifyClause
