@@ -10,45 +10,15 @@ import static oracle.pgql.lang.ir.PgqlUtils.printLocalOrSchemaQualifiedName;
 public class VertexTable extends ElementTable {
 
   /**
-   * The vertex table key.
-   */
-  Key key;
-
-  /**
    * The constructor.
    */
   public VertexTable(String schemaName, String tableName, Key key, List<Label> labels) {
-    super(schemaName, tableName, labels);
-    this.key = key;
-  }
-
-  public Key getKey() {
-    return key;
-  }
-
-  public void setKey(Key key) {
-    this.key = key;
+    super(key, schemaName, tableName, labels);
   }
 
   @Override
   public String toString() {
-    String keyText = key == null ? "" : "\n      KEY " + key;
-    return printLocalOrSchemaQualifiedName(getSchemaName(), getTableName()) + keyText + printLabels("\n      ");
-  }
-
-  @Override
-  public boolean equals(Object obj) {
-    if (!super.equals(obj)) {
-      return false;
-    }
-
-    VertexTable other = (VertexTable) obj;
-    if (key == null) {
-      if (other.key != null)
-        return false;
-    } else if (!key.equals(other.key))
-      return false;
-
-    return true;
+    return printLocalOrSchemaQualifiedName(getSchemaName(), getTableName()) + printKey("\n      ")
+        + printLabels("\n      ");
   }
 }

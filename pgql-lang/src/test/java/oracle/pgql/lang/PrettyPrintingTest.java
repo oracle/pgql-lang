@@ -232,6 +232,7 @@ public class PrettyPrintingTest extends AbstractPgqlTest {
         "      DESTINATION KEY (PERSON2_ID) REFERENCES PERSON\n" + //
         "      LABEL KNOWS,\n" + //
         "    STUDENTOF\n" + //
+        "      KEY (EDGE_ID)\n" + //
         "      SOURCE KEY (PERSON_ID) REFERENCES PERSON\n" + //
         "      DESTINATION KEY (UNIVERSITY_ID) REFERENCES UNIVERSITY\n" + //
         "      LABEL STUDENTOF )";

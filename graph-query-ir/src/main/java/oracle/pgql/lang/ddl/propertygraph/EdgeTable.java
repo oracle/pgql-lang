@@ -46,17 +46,17 @@ public class EdgeTable extends ElementTable {
    */
   public EdgeTable(String schemaName, String tableName, VertexTable sourceVertexTable, Key edgeSourceKey,
       VertexTable destinationVertexTable, Key edgeDestinationKey, List<Label> labels) {
-    this(schemaName, tableName, sourceVertexTable, edgeSourceKey, null, destinationVertexTable, edgeDestinationKey,
-        null, labels);
+    this(schemaName, tableName, null, sourceVertexTable, edgeSourceKey, null, destinationVertexTable,
+        edgeDestinationKey, null, labels);
   }
 
   /**
-   * Constructor with source vertex key and destination vertex key.
+   * Constructor with edge key, source vertex key and destination vertex key.
    */
-  public EdgeTable(String schemaName, String tableName, VertexTable sourceVertexTable, Key edgeSourceKey,
+  public EdgeTable(String schemaName, String tableName, Key key, VertexTable sourceVertexTable, Key edgeSourceKey,
       Key sourceVertexKey, VertexTable destinationVertexTable, Key edgeDestinationKey, Key destinationVertexKey,
       List<Label> labels) {
-    super(schemaName, tableName, labels);
+    super(key, schemaName, tableName, labels);
     this.sourceVertexTable = sourceVertexTable;
     this.edgeSourceKey = edgeSourceKey;
     this.sourceVertexKey = sourceVertexKey;

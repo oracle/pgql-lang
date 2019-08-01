@@ -19,6 +19,11 @@ public abstract class ElementTable {
   private String tableName;
 
   /**
+   * The key.
+   */
+  Key key;
+
+  /**
    * The vertex or edge labels.
    */
   private List<Label> labels;
@@ -26,7 +31,8 @@ public abstract class ElementTable {
   /**
    * The constructor.
    */
-  protected ElementTable(String schemaName, String tableName, List<Label> labels) {
+  protected ElementTable(Key key, String schemaName, String tableName, List<Label> labels) {
+    this.key = key;
     this.schemaName = schemaName;
     this.tableName = tableName;
     this.labels = labels;
@@ -48,12 +54,24 @@ public abstract class ElementTable {
     this.tableName = tableName;
   }
 
+  public Key getKey() {
+    return key;
+  }
+
+  public void setKey(Key key) {
+    this.key = key;
+  }
+
   public List<Label> getLabels() {
     return labels;
   }
 
   public void setLabels(List<Label> labels) {
     this.labels = labels;
+  }
+
+  protected String printKey(String indentation) {
+    return key == null ? "" : indentation + "KEY " + key;
   }
 
   protected String printLabels(String indentation) {
@@ -76,6 +94,11 @@ public abstract class ElementTable {
     if (getClass() != obj.getClass())
       return false;
     ElementTable other = (ElementTable) obj;
+    if (key == null) {
+      if (other.key != null)
+        return false;
+    } else if (!key.equals(other.key))
+      return false;
     if (labels == null) {
       if (other.labels != null)
         return false;
