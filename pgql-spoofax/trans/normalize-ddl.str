@@ -19,17 +19,11 @@ imports
 
 rules
 
-  normalize-ddl = normalize-CreatePropertyGraph
-                ; alltd(normalize-VertexTable + normalize-EdgeTable)
-                ; alltd(normalize-LabelAndProperties)
-                ; alltd(norm-identifier)
-
-rules
-
   normalize-CreatePropertyGraph:
-    CreatePropertyGraph(graphName, vertexTables, edgeTables) -> CreatePropertyGraph(graphName, vertexTables', edgeTables')
-    with vertexTables' := <?Some(<id>) + ?None(); !VertexTables([])> vertexTables
-       ; edgeTables' := <?Some(<id>) + ?None(); !EdgeTables([])> edgeTables
+    CreatePropertyGraph(graphName, vertexTables, edgeTables) -> result
+    with vertexTables' := <?Some(<id>); VertexTables(map(normalize-VertexTable)) + ?None(); !VertexTables([])> vertexTables
+       ; edgeTables' := <?Some(<id>); EdgeTables(map(normalize-EdgeTable)) + ?None(); !EdgeTables([])> edgeTables
+       ; result := <alltd(normalize-LabelAndProperties); alltd(norm-identifier)> CreatePropertyGraph(graphName, vertexTables', edgeTables')
 
   normalize-VertexTable:
     VertexTable(name@Name(_, tableName), keyClause, labelAndPropertiesClause)
@@ -73,6 +67,9 @@ rules
   normalize-property-expression:
     ExpAsVar(String(s), var) -> ExpAsVar(VarRef(Identifier(s)), var)
 
+  normalize-property-expression:
+    ExpAsVar(VarRef(v), var) -> ExpAsVar(VarRef(Identifier(v)), var)
+
   normalize-property:
     ExpAsVar(exp, Some(VarAssign(VarDef(propertyName)))) -> ExpAsVar(exp, Identifier(propertyName))
 
@@ -85,3 +82,9 @@ rules
 
   normalize-ReferencedVertexTableKeyClause:
     None() -> None()
+
+rules
+
+  normalize-DropPropertyGraph:
+    DropPropertyGraph(graphName) -> DropPropertyGraph(graphName')
+    with graphName' := <alltd(norm-identifier)> graphName

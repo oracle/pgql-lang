@@ -14,14 +14,16 @@ import oracle.pgql.lang.ddl.propertygraph.Property;
 import oracle.pgql.lang.ddl.propertygraph.VertexTable;
 import oracle.pgql.lang.ir.Statement;
 
-import static oracle.pgql.lang.SpoofaxAstToGraphQuery.isNone;
-import static oracle.pgql.lang.SpoofaxAstToGraphQuery.getString;
-import static oracle.pgql.lang.SpoofaxAstToGraphQuery.getSome;
+import static oracle.pgql.lang.CommonTranslationUtil.getLocalName;
+import static oracle.pgql.lang.CommonTranslationUtil.getSchemaName;
+import static oracle.pgql.lang.CommonTranslationUtil.getSome;
+import static oracle.pgql.lang.CommonTranslationUtil.getString;
+import static oracle.pgql.lang.CommonTranslationUtil.isNone;
 
 import java.util.ArrayList;
 import java.util.List;
 
-public class TranslateGraphDDL {
+public class TranslateCreatePropertyGraph {
 
   private static int CREATE_PROPERTY_GRAPH_NAME = 0;
 
@@ -72,10 +74,6 @@ public class TranslateGraphDDL {
   private static int EXP_AS_VAR_EXP = 0;
 
   private static int EXP_AS_VAR_VAR = 1;
-
-  private static int LOCAL_OR_SCHEMA_QUALIFIED_NAME_SCHEMA_NAME = 0;
-
-  private static int LOCAL_OR_SCHEMA_QUALIFIED_NAME_LOCAL_NAME = 1;
 
   protected static Statement translateCreatePropertyGraph(IStrategoTerm ast) {
 
@@ -206,20 +204,6 @@ public class TranslateGraphDDL {
         default:
           throw new IllegalArgumentException(propertiesSpecificationType);
       }
-    }
-  }
-
-  private static String getLocalName(IStrategoTerm localOrSchemaQualifiedNameT) {
-    String tableName = getString(localOrSchemaQualifiedNameT.getSubterm(LOCAL_OR_SCHEMA_QUALIFIED_NAME_LOCAL_NAME));
-    return tableName;
-  }
-
-  private static String getSchemaName(IStrategoTerm localOrSchemaQualifiedNameT) {
-    IStrategoTerm schemaNameT = localOrSchemaQualifiedNameT.getSubterm(LOCAL_OR_SCHEMA_QUALIFIED_NAME_SCHEMA_NAME);
-    if (isNone(schemaNameT)) {
-      return null;
-    } else {
-      return getString(schemaNameT);
     }
   }
 }

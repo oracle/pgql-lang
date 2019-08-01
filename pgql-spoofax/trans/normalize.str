@@ -19,11 +19,17 @@ imports
 
 rules
 
+  // CREATE PROPERTY GRAPH
   normalize-before:
-    ast -> result
-    where <is-ddl-statement> ast
-    with result := <normalize-ddl> ast
+    ast -> <normalize-CreatePropertyGraph> ast
+    where <is-CreatePropertyGraph> ast
 
+  // DROP PROPERTY GRAPH
+  normalize-before:
+    ast -> <normalize-DropPropertyGraph> ast
+    where <is-DropPropertyGraph> ast
+
+  // SELECT, INSERT, UPDATE or DELETE
   normalize-before:
     ast -> result
     where <not(is-ddl-statement)> ast

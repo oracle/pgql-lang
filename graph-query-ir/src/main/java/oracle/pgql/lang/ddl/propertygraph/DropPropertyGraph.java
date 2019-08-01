@@ -6,6 +6,8 @@ package oracle.pgql.lang.ddl.propertygraph;
 import oracle.pgql.lang.ir.Statement;
 import oracle.pgql.lang.ir.StatementType;
 
+import static oracle.pgql.lang.ir.PgqlUtils.printLocalOrSchemaQualifiedName;
+
 public class DropPropertyGraph implements Statement {
 
   private String schemaName;
@@ -31,6 +33,11 @@ public class DropPropertyGraph implements Statement {
 
   public void setGraphName(String graphName) {
     this.graphName = graphName;
+  }
+
+  @Override
+  public String toString() {
+    return "DROP PROPERTY GRAPH " + printLocalOrSchemaQualifiedName(schemaName, graphName);
   }
 
   @Override
@@ -64,5 +71,4 @@ public class DropPropertyGraph implements Statement {
       return false;
     return true;
   }
-
 }

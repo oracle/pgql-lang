@@ -355,6 +355,18 @@ public class PrettyPrintingTest extends AbstractPgqlTest {
     checkRoundTrip(statement);
   }
 
+  @Test
+  public void testDropPropertyGraph() throws Exception {
+    String statement = "DROP PROPERTY GRAPH myGraph";
+    checkRoundTrip(statement);
+  }
+
+  @Test
+  public void testDropPropertyGraphWithQuotedIdentifiers() throws Exception {
+    String statement = "DROP PROPERTY GRAPH \"my schema\".\"my graph\"";
+    checkRoundTrip(statement);
+  }
+
   private void checkRoundTrip(String query1) throws PgqlException {
 
     /*
