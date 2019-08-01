@@ -3,6 +3,8 @@
  */
 package oracle.pgql.lang.ddl.propertygraph;
 
+import static oracle.pgql.lang.ir.PgqlUtils.printIdentifier;
+
 public class Property {
 
   /**
@@ -49,9 +51,9 @@ public class Property {
   @Override
   public String toString() {
     if (columnName.equals(propertyName)) {
-      return propertyName;
+      return printIdentifier(propertyName);
     } else {
-      return columnName + " AS " + propertyName;
+      return printIdentifier(columnName) + " AS " + printIdentifier(propertyName);
     }
   }
 

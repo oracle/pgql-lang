@@ -378,3 +378,8 @@ rules // MODIFY
        ; vertexTableReferences := <collect(?SourceVertexTable(_, <id>) + ?DestinationVertexTable(_, <id>))> edgeTables
        ; unresolvedVertexTableReferences := <diff> (vertexTableReferences, vertexTableNames)
        ; <batch-generate-error(|ctx, "Undeclared vertex table")> unresolvedVertexTableReferences
+
+  nabl-constraint(|ctx):
+    PropertyExpressions(expAsVars) -> <fail>
+    with expAsVarsWithComplexExpressions := <remove-all(?ExpAsVar(VarRef(Identifier(_)), _))> expAsVars
+       ; <batch-generate-error(|ctx, "Only simple expressions (i.e. column references) allowed")> expAsVarsWithComplexExpressions

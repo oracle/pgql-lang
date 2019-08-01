@@ -6,6 +6,8 @@ package oracle.pgql.lang.ddl.propertygraph;
 import java.util.List;
 import java.util.stream.Collectors;
 
+import static oracle.pgql.lang.ir.PgqlUtils.printIdentifier;
+
 public class Label {
 
   /**
@@ -91,7 +93,7 @@ public class Label {
 
   @Override
   public String toString() {
-    return "LABEL " + name + printProperties();
+    return "LABEL " + printIdentifier(name) + printProperties();
   }
 
   private String printProperties() {

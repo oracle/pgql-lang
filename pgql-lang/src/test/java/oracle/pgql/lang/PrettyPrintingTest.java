@@ -330,6 +330,31 @@ public class PrettyPrintingTest extends AbstractPgqlTest {
     checkRoundTrip(statement);
   }
 
+  @Test
+  public void testCreatePropertyGraphDoubleQuotedIdentifiers1() throws Exception {
+    String statement = "CREATE PROPERTY GRAPH \"my graph\"\n" + //
+        "  VERTEX TABLES ( \"my vt\" )\n" + //
+        "  EDGE TABLES ( \"my et\" SOURCE \"my vt\" DESTINATION \"my vt\" )";
+    checkRoundTrip(statement);
+  }
+
+  @Test // TODO: change myProp2 into "my prop 2" once quoted property names are supported
+  public void testCreatePropertyGraphDoubleQuotedIdentifiers2() throws Exception {
+    String statement = "CREATE PROPERTY GRAPH \"my graph\"\n" + //
+        "  VERTEX TABLES (\n" + //
+        "    \"my vt\"\n" + //
+        "      LABEL \"my vl\"\n" + //
+        "      PROPERTIES ( \"my column 1\", \"my column 2\" AS myProp2 )\n" + //
+        "  )\n" + //
+        "  EDGE TABLES (\n" + //
+        "    \"my et\"\n" + //
+        "      SOURCE \"my vt\"\n" + //
+        "      DESTINATION \"my vt\"\n" + //
+        "      LABEL \"my el\"\n" + //
+        "  )";
+    checkRoundTrip(statement);
+  }
+
   private void checkRoundTrip(String query1) throws PgqlException {
 
     /*
