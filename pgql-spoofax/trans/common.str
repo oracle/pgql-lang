@@ -73,3 +73,16 @@ rules
   origin-offset = fail
 
   has-at-most-one-binding = ?None() + ?Some(BetweenNAndM(_, "0")) + ?Some(BetweenNAndM(_, "1"))
+
+  is-ddl-statement = is-CreatePropertyGraph + is-DropPropertyGraph
+  is-CreatePropertyGraph = ?CreatePropertyGraph(_, _, _)
+  is-DropPropertyGraph = ?DropPropertyGraph(_)
+
+  norm-identifier:
+    RegularIdentifier(v) -> Identifier(<origin-track-forced(upper-case)> v, v)
+
+  norm-identifier:
+    DelimitedIdentifier(v) -> Identifier(v', None())
+    with v' := <origin-track-forced(un-double-quote; unescape-delimited-identifier)> v
+
+  unescape-delimited-identifier = string-replace(|"\"\"", "\"")

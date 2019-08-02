@@ -14,6 +14,7 @@ import oracle.pgql.lang.ir.Projection;
 import oracle.pgql.lang.ir.QueryExpression;
 import oracle.pgql.lang.ir.QueryExpressionVisitor;
 import oracle.pgql.lang.ir.QueryType;
+import oracle.pgql.lang.ir.StatementType;
 
 public class ModifyQuery extends GraphQuery {
 
@@ -34,6 +35,11 @@ public class ModifyQuery extends GraphQuery {
   @Override
   public QueryType getQueryType() {
     return QueryType.MODIFY;
+  }
+
+  @Override
+  public StatementType getStatementType() {
+    return StatementType.GRAPH_MODIFY;
   }
 
   public String getGraphName() {

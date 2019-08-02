@@ -23,8 +23,9 @@ imports
  */
 rules
 
-  trans-for-nabl = trans-query(|[])
-                   + ?Start-Plhdr() // for empty query string
+  trans-for-nabl = is-ddl-statement
+                 + trans-query(|[])
+                 + ?Start-Plhdr() // for empty query string
 
 rules
 
@@ -108,7 +109,7 @@ rules
 
   to-Correlation(|variables):
     v -> correlation
-    with if <oncetd(?VarDef(v, _, _, _, _); ?VarDef(v-from-outer-query, origin-position-from-outer-query, _, _, _))> variables
+    with if <Hd; oncetd(?VarDef(v, _, _, _, _); ?VarDef(v-from-outer-query, origin-position-from-outer-query, _, _, _))> variables
          then correlation := Correlation(VarRef(Identifier(v-from-outer-query, None()), origin-position-from-outer-query))
          else correlation := None()
          end

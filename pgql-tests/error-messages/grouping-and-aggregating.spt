@@ -118,3 +118,43 @@ test Aggregate group variable and non-group variable simultaneously [[
     FROM g MATCH TOP 10 SHORTEST ( (n) -[e]->* (m) )
 
 ]] error like "Unresolved variable" at #1
+
+test Duplicate variable in GROUP BY 1 [[
+
+    SELECT nName AS c1
+      FROM g MATCH (n)
+  GROUP BY n.name AS [[nName]], n.name AS [[nName]]
+
+]] error like "Duplicate column name in GROUP BY" at #1, #2
+
+test Duplicate variable in GROUP BY 2 [[
+
+    SELECT n AS c1
+      FROM g MATCH (n)
+  GROUP BY n AS [[n]], [[n]]
+
+]] error like "Duplicate column name in GROUP BY" at #1, #2
+
+test Duplicate variable in GROUP BY 3 [[
+
+    SELECT n AS c1
+      FROM g MATCH (n)
+  GROUP BY [[n]], [[n]]
+
+]] error like "Duplicate column name in GROUP BY" at #1, #2
+
+test Redefine variable from WHERE in GROUP BY [[
+
+    SELECT n.age AS nAge
+      FROM g MATCH (n)
+  GROUP BY n AS [[n]]
+
+]] error like "Duplicate variable: variable already defined in the MATCH clause" at #1
+
+test Redefine variable from GROUP BY in SELECT [[
+
+    SELECT COUNT(*) AS [[x]]
+      FROM g MATCH (n)
+  GROUP BY n AS x
+
+]] error like "Duplicate variable: variable already defined in the GROUP BY clause" at #1

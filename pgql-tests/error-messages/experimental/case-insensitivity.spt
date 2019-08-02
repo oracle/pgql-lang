@@ -2,27 +2,27 @@ module experimental
 
 language pgql-lang
 
-test Duplicate alias (1) [[
+test Duplicate column in SELECT (1) [[
 
   SELECT n.[[prop]], 123 AS [[Prop]]
     FROM EXPERIMENTAL_MATCH ( (n) )
 
-]] error like "Duplicate variable" at #1, #2
+]] error like "Duplicate column name in SELECT" at #1, #2
 
-test Duplicate alias (2) [[
+test Duplicate column in SELECT (2) [[
 
   SELECT 123 AS [[prop]], 456 AS [[Prop]]
     FROM EXPERIMENTAL_MATCH ( (n) )
 
-]] error like "Duplicate variable" at #1, #2
+]] error like "Duplicate column name in SELECT" at #1, #2
 
-test Duplicate alias in GOUP BY [[
+test Duplicate column in GOUP BY [[
 
     SELECT prop AS prop
       FROM EXPERIMENTAL_MATCH ( (n) )
   GROUP BY n.prop1 AS [[prop]], n.prop2 AS [[Prop]]
 
-]] error like "Duplicate variable" at #1, #2
+]] error like "Duplicate column name in GROUP BY" at #1, #2
 
 test No error on expressions in PATH or COST clauses that mix upper and lower cases for the same variable [[
     PATH p AS (x) -[e]-> (y) WHERE x.prop > X.prop

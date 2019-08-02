@@ -20,6 +20,12 @@ context-free syntax
   Identifier.RegularIdentifier = REGULAR-IDENTIFIER
   Identifier.DelimitedIdentifier = DELIMITED-IDENTIFIER
 
+  TableName = LocalOrSchemaQualifiedName
+  GraphName = LocalOrSchemaQualifiedName
+
+  LocalOrSchemaQualifiedName.Name = <<SchemaNameDot?><Identifier>>
+  SchemaNameDot.SchemaName = <<Identifier>.>
+
 lexical syntax
 
   REGULAR-IDENTIFIER = [a-zA-Z][a-zA-Z0-9\_]*

@@ -1,0 +1,90 @@
+module normalize-ddl
+
+imports
+
+  stratego/-
+  signatures/-
+  normalized-signatures
+  common
+  pp
+  runtime/index/-
+  runtime/nabl/-
+  runtime/properties/-
+  runtime/types/-
+  runtime/task/-
+  runtime/analysis/-
+  runtime/editor/-
+  names/-
+  common
+
+rules
+
+  normalize-CreatePropertyGraph:
+    CreatePropertyGraph(graphName, vertexTables, edgeTables) -> result
+    with vertexTables' := <?Some(<id>); VertexTables(map(normalize-VertexTable)) + ?None(); !VertexTables([])> vertexTables
+       ; edgeTables' := <?Some(<id>); EdgeTables(map(normalize-EdgeTable)) + ?None(); !EdgeTables([])> edgeTables
+       ; result := <alltd(normalize-LabelAndProperties); alltd(norm-identifier)> CreatePropertyGraph(graphName, vertexTables', edgeTables')
+
+  normalize-VertexTable:
+    VertexTable(name@Name(_, tableName), keyClause, labelAndPropertiesClause)
+      -> VertexTable(name, keyClause, labelAndPropertiesClause')
+    with labelAndPropertiesClause' := <normalize-LabelAndPropertiesClause(|tableName)> labelAndPropertiesClause
+
+  normalize-EdgeTable:
+    EdgeTable(name@Name(_, tableName), keyClause, sourceVertexTable, destinationVertexTable, labelAndPropertiesClause)
+      -> EdgeTable(name, keyClause, sourceVertexTable', destinationVertexTable', labelAndPropertiesClause')
+    with sourceVertexTable' := <SourceVertexTable(normalize-ReferencedVertexTableKeyClause, id)> sourceVertexTable
+       ; destinationVertexTable' := <DestinationVertexTable(normalize-ReferencedVertexTableKeyClause, id)> destinationVertexTable
+       ; labelAndPropertiesClause' := <normalize-LabelAndPropertiesClause(|tableName)> labelAndPropertiesClause
+
+  normalize-LabelAndPropertiesClause(|tableName):
+    None() -> LabelAndPropertiesClause([defaultLabelAndProperties])
+    with defaultLabelClause := LabelClause(tableName)
+       ; defaultPropertiesClause := None() // meaning: PROPERTIES ARE ALL COLUMNS
+       ; defaultLabelAndProperties := LabelAndProperties(defaultLabelClause, defaultPropertiesClause)
+
+  normalize-LabelAndPropertiesClause(|tableName):
+    Some(t@LabelAndPropertiesClause(_)) -> t
+
+  normalize-LabelAndPropertiesClause(|tableName):
+    Some(LabelAndPropertiesClauseWithDefaultLabel(propertiesClause, otherLabelsAndProperties)) -> LabelAndPropertiesClause(allLabelsAndProperties)
+    with defaultLabel := LabelAndProperties(LabelClause(tableName), Some(propertiesClause))
+       ; allLabelsAndProperties := [defaultLabel|otherLabelsAndProperties]
+
+  normalize-LabelAndProperties:
+    LabelAndProperties(labelClause, propertiesClause) -> LabelAndProperties(labelClause, propertiesClause')
+    with propertiesClause' := <normalize-PropertiesClause> propertiesClause
+
+  normalize-PropertiesClause:
+    Some(PropertyExpressions(properties)) -> Some(PropertyExpressions(properties'))
+    with properties' := <map(try(normalize-property-expression); try(normalize-property))> properties
+
+  normalize-PropertiesClause = (?None() + ?Some(NoProperties())); !Some(PropertyExpressions([]))
+
+  normalize-PropertiesClause:
+    t@Some(PropertiesAreAllColumns(_, _)) -> t
+
+  normalize-property-expression:
+    ExpAsVar(String(s), var) -> ExpAsVar(VarRef(s), var)
+
+  normalize-property-expression:
+    ExpAsVar(VarRef(v), var) -> ExpAsVar(VarRef(v), var)
+
+  normalize-property:
+    ExpAsVar(exp, Some(VarAssign(propertyName))) -> ExpAsVar(exp, propertyName)
+
+  normalize-property:
+    ExpAsVar(exp@VarRef(columnName), None()) -> ExpAsVar(exp, propertyName)
+    with propertyName := columnName
+
+  normalize-ReferencedVertexTableKeyClause:
+    Some(ReferencedVertexTableKeyClause(keyClause)) -> Some(keyClause)
+
+  normalize-ReferencedVertexTableKeyClause:
+    None() -> None()
+
+rules
+
+  normalize-DropPropertyGraph:
+    DropPropertyGraph(graphName) -> DropPropertyGraph(graphName')
+    with graphName' := <alltd(norm-identifier)> graphName

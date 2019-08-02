@@ -50,8 +50,8 @@ import com.google.common.collect.Lists;
 import oracle.pgql.lang.completion.PgqlCompletionGenerator;
 import oracle.pgql.lang.editor.completion.PgqlCompletion;
 import oracle.pgql.lang.editor.completion.PgqlCompletionContext;
-import oracle.pgql.lang.ir.GraphQuery;
-import oracle.pgql.lang.ir.QueryType;
+import oracle.pgql.lang.ir.Statement;
+import oracle.pgql.lang.ir.StatementType;
 
 public class Pgql implements Closeable {
 
@@ -68,10 +68,6 @@ public class Pgql implements Closeable {
       + "; use a normal space instead";
 
   private static final String ESCAPED_BETA_FEATURES_FLAG = "\\/\\*beta\\*\\/";
-
-  @Deprecated
-  private static final String UPDATE_BETA_ERROR = "UPDATE is a beta feature and the syntax and semantics may change in a future version; "
-      + "to use this feature, change UPDATE into UPDATE/*beta*/";
 
   private static final String MODIFY_BETA_ERROR = "MODIFY is a beta feature and the syntax and semantics may change in a future version; "
       + "to use this feature, change UPDATE into MODIFY/*beta*/";
@@ -171,7 +167,7 @@ public class Pgql implements Closeable {
   }
 
   /**
-   * Parse a PGQL query.
+   * Parse a PGQL query (either a SELECT or MODIFY query).
    *
    * @param queryString
    *          PGQL query to parse
@@ -195,7 +191,7 @@ public class Pgql implements Closeable {
 
       String prettyMessages = null;
       boolean queryValid = parseResult.success();
-      GraphQuery graphQuery = null;
+      Statement statement = null;
       if (!queryValid) {
         prettyMessages = getMessages(parseResult.messages(), queryString);
       }
@@ -213,11 +209,11 @@ public class Pgql implements Closeable {
         queryValid = analysisResult.success();
         prettyMessages = getMessages(analysisResult.messages(), queryString);
       }
-      graphQuery = SpoofaxAstToGraphQuery.translate(analysisResult.ast());
+      statement = SpoofaxAstToGraphQuery.translate(analysisResult.ast());
 
-      checkBetaFeatureToken(queryString, graphQuery);
+      checkBetaFeatureToken(queryString, statement);
 
-      return new PgqlResult(queryString, queryValid, prettyMessages, graphQuery, parseResult);
+      return new PgqlResult(queryString, queryValid, prettyMessages, statement, parseResult);
     } catch (IOException | ParseException | AnalysisException | ContextException e) {
       throw new PgqlException("Failed to parse PGQL query", e);
     } finally {
@@ -234,11 +230,8 @@ public class Pgql implements Closeable {
     }
   }
 
-  private void checkBetaFeatureToken(String queryString, GraphQuery graphQuery) throws PgqlException {
-    if (graphQuery != null && graphQuery.getQueryType() == QueryType.GRAPH_UPDATE
-        && !queryString.matches("(?i)" + ANY_STRING + "UPDATE" + ESCAPED_BETA_FEATURES_FLAG + ANY_STRING)) {
-      throw new PgqlException(UPDATE_BETA_ERROR);
-    } else if (graphQuery != null && graphQuery.getQueryType() == QueryType.MODIFY
+  private void checkBetaFeatureToken(String queryString, Statement statement) throws PgqlException {
+    if (statement != null && statement.getStatementType() == StatementType.GRAPH_MODIFY
         && !queryString.matches("(?i)" + ANY_STRING + "MODIFY" + ESCAPED_BETA_FEATURES_FLAG + ANY_STRING)) {
       throw new PgqlException(MODIFY_BETA_ERROR);
     }

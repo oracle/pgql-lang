@@ -15,11 +15,24 @@ imports
   runtime/analysis/-
   runtime/editor/-
   names/-
+  normalize-ddl
 
 rules
 
+  // CREATE PROPERTY GRAPH
+  normalize-before:
+    ast -> <normalize-CreatePropertyGraph> ast
+    where <is-CreatePropertyGraph> ast
+
+  // DROP PROPERTY GRAPH
+  normalize-before:
+    ast -> <normalize-DropPropertyGraph> ast
+    where <is-DropPropertyGraph> ast
+
+  // SELECT, INSERT, UPDATE or DELETE
   normalize-before:
     ast -> result
+    where <not(is-ddl-statement)> ast
     with
       variable-counter := <new-counter>;
       bindVariable-counter := <new-counter>;
@@ -139,15 +152,6 @@ rules
 
   norm-string-literal = String(un-single-quote; unescape-string-literal)
   unescape-string-literal = string-replace(|"''", "'")
-
-  norm-identifier:
-    RegularIdentifier(v) -> Identifier(<origin-track-forced(upper-case)> v, v)
-
-  norm-identifier:
-    DelimitedIdentifier(v) -> Identifier(v', None())
-    with v' := <origin-track-forced(un-double-quote; unescape-delimited-identifier)> v
-
-  unescape-delimited-identifier = string-replace(|"\"\"", "\"")
 
   norm-legacy-string-literal:
     String(s) -> String(s')
