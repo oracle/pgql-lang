@@ -7,6 +7,7 @@ import java.util.List;
 import java.util.Set;
 
 import static oracle.pgql.lang.ir.PgqlUtils.printHops;
+import static oracle.pgql.lang.ir.PgqlUtils.printIdentifier;
 import static oracle.pgql.lang.ir.PgqlUtils.printPathExpression;
 
 public class QueryPath extends VertexPairConnection {
@@ -120,9 +121,9 @@ public class QueryPath extends VertexPairConnection {
       case REACHES:
         String path = "-/";
         if (!isAnonymous()) {
-          path += name;
+          path += printIdentifier(name);
         }
-        return path + ":" + commonPathExpression.getName() + printHops(this) + "/->";
+        return path + ":" + printIdentifier(commonPathExpression.getName()) + printHops(this) + "/->";
       case SHORTEST:
         return printShortestCheapest(goal);
       case CHEAPEST:

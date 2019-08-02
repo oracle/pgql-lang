@@ -66,6 +66,9 @@ public class BugFixTest extends AbstractPgqlTest {
 
     String queryPgql11 = "SELECT 1 MATCH () -[e]-> () ORDER BY e";
     assertFalse(pgql.parse(queryPgql11).isQueryValid());
+
+    String queryPgql13 = "SELECT 1 FROM EXPERIMENTAL_MATCH ( () -[e]-> () ) ORDER BY e";
+    assertFalse(pgql.parse(queryPgql13).isQueryValid());
   }
 
   @Test /* GM-16567 */
@@ -131,5 +134,64 @@ public class BugFixTest extends AbstractPgqlTest {
     PgqlResult result = pgql.parse(query); // this should not fail
     assertFalse(result.isQueryValid());
     assertTrue(result.getErrorMessages().contains("Not yet supported: multiple edge patterns in SHORTEST"));
+  }
+
+  @Test
+  public void escapingBetweenDifferentPgqlVersions() throws Exception {
+    String pgql10Query = "PATH p := (x) -> (y) " //
+        + "SELECT n.prop, '_\\\"_\"_\\'_\\'_\\n_\\t_\\\\n_' AS v1, \"_\\\"_\\\"_'_\\'_\\n_\\t_\\\\n_\" AS v2" //
+        + " WHERE (n:lbl1|lbl2) -[e:'lbl3'|'lbl4'|'_\"_\"_\\'_\\'_\\n_\\t_']-> (m) -/:p*/-> (o)" //
+        + "     , m.prop = o.prop";
+    String pgql11Query = "PATH p AS (x) -> (y) " //
+        + "SELECT n.prop, '_\\\"_\"_''_\\'_\\n_\\t_\\\\n_' AS v1, '_\"_\\\"_''_\\'_\\n_\\t_\\\\n_' AS v2" //
+        + " MATCH (n:lbl1|lbl2) -[e:\"lbl3\"|\"lbl4\"|\"_\"\"_\\\"_'_\\'_\\n_\\t_\"]-> (m) -/:p*/-> (o)" //
+        + " WHERE m.prop = o.prop";
+    String pgql13Query = "PATH p AS (x) -> (y) " //
+        + "SELECT n.prop, '_\"_\"_''_''_\n_\t_\\n_' AS v1, '_\"_\"_''_''_\n_\t_\\n_' AS v2" //
+        + "  FROM EXPERIMENTAL_MATCH ( (n:lbl1|lbl2) -[e:\"lbl3\"|\"lbl4\"|\"_\"\"_\"\"_'_'_\n_\t_\"]-> (m) -/:p*/-> (o) )" //
+        + " WHERE m.prop = o.prop";
+
+    PgqlResult result10 = pgql.parse(pgql10Query);
+    assertTrue(result10.isQueryValid());
+    PgqlResult result11 = pgql.parse(pgql11Query);
+    assertTrue(result11.isQueryValid());
+    PgqlResult result13 = pgql.parse(pgql13Query);
+    assertTrue(result13.isQueryValid());
+
+    assertEquals(result10.getGraphQuery(), result11.getGraphQuery());
+    assertEquals(result11.getGraphQuery(), result13.getGraphQuery());
+
+    pgql10Query = "SELECT 1 WHERE (n WITH prop = \"xyz\")";
+    pgql11Query = "SELECT 1 MATCH (n) WHERE n.prop = 'xyz'";
+
+    result10 = pgql.parse(pgql10Query);
+    assertTrue(result10.isQueryValid());
+    result11 = pgql.parse(pgql11Query);
+    assertTrue(result11.isQueryValid());
+
+    assertEquals(result10.getGraphQuery(), result11.getGraphQuery());
+  }
+
+  @Test
+  public void quotedVariableReferenceInLagacyPgqlVersions() throws Exception {
+    String errorMessage = "Double quoted variable references are only available in PGQL 1.3 and up";
+
+    String pgql10Query = "SELECT \"n\" WHERE (n)";
+    PgqlResult result10 = pgql.parse(pgql10Query);
+    assertTrue(result10.isQueryValid());
+
+    String pgql11Query = "SELECT \"n\" MATCH (n)";
+    PgqlResult result11 = pgql.parse(pgql11Query);
+    assertFalse(result11.isQueryValid());
+    assertTrue(result11.getErrorMessages().contains(errorMessage));
+
+    pgql10Query = "SELECT \"n\".prop WHERE (n)";
+    result10 = pgql.parse(pgql10Query);
+    assertTrue(result10.isQueryValid());
+
+    pgql11Query = "SELECT \"n\".prop MATCH (n)";
+    result11 = pgql.parse(pgql11Query);
+    assertFalse(result11.isQueryValid());
+    assertTrue(result11.getErrorMessages().contains(errorMessage));
   }
 }

@@ -43,6 +43,7 @@ signature constructors // for the normalized AST (see trans/normalize.str)
 
   Neq                   : Exp * Exp -> Exp
 
+  Identifier            : IDENTIFIER -> Identifier
   BindVariable          : INTEGER -> BindVariable
   Version               : STRING
   InPredicate           : Exp * Exp -> InPredicate
@@ -55,7 +56,7 @@ signature constructors // for the normalized AST (see trans/normalize.str)
   INTEGER               : KValue
 
   VertexInsertion       : Identifier * OriginPosition * LabelsSpecification * PropertiesSpecification -> VertexInsertion
-  DirectedEdgeInsertion : Identifier * OriginPosition * Source * Destination *LabelsSpecification * PropertiesSpecification -> DirectedEdgeInsertion
+  DirectedEdgeInsertion : Identifier * OriginPosition * Source * Destination * LabelsSpecification * PropertiesSpecification -> DirectedEdgeInsertion
 
 signature constructors // for name binding (see trans/trans-for-nabl.str)
 

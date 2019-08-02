@@ -20,43 +20,40 @@ binding rules // scoping
 
 binding rules // variable definition
 
-  CommonPathExpression(p, _, _, _, _):
+  CommonPathExpression(Identifier(p), _, _, _, _):
     defines unique CommonPathExpression p
 
-  Vertex(n, origin-offset, _):
+  Vertex(Identifier(n), origin-offset, _):
     defines non-unique Var n
       of OriginOffset origin-offset
       of type VertexTy()
 
-  Edge(_, e, _, _, origin-offset, _):
+  Edge(_, Identifier(e), _, _, origin-offset, _):
     defines unique Var e
       of OriginOffset origin-offset
       of type EdgeTy()
 
-  Path(_, _, _, _, p, _, _, _):
+  Path(_, _, _, _, Identifier(p), _, _, _):
     defines unique Var p
       of type PathTy()
 
-  ExpAsVar(exp, v, _, origin-offset):
+  ExpAsVar(exp, Identifier(v), _, origin-offset):
     defines unique Var v // unlike SQL, we currently don't allow duplicate column names. This means that we eagerly detect potential ambiguous references). We may relax this in the future.
       of OriginOffset origin-offset
       of type ty where exp has type ty
 
-  VertexInsertion(v, origin-offset, _, _):
+  VertexInsertion(Identifier(v), origin-offset, _, _):
     defines unique Var v
       of OriginOffset origin-offset
       of type VertexTy()
 
-  DirectedEdgeInsertion(v, origin-offset, _, _, _, _):
+  DirectedEdgeInsertion(Identifier(v), origin-offset, _, _, _, _):
     defines unique Var v
       of OriginOffset origin-offset
       of type EdgeTy()
 
 binding rules // variable reference
 
-  PathPatternRef(p):
-    refers to CommonPathExpression p
-
-  VarRef(v, origin-offset):
+  VarRef(Identifier(v), origin-offset):
     refers to Var v
       of OriginOffset origin-offset
