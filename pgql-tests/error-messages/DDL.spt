@@ -1,0 +1,30 @@
+module common-path-expressions
+
+language pgql-lang
+
+test Undeclared vertex table [[
+
+  CREATE PROPERTY GRAPH MyGraph
+    VERTEX TABLES (
+      Person
+    )
+    EDGE TABLES (
+      studentOf SOURCE [[Student.Person]] DESTINATION [[University]]
+    )
+
+]] error like "Undeclared vertex table" at #1, #2
+
+test Complex expressions as property not allowed [[
+
+  CREATE PROPERTY GRAPH myGraph
+    VERTEX TABLES (
+      Person PROPERTIES ( [["age" + "age",]] [[123 AS prop2]] )
+    )
+    EDGE TABLES (
+      knows
+        SOURCE Person
+        DESTINATION Person
+        PROPERTIES ( [[weight + 1 )]]
+    )
+
+]] error like "Only simple expressions (i.e. column references) allowed" at #1, #2, #3

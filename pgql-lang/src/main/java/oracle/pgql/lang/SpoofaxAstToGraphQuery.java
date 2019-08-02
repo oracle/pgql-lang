@@ -21,8 +21,6 @@ import java.util.Map;
 import java.util.Set;
 
 import org.spoofax.interpreter.terms.IStrategoAppl;
-import org.spoofax.interpreter.terms.IStrategoInt;
-import org.spoofax.interpreter.terms.IStrategoString;
 import org.spoofax.interpreter.terms.IStrategoTerm;
 
 import oracle.pgql.lang.ir.CommonPathExpression;
@@ -63,6 +61,7 @@ import oracle.pgql.lang.ir.QueryVariable;
 import oracle.pgql.lang.ir.QueryVariable.VariableType;
 import oracle.pgql.lang.ir.QueryVertex;
 import oracle.pgql.lang.ir.SelectQuery;
+import oracle.pgql.lang.ir.Statement;
 import oracle.pgql.lang.ir.VertexPairConnection;
 import oracle.pgql.lang.ir.modify.DeleteClause;
 import oracle.pgql.lang.ir.modify.EdgeInsertion;
@@ -75,6 +74,16 @@ import oracle.pgql.lang.ir.modify.Update;
 import oracle.pgql.lang.ir.modify.UpdateClause;
 import oracle.pgql.lang.ir.modify.VertexInsertion;
 import oracle.pgql.lang.util.SqlDateTimeFormatter;
+
+import static oracle.pgql.lang.TranslateCreatePropertyGraph.translateCreatePropertyGraph;
+import static oracle.pgql.lang.TranslateDropPropertyGraph.translateDropPropertyGraph;
+import static oracle.pgql.lang.CommonTranslationUtil.getString;
+import static oracle.pgql.lang.CommonTranslationUtil.getInt;
+import static oracle.pgql.lang.CommonTranslationUtil.getList;
+import static oracle.pgql.lang.CommonTranslationUtil.isNone;
+import static oracle.pgql.lang.CommonTranslationUtil.isSome;
+import static oracle.pgql.lang.CommonTranslationUtil.getSome;
+import static oracle.pgql.lang.CommonTranslationUtil.getConstructorName;
 
 public class SpoofaxAstToGraphQuery {
 
@@ -185,8 +194,20 @@ public class SpoofaxAstToGraphQuery {
   private static final int POS_IF_ELSE_EXP2 = 1;
   private static final int POS_IF_ELSE_EXP3 = 2;
 
-  public static GraphQuery translate(IStrategoTerm ast) throws PgqlException {
-    return translate(ast, new TranslationContext(new HashMap<>(), new HashSet<>(), new HashMap<>()));
+  public static Statement translate(IStrategoTerm ast) throws PgqlException {
+
+    String constructorName = ((IStrategoAppl) ast).getConstructor().getName();
+
+    switch (constructorName) {
+      case "NormalizedQuery":
+        return translate(ast, new TranslationContext(new HashMap<>(), new HashSet<>(), new HashMap<>()));
+      case "CreatePropertyGraph":
+        return translateCreatePropertyGraph(ast);
+      case "DropPropertyGraph":
+        return translateDropPropertyGraph(ast);
+      default:
+        return null; // failed to parse query
+    }
   }
 
   /**
@@ -197,10 +218,6 @@ public class SpoofaxAstToGraphQuery {
    *          map from variable name to variable
    */
   private static GraphQuery translate(IStrategoTerm ast, TranslationContext ctx) throws PgqlException {
-
-    if (!((IStrategoAppl) ast).getConstructor().getName().equals("NormalizedQuery")) {
-      return null; // failed to parse query
-    }
 
     // path patterns
     IStrategoTerm commonPathExpressionsT = getList(ast.getSubterm(POS_COMMON_PATH_EXPRESSIONS));
@@ -1135,7 +1152,7 @@ public class SpoofaxAstToGraphQuery {
   }
 
   // helper method
-  private static long parseLong(IStrategoTerm t) throws PgqlException {
+  protected static long parseLong(IStrategoTerm t) throws PgqlException {
     try {
       return Long.parseLong(getString(t));
     } catch (NumberFormatException e) {
@@ -1144,55 +1161,11 @@ public class SpoofaxAstToGraphQuery {
   }
 
   // helper method
-  private static int parseInt(IStrategoTerm t) throws PgqlException {
+  protected static int parseInt(IStrategoTerm t) throws PgqlException {
     try {
       return Integer.parseInt(getString(t));
     } catch (NumberFormatException e) {
       throw new PgqlException(getString(t) + " is too large to be stored as int");
     }
-  }
-
-  // helper method
-  private static String getString(IStrategoTerm t) {
-    while (t.getTermType() != IStrategoTerm.STRING) {
-      t = t.getSubterm(0); // data values are often wrapped multiple times, e.g. Some(LimitClause("10"))
-    }
-    return ((IStrategoString) t).stringValue();
-  }
-
-  // helper method
-  private static int getInt(IStrategoTerm t) {
-    while (t.getTermType() != IStrategoTerm.INT) {
-      t = t.getSubterm(0); // data values are often wrapped multiple times, e.g. Some(LimitClause("10"))
-    }
-    return ((IStrategoInt) t).intValue();
-  }
-
-  // helper method
-  private static IStrategoTerm getList(IStrategoTerm t) {
-    while (t.getTermType() != IStrategoTerm.LIST) {
-      t = t.getSubterm(0); // data values are often wrapped multiple times, e.g. Some(OrderElems([...]))
-    }
-    return t;
-  }
-
-  // helper method
-  private static boolean isNone(IStrategoTerm t) {
-    return ((IStrategoAppl) t).getConstructor().getName().equals("None");
-  }
-
-  // helper method
-  private static boolean isSome(IStrategoTerm t) {
-    return ((IStrategoAppl) t).getConstructor().getName().equals("Some");
-  }
-
-  // helper method
-  private static IStrategoTerm getSome(IStrategoTerm t) {
-    return t.getSubterm(0);
-  }
-
-  // helper method
-  private static String getConstructorName(IStrategoTerm t) {
-    return ((IStrategoAppl) t).getConstructor().getName();
   }
 }

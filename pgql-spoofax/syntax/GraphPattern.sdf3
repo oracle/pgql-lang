@@ -17,7 +17,7 @@ context-free syntax
 
   MatchWhereClauses.MatchWhereClauses = <MATCH <{PathPattern ","}+> <WhereClause?>> {case-insensitive}
 
-  GraphName.GraphName = Identifier
+  LocalGraphName.GraphName = Identifier
 
   GraphPattern.GraphPattern = <<{PathPattern ","}+>>
 
