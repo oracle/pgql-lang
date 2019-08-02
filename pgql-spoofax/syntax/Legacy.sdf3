@@ -30,12 +30,6 @@ context-free syntax // pgql-lang.sdf3 for PGQL 1.0
   Legacy10Projection.ExpAsVars = <<{ExpAsVar ", "}+>>
   Legacy10Projection.Star = <*>
 
-lexical syntax
-
-  LEGACY10-STRING = STRING | LEGACY10-DOUBLE-QUOTED-STRING
-  LEGACY10-DOUBLE-QUOTED-STRING = '"' (~[\"\n\\] | LEGACY10-DOUBLE-QUOTED-STRING-ESCAPE-CHAR)* '"'
-  LEGACY10-DOUBLE-QUOTED-STRING-ESCAPE-CHAR =  ( "\\" [tbnrf\\\"\'] ) | ( '""' )
-
 context-free syntax // GraphPattern.sdf3 for PGQL 1.0
 
   Legacy10GraphPattern.GraphPattern = 
@@ -55,8 +49,6 @@ context-free syntax // GraphPattern.sdf3 for PGQL 1.0
   AltLit.Or              = <<AltLit>|<AltLit>> {left}
   AltLit                 = Literal
   AltLit.String          = REGULAR-IDENTIFIER
-  AltPath.Or             = <<AltPath>|<AltPath>> {left}
-  AltPath.PathPatternRef = REGULAR-IDENTIFIER
 
   AsignSymbol.Pgql10AsignSymbol = <:=>
 
@@ -82,6 +74,9 @@ context-free syntax // Expressions.sdf3
 
   Legacy10InlinedExp = <(<Legacy10InlinedExp>)> {bracket}
   Legacy10InlinedExp = PropRef
+  Legacy10InlinedExp = Legacy10DoubleQuotedString1
+  Legacy10DoubleQuotedString1.VarRef = Legacy10DoubleQuotedString2
+  Legacy10DoubleQuotedString2.DelimitedIdentifier = DELIMITED-IDENTIFIER // VarRef(DelimitedIdentifier(s)) will get normlized to String(s)
   Legacy10InlinedExp = Literal {prefer}
   Legacy10InlinedExp = InlinedCall
   

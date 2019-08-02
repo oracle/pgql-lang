@@ -78,5 +78,11 @@ rules
   is-CreatePropertyGraph = ?CreatePropertyGraph(_, _, _)
   is-DropPropertyGraph = ?DropPropertyGraph(_)
 
-  norm-identifier = Identifier(try(un-double-quote; unescape-delimited-identifier))
+  norm-identifier:
+    RegularIdentifier(v) -> Identifier(v)
+
+  norm-identifier:
+    DelimitedIdentifier(v) -> Identifier(v')
+    with v' := <origin-track-forced(un-double-quote; unescape-delimited-identifier)> v
+
   unescape-delimited-identifier = string-replace(|"\"\"", "\"")

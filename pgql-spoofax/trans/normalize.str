@@ -58,7 +58,7 @@ rules
           norm-case
         );
       	alltd(norm-edgeContents);
-        ( (is-pgql10 + is-pgql11); alltd(norm-legacy-string-literal + norm-legacy-identifier) +
+        ( (is-pgql10 + is-pgql11); alltd((?PropRef(_, _) <+ varRef-to-legacy-string-literal) + norm-legacy-string-literal); alltd(norm-legacy-identifier) +
           is-pgql13; alltd(norm-string-literal + norm-identifier) +
           ?Start-Plhdr() // empty query string
         );
@@ -92,18 +92,13 @@ rules
 
   get-pgql11-deprecation = ?Legacy10Asc(x); to-error-message(|$<Use [<<origin-text> x> ASC] instead of [ASC(<<origin-text> x>)]>)
   get-pgql11-deprecation = ?Legacy10Desc(x); to-error-message(|$<Use [<<origin-text> x> DESC] instead of [DESC(<<origin-text> x>)]>)
-  get-pgql11-deprecation = ?String(<id>); is-double-quoted; to-error-message(|"Use single quotes for character string literals; not double quotes")
   get-pgql11-deprecation = ?Legacy10Identifier(_); to-error-message(|"Use double quotes to delimit labels")
   get-pgql11-deprecation = ?Ids(_); to-error-message(|"Use [id(x) = xyz] instead of [@xyz]")
   get-pgql11-deprecation = ?InlinedConstraint(_); to-error-message(|"Constraints should be specified in the WHERE clause instead of the WITH")
   get-pgql11-deprecation = ?Legacy10Not(_); to-error-message(|"Use [NOT] instead of [!]")
   get-pgql11-deprecation = ?Legacy10Regex(_, _); to-error-message(|"Use [java_regexp_like(exp1, exp2)] instead of [exp1 =~ exp2]")
 
-  get-pgql13-deprecation = get-pgql11-deprecation // inheriting all deprecations from 1.1
-
-  get-pgql13-deprecation:
-    GroupByClause(expAsVars) -> errors
-    with errors := <filter(?ExpAsVar(_, Some(<id>))); map(to-error-message(|"Variable definition not allowed in GROUP BY"))> expAsVars
+  get-pgql13-deprecation = get-pgql11-deprecation // sharing all the deprecations with 1.1
 
   get-pgql10-limitation = ( ?Pgql11FromClause(_)
                           + ?Subquery(_)
@@ -111,23 +106,24 @@ rules
                           + ?ExtractExp(_, _)
                           + ?ARRAY-AGG(_, _)
                           + ?Shortest(_, _)
-                          + get-pgql11-limitation
+                          + ?Cheapest(_, _)
                           )
                         ; to-error-message(|"Use [SELECT .. MATCH .. WHERE ..] or [SELECT .. FROM graphName MATCH .. WHERE ..]")
 
-  get-pgql11-limitation = fail // currently all PGQL 1.3 features are also supported in PGQL 1.1
+  get-pgql11-limitation = ?VarRef(DelimitedIdentifier(<id>)); to-error-message(|"Double quoted variable references are only available in PGQL 1.3 and up")
 
   // TODO: move this to check.str (all the information should be in the normalized AST)
-  get-path-limitations = collect(shortest-or-reaches + is-quantifier)
-                       ; remove-all(shortest-or-reaches)
+  get-path-limitations = collect(shortest-or-cheapest-or-reaches + is-quantifier)
+                       ; remove-all(shortest-or-cheapest-or-reaches)
                        ; not(?[])
-                       ; map(to-error-message(|"Quantifier needs to be enclosed by SHORTEST"))
+                       ; map(to-error-message(|"Quantifier needs to be enclosed by SHORTEST or CHEAPEST"))
 
-  get-path-limitations = collect(?Shortest(_, _)); collect(?Path(_, _, _)); not(?[]); map(to-error-message(|"Nested regular expressions not yet supported"))
+  get-path-limitations = collect(?Shortest(_, _) + ?Cheapest(_, _)); collect(?Path(_, _, _)); not(?[]); map(to-error-message(|"Nested regular expressions not supported"))
 
-  shortest-or-reaches = ?Shortest(_, _)
-                      + ?OutConn(Some(Path(_, _, _)), _)
-                      + ?InConn(Some(Path(_, _, _)), _)
+  shortest-or-cheapest-or-reaches = ?Shortest(_, _)
+                                  + ?Cheapest(_, _)
+                                  + ?OutConn(Some(Path(_, _, _)), _)
+                                  + ?InConn(Some(Path(_, _, _)), _)
 
   add-errors-on-from-clauses-without-graph-name(|ast) = !(<collect(?Pgql11FromClause(None()); to-error-message(|"Missing graph name"))> ast, <id>); conc
 
@@ -155,14 +151,26 @@ rules
   norm-string-literal = String(un-single-quote; unescape-string-literal)
   unescape-string-literal = string-replace(|"''", "'")
 
-  norm-legacy-string-literal = String(unquote-and-unescape-legacy-string-literal)
+  norm-legacy-string-literal:
+    String(s) -> String(s')
+    with s' := <origin-track-forced(un-single-quote; unescape-legacy-string-literal)> s
 
-  norm-legacy-identifier = Identifier(unquote-and-unescape-legacy-identifier)
-                         + Legacy10Identifier(unquote-and-unescape-legacy-string-literal)
+  varRef-to-legacy-string-literal:
+    VarRef(DelimitedIdentifier(s)) -> String(s')
+    with s' := <origin-track-forced(un-double-quote; unescape-legacy-identifier)> s
 
-  unquote-and-unescape-legacy-string-literal = (is-single-quoted; un-single-quote; unescape-legacy-string-literal)
-                                      + (is-double-quoted; un-double-quote; unescape-legacy-identifier) // legacy PGQL 1.0 string literal
-  unquote-and-unescape-legacy-identifier = (is-double-quoted; un-double-quote; unescape-legacy-identifier) <+ id
+  norm-legacy-identifier:
+    RegularIdentifier(v) -> Identifier(v)
+
+  norm-legacy-identifier:
+    DelimitedIdentifier(v) -> Identifier(v')
+    with v' := <origin-track-forced(un-double-quote; unescape-legacy-identifier)> v
+
+  // (n:'lbl')
+  norm-legacy-identifier:
+    Legacy10Identifier(v) -> Legacy10Identifier(v')
+    with v' := <origin-track-forced(un-single-quote; unescape-legacy-string-literal)> v
+
   external unescape-legacy-string-literal(|)
   external unescape-legacy-identifier(|)
 
@@ -223,7 +231,7 @@ rules
 
   norm-edgeContents = ?Some(EdgeContents(<id>))
 
-  name-unnamed-elems(|c) = (?CommonPathExpression(_, _, _, _) + ?GraphPattern(_) + ?MatchWhereClauses(_, _)); alltd(name-unnamed-elem(|c))
+  name-unnamed-elems(|c) = (?CommonPathExpression(_, _, _, _, _) + ?GraphPattern(_) + ?MatchWhereClauses(_, _)); alltd(name-unnamed-elem(|c))
   name-unnamed-elem(|c) = ?ElemContents(None(), type, id', constraints); ?origin; !ElemContents(Some(<unique-name(|c, origin)>), type, id', constraints)
   name-unnamed-elem(|c) = ?origin; (OutConn(?None(); name-unnamed-elem-helper(|c, origin), id) +
                            InConn(?None(); name-unnamed-elem-helper(|c, origin), id) +
@@ -234,7 +242,7 @@ rules
                           ?Path(None(), pathPatternRef, kleeneStar); ?origin; !Path(Some(<unique-name(|c, origin)>), pathPatternRef, kleeneStar)
   name-unnamed-elem-helper(|c, origin) = !ElemContents(Some(<unique-name(|c, origin)>), None(), None(), None())
 
-  norm-inlined-references = ?ElemContents(Some(varName), _, _, _); alltd(norm-inlined-reference(|varName))
+  norm-inlined-references = ?ElemContents(Some((varName)), _, _, _); alltd(norm-inlined-reference(|varName))
   norm-inlined-reference(|varName) =
     ?Obj(dot); !VarRef(varName) + (?Obj(VarRef(v), dot) + ?PropRef(VarRef(v), _));
     if <eq> (v, varName)
@@ -253,7 +261,7 @@ rules
 
   norm-matchElems(|variable-counter):
     GraphPattern(elems) -> GraphPattern(vertices, connections, constraints)
-    with pathPatterns := <filter(?PathPattern(_, _) + ?Shortest(_, _))> elems
+    with pathPatterns := <filter(?PathPattern(_, _) + ?Shortest(_, _) + ?Cheapest(_, _))> elems
        // TODO: move below two statements to the end (also for common path expressions)
        ; inlined-constraints-for-vertices := <collect-outside-repeated-path(?Vertex(<id>))
                                            ; map(get-inlined-constraints); concat> pathPatterns
@@ -263,7 +271,7 @@ rules
                                          ; filter(get-inlined-constraints); concat> pathPatterns
        ; vertices := <collect-outside-repeated-path(?Vertex(ElemContents(Some(<id>), _, _, _)); !Vertex(<id>)); !Vertices(<id>)> pathPatterns
        ; connections := <get-connections-from-paths(|variable-counter)> pathPatterns
-       ; non-inlined-constraints := <filter(?CommonPathExpression(_, _, _, _) + ?Constraint(<id>)); remove-all(?CommonPathExpression(_, _, _, _))> elems
+       ; non-inlined-constraints := <filter(?CommonPathExpression(_, _, _, _, _) + ?Constraint(<id>)); remove-all(?CommonPathExpression(_, _, _, _, _))> elems
        ; constraints := <conc; flatten-list; !Constraints(<id>)> (inlined-constraints-for-vertices, inlined-constraints-for-edges, non-inlined-constraints)
 
   collect-outside-repeated-path(s) = collect-but-preserve-order(ParenthesizedPath + s); remove-all(ParenthesizedPath)
@@ -273,10 +281,10 @@ rules
   reverse-then-union:
     (x, y) -> <union> (y, x)
 
-  ParenthesizedPath = ?ParenthesizedPath(_, _, _, _, _)
+  ParenthesizedPath = ?ParenthesizedPath(_, _, _, _)
 
   norm-common-path-expression(|variable-counter):
-    CommonPathExpression(name, _, path, whereClause) -> CommonPathExpression(name, vertices, connections, constraints)
+    CommonPathExpression(name, _, path, whereClause, costClause) -> CommonPathExpression(name, vertices, connections, constraints, costClause)
     with
       inlined-constraints-for-vertices := <collect-om(?Vertex(<id>)); map(get-inlined-constraints); concat> path;
       inlined-constraints-for-edges := <collect-om(?OutConn(<id>, _) + ?InConn(<id>, _) + ?UndirectedEdge(<id>, _)); filter(get-inlined-constraints); concat> path;
@@ -294,7 +302,7 @@ rules
   to-label-constraint(|var):
     labels ->  <to-hasLabel-expressions(|var)> labels
   to-hasLabel-expressions(|var) = bottomup(try(![VarRef(var), <to-label>]; to-function(|"has_label")))
-  to-label = ?Label(<id>) + ?Legacy10Identifier(<id>); !Identifier(<id>) + ?BindVariable(_)
+  to-label = ?Label(<id>) + ?Legacy10Identifier(<id>); origin-track-forced(!Identifier(<id>)) + ?BindVariable(_)
   to-id-constraint(|var) = bottomup(try(is-literal; origin-track-forced(!Eq(<to-function(|"id")> [VarRef(var)], <id>))))
 
   // base case: no paths
@@ -308,43 +316,51 @@ rules
   // paths with more than one vertex
   get-connections-from-paths(|variable-counter):
     [pathPattern|otherPaths] -> <conc> (edges, edgesTailPaths)
-    where not ( <?Shortest(_, _)> pathPattern)
+    where not ( <?Shortest(_, _) + ?Cheapest(_, _)> pathPattern)
     with kValue := "-1"
-       ; edges := <pathPattern-to-connections(|variable-counter, kValue)> pathPattern
+       ; pathFindingGoal := None()
+       ; edges := <pathPattern-to-connections(|variable-counter, pathFindingGoal, kValue)> pathPattern
        ; edgesTailPaths := <get-connections-from-paths(|variable-counter)> otherPaths
 
   // paths with more than one vertex
   get-connections-from-paths(|variable-counter):
-    [t@Shortest(
-        kValue
-      , pathPattern
-      )|otherPaths] -> <conc> ([path'], edgesTailPaths)
+    [Shortest(kValue, pathPattern)|otherPaths] -> result
+    with result := <get-connections-from-shortest-cheapest-paths(|variable-counter)> (Shortest(), kValue, pathPattern, otherPaths)
+
+  // paths with more than one vertex
+  get-connections-from-paths(|variable-counter):
+    [Cheapest(kValue, pathPattern)|otherPaths] -> result
+    with result := <get-connections-from-shortest-cheapest-paths(|variable-counter)> (Cheapest(), kValue, pathPattern, otherPaths)
+
+  get-connections-from-shortest-cheapest-paths(|variable-counter):
+    (pathFindingGoal, kValue, pathPattern, otherPaths) ->  <conc> ([path'], edgesTailPaths)
     with kValue' := <?Some(TopK(<id>)) <+ !"1"> kValue
-       ; edges := <pathPattern-to-connections(|variable-counter, kValue')> pathPattern
-       ; path' := <?[single-path-only]; !single-path-only; try(single-edge-to-path(|variable-counter, kValue)) <+ !ComplexRegularExpressionNotSupported(<id>)> edges
+       ; edges := <pathPattern-to-connections(|variable-counter, pathFindingGoal, kValue')> pathPattern
+       ; path' := <?[single-path-only]; !single-path-only; try(single-edge-to-path(|variable-counter, pathFindingGoal, kValue)) <+ !ComplexRegularExpressionNotSupported(<id>)> edges
        ; edgesTailPaths := <get-connections-from-paths(|variable-counter)> otherPaths
 
-  single-edge-to-path(|variable-counter, kValue):
+  single-edge-to-path(|variable-counter, pathFindingGoal, kValue):
     edge@NormalizedEdge(srcVertex, e, dstVertex, direction, quantifier, constraints) -> path
-    with path := <to-path(|variable-counter, kValue)> (srcVertex, dstVertex, edge, constraints, quantifier)
+    with costClause := None()
+       ; path := <to-path(|variable-counter, pathFindingGoal, kValue)> (srcVertex, dstVertex, edge, constraints, costClause, quantifier)
 
-  pathPattern-to-connections(|variable-counter, kValue):
+  pathPattern-to-connections(|variable-counter, pathFindingGoal, kValue):
     PathPattern(Vertex(n1), edgeVertices@[EdgeVertex(e, Vertex(n2))|_]) -> <conc> ([edge], edgesPathTail)
-    with edge := <to-connection(|variable-counter, kValue)> (n1, e, n2)
-       ; edgesPathTail := <get-connections-from-single-path(|variable-counter, kValue)> edgeVertices
+    with edge := <to-connection(|variable-counter, pathFindingGoal, kValue)> (n1, e, n2)
+       ; edgesPathTail := <get-connections-from-single-path(|variable-counter, pathFindingGoal, kValue)> edgeVertices
 
   // base case: only one edgeVertex
-  get-connections-from-single-path(|variable-counter, kValue):
+  get-connections-from-single-path(|variable-counter, pathFindingGoal, kValue):
     [EdgeVertex(_, _)] -> []
     
   // two or more edgeVertices
-  get-connections-from-single-path(|variable-counter, kValue):
+  get-connections-from-single-path(|variable-counter, pathFindingGoal, kValue):
     [EdgeVertex(_, Vertex(n1)) | edgeVertices@[EdgeVertex(e, Vertex(n2))|_]]
     -> <conc> ([edge], edgesPathTail)
-    with edge := <to-connection(|variable-counter, kValue)> (n1, e, n2)
-       ; edgesPathTail := <get-connections-from-single-path(|variable-counter, kValue)> edgeVertices
+    with edge := <to-connection(|variable-counter, pathFindingGoal, kValue)> (n1, e, n2)
+       ; edgesPathTail := <get-connections-from-single-path(|variable-counter, pathFindingGoal, kValue)> edgeVertices
 
-  to-connection(|variable-counter, kValue):
+  to-connection(|variable-counter, pathFindingGoal, kValue):
     (n1, edgeOrPath, n2) -> connection
     where <?OutConn(_, quantifier) + ?InConn(_, quantifier) + ?UndirectedEdge(_, quantifier)> edgeOrPath
     with
@@ -371,31 +387,35 @@ rules
           else srcVertex := <unique-name(|variable-counter, edgeOrPath)>
              ; dstVertex := <unique-name(|variable-counter, edgeOrPath)>
              ; edge := <origin-track-forced(!NormalizedEdge(srcVertex, e', dstVertex, dir, None(), Constraints([])))> edgeOrPath
-             ; connection := <to-path(|variable-counter, kValue)> (n1, n2, edge, Constraints(constraints), quantifier)
+             ; costClause := None()
+             ; connection := <to-path(|variable-counter, pathFindingGoal, kValue)> (n1, n2, edge, Constraints(constraints), costClause, quantifier)
           end
         case ?Some(Path(Some(pathName), pathPatternName, quantifier')):
           connection := Path(src, dst, pathPatternName, quantifier', pathName, dir, Reaches(), -1)
         otherwise: fail
       end
 
-  to-connection(|variable-counter, kValue):
-    (n1, t@ParenthesizedPath(v1, edge, v2, whereClause, quantifier), n2) -> path
+  to-connection(|variable-counter, pathFindingGoal, kValue):
+    (n1, t@ParenthesizedPath(RelaxedPathPattern(v1, [RelaxedEdgeVertex(edge, v2)|otherEdges]), whereClause, costClause, quantifier), n2) -> path
     with if <has-at-most-one-binding> quantifier
          then srcVertex := <?Some(Vertex(<id>)) <+ ?None(); !n1> v1
             ; dstVertex := <?Some(Vertex(<id>)) <+ ?None(); !n2> v2
          else srcVertex := <?Some(Vertex(<id>)) <+ ?None(); unique-name(|variable-counter, edge)> v1
             ; dstVertex := <?Some(Vertex(<id>)) <+ ?None(); unique-name(|variable-counter, edge)> v2
          end
-       ; edge' := <to-connection(|variable-counter, kValue)> (srcVertex, edge, dstVertex)
+       ; edge' := <to-connection(|variable-counter, pathFindingGoal, kValue)> (srcVertex, edge, dstVertex)
        ; inlinedEdgeConstraints := <?NormalizedEdge(_, _, _, _, _, Constraints(<id>))> edge'
        ; inlinedSrcVertexConstraints := <?Some(Vertex(<id>)); get-inlined-constraints <+ ![]> v1
        ; inlinedDstVertexConstraints := <?Some(Vertex(<id>)); get-inlined-constraints <+ ![]> v2
        ; constraints := <?None(); ![] <+ ?Some(WhereClause(constraint)); ![constraint]> whereClause
        ; constraints' := Constraints(<conc> (inlinedSrcVertexConstraints, inlinedEdgeConstraints, inlinedDstVertexConstraints, constraints))
-       ; path := <to-path(|variable-counter, kValue)> (n1, n2, edge', constraints', quantifier)
+       ; if <?[]> otherEdges
+         then path := <to-path(|variable-counter, pathFindingGoal, kValue)> (n1, n2, edge', constraints', costClause, quantifier)
+         else path := ComplexParenthesizedRegularExpressionNotSupported(otherEdges)
+         end
 
-  to-path(|variable-counter, kValue):
-    (srcVertex, dstVertex, edge@NormalizedEdge(src, _, dst, direction, _, _), constraints, quantifier) -> path
+  to-path(|variable-counter, pathFindingGoal, kValue):
+    (srcVertex, dstVertex, edge@NormalizedEdge(src, _, dst, direction, _, _), constraints, costClause, quantifier) -> path
     with name := <unique-name(|variable-counter, edge)>
        ; if <?Incoming()> direction
          then vertices := Vertices([Vertex(dst), Vertex(src)])
@@ -403,8 +423,8 @@ rules
          end
        ; edges := Edges([edge])
        ; path-variable-name := <unique-name(|variable-counter, edge)> // for now, all paths are anonymous/generated
-       ; commonPathExpression := CommonPathExpression(name, vertices, edges, constraints)
-       ; path := <origin-track-forced(!Path(srcVertex, dstVertex, commonPathExpression, quantifier, path-variable-name, Outgoing(), Shortest(), kValue))> edge
+       ; commonPathExpression := CommonPathExpression(name, vertices, edges, constraints, costClause)
+       ; path := <origin-track-forced(!Path(srcVertex, dstVertex, commonPathExpression, quantifier, path-variable-name, Outgoing(), pathFindingGoal, kValue))> edge
 
 rules
 
@@ -470,24 +490,24 @@ rules
     with expAsVars' := <map(norm-ExpAsVar)> expAsVars
        ; result := <origin-track-forced(!SelectClause(distinct, <origin-track-forced(!ExpAsVars(expAsVars'))> t2))> t1 
 
-  norm-ExpAsVar = ?ExpAsVar(exp, Some(VarAssign(VarDef(v)))); !ExpAsVar(exp, v, NonAnonymous())
-  norm-ExpAsVar = ?ExpAsVar(exp, None()); !ExpAsVar(exp, <?VarRef(<id>) <+ origin-track-forced(origin-text)> exp, Anonymous())
-  norm-ExpAsVar = ?ExpAsVar(_, v, _); where (<origin-offset> v)
+  norm-ExpAsVar = ?ExpAsVar(exp, Some(VarAssign(v))); !ExpAsVar(exp, v, NonAnonymous())
+  norm-ExpAsVar = ?ExpAsVar(exp, None()); !ExpAsVar(exp, <(?VarRef(<id>) <+ origin-track-forced(origin-text); origin-track-forced(!Identifier(<id>)))> exp, Anonymous())
 
   norm-select-star(|graphPattern, group-exps):
     t@SelectClause(distinct, star@Star()) -> result
     with if [] := group-exps
-         then vars := <collect(?Vertex(<id>) + ?NormalizedEdge(_, <id>, _, _, _, _) + ?Subquery(_)); filter(is-string; not(is-substring(GENERATED)))> graphPattern;
-              expAsSelectVars := <map(generate-ExpAsVar(|star); norm-ExpAsVar)> vars
+         then vars := <collect(?Vertex(<id>) + ?NormalizedEdge(_, <id>, _, _, _, _) + ?Subquery(_)); filter(Identifier(is-string; not(is-substring(GENERATED))))> graphPattern;
+              expAsSelectVars := <map(generate-ExpAsVar(|star))> vars
          else expAsSelectVars := star
          end
        ; result := <origin-track-forced(!SelectClause(star, <origin-track-forced(!ExpAsVars(expAsSelectVars))> star))> t
 
   generate-ExpAsVar(|star):
-    v -> expAsVar
+    t@Identifier(v) -> expAsVar
     with v' := <origin-track-forced(!(v, ""); conc-strings /* generate a new string to make it loose origin */)> star
-       ; varRef := <origin-track-forced(!VarRef(v'))> star
-       ; expAsVar := <origin-track-forced(!ExpAsVar(varRef, v', Anonymous()))> star
+       ; newIdentifier := <origin-track-forced(!Identifier(v'))> star
+       ; varRef := <origin-track-forced(!VarRef(newIdentifier))> star
+       ; expAsVar := <origin-track-forced(!ExpAsVar(varRef, newIdentifier, Anonymous()))> star
 
   norm-orderBy(|allExpAsVars, version):
     Some(OrderByClause(elems)) -> Some(OrderByClause(elems'))

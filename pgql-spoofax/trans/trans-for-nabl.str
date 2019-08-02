@@ -56,7 +56,7 @@ rules
               ; connections'' := <alltd(resolve-var-refs-in-path-expression(|variables''))> connections'
        
               // WHERE
-              ; valueExpression' := <resolve-where-clause(|variables'', expAsVars)> valueExpression
+              ; valueExpression' := <resolve-value-expression(|variables'', expAsVars)> valueExpression
 
               ; graphPattern' := Some(GraphPattern(vertices', connections'', valueExpression'))
          else graphPattern' := None()
@@ -109,7 +109,7 @@ rules
 
   to-Correlation(|variables):
     v -> correlation
-    with if <oncetd(?VarDef(v, _, _, _, _); ?VarDef(v-from-outer-query, origin-position-from-outer-query, _, _, _))> variables
+    with if <Hd; oncetd(?VarDef(v, _, _, _, _); ?VarDef(v-from-outer-query, origin-position-from-outer-query, _, _, _))> variables
          then correlation := Correlation(VarRef(v-from-outer-query, origin-position-from-outer-query))
          else correlation := None()
          end
@@ -126,7 +126,7 @@ rules
          else varDefs' := <conc> (varDefs, [vd])
          end
 
-  resolve-where-clause(|variables, expAsVars):
+  resolve-value-expression(|variables, expAsVars):
     valueExpression -> valueExpression'
     with valueExpression' := <resolve-var-refs-and-use-expAsVarsFromSelectClause(|variables, expAsVars)> valueExpression
 
@@ -169,7 +169,7 @@ rules
 
   resolve-insertion(|original-variables):
     (t, (result, variables)) -> (result', variables')
-    where <?VertexInsertion(Identifier(v), labels, properties) + ?DirectedEdgeInsertion(Identifier(v), src, dst, labels, properties)> t
+    where <?VertexInsertion(v, labels, properties) + ?DirectedEdgeInsertion(v, src, dst, labels, properties)> t
     with originOffset := <origin-offset> v
        ; labels' := <resolve-var-refs(|original-variables)> labels
        ; properties' := <resolve-set-properties(|v, originOffset, original-variables)> properties
@@ -362,7 +362,7 @@ rules
     where <oncetd(?VarDef(v, _, _, _, _))> visible-vars
 
   trans-path-expression(|variables):
-    CommonPathExpression(name, vertices, edges, valueExpression) -> CommonPathExpression(name, vertices', edges', valueExpression')
+    CommonPathExpression(name, vertices, edges, valueExpression, costClause) -> CommonPathExpression(name, vertices', edges', valueExpression', costClause')
     with
        // pattern
         (vertices', edges') := <alltd(trans-elem(|variables))> (vertices, edges)
@@ -372,7 +372,9 @@ rules
 
        // WHERE
        ; variables' := [visible-vars|xs]
-       ; valueExpression' := <resolve-where-clause(|variables', [])> valueExpression
+       ; valueExpression' := <resolve-value-expression(|variables', [])> valueExpression
+
+       ; costClause' := <resolve-value-expression(|variables', [])> costClause
 
   optimize-order-by:
     OrderByClause(elems) -> OrderByClause(elems')

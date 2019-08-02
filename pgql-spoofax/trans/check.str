@@ -75,13 +75,13 @@ rules // Unresolved/duplicate variables
 
   nabl-constraint(|ctx):
     query@NormalizedQuery(_, selectClause, _, Some(GraphPattern(_, edges, _)), _, _, _, _, _, _) -> <fail>
-    with group-variables := <collect-in-outer-query(?CommonPathExpression(_, _, _, _); get-origin-positions-of-variables); concat> query
+    with group-variables := <collect-in-outer-query(?CommonPathExpression(_, _, _, _, _); get-origin-positions-of-variables); concat> query
        ; varRefs-per-aggregation := <collect-in-outer-query(is-aggregate); map(origin-track-forced(collect-in-outer-query(?VarRef(_, <id>)); !Some(<id>)))> query
        ; varRefs-per-aggregation' := <filter(has-multiple-groupVarRefs(|group-variables))> varRefs-per-aggregation
        ; <batch-generate-error(|ctx, "Accessing multiple group variables in a single aggregation is not yet supported")> varRefs-per-aggregation'
 
   get-origin-positions-of-variables:
-    CommonPathExpression(_, Vertices(vertices), Edges(edges), _) -> <conc; make-set> (origins-of-vertices, origins-of-edges)
+    CommonPathExpression(_, Vertices(vertices), Edges(edges), _, _) -> <conc; make-set> (origins-of-vertices, origins-of-edges)
     with origins-of-vertices := <map(?Vertex(_, <id>, _))> vertices
        ; origins-of-edges := <filter(?Edge(_, _, _, _, <id>, _))> edges
 
@@ -101,7 +101,7 @@ rules // Unresolved/duplicate variables
 
   nabl-constraint(|ctx):
     SelectClause(Star(), ExpAsVars(expAsVars)) -> <fail>
-    with group-variables := <filter(get-group-variable-from-select-star)> expAsVars
+    with group-variables := <filter(get-group-variable-from-select-star; ?Identifier(<id>))> expAsVars
        ; <map(generate-error(|ctx, $[Cannot select all variables since [<id>] is a group variable but group variables cannot be selected]))> group-variables
 
   get-group-variable-from-select-star = ?ExpAsVar(VarRef(<id>), _, _, _); ?v; origin-text; ?"*"; !v
@@ -214,12 +214,6 @@ rules // helper rules
       failtask := <task-create-fail(|ctx)>
     ; <task-create-error-on-failure(|ctx, failtask, m)> t
 
-  // TODO
-  nabl-constraint(|ctx):
-    Or(_, PathPatternRef(p)) -> <fail>
-    where
-      <generate-error(|ctx, "Alternative path patterns not yet supported")> p
-
   nabl-constraint(|ctx):
     ErrorMessage(term, m) -> <fail>
     where
@@ -228,7 +222,7 @@ rules // helper rules
 rules // temporary limitation
 
   nabl-constraint(|ctx):
-    CommonPathExpression(_, vertices, connections, Constraints([constraint])) -> <fail>
+    CommonPathExpression(_, vertices, connections, Constraints([constraint]), _) -> <fail>
     with vertexVariables := <collect(?Vertex(<id>, _, _))> vertices
        ; connectionsVariables := <collect(?Edge(_, <id>, _, _, _, _) + ?Path(_, _, _, _, <id>, _, _, _))> connections
        ; variablesDefs := <union> (vertexVariables, connectionsVariables)
@@ -249,7 +243,11 @@ rules // temporary limitation
   nabl-constraint(|ctx):
     ComplexRegularExpressionNotSupported(edgesOrPaths) -> <fail>
     with [_|[secondEdgeOrPath|_]] := edgesOrPaths
-       ; <generate-error(|ctx, "Not yet supported: multiple edges in SHORTEST")> edgesOrPaths
+       ; <generate-error(|ctx, "Not yet supported: multiple edge patterns in SHORTEST or CHEAPEST")> edgesOrPaths
+
+  nabl-constraint(|ctx):
+    ComplexParenthesizedRegularExpressionNotSupported(edges) -> <fail>
+    with <generate-error(|ctx, "Not yet supported: multiple edge patterns in SHORTEST or CHEAPEST")> edges
 
   nabl-constraint(|ctx):
     Path(_, _, _, _, _, _, _, kValue) -> <fail>
@@ -257,15 +255,38 @@ rules // temporary limitation
     with <generate-error(|ctx, "Value should be greater than 0")> kValue
 
   nabl-constraint(|ctx):
-    Path(_, _, pathExpression, quantifier, _, _, Shortest(), _) -> <fail>
-    where <not(?Some(BetweenNAndM("0", "-1")))> quantifier
+    Path(_, _, pathExpression, quantifier, _, _, goal, _) -> <fail>
+    where <?Shortest() + ?Cheapest()> goal
+        ; <not(?Some(BetweenNAndM("0", "-1")))> quantifier
     with error-term := <?Some(_) <+ !pathExpression; collect-one(?Edge(_, _, _, _, _, _))> quantifier 
        ; <generate-error(|ctx, "Kleene star (*) required for now")> error-term
 
   nabl-constraint(|ctx):
-    t@CommonPathExpression(_, _, connections, _) -> <fail>
+    t@CommonPathExpression(_, _, connections, _, _) -> <fail>
     where <collect-in-outer-query(?Path(_, _, _, _, _, _, _, _)); not(?[])> connections
-    with <generate-error(|ctx, "Nested regular expressions not yet supported")> t
+    with <generate-error(|ctx, "Nested regular expressions not supported")> t
+
+rules // CHEAPEST
+
+  nabl-constraint(|ctx):
+    t@Path(_, _, CommonPathExpression(_, _, _, Constraints(constraints), costClause), _, _, _, Cheapest(), _) -> <fail>
+    where <?None()> costClause
+    with if <?[]> constraints
+    then <generate-error(|ctx, "COST clause expected after pattern")> t
+    else <?[<id>]; generate-error(|ctx, "COST clause expected after WHERE clause")> constraints
+    end
+
+  nabl-constraint(|ctx):
+    t@Path(_, _, CommonPathExpression(_, vertices, edges, _, Some(CostClause(costExpression))), _, _, _, Cheapest(), _) -> <fail>
+    where <?Vertices([Vertex(v1, _, _), Vertex(v2, _, _)])> vertices
+        ; <?Edges([Edge(_, e, _, _, _, _)])> edges
+    with variablesDefs := [v1, v2, e]
+       ; <generate-error-on-cross-constraint(|ctx, variablesDefs)> costExpression
+
+  nabl-constraint(|ctx):
+    Path(_, _, CommonPathExpression(_, _, _, _, Some(t@CostClause(_))), _, _, _, pathFindingGoal, _) -> <fail>
+    where not ( <?Cheapest()> pathFindingGoal )
+    with <generate-error(|ctx, "COST clause only allowed in combination with CHEAPEST")> t
 
 rules // literals
 
@@ -355,8 +376,8 @@ rules // MODIFY
            ?DirectedEdgeInsertion(v, _, _, _, _, Some(Properties(setProperties))) +
            ?Update(VarRef(v, _), SetProperties(setProperties))> t
     with v' := <strip-annos> v
-       ; otherVariableThanV := <filter(?SetProperty(PropRef(VarRef(<id>, _), _), _); strip-annos; not(?v'))> setProperties
-       ; <batch-generate-error(|ctx, $<Did you mean <v>?>)> otherVariableThanV
+       ; otherVariablesThanV := <filter(?SetProperty(PropRef(VarRef(<id>, _), _), _); strip-annos; not(?v'))> setProperties
+       ; <batch-generate-error(|ctx, $<Did you mean <<!v; ?Identifier(<id>)>>?>)> otherVariablesThanV
 
   nabl-constraint(|ctx):
     ModifyClause(_, insertUpdateDeleteClauses) -> <fail>

@@ -7,6 +7,7 @@ import java.util.List;
 import java.util.Set;
 
 import static oracle.pgql.lang.ir.PgqlUtils.printHops;
+import static oracle.pgql.lang.ir.PgqlUtils.printIdentifier;
 import static oracle.pgql.lang.ir.PgqlUtils.printPathExpression;
 
 public class QueryPath extends VertexPairConnection {
@@ -63,6 +64,14 @@ public class QueryPath extends VertexPairConnection {
     commonPathExpression.setConstraints(contstraints);
   }
 
+  public QueryExpression getCost() {
+    return commonPathExpression.getCost();
+  }
+
+  public void setCost(QueryExpression cost) {
+    commonPathExpression.setCost(cost);
+  }
+
   /**
    * @return minimal number of hops
    */
@@ -112,24 +121,32 @@ public class QueryPath extends VertexPairConnection {
       case REACHES:
         String path = "-/";
         if (!isAnonymous()) {
-          path += name;
+          path += printIdentifier(name);
         }
-        return path + ":" + commonPathExpression.getName() + printHops(this) + "/->";
+        return path + ":" + printIdentifier(commonPathExpression.getName()) + printHops(this) + "/->";
       case SHORTEST:
-        String kValueAsString = kValue == 1 ? "" : "TOP " + kValue + " ";
-        String result = kValueAsString + "SHORTEST( " + getSrc() + " ";
-        String pathExpression = printPathExpression(commonPathExpression, true);
-        if (pathExpression.contains("WHERE") || pathExpression.startsWith("(") || pathExpression.endsWith(")")) {
-          result += "(" + pathExpression + ")";
-        } else {
-          result += pathExpression;
-        }
+        return printShortestCheapest(goal);
+      case CHEAPEST:
+        return printShortestCheapest(goal);
 
-        result += printHops(this) + " " + getDst() + " )";
-        return result;
       default:
         throw new IllegalArgumentException(goal.toString());
     }
+  }
+
+  private String printShortestCheapest(PathFindingGoal goal) {
+    String kValueAsString = kValue == 1 ? "" : "TOP " + kValue + " ";
+    String result = kValueAsString + goal + " ( " + getSrc() + " ";
+    String pathExpression = printPathExpression(commonPathExpression, true);
+    if (pathExpression.contains("WHERE") || pathExpression.contains("COST") || pathExpression.startsWith("(")
+        || pathExpression.endsWith(")")) {
+      result += "(" + pathExpression + ")";
+    } else {
+      result += pathExpression;
+    }
+
+    result += printHops(this) + " " + getDst() + " )";
+    return result;
   }
 
   public void accept(QueryExpressionVisitor v) {

@@ -42,7 +42,7 @@ context-free syntax
   Query = Legacy10Query
   Query = ExperimentalQuery
 
-  CommonPathExpression.CommonPathExpression = <PATH <REGULAR-IDENTIFIER> <AsignSymbol> <PathPattern> <WhereClause?>> {case-insensitive}
+  CommonPathExpression.CommonPathExpression = <PATH <Identifier> <AsignSymbol> <PathPattern> <WhereClause?> <CostClause?>> {case-insensitive}
   AsignSymbol.Pgql11AsignSymbol = <AS> {case-insensitive}
 
   SelectOrModify = SelectClause

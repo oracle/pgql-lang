@@ -10,14 +10,15 @@ template options
 
 context-free syntax
 
-  VarDef.VarDef = REGULAR-IDENTIFIER
-  VarRef.VarRef = REGULAR-IDENTIFIER
-  VarAssign.VarAssign = < AS <VarDef>> {case-insensitive}
-  PropRef.PropRef = <<VarRef>.<Prop>>
+  VarRef.VarRef = Identifier
 
-  Prop = Identifier
+  PropRef.PropRef = <<VarRef>.<Property>>
+  Property = Identifier
 
-  Identifier.Identifier = IDENTIFIER
+  VarAssign.VarAssign = < AS <Identifier>> {case-insensitive}
+
+  Identifier.RegularIdentifier = REGULAR-IDENTIFIER
+  Identifier.DelimitedIdentifier = DELIMITED-IDENTIFIER
 
   TableName = LocalOrSchemaQualifiedName
   GraphName = LocalOrSchemaQualifiedName
@@ -26,8 +27,6 @@ context-free syntax
   SchemaNameDot.SchemaName = <<Identifier>.>
 
 lexical syntax
-
-  IDENTIFIER = REGULAR-IDENTIFIER | DELIMITED-IDENTIFIER
 
   REGULAR-IDENTIFIER = [a-zA-Z][a-zA-Z0-9\_]*
 

@@ -65,13 +65,13 @@ rules
     t@Some(PropertiesAreAllColumns(_, _)) -> t
 
   normalize-property-expression:
-    ExpAsVar(String(s), var) -> ExpAsVar(VarRef(Identifier(s)), var)
+    ExpAsVar(String(s), var) -> ExpAsVar(VarRef(s), var)
 
   normalize-property-expression:
-    ExpAsVar(VarRef(v), var) -> ExpAsVar(VarRef(Identifier(v)), var)
+    ExpAsVar(VarRef(v), var) -> ExpAsVar(VarRef(v), var)
 
   normalize-property:
-    ExpAsVar(exp, Some(VarAssign(VarDef(propertyName)))) -> ExpAsVar(exp, Identifier(propertyName))
+    ExpAsVar(exp, Some(VarAssign(propertyName))) -> ExpAsVar(exp, propertyName)
 
   normalize-property:
     ExpAsVar(exp@VarRef(columnName), None()) -> ExpAsVar(exp, propertyName)

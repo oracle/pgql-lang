@@ -152,7 +152,7 @@ public class PgqlUtils {
       return identifier;
     } else {
       return "\"" + escape(identifier) //
-          .replace("\"", "\\\"") //
+          .replace("\"", "\"\"") //
           + "\"";
     }
   }
@@ -251,13 +251,15 @@ public class PgqlUtils {
       }
     }
 
-    return variable.name;
+    return printIdentifier(variable.name);
   }
 
   protected static String printPgqlString(ExpAsVar expAsVar) {
-    String exp = expAsVar.getExp().toString();
-    // replace expAsVar.getExp().toString() with expAsVar.getName() once we no longer have to pretty print PGQL v1.0
-    return expAsVar.isAnonymous() || !expAsVar.isContainedInSelectClause() ? exp : exp + " AS " + expAsVar.getName();
+    if (expAsVar.isAnonymous() || !expAsVar.isContainedInSelectClause()) {
+      return expAsVar.getExp().toString();
+    } else {
+      return expAsVar.getExp() + " AS " + printIdentifier(expAsVar.getName());
+    }
   }
 
   protected static String printPgqlString(GraphPattern graphPattern, List<QueryPath> queryPaths) {
@@ -274,8 +276,8 @@ public class PgqlUtils {
       uncoveredVertices.remove(connection.getSrc());
       uncoveredVertices.remove(connection.getDst());
 
-      if (isShortest(connection)) {
-        // if the goal is SHORTEST we don't concatenate the connection to other connections but instead
+      if (isShortestCheapest(connection)) {
+        // if the goal is SHORTEST or CHEAPEST we don't concatenate the connection to other connections but instead
         // comma-separate it
         result += printConnection(constraintsCopy, connection, lastVertex, tryConcatenateNextConnection, indentation);
         lastVertex = connection.getDst();
@@ -305,9 +307,13 @@ public class PgqlUtils {
     return result;
   }
 
-  private static boolean isShortest(VertexPairConnection connection) {
-    return connection.getVariableType() == VariableType.PATH
-        && ((QueryPath) connection).getPathFindingGoal() == PathFindingGoal.SHORTEST;
+  private static boolean isShortestCheapest(VertexPairConnection connection) {
+    if (connection.getVariableType() != VariableType.PATH) {
+      return false;
+    }
+
+    PathFindingGoal goal = ((QueryPath) connection).getPathFindingGoal();
+    return goal == PathFindingGoal.SHORTEST || goal == PathFindingGoal.CHEAPEST;
   }
 
   private static String printConnection(Set<QueryExpression> constraintsCopy, VertexPairConnection connection,
@@ -315,11 +321,12 @@ public class PgqlUtils {
 
     String result = "\n" + printIndentation(indentation - 2);
 
-    if (isShortest(connection)) {
+    if (isShortestCheapest(connection)) {
       result += lastVertex == null ? "  " : ", ";
       result += connection.toString();
 
-      // if the goal is SHORTEST, we don't try to concatenate the connection to the previous connection but instead
+      // if the goal is SHORTEST or CHEAPEST, we don't try to concatenate the connection to the previous connection but
+      // instead
       // comma-separate it
       return result;
     }
@@ -361,7 +368,7 @@ public class PgqlUtils {
   }
 
   private static String printCommonPathExpression(CommonPathExpression commonPathExpression) {
-    String result = "PATH " + commonPathExpression.getName() + " AS ";
+    String result = "PATH " + printIdentifier(commonPathExpression.getName()) + " AS ";
     result += printPathExpression(commonPathExpression, false);
     return result + "\n";
   }
@@ -391,6 +398,10 @@ public class PgqlUtils {
       result += " WHERE " + constraintsCopy.stream() //
           .map(x -> x.toString()) //
           .collect(Collectors.joining(" AND "));
+    }
+
+    if (commonPathExpression.getCost() != null) {
+      result += " COST " + commonPathExpression.getCost();
     }
 
     return result;
@@ -430,8 +441,8 @@ public class PgqlUtils {
         }
       case PATH:
         QueryPath queryPath = (QueryPath) var;
-        return "-/" + (queryPath.isAnonymous() ? "" : var.name) + ":" + queryPath.getPathExpressionName()
-            + printHops(queryPath) + "/->";
+        return "-/" + (queryPath.isAnonymous() ? "" : printIdentifier(var.name)) + ":"
+            + printIdentifier(queryPath.getPathExpressionName()) + printHops(queryPath) + "/->";
       case VERTEX:
         return "(" + printVariableAndLabelPredicate(var, printVariableName, labelPredicate) + ")";
       default:
@@ -441,7 +452,7 @@ public class PgqlUtils {
 
   private static String printVariableAndLabelPredicate(QueryVariable var, boolean printVariableName,
       QueryExpression labelPredicate) {
-    String result = printVariableName ? var.getName() : "";
+    String result = printVariableName ? printIdentifier(var.getName()) : "";
     if (labelPredicate != null) {
       result += ":" + printLabelPredicate(labelPredicate);
     }
@@ -570,7 +581,7 @@ public class PgqlUtils {
 
   protected static String printLiteral(String val) {
     return "'" + escape(val) //
-        .replace("'", "\\'") //
+        .replace("'", "''") //
         + "'";
   }
 
