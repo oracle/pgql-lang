@@ -288,3 +288,14 @@ test Duplicate updates or deletions [[
 
 ]] error like "Element is updated multiple times (merge the two updates together)" at #1, #2
    error like "Element is deleted multiple times" at #3, #4
+
+test Case insensitivity when referencing vertex tables [[
+
+  CREATE PROPERTY GRAPH g
+    VERTEX TABLES ( Person, user.University )
+    EDGE TABLES (
+      knows SOURCE PERSON DESTINATION "PERSON",
+      studentOf SOURCE persoN DESTINATION User."UNIVERSITY"
+    )
+
+]] analysis succeeds
