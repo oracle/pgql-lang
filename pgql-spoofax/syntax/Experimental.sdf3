@@ -6,6 +6,7 @@ imports
   GraphPattern
   pgql-lang
   SolutionModifiers
+  Names
 
 template options
 
@@ -24,12 +25,11 @@ context-free syntax
       <OrderByClause?>
       <LimitOffsetClauses?>
     >
-    
-  ExperimentalFromClause.FromClause = <FROM <ExperimentalGraphMatch>> {case-insensitive}
 
-  ExperimentalGraphMatch.GraphMatch =
-    <
-      <LocalGraphName?> EXPERIMENTAL_MATCH (
-        <GraphPattern>
-      )
-    > {case-insensitive}
+  ExperimentalFromClause.FromClause = <FROM <{TableExpression ","}+>> {case-insensitive}
+
+  TableExpression = GraphMatch
+
+  GraphMatch.GraphMatch = <MATCH <PathPattern> <OnClause?>> {case-insensitive}
+
+  OnClause.OnClause = <ON <Identifier>> {case-insensitive}

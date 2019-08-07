@@ -67,7 +67,7 @@ public class BugFixTest extends AbstractPgqlTest {
     String queryPgql11 = "SELECT 1 MATCH () -[e]-> () ORDER BY e";
     assertFalse(pgql.parse(queryPgql11).isQueryValid());
 
-    String queryPgql13 = "SELECT 1 FROM EXPERIMENTAL_MATCH ( () -[e]-> () ) ORDER BY e";
+    String queryPgql13 = "SELECT 1 FROM MATCH () -[e]-> () ORDER BY e";
     assertFalse(pgql.parse(queryPgql13).isQueryValid());
   }
 
@@ -148,7 +148,7 @@ public class BugFixTest extends AbstractPgqlTest {
         + " WHERE m.prop = o.prop";
     String pgql13Query = "PATH \"p\" AS (\"x\") -> (\"y\") " //
         + "SELECT \"n\".\"prop\", '_\"_\"_''_''_\n_\t_\\n_' AS \"v1\", '_\"_\"_''_''_\n_\t_\\n_' AS \"v2\"" //
-        + "  FROM EXPERIMENTAL_MATCH ( (\"n\":\"lbl1\"|\"lbl2\") -[\"e\":\"lbl3\"|\"lbl4\"|\"_\"\"_\"\"_'_'_\n_\t_\"]-> (\"m\") -/:\"p\"*/-> (\"o\") )" //
+        + "  FROM MATCH (\"n\":\"lbl1\"|\"lbl2\") -[\"e\":\"lbl3\"|\"lbl4\"|\"_\"\"_\"\"_'_'_\n_\t_\"]-> (\"m\") -/:\"p\"*/-> (\"o\")" //
         + " WHERE \"m\".\"prop\" = \"o\".\"prop\"";
 
     PgqlResult result10 = pgql.parse(pgql10Query);

@@ -5,7 +5,7 @@ language pgql-lang
 test Reference alias from SELECT in GROUP BY, not allowed when aggregation [[
 
     SELECT [[COUNT(n.prop)]] AS v
-      FROM g EXPERIMENTAL_MATCH ( (n) )
+      FROM MATCH (n)
   GROUP BY v
 
 ]] error like "Aggregation without group variables not allowed in GROUP BY" at #1
@@ -13,7 +13,7 @@ test Reference alias from SELECT in GROUP BY, not allowed when aggregation [[
 test Variables in MATCH shadow variables in SELECT [[
 
     SELECT [[n]].age AS n
-      FROM EXPERIMENTAL_MATCH ( (n) )
+      FROM MATCH (n)
   GROUP BY n.prop AS prop
 
 ]] error like "Unresolved variable (did you mean to use a group key?)" at #1
@@ -21,14 +21,14 @@ test Variables in MATCH shadow variables in SELECT [[
 test Invalid escaping in string literal [[
 
   SELECT [['single\'quote']] AS v
-    FROM g EXPERIMENTAL_MATCH ( (n) )
+    FROM MATCH (n)
 
 ]] error like "Use '' instead of \' to escape a single quote" at #1
 
 test Invalid escaping in identifier [[
 
   SELECT n AS c1
-    FROM [["double\"quote"]] EXPERIMENTAL_MATCH ( (n:[["double\"quote"]]) )
+    FROM MATCH (n:[["double\"quote"]]) ON [["double\"quote"]]
    WHERE n.[["double\"quote"]]
 
 ]] error like "instead of \" to escape a double quote" at #1, #2, #3
@@ -36,7 +36,7 @@ test Invalid escaping in identifier [[
 test Implicit property reference [[
 
     SELECT n.[[prop]]
-      FROM g EXPERIMENTAL_MATCH ( (n) )
+      FROM MATCH (n)
   ORDER BY [[prop]]
 
 ]] resolve #2 to #1

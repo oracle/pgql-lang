@@ -13,7 +13,7 @@ template options
 
 context-free syntax
 
-  Pgql11FromClause.Pgql11FromClause = <FROM <Identifier?>> {case-insensitive}
+  Pgql11FromClause.Pgql11FromClause = <FROM <Identifier>> {case-insensitive}
 
   MatchWhereClauses.MatchWhereClauses = <MATCH <{PathPattern ","}+> <WhereClause?>> {case-insensitive}
 
