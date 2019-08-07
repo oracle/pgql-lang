@@ -1,0 +1,11 @@
+module experimental
+
+language pgql-lang
+
+test Implicit property reference case insensitive [[
+
+    SELECT n.[[pRop]]
+      FROM g EXPERIMENTAL_MATCH ( (n) )
+  ORDER BY [[prop]]
+
+]] resolve #2 to #1
