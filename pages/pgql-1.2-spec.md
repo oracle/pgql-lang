@@ -394,9 +394,9 @@ Again, if such bindings are not desired then one should add constraints like `e1
 
 ### Matching edges in any direction
 
-Any-directional edges match edges in the graph no matter if they are incoming or outgoing.
+Any-directed edge patterns match edges in the graph no matter if they are incoming or outgoing.
 
-An example query with two any-directional edges is:
+An example query with two any-directed edge patterns is:
 
 ```sql
 SELECT *
@@ -405,7 +405,7 @@ SELECT *
 
 Note that in case there are both incoming and outgoing data edges between two data vertices, there will be separate result bindings for each of the edges.
 
-Any-directional edges may also be used inside [common path expressions](#common-path-expressions):
+Any-directed edge patterns may also be used inside [common path expressions](#common-path-expressions):
 
 ```sql
   PATH two_hops AS () -[e1]- () -[e2]- ()
@@ -547,37 +547,37 @@ In a PGQL query, the `MATCH` clause defines the graph pattern to be matched.
 Syntactically, a `MATCH` clause is composed of the keyword `MATCH` followed by a comma-separated sequence of path patterns:
 
 ```bash
-MatchClause               ::= 'MATCH' <GraphPattern>
+MatchClause            ::= 'MATCH' <GraphPattern>
 
-GraphPattern              ::= <PathPattern> ( ',' <PathPattern> )*
+GraphPattern           ::= <PathPattern> ( ',' <PathPattern> )*
 
-PathPattern               ::=   <SimplePathPattern>
-                              | <ShortestPathPattern>
-                              | <TopKShortestPathPattern>
+PathPattern            ::=   <SimplePathPattern>
+                           | <ShortestPathPattern>
+                           | <TopKShortestPathPattern>
 
-SimplePathPattern         ::= <VertexPattern> ( <PathPrimary> <VertexPattern> )*
+SimplePathPattern      ::= <VertexPattern> ( <PathPrimary> <VertexPattern> )*
 
-VertexPattern             ::= '(' <VariableSpecification> ')'
+VertexPattern          ::= '(' <VariableSpecification> ')'
 
-PathPrimary               ::=   <EdgePattern>
-                              | <ReachabilityPathExpression>
+PathPrimary            ::=   <EdgePattern>
+                           | <ReachabilityPathExpression>
 
-EdgePattern               ::=   <OutgoingEdgePattern>
-                              | <IncomingEdgePattern>
-                              | <AnyDirectionalEdgePattern>
+EdgePattern            ::=   <OutgoingEdgePattern>
+                           | <IncomingEdgePattern>
+                           | <AnyDirectedEdgePattern>
 
-OutgoingEdgePattern       ::=   '->'
-                              | '-[' <VariableSpecification> ']->'
+OutgoingEdgePattern    ::=   '->'
+                           | '-[' <VariableSpecification> ']->'
 
-IncomingEdgePattern       ::=   '<-'
-                              | '<-[' <VariableSpecification> ']-'
+IncomingEdgePattern    ::=   '<-'
+                           | '<-[' <VariableSpecification> ']-'
 
-AnyDirectionalEdgePattern ::=   '-'
-                              | '-[' <VariableSpecification> ']-'
+AnyDirectedEdgePattern ::=   '-'
+                           | '-[' <VariableSpecification> ']-'
 
-VariableSpecification     ::= <VariableName>? <LabelPredicate>?
+VariableSpecification  ::= <VariableName>? <LabelPredicate>?
 
-VariableName              ::= <IDENTIFIER>
+VariableName           ::= <IDENTIFIER>
 ```
 
 A path pattern that describes a partial topology of the subgraph pattern. In other words, a topology constraint describes some connectivity relationships between vertices and edges in the pattern, whereas the whole topology of the pattern is described with one or multiple topology constraints.
