@@ -12,18 +12,25 @@ import oracle.pgql.lang.ir.StatementType;
 public class PgqlResult {
 
   private final String queryString;
+
   private final String errorMessages;
+
   private final boolean queryValid;
+
   private final Statement statement;
+
   private final ISpoofaxParseUnit spoofaxParseUnit;
 
+  private final PgqlVersion pgqlVersion;
+
   public PgqlResult(String queryString, boolean queryValid, String messages, Statement statement,
-      ISpoofaxParseUnit spoofaxParseUnit) {
+      ISpoofaxParseUnit spoofaxParseUnit, PgqlVersion pgqlVersion) {
     this.queryString = queryString;
     this.errorMessages = messages;
     this.queryValid = queryValid;
     this.statement = statement;
     this.spoofaxParseUnit = spoofaxParseUnit;
+    this.pgqlVersion = pgqlVersion;
   }
 
   /**
@@ -68,5 +75,9 @@ public class PgqlResult {
 
   protected ISpoofaxParseUnit getSpoofaxParseUnit() {
     return spoofaxParseUnit;
+  }
+
+  public PgqlVersion getPgqlVersion() {
+    return pgqlVersion;
   }
 }

@@ -11,6 +11,8 @@ public class ExpAsVar extends QueryVariable {
 
   private boolean isContainedInSelectClause;
 
+  private String originName;
+
   /**
    * @param exp
    *          an expression
@@ -35,10 +37,30 @@ public class ExpAsVar extends QueryVariable {
    * @param isContainedInSelectClause
    *          true if in SELECT, false if in GROUP BY
    */
+  @Deprecated
   public ExpAsVar(QueryExpression exp, String name, boolean anonymous, boolean isContainedInSelectClause) {
+    this(exp, name, anonymous, isContainedInSelectClause, name);
+  }
+
+  /**
+   * @param exp
+   *          an expression
+   * @param name
+   *          the name with which the the element can be referred to in the result set
+   * @param anonymous
+   *          false if the name was provided via the query (i.e. exp AS name), true if the name was not provided via the
+   *          query (i.e. exp) but via some other mechanism
+   * @param isContainedInSelectClause
+   *          true if in SELECT, false if in GROUP BY
+   * @param originName
+   *          the text of the column name as it appear in the query string (i.e. not upper cased when unquoted)
+   */
+  public ExpAsVar(QueryExpression exp, String name, boolean anonymous, boolean isContainedInSelectClause,
+      String originName) {
     super(name, anonymous);
     this.exp = exp;
     this.isContainedInSelectClause = isContainedInSelectClause;
+    this.originName = originName;
   }
 
   public QueryExpression getExp() {
@@ -51,6 +73,14 @@ public class ExpAsVar extends QueryVariable {
 
   public boolean isContainedInSelectClause() {
     return isContainedInSelectClause;
+  }
+
+  public String getOriginName() {
+    return originName;
+  }
+
+  public void setOriginName(String originName) {
+    this.originName = originName;
   }
 
   @Override
