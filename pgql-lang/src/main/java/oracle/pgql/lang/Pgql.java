@@ -44,8 +44,6 @@ import org.metaborg.spoofax.core.unit.ISpoofaxParseUnit;
 import org.metaborg.util.concurrent.IClosableLock;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.spoofax.interpreter.terms.IStrategoAppl;
-import org.spoofax.interpreter.terms.IStrategoTerm;
 
 import com.google.common.collect.Lists;
 
@@ -54,8 +52,6 @@ import oracle.pgql.lang.editor.completion.PgqlCompletion;
 import oracle.pgql.lang.editor.completion.PgqlCompletionContext;
 import oracle.pgql.lang.ir.Statement;
 import oracle.pgql.lang.ir.StatementType;
-
-import static oracle.pgql.lang.CommonTranslationUtil.getString;
 
 public class Pgql implements Closeable {
 
@@ -81,8 +77,6 @@ public class Pgql implements Closeable {
   private static final String ERROR_MESSSAGE_INDENTATION = "\t";
 
   private static final String SPOOFAX_BINARIES = "pgql-1.2.spoofax-language";
-
-  private static final int PGQL_VERSION_TERM_INDEX = 9;
 
   private static boolean isGloballyInitialized = false;
 
@@ -216,11 +210,10 @@ public class Pgql implements Closeable {
         prettyMessages = getMessages(analysisResult.messages(), queryString);
       }
       statement = SpoofaxAstToGraphQuery.translate(analysisResult.ast());
-      PgqlVersion pgqlVersion = getPgqlVersion(analysisResult.ast());
 
       checkBetaFeatureToken(queryString, statement);
 
-      return new PgqlResult(queryString, queryValid, prettyMessages, statement, parseResult, pgqlVersion);
+      return new PgqlResult(queryString, queryValid, prettyMessages, statement, parseResult);
     } catch (IOException | ParseException | AnalysisException | ContextException e) {
       throw new PgqlException("Failed to parse PGQL query", e);
     } finally {
@@ -229,26 +222,6 @@ public class Pgql implements Closeable {
       }
       quietlyDelete(dummyFile);
     }
-  }
-
-  private PgqlVersion getPgqlVersion(IStrategoTerm ast) {
-
-    if (ast != null && ast.getTermType() == IStrategoTerm.APPL
-        && ((IStrategoAppl) ast).getConstructor().getName().equals("NormalizedQuery")) {
-      String versionString = getString(ast.getSubterm(PGQL_VERSION_TERM_INDEX));
-      switch (versionString) {
-        case "v1.0":
-          return PgqlVersion.V_1_0;
-        case "v1.1":
-          return PgqlVersion.V_1_1_OR_V_1_2;
-        case "v1.3":
-          return PgqlVersion.V_1_3_OR_HIGHER;
-        default:
-          throw new IllegalArgumentException(versionString);
-      }
-    }
-
-    return PgqlVersion.V_1_3_OR_HIGHER; // any new statement such as CREATE/DROP PROPERTY GRAPH
   }
 
   private void checkInitialized() throws PgqlException {

@@ -780,7 +780,7 @@ public class SpoofaxAstToGraphQuery {
       IStrategoTerm columnName = expAsVarT.getSubterm(POS_EXPASVAR_VAR);
       String varName = getString(columnName.getSubterm(IDENTIFIER_NAME));
       IStrategoTerm originNameT = columnName.getSubterm(IDENTIFIER_ORIGINNAME);
-      String originName = isNone(originNameT) ? varName : getString(originNameT);
+      String originName = isNone(originNameT) ? null : getString(originNameT);
       boolean anonymous = ((IStrategoAppl) expAsVarT.getSubterm(POS_EXPASVAR_ANONYMOUS)).getConstructor().getName()
           .equals("Anonymous");
       IStrategoTerm originPosition = expAsVarT.getSubterm(POS_EXPASVAR_ORIGIN_OFFSET);
