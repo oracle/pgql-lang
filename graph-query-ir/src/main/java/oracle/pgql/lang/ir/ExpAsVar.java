@@ -53,7 +53,8 @@ public class ExpAsVar extends QueryVariable {
    * @param isContainedInSelectClause
    *          true if in SELECT, false if in GROUP BY
    * @param originName
-   *          the text of the column name as it appear in the query string (i.e. not upper cased when unquoted)
+   *          the text of the column name as it appear in the query string (i.e. not upper cased when unquoted). Only
+   *          supported for PGQL 1.3 and up (NULL for older PGQL versions)
    */
   public ExpAsVar(QueryExpression exp, String name, boolean anonymous, boolean isContainedInSelectClause,
       String originName) {
