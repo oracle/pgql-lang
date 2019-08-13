@@ -82,7 +82,7 @@ rules
     RegularIdentifier(v) -> Identifier(<origin-track-forced(upper-case)> v, v)
 
   norm-identifier:
-    DelimitedIdentifier(v) -> Identifier(v', v')
+    DelimitedIdentifier(v) -> Identifier(v', None())
     with v' := <origin-track-forced(un-double-quote; unescape-delimited-identifier)> v
 
   unescape-delimited-identifier = string-replace(|"\"\"", "\"")
