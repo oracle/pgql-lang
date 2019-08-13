@@ -11,7 +11,7 @@ public class ExpAsVar extends QueryVariable {
 
   private boolean isContainedInSelectClause;
 
-  private String originName;
+  private String nameOriginText;
 
   /**
    * @param exp
@@ -39,7 +39,7 @@ public class ExpAsVar extends QueryVariable {
    */
   @Deprecated
   public ExpAsVar(QueryExpression exp, String name, boolean anonymous, boolean isContainedInSelectClause) {
-    this(exp, name, anonymous, isContainedInSelectClause, name);
+    this(exp, name, anonymous, isContainedInSelectClause, null);
   }
 
   /**
@@ -52,16 +52,16 @@ public class ExpAsVar extends QueryVariable {
    *          query (i.e. exp) but via some other mechanism
    * @param isContainedInSelectClause
    *          true if in SELECT, false if in GROUP BY
-   * @param originName
-   *          the text of the column name as it appear in the query string (i.e. not upper cased when unquoted). Only
-   *          supported for PGQL 1.3 and up (NULL for older PGQL versions)
+   * @param nameOriginText
+   *          the text of the column name as it appear in the query string. Should be NULL unless name was unquoted and
+   *          upper cased.
    */
   public ExpAsVar(QueryExpression exp, String name, boolean anonymous, boolean isContainedInSelectClause,
-      String originName) {
+      String nameOriginText) {
     super(name, anonymous);
     this.exp = exp;
     this.isContainedInSelectClause = isContainedInSelectClause;
-    this.originName = originName;
+    this.nameOriginText = nameOriginText;
   }
 
   public QueryExpression getExp() {
@@ -76,12 +76,12 @@ public class ExpAsVar extends QueryVariable {
     return isContainedInSelectClause;
   }
 
-  public String getOriginName() {
-    return originName;
+  public String getNameOriginText() {
+    return nameOriginText;
   }
 
-  public void setOriginName(String originName) {
-    this.originName = originName;
+  public void setNameOriginText(String nameOriginText) {
+    this.nameOriginText = nameOriginText;
   }
 
   @Override
