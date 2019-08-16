@@ -5,7 +5,7 @@ toc: false
 keywords: pgql property graph query language database analytics oracle sql standard gql cypher opencypher sparql gsql pgx big data spatial
 ---
 
-Graphs & SQL
+Graph pattern matching in the style of SQL
 ====================================
 
 PGQL is a graph pattern-matching query language for the [property graph data model](spec/1.2/#property-graph-data-model), inspired by
@@ -59,7 +59,7 @@ PGQL has the following SQL-like capabilities:
  * `COUNT`, `MIN`, `MAX`, `AVG` and `SUM` to aggregate over groups of solutions.
  * `ORDER BY` to sort results.
  * (`NOT`) `EXISTS` subqueries to test whether a graph pattern exists, or, does not exist.
- * `DATE`, `TIME`, `TIMESTAMP`, `TIME WITH TIME ZONE`, and `TIMESTAMP WITH TIME ZONE` temporal data types.
+ * `DATE`, `TIME`, `TIMESTAMP`, `TIME WITH TIME ZONE`, and `TIMESTAMP WITH TIME ZONE` datetime data types.
 
 Regular Path Expressions
 ------------------------
@@ -93,7 +93,7 @@ ORDER BY d2.name
 
 Datetime data types
 -------------------
-In addition to numerics, (character) strings, and booleans, PGQL has the following temporal data types:
+In addition to numerics, (character) strings, and booleans, PGQL has the following datetime data types:
 
  - `DATE` (java.time.LocalDate)
  - `TIME` (java.time.LocalTime)
