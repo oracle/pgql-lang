@@ -57,6 +57,10 @@ rules
           norm-case
         );
       	alltd(norm-edgeContents);
+        ( (is-pgql10 + is-pgql11); alltd((?PropRef(_, _) <+ varRef-to-legacy-string-literal) + norm-legacy-string-literal); alltd(norm-legacy-identifier) +
+          is-pgql13; alltd(norm-string-literal + norm-identifier) +
+          ?Start-Plhdr() // empty query string
+        );
         alltd(norm-timezone);
         alltd(norm-datetime-literal);
         alltd(norm-hop-distance);
@@ -65,10 +69,6 @@ rules
         bottomup(try(
            norm-matchElems(|variable-counter)
         ));
-        ( (is-pgql10 + is-pgql11); alltd((?PropRef(_, _) <+ varRef-to-legacy-string-literal) + norm-legacy-string-literal); alltd(norm-legacy-identifier) +
-          is-pgql13; alltd(norm-string-literal + norm-identifier) +
-          ?Start-Plhdr() // empty query string
-        );
         bottomup(try(origin-track-forced(norm-query(|error-messages, variable-counter))));
         alltd(?ElemContents(Some(<id>), _, _, _))
       > ast
@@ -167,7 +167,7 @@ rules
 
   // (n:'lbl')
   norm-legacy-identifier:
-    Legacy10Identifier(v) -> Identifier(v', None())
+    Legacy10Identifier(v) -> Legacy10Identifier(v')
     with v' := <origin-track-forced(un-single-quote; unescape-legacy-string-literal)> v
 
   external unescape-legacy-string-literal(|)
@@ -274,7 +274,7 @@ rules
   norm-matchElems-common(|variable-counter):
     matchElems -> GraphPattern(vertices, connections, constraints)
     with pathPatterns := <remove-all(?Constraint(_))> matchElems // relevant to PGQL 1.0 only
-       ; vertices := <collect-outside-repeated-path(?Vertex(ElemContents(Some(<id>), _, _, _)); !Vertex(<id>)); !Vertices(<id>)> pathPatterns
+       ; vertices := <collect-outside-repeated-path(?Vertex(ElemContents(Some(<id>), _, _, _)); !Vertex(<id>)); remove-duplicate-vertices; !Vertices(<id>)> pathPatterns
        ; connections := <get-connections-from-paths(|variable-counter)> pathPatterns
 
        ; non-inlined-constraints := <filter(?Constraint(<id>))> matchElems // PGQL 1.0 only
@@ -295,6 +295,20 @@ rules
 
   reverse-then-union:
     (x, y) -> <union> (y, x)
+
+  // ignore origin text so that we don't end up with duplicate vertices because of case insensitivity
+  // Vertex(Identifier("N","n")),Vertex(Identifier("N","N")) ==> Vertex(Identifier("N","n")))
+  remove-duplicate-vertices:
+    vertices -> vertices'
+    where not ( <?[]> vertices )
+    with init := <init> vertices
+       ; last@Vertex(Identifier(n, _)) := <last> vertices
+       ; if <fetch(?Vertex(Identifier(n, _)))> init
+         then vertices' := <remove-duplicate-vertices> init
+         else vertices' := <conc> (<remove-duplicate-vertices> init, [last])
+         end
+
+  remove-duplicate-vertices = ?[] // base case; empty list
 
   ParenthesizedPath = ?ParenthesizedPath(_, _, _, _)
 
@@ -317,7 +331,7 @@ rules
   to-label-constraint(|var):
     labels ->  <to-hasLabel-expressions(|var)> labels
   to-hasLabel-expressions(|var) = bottomup(try(![VarRef(var), <to-label>]; to-function(|"has_label")))
-  to-label = ?Label(<id>) + ?Legacy10Identifier(_) + ?BindVariable(_)
+  to-label = ?Label(<id>) + ?Legacy10Identifier(<id>); origin-track-forced(!Identifier(<id>, None())) + ?BindVariable(_)
   to-id-constraint(|var) = bottomup(try(is-literal; origin-track-forced(!Eq(<to-function(|"id")> [VarRef(var)], <id>))))
 
   // base case: no paths
