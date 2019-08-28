@@ -194,4 +194,10 @@ public class BugFixTest extends AbstractPgqlTest {
     assertFalse(result11.isQueryValid());
     assertTrue(result11.getErrorMessages().contains(errorMessage));
   }
+
+  @Test
+  public void missingEqualsForCast() throws Exception {
+    String pgqlQuery = "SELECT CAST(n.prop AS STRING) MATCH (n)";
+    assertEquals(pgql.parse(pgqlQuery).getGraphQuery(), pgql.parse(pgqlQuery).getGraphQuery());
+  }
 }
