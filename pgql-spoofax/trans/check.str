@@ -76,9 +76,34 @@ rules // Unresolved/duplicate variables
   nabl-constraint(|ctx):
     query@NormalizedQuery(_, selectClause, _, Some(GraphPattern(_, edges, _)), _, _, _, _, _, _) -> <fail>
     with group-variables := <collect-in-outer-query(?CommonPathExpression(_, _, _, _, _); get-origin-positions-of-variables); concat> query
-       ; varRefs-per-aggregation := <collect-in-outer-query(is-aggregate); map(origin-track-forced(collect-in-outer-query(?VarRef(_, <id>)); !Some(<id>)))> query
-       ; varRefs-per-aggregation' := <filter(has-multiple-groupVarRefs(|group-variables))> varRefs-per-aggregation
-       ; <batch-generate-error(|ctx, "Accessing multiple group variables in a single aggregation is not yet supported")> varRefs-per-aggregation'
+       ; aggregations := <get-aggregations> query
+       ; varRefs-per-aggregation := <map(origin-track-forced(collect-in-outer-query(?VarRef(_, <id>)); !Some(<id>)))> aggregations
+       ; varRefs-per-aggregation-when-multiple := <filter(has-multiple-groupVarRefs(|group-variables))> varRefs-per-aggregation
+       ; <batch-generate-error(|ctx, "Accessing multiple group variables in a single aggregation is not yet supported")> varRefs-per-aggregation-when-multiple
+
+       ; aggregations-contents := <map(get-exp-from-aggregation)> aggregations
+       ; nested-aggregations := <map(get-aggregations); concat>
+       ; varRefs-per-nested-aggregation := <map(origin-track-forced(collect-in-outer-query(?VarRef(_, <id>)); !Some(<id>)))> nested-aggregations
+       ; varRef-per-nested-aggregation-no-groupVar := <filter(has-no-groupVarRefs(|group-variables))> varRefs-per-nested-aggregation
+       ; <batch-generate-error(|ctx, "Nested aggregation not allowed here")> varRef-per-nested-aggregation-no-groupVar
+
+   nabl-constraint(|ctx):
+    t@Constraints(_) -> <fail>
+    with
+      aggregations := <get-aggregations-without-group-variables> t;
+      <batch-generate-error(|ctx, "Aggregation without group variables not allowed in WHERE")> aggregations
+
+  nabl-constraint(|ctx):
+   t@GroupByClause(_) -> <fail>
+    with
+      aggregations := <get-aggregations-without-group-variables> t;
+      <batch-generate-error(|ctx, "Aggregation without group variables not allowed in GROUP BY")> aggregations
+
+  get-aggregations-without-group-variables = get-aggregations; filter(not(contains-varRef + contains-nested-aggregation))
+
+  contains-varRef = oncetd(?VarRef(_, _))
+
+  contains-nested-aggregation = where (get-exp-from-aggregation; get-aggregations; not(?[]))
 
   get-origin-positions-of-variables:
     CommonPathExpression(_, Vertices(vertices), Edges(edges), _, _) -> <conc; make-set> (origins-of-vertices, origins-of-edges)
@@ -88,6 +113,10 @@ rules // Unresolved/duplicate variables
   has-multiple-groupVarRefs(|group-variables):
     t@Some(varRefs-in-aggregation) -> t
     where group-varRefs := <isect; not(?[] + ?[_])> (group-variables, varRefs-in-aggregation)
+
+  has-no-groupVarRefs(|group-variables):
+    t@Some(varRefs-in-aggregation) -> <id>
+    where group-varRefs := <isect; ?[]> (group-variables, varRefs-in-aggregation)
 
   is-pattern-elem = ?Vertex(_, _, _) + ?Edge(_, _, _, _, _, _)
   get-pattern-elem = ?Vertex(<id>, _, _) + ?Edge(_, <id>, _, _, _, _)
@@ -146,22 +175,6 @@ rules
     ; order-by-expressions := <map(?OrderByElem(<id>, _, _)); strip-annos> order-by-elems
     ; order-by-expressions-not-in-select := <remove-all(?VarRef(<id>, _); !(<id>, select-vars); elem)> order-by-expressions
     ; <batch-generate-error(|ctx, "Because of DISTINCT projection, the expression in ORDER BY should be one of the expressions in the SELECT")> order-by-expressions-not-in-select
-
-  nabl-constraint(|ctx):
-    t@Constraints(_) -> <fail>
-    with
-      aggregations := <get-aggregations-without-group-variables> t;
-      <batch-generate-error(|ctx, "Aggregation without group variables not allowed in the WHERE clause")> aggregations
-
-  nabl-constraint(|ctx):
-    t@GroupByClause(_) -> <fail>
-    with
-      aggregations := <get-aggregations-without-group-variables> t;
-      <batch-generate-error(|ctx, "Aggregation without group variables not allowed in GROUP BY")> aggregations
-
-  get-aggregations-without-group-variables = get-aggregations; filter(not(contains-varRef))
-
-  contains-varRef = oncetd(?VarRef(_, _))
 
   nabl-constraint(|ctx):
     e@IllegalNull() -> <fail>
