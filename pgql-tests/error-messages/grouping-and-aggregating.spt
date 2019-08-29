@@ -158,3 +158,94 @@ test Redefine variable from GROUP BY in SELECT [[
   GROUP BY n AS x
 
 ]] error like "Duplicate variable: variable already defined in the GROUP BY clause" at #1
+
+test Nested aggregation (1) [[
+
+  SELECT AVG(MIN([[n]].age)) AS nextedAggr
+    FROM g MATCH (n)
+
+]] error like "Unresolved variable" at #1
+
+test Nested aggregation (2) [[
+
+    SELECT MIN(n.age) AS min
+      FROM g MATCH (n)
+  ORDER BY AVG(MIN([[n]].age))
+
+]] error like "Unresolved variable" at #1
+
+test Nested aggregation (3) [[
+
+    SELECT MIN(n.age) AS min
+      FROM g MATCH (n)
+  ORDER BY AVG( [[min]] )
+
+]] error like "Unresolved variable" at #1
+
+test Aggregation in WHERE (1) [[
+
+  SELECT COUNT(n) AS cnt
+    FROM g MATCH (n)
+   WHERE [[COUNT(n)]]
+
+]] error like "Aggregation without group variables not allowed in WHERE" at #1
+
+test Aggregation in WHERE (2) [[
+
+  SELECT 3 AS three
+    FROM g MATCH (n)
+   WHERE [[COUNT(n)]]
+
+]] error like "Aggregation without group variables not allowed in WHERE" at #1
+
+test Aggregation in WHERE (3) [[
+
+    PATH any AS () -> () WHERE [[COUNT(*)]]
+  SELECT 3 AS three
+    FROM g MATCH (n)
+
+]] error like "Aggregation without group variables not allowed in WHERE" at #1
+
+test Aggregation in GROUP BY (1) [[
+
+    SELECT avgAge AS c1
+      FROM g MATCH (n)
+  GROUP BY [[AVG(n.age)]] AS avgAge
+
+]] error like "Aggregation without group variables not allowed in GROUP BY" at #1
+
+test Aggregation in GROUP BY (2) [[
+
+    SELECT avgAge AS c1
+      FROM g MATCH (n)
+  GROUP BY [[AVG(MIN(n.age))]] AS avgAge
+
+]] error like "Nested aggregation not allowed here" at #1
+
+test Aggregation in GROUP BY (3) [[
+
+    SELECT avgAge AS c1
+      FROM g MATCH (n)
+  GROUP BY [[AVG(MIN(n.age))]] AS avgAge
+
+]] error like "Nested aggregation not allowed here" at #1
+
+test Illegal nested aggregation 1 [[
+
+    SELECT COUNT( [[COUNT(*)]] ) AS c1, MIN( [[MAX(123)]] ) AS c2
+     MATCH (n)
+     WHERE [[MIN(COUNT(*))]] > 3
+  ORDER BY [[MAX(COUNT(3))]]
+
+]] error like "Nested aggregation not allowed here" at #1, #2, #3, #4
+
+test Illegal nested aggregation 2 [[
+
+    SELECT COUNT( [[COUNT(*)]] ) AS c1, MIN( [[MAX(123)]] ) AS c2
+     MATCH (n)
+     WHERE [[MIN(COUNT(*))]] > 3
+  GROUP BY n.prop AS x
+    HAVING [[MIN(COUNT(3))]] = 4
+  ORDER BY [[MAX(COUNT(3))]]
+
+]] error like "Nested aggregation not allowed here" at #1, #2, #3, #4, #5
