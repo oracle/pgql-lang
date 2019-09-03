@@ -1568,7 +1568,15 @@ public interface QueryExpression {
         this.distinct = distinct;
       }
 
+      /**
+       * @deprecated Replaced by {@link #isDistinct()}
+       */
+      @Deprecated
       public boolean hasDistinct() {
+        return distinct;
+      }
+
+      public boolean isDistinct() {
         return distinct;
       }
 
