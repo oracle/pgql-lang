@@ -231,7 +231,7 @@ public class PgqlUtils {
     if (projection.getElements().isEmpty()) {
       return "SELECT *";
     } else {
-      return "SELECT " + (projection.hasDistinct() ? "DISTINCT " : "") + projection.getElements().stream() //
+      return "SELECT " + (projection.isDistinct() ? "DISTINCT " : "") + projection.getElements().stream() //
           .map(x -> x.toString()) //
           .collect(Collectors.joining(", "));
     }
