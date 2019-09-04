@@ -927,6 +927,33 @@ public interface QueryExpression {
       public void accept(QueryExpressionVisitor v) {
         v.visit(this);
       }
+
+      @Override
+      public int hashCode() {
+        return 31;
+      }
+
+      @Override
+      public boolean equals(Object obj) {
+        if (this == obj)
+          return true;
+        if (obj == null)
+          return false;
+        if (getClass() != obj.getClass())
+          return false;
+        Cast other = (Cast) obj;
+        if (exp == null) {
+          if (other.exp != null)
+            return false;
+        } else if (!exp.equals(other.exp))
+          return false;
+        if (targetTypeName == null) {
+          if (other.targetTypeName != null)
+            return false;
+        } else if (!targetTypeName.equals(other.targetTypeName))
+          return false;
+        return true;
+      }
     }
 
     class Exists extends Subquery implements Function {
@@ -1541,7 +1568,15 @@ public interface QueryExpression {
         this.distinct = distinct;
       }
 
+      /**
+       * @deprecated Replaced by {@link #isDistinct()}
+       */
+      @Deprecated
       public boolean hasDistinct() {
+        return distinct;
+      }
+
+      public boolean isDistinct() {
         return distinct;
       }
 

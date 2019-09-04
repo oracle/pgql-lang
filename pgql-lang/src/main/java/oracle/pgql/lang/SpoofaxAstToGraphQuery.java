@@ -728,7 +728,10 @@ public class SpoofaxAstToGraphQuery {
     IStrategoTerm pathExpressionT = pathT.getSubterm(POS_PATH_EXPRESSION);
     CommonPathExpression pathExpression = getPathExpression(pathExpressionT, ctx);
 
-    int kValue = parseInt(pathT.getSubterm(POS_PATH_K_VALUE));
+    IStrategoTerm kValueT = pathT.getSubterm(POS_PATH_K_VALUE);
+
+    int kValue = kValueT.getTermType() == IStrategoTerm.APPL && isNone(kValueT) ? -1
+        : parseInt(pathT.getSubterm(POS_PATH_K_VALUE));
 
     QueryPath path = new QueryPath(src, dst, name, pathExpression, true, minHops, maxHops, goal, kValue, direction);
 
