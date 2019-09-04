@@ -200,4 +200,13 @@ public class BugFixTest extends AbstractPgqlTest {
     String pgqlQuery = "SELECT CAST(n.prop AS STRING) MATCH (n)";
     assertEquals(pgql.parse(pgqlQuery).getGraphQuery(), pgql.parse(pgqlQuery).getGraphQuery());
   }
+
+  @Test
+  public void errorOnMissingKleeneStar() throws Exception {
+    String shortestQuery = "SELECT * MATCH SHORTEST ((n) -[e]-> (m))";
+    String cheapestQuery = "SELECT * MATCH SHORTEST ((n) -[e]-> (m))";
+    String errorMessage = "Kleene star (*) required for now";
+    assertTrue(pgql.parse(shortestQuery).getErrorMessages().contains(errorMessage));
+    assertTrue(pgql.parse(cheapestQuery).getErrorMessages().contains(errorMessage));
+  }
 }
