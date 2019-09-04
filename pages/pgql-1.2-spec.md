@@ -2123,7 +2123,7 @@ Result: -30
 
 ### ID
 
-The ID functions returns a system-generated identifier for the vertex/edge (unique within a graph).
+The ID function returns a system-generated identifier for the vertex/edge (unique within a graph).
 
 The syntax is:
 
