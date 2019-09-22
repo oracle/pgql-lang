@@ -39,8 +39,11 @@ a[data-toggle="tooltip"] {
 }
 
 .navbar-inverse {
-    background-color: #F5F5F5;
-    border-color: #D9D9D9;
+    background-color: #312D2A;
+    border-color: #312D2A;
+    border-width: 0px;
+    background-image: url('../images/Redwood_Backgrounds_Abstracts_RGB_04_mod.png');
+    background-size: cover;
 }
 
 .navbar-inverse .navbar-nav > .open > a, .navbar-inverse .navbar-nav > .open > a:hover, .navbar-inverse .navbar-nav > .open > a:focus {
@@ -107,18 +110,18 @@ li.sidebarTitle {
     color: #D55959;
 }
 .navbar-inverse .navbar-brand {
-    color: #666666;
+    color: #ffffff;
 }
 .navbar-inverse .navbar-brand:hover,
 .navbar-inverse .navbar-brand:focus {
-    color: #464646;
+    color: #E5DBBE;
 }
 .navbar-inverse .navbar-nav > li > a {
-    color: #666666;
+    color: #ffffff;
 }
 .navbar-inverse .navbar-nav > li > a:hover,
 .navbar-inverse .navbar-nav > li > a:focus {
-    color: #464646;
+    color: #E5DBBE;
 }
 .navbar-inverse .navbar-nav > .active > a,
 .navbar-inverse .navbar-nav > .active > a:hover,

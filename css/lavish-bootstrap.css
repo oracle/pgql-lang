@@ -599,12 +599,12 @@ pre {
 code {
   padding: 2px 4px;
   font-size: 90%;
-  color: #444;
-  background-color: #f0f0f0;
+  color: #759C6C;
+  background-color: #312D2A; /* background color for inlined code */
   white-space: nowrap;
   border-radius: 4px;
 }
-
+.highlight  { background: #E5DBBE; } /* background color for code block */
 pre {
   display: block;
   padding: 9.5px;
@@ -613,9 +613,8 @@ pre {
   line-height: 1.428571429;
   word-break: break-all;
   word-wrap: break-word;
-  color: #77777a;
-  background-color: #f5f5f5;
-  border: 1px solid #cccccc;
+  color: #312D2A;
+  border: 0px solid #cccccc;
   border-radius: 4px;
 }
 pre.prettyprint {

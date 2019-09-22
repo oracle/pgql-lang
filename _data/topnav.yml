@@ -4,18 +4,8 @@ topnav:
 
 - title: Topnav
   items:
-    - title: 1.2 Specification
+    - title: PGQL 1.2 Specification
       url: /spec/1.2/
-
-- title: Topnav
-  items:
-    - title: 1.1 Specification
-      url: /spec/1.1/
-
-- title: Topnav
-  items:
-    - title: 1.0 Specification
-      url: /spec/1.0/
 
 - title: Topnav
   items:
