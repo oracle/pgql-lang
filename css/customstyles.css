@@ -150,7 +150,7 @@ table > thead > tr > th {
     border-bottom: 0px solid #ddd;
     text-transform: none;
     background-color: #2C5967;
-    color: white;
+    color: #E5DBBE;
     text-align: left;
 }
 table > caption + thead > tr:first-child > th,
@@ -169,6 +169,13 @@ table > tbody > tr:nth-of-type(odd) {
     color: #312D2A;
 }
 table > tbody > tr:nth-of-type(odd) code {
+    color: #312D2A;
+}
+table > tbody > tr:nth-of-type(even) {
+    background-color: #8B8580;
+    color: #312D2A;
+}
+table > tbody > tr:nth-of-type(even) code {
     color: #312D2A;
 }
 
