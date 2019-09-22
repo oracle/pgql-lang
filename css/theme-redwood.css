@@ -1,6 +1,6 @@
 .summary {
-    color: #808080;
-    border-left: 5px solid #D55959;
+    color: #ffffff;
+    border-left: 5px solid #E6AC58;
     font-size:16px;
 }
 
@@ -15,15 +15,15 @@ h4 {color: #E6AC58; }
 }
 
 .nav > li.active > a {
-    background-color: #D55959;
+    background-color: #2B6242;
 }
 
 .nav > li > a:hover {
-    background-color: #D55959;
+    background-color: #2B6242;
 }
 
 div.navbar-collapse .dropdown-menu > li > a:hover {
-    background-color: #D55959;
+    background-color: #2B6242;
 }
 
 .nav li.thirdlevel > a {
@@ -47,12 +47,12 @@ a[data-toggle="tooltip"] {
 }
 
 .navbar-inverse .navbar-nav > .open > a, .navbar-inverse .navbar-nav > .open > a:hover, .navbar-inverse .navbar-nav > .open > a:focus {
-    color: #8D8D8D;
+    color: #2B6242;
 }
 
 .navbar-inverse .navbar-nav > .open > a, .navbar-inverse .navbar-nav > .open > a:hover, .navbar-inverse .navbar-nav > .open > a:focus {
-    background-color: #8D8D8D;
-    color: #FFFFFF;
+    background-color: #2B6242;
+    color: #E5DBBE;
 }
 
 /* used when screen is very small like on smartphone */
@@ -67,7 +67,7 @@ a[data-toggle="tooltip"] {
 }
 
 .navbar-inverse .navbar-nav > .active > a, .navbar-inverse .navbar-nav > .active > a:hover, .navbar-inverse .navbar-nav > .active > a:focus {
-    background-color: #F5F5F5;
+    background-color: #2B6242;
 }
 
 .btn-primary:hover,
@@ -100,14 +100,14 @@ li.sidebarTitle {
     margin-top:40px;
     font-weight:normal;
     font-size:130%;
-    color: #D55959;
+    color: #E5DBBE;
     margin-bottom:10px;
     margin-left: 5px;
 
 }
 
 .navbar-inverse .navbar-brand {
-    color: #D55959;
+    color: #2B6242;
 }
 .navbar-inverse .navbar-brand {
     color: #ffffff;
@@ -126,21 +126,21 @@ li.sidebarTitle {
 .navbar-inverse .navbar-nav > .active > a,
 .navbar-inverse .navbar-nav > .active > a:hover,
 .navbar-inverse .navbar-nav > .active > a:focus {
-    color: #464646;
+    color: #E5DBBE;
 }
 .navbar-inverse .navbar-nav > .dropdown > a:hover .caret {
-    border-top-color: #464646;
-    border-bottom-color: #464646;
+    border-top-color: #E5DBBE;
+    border-bottom-color: #E5DBBE;
 }
 .navbar-inverse .navbar-nav > .dropdown > a .caret {
-    border-top-color: #666666;
-    border-bottom-color: #666666;
+    border-top-color: #ffffff;
+    border-bottom-color: #ffffff;
 }
 .navbar-inverse .navbar-nav > .open > a .caret,
 .navbar-inverse .navbar-nav > .open > a:hover .caret,
 .navbar-inverse .navbar-nav > .open > a:focus .caret {
-    border-top-color: #FFFFFF;
-    border-bottom-color: #FFFFFF;
+    border-top-color: #56504B;
+    border-bottom-color: #56504B;
 }
 
 a.pgql-anchor {

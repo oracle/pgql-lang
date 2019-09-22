@@ -7,21 +7,30 @@ topnav:
     - title: PGQL 1.2 Specification
       url: /spec/1.2/
 
-- title: Topnav
-  items:
-    - title: Open-Sourced Parser
-      external_url: https://github.com/oracle/pgql-lang/
-
 ## Topnav dropdowns
 topnav_dropdowns:
 - title: Topnav dropdowns
   folders:
-    - title: Oracle
+    - title: Specifications
       folderitems:
+        - title: PGQL 1.2 Specification
+          url: /spec/1.2/
+        - title: PGQL 1.1 Specification
+          url: /spec/1.1/
+        - title: PGQL 1.0 Specification
+          url: /spec/1.0/
+        - title: PGQL 0.9 Specification
+          external_url: https://docs.oracle.com/cd/E56133_01/1.2.1/PGQL_Specification.pdf
+    - title: Resources
+      folderitems:
+        - title: Open-Sourced PGQL Parser
+          external_url: https://github.com/oracle/pgql-lang/
         - title: Oracle Spatial and Graph
           external_url: https://www.oracle.com/database/spatial/index.html
         - title: Oracle Big Data Spatial and Graph
           external_url: https://www.oracle.com/technetwork/database/database-technologies/bigdata-spatialandgraph/overview/index.html
         - title: Oracle Labs PGX
           external_url: https://www.oracle.com/technetwork/oracle-labs/parallel-graph-analytix/overview/index.html
+        - title: Oracle Home
+          external_url: https://www.oracle.com/
 

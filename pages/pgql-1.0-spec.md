@@ -1,5 +1,6 @@
 ---
-title:  "PGQL 1.0 Specification - 2 November 2016"
+title: "PGQL 1.0 Specification"
+date: "2 November 2016"
 permalink: /spec/1.0/
 summary: "PGQL is an SQL-like query language for the Property Graph data model.
 The language is based on the paradigm of graph pattern matching, which allows you to specify patterns that are matched against vertices and edges in a data graph.

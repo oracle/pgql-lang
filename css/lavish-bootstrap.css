@@ -247,7 +247,7 @@ table {
 }
 html {
   font-size: 62.5%;
-  -webkit-tap-highlight-color: rgba(0, 0, 0, 0);
+  -webkit-tap-highlight-color: #2B6242;
 }
 body {
   font-family: "Oracle Sans", -apple-system, BlinkMacSystemFont, "Segoe UI", "Helvetica Neue", sans-serif;
@@ -2789,9 +2789,9 @@ input[type="button"].btn-block {
   margin: 2px 0 0;
   list-style: none;
   font-size: 14px;
-  background-color: #ffffff;
-  border: 1px solid #cccccc;
-  border: 1px solid rgba(0, 0, 0, 0.15);
+  background-color: #312D2A;
+  border: 0px solid #cccccc;
+  border: 0px solid rgba(0, 0, 0, 0.15);
   border-radius: 4px;
   -webkit-box-shadow: 0 6px 12px rgba(0, 0, 0, 0.175);
   box-shadow: 0 6px 12px rgba(0, 0, 0, 0.175);
@@ -2813,7 +2813,7 @@ input[type="button"].btn-block {
   clear: both;
   font-weight: normal;
   line-height: 1.428571429;
-  color: #77777a;
+  color: #E5DBBE;
   white-space: nowrap;
 }
 .dropdown-menu > li > a:hover,
@@ -3297,7 +3297,7 @@ textarea.input-group-sm > .input-group-btn > .btn {
 .nav > li > a:hover,
 .nav > li > a:focus {
   text-decoration: none;
-  background-color: #bac9c2;
+  background-color: #67605B;
 }
 .nav > li.disabled > a {
   color: #f9faf9;
@@ -3977,13 +3977,13 @@ textarea.input-group-sm > .input-group-btn > .btn {
   }
   .navbar-inverse .navbar-nav .open .dropdown-menu > li > a:hover,
   .navbar-inverse .navbar-nav .open .dropdown-menu > li > a:focus {
-    color: #ffffff;
-    background-color: transparent;
+    color: #E5DBBE;
+    background-color: #2B6242;
   }
   .navbar-inverse .navbar-nav .open .dropdown-menu > .active > a,
   .navbar-inverse .navbar-nav .open .dropdown-menu > .active > a:hover,
   .navbar-inverse .navbar-nav .open .dropdown-menu > .active > a:focus {
-    color: #ffffff;
+    color: #E5DBBE;
     background-color: #5c8840;
   }
   .navbar-inverse .navbar-nav .open .dropdown-menu > .disabled > a,
@@ -3997,7 +3997,7 @@ textarea.input-group-sm > .input-group-btn > .btn {
   color: #f9faf9;
 }
 .navbar-inverse .navbar-link:hover {
-  color: #ffffff;
+  color: #E5DBBE;
 }
 .breadcrumb {
   padding: 8px 15px;
@@ -4366,9 +4366,9 @@ a.thumbnail:focus {
   color: #356635;
 }
 .alert-info {
-  background-color: #d9edf7;
-  border-color: #bce8f1;
-  color: #3a87ad;
+  background-color: #E5DBBE;
+  border-color: #312D2A;
+  color: #312D2A;
 }
 .alert-info hr {
   border-top-color: #a6e1ec;
