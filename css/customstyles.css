@@ -891,6 +891,8 @@ span.soft {
 
     ul#mysidebar {
         width: 225px;
+        background-image: url('../images/96dpi_texture_natural_10_a_mod.png');
+        height: 100%;
     }
 }
 
@@ -898,6 +900,8 @@ span.soft {
 
     ul#mysidebar {
         max-width: 100%;
+        background-image: url('../images/96dpi_texture_natural_10_a_mod.png');
+        height: 100%;
     }
 }
 

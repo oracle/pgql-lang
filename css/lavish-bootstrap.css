@@ -2793,7 +2793,7 @@ input[type="button"].btn-block {
   margin: 2px 0 0;
   list-style: none;
   font-size: 14px;
-  background-color: #312D2A;
+  background-color: rgba(0, 0, 0, 0);
   border: 0px solid #cccccc;
   border: 0px solid rgba(0, 0, 0, 0.15);
   border-radius: 4px;
