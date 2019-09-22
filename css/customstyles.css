@@ -131,7 +131,7 @@ th {
 table {
     max-width: 90%;
     margin-bottom: 20px;
-    border: 1px solid #dedede;
+    border: 0px solid #E5DBBE;
 }
 
 table > thead > tr > th,
@@ -143,13 +143,13 @@ table > tfoot > tr > td {
     padding: 8px;
     line-height: 1.42857143;
     vertical-align: top;
-    border-top: 1px solid #ddd;
+    border-top: 0px solid #312D2A;
 }
 table > thead > tr > th {
     vertical-align: bottom;
-    border-bottom: 2px solid #ddd;
+    border-bottom: 0px solid #ddd;
     text-transform: none;
-    background-color: #777;
+    background-color: #2C5967;
     color: white;
     text-align: left;
 }
@@ -165,7 +165,11 @@ table > tbody + tbody {
     b
 }
 table > tbody > tr:nth-of-type(odd) {
-    background-color: #f9f9f9;
+    background-color: #94AFAF;
+    color: #312D2A;
+}
+table > tbody > tr:nth-of-type(odd) code {
+    color: #312D2A;
 }
 
 table col[class*="col-"] {

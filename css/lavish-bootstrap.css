@@ -274,6 +274,10 @@ a {
   color: #E6AC58;
   text-decoration: none;
 }
+code a {
+  color: #41817E;
+  text-decoration: none;
+}
 a:hover,
 a:focus {
   text-decoration: underline;
