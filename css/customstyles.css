@@ -165,14 +165,14 @@ table > tbody + tbody {
     b
 }
 table > tbody > tr:nth-of-type(odd) {
-    background-color: #94AFAF;
+    background-color: #8B8580;
     color: #312D2A;
 }
 table > tbody > tr:nth-of-type(odd) code {
     color: #312D2A;
 }
 table > tbody > tr:nth-of-type(even) {
-    background-color: #8B8580;
+    background-color: #94AFAF;
     color: #312D2A;
 }
 table > tbody > tr:nth-of-type(even) code {
@@ -608,7 +608,7 @@ a[data-toggle] {
 }
 
 .summary:before {
-    content: "Summary: ";
+    content: "Overview: ";
     font-weight: bold;
 }
 

@@ -18,9 +18,9 @@ PGQL is a graph pattern-matching query language for the [property graph data mod
 
 The following are the changes since PGQL 1.1:
 
-### New features since PGQL 1.1
+### New features in PGQL 1.2
 
-The new features in PGQL 1.2 are:
+The new features are:
 
  - [Shortest path finding](#shortest-path) and [Top-k shortest path finding](#top-k-shortest-path).
  - [Scalar subqueries](#scalar-subqueries).
@@ -30,7 +30,7 @@ The new features in PGQL 1.2 are:
  - [CASE](#case) statement.
  - [IN and NOT IN](#in-and-not-in) predicates.
 
-### Syntax changes since PGQL 1.1
+### Syntax changes in PGQL 1.2
 
 PGQL 1.2 is a superset of PGQL 1.1. There are no changes to existing syntax other than additions.
 
@@ -638,13 +638,13 @@ Syntactically, for vertices, this result in an empty pair of parenthesis. In cas
 
 The following table summarizes these short cuts.
 
-Syntax form | Example
+syntax form | example
 --- | ---
-Basic form | `(n) -[e]-> (m)`
-Omit variable name of the source vertex | `() -[e]-> (m)`
-Omit variable name of the destination vertex | `(n) -[e]-> ()`
-Omit variable names in both vertices | `() -[e]-> ()`
-Omit variable name in edge | `(n) -> (m)`
+basic form | `(n) -[e]-> (m)`
+omit variable name of the source vertex | `() -[e]-> (m)`
+omit variable name of the destination vertex | `(n) -[e]-> ()`
+omit variable names in both vertices | `() -[e]-> ()`
+omit variable name in edge | `(n) -> (m)`
 
 ### Disconnected graph patterns
 
@@ -820,7 +820,7 @@ Syntactically, an aggregation takes the form of aggregate followed by an optiona
 
 The following table gives an overview of the different aggregates and their supported input types.
 
-Aggregate Operator | Semantic | Required Input Type
+aggregate operator | semantic | required input type
 --- | --- | ---
 `COUNT` | counts the number of times the given expression has a bound (i.e. is not null). | any type, including vertex and edge
 `MIN` | takes the minimum of the values for the given expression. | numeric, string, boolean, date, time [with time zone], or, timestamp [with time zone]
@@ -1025,13 +1025,13 @@ The meaning of the different quantifiers is:
 
 | quantifier | meaning                              | matches                                                                                                                             |
 |------------|--------------------------------------|-------------------------------------------------------------------------------------------------------------------------------------|
-| *          | zero (0) or more                     | A path that connects the source and destination of the path by zero or more matches of a given pattern.                             |
-| +          | one (1) or more                      | A path that connects the source and destination of the path by one or more matches of a given pattern.                              |
-| ?          | zero or one (1), i.e. "optional"     | A path that connects the source and destination of the path by zero or one matches of a given pattern.                              |
-| { n }      | exactly _n_                          | A path that connects the source and destination of the path by exactly _n_ matches of a given pattern.                              |
-| { n, }     | _n_ or more                          | A path that connects the source and destination of the path by at least _n_ matches of a given pattern.                             |
-| { n, m }   | between _n_ and _m_ (inclusive)      | A path that connects the source and destination of the path by at least _n_ and at most _m_ (inclusive) matches of a given pattern. |
-| { , m }    | between zero (0) and _m_ (inclusive) | A path that connects the source and destination of the path by at least 0 and at most _m_ (inclusive) matches of a given pattern.   |
+| *          | zero (0) or more                     | a path that connects the source and destination of the path by zero or more matches of a given pattern                             |
+| +          | one (1) or more                      | a path that connects the source and destination of the path by one or more matches of a given pattern                              |
+| ?          | zero or one (1), i.e. "optional"     | a path that connects the source and destination of the path by zero or one matches of a given pattern                              |
+| { n }      | exactly _n_                          | a path that connects the source and destination of the path by exactly _n_ matches of a given pattern                              |
+| { n, }     | _n_ or more                          | a path that connects the source and destination of the path by at least _n_ matches of a given pattern                             |
+| { n, m }   | between _n_ and _m_ (inclusive)      | a path that connects the source and destination of the path by at least _n_ and at most _m_ (inclusive) matches of a given pattern |
+| { , m }    | between zero (0) and _m_ (inclusive) | a path that connects the source and destination of the path by at least 0 and at most _m_ (inclusive) matches of a given pattern   |
 
 All paths are considered, even the ones that contain a vertex or edge multiple times. In other words, cycles are permitted.
 
@@ -1794,11 +1794,11 @@ The following example shows a bind variable in the position of a label:
 
 The following table is an overview of the operators:
 
-Operator kind | Operator
+operator type | operator
 ------------- | --------
-Arithmetic    | `+`, `-`, `*`, `/`, `%`, `-` (unary minus)
-Relational    | `=`, `<>`, `<`, `>`, `<=`, `>=`
-Logical       | `AND`, `OR`, `NOT`
+arithmetic    | `+`, `-`, `*`, `/`, `%`, `-` (unary minus)
+relational    | `=`, `<>`, `<`, `>`, `<=`, `>=`
+logical       | `AND`, `OR`, `NOT`
 
 The corresponding grammar rules are:
 
@@ -1854,7 +1854,7 @@ Or                   ::= <ValueExpression> 'OR' <ValueExpression>
 
 The supported input types and corresponding return types are as follows:
 
-Operator                                            | type of A (and B)                                                                                     | Return Type
+operator                                            | type of A (and B)                                                                                     | return type
 --------------------------------------------------- | ----------------------------------------------------------------------------------------------------- | -----------
 A `+` B<br>A `-` B<br>A `*` B<br>A `/` B<br>A `%` B | numeric                                                                                               | numeric*
 `-`A (unary minus)                                  | numeric                                                                                               | type of A
@@ -1874,7 +1874,7 @@ Comparison with other operand type combinations, such as dates and timestamp, is
 
 Operator precedences are shown in the following list, from the highest precedence to the lowest. An operator on a higher level (e.g. level 1) is evaluated before an operator on a lower level (e.g. level 2).
 
-Level | Operator Precedence
+level | operator precedence
 ----- | ---
 1     | `-` (unary minus)
 2     | `*`, `/`, `%`
@@ -1902,7 +1902,7 @@ Three-valued logic applies when `null` values appear in computation.
 
 An operator returns `null` if one of its operands yields `null`, with an exception for `AND` and `OR`. This is shown in the following table:
 
-Operator                        | Result when A is null                         | Result when B is null                          | Result when A and B are null
+operator                        | result when A is null                         | result when B is null                          | result when A and B are null
 ------------------------------- | --------------------------------------------- | ---------------------------------------------- | ----------------------------
 A `+` `-` `*` `/` `%` B         | `null`                                        | `null`                                         | `null`
 `-` A                           | `null`                                        | N/A                                            | N/A
@@ -2317,7 +2317,7 @@ SELECT CAST(n.age AS STRING), CAST('123' AS INTEGER), CAST('09:15:00+01:00' AS T
 
 Casting is allowed between the following data types:
 
-| From \ To                | string | exact numeric | approximate numeric | boolean | time | time with time zone | date | timestamp | timestamp with time zone |
+| from \ to                | string | exact numeric | approximate numeric | boolean | time | time with time zone | date | timestamp | timestamp with time zone |
 |--------------------------|--------|---------------|---------------------|---------|------|--------------------|------|-----------|-------------------------|
 | string                   | Y      | Y             | Y                   | Y       | Y    | Y                  | Y    | Y         | Y                       |
 | exact numeric            | Y      | M             | M                   | N       | N    | N                  | N    | N         | N                       |
@@ -2621,7 +2621,7 @@ ESCAPED_CHARACTER ::= '\\' [tnr\"\'\\]
 
 Note that an escaped character is either a tab (`\t`), a line feed (`\n`), a carriage return (`\r`), a single (`\'`) or double quote (`\"`), or a backslash (`\\`). Corresponding Unicode code points are shown in the table below.
 
-Escape | Unicode code point
+escaped character | unicode code point
 --- | ---
 `\t` | U+0009 (tab)
 `\n` | U+000A (line feed)
