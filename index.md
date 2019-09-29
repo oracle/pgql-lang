@@ -28,7 +28,7 @@ A basic example
 
 An example property graph is:
 
-{% include image.html file="example_graphs/financial_transactions.png" style="width:680px;" %}
+{% include image.html file="example_graphs/financial_transactions.png" style="width: 680px;padding-bottom: 15px;" %}
 
 If we take the above graph and execute the following PGQL query on it,
 
