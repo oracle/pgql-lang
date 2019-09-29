@@ -2,10 +2,10 @@
 title: "PGQL 1.2 Specification"
 date: "20 February 2019"
 permalink: /spec/1.2/
-summary: "PGQL is an SQL-like query language for the property graph data model and is based on the paradigm of graph pattern matching,
-allowing you to specify patterns that are then matched against vertices and edges in a graph.
-Like SQL, PGQL has support for grouping (GROUP BY), aggregation (e.g. MIN, MAX, AVG, SUM), sorting (ORDER BY) and many other familiar constructs.
-Furthermore, PGQL has powerful regular expression constructs for reachability and shortest path finding."
+summary: "PGQL is an SQL-based query language for the property graph data model that allows
+you to specify high-level graph patterns which are matched against vertices and edges in a graph.
+PGQL has support for grouping (GROUP BY), aggregation (e.g. MIN, MAX, AVG, SUM), sorting (ORDER BY) and many other familiar SQL constructs.
+Furthermore, PGQL has powerful regular expression constructs for graph reachability (transitive closure) and shortest path finding."
 sidebar: spec_1_2_sidebar
 toc: false
 ---
@@ -2287,7 +2287,7 @@ If a UDF is registered that has the same name as a built-in function, then, upon
 
 ## CAST
 
-While [_implicity_ type conversion](#implicit-type-conversion) is supported between numeric types, between time types, and between timezone types, other type conversions require _explicit_ conversion through casting (`CAST`).
+While [_implicit_ type conversion](#implicit-type-conversion) is supported between numeric types, between time types, and between timezone types, other type conversions require _explicit_ conversion through casting (`CAST`).
 
 The syntax is:
 

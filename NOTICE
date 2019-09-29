@@ -1,8 +1,9 @@
-/* The following license pertains to the Oracle Sans font, the background illustrations, and the figures of graphs */
+/* The following license pertains to the Oracle Sans font, the background
+   illustrations, the graph figures, and the site's coloring combination */
 
 Copyright © 1995, 2019, Oracle and/or its affiliates.
 
-/* The following license pertains to the site's theme */ 
+/* The following license pertains to the site's underlying template */
 
 The MIT License (MIT)
 
@@ -27,7 +28,7 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 
 /* The following license pertains to the Navgoco jQuery component used for the
-   sidebar (BSD License). */
+   sidebar on the PGQL specification pages (BSD License). */
 
 Copyright (c) 2013, Christodoulos Tsoulloftas, http://www.komposta.net
 All rights reserved.
