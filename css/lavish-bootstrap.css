@@ -608,7 +608,7 @@ code {
   white-space: nowrap;
   border-radius: 4px;
 }
-.highlight  { background: #E5DBBE; } /* background color for code block */
+.highlight  { background: #FCFBFA; } /* background color for code block */
 pre {
   display: block;
   padding: 9.5px;
