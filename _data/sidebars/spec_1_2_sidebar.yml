@@ -13,12 +13,12 @@ entries:
       output: web
       subfolderitems:
 
-      - title: 'New features since PGQL 1.1'
-        url: /spec/1.2/#new-features-since-pgql-11
+      - title: 'New features in PGQL 1.2'
+        url: /spec/1.2/#new-features-in-pgql-12
         output: web
 
-      - title: 'Syntax changes since PGQL 1.1'
-        url: /spec/1.2/#syntax-changes-since-pgql-11
+      - title: 'Syntax changes in PGQL 1.2'
+        url: /spec/1.2/#syntax-changes-in-pgql-12
         output: web
 
     - title: 'A note on the Grammar'
