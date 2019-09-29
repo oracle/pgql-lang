@@ -17,11 +17,11 @@ Alongside SQL constructs like `SELECT`, `FROM`, `WHERE`, `GROUP BY` and `ORDER B
 Fixed-length graph patterns match a fixed number of vertices and edges per solution.
 The types of the vertices and edges can be defined through arbitrary label expressions such as `friend_of|sibling_of`, which matches edges that have either the label `friend_of` or the label `sibling_of`.
 This means that edge patterns are higher-level joins that can relate different types of entities at the same time.
-Variable-length graph patterns contain one or more quantifiers like `*`, `+`, `?` or `{2,4}` for matching vertices and edges in a recursive fashion.
+Variable-length graph patterns, on the other hand, contain one or more quantifiers like `*`, `+`, `?` or `{2,4}` for matching vertices and edges in a recursive fashion.
 This allows for encoding graph reachability (transitive closure) queries as well as shortest and cheapest path finding queries.
 
-PGQL also deeply integrates graph pattern matching with subquery capabilities, allowing vertices and edges that are matched in one query to be passed into another query for continued joining or graph pattern matching.
-Also, since PGQL is built on top of SQL's foundation, it benefits from all existing SQL features and any new SQL features that will be added to the standard over time.
+PGQL furthermore deeply integrates graph pattern matching with subquery capabilities, allowing vertices and edges that are matched in one query to be passed into another query for continued joining or graph pattern matching.
+Finally, since PGQL is built on top of SQL's foundation, it benefits from all existing SQL features and any new SQL features that will be added to the standard over time.
 
 PGQL is an [open-sourced project](https://github.com/oracle/pgql-lang), and we welcome contributions and/or suggestions from anyone and in any form.
 
@@ -32,7 +32,7 @@ An example property graph is:
 
 {% include image.html file="example_graphs/financial_transactions.png" style="width: 680px;padding-bottom: 15px;" %}
 
-If we take the above graph and execute the following PGQL query on it,
+If we take the above graph and execute the following PGQL query on it:
 
 ```sql
   SELECT owner.name AS account_holder, SUM(t.amount) AS total_transacted_with_Nikita
@@ -42,7 +42,7 @@ If we take the above graph and execute the following PGQL query on it,
 GROUP BY owner
 ```
 
-then the result is:
+Then the result is:
 
 ```
 +----------------+------------------------------+
