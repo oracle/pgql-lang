@@ -52,7 +52,7 @@ a[data-toggle="tooltip"] {
 
 .navbar-inverse .navbar-nav > .open > a, .navbar-inverse .navbar-nav > .open > a:hover, .navbar-inverse .navbar-nav > .open > a:focus {
     background-color: #2B6242;
-    color: #E5DBBE;
+    color: #FCFBFA;
 }
 
 /* used when screen is very small like on smartphone */
@@ -100,7 +100,7 @@ li.sidebarTitle {
     margin-top:40px;
     font-weight:normal;
     font-size:130%;
-    color: #E5DBBE;
+    color: #FCFBFA;
     margin-bottom:10px;
     margin-left: 5px;
 
@@ -114,23 +114,23 @@ li.sidebarTitle {
 }
 .navbar-inverse .navbar-brand:hover,
 .navbar-inverse .navbar-brand:focus {
-    color: #E5DBBE;
+    color: #FCFBFA;
 }
 .navbar-inverse .navbar-nav > li > a {
     color: #ffffff;
 }
 .navbar-inverse .navbar-nav > li > a:hover,
 .navbar-inverse .navbar-nav > li > a:focus {
-    color: #E5DBBE;
+    color: #FCFBFA;
 }
 .navbar-inverse .navbar-nav > .active > a,
 .navbar-inverse .navbar-nav > .active > a:hover,
 .navbar-inverse .navbar-nav > .active > a:focus {
-    color: #E5DBBE;
+    color: #FCFBFA;
 }
 .navbar-inverse .navbar-nav > .dropdown > a:hover .caret {
-    border-top-color: #E5DBBE;
-    border-bottom-color: #E5DBBE;
+    border-top-color: #FCFBFA;
+    border-bottom-color: #FCFBFA;
 }
 .navbar-inverse .navbar-nav > .dropdown > a .caret {
     border-top-color: #ffffff;

@@ -131,7 +131,7 @@ th {
 table {
     max-width: 90%;
     margin-bottom: 20px;
-    border: 0px solid #E5DBBE;
+    border: 0px solid #FCFBFA;
 }
 
 table > thead > tr > th,
@@ -150,7 +150,7 @@ table > thead > tr > th {
     border-bottom: 0px solid #ddd;
     text-transform: none;
     background-color: #2C5967;
-    color: #E5DBBE;
+    color: #FCFBFA;
     text-align: left;
 }
 table > caption + thead > tr:first-child > th,
@@ -292,7 +292,7 @@ div#toc ul li ul li::before {
 div#toc >ul::before {
     content: "Table of Contents";
     font-weight: 500;
-    color: #E5DBBE;
+    color: #FCFBFA;
     text-align:center;
     margin-left:auto;
     margin-right:auto;
@@ -361,7 +361,7 @@ a.accordion-toggle, a.accordion-collapsed {
 }
 
 .nav a {
-    color: #E5DBBE;
+    color: #FCFBFA;
     display: block;
     outline: none;
     /*-webkit-border-radius: 4px;
@@ -386,7 +386,7 @@ a.accordion-toggle, a.accordion-collapsed {
 
 .nav a:hover, .nav li.active > a {
     background-color: #2B6242;
-    color: #E5DBBE;
+    color: #FCFBFA;
 }
 
 .nav > li.active > a  {
@@ -578,7 +578,7 @@ hr.shaded {
     height: 1px;
     border: 0;
     margin-top: 70px;
-    background: #E5DBBE;
+    background: #ffffff;
     width: 100%;
     margin-bottom: 10px;
 }
@@ -877,7 +877,7 @@ span.soft {
 
 @media (max-width: 767px) {
     .navbar-inverse .navbar-nav .open .dropdown-menu > li > a {
-        color: #E5DBBE;
+        color: #FCFBFA;
     }
 }
 
@@ -1057,7 +1057,7 @@ table thead th code.highlighter-rouge {
     box-shadow: 2px 2px 4px #dedede;
     width: 100px;
     height: 80px;
-    background-color: #E5DBBE;
+    background-color: #FCFBFA;
     font-family: Arial;
     font-size: 12px;
     hyphens: auto;

@@ -2817,7 +2817,7 @@ input[type="button"].btn-block {
   clear: both;
   font-weight: normal;
   line-height: 1.428571429;
-  color: #E5DBBE;
+  color: #FCFBFA;
   white-space: nowrap;
 }
 .dropdown-menu > li > a:hover,
@@ -3981,13 +3981,13 @@ textarea.input-group-sm > .input-group-btn > .btn {
   }
   .navbar-inverse .navbar-nav .open .dropdown-menu > li > a:hover,
   .navbar-inverse .navbar-nav .open .dropdown-menu > li > a:focus {
-    color: #E5DBBE;
+    color: #FCFBFA;
     background-color: #2B6242;
   }
   .navbar-inverse .navbar-nav .open .dropdown-menu > .active > a,
   .navbar-inverse .navbar-nav .open .dropdown-menu > .active > a:hover,
   .navbar-inverse .navbar-nav .open .dropdown-menu > .active > a:focus {
-    color: #E5DBBE;
+    color: #FCFBFA;
     background-color: #5c8840;
   }
   .navbar-inverse .navbar-nav .open .dropdown-menu > .disabled > a,
@@ -4001,7 +4001,7 @@ textarea.input-group-sm > .input-group-btn > .btn {
   color: #f9faf9;
 }
 .navbar-inverse .navbar-link:hover {
-  color: #E5DBBE;
+  color: #FCFBFA;
 }
 .breadcrumb {
   padding: 8px 15px;
@@ -4370,7 +4370,7 @@ a.thumbnail:focus {
   color: #356635;
 }
 .alert-info {
-  background-color: #E5DBBE;
+  background-color: #FCFBFA;
   border-color: #312D2A;
   color: #312D2A;
 }
