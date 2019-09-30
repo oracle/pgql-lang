@@ -685,11 +685,11 @@ SELECT *
   FROM g MATCH (:Person) -[:likes|knows]-> (:Person)
 ```
 
-There are also built-in functions available for labels (see [Built-in Functions](#built-in-functions)):
+There are also built-in functions available for labels:
 
- - `has_label(element, string)` returns `true` if the vertex or edge (first argument) has the specified label (second argument).
- - `labels(element)` returns the set of labels of a vertex or edge in the case the vertex/edge has multiple labels.
- - `label(element)` returns the label of a vertex or edge in the case the vertex/edge has only a single label.
+ - [label(element)](#label) returns the label of a vertex or edge in the case the vertex/edge has only a single label
+ - [labels(element)](#labels) returns the set of labels of a vertex or edge in the case the vertex/edge has multiple labels.
+ - [has_label(element, string)](#has_label) returns `true` if the vertex or edge (first argument) has the specified label (second argument).
 
 ## WHERE
 
