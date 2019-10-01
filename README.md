@@ -1,14 +1,14 @@
-# PGQL: a Property Graph Query Language
+# PGQL - Property Graph Query Language
 
-PGQL is an SQL-like query language for the [property graph data model](http://pgql-lang.org/spec/1.2/#property-graph-data-model).
-See:
+PGQL is an SQL-based query language for the [property graph data model](http://pgql-lang.org/spec/1.2/#property-graph-data-model), bringing graph pattern matching capabilities to SQL and NoSQL users.
 
- - PGQL website: [http://pgql-lang.org/](http://pgql-lang.org/)
- - Specification: [http://pgql-lang.org/spec/1.2/](http://pgql-lang.org/spec/1.2/).
+See the website for a language specification and any newsworthy updates:
+
+[![PGQL Home](pgql_home_screenshot.png)](http://pgql-lang.org/)
 
 ## PGQL Parser and Static Query Validator
 
-The 'master' branch of this repository contains a parser for PGQL with the following features:
+This Git repository contains a parser for PGQL with the following features:
 
  - Easy-to-understand IR: Given a query string, the parser returns an easy-to-understand intermediate representation (IR) of the query as a set of Java objects
     - see [__GraphQuery.java__](graph-query-ir/src/main/java/oracle/pgql/lang/ir/GraphQuery.java)
@@ -61,7 +61,7 @@ The 'master' branch of this repository contains a parser for PGQL with the follo
        OR n.name = 'James'
    ```
 
- - __Code completion__: given a (partial) query string and a cursor position, the parser can suggest a set of code completions, including built-in functions, labels and properties. These completions can be used in e.g. a web editor.
+ - __Code completion__: given a (partial) query string and a cursor position, the parser can suggest a set of code completions, including built-in functions, labels and properties. These completions can for example be used by an interactive web editor.
    By providing the parser with metadata about the graph (existing properties and labels), the completions will also include label and property suggestions.
 
 ## Build and Install the Parser
@@ -123,7 +123,6 @@ See [PGQL 1.2 Specification](http://pgql-lang.org/spec/1.2/).
     - `graph-query-ir`: Java representation of graph queries
     - `pqgl-spoofax`: Spoofax implementation of PGQL (parser + error checks)
     - `pgql-lang`: translation of Spoofax AST into `graph-query-ir`
-- Source code for PGQL's website can be found on the `gh-pages` branch of this repository
 
 ## Contributions
 

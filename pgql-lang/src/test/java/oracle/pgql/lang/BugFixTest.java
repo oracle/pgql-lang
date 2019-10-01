@@ -209,4 +209,41 @@ public class BugFixTest extends AbstractPgqlTest {
     assertTrue(pgql.parse(shortestQuery).getErrorMessages().contains(errorMessage));
     assertTrue(pgql.parse(cheapestQuery).getErrorMessages().contains(errorMessage));
   }
+
+  @Test
+  public void errorsOnUndefinedVertexTable() throws Exception {
+    String statement = "create property graph g\n" + //
+        "  vertex tables (\n" + //
+        "    Person\n" + //
+        "  )\n" + //
+        "  edge tables (\n" + //
+        "    knows Source person destination xyz\n" + //
+        "  )\n";
+    String errorMessage = "Undefined vertex table";
+    assertTrue(pgql.parse(statement).getErrorMessages().contains(errorMessage));
+  }
+
+  @Test
+  public void errorsOnDuplicateVertexTable() throws Exception {
+    String statement = "create property graph g\n" + //
+        "  vertex tables (\n" + //
+        "    Person, Person\n" + //
+        "  )";
+    String errorMessage = "Table defined as vertex table multiple times";
+    assertTrue(pgql.parse(statement).getErrorMessages().contains(errorMessage));
+  }
+
+  @Test
+  public void errorsOnDuplicateEdgeTable() throws Exception {
+    String statement = "create property graph g\n" + //
+        "  vertex tables (\n" + //
+        "    Person\n" + //
+        "  )\n" + //
+        "  edge tables (\n" + //
+        "    knows SOURCE Person DESTINATION Person,\n" + //
+        "    knows SOURCE Person DESTINATION Person\n" + //
+        "  )";
+    String errorMessage = "Table defined as edge table multiple times";
+    assertTrue(pgql.parse(statement).getErrorMessages().contains(errorMessage));
+  }
 }

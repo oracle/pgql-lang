@@ -409,12 +409,12 @@ rules // MODIFY
   nabl-constraint(|ctx):
     CreatePropertyGraph(_, VertexTables(vertexTables), EdgeTables(edgeTables)) -> <fail>
     with vertexTableNames := <map(?VertexTable(<id>, _, _); to-name-without-case-sensitive-info)> vertexTables
-       ; <generate-error-on-duplicates(|ctx, "Table declared as vertex table multiple times")> vertexTableNames
+       ; <generate-error-on-duplicates(|ctx, "Table defined as vertex table multiple times")> vertexTableNames
        ; edgeTableNames := <map(?EdgeTable(<id>, _, _, _, _); to-name-without-case-sensitive-info)> edgeTables
-       ; <generate-error-on-duplicates(|ctx, "Table declared as edge table multiple times")> edgeTableNames
+       ; <generate-error-on-duplicates(|ctx, "Table defined as edge table multiple times")> edgeTableNames
        ; vertexTableReferences := <collect((?SourceVertexTable(_, <id>) + ?DestinationVertexTable(_, <id>)); to-name-without-case-sensitive-info)> edgeTables
        ; unresolvedVertexTableReferences := <diff> (vertexTableReferences, vertexTableNames)
-       ; <batch-generate-error(|ctx, "Undeclared vertex table")> unresolvedVertexTableReferences
+       ; <batch-generate-error(|ctx, "Undefined vertex table")> unresolvedVertexTableReferences
 
   to-name-without-case-sensitive-info = origin-track-forced(?Name(None(), Identifier(localName, _)); !Name(None(), localName))
   to-name-without-case-sensitive-info = origin-track-forced(?Name(Some(SchemaName(Identifier(schemaName, _))), Identifier(localName, _)); !Name(schemaName, localName))
