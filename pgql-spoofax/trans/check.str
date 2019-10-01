@@ -406,12 +406,12 @@ rules // MODIFY
   nabl-constraint(|ctx):
     CreatePropertyGraph(_, VertexTables(vertexTables), EdgeTables(edgeTables)) -> <fail>
     with vertexTableNames := <map(?VertexTable(<id>, _, _))> vertexTables
-       ; <generate-error-on-duplicates(|ctx, "Table declared as vertex table multiple times")> vertexTableNames
+       ; <generate-error-on-duplicates(|ctx, "Table defined as vertex table multiple times")> vertexTableNames
        ; edgeTableNames := <map(?EdgeTable(<id>, _, _, _, _))> edgeTables
-       ; <generate-error-on-duplicates(|ctx, "Table declared as edge table multiple times")> edgeTableNames
+       ; <generate-error-on-duplicates(|ctx, "Table defined as edge table multiple times")> edgeTableNames
        ; vertexTableReferences := <collect(?SourceVertexTable(_, <id>) + ?DestinationVertexTable(_, <id>))> edgeTables
        ; unresolvedVertexTableReferences := <diff> (vertexTableReferences, vertexTableNames)
-       ; <batch-generate-error(|ctx, "Undeclared vertex table")> unresolvedVertexTableReferences
+       ; <batch-generate-error(|ctx, "Undefined vertex table")> unresolvedVertexTableReferences
 
   nabl-constraint(|ctx):
     PropertyExpressions(expAsVars) -> <fail>

@@ -44,10 +44,8 @@ public class Label {
    * Constructor for PROPERTIES ARE ALL COLUMNS EXCEPT ( .. )
    */
   public Label(String name, boolean propertiesAreAllColumns, List<String> except) {
-    this.name = name;
+    this(name, propertiesAreAllColumns);
     this.propertiesAreAllColumnsExcept = except;
-    this.propertiesAreAllColumns = propertiesAreAllColumns;
-    assert propertiesAreAllColumns == true;
   }
 
   /**
@@ -97,23 +95,25 @@ public class Label {
   }
 
   private String printProperties() {
-    if (properties != null) {
+    System.out.println(name + ": " + propertiesAreAllColumns);
+    if (propertiesAreAllColumns) {
+      assert properties == null;
+      if (propertiesAreAllColumnsExcept == null) {
+        return " PROPERTIES ARE ALL COLUMNS";
+      } else {
+        return " PROPERTIES ARE ALL COLUMNS EXCEPT (" + propertiesAreAllColumnsExcept.stream() //
+            .map(x -> x.toString()) //
+            .collect(Collectors.joining(", ")) + ")";
+      }
+    } else {
+      assert properties != null;
       if (properties.isEmpty()) {
-        return "";
+        return " NO PROPERTIES";
       } else {
         return " PROPERTIES (" + properties.stream() //
             .map(x -> x.toString()) //
             .collect(Collectors.joining(", ")) + ")";
       }
-    } else if (propertiesAreAllColumnsExcept != null) {
-      return " PROPERTIES ARE ALL COLUMNS EXCEPT (" + propertiesAreAllColumnsExcept.stream() //
-          .map(x -> x.toString()) //
-          .collect(Collectors.joining(", ")) + ")";
-    } else if (propertiesAreAllColumns) {
-      return " PROPERTIES ARE ALL COLUMNS";
-    } else {
-      throw new IllegalStateException(
-          "One of 'properties' or 'propertiesAreAllColumnsExcept' or 'propertiesAreAllColumns' need to be set");
     }
   }
 

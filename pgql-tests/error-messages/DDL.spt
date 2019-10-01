@@ -2,7 +2,7 @@ module common-path-expressions
 
 language pgql-lang
 
-test Undeclared vertex table [[
+test Undefined vertex table [[
 
   CREATE PROPERTY GRAPH MyGraph
     VERTEX TABLES (
@@ -12,7 +12,21 @@ test Undeclared vertex table [[
       studentOf SOURCE [[Student.Person]] DESTINATION [[University]]
     )
 
-]] error like "Undeclared vertex table" at #1, #2
+]] error like "Undefined vertex table" at #1, #2
+
+test Duplicate vertex and edge tables [[
+
+  CREATE PROPERTY GRAPH MyGraph
+    VERTEX TABLES (
+      [[Person]], [[Person]]
+    )
+    EDGE TABLES (
+      [[knows]] SOURCE Person DESTINATION Person,
+      [[knows]] SOURCE Person DESTINATION Person
+    )
+
+]] error like "Table defined as vertex table multiple times" at #1, #2
+   error like "Table defined as edge table multiple times" at #3, #4
 
 test Complex expressions as property not allowed [[
 

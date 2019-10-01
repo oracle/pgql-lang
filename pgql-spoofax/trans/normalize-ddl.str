@@ -40,7 +40,9 @@ rules
   normalize-LabelAndPropertiesClause(|tableName):
     None() -> LabelAndPropertiesClause([defaultLabelAndProperties])
     with defaultLabelClause := LabelClause(tableName)
-       ; defaultPropertiesClause := None() // meaning: PROPERTIES ARE ALL COLUMNS
+       ; exceptProperties := None()
+       ; optionalAreKeyword := None()
+       ; defaultPropertiesClause := Some(PropertiesAreAllColumns(optionalAreKeyword, exceptProperties))
        ; defaultLabelAndProperties := LabelAndProperties(defaultLabelClause, defaultPropertiesClause)
 
   normalize-LabelAndPropertiesClause(|tableName):

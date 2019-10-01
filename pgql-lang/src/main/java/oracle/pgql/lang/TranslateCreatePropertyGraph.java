@@ -45,17 +45,19 @@ public class TranslateCreatePropertyGraph {
 
   private static int EDGE_TABLE_KEY = 1;
 
+  private static int KEY_CLAUSE_COLUMN_NAMES = 0;
+
   private static int EDGE_TABLE_SOURCE_VERTEX_TABLE = 2;
 
   private static int EDGE_TABLE_DESTINATION_VERTEX_TABLE = 3;
 
   private static int EDGE_TABLE_LABEL_AND_PROPERTIES = 4;
 
-  private static int SOURCE_VERTEX_TABLE_KEY = 0;
+  private static int SOURCE_VERTEX_KEY = 0;
 
   private static int SOURCE_VERTEX_TABLE_NAME = 1;
 
-  private static int DESTINATION_VERTEX_TABLE_KEY = 0;
+  private static int DESTINATION_VERTEX_KEY = 0;
 
   private static int DESTINATION_VERTEX_TABLE_NAME = 1;
 
@@ -113,26 +115,28 @@ public class TranslateCreatePropertyGraph {
       String schemaName = getSchemaName(tableNameT);
       String tableName = getLocalName(tableNameT);
 
-      // Key edgeKey = getKey(edgeTableT.getSubterm(EDGE_TABLE_KEY)); not used for now
+      Key edgeKey = getKey(edgeTableT.getSubterm(EDGE_TABLE_KEY));
 
       IStrategoTerm sourceVertexTableT = edgeTableT.getSubterm(EDGE_TABLE_SOURCE_VERTEX_TABLE);
-      Key sourceVertexTableKey = getKey(sourceVertexTableT.getSubterm(SOURCE_VERTEX_TABLE_KEY));
+      Key edgeSourceKey = getKey(sourceVertexTableT.getSubterm(SOURCE_VERTEX_KEY));
       IStrategoTerm sourceVertexTableNameT = sourceVertexTableT.getSubterm(SOURCE_VERTEX_TABLE_NAME);
       String sourceVertexTableSchemaName = getSchemaName(sourceVertexTableNameT);
       String sourceVertexTableName = getLocalName(sourceVertexTableNameT);
       VertexTable sourceVertexTable = getVertexTable(vertexTables, sourceVertexTableSchemaName, sourceVertexTableName);
+      Key sourceVertexKey = null; // not supported for now
 
       IStrategoTerm destinationVertexTableT = edgeTableT.getSubterm(EDGE_TABLE_DESTINATION_VERTEX_TABLE);
-      Key destinationVertexTableKey = getKey(destinationVertexTableT.getSubterm(DESTINATION_VERTEX_TABLE_KEY));
+      Key edgeDestinationKey = getKey(destinationVertexTableT.getSubterm(DESTINATION_VERTEX_KEY));
       IStrategoTerm destinationVertexTableNameT = destinationVertexTableT.getSubterm(DESTINATION_VERTEX_TABLE_NAME);
       String destinationVertexTableSchemaName = getSchemaName(destinationVertexTableNameT);
       String destinationVertexTableName = getLocalName(destinationVertexTableNameT);
       VertexTable destinationVertexTable = getVertexTable(vertexTables, destinationVertexTableSchemaName,
           destinationVertexTableName);
+      Key destinationVertexKey = null; // not supported for now
 
       List<Label> labels = getLabels(edgeTableT.getSubterm(EDGE_TABLE_LABEL_AND_PROPERTIES));
-      result.add(new EdgeTable(schemaName, tableName, sourceVertexTable, sourceVertexTableKey, destinationVertexTable,
-          destinationVertexTableKey, labels));
+      result.add(new EdgeTable(schemaName, tableName, edgeKey, sourceVertexTable, edgeSourceKey, sourceVertexKey,
+          destinationVertexTable, edgeDestinationKey, destinationVertexKey, labels));
     }
     return result;
   }
@@ -145,14 +149,14 @@ public class TranslateCreatePropertyGraph {
         return vertexTable;
       }
     }
-    throw new IllegalStateException("vertex table not found");
+    return null; // simply pass through; parser will generate an appropriate message when a vertex table is undefined
   }
 
   private static Key getKey(IStrategoTerm keyClauseT) {
     if (isNone(keyClauseT)) {
       return null;
     }
-    keyClauseT = getSome(keyClauseT);
+    keyClauseT = getSome(keyClauseT).getSubterm(KEY_CLAUSE_COLUMN_NAMES);
     List<String> columnNames = new ArrayList<>();
     for (IStrategoTerm columnReference : keyClauseT) {
       columnNames.add(getString(columnReference));

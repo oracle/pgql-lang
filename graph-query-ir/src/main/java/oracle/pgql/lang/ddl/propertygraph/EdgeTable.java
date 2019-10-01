@@ -115,8 +115,8 @@ public class EdgeTable extends ElementTable {
 
   @Override
   public String toString() {
-    return printLocalOrSchemaQualifiedName(getSchemaName(), getTableName()) + printSource() + printDestination()
-        + printLabels("\n      ");
+    return printLocalOrSchemaQualifiedName(getSchemaName(), getTableName()) + printKey(" ") + printSource()
+        + printDestination() + printLabels("\n      ");
   }
 
   private String printSource() {
