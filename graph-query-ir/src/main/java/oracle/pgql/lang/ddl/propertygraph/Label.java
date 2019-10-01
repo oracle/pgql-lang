@@ -95,7 +95,6 @@ public class Label {
   }
 
   private String printProperties() {
-    System.out.println(name + ": " + propertiesAreAllColumns);
     if (propertiesAreAllColumns) {
       assert properties == null;
       if (propertiesAreAllColumnsExcept == null) {
