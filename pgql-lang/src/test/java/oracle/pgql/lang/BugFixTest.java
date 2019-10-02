@@ -246,4 +246,32 @@ public class BugFixTest extends AbstractPgqlTest {
     String errorMessage = "Table defined as edge table multiple times";
     assertTrue(pgql.parse(statement).getErrorMessages().contains(errorMessage));
   }
+
+  @Test
+  public void defaultToPropertiesAreAllColumns() throws Exception {
+    String statement1 = "CREATE PROPERTY GRAPH g\n" + //
+        "  VERTEX TABLES (\n" + //
+        "    X,\n" + //
+        "    Y LABEL Y,\n" + //
+        "    Z LABEL Z1 LABEL Z2\n" + //
+        "  )\n" + //
+        "  EDGE TABLES (\n" + //
+        "    E1 SOURCE X DESTINATION Y,\n" + //
+        "    E2 SOURCE X DESTINATION Y LABEL E2,\n" + //
+        "    E3 SOURCE X DESTINATION Y LABEL E3_1 LABEL E3_2\n" + //
+        "  )";
+    String statement2 = "CREATE PROPERTY GRAPH g\n" + //
+        "  VERTEX TABLES (\n" + //
+        "    X PROPERTIES ARE ALL COLUMNS,\n" + //
+        "    Y LABEL Y PROPERTIES ARE ALL COLUMNS,\n" + //
+        "    Z LABEL Z1 PROPERTIES ARE ALL COLUMNS LABEL Z2 PROPERTIES ARE ALL COLUMNS\n" + //
+        "  )\n" + //
+        "  EDGE TABLES (\n" + //
+        "    E1 SOURCE X DESTINATION Y PROPERTIES ARE ALL COLUMNS,\n" + //
+        "    E2 SOURCE X DESTINATION Y LABEL E2 PROPERTIES ARE ALL COLUMNS,\n" + //
+        "    E3 SOURCE X DESTINATION Y LABEL E3_1 PROPERTIES ARE ALL COLUMNS LABEL E3_2 PROPERTIES ARE ALL COLUMNS\n" + //
+        "  )";
+
+    assertEquals(pgql.parse(statement1).getStatement(), pgql.parse(statement2).getStatement());
+  }
 }

@@ -40,9 +40,7 @@ rules
   normalize-LabelAndPropertiesClause(|tableName):
     None() -> LabelAndPropertiesClause([defaultLabelAndProperties])
     with defaultLabelClause := LabelClause(tableName)
-       ; exceptProperties := None()
-       ; optionalAreKeyword := None()
-       ; defaultPropertiesClause := Some(PropertiesAreAllColumns(optionalAreKeyword, exceptProperties))
+       ; defaultPropertiesClause := None()
        ; defaultLabelAndProperties := LabelAndProperties(defaultLabelClause, defaultPropertiesClause)
 
   normalize-LabelAndPropertiesClause(|tableName):
@@ -61,7 +59,12 @@ rules
     Some(PropertyExpressions(properties)) -> Some(PropertyExpressions(properties'))
     with properties' := <map(try(normalize-property-expression); try(normalize-property))> properties
 
-  normalize-PropertiesClause = (?None() + ?Some(NoProperties())); !Some(PropertyExpressions([]))
+  normalize-PropertiesClause:
+    None() -> Some(PropertiesAreAllColumns(optionalAreKeyword, exceptProperties))
+    with optionalAreKeyword := None()
+       ; exceptProperties := None()
+
+  normalize-PropertiesClause = ?Some(NoProperties()); !Some(PropertyExpressions([]))
 
   normalize-PropertiesClause:
     t@Some(PropertiesAreAllColumns(_, _)) -> t
