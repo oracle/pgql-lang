@@ -138,26 +138,26 @@ PGX (Parallel Graph AnalytiX) toolkit
 -----------------------------
 
  - [PGX Home](https://www.oracle.com/technetwork/oracle-labs/parallel-graph-analytix/overview/index.html)
-     - [PGQL extensions and limitations in PGX](https://docs.oracle.com/cd/E56133_01/latest/reference/pgql-specification.html)
-     - [Relevant Java API documentation](https://docs.oracle.com/cd/E56133_01/latest/reference/api/graph-pattern-matching.html)
-     - [Use case: Analyzing Superhero Network with Patterns and Computations](https://docs.oracle.com/cd/E56133_01/latest/use-cases/superhero/index.html)
-     - [Tutorial on invoking PGQL queries from the Java API or Groovy shell](https://docs.oracle.com/cd/E56133_01/latest/tutorials/graph-pattern-matching.html)
-     - [Tutorial on working with datetime data types](https://docs.oracle.com/cd/E56133_01/latest/tutorials/datetime-data-types.html)
+     - [PGQL extensions and limitations in PGX](https://docs.oracle.com/cd/E56133_01/latest/reference/analytics/pgql.html)
+     - [Relevant Java API documentation](https://docs.oracle.com/cd/E56133_01/latest/prog-guides/graph-pattern-matching/index.html)
+     - [Examples of Java API](https://docs.oracle.com/cd/E56133_01/latest/prog-guides/graph-pattern-matching/examples.html)
+     - [Use case: Analyzing Superhero Network with Patterns and Computations](https://github.com/oracle/pgx-samples/blob/master/superhero/README.md)
+     - [Using datetime data types](https://docs.oracle.com/cd/E56133_01/latest/prog-guides/data-types/datetime.html)
 
 Blog posts
 ----------
 
- - [Using PGQL in Python](https://blogs.oracle.com/bigdataspatialgraph/using-pgql-in-python) (_2018-05-22_)
- - [How Many Ways to Run Property Graph Query Language (PGQL) in BDSG? (II)](https://blogs.oracle.com/bigdataspatialgraph/how-many-ways-to-run-property-graph-query-language-pgql-in-bdsg-ii) (_2017-03-23_)
- - [How Many Ways to Run Property Graph Query Language (PGQL) in BDSG? (I)](https://blogs.oracle.com/bigdataspatialgraph/how-many-ways-to-run-property-graph-query-language-pgql-in-bdsg-i) (_2017-03-14_)
- - [Property Graph Query Language (PGQL) support has been added to Oracle Database 12.2.0.1!](https://blogs.oracle.com/oraclespatial/property-graph-query-language-pgql-support-has-been-added-to-oracle-database-12201) (_2017-03-10_)
+ - [Using PGQL in Python](https://blogs.oracle.com/bigdataspatialgraph/using-pgql-in-python) (2018-05-22)
+ - [How Many Ways to Run Property Graph Query Language (PGQL) in BDSG? (II)](https://blogs.oracle.com/bigdataspatialgraph/how-many-ways-to-run-property-graph-query-language-pgql-in-bdsg-ii) (2017-03-23)
+ - [How Many Ways to Run Property Graph Query Language (PGQL) in BDSG? (I)](https://blogs.oracle.com/bigdataspatialgraph/how-many-ways-to-run-property-graph-query-language-pgql-in-bdsg-i) (2017-03-14)
+ - [Property Graph Query Language (PGQL) support has been added to Oracle Database 12.2.0.1!](https://blogs.oracle.com/oraclespatial/property-graph-query-language-pgql-support-has-been-added-to-oracle-database-12201) (2017-03-10)
 
 Training videos
 ---------------
 
- - [PGQL: A Query Language for Graphs](https://asktom.oracle.com/pls/apex/f?p=100:551:::NO:551:P551_CLASS_ID:4197&cs=1F6BF819D61CFBE3F44500E3F8E156C5C) (_2018-10-02_)
+ - [PGQL: A Query Language for Graphs](https://asktom.oracle.com/pls/apex/f?p=100:551:::NO:551:P551_CLASS_ID:4197&cs=1F6BF819D61CFBE3F44500E3F8E156C5C) (2018-10-02)
 
 Original PGQL white paper
 ----------------
 
- - [PGQL: a Property Graph Query Language](http://dl.acm.org/citation.cfm?id=2960421) ([pdf](http://event.cwi.nl/grades/2016/07-VanRest.pdf)) (_2016-06-24_)
+ - [PGQL: a Property Graph Query Language](http://dl.acm.org/citation.cfm?id=2960421) ([pdf](http://event.cwi.nl/grades/2016/07-VanRest.pdf)) (2016-06-24)

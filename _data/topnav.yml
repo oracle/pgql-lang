@@ -23,7 +23,7 @@ topnav_dropdowns:
           external_url: https://docs.oracle.com/cd/E56133_01/1.2.1/PGQL_Specification.pdf
     - title: Resources
       folderitems:
-        - title: Open-Sourced PGQL Parser
+        - title: Open-sourced PGQL parser
           external_url: https://github.com/oracle/pgql-lang/
         - title: Oracle Spatial and Graph
           external_url: https://www.oracle.com/database/spatial/index.html
