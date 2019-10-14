@@ -14,21 +14,19 @@ import oracle.pgql.lang.ir.Projection;
 import oracle.pgql.lang.ir.QueryExpression;
 import oracle.pgql.lang.ir.QueryExpressionVisitor;
 import oracle.pgql.lang.ir.QueryType;
+import oracle.pgql.lang.ir.SchemaQualifiedName;
 import oracle.pgql.lang.ir.StatementType;
 
 public class ModifyQuery extends GraphQuery {
 
   private static final String PROJECTION_ERROR = "A modify query does not have a SELECT";
 
-  private String graphName;
-
   private List<Modification> modifications;
 
-  public ModifyQuery(List<CommonPathExpression> commonPathExpressions, String graphName,
-      List<Modification> modifications, String inputGraphName, GraphPattern graphPattern, GroupBy groupBy,
-      QueryExpression having, OrderBy orderBy, QueryExpression limit, QueryExpression offset) {
-    super(commonPathExpressions, inputGraphName, graphPattern, groupBy, having, orderBy, limit, offset);
-    this.graphName = graphName;
+  public ModifyQuery(List<CommonPathExpression> commonPathExpressions, List<Modification> modifications,
+      SchemaQualifiedName graphName, GraphPattern graphPattern, GroupBy groupBy, QueryExpression having,
+      OrderBy orderBy, QueryExpression limit, QueryExpression offset) {
+    super(commonPathExpressions, graphName, graphPattern, groupBy, having, orderBy, limit, offset);
     this.modifications = modifications;
   }
 
@@ -40,14 +38,6 @@ public class ModifyQuery extends GraphQuery {
   @Override
   public StatementType getStatementType() {
     return StatementType.GRAPH_MODIFY;
-  }
-
-  public String getGraphName() {
-    return graphName;
-  }
-
-  public void setGraphName(String graphName) {
-    this.graphName = graphName;
   }
 
   public List<Modification> getModifications() {
@@ -70,11 +60,7 @@ public class ModifyQuery extends GraphQuery {
 
   @Override
   public int hashCode() {
-    final int prime = 31;
-    int result = super.hashCode();
-    result = prime * result + ((graphName == null) ? 0 : graphName.hashCode());
-    result = prime * result + ((modifications == null) ? 0 : modifications.hashCode());
-    return result;
+    return 31;
   }
 
   @Override
@@ -86,11 +72,6 @@ public class ModifyQuery extends GraphQuery {
     if (getClass() != obj.getClass())
       return false;
     ModifyQuery other = (ModifyQuery) obj;
-    if (graphName == null) {
-      if (other.graphName != null)
-        return false;
-    } else if (!graphName.equals(other.graphName))
-      return false;
     if (modifications == null) {
       if (other.modifications != null)
         return false;

@@ -5,20 +5,19 @@ package oracle.pgql.lang.ddl.propertygraph;
 
 import java.util.List;
 
-import static oracle.pgql.lang.ir.PgqlUtils.printLocalOrSchemaQualifiedName;
+import oracle.pgql.lang.ir.SchemaQualifiedName;
 
 public class VertexTable extends ElementTable {
 
   /**
    * The constructor.
    */
-  public VertexTable(String schemaName, String tableName, Key key, List<Label> labels) {
-    super(key, schemaName, tableName, labels);
+  public VertexTable(SchemaQualifiedName tableName, Key key, List<Label> labels) {
+    super(key, tableName, labels);
   }
 
   @Override
   public String toString() {
-    return printLocalOrSchemaQualifiedName(getSchemaName(), getTableName()) + printKey("\n      ")
-        + printLabels("\n      ");
+    return getTableName() + printKey("\n      ") + printLabels("\n      ");
   }
 }

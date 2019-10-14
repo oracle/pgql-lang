@@ -5,7 +5,7 @@ package oracle.pgql.lang.ddl.propertygraph;
 
 import java.util.List;
 
-import static oracle.pgql.lang.ir.PgqlUtils.printLocalOrSchemaQualifiedName;
+import oracle.pgql.lang.ir.SchemaQualifiedName;
 
 public class EdgeTable extends ElementTable {
 
@@ -44,19 +44,19 @@ public class EdgeTable extends ElementTable {
   /**
    * Constructor without source vertex key and destination vertex key (relies on the presence of keys of vertex tables).
    */
-  public EdgeTable(String schemaName, String tableName, VertexTable sourceVertexTable, Key edgeSourceKey,
+  public EdgeTable(SchemaQualifiedName tableName, VertexTable sourceVertexTable, Key edgeSourceKey,
       VertexTable destinationVertexTable, Key edgeDestinationKey, List<Label> labels) {
-    this(schemaName, tableName, null, sourceVertexTable, edgeSourceKey, null, destinationVertexTable,
-        edgeDestinationKey, null, labels);
+    this(tableName, null, sourceVertexTable, edgeSourceKey, null, destinationVertexTable, edgeDestinationKey, null,
+        labels);
   }
 
   /**
    * Constructor with edge key, source vertex key and destination vertex key.
    */
-  public EdgeTable(String schemaName, String tableName, Key key, VertexTable sourceVertexTable, Key edgeSourceKey,
+  public EdgeTable(SchemaQualifiedName tableName, Key key, VertexTable sourceVertexTable, Key edgeSourceKey,
       Key sourceVertexKey, VertexTable destinationVertexTable, Key edgeDestinationKey, Key destinationVertexKey,
       List<Label> labels) {
-    super(key, schemaName, tableName, labels);
+    super(key, tableName, labels);
     this.sourceVertexTable = sourceVertexTable;
     this.edgeSourceKey = edgeSourceKey;
     this.sourceVertexKey = sourceVertexKey;
@@ -115,8 +115,7 @@ public class EdgeTable extends ElementTable {
 
   @Override
   public String toString() {
-    return printLocalOrSchemaQualifiedName(getSchemaName(), getTableName()) + printKey(" ") + printSource()
-        + printDestination() + printLabels("\n      ");
+    return getTableName() + printKey(" ") + printSource() + printDestination() + printLabels("\n      ");
   }
 
   private String printSource() {
@@ -130,8 +129,7 @@ public class EdgeTable extends ElementTable {
   }
 
   private String printVertexTableReference(Key key, VertexTable referencedVertexTable) {
-    String tableName = printLocalOrSchemaQualifiedName(referencedVertexTable.getSchemaName(),
-        referencedVertexTable.getTableName());
+    String tableName = referencedVertexTable.getTableName().toString();
     if (key == null) {
       return tableName;
     } else {

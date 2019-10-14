@@ -44,6 +44,7 @@ import org.metaborg.spoofax.core.unit.ISpoofaxParseUnit;
 import org.metaborg.util.concurrent.IClosableLock;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.spoofax.interpreter.terms.IStrategoString;
 
 import com.google.common.collect.Lists;
 
@@ -67,16 +68,11 @@ public class Pgql implements Closeable {
   private static final String NON_BREAKING_WHITE_SPACE_ERROR = "Illegal character '\u00a0' (non-breaking white space)"
       + "; use a normal space instead";
 
-  private static final String ESCAPED_BETA_FEATURES_FLAG = "\\/\\*beta\\*\\/";
-
-  private static final String MODIFY_BETA_ERROR = "MODIFY is a beta feature and the syntax and semantics may change in a future version; "
-      + "to use this feature, change UPDATE into MODIFY/*beta*/";
-
-  private static final String ANY_STRING = "[\\s\\S]*";
-
   private static final String ERROR_MESSSAGE_INDENTATION = "\t";
 
   private static final String SPOOFAX_BINARIES = "pgql-1.2.spoofax-language";
+
+  private static final int PGQL_VERSION_SUBTERM = 9;
 
   private static boolean isGloballyInitialized = false;
 
@@ -211,10 +207,23 @@ public class Pgql implements Closeable {
       }
       statement = SpoofaxAstToGraphQuery.translate(analysisResult.ast());
 
-      checkBetaFeatureToken(queryString, statement);
+      String pgqlVersion;
+      if (statement != null && (statement.getStatementType() == StatementType.SELECT
+          || statement.getStatementType() == StatementType.GRAPH_MODIFY)) {
+        pgqlVersion = ((IStrategoString) analysisResult.ast().getSubterm(PGQL_VERSION_SUBTERM)).stringValue();
+      } else {
+        pgqlVersion = "v1.3";
+      }
+      if (!pgqlVersion.equals("v1.0") && !pgqlVersion.equals("v1.1")) {
+        if (queryString.contains("//")) {
+          throw new PgqlException("Use /* .. */ instead of // .. to introduce a comment");
+        }
+      }
 
       return new PgqlResult(queryString, queryValid, prettyMessages, statement, parseResult);
-    } catch (IOException | ParseException | AnalysisException | ContextException e) {
+    } catch (IOException | ParseException | AnalysisException |
+
+        ContextException e) {
       throw new PgqlException("Failed to parse PGQL query", e);
     } finally {
       if (context != null) {
@@ -227,13 +236,6 @@ public class Pgql implements Closeable {
   private void checkInitialized() throws PgqlException {
     if (!isInitialized) {
       throw new PgqlException("Pgql instance was closed");
-    }
-  }
-
-  private void checkBetaFeatureToken(String queryString, Statement statement) throws PgqlException {
-    if (statement != null && statement.getStatementType() == StatementType.GRAPH_MODIFY
-        && !queryString.matches("(?i)" + ANY_STRING + "MODIFY" + ESCAPED_BETA_FEATURES_FLAG + ANY_STRING)) {
-      throw new PgqlException(MODIFY_BETA_ERROR);
     }
   }
 

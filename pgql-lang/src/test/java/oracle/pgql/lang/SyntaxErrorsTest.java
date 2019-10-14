@@ -64,42 +64,42 @@ public class SyntaxErrorsTest extends AbstractPgqlTest {
 
   @Test
   public void testDuplicateInsertUpdateDeleteClausesShouldNotThrowUnexpectedExceptions() throws Exception {
-    String query = "MODIFY/*beta*/ ( INSERT VERTEX v1 INSERT VERTEX v2" //
+    String query = "INSERT VERTEX v1 INSERT VERTEX v2" //
         + " DELETE e1 DELETE e2" //
-        + " UPDATE n SET PROPERTIES ( n.prop = 1 ) UPDATE m SET PROPERTIES ( n.prop = 2 ) )" //
+        + " UPDATE n SET PROPERTIES ( n.prop = 1 ) UPDATE m SET PROPERTIES ( n.prop = 2 )" //
         + " FROM g MATCH (n) -[e1]-> (m) -[e2]-> (o)";
     assertFalse(pgql.parse(query).isQueryValid());
   }
 
   @Test
   public void testUnresolvedReferencesInModify1() throws Exception {
-    String query = "MODIFY/*beta*/ g ( INSERT EDGE e BETWEEN x AND y ) MATCH (v)";
+    String query = "INSERT EDGE e BETWEEN x AND y FROM MATCH (v)";
     assertFalse(pgql.parse(query).isQueryValid());
   }
 
   @Test
   public void testUnresolvedReferencesInModify2() throws Exception {
-    String query = "MODIFY/*beta*/ g ( UPDATE x SET PROPERTIES ( x.prop = y.prop + z.prop ) DELETE y ) MATCH (v)";
+    String query = "UPDATE x SET PROPERTIES ( x.prop = y.prop + z.prop ) DELETE y FROM MATCH (v)";
     assertFalse(pgql.parse(query).isQueryValid());
   }
 
   @Test
   public void testWrongVariableInInsertAndUpdate() throws Exception {
-    String query = "MODIFY/*beta*/ ( INSERT VERTEX w LABELS ( x, y.prop ) PROPERTIES ( v.prop = 1, u.prop = 2 ) " //
-        + "UPDATE v SET PROPERTIES ( w.prop = 3, u.prop = 4) ) FROM g MATCH (v)";
+    String query = "INSERT VERTEX w LABELS ( x, y.prop ) PROPERTIES ( v.prop = 1, u.prop = 2 ) " //
+        + "UPDATE v SET PROPERTIES ( w.prop = 3, u.prop = 4) FROM MATCH (v)";
     assertFalse(pgql.parse(query).isQueryValid());
   }
 
   @Test
   public void testModifySubquery() throws Exception {
-    String query = "SELECT ( MODIFY/*beta*/ ( INSERT VERTEX v ) ) FROM g MATCH (n)";
+    String query = "SELECT ( INSERT VERTEX v ) FROM MATCH (n)";
     assertFalse(pgql.parse(query).isQueryValid());
   }
 
   @Test
   public void testSetPropertyThatIsGroupedBy() throws Exception {
-    String query = "MODIFY/*beta*/ g ( UPDATE n SET PROPERTIES ( [[n.prop]] = 123 ) ) " //
-        + "FROM g MATCH (n) " //
+    String query = "UPDATE n SET PROPERTIES ( [[n.prop]] = 123 ) " //
+        + "FROM MATCH (n) " //
         + "GROUP BY n.prop AS nProp";
     assertFalse(pgql.parse(query).isQueryValid());
   }
@@ -111,5 +111,80 @@ public class SyntaxErrorsTest extends AbstractPgqlTest {
         + "         ORDER BY prop"; // this is allowed only in PGQL >= 1.3
     PgqlResult result = pgql.parse(query);
     assertTrue(result.getErrorMessages().contains("Unresolved variable"));
+  }
+
+  /*
+   * Tests the same as tests "Update other element than the one that was meant to be updated" and
+   * "Set properties of other element than the one that is being inserted" in pgql-tests/error-messages/modify.spt, but
+   * then for double quoted variables since Spoofax doesn't allow testing for double quotes.
+   */
+  @Test
+  public void testUpdateOtherElementThanWasMeantAndWithDoubleQuotes() throws Exception {
+    String query = "INSERT VERTEX \"o\" PROPERTIES ( \"n\".prop = 3 )\n" + //
+        "                , EDGE \"e\" BETWEEN \"n\" AND \"o\" PROPERTIES ( \"n\".prop = 4 )\n" + //
+        "           UPDATE \"n\" SET PROPERTIES ( \"m\".prop = 3 )\n" + //
+        "                , \"m\" SET PROPERTIES ( \"n\".prop = 4 )\n" + //
+        "             FROM MATCH (\"n\") -> (\"m\")";
+    PgqlResult result = pgql.parse(query);
+    assertTrue(result.getErrorMessages().contains("Did you mean \"o\"?"));
+    assertTrue(result.getErrorMessages().contains("Did you mean \"e\"?"));
+    assertTrue(result.getErrorMessages().contains("Did you mean \"m\"?"));
+    assertTrue(result.getErrorMessages().contains("Did you mean \"o\"?"));
+  }
+
+  @Test
+  public void testJavaLikeCommentInSelect() throws Exception {
+    String query = "SELECT * FROM MATCH (n) // comment";
+    thrown.expectMessage("Use /* .. */ instead of // .. to introduce a comment");
+    pgql.parse(query);
+  }
+
+  @Test
+  public void testJavaLikeCommentInInsert() throws Exception {
+    String query = "INSERT VERTEX v // comment\n FROM MATCH (n)";
+    thrown.expectMessage("Use /* .. */ instead of // .. to introduce a comment");
+    pgql.parse(query);
+  }
+
+  @Test
+  public void testJavaLikeCommentInCreatePropertyGraph() throws Exception {
+    String query = "CREATE PROPERTY GRAPH g VERTEX TABLES ( Person ) // comment";
+    thrown.expectMessage("Use /* .. */ instead of // .. to introduce a comment");
+    pgql.parse(query);
+  }
+
+  @Test
+  public void testJavaLikeCommentInDropPropertyGraph() throws Exception {
+    String query = "DROP // comment\n PROPERTY GRAPH g";
+    thrown.expectMessage("Use /* .. */ instead of // .. to introduce a comment");
+    pgql.parse(query);
+  }
+
+  @Test
+  public void testMissingOnClause1() throws Exception {
+    String query = "SELECT * FROM MATCH (n), MATCH (m) ON g2";
+    PgqlResult result = pgql.parse(query);
+    assertTrue(result.getErrorMessages().contains("Missing ON clause"));
+  }
+
+  @Test
+  public void testMissingOnClause2() throws Exception {
+    String query = "SELECT EXISTS ( SELECT * FROM MATCH (n) -[e]-> (m) ) FROM MATCH (n) ON g1";
+    PgqlResult result = pgql.parse(query);
+    assertTrue(result.getErrorMessages().contains("Missing ON clause"));
+  }
+
+  @Test
+  public void testMultipleGraphNames1() throws Exception {
+    String query = "SELECT * FROM MATCH (n) ON g1, MATCH (m) ON g2";
+    PgqlResult result = pgql.parse(query);
+    assertTrue(result.getErrorMessages().contains("Querying multiple graphs is not supported"));
+  }
+
+  @Test
+  public void testMultipleGraphNames2() throws Exception {
+    String query = "SELECT EXISTS ( SELECT * FROM MATCH (m) ON g2 ) FROM MATCH (n) ON g1";
+    PgqlResult result = pgql.parse(query);
+    assertTrue(result.getErrorMessages().contains("Querying multiple graphs is not supported"));
   }
 }

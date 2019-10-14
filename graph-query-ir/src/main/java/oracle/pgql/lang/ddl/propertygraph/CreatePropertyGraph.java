@@ -3,25 +3,19 @@
  */
 package oracle.pgql.lang.ddl.propertygraph;
 
-import static oracle.pgql.lang.ir.PgqlUtils.printLocalOrSchemaQualifiedName;
-
 import java.util.List;
 import java.util.stream.Collectors;
 
+import oracle.pgql.lang.ir.SchemaQualifiedName;
 import oracle.pgql.lang.ir.Statement;
 import oracle.pgql.lang.ir.StatementType;
 
 public class CreatePropertyGraph implements Statement {
 
   /**
-   * The name of the schema.
-   */
-  private String schemaName;
-
-  /**
    * The name of the property graph.
    */
-  private String graphName;
+  private SchemaQualifiedName graphName;
 
   /**
    * Vertex tables. List may be empty but cannot be null.
@@ -36,27 +30,18 @@ public class CreatePropertyGraph implements Statement {
   /**
    * The constructor.
    */
-  public CreatePropertyGraph(String schemaName, String graphName, List<VertexTable> vertexTables,
+  public CreatePropertyGraph(SchemaQualifiedName graphName, List<VertexTable> vertexTables,
       List<EdgeTable> edgeTables) {
-    this.schemaName = schemaName;
     this.graphName = graphName;
     this.vertexTables = vertexTables;
     this.edgeTables = edgeTables;
   }
 
-  public String getSchemaName() {
-    return schemaName;
-  }
-
-  public void setSchemaName(String schemaName) {
-    this.schemaName = schemaName;
-  }
-
-  public String getGraphName() {
+  public SchemaQualifiedName getGraphName() {
     return graphName;
   }
 
-  public void setGraphName(String graphName) {
+  public void setGraphName(SchemaQualifiedName graphName) {
     this.graphName = graphName;
   }
 
@@ -78,8 +63,7 @@ public class CreatePropertyGraph implements Statement {
 
   @Override
   public String toString() {
-    return "CREATE PROPERTY GRAPH " + printLocalOrSchemaQualifiedName(schemaName, graphName) + printVertexTables()
-        + printEdgeTables();
+    return "CREATE PROPERTY GRAPH " + graphName + printVertexTables() + printEdgeTables();
   }
 
   private String printVertexTables() {
@@ -125,11 +109,6 @@ public class CreatePropertyGraph implements Statement {
       if (other.edgeTables != null)
         return false;
     } else if (!edgeTables.equals(other.edgeTables))
-      return false;
-    if (schemaName == null) {
-      if (other.schemaName != null)
-        return false;
-    } else if (!schemaName.equals(other.schemaName))
       return false;
     if (graphName == null) {
       if (other.graphName != null)

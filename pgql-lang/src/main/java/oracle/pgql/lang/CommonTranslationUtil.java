@@ -8,6 +8,8 @@ import org.spoofax.interpreter.terms.IStrategoInt;
 import org.spoofax.interpreter.terms.IStrategoString;
 import org.spoofax.interpreter.terms.IStrategoTerm;
 
+import oracle.pgql.lang.ir.SchemaQualifiedName;
+
 public class CommonTranslationUtil {
 
   private static int LOCAL_OR_SCHEMA_QUALIFIED_NAME_SCHEMA_NAME = 0;
@@ -51,17 +53,13 @@ public class CommonTranslationUtil {
     return ((IStrategoAppl) t).getConstructor().getName();
   }
 
-  protected static String getLocalName(IStrategoTerm localOrSchemaQualifiedNameT) {
-    String tableName = getString(localOrSchemaQualifiedNameT.getSubterm(LOCAL_OR_SCHEMA_QUALIFIED_NAME_LOCAL_NAME));
-    return tableName;
-  }
-
-  protected static String getSchemaName(IStrategoTerm localOrSchemaQualifiedNameT) {
-    IStrategoTerm schemaNameT = localOrSchemaQualifiedNameT.getSubterm(LOCAL_OR_SCHEMA_QUALIFIED_NAME_SCHEMA_NAME);
-    if (isNone(schemaNameT)) {
-      return null;
-    } else {
-      return getString(schemaNameT);
+  protected static SchemaQualifiedName getSchemaQualifiedName(IStrategoTerm schemaQualifiedNameT) {
+    IStrategoTerm schemaNameT = schemaQualifiedNameT.getSubterm(LOCAL_OR_SCHEMA_QUALIFIED_NAME_SCHEMA_NAME);
+    String schemaName = null;
+    if (isSome(schemaNameT)) {
+      schemaName = getString(schemaNameT);
     }
+    String localName = getString(schemaQualifiedNameT.getSubterm(LOCAL_OR_SCHEMA_QUALIFIED_NAME_LOCAL_NAME));
+    return new SchemaQualifiedName(schemaName, localName);
   }
 }

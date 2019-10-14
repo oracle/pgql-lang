@@ -5,8 +5,13 @@ package oracle.pgql.lang;
 
 import org.junit.AfterClass;
 import org.junit.BeforeClass;
+import org.junit.Rule;
+import org.junit.rules.ExpectedException;
 
 public abstract class AbstractPgqlTest {
+
+  @Rule
+  public ExpectedException thrown = ExpectedException.none();
 
   protected static Pgql pgql;
 

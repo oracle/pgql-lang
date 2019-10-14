@@ -40,8 +40,6 @@ import oracle.pgql.lang.ir.modify.ModifyQuery;
 
 public class PgqlUtils {
 
-  public final static String BETA_FEATURES_FLAG = "/*beta*/";
-
   static DecimalFormat DECIMAL_FORMAT = new DecimalFormat("#.#");
 
   static {
@@ -157,14 +155,6 @@ public class PgqlUtils {
     }
   }
 
-  public static String printLocalOrSchemaQualifiedName(String schemaName, String localName) {
-    if (schemaName == null) {
-      return printIdentifier(localName);
-    } else {
-      return printIdentifier(schemaName) + "." + printIdentifier(localName);
-    }
-  }
-
   private static String escape(String s) {
     return s //
         .replace("\\", "\\\\") //
@@ -185,23 +175,17 @@ public class PgqlUtils {
         break;
       case MODIFY:
         ModifyQuery modifyQuery = (ModifyQuery) graphQuery;
-        result += "MODIFY" + BETA_FEATURES_FLAG;
-
-        if (modifyQuery.getGraphName() != null) {
-          result += " " + modifyQuery.getGraphName();
-        }
-
-        result += " (\n  " + modifyQuery.getModifications().stream() //
+        result += modifyQuery.getModifications().stream() //
             .map(x -> x.toString()) //
-            .collect(Collectors.joining("\n  ")) + "\n)";
+            .collect(Collectors.joining("\n"));
         break;
       default:
         throw new IllegalArgumentException(graphQuery.getQueryType().toString());
     }
 
     result += "\n";
-    if (graphQuery.getInputGraphName() != null) {
-      result += "FROM " + printIdentifier(graphQuery.getInputGraphName()) + " ";
+    if (graphQuery.getGraphName() != null) {
+      result += "FROM " + graphQuery.getGraphName() + " ";
     }
     result += graphPattern;
     GroupBy groupBy = graphQuery.getGroupBy();

@@ -165,7 +165,7 @@ public class PrettyPrintingTest extends AbstractPgqlTest {
     PropertyAccess propertyAccess = (PropertyAccess) selectQuery.getProjection().getElements().get(0).getExp();
     assertEquals(identifier, propertyAccess.getPropertyName());
 
-    assertEquals(identifier, selectQuery.getInputGraphName());
+    assertEquals(identifier, selectQuery.getGraphName().getName());
 
     FunctionCall funcCall = (FunctionCall) selectQuery.getGraphPattern().getConstraints().iterator().next();
     assertEquals(funcCall.getFunctionName(), "has_label");
@@ -236,14 +236,13 @@ public class PrettyPrintingTest extends AbstractPgqlTest {
 
   @Test
   public void testModify() throws Exception {
-    String query = "MODIFY/*beta*/ (" //
-        + "  INSERT VERTEX v LABELS ( 'Person' ) PROPERTIES ( v.first_name = 'Scott', v.last_name = 'Tiger' ), " //
-        + "         EDGE e BETWEEN v AND u LABELS ( 'Likes' ) PROPERTIES ( e.weight = 10 )" //
-        + "  UPDATE u SET PROPERTIES ( u.first_name = 'Jane' ), " //
-        + "         x SET PROPERTIES ( x.first_name = 'Bob' ) " //
-        + "  DELETE w, e3" //
-        + ")" //
-        + "FROM g MATCH (u) -> (w) -[e3]-> (x)";
+    String query = //
+        "INSERT VERTEX v LABELS ( Person ) PROPERTIES ( v.first_name = 'Scott', v.last_name = 'Tiger' ), " //
+            + "       EDGE e BETWEEN v AND u LABELS ( Likes ) PROPERTIES ( e.weight = 10 ) " //
+            + "UPDATE u SET PROPERTIES ( u.first_name = 'Jane' ), " //
+            + "       x SET PROPERTIES ( x.first_name = 'Bob' ) " //
+            + "DELETE w, e3 " //
+            + "FROM MATCH (u) -> (w) -[e3]-> (x)";
     checkRoundTrip(query);
   }
 
@@ -408,6 +407,13 @@ public class PrettyPrintingTest extends AbstractPgqlTest {
   @Test
   public void testDropPropertyGraphWithQuotedIdentifiers() throws Exception {
     String statement = "DROP PROPERTY GRAPH \"my schema\".\"my graph\"";
+    checkRoundTrip(statement);
+  }
+
+  @Test
+  public void testSchemaQualifiedNames() throws Exception {
+    String statement = "INSERT INTO Scott.PersonData VERTEX v\n" //
+        + "FROM MATCH (n:Person) ON Scott.SocialNetwork";
     checkRoundTrip(statement);
   }
 

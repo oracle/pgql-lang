@@ -9,10 +9,24 @@ public class SelectQuery extends GraphQuery {
 
   private Projection projection;
 
+  /**
+   * @deprecated use the constructor with schema-qualified graph name
+   */
+  @Deprecated
   public SelectQuery(List<CommonPathExpression> commonPathExpressions, Projection projection, String inputGraphName,
       GraphPattern graphPattern, GroupBy groupBy, QueryExpression having, OrderBy orderBy, QueryExpression limit,
       QueryExpression offset) {
-    super(commonPathExpressions, inputGraphName, graphPattern, groupBy, having, orderBy, limit, offset);
+    this(commonPathExpressions, projection, new SchemaQualifiedName(null, inputGraphName), graphPattern, groupBy,
+        having, orderBy, limit, offset);
+  }
+
+  /**
+   * Constructor
+   */
+  public SelectQuery(List<CommonPathExpression> commonPathExpressions, Projection projection,
+      SchemaQualifiedName graphName, GraphPattern graphPattern, GroupBy groupBy, QueryExpression having,
+      OrderBy orderBy, QueryExpression limit, QueryExpression offset) {
+    super(commonPathExpressions, graphName, graphPattern, groupBy, having, orderBy, limit, offset);
     this.projection = projection;
   }
 

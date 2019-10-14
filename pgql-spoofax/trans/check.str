@@ -388,16 +388,17 @@ rules // MODIFY
 
   nabl-constraint(|ctx):
     t -> <fail>
-    where <?VertexInsertion(Identifier(v, _), _, _, Some(Properties(setProperties))) +
-           ?DirectedEdgeInsertion(Identifier(v, _), _, _, _, _, Some(Properties(setProperties))) +
-           ?Update(VarRef(Identifier(v, _), _), SetProperties(setProperties))> t
+    where <?VertexInsertion(Identifier(v, originText), _, _, Some(Properties(setProperties))) +
+           ?DirectedEdgeInsertion(Identifier(v, originText), _, _, _, _, Some(Properties(setProperties))) +
+           ?Update(VarRef(Identifier(v, originText), _), SetProperties(setProperties))> t
     with v' := <strip-annos> v
        ; otherVariablesThanV := <filter(?SetProperty(PropRef(VarRef(Identifier(<id>, _), _), _), _); strip-annos; not(?v'))> setProperties
-       ; <batch-generate-error(|ctx, $<Did you mean <v>?>)> otherVariablesThanV
+       ; varNameAsString := <try(?None(); <conc-strings> ("\"", v, "\""))> originText
+       ; <batch-generate-error(|ctx, $<Did you mean <varNameAsString>?>)> otherVariablesThanV
 
   nabl-constraint(|ctx):
-    ModifyClause(_, insertUpdateDeleteClauses) -> <fail>
-    with additionalInsertClauses := <filter(?InsertClause(_)); try(Tl)> insertUpdateDeleteClauses
+    ModifyClause(insertUpdateDeleteClauses) -> <fail>
+    with additionalInsertClauses := <filter(?InsertClause(_, _)); try(Tl)> insertUpdateDeleteClauses
        ; additionalUpdateClauses := <filter(?UpdateClause(_)); try(Tl)> insertUpdateDeleteClauses
        ; additionalDeleteClauses := <filter(?DeleteClause(_)); try(Tl)> insertUpdateDeleteClauses
        ; <batch-generate-error(|ctx, "Only a single INSERT clause is allowed per query; use commas to insert multiple elements in a single INSERT clause")> additionalInsertClauses

@@ -3,41 +3,29 @@
  */
 package oracle.pgql.lang.ddl.propertygraph;
 
+import oracle.pgql.lang.ir.SchemaQualifiedName;
 import oracle.pgql.lang.ir.Statement;
 import oracle.pgql.lang.ir.StatementType;
 
-import static oracle.pgql.lang.ir.PgqlUtils.printLocalOrSchemaQualifiedName;
-
 public class DropPropertyGraph implements Statement {
 
-  private String schemaName;
+  private SchemaQualifiedName graphName;
 
-  private String graphName;
-
-  public DropPropertyGraph(String schemaName, String graphName) {
-    this.schemaName = schemaName;
+  public DropPropertyGraph(SchemaQualifiedName graphName) {
     this.graphName = graphName;
   }
 
-  public String getSchemaName() {
-    return schemaName;
-  }
-
-  public void setSchemaName(String schemaName) {
-    this.schemaName = schemaName;
-  }
-
-  public String getGraphName() {
+  public SchemaQualifiedName getGraphName() {
     return graphName;
   }
 
-  public void setGraphName(String graphName) {
+  public void setGraphName(SchemaQualifiedName graphName) {
     this.graphName = graphName;
   }
 
   @Override
   public String toString() {
-    return "DROP PROPERTY GRAPH " + printLocalOrSchemaQualifiedName(schemaName, graphName);
+    return "DROP PROPERTY GRAPH " + graphName;
   }
 
   @Override
@@ -63,11 +51,6 @@ public class DropPropertyGraph implements Statement {
       if (other.graphName != null)
         return false;
     } else if (!graphName.equals(other.graphName))
-      return false;
-    if (schemaName == null) {
-      if (other.schemaName != null)
-        return false;
-    } else if (!schemaName.equals(other.schemaName))
       return false;
     return true;
   }

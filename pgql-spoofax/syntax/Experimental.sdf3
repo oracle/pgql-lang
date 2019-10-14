@@ -32,4 +32,4 @@ context-free syntax
 
   GraphMatch.GraphMatch = <MATCH <PathPattern> <OnClause?>> {case-insensitive}
 
-  OnClause.OnClause = <ON <Identifier>> {case-insensitive}
+  OnClause.OnClause = <ON <GraphName>> {case-insensitive}

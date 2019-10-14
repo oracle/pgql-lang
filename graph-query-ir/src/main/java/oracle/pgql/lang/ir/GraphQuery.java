@@ -11,7 +11,7 @@ public abstract class GraphQuery implements Statement {
 
   private List<CommonPathExpression> commonPathExpressions;
 
-  private String inputGraphName;
+  private SchemaQualifiedName graphName;
 
   private GraphPattern graphPattern;
 
@@ -28,11 +28,11 @@ public abstract class GraphQuery implements Statement {
   /**
    * Constructor
    */
-  protected GraphQuery(List<CommonPathExpression> commonPathExpressions, String inputGraphName,
+  protected GraphQuery(List<CommonPathExpression> commonPathExpressions, SchemaQualifiedName graphName,
       GraphPattern graphPattern, GroupBy groupBy, QueryExpression having, OrderBy orderBy, QueryExpression limit,
       QueryExpression offset) {
     this.commonPathExpressions = commonPathExpressions;
-    this.inputGraphName = inputGraphName;
+    this.graphName = graphName;
     this.graphPattern = graphPattern;
     this.groupBy = groupBy;
     this.having = having;
@@ -63,12 +63,32 @@ public abstract class GraphQuery implements Statement {
   @Deprecated
   public abstract void setProjection(Projection projection);
 
+  /**
+   * @deprecated use {@link #getInputName()} instead
+   */
+  @Deprecated
   public String getInputGraphName() {
-    return inputGraphName;
+    return graphName == null ? null : graphName.getName();
   }
 
+  /**
+   * @deprecated use {@link #setGraphName()} instead
+   */
+  @Deprecated
   public void setInputGraphName(String inputGraphName) {
-    this.inputGraphName = inputGraphName;
+    if (graphName == null) {
+      this.graphName = new SchemaQualifiedName(null, inputGraphName);
+    } else {
+      this.graphName.setName(inputGraphName);
+    }
+  }
+
+  public SchemaQualifiedName getGraphName() {
+    return graphName;
+  }
+
+  public void setGraphName(SchemaQualifiedName graphName) {
+    this.graphName = graphName;
   }
 
   public GraphPattern getGraphPattern() {
@@ -158,10 +178,10 @@ public abstract class GraphQuery implements Statement {
         return false;
     } else if (!having.equals(other.having))
       return false;
-    if (inputGraphName == null) {
-      if (other.inputGraphName != null)
+    if (graphName == null) {
+      if (other.graphName != null)
         return false;
-    } else if (!inputGraphName.equals(other.inputGraphName))
+    } else if (!graphName.equals(other.graphName))
       return false;
     if (limit == null) {
       if (other.limit != null)

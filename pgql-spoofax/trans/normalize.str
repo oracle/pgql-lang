@@ -41,7 +41,8 @@ rules
         <+ is-pgql11; (collect(get-pgql11-limitation); not(?[]) <+ collect(get-pgql11-deprecation))
         <+ is-pgql13; collect(get-pgql13-deprecation); flatten-list
         )
-        ; not(?[]) <+ get-path-limitations <+ ![]> ast;
+        ; not(?[]) <+ get-path-limitations; not(?[])
+          <+ (is-pgql11 + is-pgql13); get-errors-for-inconsistent-graph-names <+ ![]> ast;
       result := <
         alltd(norm-has-prop);
         alltd(norm-pgql10);
@@ -77,9 +78,9 @@ rules
 
   is-pgql10 = ?Pgql10Query(_, _, _, _, _, _, _)
   is-pgql11 = ?Pgql11Query(_, SelectClause(_, _), _, _, _, _, _, _)
-            + ?Pgql11Query(_, ModifyClause(_, _), _, Some(_), _, _, _, _)
+            + ?Pgql11Query(_, ModifyClause(_), _, Some(_), _, _, _, _)
   is-pgql13 = ?Query(_, _, _, _, _, _, _, _)
-  is-pgql13 = ?Pgql11Query(_, ModifyClause(_, _), _, None(), _, _, _, _)
+  is-pgql13 = ?Pgql11Query(_, ModifyClause(_), _, None(), _, _, _, _)
 
   get-pgql11-deprecation = (?OutConn(None(), _) + ?InConn(None(), _) + ?UndirectedEdge(None(), _)); to-error-message(|"Use [-] instead of [--]")
   get-pgql11-deprecation = ?Pgql10AsignSymbol(); to-error-message(|"Use [AS] instead of [:=]")
@@ -120,6 +121,20 @@ rules
                        ; map(to-error-message(|"Quantifier needs to be enclosed by SHORTEST or CHEAPEST"))
 
   get-path-limitations = collect(?Shortest(_, _) + ?Cheapest(_, _)); collect(?Path(_, _, _)); not(?[]); map(to-error-message(|"Nested regular expressions not supported"))
+
+  get-errors-for-inconsistent-graph-names:
+    ast -> <conc> (errors-multiple-graph-names, errors-missing-graph-names)
+    with inputGraphNames := <collect-om(?GraphMatch(_, Some(OnClause(<id>))))> ast
+       ; clausesWithMissingGraphName := <collect-om(?GraphMatch(_,  None()), conc)> ast
+       ; numInputGraphNames := <length> inputGraphNames
+       ; if <gt> (numInputGraphNames, 1)
+         then errors-multiple-graph-names := <map(to-error-message(|"Querying multiple graphs is not supported"))> inputGraphNames
+         else errors-multiple-graph-names := []
+         end
+       ; if <gt> (numInputGraphNames, 0)
+         then errors-missing-graph-names := <map(?GraphMatch(_, _); to-error-message(|"Missing ON clause"))> clausesWithMissingGraphName
+         else errors-missing-graph-names := []
+         end
 
   shortest-or-cheapest-or-reaches = ?Shortest(_, _)
                                   + ?Cheapest(_, _)
@@ -255,7 +270,7 @@ rules
   // PGQL 1.3
   norm-matchElems(|variable-counter):
     FromClause(graphMatches) -> GraphPatternAndGraphName(graphPattern, graphName)
-    with graphName := <map(?GraphMatch(_, <id>)); try(make-set; ?[<id>]; normalize-OnClause)> graphMatches
+    with graphName := <map(?GraphMatch(_, <id>)); (Hd; normalize-OnClause <+ !None())> graphMatches // simply take the first graph name we see; we don't support multiple graph right now
        ; pathPatterns := <map(?GraphMatch(<id>, _))> graphMatches
        ; graphPattern := <norm-matchElems-common(|variable-counter)> pathPatterns
 
@@ -286,7 +301,6 @@ rules
                                          ; filter(get-inlined-constraints); concat> pathPatterns
        ; constraints := <conc; flatten-list; !Constraints(<id>)> (inlined-constraints-for-vertices, inlined-constraints-for-edges, non-inlined-constraints)
 
-  normalize-OnClause = ?None()
   normalize-OnClause = ?Some(OnClause(<id>)); !Some(GraphName(<id>))
 
   collect-outside-repeated-path(s) = collect-but-preserve-order(ParenthesizedPath + s); remove-all(ParenthesizedPath)
@@ -506,9 +520,9 @@ rules
       expAsGroupVars' := <map(norm-ExpAsVar)> expAsGroupVars;
       groupByClause' := <?Some(_); !Some(GroupByClause(expAsGroupVars')) <+ !None()> groupByClause;
 
-      selectOrModifyClause' := <?ModifyClause(_, _) + ?SelectClause(_, _); (norm-ExpAsVars(|expAsGroupVars', version) <+ norm-select-star(|graphPattern, expAsGroupVars'))> selectOrModifyClause;
+      selectOrModifyClause' := <?ModifyClause(_) + ?SelectClause(_, _); (norm-ExpAsVars(|expAsGroupVars', version) <+ norm-select-star(|graphPattern, expAsGroupVars'))> selectOrModifyClause;
 
-      expAsSelectVars := <(?ModifyClause(_, _)); ![] + ?SelectClause(_, ExpAsVars(<id>))> selectOrModifyClause';
+      expAsSelectVars := <(?ModifyClause(_)); ![] + ?SelectClause(_, ExpAsVars(<id>))> selectOrModifyClause';
       allExpAsVars := <conc> (expAsGroupVars', <try(?Star(); ![])> expAsSelectVars);
       orderByElems := <try(norm-orderBy(|allExpAsVars, version))> orderByClause;
 
