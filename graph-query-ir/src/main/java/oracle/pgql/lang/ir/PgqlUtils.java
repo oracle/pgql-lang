@@ -167,7 +167,6 @@ public class PgqlUtils {
 
   protected static String printPgqlString(GraphQuery graphQuery) {
     String result = printPathPatterns(graphQuery.getCommonPathExpressions());
-    GraphPattern graphPattern = graphQuery.getGraphPattern();
 
     switch (graphQuery.getQueryType()) {
       case SELECT:
@@ -183,11 +182,14 @@ public class PgqlUtils {
         throw new IllegalArgumentException(graphQuery.getQueryType().toString());
     }
 
-    result += "\n";
     if (graphQuery.getGraphName() != null) {
+      result += "\n";
       result += "FROM " + graphQuery.getGraphName() + " ";
     }
-    result += graphPattern;
+    if (graphQuery.getGraphPattern() != null) {
+      result += "\n";
+      result += graphQuery.getGraphPattern();
+    }
     GroupBy groupBy = graphQuery.getGroupBy();
     if (groupBy != null && groupBy.getElements().isEmpty() == false) {
       result += "\n" + groupBy;
