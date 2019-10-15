@@ -2329,7 +2329,7 @@ Casting is allowed between the following data types:
 | time with time zone      | Y      | N             | N                   | N       | Y    | Y                  | N    | Y         | Y                       |
 | timestamp with time zone | Y      | N             | N                   | N       | Y    | Y                  | Y    | Y         | Y                       |
 
-In the table above, `Y` indicates that casting is supported, `N` indicates that casting is not supported, and `M` indicates that casting is supported only if the numeric value is within the precision bounds of the specified target type.
+In the table above, `Y` indicates that casting is supported, `N` indicates that casting is not supported, and `M` indicates that casting is supported only if the numeric value is between the minimum and maximum values (inclusive) that can be represented by the specified target type.
 
 ## CASE
 
