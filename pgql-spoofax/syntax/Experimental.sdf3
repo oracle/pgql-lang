@@ -30,6 +30,8 @@ context-free syntax
 
   TableExpression = GraphMatch
 
-  GraphMatch.GraphMatch = <MATCH <PathPattern> <OnClause?>> {case-insensitive}
+  GraphMatch.GraphMatch = <<MatchKeyword?> <PathPattern> <OnClause?>>
+
+  MatchKeyword.MatchKeyword = <MATCH> {case-insensitive}
 
   OnClause.OnClause = <ON <Identifier>> {case-insensitive}
