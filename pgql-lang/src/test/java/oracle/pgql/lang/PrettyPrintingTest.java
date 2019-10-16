@@ -205,6 +205,52 @@ public class PrettyPrintingTest extends AbstractPgqlTest {
   }
 
   @Test
+  public void testEscapingInCreatePropertyGraph() throws Exception {
+    String statement = "CREATE PROPERTY GRAPH \"\n  \"\"  \t\" VERTEX TABLES ( \"\n  \"\"  \t\" )";
+    PgqlResult result1 = pgql.parse(statement);
+    assertTrue(result1.isQueryValid());
+    String prettyPrintedStatement = result1.getStatement().toString();
+    PgqlResult result2 = pgql.parse(prettyPrintedStatement);
+    assertEquals(result1.getStatement(), result2.getStatement());
+  }
+
+  @Test
+  public void testEscapingInInsert() throws Exception {
+    String statement = "INSERT INTO \"graph\n\\n  \"\"  \t\" VERTEX \"vertex\n\\n  \"\"  \t\" " //
+        + "LABELS ( \"label\n\\n  \"\"  \t\" ) " //
+        + "PROPERTIES ( \"vertex\n\\n  \"\"  \t\".\"property\n  \"\"  \t\" =  'value''\n\\n\t\"\"'), " //
+        + "EDGE \"edge\n\\n  \"\"  \t\" BETWEEN \"vertex\n\\n  \"\"  \t\" AND \"vertex\n\\n  \"\"  \t\"";
+    PgqlResult result1 = pgql.parse(statement);
+    assertTrue(result1.isQueryValid());
+    String prettyPrintedStatement = result1.getStatement().toString();
+    PgqlResult result2 = pgql.parse(prettyPrintedStatement);
+    assertEquals(result1.getStatement(), result2.getStatement());
+  }
+
+  @Test
+  public void testEscapingInUpdate() throws Exception {
+    String statement = "UPDATE \"vertex\n\\n  \"\"  \t\" " //
+        + "SET PROPERTIES ( \"vertex\n\\n  \"\"  \t\".\"property\n\\n  \"\"  \t\" =  'value''\n\\n\t\"\"' ) " //
+        + "FROM MATCH (\"vertex\n\\n  \"\"  \t\")";
+    PgqlResult result1 = pgql.parse(statement);
+    assertTrue(result1.isQueryValid());
+    String prettyPrintedStatement = result1.getStatement().toString();
+    PgqlResult result2 = pgql.parse(prettyPrintedStatement);
+    assertEquals(result1.getStatement(), result2.getStatement());
+  }
+
+  @Test
+  public void testEscapingInDelete() throws Exception {
+    String statement = "DELETE \"vertex\n\\n  \"\"  \t\"" //
+        + "FROM MATCH (\"vertex\n\\n  \"\"  \t\")";
+    PgqlResult result1 = pgql.parse(statement);
+    assertTrue(result1.isQueryValid());
+    String prettyPrintedStatement = result1.getStatement().toString();
+    PgqlResult result2 = pgql.parse(prettyPrintedStatement);
+    assertEquals(result1.getStatement(), result2.getStatement());
+  }
+
+  @Test
   public void testHaving() throws Exception {
     String query = "SELECT n.age, COUNT(*) FROM g MATCH (n) GROUP BY n.age HAVING COUNT(*) > 100";
     checkRoundTrip(query);

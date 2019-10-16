@@ -151,14 +151,6 @@ test Redefine variable from WHERE in GROUP BY [[
 
 ]] error like "Duplicate variable: variable already defined in the MATCH clause" at #1
 
-test Redefine variable from GROUP BY in SELECT [[
-
-    SELECT COUNT(*) AS [[x]]
-      FROM g MATCH (n)
-  GROUP BY n AS x
-
-]] error like "Duplicate variable: variable already defined in the GROUP BY clause" at #1
-
 test Nested aggregation (1) [[
 
   SELECT AVG(MIN([[n]].age)) AS nestedAggr

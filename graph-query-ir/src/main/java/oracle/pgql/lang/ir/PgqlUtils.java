@@ -9,6 +9,7 @@ import java.time.LocalDateTime;
 import java.time.LocalTime;
 import java.time.OffsetDateTime;
 import java.time.OffsetTime;
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.Iterator;
@@ -146,23 +147,7 @@ public class PgqlUtils {
   // HELPER METHODS FOR PRETTY-PRINTING BELOW
 
   public static String printIdentifier(String identifier) {
-    if (identifier.matches("^[a-zA-Z][a-zA-Z0-9_]*$")) {
-      return identifier;
-    } else {
-      return "\"" + escape(identifier) //
-          .replace("\"", "\"\"") //
-          + "\"";
-    }
-  }
-
-  private static String escape(String s) {
-    return s //
-        .replace("\\", "\\\\") //
-        .replace("\t", "\\t") //
-        .replace("\n", "\\n") //
-        .replace("\r", "\\r") //
-        .replace("\b", "\\b") //
-        .replace("\f", "\\f");
+    return "\"" + identifier.replace("\"", "\"\"") + "\"";
   }
 
   protected static String printPgqlString(GraphQuery graphQuery) {
@@ -182,13 +167,9 @@ public class PgqlUtils {
         throw new IllegalArgumentException(graphQuery.getQueryType().toString());
     }
 
-    if (graphQuery.getGraphName() != null) {
-      result += "\n";
-      result += "FROM " + graphQuery.getGraphName() + " ";
-    }
     if (graphQuery.getGraphPattern() != null) {
-      result += "\n";
-      result += graphQuery.getGraphPattern();
+      result += "\nFROM ";
+      result += printPgqlString(graphQuery.getGraphPattern(), graphQuery.getGraphName());
     }
     GroupBy groupBy = graphQuery.getGroupBy();
     if (groupBy != null && groupBy.getElements().isEmpty() == false) {
@@ -241,51 +222,45 @@ public class PgqlUtils {
   }
 
   protected static String printPgqlString(ExpAsVar expAsVar) {
-    if (expAsVar.isAnonymous() || !expAsVar.isContainedInSelectClause()) {
-      return expAsVar.getExp().toString();
-    } else {
+    if (expAsVar.isContainedInSelectClause() || !expAsVar.isAnonymous()) {
       return expAsVar.getExp() + " AS " + printIdentifier(expAsVar.getName());
+    } else {
+      return expAsVar.getExp().toString();
     }
   }
 
-  protected static String printPgqlString(GraphPattern graphPattern, List<QueryPath> queryPaths) {
-    String result = "MATCH";
-    int indentation = 7;
-    Set<QueryExpression> constraintsCopy = new HashSet<>(graphPattern.getConstraints());
-    QueryVertex lastVertex = null;
+  protected static String printPgqlString(GraphPattern graphPattern) {
+    return printPgqlString(graphPattern, null);
+  }
+
+  private static String printPgqlString(GraphPattern graphPattern, SchemaQualifiedName graphName) {
     Set<QueryVertex> uncoveredVertices = new LinkedHashSet<>(graphPattern.getVertices());
+    List<String> graphPatternMatches = new ArrayList<String>();
 
     Iterator<VertexPairConnection> connectionIt = graphPattern.getConnections().iterator();
-    boolean tryConcatenateNextConnection = false;
     while (connectionIt.hasNext()) {
       VertexPairConnection connection = connectionIt.next();
       uncoveredVertices.remove(connection.getSrc());
       uncoveredVertices.remove(connection.getDst());
-
       if (isShortestCheapest(connection)) {
-        // if the goal is SHORTEST or CHEAPEST we don't concatenate the connection to other connections but instead
-        // comma-separate it
-        result += printConnection(constraintsCopy, connection, lastVertex, tryConcatenateNextConnection, indentation);
-        lastVertex = connection.getDst();
-        tryConcatenateNextConnection = false;
+        graphPatternMatches.add("MATCH " + connection.toString() + printOnClause(graphName));
       } else {
-        result += printConnection(constraintsCopy, connection, lastVertex, tryConcatenateNextConnection, indentation);
-        lastVertex = connection.getDirection() == Direction.INCOMING ? connection.getSrc() : connection.getDst();
-        tryConcatenateNextConnection = true;
+        graphPatternMatches.add(
+            "MATCH " + connection.getSrc() + " " + connection + " " + connection.getDst() + printOnClause(graphName));
       }
     }
 
     // print remaining vertices that are not part of any connection
     Iterator<QueryVertex> vertexIt = uncoveredVertices.iterator();
     while (vertexIt.hasNext()) {
-      QueryVertex vertex = vertexIt.next();
-      result += printVertex(constraintsCopy, vertex, lastVertex, indentation);
-      lastVertex = vertex;
+      graphPatternMatches.add("MATCH " + vertexIt.next() + printOnClause(graphName));
     }
 
+    String result = graphPatternMatches.stream().collect(Collectors.joining("\n   , "));
+
     // print filter expressions
-    if (!constraintsCopy.isEmpty()) {
-      result += "\nWHERE " + constraintsCopy.stream() //
+    if (!graphPattern.getConstraints().isEmpty()) {
+      result += "\nWHERE " + graphPattern.getConstraints().stream() //
           .map(x -> x.toString()) //
           .collect(Collectors.joining("\n  AND "));
     }
@@ -302,45 +277,12 @@ public class PgqlUtils {
     return goal == PathFindingGoal.SHORTEST || goal == PathFindingGoal.CHEAPEST;
   }
 
-  private static String printConnection(Set<QueryExpression> constraintsCopy, VertexPairConnection connection,
-      QueryVertex lastVertex, boolean tryConcatenateConnection, int indentation) {
-
-    String result = "\n" + printIndentation(indentation - 2);
-
-    if (isShortestCheapest(connection)) {
-      result += lastVertex == null ? "  " : ", ";
-      result += connection.toString();
-
-      // if the goal is SHORTEST or CHEAPEST, we don't try to concatenate the connection to the previous connection but
-      // instead
-      // comma-separate it
-      return result;
-    }
-
-    QueryVertex vertexOnTheLeft;
-    QueryVertex vertexOnTheRight;
-    if (connection.getDirection() == Direction.INCOMING) {
-      vertexOnTheLeft = connection.getDst();
-      vertexOnTheRight = connection.getSrc();
+  private static String printOnClause(SchemaQualifiedName graphName) {
+    if (graphName == null) {
+      return "";
     } else {
-      vertexOnTheLeft = connection.getSrc();
-      vertexOnTheRight = connection.getDst();
+      return " ON " + graphName.toString();
     }
-
-    if (lastVertex != vertexOnTheLeft || !tryConcatenateConnection) {
-      result += lastVertex == null ? "  " : ", ";
-      result += deanonymizeIfNeeded(vertexOnTheLeft, constraintsCopy);
-    }
-    result += " " + printConnection(vertexOnTheLeft, connection, constraintsCopy) + " ";
-    result += deanonymizeIfNeeded(vertexOnTheRight, constraintsCopy);
-
-    return result;
-  }
-
-  private static String printVertex(Set<QueryExpression> constraintsCopy, QueryVertex vertex, QueryVertex lastVertex,
-      int indentation) {
-    String result = (lastVertex == null) ? "" : "\n" + printIndentation(indentation - 2) + ", ";
-    return result + deanonymizeIfNeeded(vertex, constraintsCopy);
   }
 
   private static String printIndentation(int indentation) {
@@ -566,9 +508,7 @@ public class PgqlUtils {
   }
 
   protected static String printLiteral(String val) {
-    return "'" + escape(val) //
-        .replace("'", "''") //
-        + "'";
+    return "'" + val.replace("'", "''") + "'";
   }
 
   protected static String printLiteral(LocalDate val) {

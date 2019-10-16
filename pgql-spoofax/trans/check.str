@@ -68,12 +68,10 @@ rules // Unresolved/duplicate variables
        ; if <?None()> groupClause
          then redefinition-in-modify := <isect> (insertVars, matchVars)
             ; <batch-generate-error(|ctx, "Duplicate variable: variable already defined in the MATCH clause")> redefinition-in-modify
-         else if <?SelectClause(_, _)> selectOrModifyClause
-              then selectOrInsertVars := <collect(?ExpAsVar(_, Identifier(<id>, _), NonAnonymous(), _))> selectOrModifyClause
-              else selectOrInsertVars := insertVars
+         else if <?ModifyClause(_)> selectOrModifyClause
+              then redefinitions-in-modify := <isect> (insertVars, groupVars)
+                 ; <batch-generate-error(|ctx, "Duplicate variable: variable already defined in the GROUP BY clause")> redefinitions-in-modify
               end
-            ; redefinitions-in-select-or-modify := <isect> (selectOrInsertVars, groupVars)
-            ; <batch-generate-error(|ctx, "Duplicate variable: variable already defined in the GROUP BY clause")> redefinitions-in-select-or-modify
          end
 
   nabl-constraint(|ctx):

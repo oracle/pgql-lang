@@ -61,7 +61,7 @@ public class GraphPattern {
 
   @Override
   public String toString() {
-    return printPgqlString(this, new ArrayList<QueryPath>());
+    return printPgqlString(this);
   }
 
   @Override

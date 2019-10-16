@@ -193,22 +193,13 @@ test Duplicate variable (1) [[
 
 test Duplicate variable (2) [[
 
-  INSERT VERTEX [[v2]],
-         EDGE [[V2]] BETWEEN v1 AND V2
-  FROM MATCH (v1)
-  GROUP BY v1.prop AS v2
-
-]] error like "Duplicate variable: variable already defined in the GROUP BY clause" at #1, #2
-
-test Duplicate variable (3) [[
-
   INSERT VERTEX [[V2]],
          VERTEX [[v2]],
          EDGE [[v2]] BETWEEN v2 AND v2
 
 ]] error like "Duplicate variable" at #1, #2, #3
 
-test Duplicate variable (4) [[
+test Duplicate variable (3) [[
 
   INSERT VERTEX [[v2]],
          VERTEX [[v2]],
