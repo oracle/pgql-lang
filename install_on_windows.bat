@@ -6,7 +6,7 @@ call mvn clean install
 
 cd ..\pgql-lang
 mkdir src\main\resources\
-copy ..\pgql-spoofax\target\pgqllang-1.2.0-SNAPSHOT.spoofax-language src\main\resources\pgql-1.2.spoofax-language
+copy ..\pgql-spoofax\target\pgqllang-1.3.0-SNAPSHOT.spoofax-language src\main\resources\pgql.spoofax-language
 call mvn clean install
 
 cd ..\pgql-tests

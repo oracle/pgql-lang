@@ -12,7 +12,7 @@ if [ $# -eq 0 ]
     exit
 fi
 
-if [ -f pgql-lang/src/main/resources/pgql-1.2.spoofax-language ]
+if [ -f pgql-lang/src/main/resources/pgql.spoofax-language ]
 then
   echo "INFO: Using the parser that was previously built via 'bash install.sh'"
 else
@@ -20,7 +20,7 @@ else
   exit
 fi
 
-VERSION_A="1.2.0-SNAPSHOT"
+VERSION_A="1.3.0-SNAPSHOT"
 VERSION_B="$1"
 
 for f in $FILES
