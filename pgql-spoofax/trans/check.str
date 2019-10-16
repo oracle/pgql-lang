@@ -218,6 +218,15 @@ rules // subqueries
     where not ( <?SelectClause(_, _)> selectOrUpdateClause )
     with <generate-error(|ctx, "SELECT clause expected here")> t
 
+  nabl-constraint(|ctx):
+    t@NormalizedQuery(_, _, _, _, _, _, _, _, _, "v1.3") -> <fail>
+    with nonPgql13Subqueries := <collect(not-pgql13-query)> t
+       ; <batch-generate-error(|ctx, "Subquery uses older version of PGQL; please make sure that both inner and outer query use PGQL 1.3 syntax")> nonPgql13Subqueries
+
+  not-pgql13-query:
+    NormalizedQuery(_, selectClause, _, _, _, _, _, _, _, version) -> selectClause
+    where <not(?"v1.3")> version
+
 rules // helper rules
 
   batch-generate-error(|ctx, m) = map(generate-error(|ctx, m))
