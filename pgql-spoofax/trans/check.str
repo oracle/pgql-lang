@@ -280,6 +280,10 @@ rules // temporary limitation
     where <collect-in-outer-query(?Path(_, _, _, _, _, _, _, _)); not(?[])> connections
     with <generate-error(|ctx, "Nested regular expressions not supported")> t
 
+  nabl-constraint(|ctx):
+    t@LabelDisjunction(_, _) -> <fail>
+    with <generate-error(|ctx, "Label disjunction not supported here")> t
+
 rules // CHEAPEST
 
   nabl-constraint(|ctx):

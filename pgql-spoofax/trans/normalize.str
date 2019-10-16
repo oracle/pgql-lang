@@ -344,9 +344,10 @@ rules
 
   to-label-constraint(|var):
     labels ->  <to-hasLabel-expressions(|var)> labels
-  to-hasLabel-expressions(|var) = bottomup(try(![VarRef(var), <to-label>]; to-function(|"has_label")))
+  to-hasLabel-expressions(|var) = bottomup(try(![VarRef(var), <to-label>]; to-function(|"has_label") + origin-track-forced(normalize-label-disjunction)))
   to-label = ?Label(<id>) + ?Legacy10Identifier(<id>); origin-track-forced(!Identifier(<id>, None())) + ?BindVariable(_)
   to-id-constraint(|var) = bottomup(try(is-literal; origin-track-forced(!Eq(<to-function(|"id")> [VarRef(var)], <id>))))
+  normalize-label-disjunction = ?LabelDisjunction(x, y); !Or(x, y)
 
   // base case: no paths
   get-connections-from-paths(|variable-counter):

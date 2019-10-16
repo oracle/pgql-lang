@@ -188,7 +188,9 @@ public class Pgql implements Closeable {
       String prettyMessages = null;
       boolean queryValid = parseResult.success();
       Statement statement = null;
-      if (!queryValid) {
+      if (queryValid) {
+        checkNoMessages(parseResult.messages(), queryString);
+      } else {
         prettyMessages = getMessages(parseResult.messages(), queryString);
       }
       if (!parseResult.valid()) {
@@ -203,7 +205,11 @@ public class Pgql implements Closeable {
 
       if (queryValid) {
         queryValid = analysisResult.success();
-        prettyMessages = getMessages(analysisResult.messages(), queryString);
+        if (queryValid) {
+          checkNoMessages(analysisResult.messages(), queryString);
+        } else {
+          prettyMessages = getMessages(analysisResult.messages(), queryString);
+        }
       }
       statement = SpoofaxAstToGraphQuery.translate(analysisResult.ast());
 
@@ -230,6 +236,13 @@ public class Pgql implements Closeable {
         context.close();
       }
       quietlyDelete(dummyFile);
+    }
+  }
+
+  private void checkNoMessages(Iterable<IMessage> messages, String queryString) {
+    if (messages.iterator().hasNext()) {
+      String prettyMessages = getMessages(messages, queryString);
+      throw new IllegalStateException("Error messages not expected: " + prettyMessages);
     }
   }
 

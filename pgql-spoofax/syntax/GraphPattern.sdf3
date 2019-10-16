@@ -63,4 +63,4 @@ context-free syntax
   LabelPredicate.Labels      = <:<Labels>>
   Labels.Label               = Identifier
   Labels                     = BindVariable
-  Labels.Or                  = <<Labels>|<Labels>> {left} 
+  Labels.LabelDisjunction    = <<Labels>|<Labels>> {left}
