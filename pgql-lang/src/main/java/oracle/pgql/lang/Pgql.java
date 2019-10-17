@@ -45,6 +45,7 @@ import org.metaborg.util.concurrent.IClosableLock;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.spoofax.interpreter.terms.IStrategoString;
+import org.spoofax.interpreter.terms.IStrategoTerm;
 
 import com.google.common.collect.Lists;
 
@@ -73,6 +74,8 @@ public class Pgql implements Closeable {
   private static final String SPOOFAX_BINARIES = "pgql.spoofax-language";
 
   private static final int PGQL_VERSION_SUBTERM = 9;
+
+  private static final int POS_PGQL_VERSION = 9;
 
   private static boolean isGloballyInitialized = false;
 
@@ -213,29 +216,28 @@ public class Pgql implements Closeable {
       }
       statement = SpoofaxAstToGraphQuery.translate(analysisResult.ast());
 
-      String pgqlVersion;
-      if (statement != null && (statement.getStatementType() == StatementType.SELECT
-          || statement.getStatementType() == StatementType.GRAPH_MODIFY)) {
-        pgqlVersion = ((IStrategoString) analysisResult.ast().getSubterm(PGQL_VERSION_SUBTERM)).stringValue();
-      } else {
-        pgqlVersion = "v1.3";
-      }
-      if (!pgqlVersion.equals("v1.0") && !pgqlVersion.equals("v1.1")) {
+      PgqlVersion pgqlVersion = getPgqlVersion(analysisResult.ast(), statement);
+
+      if (pgqlVersion != pgqlVersion.V_1_0 && pgqlVersion != pgqlVersion.V_1_1_OR_V_1_2) {
         if (queryString.contains("//")) {
           throw new PgqlException("Use /* .. */ instead of // .. to introduce a comment");
         }
       }
 
-      return new PgqlResult(queryString, queryValid, prettyMessages, statement, parseResult);
-    } catch (IOException | ParseException | AnalysisException |
-
-        ContextException e) {
+      return new PgqlResult(queryString, queryValid, prettyMessages, statement, parseResult, pgqlVersion);
+    } catch (IOException | ParseException | AnalysisException | ContextException e) {
       throw new PgqlException("Failed to parse PGQL query", e);
     } finally {
       if (context != null) {
         context.close();
       }
       quietlyDelete(dummyFile);
+    }
+  }
+
+  private void checkInitialized() throws PgqlException {
+    if (!isInitialized) {
+      throw new PgqlException("Pgql instance was closed");
     }
   }
 
@@ -246,10 +248,33 @@ public class Pgql implements Closeable {
     }
   }
 
-  private void checkInitialized() throws PgqlException {
-    if (!isInitialized) {
-      throw new PgqlException("Pgql instance was closed");
+  private PgqlVersion getPgqlVersion(IStrategoTerm ast, Statement statement) {
+    if (statement == null) {
+      return PgqlVersion.V_1_3_OR_UP;
     }
+
+    if (statement.getStatementType() == StatementType.CREATE_PROPERTY_GRAPH
+        || statement.getStatementType() == StatementType.DROP_PROPERTY_GRAPH) {
+      return PgqlVersion.V_1_3_OR_UP;
+    }
+
+    String pgqlVersionString = ((IStrategoString) ast.getSubterm(POS_PGQL_VERSION)).stringValue();
+    PgqlVersion pgqlVersion;
+    switch (pgqlVersionString) {
+      case "v1.0":
+        pgqlVersion = PgqlVersion.V_1_0;
+        break;
+      case "v1.1":
+        pgqlVersion = PgqlVersion.V_1_1_OR_V_1_2;
+        break;
+      case "v1.3":
+        pgqlVersion = PgqlVersion.V_1_3_OR_UP;
+        break;
+      default:
+        throw new IllegalArgumentException("Version not recognized: " + pgqlVersionString);
+    }
+
+    return pgqlVersion;
   }
 
   private FileObject getFileObject(String queryString) throws UnsupportedEncodingException, IOException {

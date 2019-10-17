@@ -77,10 +77,8 @@ rules
 rules
 
   is-pgql10 = ?Pgql10Query(_, _, _, _, _, _, _)
-  is-pgql11 = ?Pgql11Query(_, SelectClause(_, _), _, _, _, _, _, _)
-            + ?Pgql11Query(_, ModifyClause(_), _, Some(_), _, _, _, _)
-  is-pgql13 = ?Query(_, _, _, _, _, _, _, _)
-  is-pgql13 = ?Pgql11Query(_, ModifyClause(_), _, None(), _, _, _, _)
+  is-pgql11 = ?Pgql11Query(_, _, _, _, _, _, _, _)
+  is-pgql13 = ?Query(_, _, _, _, _, _, _)
 
   get-pgql11-deprecation = (?OutConn(None(), _) + ?InConn(None(), _) + ?UndirectedEdge(None(), _)); to-error-message(|"Use [-] instead of [--]")
   get-pgql11-deprecation = ?Pgql10AsignSymbol(); to-error-message(|"Use [AS] instead of [:=]")
@@ -271,7 +269,7 @@ rules
 
   // PGQL 1.3
   norm-matchElems(|variable-counter):
-    FromClause(graphMatches) -> GraphPatternAndGraphName(graphPattern, graphName)
+    FromWhereClauses(graphMatches, whereClause) -> GraphPatternAndGraphName(graphPattern, graphName, whereClause)
     with graphName := <map(?GraphMatch(_, _, <id>)); (Hd; normalize-OnClause <+ !None())> graphMatches // simply take the first graph name we see; we don't support multiple graph right now
        ; pathPatterns := <map(?GraphMatch(_, <id>, _))> graphMatches
        ; graphPattern := <norm-matchElems-common(|variable-counter)> pathPatterns
@@ -493,17 +491,22 @@ rules
 
   // pgql 1.3
   norm-query(|error-messages, variable-counter):
-    Query(commonPathExpressions, selectOrModifyClause, GraphPatternAndGraphName(graphPattern, optionalGraphName), whereClause, groupByClause, havingClause, orderByClause, limitOffsets) ->
-      <norm-query(|error-messages, "v1.3", variable-counter)> (commonPathExpressions, selectOrModifyClause, optionalGraphName, Some(graphPattern'), groupByClause, havingClause, orderByClause, limitOffsets)
-    with <?GraphPattern(vertices, connections, Constraints(inlined-constraints))> graphPattern
-       ; non-inlined-constraints := <?Some(WhereClause(<id>)); ![<id>] + ?None(); ![]> whereClause
-       ; constraints := Constraints(<conc> (inlined-constraints,  non-inlined-constraints))
-       ; graphPattern' := GraphPattern(vertices, connections, constraints)
+    Query(commonPathExpressions, selectOrModifyClause, graphPatternAndGraphName, groupByClause, havingClause, orderByClause, limitOffsets) ->
+      <norm-query(|error-messages, "v1.3", variable-counter)> (commonPathExpressions, selectOrModifyClause, optionalGraphName, graphPattern', groupByClause, havingClause, orderByClause, limitOffsets)
+    with if <?None()> graphPatternAndGraphName
+         then graphPattern' := None()
+            ; optionalGraphName := None()
+         else <?Some(GraphPatternAndGraphName(graphPattern, optionalGraphName, whereClause))> graphPatternAndGraphName
+            ; <?GraphPattern(vertices, connections, Constraints(inlined-constraints))> graphPattern
+            ; non-inlined-constraints := <?Some(WhereClause(<id>)); ![<id>] + ?None(); ![]> whereClause
+            ; constraints := Constraints(<conc> (inlined-constraints,  non-inlined-constraints))
+            ; graphPattern' := Some(GraphPattern(vertices, connections, constraints))
+         end
 
   // pgql 1.1 + 1.2
   norm-query(|error-messages, variable-counter):
     Pgql11Query(commonPathExpressions, selectOrModifyClause, fromClause, graphPattern, groupByClause, havingClause, orderByClause, limitOffsets) ->
-      <norm-query(|error-messages, "v1.1", variable-counter)> (commonPathExpressions, selectOrModifyClause, optionalGraphName, graphPattern, groupByClause, havingClause, orderByClause, limitOffsets)
+      <norm-query(|error-messages, "v1.1", variable-counter)> (commonPathExpressions, selectOrModifyClause, optionalGraphName, Some(graphPattern), groupByClause, havingClause, orderByClause, limitOffsets)
     with optionalGraphName := <?None() + ?Some(Pgql11FromClause(graphName)); !Some(GraphName(graphName))> fromClause
 
   // pgql 1.0

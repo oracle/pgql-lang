@@ -18,15 +18,14 @@ context-free syntax
     <
       <{CommonPathExpression "\n"}*>
       <SelectOrModify>
-      <ExperimentalFromClause>
-      <WhereClause?>
+      <FromWhereClauses?>
       <GroupByClause?>
       <HavingClause?>
       <OrderByClause?>
       <LimitOffsetClauses?>
     >
 
-  ExperimentalFromClause.FromClause = <FROM <{TableExpression ","}+>> {case-insensitive}
+  FromWhereClauses.FromWhereClauses = <FROM <{TableExpression ","}+> <WhereClause?>> {case-insensitive}
 
   TableExpression = GraphMatch
 
