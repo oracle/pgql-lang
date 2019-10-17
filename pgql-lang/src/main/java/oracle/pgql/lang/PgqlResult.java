@@ -73,11 +73,11 @@ public class PgqlResult {
     return statement;
   }
 
-  protected ISpoofaxParseUnit getSpoofaxParseUnit() {
-    return spoofaxParseUnit;
+  public PgqlVersion getPgqlVersion() {
+    return pgqlVersion;
   }
 
-  protected PgqlVersion getPgqlVersion() {
-    return pgqlVersion;
+  protected ISpoofaxParseUnit getSpoofaxParseUnit() {
+    return spoofaxParseUnit;
   }
 }
