@@ -21,13 +21,16 @@ public class PgqlResult {
 
   private final ISpoofaxParseUnit spoofaxParseUnit;
 
+  private final PgqlVersion pgqlVersion;
+
   public PgqlResult(String queryString, boolean queryValid, String messages, Statement statement,
-      ISpoofaxParseUnit spoofaxParseUnit) {
+      ISpoofaxParseUnit spoofaxParseUnit, PgqlVersion pgqlVersion) {
     this.queryString = queryString;
     this.errorMessages = messages;
     this.queryValid = queryValid;
     this.statement = statement;
     this.spoofaxParseUnit = spoofaxParseUnit;
+    this.pgqlVersion = pgqlVersion;
   }
 
   /**
@@ -72,5 +75,9 @@ public class PgqlResult {
 
   protected ISpoofaxParseUnit getSpoofaxParseUnit() {
     return spoofaxParseUnit;
+  }
+
+  protected PgqlVersion getPgqlVersion() {
+    return pgqlVersion;
   }
 }

@@ -32,7 +32,7 @@ context-free syntax
       <{CommonPathExpression "\n"}*>
       <SelectOrModify>
       <Pgql11FromClause?>
-      <MatchWhereClauses?>
+      <MatchWhereClauses>
       <GroupByClause?>
       <HavingClause?>
       <OrderByClause?>
