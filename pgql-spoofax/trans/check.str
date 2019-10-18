@@ -424,20 +424,6 @@ rules // MODIFY
        ; <batch-generate-error(|ctx, "Only a single UPDATE clause is allowed per query; use commas to update multiple elements in a single UPDATE clause")> additionalUpdateClauses
        ; <batch-generate-error(|ctx, "Only a single DELETE clause is allowed per query; use commas to delete multiple elements in a single DELETE clause")> additionalDeleteClauses
 
-  nabl-constraint(|ctx):
-    NormalizedQuery(_, ModifyClause(insertUpdateDeleteClauses), optionalGraphName, _, _, _, _, _, _, _) -> <fail>
-    with intoClauses := <filter(?InsertClause(Some(<id>), _))> insertUpdateDeleteClauses
-       ; if <?None()> optionalGraphName
-         then <batch-generate-error(|ctx, "No INTO clause expected because query has no ON clause(s)")> intoClauses
-         else <?Some(GraphName(graphNameInOnClauses))> optionalGraphName
-            ; insertClausesWithoutIntoClause := <filter(?InsertClause(None(), _))> insertUpdateDeleteClauses
-            ; <batch-generate-error(|ctx, "INTO clause expected since query has ON clause(s)")> insertClausesWithoutIntoClause
-            ; graphNamesInIntoClauses := <map(?IntoClause(<id>))> intoClauses
-            ; graphNameInOnClauses' := <strip-annos; to-name-without-case-sensitive-info> graphNameInOnClauses
-            ; graphNameMismatches := <strip-annos; map(to-name-without-case-sensitive-info); filter(not(equal(|graphNameInOnClauses')))> graphNamesInIntoClauses
-            ; <batch-generate-error(|ctx, "Graph name in INTO clause does not match graph name in ON clause(s)")> graphNameMismatches
-         end
-
 // CREATE PROPERTY GRAPH
 
   nabl-constraint(|ctx):

@@ -5,14 +5,14 @@ language pgql-lang
 test INSERT/UPDATE/DELETE subquery not allowed (1) [[
 
   SELECT ( [[ UPDATE x SET PROPERTIES ( x.prop = 3 )]] FROM MATCH (x) ) AS v
-    FROM g MATCH(n)
+    FROM MATCH(n)
 
 ]] error like "SELECT clause expected here" at #1
 
 test INSERT/UPDATE/DELETE subquery not allowed (2) [[
 
   SELECT n AS n
-    FROM g MATCH (n)
+    FROM MATCH (n)
    WHERE EXISTS ( [[ UPDATE x SET PROPERTIES ( x.prop = 3 ) ]] FROM MATCH(x) )
 
 ]] error like "SELECT clause expected here" at #1
@@ -191,7 +191,7 @@ test Duplicate clauses (1) [[
   [[INSERT EDGE e3 BETWEEN m AND o
   DELETE]] e1
   [[DELETE e2
-  ]]FROM g MATCH (n) -[e1]-> (m) -[e2]-> (o)
+  ]]FROM MATCH (n) -[e1]-> (m) -[e2]-> (o)
 
 ]] error like "Only a single INSERT clause is allowed per query; use commas to insert multiple elements in a single INSERT clause" at #1
    error like "Only a single DELETE clause is allowed per query; use commas to delete multiple elements in a single DELETE clause" at #2

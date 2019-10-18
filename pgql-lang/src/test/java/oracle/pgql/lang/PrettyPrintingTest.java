@@ -221,6 +221,7 @@ public class PrettyPrintingTest extends AbstractPgqlTest {
         + "PROPERTIES ( \"vertex\n\\n  \"\"  \t\".\"property\n  \"\"  \t\" =  'value''\n\\n\t\"\"'), " //
         + "EDGE \"edge\n\\n  \"\"  \t\" BETWEEN \"vertex\n\\n  \"\"  \t\" AND \"vertex\n\\n  \"\"  \t\"";
     PgqlResult result1 = pgql.parse(statement);
+    System.out.println(result1.getErrorMessages());
     assertTrue(result1.isQueryValid());
     String prettyPrintedStatement = result1.getStatement().toString();
     PgqlResult result2 = pgql.parse(prettyPrintedStatement);
@@ -458,7 +459,7 @@ public class PrettyPrintingTest extends AbstractPgqlTest {
 
   @Test
   public void testSchemaQualifiedNames() throws Exception {
-    String statement = "INSERT INTO Scott.PersonData VERTEX v\n" //
+    String statement = "INSERT INTO scott.socialNetwork VERTEX v\n" //
         + "FROM MATCH (n:Person) ON Scott.SocialNetwork";
     checkRoundTrip(statement);
   }
