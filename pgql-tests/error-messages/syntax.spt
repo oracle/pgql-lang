@@ -82,11 +82,32 @@ test Missing MATCH clause (1) [[
   SELECT 1 AS c1
     FROM MATCH (n), [[(m)]]
 
-]] error like "Missing MATCH clause" at #1
+]] error like "Missing MATCH keyword at start of pattern" at #1
 
 test Missing MATCH clause (2) [[
 
   SELECT 1 AS c1
     FROM [[(n) -> (m)]]
 
-]] error like "Missing MATCH clause" at #1
+]] error like "Missing MATCH keyword at start of pattern" at #1
+
+test Unexpected INTO clause [[
+
+  INSERT [[INTO g]] VERTEX v
+    FROM (n) -> (m)
+
+]] error like "No INTO clause expected because query has no ON clause(s)" at #1
+
+test Missing MATCH clause (2) [[
+
+  [[INSERT VERTEX v
+    FROM]] (n) -> (m) ON g
+
+]] error like "INTO clause expected since query has ON clause(s)" at #1
+
+test Graph mismatch between INTO and ON clauses [[
+
+  INSERT INTO [[g2]] VERTEX v
+    FROM (n) -> (m) ON g1
+
+]] error like "Graph name in INTO clause does not match graph name in ON clause(s)" at #1

@@ -100,7 +100,7 @@ rules
 
   get-pgql13-deprecation = get-pgql11-deprecation // sharing all the deprecations with 1.1
 
-  get-pgql13-errors      = ?GraphMatch(None(), _, _); to-error-message(|"Missing MATCH clause")
+  get-pgql13-errors      = ?GraphMatch(None(), _, _); to-error-message(|"Missing MATCH keyword at start of pattern")
 
   get-pgql10-limitation = ( ?Pgql11FromClause(_)
                           + ?Subquery(_)
@@ -124,7 +124,7 @@ rules
 
   get-errors-for-inconsistent-graph-names:
     ast -> <conc> (errors-multiple-graph-names, errors-missing-graph-names)
-    with inputGraphNames := <collect-om(?GraphMatch(_, _, Some(OnClause(<id>))))> ast
+    with inputGraphNames := <collect-om(?GraphMatch(_, _, Some(OnClause(<id>))); alltd(norm-identifier); to-name-without-case-sensitive-info)> ast
        ; clausesWithMissingGraphName := <collect-om(?GraphMatch(_, _,  None()), conc)> ast
        ; numInputGraphNames := <length> inputGraphNames
        ; if <gt> (numInputGraphNames, 1)
