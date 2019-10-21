@@ -71,7 +71,8 @@ rules
            norm-matchElems(|variable-counter)
         ));
         bottomup(try(origin-track-forced(norm-query(|error-messages, variable-counter))));
-        alltd(?ElemContents(Some(<id>), _, _, _))
+        alltd(?ElemContents(Some(<id>), _, _, _));
+        try(copy-graph-name-to-inner-queries)
       > ast
 
 rules
@@ -123,18 +124,31 @@ rules
   get-path-limitations = collect(?Shortest(_, _) + ?Cheapest(_, _)); collect(?Path(_, _, _)); not(?[]); map(to-error-message(|"Nested regular expressions not supported"))
 
   get-errors-for-inconsistent-graph-names:
-    ast -> <conc> (errors-multiple-graph-names, errors-missing-graph-names)
+    ast -> <conc> (errors-for-multiple-graph-name, errors-for-missing-on-clauses)
+    with errors-for-multiple-graph-name := <get-errors-for-multiple-graph-names> ast
+       ; errors-for-missing-on-clauses := <get-errors-for-missing-on-clauses> ast
+
+  get-errors-for-multiple-graph-names:
+    ast -> errors
     with inputGraphNames := <collect-om(?GraphMatch(_, _, Some(OnClause(<id>))); alltd(norm-identifier); to-name-without-case-sensitive-info)> ast
-       ; clausesWithMissingGraphName := <collect-om(?GraphMatch(_, _,  None()), conc)> ast
        ; numInputGraphNames := <length> inputGraphNames
        ; if <gt> (numInputGraphNames, 1)
-         then errors-multiple-graph-names := <map(to-error-message(|"Querying multiple graphs is not supported"))> inputGraphNames
-         else errors-multiple-graph-names := []
+         then errors := <map(to-error-message(|"Querying multiple graphs is not supported"))> inputGraphNames
+         else errors := []
          end
+
+  get-errors-for-missing-on-clauses = collect-om(get-errors-for-missing-on-clauses-per-query, conc); concat
+
+  get-errors-for-missing-on-clauses-per-query:
+    Query(_, _, Some(FromWhereClauses(graphMatches, _)), _, _, _, _) -> errors
+    with inputGraphNames := <filter(?GraphMatch(_, _, Some(OnClause(<id>))); alltd(norm-identifier); to-name-without-case-sensitive-info)> graphMatches
+       ; clausesWithMissingGraphName := <filter(?GraphMatch(_, _,  None()))> graphMatches
+       ; numInputGraphNames := <length> inputGraphNames
        ; if <gt> (numInputGraphNames, 0)
-         then errors-missing-graph-names := <map(?GraphMatch(_, _, _); to-error-message(|"Missing ON clause"))> clausesWithMissingGraphName
-         else errors-missing-graph-names := []
+         then errors := <map(?GraphMatch(_, _, _); to-error-message(|"Missing ON clause"))> clausesWithMissingGraphName
+         else errors := []
          end
+    where not ( <?[]> errors ) // make sure it will traverse inner queries to look for errors if outer query has no errors
 
   shortest-or-cheapest-or-reaches = ?Shortest(_, _)
                                   + ?Cheapest(_, _)
@@ -149,6 +163,15 @@ rules
   norm-pgql10 = ?Legacy10InDegree(x); <to-function(|"in_degree")> [x]
   norm-pgql10 = ?Legacy10OutDegree(x); <to-function(|"out_degree")> [x]
   norm-pgql10 = ?Legacy10Regex(x, regex); <to-function(|"java_regexp_like")> [x, regex]
+
+  // In PGQL 1.1 and PGQL 1.2, subqueries would inherit the graph name from the outer query.
+  // This is no longer the case in PGQL 1.3+, where graph names in subqueries need to be respecified.
+  copy-graph-name-to-inner-queries:
+    ast@NormalizedQuery(_, _, Some(graphName), _, _, _, _, _, _, "v1.1") -> ast'
+    with ast' := <alltd(copy-graph-name-to-query-without-one(|graphName))> ast
+
+  copy-graph-name-to-query-without-one(|graphName):
+    NormalizedQuery(a, b, None(), c, d, e, f, g, h, i) -> NormalizedQuery(a, b, Some(graphName), c, d, e, f, g, h, i)
 
   to-function(|name):
     args -> FunctionCall(None(), name, args)

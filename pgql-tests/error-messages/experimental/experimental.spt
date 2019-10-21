@@ -59,11 +59,11 @@ test Missing graph name (1) [[
 
 test Missing graph name (2) [[
 
-  SELECT EXISTS ( SELECT 1 AS y FROM [[MATCH (m) )]] AS v1
+  SELECT EXISTS ( SELECT 1 AS y FROM [[MATCH (m),]] MATCH (n) ON g ) AS v1
     FROM MATCH (n) ON g
-   WHERE EXISTS ( SELECT 1 AS y FROM [[MATCH (m) )]]
+   WHERE EXISTS ( SELECT 1 AS y FROM MATCH (m) )
 
-]] error like "Missing ON clause" at #1, #2
+]] error like "Missing ON clause" at #1
 
 test Implicit property reference [[
 
