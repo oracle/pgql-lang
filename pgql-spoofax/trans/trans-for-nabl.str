@@ -109,20 +109,20 @@ rules
 
   to-Correlation(|variables):
     v -> correlation
-    with if <Hd; oncetd(?VarDef(v, _, _, _, _); ?VarDef(v-from-outer-query, origin-position-from-outer-query, _, _, _))> variables
+    with if <Hd; oncetd(?VarDef(v, _, _, _, _, _); ?VarDef(v-from-outer-query, origin-position-from-outer-query, _, _, _, _))> variables
          then correlation := Correlation(VarRef(Identifier(v-from-outer-query, None()), origin-position-from-outer-query))
          else correlation := None()
          end
 
-  to-varDef = ?Vertex(Identifier(name, _), origin-offset, _); !VarDef(name, origin-offset, None(), None(), ThisQuery())
-  to-varDef = ?Edge(_, Identifier(name, _), _, _, origin-offset, _); !VarDef(name, origin-offset, None(), None(), ThisQuery())
+  to-varDef = ?Vertex(Identifier(name, _), origin-offset, _); !VarDef(name, origin-offset, None(), None(), None(), ThisQuery())
+  to-varDef = ?Edge(_, Identifier(name, _), _, _, origin-offset, _); !VarDef(name, origin-offset, None(), None(), None(), ThisQuery())
 
   replace-or-add-all = foldl(replace-or-add)
 
   replace-or-add:
-    (vd@VarDef(v, _, _, _, _), varDefs) -> varDefs'
-    with if <fetch(?VarDef(v, _, _, _, _))> varDefs
-         then varDefs' := <conc> (<remove-all(?VarDef(v, _, _, _, _))> varDefs, [vd])
+    (vd@VarDef(v, _, _, _, _, _), varDefs) -> varDefs'
+    with if <fetch(?VarDef(v, _, _, _, _, _))> varDefs
+         then varDefs' := <conc> (<remove-all(?VarDef(v, _, _, _, _, _))> varDefs, [vd])
          else varDefs' := <conc> (varDefs, [vd])
          end
 
@@ -179,7 +179,7 @@ rules
             ; insertion := <origin-track-forced(!DirectedEdgeInsertion(iden, originOffset, src', dst', labels, properties'))> t
          end
        ; [vars-in-scope|xs] := variables
-       ; vars-in-scope' := <replace-or-add> (VarDef(v, originOffset, None(), None(), ThisQuery()), vars-in-scope)
+       ; vars-in-scope' := <replace-or-add> (VarDef(v, originOffset, None(), None(), None(), ThisQuery()), vars-in-scope)
        ; variables' := [vars-in-scope'|xs]
        ; result' := <conc> (result, [insertion])
 
@@ -194,9 +194,9 @@ rules
   resolve-exp-as-var-in-group-by(|variables, expAsVarsFromSelectClause):
     (t@ExpAsVar(exp, iden@Identifier(v, _), anonymous), (result, vars)) -> (result', vars')
     with exp' := <resolve-var-refs-and-use-expAsVarsFromSelectClause(|variables, expAsVarsFromSelectClause)> exp
-       ; exp'' := <alltd(?VarRef(<id>, _); !VarRef(<id>))> exp'
+       ; replaced-groupByExp-with-selectExp := <alltd(?VarRef(<id>, _); !VarRef(<id>))> exp'
        ; originOffset := <origin-offset> v
-       ; vars' := <replace-or-add> (VarDef(v, originOffset, exp'', exp', ThisQuery()), vars)
+       ; vars' := <replace-or-add> (VarDef(v, originOffset, exp, replaced-groupByExp-with-selectExp, exp', ThisQuery()), vars)
        ; expAsVar' := <origin-track-forced(!ExpAsVar(exp', iden, anonymous, originOffset))> t
        ; result' := <conc> (result, [expAsVar'])
 
@@ -209,7 +209,7 @@ rules
               unique-origin := <conc-strings> ("*_", <write-to-string> originOffset, "_", <write-to-string> v)
          else unique-origin := originOffset
          end
-       ; vars' := <replace-or-add> (VarDef(v, unique-origin, exp, exp', ThisQuery()), vars)
+       ; vars' := <replace-or-add> (VarDef(v, unique-origin, exp, None(), exp', ThisQuery()), vars)
        ; expAsVar' := <origin-track-forced(!ExpAsVar(exp', iden, anonymous, unique-origin))> t
        ; result' := <conc> (result, [expAsVar'])
 
@@ -262,7 +262,7 @@ rules
   resolve-var-ref(|variables):
     t@VarRef(iden@Identifier(v, _)) -> varRef
     with varRef := <
-           Hd; fetch(?VarDef(v, origin-offset, _, _, _)); !VarRef(iden, origin-offset)
+           Hd; fetch(?VarDef(v, origin-offset, _, _, _, _)); !VarRef(iden, origin-offset)
            <+ !VarRef(iden)
          > variables
 
@@ -270,7 +270,7 @@ rules
   resolve-var-ref-within-query(|variables, expAsVarsFromSelectClause):
   t@VarRef(iden@Identifier(v, _)) -> varRef
     with varRef := <
-           Hd; fetch(?VarDef(v, origin-offset, _, _, ThisQuery())); !VarRef(iden, origin-offset)
+           Hd; fetch(?VarDef(v, origin-offset, _, _, _, ThisQuery())); !VarRef(iden, origin-offset)
            <+ !VarRef(iden)
          > variables
 
@@ -278,7 +278,7 @@ rules
     t@PropRef(VarRef(iden@Identifier(v, _)), prop) -> PropRef(varRef, prop)
     with varRef := <
            Hd
-         ; fetch(?VarDef(v, origin-offset, original-exp, _, _))
+         ; fetch(?VarDef(v, origin-offset, original-exp,_ , _, _))
 
           // The original expression needs to be a vertex/edge defintion (i.e. ?None()) or a reference to a vertex/edge definition (i.e. ?VarRef(_)).
           // Otherwise, it is a more complex ExpAsVar but we don't want to resolve a VarRef of a PropRef to anything other than a vertex or edge.
@@ -301,18 +301,18 @@ rules
 
   resolve-var-ref(|variables):
     Subquery(query) -> Subquery(query')
-    with variables' := <alltd(VarDef(id, id, id, id, !OuterQuery()))> variables
+    with variables' := <alltd(VarDef(id, id, id, id, id, !OuterQuery()))> variables
        ; query' := <trans-query(|variables')> query
 
   replace-exp-with-ref-within-this-query(|variables):
     exp -> varRef
     where not ( None() := exp )
-        ; varRef := <Hd; filter(?VarDef(_, _, _, _, ThisQuery())); fetch-elem(replace-unresolved-exp-with-ref(|exp) + replace-resolved-exp-with-ref-helper(|exp))> variables
+        ; varRef := <Hd; filter(?VarDef(_, _,_ , _, _, ThisQuery())); fetch-elem(replace-unresolved-exp-with-ref(|exp) + replace-resolved-exp-with-ref-helper(|exp))> variables
 
   replace-exp-with-ref-from-outer-queries(|variables):
     exp -> varRef
     where not ( None() := exp )
-        ; varRef := <Hd; filter(?VarDef(_, _, _, _, OuterQuery())); fetch-elem(replace-unresolved-exp-with-ref(|exp))> variables
+        ; varRef := <Hd; filter(?VarDef(_, _,_ , _, _, OuterQuery())); fetch-elem(replace-unresolved-exp-with-ref(|exp))> variables
 
   /*
      When the expression could not be resolved, but there is an equivalent expression that we can replace it with.
@@ -320,7 +320,15 @@ rules
        Actual query: SELECT n.age FROM g MATCH (n) GROUP BY n.age
        Final AST:    SELECT generatedVar FROM g MATCH (n) GROUP BY n.age AS generatedVar
   */
-  replace-unresolved-exp-with-ref(|exp) = ?VarDef(v, origin-offset, original-exp, _, _); where ( <eq> (exp, original-exp) ); !VarRef(Identifier(v, None()), origin-offset)
+  replace-unresolved-exp-with-ref(|exp) = ?VarDef(v, origin-offset, original-exp, _, _, _); where ( <eq> (exp, original-exp) ); !VarRef(Identifier(v, None()), origin-offset)
+
+  /*
+     When the expression could not be resolved, but there is an equivalent expression in the SELECT and GROUP BY.
+     For example:
+       Actual query: SELECT n.age AS nAge MATCH (n) GROUP BY nAge ORDER BY nAge
+       Final AST:    SELECT nAge FROM g MATCH (n) GROUP BY n.age AS nAge ORDER BY nAge
+  */
+  replace-unresolved-exp-with-ref(|exp) = ?VarDef(v, origin-offset, _, replaced-groupByExp-with-selectExp, _, _); where ( <eq> (exp, replaced-groupByExp-with-selectExp) ); !VarRef(Identifier(v, None()), origin-offset)
 
   /*
      When the expression was resolved succesfully, but there is an equivalent expression that we can replace it with.
@@ -328,7 +336,7 @@ rules
        Actual query: SELECT n.age AS nAge FROM g MATCH (n) ORDER BY n.age
        Final AST:    SELECT n.age AS nAge FROM g MATCH (n) ORDER BY nAge
   */
-  replace-resolved-exp-with-ref-helper(|exp) = ?VarDef(v, origin-offset, _, resolved-exp, _); where ( <eq> (exp, resolved-exp) ); !VarRef(Identifier(v, None()), origin-offset)
+  replace-resolved-exp-with-ref-helper(|exp) = ?VarDef(v, origin-offset, _, _, resolved-exp, _); where ( <eq> (exp, resolved-exp) ); !VarRef(Identifier(v, None()), origin-offset)
 
   replace-ref-with-exp(|variables, expAsVars):
     VarRef(Identifier(v, _)) -> resolved-exp
@@ -358,7 +366,7 @@ rules
 
   varRef-is-visible-var(|visible-vars):
     t@VarRef(Identifier(v, _)) -> t
-    where <oncetd(?VarDef(v, _, _, _, _))> visible-vars
+    where <oncetd(?VarDef(v, _, _, _, _, _))> visible-vars
 
   trans-path-expression(|variables):
     CommonPathExpression(name, vertices, edges, valueExpression, costClause) -> CommonPathExpression(name, vertices', edges', valueExpression', costClause')

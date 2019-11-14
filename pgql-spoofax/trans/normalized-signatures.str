@@ -69,7 +69,7 @@ signature constructors // for name binding (see trans/trans-for-nabl.str)
 
   CreateOneGroup        : CreateOneGroup
 
-  VarDef                : Var * OriginPosition * OriginalExp * TransformedExp * ThisQueryOrOuterQuery -> VarDef
+  VarDef                : Var * OriginPosition * OriginalExp * ReplacedGroupByExpWithSelectExp * TransformedExp * ThisQueryOrOuterQuery -> VarDef
   VarRef                : Var * OriginPosition -> VarRef
   ThisQuery             : ThisQueryOrOuterQuery
   OuterQuery            : ThisQueryOrOuterQuery

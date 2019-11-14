@@ -84,9 +84,10 @@ test Resolve to this query before resolving to outer query (2) [[
 
     SELECT 1 AS n
       FROM g MATCH ( [[n]] )
-  ORDER BY ( SELECT 1 AS c1 MATCH (m) WHERE [[n]].age >= 21 )
+  ORDER BY [[n]].prop, ( SELECT 1 AS c1 MATCH (m) WHERE [[n]].age >= 21 )
 
 ]] resolve #2 to #1
+   resolve #3 to #1
 
 test Resolve to this query before resolving to outer query (3) [[
 
