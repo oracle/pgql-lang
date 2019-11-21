@@ -4,7 +4,7 @@ language pgql-lang
 
 test INSERT/UPDATE/DELETE subquery not allowed (1) [[
 
-  SELECT ( [[ UPDATE x SET PROPERTIES ( x.prop = 3 )]] FROM MATCH (x) ) AS v
+  SELECT ( [[ UPDATE x SET ( x.prop = 3 )]] FROM MATCH (x) ) AS v
     FROM MATCH(n)
 
 ]] error like "SELECT clause expected here" at #1
@@ -13,13 +13,13 @@ test INSERT/UPDATE/DELETE subquery not allowed (2) [[
 
   SELECT n AS n
     FROM MATCH (n)
-   WHERE EXISTS ( [[ UPDATE x SET PROPERTIES ( x.prop = 3 ) ]] FROM MATCH(x) )
+   WHERE EXISTS ( [[ UPDATE x SET ( x.prop = 3 ) ]] FROM MATCH(x) )
 
 ]] error like "SELECT clause expected here" at #1
 
 test Set a property that is grouped by [[
 
-    UPDATE n SET PROPERTIES ( [[n.prop]] = 123 )
+    UPDATE n SET ( [[n.prop]] = 123 )
       FROM MATCH (n)
   GROUP BY n.prop AS nProp
 
@@ -27,7 +27,7 @@ test Set a property that is grouped by [[
 
 test Update property value to vertex or edge (1) [[
 
-  UPDATE n SET PROPERTIES ( n.prop1 = [[n]]
+  UPDATE n SET ( n.prop1 = [[n]]
                           , n.prop2 = [[m]]
                           , n.prop3 = [[e]] )
     FROM MATCH (n) -[e]-> (m)
@@ -36,14 +36,14 @@ test Update property value to vertex or edge (1) [[
 
 test Update property value to vertex or edge (2) [[
 
-  UPDATE n SET PROPERTIES ( n.prop = ( SELECT [[x AS x]] FROM MATCH (x) LIMIT 1 ) )
+  UPDATE n SET ( n.prop = ( SELECT [[x AS x]] FROM MATCH (x) LIMIT 1 ) )
     FROM MATCH (n) -[e]-> (m)
 
 ]] error like "Scalar subquery not allowed to return a vertex or an edge" at #1
 
 test Update property value to vertex or edge (3) [[
 
-  UPDATE n SET PROPERTIES ( n.prop = [[n]] )
+  UPDATE n SET ( n.prop = [[n]] )
     FROM MATCH (n)
   GROUP BY n
 
@@ -75,7 +75,7 @@ test Insert element with property value of type vertex or edge (3) [[
 
 test Set a property multiple times in UPDATE [[
 
-  UPDATE n SET PROPERTIES ( [[n.prop]] = 1, [[n.prop]] = 2 )
+  UPDATE n SET ( [[n.prop]] = 1, [[n.prop]] = 2 )
     FROM MATCH (n)
 
 ]] error like "Property is set multiple times" at #1, #2
@@ -96,7 +96,7 @@ test Cannot reference inserted elements [[
          VERTEX v5,
          EDGE e BETWEEN v1 AND v1 LABELS ( knows ) PROPERTIES ( e.prop = [[v4]].prop, [[v5]].prop = 123 ),
          VERTEX v6
-  UPDATE n SET PROPERTIES ( n.prop1 = [[v6]].prop, n.prop2 = n.prop, m.prop = n.prop )
+  UPDATE n SET ( n.prop1 = [[v6]].prop, n.prop2 = n.prop, m.prop = n.prop )
     FROM MATCH (n) -> (m)
 
 ]] error like "Unresolved variable" at #1, #2, #3, #4
@@ -138,21 +138,21 @@ test Duplicate variable (4) [[
 test Update an insertion (1) [[
 
   INSERT VERTEX v3
-  UPDATE [[v3]] SET PROPERTIES ( v3.prop = 3 )
+  UPDATE [[v3]] SET ( v3.prop = 3 )
 
 ]] error like "Cannot update an element that is being inserted" at #1
 
 test Update an insertion (2) [[
 
   INSERT VERTEX v3
-  UPDATE [[v3]] SET PROPERTIES ( v3.prop = 3 )
+  UPDATE [[v3]] SET ( v3.prop = 3 )
     FROM g MATCH (v1)
 
 ]] error like "Cannot update an element that is being inserted" at #1
 
 test Update a deletion [[
 
-  UPDATE [[n]] SET PROPERTIES ( n.prop = 123 )
+  UPDATE [[n]] SET ( n.prop = 123 )
   DELETE n
     FROM MATCH (n)
 
@@ -168,8 +168,8 @@ test Set source of destination of edge to deletion [[
 
 test Update other element than the one that was meant to be updated [[
 
-  UPDATE n SET PROPERTIES ( [[m]].prop = 3 )
-       , m SET PROPERTIES ( [[n]].prop = 4 )
+  UPDATE n SET ( [[m]].prop = 3 )
+       , m SET ( [[n]].prop = 4 )
     FROM MATCH (n) -> (m)
 
 ]] error like "Did you mean n?" at #1
@@ -187,7 +187,7 @@ test Set properties of other element than the one that is being inserted [[
 test Duplicate clauses (1) [[
 
   INSERT VERTEX w
-  UPDATE n SET PROPERTIES ( n.prop = 123 )
+  UPDATE n SET ( n.prop = 123 )
   [[INSERT EDGE e3 BETWEEN m AND o
   DELETE]] e1
   [[DELETE e2
@@ -198,16 +198,16 @@ test Duplicate clauses (1) [[
 
 test Duplicate clauses (2) [[
 
-  UPDATE n SET PROPERTIES ( n.prop = 1 )
-  [[UPDATE m SET PROPERTIES ( m.prop = 2 )]]
+  UPDATE n SET ( n.prop = 1 )
+  [[UPDATE m SET ( m.prop = 2 )]]
   FROM g MATCH (n) -[e1]-> (m) -[e2]-> (o)
 
 ]] error like "Only a single UPDATE clause is allowed per query; use commas to update multiple elements in a single UPDATE clause" at #1
 
 test Duplicate updates or deletions [[
 
-  UPDATE [[v]] SET PROPERTIES ( v.first_name = 'Scott' ),
-         [[v]] SET PROPERTIES ( v.last_name = 'Tiger' )
+  UPDATE [[v]] SET ( v.first_name = 'Scott' ),
+         [[v]] SET ( v.last_name = 'Tiger' )
   DELETE [[w]], [[w]]
   FROM g MATCH (v) -> (w)
 

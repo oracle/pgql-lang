@@ -40,7 +40,7 @@ public class Update {
   public String toString() {
     String result = element.toString();
     if (!setPropertyExpressions.isEmpty()) {
-      result += " SET PROPERTIES ( "
+      result += " SET ( "
           + setPropertyExpressions.stream().map(x -> x.toString()).collect(Collectors.joining(", ")) + " )";
     }
     return result;

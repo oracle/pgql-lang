@@ -30,6 +30,6 @@ context-free syntax
 
   UpdateClause.UpdateClause = <UPDATE <{Update ", "}+>> {case-insensitive}
   Update.Update = <<VarRef> <SetProperties>>
-  SetProperties.SetProperties = <SET PROPERTIES ( <{SetProperty ", "}+> )> {case-insensitive}
+  SetProperties.SetProperties = <SET ( <{SetProperty ", "}+> )> {case-insensitive}
 
   DeleteClause.DeleteClause = <DELETE <{VarRef ", "}+>> {case-insensitive}

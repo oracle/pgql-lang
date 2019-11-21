@@ -66,7 +66,7 @@ public class SyntaxErrorsTest extends AbstractPgqlTest {
   public void testDuplicateInsertUpdateDeleteClausesShouldNotThrowUnexpectedExceptions() throws Exception {
     String query = "INSERT VERTEX v1 INSERT VERTEX v2" //
         + " DELETE e1 DELETE e2" //
-        + " UPDATE n SET PROPERTIES ( n.prop = 1 ) UPDATE m SET PROPERTIES ( n.prop = 2 )" //
+        + " UPDATE n SET ( n.prop = 1 ) UPDATE m SET ( n.prop = 2 )" //
         + " FROM g MATCH (n) -[e1]-> (m) -[e2]-> (o)";
     assertFalse(pgql.parse(query).isQueryValid());
   }
@@ -79,14 +79,14 @@ public class SyntaxErrorsTest extends AbstractPgqlTest {
 
   @Test
   public void testUnresolvedReferencesInModify2() throws Exception {
-    String query = "UPDATE x SET PROPERTIES ( x.prop = y.prop + z.prop ) DELETE y FROM MATCH (v)";
+    String query = "UPDATE x SET ( x.prop = y.prop + z.prop ) DELETE y FROM MATCH (v)";
     assertFalse(pgql.parse(query).isQueryValid());
   }
 
   @Test
   public void testWrongVariableInInsertAndUpdate() throws Exception {
     String query = "INSERT VERTEX w LABELS ( x, y.prop ) PROPERTIES ( v.prop = 1, u.prop = 2 ) " //
-        + "UPDATE v SET PROPERTIES ( w.prop = 3, u.prop = 4) FROM MATCH (v)";
+        + "UPDATE v SET ( w.prop = 3, u.prop = 4) FROM MATCH (v)";
     assertFalse(pgql.parse(query).isQueryValid());
   }
 
@@ -98,7 +98,7 @@ public class SyntaxErrorsTest extends AbstractPgqlTest {
 
   @Test
   public void testSetPropertyThatIsGroupedBy() throws Exception {
-    String query = "UPDATE n SET PROPERTIES ( [[n.prop]] = 123 ) " //
+    String query = "UPDATE n SET ( [[n.prop]] = 123 ) " //
         + "FROM MATCH (n) " //
         + "GROUP BY n.prop AS nProp";
     assertFalse(pgql.parse(query).isQueryValid());
@@ -122,8 +122,8 @@ public class SyntaxErrorsTest extends AbstractPgqlTest {
   public void testUpdateOtherElementThanWasMeantAndWithDoubleQuotes() throws Exception {
     String query = "INSERT VERTEX \"o\" PROPERTIES ( \"n\".prop = 3 )\n" + //
         "                , EDGE \"e\" BETWEEN \"n\" AND \"o\" PROPERTIES ( \"n\".prop = 4 )\n" + //
-        "           UPDATE \"n\" SET PROPERTIES ( \"m\".prop = 3 )\n" + //
-        "                , \"m\" SET PROPERTIES ( \"n\".prop = 4 )\n" + //
+        "           UPDATE \"n\" SET ( \"m\".prop = 3 )\n" + //
+        "                , \"m\" SET ( \"n\".prop = 4 )\n" + //
         "             FROM MATCH (\"n\") -> (\"m\")";
     PgqlResult result = pgql.parse(query);
     assertTrue(result.getErrorMessages().contains("Did you mean \"o\"?"));

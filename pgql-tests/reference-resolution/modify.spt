@@ -6,7 +6,7 @@ test Resolve to variables in MATCH [[
 
   INSERT VERTEX v LABELS ( Person ) PROPERTIES ( v.prop = [[n]].prop ),
          EDGE e BETWEEN [[n]] AND [[n]] LABELS ( knows ) PROPERTIES ( e.prop = [[n]].prop )
-  UPDATE n SET PROPERTIES ( [[n]].prop = 123 )
+  UPDATE n SET ( [[n]].prop = 123 )
   DELETE [[n]]
   FROM MATCH ([[n]])
 
@@ -21,7 +21,7 @@ test Resolve to inserted elements [[
 
   INSERT VERTEX [[v]] LABELS ( Person ) PROPERTIES ( [[v]].prop = n.prop ),
          EDGE [[e]] BETWEEN [[v]] AND [[v]] LABELS ( knows ) PROPERTIES ( [[e]].prop = n.prop )
-  UPDATE n SET PROPERTIES ( n.prop = 123 )
+  UPDATE n SET ( n.prop = 123 )
   DELETE n
   FROM MATCH (n)
 

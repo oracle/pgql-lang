@@ -230,7 +230,7 @@ public class PrettyPrintingTest extends AbstractPgqlTest {
   @Test
   public void testEscapingInUpdate() throws Exception {
     String statement = "UPDATE \"vertex\n\\n  \"\"  \t\" " //
-        + "SET PROPERTIES ( \"vertex\n\\n  \"\"  \t\".\"property\n\\n  \"\"  \t\" =  'value''\n\\n\t\"\"' ) " //
+        + "SET ( \"vertex\n\\n  \"\"  \t\".\"property\n\\n  \"\"  \t\" =  'value''\n\\n\t\"\"' ) " //
         + "FROM MATCH (\"vertex\n\\n  \"\"  \t\")";
     PgqlResult result1 = pgql.parse(statement);
     assertTrue(result1.isQueryValid());
@@ -285,8 +285,8 @@ public class PrettyPrintingTest extends AbstractPgqlTest {
     String query = //
         "INSERT VERTEX v LABELS ( Person ) PROPERTIES ( v.first_name = 'Scott', v.last_name = 'Tiger' ), " //
             + "       EDGE e BETWEEN v AND u LABELS ( Likes ) PROPERTIES ( e.weight = 10 ) " //
-            + "UPDATE u SET PROPERTIES ( u.first_name = 'Jane' ), " //
-            + "       x SET PROPERTIES ( x.first_name = 'Bob' ) " //
+            + "UPDATE u SET ( u.first_name = 'Jane' ), " //
+            + "       x SET ( x.first_name = 'Bob' ) " //
             + "DELETE w, e3 " //
             + "FROM MATCH (u) -> (w) -[e3]-> (x)";
     checkRoundTrip(query);

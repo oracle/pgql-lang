@@ -171,7 +171,7 @@ test Duplicate variables (9) [[
 
 test Set a property multiple times in UPDATE [[
 
-  UPDATE n SET PROPERTIES ( [[n.pRoP]] = 1, [[n.prop]] = 2 )
+  UPDATE n SET ( [[n.pRoP]] = 1, [[n.prop]] = 2 )
     FROM MATCH (n)
 
 ]] error like "Property is set multiple times" at #1, #2
@@ -211,21 +211,21 @@ test Duplicate variable (3) [[
 test Update an insertion (1) [[
 
   INSERT VERTEX v3
-  UPDATE [[V3]] SET PROPERTIES ( v3.prop = 3 )
+  UPDATE [[V3]] SET ( v3.prop = 3 )
 
 ]] error like "Cannot update an element that is being inserted" at #1
 
 test Update an insertion (2) [[
 
   INSERT VERTEX v3
-  UPDATE [[V3]] SET PROPERTIES ( v3.prop = 3 )
+  UPDATE [[V3]] SET ( v3.prop = 3 )
   FROM MATCH (v1)
 
 ]] error like "Cannot update an element that is being inserted" at #1
 
 test Update a deletion [[
 
-  UPDATE [[N]] SET PROPERTIES ( n.prop = 123 )
+  UPDATE [[N]] SET ( n.prop = 123 )
   DELETE n
   FROM MATCH (n)
 
@@ -241,16 +241,16 @@ test Set source of destination of edge to deletion [[
 
 test Update other element than the one that was meant to be updated [[
 
-  UPDATE n SET PROPERTIES ( [[N]].prop = 3 )
-       , M SET PROPERTIES ( [[m]].prop = 4 )
+  UPDATE n SET ( [[N]].prop = 3 )
+       , M SET ( [[m]].prop = 4 )
   FROM MATCH (n) -> (m)
 
 ]] analysis succeeds
 
 test Duplicate updates or deletions [[
 
-  UPDATE [[v]] SET PROPERTIES ( v.first_name = 'Scott' ),
-         [[V]] SET PROPERTIES ( v.last_name = 'Tiger' )
+  UPDATE [[v]] SET ( v.first_name = 'Scott' ),
+         [[V]] SET ( v.last_name = 'Tiger' )
   DELETE [[w]], [[W]]
   FROM MATCH (v) -> (w)
 
