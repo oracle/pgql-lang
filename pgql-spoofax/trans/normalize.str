@@ -568,7 +568,10 @@ rules
   norm-ExpAsVar-for-select-clause = ?ExpAsVar(exp@PropRef(_, p), None()); !ExpAsVar(exp, p, NonAnonymous()) <+ norm-ExpAsVar
 
   norm-ExpAsVar = ?ExpAsVar(exp, Some(VarAssign(v))); !ExpAsVar(exp, v, NonAnonymous())
-  norm-ExpAsVar = ?ExpAsVar(exp, None()); !ExpAsVar(exp, <(?VarRef(<id>) <+ origin-track-forced(origin-text); origin-track-forced(!Identifier(<id>, None())))> exp, Anonymous())
+  norm-ExpAsVar:
+    ExpAsVar(exp, None()) -> ExpAsVar(exp, identifier, anonymous)
+    with identifier := <(?VarRef(<id>) <+ origin-track-forced(origin-text); origin-track-forced(!Identifier(<id>, None())))> exp
+       ; anonymous := <?PropRef(_, _); !NonAnonymous() <+ !Anonymous()> exp // 'SELECT n.prop' in PGQL <= 1.2 is 'SELECT n.prop AS "n.prop"' in PGQL 1.3+
 
   norm-select-star(|graphPattern, group-exps):
     t@SelectClause(distinct, star@Star()) -> result

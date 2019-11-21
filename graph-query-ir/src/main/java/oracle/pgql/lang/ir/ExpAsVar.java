@@ -9,8 +9,6 @@ public class ExpAsVar extends QueryVariable {
 
   private QueryExpression exp;
 
-  private boolean isContainedInSelectClause;
-
   private String nameOriginText;
 
   /**
@@ -23,7 +21,7 @@ public class ExpAsVar extends QueryVariable {
    *          query (i.e. exp) but via some other mechanism
    */
   public ExpAsVar(QueryExpression exp, String name, boolean anonymous) {
-    this(exp, name, anonymous, true);
+    this(exp, name, anonymous, null);
   }
 
   /**
@@ -34,33 +32,13 @@ public class ExpAsVar extends QueryVariable {
    * @param anonymous
    *          false if the name was provided via the query (i.e. exp AS name), true if the name was not provided via the
    *          query (i.e. exp) but via some other mechanism
-   * @param isContainedInSelectClause
-   *          true if in SELECT, false if in GROUP BY
-   */
-  @Deprecated
-  public ExpAsVar(QueryExpression exp, String name, boolean anonymous, boolean isContainedInSelectClause) {
-    this(exp, name, anonymous, isContainedInSelectClause, null);
-  }
-
-  /**
-   * @param exp
-   *          an expression
-   * @param name
-   *          the name with which the the element can be referred to in the result set
-   * @param anonymous
-   *          false if the name was provided via the query (i.e. exp AS name), true if the name was not provided via the
-   *          query (i.e. exp) but via some other mechanism
-   * @param isContainedInSelectClause
-   *          true if in SELECT, false if in GROUP BY
    * @param nameOriginText
    *          the text of the column name as it appear in the query string. Should be NULL unless name was unquoted and
    *          upper cased.
    */
-  public ExpAsVar(QueryExpression exp, String name, boolean anonymous, boolean isContainedInSelectClause,
-      String nameOriginText) {
+  public ExpAsVar(QueryExpression exp, String name, boolean anonymous, String nameOriginText) {
     super(name, anonymous);
     this.exp = exp;
-    this.isContainedInSelectClause = isContainedInSelectClause;
     this.nameOriginText = nameOriginText;
   }
 
@@ -70,10 +48,6 @@ public class ExpAsVar extends QueryVariable {
 
   public void setExp(QueryExpression exp) {
     this.exp = exp;
-  }
-
-  public boolean isContainedInSelectClause() {
-    return isContainedInSelectClause;
   }
 
   public String getNameOriginText() {
@@ -107,8 +81,6 @@ public class ExpAsVar extends QueryVariable {
       if (other.exp != null)
         return false;
     } else if (!exp.equals(other.exp))
-      return false;
-    if (isContainedInSelectClause != other.isContainedInSelectClause)
       return false;
     return true;
   }

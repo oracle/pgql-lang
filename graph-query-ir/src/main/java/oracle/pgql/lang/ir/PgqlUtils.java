@@ -211,10 +211,6 @@ public class PgqlUtils {
         // e.g. in "SELECT x.prop1 + x.prop2 FROM g MATCH( (n) ) ORDER BY x.prop1 + x.prop2", the ORDER BY expression
         // "x.prop1 + x.prop2" is a VarRef to the anonymous SELECT expression "x.prop1 + x.prop2"
         return expAsVar.getExp().toString();
-      } else if (!expAsVar.isContainedInSelectClause()) {
-        // e.g. "SELECT 123 FROM g EXPERIMENTAL_MATCH ( (n) ) GROUP BY n.age AS age" is not a valid PGQL query since
-        // GROUP BY may not introduce new variables since PGQL v1.3
-        return expAsVar.getExp().toString();
       }
     }
 
@@ -222,10 +218,10 @@ public class PgqlUtils {
   }
 
   protected static String printPgqlString(ExpAsVar expAsVar) {
-    if (expAsVar.isContainedInSelectClause() || !expAsVar.isAnonymous()) {
-      return expAsVar.getExp() + " AS " + printIdentifier(expAsVar.getName());
-    } else {
+    if (expAsVar.isAnonymous()) {
       return expAsVar.getExp().toString();
+    } else {
+      return expAsVar.getExp() + " AS " + printIdentifier(expAsVar.getName());
     }
   }
 

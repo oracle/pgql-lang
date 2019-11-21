@@ -331,7 +331,7 @@ public class SpoofaxAstToGraphQuery {
       selectElems = new ArrayList<>();
     } else {
       projectionElemsT = projectionElemsT.getSubterm(0);
-      selectElems = getExpAsVars(ctx, projectionElemsT, true);
+      selectElems = getExpAsVars(ctx, projectionElemsT);
     }
     projection = new Projection(distinct, selectElems);
     return projection;
@@ -779,7 +779,7 @@ public class SpoofaxAstToGraphQuery {
     switch (consName) {
       case "Some": // explicit GROUP BY
         IStrategoTerm groupByElemsT = getList(groupByT);
-        return new GroupBy(getExpAsVars(ctx, groupByElemsT, false));
+        return new GroupBy(getExpAsVars(ctx, groupByElemsT));
       case "CreateOneGroup": // implicit GROUP BY (e.g. SELECT has aggregation)
         return new GroupBy(Collections.emptyList());
       case "None": // no GROUP BY
@@ -789,9 +789,7 @@ public class SpoofaxAstToGraphQuery {
     }
   }
 
-  private static List<ExpAsVar> getExpAsVars(TranslationContext ctx, IStrategoTerm expAsVarsT,
-      boolean isContainedInSelectClause)
-      throws PgqlException {
+  private static List<ExpAsVar> getExpAsVars(TranslationContext ctx, IStrategoTerm expAsVarsT) throws PgqlException {
     List<ExpAsVar> expAsVars = new ArrayList<>(expAsVarsT.getSubtermCount());
     for (IStrategoTerm expAsVarT : expAsVarsT) {
       QueryExpression exp = translateExp(expAsVarT.getSubterm(POS_EXPASVAR_EXP), ctx);
@@ -803,7 +801,7 @@ public class SpoofaxAstToGraphQuery {
           .equals("Anonymous");
       IStrategoTerm originPosition = expAsVarT.getSubterm(POS_EXPASVAR_ORIGIN_OFFSET);
 
-      ExpAsVar expAsVar = new ExpAsVar(exp, varName, anonymous, isContainedInSelectClause, originName);
+      ExpAsVar expAsVar = new ExpAsVar(exp, varName, anonymous, originName);
       expAsVars.add(expAsVar);
       ctx.addVar(expAsVar, varName, originPosition);
     }
