@@ -9,8 +9,6 @@ public class ExpAsVar extends QueryVariable {
 
   private QueryExpression exp;
 
-  private boolean isContainedInSelectClause;
-
   /**
    * @param exp
    *          an expression
@@ -21,24 +19,8 @@ public class ExpAsVar extends QueryVariable {
    *          query (i.e. exp) but via some other mechanism
    */
   public ExpAsVar(QueryExpression exp, String name, boolean anonymous) {
-    this(exp, name, anonymous, true);
-  }
-
-  /**
-   * @param exp
-   *          an expression
-   * @param name
-   *          the name with which the the element can be referred to in the result set
-   * @param anonymous
-   *          false if the name was provided via the query (i.e. exp AS name), true if the name was not provided via the
-   *          query (i.e. exp) but via some other mechanism
-   * @param isContainedInSelectClause
-   *          true if in SELECT, false if in GROUP BY
-   */
-  public ExpAsVar(QueryExpression exp, String name, boolean anonymous, boolean isContainedInSelectClause) {
     super(name, anonymous);
     this.exp = exp;
-    this.isContainedInSelectClause = isContainedInSelectClause;
   }
 
   public QueryExpression getExp() {
@@ -47,10 +29,6 @@ public class ExpAsVar extends QueryVariable {
 
   public void setExp(QueryExpression exp) {
     this.exp = exp;
-  }
-
-  public boolean isContainedInSelectClause() {
-    return isContainedInSelectClause;
   }
 
   @Override
@@ -76,8 +54,6 @@ public class ExpAsVar extends QueryVariable {
       if (other.exp != null)
         return false;
     } else if (!exp.equals(other.exp))
-      return false;
-    if (isContainedInSelectClause != other.isContainedInSelectClause)
       return false;
     return true;
   }
