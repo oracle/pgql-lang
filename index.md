@@ -94,7 +94,7 @@ Oracle Big Data Spatial and Graph Spatial and graph provides analytic services a
 
 <tr>
   <td width="50%">
-    <a href="https://www.oracle.com/technologies/developer-tools/parallel-graph-analytix.html">
+    <a href="https://slack-redir.net/link?url=https%3A%2F%2Fwww.oracle.com%2Fmiddleware%2Ftechnologies%2Fparallel-graph-analytix.html">
       <img src="images/pgx.png" alt="PGX - Home" style="width:500px;">
     </a>
   </td>
