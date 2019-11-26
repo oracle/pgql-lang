@@ -77,7 +77,10 @@ rules
 
   is-pgql10 = ?Pgql10Query(_, _, _, _, _, _, _)
   is-pgql11 = ?Pgql11Query(_, _, _, _, _, _, _, _)
-  is-pgql13 = ?Query(_, _, _, _, _, _, _)
+            + is-modify-without-MatchClause // for now, MODIFY without MATCH clause is considered PGQL 1.1/1.2, so we don't apply case insensitivity to it yet
+  is-pgql13 = ?Query(_, _, _, _, _, _, _); not(is-modify-without-MatchClause)
+
+  is-modify-without-MatchClause = ?Query(_, ModifyClause(_, _), _, None(), _, _, _)
 
   get-pgql11-deprecation = (?OutConn(None(), _) + ?InConn(None(), _) + ?UndirectedEdge(None(), _)); to-error-message(|"Use [-] instead of [--]")
   get-pgql11-deprecation = ?Pgql10AsignSymbol(); to-error-message(|"Use [AS] instead of [:=]")
