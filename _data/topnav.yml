@@ -30,7 +30,7 @@ topnav_dropdowns:
         - title: Oracle Big Data Spatial and Graph
           external_url: https://www.oracle.com/technetwork/database/database-technologies/bigdata-spatialandgraph/overview/index.html
         - title: Oracle Labs PGX
-          external_url: https://www.oracle.com/technetwork/oracle-labs/parallel-graph-analytix/overview/index.html
+          external_url: https://www.oracle.com/middleware/technologies/parallel-graph-analytix.html
         - title: Oracle Home
           external_url: https://www.oracle.com/
 

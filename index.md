@@ -137,7 +137,7 @@ Oracle [Big Data] Spatial and Graph products
 PGX (Parallel Graph AnalytiX) toolkit
 -----------------------------
 
- - [PGX Home](https://www.oracle.com/technetwork/oracle-labs/parallel-graph-analytix/overview/index.html)
+ - [PGX Home](https://www.oracle.com/middleware/technologies/parallel-graph-analytix.html)
      - [PGQL extensions and limitations in PGX](https://docs.oracle.com/cd/E56133_01/latest/reference/analytics/pgql.html)
      - [Relevant Java API documentation](https://docs.oracle.com/cd/E56133_01/latest/prog-guides/graph-pattern-matching/index.html)
      - [Examples of Java API](https://docs.oracle.com/cd/E56133_01/latest/prog-guides/graph-pattern-matching/examples.html)
