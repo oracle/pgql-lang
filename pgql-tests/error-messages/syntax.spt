@@ -77,9 +77,16 @@ test Invalid timestamp [[
    error like "Not a valid timestamp: Text '' could not be parsed at index 0. Examples of valid timestamps are '2018-01-15 16:30:00' and '2018-01-15 15:30:00+01:00'." at #3
    error like "Not a valid timestamp: Text '2018-01-15T16:30:00' could not be parsed at index 10. Examples of valid timestamps are '2018-01-15 16:30:00' and '2018-01-15 15:30:00+01:00'." at #4
 
-test FROM clause without graph name [[
+test Missing MATCH clause (1) [[
 
-  SELECT n AS c1
-    [[FROM MATCH]] (n)
+  SELECT 1 AS c1
+    FROM MATCH (n), [[(m)]]
 
-]] error like "Missing graph name" at #1
+]] error like "Missing MATCH clause" at #1
+
+test Missing MATCH clause (2) [[
+
+  SELECT 1 AS c1
+    FROM [[(n) -> (m)]]
+
+]] error like "Missing MATCH clause" at #1

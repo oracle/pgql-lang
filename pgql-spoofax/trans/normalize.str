@@ -39,9 +39,8 @@ rules
       error-messages := <
         (  is-pgql10; collect(get-pgql10-limitation)
         <+ is-pgql11; (collect(get-pgql11-limitation); not(?[]) <+ collect(get-pgql11-deprecation))
-        <+ is-pgql13; collect(get-pgql13-deprecation); flatten-list
+        <+ is-pgql13; collect(get-pgql13-deprecation + get-pgql13-errors); flatten-list
         )
-        ; add-errors-on-from-clauses-without-graph-name(|ast)
         ; not(?[]) <+ get-path-limitations <+ ![]> ast;
       result := <
         alltd(norm-has-prop);
@@ -78,7 +77,7 @@ rules
 
   is-pgql10 = ?Pgql10Query(_, _, _, _, _, _, _)
   is-pgql11 = ?Pgql11Query(_, _, _, _, _, _, _, _)
-  is-pgql13 = ?Query(_, _, _, _, _, _, _, _)
+  is-pgql13 = ?Query(_, _, _, _, _, _, _)
 
   get-pgql11-deprecation = (?OutConn(None(), _) + ?InConn(None(), _) + ?UndirectedEdge(None(), _)); to-error-message(|"Use [-] instead of [--]")
   get-pgql11-deprecation = ?Pgql10AsignSymbol(); to-error-message(|"Use [AS] instead of [:=]")
@@ -100,6 +99,8 @@ rules
 
   get-pgql13-deprecation = get-pgql11-deprecation // sharing all the deprecations with 1.1
 
+  get-pgql13-errors      = ?GraphMatch(None(), _, _); to-error-message(|"Missing MATCH clause")
+
   get-pgql10-limitation = ( ?Pgql11FromClause(_)
                           + ?Subquery(_)
                           + ?Pgql11AsignSymbol()
@@ -108,7 +109,7 @@ rules
                           + ?Shortest(_, _)
                           + ?Cheapest(_, _)
                           )
-                        ; to-error-message(|"Use [SELECT .. MATCH .. WHERE ..] or [SELECT .. FROM graphName MATCH .. WHERE ..]")
+                        ; to-error-message(|"Use [SELECT .. FROM MATCH .. WHERE ..]")
 
   get-pgql11-limitation = ?VarRef(DelimitedIdentifier(<id>)); to-error-message(|"Double quoted variable references are only available in PGQL 1.3 and up")
 
@@ -124,8 +125,6 @@ rules
                                   + ?Cheapest(_, _)
                                   + ?OutConn(Some(Path(_, _, _)), _)
                                   + ?InConn(Some(Path(_, _, _)), _)
-
-  add-errors-on-from-clauses-without-graph-name(|ast) = !(<collect(?Pgql11FromClause(None()); to-error-message(|"Missing graph name"))> ast, <id>); conc
 
   norm-pgql10 = ?Legacy10Label(x); <to-function(|"label")> [x]
   norm-pgql10 = ?Legacy10Labels(x); <to-function(|"labels")> [x]
@@ -160,10 +159,10 @@ rules
     with s' := <origin-track-forced(un-double-quote; unescape-legacy-identifier)> s
 
   norm-legacy-identifier:
-    RegularIdentifier(v) -> Identifier(v)
+    RegularIdentifier(v) -> Identifier(v, None())
 
   norm-legacy-identifier:
-    DelimitedIdentifier(v) -> Identifier(v')
+    DelimitedIdentifier(v) -> Identifier(v', None())
     with v' := <origin-track-forced(un-double-quote; unescape-legacy-identifier)> v
 
   // (n:'lbl')
@@ -227,11 +226,11 @@ rules
 
   norm-singleVertex = ?SingleVertex(elemContents); !PathPattern(Vertex(elemContents), []) // SELECT * WHERE ()
 
-  norm-VertexWithoutBrackets = ?VertexWithoutBrackets(v); !Vertex(ElemContents(Some(<origin-track-forced(<conc-strings> (v, <VERTEX_WITHOUT_BRACKETS>))>), None(), None(), None()))
+  norm-VertexWithoutBrackets = ?VertexWithoutBrackets(v); !Vertex(ElemContents(Some(RegularIdentifier(<origin-track-forced(<conc-strings> (v, <VERTEX_WITHOUT_BRACKETS>))>)), None(), None(), None()))
 
   norm-edgeContents = ?Some(EdgeContents(<id>))
 
-  name-unnamed-elems(|c) = (?CommonPathExpression(_, _, _, _, _) + ?GraphPattern(_) + ?MatchWhereClauses(_, _)); alltd(name-unnamed-elem(|c))
+  name-unnamed-elems(|c) = (?CommonPathExpression(_, _, _, _, _) + ?GraphPattern(_) + ?MatchWhereClauses(_, _) + ?PathPattern(_, _)); alltd(name-unnamed-elem(|c))
   name-unnamed-elem(|c) = ?ElemContents(None(), type, id', constraints); ?origin; !ElemContents(Some(<unique-name(|c, origin)>), type, id', constraints)
   name-unnamed-elem(|c) = ?origin; (OutConn(?None(); name-unnamed-elem-helper(|c, origin), id) +
                            InConn(?None(); name-unnamed-elem-helper(|c, origin), id) +
@@ -253,26 +252,42 @@ rules
 
 rules
 
+  // PGQL 1.3
+  norm-matchElems(|variable-counter):
+    FromWhereClauses(graphMatches, whereClause) -> GraphPatternAndGraphName(graphPattern, graphName, whereClause)
+    with graphName := <map(?GraphMatch(_, _, <id>)); try(make-set; ?[<id>]; normalize-OnClause)> graphMatches
+       ; pathPatterns := <map(?GraphMatch(_, <id>, _))> graphMatches
+       ; graphPattern := <norm-matchElems-common(|variable-counter)> pathPatterns
+
+  // PGQL 1.1 and 1.2
   norm-matchElems(|variable-counter):
     MatchWhereClauses(elems, whereClause) -> GraphPattern(vertices, connections, constraints)
-    with <?GraphPattern(vertices, connections, Constraints(inlined-constraints))> := <norm-matchElems(|variable-counter)> GraphPattern(elems)
+    with <?GraphPattern(vertices, connections, Constraints(inlined-constraints))> := <norm-matchElems-common(|variable-counter)> elems
        ; non-inlined-constraints := <?Some(WhereClause(<id>)); ![<id>] + ?None(); ![]> whereClause
        ; constraints := Constraints(<conc> (inlined-constraints,  non-inlined-constraints))
 
+  // PGQL 1.0
   norm-matchElems(|variable-counter):
-    GraphPattern(elems) -> GraphPattern(vertices, connections, constraints)
-    with pathPatterns := <filter(?PathPattern(_, _) + ?Shortest(_, _) + ?Cheapest(_, _))> elems
-       // TODO: move below two statements to the end (also for common path expressions)
+    GraphPattern(elems) -> graphPattern
+    with graphPattern := <norm-matchElems-common(|variable-counter)> elems
+
+  norm-matchElems-common(|variable-counter):
+    matchElems -> GraphPattern(vertices, connections, constraints)
+    with pathPatterns := <remove-all(?Constraint(_))> matchElems // relevant to PGQL 1.0 only
+       ; vertices := <collect-outside-repeated-path(?Vertex(ElemContents(Some(<id>), _, _, _)); !Vertex(<id>)); remove-duplicate-vertices; !Vertices(<id>)> pathPatterns
+       ; connections := <get-connections-from-paths(|variable-counter)> pathPatterns
+
+       ; non-inlined-constraints := <filter(?Constraint(<id>))> matchElems // PGQL 1.0 only
        ; inlined-constraints-for-vertices := <collect-outside-repeated-path(?Vertex(<id>))
                                            ; map(get-inlined-constraints); concat> pathPatterns
        ; inlined-constraints-for-edges := <collect-outside-repeated-path(?OutConn(<id>, None())
                                                                        + ?InConn(<id>, None())
                                                                        + ?UndirectedEdge(<id>, None()))
                                          ; filter(get-inlined-constraints); concat> pathPatterns
-       ; vertices := <collect-outside-repeated-path(?Vertex(ElemContents(Some(<id>), _, _, _)); !Vertex(<id>)); !Vertices(<id>)> pathPatterns
-       ; connections := <get-connections-from-paths(|variable-counter)> pathPatterns
-       ; non-inlined-constraints := <filter(?CommonPathExpression(_, _, _, _, _) + ?Constraint(<id>)); remove-all(?CommonPathExpression(_, _, _, _, _))> elems
        ; constraints := <conc; flatten-list; !Constraints(<id>)> (inlined-constraints-for-vertices, inlined-constraints-for-edges, non-inlined-constraints)
+
+  normalize-OnClause = ?None()
+  normalize-OnClause = ?Some(OnClause(<id>)); !Some(GraphName(<id>))
 
   collect-outside-repeated-path(s) = collect-but-preserve-order(ParenthesizedPath + s); remove-all(ParenthesizedPath)
 
@@ -280,6 +295,20 @@ rules
 
   reverse-then-union:
     (x, y) -> <union> (y, x)
+
+  // ignore origin text so that we don't end up with duplicate vertices because of case insensitivity
+  // Vertex(Identifier("N","n")),Vertex(Identifier("N","N")) ==> Vertex(Identifier("N","n")))
+  remove-duplicate-vertices:
+    vertices -> vertices'
+    where not ( <?[]> vertices )
+    with init := <init> vertices
+       ; last@Vertex(Identifier(n, _)) := <last> vertices
+       ; if <fetch(?Vertex(Identifier(n, _)))> init
+         then vertices' := <remove-duplicate-vertices> init
+         else vertices' := <conc> (<remove-duplicate-vertices> init, [last])
+         end
+
+  remove-duplicate-vertices = ?[] // base case; empty list
 
   ParenthesizedPath = ?ParenthesizedPath(_, _, _, _)
 
@@ -302,7 +331,7 @@ rules
   to-label-constraint(|var):
     labels ->  <to-hasLabel-expressions(|var)> labels
   to-hasLabel-expressions(|var) = bottomup(try(![VarRef(var), <to-label>]; to-function(|"has_label")))
-  to-label = ?Label(<id>) + ?Legacy10Identifier(<id>); origin-track-forced(!Identifier(<id>)) + ?BindVariable(_)
+  to-label = ?Label(<id>) + ?Legacy10Identifier(<id>); origin-track-forced(!Identifier(<id>, None())) + ?BindVariable(_)
   to-id-constraint(|var) = bottomup(try(is-literal; origin-track-forced(!Eq(<to-function(|"id")> [VarRef(var)], <id>))))
 
   // base case: no paths
@@ -447,18 +476,23 @@ rules
 
   // pgql 1.3
   norm-query(|error-messages, variable-counter):
-    Query(commonPathExpressions, selectOrModifyClause, FromClause(GraphMatch(optionalGraphName, graphPattern)), whereClause, groupByClause, havingClause, orderByClause, limitOffsets) ->
-      <norm-query(|error-messages, "v1.3", variable-counter)> (commonPathExpressions, selectOrModifyClause, optionalGraphName, Some(graphPattern'), groupByClause, havingClause, orderByClause, limitOffsets)
-    with <?GraphPattern(vertices, connections, Constraints(inlined-constraints))> graphPattern
-       ; non-inlined-constraints := <?Some(WhereClause(<id>)); ![<id>] + ?None(); ![]> whereClause
-       ; constraints := Constraints(<conc> (inlined-constraints,  non-inlined-constraints))
-       ; graphPattern' := GraphPattern(vertices, connections, constraints)
+    Query(commonPathExpressions, selectOrModifyClause, graphPatternAndGraphName, groupByClause, havingClause, orderByClause, limitOffsets) ->
+      <norm-query(|error-messages, "v1.3", variable-counter)> (commonPathExpressions, selectOrModifyClause, optionalGraphName, graphPattern', groupByClause, havingClause, orderByClause, limitOffsets)
+    with if <?None()> graphPatternAndGraphName
+         then graphPattern' := None()
+            ; optionalGraphName := None()
+         else <?Some(GraphPatternAndGraphName(graphPattern, optionalGraphName, whereClause))> graphPatternAndGraphName
+            ; <?GraphPattern(vertices, connections, Constraints(inlined-constraints))> graphPattern
+            ; non-inlined-constraints := <?Some(WhereClause(<id>)); ![<id>] + ?None(); ![]> whereClause
+            ; constraints := Constraints(<conc> (inlined-constraints,  non-inlined-constraints))
+            ; graphPattern' := Some(GraphPattern(vertices, connections, constraints))
+         end
 
   // pgql 1.1 + 1.2
   norm-query(|error-messages, variable-counter):
     Pgql11Query(commonPathExpressions, selectOrModifyClause, fromClause, graphPattern, groupByClause, havingClause, orderByClause, limitOffsets) ->
-      <norm-query(|error-messages, "v1.1", variable-counter)> (commonPathExpressions, selectOrModifyClause, optionalGraphName, graphPattern, groupByClause, havingClause, orderByClause, limitOffsets)
-    with optionalGraphName := <?None() + ?Some(Pgql11FromClause(None())); !None() + ?Some(Pgql11FromClause(Some(graphName))); !Some(GraphName(graphName))> fromClause
+      <norm-query(|error-messages, "v1.1", variable-counter)> (commonPathExpressions, selectOrModifyClause, optionalGraphName, Some(graphPattern), groupByClause, havingClause, orderByClause, limitOffsets)
+    with optionalGraphName := <?None() + ?Some(Pgql11FromClause(graphName)); !Some(GraphName(graphName))> fromClause
 
   // pgql 1.0
   norm-query(|error-messages, variable-counter):
@@ -477,7 +511,7 @@ rules
       expAsGroupVars' := <map(norm-ExpAsVar)> expAsGroupVars;
       groupByClause' := <?Some(_); !Some(GroupByClause(expAsGroupVars')) <+ !None()> groupByClause;
 
-      selectOrModifyClause' := <?ModifyClause(_, _) + ?SelectClause(_, _); (norm-ExpAsVars(|expAsGroupVars') <+ norm-select-star(|graphPattern, expAsGroupVars'))> selectOrModifyClause;
+      selectOrModifyClause' := <?ModifyClause(_, _) + ?SelectClause(_, _); (norm-ExpAsVars(|expAsGroupVars', version) <+ norm-select-star(|graphPattern, expAsGroupVars'))> selectOrModifyClause;
 
       expAsSelectVars := <(?ModifyClause(_, _)); ![] + ?SelectClause(_, ExpAsVars(<id>))> selectOrModifyClause';
       allExpAsVars := <conc> (expAsGroupVars', <try(?Star(); ![])> expAsSelectVars);
@@ -485,27 +519,33 @@ rules
 
       limitOffsets' := <norm-limitOffsets> limitOffsets
 
-  norm-ExpAsVars(|expAsGroupVars'):
+  norm-ExpAsVars(|expAsGroupVars', version):
     t1@SelectClause(distinct, t2@ExpAsVars(expAsVars)) -> result
-    with expAsVars' := <map(norm-ExpAsVar)> expAsVars
+    with if <?"v1.0" + ?"v1.1"> version
+         then expAsVars' := <map(norm-ExpAsVar)> expAsVars
+         else expAsVars' := <map(norm-ExpAsVar-for-select-clause)> expAsVars
+         end
        ; result := <origin-track-forced(!SelectClause(distinct, <origin-track-forced(!ExpAsVars(expAsVars'))> t2))> t1 
 
+  norm-ExpAsVar-for-select-clause = ?ExpAsVar(exp@PropRef(_, p), None()); !ExpAsVar(exp, p, NonAnonymous()) <+ norm-ExpAsVar
+
   norm-ExpAsVar = ?ExpAsVar(exp, Some(VarAssign(v))); !ExpAsVar(exp, v, NonAnonymous())
-  norm-ExpAsVar = ?ExpAsVar(exp, None()); !ExpAsVar(exp, <(?VarRef(<id>) <+ origin-track-forced(origin-text); origin-track-forced(!Identifier(<id>)))> exp, Anonymous())
+  norm-ExpAsVar = ?ExpAsVar(exp, None()); !ExpAsVar(exp, <(?VarRef(<id>) <+ origin-track-forced(origin-text); origin-track-forced(!Identifier(<id>, None())))> exp, Anonymous())
 
   norm-select-star(|graphPattern, group-exps):
     t@SelectClause(distinct, star@Star()) -> result
     with if [] := group-exps
-         then vars := <collect(?Vertex(<id>) + ?NormalizedEdge(_, <id>, _, _, _, _) + ?Subquery(_)); filter(Identifier(is-string; not(is-substring(GENERATED))))> graphPattern;
+         then vars := <collect(?Vertex(<id>) + ?NormalizedEdge(_, <id>, _, _, _, _) + ?Subquery(_)); filter(Identifier(is-string; not(is-substring(GENERATED)), id))> graphPattern;
               expAsSelectVars := <map(generate-ExpAsVar(|star))> vars
          else expAsSelectVars := star
          end
        ; result := <origin-track-forced(!SelectClause(star, <origin-track-forced(!ExpAsVars(expAsSelectVars))> star))> t
 
   generate-ExpAsVar(|star):
-    t@Identifier(v) -> expAsVar
+    t@Identifier(v, originText) -> expAsVar
     with v' := <origin-track-forced(!(v, ""); conc-strings /* generate a new string to make it loose origin */)> star
-       ; newIdentifier := <origin-track-forced(!Identifier(v'))> star
+       ; originText' := <?None() <+ !star; origin-track-forced(!(originText, ""); conc-strings /* generate a new string to make it loose origin */)> originText
+       ; newIdentifier := <origin-track-forced(!Identifier(v', originText'))> star
        ; varRef := <origin-track-forced(!VarRef(newIdentifier))> star
        ; expAsVar := <origin-track-forced(!ExpAsVar(varRef, newIdentifier, Anonymous()))> star
 

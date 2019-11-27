@@ -103,4 +103,13 @@ public class SyntaxErrorsTest extends AbstractPgqlTest {
         + "GROUP BY n.prop AS nProp";
     assertFalse(pgql.parse(query).isQueryValid());
   }
+
+  @Test
+  public void testImplicitPropertyReferenceInPgql12() throws Exception {
+    String query = "SELECT n.prop"//
+        + "             FROM g MATCH (n)"//
+        + "         ORDER BY prop"; // this is allowed only in PGQL >= 1.3
+    PgqlResult result = pgql.parse(query);
+    assertTrue(result.getErrorMessages().contains("Unresolved variable"));
+  }
 }

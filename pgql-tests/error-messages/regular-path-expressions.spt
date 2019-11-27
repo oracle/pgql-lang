@@ -162,7 +162,7 @@ test Duplicate variables (7) [[
 
 test Duplicate variables (8) [[
 
-  SELECT dst AS c1
+  SELECT e AS c1
    FROM g MATCH SHORTEST ( (n) -[e]->* (m) )
    GROUP BY n AS [[e]]
 

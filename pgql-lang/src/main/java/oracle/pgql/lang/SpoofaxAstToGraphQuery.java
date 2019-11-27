@@ -168,6 +168,9 @@ public class SpoofaxAstToGraphQuery {
   private static final int POS_EXPASVAR_ANONYMOUS = 2;
   private static final int POS_EXPASVAR_ORIGIN_OFFSET = 3;
 
+  private static final int IDENTIFIER_NAME = 0;
+  private static final int IDENTIFIER_ORIGINNAME = 1;
+
   private static final int POS_BINARY_EXP_LEFT = 0;
   private static final int POS_BINARY_EXP_RIGHT = 1;
   private static final int POS_UNARY_EXP = 0;
@@ -775,12 +778,15 @@ public class SpoofaxAstToGraphQuery {
     List<ExpAsVar> expAsVars = new ArrayList<>(expAsVarsT.getSubtermCount());
     for (IStrategoTerm expAsVarT : expAsVarsT) {
       QueryExpression exp = translateExp(expAsVarT.getSubterm(POS_EXPASVAR_EXP), ctx);
-      String varName = getString(expAsVarT.getSubterm(POS_EXPASVAR_VAR));
+      IStrategoTerm columnName = expAsVarT.getSubterm(POS_EXPASVAR_VAR);
+      String varName = getString(columnName.getSubterm(IDENTIFIER_NAME));
+      IStrategoTerm originNameT = columnName.getSubterm(IDENTIFIER_ORIGINNAME);
+      String originName = isNone(originNameT) ? null : getString(originNameT);
       boolean anonymous = ((IStrategoAppl) expAsVarT.getSubterm(POS_EXPASVAR_ANONYMOUS)).getConstructor().getName()
           .equals("Anonymous");
       IStrategoTerm originPosition = expAsVarT.getSubterm(POS_EXPASVAR_ORIGIN_OFFSET);
 
-      ExpAsVar expAsVar = new ExpAsVar(exp, varName, anonymous);
+      ExpAsVar expAsVar = new ExpAsVar(exp, varName, anonymous, originName);
       expAsVars.add(expAsVar);
       ctx.addVar(expAsVar, varName, originPosition);
     }

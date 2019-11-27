@@ -45,7 +45,7 @@ rules
                            + ?AVG(_, <id>)
                            + ?ARRAY-AGG(_, <id>)
 
-  unique-name(|c, origin) = !origin; origin-track-forced(!(<GENERATED>, "_", <next-counter; write-to-string> c); conc-strings)
+  unique-name(|c, origin) = !origin; origin-track-forced(!Identifier(<!origin; origin-track-forced(!(<GENERATED>, "_", <next-counter; write-to-string> c); conc-strings)>, None()))
 
   GENERATED = !"<<anonymous>>"
 
@@ -79,10 +79,10 @@ rules
   is-DropPropertyGraph = ?DropPropertyGraph(_)
 
   norm-identifier:
-    RegularIdentifier(v) -> Identifier(v)
+    RegularIdentifier(v) -> Identifier(<origin-track-forced(upper-case)> v, v)
 
   norm-identifier:
-    DelimitedIdentifier(v) -> Identifier(v')
+    DelimitedIdentifier(v) -> Identifier(v', None())
     with v' := <origin-track-forced(un-double-quote; unescape-delimited-identifier)> v
 
   unescape-delimited-identifier = string-replace(|"\"\"", "\"")

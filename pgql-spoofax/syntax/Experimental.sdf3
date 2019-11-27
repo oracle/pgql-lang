@@ -6,6 +6,7 @@ imports
   GraphPattern
   pgql-lang
   SolutionModifiers
+  Names
 
 template options
 
@@ -17,19 +18,19 @@ context-free syntax
     <
       <{CommonPathExpression "\n"}*>
       <SelectOrModify>
-      <ExperimentalFromClause>
-      <WhereClause?>
+      <FromWhereClauses?>
       <GroupByClause?>
       <HavingClause?>
       <OrderByClause?>
       <LimitOffsetClauses?>
     >
-    
-  ExperimentalFromClause.FromClause = <FROM <ExperimentalGraphMatch>> {case-insensitive}
 
-  ExperimentalGraphMatch.GraphMatch =
-    <
-      <LocalGraphName?> EXPERIMENTAL_MATCH (
-        <GraphPattern>
-      )
-    > {case-insensitive}
+  FromWhereClauses.FromWhereClauses = <FROM <{TableExpression ","}+> <WhereClause?>> {case-insensitive}
+
+  TableExpression = GraphMatch
+
+  GraphMatch.GraphMatch = <<MatchKeyword?> <PathPattern> <OnClause?>>
+
+  MatchKeyword.MatchKeyword = <MATCH> {case-insensitive}
+
+  OnClause.OnClause = <ON <Identifier>> {case-insensitive}

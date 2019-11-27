@@ -36,11 +36,11 @@ public class CommonTranslationUtil {
   }
 
   protected static boolean isNone(IStrategoTerm t) {
-    return ((IStrategoAppl) t).getConstructor().getName().equals("None");
+    return t.getTermType() == IStrategoTerm.APPL && ((IStrategoAppl) t).getConstructor().getName().equals("None");
   }
 
   protected static boolean isSome(IStrategoTerm t) {
-    return ((IStrategoAppl) t).getConstructor().getName().equals("Some");
+    return t.getTermType() == IStrategoTerm.APPL && ((IStrategoAppl) t).getConstructor().getName().equals("Some");
   }
 
   protected static IStrategoTerm getSome(IStrategoTerm t) {

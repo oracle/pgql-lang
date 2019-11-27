@@ -1,0 +1,298 @@
+module experimental
+
+language pgql-lang
+
+test Duplicate column in SELECT (1) [[
+
+  SELECT n.[[prop]], 123 AS [[Prop]]
+    FROM MATCH (n)
+
+]] error like "Duplicate column name in SELECT" at #1, #2
+
+test Duplicate column in SELECT (2) [[
+
+  SELECT 123 AS [[prop]], 456 AS [[Prop]]
+    FROM MATCH (n)
+
+]] error like "Duplicate column name in SELECT" at #1, #2
+
+test Duplicate column in GOUP BY [[
+
+    SELECT prop AS prop
+      FROM MATCH (n)
+  GROUP BY n.prop1 AS [[prop]], n.prop2 AS [[Prop]]
+
+]] error like "Duplicate column name in GROUP BY" at #1, #2
+
+test No error on expressions in PATH or COST clauses that mix upper and lower cases for the same variable [[
+    PATH p AS (x) -[e]-> (y) WHERE x.prop > X.prop
+  SELECT 1 AS c1
+    FROM MATCH CHEAPEST ( (n) ((src) -[e]-> (dst) COST e.prop + E.prop)* (m) ) ON g,
+         MATCH (n) -/:p*/-> (m) ON g
+
+]] analysis succeeds
+
+test No error on group variables in aggregation with mixed upper and lower cases [[
+
+  SELECT [[MIN(e.prop + E.prop)]] AS aggr1
+       , [[MAX(X.prop + x.prop)]] AS aggr2
+       , [[COUNT(e.prop + E.prop)]] AS aggr3
+       , [[SUM(X.prop + x.prop)]] AS aggr4
+       , [[AVG(e.prop + E.prop)]] AS aggr5
+       , [[ARRAY_AGG(X.prop + x.prop)]] AS aggr6
+    FROM MATCH SHORTEST ( (n) (-[e]-> (x))* (m) ) ON g
+
+]] analysis succeeds
+
+// below tests are the same as in subqueries.spt but now also testing it for case insensitive identifiers
+
+test Duplicate variable passed from outer query (1) [[
+
+  SELECT EXISTS ( SELECT e AS c1 FROM MATCH (n) <-[ [[E]] ]- (m) ON g ) AS x
+    FROM MATCH (n) -[e]-> (m) ON g
+
+]] error like "Duplicate variable (variable with same name is passed from an outer query)" at #1
+
+test Duplicate variable passed from outer query (2) [[
+
+  SELECT EXISTS ( SELECT e AS c1 FROM MATCH ([[E]]) ON g ) AS x
+    FROM MATCH (n) -[e]-> (m) ON g
+
+]] error like "Duplicate variable (variable with same name is passed from an outer query)" at #1
+
+test Duplicate variable passed from outer query (3) [[
+
+  SELECT EXISTS ( SELECT e AS c1 FROM MATCH (n) <-[ [[E]] ]- (m) ON g ) AS x
+    FROM MATCH (n) -[e]-> (m) ON g
+  GROUP BY e
+
+]] error like "Duplicate variable (variable with same name is passed from an outer query)" at #1
+
+test Duplicate variable passed from outer query (4) [[
+
+  SELECT 123 AS b, e AS c2
+    FROM MATCH (a) -[e]-> () ON g
+  ORDER BY EXISTS ( SELECT 123 AS c FROM MATCH ([[B]]) ON g, MATCH ([[E]]) ON g )
+
+]] error like "Duplicate variable (variable with same name is passed from an outer query)" at #1, #2
+
+test Duplicate variable passed from outer query (5) [[
+
+  SELECT 123 AS b, e AS c2, a AS c3
+    FROM MATCH (a) -[e]-> () ON g
+  ORDER BY EXISTS ( SELECT 123 AS c FROM MATCH () -[ [[B]] ]-> () -[ [[E]] ]-> ()  -[ [[A]] ]-> () ON g )
+
+]] error like "Duplicate variable (variable with same name is passed from an outer query)" at #1, #2, #3
+
+test Duplicate variable passed from outer query (6) [[
+
+    SELECT 1 AS n
+      FROM MATCH (n) ON g
+    HAVING n.age > 3
+  ORDER BY ( SELECT 1 AS c1
+               FROM MATCH ( [[N]] ) ON g /* here, "n" from the SELECT of the outer query is visible; rather than overriding it we generate an error */
+              WHERE n.age >= 21
+           )
+
+]] error like "Duplicate variable (variable with same name is passed from an outer query)" at #1
+
+// tests below are the same as in regular-path-expression.spt but now also testing it for case insensitive identifiers
+
+test Duplicate variables (1) [[
+
+  SELECT n.prop AS nProp
+    FROM MATCH SHORTEST ( (n) -[ [[E]] ]-> (m) ) ON g,
+         MATCH (n) -[ [[e]] ]-> (m) ON g
+
+]] error like "Duplicate variable" at #1, #2
+
+test Duplicate variables (2) [[
+
+  SELECT n.prop AS nProp
+    FROM MATCH SHORTEST ( (n) (-> ([[dst]]))* (m) ) ON g,
+         MATCH ([[DST]]) ON g
+
+]] error like "Duplicate variable" at #1, #2
+
+test Duplicate variables (3) [[
+
+  SELECT n.prop AS nProp
+    FROM MATCH SHORTEST ( (n) (-> ([[m]]))* ([[M]]) ) ON g
+
+]] error like "Duplicate variable" at #1, #2
+
+test Duplicate variables (4) [[
+
+  SELECT n.prop AS nProp
+    FROM MATCH SHORTEST ( ([[n]]) (-[ [[N]] ]->)* (m) ) ON g
+
+]] error like "Duplicate variable" at #1, #2
+
+test Duplicate variables (5) [[
+
+  SELECT n.prop AS nProp
+    FROM MATCH SHORTEST ( (n) [[(-> (M)) (m)]] ) ON g
+
+]] error like "Duplicate variable" at #1
+
+test Duplicate variables (6) [[
+
+  SELECT n.prop AS nProp
+    FROM MATCH SHORTEST ( (n) -[ [[e]] ]->* (m) ) ON g,
+         MATCH SHORTEST ( (n) -[ [[E]] ]->* (m) ) ON g
+
+]] error like "Duplicate variable" at #1, #2
+
+test Duplicate variables (7) [[
+
+  SELECT n.prop AS nProp
+    FROM MATCH SHORTEST ( (n) (-> ([[X]]))* (m) ),
+         MATCH SHORTEST ( (n) -[ [[x]] ]->* (m) )
+
+]] error like "Duplicate variable" at #1, #2
+
+test Duplicate variables (8) [[
+
+  SELECT e AS c1
+   FROM MATCH SHORTEST ( (n) -[e]->* (m) )
+   GROUP BY n AS [[E]]
+
+]] error like "Duplicate variable: variable already defined in the MATCH clause" at #1
+
+test Duplicate variables (9) [[
+
+  SELECT e AS c1
+    FROM MATCH SHORTEST ( (n) (-> (DST))* (m) )
+   GROUP BY n AS [[dst]]
+
+]] error like "Duplicate variable: variable already defined in the MATCH clause" at #1
+
+// tests below are the same as in modify.spt but now also testing it for case insensitive identifiers
+
+test Set a property multiple times in UPDATE [[
+
+  MODIFY g ( UPDATE n SET PROPERTIES ( [[n.pRoP]] = 1, [[n.prop]] = 2 ) )
+    FROM MATCH (n)
+
+]] error like "Property is set multiple times" at #1, #2
+
+test Set a property multiple times in INSERT [[
+
+  MODIFY ( INSERT VERTEX m PROPERTIES ( [[m.prop]] = 1, [[m.pRoP]] = 2 ) )
+    FROM MATCH (n)
+
+]] error like "Property is set multiple times" at #1, #2
+
+test Duplicate variable (1) [[
+
+  MODIFY (
+    INSERT VERTEX [[V1]],
+           EDGE [[V1]] BETWEEN v1 AND V1
+  )
+  FROM MATCH (v1)
+
+]] error like "Duplicate variable: variable already defined in the MATCH clause" at #1, #2
+
+test Duplicate variable (2) [[
+
+  MODIFY (
+    INSERT VERTEX [[v2]],
+           EDGE [[V2]] BETWEEN v1 AND V2
+  )
+  FROM MATCH (v1)
+  GROUP BY v1.prop AS v2
+
+]] error like "Duplicate variable: variable already defined in the GROUP BY clause" at #1, #2
+
+test Duplicate variable (3) [[
+
+  MODIFY (
+    INSERT VERTEX [[V2]],
+           VERTEX [[v2]],
+           EDGE [[v2]] BETWEEN v2 AND v2
+  )
+
+]] error like "Duplicate variable" at #1, #2, #3
+
+test Duplicate variable (4) [[
+
+  MODIFY (
+    INSERT VERTEX [[v2]],
+           VERTEX [[v2]],
+           EDGE [[V2]] BETWEEN v2 AND V2
+  )
+  FROM MATCH (v1)
+
+]] error like "Duplicate variable" at #1, #2, #3
+
+test Update an insertion (1) [[
+
+  MODIFY (
+    INSERT VERTEX v3
+    UPDATE [[V3]] SET PROPERTIES ( v3.prop = 3 )
+  )
+
+]] error like "Cannot update an element that is being inserted" at #1
+
+test Update an insertion (2) [[
+
+  MODIFY (
+    INSERT VERTEX v3
+    UPDATE [[V3]] SET PROPERTIES ( v3.prop = 3 )
+  )
+  FROM MATCH (v1)
+
+]] error like "Cannot update an element that is being inserted" at #1
+
+test Update a deletion [[
+
+  MODIFY (
+    UPDATE [[N]] SET PROPERTIES ( n.prop = 123 )
+    DELETE n
+  )
+  FROM MATCH (n)
+
+]] error like "Element is deleted in DELETE clause" at #1
+
+test Set source of destination of edge to deletion [[
+
+  MODIFY (
+    INSERT edge e BETWEEN [[N]] and [[n]]
+    DELETE n
+  )
+  FROM MATCH (n)
+
+]] error like "Element is deleted in DELETE clause" at #1, #2
+
+test Update other element than the one that was meant to be updated [[
+
+  MODIFY (
+    UPDATE n SET PROPERTIES ( [[N]].prop = 3 )
+         , M SET PROPERTIES ( [[m]].prop = 4 )
+  )
+  FROM MATCH (n) -> (m)
+
+]] analysis succeeds
+
+test Duplicate updates or deletions [[
+
+  MODIFY g (
+    UPDATE [[v]] SET PROPERTIES ( v.first_name = 'Scott' ),
+           [[V]] SET PROPERTIES ( v.last_name = 'Tiger' )
+    DELETE [[w]], [[W]]
+  )
+  FROM MATCH (v) -> (w)
+
+]] error like "Element is updated multiple times (merge the two updates together)" at #1, #2
+   error like "Element is deleted multiple times" at #3, #4
+
+test Case insensitivity when referencing vertex tables [[
+
+  CREATE PROPERTY GRAPH g
+    VERTEX TABLES ( Person, user.University )
+    EDGE TABLES (
+      knows SOURCE PERSON DESTINATION "PERSON",
+      studentOf SOURCE persoN DESTINATION User."UNIVERSITY"
+    )
+
+]] analysis succeeds

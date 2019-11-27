@@ -44,6 +44,8 @@ import org.metaborg.spoofax.core.unit.ISpoofaxParseUnit;
 import org.metaborg.util.concurrent.IClosableLock;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.spoofax.interpreter.terms.IStrategoString;
+import org.spoofax.interpreter.terms.IStrategoTerm;
 
 import com.google.common.collect.Lists;
 
@@ -77,6 +79,8 @@ public class Pgql implements Closeable {
   private static final String ERROR_MESSSAGE_INDENTATION = "\t";
 
   private static final String SPOOFAX_BINARIES = "pgql-1.2.spoofax-language";
+
+  private static final int POS_PGQL_VERSION = 9;
 
   private static boolean isGloballyInitialized = false;
 
@@ -213,7 +217,9 @@ public class Pgql implements Closeable {
 
       checkBetaFeatureToken(queryString, statement);
 
-      return new PgqlResult(queryString, queryValid, prettyMessages, statement, parseResult);
+      PgqlVersion pgqlVersion = getPgqlVersion(analysisResult.ast(), statement);
+
+      return new PgqlResult(queryString, queryValid, prettyMessages, statement, parseResult, pgqlVersion);
     } catch (IOException | ParseException | AnalysisException | ContextException e) {
       throw new PgqlException("Failed to parse PGQL query", e);
     } finally {
@@ -228,6 +234,35 @@ public class Pgql implements Closeable {
     if (!isInitialized) {
       throw new PgqlException("Pgql instance was closed");
     }
+  }
+
+  private PgqlVersion getPgqlVersion(IStrategoTerm ast, Statement statement) {
+    if (statement == null) {
+      return PgqlVersion.V_1_3_OR_UP;
+    }
+
+    if (statement.getStatementType() == StatementType.CREATE_PROPERTY_GRAPH
+        || statement.getStatementType() == StatementType.DROP_PROPERTY_GRAPH) {
+      return PgqlVersion.V_1_3_OR_UP;
+    }
+
+    String pgqlVersionString = ((IStrategoString) ast.getSubterm(POS_PGQL_VERSION)).stringValue();
+    PgqlVersion pgqlVersion;
+    switch (pgqlVersionString) {
+      case "v1.0":
+        pgqlVersion = PgqlVersion.V_1_0;
+        break;
+      case "v1.1":
+        pgqlVersion = PgqlVersion.V_1_1_OR_V_1_2;
+        break;
+      case "v1.3":
+        pgqlVersion = PgqlVersion.V_1_3_OR_UP;
+        break;
+      default:
+        throw new IllegalArgumentException("Version not recognized: " + pgqlVersionString);
+    }
+
+    return pgqlVersion;
   }
 
   private void checkBetaFeatureToken(String queryString, Statement statement) throws PgqlException {

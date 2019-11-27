@@ -2,28 +2,21 @@ module select
 
 language pgql-lang
 
-test SELECT query without MATCH (1) [[
+test SELECT query without FROM (1) [[
 
   [[SELECT n AS c1]]
 
-]] error like "SELECT query without MATCH clause not allowed" at #1
+]] error like "SELECT query without FROM clause not supported" at #1
 
-test SELECT query without MATCH (2) [[
-
-  [[SELECT n AS c1]]
-      FROM g
-
-]] error like "SELECT query without MATCH clause not allowed" at #1
-
-test SELECT query without MATCH (1) [[
+test SELECT query without FROM (2) [[
 
   [[SELECT *]]
 
-]] error like "SELECT query without MATCH clause not allowed" at #1
+]] error like "SELECT query without FROM clause not supported" at #1
 
-test SELECT query without MATCH (1) [[
+test SELECT query without FROM (3) [[
 
   SELECT ( [[SELECT 1 AS c1]] ) AS c2
-   FROM g MATCH (n)
+   FROM MATCH (n)
 
-]] error like "SELECT query without MATCH clause not allowed" at #1
+]] error like "SELECT query without FROM clause not supported" at #1

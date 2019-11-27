@@ -35,41 +35,44 @@ rules // Unresolved/duplicate variables
           end
 
   nabl-constraint(|ctx):
-    NormalizedQuery(_, selectOrModifyClause, _, graphPattern, groupClause, _, _, _, _, _) -> <fail>
-    with matchVars := <?None(); ![] <+ ?Some(GraphPattern(vertices, edges, _)); !(vertices, edges); collect(is-pattern-elem); collect-om(get-pattern-elem, conc)> graphPattern
-       ; groupExpressions := <collect-om(?ExpAsVar(_, <id>, _, _), conc)> groupClause
+    NormalizedQuery(_, selectOrModifyClauseWithAnnos, _, graphPatternWithAnnos, groupClauseWithAnnos, _, _, _, _, _) -> <fail>
+    with selectOrModifyClause := <strip-annos> selectOrModifyClauseWithAnnos
+       ; graphPattern := <strip-annos> graphPatternWithAnnos
+       ; groupClause := <strip-annos> groupClauseWithAnnos
+       ; matchVars := <?None(); ![] <+ ?Some(GraphPattern(vertices, edges, _)); !(vertices, edges); collect(is-pattern-elem); collect-om(get-pattern-elem, conc)> graphPattern
+       ; groupExpressions := <collect-om(?ExpAsVar(_, Identifier(<id>, _), _, _), conc)> groupClause
        ; <generate-error-on-duplicates(|ctx, "Duplicate variable")> matchVars
        ; <generate-error-on-duplicates(|ctx, "Duplicate column name in GROUP BY")> groupExpressions
        ; if <?SelectClause(_, _)> selectOrModifyClause
-         then selectExpressions := <collect-om(?ExpAsVar(_, <id>, _, _), conc)> selectOrModifyClause
+         then selectExpressions := <collect-om(?ExpAsVar(_, Identifier(<id>, _), _, _), conc)> selectOrModifyClause
             ; <generate-error-on-duplicates(|ctx, "Duplicate column name in SELECT")> selectExpressions
             ; insertVars := []
          else // MODIFY query
-              insertVars := <collect-om(?VertexInsertion(<id>, _, _, _) + ?DirectedEdgeInsertion(<id>, _, _, _, _, _), conc)> selectOrModifyClause
+              insertVars := <collect-om(?VertexInsertion(Identifier(<id>, _), _, _, _) + ?DirectedEdgeInsertion(Identifier(<id>, _), _, _, _, _, _), conc)> selectOrModifyClause
             ; <generate-error-on-duplicates(|ctx, "Duplicate variable in INSERT")> insertVars
-            ; updateVars := <collect-om(?Update(VarRef(<id>), _) + ?Update(VarRef(<id>, _), _), conc)> selectOrModifyClause
-            ; updates-of-inserts := <strip-annos; isect> (updateVars, insertVars)
+            ; updateVars := <collect-om(?Update(VarRef(Identifier(<id>, _)), _) + ?Update(VarRef(Identifier(<id>, _), _), _), conc)> selectOrModifyClause
+            ; updates-of-inserts := <isect> (updateVars, insertVars)
             ; <batch-generate-error(|ctx, "Cannot update an element that is being inserted")> updates-of-inserts
-            ; deleteVars := <(collect-one(?DeleteClause(<id>)) <+ ![]); filter(?VarRef(<id>, _))> selectOrModifyClause
-            ; sourceVertices := <collect-om(?DirectedEdgeInsertion(_, _, VarRef(<id>, _), _, _, _), conc)> selectOrModifyClause
-            ; destinationVertices := <collect-om(?DirectedEdgeInsertion(_, _, _, VarRef(<id>, _), _, _), conc)> selectOrModifyClause
+            ; deleteVars := <(collect-one(?DeleteClause(<id>)) <+ ![]); filter(?VarRef(Identifier(<id>, _), _))> selectOrModifyClause
+            ; sourceVertices := <collect-om(?DirectedEdgeInsertion(_, _, VarRef(Identifier(<id>, _), _), _, _, _), conc)> selectOrModifyClause
+            ; destinationVertices := <collect-om(?DirectedEdgeInsertion(_, _, _, VarRef(Identifier(<id>, _), _), _, _), conc)> selectOrModifyClause
             ; all-updateVars := <conc> (updateVars, sourceVertices, destinationVertices)
-            ; deletes-of-updates := <strip-annos; isect> (all-updateVars, deleteVars)
+            ; deletes-of-updates := <isect> (all-updateVars, deleteVars)
             ; <batch-generate-error(|ctx, "Element is deleted in DELETE clause")> deletes-of-updates
          end
 
-       ; groupVars := <collect(?ExpAsVar(_, <id>, NonAnonymous(), _))> groupClause
-       ; redefinitions-in-groupBy := <strip-annos; isect> (groupVars, matchVars)
+       ; groupVars := <collect(?ExpAsVar(_, Identifier(<id>, _), NonAnonymous(), _))> groupClause
+       ; redefinitions-in-groupBy := <isect> (groupVars, matchVars)
        ; <batch-generate-error(|ctx, "Duplicate variable: variable already defined in the MATCH clause")> redefinitions-in-groupBy
 
        ; if <?None()> groupClause
-         then redefinition-in-modify := <strip-annos; isect> (insertVars, matchVars)
+         then redefinition-in-modify := <isect> (insertVars, matchVars)
             ; <batch-generate-error(|ctx, "Duplicate variable: variable already defined in the MATCH clause")> redefinition-in-modify
          else if <?SelectClause(_, _)> selectOrModifyClause
-              then selectOrInsertVars := <collect(?ExpAsVar(_, <id>, NonAnonymous(), _))> selectOrModifyClause
+              then selectOrInsertVars := <collect(?ExpAsVar(_, Identifier(<id>, _), NonAnonymous(), _))> selectOrModifyClause
               else selectOrInsertVars := insertVars
               end
-            ; redefinitions-in-select-or-modify := <strip-annos; isect> (selectOrInsertVars, groupVars)
+            ; redefinitions-in-select-or-modify := <isect> (selectOrInsertVars, groupVars)
             ; <batch-generate-error(|ctx, "Duplicate variable: variable already defined in the GROUP BY clause")> redefinitions-in-select-or-modify
          end
 
@@ -119,9 +122,9 @@ rules // Unresolved/duplicate variables
     where group-varRefs := <isect; ?[]> (group-variables, varRefs-in-aggregation)
 
   is-pattern-elem = ?Vertex(_, _, _) + ?Edge(_, _, _, _, _, _)
-  get-pattern-elem = ?Vertex(<id>, _, _) + ?Edge(_, <id>, _, _, _, _)
+  get-pattern-elem = ?Vertex(Identifier(<id>, _), _, _) + ?Edge(_, Identifier(<id>, _), _, _, _, _)
 
-  generate-error-on-duplicates(|ctx, message) = strip-annos; ?vars; map(generate-error-on-duplicate(|ctx, vars, message))
+  generate-error-on-duplicates(|ctx, message) = ?vars; map(generate-error-on-duplicate(|ctx, vars, message))
 
   generate-error-on-duplicate(|ctx, vars, message):
     var -> <id>
@@ -130,10 +133,10 @@ rules // Unresolved/duplicate variables
 
   nabl-constraint(|ctx):
     SelectClause(Star(), ExpAsVars(expAsVars)) -> <fail>
-    with group-variables := <filter(get-group-variable-from-select-star; ?Identifier(<id>))> expAsVars
+    with group-variables := <filter(get-group-variable-from-select-star)> expAsVars
        ; <map(generate-error(|ctx, $[Cannot select all variables since [<id>] is a group variable but group variables cannot be selected]))> group-variables
 
-  get-group-variable-from-select-star = ?ExpAsVar(VarRef(<id>), _, _, _); ?v; origin-text; ?"*"; !v
+  get-group-variable-from-select-star = ?ExpAsVar(VarRef(Identifier(<id>, _)), _, _, _); ?v; origin-text; ?"*"; !v
 
 rules // in-lined constraints
 
@@ -216,6 +219,15 @@ rules // subqueries
     Subquery(NormalizedQuery(_, t@selectOrUpdateClause, _, _, _, _, _, _, _, _)) -> <fail>
     where not ( <?SelectClause(_, _)> selectOrUpdateClause )
     with <generate-error(|ctx, "SELECT clause expected here")> t
+
+  nabl-constraint(|ctx):
+    t@NormalizedQuery(_, _, _, _, _, _, _, _, _, "v1.3") -> <fail>
+    with nonPgql13Subqueries := <collect(not-pgql13-query)> t
+       ; <batch-generate-error(|ctx, "Subquery uses older version of PGQL; please make sure that both inner and outer query use PGQL 1.3 syntax")> nonPgql13Subqueries
+
+  not-pgql13-query:
+    NormalizedQuery(_, selectClause, _, _, _, _, _, _, _, version) -> selectClause
+    where <not(?"v1.3")> version
 
 rules // helper rules
 
@@ -321,7 +333,7 @@ rules // literals
     with <generate-error(|ctx, "Use '' instead of \\' to escape a single quote")> t
 
   check-illegal-java-escaping(|ctx):
-    t@Identifier(identifier) -> <fail>
+    t@Identifier(identifier, _) -> <fail>
     where <is-substring(!"\\\"")> identifier
     with <generate-error(|ctx, "Use \"\" instead of \\\" to escape a double quote")> t
 
@@ -349,7 +361,7 @@ rules // SELECT
 
   nabl-constraint(|ctx):
     NormalizedQuery(_, t@SelectClause(_, _), _, None(), _, _, _, _, _, _) -> <fail>
-    with <generate-error(|ctx, "SELECT query without MATCH clause not allowed")> t
+    with <generate-error(|ctx, "SELECT query without FROM clause not supported")> t
 
 rules // MODIFY
 
@@ -362,7 +374,7 @@ rules // MODIFY
   nabl-constraint(|ctx):
     properties -> <fail>
     where <?SetProperties(setPropertyExps) + ?Properties(setPropertyExps)> properties
-    with propertyRefs := <map(?SetProperty(<id>, _))> setPropertyExps
+    with propertyRefs := <filter(?SetProperty(PropRef(_, Identifier(<id>, _)), _))> setPropertyExps
        ; duplicatePropertyRefs := <filter(is-elem-contained-more-than-once(|propertyRefs))> propertyRefs
        ; <batch-generate-error(|ctx, "Property is set multiple times")> duplicatePropertyRefs
 
@@ -373,24 +385,24 @@ rules // MODIFY
 
   nabl-constraint(|ctx):
     UpdateClause(updates) -> <fail>
-    with updateElements := <filter(?Update(VarRef(<id>, _), _))> updates
+    with updateElements := <filter(?Update(VarRef(Identifier(<id>, _), _), _))> updates
        ; duplicateUpdateElements := <filter(is-elem-contained-more-than-once(|updateElements))> updateElements
        ; <batch-generate-error(|ctx, "Element is updated multiple times (merge the two updates together)")> duplicateUpdateElements
 
   nabl-constraint(|ctx):
     DeleteClause(deletions) -> <fail>
-    with deleteElements := <filter(?VarRef(<id>, _))> deletions
+    with deleteElements := <filter(?VarRef(Identifier(<id>, _), _))> deletions
        ; duplicateDeleteElements := <filter(is-elem-contained-more-than-once(|deleteElements))> deleteElements
        ; <batch-generate-error(|ctx, "Element is deleted multiple times")> duplicateDeleteElements
 
   nabl-constraint(|ctx):
     t -> <fail>
-    where <?VertexInsertion(v, _, _, Some(Properties(setProperties))) +
-           ?DirectedEdgeInsertion(v, _, _, _, _, Some(Properties(setProperties))) +
-           ?Update(VarRef(v, _), SetProperties(setProperties))> t
+    where <?VertexInsertion(Identifier(v, _), _, _, Some(Properties(setProperties))) +
+           ?DirectedEdgeInsertion(Identifier(v, _), _, _, _, _, Some(Properties(setProperties))) +
+           ?Update(VarRef(Identifier(v, _), _), SetProperties(setProperties))> t
     with v' := <strip-annos> v
-       ; otherVariablesThanV := <filter(?SetProperty(PropRef(VarRef(<id>, _), _), _); strip-annos; not(?v'))> setProperties
-       ; <batch-generate-error(|ctx, $<Did you mean <<!v; ?Identifier(<id>)>>?>)> otherVariablesThanV
+       ; otherVariablesThanV := <filter(?SetProperty(PropRef(VarRef(Identifier(<id>, _), _), _), _); strip-annos; not(?v'))> setProperties
+       ; <batch-generate-error(|ctx, $<Did you mean <v>?>)> otherVariablesThanV
 
   nabl-constraint(|ctx):
     ModifyClause(_, insertUpdateDeleteClauses) -> <fail>
@@ -405,15 +417,18 @@ rules // MODIFY
 
   nabl-constraint(|ctx):
     CreatePropertyGraph(_, VertexTables(vertexTables), EdgeTables(edgeTables)) -> <fail>
-    with vertexTableNames := <map(?VertexTable(<id>, _, _))> vertexTables
+    with vertexTableNames := <map(?VertexTable(<id>, _, _); to-name-without-case-sensitive-info)> vertexTables
        ; <generate-error-on-duplicates(|ctx, "Table defined as vertex table multiple times")> vertexTableNames
-       ; edgeTableNames := <map(?EdgeTable(<id>, _, _, _, _))> edgeTables
+       ; edgeTableNames := <map(?EdgeTable(<id>, _, _, _, _); to-name-without-case-sensitive-info)> edgeTables
        ; <generate-error-on-duplicates(|ctx, "Table defined as edge table multiple times")> edgeTableNames
-       ; vertexTableReferences := <collect(?SourceVertexTable(_, <id>) + ?DestinationVertexTable(_, <id>))> edgeTables
+       ; vertexTableReferences := <collect((?SourceVertexTable(_, <id>) + ?DestinationVertexTable(_, <id>)); to-name-without-case-sensitive-info)> edgeTables
        ; unresolvedVertexTableReferences := <diff> (vertexTableReferences, vertexTableNames)
        ; <batch-generate-error(|ctx, "Undefined vertex table")> unresolvedVertexTableReferences
 
+  to-name-without-case-sensitive-info = origin-track-forced(?Name(None(), Identifier(localName, _)); !Name(None(), localName))
+  to-name-without-case-sensitive-info = origin-track-forced(?Name(Some(SchemaName(Identifier(schemaName, _))), Identifier(localName, _)); !Name(schemaName, localName))
+
   nabl-constraint(|ctx):
     PropertyExpressions(expAsVars) -> <fail>
-    with expAsVarsWithComplexExpressions := <remove-all(?ExpAsVar(VarRef(Identifier(_)), _))> expAsVars
+    with expAsVarsWithComplexExpressions := <remove-all(?ExpAsVar(VarRef(Identifier(_, _)), _))> expAsVars
        ; <batch-generate-error(|ctx, "Only simple expressions (i.e. column references) allowed")> expAsVarsWithComplexExpressions

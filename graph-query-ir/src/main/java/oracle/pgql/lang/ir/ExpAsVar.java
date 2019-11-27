@@ -9,6 +9,8 @@ public class ExpAsVar extends QueryVariable {
 
   private QueryExpression exp;
 
+  private String nameOriginText;
+
   /**
    * @param exp
    *          an expression
@@ -19,8 +21,25 @@ public class ExpAsVar extends QueryVariable {
    *          query (i.e. exp) but via some other mechanism
    */
   public ExpAsVar(QueryExpression exp, String name, boolean anonymous) {
+    this(exp, name, anonymous, null);
+  }
+
+  /**
+   * @param exp
+   *          an expression
+   * @param name
+   *          the name with which the the element can be referred to in the result set
+   * @param anonymous
+   *          false if the name was provided via the query (i.e. exp AS name), true if the name was not provided via the
+   *          query (i.e. exp) but via some other mechanism
+   * @param nameOriginText
+   *          the text of the column name as it appear in the query string. Should be NULL unless name was unquoted and
+   *          upper cased.
+   */
+  public ExpAsVar(QueryExpression exp, String name, boolean anonymous, String nameOriginText) {
     super(name, anonymous);
     this.exp = exp;
+    this.nameOriginText = nameOriginText;
   }
 
   public QueryExpression getExp() {
@@ -29,6 +48,14 @@ public class ExpAsVar extends QueryVariable {
 
   public void setExp(QueryExpression exp) {
     this.exp = exp;
+  }
+
+  public String getNameOriginText() {
+    return nameOriginText;
+  }
+
+  public void setNameOriginText(String nameOriginText) {
+    this.nameOriginText = nameOriginText;
   }
 
   @Override

@@ -193,7 +193,7 @@ public class PrettyPrintingTest extends AbstractPgqlTest {
   public void testIdentifierEscapingPgql13() throws Exception {
     String query = "PATH \"my path\" AS (\"vertex 1\") -[\"edge 1\"]-> (\"vertex 2\") " //
         + "SELECT \"n1\".\"my prop\" AS \"some column name\"" //
-        + "  FROM \"my graph\" EXPERIMENTAL_MATCH ( (\"n1\":\"my label\") -/:\"my path\"*/-> (\"n 2\") )";
+        + "  FROM MATCH (\"n1\":\"my label\") -/:\"my path\"*/-> (\"n 2\") ON \"my graph\"";
 
     PgqlResult result1 = pgql.parse(query);
     assertTrue(result1.isQueryValid());
