@@ -292,7 +292,7 @@ test Case insensitivity when referencing vertex tables [[
     VERTEX TABLES ( Person, user.University )
     EDGE TABLES (
       knows SOURCE PERSON DESTINATION "PERSON",
-      studentOf SOURCE persoN DESTINATION User."UNIVERSITY"
+      studentOf SOURCE persoN DESTINATION "UNIVERSITY"
     )
 
 ]] analysis succeeds

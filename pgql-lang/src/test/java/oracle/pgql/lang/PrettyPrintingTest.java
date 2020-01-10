@@ -279,8 +279,8 @@ public class PrettyPrintingTest extends AbstractPgqlTest {
         "      LABEL PERSON PROPERTIES (NAME AS NAME, DOB AS DOB) )" + //
         "  EDGE TABLES (\n" + //
         "    STUDENTS.KNOWS\n" + //
-        "      SOURCE KEY (PERSON1_ID) REFERENCES STUDENTS.PERSON\n" + //
-        "      DESTINATION KEY (PERSON2_ID) REFERENCES STUDENTS.PERSON\n" + //
+        "      SOURCE KEY (PERSON1_ID) REFERENCES PERSON\n" + //
+        "      DESTINATION KEY (PERSON2_ID) REFERENCES PERSON\n" + //
         "      LABEL KNOWS )";
     checkRoundTrip(statement);
   }
@@ -395,6 +395,20 @@ public class PrettyPrintingTest extends AbstractPgqlTest {
         "      SOURCE \"my vt\"\n" + //
         "      DESTINATION \"my vt\"\n" + //
         "      LABEL \"my el\"\n" + //
+        "  )";
+    checkRoundTrip(statement);
+  }
+
+  @Test
+  public void testCreatePropertyGraphWithAliases() throws Exception {
+    String statement = "CREATE PROPERTY GRAPH hr\n" + //
+        "  VERTEX TABLES (\n" + //
+        "    employees as \"Employee\",\n" + //
+        "    departments Department\n" + //
+        "  )\n" + //
+        "  EDGE TABLES (\n" + //
+        "    employees AS manages SOURCE \"Employee\" DESTINATION \"Employee\",\n" + //
+        "    employees AS worksFor SOURCE \"Employee\" DESTINATION Department\n" + //
         "  )";
     checkRoundTrip(statement);
   }

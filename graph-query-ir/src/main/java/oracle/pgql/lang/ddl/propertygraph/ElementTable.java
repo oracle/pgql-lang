@@ -6,6 +6,8 @@ package oracle.pgql.lang.ddl.propertygraph;
 import java.util.List;
 import java.util.stream.Collectors;
 
+import static oracle.pgql.lang.ir.PgqlUtils.printIdentifier;
+
 public abstract class ElementTable {
 
   /**
@@ -14,9 +16,16 @@ public abstract class ElementTable {
   private String schemaName;
 
   /**
-   * The vertex or edge table name.
+   * The name of the table. This name is used as vertex/edge table name unless an alias is defined, in which case the
+   * alias is used as vertex/edge table name.
    */
   private String tableName;
+
+  /**
+   * The alias. If not null, the alias is used as vertex/edge table name. The PGQL parser always defaults the alias to
+   * the table name in case no alias is defined.
+   */
+  private String tableAlias;
 
   /**
    * The key.
@@ -31,10 +40,11 @@ public abstract class ElementTable {
   /**
    * The constructor.
    */
-  protected ElementTable(Key key, String schemaName, String tableName, List<Label> labels) {
+  protected ElementTable(Key key, String schemaName, String tableName, String tableAlias, List<Label> labels) {
     this.key = key;
     this.schemaName = schemaName;
     this.tableName = tableName;
+    this.tableAlias = tableAlias;
     this.labels = labels;
   }
 
@@ -54,6 +64,14 @@ public abstract class ElementTable {
     this.tableName = tableName;
   }
 
+  public String getTableAlias() {
+    return tableAlias;
+  }
+
+  public void setTableAlias(String tableAlias) {
+    this.tableAlias = tableAlias;
+  }
+
   public Key getKey() {
     return key;
   }
@@ -68,6 +86,14 @@ public abstract class ElementTable {
 
   public void setLabels(List<Label> labels) {
     this.labels = labels;
+  }
+
+  protected String printAlias(String indentation) {
+    if (tableAlias == null || tableAlias.equals(tableName)) {
+      return "";
+    } else {
+      return indentation + "AS " + printIdentifier(tableAlias);
+    }
   }
 
   protected String printKey(String indentation) {
@@ -113,6 +139,11 @@ public abstract class ElementTable {
       if (other.tableName != null)
         return false;
     } else if (!tableName.equals(other.tableName))
+      return false;
+    if (tableAlias == null) {
+      if (other.tableAlias != null)
+        return false;
+    } else if (!tableAlias.equals(other.tableAlias))
       return false;
     return true;
   }
