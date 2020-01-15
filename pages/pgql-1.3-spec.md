@@ -22,7 +22,15 @@ The following are the changes since PGQL 1.2:
 
 The new features are:
 
-TODO
+ - [CREATE PROPERTY GRAPH](#create-property-graph) and [DROP PROPERTY GRAPH](#drop-property-graph) statements for creating a graph from existing tables.
+ - [INSERT](#insert), [UPDATE](#update) and [DELETE](#delete) statements for graph modification.
+ - [Cheapest path finding](#cheapest-path) and [Top-k cheapest path finding](#top-k-cheapest-path) using `COST` functions.
+ - `is_source_of` and `is_destination_of` functions for testing if a particular vertex is the source or the destination of a particular edge. (TODO: add link)
+ - Auto uppercasing of unquoted identifiers and case insensitive matching of uppercased identifiers. (TODO: add link)
+ - Schema qualifiers for graph references. (TODO: add link)
+ - Double quoted identifiers now supported everywhere. Previously, support was missing for:
+     - Vertex and edge variables.
+     - Aliases in `SELECT` and `GROUP BY` clauses. (TODO: add link)
 
 ### Syntax changes in PGQL 1.3
 
@@ -1646,6 +1654,14 @@ ORDER BY num_hops, total_amount
 | 4        | 23900.2      | [1000.0, 3000.7, 9999.5, 9900.0] |
 +------------------------------------------------------------+
 ```
+
+## Cheapest Path
+
+TODO
+
+## Top-K Cheapest Path
+
+TODO
 
 # Functions and Expressions
 
