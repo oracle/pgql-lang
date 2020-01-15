@@ -1,0 +1,469 @@
+entries:
+- title: Sidebar
+  product: PGQL 1.3 Specification
+  folders:
+
+  - title: 'Introduction'
+    url: /spec/1.3/#introduction
+    output: web
+    folderitems:
+
+    - title: 'Changelog'
+      url: /spec/1.3/#changelog
+      output: web
+      subfolderitems:
+
+      - title: 'New features in PGQL 1.3'
+        url: /spec/1.3/#new-features-in-pgql-13
+        output: web
+
+      - title: 'Syntax changes in PGQL 1.3'
+        url: /spec/1.3/#syntax-changes-in-pgql-13
+        output: web
+
+    - title: 'A note on the Grammar'
+      url: /spec/1.3/#a-note-on-the-grammar
+      output: web
+
+    - title: 'Document Outline'
+      url: /spec/1.3/#document-outline
+      output: web
+
+  - title: 'Creating a Property Graph'
+    url: /spec/1.3/#creating-a-property-graph
+    output: web
+    folderitems:
+
+    - title: 'Property graph data model'
+      url: /spec/1.3/#property-graph-data-model
+      output: web
+      subfolderitems:
+
+      - title: 'Example 1: Student Network'
+        url: /spec/1.3/#example-1-student-network
+        output: web
+
+      - title: 'Example 2: Financial Transactions'
+        url: /spec/1.3/#example-2-financial-transactions
+        output: web
+
+    - title: 'CREATE PROPERTY GRAPH'
+      url: /spec/1.3/#create-property-graph
+      output: web
+
+    - title: 'DROP PROPERTY GRAPH'
+      url: /spec/1.3/#drop-property-graph
+      output: web
+
+  - title: 'Graph Pattern Matching'
+    url: /spec/1.3/#graph-pattern-matching
+    output: web
+    folderitems:
+
+    - title: 'Writing simple queries'
+      url: /spec/1.3/#writing-simple-queries
+      output: web
+      subfolderitems:
+
+      - title: 'Vertex patterns'
+        url: /spec/1.3/#vertex-patterns
+        output: web
+
+      - title: 'Edge patterns'
+        url: /spec/1.3/#edge-patterns
+        output: web
+
+      - title: 'Label expressions'
+        url: /spec/1.3/#label-expressions
+        output: web
+
+      - title: 'Filter predicates'
+        url: /spec/1.3/#filter-predicates
+        output: web
+
+      - title: 'More complex patterns'
+        url: /spec/1.3/#more-complex-patterns
+        output: web
+
+      - title: 'Binding an element multiple times'
+        url: /spec/1.3/#binding-an-element-multiple-times
+        output: web
+
+      - title: 'Matching edges in any direction'
+        url: /spec/1.3/#matching-edges-in-any-direction
+        output: web
+
+    - title: 'Main query structure'
+      url: /spec/1.3/#main-query-structure
+      output: web
+
+    - title: 'SELECT'
+      url: /spec/1.3/#select
+      output: web
+      subfolderitems:
+
+      - title: 'Assigning variable name to Select Expression'
+        url: /spec/1.3/#assigning-variable-name-to-select-expression
+        output: web
+
+      - title: 'SELECT *'
+        url: /spec/1.3/#select-
+        output: web
+
+    - title: 'FROM'
+      url: /spec/1.3/#from
+      output: web
+      subfolderitems:
+
+      - title: 'Default graphs'
+        url: /spec/1.3/#default-graphs
+        output: web
+
+    - title: 'MATCH'
+      url: /spec/1.3/#match
+      output: web
+      subfolderitems:
+
+      - title: 'Repeated variables'
+        url: /spec/1.3/#repeated-variables
+        output: web
+
+      - title: 'Alternatives for specifying graph patterns'
+        url: /spec/1.3/#alternatives-for-specifying-graph-patterns
+        output: web
+
+      - title: 'Disconnected graph patterns'
+        url: /spec/1.3/#disconnected-graph-patterns
+        output: web
+
+      - title: 'Label predicates'
+        url: /spec/1.3/#label-predicates
+        output: web
+
+    - title: 'WHERE'
+      url: /spec/1.3/#where
+      output: web
+
+  - title: 'Grouping and Aggregation'
+    url: /spec/1.3/#grouping-and-aggregation
+    output: web
+    folderitems:
+
+    - title: 'GROUP BY'
+      url: /spec/1.3/#group-by
+      output: web
+      subfolderitems:
+
+      - title: 'Multiple Terms in GROUP BY'
+        url: /spec/1.3/#multiple-terms-in-group-by
+        output: web
+
+      - title: 'GROUP BY and NULL values'
+        url: /spec/1.3/#group-by-and-null-values
+        output: web
+
+      - title: 'Repetition of Group Expression in Select or Order Expression'
+        url: /spec/1.3/#repetition-of-group-expression-in-select-or-order-expression
+        output: web
+
+    - title: 'Aggregation'
+      url: /spec/1.3/#aggregation
+      output: web
+      subfolderitems:
+
+      - title: 'Aggregation with GROUP BY'
+        url: /spec/1.3/#aggregation-with-group-by
+        output: web
+
+      - title: 'Aggregation without GROUP BY'
+        url: /spec/1.3/#aggregation-without-group-by
+        output: web
+
+      - title: 'COUNT(*)'
+        url: /spec/1.3/#count
+        output: web
+
+      - title: 'DISTINCT in aggregation'
+        url: /spec/1.3/#distinct-in-aggregation
+        output: web
+
+    - title: 'HAVING'
+      url: /spec/1.3/#having
+      output: web
+
+  - title: 'Sorting and Row Limiting'
+    url: /spec/1.3/#sorting-and-row-limiting
+    output: web
+    folderitems:
+
+    - title: 'ORDER BY'
+      url: /spec/1.3/#order-by
+      output: web
+      subfolderitems:
+
+      - title: 'Data types for ORDER BY'
+        url: /spec/1.3/#data-types-for-order-by
+        output: web
+
+      - title: 'Multiple expressions in ORDER BY'
+        url: /spec/1.3/#multiple-expressions-in-order-by
+        output: web
+
+    - title: 'LIMIT and OFFSET'
+      url: /spec/1.3/#limit-and-offset
+      output: web
+
+  - title: 'Variable-Length Paths'
+    url: /spec/1.3/#variable-length-paths
+    output: web
+    folderitems:
+
+    - title: 'Quantifiers'
+      url: /spec/1.3/#quantifiers
+      output: web
+
+    - title: 'Horizontal Aggregation'
+      url: /spec/1.3/#horizontal-aggregation
+      output: web
+      subfolderitems:
+
+      - title: 'Recap of vertical aggregation'
+        url: /spec/1.3/#recap-of-vertical-aggregation
+        output: web
+
+      - title: 'Group Variables'
+        url: /spec/1.3/#group-variables
+        output: web
+
+      - title: 'Horizontal aggregation using group variables'
+        url: /spec/1.3/#horizontal-aggregation-using-group-variables
+        output: web
+
+      - title: 'Horizontal aggregation in WHERE and GROUP BY'
+        url: /spec/1.3/#horizontal-aggregation-in-where-and-group-by
+        output: web
+
+    - title: 'Reachability'
+      url: /spec/1.3/#reachability
+      output: web
+      subfolderitems:
+
+      - title: 'Examples with various quantifiers'
+        url: /spec/1.3/#examples-with-various-quantifiers
+        output: web
+
+      - title: 'Common Path Expressions'
+        url: /spec/1.3/#common-path-expressions
+        output: web
+
+    - title: 'Shortest Path'
+      url: /spec/1.3/#shortest-path
+      output: web
+
+    - title: 'Top-K Shortest Path'
+      url: /spec/1.3/#top-k-shortest-path
+      output: web
+
+  - title: 'Functions and Expressions'
+    url: /spec/1.3/#functions-and-expressions
+    output: web
+    folderitems:
+
+    - title: 'Data Types and Literals'
+      url: /spec/1.3/#data-types-and-literals
+      output: web
+      subfolderitems:
+
+      - title: 'Data Types'
+        url: /spec/1.3/#data-types
+        output: web
+
+      - title: 'Literals'
+        url: /spec/1.3/#literals
+        output: web
+
+      - title: 'Bind Variables'
+        url: /spec/1.3/#bind-variables
+        output: web
+
+    - title: 'Operators'
+      url: /spec/1.3/#operators
+      output: web
+      subfolderitems:
+
+      - title: 'Arithmetic, Relational and Logical Operators'
+        url: /spec/1.3/#arithmetic-relational-and-logical-operators
+        output: web
+
+      - title: 'Operator Precedence'
+        url: /spec/1.3/#operator-precedence
+        output: web
+
+      - title: 'Implicit Type Conversion'
+        url: /spec/1.3/#implicit-type-conversion
+        output: web
+
+    - title: 'Null values'
+      url: /spec/1.3/#null-values
+      output: web
+      subfolderitems:
+
+      - title: 'Three-Valued Logic'
+        url: /spec/1.3/#three-valued-logic
+        output: web
+
+      - title: 'IS NULL and IS NOT NULL'
+        url: /spec/1.3/#is-null-and-is-not-null
+        output: web
+
+    - title: 'String functions'
+      url: /spec/1.3/#string-functions
+      output: web
+      subfolderitems:
+
+      - title: 'JAVA_REGEXP_LIKE'
+        url: /spec/1.3/#java_regexp_like
+        output: web
+
+    - title: 'Numeric functions'
+      url: /spec/1.3/#numeric-functions
+      output: web
+      subfolderitems:
+
+      - title: 'ABS'
+        url: /spec/1.3/#abs
+        output: web
+
+      - title: 'CEIL or CEILING'
+        url: /spec/1.3/#ceil-or-ceiling
+        output: web
+
+      - title: 'FLOOR'
+        url: /spec/1.3/#floor
+        output: web
+
+      - title: 'ROUND'
+        url: /spec/1.3/#round
+        output: web
+
+    - title: 'Datetime functions'
+      url: /spec/1.3/#datetime-functions
+      output: web
+      subfolderitems:
+
+      - title: 'EXTRACT'
+        url: /spec/1.3/#extract
+        output: web
+
+    - title: 'Vertex and Edge functions'
+      url: /spec/1.3/#vertex-and-edge-functions
+      output: web
+      subfolderitems:
+
+      - title: 'ID'
+        url: /spec/1.3/#id
+        output: web
+
+      - title: 'LABEL'
+        url: /spec/1.3/#label
+        output: web
+
+      - title: 'LABELS'
+        url: /spec/1.3/#labels
+        output: web
+
+      - title: 'HAS_LABEL'
+        url: /spec/1.3/#has_label
+        output: web
+
+      - title: 'ALL_DIFFERENT'
+        url: /spec/1.3/#all_different
+        output: web
+
+      - title: 'IN_DEGREE'
+        url: /spec/1.3/#in_degree
+        output: web
+
+      - title: 'OUT_DEGREE'
+        url: /spec/1.3/#out_degree
+        output: web
+
+    - title: 'User-Defined functions'
+      url: /spec/1.3/#user-defined-functions
+      output: web
+
+    - title: 'CAST'
+      url: /spec/1.3/#cast
+      output: web
+
+    - title: 'CASE'
+      url: /spec/1.3/#case
+      output: web
+
+    - title: 'IN and NOT IN'
+      url: /spec/1.3/#in-and-not-in
+      output: web
+
+  - title: 'Subqueries'
+    url: /spec/1.3/#subqueries
+    output: web
+    folderitems:
+
+    - title: 'EXISTS and NOT EXISTS subqueries'
+      url: /spec/1.3/#exists-and-not-exists-subqueries
+      output: web
+
+    - title: 'Scalar subqueries'
+      url: /spec/1.3/#scalar-subqueries
+      output: web
+
+  - title: 'Graph Modification'
+    url: /spec/1.3/#graph-modification
+    output: web
+    folderitems:
+
+    - title: 'INSERT'
+      url: /spec/1.3/#insert
+      output: web
+
+    - title: 'UPDATE'
+      url: /spec/1.3/#update
+      output: web
+
+    - title: 'DELETE'
+      url: /spec/1.3/#delete
+      output: web
+
+    - title: 'Mixing INSERT, UPDATE and DELETE'
+      url: /spec/1.3/#mixing-insert-update-and-delete
+      output: web
+
+  - title: 'Other Syntactic rules'
+    url: /spec/1.3/#other-syntactic-rules
+    output: web
+    folderitems:
+
+    - title: 'Identifiers'
+      url: /spec/1.3/#identifiers
+      output: web
+      subfolderitems:
+
+      - title: 'Special characters in property names, graph names, and labels'
+        url: /spec/1.3/#special-characters-in-property-names-graph-names-and-labels
+        output: web
+
+    - title: 'Lexical constructs for literals'
+      url: /spec/1.3/#lexical-constructs-for-literals
+      output: web
+
+    - title: 'Escaped characters'
+      url: /spec/1.3/#escaped-characters
+      output: web
+
+    - title: 'Keywords'
+      url: /spec/1.3/#keywords
+      output: web
+
+    - title: 'Comments'
+      url: /spec/1.3/#comments
+      output: web
