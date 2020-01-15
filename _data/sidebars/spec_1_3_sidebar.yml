@@ -158,6 +158,10 @@ entries:
         url: /spec/1.3/#multiple-terms-in-group-by
         output: web
 
+      - title: 'Aliases in GROUP BY'
+        url: /spec/1.3/#aliases-in-group-by
+        output: web
+
       - title: 'GROUP BY and NULL values'
         url: /spec/1.3/#group-by-and-null-values
         output: web
@@ -262,6 +266,14 @@ entries:
 
     - title: 'Top-K Shortest Path'
       url: /spec/1.3/#top-k-shortest-path
+      output: web
+
+    - title: 'Cheapest Path'
+      url: /spec/1.3/#cheapest-path
+      output: web
+
+    - title: 'Top-K Cheapest Path'
+      url: /spec/1.3/#top-k-cheapest-path
       output: web
 
   - title: 'Functions and Expressions'

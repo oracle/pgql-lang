@@ -731,7 +731,7 @@ WHERE y.age > 25
 The following explains the syntactic structure of the `GROUP BY` clause:
 
 ```bash
-GroupByClause ::= 'GROUP' 'BY' <ValueExpression> ( ',' <ValueExpression> )*
+GroupByClause ::= 'GROUP' 'BY' <ExpAsVar> ( ',' <ExpAsVar> )*
 ```
 
 The `GROUP BY` clause starts with the keywords GROUP BY and is followed by a comma-separated list of value expressions that can be of any type.
@@ -759,6 +759,12 @@ GROUP BY n.first_name, n.last_name
 ```
 
 Matches will be grouped together only if they hold the same values for `n.first_name` and the same values for `n.last_name`.
+
+### Aliases in GROUP BY
+
+Each expression in `GROUP BY` can have an alias (e.g. `n.prop AS myAlias`). The alias can be referenced from the `HAVING`, `ORDER BY` and `SELECT` clauses so that repeated specification of the same expression can be avoided.
+
+Note, however, that `GROUP BY` can also reference aliases from `SELECT` but it is not allowed to create a circular dependency such that an expression in the `SELECT` references an expression in the `GROUP BY` that in its turn references that same expression in the `SELECT`.
 
 ### GROUP BY and NULL values
 

@@ -145,6 +145,10 @@ entries:
         url: /spec/1.2/#multiple-terms-in-group-by
         output: web
 
+      - title: 'Aliases in GROUP BY'
+        url: /spec/1.2/#aliases-in-group-by
+        output: web
+
       - title: 'GROUP BY and NULL values'
         url: /spec/1.2/#group-by-and-null-values
         output: web
