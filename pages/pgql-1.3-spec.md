@@ -114,8 +114,7 @@ The following query matches all the vertices with the label `Person` and retriev
 
 ```sql
 SELECT n.name, n.dob
-  FROM student_network
- MATCH (n:Person)
+  FROM MATCH (n:Person)
 ```
 
 ```
@@ -147,8 +146,7 @@ For example:
 
 ```sql
 SELECT a.name, b.name
-  FROM student_network
- MATCH (a:Person) -[e:knows]-> (b:Person)
+  FROM MATCH (a:Person) -[e:knows]-> (b:Person)
 ```
 
 ```
@@ -179,8 +177,7 @@ For example:
 
 ```sql
 SELECT n.name, n.dob
-  FROM student_network
- MATCH (n:Person|University)
+  FROM MATCH (n:Person|University)
 ```
 
 ```
@@ -206,8 +203,7 @@ For example:
 
 ```sql
 SELECT n.name, n.dob
-  FROM student_network
- MATCH (n)
+  FROM MATCH (n)
 ```
 
 ```
@@ -234,8 +230,7 @@ For example, "find all persons that have a date of birth (dob) greater than 1995
 
 ```sql
 SELECT n.name, n.dob
-  FROM student_network
- MATCH (n)
+  FROM MATCH (n)
  WHERE n.dob > DATE '1995-01-01'
 ```
 
@@ -258,8 +253,7 @@ Another example is to "find people that Kathrine knows and that are old than her
 
 ```sql
 SELECT m.name AS name, m.dob AS dob
-  FROM student_network
- MATCH (n) -[e]-> (m)
+  FROM MATCH (n) -[e]-> (m)
  WHERE n.name = 'Kathrine' AND n.dob <= m.dob
 ```
 
@@ -286,8 +280,7 @@ For example, "find people that Lee knows and that are a student at the same univ
 
 ```sql
 SELECT p2.name AS friend, u.name AS university
-  FROM student_network
- MATCH (u:University) <-[:studentOf]- (p1:Person) -[:knows]-> (p2:Person) -[:studentOf]-> (u)
+  FROM MATCH (u:University) <-[:studentOf]- (p1:Person) -[:knows]-> (p2:Person) -[:studentOf]-> (u)
  WHERE p1.name = 'Lee'
 ```
 
@@ -306,10 +299,9 @@ The same query as above may be expressed through multiple comma-separated path p
 
 ```sql
 SELECT p2.name AS friend, u.name AS university
-  FROM student_network
- MATCH (p1:Person) -[:knows]-> (p2:Person)
-     , (p1) -[:studentOf]-> (u:University)
-     , (p2) -[:studentOf]-> (u)
+  FROM MATCH (p1:Person) -[:knows]-> (p2:Person)
+     , MATCH (p1) -[:studentOf]-> (u:University)
+     , MATCH (p2) -[:studentOf]-> (u)
  WHERE p1.name = 'Lee'
 ```
 
@@ -333,8 +325,7 @@ For example, "find friends of friends of Lee" (friendship being defined by the p
 
 ```sql
 SELECT p1.name AS p1, p2.name AS p2, p3.name AS p3
-  FROM student_network
- MATCH (p1:Person) -[:knows]-> (p2:Person) -[:knows]-> (p3:Person)
+  FROM MATCH (p1:Person) -[:knows]-> (p2:Person) -[:knows]-> (p3:Person)
  WHERE p1.name = 'Lee'
 ```
 
@@ -355,8 +346,7 @@ For example, the predicate `p1 <> p3` in the query below adds the restriction th
 
 ```sql
 SELECT p1.name AS p1, p2.name AS p2, p3.name AS p3
-  FROM student_network
- MATCH (p1:Person) -[:knows]-> (p2:Person) -[:knows]-> (p3:Person)
+  FROM MATCH (p1:Person) -[:knows]-> (p2:Person) -[:knows]-> (p3:Person)
  WHERE p1.name = 'Lee' AND p1 <> p3
 ```
 
@@ -372,8 +362,7 @@ An alternative is to use the [ALL_DIFFERENT](#all_different) predicate, which ca
 
 ```sql
 SELECT p1.name AS p1, p2.name AS p2, p3.name AS p3
-  FROM student_network
- MATCH (p1:Person) -[:knows]-> (p2:Person) -[:knows]-> (p3:Person)
+  FROM MATCH (p1:Person) -[:knows]-> (p2:Person) -[:knows]-> (p3:Person)
  WHERE p1.name = 'Lee' AND ALL_DIFFERENT(p1, p3)
 ```
 
@@ -391,9 +380,8 @@ For example, "find two people that both know Riya":
 
 ```sql
 SELECT p1.name AS p1, p2.name AS p2, e1 = e2
-  FROM student_network
- MATCH (p1:Person) -[e1:knows]-> (riya:Person)
-     , (p2:Person) -[e2:knows]-> (riya)
+  FROM MATCH (p1:Person) -[e1:knows]-> (riya:Person)
+     , MATCH (p2:Person) -[e2:knows]-> (riya)
  WHERE riya.name = 'Riya'
 ```
 
@@ -417,7 +405,7 @@ An example query with two any-directed edge patterns is:
 
 ```sql
 SELECT *
-  FROM g MATCH (n) -[e1]- (m) -[e2]- (o)
+  FROM MATCH (n) -[e1]- (m) -[e2]- (o)
 ```
 
 Note that in case there are both incoming and outgoing data edges between two data vertices, there will be separate result bindings for each of the edges.
@@ -427,7 +415,7 @@ Any-directed edge patterns may also be used inside [common path expressions](#co
 ```sql
   PATH two_hops AS () -[e1]- () -[e2]- ()
 SELECT *
-  FROM g MATCH (n) -/:two_hops*/-> (m)
+  FROM MATCH (n) -/:two_hops*/-> (m)
 ```
 
 The above query will return all pairs of vertices `n` and `m` that are reachable via a multiple of two edges, each edge being either an incoming or an outgoing edge.
@@ -441,8 +429,7 @@ The following is the syntax of the main query structure:
 ```bash
 Query ::= <CommonPathExpressions>?
           <SelectClause>
-          <FromClause>?
-          <MatchClause>
+          <FromClause>
           <WhereClause>?
           <GroupByClause>?
           <HavingClause>?
@@ -484,7 +471,7 @@ Consider the following example:
 
 ```sql
 SELECT n, m, n.age AS age
-  FROM g MATCH (n:Person) -[e:friend_of]-> (m:Person)
+  FROM MATCH (n:Person) -[e:friend_of]-> (m:Person)
 ```
 
 Per each matched subgraph, the query returns two vertices `n` and `m` and the value for property age of vertex `n`.  Note that edge `e` is omitted from the result even though it is used for describing the pattern.
@@ -497,7 +484,7 @@ It is possible to assign a variable name to any of the selection expression, by 
 
 ```sql
   SELECT n.age * 2 - 1 AS pivot, n.name, n
-    FROM g MATCH (n:Person) -> (m:Car)
+    FROM MATCH (n:Person) -> (m:Car)
 ORDER BY pivot
 ```
 
@@ -509,16 +496,16 @@ Consider the following query:
 
 ```sql
 SELECT *
-  FROM g MATCH (n:Person) -> (m) -> (w)
-     , (n) -> (w) -> (m)
+  FROM MATCH (n:Person) -> (m) -> (w)
+     , MATCH (n) -> (w) -> (m)
 ```
 
 This query is semantically equivalent to:
 
 ```sql
 SELECT n, m, w
-  FROM g MATCH (n:Person) -> (m) -> ()
-     , (n) -> (w) -> (m)
+  FROM MATCH (n:Person) -> (m) -> ()
+     , MATCH (n) -> (w) -> (m)
 ```
 
 `SELECT *` is not allowed when the graph pattern has zero variables. This is the case when all the vertices and edges in the pattern are anonymous (e.g. `MATCH () -> (:Person)`).
@@ -526,47 +513,18 @@ Futhermore, `SELECT *` in combination with `GROUP BY` is not allowed.
 
 ## FROM
 
-The `FROM` clause specifies the name of the input graph to be queried:
+In a PGQL query, the `FROM` clause defines the graph pattern to be matched.
+
+Syntactically, a `FROM` clause is composed of the keyword `FROM` followed by a comma-separated sequence of `MATCH` clauses, each defining a path pattern:
 
 ```bash
-FromClause ::= 'FROM' <GraphName>
-
-GraphName  ::= <IDENTIFIER>
-```
-
-For example, the input graph of the following query is `my_graph`:
-
-```sql
-  SELECT p.first_name, p.last_name
-    FROM my_graph
-   MATCH (p:Person)
-ORDER BY p.first_name, p.last_name
-```
-
-### Default graphs
-
-The `FROM` clause may be omitted if there is a "default graph" such that specifying the graph name inside the query is only redundant.
-
-PGQL itself does not (yet) provide syntax for specifying a default graph. However, PGQL engines like PGX provide APIs like `PgxGraph.queryPgql(..)` that provide a default graph (whose name corresponds to `PgxGraph.getName()`). This in contrast to APIs like `PgxSession.queryPgql(..)` which do not provide default graphs.
-
-If a default graph is provided then the `FROM` clause can be omitted from a query like in this example:
-
-```sql
-  SELECT p.first_name, p.last_name
-   MATCH (p:Person)
-ORDER BY p.first_name, p.last_name
+FromClause             ::= 'FROM' <MatchClause> ( ',' <MatchClause> )*
 ```
 
 ## MATCH
 
-In a PGQL query, the `MATCH` clause defines the graph pattern to be matched.
-
-Syntactically, a `MATCH` clause is composed of the keyword `MATCH` followed by a comma-separated sequence of path patterns:
-
 ```bash
-MatchClause            ::= 'MATCH' <GraphPattern>
-
-GraphPattern           ::= <PathPattern> ( ',' <PathPattern> )*
+MatchClause            ::= 'MATCH' <PathPattern> <OnClause>?
 
 PathPattern            ::=   <SimplePathPattern>
                            | <ShortestPathPattern>
@@ -609,15 +567,48 @@ The above example defines two vertices (with variable names `n` and `m`), and an
 
 More specifically, a vertex term is written as a variable name inside a pair of parenthesis `()`. An edge term is written as a variable name inside a square bracket `[]` with two dashes and an inequality symbol attached to it – which makes it look like an arrow drawn in ASCII art. An edge term is always connected with two vertex terms as for the source and destination vertex of the edge; the source vertex is located at the tail of the ASCII arrow and the destination at the head of the ASCII arrow.
 
-There can be multiple path patterns in the `MATCH` clause of a PGQL query. Semantically, all constraints are conjunctive – that is, each matched result should satisfy every constraint in the `MATCH` clause.
+There can be multiple path patterns in the `FROM` clause of a PGQL query. Semantically, all constraints are conjunctive – that is, each matched result should satisfy every constraint in the `FROM` clause.
+
+### ON clause
+
+The `ON` clause specifies the name of the input graph to be queried:
+
+```bash
+OnClause   ::= 'ON' <GraphName>
+
+GraphName  ::= <IDENTIFIER>
+```
+
+For example, the input graph of the following query is `my_graph`:
+
+```sql
+  SELECT p.first_name, p.last_name
+    FROM MATCH (p:Person)
+ORDER BY p.first_name, p.last_name
+```
+
+#### Default Graph
+
+The `FROM` clause may be omitted if there is a "default graph" such that specifying the graph name inside the query is only redundant.
+
+PGQL itself does not (yet) provide syntax for specifying a default graph. However, PGQL engines like PGX provide APIs like `PgxGraph.queryPgql(..)` that provide a default graph (whose name corresponds to `PgxGraph.getName()`). This in contrast to APIs like `PgxSession.queryPgql(..)` which do not provide default graphs.
+
+If a default graph is provided then the `FROM` clause can be omitted from a query like in this example:
+
+```sql
+  SELECT p.first_name, p.last_name
+    FROM MATCH (p:Person)
+ORDER BY p.first_name, p.last_name
+```
 
 ### Repeated variables
 
-There can be multiple topology constraints in the `WHERE` clause of a PGQL query. In such a case, vertex terms that have the same variable name correspond to the same vertex entity. For example, consider the following two lines of topology constraints:
+There can be multiple topology constraints in the `FROM` clause of a PGQL query. In such a case, vertex terms that have the same variable name correspond to the same vertex entity. For example, consider the following two lines of topology constraints:
 
 ```sql
-(n) -[e1]-> (m1),
-(n) -[e2]-> (m2)
+SELECT *
+ FROM MATCH (n) -[e1]-> (m1)
+    , MATCH (n) -[e2]-> (m2)
 ```
 
 Here, the vertex term `(n)` in the first constraint indeed refers to the same vertex as the vertex term `(n)` in the second constraint. It is an error, however, if two edge terms have the same variable name, or, if the same variable name is assigned to an edge term as well as to a vertex term in a single query.
@@ -629,21 +620,24 @@ There are various ways in which a particular graph pattern can be specified.
 First, a single path pattern can be written as a chain of edge terms such that two consecutive edge terms share the common vertex term in between. For example:
 
 ```sql
-(n1) -[e1]-> (n2) -[e2]-> (n3) -[e3]-> (n4)
+SELECT *
+  FROM MATCH (n1) -[e1]-> (n2) -[e2]-> (n3) -[e3]-> (n4)
 ```
 
 The above graph pattern is equivalent to the graph pattern specified by the following set of comma-separate path patterns:
 
 ```sql
-(n1) -[e1]-> (n2),
-(n2) -[e2]-> (n3),
-(n3) -[e3]-> (n4)
+SELECT *
+  FROM MATCH (n1) -[e1]-> (n2)
+     , MATCH (n2) -[e2]-> (n3)
+     , MATCH (n3) -[e3]-> (n4)
 ```
 
 Second, it is allowed to reverse the direction of an edge in the pattern, i.e. right-to-left instead of left-to-right. Therefore, the following is a valid graph pattern:
 
 ```sql
-(n1) -[e1]-> (n2) <-[e2]- (n3)
+SELECT *
+  FROM MATCH (n1) -[e1]-> (n2) <-[e2]- (n3)
 ```
 
 Please mind the edge directions in the above query – vertex `n2` is a common outgoing neighbor of both vertex `n1` and vertex `n3`.
@@ -668,7 +662,8 @@ In the case the `MATCH` clause contains two or more disconnected graph patterns 
 
 ```sql
 SELECT *
-  FROM g MATCH (n1) -> (m1), (n2) -> (m2)
+  FROM MATCH (n1) -> (m1)
+     , MATCH (n2) -> (m2)
 ```
 
 Here, vertices `n2` and `m2` are not connected to vertices `n1` and `m1`, resulting in a Cartesian product.
@@ -689,7 +684,7 @@ Take the following example:
 
 ```sql
 SELECT *
-  FROM g MATCH (x:Person) -[e:likes|knows]-> (y:Person)
+  FROM MATCH (x:Person) -[e:likes|knows]-> (y:Person)
 ```
 
 Here, we specify that vertices `x` and `y` have the label `Person` and that the edge `e` has the label `likes` or the label `knows`.
@@ -698,7 +693,7 @@ A label predicate can be specified even when a variable is omitted. For example:
 
 ```sql
 SELECT *
-  FROM g MATCH (:Person) -[:likes|knows]-> (:Person)
+  FROM MATCH (:Person) -[:likes|knows]-> (:Person)
 ```
 
 There are also built-in functions available for labels:
@@ -722,7 +717,7 @@ For example:
 
 ```sql
 SELECT y.name
-  FROM g MATCH (x) -> (y)
+  FROM MATCH (x) -> (y)
  WHERE x.name = 'Jake'
    AND y.age > 25
 ```
@@ -733,7 +728,7 @@ Note that the ordering of constraints does not have an affect on the result, suc
 
 ```sql
 SELECT y.name
- FROM g MATCH (x) -> (y)
+ FROM MATCH (x) -> (y)
 WHERE y.age > 25
   AND x.name = 'Jake'
 ```
@@ -756,7 +751,7 @@ Consider the following query:
 
 ```sql
   SELECT n.first_name, COUNT(*), AVG(n.age)
-    FROM g MATCH (n:Person)
+    FROM MATCH (n:Person)
 GROUP BY n.first_name
 ```
 
@@ -770,7 +765,7 @@ Consider the following query:
 
 ```sql
   SELECT n.first_name, n.last_name, COUNT(*)
-    FROM g MATCH (n:Person)
+    FROM MATCH (n:Person)
 GROUP BY n.first_name, n.last_name
 ```
 
@@ -790,7 +785,7 @@ To filter out such a group, use a `HAVING` clause (see [HAVING](#having)), for e
 
 ```sql
   SELECT n.prop1, n.prop2, COUNT(*)
-    FROM g MATCH (n)
+    FROM MATCH (n)
 GROUP BY n.prop1, n.prop2
   HAVING n.prop1 IS NOT NULL AND n.prop2 IS NOT NULL
 ```
@@ -803,7 +798,7 @@ Consider the following query:
 
 ```sql
   SELECT n.age, COUNT(*)
-    FROM g MATCH (n)
+    FROM MATCH (n)
 GROUP BY n.age
 ORDER BY n.age
 ```
@@ -859,7 +854,7 @@ For example:
 
 ```sql
   SELECT AVG(m.salary)
-    FROM g MATCH (m:Person)
+    FROM MATCH (m:Person)
 GROUP BY m.age
 ```
 
@@ -873,7 +868,7 @@ For example:
 
 ```sql
 SELECT AVG(m.salary)
-  FROM g MATCH (m:Person)
+  FROM MATCH (m:Person)
 ```
 
 Here, we aggregate over the entire set of vertices with label `Person`, to compute the average salary.
@@ -886,7 +881,7 @@ For example:
 
 ```sql
 SELECT COUNT(*)
-  FROM g MATCH (m:Person)
+  FROM MATCH (m:Person)
 ```
 
 ### DISTINCT in aggregation
@@ -897,7 +892,7 @@ For example:
 
 ```sql
 SELECT AVG(DISTINCT m.age)
-  FROM g MATCH (m:Person)
+  FROM MATCH (m:Person)
 ```
 
 Here, we aggregate only over distinct `m.age` values.
@@ -916,7 +911,7 @@ For example:
 
 ```sql
   SELECT n.name
-    FROM g MATCH (n) -[:has_friend]-> (m)
+    FROM MATCH (n) -[:has_friend]-> (m)
 GROUP BY n
   HAVING COUNT(m) > 10
 ```
@@ -949,7 +944,7 @@ The following is an example in which the results are ordered by property access 
 
 ```sql
   SELECT n.name
-    FROM g MATCH (n:Person)
+    FROM MATCH (n:Person)
 ORDER BY n.age ASC
 ```
 
@@ -970,7 +965,7 @@ An `ORDER BY` may contain more than one expression, in which case the expresison
 
 ```sql
   SELECT f.name
-    FROM g MATCH (f:Person)
+    FROM MATCH (f:Person)
 ORDER BY f.age ASC, f.salary DESC
 ```
 
@@ -1000,7 +995,7 @@ In the following query, the first 5 intermediate solutions are pruned from the r
 
 ```sql
 SELECT n
-  FROM g MATCH (n)
+  FROM MATCH (n)
  LIMIT 10
 OFFSET 5
 ```
@@ -1066,8 +1061,7 @@ SELECT a.number AS a,
        b.number AS b,
        COUNT(e) AS pathLength,
        ARRAY_AGG(e.amount) AS amounts
-  FROM financial_transactions
- MATCH SHORTEST ( (a:Account) -[e:transaction]->* (b:Account) )
+  FROM MATCH SHORTEST ( (a:Account) -[e:transaction]->* (b:Account) )
  WHERE a.number = 10039 AND b.number = 2090
 ```
 
@@ -1140,8 +1134,7 @@ It is possible to mix vertical and horizontal aggregation in a single query. For
 
 ```sql
 SELECT SUM(COUNT(e)) AS sumOfPathLengths
-  FROM financial_transactions
- MATCH SHORTEST ( (a:Account) -[e:transaction]->* (b:Account) )
+  FROM MATCH SHORTEST ( (a:Account) -[e:transaction]->* (b:Account) )
  WHERE a.number = 10039 AND (b.number = 1001 OR b.number = 2090)
 ```
 
@@ -1170,8 +1163,7 @@ An example of a horizontal aggregation in `WHERE` is:
   SELECT b.number AS b,
          COUNT(e) AS pathLength,
          ARRAY_AGG(e.amount) AS transactions
-    FROM financial_transactions
-   MATCH SHORTEST ( (a:Account) -[e:transaction]->* (b:Account) )
+    FROM MATCH SHORTEST ( (a:Account) -[e:transaction]->* (b:Account) )
    WHERE a.number = 10039 AND
          (b.number = 8021 OR b.number = 1001 OR b.number = 2090) AND
          COUNT(e) <= 2
@@ -1197,8 +1189,7 @@ An example of a horizontal aggregation in `GROUP BY` is:
 ```sql
   SELECT COUNT(e) AS pathLength,
          COUNT(*) AS cnt
-    FROM financial_transactions
-   MATCH SHORTEST ( (a:Account) -[e:transaction]->* (b:Account) )
+    FROM MATCH SHORTEST ( (a:Account) -[e:transaction]->* (b:Account) )
    WHERE (a.number = 10039 OR a.number = 8021) AND
          (b.number = 1001 OR b.number = 2090)
 GROUP BY COUNT(e)
@@ -1241,7 +1232,7 @@ For example:
 
 ```sql
 SELECT c.name
-  FROM g MATCH (c:Class) -/:subclass_of*/-> (arrayList:Class)
+  FROM MATCH (c:Class) -/:subclass_of*/-> (arrayList:Class)
  WHERE arrayList.name = 'ArrayList'
 ```
 
@@ -1257,7 +1248,7 @@ The following example finds all vertices `y` that can be reached from `Amy` by f
 
 ```sql
 SELECT y.name
-  FROM g MATCH (x:Person) -/:likes*/-> (y)
+  FROM MATCH (x:Person) -/:likes*/-> (y)
  WHERE x.name = 'Amy'
 ```
 
@@ -1283,7 +1274,7 @@ The following example finds all people that can be reached from `Amy` by followi
 
 ```sql
 SELECT y.name
-  FROM g MATCH (x:Person) -/:likes+/-> (y)
+  FROM MATCH (x:Person) -/:likes+/-> (y)
  WHERE x.name = 'Amy'
 ```
 
@@ -1305,7 +1296,7 @@ The following example finds all people that can be reached from `Judith` by foll
 
 ```sql
 SELECT y.name
-  FROM g MATCH (x:Person) -/:knows+/-> (y)
+  FROM MATCH (x:Person) -/:knows+/-> (y)
  WHERE x.name = 'Judith'
 ```
 
@@ -1329,7 +1320,7 @@ The following example finds all people that can be reached from `Judith` by foll
 
 ```sql
 SELECT y.name
-  FROM g MATCH (x:Person) -/:knows?/-> (y)
+  FROM MATCH (x:Person) -/:knows?/-> (y)
  WHERE x.name = 'Judith'
 ```
 
@@ -1352,7 +1343,7 @@ The following example finds all people that can be reached from `Amy` by followi
 
 ```sql
 SELECT y.name
-  FROM g MATCH (x:Person) -/:likes{2}/-> (y)
+  FROM MATCH (x:Person) -/:likes{2}/-> (y)
  WHERE x.name = 'Amy'
 ```
 
@@ -1374,7 +1365,7 @@ The following example finds all people that can be reached from `Amy` by followi
 
 ```sql
 SELECT y.name
-  FROM g MATCH (x:Person) -/:likes{2,}/-> (y)
+  FROM MATCH (x:Person) -/:likes{2,}/-> (y)
  WHERE x.name = 'Amy'
 ```
 
@@ -1397,7 +1388,7 @@ The following example finds all people that can be reached from `Amy` by followi
 
 ```sql
 SELECT y.name
-  FROM g MATCH (x:Person) -/:likes{1,2}/-> (y)
+  FROM MATCH (x:Person) -/:likes{1,2}/-> (y)
  WHERE x.name = 'Amy'
 ```
 
@@ -1423,7 +1414,7 @@ The following example finds all people that can be reached from `Judith` by foll
 
 ```sql
 SELECT y.name
-  FROM g MATCH (x:Person) -/:knows{,2}/-> (y)
+  FROM MATCH (x:Person) -/:knows{,2}/-> (y)
  WHERE x.name = 'Judith'
 ```
 
@@ -1457,8 +1448,8 @@ For example:
 ```sql
   PATH has_parent AS () -[:has_father|has_mother]-> (:Person)
 SELECT ancestor.name
-  FROM g MATCH (p1:Person) -/:has_parent+/-> (ancestor)
-             , (p2:Person) -/:has_parent+/-> (ancestor)
+  FROM MATCH (p1:Person) -/:has_parent+/-> (ancestor)
+     , MATCH (p2:Person) -/:has_parent+/-> (ancestor)
  WHERE p1.name = 'Mario'
    AND p2.name = 'Luigi'
 ```
@@ -1471,7 +1462,7 @@ Another example is:
   PATH connects_to AS (:Generator) -[:has_connector]-> (c:Connector) <-[:has_connector]- (:Generator)
                 WHERE c.status = 'OPERATIONAL'
 SELECT generatorA.location, generatorB.location
-  FROM g MATCH (generatorA) -/:connects_to+/-> (generatorB)
+  FROM MATCH (generatorA) -/:connects_to+/-> (generatorB)
 ```
 
 The above query outputs all generators that are connected to each other via one or more connectors that are all operational.
@@ -1503,8 +1494,7 @@ For example:
 
 ```sql
 SELECT src, SUM(e.weight), dst
-  FROM g
- MATCH SHORTEST ( (src) -[e]->* (dst) )
+  FROM MATCH SHORTEST ( (src) -[e]->* (dst) )
  WHERE src.age < dst.age
 ```
 
@@ -1521,8 +1511,7 @@ Another example is:
                        ELSE dst.name
                      END
                    ) AS path
-    FROM financial_transactions
-   MATCH SHORTEST ( (p1:Person) (-[e]- (dst))* (p2:Person) )
+    FROM MATCH SHORTEST ( (p1:Person) (-[e]- (dst))* (p2:Person) )
    WHERE p1.name = 'Camille' AND p2.name = 'Liam'
 ORDER BY num_hops
 ```
@@ -1541,16 +1530,14 @@ For example, the following query matches a shortest path (if one exists) such th
 
 ```sql
 SELECT src, ARRAY_AGG(e.weight), dst
-  FROM g
- MATCH SHORTEST ( (src) (-[e]-> WHERE e.weight > 10)* (dst) )
+  FROM MATCH SHORTEST ( (src) (-[e]-> WHERE e.weight > 10)* (dst) )
 ```
 
 Note that this is different from a `WHERE` clause that is placed outside of the quantified pattern:
 
 ```sql
 SELECT src, ARRAY_AGG(e.weight), dst
-  FROM g
- MATCH SHORTEST ( (src) -[e]->* (dst) ) WHERE SUM(e.cost) < 100
+  FROM MATCH SHORTEST ( (src) -[e]->* (dst) ) WHERE SUM(e.cost) < 100
 ```
 
 Here, the filter is applied only _after_ a shortest path is matched such that if the `WHERE` condition is not satisfied, the path is filtered out and no other path is considered even though another path may exist that does satisfy the `WHERE` condition.
@@ -1572,8 +1559,7 @@ each of the matched source and destination pairs:
 
 ```sql
 SELECT src, SUM(e.weight), dst
-  FROM g
- MATCH TOP 3 SHORTEST ( (src) -[e]->* (dst) )
+  FROM MATCH TOP 3 SHORTEST ( (src) -[e]->* (dst) )
  WHERE src.age < dst.age
 ```
 
@@ -1585,8 +1571,7 @@ The `ARRAY_AGG` construct allows users to output properties of edges/vertices al
 
 ```sql
 SELECT src, ARRAY_AGG(e.weight), ARRAY_AGG(v1.age), ARRAY_AGG(v2.age), dst
-  FROM g
- MATCH TOP 3 SHORTEST ( (src) ((v1) -[e]-> (v2))* (dst) )
+  FROM MATCH TOP 3 SHORTEST ( (src) ((v1) -[e]-> (v2))* (dst) )
  WHERE src.age < dst.age
 ```
 
@@ -1601,11 +1586,10 @@ Users can also compose shortest path constructs with other matching operators:
 
 ```sql
 SELECT ARRAY_AGG(e1.weight), ARRAY_AGG(e2.weight)
-  FROM g
- MATCH (start) -> (src)
-     , TOP 3 SHORTEST ( (src) (-[e1]->)* (mid) )
-     , SHORTEST ( (mid) (-[e2]->)* (dst) )
-     , (dst) -> (end)
+  FROM MATCH (start) -> (src)
+     , MATCH TOP 3 SHORTEST ( (src) (-[e1]->)* (mid) )
+     , MATCH SHORTEST ( (mid) (-[e2]->)* (dst) )
+     , MATCH (dst) -> (end)
 ```
 
 Another example is:
@@ -1617,8 +1601,7 @@ Another example is:
   SELECT COUNT(e) AS num_hops
        , SUM(e.amount) AS total_amount
        , ARRAY_AGG(e.amount) AS amounts_along_path
-    FROM financial_transactions
-   MATCH TOP 7 SHORTEST ( (a:Account) -[e:transaction]->* (b:Account) )
+    FROM MATCH TOP 7 SHORTEST ( (a:Account) -[e:transaction]->* (b:Account) )
    WHERE a.number = 10039 AND a = b
 ORDER BY num_hops, total_amount
 ```
@@ -1646,8 +1629,7 @@ The following example shows how such paths could be filtered out, such that we o
   SELECT COUNT(e) AS num_hops
        , SUM(e.amount) AS total_amount
        , ARRAY_AGG(e.amount) AS amounts_along_path
-    FROM financial_transactions
-   MATCH TOP 7 SHORTEST ( (a:Account) -[e:transaction]->* (b:Account) )
+    FROM MATCH TOP 7 SHORTEST ( (a:Account) -[e:transaction]->* (b:Account) )
    WHERE a.number = 10039 AND a = b AND COUNT(DISTINCT e) = COUNT(e) AND COUNT(e) > 0
 ORDER BY num_hops, total_amount
 ```
@@ -1794,7 +1776,7 @@ An example query with two bind variables is as follows:
 
 ```sql
 SELECT n.age
-  FROM g MATCH (n)
+  FROM MATCH (n)
  WHERE n.name = ?
     OR n.age > ?
 ```
@@ -1803,7 +1785,7 @@ In the following query, bind variables are used in `LIMIT` and `OFFSET`:
 
 ```sql
   SELECT n.name, n.age
-    FROM g MATCH (n)
+    FROM MATCH (n)
 ORDER BY n.age
    LIMIT ?
   OFFSET ?
@@ -1813,7 +1795,7 @@ The following example shows a bind variable in the position of a label:
 
 ```sql
   SELECT n.name
-    FROM g MATCH (n)
+    FROM MATCH (n)
    WHERE has_label(n, ?)
 ```
 
@@ -1957,7 +1939,7 @@ For example:
 
 ```sql
 SELECT n.name
-  FROM g MATCH (n)
+  FROM MATCH (n)
  WHERE n.name IS NOT NULL
 ```
 
@@ -2177,7 +2159,7 @@ For example:
 
 ```sql
 SELECT LABEL(e)
-  FROM g MATCH (n:Person) -[e]-> (m:Person)
+  FROM MATCH (n:Person) -[e]-> (m:Person)
 ```
 
 ```
@@ -2205,7 +2187,7 @@ For example:
 
 ```sql
 SELECT LABELS(n)
-  FROM g MATCH (n:Employee|Manager)
+  FROM MATCH (n:Employee|Manager)
 ```
 
 ```
@@ -2242,7 +2224,7 @@ For example:
 
 ```sql
 SELECT n.id, m.id, o.id
-  FROM g MATCH (n) -> (m) -> (o)
+  FROM MATCH (n) -> (m) -> (o)
  WHERE ALL_DIFFERENT( n, m, o )
 ```
 
@@ -2250,7 +2232,7 @@ Note that the above query can be rewritten using non-equality constraints as fol
 
 ```sql
 SELECT *
-  FROM g MATCH (n) -> (m) <- (o) -> (n)
+  FROM MATCH (n) -> (m) <- (o) -> (n)
  WHERE n <> m AND n <> o AND m <> o
 ```
 
@@ -2291,7 +2273,7 @@ An example invocation of this function is then:
 
 ```sql
   SELECT math.tan(n.angle) AS tangent
-    FROM g MATCH (n)
+    FROM MATCH (n)
 ORDER BY tangent
 ```
 
@@ -2342,7 +2324,7 @@ For example:
 
 ```sql
 SELECT CAST(n.age AS STRING), CAST('123' AS INTEGER), CAST('09:15:00+01:00' AS TIME WITH TIME ZONE)
-  FROM g MATCH (n:Person)
+  FROM MATCH (n:Person)
 ```
 
 Casting is allowed between the following data types:
@@ -2458,7 +2440,7 @@ Bind variables are also supported in the position of the list. For example:
 
 ```sql
 SELECT n.date_of_birth
-  FROM g MATCH (n:Person)
+  FROM MATCH (n:Person)
  WHERE n.date_of_birth IN ? /* use PreparedStatement.setArray(int, java.util.List) */
 ```
 
@@ -2486,12 +2468,8 @@ An example is to find friend of friends, and, for each friend of friend, return 
 
 ```sql
 SELECT fof.name, COUNT(friend) AS num_common_friends
-  FROM g MATCH (p:Person) -[:has_friend]-> (friend:Person) -[:has_friend]-> (fof:Person)
- WHERE NOT EXISTS (
-                    SELECT *
-                      FROM g
-                     MATCH (p) -[:has_friend]-> (fof)
-                  )
+  FROM MATCH (p:Person) -[:has_friend]-> (friend:Person) -[:has_friend]-> (fof:Person)
+ WHERE NOT EXISTS ( SELECT * FROM MATCH (p) -[:has_friend]-> (fof) )
 ```
 
 Here, vertices `p` and `fof` are passed from the outer query to the inner query. The `EXISTS` returns true if there is at least one `has_friend` edge between vertices `p` and `fof`.
@@ -2499,7 +2477,7 @@ Here, vertices `p` and `fof` are passed from the outer query to the inner query.
 Users can add a subquery in the `WHERE` clause of the `PATH` definition. One might be interested in asserting for specific properties for a vertex in the `PATH`. The following example defines a path ending in a vertex which is not the oldest in the graph:
 
 ```sql
-  PATH p AS (a) -> (b) WHERE EXISTS ( SELECT * FROM g MATCH (x) WHERE x.age > b.age )
+  PATH p AS (a) -> (b) WHERE EXISTS ( SELECT * FROM MATCH (x) WHERE x.age > b.age )
 SELECT ...
   FROM ...
 ```
@@ -2507,7 +2485,7 @@ SELECT ...
 Topology related constraints can also be imposed. The following example defines a path ending in a vertex which has at least one outgoing edge to some neighbor `c`:
 
 ```sql
-  PATH p AS (a) -> (b) WHERE EXISTS ( SELECT * FROM g MATCH (b) -> (c) )
+  PATH p AS (a) -> (b) WHERE EXISTS ( SELECT * FROM MATCH (b) -> (c) )
 SELECT ...
   FROM ...
 ```
@@ -2526,8 +2504,8 @@ For example:
 
 ```sql
 SELECT a.name
-  FROM g MATCH (a)
- WHERE a.age > ( SELECT AVG(b.age) FROM g MATCH (a) -[:friendOf]-> (b) )
+  FROM MATCH (a)
+ WHERE a.age > ( SELECT AVG(b.age) FROM MATCH (a) -[:friendOf]-> (b) )
 ```
 
 Another example is:
@@ -2537,24 +2515,23 @@ Another example is:
 ```sql
   SELECT p.name AS name
        , ( SELECT SUM(t.amount)
-             FROM financial_transactions
-            MATCH (a) <-[t:transaction]- (:Account)
+             FROM MATCH (a) <-[t:transaction]- (:Account)
+                     ON financial_transactions
          ) AS sum_incoming
        , ( SELECT SUM(t.amount)
-             FROM financial_transactions
-            MATCH (a) -[t:transaction]-> (:Account)
+             FROM MATCH (a) -[t:transaction]-> (:Account)
+                     ON financial_transactions
          ) AS sum_outgoing
        , ( SELECT COUNT(DISTINCT p2)
-             FROM financial_transactions
-            MATCH (a) -[t:transaction]- (:Account) <-[:ownerOf]- (p2:Person)
+             FROM MATCH (a) -[t:transaction]- (:Account) <-[:ownerOf]- (p2:Person)
+                     ON financial_transactions
             WHERE p2 <> p
          ) AS num_persons_transacted_with
        , ( SELECT COUNT(DISTINCT c)
-             FROM financial_transactions
-            MATCH (a) -[t:transaction]- (:Account) <-[:ownerOf]- (c:Company)
+             FROM MATCH (a) -[t:transaction]- (:Account) <-[:ownerOf]- (c:Company)
+                     ON financial_transactions
          ) AS num_companies_transacted_with
-    FROM financial_transactions
-   MATCH (p:Person) -[:ownerOf]-> (a:Account)
+    FROM MATCH (p:Person) -[:ownerOf]-> (a:Account) ON financial_transactions
 ORDER BY sum_outgoing + sum_incoming DESC
 ```
 
@@ -2568,24 +2545,24 @@ ORDER BY sum_outgoing + sum_incoming DESC
 +-----------------------------------------------------------------------------------------------------+
 ```
 
-Note that in the query, the graph name `financial_transactions` is repeatedly specified. Such repetition may be avoided by relying on a [default graph](#default-graphs) such that the query can be simplified to:
+Note that in the query, the graph name `financial_transactions` is repeatedly specified. Such repetition can be avoided through the use [default graph](#default-graphs), which simplifies the query:
 
 ```sql
   SELECT p.name AS name
        , ( SELECT SUM(t.amount)
-            MATCH (a) <-[t:transaction]- (:Account)
+             FROM MATCH (a) <-[t:transaction]- (:Account)
          ) AS sum_incoming
        , ( SELECT SUM(t.amount)
-            MATCH (a) -[t:transaction]-> (:Account)
+             FROM MATCH (a) -[t:transaction]-> (:Account)
          ) AS sum_outgoing
        , ( SELECT COUNT(DISTINCT p2)
-            MATCH (a) -[t:transaction]- (:Account) <-[:ownerOf]- (p2:Person)
+             FROM MATCH (a) -[t:transaction]- (:Account) <-[:ownerOf]- (p2:Person)
             WHERE p2 <> p
          ) AS num_persons_transacted_with
        , ( SELECT COUNT(DISTINCT c)
-            MATCH (a) -[t:transaction]- (:Account) <-[:ownerOf]- (c:Company)
+             FROM MATCH (a) -[t:transaction]- (:Account) <-[:ownerOf]- (c:Company)
          ) AS num_companies_transacted_with
-   MATCH (p:Person) -[:ownerOf]-> (a:Account)
+    FROM MATCH (p:Person) -[:ownerOf]-> (a:Account)
 ORDER BY sum_outgoing + sum_incoming DESC
 ```
 
@@ -2727,5 +2704,5 @@ For example:
    multi-line
    comment. */
 SELECT n.name, n.age
-  FROM g MATCH (n:Person) /* this is a single-line comment */
+  FROM MATCH (n:Person) /* this is a single-line comment */
 ```

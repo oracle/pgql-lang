@@ -113,16 +113,15 @@ entries:
     - title: 'FROM'
       url: /spec/1.3/#from
       output: web
-      subfolderitems:
-
-      - title: 'Default graphs'
-        url: /spec/1.3/#default-graphs
-        output: web
 
     - title: 'MATCH'
       url: /spec/1.3/#match
       output: web
       subfolderitems:
+
+      - title: 'ON clause'
+        url: /spec/1.3/#on-clause
+        output: web
 
       - title: 'Repeated variables'
         url: /spec/1.3/#repeated-variables
