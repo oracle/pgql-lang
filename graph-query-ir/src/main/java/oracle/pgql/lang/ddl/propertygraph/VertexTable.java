@@ -10,15 +10,22 @@ import static oracle.pgql.lang.ir.PgqlUtils.printLocalOrSchemaQualifiedName;
 public class VertexTable extends ElementTable {
 
   /**
-   * The constructor.
+   * Constructor without alias.
    */
   public VertexTable(String schemaName, String tableName, Key key, List<Label> labels) {
-    super(key, schemaName, tableName, labels);
+    super(key, schemaName, tableName, tableName, labels);
+  }
+
+  /**
+   * Constructor with alias.
+   */
+  public VertexTable(String schemaName, String tableName, String tableAlias, Key key, List<Label> labels) {
+    super(key, schemaName, tableName, tableAlias, labels);
   }
 
   @Override
   public String toString() {
-    return printLocalOrSchemaQualifiedName(getSchemaName(), getTableName()) + printKey("\n      ")
+    return printLocalOrSchemaQualifiedName(getSchemaName(), getTableName()) + printAlias(" ") + printKey("\n      ")
         + printLabels("\n      ");
   }
 }

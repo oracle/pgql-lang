@@ -37,21 +37,25 @@ public class TranslateCreatePropertyGraph {
 
   private static int VERTEX_TABLE_NAME = 0;
 
-  private static int VERTEX_TABLE_KEY = 1;
+  private static int VERTEX_TABLE_ALIAS = 1;
 
-  private static int VERTEX_TABLE_LABEL_AND_PROPERTIES = 2;
+  private static int VERTEX_TABLE_KEY = 2;
+
+  private static int VERTEX_TABLE_LABEL_AND_PROPERTIES = 3;
 
   private static int EDGE_TABLE_NAME = 0;
 
-  private static int EDGE_TABLE_KEY = 1;
+  private static int EDGE_TABLE_ALIAS = 1;
+
+  private static int EDGE_TABLE_KEY = 2;
 
   private static int KEY_CLAUSE_COLUMN_NAMES = 0;
 
-  private static int EDGE_TABLE_SOURCE_VERTEX_TABLE = 2;
+  private static int EDGE_TABLE_SOURCE_VERTEX_TABLE = 3;
 
-  private static int EDGE_TABLE_DESTINATION_VERTEX_TABLE = 3;
+  private static int EDGE_TABLE_DESTINATION_VERTEX_TABLE = 4;
 
-  private static int EDGE_TABLE_LABEL_AND_PROPERTIES = 4;
+  private static int EDGE_TABLE_LABEL_AND_PROPERTIES = 5;
 
   private static int SOURCE_VERTEX_KEY = 0;
 
@@ -99,10 +103,11 @@ public class TranslateCreatePropertyGraph {
       IStrategoTerm tableNameT = vertexTableT.getSubterm(VERTEX_TABLE_NAME);
       String schemaName = getSchemaName(tableNameT);
       String tableName = getLocalName(tableNameT);
+      String tableAlias = getString(vertexTableT.getSubterm(VERTEX_TABLE_ALIAS));
 
       Key vertexKey = getKey(vertexTableT.getSubterm(VERTEX_TABLE_KEY));
       List<Label> labels = getLabels(vertexTableT.getSubterm(VERTEX_TABLE_LABEL_AND_PROPERTIES));
-      result.add(new VertexTable(schemaName, tableName, vertexKey, labels));
+      result.add(new VertexTable(schemaName, tableName, tableAlias, vertexKey, labels));
     }
     return result;
   }
@@ -114,38 +119,34 @@ public class TranslateCreatePropertyGraph {
       IStrategoTerm tableNameT = edgeTableT.getSubterm(EDGE_TABLE_NAME);
       String schemaName = getSchemaName(tableNameT);
       String tableName = getLocalName(tableNameT);
+      String tableAlias = getString(edgeTableT.getSubterm(EDGE_TABLE_ALIAS));
 
       Key edgeKey = getKey(edgeTableT.getSubterm(EDGE_TABLE_KEY));
 
       IStrategoTerm sourceVertexTableT = edgeTableT.getSubterm(EDGE_TABLE_SOURCE_VERTEX_TABLE);
       Key edgeSourceKey = getKey(sourceVertexTableT.getSubterm(SOURCE_VERTEX_KEY));
       IStrategoTerm sourceVertexTableNameT = sourceVertexTableT.getSubterm(SOURCE_VERTEX_TABLE_NAME);
-      String sourceVertexTableSchemaName = getSchemaName(sourceVertexTableNameT);
       String sourceVertexTableName = getLocalName(sourceVertexTableNameT);
-      VertexTable sourceVertexTable = getVertexTable(vertexTables, sourceVertexTableSchemaName, sourceVertexTableName);
+      VertexTable sourceVertexTable = getVertexTable(vertexTables, sourceVertexTableName);
       Key sourceVertexKey = null; // not supported for now
 
       IStrategoTerm destinationVertexTableT = edgeTableT.getSubterm(EDGE_TABLE_DESTINATION_VERTEX_TABLE);
       Key edgeDestinationKey = getKey(destinationVertexTableT.getSubterm(DESTINATION_VERTEX_KEY));
       IStrategoTerm destinationVertexTableNameT = destinationVertexTableT.getSubterm(DESTINATION_VERTEX_TABLE_NAME);
-      String destinationVertexTableSchemaName = getSchemaName(destinationVertexTableNameT);
       String destinationVertexTableName = getLocalName(destinationVertexTableNameT);
-      VertexTable destinationVertexTable = getVertexTable(vertexTables, destinationVertexTableSchemaName,
-          destinationVertexTableName);
+      VertexTable destinationVertexTable = getVertexTable(vertexTables, destinationVertexTableName);
       Key destinationVertexKey = null; // not supported for now
 
       List<Label> labels = getLabels(edgeTableT.getSubterm(EDGE_TABLE_LABEL_AND_PROPERTIES));
-      result.add(new EdgeTable(schemaName, tableName, edgeKey, sourceVertexTable, edgeSourceKey, sourceVertexKey,
-          destinationVertexTable, edgeDestinationKey, destinationVertexKey, labels));
+      result.add(new EdgeTable(schemaName, tableName, tableAlias, edgeKey, sourceVertexTable, edgeSourceKey,
+          sourceVertexKey, destinationVertexTable, edgeDestinationKey, destinationVertexKey, labels));
     }
     return result;
   }
 
-  private static VertexTable getVertexTable(List<VertexTable> vertexTables, String schemaName, String tableName) {
+  private static VertexTable getVertexTable(List<VertexTable> vertexTables, String tableAlias) {
     for (VertexTable vertexTable : vertexTables) {
-      boolean schemaEquals = (vertexTable.getSchemaName() == null && schemaName == null)
-          || vertexTable.getSchemaName().equals(schemaName);
-      if (schemaEquals && vertexTable.getTableName().equals(tableName)) {
+      if (vertexTable.getTableAlias().equals(tableAlias)) {
         return vertexTable;
       }
     }

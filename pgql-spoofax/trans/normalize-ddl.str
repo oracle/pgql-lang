@@ -26,29 +26,37 @@ rules
        ; result := <alltd(normalize-LabelAndProperties); alltd(norm-identifier)> CreatePropertyGraph(graphName, vertexTables', edgeTables')
 
   normalize-VertexTable:
-    VertexTable(name@Name(_, tableName), keyClause, labelAndPropertiesClause)
-      -> VertexTable(name, keyClause, labelAndPropertiesClause')
-    with labelAndPropertiesClause' := <normalize-LabelAndPropertiesClause(|tableName)> labelAndPropertiesClause
+    VertexTable(name@Name(_, tableName), tableAlias, keyClause, labelAndPropertiesClause)
+      -> VertexTable(name, tableAlias', keyClause, labelAndPropertiesClause')
+    with tableAlias' := <normalize-tableAlias(|tableName)> tableAlias
+       ; labelAndPropertiesClause' := <normalize-LabelAndPropertiesClause(|tableAlias')> labelAndPropertiesClause
 
   normalize-EdgeTable:
-    EdgeTable(name@Name(_, tableName), keyClause, sourceVertexTable, destinationVertexTable, labelAndPropertiesClause)
-      -> EdgeTable(name, keyClause, sourceVertexTable', destinationVertexTable', labelAndPropertiesClause')
-    with sourceVertexTable' := <SourceVertexTable(normalize-ReferencedVertexTableKeyClause, id)> sourceVertexTable
+    EdgeTable(name@Name(_, tableName), tableAlias, keyClause, sourceVertexTable, destinationVertexTable, labelAndPropertiesClause)
+      -> EdgeTable(name, tableAlias', keyClause, sourceVertexTable', destinationVertexTable', labelAndPropertiesClause')
+    with tableAlias' := <normalize-tableAlias(|tableName)> tableAlias
+       ; sourceVertexTable' := <SourceVertexTable(normalize-ReferencedVertexTableKeyClause, id)> sourceVertexTable
        ; destinationVertexTable' := <DestinationVertexTable(normalize-ReferencedVertexTableKeyClause, id)> destinationVertexTable
-       ; labelAndPropertiesClause' := <normalize-LabelAndPropertiesClause(|tableName)> labelAndPropertiesClause
+       ; labelAndPropertiesClause' := <normalize-LabelAndPropertiesClause(|tableAlias')> labelAndPropertiesClause
 
-  normalize-LabelAndPropertiesClause(|tableName):
+  normalize-tableAlias(|tableName):
+    Some(AsTableAlias(_, TableAlias(tableAlias))) -> tableAlias
+
+  normalize-tableAlias(|tableName):
+    None() -> tableName
+
+  normalize-LabelAndPropertiesClause(|tableAlias):
     None() -> LabelAndPropertiesClause([defaultLabelAndProperties])
-    with defaultLabelClause := LabelClause(tableName)
+    with defaultLabelClause := LabelClause(tableAlias)
        ; defaultPropertiesClause := None()
        ; defaultLabelAndProperties := LabelAndProperties(defaultLabelClause, defaultPropertiesClause)
 
-  normalize-LabelAndPropertiesClause(|tableName):
+  normalize-LabelAndPropertiesClause(|tableAlias):
     Some(t@LabelAndPropertiesClause(_)) -> t
 
-  normalize-LabelAndPropertiesClause(|tableName):
+  normalize-LabelAndPropertiesClause(|tableAlias):
     Some(LabelAndPropertiesClauseWithDefaultLabel(propertiesClause, otherLabelsAndProperties)) -> LabelAndPropertiesClause(allLabelsAndProperties)
-    with defaultLabel := LabelAndProperties(LabelClause(tableName), Some(propertiesClause))
+    with defaultLabel := LabelAndProperties(LabelClause(tableAlias), Some(propertiesClause))
        ; allLabelsAndProperties := [defaultLabel|otherLabelsAndProperties]
 
   normalize-LabelAndProperties:
