@@ -10,14 +10,21 @@ import oracle.pgql.lang.ir.SchemaQualifiedName;
 public class VertexTable extends ElementTable {
 
   /**
-   * The constructor.
+   * Constructor without alias.
    */
   public VertexTable(SchemaQualifiedName tableName, Key key, List<Label> labels) {
-    super(key, tableName, labels);
+    super(key, tableName, tableName.getName(), labels);
+  }
+
+  /**
+   * Constructor with alias.
+   */
+  public VertexTable(SchemaQualifiedName tableName, String tableAlias, Key key, List<Label> labels) {
+    super(key, tableName, tableAlias, labels);
   }
 
   @Override
   public String toString() {
-    return getTableName() + printKey("\n      ") + printLabels("\n      ");
+    return getTableName() + printAlias(" ") + printKey("\n      ") + printLabels("\n      ");
   }
 }

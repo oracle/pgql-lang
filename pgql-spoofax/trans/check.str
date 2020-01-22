@@ -434,15 +434,22 @@ rules // MODIFY
 
   nabl-constraint(|ctx):
     CreatePropertyGraph(_, VertexTables(vertexTables), EdgeTables(edgeTables)) -> <fail>
-    with vertexTableNames := <map(?VertexTable(<id>, _, _); to-name-without-case-sensitive-info)> vertexTables
-       ; <generate-error-on-duplicates(|ctx, "Table defined as vertex table multiple times")> vertexTableNames
-       ; edgeTableNames := <map(?EdgeTable(<id>, _, _, _, _); to-name-without-case-sensitive-info)> edgeTables
-       ; <generate-error-on-duplicates(|ctx, "Table defined as edge table multiple times")> edgeTableNames
-       ; vertexTableReferences := <collect((?SourceVertexTable(_, <id>) + ?DestinationVertexTable(_, <id>)); to-name-without-case-sensitive-info)> edgeTables
+    with vertexTableNames := <map(?VertexTable(_, <id>, _, _); to-identifier-without-origin-info)> vertexTables
+       ; <generate-error-on-duplicates(|ctx, "Duplicate vertex table name; use an alias to make the vertex table name unique (table AS alias)")> vertexTableNames
+       ; edgeTableNames := <map(?EdgeTable(_, <id>, _, _, _, _); to-identifier-without-origin-info)> edgeTables
+       ; <generate-error-on-duplicates(|ctx, "Duplicate edge table name; use an alias to make the edge table name unique (table AS alias)")> edgeTableNames
+       ; vertexTableReferences := <collect((?SourceVertexTable(_, Name(_, <id>)) + ?DestinationVertexTable(_, Name(_, <id>))); to-identifier-without-origin-info)> edgeTables
        ; unresolvedVertexTableReferences := <diff> (vertexTableReferences, vertexTableNames)
        ; <batch-generate-error(|ctx, "Undefined vertex table")> unresolvedVertexTableReferences
+
+  to-identifier-without-origin-info = origin-track-forced(?Identifier(localName, _); !localName)
 
   nabl-constraint(|ctx):
     PropertyExpressions(expAsVars) -> <fail>
     with expAsVarsWithComplexExpressions := <remove-all(?ExpAsVar(VarRef(Identifier(_, _)), _))> expAsVars
        ; <batch-generate-error(|ctx, "Only simple expressions (i.e. column references) allowed")> expAsVarsWithComplexExpressions
+
+  nabl-constraint(|ctx):
+    t -> <fail>
+    where <?SourceVertexTable(_, Name(Some(schemaName), _)) + ?DestinationVertexTable(_, Name(Some(schemaName), _))> t
+    with <generate-error(|ctx, "Schema name not allowed here")> schemaName

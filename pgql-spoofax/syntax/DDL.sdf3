@@ -17,9 +17,15 @@ context-free syntax
 
   EdgeTables.EdgeTables = <EDGE TABLES ( <{EdgeTable ","}+> )> {case-insensitive}
 
-  VertexTable.VertexTable = <<TableName> <KeyClause?> <LabelAndPropertiesClause?>>
+  VertexTable.VertexTable = <<TableName> <AsTableAlias?> <KeyClause?> <LabelAndPropertiesClause?>>
 
-  EdgeTable.EdgeTable = <<TableName> <KeyClause?> <SourceVertexTable> <DestinationVertexTable> <LabelAndPropertiesClause?>>
+  EdgeTable.EdgeTable = <<TableName> <AsTableAlias?> <KeyClause?> <SourceVertexTable> <DestinationVertexTable> <LabelAndPropertiesClause?>>
+
+  AsTableAlias.AsTableAlias = <<AS-Keyword?> <TableAlias>>
+
+  AS-Keyword.AS-Keyword = <AS> {case-insensitive}
+
+  TableAlias.TableAlias = Identifier
 
   SourceVertexTable.SourceVertexTable = <SOURCE <ReferencedVertexTableKeyClause?> <TableName>> {case-insensitive}
 

@@ -229,7 +229,7 @@ public class BugFixTest extends AbstractPgqlTest {
         "  vertex tables (\n" + //
         "    Person, Person\n" + //
         "  )";
-    String errorMessage = "Table defined as vertex table multiple times";
+    String errorMessage = "Duplicate vertex table name; use an alias to make the vertex table name unique (table AS alias)";
     assertTrue(pgql.parse(statement).getErrorMessages().contains(errorMessage));
   }
 
@@ -243,7 +243,7 @@ public class BugFixTest extends AbstractPgqlTest {
         "    knows SOURCE Person DESTINATION Person,\n" + //
         "    knows SOURCE Person DESTINATION Person\n" + //
         "  )";
-    String errorMessage = "Table defined as edge table multiple times";
+    String errorMessage = "Duplicate edge table name; use an alias to make the edge table name unique (table AS alias)";
     assertTrue(pgql.parse(statement).getErrorMessages().contains(errorMessage));
   }
 

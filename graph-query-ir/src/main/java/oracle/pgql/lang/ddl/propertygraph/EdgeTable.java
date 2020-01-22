@@ -6,6 +6,7 @@ package oracle.pgql.lang.ddl.propertygraph;
 import java.util.List;
 
 import oracle.pgql.lang.ir.SchemaQualifiedName;
+import static oracle.pgql.lang.ir.PgqlUtils.printIdentifier;
 
 public class EdgeTable extends ElementTable {
 
@@ -42,21 +43,32 @@ public class EdgeTable extends ElementTable {
   Key destinationVertexKey;
 
   /**
-   * Constructor without source vertex key and destination vertex key (relies on the presence of keys of vertex tables).
+   * Constructor without table alias, source vertex key and destination vertex key (relies on the presence of keys of
+   * vertex tables).
    */
   public EdgeTable(SchemaQualifiedName tableName, VertexTable sourceVertexTable, Key edgeSourceKey,
       VertexTable destinationVertexTable, Key edgeDestinationKey, List<Label> labels) {
-    this(tableName, null, sourceVertexTable, edgeSourceKey, null, destinationVertexTable, edgeDestinationKey, null,
-        labels);
+    this(tableName, tableName.getName(), null, sourceVertexTable, edgeSourceKey, null, destinationVertexTable,
+        edgeDestinationKey, null, labels);
   }
 
   /**
-   * Constructor with edge key, source vertex key and destination vertex key.
+   * Constructor with table alias, but without source vertex key and destination vertex key (relies on the presence of
+   * keys of vertex tables).
    */
-  public EdgeTable(SchemaQualifiedName tableName, Key key, VertexTable sourceVertexTable, Key edgeSourceKey,
-      Key sourceVertexKey, VertexTable destinationVertexTable, Key edgeDestinationKey, Key destinationVertexKey,
-      List<Label> labels) {
-    super(key, tableName, labels);
+  public EdgeTable(SchemaQualifiedName tableName, String tableAlias, VertexTable sourceVertexTable, Key edgeSourceKey,
+      VertexTable destinationVertexTable, Key edgeDestinationKey, List<Label> labels) {
+    this(tableName, tableAlias, null, sourceVertexTable, edgeSourceKey, null, destinationVertexTable,
+        edgeDestinationKey, null, labels);
+  }
+
+  /**
+   * Constructor with table alias, edge key, source vertex key and destination vertex key.
+   */
+  public EdgeTable(SchemaQualifiedName tableName, String tableAlias, Key key, VertexTable sourceVertexTable,
+      Key edgeSourceKey, Key sourceVertexKey, VertexTable destinationVertexTable, Key edgeDestinationKey,
+      Key destinationVertexKey, List<Label> labels) {
+    super(key, tableName, tableAlias, labels);
     this.sourceVertexTable = sourceVertexTable;
     this.edgeSourceKey = edgeSourceKey;
     this.sourceVertexKey = sourceVertexKey;
@@ -115,7 +127,8 @@ public class EdgeTable extends ElementTable {
 
   @Override
   public String toString() {
-    return getTableName() + printKey(" ") + printSource() + printDestination() + printLabels("\n      ");
+    return getTableName() + printAlias(" ") + printKey(" ") + printSource() + printDestination()
+        + printLabels("\n      ");
   }
 
   private String printSource() {
@@ -129,11 +142,13 @@ public class EdgeTable extends ElementTable {
   }
 
   private String printVertexTableReference(Key key, VertexTable referencedVertexTable) {
-    String tableName = referencedVertexTable.getTableName().toString();
+    String vertexTableName = referencedVertexTable.getTableAlias() == null
+        ? referencedVertexTable.getTableName().getName()
+        : referencedVertexTable.getTableAlias();
     if (key == null) {
-      return tableName;
+      return printIdentifier(vertexTableName);
     } else {
-      return "KEY " + key + " REFERENCES " + tableName;
+      return "KEY " + key + " REFERENCES " + printIdentifier(vertexTableName);
     }
   }
 
