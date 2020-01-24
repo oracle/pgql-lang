@@ -187,10 +187,10 @@ rules
   resolve-set-properties(|v, originOffset, original-variables) = ?None() + Some(Properties(map(resolve-set-property(|v, originOffset, original-variables))))
 
   resolve-set-property(|v, originOffset, original-variables):
-    SetProperty(PropRef(varRef, prop), exp) -> result
+    t@SetProperty(PropRef(varRef, prop), exp) -> result
     with varRef' := <?VarRef(Identifier(v, _)); ?VarRef(<id>); !VarRef(<id>, originOffset) <+ resolve-var-refs(|original-variables)> varRef
-       ; exp' :=  <resolve-var-refs(|original-variables)> exp
-       ; result := SetProperty(PropRef(varRef', prop), exp')
+       ; exp' :=  <origin-track-forced(resolve-var-refs(|original-variables))> exp
+       ; result := <origin-track-forced(!SetProperty(PropRef(varRef', prop), exp'))> t
 
   resolve-exp-as-var-in-group-by(|variables, expAsVarsFromSelectClause):
     (t@ExpAsVar(exp, iden@Identifier(v, _), anonymous), (result, vars)) -> (result', vars')
