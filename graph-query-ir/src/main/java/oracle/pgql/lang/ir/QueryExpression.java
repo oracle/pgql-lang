@@ -15,6 +15,7 @@ import java.time.OffsetDateTime;
 import java.time.OffsetTime;
 import java.util.Arrays;
 import java.util.List;
+import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
 public interface QueryExpression {
@@ -76,7 +77,8 @@ public interface QueryExpression {
     IN_EXPRESSION,
     IN_VALUE_LIST,
     IS_NULL,
-    IF_ELSE
+    IF_ELSE,
+    SIMPLE_CASE
   }
 
   ExpressionType getExpType();
@@ -1552,6 +1554,177 @@ public interface QueryExpression {
         if (other.exp3 != null)
           return false;
       } else if (!exp3.equals(other.exp3))
+        return false;
+      return true;
+    }
+  }
+
+  public static class SimpleCase implements QueryExpression {
+
+    QueryExpression caseOperand;
+
+    List<WhenThenExpression> whenThenExps;
+
+    QueryExpression elseExp;
+
+    IfElse ifElseRepresentation;
+
+    public SimpleCase(QueryExpression caseOperand, List<WhenThenExpression> whenThenExps, QueryExpression elseExp,
+        IfElse ifElseRepresentation) {
+      this.caseOperand = caseOperand;
+      this.whenThenExps = whenThenExps;
+      this.elseExp = elseExp;
+      this.ifElseRepresentation = ifElseRepresentation;
+    }
+
+    public QueryExpression getCaseOperand() {
+      return caseOperand;
+    }
+
+    public void setCaseOperand(QueryExpression caseOperand) {
+      this.caseOperand = caseOperand;
+    }
+
+    public List<WhenThenExpression> getWhenThenExps() {
+      return whenThenExps;
+    }
+
+    public void setWhenThenExps(List<WhenThenExpression> whenThenExps) {
+      this.whenThenExps = whenThenExps;
+    }
+
+    public QueryExpression getElseExp() {
+      return elseExp;
+    }
+
+    public void setElseExp(QueryExpression elseExp) {
+      this.elseExp = elseExp;
+    }
+
+    public IfElse getIfElseRepresentation() {
+      return ifElseRepresentation;
+    }
+
+    public void setIfElseRepresentation(IfElse ifElseRepresentation) {
+      this.ifElseRepresentation = ifElseRepresentation;
+    }
+
+    @Override
+    public ExpressionType getExpType() {
+      return ExpressionType.SIMPLE_CASE;
+    }
+
+    @Override
+    public String toString() {
+      String result = "CASE " + caseOperand + " ";
+      result += whenThenExps.stream() //
+          .map(x -> x.toString()) //
+          .collect(Collectors.joining(" "));
+      if (elseExp != null) {
+        result += " ELSE " + elseExp;
+      }
+      result += " END";
+      return result;
+    }
+
+    @Override
+    public void accept(QueryExpressionVisitor v) {
+      v.visit(this);
+    }
+
+    @Override
+    public int hashCode() {
+      return 31;
+    }
+
+    @Override
+    public boolean equals(Object obj) {
+      if (this == obj)
+        return true;
+      if (obj == null)
+        return false;
+      if (getClass() != obj.getClass())
+        return false;
+      SimpleCase other = (SimpleCase) obj;
+      if (caseOperand == null) {
+        if (other.caseOperand != null)
+          return false;
+      } else if (!caseOperand.equals(other.caseOperand))
+        return false;
+      if (elseExp == null) {
+        if (other.elseExp != null)
+          return false;
+      } else if (!elseExp.equals(other.elseExp))
+        return false;
+      if (ifElseRepresentation == null) {
+        if (other.ifElseRepresentation != null)
+          return false;
+      } else if (!ifElseRepresentation.equals(other.ifElseRepresentation))
+        return false;
+      if (whenThenExps == null) {
+        if (other.whenThenExps != null)
+          return false;
+      } else if (!whenThenExps.equals(other.whenThenExps))
+        return false;
+      return true;
+    }
+  }
+
+  public class WhenThenExpression {
+
+    QueryExpression when;
+
+    QueryExpression then;
+
+    public WhenThenExpression(QueryExpression when, QueryExpression then) {
+      this.when = when;
+      this.then = then;
+    }
+
+    public QueryExpression getWhen() {
+      return when;
+    }
+
+    public void setWhen(QueryExpression when) {
+      this.when = when;
+    }
+
+    public QueryExpression getThen() {
+      return then;
+    }
+
+    public void setThen(QueryExpression then) {
+      this.then = then;
+    }
+
+    @Override
+    public String toString() {
+      return "WHEN " + when + " THEN " + then;
+    }
+
+    @Override
+    public int hashCode() {
+      return 31;
+    }
+
+    @Override
+    public boolean equals(Object obj) {
+      if (this == obj)
+        return true;
+      if (obj == null)
+        return false;
+      if (getClass() != obj.getClass())
+        return false;
+      WhenThenExpression other = (WhenThenExpression) obj;
+      if (then == null) {
+        if (other.then != null)
+          return false;
+      } else if (!then.equals(other.then))
+        return false;
+      if (when == null) {
+        if (other.when != null)
+          return false;
+      } else if (!when.equals(other.when))
         return false;
       return true;
     }

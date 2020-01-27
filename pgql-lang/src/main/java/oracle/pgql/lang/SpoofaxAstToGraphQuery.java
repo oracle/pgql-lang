@@ -54,7 +54,9 @@ import oracle.pgql.lang.ir.QueryExpression.IfElse;
 import oracle.pgql.lang.ir.QueryExpression.InPredicate;
 import oracle.pgql.lang.ir.QueryExpression.InPredicate.InValueList;
 import oracle.pgql.lang.ir.QueryExpression.IsNull;
+import oracle.pgql.lang.ir.QueryExpression.SimpleCase;
 import oracle.pgql.lang.ir.QueryExpression.VarRef;
+import oracle.pgql.lang.ir.QueryExpression.WhenThenExpression;
 import oracle.pgql.lang.ir.QueryPath;
 import oracle.pgql.lang.ir.QueryType;
 import oracle.pgql.lang.ir.QueryVariable;
@@ -201,6 +203,13 @@ public class SpoofaxAstToGraphQuery {
   private static final int POS_IF_ELSE_EXP1 = 0;
   private static final int POS_IF_ELSE_EXP2 = 1;
   private static final int POS_IF_ELSE_EXP3 = 2;
+  private static final int POS_SIMPLE_CASE_OPERAND = 0;
+  private static final int POS_SIMPLE_CASE_WHENTHEN_EXPS = 1;
+  private static final int POS_SIMPLE_CASE_ELSE_EXP = 2;
+  private static final int POS_SIMPLE_CASE_IFELSE_ALTERNATIVE_REPRESENTATION = 3;
+  private static final int POS_WHENTHEN_WHEN = 0;
+  private static final int POS_WHENTHEN_THEN = 1;
+  private static final int POS_ELSE_EXP = 0;
 
   public static Statement translate(IStrategoTerm ast) throws PgqlException {
 
@@ -1021,6 +1030,22 @@ public class SpoofaxAstToGraphQuery {
         exp2 = translateExp(t.getSubterm(POS_IF_ELSE_EXP2), ctx);
         QueryExpression exp3 = translateExp(t.getSubterm(POS_IF_ELSE_EXP3), ctx);
         return new IfElse(exp1, exp2, exp3);
+      case "SimpleCase":
+        QueryExpression operandExp = translateExp(t.getSubterm(POS_SIMPLE_CASE_OPERAND), ctx);
+        List<WhenThenExpression> whenThenExps = new ArrayList<>();
+        for (IStrategoTerm whenThen : t.getSubterm(POS_SIMPLE_CASE_WHENTHEN_EXPS)) {
+          QueryExpression when = translateExp(whenThen.getSubterm(POS_WHENTHEN_WHEN), ctx);
+          QueryExpression then = translateExp(whenThen.getSubterm(POS_WHENTHEN_THEN), ctx);
+          whenThenExps.add(new WhenThenExpression(when, then));
+        }
+        QueryExpression elseExp = null;
+        IStrategoTerm elseExpT = t.getSubterm(POS_SIMPLE_CASE_ELSE_EXP);
+        if (isSome(elseExpT)) {
+          elseExp = translateExp(getSome(elseExpT).getSubterm(POS_ELSE_EXP), ctx);
+        }
+        IfElse ifElseAlterantiveRepresentation = (IfElse) translateExp(
+            t.getSubterm(POS_SIMPLE_CASE_IFELSE_ALTERNATIVE_REPRESENTATION), ctx);
+        return new SimpleCase(operandExp, whenThenExps, elseExp, ifElseAlterantiveRepresentation);
       case "Null":
       case "IllegalNull": // error recovery
         return null;

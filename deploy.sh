@@ -25,7 +25,7 @@ VERSION_B="$1"
 
 for f in $FILES
 do
-  sed -i "s/$VERSION_A/$VERSION_B/g" $f
+  sed -i '' "s/$VERSION_A/$VERSION_B/g" $f
 done
 
 cd graph-query-ir/; mvn deploy; cd ../
@@ -33,5 +33,5 @@ cd pgql-lang/; mvn deploy; cd ../
 
 for f in $FILES
 do
-  sed -i "s/$VERSION_B/$VERSION_A/g" $f
+  sed -i '' "s/$VERSION_B/$VERSION_A/g" $f
 done

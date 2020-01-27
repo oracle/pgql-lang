@@ -477,6 +477,16 @@ public class PrettyPrintingTest extends AbstractPgqlTest {
     checkRoundTrip(statement);
   }
 
+  @Test
+  public void testCaseStatement() throws Exception {
+    String statement = "SELECT CASE n.prop WHEN 1 THEN 'a' WHEN 2 THEN 'b' ELSE 'c' END " //
+        + "                  , CASE n.prop WHEN 1 THEN 'a' WHEN 2 THEN 'b' END " //
+        + "                  , CASE WHEN n.prop < 1 THEN 'a' ELSE 'b' END " //
+        + "                  , CASE WHEN n.prop < 1 THEN 'a' END " //
+        + "         MATCH (n)";
+    checkRoundTrip(statement);
+  }
+
   private void checkRoundTrip(String query1) throws PgqlException {
 
     /*

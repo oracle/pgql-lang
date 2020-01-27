@@ -51,6 +51,7 @@ import oracle.pgql.lang.ir.QueryExpression.RelationalExpression.GreaterEqual;
 import oracle.pgql.lang.ir.QueryExpression.RelationalExpression.Less;
 import oracle.pgql.lang.ir.QueryExpression.RelationalExpression.LessEqual;
 import oracle.pgql.lang.ir.QueryExpression.RelationalExpression.NotEqual;
+import oracle.pgql.lang.ir.QueryExpression.SimpleCase;
 import oracle.pgql.lang.ir.modify.DeleteClause;
 import oracle.pgql.lang.ir.modify.EdgeInsertion;
 import oracle.pgql.lang.ir.modify.InsertClause;
@@ -275,6 +276,18 @@ public abstract class AbstractQueryExpressionVisitor implements QueryExpressionV
     ifElse.getExp2().accept(this);
     if (ifElse.getExp3() != null) {
       ifElse.getExp3().accept(this);
+    }
+  }
+
+  @Override
+  public void visit(SimpleCase simpleCase) {
+    simpleCase.getCaseOperand().accept(this);
+    simpleCase.getWhenThenExps().forEach(whenThen -> {
+      whenThen.getWhen().accept(this);
+      whenThen.getThen().accept(this);
+    });
+    if (simpleCase.getElseExp() != null) {
+      simpleCase.getElseExp().accept(this);
     }
   }
 

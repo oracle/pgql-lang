@@ -231,8 +231,8 @@ rules
   norm-isNull = ?IsNotNull(exp); origin-track-forced(!IsNull(exp)); !Not(<id>)
 
   norm-case:
-    SimpleCase(caseOperand, whenClauses, elseClause) -> ifElse
-    with ifElse := <to-if-else> (caseOperand, whenClauses, elseClause)
+    SimpleCase(caseOperand, whenClauses, elseClause) -> SimpleCase(caseOperand, whenClauses, elseClause, ifElseRepresentation)
+    with ifElseRepresentation := <to-if-else> (caseOperand, whenClauses, elseClause)
 
   to-if-else:
     (caseOperand, whenClauses, elseClause) -> IfElse(exp1, exp2, exp3)

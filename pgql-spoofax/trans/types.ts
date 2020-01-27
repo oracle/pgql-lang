@@ -77,6 +77,10 @@ type rules
     and not (ty2 == VertexTy() or ty2 == EdgeTy()) else error $[CASE does not allow vertex or edge output] on exp2
     and not (ty3 == VertexTy() or ty3 == EdgeTy()) else error $[CASE does not allow vertex or edge output] on exp3
 
+  // type determination of SimpleCase if based on IfElse representation
+  SimpleCase(_, _, _, ifElseRepresentation) : ty
+  where ifElseRepresentation : ty
+
   Null(): UnknownTy()
 
   ExpAsVar(exp, _, _, _) : ty
