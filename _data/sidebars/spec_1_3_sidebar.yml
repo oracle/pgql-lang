@@ -436,10 +436,32 @@ entries:
     - title: 'INSERT'
       url: /spec/1.3/#insert
       output: web
+      subfolderitems:
+
+      - title: 'Labels'
+        url: /spec/1.3/#labels
+        output: web
+
+      - title: 'Properties'
+        url: /spec/1.3/#properties
+        output: web
+
+      - title: 'Multiple inserts in the same INSERT clause'
+        url: /spec/1.3/#multiple-inserts-in-the-same-insert-clause
+        output: web
 
     - title: 'UPDATE'
       url: /spec/1.3/#update
       output: web
+      subfolderitems:
+
+      - title: 'Handling read after write conflicts'
+        url: /spec/1.3/#handling-read-after-write-conflicts
+        output: web
+
+      - title: 'Handling write after write conflicts'
+        url: /spec/1.3/#handling-write-after-write-conflicts
+        output: web
 
     - title: 'DELETE'
       url: /spec/1.3/#delete
@@ -448,6 +470,15 @@ entries:
     - title: 'Mixing INSERT, UPDATE and DELETE'
       url: /spec/1.3/#mixing-insert-update-and-delete
       output: web
+      subfolderitems:
+
+      - title: 'Isolation semantics of modification queries'
+        url: /spec/1.3/#isolation-semantics-of-modification-queries
+        output: web
+
+      - title: 'Handling conflicting modifications'
+        url: /spec/1.3/#handling-conflicting-modifications
+        output: web
 
   - title: 'Other Syntactic rules'
     url: /spec/1.3/#other-syntactic-rules
