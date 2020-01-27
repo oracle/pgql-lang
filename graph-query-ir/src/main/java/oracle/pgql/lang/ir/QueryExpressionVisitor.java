@@ -53,6 +53,7 @@ import oracle.pgql.lang.ir.modify.DeleteClause;
 import oracle.pgql.lang.ir.modify.EdgeInsertion;
 import oracle.pgql.lang.ir.modify.InsertClause;
 import oracle.pgql.lang.ir.QueryExpression.ScalarSubquery;
+import oracle.pgql.lang.ir.QueryExpression.SimpleCase;
 import oracle.pgql.lang.ir.QueryExpression.Star;
 import oracle.pgql.lang.ir.QueryExpression.VarRef;
 
@@ -141,6 +142,8 @@ public interface QueryExpressionVisitor {
   public void visit(IsNull isNull);
 
   public void visit(IfElse ifElse);
+
+  public void visit(SimpleCase simpleCase);
 
   public void visit(ScalarSubquery sclarSubquery);
 
