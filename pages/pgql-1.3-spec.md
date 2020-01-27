@@ -1880,7 +1880,7 @@ Binary operations are only allowed if both operands are of the same type, with t
 - _timestamp_ values can be compared to _timestamp with time zone_ values
 
 To compare such _time(stamp) with time zone_ values to other time(stamp) values (with or without time zone), values are first normalized to have the same time zone, before they are compared.
-Comparison with other operand type combinations, such as dates and timestamp, is not possible. However, it is possible to cast between e.g. dates and timestamps (see [CAST Function](#cast-function)).
+Comparison with other operand type combinations, such as dates and timestamp, is not possible. However, it is possible to cast between e.g. dates and timestamps (see [CAST](#cast)).
 
 ### Operator Precedence
 
