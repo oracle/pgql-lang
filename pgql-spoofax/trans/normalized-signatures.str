@@ -49,6 +49,7 @@ signature constructors // for the normalized AST (see trans/normalize.str)
   InPredicate           : Exp * Exp -> InPredicate
   IfElse                : Exp * Exp * Exp -> IfElse
   Null                  : Null
+  SimpleCase            : CaseOperand * WhenClauses * ElseClause * IfElseRepresentation -> SimpleCase
 
   Reaches               : Reaches
   Shortest              : Shortest

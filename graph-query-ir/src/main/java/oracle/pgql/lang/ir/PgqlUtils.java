@@ -82,7 +82,6 @@ public class PgqlUtils {
       public void visit(QueryPath queryPath) {
         result.add(queryPath);
       }
-
     });
     return result;
   }
