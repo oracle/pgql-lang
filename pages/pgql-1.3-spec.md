@@ -2664,7 +2664,7 @@ INSERT VERTEX x, VERTEX x
 
 The id values for the inserted entities are automatically generated.
 
-##### Inserting vertices
+### Inserting vertices
 
 Vertices can be inserted with or without a match.
 
@@ -2692,7 +2692,7 @@ For example the following query inserts a new vertex for every profession in the
 GROUP BY y.profession
 ```
 
-##### Inserting edges
+### Inserting edges
 
 Edges can be inserted by specifying the source and destination vertices.
 Only the insertion of directed edges are supported. 

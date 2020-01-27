@@ -438,6 +438,14 @@ entries:
       output: web
       subfolderitems:
 
+      - title: 'Inserting vertices'
+        url: /spec/1.3/#inserting-vertices
+        output: web
+
+      - title: 'Inserting edges'
+        url: /spec/1.3/#inserting-edges
+        output: web
+
       - title: 'Labels'
         url: /spec/1.3/#labels
         output: web
