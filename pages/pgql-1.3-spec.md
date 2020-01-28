@@ -40,7 +40,7 @@ TODO
 
 ## A note on the Grammar
 
-This document contains a complete grammar definition of PGQL, spread throughout the different sections. There is a single entry point into the grammar: `<Statement>`.
+This document contains a complete grammar definition of PGQL, spread throughout the different sections. There is a single entry point into the grammar: `<PgqlStatement>`.
 
 ## Document Outline
 
@@ -427,20 +427,20 @@ The previous section on [writing simple queries](#writing-simple-queries) provid
 The following is the syntax of the main query structure:
 
 ```bash
-Statement   ::= <CreatePropertyGraph>
-              | <Query>
+PgqlStatement   ::= <CreatePropertyGraph>
+                  | <Query>
 
-Query       ::= <SelectQuery>
-              | <ModifyQuery>
+Query           ::= <SelectQuery>
+                  | <ModifyQuery>
 
-SelectQuery ::= <CommonPathExpressions>?
-                <SelectClause>
-                <FromClause>
-                <WhereClause>?
-                <GroupByClause>?
-                <HavingClause>?
-                <OrderByClause>?
-                <LimitOffsetClauses>?
+SelectQuery     ::= <CommonPathExpressions>?
+                    <SelectClause>
+                    <FromClause>
+                    <WhereClause>?
+                    <GroupByClause>?
+                    <HavingClause>?
+                    <OrderByClause>?
+                    <LimitOffsetClauses>?
 ```
 
 Details of the different clauses of a query can be found in the following sections:
@@ -2622,9 +2622,11 @@ ORDER BY sum_outgoing + sum_incoming DESC
 # Graph Modification
 
 ```bash
-ModifyQuery  ::= <InsertClause> <UpdateClause>? <DeleteClause>?
-               | <UpdateClause> <DeleteClause>?
-               | <DeleteClause>
+ModifyQuery  ::= <Modification>+
+
+Modification ::= <InsertStatement>
+               | <UpdateStatement>
+               | <DeleteStatement>
 ```
 
 Modifications follow snapshot isolation semantics, meaning that insertions, updates and deletions within the same query do not see each other's results.
@@ -2632,7 +2634,7 @@ Modifications follow snapshot isolation semantics, meaning that insertions, upda
 ## INSERT
 
 ```bash
-InsertClause            ::= 'INSERT' <IntoClause>? <GraphElementInsertion> ( ',' <GraphElementInsertion> )*
+InsertStatement         ::= 'INSERT' <IntoClause>? <GraphElementInsertion> ( ',' <GraphElementInsertion> )*
 
 IntoClause              ::= 'INTO' <GraphName>
 
@@ -2795,7 +2797,7 @@ In that case, three edges will be inserted, one connecting `V1` and `V2` and two
 ## UPDATE
 
 ```bash
-UpdateClause ::= 'UPDATE' <VariableReference> 'SET' '(' <PropertyAssignment> ( ',' <PropertyAssignment> )* ')'
+UpdateStatement ::= 'UPDATE' <VariableReference> 'SET' '(' <PropertyAssignment> ( ',' <PropertyAssignment> )* ')'
 ```
 
 For example, the value of property `age` for every person named "John" can be updated the following way:
@@ -2840,7 +2842,7 @@ matter in which order the updates are executed.
 ### Handling write after write conflicts
 
 Multiple writes to the same property of the same entity are not allowed, in such cases the execution terminates with 
-an error.  
+an error.
 
 For example consider the following query:
 
@@ -2884,7 +2886,7 @@ UPDATE v SET ( v.a = 65 - u.age )
 ## DELETE
 
 ```bash
-DeleteClause ::= 'DELETE' <VariableReference> ( ',' <VariableReference> )*
+DeleteStatement ::= 'DELETE' <VariableReference> ( ',' <VariableReference> )*
 ```
 
 
