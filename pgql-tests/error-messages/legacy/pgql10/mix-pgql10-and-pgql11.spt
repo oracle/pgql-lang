@@ -50,14 +50,6 @@ test OO-style function call[[
    error like "Use [in_degree(x)] instead of [x.indegree()]" at #6
    error like "Use [out_degree(x)] instead of [x.out_degree()]" at #7
 
-test Double-quoted strings [[
-
-  SELECT n AS c1
-    FROM g MATCH (n)
-   WHERE n.prop = [["string"]]
-
-]] error like "Double quoted variable references are only available in PGQL 1.3 and up" at #1
-
 test Single-quoted labels [[
 
   SELECT n AS c1
