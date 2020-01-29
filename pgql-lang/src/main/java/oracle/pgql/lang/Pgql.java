@@ -9,6 +9,7 @@ import java.io.IOException;
 import java.io.OutputStream;
 import java.io.UnsupportedEncodingException;
 import java.net.URL;
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.HashSet;
@@ -218,9 +219,17 @@ public class Pgql implements Closeable {
 
       PgqlVersion pgqlVersion = getPgqlVersion(analysisResult.ast(), statement);
 
-      if (pgqlVersion != pgqlVersion.V_1_0 && pgqlVersion != pgqlVersion.V_1_1_OR_V_1_2) {
-        if (queryString.contains("//")) {
-          throw new PgqlException("Use /* .. */ instead of // .. to introduce a comment");
+      if (pgqlVersion != pgqlVersion.V_1_0 && pgqlVersion != pgqlVersion.V_1_1_OR_V_1_2 && queryValid) {
+        String[] quotedAndNonQuotedStrings = queryString.split("\"");
+        for (int i = 0; i < quotedAndNonQuotedStrings.length; i = i + 2) {
+          String nonDoubleQuotedString = quotedAndNonQuotedStrings[i];
+          String[] singleQuotedAndNonQuotedStrings = nonDoubleQuotedString.split("'");
+          for (int j = 0; j < singleQuotedAndNonQuotedStrings.length; j = j + 2) {
+            String nonQuotedString = singleQuotedAndNonQuotedStrings[j];
+            if (nonQuotedString.contains("//")) {
+              throw new PgqlException("Use /* .. */ instead of // .. to introduce a comment");
+            }
+          }
         }
       }
 
