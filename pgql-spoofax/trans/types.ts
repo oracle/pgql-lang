@@ -10,6 +10,8 @@ type rules
   where definition of v : ty
     and not ( ty == PathTy() ) else error $[Path variables not supported in PGQL 1.1] on v
 
+  VarRef(_) : UnknownTy() // for unresolved variables
+
   Vertex(Identifier(v, _), _, Correlation(varRef)) :-
   where varRef : ty
     and ty == VertexTy() else error $[Duplicate variable (variable with same name is passed from an outer query)] on v

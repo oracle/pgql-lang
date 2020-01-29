@@ -16,6 +16,7 @@ import java.util.Iterator;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Set;
+import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
 import oracle.pgql.lang.util.AbstractQueryExpressionVisitor;
@@ -40,6 +41,8 @@ import oracle.pgql.lang.ir.QueryVertex;
 import oracle.pgql.lang.ir.modify.ModifyQuery;
 
 public class PgqlUtils {
+
+  private final static Pattern ALL_UPPERCASED_IDENTIFIER = Pattern.compile("^[A-Z][A-Z0-9_]*$");
 
   static DecimalFormat DECIMAL_FORMAT = new DecimalFormat("#.#");
 
@@ -146,7 +149,12 @@ public class PgqlUtils {
   // HELPER METHODS FOR PRETTY-PRINTING BELOW
 
   public static String printIdentifier(String identifier) {
-    return "\"" + identifier.replace("\"", "\"\"") + "\"";
+    if (ALL_UPPERCASED_IDENTIFIER.matcher(identifier).matches()) {
+      // we don't double-quote all-uppercased identifier only to make the pretty-printed queries easier to read
+      return identifier;
+    } else {
+      return "\"" + identifier.replace("\"", "\"\"") + "\"";
+    }
   }
 
   protected static String printPgqlString(GraphQuery graphQuery) {
@@ -278,10 +286,6 @@ public class PgqlUtils {
     } else {
       return " ON " + graphName.toString();
     }
-  }
-
-  private static String printIndentation(int indentation) {
-    return String.join("", Collections.nCopies(indentation, " "));
   }
 
   private static String printPathPatterns(List<CommonPathExpression> commonPathExpressions) {
