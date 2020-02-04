@@ -53,8 +53,8 @@ public class BugFixTest extends AbstractPgqlTest {
 
   @Test
   public void testUpdate() throws Exception {
-    String query = "MODIFY/*beta*/ ( UPDATE n SET PROPERTIES ( [[n.prop]] = 123 ) ) " + //
-        "FROM g MATCH (n) " + //
+    String query = "UPDATE n SET ( [[n.prop]] = 123 ) " + //
+        "FROM MATCH (n) " + //
         "GROUP BY n.prop AS nProp";
     assertFalse(pgql.parse(query).isQueryValid());
   }

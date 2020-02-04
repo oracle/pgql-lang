@@ -10,6 +10,8 @@ type rules
   where definition of v : ty
     and not ( ty == PathTy() ) else error $[Path variables not supported in PGQL 1.1] on v
 
+  VarRef(_) : UnknownTy() // for unresolved variables
+
   Vertex(Identifier(v, _), _, Correlation(varRef)) :-
   where varRef : ty
     and ty == VertexTy() else error $[Duplicate variable (variable with same name is passed from an outer query)] on v
@@ -90,7 +92,7 @@ type rules
   where expAsVar : ty
     and not ( ty == VertexTy() or ty == EdgeTy() ) else error $[Scalar subquery not allowed to return a vertex or an edge] on expAsVar
 
-  ScalarSubquery(Subquery(NormalizedQuery(_, ModifyClause(_, _), _, _, _, _, _, _, _, _))) : None()
+  ScalarSubquery(Subquery(NormalizedQuery(_, ModifyClause(_), _, _, _, _, _, _, _, _))) : None()
 
   True() + False()        : BooleanTy()
   Date(_)                 : DateTy()

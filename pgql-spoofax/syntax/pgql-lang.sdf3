@@ -39,14 +39,14 @@ context-free syntax
       <LimitOffsetClauses?>
     >
 
+  SelectOrModify = SelectClause
+  SelectOrModify = ModifyClause
+
   Query = Legacy10Query
   Query = ExperimentalQuery
 
   CommonPathExpression.CommonPathExpression = <PATH <Identifier> <AsignSymbol> <PathPattern> <WhereClause?> <CostClause?>> {case-insensitive}
   AsignSymbol.Pgql11AsignSymbol = <AS> {case-insensitive}
-
-  SelectOrModify = SelectClause
-  SelectOrModify = ModifyClause
 
   SelectClause.SelectClause = <SELECT <Distinct?> <Projection>> {case-insensitive}
   Projection.ExpAsVars = <<{ExpAsVar ", "}+>>

@@ -82,11 +82,11 @@ test Missing MATCH clause (1) [[
   SELECT 1 AS c1
     FROM MATCH (n), [[(m)]]
 
-]] error like "Missing MATCH clause" at #1
+]] error like "Missing MATCH keyword at start of pattern" at #1
 
 test Missing MATCH clause (2) [[
 
   SELECT 1 AS c1
     FROM [[(n) -> (m)]]
 
-]] error like "Missing MATCH clause" at #1
+]] error like "Missing MATCH keyword at start of pattern" at #1

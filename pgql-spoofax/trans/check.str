@@ -40,9 +40,12 @@ rules // Unresolved/duplicate variables
        ; graphPattern := <strip-annos> graphPatternWithAnnos
        ; groupClause := <strip-annos> groupClauseWithAnnos
        ; matchVars := <?None(); ![] <+ ?Some(GraphPattern(vertices, edges, _)); !(vertices, edges); collect(is-pattern-elem); collect-om(get-pattern-elem, conc)> graphPattern
-       ; groupExpressions := <collect-om(?ExpAsVar(_, Identifier(<id>, _), _, _), conc)> groupClause
+       ; if <?Some(_)> groupClause
+         then groupVars := <?Some(GroupByClause(<id>)); map(?ExpAsVar(_, Identifier(<id>, _), _, _))> groupClause
+         else groupVars := []
+         end
        ; <generate-error-on-duplicates(|ctx, "Duplicate variable")> matchVars
-       ; <generate-error-on-duplicates(|ctx, "Duplicate column name in GROUP BY")> groupExpressions
+       ; <generate-error-on-duplicates(|ctx, "Duplicate column name in GROUP BY")> groupVars
        ; if <?SelectClause(_, _)> selectOrModifyClause
          then selectExpressions := <collect-om(?ExpAsVar(_, Identifier(<id>, _), _, _), conc)> selectOrModifyClause
             ; <generate-error-on-duplicates(|ctx, "Duplicate column name in SELECT")> selectExpressions
@@ -61,19 +64,20 @@ rules // Unresolved/duplicate variables
             ; <batch-generate-error(|ctx, "Element is deleted in DELETE clause")> deletes-of-updates
          end
 
-       ; groupVars := <collect(?ExpAsVar(_, Identifier(<id>, _), NonAnonymous(), _))> groupClause
-       ; redefinitions-in-groupBy := <isect> (groupVars, matchVars)
+       ; if <?Some(_)> groupClause
+         then nonAnonymousGroupVars := <?Some(GroupByClause(<id>)); filter(?ExpAsVar(_, Identifier(<id>, _), NonAnonymous(), _))> groupClause
+         else nonAnonymousGroupVars := []
+         end
+       ; redefinitions-in-groupBy := <isect> (nonAnonymousGroupVars, matchVars)
        ; <batch-generate-error(|ctx, "Duplicate variable: variable already defined in the MATCH clause")> redefinitions-in-groupBy
 
        ; if <?None()> groupClause
          then redefinition-in-modify := <isect> (insertVars, matchVars)
             ; <batch-generate-error(|ctx, "Duplicate variable: variable already defined in the MATCH clause")> redefinition-in-modify
-         else if <?SelectClause(_, _)> selectOrModifyClause
-              then selectOrInsertVars := <collect(?ExpAsVar(_, Identifier(<id>, _), NonAnonymous(), _))> selectOrModifyClause
-              else selectOrInsertVars := insertVars
+         else if <?ModifyClause(_)> selectOrModifyClause
+              then redefinitions-in-modify := <isect> (insertVars, nonAnonymousGroupVars)
+                 ; <batch-generate-error(|ctx, "Duplicate variable: variable already defined in the GROUP BY clause")> redefinitions-in-modify
               end
-            ; redefinitions-in-select-or-modify := <isect> (selectOrInsertVars, groupVars)
-            ; <batch-generate-error(|ctx, "Duplicate variable: variable already defined in the GROUP BY clause")> redefinitions-in-select-or-modify
          end
 
   nabl-constraint(|ctx):
@@ -222,12 +226,20 @@ rules // subqueries
 
   nabl-constraint(|ctx):
     t@NormalizedQuery(_, _, _, _, _, _, _, _, _, "v1.3") -> <fail>
-    with nonPgql13Subqueries := <collect(not-pgql13-query)> t
-       ; <batch-generate-error(|ctx, "Subquery uses older version of PGQL; please make sure that both inner and outer query use PGQL 1.3 syntax")> nonPgql13Subqueries
+    with nonPgql13Subqueries := <collect(is-non-pgql13-query)> t
+       ; <map(get-select-clause); batch-generate-error(|ctx, "Subquery uses older version of PGQL; please make sure that both inner and outer query use PGQL 1.3 syntax")> nonPgql13Subqueries
 
-  not-pgql13-query:
-    NormalizedQuery(_, selectClause, _, _, _, _, _, _, _, version) -> selectClause
-    where <not(?"v1.3")> version
+  nabl-constraint(|ctx):
+    t -> <fail>
+    where <is-non-pgql13-query> t
+    with pgql13Subqueries := <collect(is-pgql13-query)> t
+       ; <map(get-select-clause); batch-generate-error(|ctx, "Subquery uses PGQL 1.3 syntax but outer query does not")> pgql13Subqueries
+
+  is-pgql13-query = ?NormalizedQuery(_, _, _, _, _, _, _, _, _, "v1.3")
+
+  is-non-pgql13-query = ?NormalizedQuery(_, _, _, _, _, _, _, _, _, version); where (!version; not(?"v1.3"))
+
+  get-select-clause = ?NormalizedQuery(_, <id>, _, _, _, _, _, _, _, _)
 
 rules // helper rules
 
@@ -290,6 +302,10 @@ rules // temporary limitation
     t@CommonPathExpression(_, _, connections, _, _) -> <fail>
     where <collect-in-outer-query(?Path(_, _, _, _, _, _, _, _)); not(?[])> connections
     with <generate-error(|ctx, "Nested regular expressions not supported")> t
+
+  nabl-constraint(|ctx):
+    t@LabelDisjunction(_, _) -> <fail>
+    with <generate-error(|ctx, "Label disjunction not supported here")> t
 
 rules // CHEAPEST
 
@@ -397,16 +413,17 @@ rules // MODIFY
 
   nabl-constraint(|ctx):
     t -> <fail>
-    where <?VertexInsertion(Identifier(v, _), _, _, Some(Properties(setProperties))) +
-           ?DirectedEdgeInsertion(Identifier(v, _), _, _, _, _, Some(Properties(setProperties))) +
-           ?Update(VarRef(Identifier(v, _), _), SetProperties(setProperties))> t
+    where <?VertexInsertion(Identifier(v, originText), _, _, Some(Properties(setProperties))) +
+           ?DirectedEdgeInsertion(Identifier(v, originText), _, _, _, _, Some(Properties(setProperties))) +
+           ?Update(VarRef(Identifier(v, originText), _), SetProperties(setProperties))> t
     with v' := <strip-annos> v
        ; otherVariablesThanV := <filter(?SetProperty(PropRef(VarRef(Identifier(<id>, _), _), _), _); strip-annos; not(?v'))> setProperties
-       ; <batch-generate-error(|ctx, $<Did you mean <v>?>)> otherVariablesThanV
+       ; varNameAsString := <try(?None(); <conc-strings> ("\"", v, "\""))> originText
+       ; <batch-generate-error(|ctx, $<Did you mean <varNameAsString>?>)> otherVariablesThanV
 
   nabl-constraint(|ctx):
-    ModifyClause(_, insertUpdateDeleteClauses) -> <fail>
-    with additionalInsertClauses := <filter(?InsertClause(_)); try(Tl)> insertUpdateDeleteClauses
+    ModifyClause(insertUpdateDeleteClauses) -> <fail>
+    with additionalInsertClauses := <filter(?InsertClause(_, _)); try(Tl)> insertUpdateDeleteClauses
        ; additionalUpdateClauses := <filter(?UpdateClause(_)); try(Tl)> insertUpdateDeleteClauses
        ; additionalDeleteClauses := <filter(?DeleteClause(_)); try(Tl)> insertUpdateDeleteClauses
        ; <batch-generate-error(|ctx, "Only a single INSERT clause is allowed per query; use commas to insert multiple elements in a single INSERT clause")> additionalInsertClauses

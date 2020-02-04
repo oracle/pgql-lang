@@ -9,6 +9,8 @@ import oracle.pgql.lang.ir.QueryExpression;
 import oracle.pgql.lang.ir.QueryExpressionVisitor;
 import oracle.pgql.lang.ir.QueryVertex;
 
+import static oracle.pgql.lang.ir.PgqlUtils.printIdentifier;
+
 public class VertexInsertion extends AbstractInsertion {
 
   private QueryVertex vertex;
@@ -29,7 +31,7 @@ public class VertexInsertion extends AbstractInsertion {
 
   @Override
   public String toString() {
-    return "VERTEX " + vertex.getName() + printLabels() + printProperties();
+    return "VERTEX " + printIdentifier(vertex.getName()) + printLabels() + printProperties();
   }
 
   @Override

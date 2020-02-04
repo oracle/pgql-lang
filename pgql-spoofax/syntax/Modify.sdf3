@@ -11,23 +11,25 @@ template options
 
 context-free syntax
 
-  ModifyClause.ModifyClause = <MODIFY <Identifier?> ( <Modification+> )> {case-insensitive}
+  ModifyClause.ModifyClause = Modification+ {case-insensitive}
 
   Modification = InsertClause
   Modification = UpdateClause
   Modification = DeleteClause
 
-  InsertClause.InsertClause = <INSERT <{Insertion ", "}+>> {case-insensitive}
+  InsertClause.InsertClause = <INSERT <IntoClause?> <{Insertion ", "}+>> {case-insensitive}
+
+  IntoClause.IntoClause = <INTO <GraphName>> {case-insensitive}
 
   Insertion.VertexInsertion = <VERTEX <Identifier> <LabelsSpecification?> <PropertiesSpecification?>> {case-insensitive}
   Insertion.DirectedEdgeInsertion = <EDGE <Identifier> BETWEEN <VarRef> AND <VarRef> <LabelsSpecification?> <PropertiesSpecification?>> {case-insensitive}
 
-  LabelsSpecification.Labels = <LABELS ( <{Exp ", "}+> )> {case-insensitive}
+  LabelsSpecification.Labels = <LABELS ( <{Identifier ", "}+> )> {case-insensitive}
   PropertiesSpecification.Properties = <PROPERTIES ( <{SetProperty ", "}+> )> {case-insensitive}
   SetProperty.SetProperty = <<PropRef> = <Exp>>
 
   UpdateClause.UpdateClause = <UPDATE <{Update ", "}+>> {case-insensitive}
   Update.Update = <<VarRef> <SetProperties>>
-  SetProperties.SetProperties = <SET PROPERTIES ( <{SetProperty ", "}+> )> {case-insensitive}
+  SetProperties.SetProperties = <SET ( <{SetProperty ", "}+> )> {case-insensitive}
 
   DeleteClause.DeleteClause = <DELETE <{VarRef ", "}+>> {case-insensitive}

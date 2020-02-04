@@ -9,12 +9,14 @@ import java.time.LocalDateTime;
 import java.time.LocalTime;
 import java.time.OffsetDateTime;
 import java.time.OffsetTime;
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Set;
+import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
 import oracle.pgql.lang.util.AbstractQueryExpressionVisitor;
@@ -40,7 +42,7 @@ import oracle.pgql.lang.ir.modify.ModifyQuery;
 
 public class PgqlUtils {
 
-  public final static String BETA_FEATURES_FLAG = "/*beta*/";
+  private final static Pattern ALL_UPPERCASED_IDENTIFIER = Pattern.compile("^[A-Z][A-Z0-9_]*$");
 
   static DecimalFormat DECIMAL_FORMAT = new DecimalFormat("#.#");
 
@@ -147,36 +149,16 @@ public class PgqlUtils {
   // HELPER METHODS FOR PRETTY-PRINTING BELOW
 
   public static String printIdentifier(String identifier) {
-    if (identifier.matches("^[a-zA-Z][a-zA-Z0-9_]*$")) {
+    if (ALL_UPPERCASED_IDENTIFIER.matcher(identifier).matches()) {
+      // we don't double-quote all-uppercased identifier only to make the pretty-printed queries easier to read
       return identifier;
     } else {
-      return "\"" + escape(identifier) //
-          .replace("\"", "\"\"") //
-          + "\"";
+      return "\"" + identifier.replace("\"", "\"\"") + "\"";
     }
-  }
-
-  public static String printLocalOrSchemaQualifiedName(String schemaName, String localName) {
-    if (schemaName == null) {
-      return printIdentifier(localName);
-    } else {
-      return printIdentifier(schemaName) + "." + printIdentifier(localName);
-    }
-  }
-
-  private static String escape(String s) {
-    return s //
-        .replace("\\", "\\\\") //
-        .replace("\t", "\\t") //
-        .replace("\n", "\\n") //
-        .replace("\r", "\\r") //
-        .replace("\b", "\\b") //
-        .replace("\f", "\\f");
   }
 
   protected static String printPgqlString(GraphQuery graphQuery) {
     String result = printPathPatterns(graphQuery.getCommonPathExpressions());
-    GraphPattern graphPattern = graphQuery.getGraphPattern();
 
     switch (graphQuery.getQueryType()) {
       case SELECT:
@@ -184,25 +166,18 @@ public class PgqlUtils {
         break;
       case MODIFY:
         ModifyQuery modifyQuery = (ModifyQuery) graphQuery;
-        result += "MODIFY" + BETA_FEATURES_FLAG;
-
-        if (modifyQuery.getGraphName() != null) {
-          result += " " + modifyQuery.getGraphName();
-        }
-
-        result += " (\n  " + modifyQuery.getModifications().stream() //
+        result += modifyQuery.getModifications().stream() //
             .map(x -> x.toString()) //
-            .collect(Collectors.joining("\n  ")) + "\n)";
+            .collect(Collectors.joining("\n"));
         break;
       default:
         throw new IllegalArgumentException(graphQuery.getQueryType().toString());
     }
 
-    result += "\n";
-    if (graphQuery.getInputGraphName() != null) {
-      result += "FROM " + printIdentifier(graphQuery.getInputGraphName()) + " ";
+    if (graphQuery.getGraphPattern() != null) {
+      result += "\nFROM ";
+      result += printPgqlString(graphQuery.getGraphPattern(), graphQuery.getGraphName());
     }
-    result += graphPattern;
     GroupBy groupBy = graphQuery.getGroupBy();
     if (groupBy != null && groupBy.getElements().isEmpty() == false) {
       result += "\n" + groupBy;
@@ -257,44 +232,38 @@ public class PgqlUtils {
     }
   }
 
-  protected static String printPgqlString(GraphPattern graphPattern, List<QueryPath> queryPaths) {
-    String result = "MATCH";
-    int indentation = 7;
-    Set<QueryExpression> constraintsCopy = new HashSet<>(graphPattern.getConstraints());
-    QueryVertex lastVertex = null;
+  protected static String printPgqlString(GraphPattern graphPattern) {
+    return printPgqlString(graphPattern, null);
+  }
+
+  private static String printPgqlString(GraphPattern graphPattern, SchemaQualifiedName graphName) {
     Set<QueryVertex> uncoveredVertices = new LinkedHashSet<>(graphPattern.getVertices());
+    List<String> graphPatternMatches = new ArrayList<String>();
 
     Iterator<VertexPairConnection> connectionIt = graphPattern.getConnections().iterator();
-    boolean tryConcatenateNextConnection = false;
     while (connectionIt.hasNext()) {
       VertexPairConnection connection = connectionIt.next();
       uncoveredVertices.remove(connection.getSrc());
       uncoveredVertices.remove(connection.getDst());
-
       if (isShortestCheapest(connection)) {
-        // if the goal is SHORTEST or CHEAPEST we don't concatenate the connection to other connections but instead
-        // comma-separate it
-        result += printConnection(constraintsCopy, connection, lastVertex, tryConcatenateNextConnection, indentation);
-        lastVertex = connection.getDst();
-        tryConcatenateNextConnection = false;
+        graphPatternMatches.add("MATCH " + connection.toString() + printOnClause(graphName));
       } else {
-        result += printConnection(constraintsCopy, connection, lastVertex, tryConcatenateNextConnection, indentation);
-        lastVertex = connection.getDirection() == Direction.INCOMING ? connection.getSrc() : connection.getDst();
-        tryConcatenateNextConnection = true;
+        graphPatternMatches.add(
+            "MATCH " + connection.getSrc() + " " + connection + " " + connection.getDst() + printOnClause(graphName));
       }
     }
 
     // print remaining vertices that are not part of any connection
     Iterator<QueryVertex> vertexIt = uncoveredVertices.iterator();
     while (vertexIt.hasNext()) {
-      QueryVertex vertex = vertexIt.next();
-      result += printVertex(constraintsCopy, vertex, lastVertex, indentation);
-      lastVertex = vertex;
+      graphPatternMatches.add("MATCH " + vertexIt.next() + printOnClause(graphName));
     }
 
+    String result = graphPatternMatches.stream().collect(Collectors.joining("\n   , "));
+
     // print filter expressions
-    if (!constraintsCopy.isEmpty()) {
-      result += "\nWHERE " + constraintsCopy.stream() //
+    if (!graphPattern.getConstraints().isEmpty()) {
+      result += "\nWHERE " + graphPattern.getConstraints().stream() //
           .map(x -> x.toString()) //
           .collect(Collectors.joining("\n  AND "));
     }
@@ -311,49 +280,12 @@ public class PgqlUtils {
     return goal == PathFindingGoal.SHORTEST || goal == PathFindingGoal.CHEAPEST;
   }
 
-  private static String printConnection(Set<QueryExpression> constraintsCopy, VertexPairConnection connection,
-      QueryVertex lastVertex, boolean tryConcatenateConnection, int indentation) {
-
-    String result = "\n" + printIndentation(indentation - 2);
-
-    if (isShortestCheapest(connection)) {
-      result += lastVertex == null ? "  " : ", ";
-      result += connection.toString();
-
-      // if the goal is SHORTEST or CHEAPEST, we don't try to concatenate the connection to the previous connection but
-      // instead
-      // comma-separate it
-      return result;
-    }
-
-    QueryVertex vertexOnTheLeft;
-    QueryVertex vertexOnTheRight;
-    if (connection.getDirection() == Direction.INCOMING) {
-      vertexOnTheLeft = connection.getDst();
-      vertexOnTheRight = connection.getSrc();
+  private static String printOnClause(SchemaQualifiedName graphName) {
+    if (graphName == null) {
+      return "";
     } else {
-      vertexOnTheLeft = connection.getSrc();
-      vertexOnTheRight = connection.getDst();
+      return " ON " + graphName.toString();
     }
-
-    if (lastVertex != vertexOnTheLeft || !tryConcatenateConnection) {
-      result += lastVertex == null ? "  " : ", ";
-      result += deanonymizeIfNeeded(vertexOnTheLeft, constraintsCopy);
-    }
-    result += " " + printConnection(vertexOnTheLeft, connection, constraintsCopy) + " ";
-    result += deanonymizeIfNeeded(vertexOnTheRight, constraintsCopy);
-
-    return result;
-  }
-
-  private static String printVertex(Set<QueryExpression> constraintsCopy, QueryVertex vertex, QueryVertex lastVertex,
-      int indentation) {
-    String result = (lastVertex == null) ? "" : "\n" + printIndentation(indentation - 2) + ", ";
-    return result + deanonymizeIfNeeded(vertex, constraintsCopy);
-  }
-
-  private static String printIndentation(int indentation) {
-    return String.join("", Collections.nCopies(indentation, " "));
   }
 
   private static String printPathPatterns(List<CommonPathExpression> commonPathExpressions) {
@@ -575,9 +507,7 @@ public class PgqlUtils {
   }
 
   protected static String printLiteral(String val) {
-    return "'" + escape(val) //
-        .replace("'", "''") //
-        + "'";
+    return "'" + val.replace("'", "''") + "'";
   }
 
   protected static String printLiteral(LocalDate val) {

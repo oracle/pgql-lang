@@ -171,116 +171,87 @@ test Duplicate variables (9) [[
 
 test Set a property multiple times in UPDATE [[
 
-  MODIFY g ( UPDATE n SET PROPERTIES ( [[n.pRoP]] = 1, [[n.prop]] = 2 ) )
+  UPDATE n SET ( [[n.pRoP]] = 1, [[n.prop]] = 2 )
     FROM MATCH (n)
 
 ]] error like "Property is set multiple times" at #1, #2
 
 test Set a property multiple times in INSERT [[
 
-  MODIFY ( INSERT VERTEX m PROPERTIES ( [[m.prop]] = 1, [[m.pRoP]] = 2 ) )
+  INSERT VERTEX m PROPERTIES ( [[m.prop]] = 1, [[m.pRoP]] = 2 )
     FROM MATCH (n)
 
 ]] error like "Property is set multiple times" at #1, #2
 
 test Duplicate variable (1) [[
 
-  MODIFY (
-    INSERT VERTEX [[V1]],
-           EDGE [[V1]] BETWEEN v1 AND V1
-  )
+  INSERT VERTEX [[V1]],
+         EDGE [[V1]] BETWEEN v1 AND V1
   FROM MATCH (v1)
 
 ]] error like "Duplicate variable: variable already defined in the MATCH clause" at #1, #2
 
 test Duplicate variable (2) [[
 
-  MODIFY (
-    INSERT VERTEX [[v2]],
-           EDGE [[V2]] BETWEEN v1 AND V2
-  )
-  FROM MATCH (v1)
-  GROUP BY v1.prop AS v2
-
-]] error like "Duplicate variable: variable already defined in the GROUP BY clause" at #1, #2
-
-test Duplicate variable (3) [[
-
-  MODIFY (
-    INSERT VERTEX [[V2]],
-           VERTEX [[v2]],
-           EDGE [[v2]] BETWEEN v2 AND v2
-  )
+  INSERT VERTEX [[V2]],
+         VERTEX [[v2]],
+         EDGE [[v2]] BETWEEN v2 AND v2
 
 ]] error like "Duplicate variable" at #1, #2, #3
 
-test Duplicate variable (4) [[
+test Duplicate variable (3) [[
 
-  MODIFY (
-    INSERT VERTEX [[v2]],
-           VERTEX [[v2]],
-           EDGE [[V2]] BETWEEN v2 AND V2
-  )
+  INSERT VERTEX [[v2]],
+         VERTEX [[v2]],
+         EDGE [[V2]] BETWEEN v2 AND V2
   FROM MATCH (v1)
 
 ]] error like "Duplicate variable" at #1, #2, #3
 
 test Update an insertion (1) [[
 
-  MODIFY (
-    INSERT VERTEX v3
-    UPDATE [[V3]] SET PROPERTIES ( v3.prop = 3 )
-  )
+  INSERT VERTEX v3
+  UPDATE [[V3]] SET ( v3.prop = 3 )
 
 ]] error like "Cannot update an element that is being inserted" at #1
 
 test Update an insertion (2) [[
 
-  MODIFY (
-    INSERT VERTEX v3
-    UPDATE [[V3]] SET PROPERTIES ( v3.prop = 3 )
-  )
+  INSERT VERTEX v3
+  UPDATE [[V3]] SET ( v3.prop = 3 )
   FROM MATCH (v1)
 
 ]] error like "Cannot update an element that is being inserted" at #1
 
 test Update a deletion [[
 
-  MODIFY (
-    UPDATE [[N]] SET PROPERTIES ( n.prop = 123 )
-    DELETE n
-  )
+  UPDATE [[N]] SET ( n.prop = 123 )
+  DELETE n
   FROM MATCH (n)
 
 ]] error like "Element is deleted in DELETE clause" at #1
 
 test Set source of destination of edge to deletion [[
 
-  MODIFY (
-    INSERT edge e BETWEEN [[N]] and [[n]]
-    DELETE n
-  )
+  INSERT edge e BETWEEN [[N]] and [[n]]
+  DELETE n
   FROM MATCH (n)
 
 ]] error like "Element is deleted in DELETE clause" at #1, #2
 
 test Update other element than the one that was meant to be updated [[
 
-  MODIFY (
-    UPDATE n SET PROPERTIES ( [[N]].prop = 3 )
-         , M SET PROPERTIES ( [[m]].prop = 4 )
-  )
+  UPDATE n SET ( [[N]].prop = 3 )
+       , M SET ( [[m]].prop = 4 )
   FROM MATCH (n) -> (m)
 
 ]] analysis succeeds
 
 test Duplicate updates or deletions [[
 
-  MODIFY g (
-    UPDATE [[v]] SET PROPERTIES ( v.first_name = 'Scott' ),
-           [[V]] SET PROPERTIES ( v.last_name = 'Tiger' )
-    DELETE [[w]], [[W]]
-  )
+  UPDATE [[v]] SET ( v.first_name = 'Scott' ),
+         [[V]] SET ( v.last_name = 'Tiger' )
+  DELETE [[w]], [[W]]
   FROM MATCH (v) -> (w)
 
 ]] error like "Element is updated multiple times (merge the two updates together)" at #1, #2

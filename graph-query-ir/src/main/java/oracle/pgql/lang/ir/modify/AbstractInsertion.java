@@ -7,6 +7,8 @@ import java.util.List;
 import java.util.stream.Collectors;
 
 import oracle.pgql.lang.ir.QueryExpression;
+import oracle.pgql.lang.ir.QueryExpression.Constant.ConstString;
+import static oracle.pgql.lang.ir.PgqlUtils.printIdentifier;
 
 public abstract class AbstractInsertion implements Insertion {
 
@@ -40,7 +42,7 @@ public abstract class AbstractInsertion implements Insertion {
       return "";
     } else {
       return " LABELS ( " + labels.stream() //
-          .map(x -> x.toString()) //
+          .map(x -> printIdentifier(((ConstString) x).getValue())) //
           .collect(Collectors.joining(", ")) + " )";
     }
   }

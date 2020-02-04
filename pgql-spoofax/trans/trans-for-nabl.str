@@ -153,15 +153,15 @@ rules
        ; selectClause' := <origin-track-forced(!SelectClause(distinct, eav'))> t
 
   resolve-modify-clause(|variables):
-    t@ModifyClause(graphName, modifications) -> modifyClause'
+    t@ModifyClause(modifications) -> modifyClause'
     with varsInCurrentScope := <Hd> variables
        ; modifications' := <map(resolve-modification(|variables))> modifications
-       ; modifyClause' := <origin-track-forced(!ModifyClause(graphName, modifications'))> t
+       ; modifyClause' := <origin-track-forced(!ModifyClause(modifications'))> t
 
   resolve-modification(|variables):
-    t@InsertClause(insertions) -> insertClause'
+    t@InsertClause(graphName, insertions) -> insertClause'
     with (insertions', _) := <foldl(resolve-insertion(|variables))> (insertions, ([], variables))
-       ; insertClause' := <origin-track-forced(!InsertClause(insertions'))> t
+       ; insertClause' := <origin-track-forced(!InsertClause(graphName, insertions'))> t
 
   resolve-modification(|variables) = ?UpdateClause(_); resolve-var-refs(|variables)
 
@@ -171,13 +171,12 @@ rules
     (t, (result, variables)) -> (result', variables')
     where <?VertexInsertion(iden@Identifier(v, _), labels, properties) + ?DirectedEdgeInsertion(iden@Identifier(v, _), src, dst, labels, properties)> t
     with originOffset := <origin-offset> v
-       ; labels' := <resolve-var-refs(|original-variables)> labels
        ; properties' := <resolve-set-properties(|v, originOffset, original-variables)> properties
        ; if <?VertexInsertion(_, _, _)> t
-         then insertion := <origin-track-forced(!VertexInsertion(iden, originOffset, labels', properties'))> t
+         then insertion := <origin-track-forced(!VertexInsertion(iden, originOffset, labels, properties'))> t
          else src' := <resolve-var-refs(|variables)> src
             ; dst' := <resolve-var-refs(|variables)> dst
-            ; insertion := <origin-track-forced(!DirectedEdgeInsertion(iden, originOffset, src', dst', labels', properties'))> t
+            ; insertion := <origin-track-forced(!DirectedEdgeInsertion(iden, originOffset, src', dst', labels, properties'))> t
          end
        ; [vars-in-scope|xs] := variables
        ; vars-in-scope' := <replace-or-add> (VarDef(v, originOffset, None(), None(), None(), ThisQuery()), vars-in-scope)

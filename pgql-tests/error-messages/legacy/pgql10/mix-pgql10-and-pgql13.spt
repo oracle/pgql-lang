@@ -145,3 +145,10 @@ test PGQL 1.0 subquery in PGQL 1.3 query [[
    WHERE EXISTS ( [[SELECT 2 AS c2 WHERE (o)]] ) 
 
 ]] error like "Subquery uses older version of PGQL; please make sure that both inner and outer query use PGQL 1.3 syntax" at #1
+
+test PGQL 1.3 subquery in PGQL 1.0 query [[
+
+  SELECT 1 AS c1
+    WHERE (n), EXISTS ( [[SELECT 2 AS c2 FROM MATCH (o)]] )
+
+]] error like "Subquery uses PGQL 1.3 syntax but outer query does not" at #1

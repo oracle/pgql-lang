@@ -7,13 +7,25 @@ import java.util.List;
 import java.util.stream.Collectors;
 
 import oracle.pgql.lang.ir.QueryExpressionVisitor;
+import oracle.pgql.lang.ir.SchemaQualifiedName;
 
 public class InsertClause implements Modification {
 
+  private SchemaQualifiedName graphName;
+
   private List<Insertion> insertions;
 
-  public InsertClause(List<Insertion> insertions) {
+  public InsertClause(SchemaQualifiedName graphName, List<Insertion> insertions) {
+    this.graphName = graphName;
     this.insertions = insertions;
+  }
+
+  public SchemaQualifiedName getGraphName() {
+    return graphName;
+  }
+
+  public void setGraphName(SchemaQualifiedName graphName) {
+    this.graphName = graphName;
   }
 
   public List<Insertion> getInsertions() {
@@ -26,7 +38,8 @@ public class InsertClause implements Modification {
 
   @Override
   public String toString() {
-    return "INSERT " + insertions.stream().map(x -> x.toString()).collect(Collectors.joining(", "));
+    String intoClause = graphName == null ? "" : "INTO " + graphName + " ";
+    return "INSERT " + intoClause + insertions.stream().map(x -> x.toString()).collect(Collectors.joining(", "));
   }
 
   @Override
@@ -48,6 +61,11 @@ public class InsertClause implements Modification {
     if (getClass() != obj.getClass())
       return false;
     InsertClause other = (InsertClause) obj;
+    if (graphName == null) {
+      if (other.graphName != null)
+        return false;
+    } else if (!graphName.equals(other.graphName))
+      return false;
     if (insertions == null) {
       if (other.insertions != null)
         return false;

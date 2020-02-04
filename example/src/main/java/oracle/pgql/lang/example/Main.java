@@ -18,7 +18,7 @@ public class Main {
       System.out.println(result1.getStatement());
 
       // parse query with errors and print error messages
-      PgqlResult result2 = pgql.parse("SELECT x, y, FROM MATCH (n) -[e]-> (m)");
+      PgqlResult result2 = pgql.parse("SELECT x, y FROM MATCH (n) -[e]-> (m)");
       System.out.println(result2.getErrorMessages());
     }
   }

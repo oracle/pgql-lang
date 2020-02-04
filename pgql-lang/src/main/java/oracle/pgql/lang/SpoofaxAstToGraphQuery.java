@@ -62,6 +62,7 @@ import oracle.pgql.lang.ir.QueryType;
 import oracle.pgql.lang.ir.QueryVariable;
 import oracle.pgql.lang.ir.QueryVariable.VariableType;
 import oracle.pgql.lang.ir.QueryVertex;
+import oracle.pgql.lang.ir.SchemaQualifiedName;
 import oracle.pgql.lang.ir.SelectQuery;
 import oracle.pgql.lang.ir.Statement;
 import oracle.pgql.lang.ir.VertexPairConnection;
@@ -82,6 +83,7 @@ import static oracle.pgql.lang.TranslateDropPropertyGraph.translateDropPropertyG
 import static oracle.pgql.lang.CommonTranslationUtil.getString;
 import static oracle.pgql.lang.CommonTranslationUtil.getInt;
 import static oracle.pgql.lang.CommonTranslationUtil.getList;
+import static oracle.pgql.lang.CommonTranslationUtil.getSchemaQualifiedName;
 import static oracle.pgql.lang.CommonTranslationUtil.isNone;
 import static oracle.pgql.lang.CommonTranslationUtil.isSome;
 import static oracle.pgql.lang.CommonTranslationUtil.getSome;
@@ -100,6 +102,8 @@ public class SpoofaxAstToGraphQuery {
   private static final int POS_ORDERBY = 6;
   private static final int POS_LIMITOFFSET = 7;
 
+  private static final int POT_GRAPH_NAME_NAME = 0;
+
   private static final int POS_COMMON_PATH_EXPRESSION_NAME = 0;
   private static final int POS_COMMON_PATH_EXPRESSION_VERTICES = 1;
   private static final int POS_COMMON_PATH_EXPRESSION_CONNECTIONS = 2;
@@ -111,10 +115,11 @@ public class SpoofaxAstToGraphQuery {
   private static final int POS_PROJECTION_DISTINCT = 0;
   private static final int POS_PROJECTION_ELEMS = 1;
 
-  private static final int POS_MODIFY_GRAPH_NAME = 0;
-  private static final int POS_MODIFY_MODIFICATIONS = 1;
+  private static final int POS_MODIFY_MODIFICATIONS = 0;
 
-  private static final int POS_INSERT_CLAUSE_INSERTIONS = 0;
+  private static final int POS_INSERT_CLAUSE_INTO_CLAUSE = 0;
+  private static final int POS_INSERT_CLAUSE_INSERTIONS = 1;
+  private static final int POS_INSERT_CLAUSE_INTO_CLAUSE_GRAPH_NAME = 0;
   private static final int POS_VERTEX_INSERTION_NAME = 0;
   private static final int POS_VERTEX_INSERTION_ORIGIN_OFFSET = 1;
   private static final int POS_VERTEX_INSERTION_LABELS = 2;
@@ -273,15 +278,12 @@ public class SpoofaxAstToGraphQuery {
     Projection projection = null;
     IStrategoTerm selectOrModifyT = ast.getSubterm(POS_SELECT_OR_MODIFY);
     String selectOrUpdate = ((IStrategoAppl) selectOrModifyT).getConstructor().getName();
-    String modifyGraphName = null;
     List<Modification> modifications = null;
     switch (selectOrUpdate) {
       case "SelectClause":
         projection = translateSelectClause(ctx, selectOrModifyT);
         break;
       case "ModifyClause":
-        IStrategoTerm graphNameT = selectOrModifyT.getSubterm(POS_MODIFY_GRAPH_NAME);
-        modifyGraphName = isNone(graphNameT) ? null : getString(selectOrModifyT.getSubterm(POS_MODIFY_GRAPH_NAME));
         IStrategoTerm modificationsT = selectOrModifyT.getSubterm(POS_MODIFY_MODIFICATIONS);
         modifications = translateModifications(ctx, modificationsT);
         break;
@@ -291,7 +293,11 @@ public class SpoofaxAstToGraphQuery {
 
     // input graph name
     IStrategoTerm fromT = ast.getSubterm(POS_GRAPH_NAME);
-    String inputGraphName = isNone(fromT) ? null : getString(fromT);
+    SchemaQualifiedName graphName = null;
+    if (isSome(fromT)) {
+      IStrategoTerm graphNameT = getSome(fromT).getSubterm(POT_GRAPH_NAME_NAME);
+      graphName = getSchemaQualifiedName(graphNameT);
+    }
 
     // HAVING
     QueryExpression having = tryGetExpression(ast.getSubterm(POS_HAVING), ctx);
@@ -308,11 +314,11 @@ public class SpoofaxAstToGraphQuery {
 
     switch (selectOrUpdate) {
       case "SelectClause":
-        return new SelectQuery(commonPathExpressions, projection, inputGraphName, graphPattern, groupBy, having,
-            orderBy, limit, offset);
+        return new SelectQuery(commonPathExpressions, projection, graphName, graphPattern, groupBy, having, orderBy,
+            limit, offset);
       case "ModifyClause":
-        return new ModifyQuery(commonPathExpressions, modifyGraphName, modifications, inputGraphName, graphPattern,
-            groupBy, having, orderBy, limit, offset);
+        return new ModifyQuery(commonPathExpressions, modifications, graphName, graphPattern, groupBy, having, orderBy,
+            limit, offset);
       default:
         throw new IllegalStateException(selectOrUpdate);
     }
@@ -347,6 +353,14 @@ public class SpoofaxAstToGraphQuery {
       String constructorName = ((IStrategoAppl) modificationT).getConstructor().getName();
       switch (constructorName) {
         case "InsertClause": {
+
+          IStrategoTerm optionalIntoClauseT = modificationT.getSubterm(POS_INSERT_CLAUSE_INTO_CLAUSE);
+          SchemaQualifiedName graphName = null;
+          if (isSome(optionalIntoClauseT)) {
+            IStrategoTerm intoClauseT = getSome(optionalIntoClauseT);
+            graphName = getSchemaQualifiedName(intoClauseT.getSubterm(POS_INSERT_CLAUSE_INTO_CLAUSE_GRAPH_NAME));
+          }
+
           IStrategoTerm insertionsT = modificationT.getSubterm(POS_INSERT_CLAUSE_INSERTIONS);
 
           List<Insertion> insertions = new ArrayList<>();
@@ -355,7 +369,7 @@ public class SpoofaxAstToGraphQuery {
             insertions.add(insertion);
           }
 
-          result.add(new InsertClause(insertions));
+          result.add(new InsertClause(graphName, insertions));
 
           break;
         }
@@ -444,7 +458,8 @@ public class SpoofaxAstToGraphQuery {
     if (isSome(labelsT)) {
       IStrategoTerm labelsListT = getSome(labelsT).getSubterm(POS_LABELS_LIST);
       for (IStrategoTerm labelT : labelsListT) {
-        result.add(translateExp(labelT, ctx));
+        String label = getString(labelT.getSubterm(IDENTIFIER_NAME));
+        result.add(new ConstString(label));
       }
     }
     return result;

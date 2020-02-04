@@ -6,20 +6,16 @@ package oracle.pgql.lang.ddl.propertygraph;
 import java.util.List;
 import java.util.stream.Collectors;
 
+import oracle.pgql.lang.ir.SchemaQualifiedName;
 import static oracle.pgql.lang.ir.PgqlUtils.printIdentifier;
 
 public abstract class ElementTable {
 
   /**
-   * The name of the schema.
-   */
-  private String schemaName;
-
-  /**
    * The name of the table. This name is used as vertex/edge table name unless an alias is defined, in which case the
    * alias is used as vertex/edge table name.
    */
-  private String tableName;
+  private SchemaQualifiedName tableName;
 
   /**
    * The alias. If not null, the alias is used as vertex/edge table name. The PGQL parser always defaults the alias to
@@ -40,27 +36,18 @@ public abstract class ElementTable {
   /**
    * The constructor.
    */
-  protected ElementTable(Key key, String schemaName, String tableName, String tableAlias, List<Label> labels) {
+  protected ElementTable(Key key, SchemaQualifiedName tableName, String tableAlias, List<Label> labels) {
     this.key = key;
-    this.schemaName = schemaName;
     this.tableName = tableName;
     this.tableAlias = tableAlias;
     this.labels = labels;
   }
 
-  public String getSchemaName() {
-    return schemaName;
-  }
-
-  public void setSchemaName(String schemaName) {
-    this.schemaName = schemaName;
-  }
-
-  public String getTableName() {
+  public SchemaQualifiedName getTableName() {
     return tableName;
   }
 
-  public void setTableName(String tableName) {
+  public void setTableName(SchemaQualifiedName tableName) {
     this.tableName = tableName;
   }
 
@@ -129,11 +116,6 @@ public abstract class ElementTable {
       if (other.labels != null)
         return false;
     } else if (!labels.equals(other.labels))
-      return false;
-    if (schemaName == null) {
-      if (other.schemaName != null)
-        return false;
-    } else if (!schemaName.equals(other.schemaName))
       return false;
     if (tableName == null) {
       if (other.tableName != null)

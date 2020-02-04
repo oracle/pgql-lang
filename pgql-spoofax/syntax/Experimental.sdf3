@@ -33,4 +33,4 @@ context-free syntax
 
   MatchKeyword.MatchKeyword = <MATCH> {case-insensitive}
 
-  OnClause.OnClause = <ON <Identifier>> {case-insensitive}
+  OnClause.OnClause = <ON <GraphName>> {case-insensitive}

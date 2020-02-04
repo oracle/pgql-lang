@@ -265,3 +265,10 @@ test Cost clause in SHORTEST [[
    MATCH SHORTEST ( (n) (-[e1]-> [[COST e1.prop]])* (m) )
 
 ]] error like "COST clause only allowed in combination with CHEAPEST" at #1
+
+test Label disjunction in path [[
+
+  SELECT 1 AS c1
+    FROM MATCH (n) -/:[[likes|dislikes]]*/-> (m)
+
+]] error like "Label disjunction not supported here" at #1

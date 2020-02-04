@@ -9,6 +9,8 @@ import oracle.pgql.lang.ir.QueryEdge;
 import oracle.pgql.lang.ir.QueryExpression;
 import oracle.pgql.lang.ir.QueryExpressionVisitor;
 
+import static oracle.pgql.lang.ir.PgqlUtils.printIdentifier;
+
 public class EdgeInsertion extends AbstractInsertion {
 
   private QueryEdge edge;
@@ -33,8 +35,8 @@ public class EdgeInsertion extends AbstractInsertion {
 
   @Override
   public String toString() {
-    return "EDGE " + edge.getName() + " BETWEEN " + edge.getSrc().getName() + " AND " + edge.getDst().getName()
-        + printLabels() + printProperties();
+    return "EDGE " + printIdentifier(edge.getName()) + " BETWEEN " + printIdentifier(edge.getSrc().getName()) + " AND "
+        + printIdentifier(edge.getDst().getName()) + printLabels() + printProperties();
   }
 
   @Override

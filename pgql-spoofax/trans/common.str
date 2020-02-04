@@ -86,3 +86,6 @@ rules
     with v' := <origin-track-forced(un-double-quote; unescape-delimited-identifier)> v
 
   unescape-delimited-identifier = string-replace(|"\"\"", "\"")
+
+  to-name-without-case-sensitive-info = origin-track-forced(?Name(None(), Identifier(localName, _)); !Name(None(), localName))
+  to-name-without-case-sensitive-info = origin-track-forced(?Name(Some(SchemaName(Identifier(schemaName, _))), Identifier(localName, _)); !Name(schemaName, localName))
