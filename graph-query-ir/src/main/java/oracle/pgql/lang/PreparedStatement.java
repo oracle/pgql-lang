@@ -24,7 +24,26 @@ public interface PreparedStatement extends AutoCloseable {
    * 
    * @return a ResultSet object that contains the data produced by the query; never null
    */
-  ResultSet executeQuery() throws PgqlException;
+  ResultSet<?> executeQuery() throws PgqlException;
+
+  /**
+   * Executes the PGQL statement in this PreparedStatement object, which may be any kind of PGQL statement.
+   * 
+   * Returns: a boolean to indicate the form of the first result: true in case of a SELECT query, false otherwise. In
+   * case of a SELECT query you must call the method getResultSet to retrieve the result.
+   * 
+   * Throws: PgqlException - if a server-side error occurs or this method is called on a closed Statement
+   */
+  boolean execute() throws PgqlException;
+
+  /**
+   * Retrieves the current result as a ResultSet object. This method should be called only once per result.
+   * 
+   * Returns: current result as a ResultSet object or null if the query is not a SELECT query.
+   * 
+   * Throws: PgqlException - if a server-side error occurs or this method is called on a closed Statement
+   */
+  ResultSet<?> getResultSet() throws PgqlException;
 
   /**
    * Sets the designated parameter to the given Java boolean value.
