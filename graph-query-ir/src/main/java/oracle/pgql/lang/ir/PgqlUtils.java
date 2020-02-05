@@ -150,8 +150,9 @@ public class PgqlUtils {
 
   public static String printIdentifier(String identifier) {
     if (ALL_UPPERCASED_IDENTIFIER.matcher(identifier).matches()) {
-      // we don't double-quote all-uppercased identifier only to make the pretty-printed queries easier to read
-      return identifier;
+      // we don't double-quote all-uppercased identifiers, and also make them all-lowercase, to make the pretty-printed
+      // queries easier to read
+      return identifier.toLowerCase();
     } else {
       return "\"" + identifier.replace("\"", "\"\"") + "\"";
     }
