@@ -2690,7 +2690,7 @@ For example the following query inserts a new vertex for every profession in the
 
 ```sql 
   INSERT VERTEX x LABELS ( Profession ) PROPERTIES ( x.name = y.profession )
-    FROM MATCH (y: Person)
+    FROM MATCH (y:Person)
 GROUP BY y.profession
 ```
 
@@ -2703,7 +2703,7 @@ For example the following query inserts a vertex with source `x` and destination
 
 ```sql 
 INSERT EDGE e BETWEEN x AND y
-  FROM MATCH (x), (y) 
+  FROM MATCH (x), MATCH (y) 
  WHERE id(x) = 1 AND id(y) = 2 
 ```
 
@@ -2715,7 +2715,7 @@ For example:
 
 ```sql 
 INSERT EDGE e BETWEEN x AND y LABELS ( knows )
-  FROM MATCH (x:Person), (y:Person) 
+  FROM MATCH (x:Person), MATCH (y:Person) 
  WHERE id(x) = 1 AND id(y) = 2 
 ```
 
@@ -2775,7 +2775,7 @@ If a vertex pair is matched more than once, multiple edges will be inserted betw
 For example consider the following query:
 ```sql 
 INSERT EDGE e BETWEEN x AND y
-  FROM MATCH (x), (y) -> (z)
+  FROM MATCH (x), MATCH (y) -> (z)
  WHERE id(x) == 1
 ```
 
@@ -2933,7 +2933,7 @@ For example, to update a vertex and also insert an edge with the same vertex as 
 ```sql 
 INSERT EDGE e BETWEEN x AND y
 UPDATE y SET ( y.a = 12 )
-  FROM MATCH (x), (y) 
+  FROM MATCH (x), MATCH (y) 
  WHERE id(x) = 1 AND id(y) = 2
 ```
 
@@ -2996,7 +2996,7 @@ For example, consider the following, not trivial case:
 ```sql
 INSERT EDGE e BETWEEN x AND y
 DELETE z
-  FROM MATCH (x) -> (y), (z)
+  FROM MATCH (x) -> (y), MATCH (z)
  WHERE id(z) = 11
 ```
 
