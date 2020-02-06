@@ -2736,7 +2736,7 @@ Edge properties can be specified in the same manner:
 
 ```sql 
 INSERT EDGE e BETWEEN x AND y LABELS ( knows ) PROPERTIES ( e.since = DATE '2017-09-21' )
-  FROM MATCH (x: Person), (y: Person) 
+  FROM MATCH (x:Person), MATCH (y:Person) 
  WHERE id(x) = 1 AND id(y) = 2 
 ```
 
