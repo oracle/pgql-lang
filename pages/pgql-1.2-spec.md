@@ -896,6 +896,8 @@ The syntax is:
 HavingClause ::= 'HAVING' <ValueExpression>
 ```
 
+The value expression needs to be a boolean expression.
+
 For example:
 
 ```sql
