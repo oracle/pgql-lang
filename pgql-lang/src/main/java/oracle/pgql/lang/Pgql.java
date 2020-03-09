@@ -9,7 +9,6 @@ import java.io.IOException;
 import java.io.OutputStream;
 import java.io.UnsupportedEncodingException;
 import java.net.URL;
-import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.HashSet;
@@ -45,6 +44,7 @@ import org.metaborg.spoofax.core.unit.ISpoofaxParseUnit;
 import org.metaborg.util.concurrent.IClosableLock;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.spoofax.interpreter.terms.IStrategoInt;
 import org.spoofax.interpreter.terms.IStrategoString;
 import org.spoofax.interpreter.terms.IStrategoTerm;
 
@@ -74,9 +74,9 @@ public class Pgql implements Closeable {
 
   private static final String SPOOFAX_BINARIES = "pgql.spoofax-language";
 
-  private static final int PGQL_VERSION_SUBTERM = 9;
-
   private static final int POS_PGQL_VERSION = 9;
+
+  private static final int POS_BIND_VARIABLE_COUNT = 10;
 
   private static boolean isGloballyInitialized = false;
 
@@ -233,7 +233,10 @@ public class Pgql implements Closeable {
         }
       }
 
-      return new PgqlResult(queryString, queryValid, prettyMessages, statement, parseResult, pgqlVersion);
+      int bindVariableCount = getBindVariableCount(analysisResult.ast(), statement);
+
+      return new PgqlResult(queryString, queryValid, prettyMessages, statement, parseResult, pgqlVersion,
+          bindVariableCount);
     } catch (IOException | ParseException | AnalysisException | ContextException e) {
       throw new PgqlException("Failed to parse PGQL query", e);
     } finally {
@@ -284,6 +287,19 @@ public class Pgql implements Closeable {
     }
 
     return pgqlVersion;
+  }
+
+  private int getBindVariableCount(IStrategoTerm ast, Statement statement) {
+    if (statement == null) {
+      return 0;
+    }
+
+    if (statement.getStatementType() == StatementType.SELECT
+        || statement.getStatementType() == StatementType.GRAPH_MODIFY) {
+      return ((IStrategoInt) ast.getSubterm(POS_BIND_VARIABLE_COUNT)).intValue();
+    }
+
+    return 0;
   }
 
   private FileObject getFileObject(String queryString) throws UnsupportedEncodingException, IOException {

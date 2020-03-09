@@ -88,11 +88,11 @@ type rules
   ExpAsVar(exp, _, _, _) : ty
   where exp : ty
 
-  ScalarSubquery(Subquery(NormalizedQuery(_, SelectClause(_, ExpAsVars([expAsVar|_])), _, _, _, _, _, _, _, _))) : ty
+  ScalarSubquery(Subquery(NormalizedQuery(_, SelectClause(_, ExpAsVars([expAsVar|_])), _, _, _, _, _, _, _, _, _))) : ty
   where expAsVar : ty
     and not ( ty == VertexTy() or ty == EdgeTy() ) else error $[Scalar subquery not allowed to return a vertex or an edge] on expAsVar
 
-  ScalarSubquery(Subquery(NormalizedQuery(_, ModifyClause(_), _, _, _, _, _, _, _, _))) : None()
+  ScalarSubquery(Subquery(NormalizedQuery(_, ModifyClause(_), _, _, _, _, _, _, _, _, _))) : None()
 
   True() + False()        : BooleanTy()
   Date(_)                 : DateTy()
