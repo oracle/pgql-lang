@@ -15,7 +15,7 @@ properties
 
 binding rules // scoping
 
-  NormalizedQuery(_, _, _, _, _, _, _, _, _, _):
+  NormalizedQuery(_, _, _, _, _, _, _, _, _, _, _):
     scopes Var, CommonPathExpression
 
 binding rules // variable definition

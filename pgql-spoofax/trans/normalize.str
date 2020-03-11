@@ -70,7 +70,7 @@ rules
         bottomup(try(
            norm-matchElems(|variable-counter)
         ));
-        bottomup(try(origin-track-forced(norm-query(|error-messages, variable-counter))));
+        bottomup(try(origin-track-forced(norm-query(|error-messages, variable-counter, <get-counter> bindVariable-counter))));
         alltd(?ElemContents(Some(<id>), _, _, _));
         try(copy-graph-name-to-inner-queries)
       > ast
@@ -168,11 +168,11 @@ rules
   // In PGQL 1.1 and PGQL 1.2, subqueries would inherit the graph name from the outer query.
   // This is no longer the case in PGQL 1.3+, where graph names in subqueries need to be respecified.
   copy-graph-name-to-inner-queries:
-    ast@NormalizedQuery(_, _, Some(graphName), _, _, _, _, _, _, "v1.1") -> ast'
+    ast@NormalizedQuery(_, _, Some(graphName), _, _, _, _, _, _, "v1.1", _) -> ast'
     with ast' := <alltd(copy-graph-name-to-query-without-one(|graphName))> ast
 
   copy-graph-name-to-query-without-one(|graphName):
-    NormalizedQuery(a, b, None(), c, d, e, f, g, h, i) -> NormalizedQuery(a, b, Some(graphName), c, d, e, f, g, h, i)
+    NormalizedQuery(a, b, None(), c, d, e, f, g, h, i, j) -> NormalizedQuery(a, b, Some(graphName), c, d, e, f, g, h, i, j)
 
   to-function(|name):
     args -> FunctionCall(None(), name, args)
@@ -514,9 +514,9 @@ rules
 rules
 
   // pgql 1.3
-  norm-query(|error-messages, variable-counter):
+  norm-query(|error-messages, variable-counter, bindVariableCount):
     Query(commonPathExpressions, selectOrModifyClause, graphPatternAndGraphName, groupByClause, havingClause, orderByClause, limitOffsets) ->
-      <norm-query(|error-messages, "v1.3", variable-counter)> (commonPathExpressions, selectOrModifyClause, optionalGraphName, graphPattern', groupByClause, havingClause, orderByClause, limitOffsets)
+      <norm-query(|error-messages, "v1.3", variable-counter, bindVariableCount)> (commonPathExpressions, selectOrModifyClause, optionalGraphName, graphPattern', groupByClause, havingClause, orderByClause, limitOffsets)
     with if <?None()> graphPatternAndGraphName
          then graphPattern' := None()
             ; optionalGraphName := None()
@@ -528,21 +528,21 @@ rules
          end
 
   // pgql 1.1 + 1.2
-  norm-query(|error-messages, variable-counter):
+  norm-query(|error-messages, variable-counter, bindVariableCount):
     Pgql11Query(commonPathExpressions, selectOrModifyClause, fromClause, graphPattern, groupByClause, havingClause, orderByClause, limitOffsets) ->
-      <norm-query(|error-messages, "v1.1", variable-counter)> (commonPathExpressions, selectOrModifyClause, optionalGraphName, Some(graphPattern), groupByClause, havingClause, orderByClause, limitOffsets)
+      <norm-query(|error-messages, "v1.1", variable-counter, bindVariableCount)> (commonPathExpressions, selectOrModifyClause, optionalGraphName, Some(graphPattern), groupByClause, havingClause, orderByClause, limitOffsets)
     with optionalGraphName := <?None() + ?Some(Pgql11FromClause(graphName)); !Some(GraphName(graphName))> fromClause
 
   // pgql 1.0
-  norm-query(|error-messages, variable-counter):
+  norm-query(|error-messages, variable-counter, bindVariableCount):
     q@Pgql10Query(commonPathExpressions, selectClause, fromClause, graphPattern, groupByClause, orderByClause, limitOffsets) ->
-      <norm-query(|error-messages, "v1.0", variable-counter)> (commonPathExpressions, selectClause, optionalGraphName, Some(graphPattern), groupByClause, havingClause, orderByClause, limitOffsets)
+      <norm-query(|error-messages, "v1.0", variable-counter, bindVariableCount)> (commonPathExpressions, selectClause, optionalGraphName, Some(graphPattern), groupByClause, havingClause, orderByClause, limitOffsets)
       with optionalGraphName := <?None() + ?Some(Pgql11FromClause(graphName)); !Some(GraphName(graphName))> fromClause
          ; havingClause := None()
 
-  norm-query(|error-messages, version, variable-counter):
+  norm-query(|error-messages, version, variable-counter, bindVariableCount):
     (commonPathExpressions, selectOrModifyClause, optionalGraphName, graphPattern, groupByClause, havingClause, orderByClause, limitOffsets) ->
-        NormalizedQuery(commonPathExpressions', selectOrModifyClause', optionalGraphName, graphPattern, groupByClause', havingClause, orderByElems, limitOffsets', error-messages, version)
+        NormalizedQuery(commonPathExpressions', selectOrModifyClause', optionalGraphName, graphPattern, groupByClause', havingClause, orderByElems, limitOffsets', error-messages, version, bindVariableCount)
     with
       commonPathExpressions' := <map(norm-common-path-expression(|variable-counter)); !CommonPathExpressions(<id>)> commonPathExpressions;
 

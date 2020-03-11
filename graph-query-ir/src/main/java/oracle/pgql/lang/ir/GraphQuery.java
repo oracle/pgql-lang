@@ -64,7 +64,7 @@ public abstract class GraphQuery implements Statement {
   public abstract void setProjection(Projection projection);
 
   /**
-   * @deprecated use {@link #getInputName()} instead
+   * @deprecated use {@link #getGraphName()} instead
    */
   @Deprecated
   public String getInputGraphName() {
