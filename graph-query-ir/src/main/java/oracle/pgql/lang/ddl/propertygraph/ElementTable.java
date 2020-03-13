@@ -52,7 +52,7 @@ public abstract class ElementTable {
   }
 
   public String getTableAlias() {
-    return tableAlias;
+    return tableAlias == null ? tableName.getName() : tableAlias;
   }
 
   public void setTableAlias(String tableAlias) {
@@ -76,7 +76,7 @@ public abstract class ElementTable {
   }
 
   protected String printAlias(String indentation) {
-    if (tableAlias == null || tableAlias.equals(tableName)) {
+    if (tableAlias == null || tableAlias.equals(tableName.getName())) {
       return "";
     } else {
       return indentation + "AS " + printIdentifier(tableAlias);
@@ -88,6 +88,17 @@ public abstract class ElementTable {
   }
 
   protected String printLabels(String indentation) {
+    if (labels.size() == 1) {
+      Label label = labels.get(0);
+      if (label.getName().equals(getTableAlias())) {
+        // skip printing the label since it can default to the table alias
+        return indentation + label.printProperties();
+      } else {
+     // prints the label and its properties
+        return indentation + label.toString();
+      }
+    }
+
     return indentation + labels.stream() //
         .map(x -> x.toString()) //
         .collect(Collectors.joining(indentation));

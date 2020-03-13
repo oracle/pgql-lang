@@ -6,6 +6,8 @@ package oracle.pgql.lang.ddl.propertygraph;
 import java.util.List;
 import java.util.stream.Collectors;
 
+import static oracle.pgql.lang.ir.PgqlUtils.printIdentifier;
+
 public class Key {
 
   /**
@@ -30,9 +32,9 @@ public class Key {
 
   @Override
   public String toString() {
-    return "(" + columnNames.stream() //
-        .map(x -> x.toString()) //
-        .collect(Collectors.joining(", ")) + ")";
+    return "( " + columnNames.stream() //
+        .map(x -> printIdentifier(x)) //
+        .collect(Collectors.joining(", ")) + " )";
   }
 
   @Override

@@ -91,27 +91,27 @@ public class Label {
 
   @Override
   public String toString() {
-    return "LABEL " + printIdentifier(name) + printProperties();
+    return "LABEL " + printIdentifier(name) + " " + printProperties();
   }
 
-  private String printProperties() {
+  String printProperties() {
     if (propertiesAreAllColumns) {
       assert properties == null;
       if (propertiesAreAllColumnsExcept == null) {
-        return " PROPERTIES ARE ALL COLUMNS";
+        return "PROPERTIES ARE ALL COLUMNS";
       } else {
-        return " PROPERTIES ARE ALL COLUMNS EXCEPT (" + propertiesAreAllColumnsExcept.stream() //
-            .map(x -> x.toString()) //
-            .collect(Collectors.joining(", ")) + ")";
+        return "PROPERTIES ARE ALL COLUMNS EXCEPT ( " + propertiesAreAllColumnsExcept.stream() //
+            .map(x -> printIdentifier(x)) //
+            .collect(Collectors.joining(", ")) + " )";
       }
     } else {
       assert properties != null;
       if (properties.isEmpty()) {
-        return " NO PROPERTIES";
+        return "NO PROPERTIES";
       } else {
-        return " PROPERTIES (" + properties.stream() //
+        return "PROPERTIES ( " + properties.stream() //
             .map(x -> x.toString()) //
-            .collect(Collectors.joining(", ")) + ")";
+            .collect(Collectors.joining(", ")) + " )";
       }
     }
   }
