@@ -23,9 +23,9 @@ The following are the changes since PGQL 1.2:
 The new features are:
 
  - [CREATE PROPERTY GRAPH](#create-property-graph) and [DROP PROPERTY GRAPH](#drop-property-graph) statements for creating graphs from existing tables and for dropping them.
- - [INSERT](#insert), [UPDATE](#update) and [DELETE](#delete) statements for graph modification.
+ - Graph modification through [INSERT](#insert), [UPDATE](#update) and [DELETE](#delete) clauses.
  - [Cheapest path finding](#cheapest-path) and [Top-k cheapest path finding](#top-k-cheapest-path) using `COST` functions.
- - `is_source_of` and `is_destination_of` functions for testing if a particular vertex is the source or the destination of a particular edge. (TODO: add link)
+ - [IS_SOURCE_OF](#is_source_of) and [IS_DESTINATION_OF](#is_destination_of) functions for testing if a vertex is the source or destination of an edge.
  - Auto uppercasing of unquoted identifiers and case insensitive matching of uppercased identifiers. (TODO: add link)
  - Schema qualifiers for graph references. (TODO: add link)
  - Double quoted identifiers now supported everywhere. Previously, support was missing for:
@@ -110,7 +110,6 @@ GraphName           ::= <SchemaQualifiedName>
 VertexTables        ::= 'VERTEX' 'TABLES' '(' <VertexTable> ( ',' <VertexTable> )* ')'
 
 EdgeTables          ::= 'EDGE' 'TABLES' '(' <EdgeTable> ( ',' <EdgeTable> )* ')'
-
 ```
 
 It is possible to have no vertex or edge tables such that an empty graph is created.
@@ -400,9 +399,9 @@ However, there are different ways to customize this behavior as described below.
 The syntax is:
 
 ```bash
-PropertiesClause ::= <PropertiesAreAllColumns>
-                   | <PropertyExpressions>
-                   | <NoProperties>
+PropertiesClause ::=   <PropertiesAreAllColumns>
+                     | <PropertyExpressions>
+                     | <NoProperties>
 ```
 
 Note that the properties clause is optional and if omitted defaults to `PROPERTIES ARE ALL COLUMNS`.
@@ -455,8 +454,8 @@ PropertyExpressions                ::= 'PROPERTIES' '(' <PropertyExpression> ( '
 
 PropertyExpression                 ::= <ColumnReferenceOrCastSpecification> ( 'AS' <PropertyName> )?
 
-ColumnReferenceOrCastSpecification ::= <ColumnReference>
-                                     | <CastSpecification>
+ColumnReferenceOrCastSpecification ::=   <ColumnReference>
+                                       | <CastSpecification>
 
 PropertyName                       ::= <Identifier>
 
@@ -1020,11 +1019,11 @@ The previous section on [writing simple queries](#writing-simple-queries) provid
 The following is the syntax of the main query structure:
 
 ```bash
-PgqlStatement   ::= <CreatePropertyGraph>
-                  | <Query>
+PgqlStatement   ::=   <CreatePropertyGraph>
+                    | <Query>
 
-Query           ::= <SelectQuery>
-                  | <ModifyQuery>
+Query           ::=   <SelectQuery>
+                    | <ModifyQuery>
 
 SelectQuery     ::= <PathMacros>?
                     <SelectClause>
@@ -2076,6 +2075,12 @@ The above query outputs all generators that are connected to each other via one 
 
 ## Shortest Path
 
+Shortest path finding allows for finding paths with a minimal number of hops.
+Given a pair of vertices, [single shortest path finding](#single-shortest-path) allows for finding a single shortest path,
+While [top-k shortest path finding](#top-k-cheapest-path) allows for finding K shortest paths for which paths with increasing length are matched.
+
+### Single Shortest Path
+
 `SHORTEST` allows for matching a shortest path (i.e. minimal number of edges) between a source vertex and a destination vertex. In case multiple shortest paths exist, an arbitrary one is retrieved.
 
 The syntax is:
@@ -2149,7 +2154,7 @@ SELECT src, ARRAY_AGG(e.weight), dst
 
 Here, the filter is applied only _after_ a shortest path is matched such that if the `WHERE` condition is not satisfied, the path is filtered out and no other path is considered even though another path may exist that does satisfy the `WHERE` condition.
 
-## Top-K Shortest Path
+### Top-K Shortest Path
 
 `TOP` k `SHORTEST` path matches the k shortest paths for each pair of source and destination vertices. Aggregations can then be computed over their vertices/edges.
 
@@ -2252,9 +2257,13 @@ ORDER BY num_hops, total_amount
 
 ## Cheapest Path
 
-TODO
+Cheapest path finding allows for finding paths based on a cost function.
+Given a pair of vertices, [single cheapest path finding](#single-cheapest-path) allows for finding a single cheapest path,
+While [top-k cheapest path finding](#top-k-cheapest-path) allows for finding K cheapest paths where paths for which paths with increasing cost are matched.
 
-## Top-K Cheapest Path
+### Single Cheapest Path
+
+### Top-K Cheapest Path
 
 PGQL offers a `TOP k CHEAPEST` clause, which returns the `k` paths that match a given pattern with the lowest cost, 
 computed with a user-defined cost function. If the user-defined cost function returns a constant, the `TOP k CHEAPEST`
@@ -2274,7 +2283,7 @@ DestinationVertexPattern            ::= VertexPattern
 QuantifiedShortestPathPrimary       ::= ShortestPathPrimary GraphPatternQuantifier?
  
 ShortestPathPrimary                 ::=   EdgePattern
-                                          | ParenthesizedPathPatternExpression
+                                        | ParenthesizedPathPatternExpression
  
 ParenthesizedPathPatternExpression  ::= '(' VertexPattern? EdgePattern VertexPattern? WhereClause? CostClause? ')'
  
@@ -2601,7 +2610,7 @@ Here, we find all the vertices in the graph that have the property `name` and th
 
 ### JAVA_REGEXP_LIKE
 
-The JAVA_REGEXP_LIKE returns whether the string matches the given [Java regular expression pattern](https://docs.oracle.com/javase/8/docs/api/java/util/regex/Pattern.html).
+The `JAVA_REGEXP_LIKE` returns whether the string matches the given [Java regular expression pattern](https://docs.oracle.com/javase/8/docs/api/java/util/regex/Pattern.html).
 
 The syntax is:
 
@@ -2620,8 +2629,8 @@ Result: true
 
 ### ABS
 
-The ABS function returns the absolute value of a number.
-The function returns the same datatype as the numeric datatype of the argument.
+The `ABS` function returns the absolute value of a number.
+The output value will have the same data type as the input value.
 
 The syntax is:
 
@@ -2650,8 +2659,8 @@ Result: 23.65
 
 ### CEIL or CEILING
 
-The CEIL and CEILING functions round the specified number up, and return the smallest number that is greater than or equal to the specified number.
-The function returns the same datatype as the numeric datatype of the argument.
+The `CEIL` (or `CEILING`) function rounds the specified number up and returns the smallest number that is greater than or equal to the specified number.
+The output value will have the same data type as the input value.
 
 The syntax is:
 
@@ -2675,8 +2684,8 @@ Result: 3
 
 ### FLOOR
 
-The floor function returns the largest integer value that is smaller than or equal to the given argument.
-The function returns the same datatype as the numeric datatype of the argument.
+The `FLOOR` function returns the largest integer value that is smaller than or equal to the given argument.
+The output value will have the same data type as the input value.
 
 The syntax is:
 
@@ -2699,8 +2708,8 @@ Result: 3
 
 ### ROUND
 
-The round function returns the integer closest to the given argument.
-The function returns the same datatype as the numeric datatype of the argument.
+The `ROUND` function returns the integer closest to the given argument.
+The output value will have the same data type as the input value.
 
 The syntax is:
 
@@ -2788,7 +2797,7 @@ Result: -30
 
 ### ID
 
-The ID function returns a system-generated identifier for the vertex/edge (unique within a graph).
+The `ID` function returns a system-generated identifier for the vertex/edge (unique within a graph).
 
 The syntax is:
 
@@ -2798,7 +2807,7 @@ ID( vertex/edge )
 
 ### LABEL
 
-The LABEL function returns the label of a vertex or an edge. It is an error if the vertex or edge does not have a label, or, has more than one label.
+The `LABEL` function returns the label of a vertex or an edge. It is an error if the vertex or edge does not have a label, or, has more than one label.
 The return type of the function is a string.
 
 The syntax is:
@@ -2826,7 +2835,7 @@ SELECT LABEL(e)
 
 ### LABELS
 
-The LABELS function returns the set of labels of a vertex or an edge. If the vertex or edge does not have a label, an empty set is returned.
+The `LABELS` function returns the set of labels of a vertex or an edge. If the vertex or edge does not have a label, an empty set is returned.
 The return type of the function is a set of strings.
 
 The syntax is:
@@ -2854,7 +2863,7 @@ SELECT LABELS(n)
 
 ### HAS_LABEL
 
-The HAS_LABEL functions returns true if the vertex or edge (first argument) has the given label (second argument), and false otherwise.
+The `HAS_LABEL` functions returns true if the vertex or edge (first argument) has the given label (second argument), and false otherwise.
 
 The syntax is:
 
@@ -2864,7 +2873,7 @@ HAS_LABEL( vertex/edge, string )
 
 ### ALL_DIFFERENT
 
-The ALL_DIFFERENT function returns true if the provided values are all different from each other, and false otherwise. The function is typically used for specifying that a particular set of vertices or edges are all different from each other. However, the function can be used for values of any data type, as long as the provided values can be compared for equality.
+The `ALL_DIFFERENT` function returns true if the provided values are all different from each other, and false otherwise. The function is typically used for specifying that a particular set of vertices or edges are all different from each other. However, the function can be used for values of any data type, as long as the provided values can be compared for equality.
 
 The syntax is:
 
@@ -2900,7 +2909,7 @@ Result: false
 
 ### IN_DEGREE
 
-The IN_DEGREE function returns the number of incoming neighbors of a vertex. The return type is an exact numeric.
+The `IN_DEGREE` function returns the number of incoming neighbors of a vertex. The return type is an exact numeric.
 
 The syntax is:
 
@@ -2910,12 +2919,72 @@ IN_DEGREE( vertex )
 
 ### OUT_DEGREE
 
-The OUT_DEGREE function returns the number of outgoing neighbors of a vertex.  The return type is an exact numeric.
+The `OUT_DEGREE` function returns the number of outgoing neighbors of a vertex.  The return type is an exact numeric.
 
 The syntax is:
 
 ```
 OUT_DEGREE( vertex )
+```
+
+### IS_SOURCE_OF
+
+Given an edge and a vertex, the `IS_SOURCE_OF` function returns true if the vertex is the source of the edge.
+
+The syntax is:
+
+```
+IS_SOURCE_OF( edge, vertex )
+```
+
+For example:
+
+{% include image.html file="example_graphs/financial_transactions.png" %}
+
+```sql
+  SELECT m.number AS toFromAccount, is_source_of(e, n) AS isOutgoingTransaction
+    FROM MATCH (n:Account) -[e:transaction]- (m:Account)
+   WHERE n.number = 10039
+ORDER BY m.number
+```
+
+```
++---------------------------------------+
+| toFromAccount | isOutgoingTransaction |
++---------------------------------------+
+| 2090          | false                 |
+| 8021          | true                  |
++---------------------------------------+
+```
+
+### IS_DESTINATION_OF
+
+Given an edge and a vertex, the `IS_DESTINATION_OF` function returns true if the vertex is the destination of the edge.
+
+The syntax is:
+
+```
+IS_SOURCE_OF( edge, vertex )
+```
+
+For example:
+
+{% include image.html file="example_graphs/financial_transactions.png" %}
+
+```sql
+  SELECT m.number AS toFromAccount, is_destination_of(e, n) AS isIncomingTransaction
+    FROM MATCH (n:Account) -[e:transaction]- (m:Account)
+   WHERE n.number = 10039
+ORDER BY m.number
+```
+
+```
++---------------------------------------+
+| toFromAccount | isIncomingTransaction |
++---------------------------------------+
+| 2090          | true                  |
+| 8021          | false                 |
++---------------------------------------+
 ```
 
 ## User-Defined functions
@@ -3221,10 +3290,10 @@ ORDER BY sum_outgoing + sum_incoming DESC
 # Graph Modification
 
 ```bash
-ModifyQuery       ::= <ModifyQuerySimple>
-                    | <ModifyQueryFull>
+ModifyQuery       ::=   <ModifyQuerySimple>
+                      | <ModifyQueryFull>
 
-ModifyQuerySimple ::= <InsertStatement>
+ModifyQuerySimple ::= <InsertClause>
 
 ModifyQueryFull   ::= <PathPatternMacros>?
                       <Modification>+
@@ -3235,9 +3304,9 @@ ModifyQueryFull   ::= <PathPatternMacros>?
                       <OrderByClause>?
                       <LimitOffsetClauses>?
 
-Modification      ::= <InsertStatement>
-                    | <UpdateStatement>
-                    | <DeleteStatement>
+Modification      ::=   <InsertClause>
+                      | <UpdateClause>
+                      | <DeleteClause>
 ```
 
 Modifications follow snapshot isolation semantics, meaning that insertions, updates and deletions within the same query do not see each other's results.
@@ -3245,13 +3314,13 @@ Modifications follow snapshot isolation semantics, meaning that insertions, upda
 ## INSERT
 
 ```bash
-InsertStatement         ::= 'INSERT' <IntoClause>? <GraphElementInsertion> ( ',' <GraphElementInsertion> )*
+InsertClause            ::= 'INSERT' <IntoClause>? <GraphElementInsertion> ( ',' <GraphElementInsertion> )*
 
 IntoClause              ::= 'INTO' <GraphName>
 
-GraphElementInsertion   ::= 'VERTEX' <VariableName>? <LabelsAndProperties>
-                          | 'EDGE' <VariableName>? 'BETWEEN' <VertexReference> 'AND' <VertexReference>
-                                   <LabelsAndProperties> 
+GraphElementInsertion   ::=   'VERTEX' <VariableName>? <LabelsAndProperties>
+                            | 'EDGE' <VariableName>? 'BETWEEN' <VertexReference> 'AND' <VertexReference>
+                                     <LabelsAndProperties> 
 
 VertexReference         ::= <Identifier>
 
@@ -3314,7 +3383,8 @@ For example the following query inserts a vertex with source `x` and destination
 
 ```sql 
 INSERT EDGE e BETWEEN x AND y
-  FROM MATCH (x), MATCH (y) 
+  FROM MATCH (x)
+     , MATCH (y) 
  WHERE id(x) = 1 AND id(y) = 2 
 ```
 
@@ -3326,7 +3396,8 @@ For example:
 
 ```sql 
 INSERT EDGE e BETWEEN x AND y LABELS ( knows )
-  FROM MATCH (x:Person), MATCH (y:Person) 
+  FROM MATCH (x:Person)
+     , MATCH (y:Person) 
  WHERE id(x) = 1 AND id(y) = 2 
 ```
 
@@ -3347,7 +3418,8 @@ Edge properties can be specified in the same manner:
 
 ```sql 
 INSERT EDGE e BETWEEN x AND y LABELS ( knows ) PROPERTIES ( e.since = DATE '2017-09-21' )
-  FROM MATCH (x:Person), MATCH (y:Person) 
+  FROM MATCH (x:Person)
+     , MATCH (y:Person) 
  WHERE id(x) = 1 AND id(y) = 2 
 ```
 
@@ -3373,7 +3445,8 @@ For example, the following query inserts a vertex and an edge that connects it t
 ```sql 
 INSERT VERTEX x LABELS ( Person ) PROPERTIES ( x.name = 'John' ),
      , EDGE e BETWEEN x AND y LABELS ( knows ) PROPERTIES ( e.since = DATE '2017-09-21' )
-  FROM MATCH (y) WHERE y.name = 'Jane'
+  FROM MATCH (y)
+ WHERE y.name = 'Jane'
 ``` 
 
 Note that the properties of `x` cannot be accessed in the property assignments of `e`, only the variable itself is visible as source of the edge.
@@ -3386,7 +3459,8 @@ If a vertex pair is matched more than once, multiple edges will be inserted betw
 For example consider the following query:
 ```sql 
 INSERT EDGE e BETWEEN x AND y
-  FROM MATCH (x), MATCH (y) -> (z)
+  FROM MATCH (x)
+     , MATCH (y) -> (z)
  WHERE id(x) == 1
 ```
 
@@ -3407,11 +3481,17 @@ In that case, three edges will be inserted, one connecting `V1` and `V2` and two
 
 ## UPDATE
 
+The `UPDATE` clause allows for setting the properties of one or more vertices and edges.
+
+The syntax is:
+
 ```bash
-UpdateStatement ::= 'UPDATE' <VariableReference> 'SET' '(' <PropertyAssignment> ( ',' <PropertyAssignment> )* ')'
+UpdateClause       ::= 'UPDATE' <GraphElementUpdate> ( ',' <GraphElementUpdate> )*
+
+GraphElementUpdate ::= <VariableReference> 'SET' '(' <PropertyAssignment> ( ',' <PropertyAssignment> )* ')'
 ```
 
-For example, the value of property `age` for every person named "John" can be updated the following way:
+For example, the following query sets the property `age` of every person named "John" to the value `42`:
 
 ```sql
 UPDATE x SET ( x.age = 42 )
@@ -3419,14 +3499,17 @@ UPDATE x SET ( x.age = 42 )
  WHERE x.name = 'John'
 ``` 
 
-Properties can be updated via any variable matched with the pattern in the `MATCH` clause.
+An example in which properties of multiple vertices and edges are update is:
 
 ```sql
-UPDATE v SET ( v.age = 42 )
+UPDATE v SET ( v.carOwner = true )
      , u SET ( u.weight = 3500 )
-  FROM MATCH (v:Person) <-[:belongs_to]- (u:Car)
+     , e SET ( e.since = DATE '2010-01-03' )
+  FROM MATCH (v:Person) <-[e:belongs_to]- (u:Car)
  WHERE v.name = 'John'
 ```
+
+Above, we match a person named John and the car that belongs to John. We then set the property `carOwner` of John to true, we set the property `weight` of the car to 3500, and we set the property `since` of the `belongs_to` edge to the date 2010-01-03.
 
 ### Handling read after write conflicts
 
@@ -3497,7 +3580,7 @@ UPDATE v SET ( v.a = 65 - u.age )
 ## DELETE
 
 ```bash
-DeleteStatement ::= 'DELETE' <VariableReference> ( ',' <VariableReference> )*
+DeleteClause ::= 'DELETE' <VariableReference> ( ',' <VariableReference> )*
 ```
 
 

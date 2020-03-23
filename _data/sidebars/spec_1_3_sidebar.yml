@@ -299,18 +299,28 @@ entries:
     - title: 'Shortest Path'
       url: /spec/1.3/#shortest-path
       output: web
+      subfolderitems:
 
-    - title: 'Top-K Shortest Path'
-      url: /spec/1.3/#top-k-shortest-path
-      output: web
+      - title: 'Single Shortest Path'
+        url: /spec/1.3/#single-shortest-path
+        output: web
+
+      - title: 'Top-K Shortest Path'
+        url: /spec/1.3/#top-k-shortest-path
+        output: web
 
     - title: 'Cheapest Path'
       url: /spec/1.3/#cheapest-path
       output: web
+      subfolderitems:
 
-    - title: 'Top-K Cheapest Path'
-      url: /spec/1.3/#top-k-cheapest-path
-      output: web
+      - title: 'Single Cheapest Path'
+        url: /spec/1.3/#single-cheapest-path
+        output: web
+
+      - title: 'Top-K Cheapest Path'
+        url: /spec/1.3/#top-k-cheapest-path
+        output: web
 
   - title: 'Functions and Expressions'
     url: /spec/1.3/#functions-and-expressions
@@ -434,6 +444,14 @@ entries:
 
       - title: 'OUT_DEGREE'
         url: /spec/1.3/#out_degree
+        output: web
+
+      - title: 'IS_SOURCE_OF'
+        url: /spec/1.3/#is_source_of
+        output: web
+
+      - title: 'IS_DESTINATION_OF'
+        url: /spec/1.3/#is_destination_of
         output: web
 
     - title: 'User-Defined functions'
