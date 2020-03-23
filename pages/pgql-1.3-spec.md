@@ -44,7 +44,7 @@ This document contains a complete grammar definition of PGQL, spread throughout 
 
 ## Document Outline
 
- - [Introduction](#introduction) contains a changelog, a note on the grammar, and this outline.
+ - [Introduction](#introduction) contains a changelog, a note on the grammar, this outline and an introduction to the property graph data model.
  - [Creating a Property Graph](#creating-a-property-graph) describes how to create a property graph from an existing set of tables in a relational database.
  - [Graph Pattern Matching](#graph-pattern-matching) introduces the basic concepts of graph querying.
  - [Grouping and Aggregation](#grouping-and-aggregation) describes the mechanism to group and aggregate results.
@@ -54,10 +54,6 @@ This document contains a complete grammar definition of PGQL, spread throughout 
  - [Subqueries](#subqueries) describes the syntax and semantics of subqueries for creating more complex queries that nest other queries.
  - [Graph Modification](#graph-modification) describes `INSERT`, `UPDATE` and `DELETE` statements for inserting, updating and deleting vertices and edges in a graph.
  - [Other Syntactic rules](#other-syntactic-rules) describes additional syntactic rules that are not covered by the other sections, such as syntax for identifiers and comments.
-
-# Creating a Property Graph
-
-TODO
 
 ## Property graph data model
 
@@ -92,13 +88,364 @@ An example graph with financial transactions is:
 
 Here, `financial_transactions` is the name of the graph. The graph has three types of vertices. Vertices labeled `Person` or `Company` have a property `name`, while vertices labeled `Account` have a property `number`. There are edges labeled `ownerOf` from persons to accounts and from companies to accounts, and there are edges labeled `transaction` from accounts to accounts. Note that only the transaction edges have a property (`amount`).
 
-## CREATE PROPERTY GRAPH
+
+# Creating a Property Graph
 
 TODO
+
+## CREATE PROPERTY GRAPH
+
+The `CREATE PROPERTY GRAPH` statement allows for creating a property graph from a set of existing database tables.
+
+The statement starts with the keyword `CREATE PROPERTY GRAPH` followed by a graph name, a set of vertex table (at least one) and an optional set of edge tables.
+
+```bash
+CreatePropertyGraph ::= 'CREATE' 'PROPERTY' 'GRAPH' <GraphName>
+                        <VertexTables>?
+                        <EdgeTables>?
+
+GraphName           ::= <SchemaQualifiedName>
+
+VertexTables        ::= 'VERTEX' 'TABLES' '(' <VertexTable> ( ',' <VertexTable> )* ')'
+
+EdgeTables          ::= 'EDGE' 'TABLES' '(' <EdgeTable> ( ',' <EdgeTable> )* ')'
+
+```
+
+An example is:
+
+{% include image.html file="example_graphs/financial_transactions_schema.png"  %}
+
+```sql
+CREATE PROPERTY GRAPH financial_transactions
+  VERTEX TABLES (
+    Accounts LABEL Account,
+    Persons LABEL Person PROPERTIES ( name ),
+    Companies LABEL Company PROPERTIES ( name )
+  )
+  EDGE TABLES (
+    Transactions
+      SOURCE KEY ( from_account ) REFERENCES Accounts
+      DESTINATION KEY ( to_account ) REFERENCES Accounts
+      LABEL ( transaction )
+      PROPERTIES ( amount ),
+    PersonOwnerOfAccount
+      SOURCE Persons
+      DESTINATION Accounts
+      LABEL ownerOf
+      NO PROPERTIES,
+    CompanyOwnerOfAccount
+      SOURCE Companies
+      DESTINATION Accounts
+      LABEL ownerOf
+      NO PROPERTIES
+  )
+```
+
+The above example is explained in more detail in the following sections.
+
+### Vertex tables
+
+```bash
+VertexTable              ::= <TableName> <TableAlias>? <KeyClause>? <LabelAndPropertiesClause>?
+
+LabelAndPropertiesClause ::= <LabelClause>? <PropertiesClause>?
+
+TableName                ::= <SchemaQualifiedName>
+```
+
+### Edge tables
+
+```bash
+EdgeTable                      ::= <TableName> <AsTableAlias>? <KeyClause>?
+                                   <SourceVertexTable> <DestinationVertexTable>
+                                   <LabelAndPropertiesClause>?
+
+SourceVertexTable              ::= 'SOURCE' <ReferencedVertexTableKeyClause>? <TableName>
+
+DestinationVertexTable         ::= 'DESTINATION' <ReferencedVertexTableKeyClause>? <TableName>
+
+ReferencedVertexTableKeyClause ::= <KeyClause> 'REFERENCES'
+```
+
+### Keys
+
+By default, existing primary and foreign keys of underlying tables are used for creating edges, but the following scenarios
+require manual specification of keys:
+
+ - Multiple foreign keys exists between an edge table and its source vertex table or its destination vertex tables such that it would be ambiguous which foreign key to use
+ - Primary and/or foreign keys on underlying tables were not defined or the underlying tables are views which means that primary and foreign keys cannot be defined
+
+The syntax for keys is:
+
+```bash
+KeyClause  ::= '(' <ColumnName> ( ',' <ColumnName> )* ')'
+
+ColumnName ::= <Identifier>
+```
+
+Take the example from before:
+
+{% include image.html file="example_graphs/financial_transactions_schema.png"  %}
+
+```sql
+CREATE PROPERTY GRAPH financial_transactions
+  VERTEX TABLES (
+    ...
+  )
+  EDGE TABLES (
+    Transactions
+      SOURCE KEY ( from_account ) REFERENCES Accounts
+      DESTINATION KEY ( to_account ) REFERENCES Accounts
+      LABEL ( transaction )
+      PROPERTIES ( amount ),
+    PersonOwnerOfAccount
+      SOURCE Persons
+      DESTINATION Accounts
+      LABEL ownerOf
+      NO PROPERTIES,
+    ...
+  )
+```
+
+Above, a key is defined for the source vertex table of the `Transactions` edge table because two foreign keys exist from `Transactions` too `Accounts`
+and it would be ambiguous which one to use.
+For the same reason, a key is defined for the destination vertex table of the `Transactions` edge table.
+
+The keys for source and destination vertex tables consist of one or more columns fo the underlying edge table that uniquely identify a vertex in the corresponding vertex table. If no key is defined for the vertex table, the key defaults to the underlying primary key, which is required to exist in such a case.
+
+The following example has a schema that has no primary and foreign keys defined at all:
+
+{% include image.html file="example_graphs/financial_transactions_schema_no_keys.png"  %}
+
+```sql
+CREATE PROPERTY GRAPH financial_transactions
+  VERTEX TABLES (
+    Accounts
+      KEY ( number )
+      LABEL Account,
+    Persons
+      KEY ( id )
+      LABEL Person
+      PROPERTIES ( name ),
+    Companies
+      KEY ( id )
+      LABEL Company
+      PROPERTIES ( name )
+  )
+  EDGE TABLES (
+    Transactions
+      KEY ( from_account, to_account, date )
+      SOURCE KEY ( from_account ) REFERENCES Accounts
+      DESTINATION KEY ( to_account ) REFERENCES Accounts
+      LABEL ( transaction )
+      PROPERTIES ( amount ),
+    PersonOwnerOfAccount
+      KEY ( person_id )
+      SOURCE KEY ( person_id ) REFERENCES Persons
+      DESTINATION KEY ( to_account ) REFERENCES Accounts
+      LABEL ownerOf
+      NO PROPERTIES,
+    CompanyOwnerOfAccount
+      KEY ( company_id )
+      SOURCE KEY ( company_id ) REFERENCES Companies
+      DESTINATION KEY ( to_account ) REFERENCES Accounts
+      LABEL ownerOf
+      NO PROPERTIES
+  )
+```
+
+Above, keys were defined for each vertex table (e.g. `Account KEY ( number )`, edge table (e.g. `Transactions KEY ( from_account, to_account, date )`, source vertex table reference (e.g. `SOURCE KEY ( person_id ) REFERENCES Persons` and destination table reference (e.g. `DESTINATION KEY ( to_account ) REFERENCES Accounts`).
+Keys for the edge tables may or may not be required depending on the implementation.
+
+### Labels
+
+```bash
+LabelClause ::= 'LABEL' <Label>
+
+Label       ::= <Identifier>
+```
+
+Label is optional, it defaults to the alias. Note: if alias is not defined, the alias and thus the label default to the table name.
+
+
+### Properties
+
+```bash
+PropertiesClause ::= <PropertiesAreAllColumns>
+                   | <PropertyExpressions>
+                   | <NoProperties>
+```
+
+A `<PropertyExpression>` xyzzy
+
+#### PROPERTIES ARE ALL COLUMNS
+
+```bash
+PropertiesAreAllColumns ::= 'PROPERTIES' <AreKeyword>? 'ALL' 'COLUMNS' <ExceptColumns>?
+
+AreKeyword              ::= 'ARE'
+```
+
+#### PROPERTIES ARE ALL COLUMNS EXCEPT ( .. )
+
+```bash
+ExceptColumns ::= 'EXCEPT' '(' <ColumnReference> ( ',' <ColumnReference> )* ')'
+```
+
+#### PROPERTIES ( .. )
+
+```bash
+PropertyExpressions                ::= 'PROPERTIES' '(' <PropertyExpression> ( ',' <PropertyExpression> )* ')'
+
+PropertyExpression                 ::= <ColumnReferenceOrCastSpecification> ( 'AS' <PropertyName> )?
+
+ColumnReferenceOrCastSpecification ::= <ColumnReference>
+                                     | <CastSpecification>
+
+PropertyName                       ::= <Identifier>
+
+ColumnReference                    ::= <Identifier>
+```
+
+If multiple vertex tables have the same label then they are required to have the same properties with the same names and compatible data types.
+Similarly, if multiple edge tables have the same label then they are also required to have the same properties.
+
+If two tables should have the same label but column names are different, then it is required provide (the same property names).
+For example, assume two tables `Country` and `City` exist with columns `country_name` and `city_name` respectively.
+
+The following statement would be illegal because both vertex tables have the same label but not the same properties:
+
+```sql
+...
+  VERTEX TABLES (
+    /* ERROR: it is not allowed to have tables with the same labels but different properties */
+    Country LABEL Place PROPERTIES ( country_name ),
+    City LABEL Place PROPERTIES ( city_name )
+  )
+...
+```
+
+Note that the example above is incorrect because the two vertex tables have the same label (`Place`) but different properties (`country_name` and `city_name`).
+
+To make this example work, the same property names have to be provided for both columns:
+
+```sql
+...
+  VERTEX TABLES (
+    Country LABEL Place PROPERTIES ( country_name AS name ),
+    City LABEL Place PROPERTIES ( city_name AS name )
+  )
+...
+```
+
+#### NO PROPERTIES
+
+```bash
+NoProperties ::= 'NO' 'PROPERTIES'
+```
+
+### Table aliases
+
+```bash
+TableAlias ::= <AsKeyword>? <Identifier>
+
+AsKeyword  ::= 'AS'
+```
+
+### Example: HR schema
+
+{% include image.html file="example_graphs/hr_schema.png"  %}
+
+```sql
+CREATE PROPERTY GRAPH hr
+  VERTEX TABLES (
+    employees LABEL employee
+      PROPERTIES ARE ALL COLUMNS EXCEPT ( job_id, manager_id, department_id ),
+    departments LABEL department
+      PROPERTIES ( department_id, department_name ),
+    jobs LABEL job
+      PROPERTIES ARE ALL COLUMNS,
+    job_history
+      PROPERTIES ( start_date, end_date ),
+    locations LABEL location
+      PROPERTIES ARE ALL COLUMNS EXCEPT ( country_id ),
+    countries LABEL country
+      PROPERTIES ARE ALL COLUMNS EXCEPT ( region_id ),
+    regions LABEL region
+  )
+  EDGE TABLES (
+    employees AS works_for
+      SOURCE employees
+      DESTINATION KEY ( manager_id ) REFERENCES employees
+      NO PROPERTIES,
+    employees AS works_at
+      SOURCE employees
+      DESTINATION departments
+      NO PROPERTIES,
+    employees AS works_as
+      SOURCE employees
+      DESTINATION jobs
+      NO PROPERTIES,
+    departments AS managed_by
+      SOURCE departments
+      DESTINATION employees
+      NO PROPERTIES,
+    job_history AS for_employee
+      SOURCE job_history
+      DESTINATION employees
+      LABEL for
+      NO PROPERTIES,
+    job_history AS for_department
+      SOURCE job_history
+      DESTINATION departments
+      LABEL for
+      NO PROPERTIES,
+    job_history AS for_job
+      SOURCE job_history
+      DESTINATION jobs
+      LABEL for
+      NO PROPERTIES,
+    departments AS department_located_in
+      SOURCE departments
+      DESTINATION locations
+      LABEL located_in
+      NO PROPERTIES,
+    locations AS location_located_in
+      SOURCE locations
+      DESTINATION countries
+      LABEL located_in
+      NO PROPERTIES,
+    countries AS country_located_in
+      SOURCE countries
+      DESTINATION regions
+      LABEL located_in
+      NO PROPERTIES
+  )
+```
+
+
+
+### Multiple schemas
+
+
+
 
 ## DROP PROPERTY GRAPH
 
-TODO
+To drop a property graph use `DROP PROPERTY GRAPH` followed by the name of the graph to drop.
+
+The syntax is:
+
+```bash
+DropPropertyGraph ::= 'DROP' 'PROPERTY' 'GRAPH' <GraphName>
+```
+
+For example:
+
+```sql
+DROP PROPERTY GRAPH financial_transactions
+```
 
 # Graph Pattern Matching
 
@@ -558,7 +905,7 @@ AnyDirectedEdgePattern ::=   '-'
 
 VariableSpecification  ::= <VariableName>? <LabelPredicate>?
 
-VariableName           ::= <IDENTIFIER>
+VariableName           ::= <Identifier>
 ```
 
 A path pattern that describes a partial topology of the subgraph pattern. In other words, a topology constraint describes some connectivity relationships between vertices and edges in the pattern, whereas the whole topology of the pattern is described with one or multiple topology constraints.
@@ -581,8 +928,6 @@ The `ON` clause specifies the name of the input graph to be queried:
 
 ```bash
 OnClause   ::= 'ON' <GraphName>
-
-GraphName  ::= <IDENTIFIER>
 ```
 
 For example, the input graph of the following query is `my_graph`:
@@ -681,10 +1026,7 @@ In the property graph model, vertices and edge may have labels, which are arbitr
 This is explained by the following grammar constructs:
 
 ```bash
-LabelPredicate ::= ':' <Label> ( '|' <Label> )*
-
-Label          ::= <IDENTIFIER>
-```
+LabelPredicate ::= ':' <Label> ( '|' <Label> )*```
 
 Take the following example:
 
@@ -1446,7 +1788,7 @@ One or more "common path expression" may be declared at the beginning of the que
 ```bash
 CommonPathExpressions ::= <CommonPathExpression>+
 
-CommonPathExpression  ::= 'PATH' <IDENTIFIER> 'AS' <PathPattern> <WhereClause>?
+CommonPathExpression  ::= 'PATH' <Identifier> 'AS' <PathPattern> <WhereClause>?
 ```
 
 A path pattern declaration starts with the keyword `PATH`, followed by an expression name, the assignment operator `AS`, and a path pattern consisting of at least one vertex. The syntactic structure of the path pattern is the same as a path pattern in the `MATCH` clause.
@@ -1736,8 +2078,6 @@ ValueExpression          ::=   <VariableReference>
 VariableReference        ::= <VariableName>
 
 PropertyAccess           ::= <VariableReference> '.' <PropertyName>
-
-PropertyName             ::= <IDENTIFIER>
 
 BracketedValueExpression ::= '(' <ValueExpression> ')'
 ```
@@ -2339,9 +2679,9 @@ FunctionInvocation   ::= <PackageSpecification>? <FunctionName> '(' <ArgumentLis
 
 PackageSpecification ::= <PackageName> '.'
 
-PackageName          ::= <IDENTIFIER>
+PackageName          ::= <Identifier>
 
-FunctionName         ::= <IDENTIFIER>
+FunctionName         ::= <Identifier>
 
 ArgumentList         ::= <ValueExpression> ( ',' <ValueExpression> )*
 ```
@@ -2644,7 +2984,7 @@ GraphElementInsertion   ::= 'VERTEX' <VariableName>? <LabelsAndProperties>
                           | 'EDGE' <VariableName>? 'BETWEEN' <VertexReference> 'AND' <VertexReference>
                                    <LabelsAndProperties> 
 
-VertexReference         ::= <IDENTIFIER>
+VertexReference         ::= <Identifier>
 
 LabelsAndProperties     ::= <LabelSpecification>? <PropertiesSpecification>?
 
@@ -3016,11 +3356,15 @@ Identifiers are used for graph names, property names, and labels. They are eithe
 The syntax is:
 
 ```bash
-IDENTIFIER          ::= <UNQUOTED_IDENTIFIER> | <QUOTED_IDENTIFIER>
+Identifier           ::= <UNQUOTED_IDENTIFIER> | <QUOTED_IDENTIFIER>
 
-UNQUOTED_IDENTIFIER ::= [a-zA-Z][a-zA-Z0-9\_]*
+UNQUOTED_IDENTIFIER  ::= [a-zA-Z][a-zA-Z0-9\_]*
 
-QUOTED_IDENTIFIER   ::= '"' ( ~[\"\n\\] | <ESCAPED_CHARACTER> )* '"'
+QUOTED_IDENTIFIER    ::= '"' ( ~[\"\n\\] | <ESCAPED_CHARACTER> )* '"'
+
+SchemaQualifiedName  ::= <SchemaIdentifierPart>? <Identifier>
+
+SchemaIdentifierPart ::= <Identifier> '.'
 ```
 
 Unquoted identifiers take the form of an alphabetic character followed by zero or more alphanumeric or underscore (i.e. `_`) characters. Special characters are not supported.

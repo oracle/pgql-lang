@@ -4,6 +4,8 @@ _site/
 _pdf
 .idea/
 *.class
-graph-query-ir/.gitignore
-pgql-lang/.gitignore
-pgql-spoofax/.gitignore
+graph-query-ir/
+pgql-lang/
+pgql-spoofax/
+example/
+pgql-tests/

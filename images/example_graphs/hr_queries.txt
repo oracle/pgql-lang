@@ -1,0 +1,162 @@
+
+SELECT label(n) AS lbl, COUNT(*) FROM MATCH (n) GROUP BY lbl ORDER BY COUNT(*) DESC
+
++------------------------+
+| LBL         | COUNT(*) |
++------------------------+
+| EMPLOYEE    | 107      |
+| DEPARTMENT  | 27       |
+| COUNTRY     | 25       |
+| LOCATION    | 23       |
+| JOB         | 19       |
+| JOB_HISTORY | 10       |
+| REGION      | 4        |
++------------------------+
+
+SELECT label(n) AS srcLbl, label(e) AS edgeLbl, label(m) AS dstLbl, COUNT(*) FROM MATCH (n) -[e]-> (m) GROUP BY srcLbl, edgeLbl, dstLbl ORDER BY COUNT(*) DESC
+
++--------------------------------------------------+
+| SRCLBL      | EDGELBL    | DSTLBL     | COUNT(*) |
++--------------------------------------------------+
+| EMPLOYEE    | WORKS_AS   | JOB        | 106      |
+| EMPLOYEE    | WORKS_FOR  | EMPLOYEE   | 106      |
+| EMPLOYEE    | WORKS_AT   | DEPARTMENT | 105      |
+| DEPARTMENT  | LOCATED_IN | LOCATION   | 27       |
+| COUNTRY     | LOCATED_IN | REGION     | 25       |
+| LOCATION    | LOCATED_IN | COUNTRY    | 23       |
+| DEPARTMENT  | MANAGED_BY | EMPLOYEE   | 11       |
+| JOB_HISTORY | FOR        | JOB        | 10       |
+| JOB_HISTORY | FOR        | EMPLOYEE   | 10       |
+| JOB_HISTORY | FOR        | DEPARTMENT | 10       |
++--------------------------------------------------+
+
+
+SELECT n.employee_id, n.first_name, n.last_name, n.email, n.phone_number, n.hire_date, n.salary, n.commission_pct FROM MATCH (n:Employee) ORDER BY n.employee_id LIMIT 10
+  
++-------------------------------------------------------------------------------------------------------------------+
+| EMPLOYEE_ID | FIRST_NAME | LAST_NAME | EMAIL    | PHONE_NUMBER | HIRE_DATE             | SALARY  | COMMISSION_PCT |
++-------------------------------------------------------------------------------------------------------------------+
+| 100.0       | Steven     | King      | SKING    | 515.123.4567 | 2003-06-16 17:00:00.0 | 24000.0 | <null>         |
+| 101.0       | Neena      | Kochhar   | NKOCHHAR | 515.123.4568 | 2005-09-20 17:00:00.0 | 17000.0 | <null>         |
+| 102.0       | Lex        | De Haan   | LDEHAAN  | 515.123.4569 | 2001-01-12 16:00:00.0 | 17000.0 | <null>         |
+| 103.0       | Alexander  | Hunold    | AHUNOLD  | 590.423.4567 | 2006-01-02 16:00:00.0 | 9000.0  | <null>         |
+| 104.0       | Bruce      | Ernst     | BERNST   | 590.423.4568 | 2007-05-20 17:00:00.0 | 6000.0  | <null>         |
+| 105.0       | David      | Austin    | DAUSTIN  | 590.423.4569 | 2005-06-24 17:00:00.0 | 4800.0  | <null>         |
+| 106.0       | Valli      | Pataballa | VPATABAL | 590.423.4560 | 2006-02-04 16:00:00.0 | 4800.0  | <null>         |
+| 107.0       | Diana      | Lorentz   | DLORENTZ | 590.423.5567 | 2007-02-06 16:00:00.0 | 4200.0  | <null>         |
+| 108.0       | Nancy      | Greenberg | NGREENBE | 515.124.4569 | 2002-08-16 17:00:00.0 | 12008.0 | <null>         |
+| 109.0       | Daniel     | Faviet    | DFAVIET  | 515.124.4169 | 2002-08-15 17:00:00.0 | 9000.0  | <null>         |
++-------------------------------------------------------------------------------------------------------------------+
+
+SELECT n.department_id, n.department_name FROM MATCH (n:Department) ORDER BY n.department_id LIMIT 10
+
++----------------------------------+
+| DEPARTMENT_ID | DEPARTMENT_NAME  |
++----------------------------------+
+| 10.0          | Administration   |
+| 20.0          | Marketing        |
+| 30.0          | Purchasing       |
+| 40.0          | Human Resources  |
+| 50.0          | Shipping         |
+| 60.0          | IT               |
+| 70.0          | Public Relations |
+| 80.0          | Sales            |
+| 90.0          | Executive        |
+| 100.0         | Finance          |
++----------------------------------+
+
+SELECT n.country_id, n.country_name FROM MATCH (n:Country) ORDER BY n.country_name LIMIT 10
+
++---------------------------+
+| COUNTRY_ID | COUNTRY_NAME |
++---------------------------+
+| AR         | Argentina    |
+| AU         | Australia    |
+| BE         | Belgium      |
+| BR         | Brazil       |
+| CA         | Canada       |
+| CN         | China        |
+| DK         | Denmark      |
+| EG         | Egypt        |
+| FR         | France       |
+| DE         | Germany      |
++---------------------------+
+
+SELECT n.location_id, n.street_address, n.postal_code, n.city, n.state_province FROM MATCH (n:Location) ORDER BY n.location_id LIMIT 10
+
++----------------------------------------------------------------------------------------------+
+| LOCATION_ID | STREET_ADDRESS          | POSTAL_CODE | CITY                | STATE_PROVINCE   |
++----------------------------------------------------------------------------------------------+
+| 1000.0      | 1297 Via Cola di Rie    | 00989       | Roma                | <null>           |
+| 1100.0      | 93091 Calle della Testa | 10934       | Venice              | <null>           |
+| 1200.0      | 2017 Shinjuku-ku        | 1689        | Tokyo               | Tokyo Prefecture |
+| 1300.0      | 9450 Kamiya-cho         | 6823        | Hiroshima           | <null>           |
+| 1400.0      | 2014 Jabberwocky Rd     | 26192       | Southlake           | Texas            |
+| 1500.0      | 2011 Interiors Blvd     | 99236       | South San Francisco | California       |
+| 1600.0      | 2007 Zagora St          | 50090       | South Brunswick     | New Jersey       |
+| 1700.0      | 2004 Charade Rd         | 98199       | Seattle             | Washington       |
+| 1800.0      | 147 Spadina Ave         | M5V 2L7     | Toronto             | Ontario          |
+| 1900.0      | 6092 Boxwood St         | YSW 9T2     | Whitehorse          | Yukon            |
++----------------------------------------------------------------------------------------------+
+
+SELECT n.job_id, n.job_title, n.min_salary, n.max_salary FROM MATCH (n:Job) ORDER BY n.job_id LIMIT 10
+
++-----------------------------------------------------------------------+
+| JOB_ID     | JOB_TITLE                      | MIN_SALARY | MAX_SALARY |
++-----------------------------------------------------------------------+
+| AC_ACCOUNT | Public Accountant              | 4200.0     | 9000.0     |
+| AC_MGR     | Accounting Manager             | 8200.0     | 16000.0    |
+| AD_ASST    | Administration Assistant       | 3000.0     | 6000.0     |
+| AD_PRES    | President                      | 20080.0    | 40000.0    |
+| AD_VP      | Administration Vice President  | 15000.0    | 30000.0    |
+| FI_ACCOUNT | Accountant                     | 4200.0     | 9000.0     |
+| FI_MGR     | Finance Manager                | 8200.0     | 16000.0    |
+| HR_REP     | Human Resources Representative | 4000.0     | 9000.0     |
+| IT_PROG    | Programmer                     | 4000.0     | 10000.0    |
+| MK_MAN     | Marketing Manager              | 9000.0     | 15000.0    |
++-----------------------------------------------------------------------+
+
+SELECT emp.first_name, emp.last_name, dep.department_name, job.job_title, hist.start_date, hist.end_date FROM MATCH (hist:Job_History) -[:for]-> (emp:Employee), MATCH (hist:Job_History) -[:for]-> (dep:Department), MATCH (hist:Job_History) -[:for]-> (job:Job) ORDER BY emp.employee_id, dep.department_id, job.job_id LIMIT 20
+
++---------------------------------------------------------------------------------------------------------------------+
+| FIRST_NAME | LAST_NAME | DEPARTMENT_NAME | JOB_TITLE                | START_DATE            | END_DATE              |
++---------------------------------------------------------------------------------------------------------------------+
+| Neena      | Kochhar   | Accounting      | Public Accountant        | 1997-09-20 17:00:00.0 | 2001-10-26 17:00:00.0 |
+| Neena      | Kochhar   | Accounting      | Accounting Manager       | 2001-10-27 17:00:00.0 | 2005-03-14 16:00:00.0 |
+| Lex        | De Haan   | IT              | Programmer               | 2001-01-12 16:00:00.0 | 2006-07-23 17:00:00.0 |
+| Den        | Raphaely  | Shipping        | Stock Clerk              | 2006-03-23 16:00:00.0 | 2007-12-30 16:00:00.0 |
+| Payam      | Kaufling  | Shipping        | Stock Clerk              | 2006-12-31 16:00:00.0 | 2007-12-30 16:00:00.0 |
+| Jonathon   | Taylor    | Sales           | Sales Manager            | 2006-12-31 16:00:00.0 | 2007-12-30 16:00:00.0 |
+| Jonathon   | Taylor    | Sales           | Sales Representative     | 2006-03-23 16:00:00.0 | 2006-12-30 16:00:00.0 |
+| Jennifer   | Whalen    | Executive       | Public Accountant        | 2002-06-30 17:00:00.0 | 2006-12-30 16:00:00.0 |
+| Jennifer   | Whalen    | Executive       | Administration Assistant | 1995-09-16 17:00:00.0 | 2001-06-16 17:00:00.0 |
+| Michael    | Hartstein | Marketing       | Marketing Representative | 2004-02-16 16:00:00.0 | 2007-12-18 16:00:00.0 |
++---------------------------------------------------------------------------------------------------------------------+
+
+SELECT dep.department_name, loc.city, country.country_name, region.region_name FROM MATCH (dep:Department) -[:located_in]-> (loc:Location) -[:located_in]-> (country:Country) -[:located_in]-> (region:Region) ORDER BY dep.department_name LIMIT 20
+
++-------------------------------------------------------------------------+
+| DEPARTMENT_NAME    | CITY      | COUNTRY_NAME             | REGION_NAME |
++-------------------------------------------------------------------------+
+| Accounting         | Seattle   | United States of America | Americas    |
+| Administration     | Seattle   | United States of America | Americas    |
+| Benefits           | Seattle   | United States of America | Americas    |
+| Construction       | Seattle   | United States of America | Americas    |
+| Contracting        | Seattle   | United States of America | Americas    |
+| Control And Credit | Seattle   | United States of America | Americas    |
+| Corporate Tax      | Seattle   | United States of America | Americas    |
+| Executive          | Seattle   | United States of America | Americas    |
+| Finance            | Seattle   | United States of America | Americas    |
+| Government Sales   | Seattle   | United States of America | Americas    |
+| Human Resources    | London    | United Kingdom           | Europe      |
+| IT                 | Southlake | United States of America | Americas    |
+| IT Helpdesk        | Seattle   | United States of America | Americas    |
+| IT Support         | Seattle   | United States of America | Americas    |
+| Manufacturing      | Seattle   | United States of America | Americas    |
+| Marketing          | Toronto   | Canada                   | Americas    |
+| NOC                | Seattle   | United States of America | Americas    |
+| Operations         | Seattle   | United States of America | Americas    |
+| Payroll            | Seattle   | United States of America | Americas    |
+| Public Relations   | Munich    | Germany                  | Europe      |
++-------------------------------------------------------------------------+
+

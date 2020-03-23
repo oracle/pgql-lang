@@ -29,11 +29,6 @@ entries:
       url: /spec/1.3/#document-outline
       output: web
 
-  - title: 'Creating a Property Graph'
-    url: /spec/1.3/#creating-a-property-graph
-    output: web
-    folderitems:
-
     - title: 'Property graph data model'
       url: /spec/1.3/#property-graph-data-model
       output: web
@@ -47,9 +42,47 @@ entries:
         url: /spec/1.3/#example-2-financial-transactions
         output: web
 
+  - title: 'Creating a Property Graph'
+    url: /spec/1.3/#creating-a-property-graph
+    output: web
+    folderitems:
+
     - title: 'CREATE PROPERTY GRAPH'
       url: /spec/1.3/#create-property-graph
       output: web
+      subfolderitems:
+
+      - title: 'Vertex tables'
+        url: /spec/1.3/#vertex-tables
+        output: web
+
+      - title: 'Edge tables'
+        url: /spec/1.3/#edge-tables
+        output: web
+
+      - title: 'Keys'
+        url: /spec/1.3/#keys
+        output: web
+
+      - title: 'Labels'
+        url: /spec/1.3/#labels
+        output: web
+
+      - title: 'Properties'
+        url: /spec/1.3/#properties
+        output: web
+
+      - title: 'Table aliases'
+        url: /spec/1.3/#table-aliases
+        output: web
+
+      - title: 'Example: HR schema'
+        url: /spec/1.3/#example-hr-schema
+        output: web
+
+      - title: 'Multiple schemas'
+        url: /spec/1.3/#multiple-schemas
+        output: web
 
     - title: 'DROP PROPERTY GRAPH'
       url: /spec/1.3/#drop-property-graph
