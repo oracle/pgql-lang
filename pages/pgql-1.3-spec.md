@@ -91,13 +91,12 @@ Here, `financial_transactions` is the name of the graph. The graph has three typ
 
 # Creating a Property Graph
 
-TODO
+The [CREATE PROPERTY GRAPH](#create-property-graph) statement allows for creating a property graph from a set of existing database tables.
+The [DROP PROPERTY GRAPH](#drop-property-graph) statements allows for dropping a graph.
 
 ## CREATE PROPERTY GRAPH
 
-The `CREATE PROPERTY GRAPH` statement allows for creating a property graph from a set of existing database tables.
-
-The statement starts with the keyword `CREATE PROPERTY GRAPH` followed by a graph name, an optional set of vertex table and an optional set of edge tables.
+The `CREATE PROPERTY GRAPH` statement starts with a graph name and is followed by an optional set of vertex table and an optional set of edge tables.
 
 The syntax is:
 
@@ -114,13 +113,15 @@ EdgeTables          ::= 'EDGE' 'TABLES' '(' <EdgeTable> ( ',' <EdgeTable> )* ')'
 
 ```
 
-If vertex and edge tables are omitted, an empty graph is created. If no vertex tables are specified, no edge tables can be specified.
+It is possible to have no vertex or edge tables such that an empty graph is created.
+It is also possible to have vertex tables but no edge tables, which results in a graph in which all the vertices are disconnected from each other.
+However, it is not possible to have a graph with edge tables but no vertex tables.
 
-The following example shows a schema with a set of tables. Each table has a name and a list of columns, some of which form the primary key of the table (in red) while others form foreign keys that reference rows in other tables.
+The following example shows a schema with a set of tables. Each table has a name and a list of columns, some of which form the primary key for the table (in red) while others form foreign keys that reference rows of other tables.
 
 {% include image.html file="example_graphs/financial_transactions_schema.png"  %}
 
-The following is a complete example of how a graph can be created from the tables above:
+The following is a complete example of how a graph can be created from these tables:
 
 ```sql
 CREATE PROPERTY GRAPH financial_transactions
@@ -471,13 +472,6 @@ ColumnReference                    ::= <Identifier>
 NoProperties ::= 'NO' 'PROPERTIES'
 ```
 
-### Table aliases
-
-```bash
-TableAlias ::= <AsKeyword>? <Identifier>
-
-AsKeyword  ::= 'AS'
-```
 
 #### Relation between properties and labels
 
@@ -510,6 +504,14 @@ To make this example work, the same property names have to be provided for both 
     City LABEL Place PROPERTIES ( city_name AS name )
   )
 ...
+```
+
+### Table aliases
+
+```bash
+TableAlias ::= <AsKeyword>? <Identifier>
+
+AsKeyword  ::= 'AS'
 ```
 
 ### Source or destination is self
@@ -1001,7 +1003,7 @@ SELECT *
 
 Note that in case there are both incoming and outgoing data edges between two data vertices, there will be separate result bindings for each of the edges.
 
-Any-directed edge patterns may also be used inside [common path expressions](#common-path-expressions):
+Any-directed edge patterns may also be used inside [path pattern macros](#path-pattern-macros):
 
 ```sql
   PATH two_hops AS () -[e1]- () -[e2]- ()
@@ -1024,7 +1026,7 @@ PgqlStatement   ::= <CreatePropertyGraph>
 Query           ::= <SelectQuery>
                   | <ModifyQuery>
 
-SelectQuery     ::= <CommonPathExpressions>?
+SelectQuery     ::= <PathMacros>?
                     <SelectClause>
                     <FromClause>
                     <WhereClause>?
@@ -1036,7 +1038,7 @@ SelectQuery     ::= <CommonPathExpressions>?
 
 Details of the different clauses of a query can be found in the following sections:
 
- - [Common Path Expressions](#common-path-expressions) allow for specifying complex reachability queries.
+ - The [path pattern macros](#path-pattern-macros) allow for specifying complex reachability queries.
  - The [SELECT](#select) clause specifies what should be returned.
  - The [FROM](#from) clause specifies the name of the input graph.
  - The [MATCH](#match) clause specifies the graph pattern that is to be matched.
@@ -1168,13 +1170,32 @@ There can be multiple path patterns in the `FROM` clause of a PGQL query. Semant
 
 ### ON clause
 
-The `ON` clause specifies the name of the input graph to be queried:
+The `ON` clause is an optional clause that belongs to the `MATCH` clause and specifies the name of the graph to match the pattern on.
+
+The syntax is:
 
 ```bash
 OnClause   ::= 'ON' <GraphName>
 ```
 
-For example, the input graph of the following query is `my_graph`:
+For example:
+
+```sql
+  SELECT p.first_name, p.last_name
+    FROM MATCH (p:Person) ON my_graph
+ORDER BY p.first_name, p.last_name
+```
+
+Above, the pattern `(p:Person)` is matched on graph `my_graph`.
+
+#### Default graphs
+
+The `ON` clauses may be omitted if a "default graph" has been provided.
+PGQL itself does not (yet) provide syntax for specifying a default graph, but Java APIs for invoking PGQL queries typically provide mechanisms for it:
+ - Oracle's in-memory analytics engine PGX has the API `PgxGraph.queryPgql("SELECT ...")` such that the default graph corresponds to `PgxGraph.getName()` such that `ON` clauses can be omitted from queries.
+ - Oracle's PGQL-on-RDBMS provides the API `PgqlConnection.setGraph("myGraph")` for setting the default graph such that the `ON` clauses can be omitted from queries.
+
+If a default graph is provided then the `ON` clause can be omitted:
 
 ```sql
   SELECT p.first_name, p.last_name
@@ -1182,19 +1203,10 @@ For example, the input graph of the following query is `my_graph`:
 ORDER BY p.first_name, p.last_name
 ```
 
-#### Default Graph
+#### Querying multiple graphs
 
-The `FROM` clause may be omitted if there is a "default graph" such that specifying the graph name inside the query is only redundant.
-
-PGQL itself does not (yet) provide syntax for specifying a default graph. However, PGQL engines like PGX provide APIs like `PgxGraph.queryPgql(..)` that provide a default graph (whose name corresponds to `PgxGraph.getName()`). This in contrast to APIs like `PgxSession.queryPgql(..)` which do not provide default graphs.
-
-If a default graph is provided then the `FROM` clause can be omitted from a query like in this example:
-
-```sql
-  SELECT p.first_name, p.last_name
-    FROM MATCH (p:Person)
-ORDER BY p.first_name, p.last_name
-```
+Although each `MATCH` clause can have its own `ON` clause, PGQL 1.3 does not support querying of multiple graphs in a single query.
+Therefore, it is not possible for two `MATCH` clauses to have `ON` clauses with different graph names.
 
 ### Repeated variables
 
@@ -1271,6 +1283,7 @@ This is explained by the following grammar constructs:
 
 ```bash
 LabelPredicate ::= ':' <Label> ( '|' <Label> )*```
+```
 
 Take the following example:
 
@@ -2025,14 +2038,14 @@ Here, `Jonas` is returned since there exists a path of length one (i.e. `400 -> 
 For `Judith`, there exists an empty path of length zero (i.e. `400`) as well as a non-empty path of length two (i.e. `400 -> 500 -> 400`).
 Yet, `Judith` is only returned once.
 
-### Common Path Expressions
+### Path pattern macros
 
-One or more "common path expression" may be declared at the beginning of the query. These can be seen as macros that allow for expressing complex regular expressions. PGQL 1.3 allows common path expressions only for reachability, not for (top-k) shortest path.
+One or more "path pattern macros" may be declared at the beginning of the query. These macros allow for expressing complex regular expressions. PGQL 1.3 allows macros only for reachability, not for (top-k) shortest path.
 
 ```bash
-CommonPathExpressions ::= <CommonPathExpression>+
+PathPatternMacros ::= <PathPatternMacro>+
 
-CommonPathExpression  ::= 'PATH' <Identifier> 'AS' <PathPattern> <WhereClause>?
+PathPatternMacro  ::= 'PATH' <Identifier> 'AS' <PathPattern> <WhereClause>?
 ```
 
 A path pattern declaration starts with the keyword `PATH`, followed by an expression name, the assignment operator `AS`, and a path pattern consisting of at least one vertex. The syntactic structure of the path pattern is the same as a path pattern in the `MATCH` clause.
@@ -3208,11 +3221,23 @@ ORDER BY sum_outgoing + sum_incoming DESC
 # Graph Modification
 
 ```bash
-ModifyQuery  ::= <Modification>+
+ModifyQuery       ::= <ModifyQuerySimple>
+                    | <ModifyQueryFull>
 
-Modification ::= <InsertStatement>
-               | <UpdateStatement>
-               | <DeleteStatement>
+ModifyQuerySimple ::= <InsertStatement>
+
+ModifyQueryFull   ::= <PathPatternMacros>?
+                      <Modification>+
+                      <FromClause>
+                      <WhereClause>?
+                      <GroupByClause>?
+                      <HavingClause>?
+                      <OrderByClause>?
+                      <LimitOffsetClauses>?
+
+Modification      ::= <InsertStatement>
+                    | <UpdateStatement>
+                    | <DeleteStatement>
 ```
 
 Modifications follow snapshot isolation semantics, meaning that insertions, updates and deletions within the same query do not see each other's results.
