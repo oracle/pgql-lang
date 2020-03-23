@@ -76,6 +76,10 @@ entries:
         url: /spec/1.3/#table-aliases
         output: web
 
+      - title: 'Source or destination is self'
+        url: /spec/1.3/#source-or-destination-is-self
+        output: web
+
       - title: 'Example: HR schema'
         url: /spec/1.3/#example-hr-schema
         output: web

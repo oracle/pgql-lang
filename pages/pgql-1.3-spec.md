@@ -97,7 +97,9 @@ TODO
 
 The `CREATE PROPERTY GRAPH` statement allows for creating a property graph from a set of existing database tables.
 
-The statement starts with the keyword `CREATE PROPERTY GRAPH` followed by a graph name, a set of vertex table (at least one) and an optional set of edge tables.
+The statement starts with the keyword `CREATE PROPERTY GRAPH` followed by a graph name, a set of vertex table and an optional set of edge tables.
+
+The syntax is:
 
 ```bash
 CreatePropertyGraph ::= 'CREATE' 'PROPERTY' 'GRAPH' <GraphName>
@@ -112,9 +114,11 @@ EdgeTables          ::= 'EDGE' 'TABLES' '(' <EdgeTable> ( ',' <EdgeTable> )* ')'
 
 ```
 
-An example is:
+The following example shows a schema with a set of tables. Each table has a name and a list of columns, some of which form the primary key of the table (in red) while others are used for foreign keys that reference rows in another table.
 
 {% include image.html file="example_graphs/financial_transactions_schema.png"  %}
+
+The following is a complete example of how these tables can be converted into a graph:
 
 ```sql
 CREATE PROPERTY GRAPH financial_transactions
@@ -142,9 +146,19 @@ CREATE PROPERTY GRAPH financial_transactions
   )
 ```
 
-The above example is explained in more detail in the following sections.
+Above, `financial_transactions` is the name of the graph.
+The graph has three vertex tables: `Accounts`, `Persons` and `Companies`.
+The graph also has three edges tables: `Transactions`, `PersonOwnerOfAccount` and `CompanyOwnerOfAccount`.
+
+Underlying foreign keys are used to establish the connections between vertices and edges.
+If foreign keys cannot be used or are not present, keys can be manually provided.
+Labels and properties can also be defined, all of which is explained in more detail in the next sections.
 
 ### Vertex tables
+
+A vertex table provides a vertex for each row of the underlying table.
+
+The syntax is:
 
 ```bash
 VertexTable              ::= <TableName> <TableAlias>? <KeyClause>? <LabelAndPropertiesClause>?
@@ -154,7 +168,23 @@ LabelAndPropertiesClause ::= <LabelClause>? <PropertiesClause>?
 TableName                ::= <SchemaQualifiedName>
 ```
 
+The [table alias](#table-aliases) is optional and only required in case an underlying table is used more than once as a vertex table.
+
+The key of the vertex table uniquely identifies a row in the table.
+If a key is not specified, the key defaults to the primary key of the underlying table.
+See [Keys](#keys) for details.
+
+The label clause provides a label for the vertices.
+If a label is not defined, the label defaults to the alias.
+Since the alias defaults to the name of the underlying table, if no alias is provided, the label defaults to the name of the underlying table.
+See [Labels](#labels) for details.
+
+The properties clause defines the mapping from columns of the underlying table into properties of the vertices.
+See [Properties](#properties) for details.
+
 ### Edge tables
+
+A vertex table provides an edge for each row of the underlying table.
 
 ```bash
 EdgeTable                      ::= <TableName> <AsTableAlias>? <KeyClause>?
@@ -167,6 +197,22 @@ DestinationVertexTable         ::= 'DESTINATION' <ReferencedVertexTableKeyClause
 
 ReferencedVertexTableKeyClause ::= <KeyClause> 'REFERENCES'
 ```
+
+The [table alias](#table-aliases) is optional and only required in case an underlying table is used more than once as an edge table.
+
+
+The key of the edge table uniquely identifies a row in the table.
+In some implementations, an edge key is not required.
+In other implementations, the edge key is required and if not explicitly specified defaults to the primary key of the underlying table.
+See [Keys](#keys) for details.
+
+The label clause provides a label for the edges.
+If a label is not defined, the label defaults to the alias.
+Since the alias defaults to the name of the underlying table, if no alias is provided, the label defaults to the name of the underlying table.
+See [Labels](#labels) for details.
+
+The properties clause defines the mapping from columns of the underlying table into properties of the edges.
+See [Properties](#properties) for details.
 
 ### Keys
 
@@ -353,6 +399,37 @@ TableAlias ::= <AsKeyword>? <Identifier>
 AsKeyword  ::= 'AS'
 ```
 
+
+### Source or destination is self
+
+A source and/or a destination vertex table of an edge may be the edge table itself.
+In such a case, the underlying table provides both vertices and edges at the same time.
+
+Take the following schema in which both tables are clear candidates for vertex tables:
+
+{% include image.html file="example_graphs/hr_schema_simplified.png"  %}
+
+It may not be immediately evident which is the edge table that provides the "employee works for department" edges,
+but this table is the `Employee` table:
+
+```sql
+CREATE PROPERTY GRAPH hr_simplified
+  VERTEX TABLES (
+    employees LABEL employee
+      PROPERTIES ARE ALL COLUMNS EXCEPT ( job_id, manager_id, department_id ),
+    departments LABEL department
+      PROPERTIES ( department_id, department_name )
+  )
+  EDGE TABLES (
+    employees AS works_for
+      SOURCE employees
+      DESTINATION KEY ( manager_id ) REFERENCES employees
+      NO PROPERTIES
+  )
+```
+
+TODO
+
 ### Example: HR schema
 
 {% include image.html file="example_graphs/hr_schema.png"  %}
@@ -424,9 +501,64 @@ CREATE PROPERTY GRAPH hr
   )
 ```
 
+Once the graph is created, one can create an overview of the vertex and edge labels and their frequencies.
+In the following example we show the vertex labels and their frequencies (i.e. number of vertices with the particular label).
 
+```sql
+  SELECT label(n) AS lbl, COUNT(*)
+    FROM MATCH (n)
+GROUP BY lbl
+ORDER BY COUNT(*) DESC
+```
+
+```
++------------------------+
+| lbl         | COUNT(*) |
++------------------------+
+| EMPLOYEE    | 107      |
+| DEPARTMENT  | 27       |
+| COUNTRY     | 25       |
+| LOCATION    | 23       |
+| JOB         | 19       |
+| JOB_HISTORY | 10       |
+| REGION      | 4        |
++------------------------+
+```
+
+Note that above, labels are uppercased since unquoted identifiers were used in the `CREATE PROPERTY GRAPH` statement.
+Like in SQL, double-quoted identifiers can be used if such implicit upper casing of identifiers is not desired.
+
+In the following example, we create an overview of labels of edges and labels of their source and destination vertices, together with frequencies for each combination:
+
+```sql
+  SELECT label(n) AS srcLbl, label(e) AS edgeLbl, label(m) AS dstLbl, COUNT(*)
+    FROM MATCH (n) -[e]-> (m)
+GROUP BY srcLbl, edgeLbl, dstLbl
+ORDER BY COUNT(*) DESC
+```
+
+```
++--------------------------------------------------+
+| srcLbl      | edgeLbl    | dstLbl     | COUNT(*) |
++--------------------------------------------------+
+| EMPLOYEE    | WORKS_AS   | JOB        | 106      |
+| EMPLOYEE    | WORKS_FOR  | EMPLOYEE   | 106      |
+| EMPLOYEE    | WORKS_AT   | DEPARTMENT | 105      |
+| DEPARTMENT  | LOCATED_IN | LOCATION   | 27       |
+| COUNTRY     | LOCATED_IN | REGION     | 25       |
+| LOCATION    | LOCATED_IN | COUNTRY    | 23       |
+| DEPARTMENT  | MANAGED_BY | EMPLOYEE   | 11       |
+| JOB_HISTORY | FOR        | JOB        | 10       |
+| JOB_HISTORY | FOR        | EMPLOYEE   | 10       |
+| JOB_HISTORY | FOR        | DEPARTMENT | 10       |
++--------------------------------------------------+
+```
 
 ### Multiple schemas
+
+Vertex and edge tables of a graph can come from different database schemas, by qualifying the table names with schema names.
+
+For example:
 
 
 
