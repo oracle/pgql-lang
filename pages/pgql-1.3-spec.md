@@ -97,7 +97,7 @@ TODO
 
 The `CREATE PROPERTY GRAPH` statement allows for creating a property graph from a set of existing database tables.
 
-The statement starts with the keyword `CREATE PROPERTY GRAPH` followed by a graph name, a set of vertex table and an optional set of edge tables.
+The statement starts with the keyword `CREATE PROPERTY GRAPH` followed by a graph name, an optional set of vertex table and an optional set of edge tables.
 
 The syntax is:
 
@@ -114,11 +114,13 @@ EdgeTables          ::= 'EDGE' 'TABLES' '(' <EdgeTable> ( ',' <EdgeTable> )* ')'
 
 ```
 
-The following example shows a schema with a set of tables. Each table has a name and a list of columns, some of which form the primary key of the table (in red) while others are used for foreign keys that reference rows in another table.
+If vertex and edge tables are omitted, an empty graph is created. If no vertex tables are specified, no edge tables can be specified.
+
+The following example shows a schema with a set of tables. Each table has a name and a list of columns, some of which form the primary key of the table (in red) while others form foreign keys that reference rows in other tables.
 
 {% include image.html file="example_graphs/financial_transactions_schema.png"  %}
 
-The following is a complete example of how these tables can be converted into a graph:
+The following is a complete example of how a graph can be created from the tables above:
 
 ```sql
 CREATE PROPERTY GRAPH financial_transactions
@@ -148,10 +150,12 @@ CREATE PROPERTY GRAPH financial_transactions
 
 Above, `financial_transactions` is the name of the graph.
 The graph has three vertex tables: `Accounts`, `Persons` and `Companies`.
-The graph also has three edges tables: `Transactions`, `PersonOwnerOfAccount` and `CompanyOwnerOfAccount`.
+The graph also has three edge tables: `Transactions`, `PersonOwnerOfAccount` and `CompanyOwnerOfAccount`.
 
-Underlying foreign keys are used to establish the connections between vertices and edges.
-If foreign keys cannot be used or are not present, keys can be manually provided.
+Underlying foreign keys are used to establish the connections between the two endpoints of the edges and the corresponding vertices.
+Note that the "source" of an edge is the vertex where the edge points _from_ while the "destination" of an edge is the vertex where the edge point _to_.
+
+If foreign keys cannot be used or are not present, the necessary keys can be defined as part of the `CREATE PROPERTY GRAPH` statement.
 Labels and properties can also be defined, all of which is explained in more detail in the next sections.
 
 ### Vertex tables
@@ -168,26 +172,27 @@ LabelAndPropertiesClause ::= <LabelClause>? <PropertiesClause>?
 TableName                ::= <SchemaQualifiedName>
 ```
 
-The [table alias](#table-aliases) is optional and only required in case an underlying table is used more than once as a vertex table.
+The [table alias](#table-aliases) is required only if the underlying table is used as vertex table more than once, in order to provide unique names for vertex tables.
+It can also be used to provide a label for the vertices.
 
 The key of the vertex table uniquely identifies a row in the table.
 If a key is not specified, the key defaults to the primary key of the underlying table.
-See [Keys](#keys) for details.
+See the section on [keys](#keys) for more details.
 
 The label clause provides a label for the vertices.
 If a label is not defined, the label defaults to the alias.
 Since the alias defaults to the name of the underlying table, if no alias is provided, the label defaults to the name of the underlying table.
-See [Labels](#labels) for details.
+See the section on [labels](#labels) for details.
 
 The properties clause defines the mapping from columns of the underlying table into properties of the vertices.
-See [Properties](#properties) for details.
+See the section on [properties](#properties) for more details.
 
 ### Edge tables
 
 A vertex table provides an edge for each row of the underlying table.
 
 ```bash
-EdgeTable                      ::= <TableName> <AsTableAlias>? <KeyClause>?
+EdgeTable                      ::= <TableName> <TableAlias>? <KeyClause>?
                                    <SourceVertexTable> <DestinationVertexTable>
                                    <LabelAndPropertiesClause>?
 
@@ -198,21 +203,61 @@ DestinationVertexTable         ::= 'DESTINATION' <ReferencedVertexTableKeyClause
 ReferencedVertexTableKeyClause ::= <KeyClause> 'REFERENCES'
 ```
 
-The [table alias](#table-aliases) is optional and only required in case an underlying table is used more than once as an edge table.
+The [table alias](#table-aliases) is required only if the underlying table is used as edge table more than once, in order to provide unique names for edge tables.
+It can also be used to provide a label for the vertices.
 
+The source vertex table and destination vertex table are mandatory for defining the two endpoints of the edge.
+A key is optional if there is a single foreign key from the edge table to the source or destination vertex table.
+If a key is not provided, it will default to the existing foreign key.
+
+Take the following example from before:
+
+{% include image.html file="example_graphs/financial_transactions_schema.png"  %}
+
+```sql
+CREATE PROPERTY GRAPH financial_transactions
+  VERTEX TABLES (
+    Accounts LABEL Account,
+    Persons LABEL Person PROPERTIES ( name ),
+    Companies LABEL Company PROPERTIES ( name )
+  )
+  EDGE TABLES (
+    Transactions
+      SOURCE KEY ( from_account ) REFERENCES Accounts
+      DESTINATION KEY ( to_account ) REFERENCES Accounts
+      LABEL ( transaction )
+      PROPERTIES ( amount ),
+    PersonOwnerOfAccount
+      SOURCE Persons
+      DESTINATION Accounts
+      LABEL ownerOf
+      NO PROPERTIES,
+    CompanyOwnerOfAccount
+      SOURCE Companies
+      DESTINATION Accounts
+      LABEL ownerOf
+      NO PROPERTIES
+  )
+```
+
+Above, keys for the source and destination of `PersonOwnerOfAccount` and `CompanyOwnerOfAccount` are omitted because we can default to the existing foreign keys.
+However, the keys for the source and destination of `Transactions` cannot be omitted because two foreign keys exists between `Transactions` and `Account` and it is not possible to automatically choose the right keys.
+
+The source vertex table and/or the destination vertex table may be the same table as the edge table, in which case the table provides both vertices and edges.
+This is explained in more detail in [Source or destination is self](#source-or-destination-is-self).  
 
 The key of the edge table uniquely identifies a row in the table.
 In some implementations, an edge key is not required.
 In other implementations, the edge key is required and if not explicitly specified defaults to the primary key of the underlying table.
-See [Keys](#keys) for details.
+See the section on [keys](#keys) for more details.
 
 The label clause provides a label for the edges.
 If a label is not defined, the label defaults to the alias.
 Since the alias defaults to the name of the underlying table, if no alias is provided, the label defaults to the name of the underlying table.
-See [Labels](#labels) for details.
+See the section on [labels](#labels) for details.
 
-The properties clause defines the mapping from columns of the underlying table into properties of the edges.
-See [Properties](#properties) for details.
+The properties clause defines the mapping from columns of the underlying table to properties of the edges.
+See the section on [properties](#properties) for more details
 
 ### Keys
 
@@ -264,6 +309,10 @@ The following example has a schema that has no primary and foreign keys defined 
 
 {% include image.html file="example_graphs/financial_transactions_schema_no_keys.png"  %}
 
+Note that above, we have the same schema as before, but this time the primary and foreign keys are missing.
+
+Even though primary and foreign keys are missing, the graph can still be created by specifying the necessary keys in the `CREATE PROPERTY GRAPH` statement itself:
+
 ```sql
 CREATE PROPERTY GRAPH financial_transactions
   VERTEX TABLES (
@@ -301,10 +350,15 @@ CREATE PROPERTY GRAPH financial_transactions
   )
 ```
 
-Above, keys were defined for each vertex table (e.g. `Account KEY ( number )`, edge table (e.g. `Transactions KEY ( from_account, to_account, date )`, source vertex table reference (e.g. `SOURCE KEY ( person_id ) REFERENCES Persons` and destination table reference (e.g. `DESTINATION KEY ( to_account ) REFERENCES Accounts`).
-Keys for the edge tables may or may not be required depending on the implementation.
+Above, keys were defined for each vertex table (e.g. `Account KEY ( number )`), edge table (e.g. `Transactions KEY ( from_account, to_account, date )`), source vertex table reference (e.g. `SOURCE KEY ( person_id ) REFERENCES Persons`) and destination table reference (e.g. `DESTINATION KEY ( to_account ) REFERENCES Accounts`).
+Only keys for edge table are not required, but this depends on the implementation; in some implementations the edge keys are required.
 
 ### Labels
+
+In graphs created through `CREATE PROPERTY GRAPH`, each vertex has exactly one label and each edge has exactly one label.
+This restriction may be lifted in future PGQL version.
+
+The syntax for labels is:
 
 ```bash
 LabelClause ::= 'LABEL' <Label>
@@ -312,10 +366,37 @@ LabelClause ::= 'LABEL' <Label>
 Label       ::= <Identifier>
 ```
 
-Label is optional, it defaults to the alias. Note: if alias is not defined, the alias and thus the label default to the table name.
+The label clause is optional. If it is omitted, then the label default to the [table alias](#table-aliases).
+Note that also the table alias is optional and default to the table name.
+Thus, if no label is specified and no table alias is specified, then both the table alias and the label default to the table name.
 
+For example:
+
+```sql
+...
+  VERTEX TABLES ( Person )
+```
+
+Above is equivalent to:
+
+```sql
+...
+  VERTEX TABLES ( Person AS Person )
+```
+
+Which is equivalent to:
+
+```sql
+...
+  VERTEX TABLES ( Person AS Person LABEL Person )
+```
 
 ### Properties
+
+By default, properties are all columns such that a vertex or edge property is created for each column of the underlying table.
+However, there are different ways to customize this behavior as described below.
+
+The syntax is:
 
 ```bash
 PropertiesClause ::= <PropertiesAreAllColumns>
@@ -323,9 +404,13 @@ PropertiesClause ::= <PropertiesAreAllColumns>
                    | <NoProperties>
 ```
 
-A `<PropertyExpression>` xyzzy
+Note that the properties clause is optional and if omitted defaults to `PROPERTIES ARE ALL COLUMNS`.
 
 #### PROPERTIES ARE ALL COLUMNS
+
+Although by default a property is created for each columns implicitly, this can also be made explicit through `PROPERTIES ARE ALL COLUMNS`.
+
+The syntax is:
 
 ```bash
 PropertiesAreAllColumns ::= 'PROPERTIES' <AreKeyword>? 'ALL' 'COLUMNS' <ExceptColumns>?
@@ -333,13 +418,36 @@ PropertiesAreAllColumns ::= 'PROPERTIES' <AreKeyword>? 'ALL' 'COLUMNS' <ExceptCo
 AreKeyword              ::= 'ARE'
 ```
 
+An example is:
+
+```sql
+...
+  VERTEX TABLES ( Person PROPERTIES ARE ALL COLUMNS )
+```
+
+Because of the default, the above is equivalent to:
+
+```sql
+...
+  VERTEX TABLES ( Person )
+```
+
 #### PROPERTIES ARE ALL COLUMNS EXCEPT ( .. )
+
+One can blacklist columns by adding an `EXCEPT` clause.
+The columns that are blacklisted will not become properties and cannot be queried.
+
+The syntax is:
 
 ```bash
 ExceptColumns ::= 'EXCEPT' '(' <ColumnReference> ( ',' <ColumnReference> )* ')'
 ```
 
 #### PROPERTIES ( .. )
+
+In addition to blacklisting, it is also possible to perform a whitelist approach through property expressions.
+
+The syntax is:
 
 ```bash
 PropertyExpressions                ::= 'PROPERTIES' '(' <PropertyExpression> ( ',' <PropertyExpression> )* ')'
@@ -354,8 +462,27 @@ PropertyName                       ::= <Identifier>
 ColumnReference                    ::= <Identifier>
 ```
 
+
+
+
+#### NO PROPERTIES
+
+```bash
+NoProperties ::= 'NO' 'PROPERTIES'
+```
+
+### Table aliases
+
+```bash
+TableAlias ::= <AsKeyword>? <Identifier>
+
+AsKeyword  ::= 'AS'
+```
+
+#### Relation between properties and labels
+
 If multiple vertex tables have the same label then they are required to have the same properties with the same names and compatible data types.
-Similarly, if multiple edge tables have the same label then they are also required to have the same properties.
+Similarly, if multiple edge tables have the same label then they are also required to have the same properties with the same names and compatible data types.
 
 If two tables should have the same label but column names are different, then it is required provide (the same property names).
 For example, assume two tables `Country` and `City` exist with columns `country_name` and `city_name` respectively.
@@ -384,21 +511,6 @@ To make this example work, the same property names have to be provided for both 
   )
 ...
 ```
-
-#### NO PROPERTIES
-
-```bash
-NoProperties ::= 'NO' 'PROPERTIES'
-```
-
-### Table aliases
-
-```bash
-TableAlias ::= <AsKeyword>? <Identifier>
-
-AsKeyword  ::= 'AS'
-```
-
 
 ### Source or destination is self
 
