@@ -26,11 +26,11 @@ The new features are:
  - Graph modification through [INSERT](#insert), [UPDATE](#update) and [DELETE](#delete) clauses.
  - [Cheapest path finding](#cheapest-path) and [Top-k cheapest path finding](#top-k-cheapest-path) using `COST` functions.
  - [IS_SOURCE_OF](#is_source_of) and [IS_DESTINATION_OF](#is_destination_of) functions for testing if a vertex is the source or destination of an edge.
- - Auto uppercasing of unquoted identifiers and case insensitive matching of uppercased identifiers. (TODO: add link)
- - Schema qualifiers for graph references. (TODO: add link)
- - Double quoted identifiers now supported everywhere. Previously, support was missing for:
+ - Auto uppercasing of [unquoted identifiers](#unquoted-identifiers) and case insensitive matching of uppercased identifiers.
+ - [Graph names](#GraphName) can now be schema-qualified.
+ - [Quoted identifiers](#quoted-identifiers) are now supported everywhere. Previously, support was missing for:
      - Vertex and edge variables.
-     - Aliases in `SELECT` and `GROUP BY` clauses. (TODO: add link)
+     - Aliases in `SELECT` and `GROUP BY` clauses.
 
 ### Syntax changes in PGQL 1.3
 
@@ -107,6 +107,10 @@ CreatePropertyGraph ::= 'CREATE' 'PROPERTY' 'GRAPH' <GraphName>
 
 GraphName           ::= <SchemaQualifiedName>
 
+SchemaQualifiedName  ::= <SchemaIdentifierPart>? <Identifier>
+
+SchemaIdentifierPart ::= <Identifier> '.'
+
 VertexTables        ::= 'VERTEX' 'TABLES' '(' <VertexTable> ( ',' <VertexTable> )* ')'
 
 EdgeTables          ::= 'EDGE' 'TABLES' '(' <EdgeTable> ( ',' <EdgeTable> )* ')'
@@ -173,7 +177,7 @@ TableName                ::= <SchemaQualifiedName>
 ```
 
 The [table alias](#table-aliases) is required only if the underlying table is used as vertex table more than once, in order to provide unique names for vertex tables.
-It can also be used to provide a label for the vertices.
+It can also be used to specify the label of the vertices.
 
 The key of the vertex table uniquely identifies a row in the table.
 If a key is not specified, the key defaults to the primary key of the underlying table.
@@ -204,7 +208,7 @@ ReferencedVertexTableKeyClause ::= <KeyClause> 'REFERENCES'
 ```
 
 The [table alias](#table-aliases) is required only if the underlying table is used as edge table more than once, in order to provide unique names for edge tables.
-It can also be used to provide a label for the vertices.
+It can also be used to specify the label of the edges.
 
 The source vertex table and destination vertex table are mandatory for defining the two endpoints of the edge.
 A key is optional if there is a single foreign key from the edge table to the source or destination vertex table.
@@ -669,8 +673,8 @@ ORDER BY COUNT(*) DESC
 +------------------------+
 ```
 
-Note that above, labels are uppercased since unquoted identifiers were used in the `CREATE PROPERTY GRAPH` statement.
-Like in SQL, double-quoted identifiers can be used if such implicit upper casing of identifiers is not desired.
+Note that above, labels are uppercased since [unquoted identifiers](#unquoted-identifiers) were used in the `CREATE PROPERTY GRAPH` statement.
+Like in SQL, [quoted identifiers](#quoted-identifiers) can be used if such implicit upper casing of identifiers is not desired.
 
 In the following example, we create an overview of labels of edges and labels of their source and destination vertices, together with frequencies for each combination:
 
@@ -2438,7 +2442,7 @@ Literal                      ::=   <StringLiteral>
                                  | <TimeWithTimeZoneLiteral>
                                  | <TimestampWithTimeZoneLiteral>
 
-StringLiteral                ::= <SINGLE_QUOTED_STRING>
+StringLiteral                ::= <STRING_LITERAL>
 
 NumericLiteral               ::=   <UNSIGNED_INTEGER>
                                  | <UNSIGNED_DECIMAL>
@@ -3749,90 +3753,128 @@ Thus in that case the execution fails.
 
 ## Identifiers
 
-Graph names, property names, and labels are all identifiers. These identifiers may either take an unquoted or double quoted form.
-
-Identifiers are used for graph names, property names, and labels. They are either unquoted or double quoted.
+Graph names, property names, labels, etc. are identifiers that can appear in either unquoted form or double quoted form.
 
 The syntax is:
 
 ```bash
 Identifier           ::= <UNQUOTED_IDENTIFIER> | <QUOTED_IDENTIFIER>
+```
 
+### Unquoted identifiers
+
+Unquoted identifiers take the form of an alphabetic character followed by zero or more alphanumeric or underscore (i.e. `_`) characters:
+
+```bash
 UNQUOTED_IDENTIFIER  ::= [a-zA-Z][a-zA-Z0-9\_]*
-
-QUOTED_IDENTIFIER    ::= '"' ( ~[\"\n\\] | <ESCAPED_CHARACTER> )* '"'
-
-SchemaQualifiedName  ::= <SchemaIdentifierPart>? <Identifier>
-
-SchemaIdentifierPart ::= <Identifier> '.'
 ```
 
-Unquoted identifiers take the form of an alphabetic character followed by zero or more alphanumeric or underscore (i.e. `_`) characters. Special characters are not supported.
+Unquoted identifiers are automatically uppercased.
 
-Double quoted identifiers support the full range of Unicode characters.
-
-### Special characters in property names, graph names, and labels
-
-Identifiers like graph names, property names, and labels can be delimited with double quotes to allow for encoding of special characters (e.g. the space in the property name `n."my prop"`).
-Any Unicode character may be used inside the delimiters.
-
-## Lexical constructs for literals
-
-The following are the lexical grammar constructs:
-
-```bash
-SINGLE_QUOTED_STRING ::= "'" ( ~[\'\n\\] | <ESCAPED_CHARACTER> )* "'"
-
-UNSIGNED_INTEGER     ::= [0-9]+
-
-UNSIGNED_DECIMAL     ::= ( [0-9]* '.' [0-9]+ ) | ( [0-9]+ '.' )
-```
-
-These rules describe the following:
-
- - Single quoted strings (used for string literals) consist of:
-     - A starting single quote.
-     - Any number of characters that are either:
-         - Not single quote characters, new line characters, or backslash characters.
-         - Escaped characters.
-     - An ending single quote.
- - Unsigned integers consist of one or more digits.
- - Unsigned decimals consist of zero or more digits followed by a dot (`.`) and one or more digits, or, one or more digits followed by only a dot (`.`).
-
-## Escaped characters
-
-Escaping in string literals and identifiers is necessary to support white space, quotation marks, and backslash characters.
-
-The syntax is:
-
-```bash
-ESCAPED_CHARACTER ::= '\\' [tnr\"\'\\]
-```
-
-Note that an escaped character is either a tab (`\t`), a line feed (`\n`), a carriage return (`\r`), a single (`\'`) or double quote (`\"`), or a backslash (`\\`). Corresponding Unicode code points are shown in the table below.
-
-escaped character | unicode code point
---- | ---
-`\t` | U+0009 (tab)
-`\n` | U+000A (line feed)
-`\r` | U+000D (carriage return)
-`\"` | U+0022 (quotation mark, double quote mark)
-`\'` | U+0027 (apostrophe-quote, single quote mark)
-`\\` | U+005C (backslash)
-
-In string literals, it is optional to escape double quotes.
-
-For example:
+For example, the following two queries are equivalent:
 
 ```sql
-'abc\"d\"efg' = 'abc"d"efg'
-Result: true
+SELECT n.dob AS name
+  FROM MATCH (n:Person) ON myGraph
+ WHERE n.firstName = 'Nikita'
 ```
 
-Similarly, in identifiers it is optional to escape single quotes.
+```sql
+SELECT "N"."DOB"
+  FROM MATCH ("N":"PERSON") ON "MYGRAPH"
+ WHERE "N"."FIRSTNAME" = 'Nikita'
+```
 
-In addition to Java-like escaping, string literals in PGQL queries can be escaped in a SQL-like fashion by repeating the quote.
-For example, `n.prop = 'string''value'` is an alternative for `n.prop = 'string\'value'`, and `FROM "my""graph"` is an alternative for `FROM "my\"graph"`.
+Note that above follows SQL, which also automatically uppercases unquoted identifiers.
+However, as an extension to SQL — which always matches upper-cased references in exact manner — PGQL matches upper-cased references to graphs, labels and properties in case-insensitive manner if no exact match was found.
+
+For example, a property `firstName` in the graph can be referenced in PGQL either through `firstName`, `"firstName"`, `"FIRSTNAME"` or `fIrStNaMe`, but not through `"FirstName"`.
+
+### Quoted identifiers
+
+Quoted identifiers are delimited with double quotes and support the full range of Unicode characters:
+
+```bash
+QUOTED_IDENTIFIER            ::= '"' ( ~[\"] | <ESCAPED_IDENTIFIER_CHARACTER> )* '"'
+
+ESCAPED_IDENTIFIER_CHARACTER ::= '""'
+```
+
+Above says that a quoted identifier starts and ends with double quotes and in between has any number of:
+ - Unicode characters except for the double quote character
+ - An escaped double quote in the form of two double quotes
+
+Note that the syntax of a PGQL identifier is different from a string literal in languages like Java or C++,
+because unlike in Java and C++, characters like a new line or a backslash are not escaped in PGQL;
+in identifiers in PGQL, only double quotes are escaped.
+
+For example, take the following string:
+
+```
+My string with single quotes ', double quotes ", backslashes \
+new lines and tabs	.
+```
+
+Here is an example of how to use such a string as a property name in PGQL:
+
+```sql
+SELECT *
+  FROM MATCH (n)
+ WHERE n."My string with single quotes ', double quotes "", backslashes \
+new lines and tabs	." = 123
+```
+
+As you can see, only the double quote (`"`) was escaped (`""`).
+
+## Literals
+
+PGQL has string, integer and decimal literals.
+
+The syntax for string literals is:
+
+```bash
+STRING_LITERAL                   ::= "'" ( ~['] | <ESCAPED_STRING_LITERAL_CHARACTER> )* "'"
+
+ESCAPED_STRING_LITERAL_CHARACTER ::= "''"
+```
+
+Above says that a string literal starts and ends with single quotes and in between has any number of:
+ - Unicode characters except for the single quote character
+ - An escaped single quote in the form of two single quotes
+
+Note that this is different from string literals in languages like Java or C++.
+First of all, PGQL string literals are single-quoted instead of double-quoted.
+Second, unlike in Java and C++, characters like a new line or a backslash are not escaped in PGQL;
+in string literals in PGQL, only single quotes are escaped.
+
+For example, take the following string:
+
+```
+My string with single quotes ', double quotes ", backslashes \ 
+new lines and tabs	.
+```
+
+Here is an example of how to use such a string as literal in PGQL:
+
+```sql
+SELECT *
+  FROM MATCH (n)
+ WHERE n.prop = 'My string with single quotes '', double quotes ", backslashes \
+new lines and tabs	.'
+```
+
+As you can see, only the double quote (`'`) was escaped (`''`).
+
+Finally, the syntax for integer and decimal literals is:
+
+```bash
+UNSIGNED_INTEGER                 ::= [0-9]+
+
+UNSIGNED_DECIMAL                 ::= ( [0-9]* '.' [0-9]+ ) | ( [0-9]+ '.' )
+```
+
+Note that above, integers and decimals are non-negative.
+However, negative numeric values can be generated through the [unary minus](#UnaryMinus) operator (-).
 
 ## Keywords
 

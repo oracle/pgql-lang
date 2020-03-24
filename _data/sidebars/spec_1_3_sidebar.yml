@@ -553,16 +553,16 @@ entries:
       output: web
       subfolderitems:
 
-      - title: 'Special characters in property names, graph names, and labels'
-        url: /spec/1.3/#special-characters-in-property-names-graph-names-and-labels
+      - title: 'Unquoted identifiers'
+        url: /spec/1.3/#unquoted-identifiers
         output: web
 
-    - title: 'Lexical constructs for literals'
-      url: /spec/1.3/#lexical-constructs-for-literals
-      output: web
+      - title: 'Quoted identifiers'
+        url: /spec/1.3/#quoted-identifiers
+        output: web
 
-    - title: 'Escaped characters'
-      url: /spec/1.3/#escaped-characters
+    - title: 'Literals'
+      url: /spec/1.3/#literals
       output: web
 
     - title: 'Keywords'
