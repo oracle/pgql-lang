@@ -39,9 +39,9 @@ The new features are:
 
 The following syntax changes were made in PGQL 1.3:
 
- - The `FROM` clause is now mandatory and contains one or more `MATCH` clauses. The `MATCH` clauses are comma-separated.
- - Each `MATCH` clause now contains a single linear path pattern, and each `MATCH` now has an optional `ON` clause for specifying the name of the graph to match the pattern on in case no default graph exists.
-   An example without `ON` clauses is:
+ - The `FROM` clause is now mandatory for `SELECT` queries and contains one or more `MATCH` clauses. The `MATCH` clauses are comma-separated.
+ - Each `MATCH` clause now contains a single linear path pattern, and each `MATCH` now has an optional `ON` clause for providing the name of the graph to match the pattern on, in case no default graph exists.
+   An example (without `ON` clauses) is:
 
 ```sql
   SELECT forum.id AS forumId, forum.title, forum.creationDate,
@@ -119,7 +119,7 @@ Here, `financial_transactions` is the name of the graph. The graph has three typ
 # Creating a Property Graph
 
 The [CREATE PROPERTY GRAPH](#create-property-graph) statement allows for creating a property graph from a set of existing database tables,
-While the [DROP PROPERTY GRAPH](#drop-property-graph) statements allows for dropping a graph.
+while the [DROP PROPERTY GRAPH](#drop-property-graph) statements allows for dropping a graph.
 
 ## CREATE PROPERTY GRAPH
 
@@ -128,19 +128,19 @@ The `CREATE PROPERTY GRAPH` statement starts with a graph name and is followed b
 The syntax is:
 
 ```bash
-CreatePropertyGraph ::= 'CREATE' 'PROPERTY' 'GRAPH' <GraphName>
-                        <VertexTables>?
-                        <EdgeTables>?
+CreatePropertyGraph  ::= 'CREATE' 'PROPERTY' 'GRAPH' <GraphName>
+                         <VertexTables>?
+                         <EdgeTables>?
 
-GraphName           ::= <SchemaQualifiedName>
+GraphName            ::= <SchemaQualifiedName>
 
 SchemaQualifiedName  ::= <SchemaIdentifierPart>? <Identifier>
 
 SchemaIdentifierPart ::= <Identifier> '.'
 
-VertexTables        ::= 'VERTEX' 'TABLES' '(' <VertexTable> ( ',' <VertexTable> )* ')'
+VertexTables         ::= 'VERTEX' 'TABLES' '(' <VertexTable> ( ',' <VertexTable> )* ')'
 
-EdgeTables          ::= 'EDGE' 'TABLES' '(' <EdgeTable> ( ',' <EdgeTable> )* ')'
+EdgeTables           ::= 'EDGE' 'TABLES' '(' <EdgeTable> ( ',' <EdgeTable> )* ')'
 ```
 
 It is possible to have no vertex or edge tables such that an empty graph is created.
@@ -289,6 +289,49 @@ See the section on [labels](#labels) for details.
 
 The properties clause defines the mapping from columns of the underlying table to properties of the edges.
 See the section on [properties](#properties) for more details
+
+### Table aliases
+
+Vertex and edge tables can have aliases, which are used to provide unique names and can be used to define labels.
+
+The syntax is:
+
+```bash
+TableAlias ::= ( 'AS' )? <Identifier>
+```
+
+For example:
+
+```sql
+...
+  VERTEX TABLES ( Employees AS Employee )
+...
+```
+
+If the alias is not provided, it defaults to the table name.
+
+For example:
+
+```sql
+...
+  VERTEX TABLES ( Person )
+...
+```
+
+Above is equivalent to:
+
+```sql
+...
+  VERTEX TABLES ( Person AS Person )
+...
+```
+
+The vertex tables are required to have unique names, and, the edge tables are required to have unique names.
+Therefore, if multiple vertex tables use the same underlying table, then the alias can be used to provide unique names for the vertex tables.
+Similarly, if multiple edge tales use the same underlying table, then the alias can be used to provide unique names for the edge tables.
+
+The [label](#labels) of a vertex or edge table defaults to the alias.
+Therefore, the alias can be used to define labels.
 
 ### Keys
 
@@ -481,7 +524,7 @@ ExceptColumns ::= 'EXCEPT' '(' <ColumnReference> ( ',' <ColumnReference> )* ')'
 
 #### PROPERTIES ( .. )
 
-In addition to blacklisting, it is also possible to perform a whitelist approach through property expressions.
+In addition to blacklisting, a whitelist approach is supported through "property expressions".
 
 The syntax is:
 
@@ -496,6 +539,42 @@ ColumnReferenceOrCastSpecification ::=   <ColumnReference>
 PropertyName                       ::= <Identifier>
 
 ColumnReference                    ::= <Identifier>
+```
+
+For example:
+
+```sql
+...
+  VERTEX TABLES (
+    Employees
+      LABEL Employee
+      PROPERTIES ( employee_id, first_name, email ),
+...
+```
+
+Above, only the column `firstName` becomes a property `firstName`.
+
+If a different property name than the column name is desired, one can use an alias as follows:
+
+```sql
+...
+  VERTEX TABLES (
+    Employees
+      LABEL Employee
+      PROPERTIES ( employee_id AS id, first_name AS firstName, email ),
+...
+```
+
+Property names may also be `CAST` expressions, to allow for converting the value in the table to a value of a new data type.
+For example:
+
+```sql
+...
+  VERTEX TABLES (
+    Employees
+      LABEL Employee
+      PROPERTIES ( CAST(salary AS INTEGER) ),
+...
 ```
 
 #### NO PROPERTIES
@@ -551,14 +630,6 @@ To make this example work, the same property names have to be provided for both 
     City LABEL Place PROPERTIES ( city_name AS name )
   )
 ...
-```
-
-### Table aliases
-
-```bash
-TableAlias ::= <AsKeyword>? <Identifier>
-
-AsKeyword  ::= 'AS'
 ```
 
 ### Source or destination is self
@@ -3892,7 +3963,7 @@ SELECT *
 new lines and tabs	.'
 ```
 
-As you can see, only the double quote (`'`) was escaped (`''`).
+As you can see, only the single quote (`'`) was escaped (`''`).
 
 ## Keywords
 

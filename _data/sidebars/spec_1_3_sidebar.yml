@@ -60,6 +60,10 @@ entries:
         url: /spec/1.3/#edge-tables
         output: web
 
+      - title: 'Table aliases'
+        url: /spec/1.3/#table-aliases
+        output: web
+
       - title: 'Keys'
         url: /spec/1.3/#keys
         output: web
@@ -70,10 +74,6 @@ entries:
 
       - title: 'Properties'
         url: /spec/1.3/#properties
-        output: web
-
-      - title: 'Table aliases'
-        url: /spec/1.3/#table-aliases
         output: web
 
       - title: 'Source or destination is self'
