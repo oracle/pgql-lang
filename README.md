@@ -18,7 +18,7 @@ This Git repository contains a parser for PGQL with the following features:
 
    ```sql
    SELECT n.name, o.name
-     FROM  MATCH (n) -[e]-> (m)
+     FROM MATCH (n) -[e]-> (m)
    ```
 
    ```
@@ -96,11 +96,11 @@ public class Main {
     try (Pgql pgql = new Pgql()) {
 
       // parse query and print graph query
-      PgqlResult result1 = pgql.parse("SELECT n FROM g MATCH (n:Person) -[e:likes]-> (m:Person) WHERE n.name = 'Dave'");
+      PgqlResult result1 = pgql.parse("SELECT n FROM MATCH (n:Person) -[e:likes]-> (m:Person) WHERE n.name = 'Dave'");
       System.out.println(result1.getGraphQuery());
 
       // parse query with errors and print error messages
-      PgqlResult result2 = pgql.parse("SELECT x, y, FROM g MATCH (n) -[e]-> (m)");
+      PgqlResult result2 = pgql.parse("SELECT x, y, FROM MATCH (n) -[e]-> (m)");
       System.out.println(result2.getErrorMessages());
 
     }
