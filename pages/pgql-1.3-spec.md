@@ -241,7 +241,7 @@ CREATE PROPERTY GRAPH financial_transactions
 ```
 
 Above, keys for the source and destination of `PersonOwnerOfAccount` and `CompanyOwnerOfAccount` are omitted because we can default to the existing foreign keys.
-However, the keys for the source and destination of `Transactions` cannot be omitted because two foreign keys exists between `Transactions` and `Account` and it is not possible to automatically choose the right keys.
+However, the keys for the source and destination of `Transactions` cannot be omitted because two foreign keys exists between `Transactions` and `Account` and it is not possible to automatically choose the right one.
 
 The source vertex table and/or the destination vertex table may be the same table as the edge table, in which case the table provides both vertices and edges.
 This is explained in more detail in [Source or destination is self](#source-or-destination-is-self).  
@@ -375,6 +375,7 @@ For example:
 ```sql
 ...
   VERTEX TABLES ( Person )
+...
 ```
 
 Above is equivalent to:
@@ -382,6 +383,7 @@ Above is equivalent to:
 ```sql
 ...
   VERTEX TABLES ( Person AS Person )
+...
 ```
 
 Which is equivalent to:
@@ -389,6 +391,7 @@ Which is equivalent to:
 ```sql
 ...
   VERTEX TABLES ( Person AS Person LABEL Person )
+...
 ```
 
 ### Properties
@@ -423,6 +426,7 @@ An example is:
 ```sql
 ...
   VERTEX TABLES ( Person PROPERTIES ARE ALL COLUMNS )
+...
 ```
 
 Because of the default, the above is equivalent to:
@@ -430,6 +434,7 @@ Because of the default, the above is equivalent to:
 ```sql
 ...
   VERTEX TABLES ( Person )
+...
 ```
 
 #### PROPERTIES ARE ALL COLUMNS EXCEPT ( .. )
@@ -462,15 +467,27 @@ PropertyName                       ::= <Identifier>
 ColumnReference                    ::= <Identifier>
 ```
 
-
-
-
 #### NO PROPERTIES
+
+If no properties are desired for the vertices or edges, then one can use the `NO PROPERTIES` syntax:
 
 ```bash
 NoProperties ::= 'NO' 'PROPERTIES'
 ```
 
+An example of an edge table with no properties is:
+
+```sql
+...
+  EDGE TABLES (
+    ...
+    PersonOwnerOfAccount
+      SOURCE Persons
+      DESTINATION Accounts
+      LABEL ownerOf
+      NO PROPERTIES,
+    ...
+```
 
 #### Relation between properties and labels
 
@@ -518,12 +535,14 @@ AsKeyword  ::= 'AS'
 A source and/or a destination vertex table of an edge may be the edge table itself.
 In such a case, the underlying table provides both vertices and edges at the same time.
 
-Take the following schema in which both tables are clear candidates for vertex tables:
+Take the following schema as example:
 
-{% include image.html file="example_graphs/hr_schema_simplified.png"  %}
+{% include image.html file="example_graphs/hr_schema_simplified.png" %}
 
-It may not be immediately evident which is the edge table that provides the "employee works for department" edges,
-but this table is the `Employee` table:
+Here, both tables are clear candidates for vertex tables, but it is not immediately clear which is the edge table that connects the employees and their departments.
+This edge table in fact is the `Employees` table since the `Employees` table contains all the information for connecting the employees and the departments.
+
+The graph can be created as follows:
 
 ```sql
 CREATE PROPERTY GRAPH hr_simplified
@@ -541,11 +560,21 @@ CREATE PROPERTY GRAPH hr_simplified
   )
 ```
 
-TODO
+As you can see, both the `employee` vertices and the `works_for` edges are created from the `employees` table.
+If the source (or destination) is the edge table itself, then the primary key is used instead of a foreign key.
+Therefore, `SOURCE employees` is sufficient and is short for `SOURCE KEY ( employee_id ) REFERENCES employees`.
+
+Note that although the edges are embedded in the vertex tables, by default it is still the case that a property is created for each column.
+This means that by default, the vertices and edges that are created from the same table will have the same properties. 
+Typically this is not desired and the columns are only mapped into vertex properties while `NO PROPERTIES` is used for the edges.
 
 ### Example: HR schema
 
+A more complex example is the Human Resources (HR) schema:
+
 {% include image.html file="example_graphs/hr_schema.png"  %}
+
+The following statement maps the schema into a graph:
 
 ```sql
 CREATE PROPERTY GRAPH hr
@@ -614,8 +643,10 @@ CREATE PROPERTY GRAPH hr
   )
 ```
 
+In this example, the source table of each edge is the edge table itself, and none of the edges have properties (also see [Source or destination is self](#source-or-destination-is-self)).
+
 Once the graph is created, one can create an overview of the vertex and edge labels and their frequencies.
-In the following example we show the vertex labels and their frequencies (i.e. number of vertices with the particular label).
+In the following example we first show the vertex labels and their frequencies (i.e. number of vertices with the particular label).
 
 ```sql
   SELECT label(n) AS lbl, COUNT(*)
@@ -669,12 +700,29 @@ ORDER BY COUNT(*) DESC
 
 ### Multiple schemas
 
-Vertex and edge tables of a graph can come from different database schemas, by qualifying the table names with schema names.
+Vertex and edge tables of a graph can come from different database schemas.
+This can be achieved by qualifying the vertex and edge table names with a schema.
 
 For example:
 
+```sql
+CREATE PROPERTY GRAPH 
+  VERTEX TABLES (
+    SocialNetwork.Person,
+    HR.Employees LABEL Employee
+  )
+  EDGE TABLES (
+    MySchema.SameAs
+      SOURCE KEY ( firstName, lastName ) REFERENCES Person
+      DESTINATION KEY ( first_name, last_name ) REFERENCES Employee
+  )
+```
 
+Above, the vertex table `Person` is part of schema `SocialNetwork`,
+the vertex table `Employee` is part of schema `HR`
+and the edge table `SameAs` is part of schema `MySchema`.
 
+Note that for the edge table, the source and destination vertex tables are referenced by table name without schema name (e.g. `Person` instead of `SocialNetwork.Person`).
 
 ## DROP PROPERTY GRAPH
 
