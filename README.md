@@ -1,6 +1,6 @@
 # PGQL - Property Graph Query Language
 
-PGQL is an SQL-based query language for the [property graph data model](http://pgql-lang.org/spec/1.2/#property-graph-data-model), bringing graph pattern matching capabilities to SQL and NoSQL users.
+PGQL is an SQL-based query language for the [property graph data model](http://pgql-lang.org/spec/1.3/#property-graph-data-model), bringing graph pattern matching capabilities to SQL and NoSQL users.
 
 See the website for a language specification and any newsworthy updates:
 
@@ -18,8 +18,7 @@ This Git repository contains a parser for PGQL with the following features:
 
    ```sql
    SELECT n.name, o.name
-     FROM g
-    MATCH (n) -[e]-> (m)
+     FROM  MATCH (n) -[e]-> (m)
    ```
 
    ```
@@ -34,8 +33,7 @@ This Git repository contains a parser for PGQL with the following features:
 
    ```sql
    SELECT AVG(n.age), n
-     FROM g
-    MATCH (n:Person)
+     FROM MATCH (n:Person)
    ```
 
    ```
@@ -49,14 +47,14 @@ This Git repository contains a parser for PGQL with the following features:
  - __Pretty printing__: invoking `GraphQuery.toString()` will "pretty print" the graph query, which turns unformatted queries into formatted ones:
 
    ```sql
-   SELECT n.name FROM g MATCH
+   SELECT n.name FROM MATCH
    (n:Person) WHERE n.name = 'Anthony'
    OR n.name = 'James'
    ```
 
    ```sql
    SELECT n.name
-     FROM g MATCH (n:person)
+     FROM MATCH (n:person)
     WHERE n.name = 'Anthony'
        OR n.name = 'James'
    ```
@@ -114,7 +112,7 @@ The AST returned by the parser is a [GraphQuery](graph-query-ir/src/main/java/or
 
 ## Documentation
 
-See [PGQL 1.2 Specification](http://pgql-lang.org/spec/1.2/).
+See [PGQL 1.3 Specification](http://pgql-lang.org/spec/1.3/).
 
 ## Development
 
