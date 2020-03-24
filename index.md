@@ -32,14 +32,14 @@ An example property graph is:
 
 {% include image.html file="example_graphs/financial_transactions.png" style="width: 680px;padding-bottom: 15px;" %}
 
-Above, `Account`, `Person` and `Company` are vertex labels while `ownerOf` and `transaction` are edge labels.
-Furthermore, `name` and `transaction` are vertex properties and `amount` is an edge property.
+Above, `Account`, `Person` and `Company` are vertex labels while `ownerOf`, `worksFor` and `transaction` are edge labels.
+Furthermore, `name` and `number` are vertex properties while `amount` is an edge property.
 
 Assume that this graph is stored in the following tables in a database:
 
 {% include image.html file="example_graphs/financial_transactions_schema.png" style="width: 780px;padding-bottom: 15px;" %}
 
-We can create the desired graph from these tables as follows:
+From these tables we can create the desired graph as follows:
 
 ```sql
 CREATE PROPERTY GRAPH financial_transactions
@@ -67,10 +67,9 @@ CREATE PROPERTY GRAPH financial_transactions
   )
 ```
 
-After we created the graph, we can execute a `SELECT` query:
+After we created the graph, we can execute a `SELECT` query to "produce an overview of account holders that have transacted with a person named Nikita":
 
 ```sql
-/* give an overview of account holders that have transacted with a person named Nikita */
   SELECT owner.name AS account_holder, SUM(t.amount) AS total_transacted_with_Nikita
     FROM MATCH (p:Person) -[:ownerOf]-> (:Account) -[t:transaction]- (:Account) <-[:ownerOf]- (owner:Person|Company)
    WHERE p.name = 'Nikita'

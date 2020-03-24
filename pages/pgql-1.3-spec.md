@@ -25,7 +25,7 @@ The new features are:
 
  - [CREATE PROPERTY GRAPH](#create-property-graph) and [DROP PROPERTY GRAPH](#drop-property-graph) statements for creating graphs from existing tables and for dropping graphs.
  - Graph modification through [INSERT](#insert), [UPDATE](#update) and [DELETE](#delete) clauses.
- - [Single cheapest path](#single-cheapest-path) and [top-K cheapest path](#top-k-cheapest-path) using `COST` functions.
+ - [Single cheapest path](#single-cheapest-path) and [top-k cheapest path](#top-k-cheapest-path) using `COST` functions.
  - [is_source_of](#is_source_of) and [is_destination_of](#is_destination_of) functions for testing if a vertex is the source or destination of an edge.
  - Auto-uppercasing of [unquoted identifiers](#unquoted-identifiers) and case insensitive matching.
  - [Graph names](#GraphName) can now be schema-qualified.
@@ -1104,7 +1104,7 @@ PgqlStatement   ::=   <CreatePropertyGraph>
 Query           ::=   <SelectQuery>
                     | <ModifyQuery>
 
-SelectQuery     ::= <PathMacros>?
+SelectQuery     ::= <PathPatternMacros>?
                     <SelectClause>
                     <FromClause>
                     <WhereClause>?
