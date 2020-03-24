@@ -25,9 +25,9 @@ The new features are:
 
  - [CREATE PROPERTY GRAPH](#create-property-graph) and [DROP PROPERTY GRAPH](#drop-property-graph) statements for creating graphs from existing tables and for dropping graphs.
  - Graph modification through [INSERT](#insert), [UPDATE](#update) and [DELETE](#delete) clauses.
- - [Single cheapest path](#single-cheapest-path) and [top-k cheapest path](#top-k-cheapest-path) using `COST` functions.
+ - [Single CHEAPEST path](#single-cheapest-path) and [TOP-K CHEAPEST path](#top-k-cheapest-path) using `COST` functions.
  - [is_source_of](#is_source_of) and [is_destination_of](#is_destination_of) functions for testing if a vertex is the source or destination of an edge.
- - Auto-uppercasing of [unquoted identifiers](#unquoted-identifiers) and case insensitive matching.
+ - Auto-uppercasing of [unquoted identifiers](#unquoted-identifiers) and case-insensitive matching of uppercased references to graphs, labels and properties.
  - [Graph names](#GraphName) can now be schema-qualified.
  - [Quoted identifiers](#quoted-identifiers) are now supported everywhere. Previously, support was missing for:
      - Vertex and edge variables.
@@ -41,7 +41,7 @@ The following syntax changes were made in PGQL 1.3:
 
  - The `FROM` clause is now mandatory for `SELECT` queries and contains one or more `MATCH` clauses. The `MATCH` clauses are comma-separated.
  - Each `MATCH` clause now contains a single linear path pattern, and each `MATCH` now has an optional `ON` clause for providing the name of the graph to match the pattern on, in case no default graph exists.
-   An example (without `ON` clauses) is:
+   Examples with and without `ON` clauses are:
 
 ```sql
   SELECT forum.id AS forumId, forum.title, forum.creationDate,
@@ -58,7 +58,22 @@ ORDER BY postCount DESC, forum.id
    LIMIT 20
    ```
 
- - [Unquoted identifiers](#unquoted-identifiers) are now automatically uppercased and uppercased graph, label or property references are matched in case insensitive manner.
+```sql
+  SELECT forum.id AS forumId, forum.title, forum.creationDate,
+         person.id AS personId, COUNT(DISTINCT post) AS postCount
+    FROM MATCH (country:Place) <-[:isPartOf]- (city:Place) <-[:isLocatedIn]- (person:Person) ON ldbcGraph,
+         MATCH (person) <-[:hasModerator]- (forum:Forum) -[:containerOf]->(post:Post) ON ldbcGraph,
+         MATCH (post) -[:hasTag]-> (:Tag) -[:hasType]-> (tagClass:Tagclass) ON ldbcGraph
+   WHERE country.type = 'country' AND
+         city.type = 'city' AND
+         country.name =  'Burma' AND
+         tagClass.name = 'MusicalArtist'
+GROUP BY forum, person
+ORDER BY postCount DESC, forum.id
+   LIMIT 20
+   ```
+
+ - [Unquoted identifiers](#unquoted-identifiers) are now automatically uppercased and uppercased references to graphs, labels and properties are matched in case insensitive manner.
  - [String literals](#string-literals) and [quoted identifiers](#quoted-identifiers) now follow the syntax of SQL, meaning that the only character that is escaped in string literals is the single quote, while the only character that is escaped in identifiers is the double quote.
  - For expressions in `SELECT` and `GROUP BY` clauses that do not have an explicit name, PGQL now provides implicit names in a compatible way to SQL.
       - For example, while `SELECT n.firstName` in PGQL 1.2 translated to `SELECT n.firstName AS "n.firstName"`, in PGQL 1.3 it translates to `SELECT n.firstName AS firstName`.
@@ -292,7 +307,8 @@ See the section on [properties](#properties) for more details
 
 ### Table aliases
 
-Vertex and edge tables can have aliases, which are used to provide unique names and can be used to define labels.
+A vertex or edge table can have an alias to provide a unique name for the table.
+If no alias is defined, then it default to the name of the underlying table.
 
 The syntax is:
 
@@ -308,8 +324,13 @@ For example:
 ...
 ```
 
-If the alias is not provided, it defaults to the table name.
+Above, the underlying table of the vertex table is `Employees` wile the alias is `Employee`.
 
+All vertex tables of a graph are required to have a unique name and all edge tables of a graph are required to have a unique name.
+Therefore, if multiple vertex tables use the same underlying table, then at least one of them requires an alias.
+Similarly, if multiple edge tables use the same underlying table, then at least one of them requires an alias.
+
+If the alias is not provided then it defaults to the name of the underlying table.
 For example:
 
 ```sql
@@ -326,20 +347,17 @@ Above is equivalent to:
 ...
 ```
 
-The vertex tables are required to have unique names, and, the edge tables are required to have unique names.
-Therefore, if multiple vertex tables use the same underlying table, then the alias can be used to provide unique names for the vertex tables.
-Similarly, if multiple edge tales use the same underlying table, then the alias can be used to provide unique names for the edge tables.
-
-The [label](#labels) of a vertex or edge table defaults to the alias.
-Therefore, the alias can be used to define labels.
+Finally, in addition to providing unique names for vertex and edge tables, the aliases can also serve as a means to provide [labels](#labels) for vertices and edges:
+if no label is defined then it defaults to the table alias.
+Note though that table aliases are required to be unique but labels are not required to be unique so that multiple vertex tables and multiple edge tables can have the same label.
 
 ### Keys
 
-By default, existing primary and foreign keys of underlying tables are used for creating edges, but the following scenarios
+By default, existing primary and foreign keys of underlying tables are used to connect the end points of the edges to the appropriate vertices, but the following scenarios
 require manual specification of keys:
 
- - Multiple foreign keys exists between an edge table and its source vertex table or its destination vertex tables such that it would be ambiguous which foreign key to use
- - Primary and/or foreign keys on underlying tables were not defined or the underlying tables are views which means that primary and foreign keys cannot be defined
+ - Multiple foreign keys exists between an edge table and its source vertex table or its destination vertex tables such that it would be ambiguous which foreign key to use.
+ - Primary and/or foreign keys on underlying tables were not defined or the underlying tables are views which means that primary and foreign keys cannot be defined.
 
 The syntax for keys is:
 
@@ -440,9 +458,9 @@ LabelClause ::= 'LABEL' <Label>
 Label       ::= <Identifier>
 ```
 
-The label clause is optional. If it is omitted, then the label default to the [table alias](#table-aliases).
-Note that also the table alias is optional and default to the table name.
-Thus, if no label is specified and no table alias is specified, then both the table alias and the label default to the table name.
+The label clause is optional. If it is omitted, then the label defaults to the [table alias](#table-aliases).
+Note that also the table alias is optional and defaults to the table name.
+Thus, if no label is specified and no table alias is specified, then both the table alias and the label defaults to the table name.
 
 For example:
 
@@ -745,10 +763,13 @@ CREATE PROPERTY GRAPH hr
   )
 ```
 
-In this example, the source table of each edge is the edge table itself, and none of the edges have properties (also see [Source or destination is self](#source-or-destination-is-self)).
+In this example, all the edge tables have a source vertex table that is the edge table itself.
+This scenario was explained in more detail in [Source or destination is self](#source-or-destination-is-self).
+Also note that the graph only has vertex properties, but no edge properties, which is typical for such a scenario.
 
-Once the graph is created, one can create an overview of the vertex and edge labels and their frequencies.
-In the following example we first show the vertex labels and their frequencies (i.e. number of vertices with the particular label).
+After the graph is created it can be queries.
+For example, we may want to see an overview of the vertex and edge labels and their frequencies.
+Therefore, we first perform a `SELECT` query to create such an overview for the vertex labels:
 
 ```sql
   SELECT label(n) AS lbl, COUNT(*)
@@ -774,7 +795,7 @@ ORDER BY COUNT(*) DESC
 Note that above, labels are uppercased since [unquoted identifiers](#unquoted-identifiers) were used in the `CREATE PROPERTY GRAPH` statement.
 Like in SQL, [quoted identifiers](#quoted-identifiers) can be used if such implicit upper casing of identifiers is not desired.
 
-In the following example, we create an overview of labels of edges and labels of their source and destination vertices, together with frequencies for each combination:
+Then, we create an overview of labels of edges and labels of their source and destination vertices, again with frequencies for each combination:
 
 ```sql
   SELECT label(n) AS srcLbl, label(e) AS edgeLbl, label(m) AS dstLbl, COUNT(*)
@@ -803,7 +824,7 @@ ORDER BY COUNT(*) DESC
 ### Multiple schemas
 
 Vertex and edge tables of a graph can come from different database schemas.
-This can be achieved by qualifying the vertex and edge table names with a schema.
+This can be achieved by qualifying the vertex and edge table names with a schema name.
 
 For example:
 
@@ -825,6 +846,7 @@ the vertex table `Employee` is part of schema `HR`
 and the edge table `SameAs` is part of schema `MySchema`.
 
 Note that for the edge table, the source and destination vertex tables are referenced by table name without schema name (e.g. `Person` instead of `SocialNetwork.Person`).
+Also note that if no table aliases or labels are defined, then they default to the table name without the schema name.
 
 ## DROP PROPERTY GRAPH
 
@@ -1277,6 +1299,9 @@ MatchClause            ::= 'MATCH' <PathPattern> <OnClause>?
 PathPattern            ::=   <SimplePathPattern>
                            | <ShortestPathPattern>
                            | <TopKShortestPathPattern>
+                           | <CheapestPathPattern>
+                           | <TopKCheapestPathPattern>
+
 
 SimplePathPattern      ::= <VertexPattern> ( <PathPrimary> <VertexPattern> )*
 
@@ -2237,19 +2262,21 @@ The syntax is:
 
 ```bash
 ShortestPathPattern                ::= 'SHORTEST' '(' <SourceVertexPattern>
-                                                        <QuantifiedShortestPathPrimary>
+                                                        <QuantifiedPathPatternPrimary>
                                                           <DestinationVertexPattern> ')'
 
 SourceVertexPattern                ::= <VertexPattern>
 
 DestinationVertexPattern           ::= <VertexPattern>
 
-QuantifiedShortestPathPrimary      ::= <ShortestPathPrimary> <GraphPatternQuantifier>?
+QuantifiedPathPatternPrimary       ::= <PathPatternPrimary> <GraphPatternQuantifier>?
 
-ShortestPathPrimary                ::=   <EdgePattern>
+PathPatternPrimary                 ::=   <EdgePattern>
                                        | <ParenthesizedPathPatternExpression>
 
-ParenthesizedPathPatternExpression ::= '(' <VertexPattern>? <EdgePattern> <VertexPattern>? <WhereClause>? ')'
+ParenthesizedPathPatternExpression ::= '(' <VertexPattern>? <EdgePattern> <VertexPattern>?
+                                             <WhereClause>?
+                                               <CostClause>? ')'
 ```
 
 For example:
@@ -2413,6 +2440,26 @@ While [top-k cheapest path finding](#top-k-cheapest-path) allows for finding K c
 
 ### Single Cheapest Path
 
+The `CHEAPEST` construct allows for finding a cheapest path based on an arbitrary `COST` function.
+
+The syntax is:
+
+```
+CheapestPathPattern ::= 'CHEAPEST' '(' <SourceVertexPattern>
+                                         <QuantifiedPathPatternPrimary>
+                                           <DestinationVertexPattern> ')'
+
+CostClause          ::= 'COST' ValueExpression
+```
+
+For example:
+
+```sql
+SELECT src, SUM(e.weight), dst
+  FROM MATCH CHEAPEST ((src) (-[e:flight]-> COST e.price)* (dst))
+ WHERE src.code = 'LON' AND dst.code = 'AMS'
+```
+
 ### Top-K Cheapest Path
 
 PGQL offers a `TOP k CHEAPEST` clause, which returns the `k` paths that match a given pattern with the lowest cost, 
@@ -2422,22 +2469,7 @@ computed with a user-defined cost function. If the user-defined cost function re
 The syntax of the queries is extended the following way:
 
 ```
-CheapestPathPattern                 ::= 'CHEAPEST' '(' SourceVertexPattern QuantifiedShortestPathPrimary DestinationVertexPattern ')'
- 
-TopKCheapestPathPattern             ::= 'TOP' KValue CheapestPathPattern
- 
-SourceVertexPattern                 ::= VertexPattern
- 
-DestinationVertexPattern            ::= VertexPattern
- 
-QuantifiedShortestPathPrimary       ::= ShortestPathPrimary GraphPatternQuantifier?
- 
-ShortestPathPrimary                 ::=   EdgePattern
-                                        | ParenthesizedPathPatternExpression
- 
-ParenthesizedPathPatternExpression  ::= '(' VertexPattern? EdgePattern VertexPattern? WhereClause? CostClause? ')'
- 
-CostClause                          ::= 'COST' ValueExpression
+TopKCheapestPathPattern             ::= 'TOP' <KValue> <CheapestPathPattern>
 ```
 
 The cost function must evaluate to a number.
@@ -2451,8 +2483,8 @@ between London and Amsterdam.
 
 ```sql
 SELECT src, SUM(e.weight), dst
-MATCH TOP 3 CHEAPEST ((src) (-[e: flight]-> COST e.price)* (dst))
-WHERE src.code = 'LON' AND dst.code = 'AMS'
+  FROM MATCH TOP 3 CHEAPEST ((src) (-[e:flight]-> COST e.price)* (dst))
+ WHERE src.code = 'LON' AND dst.code = 'AMS'
 ```
 
 Note that the cost function is not limited to edge properties, it can be an arbitrary expression.
@@ -2460,8 +2492,10 @@ For example the following query replaces null property values with 10:
 
 ```sql
 SELECT src, SUM(e.weight), dst
-MATCH TOP 3 CHEAPEST ((src) ((u: Airport)-[e: flight]->(v: Airport) COST CASE WHEN u.fee IS NULL THEN 10 ELSE u.fee)* (dst))
-WHERE src.code = 'LON' AND dst.code = 'AMS'
+  FROM MATCH TOP 3 CHEAPEST ((src) ( (u: Airport)-[e: flight]->(v: Airport)
+                                     COST CASE WHEN u.fee IS NULL THEN 10 ELSE u.fee END
+                                   )* (dst))
+ WHERE src.code = 'LON' AND dst.code = 'AMS'
 ```
 
 # Functions and Expressions
@@ -3888,7 +3922,7 @@ SELECT "N"."DOB"
 ```
 
 Note that this is aligned to SQL, which also automatically uppercases unquoted identifiers.
-However, as an extension to SQL — which matches upper-cased references in exact manner — PGQL matches upper-cased references to graphs, labels and properties in case-insensitive manner if no exact match exists.
+However, as an extension to SQL — which matches uppercased references in exact manner — PGQL matches uppercased references to graphs, labels and properties in case-insensitive manner if no exact match exists.
 
 For example, a property `firstName` in the graph can be referenced in PGQL either through `firstName`, `"firstName"`, `"FIRSTNAME"` or `fIrStNaMe`, but not through `"FirstName"`.
 
