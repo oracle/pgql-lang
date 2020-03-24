@@ -32,18 +32,52 @@ An example property graph is:
 
 {% include image.html file="example_graphs/financial_transactions.png" style="width: 680px;padding-bottom: 15px;" %}
 
-If we take the above graph and execute the following PGQL query on it:
+Above, `Account`, `Person` and `Company` are vertex labels while `ownerOf` and `transaction` are edge labels.
+Furthermore, `name` and `transaction` are vertex properties and `amount` is an edge property.
+
+Assume that this graph is stored in the following tables in a database:
+
+{% include image.html file="example_graphs/financial_transactions_schema.png" style="width: 780px;padding-bottom: 15px;" %}
+
+We can create the desired graph from these tables as follows:
+
+```sql
+CREATE PROPERTY GRAPH financial_transactions
+  VERTEX TABLES (
+    Accounts LABEL Account,
+    Persons LABEL Person PROPERTIES ( name ),
+    Companies LABEL Company PROPERTIES ( name )
+  )
+  EDGE TABLES (
+    Transactions
+      SOURCE KEY ( from_account ) REFERENCES Accounts
+      DESTINATION KEY ( to_account ) REFERENCES Accounts
+      LABEL ( transaction )
+      PROPERTIES ( amount ),
+    PersonOwnerOfAccount
+      SOURCE Persons
+      DESTINATION Accounts
+      LABEL ownerOf
+      NO PROPERTIES,
+    CompanyOwnerOfAccount
+      SOURCE Companies
+      DESTINATION Accounts
+      LABEL ownerOf
+      NO PROPERTIES
+  )
+```
+
+After we created the graph, we can execute a `SELECT` query:
 
 ```sql
 /* give an overview of account holders that have transacted with a person named Nikita */
   SELECT owner.name AS account_holder, SUM(t.amount) AS total_transacted_with_Nikita
-    FROM financial_transactions
-   MATCH (p:Person) -[:ownerOf]-> (:Account) -[t:transaction]- (:Account) <-[:ownerOf]- (owner:Person|Company)
+    FROM MATCH (p:Person) -[:ownerOf]-> (:Account) -[t:transaction]- (:Account) <-[:ownerOf]- (owner:Person|Company)
    WHERE p.name = 'Nikita'
 GROUP BY owner
 ```
 
-Then the result is:
+The result is:
 
 ```
 +----------------+------------------------------+
@@ -54,7 +88,7 @@ Then the result is:
 +----------------+------------------------------+
 ```
 
-Please see [PGQL 1.2 Specification](spec/1.2/) for more examples and a detailed specification of the language.
+Please see [PGQL 1.3 Specification](spec/1.3/) for more examples and a detailed specification of the language.
 
 Oracle products and toolkits
 ----------------------------
@@ -115,6 +149,7 @@ Additional resources
 PGQL specifications
 -------------------
 
+ - [PGQL 1.3 Specification](spec/1.3/)
  - [PGQL 1.2 Specification](spec/1.2/)
  - [PGQL 1.1 Specification](spec/1.1/)
  - [PGQL 1.0 Specification](spec/1.0/)

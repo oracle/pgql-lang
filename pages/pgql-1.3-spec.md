@@ -1,11 +1,12 @@
 ---
-title: "PGQL 1.3 Specification [UNRELEASED]"
-date: "[Future publication date here]"
+title: "PGQL 1.3 Specification"
+date: "24 March 2020"
 permalink: /spec/1.3/
 summary: "PGQL is an SQL-based query language for the property graph data model that allows
 you to specify high-level graph patterns which are matched against vertices and edges in a graph.
 PGQL has support for grouping (GROUP BY), aggregation (e.g. MIN, MAX, AVG, SUM), sorting (ORDER BY) and many other familiar SQL constructs.
-Furthermore, PGQL has powerful regular expression constructs for graph reachability (transitive closure) and shortest path finding."
+Furthermore, PGQL has powerful regular expression constructs for graph reachability (transitive closure), shortest path finding and
+cheapest path finding."
 sidebar: spec_1_3_sidebar
 toc: false
 ---
@@ -22,10 +23,10 @@ The following are the changes since PGQL 1.2:
 
 The new features are:
 
- - [CREATE PROPERTY GRAPH](#create-property-graph) and [DROP PROPERTY GRAPH](#drop-property-graph) statements for creating graphs from existing tables and for dropping them.
+ - [CREATE PROPERTY GRAPH](#create-property-graph) and [DROP PROPERTY GRAPH](#drop-property-graph) statements for creating graphs from existing tables and for dropping graphs.
  - Graph modification through [INSERT](#insert), [UPDATE](#update) and [DELETE](#delete) clauses.
- - [Cheapest path finding](#cheapest-path) and [Top-k cheapest path finding](#top-k-cheapest-path) using `COST` functions.
- - [IS_SOURCE_OF](#is_source_of) and [IS_DESTINATION_OF](#is_destination_of) functions for testing if a vertex is the source or destination of an edge.
+ - [Single cheapest path](#single-cheapest-path) and [top-K cheapest path](#top-k-cheapest-path) using `COST` functions.
+ - [is_source_of](#is_source_of) and [is_destination_of](#is_destination_of) functions for testing if a vertex is the source or destination of an edge.
  - Auto-uppercasing of [unquoted identifiers](#unquoted-identifiers) and case insensitive matching.
  - [Graph names](#GraphName) can now be schema-qualified.
  - [Quoted identifiers](#quoted-identifiers) are now supported everywhere. Previously, support was missing for:
@@ -117,8 +118,8 @@ Here, `financial_transactions` is the name of the graph. The graph has three typ
 
 # Creating a Property Graph
 
-The [CREATE PROPERTY GRAPH](#create-property-graph) statement allows for creating a property graph from a set of existing database tables.
-The [DROP PROPERTY GRAPH](#drop-property-graph) statements allows for dropping a graph.
+The [CREATE PROPERTY GRAPH](#create-property-graph) statement allows for creating a property graph from a set of existing database tables,
+While the [DROP PROPERTY GRAPH](#drop-property-graph) statements allows for dropping a graph.
 
 ## CREATE PROPERTY GRAPH
 
@@ -3815,8 +3816,8 @@ SELECT "N"."DOB"
  WHERE "N"."FIRSTNAME" = 'Nikita'
 ```
 
-Note that above follows SQL, which also automatically uppercases unquoted identifiers.
-However, as an extension to SQL — which always matches upper-cased references in exact manner — PGQL matches upper-cased references to graphs, labels and properties in case-insensitive manner if no exact match was found.
+Note that this is aligned to SQL, which also automatically uppercases unquoted identifiers.
+However, as an extension to SQL — which matches upper-cased references in exact manner — PGQL matches upper-cased references to graphs, labels and properties in case-insensitive manner if no exact match exists.
 
 For example, a property `firstName` in the graph can be referenced in PGQL either through `firstName`, `"firstName"`, `"FIRSTNAME"` or `fIrStNaMe`, but not through `"FirstName"`.
 
