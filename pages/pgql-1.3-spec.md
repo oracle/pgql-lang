@@ -26,7 +26,6 @@ The new features are:
  - [CREATE PROPERTY GRAPH](#create-property-graph) and [DROP PROPERTY GRAPH](#drop-property-graph) statements for creating graphs from existing tables and for dropping graphs.
  - Graph modification through [INSERT](#insert), [UPDATE](#update) and [DELETE](#delete) clauses.
  - [Single CHEAPEST path](#single-cheapest-path) and [TOP-K CHEAPEST path](#top-k-cheapest-path) using `COST` functions.
- - [is_source_of](#is_source_of) and [is_destination_of](#is_destination_of) functions for testing if a vertex is the source or destination of an edge.
  - Auto-uppercasing of [unquoted identifiers](#unquoted-identifiers) and case-insensitive matching of uppercased references to graphs, labels and properties.
  - [Graph names](#GraphName) can now be schema-qualified.
  - [Quoted identifiers](#quoted-identifiers) are now supported everywhere. Previously, support was missing for:
@@ -3109,66 +3108,6 @@ The syntax is:
 
 ```
 OUT_DEGREE( vertex )
-```
-
-### IS_SOURCE_OF
-
-Given an edge and a vertex, the `IS_SOURCE_OF` function returns true if the vertex is the source of the edge.
-
-The syntax is:
-
-```
-IS_SOURCE_OF( edge, vertex )
-```
-
-For example:
-
-{% include image.html file="example_graphs/financial_transactions.png" %}
-
-```sql
-  SELECT m.number AS toFromAccount, is_source_of(e, n) AS isOutgoingTransaction
-    FROM MATCH (n:Account) -[e:transaction]- (m:Account)
-   WHERE n.number = 10039
-ORDER BY m.number
-```
-
-```
-+---------------------------------------+
-| toFromAccount | isOutgoingTransaction |
-+---------------------------------------+
-| 2090          | false                 |
-| 8021          | true                  |
-+---------------------------------------+
-```
-
-### IS_DESTINATION_OF
-
-Given an edge and a vertex, the `IS_DESTINATION_OF` function returns true if the vertex is the destination of the edge.
-
-The syntax is:
-
-```
-IS_SOURCE_OF( edge, vertex )
-```
-
-For example:
-
-{% include image.html file="example_graphs/financial_transactions.png" %}
-
-```sql
-  SELECT m.number AS toFromAccount, is_destination_of(e, n) AS isIncomingTransaction
-    FROM MATCH (n:Account) -[e:transaction]- (m:Account)
-   WHERE n.number = 10039
-ORDER BY m.number
-```
-
-```
-+---------------------------------------+
-| toFromAccount | isIncomingTransaction |
-+---------------------------------------+
-| 2090          | true                  |
-| 8021          | false                 |
-+---------------------------------------+
 ```
 
 ## User-Defined functions

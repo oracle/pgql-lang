@@ -446,14 +446,6 @@ entries:
         url: /spec/1.3/#out_degree
         output: web
 
-      - title: 'IS_SOURCE_OF'
-        url: /spec/1.3/#is_source_of
-        output: web
-
-      - title: 'IS_DESTINATION_OF'
-        url: /spec/1.3/#is_destination_of
-        output: web
-
     - title: 'User-Defined functions'
       url: /spec/1.3/#user-defined-functions
       output: web
