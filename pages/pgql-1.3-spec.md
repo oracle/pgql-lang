@@ -2576,12 +2576,8 @@ Literal                      ::=   <StringLiteral>
 
 StringLiteral                ::= <STRING_LITERAL>
 
-NumericLiteral               ::=   <UnsignedIntegerLiteral>
-                                 | <UnsignedDecimalLiteral>
-
-UnsignedIntegerLiteral       ::= [0-9]+
-
-UnsignedDecimalLiteral       ::= ( [0-9]* '.' [0-9]+ ) | ( [0-9]+ '.' )
+NumericLiteral               ::=   <UNSIGNED_INTEGER>
+                                 | <UNSIGNED_DECIMAL>
 
 BooleanLiteral               ::=   'true'
                                  | 'false'
@@ -4019,6 +4015,21 @@ EXCEPT, NO
 ```
 
 Keywords are case-insensitive and variations such as `SELECT`, `Select` and `sELeCt` can be used interchangeably.
+
+## Integers and Decimals
+
+Lexical grammar for integers and decimals is:
+
+```bash
+UNSIGNED_INTEGER     ::= [0-9]+
+
+UNSIGNED_DECIMAL     ::= ( [0-9]* '.' [0-9]+ ) | ( [0-9]+ '.' )
+```
+
+These rules describe the following:
+
+ - Unsigned integers consist of one or more digits.
+ - Unsigned decimals either consist of zero or more digits followed by a dot (`.`) and one or more digits, or, the conceit of one or more digits followed by only a dot (`.`).
 
 ## Comments
 
