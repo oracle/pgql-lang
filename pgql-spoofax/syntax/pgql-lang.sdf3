@@ -9,7 +9,6 @@ imports
   SolutionModifiers
   Legacy
   Expressions
-  Experimental
   Modify
   DDL
 
@@ -27,17 +26,26 @@ context-free syntax
 
   Statement = Query
 
-  Query.Pgql11Query =
+  ExperimentalQuery.Query =
     <
       <{CommonPathExpression "\n"}*>
       <SelectOrModify>
-      <Pgql11FromClause?>
-      <MatchWhereClauses>
+      <FromWhereClauses?>
       <GroupByClause?>
       <HavingClause?>
       <OrderByClause?>
       <LimitOffsetClauses?>
     >
+
+  FromWhereClauses.FromWhereClauses = <FROM <{TableExpression ","}+> <WhereClause?>> {case-insensitive}
+
+  TableExpression = GraphMatch
+
+  GraphMatch.GraphMatch = <<MatchKeyword?> <PathPattern> <OnClause?>>
+
+  MatchKeyword.MatchKeyword = <MATCH> {case-insensitive}
+
+  OnClause.OnClause = <ON <GraphName>> {case-insensitive}
 
   SelectOrModify = SelectClause
   SelectOrModify = ModifyClause

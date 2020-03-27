@@ -13,6 +13,22 @@ template options
 
   keyword -/- [a-zA-Z0-9]
 
+context-free syntax // PGQL 1.1/1.2
+
+  Query.Pgql11Query =
+    <
+      <{CommonPathExpression "\n"}*>
+      <SelectOrModify>
+      <Pgql11FromClause?>
+      <MatchWhereClauses>
+      <GroupByClause?>
+      <HavingClause?>
+      <OrderByClause?>
+      <LimitOffsetClauses?>
+    >
+
+  MatchWhereClauses.MatchWhereClauses = <MATCH <{PathPattern ","}+> <WhereClause?>> {case-insensitive}
+
 context-free syntax // pgql-lang.sdf3 for PGQL 1.0
 
   Legacy10Query.Pgql10Query =

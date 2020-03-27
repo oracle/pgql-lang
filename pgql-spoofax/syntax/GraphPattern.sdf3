@@ -15,11 +15,7 @@ context-free syntax
 
   Pgql11FromClause.Pgql11FromClause = <FROM <GraphName>> {case-insensitive}
 
-  MatchWhereClauses.MatchWhereClauses = <MATCH <{PathPattern ","}+> <WhereClause?>> {case-insensitive}
-
   LocalGraphName.GraphName = Identifier
-
-  GraphPattern.GraphPattern = <<{PathPattern ","}+>>
 
 context-free syntax
 
