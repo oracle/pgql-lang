@@ -27,6 +27,8 @@ context-free syntax // PGQL 1.1/1.2
       <LimitOffsetClauses?>
     >
 
+  Pgql11FromClause.Pgql11FromClause = <FROM <GraphName>> {case-insensitive}
+
   MatchWhereClauses.MatchWhereClauses = <MATCH <{PathPattern ","}+> <WhereClause?>> {case-insensitive}
 
 context-free syntax // pgql-lang.sdf3 for PGQL 1.0

@@ -13,12 +13,6 @@ template options
 
 context-free syntax
 
-  Pgql11FromClause.Pgql11FromClause = <FROM <GraphName>> {case-insensitive}
-
-  LocalGraphName.GraphName = Identifier
-
-context-free syntax
-
   PathPattern.PathPattern = <<Vertex> <EdgeVertex+>>
   PathPattern.SingleVertex = <(<ElemContents>)> // PGQL 1.0
   Vertex.Vertex = <(<ElemContents>)>
