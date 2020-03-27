@@ -306,8 +306,8 @@ See the section on [properties](#properties) for more details
 
 ### Table aliases
 
-A vertex or edge table can have an alias to provide a unique name for the table.
-If no alias is defined, then it default to the name of the underlying table.
+Vertex and edge tables can have aliases for uniquely naming the tables.
+If no alias is defined, then the alias defaults to the name of the underlying database table of the vertex or edge table.
 
 The syntax is:
 
@@ -323,11 +323,13 @@ For example:
 ...
 ```
 
-Above, the underlying table of the vertex table is `Employees` wile the alias is `Employee`.
+Above, the underlying table of the vertex table is `Employees`, wile the alias is `Employee`.
 
-All vertex tables of a graph are required to have a unique name and all edge tables of a graph are required to have a unique name.
+All vertex and edge tables are required to have unique names.
 Therefore, if multiple vertex tables use the same underlying table, then at least one of them requires an alias.
 Similarly, if multiple edge tables use the same underlying table, then at least one of them requires an alias.
+The restriction does not apply across vertex and edge tables, so, there may exist a vertex table with the same name as an edge table,
+but there may not exist two vertex tables with the same name, or two edge tables with the same name.
 
 If the alias is not provided then it defaults to the name of the underlying table.
 For example:
@@ -347,8 +349,9 @@ Above is equivalent to:
 ```
 
 Finally, in addition to providing unique names for vertex and edge tables, the aliases can also serve as a means to provide [labels](#labels) for vertices and edges:
-if no label is defined then it defaults to the table alias.
-Note though that table aliases are required to be unique but labels are not required to be unique so that multiple vertex tables and multiple edge tables can have the same label.
+if no label is defined then the label defaults to the table alias.
+Note that although table aliases are required to be unique, labels are not.
+In other words, multiple vertex tables and multiple edge tables can have the same label.
 
 ### Keys
 
