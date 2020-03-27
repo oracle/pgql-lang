@@ -15,7 +15,7 @@ template options
 
 context-free syntax // PGQL 1.1/1.2
 
-  Query.Pgql11Query =
+  Legacy11Query.Pgql11Query =
     <
       <{CommonPathExpression "\n"}*>
       <SelectOrModify>

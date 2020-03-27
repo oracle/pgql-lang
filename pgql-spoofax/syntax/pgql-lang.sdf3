@@ -26,7 +26,11 @@ context-free syntax
 
   Statement = Query
 
-  ExperimentalQuery.Query =
+  Query = Legacy11Query
+
+  Query = Legacy10Query
+
+  Query.Query =
     <
       <{CommonPathExpression "\n"}*>
       <SelectOrModify>
@@ -50,8 +54,6 @@ context-free syntax
   SelectOrModify = SelectClause
   SelectOrModify = ModifyClause
 
-  Query = Legacy10Query
-  Query = ExperimentalQuery
 
   CommonPathExpression.CommonPathExpression = <PATH <Identifier> <AsignSymbol> <PathPattern> <WhereClause?> <CostClause?>> {case-insensitive}
   AsignSymbol.Pgql11AsignSymbol = <AS> {case-insensitive}
