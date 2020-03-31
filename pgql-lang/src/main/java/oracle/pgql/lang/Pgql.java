@@ -38,6 +38,7 @@ import org.metaborg.core.project.Project;
 import org.metaborg.core.source.AffectedSourceHelper;
 import org.metaborg.core.syntax.ParseException;
 import org.metaborg.spoofax.core.Spoofax;
+import org.metaborg.spoofax.core.SpoofaxModule;
 import org.metaborg.spoofax.core.unit.ISpoofaxAnalyzeUnit;
 import org.metaborg.spoofax.core.unit.ISpoofaxInputUnit;
 import org.metaborg.spoofax.core.unit.ISpoofaxParseUnit;
@@ -98,25 +99,30 @@ public class Pgql implements Closeable {
    * @throws IOException
    */
   public Pgql() throws PgqlException {
+    this(new PgqlConfig(), null);
+  }
+
+  public Pgql(SpoofaxModule module, String tmpDir) throws PgqlException {
     synchronized (lock) {
       if (!isGloballyInitialized) {
-        initializeGlobalInstance();
+        initializeGlobalInstance(module, tmpDir);
       }
       instances.add(this);
       isInitialized = true;
     }
   }
 
-  private void initializeGlobalInstance() throws PgqlException {
+  private void initializeGlobalInstance(SpoofaxModule spoofaxModule, String tmpDir) throws PgqlException {
     try {
       // initialize a new Spoofax
-      spoofax = new Spoofax(new PgqlConfig());
+      spoofax = new Spoofax(spoofaxModule);
 
       // copy the PGQL Spoofax binary to the local file system.
       // IMPORTANT: don't replace this with resolveFile("res:...") or resolve("res:...") because VFS will fail to
       // replicate the resource when it's nested inside multiple JAR or WAR files.
       URL inputUrl = getClass().getResource("/" + SPOOFAX_BINARIES);
-      spoofaxBinaryFile = File.createTempFile(SPOOFAX_BINARIES, "");
+      spoofaxBinaryFile = tmpDir == null ? File.createTempFile(SPOOFAX_BINARIES, "")
+          : new File(tmpDir, SPOOFAX_BINARIES);
       FileUtils.copyURLToFile(inputUrl, spoofaxBinaryFile);
       FileObject fileObject = spoofax.resourceService.resolve("jar:" + spoofaxBinaryFile.getAbsolutePath() + "!");
 
@@ -158,7 +164,7 @@ public class Pgql implements Closeable {
         }
       });
 
-      parseInternal("SELECT * FROM g MATCH (initQuery)"); // make Spoofax initialize the language
+      parseInternal("SELECT * FROM MATCH (initQuery)"); // make Spoofax initialize the language
     } catch (MetaborgException | IOException e) {
       throw new PgqlException("Failed to initialize PGQL", e);
     }
