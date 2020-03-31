@@ -121,8 +121,8 @@ public class Pgql implements Closeable {
       // IMPORTANT: don't replace this with resolveFile("res:...") or resolve("res:...") because VFS will fail to
       // replicate the resource when it's nested inside multiple JAR or WAR files.
       URL inputUrl = getClass().getResource("/" + SPOOFAX_BINARIES);
-      spoofaxBinaryFile = tmpDir == null ? File.createTempFile(SPOOFAX_BINARIES, "")
-          : new File(tmpDir, SPOOFAX_BINARIES);
+      spoofaxBinaryFile = tmpDir == null ? File.createTempFile(SPOOFAX_BINARIES, UUID.randomUUID().toString())
+          : new File(tmpDir, SPOOFAX_BINARIES + UUID.randomUUID());
       FileUtils.copyURLToFile(inputUrl, spoofaxBinaryFile);
       FileObject fileObject = spoofax.resourceService.resolve("jar:" + spoofaxBinaryFile.getAbsolutePath() + "!");
 
