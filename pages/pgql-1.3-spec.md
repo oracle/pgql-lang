@@ -444,8 +444,8 @@ CREATE PROPERTY GRAPH financial_transactions
   )
 ```
 
-Above, keys were defined for each vertex table (e.g. `Account KEY ( number )`), edge table (e.g. `Transactions KEY ( from_account, to_account, date )`), source vertex table reference (e.g. `SOURCE KEY ( person_id ) REFERENCES Persons`) and destination table reference (e.g. `DESTINATION KEY ( to_account ) REFERENCES Accounts`).
-Only keys for edge table are not required, but this depends on the implementation; in some implementations the edge keys are required.
+Above, keys were defined for each vertex table (e.g. `KEY ( number )`), edge table (e.g. `KEY ( from_account, to_account, date )`), source vertex table reference (e.g. `KEY ( person_id )`) and destination table reference (e.g. `KEY ( to_account )`).
+Keys for edge tables are not required if the system has means to automatically generate unique (internal) identifiers.
 
 ### Labels
 
