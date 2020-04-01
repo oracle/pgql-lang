@@ -687,7 +687,7 @@ If the source (or destination) is the edge table itself, then the primary key is
 Therefore, `SOURCE employees` is sufficient and is short for `SOURCE KEY ( employee_id ) REFERENCES employees`.
 
 Note that although the edges are embedded in the vertex tables, by default it is still the case that a property is created for each column.
-This means that by default, the vertices and edges that are created from the same table will have the same properties. 
+This means that by default, the vertices and edges that are created from the same table will have the same properties.
 Typically this is not desired and the columns are only mapped into vertex properties while `NO PROPERTIES` is used for the edges.
 
 ### Example: HR schema
@@ -831,7 +831,7 @@ This can be achieved by qualifying the vertex and edge table names with a schema
 For example:
 
 ```sql
-CREATE PROPERTY GRAPH 
+CREATE PROPERTY GRAPH
   VERTEX TABLES (
     SocialNetwork.Person,
     HR.Employees LABEL Employee
@@ -2464,7 +2464,7 @@ SELECT src, SUM(e.weight), dst
 
 ### Top-K Cheapest Path
 
-PGQL offers a `TOP k CHEAPEST` clause, which returns the `k` paths that match a given pattern with the lowest cost, 
+PGQL offers a `TOP k CHEAPEST` clause, which returns the `k` paths that match a given pattern with the lowest cost,
 computed with a user-defined cost function. If the user-defined cost function returns a constant, the `TOP k CHEAPEST`
  clause is equivalent to `TOP k SHORTEST`.
 
@@ -3446,7 +3446,7 @@ IntoClause              ::= 'INTO' <GraphName>
 
 GraphElementInsertion   ::=   'VERTEX' <VariableName>? <LabelsAndProperties>
                             | 'EDGE' <VariableName>? 'BETWEEN' <VertexReference> 'AND' <VertexReference>
-                                     <LabelsAndProperties> 
+                                     <LabelsAndProperties>
 
 VertexReference         ::= <Identifier>
 
@@ -3478,23 +3478,23 @@ Vertices can be inserted with or without a match.
 
 If the match is missing, one unconnected vertex is inserted to the graph. For example in case of the following query
 
-```sql 
+```sql
 INSERT VERTEX x LABELS ( Male ) PROPERTIES ( x.age = 22 )
-``` 
+```
 
 In the presence of a match, as many vertices are inserted as many rows are matched.
 So the following query inserts a new vertex for every vertex in the graph that is labelled `Male`.
 
 
-```sql 
+```sql
 INSERT VERTEX x LABELS ( Male ) PROPERTIES ( x.age = y.age )
   FROM MATCH (y:Male)
-``` 
+```
 
 In the presence of a `GROUP BY` expression, as many vertices are inserted, as many groups are matched.
 For example the following query inserts a new vertex for every profession in the graph.
 
-```sql 
+```sql
   INSERT VERTEX x LABELS ( Profession ) PROPERTIES ( x.name = y.profession )
     FROM MATCH (y:Person)
 GROUP BY y.profession
@@ -3503,28 +3503,28 @@ GROUP BY y.profession
 ### Inserting edges
 
 Edges can be inserted by specifying the source and destination vertices.
-Only the insertion of directed edges are supported. 
+Only the insertion of directed edges are supported.
 
 For example the following query inserts a vertex with source `x` and destination `y`:
 
-```sql 
+```sql
 INSERT EDGE e BETWEEN x AND y
   FROM MATCH (x)
-     , MATCH (y) 
- WHERE id(x) = 1 AND id(y) = 2 
+     , MATCH (y)
+ WHERE id(x) = 1 AND id(y) = 2
 ```
 
 ### Labels
 
-Labels for the inserted entities can be specified between braces after the `LABELS` keyword. 
+Labels for the inserted entities can be specified between braces after the `LABELS` keyword.
 
 For example:
 
-```sql 
+```sql
 INSERT EDGE e BETWEEN x AND y LABELS ( knows )
   FROM MATCH (x:Person)
-     , MATCH (y:Person) 
- WHERE id(x) = 1 AND id(y) = 2 
+     , MATCH (y:Person)
+ WHERE id(x) = 1 AND id(y) = 2
 ```
 
 ### Properties
@@ -3532,21 +3532,21 @@ INSERT EDGE e BETWEEN x AND y LABELS ( knows )
 Properties can be specified between braces after the `PROPERTIES` keyword.
 On the right-hand-side of the expression, the property name must be preceded by the variable name and a dot.
 Property assignments can be arbitrary expressions with similar restrictions as property assignments in case of update queries.
-Property expressions cannot refer to other entities that are inserted at the same time. 
+Property expressions cannot refer to other entities that are inserted at the same time.
 
 For example, the following query inserts a new vertex with `age = 22`:
 
-```sql 
+```sql
 INSERT VERTEX v PROPERTIES ( v.age = 22 )
 ```
 
 Edge properties can be specified in the same manner:
 
-```sql 
+```sql
 INSERT EDGE e BETWEEN x AND y LABELS ( knows ) PROPERTIES ( e.since = DATE '2017-09-21' )
   FROM MATCH (x:Person)
-     , MATCH (y:Person) 
- WHERE id(x) = 1 AND id(y) = 2 
+     , MATCH (y:Person)
+ WHERE id(x) = 1 AND id(y) = 2
 ```
 
 In case of partitioned schema, only those properties can be assigned that are defined for the type of the entity.
@@ -3558,22 +3558,22 @@ One insert clause can contain multiple inserts.
 
 For example, the query below inserts two vertices into the graph:
 
-```sql 
+```sql
 INSERT
   VERTEX v LABELS ( Male ) PROPERTIES ( v.age = 23, v.name = 'John' ),
   VERTEX u LABELS ( Female ) PROPERTIES ( u.age = 24, v.name = 'Jane' )
 ```
 
-Multiple insertions under the same `INSERT` can be used to set a newly inserted vertex as source or destination for a newly inserted edge. 
+Multiple insertions under the same `INSERT` can be used to set a newly inserted vertex as source or destination for a newly inserted edge.
 
 For example, the following query inserts a vertex and an edge that connects it to the matched vertex `y`:
 
-```sql 
-INSERT VERTEX x LABELS ( Person ) PROPERTIES ( x.name = 'John' ),
+```sql
+INSERT VERTEX x LABELS ( Person ) PROPERTIES ( x.name = 'John' )
      , EDGE e BETWEEN x AND y LABELS ( knows ) PROPERTIES ( e.since = DATE '2017-09-21' )
   FROM MATCH (y)
  WHERE y.name = 'Jane'
-``` 
+```
 
 Note that the properties of `x` cannot be accessed in the property assignments of `e`, only the variable itself is visible as source of the edge.
 For this reason setting `e.since` to `x.graduation_date` would cause the query to fail.
@@ -3583,7 +3583,7 @@ In the presence of a match, as many edges are inserted as many (not necessarily 
 If a vertex pair is matched more than once, multiple edges will be inserted between the vertices.
 
 For example consider the following query:
-```sql 
+```sql
 INSERT EDGE e BETWEEN x AND y
   FROM MATCH (x)
      , MATCH (y) -> (z)
@@ -3594,7 +3594,7 @@ INSERT EDGE e BETWEEN x AND y
 
 If the query is executed on the graph above, the following vertices will be matched
 
-x | y | z | 
+x | y | z |
 --- | --- | ---
 V1 | V2 | V4 |
 V1 | V3 | V2
@@ -3623,7 +3623,7 @@ For example, the following query sets the property `age` of every person named "
 UPDATE x SET ( x.age = 42 )
   FROM MATCH (x:Person)
  WHERE x.name = 'John'
-``` 
+```
 
 An example in which properties of multiple vertices and edges are update is:
 
@@ -3639,7 +3639,7 @@ Above, we match a person named John and the car that belongs to John. We then se
 
 ### Handling read after write conflicts
 
-During the update, the assigned values (right-hand-side of assignments) correspond to the graph property values 
+During the update, the assigned values (right-hand-side of assignments) correspond to the graph property values
 before the beginning of the update. This aligns with the snapshot isolation semantics defined between modifications in the same query.
 
 For example consider the following update:
@@ -3656,12 +3656,12 @@ x | y
 V1 | V2
 V3 | V1
 
-Supposing that `V1.b` was `20` before executing the update, `V1.b` will be assigned 12 `V3.a` will be assigned `20` no 
+Supposing that `V1.b` was `20` before executing the update, `V1.b` will be assigned 12 `V3.a` will be assigned `20` no
 matter in which order the updates are executed.
 
 ### Handling write after write conflicts
 
-Multiple writes to the same property of the same entity are not allowed, in such cases the execution terminates with 
+Multiple writes to the same property of the same entity are not allowed, in such cases the execution terminates with
 an error.
 
 For example consider the following query:
@@ -3680,21 +3680,21 @@ V1 | V3
 
 a runtime exception will be thrown, because the value assigned to `V1.a` could be ambiguous.
 
-As an extension to this semantics, PGX implements a more relaxed version for conflicting write checks. 
-If the assigned value can be statically guaranteed to be only depending on property values of the entity it is 
-assigned to, then even in case of multiple assignments, (since the assigned value is always the same) the update 
+As an extension to this semantics, PGX implements a more relaxed version for conflicting write checks.
+If the assigned value can be statically guaranteed to be only depending on property values of the entity it is
+assigned to, then even in case of multiple assignments, (since the assigned value is always the same) the update
 succeeds.
- 
-For example, in the following case, multiple writes to `v.a` are allowed, because in this case no matter how many 
+
+For example, in the following case, multiple writes to `v.a` are allowed, because in this case no matter how many
 times `v.a` is written, it is always assigned the same value (65 minus its age property).
- 
+
 ```sql
 UPDATE v SET ( v.a = 65 - v.age )
   FROM MATCH (v:Person) -> (u:Person)
  WHERE v.name = 'John'
-``` 
+```
 
-In the following case, however, multiple writes to `v.a` are not allowed, because the value of the property would be 
+In the following case, however, multiple writes to `v.a` are not allowed, because the value of the property would be
 ambiguous, 65 minus the other vertex's age property, that can be different for different matched `u`'s.
 
 ```sql
@@ -3717,7 +3717,7 @@ For example, one can delete all edges from a graph using the following query
 ```sql
 DELETE e
   FROM MATCH () -[e]-> ()
-``` 
+```
 
 Multiple deletes to the same entity are not considered conflicting. For example consider the following query:
 
@@ -3732,7 +3732,7 @@ In that case, even if a vertex is matched multiple times by `(x)` or `(y)`, and 
 If a vertex is deleted, all its incoming and outgoing edges are deleted as well, thus there are no dangling edges left after a query.
 So the following query not only deletes the vertex with id `11` but also all edges for which it is source or destination.
 
-```sql 
+```sql
 DELETE x
   FROM MATCH (x)
  WHERE id(x) = 11
@@ -3740,20 +3740,20 @@ DELETE x
 
 Because of implicit deletion of edges, the following query can be used to delete all edges as well as all vertices from a graph:
 
-```sql 
+```sql
 DELETE x
   FROM MATCH (x)
 ```
 
-## Mixing INSERT, UPDATE and DELETE
+## Combining INSERT, UPDATE and DELETE
 
-Multiple modifications can be executed in the same query. 
+Multiple modifications can be executed in the same query.
 For example, to update a vertex and also insert an edge with the same vertex as source, the following query can be used:
 
-```sql 
+```sql
 INSERT EDGE e BETWEEN x AND y
 UPDATE y SET ( y.a = 12 )
-  FROM MATCH (x), MATCH (y) 
+  FROM MATCH (x), MATCH (y)
  WHERE id(x) = 1 AND id(y) = 2
 ```
 
@@ -3774,13 +3774,13 @@ Please note, that for the same reason, properties of newly inserted vertices can
 For example, the following query would fail as `x` is not yet in the graph, and `x.age` cannot be evaluated:
 
 ```sql
-INSERT VERTEX x PROPERTIES ( v.age = 24 ),
+INSERT VERTEX x PROPERTIES ( v.age = 24 )
      , VERTEX y PROPERTIES ( y.age = x.age )
 ```
 
 ### Handling conflicting modifications
 
-Multiple modifications on the same entity are not allowed, in such cases the execution terminates with 
+Multiple modifications on the same entity are not allowed, in such cases the execution terminates with
 an error. This section only addresses conflicts between different modifications under the same query.
 For the conflicts within the same modification, please refer to the corresponding sections.
 
@@ -3791,17 +3791,17 @@ For example, let us consider the following query:
 
 ```sql
 UPDATE x SET ( x.a = 11 )
-DELETE x 
+DELETE x
   FROM MATCH (x)
 ```
 
 There the conflict is trivial between the deleted and the updated vertex.
-However, the conflict is not always straightforward, for example, 
+However, the conflict is not always straightforward, for example,
 the following query can also fail due to conflicting update and delete:
 
 ```sql
 UPDATE x SET ( x.a = 11 )
-DELETE y 
+DELETE y
   FROM MATCH (x) -> (y)
 ```
 
@@ -3922,7 +3922,7 @@ in string literals in PGQL, only single quotes are escaped.
 For example, take the following string:
 
 ```
-My string with single quotes ', double quotes ", backslashes \ 
+My string with single quotes ', double quotes ", backslashes \
 new lines and tabs	.
 ```
 

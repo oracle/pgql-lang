@@ -522,8 +522,8 @@ entries:
       url: /spec/1.3/#delete
       output: web
 
-    - title: 'Mixing INSERT, UPDATE and DELETE'
-      url: /spec/1.3/#mixing-insert-update-and-delete
+    - title: 'Combining INSERT, UPDATE and DELETE'
+      url: /spec/1.3/#combining-insert-update-and-delete
       output: web
       subfolderitems:
 
