@@ -1,7 +1,7 @@
 {
   "name": "financial_transactions",
   "vertex_id_type" : "long",
-  "edge_id_strategy" : "no_ids",
+  "edge_id_strategy" : "unstable_generated_ids",
   "vertex_providers": [
     {
       "format": "csv",
