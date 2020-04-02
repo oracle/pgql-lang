@@ -1,6 +1,7 @@
 {
   "name": "financial_transactions",
   "vertex_id_type" : "long",
+  "vertex_id_strategy" : "unstable_generated_ids",
   "edge_id_strategy" : "unstable_generated_ids",
   "vertex_providers": [
     {
@@ -16,7 +17,10 @@
         }
       ],
       "separator": " ",
-      "uris": ["accounts.csv"]
+      "uris": ["accounts.csv"],
+      "loading": {
+        "create_key_mapping" : false
+      }
     },
     {
       "format": "csv",
@@ -31,7 +35,10 @@
         }
       ],
       "separator": " ",
-      "uris": ["persons.csv"]
+      "uris": ["persons.csv"],
+      "loading": {
+        "create_key_mapping" : false
+      }
     },
     {
       "format": "csv",
@@ -46,7 +53,10 @@
         }
       ],
       "separator": " ",
-      "uris": ["companies.csv"]
+      "uris": ["companies.csv"],
+      "loading": {
+        "create_key_mapping" : false
+      }
     }
   ],
   "edge_providers": [
