@@ -286,7 +286,7 @@ CREATE PROPERTY GRAPH financial_transactions
 ```
 
 Above, keys for the source and destination of `PersonOwnerOfAccount` and `CompanyOwnerOfAccount` are omitted because we can default to the existing foreign keys.
-However, the keys for the source and destination of `Transactions` cannot be omitted because two foreign keys exists between `Transactions` and `Account` and it is not possible to automatically choose the right one.
+However, the keys for the source and destination of `Transactions` cannot be omitted because two foreign keys exist between `Transactions` and `Account` and it is otherwise not possible to know which one should be used.
 
 The source vertex table and/or the destination vertex table may be the same table as the edge table, in which case the table provides both vertices and edges.
 This is explained in more detail in [Source or destination is self](#source-or-destination-is-self).  
