@@ -71,7 +71,9 @@ After we created the graph, we can execute a `SELECT` query to "produce an overv
 
 ```sql
   SELECT owner.name AS account_holder, SUM(t.amount) AS total_transacted_with_Nikita
-    FROM MATCH (p:Person) -[:ownerOf]-> (:Account) -[t:transaction]- (:Account) <-[:ownerOf]- (owner:Person|Company)
+    FROM MATCH (p:Person) -[:ownerOf]-> (account1:Account)
+       , MATCH (account1) -[t:transaction]- (account2) /* match both incoming and outgoing transactions */
+       , MATCH (account1:Account) <-[:ownerOf]- (owner:Person|Company)
    WHERE p.name = 'Nikita'
 GROUP BY owner
 ```
