@@ -323,7 +323,7 @@ For example:
 ...
 ```
 
-Above, the underlying table of the vertex table is `Employees`, wile the alias is `Employee`.
+Above, the underlying table of the vertex table is `Employees`, while the alias is `Employee`.
 
 All vertex and edge tables are required to have unique names.
 Therefore, if multiple vertex tables use the same underlying table, then at least one of them requires an alias.
@@ -397,7 +397,7 @@ Above, a key is defined for the source vertex table of the `Transactions` edge t
 and it would be ambiguous which one to use.
 For the same reason, a key is defined for the destination vertex table of the `Transactions` edge table.
 
-The keys for source and destination vertex tables consist of one or more columns fo the underlying edge table that uniquely identify a vertex in the corresponding vertex table. If no key is defined for the vertex table, the key defaults to the underlying primary key, which is required to exist in such a case.
+The keys for source and destination vertex tables consist of one or more columns of the underlying edge table that uniquely identify a vertex in the corresponding vertex table. If no key is defined for the vertex table, the key defaults to the underlying primary key, which is required to exist in such a case.
 
 The following example has a schema that has no primary and foreign keys defined at all:
 
@@ -2754,7 +2754,7 @@ Coercion is only defined for numeric types. Given a binary arithmetic operation 
 ## Null values
 
 The property graph data model does not allow properties with `null` value. Instead, missing or undefined data can be modeled through the _absence_ of properties.
-A `null` value is generated when trying to access a property of a vertex or edge wile the property appears to be missing.
+A `null` value is generated when trying to access a property of a vertex or an edge while the property appears to be missing.
 Three-valued logic applies when `null` values appear in computation.
 
 ### Three-Valued Logic
