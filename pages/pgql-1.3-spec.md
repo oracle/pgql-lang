@@ -619,15 +619,12 @@ An example of an edge table with no properties is:
     ...
 ```
 
-#### Relation between properties and labels
+#### Relation between labels and properties
 
-If multiple vertex tables have the same label then they are required to have the same properties with the same names and compatible data types.
-Similarly, if multiple edge tables have the same label then they are also required to have the same properties with the same names and compatible data types.
+Vertex tables that have the same label are required to have the same properties such that the properties have the same name and compatible data types.
+Similarly, edge tables that have the same label are required to have the same properties such that the properties have the same name and compatible data types.
 
-If two tables should have the same label but column names are different, then it is required provide (the same property names).
-For example, assume two tables `Country` and `City` exist with columns `country_name` and `city_name` respectively.
-
-The following statement would be illegal because both vertex tables have the same label but not the same properties:
+Take the following example:
 
 ```sql
 ...
@@ -639,9 +636,7 @@ The following statement would be illegal because both vertex tables have the sam
 ...
 ```
 
-Note that the example above is incorrect because the two vertex tables have the same label (`Place`) but different properties (`country_name` and `city_name`).
-
-To make this example work, the same property names have to be provided for both columns:
+The statement above is illegal because both `Country` and `City` have label `Place` but their properties are inconsistent. To make this example work, the same property names have to be assigned:
 
 ```sql
 ...
