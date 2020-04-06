@@ -585,7 +585,7 @@ If a different property name than the column name is desired, one can use an ali
 ...
 ```
 
-Property names may also be `CAST` expressions, to allow for converting the value in the table to a value of a new data type.
+Property names may also be `CAST` expressions, which allows the values in the column to be converted into properties of a different data type.
 For example:
 
 ```sql
@@ -593,7 +593,7 @@ For example:
   VERTEX TABLES (
     Employees
       LABEL Employee
-      PROPERTIES ( CAST(salary AS INTEGER) ),
+      PROPERTIES ( CAST(salary AS INTEGER) AS salary ),
 ...
 ```
 
@@ -671,15 +671,15 @@ CREATE PROPERTY GRAPH hr_simplified
   )
   EDGE TABLES (
     employees AS works_for
-      SOURCE employees
-      DESTINATION KEY ( manager_id ) REFERENCES employees
+      SOURCE KEY ( employee_id ) REFERENCES employees
+      DESTINATION employees
       NO PROPERTIES
   )
 ```
 
 As you can see, both the `employee` vertices and the `works_for` edges are created from the `employees` table.
-If the source (or destination) is the edge table itself, then the primary key is used instead of a foreign key.
-Therefore, `SOURCE employees` is sufficient and is short for `SOURCE KEY ( employee_id ) REFERENCES employees`.
+In case of the source vertex of the edge there is no foreign key that we can default to so we specify the key `KEY ( employee_id )`.
+However, in case of the destination vertex of the edge we can default to the foreign key that has `Employee` as referencing and referenced table.
 
 Note that although the edges are embedded in the vertex tables, by default it is still the case that a property is created for each column.
 This means that by default, the vertices and edges that are created from the same table will have the same properties.
@@ -712,48 +712,48 @@ CREATE PROPERTY GRAPH hr
   )
   EDGE TABLES (
     employees AS works_for
-      SOURCE employees
-      DESTINATION KEY ( manager_id ) REFERENCES employees
+    SOURCE KEY ( employee_id ) REFERENCES employees
+    DESTINATION employees
       NO PROPERTIES,
     employees AS works_at
-      SOURCE employees
+      SOURCE KEY ( employee_id ) REFERENCES employees
       DESTINATION departments
       NO PROPERTIES,
     employees AS works_as
-      SOURCE employees
+      SOURCE KEY ( employee_id ) REFERENCES employees
       DESTINATION jobs
       NO PROPERTIES,
     departments AS managed_by
-      SOURCE departments
+      SOURCE KEY ( department_id ) REFERENCES departments
       DESTINATION employees
       NO PROPERTIES,
     job_history AS for_employee
-      SOURCE job_history
+      SOURCE KEY ( employee_id, start_date ) REFERENCES job_history
       DESTINATION employees
       LABEL for
       NO PROPERTIES,
     job_history AS for_department
-      SOURCE job_history
+      SOURCE KEY ( employee_id, start_date ) REFERENCES job_history
       DESTINATION departments
       LABEL for
       NO PROPERTIES,
     job_history AS for_job
-      SOURCE job_history
+      SOURCE KEY ( employee_id, start_date ) REFERENCES job_history
       DESTINATION jobs
       LABEL for
       NO PROPERTIES,
     departments AS department_located_in
-      SOURCE departments
+      SOURCE KEY ( department_id ) REFERENCES departments
       DESTINATION locations
       LABEL located_in
       NO PROPERTIES,
     locations AS location_located_in
-      SOURCE locations
+      SOURCE KEY ( location_id ) REFERENCES locations
       DESTINATION countries
       LABEL located_in
       NO PROPERTIES,
     countries AS country_located_in
-      SOURCE countries
+      SOURCE KEY ( country_id ) REFERENCES countries
       DESTINATION regions
       LABEL located_in
       NO PROPERTIES
@@ -805,9 +805,9 @@ ORDER BY COUNT(*) DESC
 +--------------------------------------------------+
 | srcLbl      | edgeLbl    | dstLbl     | COUNT(*) |
 +--------------------------------------------------+
-| EMPLOYEE    | WORKS_AS   | JOB        | 106      |
+| EMPLOYEE    | WORKS_AS   | JOB        | 107      |
+| EMPLOYEE    | WORKS_AT   | DEPARTMENT | 106      |
 | EMPLOYEE    | WORKS_FOR  | EMPLOYEE   | 106      |
-| EMPLOYEE    | WORKS_AT   | DEPARTMENT | 105      |
 | DEPARTMENT  | LOCATED_IN | LOCATION   | 27       |
 | COUNTRY     | LOCATED_IN | REGION     | 25       |
 | LOCATION    | LOCATED_IN | COUNTRY    | 23       |
