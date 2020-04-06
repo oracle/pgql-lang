@@ -568,24 +568,27 @@ For example:
   VERTEX TABLES (
     Employees
       LABEL Employee
-      PROPERTIES ( employee_id, first_name, email ),
+      PROPERTIES ( first_name ),
 ...
 ```
 
-Above, only the column `firstName` becomes a property `firstName`.
+Above, even though table `Employees` may have many columns, only the column `first_name` is used as a property. The name of the property defaults to the name of the column: `first_name`.
 
-If a different property name than the column name is desired, one can use an alias as follows:
+If a different property name is desired then an alias can be used:
 
 ```sql
 ...
   VERTEX TABLES (
     Employees
       LABEL Employee
-      PROPERTIES ( employee_id AS id, first_name AS firstName, email ),
+      PROPERTIES ( first_name AS firstName ),
 ...
 ```
 
+Above, the column name `first_name` becomes a property with name `firstName` (notice the missing underscore character in the property name).
+
 Property names may also be `CAST` expressions, which allows the values in the column to be converted into properties of a different data type.
+
 For example:
 
 ```sql
