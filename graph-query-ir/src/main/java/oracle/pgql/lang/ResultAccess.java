@@ -19,272 +19,272 @@ import java.util.Set;
 public interface ResultAccess {
 
   /**
-   * Gets the value of the designated element by element name as an {@link Object}
+   * Retrieves the value of the designated column in the current row as an {@link Object}
    *
-   * @param elementIdx
-   *          element index
+   * @param columnIdx
+   *          column index
    * @return {@link Object}
    */
-  public Object getObject(int elementIdx) throws PgqlException;
+  public Object getObject(int columnIdx) throws PgqlException;
 
   /**
-   * Gets the value of the designated element by element name as an {@link Object}
+   * Retrieves the value of the designated column in the current row as an {@link Object}
    *
-   * @param elementName
-   *          element name
+   * @param columnName
+   *          column name
    * @return {@link Object}
    */
-  public Object getObject(String elementName) throws PgqlException;
+  public Object getObject(String columnName) throws PgqlException;
 
   /**
-   * Gets the value of the designated element by element index as a {@link String}
+   * Retrieves the value of the designated column in the current row as a {@link String}
    *
-   * @param elementIdx
-   *          element index
+   * @param columnIdx
+   *          column index
    * @return {@link String}
    */
-  public String getString(int elementIdx) throws PgqlException;
+  public String getString(int columnIdx) throws PgqlException;
 
   /**
-   * Gets the value of the designated element by element name as a {@link String}
+   * Retrieves the value of the designated column in the current row as a {@link String}
    *
-   * @param elementName
-   *          element name
+   * @param columnName
+   *          column name
    * @return {@link String}
    */
-  public String getString(String elementName) throws PgqlException;
+  public String getString(String columnName) throws PgqlException;
 
   /**
-   * Gets the value of the designated element by element index as an {@link Integer}
+   * Retrieves the value of the designated column in the current row as an {@link Integer}
    *
-   * @param elementIdx
-   *          element index
+   * @param columnIdx
+   *          column index
    * @return {@link Integer}
    */
-  public Integer getInteger(int elementIdx) throws PgqlException;
+  public Integer getInteger(int columnIdx) throws PgqlException;
 
   /**
-   * Gets the value of the designated element by element name as an {@link Integer}
+   * Retrieves the value of the designated column in the current row as an {@link Integer}
    *
-   * @param elementName
-   *          element name
+   * @param columnName
+   *          column name
    * @return {@link Integer}
    */
-  public Integer getInteger(String elementName) throws PgqlException;
+  public Integer getInteger(String columnName) throws PgqlException;
 
   /**
-   * Gets the value of the designated element by element index as a {@link Long}
+   * Retrieves the value of the designated column in the current row as a {@link Long}
    *
-   * @param elementIdx
-   *          element index
+   * @param columnIdx
+   *          column index
    * @return {@link Long}
    */
-  public Long getLong(int elementIdx) throws PgqlException;
+  public Long getLong(int columnIdx) throws PgqlException;
 
   /**
-   * Gets the value of the designated element by element name as a {@link Long}
+   * Retrieves the value of the designated column in the current row as a {@link Long}
    *
-   * @param elementName
-   *          element name
+   * @param columnName
+   *          column name
    * @return {@link Long}
    */
-  public Long getLong(String elementName) throws PgqlException;
+  public Long getLong(String columnName) throws PgqlException;
 
   /**
-   * Gets the value of the designated element by element index as a {@link Float}
+   * Retrieves the value of the designated column in the current row as a {@link Float}
    *
-   * @param elementIdx
-   *          element index
+   * @param columnIdx
+   *          column index
    * @return {@link Float}
    */
-  public Float getFloat(int elementIdx) throws PgqlException;
+  public Float getFloat(int columnIdx) throws PgqlException;
 
   /**
-   * Gets the value of the designated element by element name as a {@link Float}
+   * Retrieves the value of the designated column in the current row as a {@link Float}
    *
-   * @param elementName
-   *          element name
+   * @param columnName
+   *          column name
    * @return {@link Float}
    */
-  public Float getFloat(String elementName) throws PgqlException;
+  public Float getFloat(String columnName) throws PgqlException;
 
   /**
-   * Gets the value of the designated element by element index as a {@link Double}
+   * Retrieves the value of the designated column in the current row as a {@link Double}
    *
-   * @param elementIdx
-   *          element index
+   * @param columnIdx
+   *          column index
    * @return {@link Double}
    */
-  public Double getDouble(int elementIdx) throws PgqlException;
+  public Double getDouble(int columnIdx) throws PgqlException;
 
   /**
-   * Gets the value of the designated element by element name as a {@link Double}
+   * Retrieves the value of the designated column in the current row as a {@link Double}
    *
-   * @param elementName
-   *          element name
+   * @param columnName
+   *          column name
    * @return {@link Double}
    */
-  public Double getDouble(String elementName) throws PgqlException;
+  public Double getDouble(String columnName) throws PgqlException;
 
   /**
-   * Gets the value of the designated element by element index as a {@link Boolean}
+   * Retrieves the value of the designated column in the current row as a {@link Boolean}
    *
-   * @param elementIdx
-   *          element index
+   * @param columnIdx
+   *          column index
    * @return {@link Boolean}
    */
-  public Boolean getBoolean(int elementIdx) throws PgqlException;
+  public Boolean getBoolean(int columnIdx) throws PgqlException;
 
   /**
-   * Gets the value of the designated element by element name as a {@link Boolean}
+   * Retrieves the value of the designated column in the current row as a {@link Boolean}
    *
-   * @param elementName
-   *          element name
+   * @param columnName
+   *          column name
    * @return {@link Boolean}
    */
-  public Boolean getBoolean(String elementName) throws PgqlException;
+  public Boolean getBoolean(String columnName) throws PgqlException;
 
   /**
-   * Gets the value of the designated element by element index as vertex labels
+   * Retrieves the value of the designated column in the current row as vertex labels
    *
-   * @param elementIdx
-   *          element index
+   * @param columnIdx
+   *          column index
    * @return vertex labels
    */
-  public Set<String> getVertexLabels(int elementIdx) throws PgqlException;
+  public Set<String> getVertexLabels(int columnIdx) throws PgqlException;
 
   /**
-   * Gets the value of the designated element by element name as vertex labels
+   * Retrieves the value of the designated column in the current row as vertex labels
    *
-   * @param elementName
-   *          element name
+   * @param columnName
+   *          column name
    * @return vertex labels
    */
-  public Set<String> getVertexLabels(String elementName) throws PgqlException;
+  public Set<String> getVertexLabels(String columnName) throws PgqlException;
 
   /**
-   * Gets the value of the designated element by element index as a {@link LocalDate}
+   * Retrieves the value of the designated column in the current row as a {@link LocalDate}
    *
-   * @param elementIdx
-   *          element index
+   * @param columnIdx
+   *          column index
    * @return {@link LocalDate}
    */
-  public LocalDate getDate(int elementIdx) throws PgqlException;
+  public LocalDate getDate(int columnIdx) throws PgqlException;
 
   /**
-   * Gets the value of the designated element by element name as a {@link LocalDate}
+   * Retrieves the value of the designated column in the current row as a {@link LocalDate}
    *
-   * @param elementName
-   *          element name
+   * @param columnName
+   *          column name
    * @return {@link LocalDate}
    */
-  public LocalDate getDate(String elementName) throws PgqlException;
+  public LocalDate getDate(String columnName) throws PgqlException;
 
   /**
-   * Gets the value of the designated element by element index as a {@link LocalTime}
+   * Retrieves the value of the designated column in the current row as a {@link LocalTime}
    *
-   * @param elementIdx
-   *          element index
+   * @param columnIdx
+   *          column index
    * @return {@link LocalTime}
    */
-  public LocalTime getTime(int elementIdx) throws PgqlException;
+  public LocalTime getTime(int columnIdx) throws PgqlException;
 
   /**
-   * Gets the value of the designated element by element name as a {@link LocalTime}
+   * Retrieves the value of the designated column in the current row as a {@link LocalTime}
    *
-   * @param elementName
-   *          element name
+   * @param columnName
+   *          column name
    * @return {@link LocalTime}
    */
-  public LocalTime getTime(String elementName) throws PgqlException;
+  public LocalTime getTime(String columnName) throws PgqlException;
 
   /**
-   * Gets the value of the designated element by element index as a {@link LocalDateTime}
+   * Retrieves the value of the designated column in the current row as a {@link LocalDateTime}
    *
-   * @param elementIdx
-   *          element index
+   * @param columnIdx
+   *          column index
    * @return {@link LocalDateTime}
    */
-  public LocalDateTime getTimestamp(int elementIdx) throws PgqlException;
+  public LocalDateTime getTimestamp(int columnIdx) throws PgqlException;
 
   /**
-   * Gets the value of the designated element by element name as a {@link LocalDateTime}
+   * Retrieves the value of the designated column in the current row as a {@link LocalDateTime}
    *
-   * @param elementName
-   *          element name
+   * @param columnName
+   *          column name
    * @return {@link LocalDateTime}
    */
-  public LocalDateTime getTimestamp(String elementName) throws PgqlException;
+  public LocalDateTime getTimestamp(String columnName) throws PgqlException;
 
   /**
-   * Gets the value of the designated element by element index as an {@link OffsetTime}
+   * Retrieves the value of the designated column in the current row as an {@link OffsetTime}
    *
-   * @param elementIdx
-   *          element index
+   * @param columnIdx
+   *          column index
    * @return {@link OffsetTime}
    */
-  public OffsetTime getTimeWithTimezone(int elementIdx) throws PgqlException;
+  public OffsetTime getTimeWithTimezone(int columnIdx) throws PgqlException;
 
   /**
-   * Gets the value of the designated element by element name as an {@link OffsetTime}
+   * Retrieves the value of the designated column in the current row as an {@link OffsetTime}
    *
-   * @param elementName
-   *          element name
+   * @param columnName
+   *          column name
    * @return {@link OffsetTime}
    */
-  public OffsetTime getTimeWithTimezone(String elementName) throws PgqlException;
+  public OffsetTime getTimeWithTimezone(String columnName) throws PgqlException;
 
   /**
-   * Gets the value of the designated element by element index as an {@link OffsetDateTime}
+   * Retrieves the value of the designated column in the current row as an {@link OffsetDateTime}
    *
-   * @param elementIdx
-   *          element index
+   * @param columnIdx
+   *          column index
    * @return {@link OffsetDateTime}
    */
-  public OffsetDateTime getTimestampWithTimezone(int elementIdx) throws PgqlException;
+  public OffsetDateTime getTimestampWithTimezone(int columnIdx) throws PgqlException;
 
   /**
-   * Gets the value of the designated element by element name as an {@link OffsetDateTime}
+   * Retrieves the value of the designated column in the current row as an {@link OffsetDateTime}
    *
-   * @param elementName
-   *          element name
+   * @param columnName
+   *          column name
    * @return {@link OffsetDateTime}
    */
-  public OffsetDateTime getTimestampWithTimezone(String elementName) throws PgqlException;
+  public OffsetDateTime getTimestampWithTimezone(String columnName) throws PgqlException;
 
   /**
-   * Gets the value of the designated element by element index as a {@link Date}
+   * Retrieves the value of the designated column in the current row as a {@link Date}
    *
-   * @param elementIdx
-   *          element index
+   * @param columnIdx
+   *          column index
    * @return {@link Date}
    */
-  public Date getLegacyDate(int elementIdx) throws PgqlException;
+  public Date getLegacyDate(int columnIdx) throws PgqlException;
 
   /**
-   * Gets the value of the designated element by element name as a {@link Date}
+   * Retrieves the value of the designated column in the current row as a {@link Date}
    *
-   * @param elementName
-   *          element name
+   * @param columnName
+   *          column name
    * @return {@link Date}
    */
-  public Date getLegacyDate(String elementName) throws PgqlException;
+  public Date getLegacyDate(String columnName) throws PgqlException;
 
   /**
-   * Gets the value of the designated element by element index as a {@link List}
+   * Retrieves the value of the designated column in the current row as a {@link List}
    *
-   * @param elementIdx
-   *          element index
+   * @param columnIdx
+   *          column index
    * @return {@link List}
    */
-  public <T> List<T> getList(int elementIdx) throws PgqlException;
+  public <T> List<T> getList(int columnIdx) throws PgqlException;
 
   /**
-   * Gets the value of the designated element by element name as a {@link List}
+   * Retrieves the value of the designated column in the current row as a {@link List}
    *
-   * @param elementName
-   *          element name
+   * @param columnName
+   *          column name
    * @return {@link List}
    */
-  public <T> List<T> getList(String elementName) throws PgqlException;
+  public <T> List<T> getList(String columnName) throws PgqlException;
 }
