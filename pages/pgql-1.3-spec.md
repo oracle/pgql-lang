@@ -715,8 +715,8 @@ CREATE PROPERTY GRAPH hr
   )
   EDGE TABLES (
     employees AS works_for
-    SOURCE KEY ( employee_id ) REFERENCES employees
-    DESTINATION employees
+      SOURCE KEY ( employee_id ) REFERENCES employees
+      DESTINATION employees
       NO PROPERTIES,
     employees AS works_at
       SOURCE KEY ( employee_id ) REFERENCES employees
