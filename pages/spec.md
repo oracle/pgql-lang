@@ -5,6 +5,7 @@ toc: false
 
 ## PGQL Specifications
 
+ - [PGQL 1.3 Specification](1.3/)
  - [PGQL 1.2 Specification](1.2/)
  - [PGQL 1.1 Specification](1.1/)
  - [PGQL 1.0 Specification](1.0/)
