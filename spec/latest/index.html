@@ -1,0 +1,21 @@
+<!DOCTYPE html>
+<html lang="en-US">
+  <meta charset="utf-8">
+  <title>Redirecting…</title>
+  <link rel="canonical" href="/spec/1.3/">
+  <meta http-equiv="refresh" content="0; url=/spec/1.3">
+  <body style="background-color:#312d2b;">
+    <h1 style="color:#759C6C;">Redirecting…</h1>
+    <a href="/spec/1.3/" style="color:#ffffff;">Click here if you are not redirected.</a>
+  </body>
+  <script>
+    var url = '/spec/1.3/';
+    if (location.search && url.indexOf('?') === -1) {
+      url = url.replace(/($|#)/, location.search + '$1');
+    }
+    if (location.hash && url.indexOf('#') === -1) {
+      url += location.hash;
+    }
+    location=url;
+  </script>
+</html>
