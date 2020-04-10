@@ -79,7 +79,7 @@ The following are the syntax changes in PGQL 1.1:
      PATH close_friend := () -[WITH weight >= 9]-> (:Person)
    SELECT m.name
     WHERE (n:Person) -/:close_friend*/-> (m)
-        , n.name = 'Amber' 
+        , n.name = 'Amber'
    ```
 
    ```sql
@@ -123,7 +123,7 @@ Consider the following example PGQL query:
 
 ```sql
 SELECT m.name, o.name
-  FROM sn_graph 
+  FROM sn_graph
  MATCH (n:Person) -[e1:friend_of]-> (m:Person) <-[e2:belongs_to]- (o:Car)
  WHERE n.name = 'John'
 ```
@@ -185,7 +185,7 @@ The most important ones are as follows:
 
 - The `SelectClause` defines the data entities that are returned in the result.
 - The `MatchClause` defines the graph pattern that is matched against the data graph instance.
-- The `WhereClause` defines the filters. 
+- The `WhereClause` defines the filters.
 
 The detailed syntax and semantic of each clause are explained in following sections.
 
@@ -527,7 +527,7 @@ This query is semantically equivalent to:
 
 ```sql
 SELECT n, m, w
-  FROM g MATCH (n:Person) -> (m) -> ()
+  FROM g MATCH (n:Person) -> (m) -> (w)
      , (n) -> (w) -> (m)
 ```
 
@@ -1206,7 +1206,7 @@ A `=` B<br>A `<>` B                                 | numeric, string, boolean,<
 A `<` B<br>A `>` B<br>A `<=` B<br>A `>=` B          | numeric, string, boolean,<br>date, time (with time zone), timestamp (with time zone)                  | boolean
 `NOT` A<br>A `AND` B<br>A `OR` B                    | boolean                                                                                               | boolean
 
-*For precision and scale, see [Implicit Type Conversion](#implicit-type-conversion). 
+*For precision and scale, see [Implicit Type Conversion](#implicit-type-conversion).
 
 ### Comparison of Temporal Values with Time Zones
 
@@ -1355,7 +1355,7 @@ The following example shows a bind variable in the position of a label:
    WHERE has_label(n, ?)
 ```
 
- 
+
 ## Functions
 
 PGQL has a set of built-in functions (see [Built-in Functions](#built-in-functions)), and, provides language extension through user-defined functions (see [User-Defined Functions](#user-defined-functions)).
@@ -1433,7 +1433,7 @@ Coercion is only defined for numeric types. Given a binary arithmetic operation 
 
 Explicit type conversion is supported through type "casting".
 
-The syntax is as follows: 
+The syntax is as follows:
 
 ```bash
 CastSpecification ::= 'CAST' '(' <ValueExpression> 'AS' <DataType> ')'
@@ -1550,7 +1550,7 @@ SELECT ...
 
 ## Lexical Constructs
 
-The following are the lexical grammar constructs: 
+The following are the lexical grammar constructs:
 
 ```bash
 IDENTIFIER           ::= [a-zA-Z][a-zA-Z0-9\_]*

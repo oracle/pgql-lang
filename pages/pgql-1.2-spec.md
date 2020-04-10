@@ -501,7 +501,7 @@ This query is semantically equivalent to:
 
 ```sql
 SELECT n, m, w
-  FROM g MATCH (n:Person) -> (m) -> ()
+  FROM g MATCH (n:Person) -> (m) -> (w)
      , (n) -> (w) -> (m)
 ```
 

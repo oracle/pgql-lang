@@ -1274,7 +1274,7 @@ This query is semantically equivalent to:
 
 ```sql
 SELECT n, m, w
-  FROM MATCH (n:Person) -> (m) -> ()
+  FROM MATCH (n:Person) -> (m) -> (w)
      , MATCH (n) -> (w) -> (m)
 ```
 
