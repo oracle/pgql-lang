@@ -137,7 +137,7 @@ while the [DROP PROPERTY GRAPH](#drop-property-graph) statements allows for drop
 
 ## CREATE PROPERTY GRAPH
 
-The `CREATE PROPERTY GRAPH` statement starts with a graph name and is followed by an optional set of vertex table and an optional set of edge tables.
+The `CREATE PROPERTY GRAPH` statement starts with a graph name and is followed by an optional set of vertex tables and an optional set of edge tables.
 
 The syntax is:
 
@@ -217,8 +217,8 @@ LabelAndPropertiesClause ::= <LabelClause>? <PropertiesClause>?
 TableName                ::= <SchemaQualifiedName>
 ```
 
-The [table alias](#table-aliases) is required only if the underlying table is used as vertex table more than once, in order to provide unique names for vertex tables.
-It can also be used to specify the label of the vertices.
+The [table alias](#table-aliases) is required only if the underlying table is used as vertex table more than once, to provide a unique name for each table.
+It can be used for specifying a [label](#labels) for the vertices too.
 
 The key of the vertex table uniquely identifies a row in the table.
 If a key is not specified, the key defaults to the primary key of the underlying table.
@@ -248,8 +248,8 @@ DestinationVertexTable         ::= 'DESTINATION' <ReferencedVertexTableKeyClause
 ReferencedVertexTableKeyClause ::= <KeyClause> 'REFERENCES'
 ```
 
-The [table alias](#table-aliases) is required only if the underlying table is used as edge table more than once, in order to provide unique names for edge tables.
-It can also be used to specify the label of the edges.
+The [table alias](#table-aliases) is required only if the underlying table is used as edge table more than once, to provide a unique name for each table.
+It can be used for specifying a [label](#labels) for the edges too.
 
 The source vertex table and destination vertex table are mandatory for defining the two endpoints of the edge.
 A key is optional if there is a single foreign key from the edge table to the source or destination vertex table.
@@ -501,7 +501,7 @@ PropertiesClause ::=   <PropertiesAreAllColumns>
                      | <NoProperties>
 ```
 
-Note that the properties clause is optional and if omitted defaults to `PROPERTIES ARE ALL COLUMNS`.
+Note that the properties clause is optional and if the clause is omitted then it defaults to `PROPERTIES ARE ALL COLUMNS`.
 
 #### PROPERTIES ARE ALL COLUMNS
 
@@ -896,7 +896,7 @@ In the query above:
  - `(n:Person)` is a vertex pattern in which `n` is a variable name and `:Person` a label expression.
  - Variable names like `n` can be freely chosen by the user. The vertices that match the pattern are said to "bind to the variable".
  - The label expression `:Person` specifies that we match only vertices that have the label `Person`.
- - `n.name` and `n.dob` are property references. `n.name` and `n.dob` access the properties `name` and `dob` of the vertices that bind to `n`, respectively.
+ - `n.name` and `n.dob` are property references, accessing the properties `name` and `dob` of the vertex `n` respectively.
 
 The query produces three results, which are returned as a table. The results are unordered.
 
@@ -933,7 +933,7 @@ More complex label expressions are supported through [label disjunction](#label-
 
 #### Label disjunction
 
-The bar operator (`|`) is a logical OR for specifying that a vertex or edge should match as long as it has either of the specified labels.
+The bar operator (`|`) is a logical OR for specifying that a vertex or edge should match as long as it has at least one of the specified labels.
 
 For example:
 
@@ -1077,7 +1077,7 @@ SELECT p2.name AS friend, u.name AS university
 +------------------------+
 ```
 
-Here again, both occurances of `u` are the same variable, as well as both occurances of `p1` and both occurances of `p2`.
+Here again, both occurrences of `u` are the same variable, as well as both occurrences of `p1` and both occurrences of `p2`.
 
 ### Binding an element multiple times
 
@@ -1279,7 +1279,7 @@ SELECT n, m, w
 ```
 
 `SELECT *` is not allowed when the graph pattern has zero variables. This is the case when all the vertices and edges in the pattern are anonymous (e.g. `MATCH () -> (:Person)`).
-Futhermore, `SELECT *` in combination with `GROUP BY` is not allowed.
+Furthermore, `SELECT *` in combination with `GROUP BY` is not allowed.
 
 ## FROM
 
