@@ -74,9 +74,10 @@ rules
 
   has-at-most-one-binding = ?None() + ?Some(BetweenNAndM(_, "0")) + ?Some(BetweenNAndM(_, "1"))
 
-  is-ddl-statement = is-CreatePropertyGraph + is-DropPropertyGraph
+  is-ddl-statement = is-CreatePropertyGraph + is-DropPropertyGraph + is-CreateExternalSchema
   is-CreatePropertyGraph = ?CreatePropertyGraph(_, _, _)
   is-DropPropertyGraph = ?DropPropertyGraph(_)
+  is-CreateExternalSchema = ?CreateExternalSchema(_, _, _, _, _)
 
   norm-identifier:
     RegularIdentifier(v) -> Identifier(<origin-track-forced(upper-case)> v, v)
@@ -86,6 +87,9 @@ rules
     with v' := <origin-track-forced(un-double-quote; unescape-delimited-identifier)> v
 
   unescape-delimited-identifier = string-replace(|"\"\"", "\"")
+
+  norm-string-literal = String(un-single-quote; unescape-string-literal)
+  unescape-string-literal = string-replace(|"''", "'")
 
   to-name-without-case-sensitive-info = origin-track-forced(?Name(None(), Identifier(localName, _)); !Name(None(), localName))
   to-name-without-case-sensitive-info = origin-track-forced(?Name(Some(SchemaName(Identifier(schemaName, _))), Identifier(localName, _)); !Name(schemaName, localName))

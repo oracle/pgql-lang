@@ -503,31 +503,31 @@ public class PgqlUtils {
     return buf.toString();
   }
 
-  protected static String printLiteral(double val) {
+  public static String printLiteral(double val) {
     return DECIMAL_FORMAT.format(val);
   }
 
-  protected static String printLiteral(String val) {
+  public static String printLiteral(String val) {
     return "'" + val.replace("'", "''") + "'";
   }
 
-  protected static String printLiteral(LocalDate val) {
+  public static String printLiteral(LocalDate val) {
     return "DATE '" + val + "'";
   }
 
-  protected static String printLiteral(LocalTime val) {
+  public static String printLiteral(LocalTime val) {
     return "TIME '" + printTime(val) + "'";
   }
 
-  protected static String printLiteral(LocalDateTime val) {
+  public static String printLiteral(LocalDateTime val) {
     return "TIMESTAMP '" + val.toLocalDate() + " " + printTime(val.toLocalTime()) + "'";
   }
 
-  protected static String printLiteral(OffsetTime val) {
+  public static String printLiteral(OffsetTime val) {
     return "TIME '" + printTime(val.toLocalTime()) + val.getOffset() + "'";
   }
 
-  protected static String printLiteral(OffsetDateTime val) {
+  public static String printLiteral(OffsetDateTime val) {
     return "TIMESTAMP '" + val.toLocalDate() + " " + printTime(val.toLocalTime()) + val.getOffset() + "'";
   }
 }
