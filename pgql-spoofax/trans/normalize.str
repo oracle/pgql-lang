@@ -200,10 +200,10 @@ rules
     with s' := <origin-track-forced(un-double-quote; unescape-legacy-identifier)> s
 
   norm-legacy-identifier:
-    RegularIdentifier(v) -> Identifier(v, None())
+    RegularIdentifier(v) -> Identifier(v, v)
 
   norm-legacy-identifier:
-    DelimitedIdentifier(v) -> Identifier(v', None())
+    DelimitedIdentifier(v) -> Identifier(v', v')
     with v' := <origin-track-forced(un-double-quote; unescape-legacy-identifier)> v
 
   // (n:'lbl')
@@ -371,7 +371,7 @@ rules
   to-label-constraint(|var):
     labels ->  <to-hasLabel-expressions(|var)> labels
   to-hasLabel-expressions(|var) = bottomup(try(![VarRef(var), <to-label>]; to-function(|"has_label") + origin-track-forced(normalize-label-disjunction)))
-  to-label = ?Label(<id>) + ?Legacy10Identifier(<id>); origin-track-forced(!Identifier(<id>, None())) + ?BindVariable(_)
+  to-label = ?Label(<id>) + ?Legacy10Identifier(<id>); origin-track-forced(!Identifier(<id>, <id>)) + ?BindVariable(_)
   to-id-constraint(|var) = bottomup(try(is-literal; origin-track-forced(!Eq(<to-function(|"id")> [VarRef(var)], <id>))))
   normalize-label-disjunction = ?LabelDisjunction(x, y); !Or(x, y)
 
@@ -573,7 +573,7 @@ rules
   norm-ExpAsVar = ?ExpAsVar(exp, Some(VarAssign(v))); !ExpAsVar(exp, v, NonAnonymous())
   norm-ExpAsVar:
     ExpAsVar(exp, None()) -> ExpAsVar(exp, identifier, anonymous)
-    with identifier := <(?VarRef(<id>) <+ origin-track-forced(origin-text); origin-track-forced(!Identifier(<id>, None())))> exp
+    with identifier := <(?VarRef(<id>) <+ origin-track-forced(origin-text); origin-track-forced(!Identifier(<id>, <id>)))> exp
        ; anonymous := <?PropRef(_, _); !NonAnonymous() <+ !Anonymous()> exp // 'SELECT n.prop' in PGQL <= 1.2 is 'SELECT n.prop AS "n.prop"' in PGQL 1.3+
 
   norm-select-star(|graphPattern, group-exps):

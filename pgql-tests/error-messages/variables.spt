@@ -61,3 +61,11 @@ test Zero columns [[
     FROM g MATCH ()
 
 ]] error like "SELECT * not allowed if there are no variables in the graph pattern" at #1
+
+test Variables in MATCH shadow variables in SELECT [[
+
+    SELECT [[n]].age AS n
+      FROM MATCH (n)
+  GROUP BY n.prop AS prop
+
+]] error like "Unresolved variable (did you mean to use a group key?)" at #1

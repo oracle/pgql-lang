@@ -241,3 +241,11 @@ test Illegal nested aggregation 2 [[
   ORDER BY [[MAX(COUNT(3))]]
 
 ]] error like "Nested aggregation not allowed here" at #1, #2, #3, #4, #5
+
+test Reference alias from SELECT in GROUP BY, not allowed when aggregation [[
+
+    SELECT [[COUNT(n.prop)]] AS v
+      FROM MATCH (n)
+  GROUP BY v
+
+]] error like "Aggregation without group variables not allowed in GROUP BY" at #1
