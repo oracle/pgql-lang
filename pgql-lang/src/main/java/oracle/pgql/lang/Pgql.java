@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2013 - 2019 Oracle and/or its affiliates. All rights reserved.
+ * Copyright (C) 2013 - 2020 Oracle and/or its affiliates. All rights reserved.
  */
 package oracle.pgql.lang;
 
@@ -38,6 +38,7 @@ import org.metaborg.core.project.Project;
 import org.metaborg.core.source.AffectedSourceHelper;
 import org.metaborg.core.syntax.ParseException;
 import org.metaborg.spoofax.core.Spoofax;
+import org.metaborg.spoofax.core.SpoofaxModule;
 import org.metaborg.spoofax.core.unit.ISpoofaxAnalyzeUnit;
 import org.metaborg.spoofax.core.unit.ISpoofaxInputUnit;
 import org.metaborg.spoofax.core.unit.ISpoofaxParseUnit;
@@ -55,6 +56,8 @@ import oracle.pgql.lang.editor.completion.PgqlCompletion;
 import oracle.pgql.lang.editor.completion.PgqlCompletionContext;
 import oracle.pgql.lang.ir.Statement;
 import oracle.pgql.lang.ir.StatementType;
+
+import static oracle.pgql.lang.CheckInvalidJavaComment.checkInvalidJavaComment;
 
 public class Pgql implements Closeable {
 
@@ -98,25 +101,30 @@ public class Pgql implements Closeable {
    * @throws IOException
    */
   public Pgql() throws PgqlException {
+    this(new PgqlConfig(), null);
+  }
+
+  public Pgql(SpoofaxModule module, String tmpDir) throws PgqlException {
     synchronized (lock) {
       if (!isGloballyInitialized) {
-        initializeGlobalInstance();
+        initializeGlobalInstance(module, tmpDir);
       }
       instances.add(this);
       isInitialized = true;
     }
   }
 
-  private void initializeGlobalInstance() throws PgqlException {
+  private void initializeGlobalInstance(SpoofaxModule spoofaxModule, String tmpDir) throws PgqlException {
     try {
       // initialize a new Spoofax
-      spoofax = new Spoofax(new PgqlConfig());
+      spoofax = new Spoofax(spoofaxModule);
 
       // copy the PGQL Spoofax binary to the local file system.
       // IMPORTANT: don't replace this with resolveFile("res:...") or resolve("res:...") because VFS will fail to
       // replicate the resource when it's nested inside multiple JAR or WAR files.
       URL inputUrl = getClass().getResource("/" + SPOOFAX_BINARIES);
-      spoofaxBinaryFile = File.createTempFile(SPOOFAX_BINARIES, "");
+      spoofaxBinaryFile = tmpDir == null ? File.createTempFile(SPOOFAX_BINARIES, UUID.randomUUID().toString())
+          : new File(tmpDir, SPOOFAX_BINARIES + UUID.randomUUID());
       FileUtils.copyURLToFile(inputUrl, spoofaxBinaryFile);
       FileObject fileObject = spoofax.resourceService.resolve("jar:" + spoofaxBinaryFile.getAbsolutePath() + "!");
 
@@ -158,7 +166,7 @@ public class Pgql implements Closeable {
         }
       });
 
-      parseInternal("SELECT * FROM g MATCH (initQuery)"); // make Spoofax initialize the language
+      parseInternal("SELECT * FROM MATCH (initQuery)"); // make Spoofax initialize the language
     } catch (MetaborgException | IOException e) {
       throw new PgqlException("Failed to initialize PGQL", e);
     }
@@ -219,18 +227,8 @@ public class Pgql implements Closeable {
 
       PgqlVersion pgqlVersion = getPgqlVersion(analysisResult.ast(), statement);
 
-      if (pgqlVersion != pgqlVersion.V_1_0 && pgqlVersion != pgqlVersion.V_1_1_OR_V_1_2 && queryValid) {
-        String[] quotedAndNonQuotedStrings = queryString.split("\"");
-        for (int i = 0; i < quotedAndNonQuotedStrings.length; i = i + 2) {
-          String nonDoubleQuotedString = quotedAndNonQuotedStrings[i];
-          String[] singleQuotedAndNonQuotedStrings = nonDoubleQuotedString.split("'");
-          for (int j = 0; j < singleQuotedAndNonQuotedStrings.length; j = j + 2) {
-            String nonQuotedString = singleQuotedAndNonQuotedStrings[j];
-            if (nonQuotedString.contains("//")) {
-              throw new PgqlException("Use /* .. */ instead of // .. to introduce a comment");
-            }
-          }
-        }
+      if (queryValid) {
+        checkInvalidJavaComment(queryString, pgqlVersion);
       }
 
       int bindVariableCount = getBindVariableCount(analysisResult.ast(), statement);

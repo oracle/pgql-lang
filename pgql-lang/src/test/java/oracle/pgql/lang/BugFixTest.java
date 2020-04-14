@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2013 - 2019 Oracle and/or its affiliates. All rights reserved.
+ * Copyright (C) 2013 - 2020 Oracle and/or its affiliates. All rights reserved.
  */
 package oracle.pgql.lang;
 
@@ -273,5 +273,12 @@ public class BugFixTest extends AbstractPgqlTest {
         "  )";
 
     assertEquals(pgql.parse(statement1).getStatement(), pgql.parse(statement2).getStatement());
+  }
+
+  @Test
+  public void twoForwardSlashesInCommentIdentifierOrLiteral() throws Exception {
+    assertTrue(pgql.parse("SELECT * /* https://pgql-lang.org/ */" + //
+        "                  FROM MATCH (n:\"//\"\"//\") " + //
+        "                  WHERE n.name = '//''//'").isQueryValid());
   }
 }
