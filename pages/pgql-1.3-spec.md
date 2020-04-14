@@ -767,7 +767,7 @@ In this example, all the edge tables have a source vertex table that is the edge
 This scenario was explained in more detail in [Source or destination is self](#source-or-destination-is-self).
 Also note that the graph only has vertex properties, but no edge properties, which is typical for such a scenario.
 
-After the graph is created it can be queries.
+After the graph is created it can be queried.
 For example, we may want to see an overview of the vertex and edge labels and their frequencies.
 Therefore, we first perform a `SELECT` query to create such an overview for the vertex labels:
 
