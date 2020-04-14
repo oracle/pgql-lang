@@ -204,3 +204,11 @@ test Resolve variables in property references (but not other variables) in ORDER
 
  ]] resolve #2 to #1
     resolve #3 to #1
+
+test Implicit property reference [[
+
+    SELECT n.[[prop]]
+      FROM MATCH (n)
+  ORDER BY [[prop]]
+
+]] resolve #2 to #1

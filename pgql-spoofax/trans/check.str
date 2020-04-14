@@ -418,7 +418,10 @@ rules // MODIFY
            ?Update(VarRef(Identifier(v, originText), _), SetProperties(setProperties))> t
     with v' := <strip-annos> v
        ; otherVariablesThanV := <filter(?SetProperty(PropRef(VarRef(Identifier(<id>, _), _), _), _); strip-annos; not(?v'))> setProperties
-       ; varNameAsString := <try(?None(); <conc-strings> ("\"", v, "\""))> originText
+       ; if <eq> (v', <strip-annos> originText)
+         then varNameAsString := <origin-text> v
+         else varNameAsString := originText // using <origin-text> like above fails SPT tests, thus we avoid using it for unquoted identifier so that we at least can still use unquoted identifiers in INSERT/UPDATE queries in SPT
+         end
        ; <batch-generate-error(|ctx, $<Did you mean <varNameAsString>?>)> otherVariablesThanV
 
   nabl-constraint(|ctx):

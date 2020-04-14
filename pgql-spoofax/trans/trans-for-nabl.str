@@ -320,7 +320,7 @@ rules
        Actual query: SELECT n.age FROM g MATCH (n) GROUP BY n.age
        Final AST:    SELECT generatedVar FROM g MATCH (n) GROUP BY n.age AS generatedVar
   */
-  replace-unresolved-exp-with-ref(|exp) = ?VarDef(v, origin-offset, original-exp, _, _, _); where ( <eq> (exp, original-exp) ); !VarRef(Identifier(v, None()), origin-offset)
+  replace-unresolved-exp-with-ref(|exp) = ?VarDef(v, origin-offset, original-exp, _, _, _); where ( <eq> (exp, original-exp) ); !VarRef(Identifier(v, v), origin-offset)
 
   /*
      When the expression could not be resolved, but there is an equivalent expression in the SELECT and GROUP BY.
@@ -328,7 +328,7 @@ rules
        Actual query: SELECT n.age AS nAge MATCH (n) GROUP BY nAge ORDER BY nAge
        Final AST:    SELECT nAge FROM g MATCH (n) GROUP BY n.age AS nAge ORDER BY nAge
   */
-  replace-unresolved-exp-with-ref(|exp) = ?VarDef(v, origin-offset, _, replaced-groupByExp-with-selectExp, _, _); where ( <eq> (exp, replaced-groupByExp-with-selectExp) ); !VarRef(Identifier(v, None()), origin-offset)
+  replace-unresolved-exp-with-ref(|exp) = ?VarDef(v, origin-offset, _, replaced-groupByExp-with-selectExp, _, _); where ( <eq> (exp, replaced-groupByExp-with-selectExp) ); !VarRef(Identifier(v, v), origin-offset)
 
   /*
      When the expression was resolved succesfully, but there is an equivalent expression that we can replace it with.
@@ -336,7 +336,7 @@ rules
        Actual query: SELECT n.age AS nAge FROM g MATCH (n) ORDER BY n.age
        Final AST:    SELECT n.age AS nAge FROM g MATCH (n) ORDER BY nAge
   */
-  replace-resolved-exp-with-ref-helper(|exp) = ?VarDef(v, origin-offset, _, _, resolved-exp, _); where ( <eq> (exp, resolved-exp) ); !VarRef(Identifier(v, None()), origin-offset)
+  replace-resolved-exp-with-ref-helper(|exp) = ?VarDef(v, origin-offset, _, _, resolved-exp, _); where ( <eq> (exp, resolved-exp) ); !VarRef(Identifier(v, v), origin-offset)
 
   replace-ref-with-exp(|variables, expAsVars):
     VarRef(Identifier(v, _)) -> resolved-exp

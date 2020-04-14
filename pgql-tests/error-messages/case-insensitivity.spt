@@ -225,9 +225,9 @@ test Update an insertion (2) [[
 
 test Update a deletion [[
 
-  UPDATE [[N]] SET ( n.prop = 123 )
-  DELETE n
-  FROM MATCH (n)
+  UPDATE [[PeRsOn]] SET ( person.prop = 123 )
+  DELETE person
+  FROM MATCH (person)
 
 ]] error like "Element is deleted in DELETE clause" at #1
 
@@ -241,18 +241,18 @@ test Set source of destination of edge to deletion [[
 
 test Update other element than the one that was meant to be updated [[
 
-  UPDATE n SET ( [[N]].prop = 3 )
-       , M SET ( [[m]].prop = 4 )
-  FROM MATCH (n) -> (m)
+  UPDATE person1 SET ( [[Person1]].prop = 3 )
+       , Person2 SET ( [[person2]].prop = 4 )
+  FROM MATCH (person1) -> (person2)
 
 ]] analysis succeeds
 
 test Duplicate updates or deletions [[
 
-  UPDATE [[v]] SET ( v.first_name = 'Scott' ),
-         [[V]] SET ( v.last_name = 'Tiger' )
-  DELETE [[w]], [[W]]
-  FROM MATCH (v) -> (w)
+  UPDATE [[person1]] SET ( person1.first_name = 'Scott' ),
+         [[PeRsOn1]] SET ( person1.last_name = 'Tiger' )
+  DELETE [[person2]], [[PeRsOn2]]
+  FROM MATCH (person1) -> (person2)
 
 ]] error like "Element is updated multiple times (merge the two updates together)" at #1, #2
    error like "Element is deleted multiple times" at #3, #4
