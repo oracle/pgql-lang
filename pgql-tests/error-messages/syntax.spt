@@ -90,3 +90,18 @@ test Missing MATCH clause (2) [[
     FROM [[(n) -> (m)]]
 
 ]] error like "Missing MATCH keyword at start of pattern" at #1
+
+test Invalid escaping in string literal [[
+
+  SELECT [['single\'quote']] AS v
+    FROM MATCH (n)
+
+]] error like "Use '' instead of \' to escape a single quote" at #1
+
+test Invalid escaping in identifier [[
+
+  SELECT n AS c1
+    FROM MATCH (n:[["double\"quote"]]) ON [["double\"quote"]]
+   WHERE n.[["double\"quote"]]
+
+]] error like "instead of \" to escape a double quote" at #1, #2, #3
