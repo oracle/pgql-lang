@@ -12,8 +12,8 @@ type rules
 
   VarRef(_) : UnknownTy() // for unresolved variables
 
-  Vertex(Identifier(v, _), _, Correlation(varRef)) :-
-  where varRef : ty
+  Vertex(Identifier(v, _), _, Correlation(VarRef(Identifier(outer-var, _), _))) :-
+  where definition of outer-var : ty
     and ty == VertexTy() else error $[Duplicate variable (variable with same name is passed from an outer query)] on v
 
   Edge(_, Identifier(e, _), _, _, _, Correlation(VarRef(Identifier(outer-var, _), _))) :-
