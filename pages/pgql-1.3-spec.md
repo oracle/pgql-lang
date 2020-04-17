@@ -393,8 +393,7 @@ CREATE PROPERTY GRAPH financial_transactions
   )
 ```
 
-Above, a key is defined for the source vertex table of the `Transactions` edge table because two foreign keys exist from `Transactions` too `Accounts`
-and it would be ambiguous which one to use.
+Above, a key is defined for the source vertex table of the `Transactions` edge table because two foreign keys exist between `Transactions` and `Accounts` such that it would be ambiguous which foreign key to use.
 For the same reason, a key is defined for the destination vertex table of the `Transactions` edge table.
 
 The keys for source and destination vertex tables consist of one or more columns of the underlying edge table that uniquely identify a vertex in the corresponding vertex table. If no key is defined for the vertex table, the key defaults to the underlying primary key, which is required to exist in such a case.
