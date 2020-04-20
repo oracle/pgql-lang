@@ -8,7 +8,7 @@ keywords: pgql property graph query language database analytics oracle sql stand
 Graph pattern matching for SQL and NoSQL users
 ====================================
 
-PGQL is a query language built on top of SQL, bringing graph pattern matching capabilities to existing SQL users as well as to new users who are interested in graph technology but who do not have an SQL background.
+PGQL is a graph query language built on top of SQL, bringing graph pattern matching capabilities to existing SQL users as well as to new users who are interested in graph technology but who do not have an SQL background.
 
 A high-level overview of PGQL
 -----------------------------
