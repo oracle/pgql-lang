@@ -12,6 +12,7 @@ import oracle.pgql.lang.ddl.propertygraph.Key;
 import oracle.pgql.lang.ddl.propertygraph.Label;
 import oracle.pgql.lang.ddl.propertygraph.Property;
 import oracle.pgql.lang.ddl.propertygraph.VertexTable;
+import oracle.pgql.lang.ir.QueryExpression;
 import oracle.pgql.lang.ir.SchemaQualifiedName;
 import oracle.pgql.lang.ir.Statement;
 
@@ -19,8 +20,10 @@ import static oracle.pgql.lang.CommonTranslationUtil.getSchemaQualifiedName;
 import static oracle.pgql.lang.CommonTranslationUtil.getSome;
 import static oracle.pgql.lang.CommonTranslationUtil.getString;
 import static oracle.pgql.lang.CommonTranslationUtil.isNone;
+import static oracle.pgql.lang.CommonTranslationUtil.translateExp;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 
 public class TranslateCreatePropertyGraph {
@@ -81,7 +84,7 @@ public class TranslateCreatePropertyGraph {
 
   private static int EXP_AS_VAR_VAR = 1;
 
-  protected static Statement translateCreatePropertyGraph(IStrategoTerm ast) {
+  protected static Statement translateCreatePropertyGraph(IStrategoTerm ast) throws PgqlException {
 
     IStrategoTerm graphNameT = ast.getSubterm(CREATE_PROPERTY_GRAPH_NAME);
 
@@ -94,7 +97,7 @@ public class TranslateCreatePropertyGraph {
     return new CreatePropertyGraph(graphName, vertexTables, edgeTables);
   }
 
-  private static List<VertexTable> getVertexTables(IStrategoTerm vertexTablesT) {
+  private static List<VertexTable> getVertexTables(IStrategoTerm vertexTablesT) throws PgqlException {
     IStrategoTerm vertexTablesListT = vertexTablesT.getSubterm(VERTEX_TABLES_TABLES_LIST);
     List<VertexTable> result = new ArrayList<>();
     for (IStrategoTerm vertexTableT : vertexTablesListT) {
@@ -109,7 +112,7 @@ public class TranslateCreatePropertyGraph {
     return result;
   }
 
-  private static List<EdgeTable> getEdgeTables(IStrategoTerm edgeTablesT, List<VertexTable> vertexTables) {
+  private static List<EdgeTable> getEdgeTables(IStrategoTerm edgeTablesT, List<VertexTable> vertexTables) throws PgqlException {
     IStrategoTerm edgeTablesListT = edgeTablesT.getSubterm(EDGE_TABLES_TABLES_LIST);
     List<EdgeTable> result = new ArrayList<>();
     for (IStrategoTerm edgeTableT : edgeTablesListT) {
@@ -161,7 +164,7 @@ public class TranslateCreatePropertyGraph {
     return new Key(columnNames);
   }
 
-  private static List<Label> getLabels(IStrategoTerm labelAndPropertiesClauseT) {
+  private static List<Label> getLabels(IStrategoTerm labelAndPropertiesClauseT) throws PgqlException {
     IStrategoTerm labelAndPropertiesListT = labelAndPropertiesClauseT
         .getSubterm(LABEL_AND_PROPERTIES_CLAUSE_LABEL_AND_PROPERTIES_LIST);
     List<Label> result = new ArrayList<>();
@@ -173,7 +176,7 @@ public class TranslateCreatePropertyGraph {
     return result;
   }
 
-  private static Label getLabel(String labelName, IStrategoTerm propertiesClauseT) {
+  private static Label getLabel(String labelName, IStrategoTerm propertiesClauseT) throws PgqlException {
     if (isNone(propertiesClauseT)) {
       return null;
     } else {
@@ -184,9 +187,10 @@ public class TranslateCreatePropertyGraph {
           IStrategoTerm propertiesListT = propertiesSpecificationT.getSubterm(PROPERTIES_CLAUSE_PROPERTIES_LIST);
           List<Property> properties = new ArrayList<>();
           for (IStrategoTerm expAsVarT : propertiesListT) {
-            String columnName = getString(expAsVarT.getSubterm(EXP_AS_VAR_EXP));
+            TranslationContext translationContext = new TranslationContext(Collections.emptyMap(), Collections.emptySet(), Collections.emptyMap());
+            QueryExpression valueExpression = translateExp(expAsVarT.getSubterm(EXP_AS_VAR_EXP), translationContext);
             String propertyName = getString(expAsVarT.getSubterm(EXP_AS_VAR_VAR));
-            properties.add(new Property(columnName, propertyName));
+            properties.add(new Property(valueExpression, propertyName));
           }
           return new Label(labelName, properties);
         case "PropertiesAreAllColumns":

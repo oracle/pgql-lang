@@ -459,6 +459,12 @@ public class PrettyPrintingTest extends AbstractPgqlTest {
   }
 
   @Test
+  public void testCastInCreatePropertyGraph() throws Exception {
+    String statement = "CREATE PROPERTY GRAPH g VERTEX TABLES ( Person PROPERTIES ( CAST ( n AS STRING ) AS n ) )";
+    checkRoundTrip(statement);
+  }
+
+  @Test
   public void testDropPropertyGraph() throws Exception {
     String statement = "DROP PROPERTY GRAPH myGraph";
     checkRoundTrip(statement);

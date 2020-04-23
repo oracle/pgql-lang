@@ -449,8 +449,14 @@ rules // MODIFY
 
   nabl-constraint(|ctx):
     PropertyExpressions(expAsVars) -> <fail>
-    with expAsVarsWithComplexExpressions := <remove-all(?ExpAsVar(VarRef(Identifier(_, _)), _))> expAsVars
-       ; <batch-generate-error(|ctx, "Only simple expressions (i.e. column references) allowed")> expAsVarsWithComplexExpressions
+    with expAsVarsWithComplexExpressions := <remove-all(?ExpAsVar(VarRef(Identifier(_, _)), _) + ?ExpAsVar(Cast(VarRef(Identifier(_, _)), _), _))> expAsVars
+       ; <batch-generate-error(|ctx, "Only column references and simple CAST expressions allowed; arbitrary expressions are not yet supported")> expAsVarsWithComplexExpressions
+       ; columnRenames := <filter(get-column-rename)> expAsVars
+       ; <batch-generate-error(|ctx, "Property name and column name should be the same; renaming is not yet supported")> columnRenames
+
+  get-column-rename:
+    ExpAsVar(Cast(VarRef(Identifier(columnName, _)), _), Identifier(propertyName, _)) -> propertyName
+    where <not(eq)> (columnName, propertyName)
 
   nabl-constraint(|ctx):
     t -> <fail>

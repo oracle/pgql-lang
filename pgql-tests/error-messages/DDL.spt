@@ -53,4 +53,19 @@ test Complex expressions as property not allowed [[
         PROPERTIES ( [[weight + 1 )]]
     )
 
-]] error like "Only simple expressions (i.e. column references) allowed" at #1, #2, #3
+]] error like "Only column references and simple CAST expressions allowed; arbitrary expressions are not yet supported" at #1, #2, #3
+
+test Property renaming not yet [[
+
+  CREATE PROPERTY GRAPH myGraph
+    VERTEX TABLES (
+      Person PROPERTIES ( [[CAST(x AS STRING) AS y]] )
+    )
+    EDGE TABLES (
+      knows
+        SOURCE Person
+        DESTINATION Person
+        PROPERTIES ( [[CAST(x AS STRING) AS y]] )
+    )
+
+]] error like "Property name and column name should be the same; renaming is not yet supported" at #1, #2
