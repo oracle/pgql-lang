@@ -5,13 +5,43 @@ package oracle.pgql.lang;
 
 import static org.junit.Assert.assertEquals;
 
+import java.util.List;
+
 import org.junit.Test;
+
+import oracle.pgql.lang.ir.ExpAsVar;
+import oracle.pgql.lang.ir.QueryExpression;
+import oracle.pgql.lang.ir.QueryExpression.ExpressionType;
+import oracle.pgql.lang.ir.SelectQuery;
 
 public class StaticOptimizationsTest extends AbstractPgqlTest {
 
+  /*
+   * Test that although the ORDER BY has 4 expressions, they are reduced to only 1 since all 4 expressions are the same
+   */
   @Test
   public void testDuplicateOrderByElems() throws Exception {
     String query = "SELECT n.age AS nAge MATCH (n) ORDER BY n.age, n.age, nAge, nAge";
-    assertEquals(pgql.parse(query).getGraphQuery().getOrderBy().getElements().size(), 1);
+    int numOrderByExpressions = pgql.parse(query).getGraphQuery().getOrderBy().getElements().size();
+    assertEquals(1, numOrderByExpressions);
+  }
+
+  /*
+   * Test that an IN expression with numeric literals is not translated into OR expressions
+   */
+  @Test
+  public void testInPredicate() throws Exception {
+    String query = "SELECT n.age IN ( 1, -1, 2.0, -10.0 ) " //
+        + "              , n.time IN ( TIME '10:15:00', TIME '15:30:00+01:00' ) " //
+        + "              , n.timestamp IN ( TIMESTAMP '2000-01-01 10:15:00', TIMESTAMP '2000-01-01 15:30:00+01:00' ) " //
+        + "         FROM MATCH (n)";
+    List<ExpAsVar> projectionElements = ((SelectQuery) pgql.parse(query).getGraphQuery()).getProjection().getElements();
+
+    QueryExpression numericExpression = projectionElements.get(0).getExp();
+    assertEquals(ExpressionType.IN_EXPRESSION, numericExpression.getExpType());
+    QueryExpression timeExpression = projectionElements.get(1).getExp();
+    assertEquals(ExpressionType.IN_EXPRESSION, timeExpression.getExpType());
+    QueryExpression timestampExpression = projectionElements.get(2).getExp();
+    assertEquals(ExpressionType.IN_EXPRESSION, timestampExpression.getExpType());
   }
 }
