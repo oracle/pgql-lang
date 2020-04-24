@@ -46,6 +46,7 @@ lexical syntax // reserved keywords
   REGULAR-IDENTIFIER = 'true' {reject}
   REGULAR-IDENTIFIER = 'false' {reject}
   REGULAR-IDENTIFIER = 'null' {reject}
+  REGULAR-IDENTIFIER = 'not' {reject}
 
   FUNCTION-NAME = 'count' {reject}
   FUNCTION-NAME = 'min' {reject}

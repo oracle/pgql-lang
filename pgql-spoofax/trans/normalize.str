@@ -247,7 +247,7 @@ rules
          end
 
   is-simple-inPredicate-expression = ?BindVariable(_)
-  is-simple-inPredicate-expression = ?Array(<id>); map(is-literal) // array with literals only
+  is-simple-inPredicate-expression = ?Array(<id>); map(is-literal-no-bindVariable) // array with literals only
 
   norm-isNull = ?IsNotNull(exp); origin-track-forced(!IsNull(exp)); !Not(<id>)
 

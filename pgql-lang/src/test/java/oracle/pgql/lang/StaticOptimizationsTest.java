@@ -44,4 +44,18 @@ public class StaticOptimizationsTest extends AbstractPgqlTest {
     QueryExpression timestampExpression = projectionElements.get(2).getExp();
     assertEquals(ExpressionType.IN_EXPRESSION, timestampExpression.getExpType());
   }
+
+  /*
+   * Test that unary minus gets normalized away when possible
+   */
+  @Test
+  public void testNormalizeUnaryMinus() throws Exception {
+    String query = "SELECT -1, -0.1 FROM MATCH (n)";
+    List<ExpAsVar> projectionElements = ((SelectQuery) pgql.parse(query).getGraphQuery()).getProjection().getElements();
+
+    QueryExpression integerExpression = projectionElements.get(0).getExp();
+    assertEquals(ExpressionType.INTEGER, integerExpression.getExpType());
+    QueryExpression decimalExpression = projectionElements.get(1).getExp();
+    assertEquals(ExpressionType.DECIMAL, decimalExpression.getExpType());
+  }
 }
