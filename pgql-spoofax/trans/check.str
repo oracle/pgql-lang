@@ -178,9 +178,9 @@ rules
   nabl-constraint(|ctx):
     NormalizedQuery(_, SelectClause(Some(Distinct()), ExpAsVars(select-elems)), _, _, _, _, Some(OrderByClause(order-by-elems)), _, _, _, _) -> <fail>
     with
-      select-vars := <map(?ExpAsVar(_, <id>, _, _)); strip-annos> select-elems
+      select-vars := <map(?ExpAsVar(_, Identifier(<id>, _), _, _)); strip-annos> select-elems
     ; order-by-expressions := <map(?OrderByElem(<id>, _, _)); strip-annos> order-by-elems
-    ; order-by-expressions-not-in-select := <remove-all(?VarRef(<id>, _); !(<id>, select-vars); elem)> order-by-expressions
+    ; order-by-expressions-not-in-select := <remove-all(?VarRef(Identifier(<id>, _), _); !(<id>, select-vars); elem)> order-by-expressions
     ; <batch-generate-error(|ctx, "Because of DISTINCT projection, the expression in ORDER BY should be one of the expressions in the SELECT")> order-by-expressions-not-in-select
 
   nabl-constraint(|ctx):
