@@ -212,3 +212,11 @@ test Implicit property reference [[
   ORDER BY [[prop]]
 
 ]] resolve #2 to #1
+
+test Implicit property reference case insensitive [[
+
+    SELECT DISTINCT emp.[[salary]]
+      FROM MATCH (emp:Employee)
+  ORDER BY [[SaLarY]] DESC
+
+]] resolve #2 to #1
