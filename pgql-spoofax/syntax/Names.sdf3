@@ -43,6 +43,7 @@ lexical restrictions // greedy matching
 
 lexical syntax // reserved keywords
 
+  // make sure to keep in sync with oracle.pgql.lang.ir.PgqlUtils.RESERVED_WORDS
   REGULAR-IDENTIFIER = 'true' {reject}
   REGULAR-IDENTIFIER = 'false' {reject}
   REGULAR-IDENTIFIER = 'null' {reject}
