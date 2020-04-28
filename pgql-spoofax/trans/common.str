@@ -9,12 +9,14 @@ imports
 
 rules
 
-  is-literal = ?Integer(_)
-             + ?Decimal(_)
-             + ?String(_)
-             + ?True() + ?False()
-             + ?Date(_) + ?Time(_) + ?Timestamp(_)
+  is-literal = is-literal-no-bindVariable
              + ?BindVariable(_)
+
+  is-literal-no-bindVariable = ?Integer(_)
+                             + ?Decimal(_)
+                             + ?String(_)
+                             + ?True() + ?False()
+                             + ?Date(_) + ?Time(_) + ?Timestamp(_)
 
   is-numeric-literal = ?Integer(_) + ?Decimal(_)
   is-boolean-literal = ?True() + ?False()

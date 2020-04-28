@@ -10,6 +10,7 @@ import java.time.LocalTime;
 import java.time.OffsetDateTime;
 import java.time.OffsetTime;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.Iterator;
@@ -43,6 +44,10 @@ import oracle.pgql.lang.ir.modify.ModifyQuery;
 public class PgqlUtils {
 
   private final static Pattern ALL_UPPERCASED_IDENTIFIER = Pattern.compile("^[A-Z][A-Z0-9_]*$");
+
+  // make sure to keep in sync with list of reserved words in pgql-spoofax/syntax/Names.sdf3
+  private final static Set<String> RESERVED_WORDS = new HashSet<>(
+      Arrays.asList("true", "false", "null", "not", "distinct"));
 
   static DecimalFormat DECIMAL_FORMAT = new DecimalFormat("#.#");
 
@@ -149,10 +154,11 @@ public class PgqlUtils {
   // HELPER METHODS FOR PRETTY-PRINTING BELOW
 
   public static String printIdentifier(String identifier) {
-    if (ALL_UPPERCASED_IDENTIFIER.matcher(identifier).matches()) {
+    String lowerCasedIdentifier = identifier.toLowerCase();
+    if (ALL_UPPERCASED_IDENTIFIER.matcher(identifier).matches() && !RESERVED_WORDS.contains(lowerCasedIdentifier)) {
       // we don't double-quote all-uppercased identifiers, and also make them all-lowercase, to make the pretty-printed
       // queries easier to read
-      return identifier.toLowerCase();
+      return lowerCasedIdentifier;
     } else {
       return "\"" + identifier.replace("\"", "\"\"") + "\"";
     }

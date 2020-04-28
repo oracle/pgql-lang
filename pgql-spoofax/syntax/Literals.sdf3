@@ -4,6 +4,7 @@ imports
 
   Names
   Legacy
+  Expressions
 
 template options
 
@@ -18,7 +19,6 @@ context-free syntax
   Literal   = Date
   Literal   = Time
   Literal   = Timestamp
-
 
   ArrayLiteral = Array
   ArrayLiteral = BindVariable
@@ -35,7 +35,7 @@ context-free syntax
   Time.Time                 = <TIME <STRING>> {case-insensitive}
   Timestamp.Timestamp       = <TIMESTAMP <STRING>> {case-insensitive}
   Literal.IllegalNull       = <null> {case-insensitive} // not valid syntax; just here so that we can generate an appropriate error to use IS NULL or IS NOT NULL instead
-  Array.Array               = <(<{Literal ", "}+>)>
+  Array.Array               = <(<{Exp ", "}+>)>
 
 lexical syntax
 
