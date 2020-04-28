@@ -179,6 +179,7 @@ rules
 
   norm-BindVariable(|c) = ?BindVariable(); !BindVariable(<next-counter> c)
 
+  norm-UMin = ?UMin(Integer(string)); !Integer(<conc-strings> ("-", string))
   norm-UMin = ?UMin(Decimal(string)); !Decimal(<conc-strings> ("-", string))
 
   norm-NOT = ?Legacy10Not(<id>); !Not(<id>)
@@ -226,8 +227,27 @@ rules
                  documentation to follow the standard. */
               ; string-replace(|"TIME ZONE", "TIMEZONE"))> type
 
-  norm-inPredicate = ?InPredicate(exp1, Some(NOT()), exp2); origin-track-forced(!InPredicate(exp1, exp2)); !Not(<id>)
-  norm-inPredicate = ?InPredicate(exp1, None(), exp2); origin-track-forced(!InPredicate(exp1, exp2))
+  norm-inPredicate:
+    t@InPredicate(exp1, notIn, exp2) -> result
+    where <is-simple-inPredicate-expression> exp2
+    with inPredicate := <origin-track-forced(!InPredicate(exp1, exp2))> t
+       ; if <?Some(NOT())> notIn
+         then result := <origin-track-forced(!Not(inPredicate))> t
+         else result := inPredicate
+         end
+
+  norm-inPredicate:
+    t@InPredicate(exp1, notIn, exp2@Array(valueExpressions)) -> result
+    where <not(is-simple-inPredicate-expression)> exp2
+    with disjunction := <map(!Eq(exp1, <id>)); to-disjunction> valueExpressions
+       ; disjunction' := <origin-track-forced(!disjunction)> t
+       ; if <?Some(NOT())> notIn
+         then result := <origin-track-forced(!Not(disjunction'))> t
+         else result := disjunction'
+         end
+
+  is-simple-inPredicate-expression = ?BindVariable(_)
+  is-simple-inPredicate-expression = ?Array(<id>); map(is-literal-no-bindVariable) // array with literals only
 
   norm-isNull = ?IsNotNull(exp); origin-track-forced(!IsNull(exp)); !Not(<id>)
 
@@ -497,10 +517,13 @@ rules
 rules
 
   norm-has-prop = ?Legacy10Has(varRef, [prop]); !Legacy10Has(varRef, prop) <+
-                  ?Legacy10Has(varRef, <id>); map(!Legacy10Has(varRef, <id>)); create-conjunct
+                  ?Legacy10Has(varRef, <id>); map(!Legacy10Has(varRef, <id>)); to-conjunction
 
-  create-conjunct = reverse; !(<Tl>, <Hd>); foldl(create-OR)
-  create-OR = ?(exp1, exp2); !And(exp1, exp2)
+  to-conjunction = reverse; !(<Tl>, <Hd>); foldl(to-AND)
+  to-AND = ?(exp1, exp2); !And(exp1, exp2)
+
+  to-disjunction = reverse; !(<Tl>, <Hd>); foldl(to-OR)
+  to-OR = ?(exp1, exp2); !Or(exp1, exp2)
 
 rules
 
