@@ -5,21 +5,22 @@ package oracle.pgql.lang;
 
 import org.spoofax.interpreter.terms.IStrategoTerm;
 
-import oracle.pgql.lang.ddl.propertygraph.DropExternalSchema;
+import oracle.pgql.lang.ddl.propertygraph.DropPropertyGraph;
+import oracle.pgql.lang.ir.SchemaQualifiedName;
 import oracle.pgql.lang.ir.Statement;
 
-import static oracle.pgql.lang.CommonTranslationUtil.getString;
+import static oracle.pgql.lang.CommonTranslationUtil.getSchemaQualifiedName;
 
 public class TranslateDropPropertyGraph {
 
-  private static int EXTERNAL_SCHEMA_NAME = 0;
+  private static int DROP_PROPERTY_GRAPH_NAME = 0;
 
   protected static Statement translateDropPropertyGraph(IStrategoTerm ast) {
 
-    IStrategoTerm schemaNameT = ast.getSubterm(EXTERNAL_SCHEMA_NAME);
+    IStrategoTerm graphNameT = ast.getSubterm(DROP_PROPERTY_GRAPH_NAME);
 
-    String schemaName = getString(schemaNameT);
+    SchemaQualifiedName graphName = getSchemaQualifiedName(graphNameT);
 
-    return new DropExternalSchema(schemaName);
+    return new DropPropertyGraph(graphName);
   }
 }
