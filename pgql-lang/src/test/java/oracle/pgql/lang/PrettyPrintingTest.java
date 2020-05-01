@@ -500,6 +500,12 @@ public class PrettyPrintingTest extends AbstractPgqlTest {
     checkRoundTrip(statement);
   }
 
+  @Test
+  public void testDropExternalSchema() throws Exception {
+    String statement = "DROP EXTERNAL SCHEMA \" my schema \"";
+    checkRoundTrip(statement);
+  }
+
   private void checkRoundTrip(String query1) throws PgqlException {
 
     /*

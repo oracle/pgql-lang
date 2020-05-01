@@ -34,6 +34,11 @@ rules
     ast -> <normalize-CreateExternalSchema> ast
     where <is-CreateExternalSchema> ast
 
+  // DROP EXTERNAL SCHEMA
+  normalize-before:
+    ast -> <normalize-DropExternalSchema> ast
+    where <is-DropExternalSchema> ast
+
   // SELECT, INSERT, UPDATE or DELETE
   normalize-before:
     ast -> result

@@ -53,6 +53,7 @@ import oracle.pgql.lang.ir.modify.UpdateClause;
 import oracle.pgql.lang.ir.modify.VertexInsertion;
 
 import static oracle.pgql.lang.TranslateCreateExternalSchema.translateCreateExternalSchema;
+import static oracle.pgql.lang.TranslateDropExternalSchema.translateDropExternalSchema;
 import static oracle.pgql.lang.TranslateCreatePropertyGraph.translateCreatePropertyGraph;
 import static oracle.pgql.lang.TranslateDropPropertyGraph.translateDropPropertyGraph;
 import static oracle.pgql.lang.CommonTranslationUtil.getString;
@@ -169,6 +170,8 @@ public class SpoofaxAstToGraphQuery {
         return translateDropPropertyGraph(ast);
       case "CreateExternalSchema":
         return translateCreateExternalSchema(ast);
+      case "DropExternalSchema":
+        return translateDropExternalSchema(ast);
       default:
         return null; // failed to parse query
     }

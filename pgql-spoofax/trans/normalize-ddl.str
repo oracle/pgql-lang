@@ -106,3 +106,7 @@ rules // DROP PROPERTY GRAPH
 rules // CREATE EXTERNAL SCHEMA
 
   normalize-CreateExternalSchema = alltd(norm-string-literal + norm-identifier)
+
+rules // DROP EXTERNAL SCHEMA
+
+  normalize-DropExternalSchema = alltd(norm-identifier)

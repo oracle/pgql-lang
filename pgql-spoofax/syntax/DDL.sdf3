@@ -75,3 +75,7 @@ context-free syntax // CREATE EXTERNAL SCHEMA
   User.User = <USER <String>> {case-insensitive}
 
   KeystoreAlias.KeystoreAlias = <KEYSTORE_ALIAS <String>> {case-insensitive}
+
+context-free syntax // DROP EXTERNAL SCHEMA
+
+  Statement.DropExternalSchema = <DROP EXTERNAL SCHEMA <SchemaName>> {case-insensitive}

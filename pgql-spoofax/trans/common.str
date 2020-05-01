@@ -76,10 +76,11 @@ rules
 
   has-at-most-one-binding = ?None() + ?Some(BetweenNAndM(_, "0")) + ?Some(BetweenNAndM(_, "1"))
 
-  is-ddl-statement = is-CreatePropertyGraph + is-DropPropertyGraph + is-CreateExternalSchema
+  is-ddl-statement = is-CreatePropertyGraph + is-DropPropertyGraph + is-CreateExternalSchema + is-DropExternalSchema
   is-CreatePropertyGraph = ?CreatePropertyGraph(_, _, _)
   is-DropPropertyGraph = ?DropPropertyGraph(_)
   is-CreateExternalSchema = ?CreateExternalSchema(_, _, _, _, _)
+  is-DropExternalSchema = ?DropExternalSchema(_)
 
   norm-identifier:
     RegularIdentifier(v) -> Identifier(<origin-track-forced(upper-case)> v, v)
