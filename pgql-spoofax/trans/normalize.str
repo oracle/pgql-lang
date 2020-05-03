@@ -72,7 +72,7 @@ rules
         ));
         bottomup(try(origin-track-forced(norm-query(|error-messages, variable-counter, <get-counter> bindVariable-counter))));
         alltd(?ElemContents(Some(<id>), _, _, _));
-        try(copy-graph-name-to-inner-queries)
+        try(copy-graph-name-to-queries-without-one)
       > ast
 
 rules
@@ -167,9 +167,10 @@ rules
 
   // In PGQL 1.1 and PGQL 1.2, subqueries would inherit the graph name from the outer query.
   // This is no longer the case in PGQL 1.3+, where graph names in subqueries need to be respecified.
-  copy-graph-name-to-inner-queries:
-    ast@NormalizedQuery(_, _, Some(graphName), _, _, _, _, _, _, "v1.1", _) -> ast'
-    with ast' := <alltd(copy-graph-name-to-query-without-one(|graphName))> ast
+  copy-graph-name-to-queries-without-one:
+    ast@NormalizedQuery(_, _, _, _, _, _, _, _, _, "v1.1", _) -> ast'
+    where <oncetd(?NormalizedQuery(_, _, Some(graphName), _, _, _, _, _, _, _, _))> ast
+    with ast' := <innermost(copy-graph-name-to-query-without-one(|graphName))> ast
 
   copy-graph-name-to-query-without-one(|graphName):
     NormalizedQuery(a, b, None(), c, d, e, f, g, h, i, j) -> NormalizedQuery(a, b, Some(graphName), c, d, e, f, g, h, i, j)
