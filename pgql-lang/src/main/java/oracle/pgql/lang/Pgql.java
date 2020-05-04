@@ -264,7 +264,9 @@ public class Pgql implements Closeable {
     }
 
     if (statement.getStatementType() == StatementType.CREATE_PROPERTY_GRAPH
-        || statement.getStatementType() == StatementType.DROP_PROPERTY_GRAPH) {
+        || statement.getStatementType() == StatementType.DROP_PROPERTY_GRAPH
+        || statement.getStatementType() == StatementType.CREATE_EXTERNAL_SCHEMA
+        || statement.getStatementType() == StatementType.DROP_EXTERNAL_SCHEMA) {
       return PgqlVersion.V_1_3_OR_UP;
     }
 

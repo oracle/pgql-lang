@@ -25,6 +25,7 @@ context-free syntax
 
   LocalOrSchemaQualifiedName.Name = <<SchemaNameDot?><Identifier>>
   SchemaNameDot.SchemaName = <<Identifier>.>
+  SchemaName.SchemaName = Identifier
 
 lexical syntax
 

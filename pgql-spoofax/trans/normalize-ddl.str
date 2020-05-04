@@ -17,7 +17,7 @@ imports
   names/-
   common
 
-rules
+rules // CREATE PROPERTY GRAPH
 
   normalize-CreatePropertyGraph:
     t@CreatePropertyGraph(_, _, _) -> result
@@ -97,8 +97,16 @@ rules
   normalize-ReferencedVertexTableKeyClause:
     None() -> None()
 
-rules
+rules // DROP PROPERTY GRAPH
 
   normalize-DropPropertyGraph:
     DropPropertyGraph(graphName) -> DropPropertyGraph(graphName')
     with graphName' := <alltd(norm-identifier)> graphName
+
+rules // CREATE EXTERNAL SCHEMA
+
+  normalize-CreateExternalSchema = alltd(norm-string-literal + norm-identifier)
+
+rules // DROP EXTERNAL SCHEMA
+
+  normalize-DropExternalSchema = alltd(norm-identifier)

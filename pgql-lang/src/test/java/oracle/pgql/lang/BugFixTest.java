@@ -281,4 +281,13 @@ public class BugFixTest extends AbstractPgqlTest {
         "                  FROM MATCH (n:\"//\"\"//\") " + //
         "                  WHERE n.name = '//''//'").isQueryValid());
   }
+
+  @Test
+  public void testPropertyExpressionWithoutAlias() throws Exception {
+    String statement = "  CREATE PROPERTY GRAPH myGraph " + //
+        "VERTEX TABLES ( Person PROPERTIES ( CAST(age AS INTEGER) ) )";
+
+    String errorMessage = "Alias required (.. AS name)";
+    assertTrue(pgql.parse(statement).getErrorMessages().contains(errorMessage));
+  }
 }

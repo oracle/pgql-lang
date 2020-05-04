@@ -5,12 +5,16 @@ package oracle.pgql.lang.ddl.propertygraph;
 
 import static oracle.pgql.lang.ir.PgqlUtils.printIdentifier;
 
+import oracle.pgql.lang.ir.QueryExpression;
+import oracle.pgql.lang.ir.QueryExpression.ExpressionType;
+import oracle.pgql.lang.ir.QueryExpression.VarRef;
+
 public class Property {
 
   /**
-   * The column name. In the future, we may want to support arbitrary expressions.
+   * The value expression.
    */
-  String columnName;
+  QueryExpression valueExpression;
 
   /**
    * The property name.
@@ -20,24 +24,17 @@ public class Property {
   /**
    * Constructor with column name and property name.
    */
-  public Property(String columnName, String propertyName) {
-    this.columnName = columnName;
+  public Property(QueryExpression valueExpression, String propertyName) {
+    this.valueExpression = valueExpression;
     this.propertyName = propertyName;
   }
 
-  /**
-   * Constructor with only a name, which is both the column name and the property name.
-   */
-  public Property(String name) {
-    this(name, name);
+  public QueryExpression getValueExpression() {
+    return valueExpression;
   }
 
-  public String getColumnName() {
-    return columnName;
-  }
-
-  public void setColumnName(String columnName) {
-    this.columnName = columnName;
+  public void setValueExpression(QueryExpression valueExpression) {
+    this.valueExpression = valueExpression;
   }
 
   public String getPropertyName() {
@@ -48,12 +45,25 @@ public class Property {
     this.propertyName = propertyName;
   }
 
+  /**
+   * @deprecated use getValueExpression() instead
+   */
+  @Deprecated
+  public String getColumnName() {
+    if (valueExpression.getExpType() == ExpressionType.VARREF) {
+      VarRef varRef = (VarRef) valueExpression;
+      return varRef.getVariable().getName();
+    } else {
+      return null;
+    }
+  }
+
   @Override
   public String toString() {
-    if (columnName.equals(propertyName)) {
+    if (getColumnName() != null && getColumnName().equals(propertyName)) {
       return printIdentifier(propertyName);
     } else {
-      return printIdentifier(columnName) + " AS " + printIdentifier(propertyName);
+      return valueExpression + " AS " + printIdentifier(propertyName);
     }
   }
 
@@ -71,15 +81,15 @@ public class Property {
     if (getClass() != obj.getClass())
       return false;
     Property other = (Property) obj;
-    if (columnName == null) {
-      if (other.columnName != null)
-        return false;
-    } else if (!columnName.equals(other.columnName))
-      return false;
     if (propertyName == null) {
       if (other.propertyName != null)
         return false;
     } else if (!propertyName.equals(other.propertyName))
+      return false;
+    if (valueExpression == null) {
+      if (other.valueExpression != null)
+        return false;
+    } else if (!valueExpression.equals(other.valueExpression))
       return false;
     return true;
   }
