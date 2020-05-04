@@ -39,25 +39,37 @@ The new features are:
 The following syntax changes were made in PGQL 1.3:
 
  - The `FROM` clause is now mandatory for `SELECT` queries and contains one or more `MATCH` clauses. The `MATCH` clauses are comma-separated.
- - Each `MATCH` clause now contains a single linear path pattern, and each `MATCH` now has an optional `ON` clause for providing the name of the graph to match the pattern on, in case no default graph exists.
-   Examples with and without `ON` clauses are:
+ - A `MATCH` clause _without_ parentheses now contains a _single_ linear path pattern while a `MATCH` clause _with_ parentheses contains _one or more_ linear path patterns.
+   - Example without parentheses: `MATCH (n) -[e]-> (m)`
+   - Example with parentheses: `MATCH ( (n) -[e]-> (m), (n) -[e2]-> (o) )`
+ - A `MATCH` clause now has an optional `ON` clause for specifying the name of the graph to match the pattern on. This is only necessary if the context in which the query executes does not already provide a handle to a graph. See examples below.
+ - [Unquoted identifiers](#unquoted-identifiers) are now automatically uppercased and uppercased references to graphs, labels and properties are matched in case insensitive manner.
+ - [String literals](#string-literals) and [quoted identifiers](#quoted-identifiers) now follow the syntax of SQL, meaning that the only character that is escaped in string literals is the single quote, while the only character that is escaped in identifiers is the double quote.
+ - For expressions in `SELECT` and `GROUP BY` clauses that do not have an explicit name, PGQL now provides implicit names in a compatible way to SQL.
+      - For example, while `SELECT n.firstName` in PGQL 1.2 translated to `SELECT n.firstName AS "n.firstName"`, in PGQL 1.3 it translates to `SELECT n.firstName AS firstName`.
+      - For all other expressions that do not have an explicit name, the name is implicitly generated from the origin text of the expression, just like before.
+ - [Comments](#comments) now only take the form of `/* .. */` while the form `// ..` is no longer allowed in PGQL 1.3, for alignment to SQL.
 
-```sql
+ Here is an example _without_ `ON` clauses:
+
+ ```sql
   SELECT forum.id AS forumId, forum.title, forum.creationDate,
          person.id AS personId, COUNT(DISTINCT post) AS postCount
-    FROM MATCH (country:Place) <-[:isPartOf]- (city:Place) <-[:isLocatedIn]- (person:Person),
+    FROM MATCH (country:Place) <-[:isPartOf]- (city:Place) <-[:isLocatedIn]- (person:Person),
          MATCH (person) <-[:hasModerator]- (forum:Forum) -[:containerOf]->(post:Post),
-         MATCH (post) -[:hasTag]-> (:Tag) -[:hasType]-> (tagClass:Tagclass)
+         MATCH (post) -[:hasTag]-> (:Tag) -[:hasType]-> (tagClass:Tagclass)
    WHERE country.type = 'country' AND
-         city.type = 'city' AND
-         country.name =  'Burma' AND
-         tagClass.name = 'MusicalArtist'
+         city.type = 'city' AND
+         country.name =  'Burma' AND
+         tagClass.name = 'MusicalArtist'
 GROUP BY forum, person
 ORDER BY postCount DESC, forum.id
    LIMIT 20
-   ```
+ ```
 
-```sql
+ Here is the same query with separate `ON` clauses for each of the three path patterns in the `FROM` clause:
+
+ ```sql
   SELECT forum.id AS forumId, forum.title, forum.creationDate,
          person.id AS personId, COUNT(DISTINCT post) AS postCount
     FROM MATCH (country:Place) <-[:isPartOf]- (city:Place) <-[:isLocatedIn]- (person:Person) ON ldbcGraph,
@@ -70,14 +82,26 @@ ORDER BY postCount DESC, forum.id
 GROUP BY forum, person
 ORDER BY postCount DESC, forum.id
    LIMIT 20
-   ```
+ ```
 
- - [Unquoted identifiers](#unquoted-identifiers) are now automatically uppercased and uppercased references to graphs, labels and properties are matched in case insensitive manner.
- - [String literals](#string-literals) and [quoted identifiers](#quoted-identifiers) now follow the syntax of SQL, meaning that the only character that is escaped in string literals is the single quote, while the only character that is escaped in identifiers is the double quote.
- - For expressions in `SELECT` and `GROUP BY` clauses that do not have an explicit name, PGQL now provides implicit names in a compatible way to SQL.
-      - For example, while `SELECT n.firstName` in PGQL 1.2 translated to `SELECT n.firstName AS "n.firstName"`, in PGQL 1.3 it translates to `SELECT n.firstName AS firstName`.
-      - For all other expressions that do not have an explicit name, the name is implicitly generated from the origin text of the expression, just like before.
- - [Comments](#comments) now only take the form of `/* .. */` while the form `// ..` is no longer allowed in PGQL 1.3, for alignment to SQL.
+ Here is the same query with a _single_ `ON` clause for all three path patterns:
+
+ ```sql
+  SELECT forum.id AS forumId, forum.title, forum.creationDate,
+         person.id AS personId, COUNT(DISTINCT post) AS postCount
+    FROM MATCH (
+           (country:Place) <-[:isPartOf]- (city:Place) <-[:isLocatedIn]- (person:Person),
+           (person) <-[:hasModerator]- (forum:Forum) -[:containerOf]->(post:Post),
+           (post) -[:hasTag]-> (:Tag) -[:hasType]-> (tagClass:Tagclass)
+         ) ON ldbcGraph
+   WHERE country.type = 'country' AND
+         city.type = 'city' AND
+         country.name =  'Burma' AND
+         tagClass.name = 'MusicalArtist'
+GROUP BY forum, person
+ORDER BY postCount DESC, forum.id
+   LIMIT 20
+ ```
 
 ## A note on the Grammar
 
@@ -1293,7 +1317,9 @@ FromClause             ::= 'FROM' <MatchClause> ( ',' <MatchClause> )*
 ## MATCH
 
 ```bash
-MatchClause            ::= 'MATCH' <PathPattern> <OnClause>?
+MatchClause            ::= 'MATCH' ( <PathPattern> | <GraphPattern> ) <OnClause>?
+
+GraphPattern           ::= '(' <PathPattern> ( ',' <PathPattern> )* ')'
 
 PathPattern            ::=   <SimplePathPattern>
                            | <ShortestPathPattern>
