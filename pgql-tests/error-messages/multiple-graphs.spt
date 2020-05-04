@@ -49,3 +49,19 @@ test Missing graph name (3) [[
    WHERE EXISTS ( SELECT 1 AS y FROM [[MATCH (x) )]]
 
 ]] error like "Missing ON clause" at #1, #2, #3
+
+test Missing graph name (4) [[
+
+  SELECT 1 AS x
+    FROM MATCH ( (n) ) ON g
+       , [[MATCH (m)]]
+
+]] error like "Missing ON clause" at #1
+
+test Missing graph name (5) [[
+
+  SELECT 1 AS x
+    FROM MATCH ( (n) ) ON g
+       , [[MATCH ( (m) )]]
+
+]] error like "Missing ON clause" at #1
