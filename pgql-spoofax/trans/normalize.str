@@ -52,7 +52,7 @@ rules
         <+ is-pgql13; collect(get-pgql13-deprecation + get-pgql13-errors); flatten-list
         )
         ; not(?[]) <+ get-path-limitations; not(?[])
-          <+ (is-pgql11 + is-pgql13); get-errors-for-inconsistent-graph-names <+ ![]> ast;
+          <+ get-errors-for-inconsistent-graph-names <+ ![]> ast;
       result := <
         alltd(norm-has-prop);
         alltd(norm-pgql10);
@@ -82,7 +82,7 @@ rules
         ));
         bottomup(try(origin-track-forced(norm-query(|error-messages, variable-counter, <get-counter> bindVariable-counter))));
         alltd(?ElemContents(Some(<id>), _, _, _));
-        try(copy-graph-name-to-inner-queries)
+        try(copy-graph-name-to-queries-without-one)
       > ast
 
 rules
@@ -137,29 +137,29 @@ rules
   get-errors-for-inconsistent-graph-names:
     ast -> <conc> (errors-for-multiple-graph-name, errors-for-missing-on-clauses)
     with errors-for-multiple-graph-name := <get-errors-for-multiple-graph-names> ast
-       ; errors-for-missing-on-clauses := <get-errors-for-missing-on-clauses> ast
+       ; if <is-pgql10 + is-pgql11> ast
+         then errors-for-missing-on-clauses := [] // before PGQL 1.3 we didn't have these error yet
+         else errors-for-missing-on-clauses := <get-errors-for-missing-on-clauses> ast
+         end
 
   get-errors-for-multiple-graph-names:
     ast -> errors
-    with inputGraphNames := <collect-om(?GraphMatch(_, _, Some(OnClause(<id>))); alltd(norm-identifier); to-name-without-case-sensitive-info)> ast
+    with inputGraphNames := <collect-om(get-on-clause-graph-name; alltd(norm-identifier); to-name-without-case-sensitive-info)> ast
        ; numInputGraphNames := <length> inputGraphNames
        ; if <gt> (numInputGraphNames, 1)
          then errors := <map(to-error-message(|"Querying multiple graphs is not supported"))> inputGraphNames
          else errors := []
          end
 
-  get-errors-for-missing-on-clauses = collect-om(get-errors-for-missing-on-clauses-per-query, conc); concat
+  get-on-clause-graph-name = ?GraphMatch(_, _, Some(OnClause(<id>))) + ?ParenthesizedGraphMatch(_, Some(OnClause(<id>)))
 
-  get-errors-for-missing-on-clauses-per-query:
-    Query(_, _, Some(FromWhereClauses(graphMatches, _)), _, _, _, _) -> errors
-    with inputGraphNames := <filter(?GraphMatch(_, _, Some(OnClause(<id>))); alltd(norm-identifier); to-name-without-case-sensitive-info)> graphMatches
-       ; clausesWithMissingGraphName := <filter(?GraphMatch(_, _,  None()))> graphMatches
-       ; numInputGraphNames := <length> inputGraphNames
-       ; if <gt> (numInputGraphNames, 0)
-         then errors := <map(?GraphMatch(_, _, _); to-error-message(|"Missing ON clause"))> clausesWithMissingGraphName
+  get-errors-for-missing-on-clauses:
+    ast -> errors
+    with if <oncetd(?OnClause(_))> ast
+         then clausesWithMissingGraphName := <collect(?GraphMatch(_, _,  None()) + ?ParenthesizedGraphMatch(_, None()))> ast
+            ; errors := <map(to-error-message(|"Missing ON clause"))> clausesWithMissingGraphName
          else errors := []
          end
-    where not ( <?[]> errors ) // make sure it will traverse inner queries to look for errors if outer query has no errors
 
   shortest-or-cheapest-or-reaches = ?Shortest(_, _)
                                   + ?Cheapest(_, _)
@@ -177,9 +177,10 @@ rules
 
   // In PGQL 1.1 and PGQL 1.2, subqueries would inherit the graph name from the outer query.
   // This is no longer the case in PGQL 1.3+, where graph names in subqueries need to be respecified.
-  copy-graph-name-to-inner-queries:
-    ast@NormalizedQuery(_, _, Some(graphName), _, _, _, _, _, _, "v1.1", _) -> ast'
-    with ast' := <alltd(copy-graph-name-to-query-without-one(|graphName))> ast
+  copy-graph-name-to-queries-without-one:
+    ast@NormalizedQuery(_, _, _, _, _, _, _, _, _, "v1.1", _) -> ast'
+    where <oncetd(?NormalizedQuery(_, _, Some(graphName), _, _, _, _, _, _, _, _))> ast
+    with ast' := <innermost(copy-graph-name-to-query-without-one(|graphName))> ast
 
   copy-graph-name-to-query-without-one(|graphName):
     NormalizedQuery(a, b, None(), c, d, e, f, g, h, i, j) -> NormalizedQuery(a, b, Some(graphName), c, d, e, f, g, h, i, j)
@@ -321,8 +322,8 @@ rules
   // PGQL 1.3
   norm-matchElems(|variable-counter):
     FromWhereClauses(graphMatches, whereClause) -> GraphPatternAndGraphName(graphPattern, graphName, whereClause)
-    with graphName := <map(?GraphMatch(_, _, <id>)); (Hd; normalize-OnClause <+ !None())> graphMatches // simply take the first graph name we see; we don't support multiple graph right now
-       ; pathPatterns := <map(?GraphMatch(_, <id>, _))> graphMatches
+    with graphName := <map(?GraphMatch(_, _, <id>) + ?ParenthesizedGraphMatch(_, <id>)); (Hd; normalize-OnClause <+ !None())> graphMatches // simply take the first graph name we see; we don't support multiple graph right now
+       ; pathPatterns := <map(?GraphMatch(_, <id>, _); ![<id>] + ?ParenthesizedGraphMatch(<id>, _)); concat> graphMatches
        ; graphPattern := <norm-matchElems-common(|variable-counter)> pathPatterns
 
   // PGQL 1.1 and 1.2

@@ -176,8 +176,15 @@ public class SyntaxErrorsTest extends AbstractPgqlTest {
 
   @Test
   public void testMissingOnClause3() throws Exception {
-    // inner queries are checked separately; no error here
-    String query = "SELECT EXISTS ( SELECT * FROM MATCH (n) -[e]-> (m) ) FROM MATCH (n) ON g1";
+    String query = "SELECT EXISTS ( SELECT * FROM MATCH (n) -[e]-> (m) ) FROM MATCH (n) ON g";
+    PgqlResult result = pgql.parse(query);
+    assertTrue(result.getErrorMessages().contains("Missing ON clause"));
+  }
+
+  @Test
+  public void testMissingOnClause4() throws Exception {
+    // inner queries in PGQL 1.2 are checked separately; no error here
+    String query = "SELECT EXISTS ( SELECT * MATCH (n) -[e]-> (m) ) FROM g MATCH (n)";
     PgqlResult result = pgql.parse(query);
     assertTrue(result.isQueryValid());
   }

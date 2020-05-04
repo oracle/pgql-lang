@@ -32,6 +32,7 @@ context-free syntax
 
   PathPattern.Shortest = <<TopK?> SHORTEST ( <PathPattern> )> {case-insensitive}
   PathPattern.Cheapest = <<TopK?> CHEAPEST ( <PathPattern> )> {case-insensitive}
+
   TopK.TopK = <TOP <UNSIGNED-INT>> {case-insensitive}
   CostClause.CostClause = <COST <Exp>> {case-insensitive}
 

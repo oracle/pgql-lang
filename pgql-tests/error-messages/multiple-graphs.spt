@@ -18,6 +18,14 @@ test Multiple graph names (2) [[
 
 ]] error like "Querying multiple graphs is not supported" at #1, #2
 
+test Multiple graph names (3) [[
+
+  SELECT 1 AS v1
+    FROM MATCH ( (n) ) ON [[g1]]
+       , MATCH (m) ON [[g2]]
+
+]] error like "Querying multiple graphs is not supported" at #1, #2
+
 test Missing graph name (1) [[
 
   SELECT 1 AS n
@@ -28,8 +36,32 @@ test Missing graph name (1) [[
 
 test Missing graph name (2) [[
 
-  SELECT EXISTS ( SELECT 1 AS y FROM [[MATCH (m),]] MATCH (n) ON g ) AS v1
+  SELECT EXISTS ( SELECT 1 AS y FROM [[MATCH (m),]] [[MATCH (n) )]] AS v1
     FROM MATCH (n) ON g
-   WHERE EXISTS ( SELECT 1 AS y FROM MATCH (m) )
+   WHERE EXISTS ( SELECT 1 AS y FROM [[MATCH (x) )]]
+
+]] error like "Missing ON clause" at #1, #2, #3
+
+test Missing graph name (3) [[
+
+  SELECT EXISTS ( SELECT 1 AS y FROM [[MATCH (m),]] [[MATCH ( (n) ) )]] AS v1
+    FROM MATCH ( (n) ) ON g
+   WHERE EXISTS ( SELECT 1 AS y FROM [[MATCH (x) )]]
+
+]] error like "Missing ON clause" at #1, #2, #3
+
+test Missing graph name (4) [[
+
+  SELECT 1 AS x
+    FROM MATCH ( (n) ) ON g
+       , [[MATCH (m)]]
+
+]] error like "Missing ON clause" at #1
+
+test Missing graph name (5) [[
+
+  SELECT 1 AS x
+    FROM MATCH ( (n) ) ON g
+       , [[MATCH ( (m) )]]
 
 ]] error like "Missing ON clause" at #1
