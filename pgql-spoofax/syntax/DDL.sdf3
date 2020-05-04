@@ -62,19 +62,24 @@ context-free syntax // CREATE EXTERNAL SCHEMA
 
   Statement.CreateExternalSchema =
     <CREATE EXTERNAL SCHEMA <SchemaName>
-     FROM DATABASE
-      <DataSource?>
-      <Url?>
-      <User?>
-      <KeystoreAlias?>> {case-insensitive}
+     FROM DATABASE <DatabaseConnectionDetails>> {case-insensitive}
 
-  DataSource.DataSource = <DATA_SOURCE <String>> {case-insensitive}
+  DatabaseConnectionDetails.JdbcConnectionDetails =
+    <
+      <Url>
+      <User?>
+      <KeystoreAlias?>
+    >
 
   Url.Url = <URL <String>> {case-insensitive}
 
   User.User = <USER <String>> {case-insensitive}
 
   KeystoreAlias.KeystoreAlias = <KEYSTORE_ALIAS <String>> {case-insensitive}
+
+  DatabaseConnectionDetails.DataSource = <DATA_SOURCE <String>> {case-insensitive}
+
+  DataSource.DataSource = <DATA_SOURCE <String>> {case-insensitive}
 
 context-free syntax // DROP EXTERNAL SCHEMA
 

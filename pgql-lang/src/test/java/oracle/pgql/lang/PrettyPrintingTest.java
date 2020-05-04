@@ -494,9 +494,16 @@ public class PrettyPrintingTest extends AbstractPgqlTest {
   }
 
   @Test
-  public void testCreateExternalSchema() throws Exception {
+  public void testCreateExternalSchema1() throws Exception {
     String statement = "CREATE EXTERNAL SCHEMA HR\n"
         + "FROM DATABASE URL 'jdbc:oracle:thin@myhost:1521/oracl' USER 'hr' KEYSTORE_ALIAS 'hr_alias'";
+    checkRoundTrip(statement);
+  }
+
+  @Test
+  public void testCreateExternalSchema2() throws Exception {
+    String statement = "CREATE EXTERNAL SCHEMA HR\n" //
+        + "FROM DATABASE DATA_SOURCE 'my data source'";
     checkRoundTrip(statement);
   }
 

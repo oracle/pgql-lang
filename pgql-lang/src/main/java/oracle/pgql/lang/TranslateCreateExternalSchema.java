@@ -3,6 +3,7 @@
  */
 package oracle.pgql.lang;
 
+import org.spoofax.interpreter.terms.IStrategoAppl;
 import org.spoofax.interpreter.terms.IStrategoTerm;
 
 import oracle.pgql.lang.ddl.propertygraph.CreateExternalSchema;
@@ -15,31 +16,43 @@ public class TranslateCreateExternalSchema {
 
   private static int LOCAL_SCHEMA_NAME = 0;
 
-  private static int DATA_SOURCE_NAME = 1;
+  private static int DATABASE_CONNECTION_DETAILS = 1;
 
-  private static int URL = 2;
+  private static int URL = 0;
 
-  private static int USER_NAME = 3;
+  private static int USER_NAME = 1;
 
-  private static int KEYSTORE_ALIAS = 4;
+  private static int KEYSTORE_ALIAS = 2;
+
+  private static int DATA_SOURCE_NAME = 0;
 
   protected static Statement translateCreateExternalSchema(IStrategoTerm ast) {
 
     IStrategoTerm localSchemaNameT = ast.getSubterm(LOCAL_SCHEMA_NAME);
     String localSchemaName = getString(localSchemaNameT);
 
-    IStrategoTerm dataSourceNameT = ast.getSubterm(DATA_SOURCE_NAME);
-    String dataSourceName = isNone(dataSourceNameT) ? null : getString(dataSourceNameT);
+    IStrategoAppl databaseConnectionDetails = (IStrategoAppl) ast.getSubterm(DATABASE_CONNECTION_DETAILS);
+    String connectionDetailsType = databaseConnectionDetails.getConstructor().getName();
 
-    IStrategoTerm urlT = ast.getSubterm(URL);
-    String url = isNone(urlT) ? null : getString(urlT);
+    switch (connectionDetailsType) {
+      case "JdbcConnectionDetails":
 
-    IStrategoTerm userNameT = ast.getSubterm(USER_NAME);
-    String userName = isNone(userNameT) ? null : getString(userNameT);
+        IStrategoTerm urlT = databaseConnectionDetails.getSubterm(URL);
+        String url = getString(urlT);
 
-    IStrategoTerm keystoreAliasT = ast.getSubterm(KEYSTORE_ALIAS);
-    String keystoreAlias = isNone(keystoreAliasT) ? null : getString(keystoreAliasT);
+        IStrategoTerm userNameT = databaseConnectionDetails.getSubterm(USER_NAME);
+        String userName = isNone(userNameT) ? null : getString(userNameT);
 
-    return new CreateExternalSchema(localSchemaName, dataSourceName, url, userName, keystoreAlias);
+        IStrategoTerm keystoreAliasT = databaseConnectionDetails.getSubterm(KEYSTORE_ALIAS);
+        String keystoreAlias = isNone(keystoreAliasT) ? null : getString(keystoreAliasT);
+
+        return new CreateExternalSchema(localSchemaName, url, userName, keystoreAlias);
+      case "DataSource":
+        IStrategoTerm dataSourceNameT = databaseConnectionDetails.getSubterm(DATA_SOURCE_NAME);
+        String dataSourceName = getString(dataSourceNameT);
+        return new CreateExternalSchema(localSchemaName, dataSourceName);
+      default:
+        throw new IllegalArgumentException(connectionDetailsType);
+    }
   }
 }

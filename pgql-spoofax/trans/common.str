@@ -79,7 +79,7 @@ rules
   is-ddl-statement = is-CreatePropertyGraph + is-DropPropertyGraph + is-CreateExternalSchema + is-DropExternalSchema
   is-CreatePropertyGraph = ?CreatePropertyGraph(_, _, _)
   is-DropPropertyGraph = ?DropPropertyGraph(_)
-  is-CreateExternalSchema = ?CreateExternalSchema(_, _, _, _, _)
+  is-CreateExternalSchema = ?CreateExternalSchema(_, _)
   is-DropExternalSchema = ?DropExternalSchema(_)
 
   norm-identifier:

@@ -13,21 +13,24 @@ public class CreateExternalSchema implements Statement {
 
   private String localSchemaName;
 
-  private String dataSourceName;
-
   private String url;
 
   private String userName;
 
   private String keystoreAlias;
 
-  public CreateExternalSchema(String localSchemaName, String dataSourceName, String url, String userName,
-      String keystoreAlias) {
+  private String dataSourceName;
+
+  public CreateExternalSchema(String localSchemaName, String url, String userName, String keystoreAlias) {
     this.localSchemaName = localSchemaName;
-    this.dataSourceName = dataSourceName;
     this.url = url;
     this.userName = userName;
     this.keystoreAlias = keystoreAlias;
+  }
+
+  public CreateExternalSchema(String localSchemaName, String dataSourceName) {
+    this.localSchemaName = localSchemaName;
+    this.dataSourceName = dataSourceName;
   }
 
   public String getLocalSchemaName() {
@@ -74,9 +77,6 @@ public class CreateExternalSchema implements Statement {
   public String toString() {
     String separator = "\n  ";
     String result = "CREATE EXTERNAL SCHEMA " + printIdentifier(localSchemaName) + "\nFROM DATABASE";
-    if (dataSourceName != null) {
-      result += separator + "DATA_SOURCE " + printLiteral(dataSourceName);
-    }
     if (url != null) {
       result += separator + "URL " + printLiteral(url);
     }
@@ -85,6 +85,9 @@ public class CreateExternalSchema implements Statement {
     }
     if (keystoreAlias != null) {
       result += separator + "KEYSTORE_ALIAS " + printLiteral(keystoreAlias);
+    }
+    if (dataSourceName != null) {
+      result += separator + "DATA_SOURCE " + printLiteral(dataSourceName);
     }
     return result;
   }
