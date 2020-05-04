@@ -459,6 +459,12 @@ public class PrettyPrintingTest extends AbstractPgqlTest {
   }
 
   @Test
+  public void testCastInCreatePropertyGraph() throws Exception {
+    String statement = "CREATE PROPERTY GRAPH g VERTEX TABLES ( Person PROPERTIES ( CAST ( n AS STRING ) AS n ) )";
+    checkRoundTrip(statement);
+  }
+
+  @Test
   public void testDropPropertyGraph() throws Exception {
     String statement = "DROP PROPERTY GRAPH myGraph";
     checkRoundTrip(statement);
@@ -484,6 +490,26 @@ public class PrettyPrintingTest extends AbstractPgqlTest {
         + "                  , CASE WHEN n.prop < 1 THEN 'a' ELSE 'b' END " //
         + "                  , CASE WHEN n.prop < 1 THEN 'a' END " //
         + "         MATCH (n)";
+    checkRoundTrip(statement);
+  }
+
+  @Test
+  public void testCreateExternalSchema1() throws Exception {
+    String statement = "CREATE EXTERNAL SCHEMA HR\n"
+        + "FROM DATABASE URL 'jdbc:oracle:thin@myhost:1521/oracl' USER 'hr' KEYSTORE_ALIAS 'hr_alias'";
+    checkRoundTrip(statement);
+  }
+
+  @Test
+  public void testCreateExternalSchema2() throws Exception {
+    String statement = "CREATE EXTERNAL SCHEMA HR\n" //
+        + "FROM DATABASE DATA_SOURCE 'my data source'";
+    checkRoundTrip(statement);
+  }
+
+  @Test
+  public void testDropExternalSchema() throws Exception {
+    String statement = "DROP EXTERNAL SCHEMA \" my schema \"";
     checkRoundTrip(statement);
   }
 

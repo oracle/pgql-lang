@@ -4,12 +4,13 @@ imports
 
   Names
   Expressions
+  Literals
 
 template options
 
   keyword -/- [a-zA-Z0-9]
 
-context-free syntax
+context-free syntax // CREATE PROPERTY GRAPH
 
   Statement.CreatePropertyGraph = <CREATE PROPERTY GRAPH <GraphName> <VertexTables?> <EdgeTables?>> {case-insensitive}
 
@@ -53,4 +54,33 @@ context-free syntax
 
   KeyClause.KeyClause = <KEY ( <{Identifier ","}+> )> {case-insensitive}
 
+context-free syntax // DROP PROPERTY GRAPH
+
   Statement.DropPropertyGraph = <DROP PROPERTY GRAPH <GraphName>> {case-insensitive}
+
+context-free syntax // CREATE EXTERNAL SCHEMA
+
+  Statement.CreateExternalSchema =
+    <CREATE EXTERNAL SCHEMA <SchemaName>
+     FROM DATABASE <DatabaseConnectionDetails>> {case-insensitive}
+
+  DatabaseConnectionDetails.JdbcConnectionDetails =
+    <
+      <Url>
+      <User?>
+      <KeystoreAlias?>
+    >
+
+  Url.Url = <URL <String>> {case-insensitive}
+
+  User.User = <USER <String>> {case-insensitive}
+
+  KeystoreAlias.KeystoreAlias = <KEYSTORE_ALIAS <String>> {case-insensitive}
+
+  DatabaseConnectionDetails.DataSource = <DATA_SOURCE <String>> {case-insensitive}
+
+  DataSource.DataSource = <DATA_SOURCE <String>> {case-insensitive}
+
+context-free syntax // DROP EXTERNAL SCHEMA
+
+  Statement.DropExternalSchema = <DROP EXTERNAL SCHEMA <SchemaName>> {case-insensitive}

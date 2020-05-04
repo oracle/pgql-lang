@@ -3,34 +3,35 @@
  */
 package oracle.pgql.lang.ddl.propertygraph;
 
-import oracle.pgql.lang.ir.SchemaQualifiedName;
 import oracle.pgql.lang.ir.Statement;
 import oracle.pgql.lang.ir.StatementType;
 
-public class DropPropertyGraph implements Statement {
+import static oracle.pgql.lang.ir.PgqlUtils.printIdentifier;
 
-  private SchemaQualifiedName schemaName;
+public class DropExternalSchema implements Statement {
 
-  public DropPropertyGraph(SchemaQualifiedName graphName) {
-    this.schemaName = graphName;
+  private String schemaName;
+
+  public DropExternalSchema(String schemaName) {
+    this.schemaName = schemaName;
   }
 
-  public SchemaQualifiedName getGraphName() {
+  public String getGraphName() {
     return schemaName;
   }
 
-  public void setGraphName(SchemaQualifiedName graphName) {
-    this.schemaName = graphName;
+  public void setGraphName(String schemaName) {
+    this.schemaName = schemaName;
   }
 
   @Override
   public String toString() {
-    return "DROP PROPERTY GRAPH " + schemaName;
+    return "DROP EXTERNAL SCHEMA " + printIdentifier(schemaName);
   }
 
   @Override
   public StatementType getStatementType() {
-    return StatementType.DROP_PROPERTY_GRAPH;
+    return StatementType.DROP_EXTERNAL_SCHEMA;
   }
 
   @Override
@@ -46,7 +47,7 @@ public class DropPropertyGraph implements Statement {
       return false;
     if (getClass() != obj.getClass())
       return false;
-    DropPropertyGraph other = (DropPropertyGraph) obj;
+    DropExternalSchema other = (DropExternalSchema) obj;
     if (schemaName == null) {
       if (other.schemaName != null)
         return false;

@@ -3,13 +3,6 @@
  */
 package oracle.pgql.lang;
 
-import java.time.LocalDate;
-import java.time.LocalDateTime;
-import java.time.LocalTime;
-import java.time.OffsetDateTime;
-import java.time.OffsetTime;
-import java.time.ZoneOffset;
-import java.time.format.DateTimeParseException;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
@@ -37,28 +30,10 @@ import oracle.pgql.lang.ir.QueryEdge;
 import oracle.pgql.lang.ir.QueryExpression;
 import oracle.pgql.lang.ir.QueryExpression.LogicalExpression.And;
 import oracle.pgql.lang.ir.QueryExpression.PropertyAccess;
-import oracle.pgql.lang.ir.QueryExpression.ScalarSubquery;
-import oracle.pgql.lang.ir.QueryExpression.Constant.ConstBoolean;
-import oracle.pgql.lang.ir.QueryExpression.Constant.ConstDate;
-import oracle.pgql.lang.ir.QueryExpression.Constant.ConstDecimal;
-import oracle.pgql.lang.ir.QueryExpression.Constant.ConstInteger;
 import oracle.pgql.lang.ir.QueryExpression.Constant.ConstString;
-import oracle.pgql.lang.ir.QueryExpression.Constant.ConstTime;
-import oracle.pgql.lang.ir.QueryExpression.Constant.ConstTimeWithTimezone;
-import oracle.pgql.lang.ir.QueryExpression.Constant.ConstTimestamp;
-import oracle.pgql.lang.ir.QueryExpression.Constant.ConstTimestampWithTimezone;
-import oracle.pgql.lang.ir.QueryExpression.ExtractExpression;
-import oracle.pgql.lang.ir.QueryExpression.ExtractExpression.ExtractField;
 import oracle.pgql.lang.ir.QueryExpression.ExpressionType;
-import oracle.pgql.lang.ir.QueryExpression.IfElse;
-import oracle.pgql.lang.ir.QueryExpression.InPredicate;
-import oracle.pgql.lang.ir.QueryExpression.InPredicate.InValueList;
-import oracle.pgql.lang.ir.QueryExpression.IsNull;
-import oracle.pgql.lang.ir.QueryExpression.SimpleCase;
 import oracle.pgql.lang.ir.QueryExpression.VarRef;
-import oracle.pgql.lang.ir.QueryExpression.WhenThenExpression;
 import oracle.pgql.lang.ir.QueryPath;
-import oracle.pgql.lang.ir.QueryType;
 import oracle.pgql.lang.ir.QueryVariable;
 import oracle.pgql.lang.ir.QueryVariable.VariableType;
 import oracle.pgql.lang.ir.QueryVertex;
@@ -76,18 +51,22 @@ import oracle.pgql.lang.ir.modify.SetPropertyExpression;
 import oracle.pgql.lang.ir.modify.Update;
 import oracle.pgql.lang.ir.modify.UpdateClause;
 import oracle.pgql.lang.ir.modify.VertexInsertion;
-import oracle.pgql.lang.util.SqlDateTimeFormatter;
 
+import static oracle.pgql.lang.TranslateCreateExternalSchema.translateCreateExternalSchema;
+import static oracle.pgql.lang.TranslateDropExternalSchema.translateDropExternalSchema;
 import static oracle.pgql.lang.TranslateCreatePropertyGraph.translateCreatePropertyGraph;
 import static oracle.pgql.lang.TranslateDropPropertyGraph.translateDropPropertyGraph;
 import static oracle.pgql.lang.CommonTranslationUtil.getString;
-import static oracle.pgql.lang.CommonTranslationUtil.getInt;
 import static oracle.pgql.lang.CommonTranslationUtil.getList;
 import static oracle.pgql.lang.CommonTranslationUtil.getSchemaQualifiedName;
 import static oracle.pgql.lang.CommonTranslationUtil.isNone;
 import static oracle.pgql.lang.CommonTranslationUtil.isSome;
 import static oracle.pgql.lang.CommonTranslationUtil.getSome;
 import static oracle.pgql.lang.CommonTranslationUtil.getConstructorName;
+import static oracle.pgql.lang.CommonTranslationUtil.getVariable;
+import static oracle.pgql.lang.CommonTranslationUtil.translateExp;
+import static oracle.pgql.lang.CommonTranslationUtil.parseLong;
+import static oracle.pgql.lang.CommonTranslationUtil.parseInt;
 
 public class SpoofaxAstToGraphQuery {
 
@@ -178,39 +157,6 @@ public class SpoofaxAstToGraphQuery {
   private static final int IDENTIFIER_NAME = 0;
   private static final int IDENTIFIER_ORIGINNAME = 1;
 
-  private static final int POS_BINARY_EXP_LEFT = 0;
-  private static final int POS_BINARY_EXP_RIGHT = 1;
-  private static final int POS_UNARY_EXP = 0;
-  private static final int POS_AGGREGATE_DISTINCT = 0;
-  private static final int POS_AGGREGATE_EXP = 1;
-  private static final int POS_VARREF_VARNAME = 0;
-  private static final int POS_VARREF_ORIGIN_OFFSET = 1;
-  private static final int POS_PROPREF_VARREF = 0;
-  private static final int POS_PROPREF_PROPNAME = 1;
-  private static final int POS_CAST_EXP = 0;
-  private static final int POS_CAST_TARGET_TYPE_NAME = 1;
-  private static final int POS_EXISTS_SUBQUERY = 0;
-  private static final int POS_SCALARSUBQUERY_SUBQUERY = 0;
-  private static final int POS_SUBQUERY = 0;
-  private static final int POS_FUNCTION_CALL_PACKAGE_NAME = 0;
-  private static final int POS_FUNCTION_CALL_ROUTINE_NAME = 1;
-  private static final int POS_FUNCTION_CALL_EXPS = 2;
-  private static final int POS_EXTRACT_FIELD = 0;
-  private static final int POS_EXTRACT_EXP = 1;
-  private static final int POS_IN_PREDICATE_EXP = 0;
-  private static final int POS_IN_PREDICATE_VALUES = 1;
-  private static final int POS_IS_NULL_EXP = 0;
-  private static final int POS_IF_ELSE_EXP1 = 0;
-  private static final int POS_IF_ELSE_EXP2 = 1;
-  private static final int POS_IF_ELSE_EXP3 = 2;
-  private static final int POS_SIMPLE_CASE_OPERAND = 0;
-  private static final int POS_SIMPLE_CASE_WHENTHEN_EXPS = 1;
-  private static final int POS_SIMPLE_CASE_ELSE_EXP = 2;
-  private static final int POS_SIMPLE_CASE_IFELSE_ALTERNATIVE_REPRESENTATION = 3;
-  private static final int POS_WHENTHEN_WHEN = 0;
-  private static final int POS_WHENTHEN_THEN = 1;
-  private static final int POS_ELSE_EXP = 0;
-
   public static Statement translate(IStrategoTerm ast) throws PgqlException {
 
     String constructorName = ((IStrategoAppl) ast).getConstructor().getName();
@@ -222,6 +168,10 @@ public class SpoofaxAstToGraphQuery {
         return translateCreatePropertyGraph(ast);
       case "DropPropertyGraph":
         return translateDropPropertyGraph(ast);
+      case "CreateExternalSchema":
+        return translateCreateExternalSchema(ast);
+      case "DropExternalSchema":
+        return translateDropExternalSchema(ast);
       default:
         return null; // failed to parse query
     }
@@ -234,7 +184,7 @@ public class SpoofaxAstToGraphQuery {
    * @param vars
    *          map from variable name to variable
    */
-  private static GraphQuery translate(IStrategoTerm ast, TranslationContext ctx) throws PgqlException {
+  protected static GraphQuery translate(IStrategoTerm ast, TranslationContext ctx) throws PgqlException {
 
     // path patterns
     IStrategoTerm commonPathExpressionsT = getList(ast.getSubterm(POS_COMMON_PATH_EXPRESSIONS));
@@ -830,389 +780,5 @@ public class SpoofaxAstToGraphQuery {
       }
     }
     return orderByElems;
-  }
-
-  private static QueryExpression translateExp(IStrategoTerm t, TranslationContext ctx) throws PgqlException {
-
-    String cons = ((IStrategoAppl) t).getConstructor().getName();
-
-    switch (cons) {
-      case "Sub":
-        QueryExpression exp1 = translateExp(t.getSubterm(POS_BINARY_EXP_LEFT), ctx);
-        QueryExpression exp2 = translateExp(t.getSubterm(POS_BINARY_EXP_RIGHT), ctx);
-        return new QueryExpression.ArithmeticExpression.Sub(exp1, exp2);
-      case "Add":
-        exp1 = translateExp(t.getSubterm(POS_BINARY_EXP_LEFT), ctx);
-        exp2 = translateExp(t.getSubterm(POS_BINARY_EXP_RIGHT), ctx);
-        return new QueryExpression.ArithmeticExpression.Add(exp1, exp2);
-      case "Mul":
-        exp1 = translateExp(t.getSubterm(POS_BINARY_EXP_LEFT), ctx);
-        exp2 = translateExp(t.getSubterm(POS_BINARY_EXP_RIGHT), ctx);
-        return new QueryExpression.ArithmeticExpression.Mul(exp1, exp2);
-      case "Div":
-        exp1 = translateExp(t.getSubterm(POS_BINARY_EXP_LEFT), ctx);
-        exp2 = translateExp(t.getSubterm(POS_BINARY_EXP_RIGHT), ctx);
-        return new QueryExpression.ArithmeticExpression.Div(exp1, exp2);
-      case "Mod":
-        exp1 = translateExp(t.getSubterm(POS_BINARY_EXP_LEFT), ctx);
-        exp2 = translateExp(t.getSubterm(POS_BINARY_EXP_RIGHT), ctx);
-        return new QueryExpression.ArithmeticExpression.Mod(exp1, exp2);
-      case "UMin":
-        QueryExpression exp = translateExp(t.getSubterm(POS_UNARY_EXP), ctx);
-        return new QueryExpression.ArithmeticExpression.UMin(exp);
-      case "And":
-        exp1 = translateExp(t.getSubterm(POS_BINARY_EXP_LEFT), ctx);
-        exp2 = translateExp(t.getSubterm(POS_BINARY_EXP_RIGHT), ctx);
-        return new QueryExpression.LogicalExpression.And(exp1, exp2);
-      case "Or":
-        exp1 = translateExp(t.getSubterm(POS_BINARY_EXP_LEFT), ctx);
-        exp2 = translateExp(t.getSubterm(POS_BINARY_EXP_RIGHT), ctx);
-        return new QueryExpression.LogicalExpression.Or(exp1, exp2);
-      case "Not":
-        exp = translateExp(t.getSubterm(POS_UNARY_EXP), ctx);
-        return new QueryExpression.LogicalExpression.Not(exp);
-      case "Eq":
-        exp1 = translateExp(t.getSubterm(POS_BINARY_EXP_LEFT), ctx);
-        exp2 = translateExp(t.getSubterm(POS_BINARY_EXP_RIGHT), ctx);
-        return new QueryExpression.RelationalExpression.Equal(exp1, exp2);
-      case "Neq":
-        exp1 = translateExp(t.getSubterm(POS_BINARY_EXP_LEFT), ctx);
-        exp2 = translateExp(t.getSubterm(POS_BINARY_EXP_RIGHT), ctx);
-        return new QueryExpression.RelationalExpression.NotEqual(exp1, exp2);
-      case "Gt":
-        exp1 = translateExp(t.getSubterm(POS_BINARY_EXP_LEFT), ctx);
-        exp2 = translateExp(t.getSubterm(POS_BINARY_EXP_RIGHT), ctx);
-        return new QueryExpression.RelationalExpression.Greater(exp1, exp2);
-      case "Gte":
-        exp1 = translateExp(t.getSubterm(POS_BINARY_EXP_LEFT), ctx);
-        exp2 = translateExp(t.getSubterm(POS_BINARY_EXP_RIGHT), ctx);
-        return new QueryExpression.RelationalExpression.GreaterEqual(exp1, exp2);
-      case "Lt":
-        exp1 = translateExp(t.getSubterm(POS_BINARY_EXP_LEFT), ctx);
-        exp2 = translateExp(t.getSubterm(POS_BINARY_EXP_RIGHT), ctx);
-        return new QueryExpression.RelationalExpression.Less(exp1, exp2);
-      case "Lte":
-        exp1 = translateExp(t.getSubterm(POS_BINARY_EXP_LEFT), ctx);
-        exp2 = translateExp(t.getSubterm(POS_BINARY_EXP_RIGHT), ctx);
-        return new QueryExpression.RelationalExpression.LessEqual(exp1, exp2);
-      case "Integer":
-        long l = parseLong(t);
-        return new QueryExpression.Constant.ConstInteger(l);
-      case "Decimal":
-        double d = Double.parseDouble(getString(t));
-        return new QueryExpression.Constant.ConstDecimal(d);
-      case "String":
-      case "Identifier": // identifier "hello" in (n:hello) becomes string 'hello' in has_label(n,
-        // 'hello')
-        String s = getString(t);
-        return new QueryExpression.Constant.ConstString(s);
-      case "True":
-        return new QueryExpression.Constant.ConstBoolean(true);
-      case "False":
-        return new QueryExpression.Constant.ConstBoolean(false);
-      case "Date":
-        s = getString(t);
-        LocalDate date;
-        try {
-          date = LocalDate.parse(s, SqlDateTimeFormatter.SQL_DATE);
-        } catch (DateTimeParseException e) {
-          // can return any date here; parser already generated an error message for it
-          date = LocalDate.MIN;
-        }
-        return new QueryExpression.Constant.ConstDate(date);
-      case "Time":
-        s = getString(t);
-        try {
-          LocalTime time = LocalTime.parse(s, SqlDateTimeFormatter.SQL_TIME);
-          return new QueryExpression.Constant.ConstTime(time);
-        } catch (DateTimeParseException e) {
-          try {
-            OffsetTime timeWithTimezone = OffsetTime.parse(s, SqlDateTimeFormatter.SQL_TIME_WITH_TIMEZONE);
-            return new QueryExpression.Constant.ConstTimeWithTimezone(timeWithTimezone);
-          } catch (DateTimeParseException e2) {
-            // can return any time here; parser already generated an error message for it
-            return new QueryExpression.Constant.ConstTime(LocalTime.MIN);
-          }
-        }
-      case "Timestamp":
-        s = getString(t);
-        try {
-          LocalDateTime timestamp = LocalDateTime.parse(s, SqlDateTimeFormatter.SQL_TIMESTAMP);
-          return new QueryExpression.Constant.ConstTimestamp(timestamp);
-        } catch (DateTimeParseException e) {
-          try {
-            OffsetDateTime timestampWithTimezone = OffsetDateTime.parse(s,
-                SqlDateTimeFormatter.SQL_TIMESTAMP_WITH_TIMEZONE);
-            return new QueryExpression.Constant.ConstTimestampWithTimezone(timestampWithTimezone);
-          } catch (DateTimeParseException e2) {
-            // can return any timestamp here; parser already generated an error message for
-            // it
-            return new QueryExpression.Constant.ConstTimestamp(LocalDateTime.MIN);
-          }
-        }
-      case "VarRef":
-        QueryVariable var = getVariable(ctx, t);
-        return new QueryExpression.VarRef(var);
-      case "BindVariable":
-        int parameterIndex = getInt(t);
-        return new QueryExpression.BindVariable(parameterIndex);
-      case "PropRef":
-        IStrategoTerm varRefT = t.getSubterm(POS_PROPREF_VARREF);
-        VarRef varRef = (VarRef) translateExp(varRefT, ctx);
-        String propname = getString(t.getSubterm(POS_PROPREF_PROPNAME));
-        return new QueryExpression.PropertyAccess(varRef.getVariable(), propname);
-      case "Cast":
-        exp = translateExp(t.getSubterm(POS_CAST_EXP), ctx);
-        String targetTypeName = getString(t.getSubterm(POS_CAST_TARGET_TYPE_NAME));
-        return new QueryExpression.Function.Cast(exp, targetTypeName);
-      case "Exists":
-        IStrategoTerm subqueryT = t.getSubterm(POS_EXISTS_SUBQUERY);
-        SelectQuery selectQuery = translateSubquery(ctx, subqueryT);
-        return new QueryExpression.Function.Exists(selectQuery);
-      case "ScalarSubquery":
-        subqueryT = t.getSubterm(POS_SCALARSUBQUERY_SUBQUERY);
-        selectQuery = translateSubquery(ctx, subqueryT);
-        return new ScalarSubquery(selectQuery);
-      case "CallStatement":
-      case "FunctionCall":
-        IStrategoTerm packageDeclT = t.getSubterm(POS_FUNCTION_CALL_PACKAGE_NAME);
-        String packageName = isNone(packageDeclT) ? null : getString(packageDeclT);
-        String functionName = getString(t.getSubterm(POS_FUNCTION_CALL_ROUTINE_NAME));
-        IStrategoTerm argsT = getList(t.getSubterm(POS_FUNCTION_CALL_EXPS));
-        List<QueryExpression> args = varArgsToExps(ctx, argsT);
-        return new QueryExpression.FunctionCall(packageName, functionName, args);
-      case "ExtractExp":
-        IStrategoAppl fieldT = (IStrategoAppl) t.getSubterm(POS_EXTRACT_FIELD);
-        ExtractField field;
-        switch (fieldT.getConstructor().getName()) {
-          case "Year":
-            field = ExtractField.YEAR;
-            break;
-          case "Month":
-            field = ExtractField.MONTH;
-            break;
-          case "Day":
-            field = ExtractField.DAY;
-            break;
-          case "Hour":
-            field = ExtractField.HOUR;
-            break;
-          case "Minute":
-            field = ExtractField.MINUTE;
-            break;
-          case "Second":
-            field = ExtractField.SECOND;
-            break;
-          case "TimezoneHour":
-            field = ExtractField.TIMEZONE_HOUR;
-            break;
-          case "TimezoneMinute":
-            field = ExtractField.TIMEZONE_MINUTE;
-            break;
-          default:
-            throw new IllegalArgumentException();
-        }
-        IStrategoTerm expT = t.getSubterm(POS_EXTRACT_EXP);
-        exp = translateExp(expT, ctx);
-        return new ExtractExpression(field, exp);
-      case "InPredicate":
-        expT = t.getSubterm(POS_IN_PREDICATE_EXP);
-        exp = translateExp(expT, ctx);
-        IStrategoTerm inValueListT = t.getSubterm(POS_IN_PREDICATE_VALUES);
-        QueryExpression inValueList = translateExp(inValueListT, ctx);
-        return new InPredicate(exp, inValueList);
-      case "IsNull":
-        expT = t.getSubterm(POS_IS_NULL_EXP);
-        exp = translateExp(expT, ctx);
-        return new IsNull(exp);
-      case "IfElse":
-        exp1 = translateExp(t.getSubterm(POS_IF_ELSE_EXP1), ctx);
-        exp2 = translateExp(t.getSubterm(POS_IF_ELSE_EXP2), ctx);
-        QueryExpression exp3 = translateExp(t.getSubterm(POS_IF_ELSE_EXP3), ctx);
-        return new IfElse(exp1, exp2, exp3);
-      case "SimpleCase":
-        QueryExpression operandExp = translateExp(t.getSubterm(POS_SIMPLE_CASE_OPERAND), ctx);
-        List<WhenThenExpression> whenThenExps = new ArrayList<>();
-        for (IStrategoTerm whenThen : t.getSubterm(POS_SIMPLE_CASE_WHENTHEN_EXPS)) {
-          QueryExpression when = translateExp(whenThen.getSubterm(POS_WHENTHEN_WHEN), ctx);
-          QueryExpression then = translateExp(whenThen.getSubterm(POS_WHENTHEN_THEN), ctx);
-          whenThenExps.add(new WhenThenExpression(when, then));
-        }
-        QueryExpression elseExp = null;
-        IStrategoTerm elseExpT = t.getSubterm(POS_SIMPLE_CASE_ELSE_EXP);
-        if (isSome(elseExpT)) {
-          elseExp = translateExp(getSome(elseExpT).getSubterm(POS_ELSE_EXP), ctx);
-        }
-        IfElse ifElseAlterantiveRepresentation = (IfElse) translateExp(
-            t.getSubterm(POS_SIMPLE_CASE_IFELSE_ALTERNATIVE_REPRESENTATION), ctx);
-        return new SimpleCase(operandExp, whenThenExps, elseExp, ifElseAlterantiveRepresentation);
-      case "Null":
-      case "IllegalNull": // error recovery
-        return null;
-      case "Array":
-        IStrategoTerm arrayValues = t.getSubterm(0);
-        int size = arrayValues.getSubtermCount();
-
-        long[] integerValues = new long[size];
-        double[] decimalValues = new double[size];
-        boolean[] booleanValues = new boolean[size];
-        String[] stringValues = new String[size];
-        LocalDate[] dateValues = new LocalDate[size];
-        LocalTime[] timeValues = new LocalTime[size];
-        LocalDateTime[] timestampValues = new LocalDateTime[size];
-
-        ExpressionType arrayElementType = null;
-
-        for (int i = 0; i < size; i++) {
-          QueryExpression literal = translateExp(arrayValues.getSubterm(i), ctx);
-          switch (literal.getExpType()) {
-            case INTEGER:
-              if (arrayElementType == null) {
-                arrayElementType = ExpressionType.INTEGER;
-              }
-              long integerValue = ((ConstInteger) literal).getValue();
-              integerValues[i] = integerValue;
-              decimalValues[i] = (double) integerValue;
-              break;
-            case DECIMAL:
-              arrayElementType = ExpressionType.DECIMAL;
-              decimalValues[i] = ((ConstDecimal) literal).getValue();
-              break;
-            case BOOLEAN:
-              arrayElementType = ExpressionType.BOOLEAN;
-              booleanValues[i] = ((ConstBoolean) literal).getValue();
-              break;
-            case STRING:
-              arrayElementType = ExpressionType.STRING;
-              stringValues[i] = ((ConstString) literal).getValue();
-              break;
-            case DATE:
-              arrayElementType = ExpressionType.DATE;
-              dateValues[i] = ((ConstDate) literal).getValue();
-              break;
-            case TIME:
-              arrayElementType = ExpressionType.TIME;
-              timeValues[i] = ((ConstTime) literal).getValue();
-              break;
-            case TIMESTAMP:
-              arrayElementType = ExpressionType.TIMESTAMP;
-              timestampValues[i] = ((ConstTimestamp) literal).getValue();
-              break;
-            case TIME_WITH_TIMEZONE:
-              arrayElementType = ExpressionType.TIME;
-              timeValues[i] = ((ConstTimeWithTimezone) literal).getValue().withOffsetSameInstant(ZoneOffset.UTC)
-                  .toLocalTime();
-              break;
-            case TIMESTAMP_WITH_TIMEZONE:
-              arrayElementType = ExpressionType.TIMESTAMP;
-              timestampValues[i] = ((ConstTimestampWithTimezone) literal).getValue()
-                  .withOffsetSameInstant(ZoneOffset.UTC).toLocalDateTime();
-              break;
-            default:
-              throw new IllegalArgumentException(literal.getExpType().toString());
-          }
-        }
-
-        switch (arrayElementType) {
-          case INTEGER:
-            return new InValueList(integerValues);
-          case DECIMAL:
-            return new InValueList(decimalValues);
-          case BOOLEAN:
-            return new InValueList(booleanValues);
-          case STRING:
-            return new InValueList(stringValues);
-          case DATE:
-            return new InValueList(dateValues);
-          case TIME:
-            return new InValueList(timeValues);
-          case TIMESTAMP:
-            return new InValueList(timestampValues);
-          default:
-            throw new IllegalArgumentException(arrayElementType.toString());
-        }
-      case "COUNT":
-      case "MIN":
-      case "MAX":
-      case "SUM":
-      case "AVG":
-      case "ARRAY-AGG":
-        exp = translateExp(t.getSubterm(POS_AGGREGATE_EXP), ctx);
-        boolean distinct = aggregationHasDistinct(t);
-        switch (cons) {
-          case "COUNT":
-            return new QueryExpression.Aggregation.AggrCount(distinct, exp);
-          case "MIN":
-            return new QueryExpression.Aggregation.AggrMin(distinct, exp);
-          case "MAX":
-            return new QueryExpression.Aggregation.AggrMax(distinct, exp);
-          case "SUM":
-            return new QueryExpression.Aggregation.AggrSum(distinct, exp);
-          case "AVG":
-            return new QueryExpression.Aggregation.AggrAvg(distinct, exp);
-          case "ARRAY-AGG":
-            return new QueryExpression.Aggregation.AggrArrayAgg(distinct, exp);
-          default:
-            throw new IllegalArgumentException(cons);
-        }
-      case "Star":
-        return new QueryExpression.Star();
-      default:
-        throw new UnsupportedOperationException("Expression unsupported: " + t);
-    }
-  }
-
-  private static SelectQuery translateSubquery(TranslationContext ctx, IStrategoTerm t) throws PgqlException {
-    IStrategoTerm subqueryT = t.getSubterm(POS_SUBQUERY);
-    GraphQuery query = translate(subqueryT, ctx);
-    if (query.getQueryType() == QueryType.SELECT) {
-      return (SelectQuery) query;
-    } else {
-      return null; // error recovery (translation should succeed even for syntactically invalid
-      // queries)
-    }
-  }
-
-  private static boolean aggregationHasDistinct(IStrategoTerm t) {
-    return isSome(t.getSubterm(POS_AGGREGATE_DISTINCT));
-  }
-
-  private static QueryVariable getVariable(TranslationContext ctx, IStrategoTerm varRefT) {
-    String varName = getString(varRefT.getSubterm(POS_VARREF_VARNAME));
-    IStrategoTerm originPosition = null;
-    if (varRefT.getSubtermCount() > 1) {
-      originPosition = varRefT.getSubterm(POS_VARREF_ORIGIN_OFFSET);
-    } else {
-      // dangling reference
-      return new QueryVertex(varName, false);
-    }
-
-    return ctx.getVariable(originPosition);
-  }
-
-  private static List<QueryExpression> varArgsToExps(TranslationContext ctx, IStrategoTerm expsT) throws PgqlException {
-    List<QueryExpression> exps = new ArrayList<>();
-    for (IStrategoTerm expT : expsT) {
-      exps.add(translateExp(expT, ctx));
-    }
-    return exps;
-  }
-
-  // helper method
-  protected static long parseLong(IStrategoTerm t) throws PgqlException {
-    try {
-      return Long.parseLong(getString(t));
-    } catch (NumberFormatException e) {
-      throw new PgqlException(getString(t) + " is too large to be stored as long");
-    }
-  }
-
-  // helper method
-  protected static int parseInt(IStrategoTerm t) throws PgqlException {
-    try {
-      return Integer.parseInt(getString(t));
-    } catch (NumberFormatException e) {
-      throw new PgqlException(getString(t) + " is too large to be stored as int");
-    }
   }
 }

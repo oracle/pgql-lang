@@ -44,13 +44,28 @@ test Complex expressions as property not allowed [[
 
   CREATE PROPERTY GRAPH myGraph
     VERTEX TABLES (
-      Person PROPERTIES ( [["age" + "age",]] [[123 AS prop2]] )
+      Person PROPERTIES ( [["age" + "age" AS prop1,]] [[123 AS prop2]] )
     )
-    EDGE TABLES (
+    EDGE TABLES (adsfad
       knows
         SOURCE Person
         DESTINATION Person
-        PROPERTIES ( [[weight + 1 )]]
+        PROPERTIES ( [[weight + 1 AS prop1 )]]
     )
 
-]] error like "Only simple expressions (i.e. column references) allowed" at #1, #2, #3
+]] error like "Only column references and simple CAST expressions allowed; arbitrary expressions are not yet supported" at #1, #2, #3
+
+test Missing property name [[
+
+  CREATE PROPERTY GRAPH myGraph
+    VERTEX TABLES (
+      Person PROPERTIES ( [[CAST(age AS INTEGER) )]]
+    )
+    EDGE TABLES (adsfad
+      knows
+        SOURCE Person
+        DESTINATION Person
+        PROPERTIES ( [[CAST(weight AS DOUBLE) )]]
+    )
+
+]] error like "Alias required (.. AS name)" at #1, #2
