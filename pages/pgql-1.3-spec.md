@@ -1215,6 +1215,7 @@ The following is the syntax of the main query structure:
 
 ```bash
 PgqlStatement   ::=   <CreatePropertyGraph>
+                    | <DropPropertyGraph>
                     | <Query>
 
 Query           ::=   <SelectQuery>
