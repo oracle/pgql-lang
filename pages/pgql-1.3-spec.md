@@ -258,7 +258,7 @@ See the section on [properties](#properties) for more details.
 
 ### Edge tables
 
-A vertex table provides an edge for each row of the underlying table.
+An edge table provides an edge for each row of the underlying table.
 
 ```bash
 EdgeTable                      ::= <TableName> <TableAlias>? <KeyClause>?
