@@ -57,7 +57,9 @@ public class ResultSetFormatter {
     List<Object[]> rows = new ArrayList<>();
     Iterator<? extends ResultAccess> results = resultSet.iterator();
     for (int i = 0; i < from; i++) {
-      resultSet.next();
+      if (results.hasNext()) {
+        results.next();
+      }
     }
     int count = 0;
     while (results.hasNext() && count < numResults) {
