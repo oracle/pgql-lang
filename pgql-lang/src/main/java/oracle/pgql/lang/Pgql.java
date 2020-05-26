@@ -81,6 +81,8 @@ public class Pgql implements Closeable {
 
   private static final int POS_BIND_VARIABLE_COUNT = 10;
 
+  private static final PgqlVersion LATEST_VERSION = PgqlVersion.V_1_3_OR_UP;
+
   private static boolean isGloballyInitialized = false;
 
   private static Spoofax spoofax;
@@ -191,6 +193,11 @@ public class Pgql implements Closeable {
   }
 
   private PgqlResult parseInternal(String queryString) throws PgqlException {
+    if (queryString.equals("")) {
+      String error = "Empty query string";
+      return new PgqlResult(queryString, false, error, null, null, LATEST_VERSION, 0);
+    }
+
     ITemporaryContext context = null;
     FileObject dummyFile = null;
     try {
@@ -206,7 +213,8 @@ public class Pgql implements Closeable {
         prettyMessages = getMessages(parseResult.messages(), queryString);
       }
       if (!parseResult.valid()) {
-        throw new PgqlException(prettyMessages);
+        return new PgqlResult(queryString, parseResult.valid(), prettyMessages, statement, parseResult, LATEST_VERSION,
+            0);
       }
 
       context = spoofax.contextService.getTemporary(dummyFile, dummyProject, pgqlLang);
@@ -223,7 +231,18 @@ public class Pgql implements Closeable {
           prettyMessages = getMessages(analysisResult.messages(), queryString);
         }
       }
-      statement = SpoofaxAstToGraphQuery.translate(analysisResult.ast());
+
+      try {
+        statement = SpoofaxAstToGraphQuery.translate(analysisResult.ast());
+      } catch (Exception e) {
+        if (e instanceof PgqlException) {
+          prettyMessages = e.getMessage();
+          return new PgqlResult(queryString, parseResult.valid(), prettyMessages, statement, parseResult, LATEST_VERSION,
+              0);
+        } else {
+          LOG.debug("Translation of PGQL failed because of semantically invalid AST");
+        }
+      }
 
       PgqlVersion pgqlVersion = getPgqlVersion(analysisResult.ast(), statement);
 
@@ -260,7 +279,7 @@ public class Pgql implements Closeable {
 
   private PgqlVersion getPgqlVersion(IStrategoTerm ast, Statement statement) {
     if (statement == null) {
-      return PgqlVersion.V_1_3_OR_UP;
+      return LATEST_VERSION;
     }
 
     if (statement.getStatementType() == StatementType.CREATE_PROPERTY_GRAPH

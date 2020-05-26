@@ -40,9 +40,9 @@ public class BugFixTest extends AbstractPgqlTest {
   }
 
   @Test
-  public void testSparqlLikeAscDesc() throws Exception {
-    thrown.expectMessage("10234234234234 is too large to be stored as int");
-    pgql.parse("SELECT COUNT(*) MATCH TOP 10234234234234 SHORTEST ( (a) ->* (b) )");
+  public void testTopKTooLarge() throws Exception {
+    PgqlResult result = pgql.parse("SELECT COUNT(*) MATCH TOP 10234234234234 SHORTEST ( (a) ->* (b) )");
+    assertEquals("10234234234234 is too large to be stored as int", result.getErrorMessages());
   }
 
   @Test
