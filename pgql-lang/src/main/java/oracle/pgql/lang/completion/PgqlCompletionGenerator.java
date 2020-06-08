@@ -172,6 +172,7 @@ public class PgqlCompletionGenerator {
         case WHERE:
         case GROUP_BY:
         case COUNT:
+        case LISTAGG:
         case MIN:
         case MAX:
         case AVG:
@@ -301,6 +302,7 @@ public class PgqlCompletionGenerator {
 
     List<ClauseOrAggregate> aggregates = new ArrayList<>();
     aggregates.add(ClauseOrAggregate.COUNT);
+    aggregates.add(ClauseOrAggregate.LISTAGG);
     aggregates.add(ClauseOrAggregate.MIN);
     aggregates.add(ClauseOrAggregate.MAX);
     aggregates.add(ClauseOrAggregate.AVG);
@@ -482,6 +484,7 @@ public class PgqlCompletionGenerator {
     return completions(//
         completion("COUNT(*)", "count the number of matches"), //
         ClauseOrAggregate.COUNT.getCompletion(), //
+        ClauseOrAggregate.LISTAGG.getCompletion(), //
         ClauseOrAggregate.MIN.getCompletion(), //
         ClauseOrAggregate.MAX.getCompletion(), //
         ClauseOrAggregate.AVG.getCompletion(), //

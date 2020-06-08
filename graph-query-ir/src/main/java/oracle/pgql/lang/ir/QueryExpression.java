@@ -61,6 +61,7 @@ public interface QueryExpression {
     AGGR_SUM,
     AGGR_AVG,
     AGGR_ARRAY_AGG,
+    AGGR_LISTAGG,
 
     // other
     VARREF,
@@ -1779,6 +1780,9 @@ public interface QueryExpression {
           case AGGR_ARRAY_AGG:
             result = "ARRAY_AGG";
             break;
+          case AGGR_LISTAGG:
+            result = "LISTAGG";
+            break;
           default:
             throw new IllegalArgumentException("Unexpected expression type: " + getExpType());
         }
@@ -1900,6 +1904,34 @@ public interface QueryExpression {
       @Override
       public ExpressionType getExpType() {
         return ExpressionType.AGGR_ARRAY_AGG;
+      }
+
+      @Override
+      public void accept(QueryExpressionVisitor v) {
+        v.visit(this);
+      }
+    }
+
+    class AggrListagg extends AbstractAggregation {
+
+      private String separator;
+
+      public AggrListagg(boolean distinct, QueryExpression exp, String separator) {
+        super(distinct, exp);
+        this.separator = separator;
+      }
+
+      public String getSeparator() {
+        return separator;
+      }
+
+      public void setSeparator(String separator) {
+        this.separator = separator;
+      }
+
+      @Override
+      public ExpressionType getExpType() {
+        return ExpressionType.AGGR_LISTAGG;
       }
 
       @Override

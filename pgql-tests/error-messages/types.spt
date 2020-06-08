@@ -67,9 +67,10 @@ test Illegal vertex/edge aggregation [[
        , AVG([[n]]) AS avg1, AVG([[e]]) AS avg2
        , SUM([[n]]) AS sum1, SUM([[e]]) AS sum2
        , ARRAY_AGG([[n]]) AS array1, ARRAY_AGG([[e]]) AS array2
+       , LISTAGG([[n]]) AS listagg1, LISTAGG([[e]]) AS listagg2
     FROM g MATCH (n) -[e]-> (m)
 
-]] error like "Aggregate does not allow vertex or edge input" at #1, #2, #3, #4, #5, #6, #7, #8, #9, #10
+]] error like "Aggregate does not allow vertex or edge input" at #1, #2, #3, #4, #5, #6, #7, #8, #9, #10, #11, #12
 
 test Illegal array aggregation [[
 

@@ -207,9 +207,10 @@ test Multiple group variables in aggregation (1) [[
        , [[SUM(e.prop + x.prop)]] AS aggr4
        , [[AVG(e.prop + x.prop)]] AS aggr5
        , [[ARRAY_AGG(e.prop + x.prop)]] AS aggr6
+       , [[LISTAGG(e.prop + x.prop, ';')]] AS aggr7
     FROM g MATCH SHORTEST ( (n) (-[e]-> (x))* (m) )
 
-]] error like "Accessing multiple group variables in a single aggregation is not yet supported" at #1, #2, #3, #4, #5, #6
+]] error like "Accessing multiple group variables in a single aggregation is not yet supported" at #1, #2, #3, #4, #5, #6, #7
 
 test Multiple group variables in aggregation (2) [[
 
@@ -219,12 +220,13 @@ test Multiple group variables in aggregation (2) [[
        , [[SUM(e1.prop + e2.prop)]] AS aggr4
        , [[AVG(e1.prop + e2.prop)]] AS aggr5
        , [[ARRAY_AGG(e1.prop + e2.prop)]] AS aggr6
+       , [[LISTAGG(e1.prop + e2.prop, ';')]] AS aggr7
     FROM g
       MATCH
         SHORTEST ( (n) -[e1]->* (m) ),
         SHORTEST ( (n) -[e2]->* (m) )
 
-]] error like "Accessing multiple group variables in a single aggregation is not yet supported" at #1, #2, #3, #4, #5, #6
+]] error like "Accessing multiple group variables in a single aggregation is not yet supported" at #1, #2, #3, #4, #5, #6, #7
 
 test Missing cost clause (1) [[
 

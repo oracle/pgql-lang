@@ -60,6 +60,7 @@ public class CommonTranslationUtil {
   private static final int POS_UNARY_EXP = 0;
   private static final int POS_AGGREGATE_DISTINCT = 0;
   private static final int POS_AGGREGATE_EXP = 1;
+  private static final int POS_AGGREGATE_SEPARATOR = 2;
   private static final int POS_VARREF_VARNAME = 0;
   private static final int POS_VARREF_ORIGIN_OFFSET = 1;
   private static final int POS_PROPREF_VARREF = 0;
@@ -440,6 +441,7 @@ public class CommonTranslationUtil {
       case "SUM":
       case "AVG":
       case "ARRAY-AGG":
+      case "LISTAGG":
         exp = translateExp(t.getSubterm(POS_AGGREGATE_EXP), ctx);
         boolean distinct = aggregationHasDistinct(t);
         switch (cons) {
@@ -455,6 +457,14 @@ public class CommonTranslationUtil {
             return new QueryExpression.Aggregation.AggrAvg(distinct, exp);
           case "ARRAY-AGG":
             return new QueryExpression.Aggregation.AggrArrayAgg(distinct, exp);
+          case "LISTAGG":
+            String separator = "";
+            IStrategoTerm optionalSeparator = t.getSubterm(POS_AGGREGATE_SEPARATOR);
+            if(isSome(optionalSeparator)) {
+              IStrategoTerm separatorT = getSome(optionalSeparator);
+              separator = getString(separatorT);
+            }
+            return new QueryExpression.Aggregation.AggrListagg(distinct, exp, separator);
           default:
             throw new IllegalArgumentException(cons);
         }

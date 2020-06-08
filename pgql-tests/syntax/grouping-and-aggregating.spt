@@ -4,7 +4,7 @@ language pgql-lang
 
 test Aggregate over empty group [[
 
-  SELECT COUNT(*), AVG(n.salary), MIN(n.salary), MAX(n.salary), SUM(n.salary)
+  SELECT COUNT(*), AVG(n.salary), LISTAGG(n.salary), MIN(n.salary), MAX(n.salary), SUM(n.salary)
    MATCH (n)
    WHERE n.name = 'not exists'
 
@@ -13,7 +13,7 @@ test Aggregate over empty group [[
 
 test Basic GROUP BY 1 [[
 
-    SELECT n.age, COUNT(*), AVG(n.salary), MIN(n.salary), MAX(n.salary), SUM(n.salary)
+    SELECT n.age, COUNT(*), AVG(n.salary), LISTAGG(n.salary), MIN(n.salary), MAX(n.salary), SUM(n.salary)
      MATCH (n)
   GROUP BY n.age
 
@@ -21,7 +21,7 @@ test Basic GROUP BY 1 [[
 
 test Basic GROUP BY 2 [[
 
-    SELECT n.age, COUNT(*), AVG(n.salary), MIN(n.salary), MAX(n.salary), SUM(n.salary)
+    SELECT n.age, COUNT(*), AVG(n.salary), LISTAGG(n.salary), MIN(n.salary), MAX(n.salary), SUM(n.salary)
      MATCH (n)
   GROUP BY n.age
 
@@ -109,7 +109,7 @@ test Select Distinct [[
 
 test Aggregate Distinct [[
 
-  SELECT MIN(DISTINCT n.age), MAX(DISTINCT n.age), COUNT(DISTINCT n.age), SUM(DISTINCT n.age), AVG(DISTINCT n.age)
+  SELECT LISTAGG(DISTINCT n.salary), MIN(DISTINCT n.age), MAX(DISTINCT n.age), COUNT(DISTINCT n.age), SUM(DISTINCT n.age), AVG(DISTINCT n.age)
    MATCH (n)
 
 ]]

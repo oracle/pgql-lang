@@ -116,6 +116,7 @@ public class PrettyPrintingTest extends AbstractPgqlTest {
   public void testDistinct() throws Exception {
     String query = "SELECT DISTINCT " //
         + "COUNT(DISTINCT n.age) AS count," //
+        + "LISTAGG(DISTINCT n.age, ';')," //
         + "MIN(DISTINCT n.age)," //
         + "MAX(DISTINCT n.age)," //
         + "AVG(DISTINCT n.age)," //
