@@ -22,8 +22,8 @@ for the [Oracle Database](https://www.oracle.com/database/technologies/spatialan
 and [Oracle Big Data Spatial and Graph](https://www.oracle.com/database/technologies/bigdata-spatialandgraph.html).
 
 Backwards compatibility is maintained by accepting PGQL 1.0, PGQL 1.1, PGQL 1.2 and PGQL 1.3 queries interchangeably.
-The changes to unquoted identifiers, string literals and SELECT and GROUP BY clauses described below are only effective when using the new `SELECT .. FROM MATCH ..` query style
-such that queries written in older versions of PGQL are not affected." %}
+The changes to unquoted identifiers, string literals and SELECT and GROUP BY clauses described below are only effective when using the new `SELECT .. FROM MATCH ..` style
+of PGQL 1.3." %}
 
 ## Changelog
 
