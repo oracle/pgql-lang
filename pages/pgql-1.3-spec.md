@@ -3424,7 +3424,7 @@ ORDER BY sum_outgoing + sum_incoming DESC
 +-----------------------------------------------------------------------------------------------------+
 ```
 
-Note that in the query, the graph name `financial_transactions` is repeatedly specified. Such repetition can be avoided through the use [default graph](#default-graphs), which simplifies the query:
+Note that in the query, the graph name `financial_transactions` is repeatedly specified. Such repetition can be avoided by using a [default graph](#default-graphs), which simplifies the query:
 
 ```sql
   SELECT p.name AS name
