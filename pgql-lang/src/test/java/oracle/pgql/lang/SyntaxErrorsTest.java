@@ -15,16 +15,13 @@ public class SyntaxErrorsTest extends AbstractPgqlTest {
         "SELECT label(e1), label(e2) MATCH (n) -[e1]-> (m) -[e2:likes|dislikes|blabla]-> (o), label(e1) != label(e2)");
     assertFalse(result.isQueryValid());
     assertFalse(result.getErrorMessages() == null);
-    assertFalse(result.getGraphQuery() == null);
-    result.getGraphQuery().toString(); // may pretty-print syntactically/semantically incorrect query but should not
-                                       // produce errors
   }
 
   @Test
   public void testEmptyString() throws Exception {
     PgqlResult result = pgql.parse("");
     assertFalse(result.isQueryValid());
-    assertTrue(result.getErrorMessages().contains("Syntax error"));
+    assertTrue(result.getErrorMessages().contains("Empty query string"));
     assertTrue(result.getGraphQuery() == null);
   }
 
@@ -98,7 +95,7 @@ public class SyntaxErrorsTest extends AbstractPgqlTest {
 
   @Test
   public void testSetPropertyThatIsGroupedBy() throws Exception {
-    String query = "UPDATE n SET ( [[n.prop]] = 123 ) " //
+    String query = "UPDATE n SET ( n.prop = 123 ) " //
         + "FROM MATCH (n) " //
         + "GROUP BY n.prop AS nProp";
     assertFalse(pgql.parse(query).isQueryValid());
