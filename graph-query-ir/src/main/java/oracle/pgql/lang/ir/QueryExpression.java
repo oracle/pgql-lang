@@ -1761,6 +1761,7 @@ public interface QueryExpression {
       @Override
       public String toString() {
         String result;
+        String separator = "";
         switch (getExpType()) {
           case AGGR_COUNT:
             result = "COUNT";
@@ -1782,11 +1783,15 @@ public interface QueryExpression {
             break;
           case AGGR_LISTAGG:
             result = "LISTAGG";
+            separator = ((AggrListagg)this).getSeparator();
+            if (separator.length() > 0) {
+              separator = ", " + printLiteral(separator);
+            }
             break;
           default:
             throw new IllegalArgumentException("Unexpected expression type: " + getExpType());
         }
-        result += "(" + (distinct ? "DISTINCT " : "") + getExp() + ")";
+        result += "(" + (distinct ? "DISTINCT " : "") + getExp() + separator + ")";
         return result;
       }
 
