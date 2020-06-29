@@ -564,8 +564,8 @@ Because of the default, the above is equivalent to:
 
 #### PROPERTIES ARE ALL COLUMNS EXCEPT ( .. )
 
-One can blacklist columns by adding an `EXCEPT` clause.
-The columns that are blacklisted will not become properties and cannot be queried.
+One can exclude columns by adding an `EXCEPT` clause.
+The columns that are excluded will not become properties while all the other columns do.
 
 The syntax is:
 
@@ -575,7 +575,8 @@ ExceptColumns ::= 'EXCEPT' '(' <ColumnReference> ( ',' <ColumnReference> )* ')'
 
 #### PROPERTIES ( .. )
 
-In addition to blacklisting, a whitelist approach is supported through "property expressions".
+Instead of excluding columns (see above), "property expressions" allow for specifying exactly which columns should be included.
+The property expressions also allow you to use a `CAST` expression to map the column into a property of a different data type.
 
 The syntax is:
 
