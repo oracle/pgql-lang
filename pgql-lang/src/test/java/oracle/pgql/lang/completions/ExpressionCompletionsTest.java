@@ -40,13 +40,6 @@ public class ExpressionCompletionsTest extends AbstractCompletionsTest {
     return expected;
   }
 
-  private List<PgqlCompletion> expressionsExceptVariables() {
-    List<PgqlCompletion> expected = functions();
-    expected.addAll(aggregations());
-    expected.addAll(otherExpressions());
-    return expected;
-  }
-
   @Test
   public void emptySelect1() throws Exception {
     String query = "SELECT ??? FROM g MATCH (n) -[e]-> (m) WHERE n";
@@ -57,9 +50,7 @@ public class ExpressionCompletionsTest extends AbstractCompletionsTest {
   @Test
   public void emptySelect2() throws Exception {
     String query = "SELECT ??? MATCH (n) -[e]-> (m) WHERE n";
-    List<PgqlCompletion> expected = expressionsExceptVariables();
-    // ultimately, it would suggest vertices and edges here too,
-    // but the parser's error recovery isn't working for this case
+    List<PgqlCompletion> expected = expressions();
     check(query, expected);
   }
 
