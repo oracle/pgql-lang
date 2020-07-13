@@ -14,6 +14,7 @@ public enum ClauseOrAggregate implements Keyword {
   LIMIT("LIMIT", "LIMIT", "", "limit clause"),
   OFFSET("OFFSET", "OFFSET", "", "offset clause"),
   COUNT("COUNT", "COUNT(exp)", "", "count the number of times the expression evaluates to a non-null value"),
+  LISTAGG("LISTAGG", "LISTAGG(exp [, separator])", "", "concatenation of values"),
   MIN("MIN", "MIN(exp)", "", "minimum"),
   MAX("MAX", "MAX(exp)", "", "maximum"),
   AVG("AVG", "AVG(exp)", "", "average"),

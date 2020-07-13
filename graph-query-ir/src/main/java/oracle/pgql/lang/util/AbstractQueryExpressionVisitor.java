@@ -13,6 +13,7 @@ import oracle.pgql.lang.ir.Projection;
 import oracle.pgql.lang.ir.QueryEdge;
 import oracle.pgql.lang.ir.QueryExpression.Aggregation.AggrAvg;
 import oracle.pgql.lang.ir.QueryExpression.Aggregation.AggrCount;
+import oracle.pgql.lang.ir.QueryExpression.Aggregation.AggrListagg;
 import oracle.pgql.lang.ir.QueryExpression.Aggregation.AggrMax;
 import oracle.pgql.lang.ir.QueryExpression.Aggregation.AggrMin;
 import oracle.pgql.lang.ir.QueryExpression.Aggregation.AggrSum;
@@ -209,6 +210,11 @@ public abstract class AbstractQueryExpressionVisitor implements QueryExpressionV
   @Override
   public void visit(AggrCount aggrCount) {
     aggrCount.getExp().accept(this);
+  }
+
+  @Override
+  public void visit(AggrListagg aggrListagg) {
+    aggrListagg.getExp().accept(this);
   }
 
   @Override

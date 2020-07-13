@@ -464,3 +464,10 @@ rules // MODIFY
     t -> <fail>
     where <?SourceVertexTable(_, Name(Some(schemaName), _)) + ?DestinationVertexTable(_, Name(Some(schemaName), _))> t
     with <generate-error(|ctx, "Schema name not allowed here")> schemaName
+
+// LISTAGG
+
+  nabl-constraint(|ctx):
+    LISTAGG(_, _, Some(Separator(separator))) -> <fail>
+    where not ( <?String(_)> separator )
+    with <generate-error(|ctx, "Only string literals are allowed as separator")> separator

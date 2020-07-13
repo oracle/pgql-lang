@@ -30,3 +30,10 @@ test Illegal types in CASE [[
 
 ]] error like "Boolean expected here" at #1, #2, #3
    error like "CASE does not allow vertex or edge output" at #4, #5
+
+test Illegal separator in LISTAGG [[
+
+  SELECT LISTAGG(1[[, ?]]) AS v1, LISTAGG(1[[, 2]]) AS v2
+   MATCH (n) -[e]-> (m)
+
+]] error like "Only string literals are allowed as separator" at #1, #2

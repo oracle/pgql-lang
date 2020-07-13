@@ -71,6 +71,8 @@ context-free syntax // Aggregates
   Exp.SUM          = <SUM(<Distinct?><Exp>)> {case-insensitive}
   Exp.AVG          = <AVG(<Distinct?><Exp>)> {case-insensitive}
   Exp.ARRAY-AGG    = <ARRAY_AGG(<Distinct?><Exp>)> {case-insensitive}
+  Exp.LISTAGG      = <LISTAGG(<Distinct?><Exp><Separator?>)> {case-insensitive}
+  Separator.Separator = <, <Exp>>
 
   StarOrExp.Star = <*>
   StarOrExp = <<Exp>>

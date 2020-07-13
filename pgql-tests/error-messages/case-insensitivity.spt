@@ -40,6 +40,7 @@ test No error on group variables in aggregation with mixed upper and lower cases
        , [[SUM(X.prop + x.prop)]] AS aggr4
        , [[AVG(e.prop + E.prop)]] AS aggr5
        , [[ARRAY_AGG(X.prop + x.prop)]] AS aggr6
+       , [[LISTAGG(X.prop + x.prop, ';')]] AS aggr7
     FROM MATCH SHORTEST ( (n) (-[e]-> (x))* (m) ) ON g
 
 ]] analysis succeeds

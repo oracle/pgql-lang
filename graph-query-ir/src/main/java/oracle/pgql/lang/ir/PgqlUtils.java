@@ -29,6 +29,7 @@ import oracle.pgql.lang.ir.QueryExpression.VarRef;
 import oracle.pgql.lang.ir.QueryExpression.Aggregation.AggrArrayAgg;
 import oracle.pgql.lang.ir.QueryExpression.Aggregation.AggrAvg;
 import oracle.pgql.lang.ir.QueryExpression.Aggregation.AggrCount;
+import oracle.pgql.lang.ir.QueryExpression.Aggregation.AggrListagg;
 import oracle.pgql.lang.ir.QueryExpression.Aggregation.AggrMax;
 import oracle.pgql.lang.ir.QueryExpression.Aggregation.AggrMin;
 import oracle.pgql.lang.ir.QueryExpression.Aggregation.AggrSum;
@@ -100,6 +101,11 @@ public class PgqlUtils {
       @Override
       public void visit(AggrCount aggrCount) {
         result.add(aggrCount);
+      }
+
+      @Override
+      public void visit(AggrListagg aggrListagg) {
+        result.add(aggrListagg);
       }
 
       @Override

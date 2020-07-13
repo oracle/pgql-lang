@@ -31,6 +31,7 @@ rules
                + ?SUM(_, _)
                + ?AVG(_, _)
                + ?ARRAY-AGG(_, _)
+               + ?LISTAGG(_, _, _)
 
   is-quantifier = ?BetweenNAndM(_, _)
                 + ?ZeroOrMore()
@@ -46,6 +47,8 @@ rules
                            + ?SUM(_, <id>)
                            + ?AVG(_, <id>)
                            + ?ARRAY-AGG(_, <id>)
+                           + ?LISTAGG(_, <id>, _)
+
 
   unique-name(|c, origin) = !origin; origin-track-forced(!Identifier(<!origin; origin-track-forced(!(<GENERATED>, "_", <next-counter; write-to-string> c); conc-strings)>, None()))
 
