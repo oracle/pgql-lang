@@ -210,24 +210,25 @@ CREATE PROPERTY GRAPH financial_transactions
     Transactions
       SOURCE KEY ( from_account ) REFERENCES Accounts
       DESTINATION KEY ( to_account ) REFERENCES Accounts
-      LABEL ( transaction )
-      PROPERTIES ( amount ),
+      LABEL ( transaction ) PROPERTIES ( amount ),
     PersonOwnerOfAccount
       SOURCE Persons
       DESTINATION Accounts
-      LABEL ownerOf
-      NO PROPERTIES,
+      LABEL ownerOf NO PROPERTIES,
     CompanyOwnerOfAccount
       SOURCE Companies
       DESTINATION Accounts
-      LABEL ownerOf
-      NO PROPERTIES
+      LABEL ownerOf NO PROPERTIES,
+    PersonWorksForCompany
+      SOURCE Persons
+      DESTINATION Companies
+      LABEL worksFor NO PROPERTIES
   )
 ```
 
 Above, `financial_transactions` is the name of the graph.
 The graph has three vertex tables: `Accounts`, `Persons` and `Companies`.
-The graph also has three edge tables: `Transactions`, `PersonOwnerOfAccount` and `CompanyOwnerOfAccount`.
+The graph also has four edge tables: `Transactions`, `PersonOwnerOfAccount`, `CompanyOwnerOfAccount` and `PersonWorksForCompany`.
 
 Underlying foreign keys are used to establish the connections between the two endpoints of the edges and the corresponding vertices.
 Note that the "source" of an edge is the vertex where the edge points _from_ while the "destination" of an edge is the vertex where the edge point _to_.
@@ -313,11 +314,16 @@ CREATE PROPERTY GRAPH financial_transactions
       SOURCE Companies
       DESTINATION Accounts
       LABEL ownerOf
+      NO PROPERTIES,
+    PersonWorksForCompany
+      SOURCE Persons
+      DESTINATION Companies
+      LABEL worksFor
       NO PROPERTIES
   )
 ```
 
-Above, keys for the source and destination of `PersonOwnerOfAccount` and `CompanyOwnerOfAccount` are omitted because we can default to the existing foreign keys.
+Above, keys for the source and destination of `PersonOwnerOfAccount`, `CompanyOwnerOfAccount` and `PersonWorksForCompany`  are omitted because we can default to the existing foreign keys.
 However, the keys for the source and destination of `Transactions` cannot be omitted because two foreign keys exist between `Transactions` and `Account` and it is otherwise not possible to know which one should be used.
 
 The source vertex table and/or the destination vertex table may be the same table as the edge table, in which case the table provides both vertices and edges.
@@ -471,6 +477,12 @@ CREATE PROPERTY GRAPH financial_transactions
       SOURCE KEY ( company_id ) REFERENCES Companies
       DESTINATION KEY ( to_account ) REFERENCES Accounts
       LABEL ownerOf
+      NO PROPERTIES,
+    PersonWorksForCompany
+      KEY ( person_id, company_id )
+      SOURCE KEY ( person_id ) REFERENCES Persons
+      DESTINATION KEY ( company_id ) REFERENCES Companies
+      LABEL worksFor
       NO PROPERTIES
   )
 ```
