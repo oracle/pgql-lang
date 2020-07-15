@@ -169,13 +169,13 @@ while the [DROP PROPERTY GRAPH](#drop-property-graph) statements allows for drop
 
 ## CREATE PROPERTY GRAPH
 
-The `CREATE PROPERTY GRAPH` statement starts with a graph name and is followed by an optional set of vertex tables and an optional set of edge tables.
+The `CREATE PROPERTY GRAPH` statement starts with a graph name and is followed by a non-empty set of vertex tables and an optional set of edge tables.
 
 The syntax is:
 
 ```bash
 CreatePropertyGraph  ::= 'CREATE' 'PROPERTY' 'GRAPH' <GraphName>
-                         <VertexTables>?
+                         <VertexTables>
                          <EdgeTables>?
 
 GraphName            ::= <SchemaQualifiedName>
@@ -189,8 +189,7 @@ VertexTables         ::= 'VERTEX' 'TABLES' '(' <VertexTable> ( ',' <VertexTable>
 EdgeTables           ::= 'EDGE' 'TABLES' '(' <EdgeTable> ( ',' <EdgeTable> )* ')'
 ```
 
-It is possible to have no vertex or edge tables such that an empty graph is created.
-It is also possible to have vertex tables but no edge tables, which results in a graph in which all the vertices are disconnected from each other.
+It is possible to have no edge tables such that the resulting graph only has vertices that are all disconnected from each other.
 However, it is not possible to have a graph with edge tables but no vertex tables.
 
 The following example shows a schema with a set of tables. Each table has a name and a list of columns, some of which form the primary key for the table (in red) while others form foreign keys that reference rows of other tables.
@@ -254,7 +253,8 @@ The [table alias](#table-aliases) is required only if the underlying table is us
 It can be used for specifying a [label](#labels) for the vertices too.
 
 The key of the vertex table uniquely identifies a row in the table.
-If a key is not specified, the key defaults to the primary key of the underlying table.
+If a key is not explicitly specified then it defaults to the primary key of the underlying table.
+A key is always required so a primary key needs to exist if no key is specified.
 See the section on [keys](#keys) for more details.
 
 The label clause provides a label for the vertices.
@@ -303,23 +303,19 @@ CREATE PROPERTY GRAPH financial_transactions
     Transactions
       SOURCE KEY ( from_account ) REFERENCES Accounts
       DESTINATION KEY ( to_account ) REFERENCES Accounts
-      LABEL ( transaction )
-      PROPERTIES ( amount ),
+      LABEL ( transaction ) PROPERTIES ( amount ),
     PersonOwnerOfAccount
       SOURCE Persons
       DESTINATION Accounts
-      LABEL ownerOf
-      NO PROPERTIES,
+      LABEL ownerOf NO PROPERTIES,
     CompanyOwnerOfAccount
       SOURCE Companies
       DESTINATION Accounts
-      LABEL ownerOf
-      NO PROPERTIES,
+      LABEL ownerOf NO PROPERTIES,
     PersonWorksForCompany
       SOURCE Persons
       DESTINATION Companies
-      LABEL worksFor
-      NO PROPERTIES
+      LABEL worksFor NO PROPERTIES
   )
 ```
 
@@ -330,8 +326,8 @@ The source vertex table and/or the destination vertex table may be the same tabl
 This is explained in more detail in [Source or destination is self](#source-or-destination-is-self).  
 
 The key of the edge table uniquely identifies a row in the table.
-In some implementations, an edge key is not required.
-In other implementations, the edge key is required and if not explicitly specified defaults to the primary key of the underlying table.
+If a key is not explicitly specified then it defaults to the primary key of the underlying table.
+A key is always required so a primary key needs to exist if no key is specified.
 See the section on [keys](#keys) for more details.
 
 The label clause provides a label for the edges.
@@ -420,13 +416,11 @@ CREATE PROPERTY GRAPH financial_transactions
     Transactions
       SOURCE KEY ( from_account ) REFERENCES Accounts
       DESTINATION KEY ( to_account ) REFERENCES Accounts
-      LABEL ( transaction )
-      PROPERTIES ( amount ),
+      LABEL ( transaction ) PROPERTIES ( amount ),
     PersonOwnerOfAccount
       SOURCE Persons
       DESTINATION Accounts
-      LABEL ownerOf
-      NO PROPERTIES,
+      LABEL ownerOf NO PROPERTIES,
     ...
   )
 ```
@@ -464,31 +458,28 @@ CREATE PROPERTY GRAPH financial_transactions
       KEY ( from_account, to_account, date )
       SOURCE KEY ( from_account ) REFERENCES Accounts
       DESTINATION KEY ( to_account ) REFERENCES Accounts
-      LABEL ( transaction )
-      PROPERTIES ( amount ),
+      LABEL ( transaction ) PROPERTIES ( amount ),
     PersonOwnerOfAccount
       KEY ( person_id )
       SOURCE KEY ( person_id ) REFERENCES Persons
       DESTINATION KEY ( to_account ) REFERENCES Accounts
-      LABEL ownerOf
-      NO PROPERTIES,
+      LABEL ownerOf NO PROPERTIES,
     CompanyOwnerOfAccount
       KEY ( company_id )
       SOURCE KEY ( company_id ) REFERENCES Companies
       DESTINATION KEY ( to_account ) REFERENCES Accounts
-      LABEL ownerOf
-      NO PROPERTIES,
+      LABEL ownerOf NO PROPERTIES,
     PersonWorksForCompany
       KEY ( person_id, company_id )
       SOURCE KEY ( person_id ) REFERENCES Persons
       DESTINATION KEY ( company_id ) REFERENCES Companies
-      LABEL worksFor
-      NO PROPERTIES
+      LABEL worksFor NO PROPERTIES
   )
 ```
 
 Above, keys were defined for each vertex table (e.g. `KEY ( number )`), edge table (e.g. `KEY ( from_account, to_account, date )`), source vertex table reference (e.g. `KEY ( person_id )`) and destination table reference (e.g. `KEY ( to_account )`).
-Keys for edge tables are not required if the system has means to automatically generate unique (internal) identifiers.
+
+Each vertex and edge table is required to have a key so that if a key is not explicitly specified then the underlying table needs to have a primary key defined.
 
 ### Labels
 
