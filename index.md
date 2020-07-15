@@ -37,7 +37,7 @@ Furthermore, `name` and `number` are vertex properties while `amount` is an edge
 
 Assume that this graph is stored in the following tables in a database:
 
-{% include image.html file="example_graphs/financial_transactions_schema.png" style="width: 780px;padding-bottom: 15px;" %}
+{% include image.html file="example_graphs/financial_transactions_schema2.png" style="width: 780px;padding-bottom: 15px;" %}
 
 From these tables we can create the desired graph as follows:
 

@@ -195,7 +195,7 @@ However, it is not possible to have a graph with edge tables but no vertex table
 
 The following example shows a schema with a set of tables. Each table has a name and a list of columns, some of which form the primary key for the table (in red) while others form foreign keys that reference rows of other tables.
 
-{% include image.html file="example_graphs/financial_transactions_schema.png"  %}
+{% include image.html file="example_graphs/financial_transactions_schema2.png"  %}
 
 The following is a complete example of how a graph can be created from these tables:
 
@@ -290,7 +290,7 @@ If a key is not provided, it will default to the existing foreign key.
 
 Take the following example from before:
 
-{% include image.html file="example_graphs/financial_transactions_schema.png"  %}
+{% include image.html file="example_graphs/financial_transactions_schema2.png"  %}
 
 ```sql
 CREATE PROPERTY GRAPH financial_transactions
@@ -409,7 +409,7 @@ ColumnName ::= <Identifier>
 
 Take the example from before:
 
-{% include image.html file="example_graphs/financial_transactions_schema.png"  %}
+{% include image.html file="example_graphs/financial_transactions_schema2.png"  %}
 
 ```sql
 CREATE PROPERTY GRAPH financial_transactions
@@ -438,7 +438,7 @@ The keys for source and destination vertex tables consist of one or more columns
 
 The following example has a schema that has no primary and foreign keys defined at all:
 
-{% include image.html file="example_graphs/financial_transactions_schema_no_keys.png"  %}
+{% include image.html file="example_graphs/financial_transactions_schema_no_keys2.png"  %}
 
 Note that above, we have the same schema as before, but this time the primary and foreign keys are missing.
 
