@@ -111,6 +111,8 @@ The following are the syntax changes in PGQL 1.1:
 
  - The `ASC(x)` (sort in ascending order) and `DESC(x)` (sort in descending order) functions have been removed. Instead, use the `x ASC` and `x DESC` constructs.
 
+ - The `has(x, 'prop')` function has been removed. Instead, use `x.prop IS NULL` or `x.prop IS NOT NULL`.
+
  - Direct sorting of vertices and edges (e.g. `ORDER BY v1, e1`) is no longer allowed. Instead, sort using _properties_ of vertices and edges (e.g. `ORDER BY v1.propX, e1.propY`).
 
 # Introduction
