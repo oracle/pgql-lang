@@ -26,6 +26,8 @@ public class TranslateCreateExternalSchema {
 
   private static int DATA_SOURCE_NAME = 0;
 
+  private static int REMOTE_SCHEMA_NAME = 2;
+
   protected static Statement translateCreateExternalSchema(IStrategoTerm ast) {
 
     IStrategoTerm localSchemaNameT = ast.getSubterm(LOCAL_SCHEMA_NAME);
@@ -34,9 +36,11 @@ public class TranslateCreateExternalSchema {
     IStrategoAppl databaseConnectionDetails = (IStrategoAppl) ast.getSubterm(DATABASE_CONNECTION_DETAILS);
     String connectionDetailsType = databaseConnectionDetails.getConstructor().getName();
 
+    IStrategoTerm remoteSchemaNameT = ast.getSubterm(REMOTE_SCHEMA_NAME);
+    String remoteSchemaName = isNone(remoteSchemaNameT) ? null : getString(remoteSchemaNameT);
+
     switch (connectionDetailsType) {
       case "JdbcConnectionDetails":
-
         IStrategoTerm urlT = databaseConnectionDetails.getSubterm(URL);
         String url = getString(urlT);
 
@@ -46,11 +50,11 @@ public class TranslateCreateExternalSchema {
         IStrategoTerm keystoreAliasT = databaseConnectionDetails.getSubterm(KEYSTORE_ALIAS);
         String keystoreAlias = isNone(keystoreAliasT) ? null : getString(keystoreAliasT);
 
-        return new CreateExternalSchema(localSchemaName, url, userName, keystoreAlias);
+        return new CreateExternalSchema(localSchemaName, url, userName, keystoreAlias, remoteSchemaName);
       case "DataSource":
         IStrategoTerm dataSourceNameT = databaseConnectionDetails.getSubterm(DATA_SOURCE_NAME);
         String dataSourceName = getString(dataSourceNameT);
-        return new CreateExternalSchema(localSchemaName, dataSourceName);
+        return new CreateExternalSchema(localSchemaName, dataSourceName, remoteSchemaName);
       default:
         throw new IllegalArgumentException(connectionDetailsType);
     }

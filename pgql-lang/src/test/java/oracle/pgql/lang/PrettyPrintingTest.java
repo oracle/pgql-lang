@@ -504,7 +504,7 @@ public class PrettyPrintingTest extends AbstractPgqlTest {
   @Test
   public void testCreateExternalSchema2() throws Exception {
     String statement = "CREATE EXTERNAL SCHEMA HR\n" //
-        + "FROM DATABASE DATA_SOURCE 'my data source'";
+        + "FROM DATABASE DATA_SOURCE 'my data source' SCHEMA 'HR'";
     checkRoundTrip(statement);
   }
 
