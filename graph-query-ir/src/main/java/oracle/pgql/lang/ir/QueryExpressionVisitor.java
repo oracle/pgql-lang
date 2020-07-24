@@ -45,6 +45,7 @@ import oracle.pgql.lang.ir.QueryExpression.RelationalExpression.GreaterEqual;
 import oracle.pgql.lang.ir.QueryExpression.RelationalExpression.Less;
 import oracle.pgql.lang.ir.QueryExpression.RelationalExpression.LessEqual;
 import oracle.pgql.lang.ir.QueryExpression.RelationalExpression.NotEqual;
+import oracle.pgql.lang.ir.QueryExpression.SubstringExpression;
 import oracle.pgql.lang.ir.modify.ModifyQuery;
 import oracle.pgql.lang.ir.modify.SetPropertyExpression;
 import oracle.pgql.lang.ir.modify.Update;
@@ -147,6 +148,8 @@ public interface QueryExpressionVisitor {
   public void visit(IfElse ifElse);
 
   public void visit(SimpleCase simpleCase);
+
+  public void visit(SubstringExpression substringExpression);
 
   public void visit(ScalarSubquery sclarSubquery);
 

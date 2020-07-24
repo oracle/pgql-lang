@@ -139,6 +139,30 @@ public class KeywordCompletionsTest extends AbstractCompletionsTest {
   }
 
   @Test
+  public void incompleteLower() throws Exception {
+    String query = "SELECT LO???";
+    List<PgqlCompletion> expected = completions(//
+        Function.LOWER.getCompletion("WER"));
+    check(query, expected);
+  }
+
+  @Test
+  public void incompleteUpper() throws Exception {
+    String query = "SELECT UP???";
+    List<PgqlCompletion> expected = completions(//
+        Function.UPPER.getCompletion("PER"));
+    check(query, expected);
+  }
+
+  @Test
+  public void incompleteSubstring() throws Exception {
+    String query = "SELECT SUB???";
+    List<PgqlCompletion> expected = completions(//
+        Function.SUBSTRING.getCompletion("STRING"));
+    check(query, expected);
+  }
+
+  @Test
   public void incompleteFrom() throws Exception {
     String query = "SELECT n.name FR???";
     List<PgqlCompletion> expected = completions(//
