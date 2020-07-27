@@ -16,11 +16,11 @@ public class DropExternalSchema implements Statement {
     this.schemaName = schemaName;
   }
 
-  public String getGraphName() {
+  public String getSchemaName() {
     return schemaName;
   }
 
-  public void setGraphName(String schemaName) {
+  public void setSchemaName(String schemaName) {
     this.schemaName = schemaName;
   }
 
