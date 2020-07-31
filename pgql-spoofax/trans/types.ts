@@ -65,6 +65,8 @@ type rules
 
   Cast(_, _) + FunctionCall(_, _, _) + Star(): UnknownTy()
 
+  CharacterSubstring(_, _, _) : StringTy()
+
   ExtractExp(_, _) : NumericTy()
 
   Exists(_) + InPredicate(_, _) + IsNull(exp) : BooleanTy()

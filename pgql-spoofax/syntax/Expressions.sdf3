@@ -91,6 +91,11 @@ context-free syntax // extract
   ExtractField.TimezoneHour = <TIMEZONE_HOUR> {case-insensitive}
   ExtractField.TimezoneMinute = <TIMEZONE_MINUTE> {case-insensitive}
 
+context-free syntax // substring
+
+  Exp.CharacterSubstring = <SUBSTRING(<Exp> FROM <Exp> <StringLength?>)> {case-insensitive}
+  StringLength.StringLength = <FOR <Exp>> {case-insensitive}
+
 context-free priorities
 
   {
