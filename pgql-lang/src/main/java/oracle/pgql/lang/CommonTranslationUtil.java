@@ -204,6 +204,10 @@ public class CommonTranslationUtil {
         exp1 = translateExp(t.getSubterm(POS_BINARY_EXP_LEFT), ctx);
         exp2 = translateExp(t.getSubterm(POS_BINARY_EXP_RIGHT), ctx);
         return new QueryExpression.RelationalExpression.LessEqual(exp1, exp2);
+      case "Cct":
+        exp1 = translateExp(t.getSubterm(POS_BINARY_EXP_LEFT), ctx);
+        exp2 = translateExp(t.getSubterm(POS_BINARY_EXP_RIGHT), ctx);
+        return new QueryExpression.ConcatExpression(exp1, exp2);
       case "Integer":
         long l = parseLong(t);
         return new QueryExpression.Constant.ConstInteger(l);

@@ -51,6 +51,12 @@ type rules
     and not (ty1 == EdgeTy() or ty2 == EdgeTy()) else error $[Comparison not allowed because no order is defined for edges] on t
     and not (ty1 == ArrayTy() or ty2 == ArrayTy()) else error $[Comparison not allowed because no order is defined for arrays] on t
 
+  Cct(exp1, exp2) : StringTy()
+  where exp1 : ty1
+    and exp2 : ty2
+    and not (ty1 == VertexTy() or ty1 == EdgeTy()) else error $[String expected here] on exp1
+    and not (ty2 == VertexTy() or ty2 == EdgeTy()) else error $[String expected here] on exp2
+
   MIN(_, exp)  + MAX(_, exp)  + SUM(_, exp)  + AVG(_, exp)  + LISTAGG(_, exp, _): ty
   where exp : ty
     and not (ty == VertexTy() or ty == EdgeTy()) else error $[Aggregate does not allow vertex or edge input] on exp

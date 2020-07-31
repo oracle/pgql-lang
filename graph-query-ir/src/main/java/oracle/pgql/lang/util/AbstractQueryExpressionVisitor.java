@@ -25,6 +25,7 @@ import oracle.pgql.lang.ir.QueryExpression.ArithmeticExpression.Mul;
 import oracle.pgql.lang.ir.QueryExpression.ArithmeticExpression.Sub;
 import oracle.pgql.lang.ir.QueryExpression.ArithmeticExpression.UMin;
 import oracle.pgql.lang.ir.QueryExpression.BindVariable;
+import oracle.pgql.lang.ir.QueryExpression.ConcatExpression;
 import oracle.pgql.lang.ir.QueryExpression.Constant.ConstBoolean;
 import oracle.pgql.lang.ir.QueryExpression.Constant.ConstDate;
 import oracle.pgql.lang.ir.QueryExpression.Constant.ConstDecimal;
@@ -206,6 +207,12 @@ public abstract class AbstractQueryExpressionVisitor implements QueryExpressionV
   public void visit(LessEqual lessEqual) {
     lessEqual.getExp1().accept(this);
     lessEqual.getExp2().accept(this);
+  }
+
+  @Override
+  public void visit(ConcatExpression concat) {
+    concat.getExp1().accept(this);
+    concat.getExp2().accept(this);
   }
 
   @Override
