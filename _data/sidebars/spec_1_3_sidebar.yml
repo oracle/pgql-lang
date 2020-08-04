@@ -262,27 +262,6 @@ entries:
       url: /spec/1.3/#quantifiers
       output: web
 
-    - title: 'Horizontal Aggregation'
-      url: /spec/1.3/#horizontal-aggregation
-      output: web
-      subfolderitems:
-
-      - title: 'Recap of vertical aggregation'
-        url: /spec/1.3/#recap-of-vertical-aggregation
-        output: web
-
-      - title: 'Group Variables'
-        url: /spec/1.3/#group-variables
-        output: web
-
-      - title: 'Horizontal aggregation using group variables'
-        url: /spec/1.3/#horizontal-aggregation-using-group-variables
-        output: web
-
-      - title: 'Horizontal aggregation in WHERE and GROUP BY'
-        url: /spec/1.3/#horizontal-aggregation-in-where-and-group-by
-        output: web
-
     - title: 'Reachability'
       url: /spec/1.3/#reachability
       output: web
@@ -320,6 +299,27 @@ entries:
 
       - title: 'Top-K Cheapest Path'
         url: /spec/1.3/#top-k-cheapest-path
+        output: web
+
+    - title: 'Horizontal Aggregation'
+      url: /spec/1.3/#horizontal-aggregation
+      output: web
+      subfolderitems:
+
+      - title: 'Recap of vertical aggregation'
+        url: /spec/1.3/#recap-of-vertical-aggregation
+        output: web
+
+      - title: 'Group Variables'
+        url: /spec/1.3/#group-variables
+        output: web
+
+      - title: 'Horizontal aggregation using group variables'
+        url: /spec/1.3/#horizontal-aggregation-using-group-variables
+        output: web
+
+      - title: 'Horizontal aggregation in WHERE and GROUP BY'
+        url: /spec/1.3/#horizontal-aggregation-in-where-and-group-by
         output: web
 
   - title: 'Functions and Expressions'
@@ -426,8 +426,8 @@ entries:
         url: /spec/1.3/#label
         output: web
 
-      - title: 'LABELS'
-        url: /spec/1.3/#labels
+      - title: 'LABELS (function)'
+        url: /spec/1.3/#labels-function
         output: web
 
       - title: 'HAS_LABEL'

@@ -928,7 +928,6 @@ SELECT n.name, n.dob
 ```
 
 In the query above:
- - `student_network` is the name of the input graph.
  - `(n:Person)` is a vertex pattern in which `n` is a variable name and `:Person` a label expression.
  - Variable names like `n` can be freely chosen by the user. The vertices that match the pattern are said to "bind to the variable".
  - The label expression `:Person` specifies that we match only vertices that have the label `Person`.
@@ -945,13 +944,13 @@ For example:
 {% include image.html file="example_graphs/student_network.png"  %}
 
 ```sql
-SELECT a.name, b.name
+SELECT a.name AS a, b.name AS b
   FROM MATCH (a:Person) -[e:knows]-> (b:Person)
 ```
 
 ```
 +---------------------+
-| a.name   | b.name   |
+| a        | b        |
 +---------------------+
 | Kathrine | Riya     |
 | Kathrine | Lee      |
@@ -1896,138 +1895,6 @@ SELECT a.number AS a,
 Above, we use the quantifier `*` to find a shortest path from account `10039` to account `2090`, following only `transaction` edges.
 Shortest path finding is explained in more detail in [Shortest Path](#shortest-path). `COUNT(e)` and `ARRAY_AGG(e.amount)` are horizontal aggregations which are explained in [Horizontal Aggregation](#horizontal-aggregation).
 
-## Horizontal Aggregation
-
-Aggregations are either applied in a _vertical_ or a _horizontal_ fashion.
-
-### Recap of vertical aggregation
-
-Vertical aggregation was introduced in [Aggregation](#aggregation). This kind of aggregation is what people usually learn first when they start using PGQL or SQL.
-Vertical aggregation takes a group of values from different rows and aggregates the values into a single value, for example by taking the minimum or maximum. If a `GROUP BY` is specified then the output of a query is as many rows as there are groups, while if no `GROUP BY` is specified then the output is a single row. For more details, see [Grouping and Aggregation](#grouping-and-aggregation).
-
-Given the pattern `(n) -[e]-> (m)`, examples of vertical aggregation are:
-
- - `SUM(e.prop)`
- - `COUNT(e.prop)`
- - `SUM(n.prop + m.prop / 2)`
-
-### Group Variables
-
-To understand _horizontal_ aggregation, however, it is neccesary to know the difference between "singleton variables" and "group variables".
-A singleton variable is a variable that binds to only one vertex or edge, whereas a group variable is a variable that may bind to multiple vertices or edges.
-
-Consider the pattern `(n) -[e1]-> (m) -[e2]->* (o)`.
-Here, `e1` is a singleton variable because within a single match of the pattern there is always a single edge bound to `e1`, whereas `e2` is a group variable because within a single match of the pattern there may be multiple edges bound to `e2` because of the quantifier `*`.
-Variables are thus either singleton variables or group variables depending on whether they are enclosed by a quantifier with an upper bound greater than 1.
-
-Here are examples of singleton variables:
-
- - `-[e]->` (or `-[e]->{1,1}`)
- - `-[e]->?` (or `-[e]->{0,1}`)
-
-Here are examples of group variables:
-
- - `-[e]->*`
- - `-[e]->+`
- - `-[e]->{1,4}`
-
-Group variables thus form implicit groups without a need to explicitly specify a `GROUP BY`.
-
-### Horizontal aggregation using group variables
-
-Group variables can be used to perform _horizontal_ aggregation. To be precise, an aggregation is applied in a horizontal manner if the expression that is input to the aggregation contains at least one group variable.
-The input values for the aggregation are obtained by evaluating the expression once for each binding of the group variable(s) within the particular match.
-A separate output is generated for each match of the pattern rather than that a single output is generated for an entire group of matches like in case of vertical aggregation.
-
-The same aggregates (`MIN`, `MAX`, `AVG`, etc.) that are used for vertical aggregation are also used for horizontal aggregation.
-Given the pattern `( (n) -[e]-> (m) )*`, examples of horizontal aggregations are:
-
- - `SUM(e.prop * 2)`
- - `COUNT(e.prop)`
- - `ARRAY_AGG(n.prop)`
-
-Aggregations with multiple group variables such as `SUM(n.prop + m.prop / 2)` are not supported in PGQL 1.3 and are planned for a future version.
-
-It is possible to mix vertical and horizontal aggregation in a single query. For example:
-
-{% include image.html file="example_graphs/financial_transactions.png" %}
-
-```sql
-SELECT SUM(COUNT(e)) AS sumOfPathLengths
-  FROM MATCH SHORTEST ( (a:Account) -[e:transaction]->* (b:Account) )
- WHERE a.number = 10039 AND (b.number = 1001 OR b.number = 2090)
-```
-
-```
-+------------------+
-| sumOfPathLengths |
-+------------------+
-| 5                |
-+------------------+
-```
-
-Above, we first match a shortest path between accounts 10039 and 1001. Notice that the length of this path is 2.
-We also match a shortest path between accounts 10039 and 2090. Notice that the length of this path is 3.
-In the SELECT clause, the aggregation `COUNT(e)` is a horizontal aggregation since `e` is a group variable. For each of the two shortest paths, `COUNT(e)` computes the length by counting the number of edges. The output will be 2 for one of the two paths, and 3 for the other.
-Then it takes the `SUM` to compute the total length of the two paths, which is 5.
-
-### Horizontal aggregation in WHERE and GROUP BY
-
-While vertical aggregation is only possible in the `SELECT`, `HAVING` and `ORDER BY` clauses, horizontal aggregation is also possible in the `WHERE` and `GROUP BY` clauses.
-
-An example of a horizontal aggregation in `WHERE` is:
-
-{% include image.html file="example_graphs/financial_transactions.png" %}
-
-```sql
-  SELECT b.number AS b,
-         COUNT(e) AS pathLength,
-         ARRAY_AGG(e.amount) AS transactions
-    FROM MATCH SHORTEST ( (a:Account) -[e:transaction]->* (b:Account) )
-   WHERE a.number = 10039 AND
-         (b.number = 8021 OR b.number = 1001 OR b.number = 2090) AND
-         COUNT(e) <= 2
-ORDER BY pathLength
-```
-
-```
-+--------------------------------------+
-| b    | pathLength | transactions     |
-+--------------------------------------+
-| 8021 | 1          | [1000.0]         |
-| 1001 | 2          | [1000.0, 1500.3] |
-+--------------------------------------+
-```
-
-Above, we compute a shortest path from account 10039 to accounts 8021, 1001, and 2090. So three paths in total.
-However, in the `WHERE` clause we only keep paths that have at most two edges (`COUNT(e) <= 2`) such that only the paths to accounts 8021 and 1001 are kept since the path to 2090 has three edges.
-
-An example of a horizontal aggregation in `GROUP BY` is:
-
-{% include image.html file="example_graphs/financial_transactions.png" %}
-
-```sql
-  SELECT COUNT(e) AS pathLength,
-         COUNT(*) AS cnt
-    FROM MATCH SHORTEST ( (a:Account) -[e:transaction]->* (b:Account) )
-   WHERE (a.number = 10039 OR a.number = 8021) AND
-         (b.number = 1001 OR b.number = 2090)
-GROUP BY COUNT(e)
-ORDER BY pathLength
-```
-
-```
-+------------------+
-| pathLength | cnt |
-+------------------+
-| 1          | 1   |
-| 2          | 2   |
-| 3          | 1   |
-+------------------+
-```
-
-Above, we first match shortst paths between four pairs of vertices and then we group by the length of the paths (`GROUP BY COUNT(e)`) by means of horizontal aggregation. Then we perform a vertical aggregation `COUNT(*)` to compute the number of paths that have the particular path length. The result shows that one path has length 1, two paths have length 2, and one path as length 3.
-
 ## Reachability
 
 In graph reachability we test for the existence of paths (true/false) between pairs of vertices. PGQL uses forward slashes (`-/` and `/->`) instead of square brackets (`-[` and `]->`) to indicate reachability semantic.
@@ -2493,11 +2360,72 @@ CostClause          ::= 'COST' ValueExpression
 
 For example:
 
+{% include image.html file="example_graphs/financial_transactions.png" %}
+
 ```sql
-SELECT src, SUM(e.weight), dst
-  FROM MATCH CHEAPEST ((src) (-[e:flight]-> COST e.price)* (dst))
- WHERE src.code = 'LON' AND dst.code = 'AMS'
+SELECT COUNT(e) AS num_hops
+     , SUM(e.amount) AS total_amount
+     , ARRAY_AGG(e.amount) AS amounts_along_path
+  FROM MATCH CHEAPEST ( (a:Account) (-[e:transaction]-> COST e.amount)* (b:Account) )
+ WHERE a.number = 10039 AND b.number = 2090
 ```
+
+```
++----------------------------------------------------+
+| num_hops | total_amount | amounts_along_path       |
++----------------------------------------------------+
+| 3        | 12499.8      | [1000.0, 1500.3, 9999.5] |
++----------------------------------------------------+
+```
+
+The following example with `CHEAPEST` contains an any-directed edge pattern (`-[e:transaction]-`):
+
+{% include image.html file="example_graphs/financial_transactions.png" %}
+
+```sql
+SELECT COUNT(e) AS num_hops
+     , SUM(e.amount) AS total_amount
+     , ARRAY_AGG(e.amount) AS amounts_along_path
+  FROM MATCH CHEAPEST ( (a:Account) (-[e:transaction]- COST e.amount)* (b:Account) )
+ WHERE a.number = 10039 AND b.number = 2090
+```
+
+```
++----------------------------------------------+
+| num_hops | total_amount | amounts_along_path |
++----------------------------------------------+
+| 1        | 9900.0       | [9900.0]           |
++----------------------------------------------+
+```
+
+Note that above, because edges are matched in any direction, the cheapest path between accounts `10039` and `2090` is the one that contains a single incoming edge.
+
+The cost function is not limited to edge properties, it can be an arbitrary expression.
+The following example has a `CASE` statement that defines a different cost for different types of edges:
+
+{% include image.html file="example_graphs/financial_transactions.png" %}
+
+```sql
+SELECT COUNT(e) AS num_hops
+     , SUM(e.amount) AS total_amount
+     , ARRAY_AGG(e.amount) AS amounts_along_path
+  FROM MATCH CHEAPEST ( (p1:Person) (-[e:ownerOf|transaction]-
+                                      COST CASE
+                                             WHEN e.amount IS NULL THEN 1
+                                             ELSE e.amount
+                                           END)* (p2:Person) )
+ WHERE p1.name = 'Nikita' AND p2.name = 'Liam'
+```
+
+```
++----------------------------------------------+
+| num_hops | total_amount | amounts_along_path |
++----------------------------------------------+
+| 4        | 10900.0      | [1000.0, 9900.0]   |
++----------------------------------------------+
+```
+
+Note that above, when the edge is an `ownerOf` edge, `e.amount` will return NULL resulting in a cost of `1` (`WHEN e.amount IS NULL THEN 1`).
 
 ### Top-K Cheapest Path
 
@@ -2517,25 +2445,196 @@ Over paths returned by a `CHEAPEST` query the same aggregations are defined as o
 
 The `CHEAPEST` queries represent paths the same way as `SHORTEST`, allowing the same path aggregations.
 
-For example, the following query returns the top 3 cheapest flights (flights with the smallest total price for flight tickets)
-between London and Amsterdam.
+For example, the following query returns the top 3 cheapest paths from account 10039 to itself:
+
+{% include image.html file="example_graphs/financial_transactions.png" %}
 
 ```sql
-SELECT src, SUM(e.weight), dst
-  FROM MATCH TOP 3 CHEAPEST ((src) (-[e:flight]-> COST e.price)* (dst))
- WHERE src.code = 'LON' AND dst.code = 'AMS'
+  SELECT COUNT(e) AS num_hops
+       , SUM(e.amount) AS total_amount
+       , ARRAY_AGG(e.amount) AS amounts_along_path
+    FROM MATCH TOP 3 CHEAPEST ( (a:Account) (-[e:transaction]-> COST e.amount)* (a) )
+   WHERE a.number = 10039
+ORDER BY total_amount
 ```
 
-Note that the cost function is not limited to edge properties, it can be an arbitrary expression.
-For example the following query replaces null property values with 10:
+```
++------------------------------------------------------------+
+| num_hops | total_amount | amounts_along_path               |
++------------------------------------------------------------+
+| 0        | <null>       | <null>                           |
+| 4        | 22399.8      | [1000.0, 1500.3, 9999.5, 9900.0] |
+| 4        | 23900.2      | [1000.0, 3000.7, 9999.5, 9900.0] |
++------------------------------------------------------------+
+```
+
+The following is a more complex query that involves a cost function based on the labels of the vertices in the cheapest path.
+It finds the 4 cheapest paths between account `10039` and company `Oracle` such that `Person` vertices contribute `3` towards the total cost,
+while `Account` or `Company` vertices contribute `1` to the total cost.
+
+{% include image.html file="example_graphs/financial_transactions.png" %}
 
 ```sql
-SELECT src, SUM(e.weight), dst
-  FROM MATCH TOP 3 CHEAPEST ((src) ( (u: Airport)-[e: flight]->(v: Airport)
-                                     COST CASE WHEN u.fee IS NULL THEN 10 ELSE u.fee END
-                                   )* (dst))
- WHERE src.code = 'LON' AND dst.code = 'AMS'
+  SELECT COUNT(e) AS num_hops
+       , ARRAY_AGG( CASE label(n_x)
+                      WHEN 'Person' THEN n_x.name
+                      WHEN 'Company' THEN n_x.name
+                      WHEN 'Account' THEN CAST(n_x.number AS STRING)
+                    END ) AS names_or_numbers
+       , SUM( CASE label(n_x) WHEN 'Person' THEN 8 ELSE 1 END ) AS total_cost
+    FROM MATCH TOP 4 CHEAPEST (
+          (a:Account)
+            (-[e]- (n_x) COST CASE label(n_x) WHEN 'Person' THEN 3 ELSE 1 END)*
+              (c:Company) )
+   WHERE a.number = 10039 AND c.name = 'Oracle'
+ORDER BY total_cost
 ```
+
+```
++----------------------------------------------+
+| num_hops | names_or_numbers     | total_cost |
++----------------------------------------------+
+| 3        | [2090, 1001, Oracle] | 3          |
+| 3        | [8021, 1001, Oracle] | 3          |
+| 3        | [8021, 1001, Oracle] | 3          |
+| 2        | [Camille, Oracle]    | 9          |
++----------------------------------------------+
+```
+
+As you can see, even though the path returned in the fourth row is shorter than the other three paths,
+it has a higher cost because it includes a `Person` vertex (`Camille`), which adds `4` to the total cost.
+
+## Horizontal Aggregation
+
+Aggregations are either applied in a _vertical_ or a _horizontal_ fashion.
+
+### Recap of vertical aggregation
+
+Vertical aggregation was introduced in [Aggregation](#aggregation). This kind of aggregation is what people usually learn first when they start using PGQL or SQL.
+Vertical aggregation takes a group of values from different rows and aggregates the values into a single value, for example by taking the minimum or maximum. If a `GROUP BY` is specified then the output of a query is as many rows as there are groups, while if no `GROUP BY` is specified then the output is a single row. For more details, see [Grouping and Aggregation](#grouping-and-aggregation).
+
+Given the pattern `(n) -[e]-> (m)`, examples of vertical aggregation are:
+
+ - `SUM(e.prop)`
+ - `COUNT(e.prop)`
+ - `SUM(n.prop + m.prop / 2)`
+
+### Group Variables
+
+To understand _horizontal_ aggregation, however, it is neccesary to know the difference between "singleton variables" and "group variables".
+A singleton variable is a variable that binds to only one vertex or edge, whereas a group variable is a variable that may bind to multiple vertices or edges.
+
+Consider the pattern `(n) -[e1]-> (m) -[e2]->* (o)`.
+Here, `e1` is a singleton variable because within a single match of the pattern there is always a single edge bound to `e1`, whereas `e2` is a group variable because within a single match of the pattern there may be multiple edges bound to `e2` because of the quantifier `*`.
+Variables are thus either singleton variables or group variables depending on whether they are enclosed by a quantifier with an upper bound greater than 1.
+
+Here are examples of singleton variables:
+
+ - `-[e]->` (or `-[e]->{1,1}`)
+ - `-[e]->?` (or `-[e]->{0,1}`)
+
+Here are examples of group variables:
+
+ - `-[e]->*`
+ - `-[e]->+`
+ - `-[e]->{1,4}`
+
+Group variables thus form implicit groups without a need to explicitly specify a `GROUP BY`.
+
+### Horizontal aggregation using group variables
+
+Group variables can be used to perform _horizontal_ aggregation. To be precise, an aggregation is applied in a horizontal manner if the expression that is input to the aggregation contains at least one group variable.
+The input values for the aggregation are obtained by evaluating the expression once for each binding of the group variable(s) within the particular match.
+A separate output is generated for each match of the pattern rather than that a single output is generated for an entire group of matches like in case of vertical aggregation.
+
+The same aggregates (`MIN`, `MAX`, `AVG`, etc.) that are used for vertical aggregation are also used for horizontal aggregation.
+Given the pattern `( (n) -[e]-> (m) )*`, examples of horizontal aggregations are:
+
+ - `SUM(e.prop * 2)`
+ - `COUNT(e.prop)`
+ - `ARRAY_AGG(n.prop)`
+
+Aggregations with multiple group variables such as `SUM(n.prop + m.prop / 2)` are not supported in PGQL 1.3 and are planned for a future version.
+
+It is possible to mix vertical and horizontal aggregation in a single query. For example:
+
+{% include image.html file="example_graphs/financial_transactions.png" %}
+
+```sql
+SELECT SUM(COUNT(e)) AS sumOfPathLengths
+  FROM MATCH SHORTEST ( (a:Account) -[e:transaction]->* (b:Account) )
+ WHERE a.number = 10039 AND (b.number = 1001 OR b.number = 2090)
+```
+
+```
++------------------+
+| sumOfPathLengths |
++------------------+
+| 5                |
++------------------+
+```
+
+Above, we first match a shortest path between accounts 10039 and 1001. Notice that the length of this path is 2.
+We also match a shortest path between accounts 10039 and 2090. Notice that the length of this path is 3.
+In the SELECT clause, the aggregation `COUNT(e)` is a horizontal aggregation since `e` is a group variable. For each of the two shortest paths, `COUNT(e)` computes the length by counting the number of edges. The output will be 2 for one of the two paths, and 3 for the other.
+Then it takes the `SUM` to compute the total length of the two paths, which is 5.
+
+### Horizontal aggregation in WHERE and GROUP BY
+
+While vertical aggregation is only possible in the `SELECT`, `HAVING` and `ORDER BY` clauses, horizontal aggregation is also possible in the `WHERE` and `GROUP BY` clauses.
+
+An example of a horizontal aggregation in `WHERE` is:
+
+{% include image.html file="example_graphs/financial_transactions.png" %}
+
+```sql
+  SELECT b.number AS b,
+         COUNT(e) AS pathLength,
+         ARRAY_AGG(e.amount) AS transactions
+    FROM MATCH SHORTEST ( (a:Account) -[e:transaction]->* (b:Account) )
+   WHERE a.number = 10039 AND
+         (b.number = 8021 OR b.number = 1001 OR b.number = 2090) AND
+         COUNT(e) <= 2
+ORDER BY pathLength
+```
+
+```
++--------------------------------------+
+| b    | pathLength | transactions     |
++--------------------------------------+
+| 8021 | 1          | [1000.0]         |
+| 1001 | 2          | [1000.0, 1500.3] |
++--------------------------------------+
+```
+
+Above, we compute a shortest path from account 10039 to accounts 8021, 1001, and 2090. So three paths in total.
+However, in the `WHERE` clause we only keep paths that have at most two edges (`COUNT(e) <= 2`) such that only the paths to accounts 8021 and 1001 are kept since the path to 2090 has three edges.
+
+An example of a horizontal aggregation in `GROUP BY` is:
+
+{% include image.html file="example_graphs/financial_transactions.png" %}
+
+```sql
+  SELECT COUNT(e) AS pathLength,
+         COUNT(*) AS cnt
+    FROM MATCH SHORTEST ( (a:Account) -[e:transaction]->* (b:Account) )
+   WHERE (a.number = 10039 OR a.number = 8021) AND
+         (b.number = 1001 OR b.number = 2090)
+GROUP BY COUNT(e)
+ORDER BY pathLength
+```
+
+```
++------------------+
+| pathLength | cnt |
++------------------+
+| 1          | 1   |
+| 2          | 2   |
+| 3          | 1   |
++------------------+
+```
+
+Above, we first match shortst paths between four pairs of vertices and then we group by the length of the paths (`GROUP BY COUNT(e)`) by means of horizontal aggregation. Then we perform a vertical aggregation `COUNT(*)` to compute the number of paths that have the particular path length. The result shows that one path has length 1, two paths have length 2, and one path as length 3.
 
 # Functions and Expressions
 
@@ -3056,7 +3155,7 @@ SELECT LABEL(e)
 +----------+
 ```
 
-### LABELS
+### LABELS (function)
 
 The `LABELS` function returns the set of labels of a vertex or an edge. If the vertex or edge does not have a label, an empty set is returned.
 The return type of the function is a set of strings.
@@ -3598,7 +3697,7 @@ For example, the query below inserts two vertices into the graph:
 ```sql
 INSERT
   VERTEX v LABELS ( Male ) PROPERTIES ( v.age = 23, v.name = 'John' ),
-  VERTEX u LABELS ( Female ) PROPERTIES ( u.age = 24, v.name = 'Jane' )
+  VERTEX u LABELS ( Female ) PROPERTIES ( u.age = 24, u.name = 'Jane' )
 ```
 
 Multiple insertions under the same `INSERT` can be used to set a newly inserted vertex as source or destination for a newly inserted edge.
@@ -3624,7 +3723,7 @@ For example consider the following query:
 INSERT EDGE e BETWEEN x AND y
   FROM MATCH (x)
      , MATCH (y) -> (z)
- WHERE id(x) == 1
+ WHERE id(x) = 1
 ```
 
 {% include image.html file="example_graphs/pgql_modify_example_before.png" %}
