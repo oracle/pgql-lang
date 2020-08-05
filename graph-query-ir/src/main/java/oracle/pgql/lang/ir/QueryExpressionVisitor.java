@@ -17,6 +17,7 @@ import oracle.pgql.lang.ir.QueryExpression.ArithmeticExpression.Mul;
 import oracle.pgql.lang.ir.QueryExpression.ArithmeticExpression.Sub;
 import oracle.pgql.lang.ir.QueryExpression.ArithmeticExpression.UMin;
 import oracle.pgql.lang.ir.QueryExpression.BindVariable;
+import oracle.pgql.lang.ir.QueryExpression.ConcatExpression;
 import oracle.pgql.lang.ir.QueryExpressionVisitor;
 import oracle.pgql.lang.ir.QueryExpression.Constant.ConstBoolean;
 import oracle.pgql.lang.ir.QueryExpression.Constant.ConstDate;
@@ -108,6 +109,8 @@ public interface QueryExpressionVisitor {
   public void visit(Less less);
 
   public void visit(LessEqual lessEqual);
+
+  public void visit(ConcatExpression concat);
 
   public void visit(AggrCount aggrCount);
 

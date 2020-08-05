@@ -54,6 +54,9 @@ public interface QueryExpression {
     LESS,
     LESS_EQUAL,
 
+    // concat expression
+    CONCAT,
+
     // aggregates
     AGGR_COUNT,
     AGGR_MIN,
@@ -494,6 +497,28 @@ public interface QueryExpression {
       public void accept(QueryExpressionVisitor v) {
         v.visit(this);
       }
+    }
+  }
+
+  class ConcatExpression extends BinaryExpression {
+
+    public ConcatExpression(QueryExpression exp1, QueryExpression exp2) {
+      super(exp1, exp2);
+    }
+
+    @Override
+    public ExpressionType getExpType() {
+      return ExpressionType.CONCAT;
+    }
+
+    @Override
+    public String toString() {
+      return "(" + getExp1() + " || " + getExp2() + ")";
+    }
+
+    @Override
+    public void accept(QueryExpressionVisitor v) {
+      v.visit(this);
     }
   }
 

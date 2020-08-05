@@ -37,6 +37,7 @@ context-free syntax
   Exp.Lt = [[Exp] < [Exp]] {left}
   Exp.Gte = [[Exp] >= [Exp]] {left}
   Exp.Lte = [[Exp] <= [Exp]] {left}
+  Exp.Cct = [[Exp] || [Exp]] {left}
 
   Exp.Neq1 = [[Exp] != [Exp]] {left}
   Exp.Neq2 = [[Exp] <> [Exp]] {left}
@@ -113,6 +114,11 @@ context-free priorities
     right:
       Exp.UMin
       Exp.Legacy10Not
+  }
+  >
+  {
+    left:
+      Exp.Cct
   }
   >
   {
