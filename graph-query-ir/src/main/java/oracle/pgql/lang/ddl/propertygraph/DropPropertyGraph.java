@@ -4,10 +4,10 @@
 package oracle.pgql.lang.ddl.propertygraph;
 
 import oracle.pgql.lang.ir.SchemaQualifiedName;
-import oracle.pgql.lang.ir.Statement;
+import oracle.pgql.lang.ir.PgqlStatement;
 import oracle.pgql.lang.ir.StatementType;
 
-public class DropPropertyGraph implements Statement {
+public class DropPropertyGraph implements PgqlStatement {
 
   private SchemaQualifiedName schemaName;
 

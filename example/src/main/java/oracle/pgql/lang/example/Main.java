@@ -15,7 +15,7 @@ public class Main {
 
       // parse query and print graph query
       PgqlResult result1 = pgql.parse("SELECT n FROM MATCH (n:Person) -[e:likes]-> (m:Person) WHERE n.name = 'Dave'");
-      System.out.println(result1.getStatement());
+      System.out.println(result1.getPgqlStatement());
 
       // parse query with errors and print error messages
       PgqlResult result2 = pgql.parse("SELECT x, y FROM MATCH (n) -[e]-> (m)");

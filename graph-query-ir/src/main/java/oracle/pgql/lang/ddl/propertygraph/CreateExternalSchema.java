@@ -3,13 +3,13 @@
  */
 package oracle.pgql.lang.ddl.propertygraph;
 
-import oracle.pgql.lang.ir.Statement;
+import oracle.pgql.lang.ir.PgqlStatement;
 import oracle.pgql.lang.ir.StatementType;
 
 import static oracle.pgql.lang.ir.PgqlUtils.printIdentifier;
 import static oracle.pgql.lang.ir.PgqlUtils.printLiteral;
 
-public class CreateExternalSchema implements Statement {
+public class CreateExternalSchema implements PgqlStatement {
 
   private String localSchemaName;
 

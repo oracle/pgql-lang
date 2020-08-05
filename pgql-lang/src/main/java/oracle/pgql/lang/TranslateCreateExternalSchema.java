@@ -7,7 +7,7 @@ import org.spoofax.interpreter.terms.IStrategoAppl;
 import org.spoofax.interpreter.terms.IStrategoTerm;
 
 import oracle.pgql.lang.ddl.propertygraph.CreateExternalSchema;
-import oracle.pgql.lang.ir.Statement;
+import oracle.pgql.lang.ir.PgqlStatement;
 
 import static oracle.pgql.lang.CommonTranslationUtil.getString;
 import static oracle.pgql.lang.CommonTranslationUtil.isNone;
@@ -28,7 +28,7 @@ public class TranslateCreateExternalSchema {
 
   private static int REMOTE_SCHEMA_NAME = 2;
 
-  protected static Statement translateCreateExternalSchema(IStrategoTerm ast) {
+  protected static PgqlStatement translateCreateExternalSchema(IStrategoTerm ast) {
 
     IStrategoTerm localSchemaNameT = ast.getSubterm(LOCAL_SCHEMA_NAME);
     String localSchemaName = getString(localSchemaNameT);
