@@ -2528,16 +2528,21 @@ Consider the pattern `(n) -[e1]-> (m) -[e2]->* (o)`.
 Here, `e1` is a singleton variable because within a single match of the pattern there is always a single edge bound to `e1`, whereas `e2` is a group variable because within a single match of the pattern there may be multiple edges bound to `e2` because of the quantifier `*`.
 Variables are thus either singleton variables or group variables depending on whether they are enclosed by a quantifier with an upper bound greater than 1.
 
-Here are examples of singleton variables:
+Here are examples with singleton variables:
 
- - `-[e]->` (or `-[e]->{1,1}`)
- - `-[e]->?` (or `-[e]->{0,1}`)
+ - `-[e]->`
+ - `-[e]->?`
 
-Here are examples of group variables:
+Here are examples with group variables:
 
  - `-[e]->*`
  - `-[e]->+`
  - `-[e]->{1,4}`
+
+Quantifiers with curly braces _always_ introduce group variables, so the following are also examples with group variables:
+
+- `-[e]->{1,1}` (notice that this is not the same as `-[e]->`)
+- `-[e]->{0,1}` (notice that this is not the same as `-[e]->?`)
 
 Group variables thus form implicit groups without a need to explicitly specify a `GROUP BY`.
 
