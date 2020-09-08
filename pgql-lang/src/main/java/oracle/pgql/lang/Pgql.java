@@ -237,7 +237,8 @@ public class Pgql implements Closeable {
       } catch (Exception e) {
         if (e instanceof PgqlException) {
           prettyMessages = e.getMessage();
-          return new PgqlResult(queryString, parseResult.valid(), prettyMessages, statement, parseResult, LATEST_VERSION,
+          queryValid = false;
+          return new PgqlResult(queryString, queryValid, prettyMessages, statement, parseResult, LATEST_VERSION,
               0);
         } else {
           LOG.debug("Translation of PGQL failed because of semantically invalid AST");
