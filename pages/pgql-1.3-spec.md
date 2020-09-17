@@ -61,8 +61,8 @@ The following syntax changes were made in PGQL 1.3:
  Here is an example _without_ `ON` clauses:
 
  ```sql
-  SELECT forum.id AS forumId, forum.title, forum.creationDate,
-         person.id AS personId, COUNT(DISTINCT post) AS postCount
+  SELECT forum.forumId, forum.title, forum.creationDate,
+         person.personId, COUNT(DISTINCT post) AS postCount
     FROM MATCH (country:Place) <-[:isPartOf]- (city:Place) <-[:isLocatedIn]- (person:Person),
          MATCH (person) <-[:hasModerator]- (forum:Forum) -[:containerOf]->(post:Post),
          MATCH (post) -[:hasTag]-> (:Tag) -[:hasType]-> (tagClass:Tagclass)
@@ -71,15 +71,15 @@ The following syntax changes were made in PGQL 1.3:
          country.name =  'Burma' AND
          tagClass.name = 'MusicalArtist'
 GROUP BY forum, person
-ORDER BY postCount DESC, forum.id
+ORDER BY postCount DESC, forumId
    LIMIT 20
  ```
 
  Here is the same query with separate `ON` clauses for each of the three path patterns in the `FROM` clause:
 
  ```sql
-  SELECT forum.id AS forumId, forum.title, forum.creationDate,
-         person.id AS personId, COUNT(DISTINCT post) AS postCount
+  SELECT forum.forumId, forum.title, forum.creationDate,
+         person.personId, COUNT(DISTINCT post) AS postCount
     FROM MATCH (country:Place) <-[:isPartOf]- (city:Place) <-[:isLocatedIn]- (person:Person) ON ldbcGraph,
          MATCH (person) <-[:hasModerator]- (forum:Forum) -[:containerOf]->(post:Post) ON ldbcGraph,
          MATCH (post) -[:hasTag]-> (:Tag) -[:hasType]-> (tagClass:Tagclass) ON ldbcGraph
@@ -88,15 +88,15 @@ ORDER BY postCount DESC, forum.id
          country.name =  'Burma' AND
          tagClass.name = 'MusicalArtist'
 GROUP BY forum, person
-ORDER BY postCount DESC, forum.id
+ORDER BY postCount DESC, forumId
    LIMIT 20
  ```
 
  Here is the same query with a _single_ `ON` clause for all three path patterns:
 
  ```sql
-  SELECT forum.id AS forumId, forum.title, forum.creationDate,
-         person.id AS personId, COUNT(DISTINCT post) AS postCount
+  SELECT forum.forumId, forum.title, forum.creationDate,
+         person.personId, COUNT(DISTINCT post) AS postCount
     FROM MATCH (
            (country:Place) <-[:isPartOf]- (city:Place) <-[:isLocatedIn]- (person:Person),
            (person) <-[:hasModerator]- (forum:Forum) -[:containerOf]->(post:Post),
@@ -107,7 +107,7 @@ ORDER BY postCount DESC, forum.id
          country.name =  'Burma' AND
          tagClass.name = 'MusicalArtist'
 GROUP BY forum, person
-ORDER BY postCount DESC, forum.id
+ORDER BY postCount DESC, forumId
    LIMIT 20
  ```
 
@@ -3211,7 +3211,7 @@ ALL_DIFFERENT( val1, val2, val3, ..., valN )
 For example:
 
 ```sql
-SELECT n.id, m.id, o.id
+SELECT n.prop1, m.prop2, o.prop3
   FROM MATCH (n) -> (m) -> (o)
  WHERE ALL_DIFFERENT( n, m, o )
 ```
