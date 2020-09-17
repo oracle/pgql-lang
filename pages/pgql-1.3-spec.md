@@ -3211,7 +3211,7 @@ ALL_DIFFERENT( val1, val2, val3, ..., valN )
 For example:
 
 ```sql
-SELECT n.prop1, m.prop2, o.prop3
+SELECT *
   FROM MATCH (n) -> (m) -> (o)
  WHERE ALL_DIFFERENT( n, m, o )
 ```
