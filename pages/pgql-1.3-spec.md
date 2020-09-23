@@ -2154,6 +2154,26 @@ SELECT generatorA.location, generatorB.location
 
 The above query outputs all generators that are connected to each other via one or more connectors that are all operational.
 
+If the direction of the macro invocation is from right-to-left (`<-/../-`) instead of from left-to-right (`-/../->`), then the pattern in the macro is also matched from right-to-left instead of left-to-right.
+
+For example:
+
+```sql
+PATH macro1 AS (v1:Generator) -[e1:has_connector]-> (v2:Connector)
+SELECT COUNT(*)
+FROM MATCH (generatorA) <-/:macro1+/- (generatorB)
+WHERE generatorA.name = 'AEH382'
+```
+
+The above query is equivalent to:
+
+```sql
+PATH macro1 AS (v2:Connector) <-[e1:has_connector]- (v1:Generator)
+SELECT COUNT(*)
+FROM MATCH (generatorA) -/:macro1+/-> (generatorB)
+WHERE generatorA.name = 'AEH382'
+```
+
 ## Shortest Path
 
 Shortest path finding allows for finding paths with a minimal number of hops.
