@@ -709,16 +709,16 @@ CREATE PROPERTY GRAPH hr_simplified
   )
   EDGE TABLES (
     employees AS works_for
-      SOURCE employees
-      DESTINATION KEY ( employee_id ) REFERENCES employees
+      SOURCE KEY ( employee_id ) REFERENCES employees
+      DESTINATION employees
       NO PROPERTIES
   )
 ```
 
 As you can see, both the `employee` vertices and the `works_for` edges are created from the `employees` table.
-For the source vertex we can omit the key so that it defaults to `KEY ( manager_id )`.
+For the destination vertex we can omit the key so that it defaults to `KEY ( manager_id )`.
 This is possible only because there exists exactly one foreign key between the `employees` table and itself.
-In case of the destination vertex we cannot default to a foreign key so we explicitly specify the key `KEY ( employee_id )`.
+In case of the source vertex we cannot default to a foreign key so we explicitly specify the key `KEY ( employee_id )`.
 
 Note that although the edges are embedded in the vertex tables, by default it is still the case that a property is created for each column.
 This means that by default, the vertices and edges that are created from the same table will have the same properties.
