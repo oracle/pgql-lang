@@ -209,7 +209,7 @@ CREATE PROPERTY GRAPH financial_transactions
     Transactions
       SOURCE KEY ( from_account ) REFERENCES Accounts
       DESTINATION KEY ( to_account ) REFERENCES Accounts
-      LABEL ( transaction ) PROPERTIES ( amount ),
+      LABEL transaction PROPERTIES ( amount ),
     PersonOwnerOfAccount
       SOURCE Persons
       DESTINATION Accounts
@@ -303,7 +303,7 @@ CREATE PROPERTY GRAPH financial_transactions
     Transactions
       SOURCE KEY ( from_account ) REFERENCES Accounts
       DESTINATION KEY ( to_account ) REFERENCES Accounts
-      LABEL ( transaction ) PROPERTIES ( amount ),
+      LABEL transaction PROPERTIES ( amount ),
     PersonOwnerOfAccount
       SOURCE Persons
       DESTINATION Accounts
@@ -416,7 +416,7 @@ CREATE PROPERTY GRAPH financial_transactions
     Transactions
       SOURCE KEY ( from_account ) REFERENCES Accounts
       DESTINATION KEY ( to_account ) REFERENCES Accounts
-      LABEL ( transaction ) PROPERTIES ( amount ),
+      LABEL transaction PROPERTIES ( amount ),
     PersonOwnerOfAccount
       SOURCE Persons
       DESTINATION Accounts
@@ -458,7 +458,7 @@ CREATE PROPERTY GRAPH financial_transactions
       KEY ( from_account, to_account, date )
       SOURCE KEY ( from_account ) REFERENCES Accounts
       DESTINATION KEY ( to_account ) REFERENCES Accounts
-      LABEL ( transaction ) PROPERTIES ( amount ),
+      LABEL transaction PROPERTIES ( amount ),
     PersonOwnerOfAccount
       KEY ( person_id )
       SOURCE KEY ( person_id ) REFERENCES Persons
