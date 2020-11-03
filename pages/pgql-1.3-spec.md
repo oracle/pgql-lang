@@ -159,7 +159,7 @@ An example graph with financial transactions is:
 
 {% include image.html file="example_graphs/financial_transactions.png" %}
 
-Here, `financial_transactions` is the name of the graph. The graph has three types of vertices. Vertices labeled `Person` or `Company` have a property `name`, while vertices labeled `Account` have a property `number`. There are edges labeled `ownerOf` from persons to accounts and from companies to accounts, and there are edges labeled `transaction` from accounts to accounts. Note that only the transaction edges have a property (`amount`).
+Here, `financial_transactions` is the name of the graph. The graph has three types of vertices. Vertices labeled `Person` or `Company` have a property `name`, while vertices labeled `Account` have a property `number`. There are edges labeled `owner` from accounts to persons as well as from accounts to companies, and there are edges labeled `transaction` from accounts to accounts. Note that only `transaction` edges have a property (`amount`) while other edges do not have any properties.
 
 
 # Creating a Property Graph
@@ -194,40 +194,40 @@ However, it is not possible to have a graph with edge tables but no vertex table
 
 The following example shows a schema with a set of tables. Each table has a name and a list of columns, some of which form the primary key for the table (in red) while others form foreign keys that reference rows of other tables.
 
-{% include image.html file="example_graphs/financial_transactions_schema2.png"  %}
+{% include image.html file="example_graphs/financial_transactions_schema.png"  %}
 
 The following is a complete example of how a graph can be created from these tables:
 
 ```sql
 CREATE PROPERTY GRAPH financial_transactions
   VERTEX TABLES (
-    Accounts LABEL Account,
     Persons LABEL Person PROPERTIES ( name ),
-    Companies LABEL Company PROPERTIES ( name )
+    Companies LABEL Company PROPERTIES ( name ),
+    Accounts LABEL Account
   )
   EDGE TABLES (
     Transactions
       SOURCE KEY ( from_account ) REFERENCES Accounts
       DESTINATION KEY ( to_account ) REFERENCES Accounts
       LABEL transaction PROPERTIES ( amount ),
-    PersonOwnerOfAccount
-      SOURCE Persons
-      DESTINATION Accounts
-      LABEL ownerOf NO PROPERTIES,
-    CompanyOwnerOfAccount
-      SOURCE Companies
-      DESTINATION Accounts
-      LABEL ownerOf NO PROPERTIES,
-    PersonWorksForCompany
-      SOURCE Persons
+    Accounts AS PersonOwner
+      SOURCE KEY ( id ) REFERENCES Accounts
+      DESTINATION Persons
+      LABEL owner NO PROPERTIES,
+    Accounts AS CompanyOwner
+      SOURCE KEY ( id ) REFERENCES Accounts
       DESTINATION Companies
-      LABEL worksFor NO PROPERTIES
+      LABEL owner NO PROPERTIES,
+    Persons AS worksFor
+      SOURCE KEY ( id ) REFERENCES Persons
+      DESTINATION Companies
+      NO PROPERTIES
   )
 ```
 
 Above, `financial_transactions` is the name of the graph.
-The graph has three vertex tables: `Accounts`, `Persons` and `Companies`.
-The graph also has four edge tables: `Transactions`, `PersonOwnerOfAccount`, `CompanyOwnerOfAccount` and `PersonWorksForCompany`.
+The graph has three vertex tables: `Persons`, `Companies` and `Accounts`.
+The graph also has four edge tables: `Transactions`, `PersonOwner`, `CompanyOwner` and `worksFor`.
 
 Underlying foreign keys are used to establish the connections between the two endpoints of the edges and the corresponding vertices.
 Note that the "source" of an edge is the vertex where the edge points _from_ while the "destination" of an edge is the vertex where the edge point _to_.
@@ -290,45 +290,50 @@ If a key is not provided, it will default to the existing foreign key.
 
 Take the following example from before:
 
-{% include image.html file="example_graphs/financial_transactions_schema2.png"  %}
+{% include image.html file="example_graphs/financial_transactions_schema.png"  %}
 
 ```sql
 CREATE PROPERTY GRAPH financial_transactions
   VERTEX TABLES (
-    Accounts LABEL Account,
     Persons LABEL Person PROPERTIES ( name ),
-    Companies LABEL Company PROPERTIES ( name )
+    Companies LABEL Company PROPERTIES ( name ),
+    Accounts LABEL Account
   )
   EDGE TABLES (
     Transactions
       SOURCE KEY ( from_account ) REFERENCES Accounts
       DESTINATION KEY ( to_account ) REFERENCES Accounts
       LABEL transaction PROPERTIES ( amount ),
-    PersonOwnerOfAccount
-      SOURCE Persons
-      DESTINATION Accounts
-      LABEL ownerOf NO PROPERTIES,
-    CompanyOwnerOfAccount
-      SOURCE Companies
-      DESTINATION Accounts
-      LABEL ownerOf NO PROPERTIES,
-    PersonWorksForCompany
-      SOURCE Persons
+    Accounts AS PersonOwner
+      SOURCE KEY ( id ) REFERENCES Accounts
+      DESTINATION Persons
+      LABEL owner NO PROPERTIES,
+    Accounts AS CompanyOwner
+      SOURCE KEY ( id ) REFERENCES Accounts
       DESTINATION Companies
-      LABEL worksFor NO PROPERTIES
+      LABEL owner NO PROPERTIES,
+    Persons AS worksFor
+      SOURCE KEY ( id ) REFERENCES Persons
+      DESTINATION Companies
+      NO PROPERTIES
   )
 ```
 
-Above, keys for the source and destination of `PersonOwnerOfAccount`, `CompanyOwnerOfAccount` and `PersonWorksForCompany`  are omitted because we can default to the existing foreign keys.
-However, the keys for the source and destination of `Transactions` cannot be omitted because two foreign keys exist between `Transactions` and `Account` and it is otherwise not possible to know which one should be used.
-
-The source vertex table and/or the destination vertex table may be the same table as the edge table, in which case the table provides both vertices and edges.
-This is explained in more detail in [Source or destination is self](#source-or-destination-is-self).  
-
 The key of the edge table uniquely identifies a row in the table.
-If a key is not explicitly specified then it defaults to the primary key of the underlying table.
+If a key is not explicitly specified (in case of all four edge tables above) then it defaults to the primary key of the underlying table.
 A key is always required so a primary key needs to exist if no key is specified.
 See the section on [keys](#keys) for more details.
+
+In case of edge tables `PersonOwner`, `CompanyOwner` and `worksFor`, the destination vertex table is the same table as the edge table itself.
+This means that rows in the table are mapped into both vertices and edges. It is also possible that the source vertex table is the edge table itself or that both the source and destination tables are the edge table itself.
+This is explained in more detail in [Source or destination is self](#source-or-destination-is-self).
+
+Keys for the destinations of `PersonOwner`, `CompanyOwner` and `worksFor` are omitted because we can default to the existing foreign keys.
+Keys for their sources cannot be omitted because there exist no foreign key to default to (e.g. in case of `PersonOwner` there are zero foreign keys from `Accounts` to `Accounts` hence `SOURCE KEY ( id ) REFERENCES Accounts` needs to be specified).
+Furthermore, keys for the source and destination of `Transactions` cannot be omitted because _two_ foreign keys exist between `Transactions` and `Accounts` so it is necessary to specify which one to use.
+
+If a row in an edge table has a NULL value for any of its source key columns or its destination key columns then no edge is created.
+Note that in case of the `Accounts` table from the example, it is assumed that either the `person_id` or the `company_id` is NULL, so that each time the row is mapped into either a "company owner" or a "person owner" edge but never into two types of edges at once.
 
 The label clause provides a label for the edges.
 If a label is not defined, the label defaults to the alias.
@@ -353,11 +358,11 @@ For example:
 
 ```sql
 ...
-  VERTEX TABLES ( Employees AS Employee )
+  EDGE TABLES ( Persons AS worksFor ... )
 ...
 ```
 
-Above, the underlying table of the vertex table is `Employees`, while the alias is `Employee`.
+Above, the underlying table of the edge table is `Persons`, while the alias is `worksFor`.
 
 All vertex and edge tables are required to have unique names.
 Therefore, if multiple vertex tables use the same underlying table, then at least one of them requires an alias.
@@ -405,7 +410,7 @@ ColumnName ::= <Identifier>
 
 Take the example from before:
 
-{% include image.html file="example_graphs/financial_transactions_schema2.png"  %}
+{% include image.html file="example_graphs/financial_transactions_schema.png"  %}
 
 ```sql
 CREATE PROPERTY GRAPH financial_transactions
@@ -417,22 +422,22 @@ CREATE PROPERTY GRAPH financial_transactions
       SOURCE KEY ( from_account ) REFERENCES Accounts
       DESTINATION KEY ( to_account ) REFERENCES Accounts
       LABEL transaction PROPERTIES ( amount ),
-    PersonOwnerOfAccount
-      SOURCE Persons
-      DESTINATION Accounts
-      LABEL ownerOf NO PROPERTIES,
+    Accounts AS PersonOwner
+      SOURCE KEY ( id ) REFERENCES Accounts
+      DESTINATION Persons
+      LABEL owner NO PROPERTIES,
     ...
   )
 ```
 
-Above, a key is defined for the source vertex table of the `Transactions` edge table because two foreign keys exist between `Transactions` and `Accounts` such that it would be ambiguous which foreign key to use.
-For the same reason, a key is defined for the destination vertex table of the `Transactions` edge table.
+Above, a key is defined for the source and destination of `Transactions` because two foreign keys exist between `Transactions` and `Accounts` so it would be ambiguous which one to use without explicit specification.
+In case of `PersonOwner`, no foreign key exists between `Accounts` and `Accounts` so a key for the source (`KEY ( id)`) has to be explicitly specified. However, for the destination it is possible to omit the key and default to the existing foreign key between `Accounts` and `Persons`.
 
 The keys for source and destination vertex tables consist of one or more columns of the underlying edge table that uniquely identify a vertex in the corresponding vertex table. If no key is defined for the vertex table, the key defaults to the underlying primary key, which is required to exist in such a case.
 
 The following example has a schema that has no primary and foreign keys defined at all:
 
-{% include image.html file="example_graphs/financial_transactions_schema_no_keys2.png"  %}
+{% include image.html file="example_graphs/financial_transactions_schema_no_keys.png"  %}
 
 Note that above, we have the same schema as before, but this time the primary and foreign keys are missing.
 
@@ -441,9 +446,6 @@ Even though primary and foreign keys are missing, the graph can still be created
 ```sql
 CREATE PROPERTY GRAPH financial_transactions
   VERTEX TABLES (
-    Accounts
-      KEY ( number )
-      LABEL Account,
     Persons
       KEY ( id )
       LABEL Person
@@ -451,7 +453,10 @@ CREATE PROPERTY GRAPH financial_transactions
     Companies
       KEY ( id )
       LABEL Company
-      PROPERTIES ( name )
+      PROPERTIES ( name ),
+    Accounts
+      KEY ( number )
+      LABEL Account
   )
   EDGE TABLES (
     Transactions
@@ -459,25 +464,25 @@ CREATE PROPERTY GRAPH financial_transactions
       SOURCE KEY ( from_account ) REFERENCES Accounts
       DESTINATION KEY ( to_account ) REFERENCES Accounts
       LABEL transaction PROPERTIES ( amount ),
-    PersonOwnerOfAccount
-      KEY ( person_id )
-      SOURCE KEY ( person_id ) REFERENCES Persons
-      DESTINATION KEY ( to_account ) REFERENCES Accounts
-      LABEL ownerOf NO PROPERTIES,
-    CompanyOwnerOfAccount
-      KEY ( company_id )
-      SOURCE KEY ( company_id ) REFERENCES Companies
-      DESTINATION KEY ( to_account ) REFERENCES Accounts
-      LABEL ownerOf NO PROPERTIES,
-    PersonWorksForCompany
-      KEY ( person_id, company_id )
-      SOURCE KEY ( person_id ) REFERENCES Persons
+    Accounts AS PersonOwner
+      KEY ( number )
+      SOURCE KEY ( id ) REFERENCES Accounts
+      DESTINATION KEY ( person_id ) REFERENCES Persons
+      LABEL owner NO PROPERTIES,
+    Accounts AS CompanyOwner
+      KEY ( number )
+      SOURCE KEY ( id ) REFERENCES Accounts
       DESTINATION KEY ( company_id ) REFERENCES Companies
-      LABEL worksFor NO PROPERTIES
+      LABEL owner NO PROPERTIES,
+  Persons AS worksFor
+      KEY ( id )
+      SOURCE KEY ( id ) REFERENCES Persons
+      DESTINATION KEY ( company_id ) REFERENCES Companies
+      NO PROPERTIES
   )
 ```
 
-Above, keys were defined for each vertex table (e.g. `KEY ( number )`), edge table (e.g. `KEY ( from_account, to_account, date )`), source vertex table reference (e.g. `KEY ( person_id )`) and destination table reference (e.g. `KEY ( to_account )`).
+Above, keys were defined for each vertex table (e.g. `KEY ( id )`), edge table (e.g. `KEY ( from_account, to_account, date )`), source vertex table reference (e.g. `KEY ( from_account )`) and destination table reference (e.g. `KEY ( to_account )`).
 
 Each vertex and edge table is required to have a key so that if a key is not explicitly specified then the underlying table needs to have a primary key defined.
 
@@ -649,11 +654,10 @@ An example of an edge table with no properties is:
 ...
   EDGE TABLES (
     ...
-    PersonOwnerOfAccount
-      SOURCE Persons
-      DESTINATION Accounts
-      LABEL ownerOf
-      NO PROPERTIES,
+    Accounts AS PersonOwner
+      SOURCE KEY ( id ) REFERENCES Accounts
+      DESTINATION Persons
+      LABEL owner NO PROPERTIES
     ...
 ```
 
@@ -2429,7 +2433,7 @@ The following example has a `CASE` statement that defines a different cost for d
 SELECT COUNT(e) AS num_hops
      , SUM(e.amount) AS total_amount
      , ARRAY_AGG(e.amount) AS amounts_along_path
-  FROM MATCH CHEAPEST ( (p1:Person) (-[e:ownerOf|transaction]-
+  FROM MATCH CHEAPEST ( (p1:Person) (-[e:owner|transaction]-
                                       COST CASE
                                              WHEN e.amount IS NULL THEN 1
                                              ELSE e.amount
@@ -2445,7 +2449,7 @@ SELECT COUNT(e) AS num_hops
 +----------------------------------------------+
 ```
 
-Note that above, when the edge is an `ownerOf` edge, `e.amount` will return NULL resulting in a cost of `1` (`WHEN e.amount IS NULL THEN 1`).
+Note that above, when the edge is an `owner` edge, `e.amount` will return NULL resulting in a cost of `1` (`WHEN e.amount IS NULL THEN 1`).
 
 ### Top-K Cheapest Path
 
@@ -3531,15 +3535,15 @@ Another example is:
                      ON financial_transactions
          ) AS sum_outgoing
        , ( SELECT COUNT(DISTINCT p2)
-             FROM MATCH (a) -[t:transaction]- (:Account) <-[:ownerOf]- (p2:Person)
+             FROM MATCH (a) -[t:transaction]- (:Account) -[:owner]-> (p2:Person)
                      ON financial_transactions
             WHERE p2 <> p
          ) AS num_persons_transacted_with
        , ( SELECT COUNT(DISTINCT c)
-             FROM MATCH (a) -[t:transaction]- (:Account) <-[:ownerOf]- (c:Company)
+             FROM MATCH (a) -[t:transaction]- (:Account) -[:owner]-> (c:Company)
                      ON financial_transactions
          ) AS num_companies_transacted_with
-    FROM MATCH (p:Person) -[:ownerOf]-> (a:Account) ON financial_transactions
+    FROM MATCH (p:Person) <-[:owner]- (a:Account) ON financial_transactions
 ORDER BY sum_outgoing + sum_incoming DESC
 ```
 
@@ -3564,13 +3568,13 @@ Note that in the query, the graph name `financial_transactions` is repeatedly sp
              FROM MATCH (a) -[t:transaction]-> (:Account)
          ) AS sum_outgoing
        , ( SELECT COUNT(DISTINCT p2)
-             FROM MATCH (a) -[t:transaction]- (:Account) <-[:ownerOf]- (p2:Person)
+             FROM MATCH (a) -[t:transaction]- (:Account) -[:owner]-> (p2:Person)
             WHERE p2 <> p
          ) AS num_persons_transacted_with
        , ( SELECT COUNT(DISTINCT c)
-             FROM MATCH (a) -[t:transaction]- (:Account) <-[:ownerOf]- (c:Company)
+             FROM MATCH (a) -[t:transaction]- (:Account) -[:owner]-> (c:Company)
          ) AS num_companies_transacted_with
-    FROM MATCH (p:Person) -[:ownerOf]-> (a:Account)
+    FROM MATCH (p:Person) <-[:owner]- (a:Account)
 ORDER BY sum_outgoing + sum_incoming DESC
 ```
 

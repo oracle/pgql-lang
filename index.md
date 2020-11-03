@@ -30,41 +30,41 @@ A basic example
 
 An example property graph is:
 
-{% include image.html file="example_graphs/financial_transactions.png" style="width: 680px;padding-bottom: 15px;" %}
+{% include image.html file="example_graphs/financial_transactions.png" %}
 
-Above, `Account`, `Person` and `Company` are vertex labels while `ownerOf`, `worksFor` and `transaction` are edge labels.
+Above, `Person`, `Company` and `Account` are vertex labels while `owner`, `worksFor` and `transaction` are edge labels.
 Furthermore, `name` and `number` are vertex properties while `amount` is an edge property.
 
 Assume that this graph is stored in the following tables in a database:
 
-{% include image.html file="example_graphs/financial_transactions_schema2.png" style="width: 780px;padding-bottom: 15px;" %}
+{% include image.html file="example_graphs/financial_transactions_schema.png" %}
 
 From these tables we can create the desired graph as follows:
 
 ```sql
 CREATE PROPERTY GRAPH financial_transactions
   VERTEX TABLES (
-    Accounts LABEL Account,
     Persons LABEL Person PROPERTIES ( name ),
-    Companies LABEL Company PROPERTIES ( name )
+    Companies LABEL Company PROPERTIES ( name ),
+    Accounts LABEL Account
   )
   EDGE TABLES (
     Transactions
       SOURCE KEY ( from_account ) REFERENCES Accounts
       DESTINATION KEY ( to_account ) REFERENCES Accounts
-      LABEL ( transaction ) PROPERTIES ( amount ),
-    PersonOwnerOfAccount
-      SOURCE Persons
-      DESTINATION Accounts
-      LABEL ownerOf NO PROPERTIES,
-    CompanyOwnerOfAccount
-      SOURCE Companies
-      DESTINATION Accounts
-      LABEL ownerOf NO PROPERTIES,
-    PersonWorksForCompany
-      SOURCE Persons
+      LABEL transaction PROPERTIES ( amount ),
+    Accounts AS PersonOwner
+      SOURCE KEY ( id ) REFERENCES Accounts
+      DESTINATION Persons
+      LABEL owner NO PROPERTIES,
+    Accounts AS CompanyOwner
+      SOURCE KEY ( id ) REFERENCES Accounts
       DESTINATION Companies
-      LABEL worksFor NO PROPERTIES
+      LABEL owner NO PROPERTIES,
+    Persons AS worksFor
+      SOURCE KEY ( id ) REFERENCES Persons
+      DESTINATION Companies
+      NO PROPERTIES
   )
 ```
 
@@ -72,9 +72,9 @@ After we created the graph, we can execute a `SELECT` query to "produce an overv
 
 ```sql
   SELECT owner.name AS account_holder, SUM(t.amount) AS total_transacted_with_Nikita
-    FROM MATCH (p:Person) -[:ownerOf]-> (account1:Account)
+    FROM MATCH (p:Person) <-[:owner]- (account1:Account)
        , MATCH (account1) -[t:transaction]- (account2) /* match both incoming and outgoing transactions */
-       , MATCH (account2:Account) <-[:ownerOf]- (owner:Person|Company)
+       , MATCH (account2:Account) -[:owner]-> (owner:Person|Company)
    WHERE p.name = 'Nikita'
 GROUP BY owner
 ```
