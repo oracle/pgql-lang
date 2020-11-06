@@ -203,7 +203,7 @@ CREATE PROPERTY GRAPH financial_transactions
   VERTEX TABLES (
     Persons LABEL Person PROPERTIES ( name ),
     Companies LABEL Company PROPERTIES ( name ),
-    Accounts LABEL Account
+    Accounts LABEL Account PROPERTIES ( number )
   )
   EDGE TABLES (
     Transactions
@@ -297,7 +297,7 @@ CREATE PROPERTY GRAPH financial_transactions
   VERTEX TABLES (
     Persons LABEL Person PROPERTIES ( name ),
     Companies LABEL Company PROPERTIES ( name ),
-    Accounts LABEL Account
+    Accounts LABEL Account PROPERTIES ( number )
   )
   EDGE TABLES (
     Transactions
@@ -457,6 +457,7 @@ CREATE PROPERTY GRAPH financial_transactions
     Accounts
       KEY ( number )
       LABEL Account
+      PROPERTIES ( number )
   )
   EDGE TABLES (
     Transactions
