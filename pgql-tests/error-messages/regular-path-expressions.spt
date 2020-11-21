@@ -68,40 +68,33 @@ test Multiple edges in CHEAPEST (2) [[
 
 ]] error like "Not yet supported: multiple edge patterns in SHORTEST or CHEAPEST" at #1
 
-test No Kleene star in SHORTEST (1) [[
+test Unsupport question mark in SHORTEST [[
 
-  SELECT n.prop AS nProp
-    FROM g MATCH SHORTEST ( (n) -[e1]->[[+]] (m) )
+  SELECT *
+    FROM MATCH SHORTEST ( (n) -[e1]->[[?]] (m) )
 
-]] error like "Kleene star (*) required for now" at #1
+]] error like "Quantifier of the form * or + or {1,4} expected" at #1
 
-test No Kleene star in SHORTEST (2) [[
+test No quantifier in SHORTEST [[
 
-  SELECT n.prop AS nProp
-    FROM g MATCH SHORTEST ( (n) [[-[e1]-> (m)]] )
+  SELECT *
+    FROM MATCH SHORTEST ( (n) [[-[e1]-> (m)]] )
 
-]] error like "Kleene star (*) required for now" at #1
+]] error like "Quantifier of the form * or + or {1,4} expected" at #1
 
-test No Kleene star in SHORTEST (2) [[
+test Unsupport question mark in CHEAPEST [[
 
-  SELECT n.prop AS nProp
-    FROM g MATCH SHORTEST ( (n) (-[e1]->)[[+]] (m) )
+  SELECT *
+    FROM MATCH CHEAPEST ( (n) (-[e1]-> COST e1.prop)[[?]] (m) )
 
-]] error like "Kleene star (*) required for now" at #1
+]] error like "Quantifier of the form * or + or {1,4} expected" at #1
 
-test No Kleene star in SHORTEST (2) [[
+test No quantifier in CHEAPEST [[
 
-  SELECT n.prop AS nProp
-    FROM g MATCH SHORTEST ( (n) [[(-[e1]->)]] (m) )
+  SELECT *
+    FROM MATCH CHEAPEST ( (n) [[(-[e1]-> COST e1.prop)]] (m) )
 
-]] error like "Kleene star (*) required for now" at #1
-
-test No Kleene star in CHEAPEST (2) [[
-
-  SELECT n.prop AS nProp
-    FROM g MATCH CHEAPEST ( (n) [[(-[e1]-> COST e1.prop)]] (m) )
-
-]] error like "Kleene star (*) required for now" at #1
+]] error like "Quantifier of the form * or + or {1,4} expected" at #1
 
 test Duplicate variables (1) [[
 

@@ -276,6 +276,24 @@ public class PrettyPrintingTest extends AbstractPgqlTest {
   }
 
   @Test
+  public void testAnyShortest() throws Exception {
+    String query = "SELECT 1 FROM MATCH ANY SHORTEST ( (n) -[e]->* (m) )";
+    checkRoundTrip(query);
+  }
+
+  @Test
+  public void testAnyCheapest() throws Exception {
+    String query = "SELECT 1 FROM MATCH ANY CHEAPEST ( (n) (-[e]-> COST e.cost)* (m) )";
+    checkRoundTrip(query);
+  }
+
+  @Test
+  public void testAllShortest() throws Exception {
+    String query = "SELECT 1 FROM MATCH ALL SHORTEST ( (n) -[e]->* (m) )";
+    checkRoundTrip(query);
+  }
+
+  @Test
   public void testDeprecatedDefinitionInGroupBy() throws Exception {
     String query = "SELECT age FROM g MATCH (n) GROUP BY n.age AS age";
     checkRoundTrip(query);

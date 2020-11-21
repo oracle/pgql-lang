@@ -22,14 +22,18 @@ public class QueryPath extends VertexPairConnection {
 
   private int kValue;
 
+  private boolean all;
+
   public QueryPath(QueryVertex src, QueryVertex dst, String name, CommonPathExpression commonPathExpression,
-      boolean anonymous, long minHops, long maxHops, PathFindingGoal goal, int kValue, Direction direction) {
+      boolean anonymous, long minHops, long maxHops, PathFindingGoal goal, int kValue, boolean all,
+      Direction direction) {
     super(src, dst, name, anonymous, direction);
     this.commonPathExpression = commonPathExpression;
     this.minHops = minHops;
     this.maxHops = maxHops;
     this.goal = goal;
     this.kValue = kValue;
+    this.all = all;
   }
 
   public String getPathExpressionName() {
@@ -110,6 +114,14 @@ public class QueryPath extends VertexPairConnection {
     this.kValue = kValue;
   }
 
+  public boolean getAll() {
+    return all;
+  }
+
+  public void setAll(boolean all) {
+    this.all = all;
+  }
+
   @Override
   public VariableType getVariableType() {
     return VariableType.PATH;
@@ -135,8 +147,9 @@ public class QueryPath extends VertexPairConnection {
   }
 
   private String printShortestCheapest(PathFindingGoal goal) {
-    String kValueAsString = kValue == 1 ? "" : "TOP " + kValue + " ";
-    String result = kValueAsString + goal + " ( " + getSrc() + " ";
+    String kValueAsString = kValue > 1 ? "TOP " + kValue + " " : "";
+    String allAsString = all ? "ALL " : "";
+    String result = kValueAsString + allAsString + goal + " ( " + getSrc() + " ";
     String pathExpression = printPathExpression(commonPathExpression, true);
     if (pathExpression.contains("WHERE") || pathExpression.contains("COST") || pathExpression.startsWith("(")
         || pathExpression.endsWith(")")) {
@@ -179,6 +192,8 @@ public class QueryPath extends VertexPairConnection {
     if (goal != other.goal)
       return false;
     if (kValue != other.kValue)
+      return false;
+    if (all != other.all)
       return false;
     return true;
   }
