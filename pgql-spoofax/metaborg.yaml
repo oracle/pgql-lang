@@ -17,7 +17,7 @@ pardonedLanguages:
 - SDF
 language:
   stratego:
-    format: jar
+    format: ctree
     args:
     - -la
     - stratego-lib
