@@ -705,8 +705,8 @@ public class SpoofaxAstToGraphQuery {
     CommonPathExpression pathExpression = getPathExpression(pathExpressionT, ctx);
 
     IStrategoTerm topKAnyAllT = pathT.getSubterm(POS_PATH_TOP_K_ANY_ALL);
-    boolean all = false;
-    int kValue = -1;
+    boolean all = false; // default
+    int kValue = 1; // default
     if (isSome(topKAnyAllT)) {
       IStrategoAppl topKAnyAllContent = (IStrategoAppl) getSome(topKAnyAllT);
       switch (topKAnyAllContent.getName()) {
