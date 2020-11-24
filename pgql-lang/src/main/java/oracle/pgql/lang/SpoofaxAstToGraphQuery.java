@@ -661,11 +661,11 @@ public class SpoofaxAstToGraphQuery {
     QueryVertex dst = getQueryVertex(vertexMap, dstName);
     PathFindingGoal goal = PathFindingGoal.REACHES;
     int kValue = -1;
-    boolean all = false;
+    boolean withTies = false;
 
     QueryPath path = name.contains(GENERATED_VAR_SUBSTR)
-        ? new QueryPath(src, dst, name, commonPathExpression, true, minHops, maxHops, goal, kValue, all, direction)
-        : new QueryPath(src, dst, name, commonPathExpression, false, minHops, maxHops, goal, kValue, all, direction);
+        ? new QueryPath(src, dst, name, commonPathExpression, true, minHops, maxHops, goal, kValue, withTies, direction)
+        : new QueryPath(src, dst, name, commonPathExpression, false, minHops, maxHops, goal, kValue, withTies, direction);
 
     return path;
   }
@@ -705,7 +705,7 @@ public class SpoofaxAstToGraphQuery {
     CommonPathExpression pathExpression = getPathExpression(pathExpressionT, ctx);
 
     IStrategoTerm topKAnyAllT = pathT.getSubterm(POS_PATH_TOP_K_ANY_ALL);
-    boolean all = false; // default
+    boolean withTies = false; // default
     int kValue = 1; // default
     if (isSome(topKAnyAllT)) {
       IStrategoAppl topKAnyAllContent = (IStrategoAppl) getSome(topKAnyAllT);
@@ -716,14 +716,14 @@ public class SpoofaxAstToGraphQuery {
         case "Any":
           break;
         case "All":
-          all = true;
+          withTies = true;
           break;
         default:
           throw new IllegalArgumentException(topKAnyAllContent.getName());
       }
     }
 
-    QueryPath path = new QueryPath(src, dst, name, pathExpression, true, minHops, maxHops, goal, kValue, all,
+    QueryPath path = new QueryPath(src, dst, name, pathExpression, true, minHops, maxHops, goal, kValue, withTies,
         direction);
 
     return path;

@@ -22,10 +22,10 @@ public class QueryPath extends VertexPairConnection {
 
   private int kValue;
 
-  private boolean all;
+  private boolean withTies;
 
   public QueryPath(QueryVertex src, QueryVertex dst, String name, CommonPathExpression commonPathExpression,
-      boolean anonymous, long minHops, long maxHops, PathFindingGoal goal, int kValue, boolean all,
+      boolean anonymous, long minHops, long maxHops, PathFindingGoal goal, int kValue, boolean withTies,
       Direction direction) {
     super(src, dst, name, anonymous, direction);
     this.commonPathExpression = commonPathExpression;
@@ -33,7 +33,7 @@ public class QueryPath extends VertexPairConnection {
     this.maxHops = maxHops;
     this.goal = goal;
     this.kValue = kValue;
-    this.all = all;
+    this.withTies = withTies;
   }
 
   public String getPathExpressionName() {
@@ -114,12 +114,12 @@ public class QueryPath extends VertexPairConnection {
     this.kValue = kValue;
   }
 
-  public boolean getAll() {
-    return all;
+  public boolean getWithTies() {
+    return withTies;
   }
 
-  public void setAll(boolean all) {
-    this.all = all;
+  public void setWithTies(boolean withTies) {
+    this.withTies = withTies;
   }
 
   @Override
@@ -148,7 +148,7 @@ public class QueryPath extends VertexPairConnection {
 
   private String printShortestCheapest(PathFindingGoal goal) {
     String kValueAsString = kValue > 1 ? "TOP " + kValue + " " : "";
-    String allAsString = all ? "ALL " : "";
+    String allAsString = withTies ? "ALL " : "";
     String result = kValueAsString + allAsString + goal + " ( " + getSrc() + " ";
     String pathExpression = printPathExpression(commonPathExpression, true);
     if (pathExpression.contains("WHERE") || pathExpression.contains("COST") || pathExpression.startsWith("(")
@@ -193,7 +193,7 @@ public class QueryPath extends VertexPairConnection {
       return false;
     if (kValue != other.kValue)
       return false;
-    if (all != other.all)
+    if (withTies != other.withTies)
       return false;
     return true;
   }
