@@ -461,7 +461,7 @@ public class PgqlUtils {
   protected static String printHops(QueryPath path) {
     long minHops = path.getMinHops();
     long maxHops = path.getMaxHops();
-    if (minHops == 1 && maxHops == 1) {
+    if (minHops == 1 && maxHops == 1 && path.getPathFindingGoal() == PathFindingGoal.REACHES) {
       return "";
     } else if (minHops == 0 && maxHops == -1) {
       return "*";
