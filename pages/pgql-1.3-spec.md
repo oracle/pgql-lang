@@ -211,11 +211,11 @@ CREATE PROPERTY GRAPH financial_transactions
       DESTINATION KEY ( to_account ) REFERENCES Accounts
       LABEL transaction PROPERTIES ( amount ),
     Accounts AS PersonOwner
-      SOURCE KEY ( id ) REFERENCES Accounts
+      SOURCE KEY ( number ) REFERENCES Accounts
       DESTINATION Persons
       LABEL owner NO PROPERTIES,
     Accounts AS CompanyOwner
-      SOURCE KEY ( id ) REFERENCES Accounts
+      SOURCE KEY ( number ) REFERENCES Accounts
       DESTINATION Companies
       LABEL owner NO PROPERTIES,
     Persons AS worksFor
@@ -305,11 +305,11 @@ CREATE PROPERTY GRAPH financial_transactions
       DESTINATION KEY ( to_account ) REFERENCES Accounts
       LABEL transaction PROPERTIES ( amount ),
     Accounts AS PersonOwner
-      SOURCE KEY ( id ) REFERENCES Accounts
+      SOURCE KEY ( number ) REFERENCES Accounts
       DESTINATION Persons
       LABEL owner NO PROPERTIES,
     Accounts AS CompanyOwner
-      SOURCE KEY ( id ) REFERENCES Accounts
+      SOURCE KEY ( number ) REFERENCES Accounts
       DESTINATION Companies
       LABEL owner NO PROPERTIES,
     Persons AS worksFor
@@ -329,7 +329,7 @@ This means that rows in the table are mapped into both vertices and edges. It is
 This is explained in more detail in [Source or destination is self](#source-or-destination-is-self).
 
 Keys for the destinations of `PersonOwner`, `CompanyOwner` and `worksFor` are omitted because we can default to the existing foreign keys.
-Keys for their sources cannot be omitted because there exist no foreign key to default to (e.g. in case of `PersonOwner` there are zero foreign keys from `Accounts` to `Accounts` hence `SOURCE KEY ( id ) REFERENCES Accounts` needs to be specified).
+Keys for their sources cannot be omitted because there exist no foreign key to default to (e.g. in case of `PersonOwner` there are zero foreign keys from `Accounts` to `Accounts` hence `SOURCE KEY ( number ) REFERENCES Accounts` needs to be specified).
 Furthermore, keys for the source and destination of `Transactions` cannot be omitted because _two_ foreign keys exist between `Transactions` and `Accounts` so it is necessary to specify which one to use.
 
 If a row in an edge table has a NULL value for any of its source key columns or its destination key columns then no edge is created.
@@ -423,7 +423,7 @@ CREATE PROPERTY GRAPH financial_transactions
       DESTINATION KEY ( to_account ) REFERENCES Accounts
       LABEL transaction PROPERTIES ( amount ),
     Accounts AS PersonOwner
-      SOURCE KEY ( id ) REFERENCES Accounts
+      SOURCE KEY ( number ) REFERENCES Accounts
       DESTINATION Persons
       LABEL owner NO PROPERTIES,
     ...
@@ -467,12 +467,12 @@ CREATE PROPERTY GRAPH financial_transactions
       LABEL transaction PROPERTIES ( amount ),
     Accounts AS PersonOwner
       KEY ( number )
-      SOURCE KEY ( id ) REFERENCES Accounts
+      SOURCE KEY ( number ) REFERENCES Accounts
       DESTINATION KEY ( person_id ) REFERENCES Persons
       LABEL owner NO PROPERTIES,
     Accounts AS CompanyOwner
       KEY ( number )
-      SOURCE KEY ( id ) REFERENCES Accounts
+      SOURCE KEY ( number ) REFERENCES Accounts
       DESTINATION KEY ( company_id ) REFERENCES Companies
       LABEL owner NO PROPERTIES,
   Persons AS worksFor
@@ -656,7 +656,7 @@ An example of an edge table with no properties is:
   EDGE TABLES (
     ...
     Accounts AS PersonOwner
-      SOURCE KEY ( id ) REFERENCES Accounts
+      SOURCE KEY ( number ) REFERENCES Accounts
       DESTINATION Persons
       LABEL owner NO PROPERTIES
     ...
