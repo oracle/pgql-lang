@@ -431,7 +431,7 @@ CREATE PROPERTY GRAPH financial_transactions
 ```
 
 Above, a key is defined for the source and destination of `Transactions` because two foreign keys exist between `Transactions` and `Accounts` so it would be ambiguous which one to use without explicit specification.
-In case of `PersonOwner`, no foreign key exists between `Accounts` and `Accounts` so a key for the source (`KEY ( id)`) has to be explicitly specified. However, for the destination it is possible to omit the key and default to the existing foreign key between `Accounts` and `Persons`.
+In case of `PersonOwner`, no foreign key exists between `Accounts` and `Accounts` so a key for the source (`KEY ( number )`) has to be explicitly specified. However, for the destination it is possible to omit the key and default to the existing foreign key between `Accounts` and `Persons`.
 
 The keys for source and destination vertex tables consist of one or more columns of the underlying edge table that uniquely identify a vertex in the corresponding vertex table. If no key is defined for the vertex table, the key defaults to the underlying primary key, which is required to exist in such a case.
 
