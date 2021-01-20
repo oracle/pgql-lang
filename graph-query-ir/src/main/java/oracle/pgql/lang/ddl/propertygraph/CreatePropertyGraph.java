@@ -7,10 +7,10 @@ import java.util.List;
 import java.util.stream.Collectors;
 
 import oracle.pgql.lang.ir.SchemaQualifiedName;
-import oracle.pgql.lang.ir.Statement;
+import oracle.pgql.lang.ir.PgqlStatement;
 import oracle.pgql.lang.ir.StatementType;
 
-public class CreatePropertyGraph implements Statement {
+public class CreatePropertyGraph implements PgqlStatement {
 
   /**
    * The name of the property graph.

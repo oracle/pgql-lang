@@ -32,6 +32,7 @@ import oracle.pgql.lang.ir.QueryExpression.InPredicate;
 import oracle.pgql.lang.ir.QueryExpression.IsNull;
 import oracle.pgql.lang.ir.QueryExpression.ScalarSubquery;
 import oracle.pgql.lang.ir.QueryExpression.SimpleCase;
+import oracle.pgql.lang.ir.QueryExpression.SubstringExpression;
 import oracle.pgql.lang.ir.QueryExpression.VarRef;
 import oracle.pgql.lang.ir.QueryExpression.WhenThenExpression;
 import oracle.pgql.lang.ir.QueryExpression.Constant.ConstBoolean;
@@ -88,6 +89,10 @@ public class CommonTranslationUtil {
   private static final int POS_WHENTHEN_WHEN = 0;
   private static final int POS_WHENTHEN_THEN = 1;
   private static final int POS_ELSE_EXP = 0;
+  private static final int POS_SUBSTRING_EXP = 0;
+  private static final int POS_SUBSTRING_START = 1;
+  private static final int POS_SUBSTRING_LENGTH = 2;
+  private static final int POS_LENGTH_EXP = 0;
 
   protected static String getString(IStrategoTerm t) {
     while (t.getTermType() != IStrategoTerm.STRING) {
@@ -199,6 +204,10 @@ public class CommonTranslationUtil {
         exp1 = translateExp(t.getSubterm(POS_BINARY_EXP_LEFT), ctx);
         exp2 = translateExp(t.getSubterm(POS_BINARY_EXP_RIGHT), ctx);
         return new QueryExpression.RelationalExpression.LessEqual(exp1, exp2);
+      case "Cct":
+        exp1 = translateExp(t.getSubterm(POS_BINARY_EXP_LEFT), ctx);
+        exp2 = translateExp(t.getSubterm(POS_BINARY_EXP_RIGHT), ctx);
+        return new QueryExpression.ConcatExpression(exp1, exp2);
       case "Integer":
         long l = parseLong(t);
         return new QueryExpression.Constant.ConstInteger(l);
@@ -269,6 +278,13 @@ public class CommonTranslationUtil {
         exp = translateExp(t.getSubterm(POS_CAST_EXP), ctx);
         String targetTypeName = getString(t.getSubterm(POS_CAST_TARGET_TYPE_NAME));
         return new QueryExpression.Function.Cast(exp, targetTypeName);
+      case "CharacterSubstring":
+        exp = translateExp(t.getSubterm(POS_SUBSTRING_EXP), ctx);
+        QueryExpression startExp = translateExp(t.getSubterm(POS_SUBSTRING_START), ctx);
+        IStrategoTerm lengthExpT = t.getSubterm(POS_SUBSTRING_LENGTH);
+        QueryExpression lengthExp = isSome(lengthExpT) ? 
+          translateExp(getSome(lengthExpT).getSubterm(POS_LENGTH_EXP), ctx) : null;
+        return new SubstringExpression(exp, startExp, lengthExp);
       case "Exists":
         IStrategoTerm subqueryT = t.getSubterm(POS_EXISTS_SUBQUERY);
         SelectQuery selectQuery = translateSubquery(ctx, subqueryT);

@@ -3,13 +3,13 @@
  */
 package oracle.pgql.lang.ddl.propertygraph;
 
-import oracle.pgql.lang.ir.Statement;
+import oracle.pgql.lang.ir.PgqlStatement;
 import oracle.pgql.lang.ir.StatementType;
 
 import static oracle.pgql.lang.ir.PgqlUtils.printIdentifier;
 import static oracle.pgql.lang.ir.PgqlUtils.printLiteral;
 
-public class CreateExternalSchema implements Statement {
+public class CreateExternalSchema implements PgqlStatement {
 
   private String localSchemaName;
 
@@ -21,16 +21,21 @@ public class CreateExternalSchema implements Statement {
 
   private String dataSourceName;
 
-  public CreateExternalSchema(String localSchemaName, String url, String userName, String keystoreAlias) {
+  private String remoteSchemaName;
+
+  public CreateExternalSchema(String localSchemaName, String url, String userName, String keystoreAlias,
+      String remoteSchemaName) {
     this.localSchemaName = localSchemaName;
     this.url = url;
     this.userName = userName;
     this.keystoreAlias = keystoreAlias;
+    this.remoteSchemaName = remoteSchemaName;
   }
 
-  public CreateExternalSchema(String localSchemaName, String dataSourceName) {
+  public CreateExternalSchema(String localSchemaName, String dataSourceName, String remoteSchemaName) {
     this.localSchemaName = localSchemaName;
     this.dataSourceName = dataSourceName;
+    this.remoteSchemaName = remoteSchemaName;
   }
 
   public String getLocalSchemaName() {
@@ -73,6 +78,14 @@ public class CreateExternalSchema implements Statement {
     this.keystoreAlias = keystoreAlias;
   }
 
+  public String getRemoteSchemaName() {
+    return remoteSchemaName;
+  }
+
+  public void setRemoteSchemaName(String remoteSchemaName) {
+    this.remoteSchemaName = remoteSchemaName;
+  }
+
   @Override
   public String toString() {
     String separator = "\n  ";
@@ -88,6 +101,9 @@ public class CreateExternalSchema implements Statement {
     }
     if (dataSourceName != null) {
       result += separator + "DATA_SOURCE " + printLiteral(dataSourceName);
+    }
+    if (remoteSchemaName != null) {
+      result += separator + "SCHEMA " + printLiteral(remoteSchemaName);
     }
     return result;
   }
@@ -135,6 +151,11 @@ public class CreateExternalSchema implements Statement {
       if (other.userName != null)
         return false;
     } else if (!userName.equals(other.userName))
+      return false;
+    if (remoteSchemaName == null) {
+      if (other.remoteSchemaName != null)
+        return false;
+    } else if (!remoteSchemaName.equals(other.remoteSchemaName))
       return false;
     return true;
   }

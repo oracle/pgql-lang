@@ -12,7 +12,7 @@ import oracle.pgql.lang.ir.QueryExpression.Constant.ConstString;
 import oracle.pgql.lang.ir.QueryExpression.FunctionCall;
 import oracle.pgql.lang.ir.QueryExpression.PropertyAccess;
 import oracle.pgql.lang.ir.SelectQuery;
-import oracle.pgql.lang.ir.Statement;
+import oracle.pgql.lang.ir.PgqlStatement;
 
 public class PrettyPrintingTest extends AbstractPgqlTest {
 
@@ -161,7 +161,7 @@ public class PrettyPrintingTest extends AbstractPgqlTest {
     String escapedIdentifier = "\"\\\"\"\"\""; // "\""""
     String query = "SELECT n." + escapedIdentifier + " FROM " + escapedIdentifier + " MATCH (n:" + escapedIdentifier
         + ")";
-    SelectQuery selectQuery = (SelectQuery) pgql.parse(query).getStatement();
+    SelectQuery selectQuery = (SelectQuery) pgql.parse(query).getPgqlStatement();
 
     PropertyAccess propertyAccess = (PropertyAccess) selectQuery.getProjection().getElements().get(0).getExp();
     assertEquals(identifier, propertyAccess.getPropertyName());
@@ -210,9 +210,9 @@ public class PrettyPrintingTest extends AbstractPgqlTest {
     String statement = "CREATE PROPERTY GRAPH \"\n  \"\"  \t\" VERTEX TABLES ( \"\n  \"\"  \t\" AS \"\n \"\" \t\")";
     PgqlResult result1 = pgql.parse(statement);
     assertTrue(result1.isQueryValid());
-    String prettyPrintedStatement = result1.getStatement().toString();
+    String prettyPrintedStatement = result1.getPgqlStatement().toString();
     PgqlResult result2 = pgql.parse(prettyPrintedStatement);
-    assertEquals(result1.getStatement(), result2.getStatement());
+    assertEquals(result1.getPgqlStatement(), result2.getPgqlStatement());
   }
 
   @Test
@@ -223,9 +223,9 @@ public class PrettyPrintingTest extends AbstractPgqlTest {
         + "EDGE \"edge\n\\n  \"\"  \t\" BETWEEN \"vertex\n\\n  \"\"  \t\" AND \"vertex\n\\n  \"\"  \t\"";
     PgqlResult result1 = pgql.parse(statement);
     assertTrue(result1.isQueryValid());
-    String prettyPrintedStatement = result1.getStatement().toString();
+    String prettyPrintedStatement = result1.getPgqlStatement().toString();
     PgqlResult result2 = pgql.parse(prettyPrintedStatement);
-    assertEquals(result1.getStatement(), result2.getStatement());
+    assertEquals(result1.getPgqlStatement(), result2.getPgqlStatement());
   }
 
   @Test
@@ -235,9 +235,9 @@ public class PrettyPrintingTest extends AbstractPgqlTest {
         + "FROM MATCH (\"vertex\n\\n  \"\"  \t\")";
     PgqlResult result1 = pgql.parse(statement);
     assertTrue(result1.isQueryValid());
-    String prettyPrintedStatement = result1.getStatement().toString();
+    String prettyPrintedStatement = result1.getPgqlStatement().toString();
     PgqlResult result2 = pgql.parse(prettyPrintedStatement);
-    assertEquals(result1.getStatement(), result2.getStatement());
+    assertEquals(result1.getPgqlStatement(), result2.getPgqlStatement());
   }
 
   @Test
@@ -246,9 +246,9 @@ public class PrettyPrintingTest extends AbstractPgqlTest {
         + "FROM MATCH (\"vertex\n\\n  \"\"  \t\")";
     PgqlResult result1 = pgql.parse(statement);
     assertTrue(result1.isQueryValid());
-    String prettyPrintedStatement = result1.getStatement().toString();
+    String prettyPrintedStatement = result1.getPgqlStatement().toString();
     PgqlResult result2 = pgql.parse(prettyPrintedStatement);
-    assertEquals(result1.getStatement(), result2.getStatement());
+    assertEquals(result1.getPgqlStatement(), result2.getPgqlStatement());
   }
 
   @Test
@@ -504,7 +504,7 @@ public class PrettyPrintingTest extends AbstractPgqlTest {
   @Test
   public void testCreateExternalSchema2() throws Exception {
     String statement = "CREATE EXTERNAL SCHEMA HR\n" //
-        + "FROM DATABASE DATA_SOURCE 'my data source'";
+        + "FROM DATABASE DATA_SOURCE 'my data source' SCHEMA 'HR'";
     checkRoundTrip(statement);
   }
 
@@ -521,11 +521,11 @@ public class PrettyPrintingTest extends AbstractPgqlTest {
      * we obtain a string that is a valid PGQL query.
      */
     PgqlResult result1 = pgql.parse(query1);
-    Statement iR1 = result1.getStatement();
+    PgqlStatement iR1 = result1.getPgqlStatement();
     assertTrue(result1.getErrorMessages(), result1.isQueryValid() && iR1 != null);
     String query2 = iR1.toString();
     PgqlResult result2 = pgql.parse(query2);
-    Statement iR2 = result2.getStatement();
+    PgqlStatement iR2 = result2.getPgqlStatement();
     assertTrue(result2.getErrorMessages(), result2.isQueryValid() && iR2 != null);
 
     /*
@@ -534,7 +534,7 @@ public class PrettyPrintingTest extends AbstractPgqlTest {
      * object that is equal to the first.
      */
     String query3 = iR2.toString();
-    Statement iR3 = pgql.parse(query3).getStatement();
+    PgqlStatement iR3 = pgql.parse(query3).getPgqlStatement();
     assertEquals(iR2, iR3);
   }
 }

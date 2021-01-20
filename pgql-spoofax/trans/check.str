@@ -47,8 +47,11 @@ rules // Unresolved/duplicate variables
        ; <generate-error-on-duplicates(|ctx, "Duplicate variable")> matchVars
        ; <generate-error-on-duplicates(|ctx, "Duplicate column name in GROUP BY")> groupVars
        ; if <?SelectClause(_, _)> selectOrModifyClause
-         then selectExpressions := <collect-om(?ExpAsVar(_, Identifier(<id>, _), _, _), conc)> selectOrModifyClause
-            ; <generate-error-on-duplicates(|ctx, "Duplicate column name in SELECT")> selectExpressions
+         then selectVars := <collect-om(?ExpAsVar(_, Identifier(<id>, _), _, _), conc)> selectOrModifyClause // for e.g. SELECT n.age, n.AgE
+            ; duplicateSelectVarError := "Duplicate column name in SELECT"
+            ; <generate-error-on-duplicates(|ctx, duplicateSelectVarError)> selectVars
+            ; selectVarsOriginText := <collect-om(?ExpAsVar(_, Identifier(_, <id>), _, _), conc)> selectOrModifyClause // for e.g. SELECT n.age, n."age"
+            ; <generate-error-on-duplicates(|ctx, duplicateSelectVarError)> selectVarsOriginText
             ; insertVars := []
          else // MODIFY query
               insertVars := <collect-om(?VertexInsertion(Identifier(<id>, _), _, _, _) + ?DirectedEdgeInsertion(Identifier(<id>, _), _, _, _, _, _), conc)> selectOrModifyClause
@@ -259,25 +262,6 @@ rules // helper rules
 rules // temporary limitation
 
   nabl-constraint(|ctx):
-    CommonPathExpression(_, vertices, connections, Constraints([constraint]), _) -> <fail>
-    with vertexVariables := <collect(?Vertex(<id>, _, _))> vertices
-       ; connectionsVariables := <collect(?Edge(_, <id>, _, _, _, _) + ?Path(_, _, _, _, <id>, _, _, _))> connections
-       ; variablesDefs := <union> (vertexVariables, connectionsVariables)
-       ; <generate-error-on-cross-constraint(|ctx, variablesDefs)> constraint
-
-  generate-error-on-cross-constraint(|ctx, variablesDefs):
-    t@And(lhs, rhs) -> t
-    with <generate-error-on-cross-constraint(|ctx, variablesDefs)> lhs
-       ; <generate-error-on-cross-constraint(|ctx, variablesDefs)> rhs
-
-  generate-error-on-cross-constraint(|ctx, variablesDefs):
-    t -> t
-    where <not(?And(_, _))> t
-    with variables := <collect(?VarRef(<id>, _) + ?Vertex(<id>, _, _) + ?Edge(_, <id>, _, _, _, _) + ?Path(_, _, _, _, <id>, _, _, _))> t
-       ; variableRefs := <strip-annos; isect> (variablesDefs, variables)
-       ; <try(!(<length> variableRefs, 1); gt; !t; generate-error(|ctx, "Not yet supported: expressions with multiple variables"))> t
-
-  nabl-constraint(|ctx):
     ComplexRegularExpressionNotSupported(edgesOrPaths) -> <fail>
     with [_|[secondEdgeOrPath|_]] := edgesOrPaths
        ; <generate-error(|ctx, "Not yet supported: multiple edge patterns in SHORTEST or CHEAPEST")> edgesOrPaths
@@ -323,6 +307,18 @@ rules // CHEAPEST
         ; <?Edges([Edge(_, e, _, _, _, _)])> edges
     with variablesDefs := [v1, v2, e]
        ; <generate-error-on-cross-constraint(|ctx, variablesDefs)> costExpression
+
+  generate-error-on-cross-constraint(|ctx, variablesDefs):
+    t@And(lhs, rhs) -> t
+    with <generate-error-on-cross-constraint(|ctx, variablesDefs)> lhs
+       ; <generate-error-on-cross-constraint(|ctx, variablesDefs)> rhs
+
+  generate-error-on-cross-constraint(|ctx, variablesDefs):
+    t -> t
+    where <not(?And(_, _))> t
+    with variables := <collect(?VarRef(<id>, _) + ?Vertex(<id>, _, _) + ?Edge(_, <id>, _, _, _, _) + ?Path(_, _, _, _, <id>, _, _, _))> t
+       ; variableRefs := <strip-annos; isect> (variablesDefs, variables)
+       ; <try(!(<length> variableRefs, 1); gt; !t; generate-error(|ctx, "Not yet supported: expressions with multiple variables"))> t
 
   nabl-constraint(|ctx):
     Path(_, _, CommonPathExpression(_, _, _, _, Some(t@CostClause(_))), _, _, _, pathFindingGoal, _) -> <fail>

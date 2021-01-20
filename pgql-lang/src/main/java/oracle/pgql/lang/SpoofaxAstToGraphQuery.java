@@ -39,7 +39,7 @@ import oracle.pgql.lang.ir.QueryVariable.VariableType;
 import oracle.pgql.lang.ir.QueryVertex;
 import oracle.pgql.lang.ir.SchemaQualifiedName;
 import oracle.pgql.lang.ir.SelectQuery;
-import oracle.pgql.lang.ir.Statement;
+import oracle.pgql.lang.ir.PgqlStatement;
 import oracle.pgql.lang.ir.VertexPairConnection;
 import oracle.pgql.lang.ir.modify.DeleteClause;
 import oracle.pgql.lang.ir.modify.EdgeInsertion;
@@ -157,7 +157,7 @@ public class SpoofaxAstToGraphQuery {
   private static final int IDENTIFIER_NAME = 0;
   private static final int IDENTIFIER_ORIGINNAME = 1;
 
-  public static Statement translate(IStrategoTerm ast) throws PgqlException {
+  public static PgqlStatement translate(IStrategoTerm ast) throws PgqlException {
 
     String constructorName = ((IStrategoAppl) ast).getConstructor().getName();
 

@@ -272,7 +272,7 @@ public class BugFixTest extends AbstractPgqlTest {
         "    E3 SOURCE X DESTINATION Y LABEL E3_1 PROPERTIES ARE ALL COLUMNS LABEL E3_2 PROPERTIES ARE ALL COLUMNS\n" + //
         "  )";
 
-    assertEquals(pgql.parse(statement1).getStatement(), pgql.parse(statement2).getStatement());
+    assertEquals(pgql.parse(statement1).getPgqlStatement(), pgql.parse(statement2).getPgqlStatement());
   }
 
   @Test

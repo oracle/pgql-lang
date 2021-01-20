@@ -6,7 +6,7 @@ package oracle.pgql.lang;
 import org.metaborg.spoofax.core.unit.ISpoofaxParseUnit;
 
 import oracle.pgql.lang.ir.GraphQuery;
-import oracle.pgql.lang.ir.Statement;
+import oracle.pgql.lang.ir.PgqlStatement;
 import oracle.pgql.lang.ir.StatementType;
 
 public class PgqlResult {
@@ -17,7 +17,7 @@ public class PgqlResult {
 
   private final boolean queryValid;
 
-  private final Statement statement;
+  private final PgqlStatement pgqlStatement;
 
   private final ISpoofaxParseUnit spoofaxParseUnit;
 
@@ -25,12 +25,12 @@ public class PgqlResult {
 
   private final int bindVariableCount;
 
-  public PgqlResult(String queryString, boolean queryValid, String messages, Statement statement,
+  public PgqlResult(String queryString, boolean queryValid, String messages, PgqlStatement pgqlStatement,
       ISpoofaxParseUnit spoofaxParseUnit, PgqlVersion pgqlVersion, int bindVariableCount) {
     this.queryString = queryString;
     this.errorMessages = messages;
     this.queryValid = queryValid;
-    this.statement = statement;
+    this.pgqlStatement = pgqlStatement;
     this.spoofaxParseUnit = spoofaxParseUnit;
     this.pgqlVersion = pgqlVersion;
     this.bindVariableCount = bindVariableCount;
@@ -61,19 +61,19 @@ public class PgqlResult {
    * @return a GraphQuery object if the query is valid; null otherwise
    */
   public GraphQuery getGraphQuery() {
-    if (statement == null) {
+    if (pgqlStatement == null) {
       return null;
-    } else if (statement.getStatementType() == StatementType.SELECT
-        || statement.getStatementType() == StatementType.GRAPH_MODIFY) {
-      return (GraphQuery) statement;
+    } else if (pgqlStatement.getStatementType() == StatementType.SELECT
+        || pgqlStatement.getStatementType() == StatementType.GRAPH_MODIFY) {
+      return (GraphQuery) pgqlStatement;
     } else {
       throw new IllegalStateException(
           "Use getStatement() instead of getGraphQuery() if statment is not a SELECT or graph INSERT/UPDATE/DELETE query");
     }
   }
 
-  public Statement getStatement() {
-    return statement;
+  public PgqlStatement getPgqlStatement() {
+    return pgqlStatement;
   }
 
   public PgqlVersion getPgqlVersion() {

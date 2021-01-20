@@ -54,6 +54,9 @@ public interface QueryExpression {
     LESS,
     LESS_EQUAL,
 
+    // concat expression
+    CONCAT,
+
     // aggregates
     AGGR_COUNT,
     AGGR_MIN,
@@ -79,7 +82,8 @@ public interface QueryExpression {
     IN_VALUE_LIST,
     IS_NULL,
     IF_ELSE,
-    SIMPLE_CASE
+    SIMPLE_CASE,
+    SUBSTRING
   }
 
   ExpressionType getExpType();
@@ -493,6 +497,28 @@ public interface QueryExpression {
       public void accept(QueryExpressionVisitor v) {
         v.visit(this);
       }
+    }
+  }
+
+  class ConcatExpression extends BinaryExpression {
+
+    public ConcatExpression(QueryExpression exp1, QueryExpression exp2) {
+      super(exp1, exp2);
+    }
+
+    @Override
+    public ExpressionType getExpType() {
+      return ExpressionType.CONCAT;
+    }
+
+    @Override
+    public String toString() {
+      return "(" + getExp1() + " || " + getExp2() + ")";
+    }
+
+    @Override
+    public void accept(QueryExpressionVisitor v) {
+      v.visit(this);
     }
   }
 
@@ -1727,6 +1753,103 @@ public interface QueryExpression {
           return false;
       } else if (!when.equals(other.when))
         return false;
+      return true;
+    }
+  }
+
+  class SubstringExpression implements QueryExpression {
+
+    private QueryExpression exp;
+
+    private QueryExpression startPosition;
+
+    private QueryExpression stringLength;
+
+    public SubstringExpression(QueryExpression exp, QueryExpression startPosition, QueryExpression stringLength) {
+      this.exp = exp;
+      this.startPosition = startPosition;
+      this.stringLength = stringLength;
+    }
+
+    public QueryExpression getExp() {
+      return exp;
+    }
+
+    public void setExp(QueryExpression exp) {
+      this.exp = exp;
+    }
+
+    public QueryExpression getStartPosition() {
+      return startPosition;
+    }
+
+    public void setStartPosition(QueryExpression startPosition) {
+      this.startPosition = startPosition;
+    }
+
+    public QueryExpression getStringLength() {
+      return stringLength;
+    }
+
+    public void setStringLength(QueryExpression stringLength) {
+      this.stringLength = stringLength;
+    }
+
+    @Override
+    public ExpressionType getExpType() {
+      return ExpressionType.SUBSTRING;
+    }
+
+    @Override
+    public String toString() {
+      String result = "SUBSTRING(" + exp + " FROM " + startPosition;
+      if (stringLength != null) {
+        result += " FOR " + stringLength;
+      }
+      result += ")";
+      return result; 
+    }
+
+    @Override
+    public void accept(QueryExpressionVisitor v) {
+      v.visit(this);
+    }
+
+    @Override
+    public int hashCode() {
+      return 31;
+    }
+
+    @Override
+    public boolean equals(Object obj) {
+      if (this == obj) {
+        return true;
+      }
+      if (obj == null || getClass() != obj.getClass()) {
+        return false;
+      }
+      SubstringExpression other = (SubstringExpression) obj;
+      if (exp == null) {
+        if (other.exp != null) {
+          return false;
+        }
+      } else if (!exp.equals(other.exp)) {
+        return false;
+      }
+      if (startPosition == null) {
+        if (other.startPosition != null) {
+          return false;
+        }
+      } else if (!startPosition.equals(other.startPosition)) {
+        return false;
+      }
+      if (stringLength == null) {
+        if (other.stringLength != null) {
+          return false;
+        }
+      } else if (!stringLength.equals(other.stringLength)) {
+        return false;
+      }
       return true;
     }
   }

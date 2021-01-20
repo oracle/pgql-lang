@@ -14,7 +14,7 @@ import oracle.pgql.lang.ddl.propertygraph.Property;
 import oracle.pgql.lang.ddl.propertygraph.VertexTable;
 import oracle.pgql.lang.ir.QueryExpression;
 import oracle.pgql.lang.ir.SchemaQualifiedName;
-import oracle.pgql.lang.ir.Statement;
+import oracle.pgql.lang.ir.PgqlStatement;
 
 import static oracle.pgql.lang.CommonTranslationUtil.getSchemaQualifiedName;
 import static oracle.pgql.lang.CommonTranslationUtil.getSome;
@@ -84,7 +84,7 @@ public class TranslateCreatePropertyGraph {
 
   private static int EXP_AS_VAR_VAR = 1;
 
-  protected static Statement translateCreatePropertyGraph(IStrategoTerm ast) throws PgqlException {
+  protected static PgqlStatement translateCreatePropertyGraph(IStrategoTerm ast) throws PgqlException {
 
     IStrategoTerm graphNameT = ast.getSubterm(CREATE_PROPERTY_GRAPH_NAME);
 

@@ -54,7 +54,7 @@ import com.google.common.collect.Lists;
 import oracle.pgql.lang.completion.PgqlCompletionGenerator;
 import oracle.pgql.lang.editor.completion.PgqlCompletion;
 import oracle.pgql.lang.editor.completion.PgqlCompletionContext;
-import oracle.pgql.lang.ir.Statement;
+import oracle.pgql.lang.ir.PgqlStatement;
 import oracle.pgql.lang.ir.StatementType;
 
 import static oracle.pgql.lang.CheckInvalidJavaComment.checkInvalidJavaComment;
@@ -206,7 +206,7 @@ public class Pgql implements Closeable {
 
       String prettyMessages = null;
       boolean queryValid = parseResult.success();
-      Statement statement = null;
+      PgqlStatement statement = null;
       if (queryValid) {
         checkNoMessages(parseResult.messages(), queryString);
       } else {
@@ -237,7 +237,8 @@ public class Pgql implements Closeable {
       } catch (Exception e) {
         if (e instanceof PgqlException) {
           prettyMessages = e.getMessage();
-          return new PgqlResult(queryString, parseResult.valid(), prettyMessages, statement, parseResult, LATEST_VERSION,
+          queryValid = false;
+          return new PgqlResult(queryString, queryValid, prettyMessages, statement, parseResult, LATEST_VERSION,
               0);
         } else {
           LOG.debug("Translation of PGQL failed because of semantically invalid AST");
@@ -277,7 +278,7 @@ public class Pgql implements Closeable {
     }
   }
 
-  private PgqlVersion getPgqlVersion(IStrategoTerm ast, Statement statement) {
+  private PgqlVersion getPgqlVersion(IStrategoTerm ast, PgqlStatement statement) {
     if (statement == null) {
       return LATEST_VERSION;
     }
@@ -308,7 +309,7 @@ public class Pgql implements Closeable {
     return pgqlVersion;
   }
 
-  private int getBindVariableCount(IStrategoTerm ast, Statement statement) {
+  private int getBindVariableCount(IStrategoTerm ast, PgqlStatement statement) {
     if (statement == null) {
       return 0;
     }

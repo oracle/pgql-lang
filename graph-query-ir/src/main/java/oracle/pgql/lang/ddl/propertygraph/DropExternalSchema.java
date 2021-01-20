@@ -3,12 +3,12 @@
  */
 package oracle.pgql.lang.ddl.propertygraph;
 
-import oracle.pgql.lang.ir.Statement;
+import oracle.pgql.lang.ir.PgqlStatement;
 import oracle.pgql.lang.ir.StatementType;
 
 import static oracle.pgql.lang.ir.PgqlUtils.printIdentifier;
 
-public class DropExternalSchema implements Statement {
+public class DropExternalSchema implements PgqlStatement {
 
   private String schemaName;
 
@@ -16,11 +16,11 @@ public class DropExternalSchema implements Statement {
     this.schemaName = schemaName;
   }
 
-  public String getGraphName() {
+  public String getSchemaName() {
     return schemaName;
   }
 
-  public void setGraphName(String schemaName) {
+  public void setSchemaName(String schemaName) {
     this.schemaName = schemaName;
   }
 

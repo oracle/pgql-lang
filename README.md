@@ -97,7 +97,7 @@ public class Main {
 
       // parse query and print graph query
       PgqlResult result1 = pgql.parse("SELECT n FROM MATCH (n:Person) -[e:likes]-> (m:Person) WHERE n.name = 'Dave'");
-      System.out.println(result1.getGraphQuery());
+      System.out.println(result1.getPgqlStatement());
 
       // parse query with errors and print error messages
       PgqlResult result2 = pgql.parse("SELECT x, y, FROM MATCH (n) -[e]-> (m)");
@@ -116,7 +116,7 @@ See [PGQL 1.3 Specification](http://pgql-lang.org/spec/1.3/).
 
 ## Development
 
-- Download Eclipse with Spoofax 2.5.9 pre-installed [here](http://www.metaborg.org/en/latest/source/release/note/2.5.9.html)
+- Download Eclipse with Spoofax 2.5.11 pre-installed [here](http://www.metaborg.org/en/latest/source/release/note/2.5.11.html)
 - Import the following projects into Eclipse (`File>Import...>Maven>Existing Maven Projects>Browse...`):
     - `graph-query-ir`: Java representation of graph queries
     - `pqgl-spoofax`: Spoofax implementation of PGQL (parser + error checks)

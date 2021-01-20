@@ -17,6 +17,7 @@ import oracle.pgql.lang.ir.QueryExpression.ArithmeticExpression.Mul;
 import oracle.pgql.lang.ir.QueryExpression.ArithmeticExpression.Sub;
 import oracle.pgql.lang.ir.QueryExpression.ArithmeticExpression.UMin;
 import oracle.pgql.lang.ir.QueryExpression.BindVariable;
+import oracle.pgql.lang.ir.QueryExpression.ConcatExpression;
 import oracle.pgql.lang.ir.QueryExpressionVisitor;
 import oracle.pgql.lang.ir.QueryExpression.Constant.ConstBoolean;
 import oracle.pgql.lang.ir.QueryExpression.Constant.ConstDate;
@@ -45,6 +46,7 @@ import oracle.pgql.lang.ir.QueryExpression.RelationalExpression.GreaterEqual;
 import oracle.pgql.lang.ir.QueryExpression.RelationalExpression.Less;
 import oracle.pgql.lang.ir.QueryExpression.RelationalExpression.LessEqual;
 import oracle.pgql.lang.ir.QueryExpression.RelationalExpression.NotEqual;
+import oracle.pgql.lang.ir.QueryExpression.SubstringExpression;
 import oracle.pgql.lang.ir.modify.ModifyQuery;
 import oracle.pgql.lang.ir.modify.SetPropertyExpression;
 import oracle.pgql.lang.ir.modify.Update;
@@ -108,6 +110,8 @@ public interface QueryExpressionVisitor {
 
   public void visit(LessEqual lessEqual);
 
+  public void visit(ConcatExpression concat);
+
   public void visit(AggrCount aggrCount);
 
   public void visit(AggrListagg aggrListagg);
@@ -147,6 +151,8 @@ public interface QueryExpressionVisitor {
   public void visit(IfElse ifElse);
 
   public void visit(SimpleCase simpleCase);
+
+  public void visit(SubstringExpression substringExpression);
 
   public void visit(ScalarSubquery sclarSubquery);
 

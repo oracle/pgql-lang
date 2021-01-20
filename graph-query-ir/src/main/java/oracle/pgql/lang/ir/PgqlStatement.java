@@ -3,7 +3,7 @@
  */
 package oracle.pgql.lang.ir;
 
-public interface Statement {
+public interface PgqlStatement {
 
   StatementType getStatementType();
 }

@@ -37,6 +37,7 @@ context-free syntax
   Exp.Lt = [[Exp] < [Exp]] {left}
   Exp.Gte = [[Exp] >= [Exp]] {left}
   Exp.Lte = [[Exp] <= [Exp]] {left}
+  Exp.Cct = [[Exp] || [Exp]] {left}
 
   Exp.Neq1 = [[Exp] != [Exp]] {left}
   Exp.Neq2 = [[Exp] <> [Exp]] {left}
@@ -91,6 +92,11 @@ context-free syntax // extract
   ExtractField.TimezoneHour = <TIMEZONE_HOUR> {case-insensitive}
   ExtractField.TimezoneMinute = <TIMEZONE_MINUTE> {case-insensitive}
 
+context-free syntax // substring
+
+  Exp.CharacterSubstring = <SUBSTRING(<Exp> FROM <Exp> <StringLength?>)> {case-insensitive}
+  StringLength.StringLength = <FOR <Exp>> {case-insensitive}
+
 context-free priorities
 
   {
@@ -108,6 +114,11 @@ context-free priorities
     right:
       Exp.UMin
       Exp.Legacy10Not
+  }
+  >
+  {
+    left:
+      Exp.Cct
   }
   >
   {

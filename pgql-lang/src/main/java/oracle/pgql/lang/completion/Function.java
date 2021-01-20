@@ -19,7 +19,10 @@ public enum Function implements Keyword {
   EXTRACT("EXTRACT", "EXTRACT", " field FROM exp", "extract datetime field out of a datetime expression"), //
   IN("IN", "exp IN", "(val1, val2, ...)", "check if expression is in array of values"), //
   IS_NULL("IS NULL", "exp IS NULL", "", "check if expression is null"), //
-  IS_NOT_NULL("IS NOT NULL", "exp IS NOT NULL", "", "check if expression is not null");
+  IS_NOT_NULL("IS NOT NULL", "exp IS NOT NULL", "", "check if expression is not null"), //
+  UPPER("UPPER", "upper", "(exp)", "uppercase value of the string expression"), //
+  LOWER("LOWER", "lower", "(exp)", "lowercase value of the string expression"), //
+  SUBSTRING("SUBSTRING", "substring", "(exp FROM start FOR length)", "substring from start index and of given length");
   
   private final Fields fields;
   

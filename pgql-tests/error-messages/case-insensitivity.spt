@@ -16,6 +16,13 @@ test Duplicate column in SELECT (2) [[
 
 ]] error like "Duplicate column name in SELECT" at #1, #2
 
+test Duplicate column in SELECT (3) [[
+
+  SELECT 123 AS [[prop]], 456 AS [["prop"]], n.[[age]], n.[["age"]]
+    FROM MATCH (n)
+
+]] error like "Duplicate column name in SELECT" at #1, #2, #3, #4
+
 test Duplicate column in GOUP BY [[
 
     SELECT prop AS prop
