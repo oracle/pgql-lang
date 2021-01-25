@@ -43,7 +43,7 @@ public class CreatePropertyGraph implements PgqlStatement {
   public CreatePropertyGraph(SchemaQualifiedName graphName, List<VertexTable> vertexTables,
       List<EdgeTable> edgeTables) {
     this.graphName = graphName;
-    this.organization = Organization.PG_VIEW;
+    this.organization = Organization.PG_SCHEMA;
     this.vertexTables = vertexTables;
     this.edgeTables = edgeTables;
   }
