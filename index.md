@@ -92,55 +92,16 @@ The result is:
 
 Please see [PGQL 1.3 Specification](spec/1.3/) for more examples and a detailed specification of the language.
 
-Oracle products and toolkits
+Oracle's Graph Database
 ----------------------------
 
-PGQL is part of the following Oracle products or toolkits and we invite you to try them out and/or reach out to us for help getting started.
+PGQL is one of the central components of [Oracle's Graph Database](https://www.oracle.com/database/graph/).
+Graphs can be created through mapping from tabular data by using PGQL's `CREATE PROPERTY GRAPH` statement.
+Results of PGQL `SELECT` queries can be visualized in intuitive manner.
+In addition to PGQL, Oracle's Graph Database provides support for RDF knowledge graphs, powerful built-in graph algorithms, support for popular notebooks, and much more.
 
 {::nomarkdown}
-</br>
-<table>
-<tr>
-  <td width="50%">
-    <a href="https://www.oracle.com/database/technologies/spatialandgraph.html">
-      <img src="images/spatial_and_graph.png" alt="Oracle Spatial and Graph - Home" style="width:500px;">
-    </a>
-  </td>
-  <td width="50%" style="vertical-align:middle;">
-<p><font size="5">Oracle Spatial and Graph</font></p>
-<p>
-Oracle Spatial and Graph offers the industry’s most comprehensive, advanced database for enterprise spatial applications and high performance, secure graph databases. With Oracle Database 19c, in the cloud and on premises, it powers applications from GIS and location services to fraud detection, social networks, linked data and knowledge management.
-</p>
-  </td>
-</tr>
-
-<tr>
-  <td width="50%">
-    <a href="https://www.oracle.com/technetwork/database/database-technologies/bigdata-spatialandgraph/overview/index.html">
-      <img src="images/big_data_spatial_and_graph.png" alt="Oracle Big Data Spatial and Graph - Home" style="width:500px;">
-    </a>
-  </td>
-  <td width="50%" style="vertical-align:middle;">
-<p><font size="5">Oracle Big Data Spatial and Graph</font></p>
-<p>
-Oracle Big Data Spatial and Graph Spatial and graph provides analytic services and data models that support Big Data workloads on Apache Hadoop and NoSQL database technologies.
-</p>
-  </td>
-</tr>
-
-<tr>
-  <td width="50%">
-    <a href="https://www.oracle.com/middleware/technologies/parallel-graph-analytix.html">
-      <img src="images/pgx.png" alt="PGX - Home" style="width:500px;">
-    </a>
-  </td>
-  <td width="50%" style="vertical-align:middle;">
-<p><font size="5">Oracle Labs PGX: Parallel Graph AnalytiX</font></p>
-<p>
-PGX is a toolkit for graph analysis - both running algorithms such as PageRank against graphs, and performing SQL-like pattern-matching against graphs, using the results of algorithmic analysis. Algorithms are parallelized for extreme performance.
-</p>
-  </td>
-</tr>
-
-</table>
+<a href="https://www.oracle.com/database/graph/">
+  <img src="images/oracle_graph_database.png" alt="Oracle's Graph Database" style="width:500px;">
+</a>
 {:/}

@@ -27,12 +27,7 @@ topnav_dropdowns:
       folderitems:
         - title: Open-sourced PGQL parser
           external_url: https://github.com/oracle/pgql-lang/
-        - title: Oracle Spatial and Graph
-          external_url: https://www.oracle.com/database/spatial/index.html
-        - title: Oracle Big Data Spatial and Graph
-          external_url: https://www.oracle.com/technetwork/database/database-technologies/bigdata-spatialandgraph/overview/index.html
+        - title: Oracle's Graph Database
+          external_url: https://www.oracle.com/database/graph/
         - title: Oracle Labs PGX
           external_url: https://www.oracle.com/middleware/technologies/parallel-graph-analytix.html
-        - title: Oracle Home
-          external_url: https://www.oracle.com/
-
