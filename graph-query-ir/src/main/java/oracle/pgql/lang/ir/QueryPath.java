@@ -22,14 +22,18 @@ public class QueryPath extends VertexPairConnection {
 
   private int kValue;
 
+  private boolean withTies;
+
   public QueryPath(QueryVertex src, QueryVertex dst, String name, CommonPathExpression commonPathExpression,
-      boolean anonymous, long minHops, long maxHops, PathFindingGoal goal, int kValue, Direction direction) {
+      boolean anonymous, long minHops, long maxHops, PathFindingGoal goal, int kValue, boolean withTies,
+      Direction direction) {
     super(src, dst, name, anonymous, direction);
     this.commonPathExpression = commonPathExpression;
     this.minHops = minHops;
     this.maxHops = maxHops;
     this.goal = goal;
     this.kValue = kValue;
+    this.withTies = withTies;
   }
 
   public String getPathExpressionName() {
@@ -110,6 +114,14 @@ public class QueryPath extends VertexPairConnection {
     this.kValue = kValue;
   }
 
+  public boolean getWithTies() {
+    return withTies;
+  }
+
+  public void setWithTies(boolean withTies) {
+    this.withTies = withTies;
+  }
+
   @Override
   public VariableType getVariableType() {
     return VariableType.PATH;
@@ -135,8 +147,9 @@ public class QueryPath extends VertexPairConnection {
   }
 
   private String printShortestCheapest(PathFindingGoal goal) {
-    String kValueAsString = kValue == 1 ? "" : "TOP " + kValue + " ";
-    String result = kValueAsString + goal + " ( " + getSrc() + " ";
+    String kValueAsString = kValue > 1 ? "TOP " + kValue + " " : "";
+    String allAsString = withTies ? "ALL " : "";
+    String result = kValueAsString + allAsString + goal + " ( " + getSrc() + " ";
     String pathExpression = printPathExpression(commonPathExpression, true);
     if (pathExpression.contains("WHERE") || pathExpression.contains("COST") || pathExpression.startsWith("(")
         || pathExpression.endsWith(")")) {
@@ -179,6 +192,8 @@ public class QueryPath extends VertexPairConnection {
     if (goal != other.goal)
       return false;
     if (kValue != other.kValue)
+      return false;
+    if (withTies != other.withTies)
       return false;
     return true;
   }

@@ -27,7 +27,7 @@ signature constructors // for the normalized AST (see trans/normalize.str)
   Edges                 : List(Edge) -> Edges
   NormalizedEdge        : Var * Var * Var * Direction * Quantifier * Constraints -> Edge
   Paths                 : List(Path) -> Paths
-  Path                  : Var * Var * PathPatternRef * Option(KleeneStar) * Var * Direction * PathFindingSemantic * KValue -> Path
+  Path                  : Var * Var * PathPatternRef * Option(KleeneStar) * Var * Direction * PathFindingSemantic * TopKAnyAll -> Path
   Constraints           : List(Exp) -> Constraints
   Incoming              : Direction
   Outgoing              : Direction
@@ -55,7 +55,6 @@ signature constructors // for the normalized AST (see trans/normalize.str)
   Reaches               : Reaches
   Shortest              : Shortest
   Cheapest              : Cheapest
-  INTEGER               : KValue
 
   VertexInsertion       : Identifier * OriginPosition * LabelsSpecification * PropertiesSpecification -> VertexInsertion
   DirectedEdgeInsertion : Identifier * OriginPosition * Source * Destination * LabelsSpecification * PropertiesSpecification -> DirectedEdgeInsertion

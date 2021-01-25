@@ -15,6 +15,7 @@ import java.util.Set;
 
 import org.spoofax.interpreter.terms.IStrategoAppl;
 import org.spoofax.interpreter.terms.IStrategoTerm;
+import org.spoofax.interpreter.terms.TermType;
 
 import oracle.pgql.lang.ir.CommonPathExpression;
 import oracle.pgql.lang.ir.Direction;
@@ -142,7 +143,7 @@ public class SpoofaxAstToGraphQuery {
   private static final int POS_PATH_NAME = 4;
   private static final int POS_PATH_DIRECTION = 5;
   private static final int POS_PATH_FINDING_GOAL = 6;
-  private static final int POS_PATH_K_VALUE = 7;
+  private static final int POS_PATH_TOP_K_ANY_ALL = 7;
 
   private static final int POS_ORDERBY_EXP = 0;
   private static final int POS_ORDERBY_ORDERING = 1;
@@ -282,7 +283,7 @@ public class SpoofaxAstToGraphQuery {
 
     IStrategoTerm projectionElemsT = selectOrUpdateT.getSubterm(POS_PROJECTION_ELEMS);
     List<ExpAsVar> selectElems;
-    if (projectionElemsT.getTermType() == IStrategoTerm.APPL
+    if (projectionElemsT.getType() == TermType.APPL
         && ((IStrategoAppl) projectionElemsT).getConstructor().getName().equals("Star")) {
       // GROUP BY in combination with SELECT *. Even though the parser will generate
       // an error for it, the
@@ -660,10 +661,11 @@ public class SpoofaxAstToGraphQuery {
     QueryVertex dst = getQueryVertex(vertexMap, dstName);
     PathFindingGoal goal = PathFindingGoal.REACHES;
     int kValue = -1;
+    boolean withTies = false;
 
     QueryPath path = name.contains(GENERATED_VAR_SUBSTR)
-        ? new QueryPath(src, dst, name, commonPathExpression, true, minHops, maxHops, goal, kValue, direction)
-        : new QueryPath(src, dst, name, commonPathExpression, false, minHops, maxHops, goal, kValue, direction);
+        ? new QueryPath(src, dst, name, commonPathExpression, true, minHops, maxHops, goal, kValue, withTies, direction)
+        : new QueryPath(src, dst, name, commonPathExpression, false, minHops, maxHops, goal, kValue, withTies, direction);
 
     return path;
   }
@@ -702,12 +704,27 @@ public class SpoofaxAstToGraphQuery {
     IStrategoTerm pathExpressionT = pathT.getSubterm(POS_PATH_EXPRESSION);
     CommonPathExpression pathExpression = getPathExpression(pathExpressionT, ctx);
 
-    IStrategoTerm kValueT = pathT.getSubterm(POS_PATH_K_VALUE);
+    IStrategoTerm topKAnyAllT = pathT.getSubterm(POS_PATH_TOP_K_ANY_ALL);
+    boolean withTies = false; // default
+    int kValue = 1; // default
+    if (isSome(topKAnyAllT)) {
+      IStrategoAppl topKAnyAllContent = (IStrategoAppl) getSome(topKAnyAllT);
+      switch (topKAnyAllContent.getName()) {
+        case "TopK":
+          kValue = parseInt(topKAnyAllContent.getSubterm(0));
+          break;
+        case "Any":
+          break;
+        case "All":
+          withTies = true;
+          break;
+        default:
+          throw new IllegalArgumentException(topKAnyAllContent.getName());
+      }
+    }
 
-    int kValue = kValueT.getTermType() == IStrategoTerm.APPL && isNone(kValueT) ? -1
-        : parseInt(pathT.getSubterm(POS_PATH_K_VALUE));
-
-    QueryPath path = new QueryPath(src, dst, name, pathExpression, true, minHops, maxHops, goal, kValue, direction);
+    QueryPath path = new QueryPath(src, dst, name, pathExpression, true, minHops, maxHops, goal, kValue, withTies,
+        direction);
 
     return path;
   }

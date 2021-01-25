@@ -31,8 +31,8 @@ test Mixed group and non-group variables [[
   SELECT MIN(AVG([[e1]].weight)) AS minAvg1
        , AVG([[e2]].weight) AS avg1
        , AVG([[e3]].weight) AS avg2
-       , AVG([[e4]].weight) AS avg3
-       , AVG([[e5]].weight) AS avg4
+       , AVG(AVG([[e4]].weight)) AS avg3
+       , AVG(AVG([[e5]].weight)) AS avg4
        , MIN(AVG([[e6]].weight)) AS minAvg2
     FROM g MATCH
            SHORTEST ( (n) -[ [[e1]] ]->* (m) )

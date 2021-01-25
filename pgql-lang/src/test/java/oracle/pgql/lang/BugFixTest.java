@@ -202,10 +202,10 @@ public class BugFixTest extends AbstractPgqlTest {
   }
 
   @Test
-  public void errorOnMissingKleeneStar() throws Exception {
+  public void errorOnMissingQuantifier() throws Exception {
     String shortestQuery = "SELECT * MATCH SHORTEST ((n) -[e]-> (m))";
     String cheapestQuery = "SELECT * MATCH SHORTEST ((n) -[e]-> (m))";
-    String errorMessage = "Kleene star (*) required for now";
+    String errorMessage = "Quantifier of the form * or + or {1,4} expected";
     assertTrue(pgql.parse(shortestQuery).getErrorMessages().contains(errorMessage));
     assertTrue(pgql.parse(cheapestQuery).getErrorMessages().contains(errorMessage));
   }

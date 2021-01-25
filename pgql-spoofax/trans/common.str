@@ -77,7 +77,7 @@ rules
   origin-text = fail
   origin-offset = fail
 
-  has-at-most-one-binding = ?None() + ?Some(BetweenNAndM(_, "0")) + ?Some(BetweenNAndM(_, "1"))
+  has-at-most-one-binding = ?None() + ?Some(BetweenNAndM("0", "1")); origin-text; ?"?"
 
   is-ddl-statement = is-CreatePropertyGraph + is-DropPropertyGraph + is-CreateExternalSchema + is-DropExternalSchema
   is-CreatePropertyGraph = ?CreatePropertyGraph(_, _, _)
