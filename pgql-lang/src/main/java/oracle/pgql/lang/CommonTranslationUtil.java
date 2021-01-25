@@ -17,6 +17,7 @@ import org.spoofax.interpreter.terms.IStrategoAppl;
 import org.spoofax.interpreter.terms.IStrategoInt;
 import org.spoofax.interpreter.terms.IStrategoString;
 import org.spoofax.interpreter.terms.IStrategoTerm;
+import org.spoofax.interpreter.terms.TermType;
 
 import oracle.pgql.lang.ir.GraphQuery;
 import oracle.pgql.lang.ir.QueryExpression;
@@ -95,32 +96,32 @@ public class CommonTranslationUtil {
   private static final int POS_LENGTH_EXP = 0;
 
   protected static String getString(IStrategoTerm t) {
-    while (t.getTermType() != IStrategoTerm.STRING) {
+    while (t.getType() != TermType.STRING) {
       t = t.getSubterm(0); // data values are often wrapped multiple times, e.g. Some(LimitClause("10"))
     }
     return ((IStrategoString) t).stringValue();
   }
 
   protected static int getInt(IStrategoTerm t) {
-    while (t.getTermType() != IStrategoTerm.INT) {
+    while (t.getType() != TermType.INT) {
       t = t.getSubterm(0); // data values are often wrapped multiple times, e.g. Some(LimitClause("10"))
     }
     return ((IStrategoInt) t).intValue();
   }
 
   protected static IStrategoTerm getList(IStrategoTerm t) {
-    while (t.getTermType() != IStrategoTerm.LIST) {
+    while (t.getType() != TermType.LIST) {
       t = t.getSubterm(0); // data values are often wrapped multiple times, e.g. Some(OrderElems([...]))
     }
     return t;
   }
 
   protected static boolean isNone(IStrategoTerm t) {
-    return t.getTermType() == IStrategoTerm.APPL && ((IStrategoAppl) t).getConstructor().getName().equals("None");
+    return t.getType() == TermType.APPL && ((IStrategoAppl) t).getConstructor().getName().equals("None");
   }
 
   protected static boolean isSome(IStrategoTerm t) {
-    return t.getTermType() == IStrategoTerm.APPL && ((IStrategoAppl) t).getConstructor().getName().equals("Some");
+    return t.getType() == TermType.APPL && ((IStrategoAppl) t).getConstructor().getName().equals("Some");
   }
 
   protected static IStrategoTerm getSome(IStrategoTerm t) {
