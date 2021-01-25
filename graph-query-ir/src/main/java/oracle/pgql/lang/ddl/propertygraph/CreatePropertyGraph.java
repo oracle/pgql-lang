@@ -146,6 +146,11 @@ public class CreatePropertyGraph implements PgqlStatement {
         return false;
     } else if (!vertexTables.equals(other.vertexTables))
       return false;
+    if (organization == null) {
+      if (other.organization != null)
+        return false;
+    } else if (!organization.equals(other.organization))
+      return false;
     return true;
   }
 }
