@@ -12,10 +12,20 @@ import oracle.pgql.lang.ir.StatementType;
 
 public class CreatePropertyGraph implements PgqlStatement {
 
+  public enum Organization {
+    PG_SCHEMA,
+    PG_VIEW
+  }
+
   /**
    * The name of the property graph.
    */
   private SchemaQualifiedName graphName;
+
+  /**
+   * The organization of the property graph.
+   */
+  private Organization organization;
 
   /**
    * Vertex tables. List may be empty but cannot be null.
@@ -33,6 +43,7 @@ public class CreatePropertyGraph implements PgqlStatement {
   public CreatePropertyGraph(SchemaQualifiedName graphName, List<VertexTable> vertexTables,
       List<EdgeTable> edgeTables) {
     this.graphName = graphName;
+    this.organization = Organization.PG_VIEW;
     this.vertexTables = vertexTables;
     this.edgeTables = edgeTables;
   }
@@ -43,6 +54,14 @@ public class CreatePropertyGraph implements PgqlStatement {
 
   public void setGraphName(SchemaQualifiedName graphName) {
     this.graphName = graphName;
+  }
+
+  public Organization getOrganization() {
+    return organization;
+  }
+
+  public void setOrganization(String organization) {
+    this.organization = Organization.valueOf(organization);
   }
 
   public List<VertexTable> getVertexTables() {
@@ -63,7 +82,14 @@ public class CreatePropertyGraph implements PgqlStatement {
 
   @Override
   public String toString() {
-    return "CREATE PROPERTY GRAPH " + graphName + printVertexTables() + printEdgeTables();
+    return "CREATE PROPERTY GRAPH " + graphName + printOrganization() + printVertexTables() + printEdgeTables();
+  }
+
+  private String printOrganization() {
+    if (Organization.PG_SCHEMA.equals(organization)) {
+      return "";
+    }
+    return "\n  ORGANIZATION " + organization;
   }
 
   private String printVertexTables() {
