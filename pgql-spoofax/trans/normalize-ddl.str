@@ -20,11 +20,21 @@ imports
 rules // CREATE PROPERTY GRAPH
 
   normalize-CreatePropertyGraph:
-    t@CreatePropertyGraph(_, _, _) -> result
-    with CreatePropertyGraph(graphName, vertexTables, edgeTables) := <alltd(norm-identifier)> t
+    t@CreatePropertyGraph(_, _, _, _) -> result
+    with CreatePropertyGraph(graphName, organization, vertexTables, edgeTables) := <alltd(norm-identifier)> t
+       ; organization' := <normalize-organization> organization
        ; vertexTables' := <?Some(<id>); VertexTables(map(normalize-VertexTable)) + ?None(); !VertexTables([])> vertexTables
        ; edgeTables' := <?Some(<id>); EdgeTables(map(normalize-EdgeTable)) + ?None(); !EdgeTables([])> edgeTables
-       ; result := <alltd(normalize-LabelAndProperties)> CreatePropertyGraph(graphName, vertexTables', edgeTables')
+       ; result := <alltd(normalize-LabelAndProperties)> CreatePropertyGraph(graphName, organization', vertexTables', edgeTables')
+
+  normalize-organization:
+    Some(OrganizationClause(PgSchema())) -> "PG_SCHEMA"
+
+  normalize-organization:
+    Some(OrganizationClause(PgView())) -> "PG_VIEW"
+
+  normalize-organization:
+    None() -> "PG_SCHEMA"
 
   normalize-VertexTable:
     VertexTable(name@Name(_, tableName), tableAlias, keyClause, labelAndPropertiesClause)
