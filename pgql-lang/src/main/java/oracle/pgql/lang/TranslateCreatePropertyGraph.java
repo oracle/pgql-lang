@@ -30,11 +30,11 @@ public class TranslateCreatePropertyGraph {
 
   private static int CREATE_PROPERTY_GRAPH_NAME = 0;
 
-  private static int CREATE_PROPERTY_GRAPH_ORGANIZATION = 1;
+  private static int CREATE_PROPERTY_GRAPH_VERTEX_TABLES = 1;
 
-  private static int CREATE_PROPERTY_GRAPH_VERTEX_TABLES = 2;
+  private static int CREATE_PROPERTY_GRAPH_EDGE_TABLES = 2;
 
-  private static int CREATE_PROPERTY_GRAPH_EDGE_TABLES = 3;
+  private static int CREATE_PROPERTY_GRAPH_OPTIONS = 3;
 
   private static int VERTEX_TABLES_TABLES_LIST = 0;
 
@@ -92,14 +92,16 @@ public class TranslateCreatePropertyGraph {
 
     SchemaQualifiedName graphName = getSchemaQualifiedName(graphNameT);
 
-    String organization = getString(ast.getSubterm(CREATE_PROPERTY_GRAPH_ORGANIZATION));
-
     List<VertexTable> vertexTables = getVertexTables(ast.getSubterm(CREATE_PROPERTY_GRAPH_VERTEX_TABLES));
 
     List<EdgeTable> edgeTables = getEdgeTables(ast.getSubterm(CREATE_PROPERTY_GRAPH_EDGE_TABLES), vertexTables);
 
+    IStrategoTerm optionsT = ast.getSubterm(CREATE_PROPERTY_GRAPH_OPTIONS);
+
+    String options = isNone(optionsT) ? null : getString(optionsT);
+
     CreatePropertyGraph cpg = new CreatePropertyGraph(graphName, vertexTables, edgeTables);
-    cpg.setOrganization(organization);
+    cpg.setOptions(options);
     return cpg;
   }
 
