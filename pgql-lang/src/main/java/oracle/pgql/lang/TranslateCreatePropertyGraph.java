@@ -30,9 +30,11 @@ public class TranslateCreatePropertyGraph {
 
   private static int CREATE_PROPERTY_GRAPH_NAME = 0;
 
-  private static int CREATE_PROPERTY_GRAPH_VERTEX_TABLES = 1;
+  private static int CREATE_PROPERTY_GRAPH_ORGANIZATION = 1;
 
-  private static int CREATE_PROPERTY_GRAPH_EDGE_TABLES = 2;
+  private static int CREATE_PROPERTY_GRAPH_VERTEX_TABLES = 2;
+
+  private static int CREATE_PROPERTY_GRAPH_EDGE_TABLES = 3;
 
   private static int VERTEX_TABLES_TABLES_LIST = 0;
 
@@ -90,11 +92,15 @@ public class TranslateCreatePropertyGraph {
 
     SchemaQualifiedName graphName = getSchemaQualifiedName(graphNameT);
 
+    String organization = getString(ast.getSubterm(CREATE_PROPERTY_GRAPH_ORGANIZATION));
+
     List<VertexTable> vertexTables = getVertexTables(ast.getSubterm(CREATE_PROPERTY_GRAPH_VERTEX_TABLES));
 
     List<EdgeTable> edgeTables = getEdgeTables(ast.getSubterm(CREATE_PROPERTY_GRAPH_EDGE_TABLES), vertexTables);
 
-    return new CreatePropertyGraph(graphName, vertexTables, edgeTables);
+    CreatePropertyGraph cpg = new CreatePropertyGraph(graphName, vertexTables, edgeTables);
+    cpg.setOrganization(organization);
+    return cpg;
   }
 
   private static List<VertexTable> getVertexTables(IStrategoTerm vertexTablesT) throws PgqlException {

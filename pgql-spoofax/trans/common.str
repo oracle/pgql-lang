@@ -80,7 +80,7 @@ rules
   has-at-most-one-binding = ?None() + ?Some(BetweenNAndM("0", "1")); origin-text; ?"?"
 
   is-ddl-statement = is-CreatePropertyGraph + is-DropPropertyGraph + is-CreateExternalSchema + is-DropExternalSchema
-  is-CreatePropertyGraph = ?CreatePropertyGraph(_, _, _)
+  is-CreatePropertyGraph = ?CreatePropertyGraph(_, _, _, _)
   is-DropPropertyGraph = ?DropPropertyGraph(_)
   is-CreateExternalSchema = ?CreateExternalSchema(_, _, _)
   is-DropExternalSchema = ?DropExternalSchema(_)
