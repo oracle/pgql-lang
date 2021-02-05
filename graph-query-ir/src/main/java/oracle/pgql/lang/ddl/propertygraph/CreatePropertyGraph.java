@@ -30,7 +30,7 @@ public class CreatePropertyGraph implements PgqlStatement {
   /**
    * The options of the property graph.
    */
-  private String options;
+  private List<String> options;
 
   /**
    * The constructor.
@@ -51,11 +51,11 @@ public class CreatePropertyGraph implements PgqlStatement {
     this.graphName = graphName;
   }
 
-  public String getOptions() {
+  public List<String> getOptions() {
     return options;
   }
 
-  public void setOptions(String options) {
+  public void setOptions(List<String> options) {
     this.options = options;
   }
 
@@ -84,7 +84,7 @@ public class CreatePropertyGraph implements PgqlStatement {
     if (options == null) {
       return "";
     }
-    return "\n  OPTIONS( " + options + " )";
+    return "\n  OPTIONS( " + options.stream().collect(Collectors.joining(", ")) + " )";
   }
 
   private String printVertexTables() {

@@ -14,7 +14,7 @@ context-free syntax // CREATE PROPERTY GRAPH
 
   Statement.CreatePropertyGraph = <CREATE PROPERTY GRAPH <GraphName> <VertexTables?> <EdgeTables?> <OptionsClause?>> {case-insensitive}
 
-  OptionsClause.OptionsClause = <OPTIONS ( <REGULAR-IDENTIFIER> )> {case-insensitive}
+  OptionsClause.OptionsClause = <OPTIONS ( <{REGULAR-IDENTIFIER ","}+> )> {case-insensitive}
 
   VertexTables.VertexTables = <VERTEX TABLES ( <{VertexTable ","}+> )> {case-insensitive}
 

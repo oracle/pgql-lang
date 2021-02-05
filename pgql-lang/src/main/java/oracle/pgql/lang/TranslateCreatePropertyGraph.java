@@ -16,6 +16,7 @@ import oracle.pgql.lang.ir.QueryExpression;
 import oracle.pgql.lang.ir.SchemaQualifiedName;
 import oracle.pgql.lang.ir.PgqlStatement;
 
+import static oracle.pgql.lang.CommonTranslationUtil.getList;
 import static oracle.pgql.lang.CommonTranslationUtil.getSchemaQualifiedName;
 import static oracle.pgql.lang.CommonTranslationUtil.getSome;
 import static oracle.pgql.lang.CommonTranslationUtil.getString;
@@ -98,7 +99,7 @@ public class TranslateCreatePropertyGraph {
 
     IStrategoTerm optionsT = ast.getSubterm(CREATE_PROPERTY_GRAPH_OPTIONS);
 
-    String options = isNone(optionsT) ? null : getString(optionsT);
+    List<String> options = isNone(optionsT) ? null : getOptions(optionsT);
 
     CreatePropertyGraph cpg = new CreatePropertyGraph(graphName, vertexTables, edgeTables);
     cpg.setOptions(options);
@@ -228,5 +229,14 @@ public class TranslateCreatePropertyGraph {
           throw new IllegalArgumentException(propertiesSpecificationType);
       }
     }
+  }
+
+  private static List<String> getOptions(IStrategoTerm optionsT) throws PgqlException {
+    IStrategoTerm optionsListT = getList(optionsT);
+    List<String> options = new ArrayList<>();
+    for (IStrategoTerm optionT : optionsListT) {
+      options.add(getString(optionT));
+    }
+    return options;
   }
 }
