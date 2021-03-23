@@ -1252,8 +1252,7 @@ Details of the different clauses of a query can be found in the following sectio
 
  - The [path pattern macros](#path-pattern-macros) allow for specifying complex reachability queries.
  - The [SELECT](#select) clause specifies what should be returned.
- - The [FROM](#from) clause specifies the name of the input graph.
- - The [MATCH](#match) clause specifies the graph pattern that is to be matched.
+ - The [FROM](#from) clause defines the graph pattern that is to be matched.
  - The [WHERE](#where) clause specifies filters.
  - The [GROUP BY](#group-by) clause allows for creating groups of results.
  - The [HAVING](#having) clause allows for filtering entire groups of results.
