@@ -15,15 +15,7 @@ toc: false
 
 PGQL is a graph pattern-matching query language for the [property graph data model](#property-graph-data-model). This document specifies the syntax and semantics of the language.
 
-{% include note.html content="PGQL 1.3 is available starting with
-[Oracle Graph Server and Client](https://edelivery.oracle.com/) version 20.2
-(incl. [Parallel Graph AnalytiX (PGX)](https://www.oracle.com/middleware/technologies/parallel-graph-analytix.html) version 20.0),
-for the [Oracle Database](https://www.oracle.com/database/technologies/spatialandgraph.html)
-and [Oracle Big Data Spatial and Graph](https://www.oracle.com/database/technologies/bigdata-spatialandgraph.html).
-
-Backwards compatibility is maintained by accepting PGQL 1.0, PGQL 1.1, PGQL 1.2 and PGQL 1.3 queries interchangeably.
-The changes to unquoted identifiers, string literals and SELECT and GROUP BY clauses described below are only effective when using the new `SELECT .. FROM MATCH ..` style
-of PGQL 1.3." %}
+When working with graph feature of Oracle Database, you can use PGQL by installing [Graph Server and Client](https://www.oracle.com/database/technologies/spatialandgraph/property-graph-features/graph-server-and-client/graph-server-and-client-downloads.html) with Oracle Database 12.2 or later.
 
 ## Changelog
 
