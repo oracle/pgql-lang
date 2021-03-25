@@ -294,6 +294,18 @@ public class PrettyPrintingTest extends AbstractPgqlTest {
   }
 
   @Test
+  public void testAnyPath() throws Exception {
+    String query = "SELECT LISTAGG(e2.prop, ',') FROM MATCH ANY (n) ->* (m), MATCH ANY ( (n) <-[e2]-* (m) )";
+    checkRoundTrip(query);
+  }
+
+  @Test
+  public void testAllPath() throws Exception {
+    String query = "SELECT LISTAGG(e2.prop, ',') FROM MATCH ALL (n) ->{3} (m), MATCH ALL ( (n) <-[e2]-{,2} (m) )";
+    checkRoundTrip(query);
+  }
+
+  @Test
   public void testDeprecatedDefinitionInGroupBy() throws Exception {
     String query = "SELECT age FROM g MATCH (n) GROUP BY n.age AS age";
     checkRoundTrip(query);
@@ -566,6 +578,7 @@ public class PrettyPrintingTest extends AbstractPgqlTest {
      */
     PgqlResult result1 = pgql.parse(query1);
     PgqlStatement iR1 = result1.getPgqlStatement();
+    System.out.println(iR1);
     assertTrue(result1.getErrorMessages(), result1.isQueryValid() && iR1 != null);
     String query2 = iR1.toString();
     PgqlResult result2 = pgql.parse(query2);

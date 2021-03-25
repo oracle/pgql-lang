@@ -258,7 +258,7 @@ public class PgqlUtils {
       VertexPairConnection connection = connectionIt.next();
       uncoveredVertices.remove(connection.getSrc());
       uncoveredVertices.remove(connection.getDst());
-      if (isShortestCheapest(connection)) {
+      if (isShortestCheapestOrAll(connection)) {
         graphPatternMatches.add("MATCH " + connection.toString() + printOnClause(graphName));
       } else {
         graphPatternMatches.add(
@@ -284,13 +284,13 @@ public class PgqlUtils {
     return result;
   }
 
-  private static boolean isShortestCheapest(VertexPairConnection connection) {
+  private static boolean isShortestCheapestOrAll(VertexPairConnection connection) {
     if (connection.getVariableType() != VariableType.PATH) {
       return false;
     }
 
     PathFindingGoal goal = ((QueryPath) connection).getPathFindingGoal();
-    return goal == PathFindingGoal.SHORTEST || goal == PathFindingGoal.CHEAPEST;
+    return goal == PathFindingGoal.SHORTEST || goal == PathFindingGoal.CHEAPEST || goal == PathFindingGoal.ALL;
   }
 
   private static String printOnClause(SchemaQualifiedName graphName) {

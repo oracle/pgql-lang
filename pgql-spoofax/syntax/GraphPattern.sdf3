@@ -30,8 +30,12 @@ context-free syntax
 
   Connection.ParenthesizedPath = <( <RelaxedPathPattern> <WhereClause?> <CostClause?> )<PathQuantifier?>>
 
-  PathPattern.Shortest = <<TopKAnyAll?> SHORTEST ( <PathPattern> )> {case-insensitive}
-  PathPattern.Cheapest = <<TopKAnyAll?> CHEAPEST ( <PathPattern> )> {case-insensitive}
+  PathPattern.AnyPath = <ANY <OptionallyParenthesizedPathPattern>> {case-insensitive, avoid}
+  PathPattern.AllPaths = <ALL <OptionallyParenthesizedPathPattern>> {case-insensitive, avoid}
+  PathPattern.Shortest = <<TopKAnyAll?> SHORTEST <OptionallyParenthesizedPathPattern>> {case-insensitive, prefer}
+  PathPattern.Cheapest = <<TopKAnyAll?> CHEAPEST <OptionallyParenthesizedPathPattern>> {case-insensitive, prefer}
+  OptionallyParenthesizedPathPattern = <( <PathPattern> )>
+  OptionallyParenthesizedPathPattern = PathPattern
 
   TopKAnyAll.TopK = <TOP <UNSIGNED-INT>> {case-insensitive}
   TopKAnyAll.Any = <Any> {case-insensitive}

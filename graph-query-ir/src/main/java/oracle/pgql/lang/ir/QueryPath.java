@@ -137,16 +137,15 @@ public class QueryPath extends VertexPairConnection {
         }
         return path + ":" + printIdentifier(commonPathExpression.getName()) + printHops(this) + "/->";
       case SHORTEST:
-        return printShortestCheapest(goal);
       case CHEAPEST:
-        return printShortestCheapest(goal);
-
+      case ALL:
+        return printVariableLengthPathPattern(goal);
       default:
         throw new IllegalArgumentException(goal.toString());
     }
   }
 
-  private String printShortestCheapest(PathFindingGoal goal) {
+  private String printVariableLengthPathPattern(PathFindingGoal goal) {
     String kValueAsString = kValue > 1 ? "TOP " + kValue + " " : "";
     String allAsString = withTies ? "ALL " : "";
     String result = kValueAsString + allAsString + goal + " ( " + getSrc() + " ";

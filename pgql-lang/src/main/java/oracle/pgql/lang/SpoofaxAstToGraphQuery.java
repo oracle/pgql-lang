@@ -616,9 +616,11 @@ public class SpoofaxAstToGraphQuery {
       case "Reaches":
         return getReaches(pathT, ctx, vertexMap);
       case "Shortest":
-        return getShortestCheapest(pathT, ctx, vertexMap, PathFindingGoal.SHORTEST);
+        return getQueryPath(pathT, ctx, vertexMap, PathFindingGoal.SHORTEST);
       case "Cheapest":
-        return getShortestCheapest(pathT, ctx, vertexMap, PathFindingGoal.CHEAPEST);
+        return getQueryPath(pathT, ctx, vertexMap, PathFindingGoal.CHEAPEST);
+      case "All":
+        return getQueryPath(pathT, ctx, vertexMap, PathFindingGoal.ALL);
       default:
         throw new UnsupportedOperationException(pathFindingGoal);
     }
@@ -665,7 +667,8 @@ public class SpoofaxAstToGraphQuery {
 
     QueryPath path = name.contains(GENERATED_VAR_SUBSTR)
         ? new QueryPath(src, dst, name, commonPathExpression, true, minHops, maxHops, goal, kValue, withTies, direction)
-        : new QueryPath(src, dst, name, commonPathExpression, false, minHops, maxHops, goal, kValue, withTies, direction);
+        : new QueryPath(src, dst, name, commonPathExpression, false, minHops, maxHops, goal, kValue, withTies,
+            direction);
 
     return path;
   }
@@ -689,8 +692,8 @@ public class SpoofaxAstToGraphQuery {
     }
   }
 
-  private static QueryPath getShortestCheapest(IStrategoTerm pathT, TranslationContext ctx,
-      Map<String, QueryVertex> vertexMap, PathFindingGoal goal)
+  private static QueryPath getQueryPath(IStrategoTerm pathT, TranslationContext ctx, Map<String, QueryVertex> vertexMap,
+      PathFindingGoal goal)
       throws PgqlException {
     String srcName = getString(pathT.getSubterm(POS_PATH_SRC));
     String dstName = getString(pathT.getSubterm(POS_PATH_DST));
@@ -704,22 +707,25 @@ public class SpoofaxAstToGraphQuery {
     IStrategoTerm pathExpressionT = pathT.getSubterm(POS_PATH_EXPRESSION);
     CommonPathExpression pathExpression = getPathExpression(pathExpressionT, ctx);
 
-    IStrategoTerm topKAnyAllT = pathT.getSubterm(POS_PATH_TOP_K_ANY_ALL);
     boolean withTies = false; // default
     int kValue = 1; // default
-    if (isSome(topKAnyAllT)) {
-      IStrategoAppl topKAnyAllContent = (IStrategoAppl) getSome(topKAnyAllT);
-      switch (topKAnyAllContent.getName()) {
-        case "TopK":
-          kValue = parseInt(topKAnyAllContent.getSubterm(0));
-          break;
-        case "Any":
-          break;
-        case "All":
-          withTies = true;
-          break;
-        default:
-          throw new IllegalArgumentException(topKAnyAllContent.getName());
+
+    if (goal == PathFindingGoal.SHORTEST || goal == PathFindingGoal.CHEAPEST) {
+      IStrategoTerm topKAnyAllT = pathT.getSubterm(POS_PATH_TOP_K_ANY_ALL);
+      if (isSome(topKAnyAllT)) {
+        IStrategoAppl topKAnyAllContent = (IStrategoAppl) getSome(topKAnyAllT);
+        switch (topKAnyAllContent.getName()) {
+          case "TopK": // TOP k SHORTEST or TOP k CHEAPEST
+            kValue = parseInt(topKAnyAllContent.getSubterm(0));
+            break;
+          case "Any": // ANY SHORTEST or ANY CHEAPEST
+            break;
+          case "All": // ALL SHORTEST or ALL CHEAPEST
+            withTies = true;
+            break;
+          default:
+            throw new IllegalArgumentException(topKAnyAllContent.getName());
+        }
       }
     }
 
