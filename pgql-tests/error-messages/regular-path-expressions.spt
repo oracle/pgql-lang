@@ -96,6 +96,41 @@ test No quantifier in CHEAPEST [[
 
 ]] error like "Quantifier of the form * or + or {1,4} expected" at #1
 
+test No quantifier in ANY [[
+
+  SELECT *
+    FROM MATCH ANY  (n) [[(-[e1]->)]] (m)
+
+]] error like "Quantifier of the form * or + or {1,4} expected" at #1
+
+test No quantifier in ALL [[
+
+  SELECT *
+    FROM MATCH ALL (n) [[-[e1]-> (m)]]
+
+]] error like "Quantifier of the form {1,4} expected" at #1
+
+test Question mark in ALL [[
+
+  SELECT *
+    FROM MATCH ALL (n) -[e1]->[[?]] (m)
+
+]] error like "Quantifier of the form {1,4} expected" at #1
+
+test Unbounded ALL (1) [[
+
+  SELECT *
+    FROM MATCH ALL (n) -[e1]->[[{1,}]] (m)
+
+]] error like "Path finding goal ALL requires an upper bound on the path length" at #1
+
+test Unbounded ALL (2) [[
+
+  SELECT *
+    FROM MATCH ALL (n) -[e1]->[[+]] (m)
+
+]] error like "Path finding goal ALL requires an upper bound on the path length" at #1
+
 test Duplicate variables (1) [[
 
   SELECT n.prop AS nProp
