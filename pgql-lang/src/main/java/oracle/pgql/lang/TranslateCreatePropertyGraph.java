@@ -16,6 +16,7 @@ import oracle.pgql.lang.ir.QueryExpression;
 import oracle.pgql.lang.ir.SchemaQualifiedName;
 import oracle.pgql.lang.ir.PgqlStatement;
 
+import static oracle.pgql.lang.CommonTranslationUtil.getList;
 import static oracle.pgql.lang.CommonTranslationUtil.getSchemaQualifiedName;
 import static oracle.pgql.lang.CommonTranslationUtil.getSome;
 import static oracle.pgql.lang.CommonTranslationUtil.getString;
@@ -30,11 +31,11 @@ public class TranslateCreatePropertyGraph {
 
   private static int CREATE_PROPERTY_GRAPH_NAME = 0;
 
-  private static int CREATE_PROPERTY_GRAPH_ORGANIZATION = 1;
+  private static int CREATE_PROPERTY_GRAPH_VERTEX_TABLES = 1;
 
-  private static int CREATE_PROPERTY_GRAPH_VERTEX_TABLES = 2;
+  private static int CREATE_PROPERTY_GRAPH_EDGE_TABLES = 2;
 
-  private static int CREATE_PROPERTY_GRAPH_EDGE_TABLES = 3;
+  private static int CREATE_PROPERTY_GRAPH_OPTIONS = 3;
 
   private static int VERTEX_TABLES_TABLES_LIST = 0;
 
@@ -92,14 +93,16 @@ public class TranslateCreatePropertyGraph {
 
     SchemaQualifiedName graphName = getSchemaQualifiedName(graphNameT);
 
-    String organization = getString(ast.getSubterm(CREATE_PROPERTY_GRAPH_ORGANIZATION));
-
     List<VertexTable> vertexTables = getVertexTables(ast.getSubterm(CREATE_PROPERTY_GRAPH_VERTEX_TABLES));
 
     List<EdgeTable> edgeTables = getEdgeTables(ast.getSubterm(CREATE_PROPERTY_GRAPH_EDGE_TABLES), vertexTables);
 
+    IStrategoTerm optionsT = ast.getSubterm(CREATE_PROPERTY_GRAPH_OPTIONS);
+
+    List<String> options = isNone(optionsT) ? null : getOptions(optionsT);
+
     CreatePropertyGraph cpg = new CreatePropertyGraph(graphName, vertexTables, edgeTables);
-    cpg.setOrganization(organization);
+    cpg.setOptions(options);
     return cpg;
   }
 
@@ -226,5 +229,14 @@ public class TranslateCreatePropertyGraph {
           throw new IllegalArgumentException(propertiesSpecificationType);
       }
     }
+  }
+
+  private static List<String> getOptions(IStrategoTerm optionsT) throws PgqlException {
+    IStrategoTerm optionsListT = getList(optionsT);
+    List<String> options = new ArrayList<>();
+    for (IStrategoTerm optionT : optionsListT) {
+      options.add(getString(optionT));
+    }
+    return options;
   }
 }

@@ -486,26 +486,26 @@ public class PrettyPrintingTest extends AbstractPgqlTest {
   @Test
   public void testCreatePropertyGraphPgView() throws Exception {
     String statement = "CREATE PROPERTY GRAPH STUDENT_NETWORK\n" + //
-        "  ORGANIZATION PG_VIEW\n" + //
         "  VERTEX TABLES (\n" + //
         "    PERSON )\n" + //
         "  EDGE TABLES (\n" + //
         "    KNOWS\n" + //
         "      SOURCE PERSON\n" + //
-        "      DESTINATION PERSON )";
+        "      DESTINATION PERSON )\n" + //
+        "  OPTIONS(PG_VIEW)";
     checkRoundTrip(statement);
   }
 
   @Test
   public void testCreatePropertyGraphPgSchema() throws Exception {
     String statement = "CREATE PROPERTY GRAPH STUDENT_NETWORK\n" + //
-        "  ORGANIZATION PG_SCHEMA\n" + //
         "  VERTEX TABLES (\n" + //
         "    PERSON )\n" + //
         "  EDGE TABLES (\n" + //
         "    KNOWS\n" + //
         "      SOURCE PERSON\n" + //
-        "      DESTINATION PERSON )";
+        "      DESTINATION PERSON )\n" + //
+        "  OPTIONS(PG_SCHEMA)";
     checkRoundTrip(statement);
   }
 

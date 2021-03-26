@@ -12,20 +12,10 @@ import oracle.pgql.lang.ir.StatementType;
 
 public class CreatePropertyGraph implements PgqlStatement {
 
-  public enum Organization {
-    PG_SCHEMA,
-    PG_VIEW
-  }
-
   /**
    * The name of the property graph.
    */
   private SchemaQualifiedName graphName;
-
-  /**
-   * The organization of the property graph.
-   */
-  private Organization organization;
 
   /**
    * Vertex tables. List may be empty but cannot be null.
@@ -38,12 +28,17 @@ public class CreatePropertyGraph implements PgqlStatement {
   private List<EdgeTable> edgeTables;
 
   /**
+   * The options of the property graph.
+   */
+  private List<String> options;
+
+  /**
    * The constructor.
    */
   public CreatePropertyGraph(SchemaQualifiedName graphName, List<VertexTable> vertexTables,
       List<EdgeTable> edgeTables) {
     this.graphName = graphName;
-    this.organization = Organization.PG_SCHEMA;
+    this.options = null;
     this.vertexTables = vertexTables;
     this.edgeTables = edgeTables;
   }
@@ -56,12 +51,12 @@ public class CreatePropertyGraph implements PgqlStatement {
     this.graphName = graphName;
   }
 
-  public Organization getOrganization() {
-    return organization;
+  public List<String> getOptions() {
+    return options;
   }
 
-  public void setOrganization(String organization) {
-    this.organization = Organization.valueOf(organization);
+  public void setOptions(List<String> options) {
+    this.options = options;
   }
 
   public List<VertexTable> getVertexTables() {
@@ -82,14 +77,14 @@ public class CreatePropertyGraph implements PgqlStatement {
 
   @Override
   public String toString() {
-    return "CREATE PROPERTY GRAPH " + graphName + printOrganization() + printVertexTables() + printEdgeTables();
+    return "CREATE PROPERTY GRAPH " + graphName + printVertexTables() + printEdgeTables() + printOptions();
   }
 
-  private String printOrganization() {
-    if (Organization.PG_SCHEMA.equals(organization)) {
+  private String printOptions() {
+    if (options == null) {
       return "";
     }
-    return "\n  ORGANIZATION " + organization;
+    return "\n  OPTIONS( " + options.stream().collect(Collectors.joining(", ")) + " )";
   }
 
   private String printVertexTables() {
@@ -146,10 +141,10 @@ public class CreatePropertyGraph implements PgqlStatement {
         return false;
     } else if (!vertexTables.equals(other.vertexTables))
       return false;
-    if (organization == null) {
-      if (other.organization != null)
+    if (options == null) {
+      if (other.options != null)
         return false;
-    } else if (!organization.equals(other.organization))
+    } else if (!options.equals(other.options))
       return false;
     return true;
   }

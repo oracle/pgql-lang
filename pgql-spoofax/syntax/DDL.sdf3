@@ -12,13 +12,9 @@ template options
 
 context-free syntax // CREATE PROPERTY GRAPH
 
-  Statement.CreatePropertyGraph = <CREATE PROPERTY GRAPH <GraphName> <OrganizationClause?> <VertexTables?> <EdgeTables?>> {case-insensitive}
+  Statement.CreatePropertyGraph = <CREATE PROPERTY GRAPH <GraphName> <VertexTables?> <EdgeTables?> <OptionsClause?>> {case-insensitive}
 
-  OrganizationClause.OrganizationClause = <ORGANIZATION <Organization>> {case-insensitive}
-
-  Organization.PgView = <PG_VIEW> {case-insensitive}
-
-  Organization.PgSchema = <PG_SCHEMA> {case-insensitive}
+  OptionsClause.OptionsClause = <OPTIONS ( <{REGULAR-IDENTIFIER ","}+> )> {case-insensitive}
 
   VertexTables.VertexTables = <VERTEX TABLES ( <{VertexTable ","}+> )> {case-insensitive}
 
