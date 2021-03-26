@@ -578,7 +578,6 @@ public class PrettyPrintingTest extends AbstractPgqlTest {
      */
     PgqlResult result1 = pgql.parse(query1);
     PgqlStatement iR1 = result1.getPgqlStatement();
-    System.out.println(iR1);
     assertTrue(result1.getErrorMessages(), result1.isQueryValid() && iR1 != null);
     String query2 = iR1.toString();
     PgqlResult result2 = pgql.parse(query2);
