@@ -46,6 +46,8 @@ public class PgqlUtils {
 
   private final static Pattern ALL_UPPERCASED_IDENTIFIER = Pattern.compile("^[A-Z][A-Z0-9_]*$");
 
+  public final static String GENERATED_VAR_PREFIX = "<<anonymous>>_";
+
   // make sure to keep in sync with list of reserved words in pgql-spoofax/syntax/Names.sdf3
   private final static Set<String> RESERVED_WORDS = new HashSet<>(
       Arrays.asList("true", "false", "null", "not", "distinct"));
@@ -258,7 +260,7 @@ public class PgqlUtils {
       VertexPairConnection connection = connectionIt.next();
       uncoveredVertices.remove(connection.getSrc());
       uncoveredVertices.remove(connection.getDst());
-      if (isShortestCheapestOrAll(connection)) {
+      if (isVariableLengthPathPatternNotReaches(connection)) {
         graphPatternMatches.add("MATCH " + connection.toString() + printOnClause(graphName));
       } else {
         graphPatternMatches.add(
@@ -284,13 +286,14 @@ public class PgqlUtils {
     return result;
   }
 
-  private static boolean isShortestCheapestOrAll(VertexPairConnection connection) {
+  private static boolean isVariableLengthPathPatternNotReaches(VertexPairConnection connection) {
     if (connection.getVariableType() != VariableType.PATH) {
       return false;
     }
 
-    PathFindingGoal goal = ((QueryPath) connection).getPathFindingGoal();
-    return goal == PathFindingGoal.SHORTEST || goal == PathFindingGoal.CHEAPEST || goal == PathFindingGoal.ALL;
+    QueryPath queryPath = (QueryPath) connection;
+    PathFindingGoal goal = queryPath.getPathFindingGoal();
+    return goal != PathFindingGoal.REACHES || queryPath.getPathExpressionName().startsWith(GENERATED_VAR_PREFIX);
   }
 
   private static String printOnClause(SchemaQualifiedName graphName) {

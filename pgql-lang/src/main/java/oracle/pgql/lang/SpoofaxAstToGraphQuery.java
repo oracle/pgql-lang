@@ -612,28 +612,32 @@ public class SpoofaxAstToGraphQuery {
       throws PgqlException {
 
     String pathFindingGoal = ((IStrategoAppl) pathT.getSubterm(POS_PATH_FINDING_GOAL)).getConstructor().getName();
+    CommonPathExpression commonPathExpression;
+    IStrategoAppl pathExpressionT = (IStrategoAppl) pathT.getSubterm(POS_PATH_EXPRESSION);
+    if (pathExpressionT.getConstructor().getName().equals("CommonPathExpression")) {
+      commonPathExpression = getPathExpression(pathExpressionT, ctx);
+    } else {
+      commonPathExpression = getCommonPathExpressionFromReaches(pathT, ctx);
+    }
+
     switch (pathFindingGoal) {
       case "Reaches":
-        return getReaches(pathT, ctx, vertexMap);
+        return getQueryPath(pathT, ctx, vertexMap, PathFindingGoal.REACHES, commonPathExpression);
       case "Shortest":
-        return getQueryPath(pathT, ctx, vertexMap, PathFindingGoal.SHORTEST);
+        return getQueryPath(pathT, ctx, vertexMap, PathFindingGoal.SHORTEST, commonPathExpression);
       case "Cheapest":
-        return getQueryPath(pathT, ctx, vertexMap, PathFindingGoal.CHEAPEST);
+        return getQueryPath(pathT, ctx, vertexMap, PathFindingGoal.CHEAPEST, commonPathExpression);
       case "All":
-        return getQueryPath(pathT, ctx, vertexMap, PathFindingGoal.ALL);
+        return getQueryPath(pathT, ctx, vertexMap, PathFindingGoal.ALL, commonPathExpression);
       default:
         throw new UnsupportedOperationException(pathFindingGoal);
     }
   }
 
-  private static QueryPath getReaches(IStrategoTerm pathT, TranslationContext ctx, Map<String, QueryVertex> vertexMap)
-      throws PgqlException {
+  private static CommonPathExpression getCommonPathExpressionFromReaches(IStrategoTerm pathT, TranslationContext ctx) {
+    CommonPathExpression commonPathExpression;
     String label = getString(pathT.getSubterm(POS_PATH_EXPRESSION));
-    long minHops = getMinHops(pathT);
-    long maxHops = getMaxHops(pathT);
-
-    CommonPathExpression commonPathExpression = ctx.getCommonPathExpressions().get(label);
-
+    commonPathExpression = ctx.getCommonPathExpressions().get(label);
     if (commonPathExpression == null) { // no path expression defined for the label; generate one here
       QueryVertex src = new QueryVertex("n", true);
       QueryVertex dst = new QueryVertex("m", true);
@@ -654,46 +658,11 @@ public class SpoofaxAstToGraphQuery {
 
       commonPathExpression = new CommonPathExpression(label, vertices, connections, constraints);
     }
-
-    String srcName = getString(pathT.getSubterm(POS_PATH_SRC));
-    String dstName = getString(pathT.getSubterm(POS_PATH_DST));
-    String name = getString(pathT.getSubterm(POS_PATH_NAME));
-    Direction direction = getDirection(pathT.getSubterm(POS_PATH_DIRECTION));
-    QueryVertex src = getQueryVertex(vertexMap, srcName);
-    QueryVertex dst = getQueryVertex(vertexMap, dstName);
-    PathFindingGoal goal = PathFindingGoal.REACHES;
-    int kValue = -1;
-    boolean withTies = false;
-
-    QueryPath path = name.contains(GENERATED_VAR_SUBSTR)
-        ? new QueryPath(src, dst, name, commonPathExpression, true, minHops, maxHops, goal, kValue, withTies, direction)
-        : new QueryPath(src, dst, name, commonPathExpression, false, minHops, maxHops, goal, kValue, withTies,
-            direction);
-
-    return path;
-  }
-
-  private static long getMinHops(IStrategoTerm pathT) throws PgqlException {
-    return getMinMaxHops(pathT, true);
-  }
-
-  private static long getMaxHops(IStrategoTerm pathT) throws PgqlException {
-    return getMinMaxHops(pathT, false);
-  }
-
-  private static long getMinMaxHops(IStrategoTerm pathT, boolean min) throws PgqlException {
-    IStrategoTerm pathQuantifiersT = pathT.getSubterm(POS_PATH_QUANTIFIERS);
-    if (isSome(pathQuantifiersT)) {
-      pathQuantifiersT = getSome(pathQuantifiersT);
-      int position = min ? POS_PATH_QUANTIFIERS_MIN_HOPS : POS_PATH_QUANTIFIERS_MAX_HOPS;
-      return parseLong(pathQuantifiersT.getSubterm(position));
-    } else {
-      return 1;
-    }
+    return commonPathExpression;
   }
 
   private static QueryPath getQueryPath(IStrategoTerm pathT, TranslationContext ctx, Map<String, QueryVertex> vertexMap,
-      PathFindingGoal goal)
+      PathFindingGoal goal, CommonPathExpression commonPathExpression)
       throws PgqlException {
     String srcName = getString(pathT.getSubterm(POS_PATH_SRC));
     String dstName = getString(pathT.getSubterm(POS_PATH_DST));
@@ -703,9 +672,6 @@ public class SpoofaxAstToGraphQuery {
     Direction direction = getDirection(pathT.getSubterm(POS_PATH_DIRECTION));
     QueryVertex src = getQueryVertex(vertexMap, srcName);
     QueryVertex dst = getQueryVertex(vertexMap, dstName);
-
-    IStrategoTerm pathExpressionT = pathT.getSubterm(POS_PATH_EXPRESSION);
-    CommonPathExpression pathExpression = getPathExpression(pathExpressionT, ctx);
 
     boolean withTies = false; // default
     int kValue = 1; // default
@@ -729,10 +695,29 @@ public class SpoofaxAstToGraphQuery {
       }
     }
 
-    QueryPath path = new QueryPath(src, dst, name, pathExpression, true, minHops, maxHops, goal, kValue, withTies,
+    QueryPath path = new QueryPath(src, dst, name, commonPathExpression, true, minHops, maxHops, goal, kValue, withTies,
         direction);
 
     return path;
+  }
+
+  private static long getMinHops(IStrategoTerm pathT) throws PgqlException {
+    return getMinMaxHops(pathT, true);
+  }
+
+  private static long getMaxHops(IStrategoTerm pathT) throws PgqlException {
+    return getMinMaxHops(pathT, false);
+  }
+
+  private static long getMinMaxHops(IStrategoTerm pathT, boolean min) throws PgqlException {
+    IStrategoTerm pathQuantifiersT = pathT.getSubterm(POS_PATH_QUANTIFIERS);
+    if (isSome(pathQuantifiersT)) {
+      pathQuantifiersT = getSome(pathQuantifiersT);
+      int position = min ? POS_PATH_QUANTIFIERS_MIN_HOPS : POS_PATH_QUANTIFIERS_MAX_HOPS;
+      return parseLong(pathQuantifiersT.getSubterm(position));
+    } else {
+      return 1;
+    }
   }
 
   private static void giveAnonymousVariablesUniqueHiddenName(Collection<? extends QueryVariable> variables,
