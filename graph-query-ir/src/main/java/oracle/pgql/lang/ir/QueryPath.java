@@ -155,8 +155,8 @@ public class QueryPath extends VertexPairConnection {
   private String printVariableLengthPathPattern(PathFindingGoal goal) {
     String kValueAsString = kValue > 1 ? "TOP " + kValue + " " : "";
     String allAsString = withTies ? "ALL " : "";
-    String goalAsString = goal == PathFindingGoal.REACHES ? "ANY " : goal.toString();
-    String result = kValueAsString + allAsString + goalAsString + getSrc() + " ";
+    String goalAsString = goal == PathFindingGoal.REACHES ? "ANY" : goal.toString();
+    String result = kValueAsString + allAsString + goalAsString + " " + getSrc() + " ";
     String pathExpression = printPathExpression(commonPathExpression, true);
     if (pathExpression.contains("WHERE") || pathExpression.contains("COST") || pathExpression.startsWith("(")
         || pathExpression.endsWith(")")) {
