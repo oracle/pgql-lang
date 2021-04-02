@@ -25,7 +25,14 @@ The following are the changes since PGQL 1.3:
 
 The new features are:
 
-TODO
+- New path-finding goals:
+    - [ANY path](#any-path)
+    - [ALL SHORTEST path](#all-shortest-path)
+    - [ALL path](#all-path)
+- New character string functions:
+    - x
+    - y
+    - z
 
 ## A note on the Grammar
 
@@ -1255,10 +1262,13 @@ MatchClause            ::= 'MATCH' ( <PathPattern> | <GraphPattern> ) <OnClause>
 GraphPattern           ::= '(' <PathPattern> ( ',' <PathPattern> )* ')'
 
 PathPattern            ::=   <SimplePathPattern>
-                           | <ShortestPathPattern>
+                           | <AnyPathPattern>
+                           | <AnyShortestPathPattern>
+                           | <AllShortestPathPattern>
                            | <TopKShortestPathPattern>
-                           | <CheapestPathPattern>
+                           | <AnyCheapestPathPattern>
                            | <TopKCheapestPathPattern>
+                           | <AllPathPattern>
 
 
 SimplePathPattern      ::= <VertexPattern> ( <PathPrimary> <VertexPattern> )*
@@ -1800,7 +1810,7 @@ SELECT a.number AS a,
        b.number AS b,
        COUNT(e) AS pathLength,
        ARRAY_AGG(e.amount) AS amounts
-  FROM MATCH SHORTEST ( (a:Account) -[e:transaction]->* (b:Account) )
+  FROM MATCH ANY SHORTEST (a:Account) -[e:transaction]->* (b:Account)
  WHERE a.number = 10039 AND b.number = 2090
 ```
 
@@ -1815,7 +1825,20 @@ SELECT a.number AS a,
 Above, we use the quantifier `*` to find a shortest path from account `10039` to account `2090`, following only `transaction` edges.
 Shortest path finding is explained in more detail in [Shortest Path](#shortest-path). `COUNT(e)` and `ARRAY_AGG(e.amount)` are horizontal aggregations which are explained in [Horizontal Aggregation](#horizontal-aggregation).
 
-## Reachability
+## Any Path and Reachability
+
+### Any Path
+
+```
+AnyPathPattern ::= 'ANY' <SourceVertexPattern>
+                           <QuantifiedPathPatternPrimary>
+                             <DestinationVertexPattern>
+                 | 'ANY' '(' <SourceVertexPattern>
+                               <QuantifiedPathPatternPrimary>
+                                 <DestinationVertexPattern> ')'
+```
+
+### Reachability
 
 In graph reachability we test for the existence of paths (true/false) between pairs of vertices. PGQL uses forward slashes (`-/` and `/->`) instead of square brackets (`-[` and `]->`) to indicate reachability semantic.
 
@@ -1845,9 +1868,9 @@ SELECT c.name
 
 Here, we find all classes that are a subclass of `'ArrayList'`. The regular path pattern `subclass_of*` matches a path consisting of zero or more edges with the label `subclass_of`. Because the pattern may match a path with zero edges, the two query vertices can be bound to the same data vertex if the data vertex satisfies the constraints specified in both source and destination vertices (i.e. the vertex has a label `Class` and a property `name` with a value `ArrayList`).
 
-### Examples with various quantifiers
+#### Examples with various quantifiers
 
-#### Zero or more
+##### Zero or more
 
 The following example finds all vertices `y` that can be reached from `Amy` by following zero or more `likes` edges.
 
@@ -1873,7 +1896,7 @@ SELECT y.name
 Note that here, `Amy` is returned since `Amy` connects to `Amy` by following zero `likes` edges. In other words, there exists an empty path for the vertex pair.
 For `Judith`, there exist two paths (`100 -> 200 -> 300 -> 400` and `100 -> 400`). However, `Judith` is still only returned once since the semantic of `-/ .. /->` is to test for the existence of paths between pairs of vertices (i.e. "reachability"), so there is only at most one result per pair of vertices.
 
-#### One or more
+##### One or more
 
 The following example finds all people that can be reached from `Amy` by following one or more `likes` edges.
 
@@ -1918,7 +1941,7 @@ SELECT y.name
 
 Here, in addition to `Jonas`, `Judith` is returned since there exist paths from `Judith` back to `Judith` that has a length greater than zero. Examples of such paths are `400 -> 500 -> 400` and `400 -> 500 -> 400 -> 500 -> 400`.
 
-#### Optional
+##### Optional
 
 The following example finds all people that can be reached from `Judith` by following zero or one `knows` edges.
 
@@ -1942,7 +1965,7 @@ SELECT y.name
 
 Here, `Judith` is returned since there exists the empty path that starts in `400` and ends in `400`. `Jonas` is returned because of the following path that has length one: `400 -> 500`.
 
-#### Exactly n
+##### Exactly n
 
 The following example finds all people that can be reached from `Amy` by following exactly two `likes` edges.
 
@@ -1964,7 +1987,7 @@ SELECT y.name
 
 Here, `Albert` is returned since there exists the following path that has `likes` edges only: `100 -> 200 -> 300`.
 
-#### n or more
+##### n or more
 
 The following example finds all people that can be reached from `Amy` by following 2 or more `likes` edges.
 
@@ -1987,7 +2010,7 @@ SELECT y.name
 
 Here, `Albert` is returned since there exists the following path of length two: `100 -> 200 -> 300`. `Judith` is returned since there exists a path of length three: `100 -> 200 -> 300 -> 400`.
 
-#### Between n and m
+##### Between n and m
 
 The following example finds all people that can be reached from `Amy` by following between 1 and 2 `likes` edges.
 
@@ -2013,7 +2036,7 @@ Here, `John` is returned since there exists a path of length one (i.e. `100 -> 2
 `Albert` is returned since there exists a path of length two (i.e. `100 -> 200 -> 300`);
 `Judith` is returned since there exists a path of length one (i.e. `100 -> 400`).
 
-#### Between zero and m
+##### Between zero and m
 
 The following example finds all people that can be reached from `Judith` by following at most 2 `knows` edges.
 
@@ -2038,7 +2061,7 @@ Here, `Jonas` is returned since there exists a path of length one (i.e. `400 -> 
 For `Judith`, there exists an empty path of length zero (i.e. `400`) as well as a non-empty path of length two (i.e. `400 -> 500 -> 400`).
 Yet, `Judith` is only returned once.
 
-### Path pattern macros
+#### Path pattern macros
 
 One or more "path pattern macros" may be declared at the beginning of the query. These macros allow for expressing complex regular expressions. PGQL 1.4 allows macros only for reachability, not for (top-k) shortest path.
 
@@ -2097,19 +2120,25 @@ WHERE generatorA.name = 'AEH382'
 ## Shortest Path
 
 Shortest path finding allows for finding paths with a minimal number of hops.
-Given a pair of vertices, [single shortest path finding](#single-shortest-path) allows for finding a single shortest path,
-While [top-k shortest path finding](#top-k-cheapest-path) allows for finding K shortest paths for which paths with increasing length are matched.
+Given a pair of vertices, there are different kinds of shortest paths that can be obtained:
 
-### Single Shortest Path
+ - [any shortest path](#any-shortest-path)
+ - [all shortest paths](#any-shortest-path)
+ - [top-k shortest paths](#top-k-cheapest-path)
 
-`SHORTEST` allows for matching a shortest path (i.e. minimal number of edges) between a source vertex and a destination vertex. In case multiple shortest paths exist, an arbitrary one is retrieved.
+### Any Shortest Path
+
+`ANY SHORTEST` allows for matching a shortest path (i.e. minimal number of edges) between a source vertex and a destination vertex. In case multiple shortest paths exist, an arbitrary one is retrieved.
 
 The syntax is:
 
 ```bash
-ShortestPathPattern                ::= 'SHORTEST' '(' <SourceVertexPattern>
-                                                        <QuantifiedPathPatternPrimary>
-                                                          <DestinationVertexPattern> ')'
+AnyShortestPathPattern             ::=   'ANY' 'SHORTEST' <SourceVertexPattern>
+                                                            <QuantifiedPathPatternPrimary>
+                                                              <DestinationVertexPattern>
+                                       | 'ANY' 'SHORTEST' '(' <SourceVertexPattern>
+                                                                <QuantifiedPathPatternPrimary>
+                                                                  <DestinationVertexPattern> ')'
 
 SourceVertexPattern                ::= <VertexPattern>
 
@@ -2129,7 +2158,7 @@ For example:
 
 ```sql
 SELECT src, SUM(e.weight), dst
-  FROM MATCH SHORTEST ( (src) -[e]->* (dst) )
+  FROM MATCH ANY SHORTEST (src) -[e]->* (dst)
  WHERE src.age < dst.age
 ```
 
@@ -2146,7 +2175,7 @@ Another example is:
                        ELSE dst.name
                      END
                    ) AS path
-    FROM MATCH SHORTEST ( (p1:Person) (-[e]- (dst))* (p2:Person) )
+    FROM MATCH ANY SHORTEST (p1:Person) (-[e]- (dst))* (p2:Person)
    WHERE p1.name = 'Camille' AND p2.name = 'Liam'
 ORDER BY num_hops
 ```
@@ -2165,17 +2194,29 @@ For example, the following query matches a shortest path (if one exists) such th
 
 ```sql
 SELECT src, ARRAY_AGG(e.weight), dst
-  FROM MATCH SHORTEST ( (src) (-[e]-> WHERE e.weight > 10)* (dst) )
+  FROM MATCH ANY SHORTEST (src) (-[e]-> WHERE e.weight > 10)* (dst)
 ```
 
 Note that this is different from a `WHERE` clause that is placed outside of the quantified pattern:
 
 ```sql
 SELECT src, ARRAY_AGG(e.weight), dst
-  FROM MATCH SHORTEST ( (src) -[e]->* (dst) ) WHERE SUM(e.cost) < 100
+  FROM MATCH ANY SHORTEST (src) -[e]->* (dst) WHERE SUM(e.cost) < 100
 ```
 
 Here, the filter is applied only _after_ a shortest path is matched such that if the `WHERE` condition is not satisfied, the path is filtered out and no other path is considered even though another path may exist that does satisfy the `WHERE` condition.
+
+### All Shortest Path
+
+
+```bash
+AllShortestPathPattern ::= 'ALL' 'SHORTEST' <SourceVertexPattern>
+                                              <QuantifiedPathPatternPrimary>
+                                                <DestinationVertexPattern>
+                         | 'ALL' 'SHORTEST' '(' <SourceVertexPattern>
+                                                  <QuantifiedPathPatternPrimary>
+                                                    <DestinationVertexPattern> ')'
+```
 
 ### Top-K Shortest Path
 
@@ -2184,7 +2225,12 @@ Here, the filter is applied only _after_ a shortest path is matched such that if
 The syntax is:
 
 ```bash
-TopKShortestPathPattern ::= 'TOP' <KValue> <ShortestPathPattern>
+TopKShortestPathPattern ::=   'TOP' <KValue> <SourceVertexPattern>
+                                             <QuantifiedPathPatternPrimary>
+                                               <DestinationVertexPattern>
+                            | 'TOP' <KValue> '(' <SourceVertexPattern>
+                                                 <QuantifiedPathPatternPrimary>
+                                                   <DestinationVertexPattern> ')'
 
 KValue                  ::= <UNSIGNED_INTEGER>
 ```
@@ -2194,7 +2240,7 @@ each of the matched source and destination pairs:
 
 ```sql
 SELECT src, SUM(e.weight), dst
-  FROM MATCH TOP 3 SHORTEST ( (src) -[e]->* (dst) )
+  FROM MATCH TOP 3 SHORTEST (src) -[e]->* (dst)
  WHERE src.age < dst.age
 ```
 
@@ -2206,7 +2252,7 @@ The `ARRAY_AGG` construct allows users to output properties of edges/vertices al
 
 ```sql
 SELECT src, ARRAY_AGG(e.weight), ARRAY_AGG(v1.age), ARRAY_AGG(v2.age), dst
-  FROM MATCH TOP 3 SHORTEST ( (src) ((v1) -[e]-> (v2))* (dst) )
+  FROM MATCH TOP 3 SHORTEST (src) ((v1) -[e]-> (v2))* (dst)
  WHERE src.age < dst.age
 ```
 
@@ -2222,8 +2268,8 @@ Users can also compose shortest path constructs with other matching operators:
 ```sql
 SELECT ARRAY_AGG(e1.weight), ARRAY_AGG(e2.weight)
   FROM MATCH (start) -> (src)
-     , MATCH TOP 3 SHORTEST ( (src) (-[e1]->)* (mid) )
-     , MATCH SHORTEST ( (mid) (-[e2]->)* (dst) )
+     , MATCH TOP 3 SHORTEST (src) (-[e1]->)* (mid)
+     , MATCH ANY SHORTEST (mid) (-[e2]->)* (dst)
      , MATCH (dst) -> (end)
 ```
 
@@ -2236,7 +2282,7 @@ Another example is:
   SELECT COUNT(e) AS num_hops
        , SUM(e.amount) AS total_amount
        , ARRAY_AGG(e.amount) AS amounts_along_path
-    FROM MATCH TOP 7 SHORTEST ( (a:Account) -[e:transaction]->* (b:Account) )
+    FROM MATCH TOP 7 SHORTEST (a:Account) -[e:transaction]->* (b:Account)
    WHERE a.number = 10039 AND a = b
 ORDER BY num_hops, total_amount
 ```
@@ -2264,7 +2310,7 @@ The following example shows how such paths could be filtered out, such that we o
   SELECT COUNT(e) AS num_hops
        , SUM(e.amount) AS total_amount
        , ARRAY_AGG(e.amount) AS amounts_along_path
-    FROM MATCH TOP 7 SHORTEST ( (a:Account) -[e:transaction]->* (b:Account) )
+    FROM MATCH TOP 7 SHORTEST (a:Account) -[e:transaction]->* (b:Account)
    WHERE a.number = 10039 AND a = b AND COUNT(DISTINCT e) = COUNT(e) AND COUNT(e) > 0
 ORDER BY num_hops, total_amount
 ```
@@ -2284,16 +2330,19 @@ Cheapest path finding allows for finding paths based on a cost function.
 Given a pair of vertices, [single cheapest path finding](#single-cheapest-path) allows for finding a single cheapest path,
 While [top-k cheapest path finding](#top-k-cheapest-path) allows for finding K cheapest paths where paths for which paths with increasing cost are matched.
 
-### Single Cheapest Path
+### Any Cheapest Path
 
 The `CHEAPEST` construct allows for finding a cheapest path based on an arbitrary `COST` function.
 
 The syntax is:
 
 ```
-CheapestPathPattern ::= 'CHEAPEST' '(' <SourceVertexPattern>
-                                         <QuantifiedPathPatternPrimary>
-                                           <DestinationVertexPattern> ')'
+AnyCheapestPathPattern ::=   'ANY' 'CHEAPEST' <SourceVertexPattern>
+                                                <QuantifiedPathPatternPrimary>
+                                                  <DestinationVertexPattern>
+                           | 'ANY' 'CHEAPEST' '(' <SourceVertexPattern>
+                                                    <QuantifiedPathPatternPrimary>
+                                                      <DestinationVertexPattern> ')'
 
 CostClause          ::= 'COST' ValueExpression
 ```
@@ -2306,7 +2355,7 @@ For example:
 SELECT COUNT(e) AS num_hops
      , SUM(e.amount) AS total_amount
      , ARRAY_AGG(e.amount) AS amounts_along_path
-  FROM MATCH CHEAPEST ( (a:Account) (-[e:transaction]-> COST e.amount)* (b:Account) )
+  FROM MATCH ANY CHEAPEST (a:Account) (-[e:transaction]-> COST e.amount)* (b:Account)
  WHERE a.number = 10039 AND b.number = 2090
 ```
 
@@ -2326,7 +2375,7 @@ The following example with `CHEAPEST` contains an any-directed edge pattern (`-[
 SELECT COUNT(e) AS num_hops
      , SUM(e.amount) AS total_amount
      , ARRAY_AGG(e.amount) AS amounts_along_path
-  FROM MATCH CHEAPEST ( (a:Account) (-[e:transaction]- COST e.amount)* (b:Account) )
+  FROM MATCH ANY CHEAPEST (a:Account) (-[e:transaction]- COST e.amount)* (b:Account)
  WHERE a.number = 10039 AND b.number = 2090
 ```
 
@@ -2349,11 +2398,11 @@ The following example has a `CASE` statement that defines a different cost for d
 SELECT COUNT(e) AS num_hops
      , SUM(e.amount) AS total_amount
      , ARRAY_AGG(e.amount) AS amounts_along_path
-  FROM MATCH CHEAPEST ( (p1:Person) (-[e:owner|transaction]-
+  FROM MATCH ANY CHEAPEST (p1:Person) (-[e:owner|transaction]-
                                       COST CASE
                                              WHEN e.amount IS NULL THEN 1
                                              ELSE e.amount
-                                           END)* (p2:Person) )
+                                           END)* (p2:Person)
  WHERE p1.name = 'Nikita' AND p2.name = 'Liam'
 ```
 
@@ -2376,7 +2425,12 @@ computed with a user-defined cost function. If the user-defined cost function re
 The syntax of the queries is extended the following way:
 
 ```
-TopKCheapestPathPattern             ::= 'TOP' <KValue> <CheapestPathPattern>
+TopKCheapestPathPattern  ::=   'TOP' <KValue> <SourceVertexPattern>
+                                                <QuantifiedPathPatternPrimary>
+                                                  <DestinationVertexPattern>
+                             | 'TOP' <KValue> '(' <SourceVertexPattern>
+                                                    <QuantifiedPathPatternPrimary>
+                                                      <DestinationVertexPattern> ')'
 ```
 
 The cost function must evaluate to a number.
@@ -2393,7 +2447,7 @@ For example, the following query returns the top 3 cheapest paths from account 1
   SELECT COUNT(e) AS num_hops
        , SUM(e.amount) AS total_amount
        , ARRAY_AGG(e.amount) AS amounts_along_path
-    FROM MATCH TOP 3 CHEAPEST ( (a:Account) (-[e:transaction]-> COST e.amount)* (a) )
+    FROM MATCH TOP 3 CHEAPEST (a:Account) (-[e:transaction]-> COST e.amount)* (a)
    WHERE a.number = 10039
 ORDER BY total_amount
 ```
@@ -2422,10 +2476,10 @@ while `Account` or `Company` vertices contribute `1` to the total cost.
                       WHEN 'Account' THEN CAST(n_x.number AS STRING)
                     END ) AS names_or_numbers
        , SUM( CASE label(n_x) WHEN 'Person' THEN 8 ELSE 1 END ) AS total_cost
-    FROM MATCH TOP 4 CHEAPEST (
+    FROM MATCH TOP 4 CHEAPEST
           (a:Account)
             (-[e]- (n_x) COST CASE label(n_x) WHEN 'Person' THEN 3 ELSE 1 END)*
-              (c:Company) )
+              (c:Company)
    WHERE a.number = 10039 AND c.name = 'Oracle'
 ORDER BY total_cost
 ```
@@ -2443,6 +2497,17 @@ ORDER BY total_cost
 
 As you can see, even though the path returned in the fourth row is shorter than the other three paths,
 it has a higher cost because it includes a `Person` vertex (`Camille`), which adds `4` to the total cost.
+
+## All Path
+
+```
+AllPathPattern ::= 'ALL' <SourceVertexPattern>
+                           <QuantifiedPathPatternPrimary>
+                             <DestinationVertexPattern>
+                 | 'ALL' '(' <SourceVertexPattern>
+                               <QuantifiedPathPatternPrimary>
+                                 <DestinationVertexPattern> ')'
+```
 
 ## Horizontal Aggregation
 
@@ -2507,7 +2572,7 @@ It is possible to mix vertical and horizontal aggregation in a single query. For
 
 ```sql
 SELECT SUM(COUNT(e)) AS sumOfPathLengths
-  FROM MATCH SHORTEST ( (a:Account) -[e:transaction]->* (b:Account) )
+  FROM MATCH ANY SHORTEST (a:Account) -[e:transaction]->* (b:Account)
  WHERE a.number = 10039 AND (b.number = 1001 OR b.number = 2090)
 ```
 
@@ -2536,7 +2601,7 @@ An example of a horizontal aggregation in `WHERE` is:
   SELECT b.number AS b,
          COUNT(e) AS pathLength,
          ARRAY_AGG(e.amount) AS transactions
-    FROM MATCH SHORTEST ( (a:Account) -[e:transaction]->* (b:Account) )
+    FROM MATCH ANY SHORTEST (a:Account) -[e:transaction]->* (b:Account)
    WHERE a.number = 10039 AND
          (b.number = 8021 OR b.number = 1001 OR b.number = 2090) AND
          COUNT(e) <= 2
@@ -2562,7 +2627,7 @@ An example of a horizontal aggregation in `GROUP BY` is:
 ```sql
   SELECT COUNT(e) AS pathLength,
          COUNT(*) AS cnt
-    FROM MATCH SHORTEST ( (a:Account) -[e:transaction]->* (b:Account) )
+    FROM MATCH ANY SHORTEST (a:Account) -[e:transaction]->* (b:Account)
    WHERE (a.number = 10039 OR a.number = 8021) AND
          (b.number = 1001 OR b.number = 2090)
 GROUP BY COUNT(e)

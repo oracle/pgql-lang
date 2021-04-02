@@ -258,17 +258,17 @@ entries:
       url: /spec/1.4/#quantifiers
       output: web
 
-    - title: 'Reachability'
-      url: /spec/1.4/#reachability
+    - title: 'Any Path and Reachability'
+      url: /spec/1.4/#any-path-and-reachability
       output: web
       subfolderitems:
 
-      - title: 'Examples with various quantifiers'
-        url: /spec/1.4/#examples-with-various-quantifiers
+      - title: 'Any Path'
+        url: /spec/1.4/#any-path
         output: web
 
-      - title: 'Path pattern macros'
-        url: /spec/1.4/#path-pattern-macros
+      - title: 'Reachability'
+        url: /spec/1.4/#reachability
         output: web
 
     - title: 'Shortest Path'
@@ -276,8 +276,12 @@ entries:
       output: web
       subfolderitems:
 
-      - title: 'Single Shortest Path'
-        url: /spec/1.4/#single-shortest-path
+      - title: 'Any Shortest Path'
+        url: /spec/1.4/#any-shortest-path
+        output: web
+
+      - title: 'All Shortest Path'
+        url: /spec/1.4/#all-shortest-path
         output: web
 
       - title: 'Top-K Shortest Path'
@@ -289,13 +293,17 @@ entries:
       output: web
       subfolderitems:
 
-      - title: 'Single Cheapest Path'
-        url: /spec/1.4/#single-cheapest-path
+      - title: 'Any Cheapest Path'
+        url: /spec/1.4/#any-cheapest-path
         output: web
 
       - title: 'Top-K Cheapest Path'
         url: /spec/1.4/#top-k-cheapest-path
         output: web
+
+    - title: 'All Path'
+      url: /spec/1.4/#all-path
+      output: web
 
     - title: 'Horizontal Aggregation'
       url: /spec/1.4/#horizontal-aggregation
