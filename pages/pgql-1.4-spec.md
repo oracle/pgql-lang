@@ -1843,12 +1843,12 @@ Shortest path finding is explained in more detail in [Shortest Path](#shortest-p
 ### Any Path
 
 ```bash
-AnyPathPattern ::= 'ANY' <SourceVertexPattern>
-                           <QuantifiedPathPatternPrimary>
-                             <DestinationVertexPattern>
-                 | 'ANY' '(' <SourceVertexPattern>
-                               <QuantifiedPathPatternPrimary>
-                                 <DestinationVertexPattern> ')'
+AnyPathPattern ::=                       'ANY' <SourceVertexPattern>
+                                                 <QuantifiedPathPatternPrimary>
+                                                   <DestinationVertexPattern>
+                                       | 'ANY' '(' <SourceVertexPattern>
+                                                     <QuantifiedPathPatternPrimary>
+                                                       <DestinationVertexPattern> ')'
 
 SourceVertexPattern                ::= <VertexPattern>
 
@@ -2159,12 +2159,12 @@ Given a pair of vertices, there are different kinds of shortest paths that can b
 The syntax is:
 
 ```bash
-AnyShortestPathPattern             ::=   'ANY' 'SHORTEST' <SourceVertexPattern>
-                                                            <QuantifiedPathPatternPrimary>
-                                                              <DestinationVertexPattern>
-                                       | 'ANY' 'SHORTEST' '(' <SourceVertexPattern>
-                                                                <QuantifiedPathPatternPrimary>
-                                                                  <DestinationVertexPattern> ')'
+AnyShortestPathPattern ::=   'ANY' 'SHORTEST' <SourceVertexPattern>
+                                                <QuantifiedPathPatternPrimary>
+                                                  <DestinationVertexPattern>
+                           | 'ANY' 'SHORTEST' '(' <SourceVertexPattern>
+                                                    <QuantifiedPathPatternPrimary>
+                                                      <DestinationVertexPattern> ')'
 ```
 
 For example:
@@ -2223,12 +2223,12 @@ Here, the filter is applied only _after_ a shortest path is matched such that if
 
 
 ```bash
-AllShortestPathPattern ::= 'ALL' 'SHORTEST' <SourceVertexPattern>
-                                              <QuantifiedPathPatternPrimary>
-                                                <DestinationVertexPattern>
-                         | 'ALL' 'SHORTEST' '(' <SourceVertexPattern>
-                                                  <QuantifiedPathPatternPrimary>
-                                                    <DestinationVertexPattern> ')'
+AllShortestPathPattern ::=   'ALL' 'SHORTEST' <SourceVertexPattern>
+                                                <QuantifiedPathPatternPrimary>
+                                                  <DestinationVertexPattern>
+                           | 'ALL' 'SHORTEST' '(' <SourceVertexPattern>
+                                                    <QuantifiedPathPatternPrimary>
+                                                      <DestinationVertexPattern> ')'
 ```
 
 ### Top-K Shortest Path
@@ -2514,12 +2514,12 @@ it has a higher cost because it includes a `Person` vertex (`Camille`), which ad
 ## All Path
 
 ```bash
-AllPathPattern ::= 'ALL' <SourceVertexPattern>
-                           <QuantifiedPathPatternPrimary>
-                             <DestinationVertexPattern>
-                 | 'ALL' '(' <SourceVertexPattern>
-                               <QuantifiedPathPatternPrimary>
-                                 <DestinationVertexPattern> ')'
+AllPathPattern ::=   'ALL' <SourceVertexPattern>
+                             <QuantifiedPathPatternPrimary>
+                               <DestinationVertexPattern>
+                   | 'ALL' '(' <SourceVertexPattern>
+                                 <QuantifiedPathPatternPrimary>
+                                   <DestinationVertexPattern> ')'
 ```
 
 ## Horizontal Aggregation
