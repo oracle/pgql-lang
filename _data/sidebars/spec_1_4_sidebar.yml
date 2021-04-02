@@ -254,6 +254,10 @@ entries:
     output: web
     folderitems:
 
+    - title: 'Overview of Path Finding Goals'
+      url: /spec/1.4/#overview-of-path-finding-goals
+      output: web
+
     - title: 'Quantifiers'
       url: /spec/1.4/#quantifiers
       output: web

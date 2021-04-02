@@ -47,6 +47,7 @@ public class GeneratePostProcessingRules {
     generateForVersion("1.1", sb);
     generateForVersion("1.2", sb);
     generateForVersion("1.3", sb);
+    generateForVersion("1.4", sb);
 
     String originalContent = new String(Files.readAllBytes(Paths.get("_layouts/page_orig.html")));
     String newContent = originalContent.replaceFirst("\\{\\{content\\}\\}", "{{content\n" + sb.toString() + "}}");

@@ -1757,6 +1757,19 @@ Fixed-length patterns match a fixed number of vertices and edges such that every
 However, through the use of quantifiers (introduced below) it is is possible to match "variable-length" paths such as shortest paths.
 Variable-length path patterns match a variable number of vertices and edges such that different solutions (different rows) potentially have different numbers of vertices and edges.
 
+## Overview of Path Finding Goals
+
+| syntax         | matches              | allows returning data along path? | limitations on quantifier           |
+|----------------|----------------------|-----------------------------------|-------------------------------------|
+| -/ .. /->      | any path             | no                                |                                     |
+| ANY            | any path             | yes                               |                                     |
+| ANY SHORTEST   | any shortest path    | yes                               |                                     |
+| ALL SHORTEST   | all shortest paths   | yes                               |                                     |
+| TOP k SHORTEST | top k shortest paths | yes                               |                                     |
+| ANY CHEAPEST   | any cheapest path    | yes                               |                                     |
+| TOP k CHEAPEST | top k cheapest paths | yes                               |                                     |
+| ALL            | all paths            | yes                               | requires upper bound on path length |
+
 ## Quantifiers
 
 Quantifiers allow for matching variable-length paths by specifying lower and upper limits on the number of times a pattern is allowed to match.
@@ -1829,13 +1842,26 @@ Shortest path finding is explained in more detail in [Shortest Path](#shortest-p
 
 ### Any Path
 
-```
+```bash
 AnyPathPattern ::= 'ANY' <SourceVertexPattern>
                            <QuantifiedPathPatternPrimary>
                              <DestinationVertexPattern>
                  | 'ANY' '(' <SourceVertexPattern>
                                <QuantifiedPathPatternPrimary>
                                  <DestinationVertexPattern> ')'
+
+SourceVertexPattern                ::= <VertexPattern>
+
+DestinationVertexPattern           ::= <VertexPattern>
+
+QuantifiedPathPatternPrimary       ::= <PathPatternPrimary> <GraphPatternQuantifier>?
+
+PathPatternPrimary                 ::=   <EdgePattern>
+                                       | <ParenthesizedPathPatternExpression>
+
+ParenthesizedPathPatternExpression ::= '(' <VertexPattern>? <EdgePattern> <VertexPattern>?
+                                             <WhereClause>?
+                                               <CostClause>? ')'
 ```
 
 ### Reachability
@@ -2139,19 +2165,6 @@ AnyShortestPathPattern             ::=   'ANY' 'SHORTEST' <SourceVertexPattern>
                                        | 'ANY' 'SHORTEST' '(' <SourceVertexPattern>
                                                                 <QuantifiedPathPatternPrimary>
                                                                   <DestinationVertexPattern> ')'
-
-SourceVertexPattern                ::= <VertexPattern>
-
-DestinationVertexPattern           ::= <VertexPattern>
-
-QuantifiedPathPatternPrimary       ::= <PathPatternPrimary> <GraphPatternQuantifier>?
-
-PathPatternPrimary                 ::=   <EdgePattern>
-                                       | <ParenthesizedPathPatternExpression>
-
-ParenthesizedPathPatternExpression ::= '(' <VertexPattern>? <EdgePattern> <VertexPattern>?
-                                             <WhereClause>?
-                                               <CostClause>? ')'
 ```
 
 For example:
@@ -2500,7 +2513,7 @@ it has a higher cost because it includes a `Person` vertex (`Camille`), which ad
 
 ## All Path
 
-```
+```bash
 AllPathPattern ::= 'ALL' <SourceVertexPattern>
                            <QuantifiedPathPatternPrimary>
                              <DestinationVertexPattern>
