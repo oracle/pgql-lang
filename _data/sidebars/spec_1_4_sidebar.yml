@@ -391,6 +391,18 @@ entries:
         url: /spec/1.4/#java_regexp_like
         output: web
 
+      - title: 'UPPER'
+        url: /spec/1.4/#upper
+        output: web
+
+      - title: 'SUBSTRING'
+        url: /spec/1.4/#substring
+        output: web
+
+      - title: 'LOWER'
+        url: /spec/1.4/#lower
+        output: web
+
     - title: 'Numeric functions'
       url: /spec/1.4/#numeric-functions
       output: web

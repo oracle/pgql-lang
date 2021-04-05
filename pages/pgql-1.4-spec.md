@@ -32,7 +32,8 @@ The new features are:
 - New (character) string operators and functions:
     - [String concatenation](#operators) operator (`||`)
     - [LISTAGG](#ListaggAggregation) aggregation operator (see example [here](#aggregation-with-group-by))
-    - z
+    - [UPPER](#upper) and [LOWER](#lower) functions
+    - [SUBSTRING](#substring) function
 
 ## A note on the Grammar
 
@@ -3137,6 +3138,80 @@ For example:
 ```sql
 JAVA_REGEXP_LIKE('aaaaab', 'a*b')
 Result: true
+```
+
+### UPPER
+
+The `UPPER` function transforms a string to uppercase. The case of each character is defined by the rules of the default locale.
+
+The syntax is:
+
+```
+UPPER( string )
+```
+
+For example:
+
+```sql
+UPPER('A string')
+Result: A STRING
+```
+
+### SUBSTRING
+
+The `SUBSTRING` function returns a portion of the given string, starting from the specified index in `FROM` clause. If a `FOR` clause is provided, the substring returned is limited to the given length.
+
+The syntax is:
+
+```
+CharacterSubstring := 'SUBSTRING' '(' <ValueExpression> 'FROM' <StartPosition> ( 'FOR' <StringLength> )? ')'
+
+StartPosition      := <ValueExpression>
+
+StringLength       := <ValueExpression>
+```
+
+For example:
+
+```sql
+SUBSTRING('A string' FROM 1)
+Result: A string
+
+SUBSTRING('A string'  FROM 3 FOR 2)
+Result: st
+```
+
+The following table gives more examples for different values of `FROM` and `FOR`:
+
+input string | FROM  | FOR          | output string
+------------ | ----- | ------------ | -------------
+`hello`      | `3`   | not provided | `llo`
+`hello`      | `-10` | not provided | `hello`
+`hello`      | `7`   | not provided | (empty string)
+`hello`      | `3`   | not provided | `llo`
+`hello`      | `3`   | `-1`         | exception is raised, FOR must not be negative
+`hello`      | `3`   | `2`          | `ll`
+`hello`      | `3`   | `10`         | `llo`
+`hello`      | `-10` | `2`          | (empty string)
+`hello`      | `-10` | `13`         | `he`
+`hello`      | `-10` | `18`         | `hello`
+`hello`      | `7`   | `2`          | (empty string)
+
+### LOWER
+
+The `LOWER` function transforms a string to lowercase. The case of each character is defined by the rules of the default locale.
+
+The syntax is:
+
+```
+LOWER( string )
+```
+
+For example:
+
+```sql
+UPPER('A string')
+Result: a string
 ```
 
 ## Numeric functions
