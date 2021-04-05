@@ -29,9 +29,9 @@ The new features are:
     - [ANY path](#any-path)
     - [ALL SHORTEST path](#all-shortest-path)
     - [ALL path](#all-path)
-- New character string functions:
-    - x
-    - y
+- New (character) string operators and functions:
+    - [String concatenation](#operators) operator (`||`)
+    - [LISTAGG](#ListaggAggregation) aggregation operator (see example [here](#aggregation-with-group-by))
     - z
 
 ## A note on the Grammar
@@ -1559,25 +1559,30 @@ Aggregates `COUNT`, `MIN`, `MAX`, `AVG` and `SUM` can aggregate over groups of s
 The syntax is:
 
 ```bash
-Aggregation      ::=   <CountAggregation>
-                     | <MinAggregation>
-                     | <MaxAggregation>
-                     | <AvgAggregation>
-                     | <SumAggregation>
-                     | <ArrayAggregation>
+Aggregation       ::=   <CountAggregation>
+                       | <MinAggregation>
+                       | <MaxAggregation>
+                       | <AvgAggregation>
+                       | <SumAggregation>
+                       | <ArrayAggregation>
+                       | <ListaggAggregation>
 
-CountAggregation ::=   'COUNT' '(' '*' ')'
-                     | 'COUNT' '(' 'DISTINCT'? <ValueExpression> ')'
+CountAggregation   ::=   'COUNT' '(' '*' ')'
+                       | 'COUNT' '(' 'DISTINCT'? <ValueExpression> ')'
 
-MinAggregation   ::= 'MIN' '(' 'DISTINCT'? <ValueExpression> ')'
+MinAggregation     ::= 'MIN' '(' 'DISTINCT'? <ValueExpression> ')'
 
-MaxAggregation   ::= 'MAX' '(' 'DISTINCT'? <ValueExpression> ')'
+MaxAggregation     ::= 'MAX' '(' 'DISTINCT'? <ValueExpression> ')'
 
-AvgAggregation   ::= 'AVG' '(' 'DISTINCT'? <ValueExpression> ')'
+AvgAggregation     ::= 'AVG' '(' 'DISTINCT'? <ValueExpression> ')'
 
-SumAggregation   ::= 'SUM' '(' 'DISTINCT'? <ValueExpression> ')'
+SumAggregation     ::= 'SUM' '(' 'DISTINCT'? <ValueExpression> ')'
 
-ArrayAggregation ::= 'ARRAY_AGG' '(' 'DISTINCT'? <ValueExpression> ')'
+ArrayAggregation   ::= 'ARRAY_AGG' '(' 'DISTINCT'? <ValueExpression> ')'
+
+ListaggAggregation ::= 'LISTAGG' '(' 'DISTINCT'? <ValueExpression> <ListaggSeparator>? ')'
+
+ListaggSeparator   ::= ',' <StringLiteral>
 ```
 
 Syntactically, an aggregation takes the form of aggregate followed by an optional `DISTINCT` modifier and a `<ValueExpression>`.
@@ -1592,6 +1597,7 @@ aggregate operator | semantic | required input type
 `SUM` | sums over the values for the given expression. | numeric
 `AVG` | takes the average of the values for the given expression. | numeric
 `ARRAY_AGG` | constructs an array/list of the values for the given expression. | numeric, string, boolean, date, time [with time zone], or, timestamp [with time zone]
+`LISTAGG` | constructs a concatenation of the values for the given expression; an optional separator can be specified to delimit the values. | string
 
 ### Aggregation with GROUP BY
 
@@ -1599,26 +1605,55 @@ If a `GROUP BY` is specified, aggregations are applied to each individual group 
 
 For example:
 
+{% include image.html file="example_graphs/financial_transactions.png" %}
+
 ```sql
-  SELECT AVG(m.salary)
-    FROM MATCH (m:Person)
-GROUP BY m.age
+SELECT label(owner),
+       COUNT(*) AS numTransactions,
+       SUM(out.amount) AS totalOutgoing,
+       LISTAGG(out.amount, ', ') AS amounts
+  FROM MATCH (a:Account) -[:owner]-> (owner:Person|Company)
+     , MATCH (a) -[out:transaction]-> (:Account)
+GROUP BY label(owner)
+ORDER BY label(owner)
 ```
 
-Here, we group people by their age and compute the average salary for each such a group.
+```
++---------------------------------------------------------------------------------+
+| label(owner) | numTransactions | totalOutgoing | amounts                        |
++---------------------------------------------------------------------------------+
+| Company      | 1               | 9999.5        | 9999.5                         |
+| Person       | 4               | 15401.0       | 1000.0, 9900.0, 1500.3, 3000.7 |
++---------------------------------------------------------------------------------+
+```
+
+Here, we match accounts, their owner (either a person or a company) and their outgoing transactions.
+Then we group by the owner's label (either `Person` or `Company`) and compute the total number of outgoing transactions,
+the total amount transacted, and a comma-separated list of transaction amounts for each group.
 
 ### Aggregation without GROUP BY
 
 If _no_ `GROUP BY` is specified, aggregations are applied to the entire set of solutions.
 
-For example:
+{% include image.html file="example_graphs/financial_transactions.png" %}
 
 ```sql
-SELECT AVG(m.salary)
-  FROM MATCH (m:Person)
+SELECT COUNT(*) AS numTransactions,
+       SUM(out.amount) AS totalOutgoing,
+       LISTAGG(out.amount, ', ') AS amounts
+  FROM MATCH (a:Account) -[:owner]-> (owner:Person|Company)
+     , MATCH (a) -[out:transaction]-> (:Account)
 ```
 
-Here, we aggregate over the entire set of vertices with label `Person`, to compute the average salary.
+```
++--------------------------------------------------------------------------+
+| numTransactions | totalOutgoing | amounts                                |
++--------------------------------------------------------------------------+
+| 5               | 25400.5       | 1000.0, 9900.0, 1500.3, 3000.7, 9999.5 |
++--------------------------------------------------------------------------+
+```
+
+Note that the result will always be a single row, unless nothing was matched in which case zero rows are returned.
 
 ### COUNT(*)
 
@@ -2799,6 +2834,7 @@ ValueExpression          ::=   <VariableReference>
                              | <ArithmeticExpression>
                              | <RelationalExpression>
                              | <LogicalExpression>
+                             | <StringConcat>
                              | <BracketedValueExpression>
                              | <FunctionInvocation>
                              | <Aggregation>
@@ -2934,7 +2970,7 @@ The following example shows a bind variable in the position of a label:
 
 ## Operators
 
-### Arithmetic, Relational and Logical Operators
+### Overview of Operators
 
 The following table is an overview of the operators:
 
@@ -2943,6 +2979,7 @@ operator type | operator
 arithmetic    | `+`, `-`, `*`, `/`, `%`, `-` (unary minus)
 relational    | `=`, `<>`, `<`, `>`, `<=`, `>=`
 logical       | `AND`, `OR`, `NOT`
+string        | `||` (concat)
 
 The corresponding grammar rules are:
 
@@ -2955,6 +2992,8 @@ ArithmeticExpression ::=   <UnaryMinus>
                          | <Subtraction>
 
 UnaryMinus           ::= '-' <ValueExpression>
+
+StringConcat         ::= <ValueExpression> '||' <ValueExpression>
 
 Multiplication       ::= <ValueExpression> '*' <ValueExpression>
 
@@ -3000,8 +3039,9 @@ The supported input types and corresponding return types are as follows:
 
 operator                                            | type of A (and B)                                                                                     | return type
 --------------------------------------------------- | ----------------------------------------------------------------------------------------------------- | -----------
-A `+` B<br>A `-` B<br>A `*` B<br>A `/` B<br>A `%` B | numeric                                                                                               | numeric*
 `-`A (unary minus)                                  | numeric                                                                                               | type of A
+A `||` B                                            | string                                                                                                | string
+A `+` B<br>A `-` B<br>A `*` B<br>A `/` B<br>A `%` B | numeric                                                                                               | numeric*
 A `=` B<br>A `<>` B                                 | numeric, string, boolean,<br>date, time [with time zone], timestamp [with time zone],<br>vertex, edge | boolean
 A `<` B<br>A `>` B<br>A `<=` B<br>A `>=` B          | numeric, string, boolean,<br>date, time [with time zone], timestamp [with time zone]                  | boolean
 `NOT` A<br>A `AND` B<br>A `OR` B                    | boolean                                                                                               | boolean
@@ -3021,12 +3061,13 @@ Operator precedences are shown in the following list, from the highest precedenc
 level | operator precedence
 ----- | ---
 1     | `-` (unary minus)
-2     | `*`, `/`, `%`
-3     | `+`, `-`
-4     | `=`, `<>`, `>`, `<`, `>=`, `<=`
-5     | `NOT`
-6     | `AND`
-7     | `OR`
+2     | `||` (string concat)
+3     | `*`, `/`, `%`
+4     | `+`, `-`
+5     | `=`, `<>`, `>`, `<`, `>=`, `<=`
+6     | `NOT`
+7     | `AND`
+8     | `OR`
 
 ### Implicit Type Conversion
 
@@ -3078,6 +3119,8 @@ SELECT n.name
 Here, we find all the vertices in the graph that have the property `name` and then return the property.
 
 ## String functions
+
+In addition to the (character) string functions in this section, please also notice the string concatenation operator (`||`) documented in [Operators](#operators).
 
 ### JAVA_REGEXP_LIKE
 
@@ -4231,8 +4274,8 @@ PATH, SELECT, FROM, MATCH, ON, WHERE, GROUP,
 BY, HAVING, ORDER, ASC, DESC, LIMIT, OFFSET,
 AND, OR, NOT, true, false, IS, NULL, AS,
 DATE, TIME, TIMESTAMP, WITH, ZONE, DISTINCT,
-COUNT, MIN, MAX, AVG, SUM, ARRAY_AGG, IN,
-EXISTS, CAST, CASE, WHEN, THEN, ELSE, END,
+COUNT, MIN, MAX, AVG, SUM, ARRAY_AGG, LISTAGG,
+IN, EXISTS, CAST, CASE, WHEN, THEN, ELSE, END,
 EXTRACT, YEAR, MONTH, DAY, HOUR, MINUTE,
 SECOND, TIMEZONE_HOUR, TIMEZONE_MINUTE,
 TOP, SHORTEST, CHEAPEST, COST, CREATE,

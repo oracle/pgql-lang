@@ -357,8 +357,8 @@ entries:
       output: web
       subfolderitems:
 
-      - title: 'Arithmetic, Relational and Logical Operators'
-        url: /spec/1.4/#arithmetic-relational-and-logical-operators
+      - title: 'Overview of Operators'
+        url: /spec/1.4/#overview-of-operators
         output: web
 
       - title: 'Operator Precedence'
