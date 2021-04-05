@@ -1759,16 +1759,18 @@ Variable-length path patterns match a variable number of vertices and edges such
 
 ## Overview of Path Finding Goals
 
-| syntax         | matches              | allows returning data along path? | limitations on quantifier           |
-|----------------|----------------------|-----------------------------------|-------------------------------------|
-| -/ .. /->      | any path             | no                                |                                     |
-| ANY            | any path             | yes                               |                                     |
-| ANY SHORTEST   | any shortest path    | yes                               |                                     |
-| ALL SHORTEST   | all shortest paths   | yes                               |                                     |
-| TOP k SHORTEST | top k shortest paths | yes                               |                                     |
-| ANY CHEAPEST   | any cheapest path    | yes                               |                                     |
-| TOP k CHEAPEST | top k cheapest paths | yes                               |                                     |
-| ALL            | all paths            | yes                               | requires upper bound on path length |
+| syntax         | matches              | limitations on quantifier                  |
+|----------------|----------------------|--------------------------------------------|
+| -/ .. /->      | any path*            | no limitations                             |
+| ANY            | any path             | no limitations                             |
+| ANY SHORTEST   | any shortest path    | no limitations                             |
+| ALL SHORTEST   | all shortest paths   | no limitations                             |
+| TOP k SHORTEST | top k shortest paths | no limitations                             |
+| ANY CHEAPEST   | any cheapest path    | no limitations                             |
+| TOP k CHEAPEST | top k cheapest paths | no limitations                             |
+| ALL            | all paths            | requires an upper bound on the path length |
+
+\* Allows for retrieving data from the two path endpoint vertices _only_. To retrieve data from all vertices or edges _along_ the path, use path finding goal `ANY`.
 
 ## Quantifiers
 
@@ -1842,6 +1844,17 @@ Shortest path finding is explained in more detail in [Shortest Path](#shortest-p
 
 ### Any Path
 
+`ANY` is used to find any (arbitrary) path between a pair of source-destination vertices.
+
+Two typical uses are:
+
+ - Testing for the _existence_ of a path between a pair of vertices without caring about the actual data along the paths.
+ - Matching a path in case of tree-structured graphs or other types of graph structures for which it is known that only a single paths exist between pairs of vertices.
+
+Note that in case the first case where we test for path existence, it is also possible to use [Reachability](#reachability) instead.
+
+The syntax for matching any path is:
+
 ```bash
 AnyPathPattern ::=                       'ANY' <SourceVertexPattern>
                                                  <QuantifiedPathPatternPrimary>
@@ -1863,6 +1876,54 @@ ParenthesizedPathPatternExpression ::= '(' <VertexPattern>? <EdgePattern> <Verte
                                              <WhereClause>?
                                                <CostClause>? ')'
 ```
+
+An example where we test for path existence is:
+
+{% include image.html file="example_graphs/financial_transactions.png" %}
+
+```sql
+  SELECT dst.number
+    FROM MATCH ANY (src:Account) -[e]->+ (dst:Account)
+   WHERE src.number = 8021
+ORDER BY dst.number
+```
+
+```
++--------+
+| number |
++--------+
+| 1001   |
+| 2090   |
+| 8021   |
+| 10039  |
++--------+
+```
+
+An example where we return data along the path is:
+
+{% include image.html file="example_graphs/financial_transactions.png" %}
+
+```sql
+  SELECT dst.number, LISTAGG(e.amount, ' + ') || ' = ', SUM(e.amount)
+    FROM MATCH ANY (src:Account) -[e]->+ (dst:Account)
+   WHERE src.number = 8021
+ORDER BY dst.number
+```
+
+```
++---------------------------------------------------------------+
+| number | LISTAGG(e.amount, ' + ') || ' = '    | SUM(e.amount) |
++---------------------------------------------------------------+
+| 1001   | 1500.3 =                             | 1500.3        |
+| 2090   | 1500.3 + 9999.5 =                    | 11499.8       |
+| 8021   | 1500.3 + 9999.5 + 9900.0 + 1000.0 =  | 22399.8       |
+| 10039  | 1500.3 + 9999.5 + 9900.0 =           | 21399.8       |
++---------------------------------------------------------------+
+```
+
+Note that above, there is always only a single path per source-destination pair (there are four such pairs).
+And it is arbitrary which path is match.
+In this example, all four paths happen to contain the transaction edge with amount `1500.30` instead of the one with amount `3000.80`.
 
 ### Reachability
 
@@ -2221,6 +2282,10 @@ Here, the filter is applied only _after_ a shortest path is matched such that if
 
 ### All Shortest Path
 
+Given a pair of source-destination vertices, `ALL SHORTEST` path matches all shortest path between the two vertices.
+In contrast to `ANY SHORTEST`, `ALL SHORTEST` will return a deterministic result as it will include all shortest paths instead of an arbitrary shortest path.
+
+The syntax is:
 
 ```bash
 AllShortestPathPattern ::=   'ALL' 'SHORTEST' <SourceVertexPattern>
@@ -2229,6 +2294,26 @@ AllShortestPathPattern ::=   'ALL' 'SHORTEST' <SourceVertexPattern>
                            | 'ALL' 'SHORTEST' '(' <SourceVertexPattern>
                                                     <QuantifiedPathPatternPrimary>
                                                       <DestinationVertexPattern> ')'
+```
+
+For example:
+
+{% include image.html file="example_graphs/financial_transactions.png" %}
+
+```sql
+  SELECT LISTAGG(e.amount, ' + ') || ' = ', SUM(e.amount) AS total_amount
+    FROM MATCH ALL SHORTEST (a:Account) -[e:transaction]->* (b:Account)
+   WHERE a.number = 10039 AND b.number = 2090
+ORDER BY total_amount
+```
+
+```
++--------------------------------------------------+
+| LISTAGG(e.amount, ' + ') || ' = ' | total_amount |
++--------------------------------------------------+
+| 1000.0 + 1500.3 + 9999.5 =        | 12499.8      |
+| 1000.0 + 3000.7 + 9999.5 =        | 14000.2      |
++--------------------------------------------------+
 ```
 
 ### Top-K Shortest Path
@@ -2289,7 +2374,6 @@ SELECT ARRAY_AGG(e1.weight), ARRAY_AGG(e2.weight)
 Another example is:
 
 {% include image.html file="example_graphs/financial_transactions.png" %}
-
 
 ```sql
   SELECT COUNT(e) AS num_hops
@@ -2513,6 +2597,24 @@ it has a higher cost because it includes a `Person` vertex (`Camille`), which ad
 
 ## All Path
 
+`ALL` path returns all paths between source and destination vertices.
+Cycles are included. Therefore, it is required to always specify an upper bound on the path length as a way to avoid endless cycling.
+
+Thus, only the following [quantifiers](#quantifiers) are allowed:
+
+- `?`
+- `{ n }`
+- `{ n, m }`
+- `{ , m }`
+
+Whereas these quantifiers are forbidden:
+
+- `*`
+- `+`
+- `{ n, }`
+
+The syntax is:
+
 ```bash
 AllPathPattern ::=   'ALL' <SourceVertexPattern>
                              <QuantifiedPathPatternPrimary>
@@ -2520,6 +2622,30 @@ AllPathPattern ::=   'ALL' <SourceVertexPattern>
                    | 'ALL' '(' <SourceVertexPattern>
                                  <QuantifiedPathPatternPrimary>
                                    <DestinationVertexPattern> ')'
+```
+
+For example:
+
+{% include image.html file="example_graphs/financial_transactions.png" %}
+
+```sql
+  SELECT LISTAGG(e.amount, ' + ') || ' = ', SUM(e.amount) AS total_amount
+    FROM MATCH ALL (a:Account) -[e:transaction]->{,7} (b:Account)
+   WHERE a.number = 10039 AND b.number = 2090
+ORDER BY total_amount
+```
+
+```
++--------------------------------------------------------------------------------+
+| LISTAGG(e.amount, ' + ') || ' = '                               | total_amount |
++--------------------------------------------------------------------------------+
+| 1000.0 + 1500.3 + 9999.5 =                                      | 12499.8      |
+| 1000.0 + 3000.7 + 9999.5 =                                      | 14000.2      |
+| 1000.0 + 1500.3 + 9999.5 + 9900.0 + 1000.0 + 1500.3 + 9999.5 =  | 34899.6      |
+| 1000.0 + 1500.3 + 9999.5 + 9900.0 + 1000.0 + 3000.7 + 9999.5 =  | 36400.0      |
+| 1000.0 + 3000.7 + 9999.5 + 9900.0 + 1000.0 + 1500.3 + 9999.5 =  | 36400.0      |
+| 1000.0 + 3000.7 + 9999.5 + 9900.0 + 1000.0 + 3000.7 + 9999.5 =  | 37900.4      |
++--------------------------------------------------------------------------------+
 ```
 
 ## Horizontal Aggregation
