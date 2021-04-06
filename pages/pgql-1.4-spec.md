@@ -1887,7 +1887,7 @@ Two typical uses are:
  - Testing for the _existence_ of a path between a pair of vertices without caring about the actual data along the paths.
  - Matching a path in case of tree-structured graphs or other types of graph structures for which it is known that only a single paths exist between pairs of vertices.
 
-Note that in case the first case where we test for path existence, it is also possible to use [Reachability](#reachability) instead.
+Note that in the first case where we test for path existence, it is also possible to use [Reachability](#reachability) instead.
 
 The syntax for matching any path is:
 
@@ -3210,7 +3210,7 @@ LOWER( string )
 For example:
 
 ```sql
-UPPER('A string')
+LOWER('A string')
 Result: a string
 ```
 
