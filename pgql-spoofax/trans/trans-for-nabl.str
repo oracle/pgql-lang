@@ -31,7 +31,7 @@ rules
 
   trans-query(|variables):
     NormalizedQuery(CommonPathExpressions(pathExpressions), selectOrModifyClause, optionalGraphName, graphPattern, groupBy, having, orderBy, limitOffsets, error-messages, version, bindVariableCount) ->
-        NormalizedQuery(CommonPathExpressions(pathExpressions'), selectOrModifyClause', optionalGraphName, graphPattern', groupBy', having', orderBy', limitOffsets, error-messages, version, bindVariableCount)
+        NormalizedQuery(CommonPathExpressions(pathExpressions'), selectOrModifyClause', optionalGraphName, graphPattern'', groupBy', having', orderBy', limitOffsets, error-messages, version, bindVariableCount)
     with variables' := <guarantee-size-two-or-more> variables
 
        // PATH
@@ -86,6 +86,12 @@ rules
        ; orderBy' := < resolve-var-refs(|variables'''')
                      ; resolve-prop-refs(|variables''')
                      ; alltd(optimize-order-by)> orderBy
+
+       ; if <?Some(GraphPattern(vertices', connections'', valueExpression'))> := graphPattern'
+         then connections''' := <map(try(normalize-ANY-path(|variables'''')))> connections'' // normalize ANY either to REACHES or SHORTEST
+            ; graphPattern'' := Some(GraphPattern(vertices', connections''', valueExpression'))
+         else graphPattern'' := graphPattern'
+         end
 
   path-with-at-most-one-binding:
     t@Path(_, _, _, quantifier, _, _, _, _) -> t
@@ -388,3 +394,14 @@ rules
   optimize-order-by:
     OrderByClause(elems) -> OrderByClause(elems')
     with elems' := <make-set-while-preserving-ordering> elems // optimization to translate e.g. ORDER BY x, y, x, y into ORDER BY x, y
+
+  normalize-ANY-path(|variables):
+    Path(src, dst, t@CommonPathExpression(_, Vertices(vertices), Edges(edges), _, _), quantifier, edge, direction, Any(), topKAnyAll)
+      -> Path(src, dst, t, quantifier, edge, direction, pathFindingGoal, topKAnyAll)
+    with groupVariables := <conc> (<map(?Vertex(_, <id>, _))> vertices, <map(?Edge(_, _, _, _, <id>, _))> edges)
+       ; references := <Hd; collect(?VarRef(_, <id>))> variables
+       ; referencedGroupVariables := <isect> (groupVariables, references)
+       ; if <?[]> referencedGroupVariables
+         then pathFindingGoal := Reaches()
+         else pathFindingGoal := Shortest()
+         end

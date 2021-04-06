@@ -3,7 +3,6 @@
  */
 package oracle.pgql.lang.ir;
 
-import java.util.ArrayList;
 import java.util.LinkedHashSet;
 import java.util.Set;
 

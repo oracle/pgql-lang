@@ -277,10 +277,19 @@ rules // temporary limitation
 
   nabl-constraint(|ctx):
     Path(_, _, pathExpression, quantifier, _, _, goal, _) -> <fail>
-    where <?Shortest() + ?Cheapest()> goal
+    where <?Shortest() + ?Cheapest() + ?Any() + ?All()> goal
         ; <?None() + ?Some(BetweenNAndM("0", "1")); origin-text; ?"?"> quantifier
     with error-term := <?Some(_) <+ !pathExpression; collect-one(?Edge(_, _, _, _, _, _))> quantifier 
-       ; <generate-error(|ctx, "Quantifier of the form * or + or {1,4} expected")> error-term
+       ; if <?All()> goal
+         then <generate-error(|ctx, "Quantifier of the form {1,4} expected")> error-term
+         else <generate-error(|ctx, "Quantifier of the form * or + or {1,4} expected")> error-term
+         end
+
+  nabl-constraint(|ctx):
+    Path(_, _, pathExpression, quantifier, _, _, goal, _) -> <fail>
+    where <?All()> goal
+        ; <?Some(BetweenNAndM(_, "-1"))> quantifier
+    with <generate-error(|ctx, "Path finding goal ALL requires an upper bound on the path length")> quantifier
 
   nabl-constraint(|ctx):
     t@CommonPathExpression(_, _, connections, _, _) -> <fail>

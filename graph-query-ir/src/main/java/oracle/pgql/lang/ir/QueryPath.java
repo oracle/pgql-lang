@@ -6,6 +6,7 @@ package oracle.pgql.lang.ir;
 import java.util.List;
 import java.util.Set;
 
+import static oracle.pgql.lang.ir.PgqlUtils.GENERATED_VAR_PREFIX;
 import static oracle.pgql.lang.ir.PgqlUtils.printHops;
 import static oracle.pgql.lang.ir.PgqlUtils.printIdentifier;
 import static oracle.pgql.lang.ir.PgqlUtils.printPathExpression;
@@ -131,25 +132,31 @@ public class QueryPath extends VertexPairConnection {
   public String toString() {
     switch (goal) {
       case REACHES:
-        String path = "-/";
-        if (!isAnonymous()) {
-          path += printIdentifier(name);
+        if (commonPathExpression.getName().startsWith(GENERATED_VAR_PREFIX)) {
+          // ANY
+          return printVariableLengthPathPattern(goal);
+        } else {
+          // -/../->
+          String path = "-/";
+          if (!isAnonymous()) {
+            path += printIdentifier(name);
+          }
+          return path + ":" + printIdentifier(commonPathExpression.getName()) + printHops(this) + "/->";
         }
-        return path + ":" + printIdentifier(commonPathExpression.getName()) + printHops(this) + "/->";
       case SHORTEST:
-        return printShortestCheapest(goal);
       case CHEAPEST:
-        return printShortestCheapest(goal);
-
+      case ALL:
+        return printVariableLengthPathPattern(goal);
       default:
         throw new IllegalArgumentException(goal.toString());
     }
   }
 
-  private String printShortestCheapest(PathFindingGoal goal) {
+  private String printVariableLengthPathPattern(PathFindingGoal goal) {
     String kValueAsString = kValue > 1 ? "TOP " + kValue + " " : "";
     String allAsString = withTies ? "ALL " : "";
-    String result = kValueAsString + allAsString + goal + " ( " + getSrc() + " ";
+    String goalAsString = goal == PathFindingGoal.REACHES ? "ANY" : goal.toString();
+    String result = kValueAsString + allAsString + goalAsString + " " + getSrc() + " ";
     String pathExpression = printPathExpression(commonPathExpression, true);
     if (pathExpression.contains("WHERE") || pathExpression.contains("COST") || pathExpression.startsWith("(")
         || pathExpression.endsWith(")")) {
@@ -158,7 +165,7 @@ public class QueryPath extends VertexPairConnection {
       result += pathExpression;
     }
 
-    result += printHops(this) + " " + getDst() + " )";
+    result += printHops(this) + " " + getDst();
     return result;
   }
 

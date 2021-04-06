@@ -294,6 +294,24 @@ public class PrettyPrintingTest extends AbstractPgqlTest {
   }
 
   @Test
+  public void testAnyPath() throws Exception {
+    String query = "SELECT LISTAGG(e2.prop, ',') FROM MATCH ANY (n) ->* (m), MATCH ANY ( (n) <-[e2]-* (m) )";
+    checkRoundTrip(query);
+  }
+
+  @Test
+  public void testAnyPathReachability() throws Exception {
+    String query = "SELECT 1 FROM MATCH ANY (n) ->* (m), MATCH ANY ( (n) <-[e2]-* (m) )";
+    checkRoundTrip(query);
+  }
+
+  @Test
+  public void testAllPath() throws Exception {
+    String query = "SELECT LISTAGG(e2.prop, ',') FROM MATCH ALL (n) ->{3} (m), MATCH ALL ( (n) <-[e2]-{,2} (m) )";
+    checkRoundTrip(query);
+  }
+
+  @Test
   public void testDeprecatedDefinitionInGroupBy() throws Exception {
     String query = "SELECT age FROM g MATCH (n) GROUP BY n.age AS age";
     checkRoundTrip(query);

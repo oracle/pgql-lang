@@ -612,26 +612,32 @@ public class SpoofaxAstToGraphQuery {
       throws PgqlException {
 
     String pathFindingGoal = ((IStrategoAppl) pathT.getSubterm(POS_PATH_FINDING_GOAL)).getConstructor().getName();
+    CommonPathExpression commonPathExpression;
+    IStrategoAppl pathExpressionT = (IStrategoAppl) pathT.getSubterm(POS_PATH_EXPRESSION);
+    if (pathExpressionT.getConstructor().getName().equals("CommonPathExpression")) {
+      commonPathExpression = getPathExpression(pathExpressionT, ctx);
+    } else {
+      commonPathExpression = getCommonPathExpressionFromReaches(pathT, ctx);
+    }
+
     switch (pathFindingGoal) {
       case "Reaches":
-        return getReaches(pathT, ctx, vertexMap);
+        return getQueryPath(pathT, ctx, vertexMap, PathFindingGoal.REACHES, commonPathExpression);
       case "Shortest":
-        return getShortestCheapest(pathT, ctx, vertexMap, PathFindingGoal.SHORTEST);
+        return getQueryPath(pathT, ctx, vertexMap, PathFindingGoal.SHORTEST, commonPathExpression);
       case "Cheapest":
-        return getShortestCheapest(pathT, ctx, vertexMap, PathFindingGoal.CHEAPEST);
+        return getQueryPath(pathT, ctx, vertexMap, PathFindingGoal.CHEAPEST, commonPathExpression);
+      case "All":
+        return getQueryPath(pathT, ctx, vertexMap, PathFindingGoal.ALL, commonPathExpression);
       default:
         throw new UnsupportedOperationException(pathFindingGoal);
     }
   }
 
-  private static QueryPath getReaches(IStrategoTerm pathT, TranslationContext ctx, Map<String, QueryVertex> vertexMap)
-      throws PgqlException {
+  private static CommonPathExpression getCommonPathExpressionFromReaches(IStrategoTerm pathT, TranslationContext ctx) {
+    CommonPathExpression commonPathExpression;
     String label = getString(pathT.getSubterm(POS_PATH_EXPRESSION));
-    long minHops = getMinHops(pathT);
-    long maxHops = getMaxHops(pathT);
-
-    CommonPathExpression commonPathExpression = ctx.getCommonPathExpressions().get(label);
-
+    commonPathExpression = ctx.getCommonPathExpressions().get(label);
     if (commonPathExpression == null) { // no path expression defined for the label; generate one here
       QueryVertex src = new QueryVertex("n", true);
       QueryVertex dst = new QueryVertex("m", true);
@@ -652,20 +658,45 @@ public class SpoofaxAstToGraphQuery {
 
       commonPathExpression = new CommonPathExpression(label, vertices, connections, constraints);
     }
+    return commonPathExpression;
+  }
 
+  private static QueryPath getQueryPath(IStrategoTerm pathT, TranslationContext ctx, Map<String, QueryVertex> vertexMap,
+      PathFindingGoal goal, CommonPathExpression commonPathExpression)
+      throws PgqlException {
     String srcName = getString(pathT.getSubterm(POS_PATH_SRC));
     String dstName = getString(pathT.getSubterm(POS_PATH_DST));
+    long minHops = getMinHops(pathT);
+    long maxHops = getMaxHops(pathT);
     String name = getString(pathT.getSubterm(POS_PATH_NAME));
     Direction direction = getDirection(pathT.getSubterm(POS_PATH_DIRECTION));
     QueryVertex src = getQueryVertex(vertexMap, srcName);
     QueryVertex dst = getQueryVertex(vertexMap, dstName);
-    PathFindingGoal goal = PathFindingGoal.REACHES;
-    int kValue = -1;
-    boolean withTies = false;
 
-    QueryPath path = name.contains(GENERATED_VAR_SUBSTR)
-        ? new QueryPath(src, dst, name, commonPathExpression, true, minHops, maxHops, goal, kValue, withTies, direction)
-        : new QueryPath(src, dst, name, commonPathExpression, false, minHops, maxHops, goal, kValue, withTies, direction);
+    boolean withTies = false; // default
+    int kValue = 1; // default
+
+    if (goal == PathFindingGoal.SHORTEST || goal == PathFindingGoal.CHEAPEST) {
+      IStrategoTerm topKAnyAllT = pathT.getSubterm(POS_PATH_TOP_K_ANY_ALL);
+      if (isSome(topKAnyAllT)) {
+        IStrategoAppl topKAnyAllContent = (IStrategoAppl) getSome(topKAnyAllT);
+        switch (topKAnyAllContent.getName()) {
+          case "TopK": // TOP k SHORTEST or TOP k CHEAPEST
+            kValue = parseInt(topKAnyAllContent.getSubterm(0));
+            break;
+          case "Any": // ANY SHORTEST or ANY CHEAPEST
+            break;
+          case "All": // ALL SHORTEST or ALL CHEAPEST
+            withTies = true;
+            break;
+          default:
+            throw new IllegalArgumentException(topKAnyAllContent.getName());
+        }
+      }
+    }
+
+    QueryPath path = new QueryPath(src, dst, name, commonPathExpression, true, minHops, maxHops, goal, kValue, withTies,
+        direction);
 
     return path;
   }
@@ -687,46 +718,6 @@ public class SpoofaxAstToGraphQuery {
     } else {
       return 1;
     }
-  }
-
-  private static QueryPath getShortestCheapest(IStrategoTerm pathT, TranslationContext ctx,
-      Map<String, QueryVertex> vertexMap, PathFindingGoal goal)
-      throws PgqlException {
-    String srcName = getString(pathT.getSubterm(POS_PATH_SRC));
-    String dstName = getString(pathT.getSubterm(POS_PATH_DST));
-    long minHops = getMinHops(pathT);
-    long maxHops = getMaxHops(pathT);
-    String name = getString(pathT.getSubterm(POS_PATH_NAME));
-    Direction direction = getDirection(pathT.getSubterm(POS_PATH_DIRECTION));
-    QueryVertex src = getQueryVertex(vertexMap, srcName);
-    QueryVertex dst = getQueryVertex(vertexMap, dstName);
-
-    IStrategoTerm pathExpressionT = pathT.getSubterm(POS_PATH_EXPRESSION);
-    CommonPathExpression pathExpression = getPathExpression(pathExpressionT, ctx);
-
-    IStrategoTerm topKAnyAllT = pathT.getSubterm(POS_PATH_TOP_K_ANY_ALL);
-    boolean withTies = false; // default
-    int kValue = 1; // default
-    if (isSome(topKAnyAllT)) {
-      IStrategoAppl topKAnyAllContent = (IStrategoAppl) getSome(topKAnyAllT);
-      switch (topKAnyAllContent.getName()) {
-        case "TopK":
-          kValue = parseInt(topKAnyAllContent.getSubterm(0));
-          break;
-        case "Any":
-          break;
-        case "All":
-          withTies = true;
-          break;
-        default:
-          throw new IllegalArgumentException(topKAnyAllContent.getName());
-      }
-    }
-
-    QueryPath path = new QueryPath(src, dst, name, pathExpression, true, minHops, maxHops, goal, kValue, withTies,
-        direction);
-
-    return path;
   }
 
   private static void giveAnonymousVariablesUniqueHiddenName(Collection<? extends QueryVariable> variables,

@@ -32,7 +32,7 @@ test Quantifier not enclosed by SHORTEST or CHEAPEST [[
          , (n) ->[[{2,}]] (m)
          , (n) ->[[{2,3}]] (m)
 
-]] error like "Quantifier needs to be enclosed by SHORTEST or CHEAPEST" at #1, #2, #3, #4, #5, #6, #7
+]] error like "Quantifier needs to be enclosed by ANY, ALL, SHORTEST or CHEAPEST" at #1, #2, #3, #4, #5, #6, #7
 
 test K equals zero [[
 
@@ -95,6 +95,41 @@ test No quantifier in CHEAPEST [[
     FROM MATCH CHEAPEST ( (n) [[(-[e1]-> COST e1.prop)]] (m) )
 
 ]] error like "Quantifier of the form * or + or {1,4} expected" at #1
+
+test No quantifier in ANY [[
+
+  SELECT *
+    FROM MATCH ANY  (n) [[(-[e1]->)]] (m)
+
+]] error like "Quantifier of the form * or + or {1,4} expected" at #1
+
+test No quantifier in ALL [[
+
+  SELECT *
+    FROM MATCH ALL (n) [[-[e1]-> (m)]]
+
+]] error like "Quantifier of the form {1,4} expected" at #1
+
+test Question mark in ALL [[
+
+  SELECT *
+    FROM MATCH ALL (n) -[e1]->[[?]] (m)
+
+]] error like "Quantifier of the form {1,4} expected" at #1
+
+test Unbounded ALL (1) [[
+
+  SELECT *
+    FROM MATCH ALL (n) -[e1]->[[{1,}]] (m)
+
+]] error like "Path finding goal ALL requires an upper bound on the path length" at #1
+
+test Unbounded ALL (2) [[
+
+  SELECT *
+    FROM MATCH ALL (n) -[e1]->[[+]] (m)
+
+]] error like "Path finding goal ALL requires an upper bound on the path length" at #1
 
 test Duplicate variables (1) [[
 
