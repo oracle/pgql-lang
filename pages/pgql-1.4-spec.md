@@ -1806,7 +1806,7 @@ Variable-length path patterns match a variable number of vertices and edges such
 | TOP k CHEAPEST | top k cheapest paths | no limitations                             |
 | ALL            | all paths            | requires an upper bound on the path length |
 
-\* Allows for retrieving data from the two path endpoint vertices _only_. To retrieve data from all vertices or edges _along_ the path, use path finding goal `ANY`.
+\*Allows for retrieving data from the two path endpoint vertices _only_. To retrieve data from all vertices or edges _along_ the path, use path finding goal `ANY`.
 
 ## Quantifiers
 
@@ -1885,7 +1885,7 @@ Shortest path finding is explained in more detail in [Shortest Path](#shortest-p
 Two typical uses are:
 
  - Testing for the _existence_ of a path between a pair of vertices without caring about the actual data along the paths.
- - Matching a path in case of tree-structured graphs or other types of graph structures for which it is known that only a single paths exist between pairs of vertices.
+ - Matching a path in case of tree-structured graphs or other types of graph structures for which it is known that only single paths exist between pairs of vertices.
 
 Note that in the first case where we test for path existence, it is also possible to use [Reachability](#reachability) instead.
 
