@@ -1795,7 +1795,7 @@ Variable-length path patterns match a variable number of vertices and edges such
 
 ## Overview of Path Finding Goals
 
-| syntax         | matches              | limitations on quantifier                  |
+| goal           | matches              | limitations on quantifier                  |
 |----------------|----------------------|--------------------------------------------|
 | -/ .. /->      | any path*            | no limitations                             |
 | ANY            | any path             | no limitations                             |
