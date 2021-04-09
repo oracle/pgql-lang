@@ -3140,21 +3140,21 @@ JAVA_REGEXP_LIKE('aaaaab', 'a*b')
 Result: true
 ```
 
-### UPPER
+### LOWER
 
-The `UPPER` function transforms a string to uppercase. The case of each character is defined by the rules of the default locale.
+The `LOWER` function transforms a string to lowercase. The case of each character is defined by the rules of the default locale.
 
 The syntax is:
 
 ```
-UPPER( string )
+LOWER( string )
 ```
 
 For example:
 
 ```sql
-UPPER('A string')
-Result: A STRING
+LOWER('A string')
+Result: a string
 ```
 
 ### SUBSTRING
@@ -3197,21 +3197,21 @@ input string | FROM  | FOR          | output string
 `hello`      | `-10` | `18`         | `hello`
 `hello`      | `7`   | `2`          | (empty string)
 
-### LOWER
+### UPPER
 
-The `LOWER` function transforms a string to lowercase. The case of each character is defined by the rules of the default locale.
+The `UPPER` function transforms a string to uppercase. The case of each character is defined by the rules of the default locale.
 
 The syntax is:
 
 ```
-LOWER( string )
+UPPER( string )
 ```
 
 For example:
 
 ```sql
-LOWER('A string')
-Result: a string
+UPPER('A string')
+Result: A STRING
 ```
 
 ## Numeric functions
