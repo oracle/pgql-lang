@@ -2838,6 +2838,7 @@ ValueExpression          ::=   <VariableReference>
                              | <StringConcat>
                              | <BracketedValueExpression>
                              | <FunctionInvocation>
+                             | <CharacterSubstring>
                              | <Aggregation>
                              | <ExtractFunction>
                              | <IsNullPredicate>
