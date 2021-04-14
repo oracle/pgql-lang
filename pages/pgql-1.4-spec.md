@@ -1600,6 +1600,12 @@ aggregate operator | semantic | required input type
 `ARRAY_AGG` | constructs an array/list of the values for the given expression. | numeric, string, boolean, date, time [with time zone], or, timestamp [with time zone]
 `LISTAGG` | constructs a concatenation of the values for the given expression; an optional separator can be specified to delimit the values. | string
 
+All aggregate functions ignore nulls. `COUNT` never returns null, but instead returns zero if all input values to the aggregate function are null.
+For all the remaining aggregate functions, if there are no inputs or all input values to the aggregate function are null, then the function returns null.
+
+For example, the average of `2`, `4` and `null` is `3`, while the average of `null` and `null` is `null`.
+The count of `2`, `4` and `null` is `2` (there are two non-null values), while the count of `null` and `null` is `0`.
+
 ### Aggregation with GROUP BY
 
 If a `GROUP BY` is specified, aggregations are applied to each individual group of solutions.
