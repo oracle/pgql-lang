@@ -2324,7 +2324,7 @@ Here, the filter is applied only _after_ a shortest path is matched such that if
 
 ### All Shortest Path
 
-Given a pair of source-destination vertices, `ALL SHORTEST` path matches all shortest path between the two vertices.
+Given a pair of source-destination vertices, `ALL SHORTEST` path matches all shortest paths between the two vertices.
 In contrast to `ANY SHORTEST`, `ALL SHORTEST` will return a deterministic result as it will include all shortest paths instead of an arbitrary shortest path.
 
 The syntax is:
