@@ -90,7 +90,7 @@ The result is:
 +----------------+------------------------------+
 ```
 
-Please see [PGQL 1.3 Specification](spec/1.3/) for more examples and a detailed specification of the language.
+Please see the [PGQL Specification](spec/latest/) for more examples and a detailed specification of the language.
 
 Oracle's Graph Database
 ----------------------------
