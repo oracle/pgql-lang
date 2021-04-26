@@ -1,6 +1,6 @@
 # PGQL - Property Graph Query Language
 
-PGQL is an SQL-based query language for the [property graph data model](http://pgql-lang.org/spec/1.3/#property-graph-data-model), bringing graph pattern matching capabilities to SQL and NoSQL users.
+PGQL is an SQL-based query language for the [property graph data model](http://pgql-lang.org/spec/latest/#property-graph-data-model), bringing graph pattern matching capabilities to SQL and NoSQL users.
 
 See the website for a language specification and any newsworthy updates:
 
@@ -112,7 +112,7 @@ The AST returned by the parser is a [GraphQuery](graph-query-ir/src/main/java/or
 
 ## Documentation
 
-See [PGQL 1.3 Specification](http://pgql-lang.org/spec/1.3/).
+See the [PGQL Specification](http://pgql-lang.org/spec/latest/).
 
 ## Development
 
