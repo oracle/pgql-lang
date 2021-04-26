@@ -1,6 +1,6 @@
 ---
 title: "PGQL 1.4 Specification"
-date: "[TO BE RELEASED SOON]"
+date: "26 April 2021"
 permalink: /spec/1.4/
 summary: "PGQL is an SQL-based query language for the property graph data model that allows
 you to specify high-level graph patterns which are matched against vertices and edges in a graph.
