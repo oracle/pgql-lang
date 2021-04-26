@@ -1598,7 +1598,7 @@ aggregate operator | semantic | required input type
 `SUM` | sums over the values for the given expression. | numeric
 `AVG` | takes the average of the values for the given expression. | numeric
 `ARRAY_AGG` | constructs an array/list of the values for the given expression. | numeric, string, boolean, date, time [with time zone], or, timestamp [with time zone]
-`LISTAGG` | constructs a concatenation of the values for the given expression; an optional separator can be specified to delimit the values. | string
+`LISTAGG` | constructs a concatenation of the values for the given expression; an optional separator can be specified to delimit the values. | numeric, string, boolean, date, time [with time zone], or, timestamp [with time zone]
 
 All aggregate functions ignore nulls. `COUNT` never returns null, but instead returns zero if all input values to the aggregate function are null.
 For all the remaining aggregate functions, if there are no inputs or all input values to the aggregate function are null, then the function returns null.
