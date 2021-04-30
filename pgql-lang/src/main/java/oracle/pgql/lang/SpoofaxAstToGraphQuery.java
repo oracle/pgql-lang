@@ -381,11 +381,11 @@ public class SpoofaxAstToGraphQuery {
         String edgeName = getString(insertionT.getSubterm(POS_EDGE_INSERTION_NAME));
 
         IStrategoTerm srcVarRefT = insertionT.getSubterm(POS_EDGE_INSERTION_SRC);
-        QueryVertex src = (QueryVertex) getVariable(ctx, srcVarRefT);
+        QueryVertex src = dereferenceQueryVertex(getVariable(ctx, srcVarRefT));
 
         IStrategoTerm dstVarRefT = insertionT.getSubterm(POS_EDGE_INSERTION_DST);
 
-        QueryVertex dst = (QueryVertex) getVariable(ctx, dstVarRefT);
+        QueryVertex dst = dereferenceQueryVertex(getVariable(ctx, dstVarRefT));
 
         QueryEdge edge = new QueryEdge(src, dst, edgeName, false, Direction.OUTGOING);
         IStrategoTerm originPosition = insertionT.getSubterm(POS_EDGE_INSERTION_ORIGIN_OFFSET);
@@ -401,6 +401,22 @@ public class SpoofaxAstToGraphQuery {
 
       default:
         throw new IllegalArgumentException(constructorName);
+    }
+  }
+
+  private static QueryVertex dereferenceQueryVertex(QueryVariable var) throws PgqlException {
+    switch (var.getVariableType()) {
+      case VERTEX:
+        return (QueryVertex) var;
+      case EXP_AS_VAR:
+        QueryExpression exp = ((ExpAsVar) var).getExp();
+        if (exp.getExpType() != ExpressionType.VARREF) {
+          throw new PgqlException("Not a vertex reference: " + exp);
+        }
+        QueryVariable nestedVar = ((VarRef) exp).getVariable();
+        return dereferenceQueryVertex(nestedVar);
+      default:
+        throw new PgqlException("Not a vertex reference: " + var);
     }
   }
 
