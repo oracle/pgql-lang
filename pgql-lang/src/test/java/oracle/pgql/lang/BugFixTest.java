@@ -7,10 +7,13 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
 
+import java.util.List;
+
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.ExpectedException;
 
+import oracle.pgql.lang.ir.ExpAsVar;
 import oracle.pgql.lang.ir.GraphQuery;
 import oracle.pgql.lang.ir.QueryExpression.FunctionCall;
 import oracle.pgql.lang.ir.QueryExpression.PropertyAccess;
@@ -289,5 +292,14 @@ public class BugFixTest extends AbstractPgqlTest {
 
     String errorMessage = "Alias required (.. AS name)";
     assertTrue(pgql.parse(statement).getErrorMessages().contains(errorMessage));
+  }
+
+  @Test
+  public void testInPredicateColumnName() throws Exception {
+    String query = "SELECT a.number in (a.number), a.number AS \"a.number\" FROM MATCH (a)";
+    SelectQuery selectQuery = (SelectQuery) pgql.parse(query).getGraphQuery();
+    List<ExpAsVar> projectionElements = selectQuery.getProjection().getElements();
+    assertEquals("a.number in (a.number)", projectionElements.get(0).getName());
+    assertEquals("a.number", projectionElements.get(1).getName());
   }
 }
