@@ -3170,12 +3170,12 @@ The `SUBSTRING` function returns a portion of the given string, starting from th
 
 The syntax is:
 
-```
-CharacterSubstring := 'SUBSTRING' '(' <ValueExpression> 'FROM' <StartPosition> ( 'FOR' <StringLength> )? ')'
+```bash
+CharacterSubstring ::= 'SUBSTRING' '(' <ValueExpression> 'FROM' <StartPosition> ( 'FOR' <StringLength> )? ')'
 
-StartPosition      := <ValueExpression>
+StartPosition      ::= <ValueExpression>
 
-StringLength       := <ValueExpression>
+StringLength       ::= <ValueExpression>
 ```
 
 For example:
