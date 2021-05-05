@@ -20,7 +20,7 @@ else
   exit
 fi
 
-VERSION_A="1.3.0-SNAPSHOT"
+VERSION_A="0.0.0-SNAPSHOT"
 VERSION_B="$1"
 
 for f in $FILES
