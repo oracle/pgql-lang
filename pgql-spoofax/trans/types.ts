@@ -6,6 +6,9 @@ imports
 
 type rules
 
+  ExpressionPlusType(exp, t) : ty
+  where exp : ty
+
   VarRef(Identifier(v, _), _) : ty
   where definition of v : ty
     and not ( ty == PathTy() ) else error $[Path variables not supported in PGQL 1.1] on v
