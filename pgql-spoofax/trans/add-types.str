@@ -1,0 +1,61 @@
+module add-types
+
+imports
+
+  stratego/-
+  libspoofax/properties/-
+  libspoofax/nabl/-
+  libspoofax/task/-
+  libspoofax/types/-
+  signatures/-
+  normalized-signatures
+  common
+
+rules
+
+  annotate-with-types = bottomup(try(add-label-expression-to-prop-ref)); alltd(add-type)
+
+  add-label-expression-to-prop-ref:
+    query@NormalizedQuery(_, _, _, Some(GraphPattern(Vertices(vertices), edges, Constraints(constraints))), _, _, _, _, _, _, _) -> query'
+    with vertexDefinititions := <map(?Vertex(_, <id>, _))> vertices
+       ; edgeDefinititions := <map(?Edge(_, _, _, _, <id>, _))> edges
+       ; query' := <alltd(add-label-expression(|vertexDefinititions, Vertex(), constraints) + add-label-expression(|edgeDefinititions, Edge(), constraints))> query
+
+  simplify-label-expression(|varRefOriginPosition):
+    FunctionCall(None(), "has_label", [ VarRef(_, varRefOriginPosition), Identifier(label, _)]) -> label
+
+  simplify-label-expression(|varRefOriginPosition):
+    Or(a, b) -> LabelOr(a', b')
+    where a' := <simplify-label-expression(|varRefOriginPosition)> a
+        ; b' := <simplify-label-expression(|varRefOriginPosition)> b
+
+  add-label-expression(|varDefinitionOriginPositions, elemType ,constraints):
+    PropRef(vr@VarRef(_, varRefOriginPosition), identifier) -> PropRef(vr, identifier, elemType, labelExpression)
+    where <elem> (varRefOriginPosition, varDefinitionOriginPositions)
+    with labelExpression := <filter(simplify-label-expression(|varRefOriginPosition)); (?[]; !All() <+ to-label-conjunction)> constraints
+
+  to-label-conjunction = reverse; !(<Tl>, <Hd>); foldl(to-label-AND)
+  to-label-AND = ?(exp1, exp2); !LabelAnd(exp1, exp2)
+
+  add-type:
+    SetProperty(propRef, exp) -> SetProperty(propRef, <alltd(add-type)> exp) // this assures we skip adding a type to the propRef of a SET clause
+
+  add-type:
+    t@PropRef(_, _) -> ExpressionPlusType(t, Type("UNKONWN_TYPE"))
+
+signature constructors
+
+  LabelOr            : STRING * STRING -> LabelOr
+
+  LabelAnd           : STRING * STRING -> LabelAnd
+
+  PropRef            : VarRef * Identifier * ElemType * Exp -> PropRef // adds an element type (vertex/edge) and a label expression
+
+  Vertex             : ElemType
+
+  Edge               : ElemType
+
+  ExpressionPlusType : Exp * Type -> ExpressionPlusType
+
+  Type               : STRING -> Type
+

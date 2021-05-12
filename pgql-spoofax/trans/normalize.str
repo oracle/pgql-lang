@@ -543,12 +543,6 @@ rules
   norm-has-prop = ?Legacy10Has(varRef, [prop]); !Legacy10Has(varRef, prop) <+
                   ?Legacy10Has(varRef, <id>); map(!Legacy10Has(varRef, <id>)); to-conjunction
 
-  to-conjunction = reverse; !(<Tl>, <Hd>); foldl(to-AND)
-  to-AND = ?(exp1, exp2); !And(exp1, exp2)
-
-  to-disjunction = reverse; !(<Tl>, <Hd>); foldl(to-OR)
-  to-OR = ?(exp1, exp2); !Or(exp1, exp2)
-
 rules
 
   norm-hop-distance = ?ZeroOrMore(); !BetweenNAndM("0", "-1")

@@ -14,6 +14,7 @@ imports
   pp
   runtime/properties/-
   runtime/task/-
+  add-types
 
 rules // Unresolved/duplicate variables
 
@@ -395,7 +396,7 @@ rules // MODIFY
   nabl-constraint(|ctx):
     properties -> <fail>
     where <?SetProperties(setPropertyExps) + ?Properties(setPropertyExps)> properties
-    with propertyRefs := <filter(?SetProperty(PropRef(_, Identifier(<id>, _)), _))> setPropertyExps
+    with propertyRefs := <filter(?SetProperty(PropRef(_, Identifier(<id>, _), _, _), _))> setPropertyExps
        ; duplicatePropertyRefs := <filter(is-elem-contained-more-than-once(|propertyRefs))> propertyRefs
        ; <batch-generate-error(|ctx, "Property is set multiple times")> duplicatePropertyRefs
 
@@ -422,7 +423,7 @@ rules // MODIFY
            ?DirectedEdgeInsertion(Identifier(v, originText), _, _, _, _, Some(Properties(setProperties))) +
            ?Update(VarRef(Identifier(v, originText), _), SetProperties(setProperties))> t
     with v' := <strip-annos> v
-       ; otherVariablesThanV := <filter(?SetProperty(PropRef(VarRef(Identifier(<id>, _), _), _), _); strip-annos; not(?v'))> setProperties
+       ; otherVariablesThanV := <filter(?SetProperty(PropRef(VarRef(Identifier(<id>, _), _), _, _, _), _); strip-annos; not(?v'))> setProperties
        ; if <eq> (v', <strip-annos> originText)
          then varNameAsString := <origin-text> v
          else varNameAsString := originText // using <origin-text> like above fails SPT tests, thus we avoid using it for unquoted identifier so that we at least can still use unquoted identifiers in INSERT/UPDATE queries in SPT
@@ -476,3 +477,75 @@ rules // MODIFY
     LISTAGG(_, _, Some(Separator(separator))) -> <fail>
     where not ( <?String(_)> separator )
     with <generate-error(|ctx, "Only string literals are allowed as separator")> separator
+
+// schema
+
+  nabl-constraint(|ctx):
+    PropRef(_, Identifier(propName, _), elementType, labelExpression) -> <fail>
+    with if <?Vertex()> elementType
+         then labels := <get-vertex-labels-via-property> propName
+         else labels := <get-edge-labels-via-property> propName
+         end
+       ; propertyExists := <innermost(property-exists-for-labels(|labels))> labelExpression
+       ; if <?False()> propertyExists
+         then vertexOrEdge := <?Vertex(); !"vertex" <+ !"edge"> elementType
+            ; if <?All()> labelExpression
+              then message := $[Property does not exist for any of the [vertexOrEdge] label(s)]
+              else message := $[Property does not exist for the specified [vertexOrEdge] label(s)]
+              end
+            ; <generate-error(|ctx, message)> propName
+         end
+
+  property-exists-for-labels(|labels):
+    labelExpression -> result
+    where <is-string> labelExpression
+    with labelReference := labelExpression
+       ; if <elem> (labelReference, labels)
+         then result := True()
+         else result := False()
+         end
+
+  property-exists-for-labels(|labels):
+    LabelAnd(a, b) -> result
+    with if <?True()> a + <?True()> b
+         then result := True()
+         else result := False()
+         end
+
+  property-exists-for-labels(|labels):
+    LabelOr(a, b) -> result
+    with if <?True()> a; <?True()> b
+         then result := True()
+         else result := False()
+         end
+
+  property-exists-for-labels(|labels):
+    All() -> result
+    with if <?[]> labels
+         then result := False()
+         else result := True()
+         end
+
+  // check if schema is provided
+
+  // get all vertex/edge labels
+
+  // given a property, get all vertex/edge labels with the property
+
+  // given a vertex/edge label and a property, get the data type (as string), optional precision (as number), optional scale (as number)
+
+  // given two data types and an operation, return true/false whether operation is permissible
+
+  // given a package name, function name, set of parameters, give return type of function
+
+  get-vertex-labels-via-property:
+    "FIRSTNAME" -> ["PERSON"]
+
+  get-edge-labels-via-property:
+    "SINCE" -> ["KNOWS"]
+
+  get-vertex-labels-via-property:
+    prop -> []
+
+  get-edge-labels-via-property:
+    prop -> []
