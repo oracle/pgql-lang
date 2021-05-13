@@ -483,10 +483,10 @@ rules // MODIFY
   nabl-constraint(|ctx):
     PropRef(_, Identifier(propName, _), elementType, labelExpression) -> <fail>
     with if <?Vertex()> elementType
-         then labels := <get-vertex-labels-via-property> propName
-         else labels := <get-edge-labels-via-property> propName
+         then labels := <get-vertex-labels>
+         else labels := <get-edge-labels>
          end
-       ; propertyExists := <innermost(property-exists-for-labels(|labels))> labelExpression
+       ; propertyExists := <innermost(property-exists-for-labels(|labels, propName, elementType))> labelExpression
        ; if <?False()> propertyExists
          then vertexOrEdge := <?Vertex(); !"vertex" <+ !"edge"> elementType
             ; if <?All()> labelExpression
@@ -496,35 +496,47 @@ rules // MODIFY
             ; <generate-error(|ctx, message)> propName
          end
 
-  property-exists-for-labels(|labels):
+  property-exists-for-labels(|labels, propName, elementType):
     labelExpression -> result
     where <is-string> labelExpression
     with labelReference := labelExpression
-       ; if <elem> (labelReference, labels)
+       ; if <elem> (labelReference, labels); <get-labels-via-property(|labels, elementType); not(?[])> propName
          then result := True()
          else result := False()
          end
 
-  property-exists-for-labels(|labels):
+  property-exists-for-labels(|labels, propName, elementType):
     LabelAnd(a, b) -> result
     with if <?True()> a + <?True()> b
          then result := True()
          else result := False()
          end
 
-  property-exists-for-labels(|labels):
+  property-exists-for-labels(|labels, propName, elementType):
     LabelOr(a, b) -> result
     with if <?True()> a; <?True()> b
          then result := True()
          else result := False()
          end
 
-  property-exists-for-labels(|labels):
+  property-exists-for-labels(|labels, propName, elementType):
     All() -> result
-    with if <?[]> labels
-         then result := False()
-         else result := True()
+    with if <get-labels-via-property(|labels, elementType); not(?[])> propName
+         then result := True()
+         else result := False()
          end
+
+  get-labels-via-property(|labels, elementType):
+    propName -> labels'
+    with labels' := <filter(label-has-property(|propName, elementType))> labels
+
+  label-has-property(|propName, elementType):
+    label -> label
+    where if <?Vertex()> elementType
+          then propNames := <get-vertex-property-names> label
+          else propNames := <get-edge-property-names> label
+          end
+        ; <elem> (propName, propNames)
 
   // check if schema is provided
 
@@ -538,14 +550,10 @@ rules // MODIFY
 
   // given a package name, function name, set of parameters, give return type of function
 
-  get-vertex-labels-via-property:
-    "FIRSTNAME" -> ["PERSON"]
+  get-vertex-labels = !["PERSON"]
 
-  get-edge-labels-via-property:
-    "SINCE" -> ["KNOWS"]
+  get-edge-labels = !["KNOWS"]
 
-  get-vertex-labels-via-property:
-    prop -> []
+  get-vertex-property-names = ?"PERSON"; !["FIRSTNAME"] <+ ![]
 
-  get-edge-labels-via-property:
-    prop -> []
+  get-edge-property-names = ?"KNOWS"; !["SINCE"] <+ ![]
