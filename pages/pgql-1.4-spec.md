@@ -1748,7 +1748,7 @@ A partial ordering for the different data types is defined as follows:
 - Boolean values are ordered such that `false` comes before `true`.
 - Datetime values (i.e. dates, times, or timestamps) are ordered such that earlier points in time come before later points in time.
 
-Vertices and edges cannot be ordered directly.
+Vertices, edges and arrays cannot be ordered directly.
 
 ### Multiple expressions in ORDER BY
 
