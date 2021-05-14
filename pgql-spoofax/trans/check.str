@@ -481,6 +481,22 @@ rules // MODIFY
 // schema
 
   nabl-constraint(|ctx):
+    query@NormalizedQuery(_, _, _, Some(GraphPattern(Vertices(vertices), edges, Constraints(constraints))), _, _, _, _, _, _, _) -> <fail>
+    with vertexDefinititions := <map(?Vertex(_, <id>, _))> vertices
+       ; edgeDefinititions := <map(?Edge(_, _, _, _, <id>, _))> edges
+       ; vertexLabels := <get-vertex-labels>
+       ; edgeLabels := <get-edge-labels>
+       ; unresolvedVertexLabels := <collect(get-unresolved-label(|vertexDefinititions, vertexLabels))> query
+       ; unresolvedEdgeLabels := <collect(get-unresolved-label(|edgeDefinititions, edgeLabels))> query
+       ; <batch-generate-error(|ctx, "Vertex label does not exist")> unresolvedVertexLabels
+       ; <batch-generate-error(|ctx, "Edge label does not exist")> unresolvedEdgeLabels
+
+  get-unresolved-label(|varDefinitionOriginPositions, labels):
+    FunctionCall(None(), "has_label", [ VarRef(_, originPosition), Identifier(labelReference, _) ]) -> labelReference
+    where <elem> (originPosition, varDefinitionOriginPositions)
+        ; <not(elem)> (labelReference, labels)
+
+  nabl-constraint(|ctx):
     PropRef(_, Identifier(propName, _), elementType, labelExpression) -> <fail>
     with if <?Vertex()> elementType
          then labels := <get-vertex-labels>
@@ -500,7 +516,8 @@ rules // MODIFY
     labelExpression -> result
     where <is-string> labelExpression
     with labelReference := labelExpression
-       ; if <elem> (labelReference, labels); <get-labels-via-property(|labels, elementType); not(?[])> propName
+       ; if <not(elem)> (labelReference, labels) /* don't raise error if label is unresolved since we'll already have an error for the unresolved label */ 
+            + <get-labels-via-property(|labels, elementType); !(labelReference, <id>); elem> propName
          then result := True()
          else result := False()
          end
@@ -538,19 +555,7 @@ rules // MODIFY
           end
         ; <elem> (propName, propNames)
 
-  // check if schema is provided
-
-  // get all vertex/edge labels
-
-  // given a property, get all vertex/edge labels with the property
-
-  // given a vertex/edge label and a property, get the data type (as string), optional precision (as number), optional scale (as number)
-
-  // given two data types and an operation, return true/false whether operation is permissible
-
-  // given a package name, function name, set of parameters, give return type of function
-
-  get-vertex-labels = !["PERSON"]
+  get-vertex-labels = !["PERSON", "COMPANY"]
 
   get-edge-labels = !["KNOWS"]
 
