@@ -3045,14 +3045,14 @@ Or                   ::= <ValueExpression> 'OR' <ValueExpression>
 
 The supported input types and corresponding return types are as follows:
 
-operator                                            | type of A (and B)                                                                                     | return type
---------------------------------------------------- | ----------------------------------------------------------------------------------------------------- | -----------
-`-`A (unary minus)                                  | numeric                                                                                               | type of A
-A `||` B                                            | string                                                                                                | string
-A `+` B<br>A `-` B<br>A `*` B<br>A `/` B<br>A `%` B | numeric                                                                                               | numeric*
-A `=` B<br>A `<>` B                                 | numeric, string, boolean,<br>date, time [with time zone], timestamp [with time zone],<br>vertex, edge | boolean
-A `<` B<br>A `>` B<br>A `<=` B<br>A `>=` B          | numeric, string, boolean,<br>date, time [with time zone], timestamp [with time zone]                  | boolean
-`NOT` A<br>A `AND` B<br>A `OR` B                    | boolean                                                                                               | boolean
+operator                                            | type of A (and B)                                                                                            | return type
+--------------------------------------------------- | ------------------------------------------------------------------------------------------------------------ | -----------
+`-`A (unary minus)                                  | numeric                                                                                                      | type of A
+A `||` B                                            | string                                                                                                       | string
+A `+` B<br>A `-` B<br>A `*` B<br>A `/` B<br>A `%` B | numeric                                                                                                      | numeric*
+A `=` B<br>A `<>` B                                 | numeric, string, boolean,<br>date, time [with time zone], timestamp [with time zone],<br>vertex, edge, array | boolean
+A `<` B<br>A `>` B<br>A `<=` B<br>A `>=` B          | numeric, string, boolean,<br>date, time [with time zone], timestamp [with time zone]                         | boolean
+`NOT` A<br>A `AND` B<br>A `OR` B                    | boolean                                                                                                      | boolean
 
 Binary operations are only allowed if both operands are of the same type, with the following two exceptions:
 
