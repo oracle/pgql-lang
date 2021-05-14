@@ -74,40 +74,27 @@ public abstract class MetadataProvider {
   /**
    * 
    * @param op
-   *          e.g. multiplication, AND, OR
-   * @param typeA
+   *          e.g. NOT, - (unary minus)
+   * @param type
    *          e.g. BOOLEAN
-   * @param typeB
-   *          e.g. STRING
-   * @return whether the operation is valid for the two data types
+   * @return the return type of the operation (e.g. LONG) or null if the operation is not defined for the input type
    */
-  public Optional<Boolean> isLegalOperation(BinaryOperation op, String typeA, String typeB) {
+  public Optional<Boolean> getOperationReturnType(UnaryOperation op, String type) {
     return Optional.empty();
   }
 
   /**
    * 
    * @param op
-   *          e.g. NOT, - (unary minus)
-   * @param type
-   *          e.g. BOOLEAN
-   * @return whether the operation is valid for the data type
+   *          e.g. multiplication
+   * @param typeA
+   *          e.g. LONG
+   * @param typeB
+   *          e.g. INTEGER
+   * @return the return type of the operation (e.g. LONG) or null if the operation is not defined for the two input
+   *         types
    */
-  public Optional<Boolean> isLegalOperation(UnaryOperation op, String type) {
-    return Optional.empty();
-  }
-
-  /**
-   * Whether the function is supported; the function can be either a built-in function or a user-defined function
-   * 
-   * @param packageName
-   *          can be null
-   * @param functionName
-   * @param argumentTypes
-   *          e.g. ["STRING", "BOOLEAN"]
-   * @return whether the function exists
-   */
-  public Optional<Boolean> doesFunctionExist(String packageName, String functionName, List<String> argumentTypes) {
+  public Optional<Boolean> getOperationReturnType(BinaryOperation op, String typeA, String typeB) {
     return Optional.empty();
   }
 
@@ -119,7 +106,7 @@ public abstract class MetadataProvider {
    * @param functionName
    * @param argumentTypes
    *          e.g. ["STRING", "BOOLEAN"]
-   * @return the return type of the function e.g. "LONG"
+   * @return the return type of the function (e.g. "LONG") or null if the function does not exist
    */
   public Optional<String> getFunctionReturnType(String packageName, String functionName, List<String> argumentTypes) {
     return Optional.empty();

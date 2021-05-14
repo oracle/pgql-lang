@@ -13,7 +13,7 @@ imports
 
 rules
 
-  annotate-with-types = bottomup(try(add-label-expression-to-prop-ref)); alltd(add-type)
+  annotate-with-types = bottomup(try(add-label-expression-to-prop-ref)); bottomup(try(add-value-type))
 
   add-label-expression-to-prop-ref:
     query@NormalizedQuery(_, _, _, Some(GraphPattern(Vertices(vertices), edges, Constraints(constraints))), _, _, _, _, _, _, _) -> query'
@@ -37,11 +37,33 @@ rules
   to-label-conjunction = reverse; !(<Tl>, <Hd>); foldl(to-label-AND)
   to-label-AND = ?(exp1, exp2); !LabelAnd(exp1, exp2)
 
-  add-type:
-    SetProperty(propRef, exp) -> SetProperty(propRef, <alltd(add-type)> exp) // this assures we skip adding a type to the propRef of a SET clause
+//  add-type:
+//    SetProperty(propRef, exp) -> SetProperty(propRef, <alltd(add-type)> exp) // this assures we skip adding a type to the propRef of a SET clause
 
-  add-type:
-    t@PropRef(_, _) -> ExpressionPlusType(t, Type("UNKONWN_TYPE"))
+  add-value-type:
+    t@PropRef(_, Identifier(propName, _), elementType, labelExpression) -> ExpressionPlusType(t, type)
+    with type := <get-property-type(|elementType, propName)> labelExpression
+
+  get-property-type(|elementType, propName):
+    labelExpression -> Type(t)
+    where <is-string> labelExpression
+    with labelReference := labelExpression
+       ; if <?Vertex()> elementType
+         then t := <get-vertex-property-type> (labelReference, propName)
+         else t := <get-edge-property-type> (labelReference, propName)
+         end
+
+  get-operation-return-type = ?("STRING_CONCAT", "STRING", "STRING"); !"STRING"
+
+  get-operation-return-type = !None()
+
+  get-vertex-property-type = ?("PERSON", "FIRSTNAME"); !"STRING"
+
+  get-edge-property-type = ?("KNOWS", "SINCE"); !"DATE"
+
+  get-vertex-property-type = !None()
+
+  get-edge-property-type = !None()
 
 signature constructors
 
@@ -59,3 +81,6 @@ signature constructors
 
   Type               : STRING -> Type
 
+  UnknownType        : Type
+
+  AmbiguousType      : Type
