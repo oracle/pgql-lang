@@ -41,7 +41,7 @@ rules
 //    SetProperty(propRef, exp) -> SetProperty(propRef, <alltd(add-type)> exp) // this assures we skip adding a type to the propRef of a SET clause
 
   add-value-type:
-    t@PropRef(_, Identifier(propName, _), elementType, labelExpression) -> ExpressionPlusType(t, type)
+    exp@PropRef(_, Identifier(propName, _), elementType, labelExpression) -> ExpressionPlusType(exp, type)
     with type := <get-property-type(|elementType, propName)> labelExpression
 
   get-property-type(|elementType, propName):
@@ -53,17 +53,35 @@ rules
          else t := <get-edge-property-type> (labelReference, propName)
          end
 
-  get-operation-return-type = ?("STRING_CONCAT", "STRING", "STRING"); !"STRING"
+  add-value-type = 
+    ( ?Cct(_, _)
+    + ?Add(_, _)
+    )
+    ; add-value-type-to-binary-operation
 
-  get-operation-return-type = !None()
+  add-value-type-to-binary-operation:
+    exp -> ExpressionPlusType(exp, type)
+    with operation := <get-constructor> exp
+       ; [ExpressionPlusType(_, type1), ExpressionPlusType(_, type2)] := <get-arguments> exp
+       ; if <?Type(Undefined()) + ?UnknownType() + ?AmbiguousType()> type1 + 
+            <?Type(Undefined()) + ?UnknownType() + ?AmbiguousType()> type2
+         then type := UnknownType()
+         else type := <get-operation-return-type> (operation, <?Type(<id>)> type1,  <?Type(<id>)> type2)
+         end
+
+  get-operation-return-type = ?("Cct", "STRING", "STRING"); !"STRING"
+
+  get-operation-return-type = !Undefined()
 
   get-vertex-property-type = ?("PERSON", "FIRSTNAME"); !"STRING"
 
   get-edge-property-type = ?("KNOWS", "SINCE"); !"DATE"
 
-  get-vertex-property-type = !None()
+  get-vertex-property-type = !Undefined()
 
-  get-edge-property-type = !None()
+  get-edge-property-type = !Undefined()
+
+  get-union-type = ?("LONG", "INTEGER"); !"LONG"
 
 signature constructors
 
@@ -80,6 +98,8 @@ signature constructors
   ExpressionPlusType : Exp * Type -> ExpressionPlusType
 
   Type               : STRING -> Type
+
+  Undefined          : Type // when the operation is undefined for the input types or the property does not exist 
 
   UnknownType        : Type
 

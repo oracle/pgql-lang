@@ -111,4 +111,16 @@ public abstract class MetadataProvider {
   public Optional<String> getFunctionReturnType(String packageName, String functionName, List<String> argumentTypes) {
     return Optional.empty();
   }
+
+  /**
+   * 
+   * @param packageName
+   * @param functionName
+   * @param argumentTypes
+   * @return the union type of the two type (e.g. LONG and INTEGER gives LONG; VARCHAR(10) and VARCHAR(20) gives
+   *         VARCHAR(20))
+   */
+  public Optional<Boolean> getUnionType(BinaryOperation op, String typeA, String typeB) {
+    return Optional.empty();
+  }
 }
