@@ -113,6 +113,9 @@ public abstract class MetadataProvider {
   }
 
   /**
+   * Get the union type of two data types.
+   * Used to decide on the column type of a property access when multiple vertex/edge tables have the same property but
+   * with different property types
    * 
    * @param packageName
    * @param functionName
@@ -120,7 +123,7 @@ public abstract class MetadataProvider {
    * @return the union type of the two type (e.g. LONG and INTEGER gives LONG; VARCHAR(10) and VARCHAR(20) gives
    *         VARCHAR(20))
    */
-  public Optional<Boolean> getUnionType(BinaryOperation op, String typeA, String typeB) {
+  public Optional<Boolean> getUnionType(String typeA, String typeB) {
     return Optional.empty();
   }
 }

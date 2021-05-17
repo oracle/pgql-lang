@@ -497,68 +497,11 @@ rules // MODIFY
         ; <not(elem)> (labelReference, labels)
 
   nabl-constraint(|ctx):
-    PropRef(_, Identifier(propName, _), elementType, labelExpression) -> <fail>
-    with if <?Vertex()> elementType
-         then labels := <get-vertex-labels>
-         else labels := <get-edge-labels>
-         end
-       ; propertyExists := <innermost(property-exists-for-labels(|labels, propName, elementType))> labelExpression
-       ; if <?False()> propertyExists
-         then vertexOrEdge := <?Vertex(); !"vertex" <+ !"edge"> elementType
-            ; if <?All()> labelExpression
-              then message := $[Property does not exist for any of the [vertexOrEdge] label(s)]
-              else message := $[Property does not exist for the specified [vertexOrEdge] label(s)]
-              end
-            ; <generate-error(|ctx, message)> propName
-         end
+    ExpressionPlusType(PropRef(_, Identifier(propName, _), elementType, _), Undefined()) -> <fail>
+    with vertexOrEdge := <?Vertex(); !"vertex" <+ !"edge"> elementType
+       ; <generate-error(|ctx, $[Property does not exist for any of the [vertexOrEdge] labels])> propName
 
-  property-exists-for-labels(|labels, propName, elementType):
-    labelExpression -> result
-    where <is-string> labelExpression
-    with labelReference := labelExpression
-       ; if <not(elem)> (labelReference, labels) /* don't raise error if label is unresolved since we'll already have an error for the unresolved label */ 
-            + <get-labels-via-property(|labels, elementType); !(labelReference, <id>); elem> propName
-         then result := True()
-         else result := False()
-         end
-
-  property-exists-for-labels(|labels, propName, elementType):
-    LabelAnd(a, b) -> result
-    with if <?True()> a + <?True()> b
-         then result := True()
-         else result := False()
-         end
-
-  property-exists-for-labels(|labels, propName, elementType):
-    LabelOr(a, b) -> result
-    with if <?True()> a; <?True()> b
-         then result := True()
-         else result := False()
-         end
-
-  property-exists-for-labels(|labels, propName, elementType):
-    All() -> result
-    with if <get-labels-via-property(|labels, elementType); not(?[])> propName
-         then result := True()
-         else result := False()
-         end
-
-  get-labels-via-property(|labels, elementType):
-    propName -> labels'
-    with labels' := <filter(label-has-property(|propName, elementType))> labels
-
-  label-has-property(|propName, elementType):
-    label -> label
-    where if <?Vertex()> elementType
-          then propNames := <get-vertex-property-names> label
-          else propNames := <get-edge-property-names> label
-          end
-        ; <elem> (propName, propNames)
-
-  get-vertex-labels = !["PERSON", "COMPANY"]
-
-  get-edge-labels = !["KNOWS"]
-
-  get-vertex-property-names = ?"PERSON"; !["FIRSTNAME"] <+ ![]
-
-  get-edge-property-names = ?"KNOWS"; !["SINCE"] <+ ![]
+  nabl-constraint(|ctx):
+    ExpressionPlusType(PropRef(_, Identifier(propName, _), elementType, _), AmbiguousType()) -> <fail>
+    with vertexOrEdge := <?Vertex(); !"vertex" <+ !"edge"> elementType
+       ; <generate-error(|ctx, $[Property has incompatible data types in different [vertexOrEdge] labels])> propName

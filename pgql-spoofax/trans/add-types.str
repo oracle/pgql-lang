@@ -42,16 +42,36 @@ rules
 
   add-value-type:
     exp@PropRef(_, Identifier(propName, _), elementType, labelExpression) -> ExpressionPlusType(exp, type)
-    with type := <get-property-type(|elementType, propName)> labelExpression
+    with type := <get-property-type-from-label-expression(|elementType, propName)> labelExpression
 
-  get-property-type(|elementType, propName):
-    labelExpression -> Type(t)
+  get-property-type-from-label-expression(|elementType, propName):
+    labelExpression -> type
     where <is-string> labelExpression
     with labelReference := labelExpression
        ; if <?Vertex()> elementType
-         then t := <get-vertex-property-type> (labelReference, propName)
-         else t := <get-edge-property-type> (labelReference, propName)
+         then type := <get-vertex-property-type> (labelReference, propName)
+         else type := <get-edge-property-type> (labelReference, propName)
          end
+
+  get-property-type-from-label-expression(|elementType, propName):
+    LabelAnd(a, b) -> result
+    with result := <compute-union-type(|elementType, propName)> (a, b)
+
+  get-property-type-from-label-expression(|elementType, propName):
+    LabelOr(a, b) -> result
+    with result := <compute-union-type(|elementType, propName)> (a, b)
+
+  compute-union-type(|elementType, propName):
+    (labelA, labelB) -> result
+    with typeA := <get-property-type-from-label-expression(|elementType, propName)> labelA
+       ; typeB := <get-property-type-from-label-expression(|elementType, propName)> labelB
+       ; result := <get-union-type> (typeA, typeB)
+
+  get-property-type-from-label-expression(|elementType, propName):
+    All() -> result
+    with labels := <?Vertex(); get-vertex-labels <+ get-edge-labels> elementType
+       ; types := <map(!(<id>, propName); get-vertex-property-type)> labels
+       ; result := <foldl(get-union-type)> (types, Undefined())
 
   add-value-type = 
     ( ?Cct(_, _)
@@ -63,25 +83,41 @@ rules
     exp -> ExpressionPlusType(exp, type)
     with operation := <get-constructor> exp
        ; [ExpressionPlusType(_, type1), ExpressionPlusType(_, type2)] := <get-arguments> exp
-       ; if <?Type(Undefined()) + ?UnknownType() + ?AmbiguousType()> type1 + 
-            <?Type(Undefined()) + ?UnknownType() + ?AmbiguousType()> type2
+       ; if <?Undefined() + ?UnknownType() + ?AmbiguousType()> type1 +
+            <?Undefined() + ?UnknownType() + ?AmbiguousType()> type2
          then type := UnknownType()
          else type := <get-operation-return-type> (operation, <?Type(<id>)> type1,  <?Type(<id>)> type2)
          end
 
   get-operation-return-type = ?("Cct", "STRING", "STRING"); !"STRING"
+  get-operation-return-type = ?("Cct", "STRING", "INTEGER"); !Undefined()
+  get-operation-return-type = ?("Cct", "INTEGER", "STRING"); !Undefined()
 
   get-operation-return-type = !Undefined()
 
-  get-vertex-property-type = ?("PERSON", "FIRSTNAME"); !"STRING"
+  get-vertex-labels = !["PERSON", "COMPANY"]
 
-  get-edge-property-type = ?("KNOWS", "SINCE"); !"DATE"
+  get-edge-labels = !["KNOWS"]
+
+  get-vertex-property-type = ?("PERSON", "FIRSTNAME"); !Type("STRING")
+  get-vertex-property-type = ?("PERSON", "AGE"); !Type("INTEGER")
+  get-vertex-property-type = ?("COMPANY", "AGE"); !Type("DATE")
+
+  get-edge-property-type = ?("KNOWS", "SINCE"); !Type("DATE")
 
   get-vertex-property-type = !Undefined()
 
   get-edge-property-type = !Undefined()
 
-  get-union-type = ?("LONG", "INTEGER"); !"LONG"
+  get-union-type = ?(Undefined(), <id>) + ?(<id>, Undefined())
+  get-union-type = (?(AmbiguousType(), _) + ?(_, AmbiguousType())); !AmbiguousType()
+
+  get-union-type = ?(Type("STRING"), Type("STRING")); !Type("STRING")
+
+  get-union-type = ?(Type("INTEGER"), Type("INTEGER")); !Type("INTEGER")
+
+  get-union-type = ?(Type("INTEGER"), Type("DATE"));  !AmbiguousType()
+  get-union-type = ?(Type("DATE"), Type("INTEGER"));  !AmbiguousType()
 
 signature constructors
 
