@@ -13,13 +13,20 @@ imports
 
 rules
 
-  annotate-with-types = bottomup(try(add-label-expression-to-prop-ref)); bottomup(try(add-value-type))
+  annotate-with-types = bottomup(try(add-value-type-to-prop-and-var-ref)); bottomup(try(add-value-type))
 
-  add-label-expression-to-prop-ref:
-    query@NormalizedQuery(_, _, _, Some(GraphPattern(Vertices(vertices), edges, Constraints(constraints))), _, _, _, _, _, _, _) -> query'
+  add-value-type-to-prop-and-var-ref:
+    query@NormalizedQuery(_, _, _, Some(GraphPattern(Vertices(vertices), edges, Constraints(constraints))), _, _, _, _, _, _, _) -> query''
     with vertexDefinititions := <map(?Vertex(_, <id>, _))> vertices
        ; edgeDefinititions := <map(?Edge(_, _, _, _, <id>, _))> edges
-       ; query' := <alltd(add-label-expression(|vertexDefinititions, Vertex(), constraints) + add-label-expression(|edgeDefinititions, Edge(), constraints))> query
+       ; query' := <alltd(add-value-type-to-prop-ref(|vertexDefinititions, Vertex(), constraints) + add-value-type-to-prop-ref(|edgeDefinititions, Edge(), constraints))> query
+       ; query'' := <alltd(add-value-type-to-var-ref(|vertexDefinititions, Vertex()) + add-value-type-to-var-ref(|edgeDefinititions, Edge()))> query'
+
+  add-value-type-to-prop-ref(|varDefinitionOriginPositions, elemType, constraints):
+    exp@PropRef(VarRef(_, varRefOriginPosition), Identifier(propName, _)) -> ExpressionPlusType(exp, type)
+    where <elem> (varRefOriginPosition, varDefinitionOriginPositions)
+    with labelExpression := <filter(simplify-label-expression(|varRefOriginPosition)); (?[]; !All() <+ to-label-conjunction)> constraints
+       ; type := <get-property-type-from-label-expression(|elemType, propName)> labelExpression
 
   simplify-label-expression(|varRefOriginPosition):
     FunctionCall(None(), "has_label", [ VarRef(_, varRefOriginPosition), Identifier(label, _)]) -> label
@@ -29,20 +36,20 @@ rules
     where a' := <simplify-label-expression(|varRefOriginPosition)> a
         ; b' := <simplify-label-expression(|varRefOriginPosition)> b
 
-  add-label-expression(|varDefinitionOriginPositions, elemType ,constraints):
-    PropRef(vr@VarRef(_, varRefOriginPosition), identifier) -> PropRef(vr, identifier, elemType, labelExpression)
-    where <elem> (varRefOriginPosition, varDefinitionOriginPositions)
-    with labelExpression := <filter(simplify-label-expression(|varRefOriginPosition)); (?[]; !All() <+ to-label-conjunction)> constraints
-
   to-label-conjunction = reverse; !(<Tl>, <Hd>); foldl(to-label-AND)
   to-label-AND = ?(exp1, exp2); !LabelAnd(exp1, exp2)
+
+  add-value-type-to-var-ref(|varDefinitionOriginPositions, elemType):
+    exp@VarRef(_, varRefOriginPosition) -> ExpressionPlusType(exp, type)
+    where <elem> (varRefOriginPosition, varDefinitionOriginPositions)
+    with type := <?Vertex(); !Type("VERTEX") <+ !Type("EDGE")> elemType
 
 //  add-type:
 //    SetProperty(propRef, exp) -> SetProperty(propRef, <alltd(add-type)> exp) // this assures we skip adding a type to the propRef of a SET clause
 
-  add-value-type:
-    exp@PropRef(_, Identifier(propName, _), elementType, labelExpression) -> ExpressionPlusType(exp, type)
-    with type := <get-property-type-from-label-expression(|elementType, propName)> labelExpression
+//  add-value-type:
+//    exp@PropRef(_, Identifier(propName, _), elementType, labelExpression) -> ExpressionPlusType(exp, type)
+//    with type := <get-property-type-from-label-expression(|elementType, propName)> labelExpression
 
   get-property-type-from-label-expression(|elementType, propName):
     labelExpression -> type
@@ -125,8 +132,6 @@ signature constructors
   LabelOr            : STRING * STRING -> LabelOr
 
   LabelAnd           : STRING * STRING -> LabelAnd
-
-  PropRef            : VarRef * Identifier * ElemType * Exp -> PropRef // adds an element type (vertex/edge) and a label expression
 
   Vertex             : ElemType
 

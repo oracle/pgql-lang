@@ -23,7 +23,7 @@ type rules
   where definition of outer-var : ty
     and not(ty == ty ) /* make it always throw an error */ else error $[Duplicate variable (variable with same name is passed from an outer query)] on e
 
-  PropRef(_, _, _, _) + BindVariable(_) : UnknownTy()
+  PropRef(_, _) + BindVariable(_) : UnknownTy()
 
   Not(exp) : BooleanTy()
   where exp : ty

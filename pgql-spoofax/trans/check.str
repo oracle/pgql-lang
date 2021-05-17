@@ -396,7 +396,7 @@ rules // MODIFY
   nabl-constraint(|ctx):
     properties -> <fail>
     where <?SetProperties(setPropertyExps) + ?Properties(setPropertyExps)> properties
-    with propertyRefs := <filter(?SetProperty(PropRef(_, Identifier(<id>, _), _, _), _))> setPropertyExps
+    with propertyRefs := <filter(?SetProperty(PropRef(_, Identifier(<id>, _)), _))> setPropertyExps
        ; duplicatePropertyRefs := <filter(is-elem-contained-more-than-once(|propertyRefs))> propertyRefs
        ; <batch-generate-error(|ctx, "Property is set multiple times")> duplicatePropertyRefs
 
@@ -423,7 +423,7 @@ rules // MODIFY
            ?DirectedEdgeInsertion(Identifier(v, originText), _, _, _, _, Some(Properties(setProperties))) +
            ?Update(VarRef(Identifier(v, originText), _), SetProperties(setProperties))> t
     with v' := <strip-annos> v
-       ; otherVariablesThanV := <filter(?SetProperty(PropRef(VarRef(Identifier(<id>, _), _), _, _, _), _); strip-annos; not(?v'))> setProperties
+       ; otherVariablesThanV := <filter(?SetProperty(ExpressionPlusType(PropRef(VarRef(Identifier(<id>, _), _), _), _), _); strip-annos; not(?v'))> setProperties
        ; if <eq> (v', <strip-annos> originText)
          then varNameAsString := <origin-text> v
          else varNameAsString := originText // using <origin-text> like above fails SPT tests, thus we avoid using it for unquoted identifier so that we at least can still use unquoted identifiers in INSERT/UPDATE queries in SPT
@@ -497,14 +497,12 @@ rules // MODIFY
         ; <not(elem)> (labelReference, labels)
 
   nabl-constraint(|ctx):
-    ExpressionPlusType(PropRef(_, Identifier(propName, _), elementType, _), Undefined()) -> <fail>
-    with vertexOrEdge := <?Vertex(); !"vertex" <+ !"edge"> elementType
-       ; <generate-error(|ctx, $[Property does not exist for any of the [vertexOrEdge] labels])> propName
+    ExpressionPlusType(PropRef(_, Identifier(propName, _)), Undefined()) -> <fail>
+    with <generate-error(|ctx, $[Property does not exist for any of the labels])> propName
 
   nabl-constraint(|ctx):
-    ExpressionPlusType(PropRef(_, Identifier(propName, _), elementType, _), AmbiguousType()) -> <fail>
-    with vertexOrEdge := <?Vertex(); !"vertex" <+ !"edge"> elementType
-       ; <generate-error(|ctx, $[Property has incompatible data types in different [vertexOrEdge] labels])> propName
+    ExpressionPlusType(PropRef(_, Identifier(propName, _)), AmbiguousType()) -> <fail>
+    with <generate-error(|ctx, $[Property has incompatible data types in different labels])> propName
 
   nabl-constraint(|ctx):
     ExpressionPlusType(e@And(ExpressionPlusType(_, Type(t1)), ExpressionPlusType(_, Type(t2))), Undefined()) -> <fail>
