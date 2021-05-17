@@ -505,3 +505,59 @@ rules // MODIFY
     ExpressionPlusType(PropRef(_, Identifier(propName, _), elementType, _), AmbiguousType()) -> <fail>
     with vertexOrEdge := <?Vertex(); !"vertex" <+ !"edge"> elementType
        ; <generate-error(|ctx, $[Property has incompatible data types in different [vertexOrEdge] labels])> propName
+
+  nabl-constraint(|ctx):
+    ExpressionPlusType(e@And(ExpressionPlusType(_, Type(t1)), ExpressionPlusType(_, Type(t2))), Undefined()) -> <fail>
+    with <generate-error(|ctx, $[The operator AND is undefined for the argument types [t1], [t2]])> e
+
+  nabl-constraint(|ctx):
+    ExpressionPlusType(e@Or(ExpressionPlusType(_, Type(t1)), ExpressionPlusType(_, Type(t2))), Undefined()) -> <fail>
+    with <generate-error(|ctx, $[The operator OR is undefined for the argument types [t1], [t2]])> e
+
+  nabl-constraint(|ctx):
+    ExpressionPlusType(e@Mul(ExpressionPlusType(_, Type(t1)), ExpressionPlusType(_, Type(t2))), Undefined()) -> <fail>
+    with <generate-error(|ctx, $[The operator * is undefined for the argument types [t1], [t2]])> e
+
+  nabl-constraint(|ctx):
+    ExpressionPlusType(e@Add(ExpressionPlusType(_, Type(t1)), ExpressionPlusType(_, Type(t2))), Undefined()) -> <fail>
+    with <generate-error(|ctx, $[The operator + is undefined for the argument types [t1], [t2]])> e
+
+  nabl-constraint(|ctx):
+    ExpressionPlusType(e@Div(ExpressionPlusType(_, Type(t1)), ExpressionPlusType(_, Type(t2))), Undefined()) -> <fail>
+    with <generate-error(|ctx, $[The operator / is undefined for the argument types [t1], [t2]])> e
+
+  nabl-constraint(|ctx):
+    ExpressionPlusType(e@Mod(ExpressionPlusType(_, Type(t1)), ExpressionPlusType(_, Type(t2))), Undefined()) -> <fail>
+    with <generate-error(|ctx, $[The operator % is undefined for the argument types [t1], [t2]])> e
+
+  nabl-constraint(|ctx):
+    ExpressionPlusType(e@Sub(ExpressionPlusType(_, Type(t1)), ExpressionPlusType(_, Type(t2))), Undefined()) -> <fail>
+    with <generate-error(|ctx, $[The operator - is undefined for the argument types [t1], [t2]])> e
+
+  nabl-constraint(|ctx):
+    ExpressionPlusType(e@Eq(ExpressionPlusType(_, Type(t1)), ExpressionPlusType(_, Type(t2))), Undefined()) -> <fail>
+    with <generate-error(|ctx, $[The operator = is undefined for the argument types [t1], [t2]])> e
+
+  nabl-constraint(|ctx):
+    ExpressionPlusType(e@Neq(ExpressionPlusType(_, Type(t1)), ExpressionPlusType(_, Type(t2))), Undefined()) -> <fail>
+    with <generate-error(|ctx, $[The operator <> (or !=) is undefined for the argument types [t1], [t2]])> e
+
+  nabl-constraint(|ctx):
+    ExpressionPlusType(e@Gt(ExpressionPlusType(_, Type(t1)), ExpressionPlusType(_, Type(t2))), Undefined()) -> <fail>
+    with <generate-error(|ctx, $[The operator > is undefined for the argument types [t1], [t2]])> e
+
+  nabl-constraint(|ctx):
+    ExpressionPlusType(e@Lt(ExpressionPlusType(_, Type(t1)), ExpressionPlusType(_, Type(t2))), Undefined()) -> <fail>
+    with <generate-error(|ctx, $[The operator < is undefined for the argument types [t1], [t2]])> e
+
+  nabl-constraint(|ctx):
+    ExpressionPlusType(e@Gte(ExpressionPlusType(_, Type(t1)), ExpressionPlusType(_, Type(t2))), Undefined()) -> <fail>
+    with <generate-error(|ctx, $[The operator >= is undefined for the argument types [t1], [t2]])> e
+
+  nabl-constraint(|ctx):
+    ExpressionPlusType(e@Lte(ExpressionPlusType(_, Type(t1)), ExpressionPlusType(_, Type(t2))), Undefined()) -> <fail>
+    with <generate-error(|ctx, $[The operator <= is undefined for the argument types [t1], [t2]])> e
+
+  nabl-constraint(|ctx):
+    ExpressionPlusType(e@Cct(ExpressionPlusType(_, Type(t1)), ExpressionPlusType(_, Type(t2))), Undefined()) -> <fail>
+    with <generate-error(|ctx, $[The operator || is undefined for the argument types [t1], [t2]])> e

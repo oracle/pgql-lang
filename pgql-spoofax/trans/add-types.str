@@ -74,8 +74,10 @@ rules
        ; result := <foldl(get-union-type)> (types, Undefined())
 
   add-value-type = 
-    ( ?Cct(_, _)
-    + ?Add(_, _)
+    ( ?And(_, _) + ?Or(_, _) +
+      ?Mul(_, _) + ?Add(_, _) + ?Div(_, _) + ?Mod(_, _) + ?Sub(_, _) +
+      ?Eq(_, _) + ?Neq(_, _) + ?Gt(_, _) + ?Lt(_, _) + ?Gte(_, _) + ?Lte(_, _) +
+      ?Cct(_, _)
     )
     ; add-value-type-to-binary-operation
 
@@ -89,9 +91,8 @@ rules
          else type := <get-operation-return-type> (operation, <?Type(<id>)> type1,  <?Type(<id>)> type2)
          end
 
-  get-operation-return-type = ?("Cct", "STRING", "STRING"); !"STRING"
-  get-operation-return-type = ?("Cct", "STRING", "INTEGER"); !Undefined()
-  get-operation-return-type = ?("Cct", "INTEGER", "STRING"); !Undefined()
+  get-operation-return-type = ?("Cct", "STRING", "STRING"); !Type("STRING")
+  get-operation-return-type = ?("Add", "INTEGER", "INTEGER"); !Type("INTEGER")
 
   get-operation-return-type = !Undefined()
 
