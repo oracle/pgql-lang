@@ -88,14 +88,22 @@ rules
     )
     ; add-value-type-to-binary-operation
 
+  is-boolean-expression = ?And(_, _) + ?Or(_, _) + ?Eq(_, _) + ?Neq(_, _) + ?Gt(_, _) + ?Lt(_, _) + ?Gte(_, _) + ?Lte(_, _)
+
   add-value-type-to-binary-operation:
     exp -> ExpressionPlusType(exp, type)
     with operation := <get-constructor> exp
        ; [ExpressionPlusType(_, type1), ExpressionPlusType(_, type2)] := <get-arguments> exp
-       ; if <?Undefined() + ?UnknownType() + ?AmbiguousType()> type1 +
-            <?Undefined() + ?UnknownType() + ?AmbiguousType()> type2
-         then type := UnknownType()
-         else type := <get-operation-return-type> (operation, <?Type(<id>)> type1,  <?Type(<id>)> type2)
+       ; if <is-boolean-expression> exp
+         then type := Type("BOOLEAN")
+         else
+           if <?AmbiguousType()> type1 + <?AmbiguousType()> type2
+           then type := UnknownType()
+           else if <?Type(t1)> type1;  <?Type(t2)> type2
+                then type := <get-operation-return-type> (operation, t1, t2)
+                else type := <?Type(_) <+ !type2; ?Type(_) <+ !UnknownType()> type1
+                end
+           end
          end
 
   get-operation-return-type = ?("Cct", "STRING", "STRING"); !Type("STRING")

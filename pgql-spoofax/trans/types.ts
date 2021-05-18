@@ -11,7 +11,7 @@ type rules
 
   VarRef(Identifier(v, _), _) : ty
   where definition of v : ty
-    and not ( ty == PathTy() ) else error $[Path variables not supported in PGQL 1.1] on v
+    and not ( ty == PathTy() ) else error $[Path variables not supported] on v
 
   VarRef(_) : UnknownTy() // for unresolved variables
 
@@ -29,36 +29,9 @@ type rules
   where exp : ty
     and not (ty == VertexTy() or ty == EdgeTy()) else error $[Boolean expected here] on exp
 
-  And(exp1, exp2) + Or(exp1, exp2) : BooleanTy()
-  where exp1 : ty1
-    and exp2 : ty2
-    and not (ty1 == VertexTy() or ty1 == EdgeTy()) else error $[Boolean expected here] on exp1
-    and not (ty2 == VertexTy() or ty2 == EdgeTy()) else error $[Boolean expected here] on exp2
-
   UMin(exp) : NumericTy()
   where exp : ty
     and not (ty == VertexTy() or ty == EdgeTy()) else error $[Numeric expected here] on exp
-
-  Mul(exp1, exp2) + Add(exp1, exp2) + Div(exp1, exp2) + Mod(exp1, exp2) + Sub(exp1, exp2) : NumericTy()
-  where exp1 : ty1
-    and exp2 : ty2
-    and not (ty1 == VertexTy() or ty1 == EdgeTy()) else error $[Numeric expected here] on exp1
-    and not (ty2 == VertexTy() or ty2 == EdgeTy()) else error $[Numeric expected here] on exp2
-
-  t@Eq(exp1, exp2) + t@Neq(exp1, exp2) : BooleanTy()
-
-  t@Gt(exp1, exp2) + t@Lt(exp1, exp2) + t@Gte(exp1, exp2) + t@Lte(exp1, exp2) : BooleanTy()
-  where exp1 : ty1
-    and exp2 : ty2
-    and not (ty1 == VertexTy() or ty2 == VertexTy()) else error $[Comparison not allowed because no order is defined for vertices] on t
-    and not (ty1 == EdgeTy() or ty2 == EdgeTy()) else error $[Comparison not allowed because no order is defined for edges] on t
-    and not (ty1 == ArrayTy() or ty2 == ArrayTy()) else error $[Comparison not allowed because no order is defined for arrays] on t
-
-  Cct(exp1, exp2) : StringTy()
-  where exp1 : ty1
-    and exp2 : ty2
-    and not (ty1 == VertexTy() or ty1 == EdgeTy()) else error $[String expected here] on exp1
-    and not (ty2 == VertexTy() or ty2 == EdgeTy()) else error $[String expected here] on exp2
 
   MIN(_, exp)  + MAX(_, exp)  + SUM(_, exp)  + AVG(_, exp)  + LISTAGG(_, exp, _): ty
   where exp : ty
