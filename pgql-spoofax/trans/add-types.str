@@ -106,6 +106,10 @@ rules
            end
          end
 
+  add-value-type = ?BindVariable(_); !ExpressionPlusType(<id>, UnknownType())
+
+  add-value-type = ?Null(); !ExpressionPlusType(<id>, UnknownType())
+
   get-operation-return-type = ?("Cct", "STRING", "STRING"); !Type("STRING")
   get-operation-return-type = ?("Add", "INTEGER", "INTEGER"); !Type("INTEGER")
 

@@ -6,7 +6,6 @@ imports
   libspoofax/properties/-
   libspoofax/nabl/-
   libspoofax/task/-
-  libspoofax/types/-
   signatures/-
   normalized-signatures
   common
