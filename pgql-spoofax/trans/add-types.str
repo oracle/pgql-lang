@@ -110,6 +110,8 @@ rules
 
   add-value-type = ?Null(); !ExpressionPlusType(<id>, UnknownType())
 
+  add-value-type = (?True() + ?False()); !ExpressionPlusType(<id>, Type("BOOLEAN"))
+
   get-operation-return-type = ?("Cct", "STRING", "STRING"); !Type("STRING")
   get-operation-return-type = ?("Add", "INTEGER", "INTEGER"); !Type("INTEGER")
 

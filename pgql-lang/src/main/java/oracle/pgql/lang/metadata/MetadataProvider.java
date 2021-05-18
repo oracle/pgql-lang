@@ -9,7 +9,7 @@ import java.util.Set;
 
 /**
  * All method in this class return an Optional so that implementations can choose to only implement a subset and/or
- * incrementally provide more metadata
+ * incrementally provide more metadata over time.
  */
 public abstract class MetadataProvider {
 
@@ -17,61 +17,82 @@ public abstract class MetadataProvider {
    * Used to check existence of vertex labels in label predicates. In the future may be used to provide suggestions when
    * labels are misspelled.
    * 
+   * @param graphName
+   *          the name of the graph; null when no graph name is specified as part of the query
    * @return the vertex labels in the graph
    */
-  public Optional<Set<String>> getVertexLabels() {
+  public Optional<Set<String>> getVertexLabels(String graphName) {
     return Optional.empty();
   }
 
   /**
    * Used to check existence of edge labels in label predicates. In the future may be used to provide suggestions when
    * labels are misspelled.
-   * 
+   *
+   * @param graphName
+   *          the name of the graph; null when no graph name is specified as part of the query
    * @return the edge labels in the graph
    */
-  public Optional<Set<String>> getEdgeLabels() {
+  public Optional<Set<String>> getEdgeLabels(String graphName) {
     return Optional.empty();
   }
 
   /**
    * Used to check the existence of vertex properties in value expressions. In the future may be used to provide
    * suggestions when property names are misspelled.
-   * 
+   *
+   * @param graphName
+   *          the name of the graph; null when no graph name is specified as part of the query
+   * @return the edge labels in the graph
    * @return the vertex labels that have the given property
    */
-  public Optional<Set<String>> getVertexPropertyNames(String label) {
+  public Optional<Set<String>> getVertexPropertyNames(String graphName, String label) {
     return Optional.empty();
   }
 
   /**
    * Used to check the existence of edge properties in value expressions. In the future may be used to provide
    * suggestions when property names are misspelled.
-   * 
+   *
+   * @param graphName
+   *          the name of the graph; null when no graph name is specified as part of the query
+   * @return the edge labels in the graph
    * @return the edge labels that have the given property
    */
-  public Optional<Set<String>> getEdgePropertyNames(String label) {
+  public Optional<Set<String>> getEdgePropertyNames(String graphName, String label) {
     return Optional.empty();
   }
 
   /**
+   * Get the type of a vertex property given a graph name and a vertex label.
+   *
+   * @param graphName
+   *          the name of the graph; null when no graph name is specified as part of the query
+   * @return the edge labels in the graph
    * @param label
    * @param propertyName
    * @return the vertex property type name
    */
-  public Optional<String> getVertexPropertyType(String label, String propertyName) {
+  public Optional<String> getVertexPropertyType(String graphName, String label, String propertyName) {
     return Optional.empty();
   }
 
   /**
+   * Get the type of a edge property given a graph name and a edge label.
+   *
+   * @param graphName
+   *          the name of the graph; null when no graph name is specified as part of the query
+   * @return the edge labels in the graph
    * @param label
    * @param propertyName
    * @return the edge property type name
    */
-  public Optional<String> getEdgePropertyType(String label, String propertyName) {
+  public Optional<String> getEdgePropertyType(String graphName, String label, String propertyName) {
     return Optional.empty();
   }
 
   /**
+   * Get the return type of a unary operation.
    * 
    * @param op
    *          e.g. NOT, - (unary minus)
@@ -84,6 +105,7 @@ public abstract class MetadataProvider {
   }
 
   /**
+   * Get the return type of a binary operation.
    * 
    * @param op
    *          e.g. multiplication
@@ -99,7 +121,7 @@ public abstract class MetadataProvider {
   }
 
   /**
-   * Get the data type of a function's return type.
+   * Get a function's return type.
    * 
    * @param packageName
    *          can be null
@@ -114,16 +136,22 @@ public abstract class MetadataProvider {
 
   /**
    * Get the union type of two data types.
-   * Used to decide on the column type of a property access when multiple vertex/edge tables have the same property but
-   * with different property types
+   * 
+   * This is used to decide on the column type of a property access when multiple vertex/edge tables have the same
+   * property but with different property types. Typically, the widest type is chosen.
+   * 
+   * Examples:
+   * 
+   * - LONG, INTEGER ==> LONG
+   * 
+   * - VARCHAR(10), VARCHAR(20) ==> VARCHAR(20)
    * 
    * @param packageName
    * @param functionName
    * @param argumentTypes
-   * @return the union type of the two type (e.g. LONG and INTEGER gives LONG; VARCHAR(10) and VARCHAR(20) gives
-   *         VARCHAR(20))
+   * @return the union type of the two type
    */
-  public Optional<Boolean> getUnionType(String typeA, String typeB) {
+  public Optional<String> getUnionType(String typeA, String typeB) {
     return Optional.empty();
   }
 }
