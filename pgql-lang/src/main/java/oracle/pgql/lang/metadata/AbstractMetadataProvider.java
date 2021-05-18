@@ -8,10 +8,10 @@ import java.util.Optional;
 import java.util.Set;
 
 /**
- * All method in this class return an Optional so that implementations can choose to only implement a subset and/or
+ * All method in this class return an Optional so that implementations can choose to only implement a subset and
  * incrementally provide more metadata over time.
  */
-public abstract class MetadataProvider {
+public abstract class AbstractMetadataProvider {
 
   /**
    * Used to check existence of vertex labels in label predicates. In the future may be used to provide suggestions when
