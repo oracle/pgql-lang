@@ -128,4 +128,49 @@ public abstract class AbstractMetadataProvider {
   public Optional<String> getUnionType(String typeA, String typeB) {
     return Optional.empty();
   }
+
+  /**
+   * Get the string literal type.
+   * 
+   * Examples:
+   * 
+   * - STRING
+   * 
+   * - VARCHAR(2000)
+   * 
+   * @return the string literal type.
+   */
+  public Optional<String> getStringLiteralType() {
+    return Optional.empty();
+  }
+
+  /**
+   * Get the integer literal type.
+   * 
+   * Examples:
+   * 
+   * - LONG
+   * 
+   * - NUMBER(200)
+   * 
+   * @return the string literal type.
+   */
+  public Optional<String> getIntegerLiteralType() {
+    return Optional.empty();
+  }
+
+  /**
+   * Get the decimal literal type.
+   * 
+   * Examples:
+   * 
+   * - DOUBLE
+   * 
+   * - NUMBER(200)
+   * 
+   * @return the string literal type.
+   */
+  public Optional<String> getDecimalLiteralType() {
+    return Optional.empty();
+  }
 }

@@ -110,12 +110,17 @@ rules
 
   add-value-type = ?Null(); !ExpressionPlusType(<id>, UnknownType())
   add-value-type = (?True() + ?False()); !ExpressionPlusType(<id>, Type("BOOLEAN"))
-  add-value-type = ?Integer(_); !ExpressionPlusType(<id>, Type("INTEGER"))
-  add-value-type = ?Decimal(_); !ExpressionPlusType(<id>, Type("DECIMAL"))
+  add-value-type = ?Integer(_); !ExpressionPlusType(<id>, <get-integer-literal-type>)
+  add-value-type = ?Decimal(_); !ExpressionPlusType(<id>, <get-decimal-literal-type>)
+  add-value-type = ?String(_); !ExpressionPlusType(<id>, <get-string-literal-type>)
   add-value-type = ?Date(_); !ExpressionPlusType(<id>, Type("DATE"))
   add-value-type = ?Time(_); !ExpressionPlusType(<id>, Type(<has-timezone; !"TIME WITH TIME ZONE" <+ !"TIME">))
   add-value-type = ?Timestamp(_); !ExpressionPlusType(<id>, Type(<has-timezone; !"TIMESTAMP WITH TIME ZONE" <+ !"TIMESTAMP">))
   external has-timezone(|)
+
+  get-string-literal-type = !Type("STRING")
+  get-integer-literal-type = !Type("LONG")
+  get-decimal-literal-type = !Type("DOUBLE")
 
   get-operation-return-type = ?("Cct", "STRING", "STRING"); !Type("STRING")
   get-operation-return-type = ?("Add", "INTEGER", "INTEGER"); !Type("INTEGER")
