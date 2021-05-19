@@ -38,32 +38,6 @@ public abstract class AbstractMetadataProvider {
   }
 
   /**
-   * Used to check the existence of vertex properties in value expressions. In the future may be used to provide
-   * suggestions when property names are misspelled.
-   *
-   * @param graphName
-   *          the name of the graph; null when no graph name is specified as part of the query
-   * @return the edge labels in the graph
-   * @return the vertex labels that have the given property
-   */
-  public Optional<Set<String>> getVertexPropertyNames(String graphName, String label) {
-    return Optional.empty();
-  }
-
-  /**
-   * Used to check the existence of edge properties in value expressions. In the future may be used to provide
-   * suggestions when property names are misspelled.
-   *
-   * @param graphName
-   *          the name of the graph; null when no graph name is specified as part of the query
-   * @return the edge labels in the graph
-   * @return the edge labels that have the given property
-   */
-  public Optional<Set<String>> getEdgePropertyNames(String graphName, String label) {
-    return Optional.empty();
-  }
-
-  /**
    * Get the type of a vertex property given a graph name and a vertex label.
    *
    * @param graphName
