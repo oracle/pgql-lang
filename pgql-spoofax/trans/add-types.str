@@ -110,7 +110,9 @@ rules
     t@UMin(ExpressionPlusType(exp, type)) -> ExpressionPlusType(t, type')
     with type' := <?Type(<id>); !("UMin", <id>); get-operation-return-type <+ !UnknownType()> type
 
-  add-value-type = ?BindVariable(_); !ExpressionPlusType(<id>, UnknownType())
+  add-value-type = ?Not(_); !ExpressionPlusType(<id>, UnknownType())
+
+  add-value-type = ?BindVariable(_); !ExpressionPlusType(<id>, Type("BOOLEAN"))
 
   add-value-type = ?Null(); !ExpressionPlusType(<id>, UnknownType())
   add-value-type = (?True() + ?False()); !ExpressionPlusType(<id>, Type("BOOLEAN"))

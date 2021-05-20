@@ -508,6 +508,11 @@ rules // MODIFY
     with <generate-error(|ctx, $[The operator - (unary minus) is undefined for the argument type [t]])> e
 
   nabl-constraint(|ctx):
+    e@Not(ExpressionPlusType(_, Type(t))) -> <fail>
+    where not ( <?"BOOLEAN"> t )
+    with <generate-error(|ctx, $[The operator NOT is undefined for the argument type [t]])> e
+
+  nabl-constraint(|ctx):
     ExpressionPlusType(e@And(ExpressionPlusType(_, Type(t1)), ExpressionPlusType(_, Type(t2))), Undefined()) -> <fail>
     with <generate-error(|ctx, $[The operator AND is undefined for the argument types [t1], [t2]])> e
 
