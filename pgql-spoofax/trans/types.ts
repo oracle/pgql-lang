@@ -24,8 +24,6 @@ type rules
 //
 //  ExtractExp(_, _) : NumericTy()
 //
-//  Exists(_) + InPredicate(_, _) + IsNull(exp) : BooleanTy()
-//
 //  Subquery(_) : None()
 //
 //  IfElse(exp1, exp2, exp3): ty2

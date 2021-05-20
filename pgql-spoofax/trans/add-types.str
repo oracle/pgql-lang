@@ -82,28 +82,27 @@ rules
 
   add-value-type = 
     ( ?And(_, _) + ?Or(_, _) +
-      ?Mul(_, _) + ?Add(_, _) + ?Div(_, _) + ?Mod(_, _) + ?Sub(_, _) +
       ?Eq(_, _) + ?Neq(_, _) + ?Gt(_, _) + ?Lt(_, _) + ?Gte(_, _) + ?Lte(_, _) +
+      ?InPredicate(_, _) + ?Exists(_) + ?IsNull(_) // TODO: IN predicate translation to OR ..OR should happen after typing
+    )
+    ; !ExpressionPlusType(<id>, Type("BOOLEAN"))
+
+  add-value-type = 
+    ( ?Mul(_, _) + ?Add(_, _) + ?Div(_, _) + ?Mod(_, _) + ?Sub(_, _) +
       ?Cct(_, _)
     )
     ; add-value-type-to-binary-operation
-
-  is-boolean-expression = ?And(_, _) + ?Or(_, _) + ?Eq(_, _) + ?Neq(_, _) + ?Gt(_, _) + ?Lt(_, _) + ?Gte(_, _) + ?Lte(_, _)
 
   add-value-type-to-binary-operation:
     exp -> ExpressionPlusType(exp, type)
     with operation := <get-constructor> exp
        ; [ExpressionPlusType(_, type1), ExpressionPlusType(_, type2)] := <get-arguments> exp
-       ; if <is-boolean-expression> exp
-         then type := Type("BOOLEAN")
-         else
-           if <?AmbiguousType()> type1 + <?AmbiguousType()> type2
-           then type := UnknownType()
-           else if <?Type(t1)> type1;  <?Type(t2)> type2
-                then type := <get-operation-return-type> (operation, t1, t2)
-                else type := <?Type(_) <+ !type2; ?Type(_) <+ !UnknownType()> type1
-                end
-           end
+       ; if <?AmbiguousType()> type1 + <?AmbiguousType()> type2
+         then type := UnknownType()
+         else if <?Type(t1)> type1;  <?Type(t2)> type2
+              then type := <get-operation-return-type> (operation, t1, t2)
+              else type := <?Type(_) <+ !type2; ?Type(_) <+ !UnknownType()> type1
+              end
          end
 
   add-value-type:
@@ -125,7 +124,7 @@ rules
     with operation := <get-constructor> aggregation
        ; type' := <?Type(<id>); !(operation, <id>); get-operation-return-type <+ !UnknownType()> type
 
-  add-value-type = ?BindVariable(_); !ExpressionPlusType(<id>, Type("BOOLEAN"))
+  add-value-type = ?BindVariable(_); !ExpressionPlusType(<id>, UnknownType())
 
   add-value-type = ?Null(); !ExpressionPlusType(<id>, UnknownType())
   add-value-type = (?True() + ?False()); !ExpressionPlusType(<id>, Type("BOOLEAN"))

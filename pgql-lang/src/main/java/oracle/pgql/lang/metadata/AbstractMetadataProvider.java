@@ -111,8 +111,14 @@ public abstract class AbstractMetadataProvider {
   /**
    * Get the union type of two data types.
    * 
-   * This is used to decide on the column type of a property access when multiple vertex/edge tables have the same
-   * property but with different property types. Typically, the widest type is chosen.
+   * This is used for things like:
+   * 
+   * 1. Decide on the type of a property access when multiple vertex/edge tables have the same property but with
+   * different property types and
+   * 
+   * 2. Decide on the type of a CASE statement when subexpressions have different data types.
+   * 
+   * 3. Decide on the type of IN predicate when expressions in the value list have different data types.
    * 
    * Examples:
    * 
