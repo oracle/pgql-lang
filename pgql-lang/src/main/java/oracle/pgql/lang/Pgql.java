@@ -45,6 +45,7 @@ import org.metaborg.spoofax.core.unit.ISpoofaxParseUnit;
 import org.metaborg.util.concurrent.IClosableLock;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.spoofax.interpreter.terms.IStrategoAppl;
 import org.spoofax.interpreter.terms.IStrategoInt;
 import org.spoofax.interpreter.terms.IStrategoString;
 import org.spoofax.interpreter.terms.IStrategoTerm;
@@ -217,10 +218,13 @@ public class Pgql implements Closeable {
             0);
       }
 
+      IStrategoAppl metadataExtendedAst = spoofax.termFactory.makeAppl("MetadataExtendedAst", parseResult.ast(), spoofax.termFactory.makeAppl("None"));
+      ISpoofaxParseUnit extendedParseUnit = new ModifiedParseUnit(parseResult, metadataExtendedAst);
+
       context = spoofax.contextService.getTemporary(dummyFile, dummyProject, pgqlLang);
       ISpoofaxAnalyzeUnit analysisResult = null;
       try (IClosableLock lock = context.write()) {
-        analysisResult = spoofax.analysisService.analyze(parseResult, context).result();
+        analysisResult = spoofax.analysisService.analyze(extendedParseUnit, context).result();
       }
 
       if (queryValid) {
@@ -238,8 +242,7 @@ public class Pgql implements Closeable {
         if (e instanceof PgqlException) {
           prettyMessages = e.getMessage();
           queryValid = false;
-          return new PgqlResult(queryString, queryValid, prettyMessages, statement, parseResult, LATEST_VERSION,
-              0);
+          return new PgqlResult(queryString, queryValid, prettyMessages, statement, parseResult, LATEST_VERSION, 0);
         } else {
           LOG.debug("Translation of PGQL failed because of semantically invalid AST");
         }

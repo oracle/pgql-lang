@@ -41,9 +41,10 @@ rules
 
   // SELECT, INSERT, UPDATE or DELETE
   normalize-before:
-    ast -> result
-    where <not(is-ddl-statement)> ast
+    optionallyMetadataExendedAst -> result
+    where <not(is-ddl-statement)> optionallyMetadataExendedAst
     with
+      ast := <try(?MetadataExtendedAst(<id>, _))> optionallyMetadataExendedAst;
       variable-counter := <new-counter>;
       bindVariable-counter := <new-counter>;
       error-messages := <
