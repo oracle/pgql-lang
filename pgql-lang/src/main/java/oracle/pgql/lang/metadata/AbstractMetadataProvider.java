@@ -74,7 +74,7 @@ public abstract class AbstractMetadataProvider {
    *          e.g. BOOLEAN
    * @return the return type of the operation (e.g. LONG) or null if the operation is not defined for the input type
    */
-  public Optional<Boolean> getOperationReturnType(UnaryOperation op, String type) {
+  public Optional<String> getOperationReturnType(CustomTypedUnaryOperation op, String type) {
     return Optional.empty();
   }
 
@@ -90,7 +90,7 @@ public abstract class AbstractMetadataProvider {
    * @return the return type of the operation (e.g. LONG) or null if the operation is not defined for the two input
    *         types
    */
-  public Optional<Boolean> getOperationReturnType(BinaryOperation op, String typeA, String typeB) {
+  public Optional<String> getOperationReturnType(CustomTypedBinaryOperation op, String typeA, String typeB) {
     return Optional.empty();
   }
 

@@ -106,6 +106,10 @@ rules
            end
          end
 
+  add-value-type:
+    t@UMin(ExpressionPlusType(exp, type)) -> ExpressionPlusType(t, type')
+    with type' := <?Type(<id>); !("UMin", <id>); get-operation-return-type <+ !UnknownType()> type
+
   add-value-type = ?BindVariable(_); !ExpressionPlusType(<id>, UnknownType())
 
   add-value-type = ?Null(); !ExpressionPlusType(<id>, UnknownType())
@@ -121,6 +125,10 @@ rules
   get-string-literal-type = !Type("STRING")
   get-integer-literal-type = !Type("LONG")
   get-decimal-literal-type = !Type("DOUBLE")
+
+  get-operation-return-type = ?("UMin", "INTEGER"); !Type("INTEGER")
+
+  get-operation-return-type = ?("Cct", "STRING", "STRING"); !Type("STRING")
 
   get-operation-return-type = ?("Cct", "STRING", "STRING"); !Type("STRING")
   get-operation-return-type = ?("Add", "INTEGER", "INTEGER"); !Type("INTEGER")

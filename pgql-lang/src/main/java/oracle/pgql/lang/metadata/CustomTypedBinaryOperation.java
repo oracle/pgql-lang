@@ -3,11 +3,12 @@
  */
 package oracle.pgql.lang.metadata;
 
-public enum UnaryOperation {
+public enum CustomTypedBinaryOperation {
 
-  // arithmetic expressions
-  UMIN,
+  SUB,
+  ADD,
+  MUL,
+  DIV,
+  MOD
 
-  // logical expressions
-  NOT
 }
