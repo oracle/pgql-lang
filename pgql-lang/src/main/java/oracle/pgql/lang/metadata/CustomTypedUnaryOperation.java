@@ -5,6 +5,12 @@ package oracle.pgql.lang.metadata;
 
 public enum CustomTypedUnaryOperation {
 
-  UMIN // unary minus
+  UMIN,
+
+  SUM,
+  MIN,
+  MAX,
+  AVG,
+  LISTAGG
 
 }

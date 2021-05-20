@@ -6,44 +6,19 @@ imports
 
 type rules
 
-//  ExpressionPlusType(exp, t) : ty
-//  where exp : ty
-//
-//  VarRef(Identifier(v, _), _) : ty
-//  where definition of v : ty
-//    and not ( ty == PathTy() ) else error $[Path variables not supported] on v
-//
-//  VarRef(_) : UnknownTy() // for unresolved variables
-//
-//  Vertex(Identifier(v, _), _, Correlation(VarRef(Identifier(outer-var, _), _))) :-
-//  where definition of outer-var : ty
-//    and ty == VertexTy() else error $[Duplicate variable (variable with same name is passed from an outer query)] on v
-//
-//  Edge(_, Identifier(e, _), _, _, _, Correlation(VarRef(Identifier(outer-var, _), _))) :-
-//  where definition of outer-var : ty
-//    and not(ty == ty ) /* make it always throw an error */ else error $[Duplicate variable (variable with same name is passed from an outer query)] on e
-//
-//  Not(exp) : BooleanTy()
-//  where exp : ty
-//    and not (ty == VertexTy() or ty == EdgeTy()) else error $[Boolean expected here] on exp
-//
-//  UMin(exp) : NumericTy()
-//  where exp : ty
-//    and not (ty == VertexTy() or ty == EdgeTy()) else error $[Numeric expected here] on exp
-//
-//  MIN(_, exp)  + MAX(_, exp)  + SUM(_, exp)  + AVG(_, exp)  + LISTAGG(_, exp, _): ty
-//  where exp : ty
-//    and not (ty == VertexTy() or ty == EdgeTy()) else error $[Aggregate does not allow vertex or edge input] on exp
-//    and not ty == ArrayTy() else error $[Aggregate does not allow array input] on exp
-//
-//  COUNT(_, exp) : NumericTy()
-//
-//  ARRAY-AGG(_, exp) : ArrayTy()
-//  where exp : ty
-//    and not (ty == VertexTy() or ty == EdgeTy()) else error $[Aggregate does not allow vertex or edge input] on exp
-//    and not ty == ArrayTy() else error $[Aggregate does not allow array input] on exp
-//
-//  Cast(_, _) + FunctionCall(_, _, _) + Star(): UnknownTy()
+  VarRef(Identifier(v, _), _) : ty
+  where definition of v : ty
+    and not ( ty == PathTy() ) else error $[Path variables not supported] on v
+
+  Vertex(Identifier(v, _), _, Correlation(VarRef(Identifier(outer-var, _), _))) :-
+  where definition of outer-var : ty
+    and ty == VertexTy() else error $[Duplicate variable (variable with same name is passed from an outer query)] on v
+
+  Edge(_, Identifier(e, _), _, _, _, Correlation(VarRef(Identifier(outer-var, _), _))) :-
+  where definition of outer-var : ty
+    and not(ty == ty ) /* make it always throw an error */ else error $[Duplicate variable (variable with same name is passed from an outer query)] on e
+
+//  FunctionCall(_, _, _): UnknownTy()
 //
 //  CharacterSubstring(_, _, _) : StringTy()
 //
@@ -70,13 +45,6 @@ type rules
 //    and not ( ty == VertexTy() or ty == EdgeTy() ) else error $[Scalar subquery not allowed to return a vertex or an edge] on expAsVar
 //
 //  ScalarSubquery(Subquery(NormalizedQuery(_, ModifyClause(_), _, _, _, _, _, _, _, _, _))) : None()
-//
-//  True() + False()        : BooleanTy()
-//  Date(_)                 : DateTy()
-//  Integer(_) + Decimal(_) : NumericTy()
-//  String(_)               : StringTy()
-//  Time(_)                 : TimeTy()
-//  Timestamp(_)            : TimestampTy()
 //
 //  OrderByElem(exp, _, version) :-
 //  where exp : ty

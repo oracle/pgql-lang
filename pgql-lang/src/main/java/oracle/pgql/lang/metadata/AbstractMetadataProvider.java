@@ -173,4 +173,19 @@ public abstract class AbstractMetadataProvider {
   public Optional<String> getDecimalLiteralType() {
     return Optional.empty();
   }
+
+  /**
+   * Get the output type of COUNT(..)
+   * 
+   * Examples:
+   * 
+   * - LONG
+   * 
+   * - NUMBER(200)
+   * 
+   * @return the string literal type.
+   */
+  public Optional<String> getCountAggregateType() {
+    return Optional.empty();
+  }
 }

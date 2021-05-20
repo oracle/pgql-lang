@@ -112,6 +112,19 @@ rules
 
   add-value-type = ?Not(_); !ExpressionPlusType(<id>, UnknownType())
 
+  add-value-type = ?COUNT(_, _); !ExpressionPlusType(<id>, <get-count-aggregate-type>)
+
+  add-value-type:
+    aggregation -> ExpressionPlusType(aggregation, type')
+    where <?SUM(_, ExpressionPlusType(_, type)) +
+           ?MIN(_, ExpressionPlusType(_, type)) +
+           ?MAX(_, ExpressionPlusType(_, type)) +
+           ?AVG(_, ExpressionPlusType(_, type)) +
+           ?ARRAY-AGG(_, ExpressionPlusType(_, type)) +
+           ?LISTAGG(_, ExpressionPlusType(_, type), _)> aggregation
+    with operation := <get-constructor> aggregation
+       ; type' := <?Type(<id>); !(operation, <id>); get-operation-return-type <+ !UnknownType()> type
+
   add-value-type = ?BindVariable(_); !ExpressionPlusType(<id>, Type("BOOLEAN"))
 
   add-value-type = ?Null(); !ExpressionPlusType(<id>, UnknownType())
@@ -124,9 +137,13 @@ rules
   add-value-type = ?Timestamp(_); !ExpressionPlusType(<id>, Type(<has-timezone; !"TIMESTAMP WITH TIME ZONE" <+ !"TIMESTAMP">))
   external has-timezone(|)
 
+  add-value-type = ?Cast(_, type); !ExpressionPlusType(<id>, Type(type))
+
   get-string-literal-type = !Type("STRING")
   get-integer-literal-type = !Type("LONG")
   get-decimal-literal-type = !Type("DOUBLE")
+
+  get-count-aggregate-type = !Type("LONG")
 
   get-operation-return-type = ?("UMin", "INTEGER"); !Type("INTEGER")
 
@@ -134,6 +151,9 @@ rules
 
   get-operation-return-type = ?("Cct", "STRING", "STRING"); !Type("STRING")
   get-operation-return-type = ?("Add", "INTEGER", "INTEGER"); !Type("INTEGER")
+
+  get-operation-return-type = ?("MIN", "STRING"); !Type("STRING")
+  get-operation-return-type = ?("SUM", "INTEGER"); !Type("LONG")
 
   get-operation-return-type = !Undefined()
 
