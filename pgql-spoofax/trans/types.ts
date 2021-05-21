@@ -24,8 +24,6 @@ type rules
 //
 //  ExtractExp(_, _) : NumericTy()
 //
-//  Subquery(_) : None()
-//
 //  IfElse(exp1, exp2, exp3): ty2
 //  where exp1 : ty1
 //    and exp2 : ty2

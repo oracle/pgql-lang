@@ -57,6 +57,7 @@ import oracle.pgql.lang.editor.completion.PgqlCompletion;
 import oracle.pgql.lang.editor.completion.PgqlCompletionContext;
 import oracle.pgql.lang.ir.PgqlStatement;
 import oracle.pgql.lang.ir.StatementType;
+import oracle.pgql.lang.metadata.ModifiedParseUnit;
 
 import static oracle.pgql.lang.CheckInvalidJavaComment.checkInvalidJavaComment;
 

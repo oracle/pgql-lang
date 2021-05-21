@@ -1,7 +1,7 @@
 /*
  * Copyright (C) 2013 - 2021 Oracle and/or its affiliates. All rights reserved.
  */
-package oracle.pgql.lang;
+package oracle.pgql.lang.metadata;
 
 import org.apache.commons.vfs2.FileObject;
 import org.metaborg.core.messages.IMessage;
@@ -9,7 +9,6 @@ import org.metaborg.core.unit.IUnitContrib;
 import org.metaborg.spoofax.core.unit.ISpoofaxInputUnit;
 import org.metaborg.spoofax.core.unit.ISpoofaxParseUnit;
 import org.metaborg.spoofax.core.unit.UnitWrapper;
-import org.spoofax.interpreter.terms.IStrategoAppl;
 import org.spoofax.interpreter.terms.IStrategoTerm;
 
 public class ModifiedParseUnit extends UnitWrapper implements ISpoofaxParseUnit {

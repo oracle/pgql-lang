@@ -5,7 +5,6 @@ package oracle.pgql.lang.metadata;
 
 import java.util.List;
 import java.util.Optional;
-import java.util.Set;
 
 /**
  * All method in this class return an Optional so that implementations can choose to only implement a subset and
@@ -14,54 +13,22 @@ import java.util.Set;
 public abstract class AbstractMetadataProvider {
 
   /**
-   * Used to check existence of vertex labels in label predicates. In the future may be used to provide suggestions when
-   * labels are misspelled.
+   * Get the schema of the default graph, including its labels, properties and property types.
    * 
    * @param graphName
-   *          the name of the graph; null when no graph name is specified as part of the query
-   * @return the vertex labels in the graph
+   * @return the schema of the graph
    */
-  public Optional<Set<String>> getVertexLabels(String graphName) {
+  public Optional<GraphSchema> getGraphSchema() {
     return Optional.empty();
   }
 
   /**
-   * Used to check existence of edge labels in label predicates. In the future may be used to provide suggestions when
-   * labels are misspelled.
-   *
+   * Get the schema of a graph, including its labels, properties and property types.
+   * 
    * @param graphName
-   *          the name of the graph; null when no graph name is specified as part of the query
-   * @return the edge labels in the graph
+   * @return the schema of the graph
    */
-  public Optional<Set<String>> getEdgeLabels(String graphName) {
-    return Optional.empty();
-  }
-
-  /**
-   * Get the type of a vertex property given a graph name and a vertex label.
-   *
-   * @param graphName
-   *          the name of the graph; null when no graph name is specified as part of the query
-   * @return the edge labels in the graph
-   * @param label
-   * @param propertyName
-   * @return the vertex property type name
-   */
-  public Optional<String> getVertexPropertyType(String graphName, String label, String propertyName) {
-    return Optional.empty();
-  }
-
-  /**
-   * Get the type of a edge property given a graph name and a edge label.
-   *
-   * @param graphName
-   *          the name of the graph; null when no graph name is specified as part of the query
-   * @return the edge labels in the graph
-   * @param label
-   * @param propertyName
-   * @return the edge property type name
-   */
-  public Optional<String> getEdgePropertyType(String graphName, String label, String propertyName) {
+  public Optional<GraphSchema> getGraphSchema(String graphName) {
     return Optional.empty();
   }
 
@@ -122,9 +89,9 @@ public abstract class AbstractMetadataProvider {
    * 
    * Examples:
    * 
-   * - LONG, INTEGER ==> LONG
+   * - LONG, INTEGER => LONG
    * 
-   * - VARCHAR(10), VARCHAR(20) ==> VARCHAR(20)
+   * - VARCHAR(10), VARCHAR(20) => VARCHAR(20)
    * 
    * @param packageName
    * @param functionName
@@ -140,9 +107,9 @@ public abstract class AbstractMetadataProvider {
    * 
    * Examples:
    * 
-   * - STRING
+   * - 'abc' => STRING
    * 
-   * - VARCHAR(2000)
+   * - 'abc' => VARCHAR(2000)
    * 
    * @return the string literal type.
    */
@@ -155,9 +122,9 @@ public abstract class AbstractMetadataProvider {
    * 
    * Examples:
    * 
-   * - LONG
+   * - 123 => LONG
    * 
-   * - NUMBER(200)
+   * - 123 => NUMBER(200)
    * 
    * @return the string literal type.
    */
@@ -170,9 +137,9 @@ public abstract class AbstractMetadataProvider {
    * 
    * Examples:
    * 
-   * - DOUBLE
+   * - 1.23 => DOUBLE
    * 
-   * - NUMBER(200)
+   * - 1.23 => NUMBER(200)
    * 
    * @return the string literal type.
    */
@@ -185,9 +152,9 @@ public abstract class AbstractMetadataProvider {
    * 
    * Examples:
    * 
-   * - LONG
+   * - COUNT(*) => LONG
    * 
-   * - NUMBER(200)
+   * - COUNT(*) => NUMBER(200)
    * 
    * @return the string literal type.
    */

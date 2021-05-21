@@ -80,14 +80,14 @@ rules
        ; types := <map(!(<id>, propName); get-vertex-property-type)> labels
        ; result := <foldl(get-union-type)> (types, Undefined())
 
-  add-value-type = 
+  add-value-type =
     ( ?And(_, _) + ?Or(_, _) +
       ?Eq(_, _) + ?Neq(_, _) + ?Gt(_, _) + ?Lt(_, _) + ?Gte(_, _) + ?Lte(_, _) +
       ?InPredicate(_, _) + ?Exists(_) + ?IsNull(_) // TODO: IN predicate translation to OR ..OR should happen after typing
     )
     ; !ExpressionPlusType(<id>, Type("BOOLEAN"))
 
-  add-value-type = 
+  add-value-type =
     ( ?Mul(_, _) + ?Add(_, _) + ?Div(_, _) + ?Mod(_, _) + ?Sub(_, _) +
       ?Cct(_, _)
     )
