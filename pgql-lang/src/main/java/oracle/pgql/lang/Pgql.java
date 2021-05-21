@@ -301,7 +301,6 @@ public class Pgql implements Closeable {
         if (t.getType() == TermType.APPL && ((IStrategoAppl) t).getConstructor().getName().equals("OnClause")) {
           IStrategoTerm nameT = t.getSubterm(0);
           IStrategoTerm schemaNameT = nameT.getSubterm(0);
-          System.out.println(schemaNameT);
           String schemaName = isSome(schemaNameT) ? identifierToString(schemaNameT.getSubterm(0).getSubterm(0)) : null;
           String localName = identifierToString(nameT.getSubterm(1));
           graphNames.add(new SchemaQualifiedName(schemaName, localName));
