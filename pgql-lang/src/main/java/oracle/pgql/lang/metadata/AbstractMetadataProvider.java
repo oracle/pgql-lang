@@ -6,6 +6,8 @@ package oracle.pgql.lang.metadata;
 import java.util.List;
 import java.util.Optional;
 
+import oracle.pgql.lang.ir.SchemaQualifiedName;
+
 /**
  * All method in this class return an Optional so that implementations can choose to only implement a subset and
  * incrementally provide more metadata over time.
@@ -26,9 +28,10 @@ public abstract class AbstractMetadataProvider {
    * Get the schema of a graph, including its labels, properties and property types.
    * 
    * @param graphName
+   *          the name of the graph with schema qualifier (schema qualifier can be null)
    * @return the schema of the graph
    */
-  public Optional<GraphSchema> getGraphSchema(String graphName) {
+  public Optional<GraphSchema> getGraphSchema(SchemaQualifiedName graphName) {
     return Optional.empty();
   }
 

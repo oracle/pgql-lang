@@ -22,7 +22,7 @@ public class Property {
   }
 
   private String name;
-  
+
   private String type;
 
   public Property(String name, String type) {

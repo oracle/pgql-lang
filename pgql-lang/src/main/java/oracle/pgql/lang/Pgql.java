@@ -9,6 +9,7 @@ import java.io.IOException;
 import java.io.OutputStream;
 import java.io.UnsupportedEncodingException;
 import java.net.URL;
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.HashSet;
@@ -49,6 +50,8 @@ import org.spoofax.interpreter.terms.IStrategoAppl;
 import org.spoofax.interpreter.terms.IStrategoInt;
 import org.spoofax.interpreter.terms.IStrategoString;
 import org.spoofax.interpreter.terms.IStrategoTerm;
+import org.spoofax.interpreter.terms.TermType;
+import org.spoofax.terms.TermVisitor;
 
 import com.google.common.collect.Lists;
 
@@ -56,10 +59,13 @@ import oracle.pgql.lang.completion.PgqlCompletionGenerator;
 import oracle.pgql.lang.editor.completion.PgqlCompletion;
 import oracle.pgql.lang.editor.completion.PgqlCompletionContext;
 import oracle.pgql.lang.ir.PgqlStatement;
+import oracle.pgql.lang.ir.SchemaQualifiedName;
 import oracle.pgql.lang.ir.StatementType;
 import oracle.pgql.lang.metadata.ModifiedParseUnit;
 
 import static oracle.pgql.lang.CheckInvalidJavaComment.checkInvalidJavaComment;
+import static oracle.pgql.lang.CommonTranslationUtil.getString;
+import static oracle.pgql.lang.CommonTranslationUtil.isSome;
 
 public class Pgql implements Closeable {
 
@@ -194,6 +200,12 @@ public class Pgql implements Closeable {
     }
   }
 
+  private void checkInitialized() throws PgqlException {
+    if (!isInitialized) {
+      throw new PgqlException("Pgql instance was closed");
+    }
+  }
+
   private PgqlResult parseInternal(String queryString) throws PgqlException {
     if (queryString.equals("")) {
       String error = "Empty query string";
@@ -219,7 +231,16 @@ public class Pgql implements Closeable {
             0);
       }
 
-      IStrategoAppl metadataExtendedAst = spoofax.termFactory.makeAppl("MetadataExtendedAst", parseResult.ast(), spoofax.termFactory.makeAppl("None"));
+      List<SchemaQualifiedName> graphNames = extractGraphNames(parseResult.ast());
+      SchemaQualifiedName graphName = null;
+      if (graphNames.size() == 1) { // multiple graph references in single query are currently not supported; we already
+                                    // generate an error for that during analysis
+        graphName = graphNames.get(0);
+      }
+      System.out.println(graphName);
+
+      IStrategoAppl metadataExtendedAst = spoofax.termFactory.makeAppl("MetadataExtendedAst", parseResult.ast(),
+          spoofax.termFactory.makeAppl("None"));
       ISpoofaxParseUnit extendedParseUnit = new ModifiedParseUnit(parseResult, metadataExtendedAst);
 
       context = spoofax.contextService.getTemporary(dummyFile, dummyProject, pgqlLang);
@@ -269,9 +290,39 @@ public class Pgql implements Closeable {
     }
   }
 
-  private void checkInitialized() throws PgqlException {
-    if (!isInitialized) {
-      throw new PgqlException("Pgql instance was closed");
+  private List<SchemaQualifiedName> extractGraphNames(IStrategoTerm ast) {
+
+    final List<SchemaQualifiedName> graphNames = new ArrayList<>();
+
+    new TermVisitor() {
+
+      @Override
+      public void preVisit(IStrategoTerm t) {
+        if (t.getType() == TermType.APPL && ((IStrategoAppl) t).getConstructor().getName().equals("OnClause")) {
+          IStrategoTerm nameT = t.getSubterm(0);
+          IStrategoTerm schemaNameT = nameT.getSubterm(0);
+          System.out.println(schemaNameT);
+          String schemaName = isSome(schemaNameT) ? identifierToString(schemaNameT.getSubterm(0).getSubterm(0)) : null;
+          String localName = identifierToString(nameT.getSubterm(1));
+          graphNames.add(new SchemaQualifiedName(schemaName, localName));
+        }
+      }
+
+    }.visit(ast);
+
+    return graphNames;
+  }
+
+  private String identifierToString(IStrategoTerm t) {
+    String constructorName = ((IStrategoAppl) t).getConstructor().getName();
+    String identifier = getString(t);
+    switch (constructorName) {
+      case "RegularIdentifier":
+        return identifier.toUpperCase();
+      case "DelimitedIdentifier":
+        return identifier.substring(1, identifier.length() - 2).replaceAll("\"\"", "\"");
+      default:
+        throw new IllegalStateException("Unsupported identifier type: " + constructorName);
     }
   }
 
