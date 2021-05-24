@@ -152,6 +152,8 @@ rules
 
   add-value-type = ?Cast(_, type); !ExpressionPlusType(<id>, Type(type))
 
+  add-value-type = ?CharacterSubstring(_, _, _); !ExpressionPlusType(<id>, <get-string-literal-type>)
+
   get-string-literal-type = !Type("STRING")
   get-integer-literal-type = !Type("LONG")
   get-decimal-literal-type = !Type("DOUBLE")
