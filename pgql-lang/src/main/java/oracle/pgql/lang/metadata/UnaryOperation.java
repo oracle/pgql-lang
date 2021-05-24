@@ -3,10 +3,15 @@
  */
 package oracle.pgql.lang.metadata;
 
-public enum CustomTypedUnaryOperation {
+public enum UnaryOperation {
 
+  // logical expressions
+  NOT,
+
+  // arithmetic expressions
   UMIN,
 
+  // aggregates
   SUM,
   MIN,
   MAX,
