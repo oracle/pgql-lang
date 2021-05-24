@@ -361,14 +361,22 @@ rules // literals
 rules // IN
 
   nabl-constraint(|ctx):
-    InPredicate(_, Array(valueExpressions)) -> <fail>
+    inPredicate@InPredicate(exp, Array(valueExpressions)) -> <fail>
     with [x|xs] := <map(try(add-default-literal-type))> valueExpressions
+
+         // check that type of expression on left-hand of IN is compatible with expression of list elements
+       ; if <?ExpressionPlusType(_, Type(t1)); !t1; not(same-type(|x))> exp
+         then ExpressionPlusType(_, Type(t2)) := x
+            ; <generate-error(|ctx, $[The IN predicate is undefined for left-hand operand type [t1] and list value types [t2]])> inPredicate
+         end
+
+         // check that values in the list are of compatible type
        ; <remove-all(same-type(|x)); batch-generate-error(|ctx, $[[<!x; ?ExpressionPlusType(_, Type(<id>))>] expected here])> xs
 
-    same-type(|x):
-      ExpressionPlusType(_, type1) -> <id>
-      where ExpressionPlusType(_, type2) := x
-          ; <eq <+ get-union-type> (type1, type2)
+  same-type(|x):
+    ExpressionPlusType(_, type1) -> <id>
+    where ExpressionPlusType(_, type2) := x
+        ; <eq <+ get-union-type> (type1, type2)
 
 rules // SELECT
 
