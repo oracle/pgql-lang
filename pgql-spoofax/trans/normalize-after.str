@@ -1,0 +1,43 @@
+module normalize-after
+
+imports
+
+  stratego/-
+  signatures/-
+  normalized-signatures
+  common
+  pp
+  add-types
+
+rules
+
+  normalize-after = innermost(inPredicate-to-non-equality-constraints <+ norm-inPredicate)
+
+rules
+
+  inPredicate-to-non-equality-constraints:
+    t@InPredicate(exp1, notIn, exp2@Array(valueExpressions)) -> result
+    where <not(is-simple-inPredicate-expression)> exp2
+        ; <?[ExpressionPlusType(_, typeOfFirstElement)|_]> valueExpressions
+        ; valueExpressions' := <map(add-default-literal-type)> valueExpressions
+        ; <map(?ExpressionPlusType(_, <id>); (?typeOfFirstElement + !(typeOfFirstElement, <id>); get-union-type))> valueExpressions' // don't tranform IN into set of non-equality if types are not compatible
+    with disjunction := <map(to-eq-expression(|exp1, t)); to-disjunction> valueExpressions
+       ; disjunction' := <origin-track-forced(!disjunction)> t
+       ; if <?Some(NOT())> notIn
+         then result := <origin-track-forced(!Not(disjunction'))> t
+         else result := disjunction'
+         end
+
+  is-simple-inPredicate-expression = ?BindVariable(_)
+  is-simple-inPredicate-expression = ?Array(<id>); map(?ExpressionPlusType(<id>, _); is-literal-no-bindVariable) // array with literals only
+
+  to-eq-expression(|exp1, origin-term):
+    exp2 -> <origin-track-forced(!Eq(exp1, exp2))> origin-term
+
+  norm-inPredicate:
+    t@InPredicate(exp1, notIn, exp2) -> result
+    with inPredicate := <origin-track-forced(!InPredicate(exp1, exp2))> t
+       ; if <?Some(NOT())> notIn
+         then result := <origin-track-forced(!Not(inPredicate))> t
+         else result := inPredicate
+         end

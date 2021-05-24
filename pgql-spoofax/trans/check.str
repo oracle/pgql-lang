@@ -361,22 +361,14 @@ rules // literals
 rules // IN
 
   nabl-constraint(|ctx):
-    InPredicate(_, Array([x|xs])) -> <fail>
-    with <remove-all(same-type(|x)); batch-generate-error(|ctx, $[[<!x; type-to-string>] expected here])> xs
+    InPredicate(_, Array(valueExpressions)) -> <fail>
+    with [x|xs] := <map(try(add-default-literal-type))> valueExpressions
+       ; <remove-all(same-type(|x)); batch-generate-error(|ctx, $[[<!x; ?ExpressionPlusType(_, Type(<id>))>] expected here])> xs
 
-  same-type(|x) = is-numeric-literal; !x; is-numeric-literal
-  same-type(|x) = is-boolean-literal; !x; is-boolean-literal
-  same-type(|x) = ?String(_); !x; ?String(_)
-  same-type(|x) = ?Date(_); !x; ?Date(_)
-  same-type(|x) = ?Time(_); !x; ?Time(_)
-  same-type(|x) = ?Timestamp(_); !x; ?Timestamp(_)
-
-  type-to-string = is-numeric-literal; !"Numeric"
-  type-to-string = is-boolean-literal; !"Boolean"
-  type-to-string = ?String(_); !"String"
-  type-to-string = ?Date(_); !"Date"
-  type-to-string = ?Time(_); !"Time"
-  type-to-string = ?Timestamp(_); !"Timestamp"
+    same-type(|x):
+      ExpressionPlusType(_, type1) -> <id>
+      where ExpressionPlusType(_, type2) := x
+          ; <eq <+ get-union-type> (type1, type2)
 
 rules // SELECT
 

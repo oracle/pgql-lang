@@ -83,7 +83,7 @@ rules
   add-value-type =
     ( ?And(_, _) + ?Or(_, _) +
       ?Eq(_, _) + ?Neq(_, _) + ?Gt(_, _) + ?Lt(_, _) + ?Gte(_, _) + ?Lte(_, _) +
-      ?InPredicate(_, _) + ?Exists(_) + ?IsNull(_) // TODO: IN predicate translation to OR ..OR should happen after typing
+      ?InPredicate(_, _, _) + ?Exists(_) + ?IsNull(_) // TODO: IN predicate translation to OR ..OR should happen after typing
     )
     ; !ExpressionPlusType(<id>, Type("BOOLEAN"))
 
@@ -136,6 +136,16 @@ rules
   add-value-type = ?Timestamp(_); !ExpressionPlusType(<id>, Type(<has-timezone; !"TIMESTAMP WITH TIME ZONE" <+ !"TIMESTAMP">))
   external has-timezone(|)
 
+  add-default-literal-type:
+    ExpressionPlusType(exp, UnknownType()) -> ExpressionPlusType(exp, Type(t))
+    where t := <is-numeric-literal; !"NUMBER" +
+                is-boolean-literal; !"BOOLEAN" +
+                ?String(_); !"STRING" +
+                ?Date(_); !"DATE" +
+                ?Time(_); !"TIME" +
+                ?Timestamp(_); !"TIMESTAMP"
+                > exp
+
   add-value-type = ?Cast(_, type); !ExpressionPlusType(<id>, Type(type))
 
   get-string-literal-type = !Type("STRING")
@@ -179,23 +189,3 @@ rules
 
   get-union-type = ?(Type("INTEGER"), Type("DATE"));  !AmbiguousType()
   get-union-type = ?(Type("DATE"), Type("INTEGER"));  !AmbiguousType()
-
-signature constructors
-
-  LabelOr            : STRING * STRING -> LabelOr
-
-  LabelAnd           : STRING * STRING -> LabelAnd
-
-  Vertex             : ElemType
-
-  Edge               : ElemType
-
-  ExpressionPlusType : Exp * Type -> ExpressionPlusType
-
-  Type               : STRING -> Type
-
-  Undefined          : Type // when the operation is undefined for the input types or the property does not exist 
-
-  UnknownType        : Type
-
-  AmbiguousType      : Type

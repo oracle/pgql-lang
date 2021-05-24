@@ -92,3 +92,24 @@ signature constructors // for error checking (see trans/check.str)
   ErrorMessage                                      : Term * STRING -> ErrorMessage
   ComplexRegularExpressionNotSupported              : Term -> ComplexRegularExpressionNotSupported
   ComplexParenthesizedRegularExpressionNotSupported : Term -> ComplexParenthesizedRegularExpressionNotSupported
+
+signature constructors // for types (see trans/add-types.str)
+
+  LabelOr            : STRING * STRING -> LabelOr
+
+  LabelAnd           : STRING * STRING -> LabelAnd
+
+  Vertex             : ElemType
+
+  Edge               : ElemType
+
+  ExpressionPlusType : Exp * Type -> ExpressionPlusType
+
+  Type               : STRING -> Type
+
+  Undefined          : Type // when the operation is undefined for the input types or the property does not exist
+
+  UnknownType        : Type
+
+  AmbiguousType      : Type
+  
