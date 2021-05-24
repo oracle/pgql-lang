@@ -18,10 +18,6 @@ type rules
   where definition of outer-var : ty
     and not(ty == ty ) /* make it always throw an error */ else error $[Duplicate variable (variable with same name is passed from an outer query)] on e
 
-//  FunctionCall(_, _, _): UnknownTy()
-//
-//  CharacterSubstring(_, _, _) : StringTy()
-//
 //  ExtractExp(_, _) : NumericTy()
 //
 //  IfElse(exp1, exp2, exp3): ty2
@@ -35,12 +31,6 @@ type rules
 //  // type determination of SimpleCase if based on IfElse representation
 //  SimpleCase(_, _, _, ifElseRepresentation) : ty
 //  where ifElseRepresentation : ty
-//
-//  ScalarSubquery(Subquery(NormalizedQuery(_, SelectClause(_, ExpAsVars([expAsVar|_])), _, _, _, _, _, _, _, _, _))) : ty
-//  where expAsVar : ty
-//    and not ( ty == VertexTy() or ty == EdgeTy() ) else error $[Scalar subquery not allowed to return a vertex or an edge] on expAsVar
-//
-//  ScalarSubquery(Subquery(NormalizedQuery(_, ModifyClause(_), _, _, _, _, _, _, _, _, _))) : None()
 //
 //  OrderByElem(exp, _, version) :-
 //  where exp : ty

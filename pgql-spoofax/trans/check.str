@@ -509,7 +509,7 @@ rules // MODIFY
 
   nabl-constraint(|ctx):
     e@Not(ExpressionPlusType(_, Type(t))) -> <fail>
-    where not ( <?"BOOLEAN"> t )
+    where not ( <?"BOOLEAN" + ?UnknownType()> t )
     with <generate-error(|ctx, $[The operator NOT is undefined for the argument type [t]])> e
 
   nabl-constraint(|ctx):
@@ -582,10 +582,11 @@ rules // MODIFY
   // check that WHERE clauses contains boolean expressions
   nabl-constraint(|ctx):
     Constraints(constraints) -> <fail>
-    with <remove-all(?ExpressionPlusType(<id>, Type("BOOLEAN"))); batch-generate-error(|ctx, "WHERE clause expects a BOOLEAN expression")> constraints
+    with <remove-all(?ExpressionPlusType(<id>, Type("BOOLEAN")) + ?ExpressionPlusType(<id>, UnknownType()))
+                    ; batch-generate-error(|ctx, "WHERE clause expects a BOOLEAN expression")> constraints
 
   // check that HAVING clauses contains boolean expressions
   nabl-constraint(|ctx):
     HavingClause(ExpressionPlusType(exp, Type(t))) -> <fail>
-    where <not(?"BOOLEAN")> t
+    where <not(?"BOOLEAN" + ?UnknownType())> t
     with <generate-error(|ctx, "HAVING clause expects a BOOLEAN expression")> exp

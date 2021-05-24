@@ -154,6 +154,13 @@ rules
 
   add-value-type = ?CharacterSubstring(_, _, _); !ExpressionPlusType(<id>, <get-string-literal-type>)
 
+  add-value-type:
+    exp@ScalarSubquery(Subquery(NormalizedQuery(_, SelectClause(_, ExpAsVars(expsAsVars)), _, _, _, _, _, _, _, _, _))) -> ExpressionPlusType(exp, type)
+    with if <?[ExpAsVar(ExpressionPlusType(_, Type(t)), _, _, _)]> expsAsVars
+         then type := Type(t)
+         else type := UnknownType()
+         end
+
   get-string-literal-type = !Type("STRING")
   get-integer-literal-type = !Type("LONG")
   get-decimal-literal-type = !Type("DOUBLE")
