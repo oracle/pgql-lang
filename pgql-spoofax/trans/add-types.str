@@ -16,9 +16,9 @@ rules
   annotate-with-types = bottomup(try(add-value-type-to-prop-and-var-ref)); bottomup(try(add-value-type))
 
   add-value-type-to-prop-and-var-ref:
-    query@NormalizedQuery(_, _, _, Some(GraphPattern(Vertices(vertices), edges, Constraints(constraints))), _, _, _, _, _, _, _) -> query''
+    query@NormalizedQuery(_, _, _, Some(GraphPattern(Vertices(vertices), edgesAndPaths, Constraints(constraints))), _, _, _, _, _, _, _) -> query''
     with vertexDefinititions := <map(?Vertex(_, <id>, _))> vertices
-       ; edgeDefinititions := <map(?Edge(_, _, _, _, <id>, _))> edges
+       ; edgeDefinititions := <filter(?Edge(_, _, _, _, <id>, _))> edgesAndPaths
        ; query' := <alltd(add-value-type-to-prop-ref(|vertexDefinititions, Vertex(), constraints) + add-value-type-to-prop-ref(|edgeDefinititions, Edge(), constraints))> query
        ; query'' := <alltd(add-value-type-to-var-ref(|vertexDefinititions, Vertex()) + add-value-type-to-var-ref(|edgeDefinititions, Edge()))> query'
 

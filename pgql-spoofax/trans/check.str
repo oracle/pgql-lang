@@ -480,9 +480,9 @@ rules // MODIFY
 // schema
 
   nabl-constraint(|ctx):
-    query@NormalizedQuery(_, _, _, Some(GraphPattern(Vertices(vertices), edges, Constraints(constraints))), _, _, _, _, _, _, _) -> <fail>
+    query@NormalizedQuery(_, _, _, Some(GraphPattern(Vertices(vertices), edgesAndPaths, Constraints(constraints))), _, _, _, _, _, _, _) -> <fail>
     with vertexDefinititions := <map(?Vertex(_, <id>, _))> vertices
-       ; edgeDefinititions := <map(?Edge(_, _, _, _, <id>, _))> edges
+       ; edgeDefinititions := <filter(?Edge(_, _, _, _, <id>, _))> edgesAndPaths
        ; vertexLabels := <get-vertex-labels>
        ; edgeLabels := <get-edge-labels>
        ; unresolvedVertexLabels := <collect(get-unresolved-label(|vertexDefinititions, vertexLabels))> query
