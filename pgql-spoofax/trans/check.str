@@ -360,23 +360,25 @@ rules // literals
 
 rules // IN
 
-  nabl-constraint(|ctx):
+  nabl-constraint(|ctx) = ?AstPlusMetadata(_, metadata); alltd(check-inPredicate(|ctx, metadata))
+
+  check-inPredicate(|ctx, metadata):
     inPredicate@InPredicate(exp, Array(valueExpressions)) -> <fail>
     with [x|xs] := <map(try(add-default-literal-type))> valueExpressions
 
          // check that type of expression on left-hand of IN is compatible with expression of list elements
-       ; if <?ExpressionPlusType(_, Type(t1)); !t1; not(same-type(|x))> exp
+       ; if <?ExpressionPlusType(_, Type(t1)); !t1; not(same-type(|x, metadata))> exp
          then ExpressionPlusType(_, Type(t2)) := x
             ; <generate-error(|ctx, $[The IN predicate is undefined for left-hand operand type [t1] and list value types [t2]])> inPredicate
          end
 
          // check that values in the list are of compatible type
-       ; <remove-all(same-type(|x)); batch-generate-error(|ctx, $[[<!x; ?ExpressionPlusType(_, Type(<id>))>] expected here])> xs
+       ; <remove-all(same-type(|x, metadata)); batch-generate-error(|ctx, $[[<!x; ?ExpressionPlusType(_, Type(<id>))>] expected here])> xs
 
-  same-type(|x):
+  same-type(|x, metadata):
     ExpressionPlusType(_, type1) -> <id>
     where ExpressionPlusType(_, type2) := x
-        ; <eq <+ get-union-type> (type1, type2)
+        ; <eq <+ get-union-type(|metadata)> (type1, type2)
 
 rules // SELECT
 
@@ -479,16 +481,22 @@ rules // MODIFY
 
 // schema
 
-  nabl-constraint(|ctx):
+  nabl-constraint(|ctx) = ?AstPlusMetadata(_, metadata); alltd(check-labels(|ctx, metadata))
+
+  check-labels(|ctx, metadata):
     query@NormalizedQuery(_, _, _, Some(GraphPattern(Vertices(vertices), edgesAndPaths, Constraints(constraints))), _, _, _, _, _, _, _) -> <fail>
     with vertexDefinititions := <map(?Vertex(_, <id>, _))> vertices
        ; edgeDefinititions := <filter(?Edge(_, _, _, _, <id>, _))> edgesAndPaths
-       ; vertexLabels := <get-vertex-labels>
-       ; edgeLabels := <get-edge-labels>
-       ; unresolvedVertexLabels := <collect(get-unresolved-label(|vertexDefinititions, vertexLabels))> query
-       ; unresolvedEdgeLabels := <collect(get-unresolved-label(|edgeDefinititions, edgeLabels))> query
-       ; <batch-generate-error(|ctx, "Vertex label does not exist")> unresolvedVertexLabels
-       ; <batch-generate-error(|ctx, "Edge label does not exist")> unresolvedEdgeLabels
+       ; vertexLabels := <get-vertex-labels(|metadata)>
+       ; if <not(?None())> vertexLabels
+         then unresolvedVertexLabels := <collect(get-unresolved-label(|vertexDefinititions, vertexLabels))> query
+            ; <batch-generate-error(|ctx, "Vertex label does not exist")> unresolvedVertexLabels
+         end
+       ; edgeLabels := <get-edge-labels(|metadata)>
+       ; if <not(?None())> edgeLabels
+         then unresolvedEdgeLabels := <collect(get-unresolved-label(|edgeDefinititions, edgeLabels))> query
+            ; <batch-generate-error(|ctx, "Edge label does not exist")> unresolvedEdgeLabels
+         end
 
   get-unresolved-label(|varDefinitionOriginPositions, labels):
     FunctionCall(None(), "has_label", [ ExpressionPlusType(VarRef(_, originPosition), _), Identifier(labelReference, _) ]) -> labelReference

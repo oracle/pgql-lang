@@ -70,7 +70,7 @@ rules
 
   get-aggregations = collect-in-outer-query(is-aggregate)
 
-  to-error-message(|message) = !ErrorMessage(<id>, message)
+  to-error-message(|message) = !ErrorMessage(<origin-track-forced(origin-text)>, message)
 
   // just here to get rid of editor errors in e.g. normalize.str
   origin-track-forced(s) = fail

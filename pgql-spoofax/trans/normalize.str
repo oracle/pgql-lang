@@ -298,7 +298,7 @@ rules
     then !ReferenceInInlinedConstraint(v)
     else !CrossReferenceInInlinedConstraint(v)
     end +
-    (?SelfPropRef(propName) + ?SelfPropRef(dot, propName)); !PropRef(VarRef(varName), propName)
+    (?SelfPropRef(propName) + ?SelfPropRef(dot, propName)); !PropRef(VarRef(varName), Identifier(propName, propName))
 
 rules
 

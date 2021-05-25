@@ -13,20 +13,20 @@ imports
 
 rules
 
-  annotate-with-types = ?AstPlusMetadata(_, metadata); bottomup(try(add-value-type-to-prop-and-var-ref)); bottomup(try(add-value-type))
+  annotate-with-types = ?AstPlusMetadata(_, metadata); bottomup(try(add-value-type-to-prop-and-var-ref(|metadata))); bottomup(try(add-value-type(|metadata)))
 
-  add-value-type-to-prop-and-var-ref:
+  add-value-type-to-prop-and-var-ref(|metadata):
     query@NormalizedQuery(_, _, _, Some(GraphPattern(Vertices(vertices), edgesAndPaths, Constraints(constraints))), _, _, _, _, _, _, _) -> query''
     with vertexDefinititions := <map(?Vertex(_, <id>, _))> vertices
        ; edgeDefinititions := <filter(?Edge(_, _, _, _, <id>, _))> edgesAndPaths
-       ; query' := <alltd(add-value-type-to-prop-ref(|vertexDefinititions, Vertex(), constraints) + add-value-type-to-prop-ref(|edgeDefinititions, Edge(), constraints))> query
+       ; query' := <alltd(add-value-type-to-prop-ref(|vertexDefinititions, Vertex(), constraints, metadata) + add-value-type-to-prop-ref(|edgeDefinititions, Edge(), constraints, metadata))> query
        ; query'' := <alltd(add-value-type-to-var-ref(|vertexDefinititions, Vertex()) + add-value-type-to-var-ref(|edgeDefinititions, Edge()))> query'
 
-  add-value-type-to-prop-ref(|varDefinitionOriginPositions, elemType, constraints):
+  add-value-type-to-prop-ref(|varDefinitionOriginPositions, elemType, constraints, metadata):
     exp@PropRef(VarRef(_, varRefOriginPosition), Identifier(propName, _)) -> ExpressionPlusType(exp, type)
     where <elem> (varRefOriginPosition, varDefinitionOriginPositions)
     with labelExpression := <filter(simplify-label-expression(|varRefOriginPosition)); (?[]; !All() <+ to-label-conjunction)> constraints
-       ; type := <get-property-type-from-label-expression(|elemType, propName)> labelExpression
+       ; type := <get-property-type-from-label-expression(|elemType, propName, metadata)> labelExpression
 
   simplify-label-expression(|varRefOriginPosition):
     FunctionCall(None(), "has_label", [ VarRef(_, varRefOriginPosition), Identifier(label, _)]) -> label
@@ -47,40 +47,43 @@ rules
 //  add-type:
 //    SetProperty(propRef, exp) -> SetProperty(propRef, <alltd(add-type)> exp) // this assures we skip adding a type to the propRef of a SET clause
 
-//  add-value-type:
+//  add-value-type(|metadata):
 //    exp@PropRef(_, Identifier(propName, _), elementType, labelExpression) -> ExpressionPlusType(exp, type)
 //    with type := <get-property-type-from-label-expression(|elementType, propName)> labelExpression
 
-  get-property-type-from-label-expression(|elementType, propName):
+  get-property-type-from-label-expression(|elementType, propName, metadata):
     labelExpression -> type
     where <is-string> labelExpression
     with labelReference := labelExpression
        ; if <?Vertex()> elementType
-         then type := <get-vertex-property-type> (labelReference, propName)
-         else type := <get-edge-property-type> (labelReference, propName)
+         then type := <get-vertex-property-type(|metadata)> (labelReference, propName)
+         else type := <get-edge-property-type(|metadata)> (labelReference, propName)
          end
 
-  get-property-type-from-label-expression(|elementType, propName):
+  get-property-type-from-label-expression(|elementType, propName, metadata):
     LabelAnd(a, b) -> result
-    with result := <compute-union-type(|elementType, propName)> (a, b)
+    with result := <compute-union-type(|elementType, propName, metadata)> (a, b)
 
-  get-property-type-from-label-expression(|elementType, propName):
+  get-property-type-from-label-expression(|elementType, propName, metadata):
     LabelOr(a, b) -> result
-    with result := <compute-union-type(|elementType, propName)> (a, b)
+    with result := <compute-union-type(|elementType, propName, metadata)> (a, b)
 
-  compute-union-type(|elementType, propName):
+  compute-union-type(|elementType, propName, metadata):
     (labelA, labelB) -> result
-    with typeA := <get-property-type-from-label-expression(|elementType, propName)> labelA
-       ; typeB := <get-property-type-from-label-expression(|elementType, propName)> labelB
-       ; result := <get-union-type> (typeA, typeB)
+    with typeA := <get-property-type-from-label-expression(|elementType, propName, metadata)> labelA
+       ; typeB := <get-property-type-from-label-expression(|elementType, propName, metadata)> labelB
+       ; result := <get-union-type(|metadata)> (typeA, typeB)
 
-  get-property-type-from-label-expression(|elementType, propName):
+  get-property-type-from-label-expression(|elementType, propName, metadata):
     All() -> result
-    with labels := <?Vertex(); get-vertex-labels <+ get-edge-labels> elementType
-       ; types := <map(!(<id>, propName); get-vertex-property-type)> labels
-       ; result := <foldl(get-union-type)> (types, Undefined())
+    with labels := <?Vertex(); get-vertex-labels(|metadata) <+ get-edge-labels(|metadata)> elementType
+       ; if <?None()> labels
+         then result := UnknownType()
+         else types := <map(!(<id>, propName); get-vertex-property-type(|metadata))> labels
+            ; result := <foldl(get-union-type(|metadata))> (types, Undefined())
+         end
 
-  add-value-type =
+  add-value-type(|metadata) =
     (
       ?InPredicate(_, _, _) +
       ?Exists(_) +
@@ -88,36 +91,36 @@ rules
     )
     ; !ExpressionPlusType(<id>, Type("BOOLEAN"))
 
-  add-value-type =
+  add-value-type(|metadata) =
     ( 
       ?And(_, _) + ?Or(_, _) +
       ?Eq(_, _) + ?Neq(_, _) + ?Gt(_, _) + ?Lt(_, _) + ?Gte(_, _) + ?Lte(_, _) +
       ?Mul(_, _) + ?Add(_, _) + ?Div(_, _) + ?Mod(_, _) + ?Sub(_, _) +
       ?Cct(_, _)
     )
-    ; add-value-type-to-binary-operation
+    ; add-value-type-to-binary-operation(|metadata)
 
-  add-value-type-to-binary-operation:
+  add-value-type-to-binary-operation(|metadata):
     exp -> ExpressionPlusType(exp, type)
     with operation := <get-constructor> exp
        ; [ExpressionPlusType(_, type1), ExpressionPlusType(_, type2)] := <get-arguments> exp
        ; if <?AmbiguousType()> type1 + <?AmbiguousType()> type2
          then type := UnknownType()
          else if <?Type(t1)> type1;  <?Type(t2)> type2
-              then type := <get-operation-return-type> (operation, t1, t2)
+              then type := <get-operation-return-type(|metadata)> (operation, t1, t2)
               else type := <?Type(_) <+ !type2; ?Type(_) <+ !UnknownType()> type1
               end
          end
 
-  add-value-type:
+  add-value-type(|metadata):
     t@UMin(ExpressionPlusType(exp, type)) -> ExpressionPlusType(t, type')
-    with type' := <?Type(<id>); !("UMin", <id>); get-operation-return-type <+ !UnknownType()> type
+    with type' := <?Type(<id>); !("UMin", <id>); get-operation-return-type(|metadata) <+ !UnknownType()> type
 
-  add-value-type = ?Not(_); !ExpressionPlusType(<id>, UnknownType())
+  add-value-type(|metadata) = ?Not(_); !ExpressionPlusType(<id>, UnknownType())
 
-  add-value-type = ?COUNT(_, _); !ExpressionPlusType(<id>, <get-long-integer-type>)
+  add-value-type(|metadata) = ?COUNT(_, _); !ExpressionPlusType(<id>, <get-long-integer-type(|metadata)>)
 
-  add-value-type:
+  add-value-type(|metadata):
     aggregation -> ExpressionPlusType(aggregation, type')
     where <?SUM(_, ExpressionPlusType(_, type)) +
            ?MIN(_, ExpressionPlusType(_, type)) +
@@ -126,18 +129,18 @@ rules
            ?ARRAY-AGG(_, ExpressionPlusType(_, type)) +
            ?LISTAGG(_, ExpressionPlusType(_, type), _)> aggregation
     with operation := <get-constructor> aggregation
-       ; type' := <?Type(<id>); !(operation, <id>); get-operation-return-type <+ !UnknownType()> type
+       ; type' := <?Type(<id>); !(operation, <id>); get-operation-return-type(|metadata) <+ !UnknownType()> type
 
-  add-value-type = ?BindVariable(_); !ExpressionPlusType(<id>, UnknownType())
+  add-value-type(|metadata) = ?BindVariable(_); !ExpressionPlusType(<id>, UnknownType())
 
-  add-value-type = ?Null(); !ExpressionPlusType(<id>, UnknownType())
-  add-value-type = (?True() + ?False()); !ExpressionPlusType(<id>, Type("BOOLEAN"))
-  add-value-type = ?Integer(_); !ExpressionPlusType(<id>, <get-long-integer-type>)
-  add-value-type = ?Decimal(_); !ExpressionPlusType(<id>, <get-decimal-literal-type>)
-  add-value-type = ?String(_); !ExpressionPlusType(<id>, <get-string-literal-type>)
-  add-value-type = ?Date(_); !ExpressionPlusType(<id>, Type("DATE"))
-  add-value-type = ?Time(_); !ExpressionPlusType(<id>, Type(<has-timezone; !"TIME WITH TIME ZONE" <+ !"TIME">))
-  add-value-type = ?Timestamp(_); !ExpressionPlusType(<id>, Type(<has-timezone; !"TIMESTAMP WITH TIME ZONE" <+ !"TIMESTAMP">))
+  add-value-type(|metadata) = ?Null(); !ExpressionPlusType(<id>, UnknownType())
+  add-value-type(|metadata) = (?True() + ?False()); !ExpressionPlusType(<id>, Type("BOOLEAN"))
+  add-value-type(|metadata) = ?Integer(_); !ExpressionPlusType(<id>, <get-long-integer-type(|metadata)>)
+  add-value-type(|metadata) = ?Decimal(_); !ExpressionPlusType(<id>, <get-decimal-literal-type(|metadata)>)
+  add-value-type(|metadata) = ?String(_); !ExpressionPlusType(<id>, <get-string-literal-type(|metadata)>)
+  add-value-type(|metadata) = ?Date(_); !ExpressionPlusType(<id>, Type("DATE"))
+  add-value-type(|metadata) = ?Time(_); !ExpressionPlusType(<id>, Type(<has-timezone; !"TIME WITH TIME ZONE" <+ !"TIME">))
+  add-value-type(|metadata) = ?Timestamp(_); !ExpressionPlusType(<id>, Type(<has-timezone; !"TIMESTAMP WITH TIME ZONE" <+ !"TIMESTAMP">))
   external has-timezone(|)
 
   add-default-literal-type:
@@ -150,23 +153,37 @@ rules
                 ?Timestamp(_); !"TIMESTAMP"
                 > exp
 
-  add-value-type = ?Cast(_, type); !ExpressionPlusType(<id>, Type(type))
+  add-value-type(|metadata) = ?Cast(_, type); !ExpressionPlusType(<id>, Type(type))
 
-  add-value-type = ?CharacterSubstring(_, _, _); !ExpressionPlusType(<id>, <get-string-literal-type>)
+  add-value-type(|metadata) = ?CharacterSubstring(_, _, _); !ExpressionPlusType(<id>, <get-string-literal-type(|metadata)>)
 
-  add-value-type:
+  add-value-type(|metadata):
     exp@ScalarSubquery(Subquery(NormalizedQuery(_, SelectClause(_, ExpAsVars(expsAsVars)), _, _, _, _, _, _, _, _, _))) -> ExpressionPlusType(exp, type)
     with if <?[ExpAsVar(ExpressionPlusType(_, Type(t)), _, _, _)]> expsAsVars
          then type := Type(t)
          else type := UnknownType()
          end
 
-  add-value-type = ?FunctionCall(_, _, _); !ExpressionPlusType(<id>, UnknownType())
+  add-value-type(|metadata) = ?FunctionCall(_, _, _); !ExpressionPlusType(<id>, UnknownType())
 
-  get-string-literal-type = !UnknownType() // !Type("STRING")
-  get-short-integer-type = !UnknownType() // !Type("INTEGER")
-  get-long-integer-type = !UnknownType() // !Type("LONG")
-  get-decimal-literal-type = !UnknownType() // !Type("DOUBLE")
+  get-vertex-labels(|metadata) = !None()
+  get-edge-labels(|metadata) = !None()
+
+  get-vertex-property-type(|metadata) = !UnknownType()
+  get-edge-property-type(|metadata) = !UnknownType()
+
+  get-string-literal-type(|metadata) = !UnknownType()
+  get-long-integer-type(|metadata) = !UnknownType()
+  get-short-integer-type(|metadata) = !UnknownType()
+  get-decimal-literal-type(|metadata) = !UnknownType()
+
+  get-operation-return-type(|metadata) = !UnknownType()
+  get-union-type(|metadata) = !UnknownType()
+
+//  get-string-literal-type = !UnknownType() // !Type("STRING")
+//  get-short-integer-type = !UnknownType() // !Type("INTEGER")
+//  get-long-integer-type = !UnknownType() // !Type("LONG")
+//  get-decimal-literal-type = !UnknownType() // !Type("DOUBLE")
 //
 //  get-count-aggregate-type = !Type("LONG")
 //
@@ -180,28 +197,28 @@ rules
 //  get-operation-return-type = ?("MIN", "STRING"); !Type("STRING")
 //  get-operation-return-type = ?("SUM", "INTEGER"); !Type("LONG")
 
-  get-operation-return-type = !UnknownType() // !Undefined()
-
-  get-vertex-labels = !["PERSON", "COMPANY"]
-
-  get-edge-labels = !["KNOWS"]
-
-  get-vertex-property-type = ?("PERSON", "FIRSTNAME"); !Type("STRING")
-  get-vertex-property-type = ?("PERSON", "AGE"); !Type("INTEGER")
-  get-vertex-property-type = ?("COMPANY", "AGE"); !Type("DATE")
-
-  get-edge-property-type = ?("KNOWS", "SINCE"); !Type("DATE")
-
-  get-vertex-property-type = !Undefined()
-
-  get-edge-property-type = !Undefined()
-
-  get-union-type = ?(Undefined(), <id>) + ?(<id>, Undefined())
-  get-union-type = (?(AmbiguousType(), _) + ?(_, AmbiguousType())); !AmbiguousType()
-
-  get-union-type = ?(Type("STRING"), Type("STRING")); !Type("STRING")
-
-  get-union-type = ?(Type("INTEGER"), Type("INTEGER")); !Type("INTEGER")
-
-  get-union-type = ?(Type("INTEGER"), Type("DATE"));  !AmbiguousType()
-  get-union-type = ?(Type("DATE"), Type("INTEGER"));  !AmbiguousType()
+//  get-operation-return-type = !UnknownType() // !Undefined()
+//
+//  get-vertex-labels = !["PERSON", "COMPANY"]
+//
+//  get-edge-labels = !["KNOWS"]
+//
+//  get-vertex-property-type = ?("PERSON", "FIRSTNAME"); !Type("STRING")
+//  get-vertex-property-type = ?("PERSON", "AGE"); !Type("INTEGER")
+//  get-vertex-property-type = ?("COMPANY", "AGE"); !Type("DATE")
+//
+//  get-edge-property-type = ?("KNOWS", "SINCE"); !Type("DATE")
+//
+//  get-vertex-property-type = !Undefined()
+//
+//  get-edge-property-type = !Undefined()
+//
+//  get-union-type = ?(Undefined(), <id>) + ?(<id>, Undefined())
+//  get-union-type = (?(AmbiguousType(), _) + ?(_, AmbiguousType())); !AmbiguousType()
+//
+//  get-union-type = ?(Type("STRING"), Type("STRING")); !Type("STRING")
+//
+//  get-union-type = ?(Type("INTEGER"), Type("INTEGER")); !Type("INTEGER")
+//
+//  get-union-type = ?(Type("INTEGER"), Type("DATE"));  !AmbiguousType()
+//  get-union-type = ?(Type("DATE"), Type("INTEGER"));  !AmbiguousType()
