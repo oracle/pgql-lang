@@ -8,10 +8,10 @@ export MAVEN_OPTS="-Xms512m -Xmx1024m -Xss16m $MAVEN_OPTS"
 # temporary workaround until the Spoofax Gradle plugin is out
 cd pgql-spoofax/
 sed -i.bak "s/format: ctree/format: jar/g" metaborg.yaml
-sed -i.bak "s/stratego.ctree/stratego.jar/g" editor/Main.esv
+sed -i.bak "s/  provider \: target\/metaborg\/stratego.ctree/\/\/  provider \: target\/metaborg\/stratego.ctree/g" editor/Main.esv
 mvn clean install
 sed -i.bak "s/format: jar/format: ctree/g" metaborg.yaml
-sed -i.bak "s/stratego.jar/stratego.ctree/g" editor/Main.esv
+sed -i.bak "s/\/\/  provider \: target\/metaborg\/stratego.ctree/  provider \: target\/metaborg\/stratego.ctree/g" editor/Main.esv
 cd ../
 
 cd graph-query-ir/; mvn clean install; cd ../
