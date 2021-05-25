@@ -32,12 +32,6 @@ type rules
 //  SimpleCase(_, _, _, ifElseRepresentation) : ty
 //  where ifElseRepresentation : ty
 //
-//  OrderByElem(exp, _, version) :-
-//  where exp : ty
-//    and ( not version == "v1.0" and not ty == VertexTy() ) else error $[Cannot order by vertex] on exp
-//    and ( not version == "v1.0" and not ty == EdgeTy() ) else error $[Cannot order by edge] on exp
-//    and not ty == ArrayTy() else error $[Cannot order by array] on exp
-//
 //  SetProperty(_, exp) : ty
 //  where exp : ty
 //    and not ( ty == VertexTy() or ty == EdgeTy() ) else error $[Cannot set the value of a property to a vertex or an edge] on exp

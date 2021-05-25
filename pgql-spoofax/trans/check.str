@@ -590,3 +590,10 @@ rules // MODIFY
     HavingClause(ExpressionPlusType(exp, Type(t))) -> <fail>
     where <not(?"BOOLEAN" + ?UnknownType())> t
     with <generate-error(|ctx, "HAVING clause expects a BOOLEAN expression")> exp
+
+  // check that ORDER BY does not contain vertex/edge/array terms
+  nabl-constraint(|ctx):    
+    OrderByElem(ExpressionPlusType(exp, Type(t)), _, version) -> <fail>
+    where <not(?"v1.0")> version
+        ; <?"VERTEX" + ?"EDGE" + ?"ARRAY"> t
+    with <generate-error(|ctx, $[Cannot order by [t]])> exp
