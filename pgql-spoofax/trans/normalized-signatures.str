@@ -17,7 +17,7 @@ signature constructors // for type checking (see trans/types.ts)
 
 signature constructors // for the normalized AST (see trans/normalize.str)
 
-  MetadataExtendedAst   : Ast * Metadata -> MetadataExtendedAst
+  AstPlusMetadata       : Ast * Metadata -> AstPlusMetadata
   NormalizedQuery       : CommonPathExpressions * Vars * FromClause * GraphPattern * GroupByClause * HavingClause * List(OrderByElem) * LimitOffsetClauses * List(ErrorMessage) * PgqlVersion * BindVariableCount -> NormalizedQuery
   PgqlVersion           : STRING
   GraphName             : LocalOrSchemaQualifiedName -> GraphName

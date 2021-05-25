@@ -491,7 +491,7 @@ rules // MODIFY
        ; <batch-generate-error(|ctx, "Edge label does not exist")> unresolvedEdgeLabels
 
   get-unresolved-label(|varDefinitionOriginPositions, labels):
-    FunctionCall(None(), "has_label", [ VarRef(_, originPosition), Identifier(labelReference, _) ]) -> labelReference
+    FunctionCall(None(), "has_label", [ ExpressionPlusType(VarRef(_, originPosition), _), Identifier(labelReference, _) ]) -> labelReference
     where <elem> (originPosition, varDefinitionOriginPositions)
         ; <not(elem)> (labelReference, labels)
 

@@ -239,7 +239,7 @@ public class Pgql implements Closeable {
       }
       System.out.println(graphName);
 
-      IStrategoAppl metadataExtendedAst = spoofax.termFactory.makeAppl("MetadataExtendedAst", parseResult.ast(),
+      IStrategoAppl metadataExtendedAst = spoofax.termFactory.makeAppl("AstPlusMetadata", parseResult.ast(),
           spoofax.termFactory.makeAppl("None"));
       ISpoofaxParseUnit extendedParseUnit = new ModifiedParseUnit(parseResult, metadataExtendedAst);
 

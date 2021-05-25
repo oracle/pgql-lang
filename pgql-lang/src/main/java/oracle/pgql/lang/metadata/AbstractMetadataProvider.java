@@ -51,47 +51,39 @@ public abstract class AbstractMetadataProvider {
   }
 
   /**
-   * Get the integer literal type.
+   * Get the long integer type. For example, INTEGER or NUMBER(20)
    * 
    * Examples:
    * 
-   * - 123 => LONG
-   * 
-   * - 123 => NUMBER(200)
+   * - Type of EXTRACT function when extracting year/month/day/hour/minute/timezone_hour/timezone_minute
    * 
    * @return the string literal type.
    */
-  public Optional<String> getIntegerLiteralType() {
+  public Optional<String> getShortIntegerType() {
     return Optional.empty();
   }
 
   /**
-   * Get the decimal literal type.
+   * Get the long integer type. For example, LONG or NUMBER(200)
    * 
-   * Examples:
+   * Used for:
    * 
-   * - 1.23 => DOUBLE
+   * - integer literal
    * 
-   * - 1.23 => NUMBER(200)
+   * - COUNT aggregate
+   * 
+   * @return the string literal type.
+   */
+  public Optional<String> getLongIntegerType() {
+    return Optional.empty();
+  }
+
+  /**
+   * Get the decimal literal type. For example, DOUBLE or NUMBER(200).
    * 
    * @return the string literal type.
    */
   public Optional<String> getDecimalLiteralType() {
-    return Optional.empty();
-  }
-
-  /**
-   * Get the output type of COUNT(..)
-   * 
-   * Examples:
-   * 
-   * - COUNT(*) => LONG
-   * 
-   * - COUNT(*) => NUMBER(200)
-   * 
-   * @return the string literal type.
-   */
-  public Optional<String> getCountAggregateType() {
     return Optional.empty();
   }
 

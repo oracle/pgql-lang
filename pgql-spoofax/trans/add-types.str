@@ -13,7 +13,7 @@ imports
 
 rules
 
-  annotate-with-types = bottomup(try(add-value-type-to-prop-and-var-ref)); bottomup(try(add-value-type))
+  annotate-with-types = ?AstPlusMetadata(_, metadata); bottomup(try(add-value-type-to-prop-and-var-ref)); bottomup(try(add-value-type))
 
   add-value-type-to-prop-and-var-ref:
     query@NormalizedQuery(_, _, _, Some(GraphPattern(Vertices(vertices), edgesAndPaths, Constraints(constraints))), _, _, _, _, _, _, _) -> query''
@@ -115,7 +115,7 @@ rules
 
   add-value-type = ?Not(_); !ExpressionPlusType(<id>, UnknownType())
 
-  add-value-type = ?COUNT(_, _); !ExpressionPlusType(<id>, <get-count-aggregate-type>)
+  add-value-type = ?COUNT(_, _); !ExpressionPlusType(<id>, <get-long-integer-type>)
 
   add-value-type:
     aggregation -> ExpressionPlusType(aggregation, type')
@@ -132,7 +132,7 @@ rules
 
   add-value-type = ?Null(); !ExpressionPlusType(<id>, UnknownType())
   add-value-type = (?True() + ?False()); !ExpressionPlusType(<id>, Type("BOOLEAN"))
-  add-value-type = ?Integer(_); !ExpressionPlusType(<id>, <get-integer-literal-type>)
+  add-value-type = ?Integer(_); !ExpressionPlusType(<id>, <get-long-integer-type>)
   add-value-type = ?Decimal(_); !ExpressionPlusType(<id>, <get-decimal-literal-type>)
   add-value-type = ?String(_); !ExpressionPlusType(<id>, <get-string-literal-type>)
   add-value-type = ?Date(_); !ExpressionPlusType(<id>, Type("DATE"))
@@ -161,23 +161,26 @@ rules
          else type := UnknownType()
          end
 
-  get-string-literal-type = !Type("STRING")
-  get-integer-literal-type = !Type("LONG")
-  get-decimal-literal-type = !Type("DOUBLE")
+  add-value-type = ?FunctionCall(_, _, _); !ExpressionPlusType(<id>, UnknownType())
 
-  get-count-aggregate-type = !Type("LONG")
+  get-string-literal-type = !UnknownType() // !Type("STRING")
+  get-short-integer-type = !UnknownType() // !Type("INTEGER")
+  get-long-integer-type = !UnknownType() // !Type("LONG")
+  get-decimal-literal-type = !UnknownType() // !Type("DOUBLE")
+//
+//  get-count-aggregate-type = !Type("LONG")
+//
+//  get-operation-return-type = ?("UMin", "INTEGER"); !Type("INTEGER")
+//
+//  get-operation-return-type = ?("Cct", "STRING", "STRING"); !Type("STRING")
+//
+//  get-operation-return-type = ?("Cct", "STRING", "STRING"); !Type("STRING")
+//  get-operation-return-type = ?("Add", "INTEGER", "INTEGER"); !Type("INTEGER")
+//
+//  get-operation-return-type = ?("MIN", "STRING"); !Type("STRING")
+//  get-operation-return-type = ?("SUM", "INTEGER"); !Type("LONG")
 
-  get-operation-return-type = ?("UMin", "INTEGER"); !Type("INTEGER")
-
-  get-operation-return-type = ?("Cct", "STRING", "STRING"); !Type("STRING")
-
-  get-operation-return-type = ?("Cct", "STRING", "STRING"); !Type("STRING")
-  get-operation-return-type = ?("Add", "INTEGER", "INTEGER"); !Type("INTEGER")
-
-  get-operation-return-type = ?("MIN", "STRING"); !Type("STRING")
-  get-operation-return-type = ?("SUM", "INTEGER"); !Type("LONG")
-
-  get-operation-return-type = !Undefined()
+  get-operation-return-type = !UnknownType() // !Undefined()
 
   get-vertex-labels = !["PERSON", "COMPANY"]
 
