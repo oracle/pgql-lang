@@ -424,7 +424,7 @@ rules // MODIFY
            ?DirectedEdgeInsertion(Identifier(v, originText), _, _, _, _, Some(Properties(setProperties))) +
            ?Update(VarRef(Identifier(v, originText), _), SetProperties(setProperties))> t
     with v' := <strip-annos> v
-       ; otherVariablesThanV := <filter(?SetProperty(ExpressionPlusType(PropRef(VarRef(Identifier(<id>, _), _), _), _), _); strip-annos; not(?v'))> setProperties
+       ; otherVariablesThanV := <filter(?SetProperty(ExpressionPlusType(PropRef(ExpressionPlusType(VarRef(Identifier(<id>, _), _), _), _), _), _); strip-annos; not(?v'))> setProperties
        ; if <eq> (v', <strip-annos> originText)
          then varNameAsString := <origin-text> v
          else varNameAsString := originText // using <origin-text> like above fails SPT tests, thus we avoid using it for unquoted identifier so that we at least can still use unquoted identifiers in INSERT/UPDATE queries in SPT

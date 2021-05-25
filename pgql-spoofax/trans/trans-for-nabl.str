@@ -24,14 +24,14 @@ imports
 rules
 
   trans-for-nabl = is-ddl-statement
-                 + trans-query(|[])
+                 + AstPlusMetadata(trans-query(|[]), id)
                  + ?Start-Plhdr() // for empty query string
 
 rules
 
   trans-query(|variables):
-    AstPlusMetadata(NormalizedQuery(CommonPathExpressions(pathExpressions), selectOrModifyClause, optionalGraphName, graphPattern, groupBy, having, orderBy, limitOffsets, error-messages, version, bindVariableCount), metadata) ->
-        AstPlusMetadata(NormalizedQuery(CommonPathExpressions(pathExpressions'), selectOrModifyClause', optionalGraphName, graphPattern'', groupBy', having', orderBy', limitOffsets, error-messages, version, bindVariableCount), metadata)
+    NormalizedQuery(CommonPathExpressions(pathExpressions), selectOrModifyClause, optionalGraphName, graphPattern, groupBy, having, orderBy, limitOffsets, error-messages, version, bindVariableCount) ->
+        NormalizedQuery(CommonPathExpressions(pathExpressions'), selectOrModifyClause', optionalGraphName, graphPattern'', groupBy', having', orderBy', limitOffsets, error-messages, version, bindVariableCount)
     with variables' := <guarantee-size-two-or-more> variables
 
        // PATH
