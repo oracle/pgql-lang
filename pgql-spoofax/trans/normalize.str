@@ -369,7 +369,7 @@ rules
       non-inlined-constraints := <(?None(); ![]) <+ (?Some(WhereClause(<id>)); ![<id>])> whereClause;
       constraints := <concat; flatten-list; !Constraints(<id>)> [inlined-constraints-for-vertices, inlined-constraints-for-edges, non-inlined-constraints];
       vertices := <collect-om(?Vertex(_), conc); !Vertices(<id>)> path;
-      connections := <get-connections-from-paths(|variable-counter)> [path]
+      connections := <get-connections-from-paths(|variable-counter); !Edges(<id>)> [path]
 
   get-inlined-constraints:
     ElemContents(Some(var), label, id', otherConstraint) -> <concat> [labels, identifiers, otherConstraint']
