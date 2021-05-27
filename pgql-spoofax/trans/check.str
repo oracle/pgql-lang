@@ -484,17 +484,25 @@ rules // MODIFY
   nabl-constraint(|ctx) = ?AstPlusMetadata(_, metadata); alltd(check-labels(|ctx, metadata)); fail
 
   check-labels(|ctx, metadata):
-    query@NormalizedQuery(_, _, _, Some(GraphPattern(Vertices(vertices), edgesAndPaths, Constraints(constraints))), _, _, _, _, _, _, _) -> <fail>
+    term@NormalizedQuery(_, _, _, Some(GraphPattern(Vertices(vertices), edgesAndPaths, Constraints(constraints))), _, _, _, _, _, _, _) -> <fail>
+    with <check-labels-common(|ctx, metadata)> (term, vertices, edgesAndPaths, constraints)
+
+  check-labels(|ctx, metadata):
+    term@CommonPathExpression(_, Vertices(vertices), Edges(edges), Constraints(constraints), _) -> <fail>
+    with <check-labels-common(|ctx, metadata)> (term, vertices, edges, constraints)
+
+  check-labels-common(|ctx, metadata):
+    (term, vertices, edgesAndPaths, constraints) -> <id>
     with vertexDefinititions := <map(?Vertex(_, <id>, _))> vertices
        ; edgeDefinititions := <filter(?Edge(_, _, _, _, <id>, _))> edgesAndPaths
        ; vertexLabels := <get-vertex-labels(|metadata)>
        ; if <not(?None())> vertexLabels
-         then unresolvedVertexLabels := <collect(get-unresolved-label(|vertexDefinititions, vertexLabels))> query
+         then unresolvedVertexLabels := <collect(get-unresolved-label(|vertexDefinititions, vertexLabels))> term
             ; <batch-generate-error(|ctx, "Vertex label does not exist")> unresolvedVertexLabels
          end
        ; edgeLabels := <get-edge-labels(|metadata)>
        ; if <not(?None())> edgeLabels
-         then unresolvedEdgeLabels := <collect(get-unresolved-label(|edgeDefinititions, edgeLabels))> query
+         then unresolvedEdgeLabels := <collect(get-unresolved-label(|edgeDefinititions, edgeLabels))> term
             ; <batch-generate-error(|ctx, "Edge label does not exist")> unresolvedEdgeLabels
          end
 
