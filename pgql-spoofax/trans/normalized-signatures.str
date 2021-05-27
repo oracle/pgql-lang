@@ -95,6 +95,8 @@ signature constructors // for error checking (see trans/check.str)
 
 signature constructors // for types (see trans/add-types.str)
 
+  VariablePlusType   : OriginPosition * Type -> VariablePlusType
+
   LabelOr            : STRING * STRING -> LabelOr
 
   LabelAnd           : STRING * STRING -> LabelAnd

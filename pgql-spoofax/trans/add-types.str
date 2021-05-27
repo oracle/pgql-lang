@@ -13,7 +13,25 @@ imports
 
 rules
 
-  annotate-with-types = ?AstPlusMetadata(_, metadata); add-value-type-to-prop-and-var-ref(|metadata); bottomup(try(add-value-type(|metadata)))
+  annotate-with-types = ?AstPlusMetadata(ast, metadata); !ast; annotate-query-with-type(|metadata, []) //add-value-type-to-prop-and-var-ref(|metadata); bottomup(try(add-value-type(|metadata)))
+
+  annotate-query-with-type(|metadata, variablesWithTypes):
+      NormalizedQuery(CommonPathExpressions(pathExpressions), selectOrModifyClause, optionalGraphName, graphPattern, groupBy, having, orderBy, limitOffsets, error-messages, version, bindVariableCount) ->
+        NormalizedQuery(CommonPathExpressions(pathExpressions), selectOrModifyClause, optionalGraphName, graphPattern', groupBy, having, orderBy, limitOffsets, error-messages, version, bindVariableCount)
+    with if <?Some(GraphPattern(Vertices(vertices), connections, _))> := graphPattern
+         then verticesWithTypes := <collect-in-outer-query(?Vertex(_, <id>, _); !VariablePlusType(<id>, Type("VERTEX")))> (vertices, connections)
+            ; edgesWithTypes := <collect-in-outer-query(?Edge(_, _, _, _, <id>, _); !VariablePlusType(<id>, Type("EDGE")))> connections
+            ; variablesWithTypes' := <conc> (variablesWithTypes, verticesWithTypes, edgesWithTypes)
+            ; constraints := <collect-in-outer-query(?Constraints(<id>)); concat> graphPattern
+            ; graphPattern' := <alltd-in-outer-query(add-type(|metadata, variablesWithTypes', constraints))> graphPattern
+         else variablesWithTypes' := variablesWithTypes
+            ; graphPattern' := graphPattern
+         end
+
+  add-type(|metadata, variablesWithTypes, constraints):
+    exp@VarRef(_, varRefOriginPosition) -> ExpressionPlusType(exp, type)
+    with type := <fetch-elem(?VariablePlusType(varRefOriginPosition, <id>)) <+ !UnknownType()> variablesWithTypes
+
 
   add-value-type-to-prop-and-var-ref(|metadata):
     query -> query''
