@@ -13,7 +13,7 @@ imports
   pp
   runtime/properties/-
   runtime/task/-
-  add-types
+  type-analysis
 
 rules // Unresolved/duplicate variables
 

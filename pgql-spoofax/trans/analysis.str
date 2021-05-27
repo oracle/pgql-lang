@@ -20,12 +20,12 @@ imports
   trans-for-nabl
   normalize
   normalize-after
-  add-types
+  type-analysis
   check
 
 rules // Analysis
 
-  editor-analyze = analyze-all(normalize-before; trans-for-nabl; annotate-with-types; normalize-after, id, id|<language>); reorder-error-messages
+  editor-analyze = analyze-all(normalize-before; trans-for-nabl; add-types; normalize-after, id, id|<language>); reorder-error-messages
 
   reorder-error-messages = Result([FileResult(id,id,id,reorder-error-messages-helper,id, id)], id, id, id, id)
 
@@ -54,7 +54,7 @@ rules // Debugging
     (_, _, ast, path, _) -> (filename, result)
     with
       filename := <guarantee-extension(|"normalized.aterm")> path;
-      result   := <normalize-before; trans-for-nabl; annotate-with-types; normalize-after> ast
+      result   := <normalize-before; trans-for-nabl; add-types; normalize-after> ast
 
   debug-show-analyzed:
     (_, _, ast, path, _) -> (filename, result)

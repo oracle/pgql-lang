@@ -1,4 +1,4 @@
-module add-types
+module type-analysis
 
 imports
 
@@ -13,9 +13,9 @@ imports
 
 rules
 
-  annotate-with-types = ?AstPlusMetadata(ast, metadata); !ast; annotate-query-with-type(|metadata, []); !AstPlusMetadata(<id>, metadata)
+  add-types = ?AstPlusMetadata(ast, metadata); !ast; add-types-to-query(|metadata, []); !AstPlusMetadata(<id>, metadata)
 
-  annotate-query-with-type(|metadata, variablesWithTypes):
+  add-types-to-query(|metadata, variablesWithTypes):
       NormalizedQuery(CommonPathExpressions(pathExpressions), selectOrModifyClause, optionalGraphName, graphPattern, groupBy, having, orderBy, limitOffsets, error-messages, version, bindVariableCount) ->
         NormalizedQuery(CommonPathExpressions(pathExpressions), selectOrModifyClause, optionalGraphName, graphPattern', groupBy, having, orderBy, limitOffsets, error-messages, version, bindVariableCount)
     with if <?Some(GraphPattern(Vertices(vertices), connections, _))> := graphPattern
