@@ -360,7 +360,7 @@ rules // literals
 
 rules // IN
 
-  nabl-constraint(|ctx) = ?AstPlusMetadata(_, metadata); alltd(check-inPredicate(|ctx, metadata))
+  nabl-constraint(|ctx) = ?AstPlusMetadata(_, metadata); alltd(check-inPredicate(|ctx, metadata)); fail
 
   check-inPredicate(|ctx, metadata):
     inPredicate@InPredicate(exp, Array(valueExpressions)) -> <fail>
@@ -481,7 +481,7 @@ rules // MODIFY
 
 // schema
 
-  nabl-constraint(|ctx) = ?AstPlusMetadata(_, metadata); alltd(check-labels(|ctx, metadata))
+  nabl-constraint(|ctx) = ?AstPlusMetadata(_, metadata); alltd(check-labels(|ctx, metadata)); fail
 
   check-labels(|ctx, metadata):
     query@NormalizedQuery(_, _, _, Some(GraphPattern(Vertices(vertices), edgesAndPaths, Constraints(constraints))), _, _, _, _, _, _, _) -> <fail>

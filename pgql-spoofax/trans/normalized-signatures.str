@@ -101,10 +101,6 @@ signature constructors // for types (see trans/add-types.str)
 
   LabelAnd           : STRING * STRING -> LabelAnd
 
-  Vertex             : ElemType
-
-  Edge               : ElemType
-
   ExpressionPlusType : Exp * Type -> ExpressionPlusType
 
   Type               : STRING -> Type
