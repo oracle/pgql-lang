@@ -13,22 +13,15 @@ imports
 
 rules
 
-  annotate-with-types = ?AstPlusMetadata(_, metadata); bottomup(try(add-value-type-to-prop-and-var-ref(|metadata))); bottomup(try(add-value-type(|metadata)))
+  annotate-with-types = ?AstPlusMetadata(_, metadata); add-value-type-to-prop-and-var-ref(|metadata); bottomup(try(add-value-type(|metadata)))
 
   add-value-type-to-prop-and-var-ref(|metadata):
-    query@NormalizedQuery(_, _, _, Some(GraphPattern(Vertices(vertices), edgesAndPaths, Constraints(constraints))), _, _, _, _, _, _, _) -> query'
-    with query' := <add-value-type-to-prop-and-var-ref-common(|metadata, vertices, edgesAndPaths, constraints)> query
-
-  add-value-type-to-prop-and-var-ref(|metadata):
-    path@CommonPathExpression(_, Vertices(vertices), Edges(edges), Constraints(constraints), _) -> path'
-    with path' := <add-value-type-to-prop-and-var-ref-common(|metadata, vertices, edges, constraints)> path
-
-  add-value-type-to-prop-and-var-ref-common(|metadata, vertices, edgesAndPaths, constraints):
-    term -> term''
-    with vertexDefinititions := <map(?Vertex(_, <id>, _))> vertices
-       ; edgeDefinititions := <filter(?Edge(_, _, _, _, <id>, _))> edgesAndPaths
-       ; term' := <alltd(add-value-type-to-prop-ref(|vertexDefinititions, Vertex(), constraints, metadata) + add-value-type-to-prop-ref(|edgeDefinititions, Edge(), constraints, metadata))> term
-       ; term'' := <alltd(add-value-type-to-var-ref(|vertexDefinititions, Vertex()) + add-value-type-to-var-ref(|edgeDefinititions, Edge()))> term'
+    query -> query''
+    with vertices := <collect(?Vertex(_, <id>, _))> query
+       ; edges := <collect(?Edge(_, _, _, _, <id>, _))> query
+       ; constraints := <collect(?Constraints(<id>)); concat> query
+       ; query' := <alltd(add-value-type-to-prop-ref(|vertices, Vertex(), constraints, metadata) + add-value-type-to-prop-ref(|edges, Edge(), constraints, metadata))> query
+       ; query'' := <alltd(add-value-type-to-var-ref(|vertices, Vertex()) + add-value-type-to-var-ref(|edges, Edge()))> query'
 
   add-value-type-to-prop-ref(|varDefinitionOriginPositions, elemType, constraints, metadata):
     exp@PropRef(VarRef(_, varRefOriginPosition), Identifier(propName, _)) -> ExpressionPlusType(exp, type)

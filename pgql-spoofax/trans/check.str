@@ -476,7 +476,7 @@ rules // MODIFY
 
   nabl-constraint(|ctx):
     LISTAGG(_, _, Some(Separator(separator))) -> <fail>
-    where not ( <?String(_)> separator )
+    where not ( <?ExpressionPlusType(String(_), _)> separator )
     with <generate-error(|ctx, "Only string literals are allowed as separator")> separator
 
 // schema
@@ -605,3 +605,12 @@ rules // MODIFY
     where <not(?"v1.0")> version
         ; <?"VERTEX" + ?"EDGE" + ?"ARRAY"> t
     with <generate-error(|ctx, $[Cannot order by [t]])> exp
+
+  nabl-constraint(|ctx):   
+    Vertex(Identifier(v, _), _, Correlation(ExpressionPlusType(VarRef(Identifier(outer-var, _), _), type))) -> <fail>
+    where <not(?Type("VERTEX"))> type
+    with <generate-error(|ctx, "Duplicate variable (variable with same name is passed from an outer query")> v
+
+  nabl-constraint(|ctx):
+    Edge(_, Identifier(e, _), _, _, _, Correlation(ExpressionPlusType(VarRef(Identifier(outer-var, _), _), type))) -> <fail>
+    with <generate-error(|ctx, "Duplicate variable (variable with same name is passed from an outer query)")> e
