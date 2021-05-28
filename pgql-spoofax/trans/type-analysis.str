@@ -144,11 +144,10 @@ rules // binary expressions
          then type := UnknownType()
          else if <?Type(t1)> type1;  <?Type(t2)> type2
               then type := <get-operation-return-type(|metadata)> (operation, t1, t2)
-              else type := <?Type(_) <+ !type2; ?Type(_) <+ !UnknownType()> type1
+              else type := UnknownType()
               end
          end
        ; exp' := <origin-track-forced(!(operation, args); mkterm)> exp
-
 
 
 //  add-type:
