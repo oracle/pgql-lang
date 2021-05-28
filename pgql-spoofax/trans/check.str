@@ -300,6 +300,12 @@ rules // temporary limitation
     t@LabelDisjunction(_, _) -> <fail>
     with <generate-error(|ctx, "Label disjunction not supported here")> t
 
+rules
+
+  nabl-constraint(|ctx):
+    Path(_, _, _, _, t@Identifier(_, _), _, _, _) -> <fail>
+    with <generate-error(|ctx, "Path variables not supported")> t
+
 rules // CHEAPEST
 
   nabl-constraint(|ctx):

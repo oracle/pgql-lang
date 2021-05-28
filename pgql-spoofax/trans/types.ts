@@ -6,10 +6,6 @@ imports
 
 type rules
 
-  VarRef(Identifier(v, _), _) : ty
-  where definition of v : ty
-    and not ( ty == PathTy() ) else error $[Path variables not supported] on v
-
 //  ExtractExp(_, _) : NumericTy()
 //
 //  IfElse(exp1, exp2, exp3): ty2
