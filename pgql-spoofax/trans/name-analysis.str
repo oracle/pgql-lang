@@ -1,4 +1,4 @@
-module trans-for-nabl
+module name-analysis
 
 imports
 
@@ -23,9 +23,9 @@ imports
  */
 rules
 
-  trans-for-nabl = is-ddl-statement
-                 + AstPlusMetadata(trans-query(|[]), id)
-                 + ?Start-Plhdr() // for empty query string
+  add-names = is-ddl-statement
+              + AstPlusMetadata(trans-query(|[]), id)
+              + ?Start-Plhdr() // for empty query string
 
 rules
 
