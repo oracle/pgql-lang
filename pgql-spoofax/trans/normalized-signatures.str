@@ -93,9 +93,9 @@ signature constructors // for error checking (see trans/check.str)
   ComplexRegularExpressionNotSupported              : Term -> ComplexRegularExpressionNotSupported
   ComplexParenthesizedRegularExpressionNotSupported : Term -> ComplexParenthesizedRegularExpressionNotSupported
 
-signature constructors // for types (see trans/add-types.str)
+signature constructors // for type anslysis (see trans/type-analysis.str)
 
-  VariablePlusType   : OriginPosition * Type -> VariablePlusType
+  VariablePlusType   : OriginPosition * DereferencedOriginPosition * Type -> VariablePlusType
 
   LabelOr            : STRING * STRING -> LabelOr
 

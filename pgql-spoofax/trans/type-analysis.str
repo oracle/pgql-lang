@@ -20,8 +20,8 @@ rules
         NormalizedQuery(CommonPathExpressions(pathExpressions), selectOrModifyClause', optionalGraphName, graphPattern', groupBy', having', orderBy', limitOffsets, error-messages, version, bindVariableCount)
     with // MATCH
          if <?Some(GraphPattern(Vertices(vertices), connections, _))> := graphPattern
-         then verticesWithTypes := <collect-in-outer-query(?Vertex(_, <id>, _); !VariablePlusType(<id>, Type("VERTEX")))> (vertices, connections)
-            ; edgesWithTypes := <collect-in-outer-query(?Edge(_, _, _, _, <id>, _); !VariablePlusType(<id>, Type("EDGE")))> connections
+         then verticesWithTypes := <collect-in-outer-query(?Vertex(_, <id>, _); !VariablePlusType(<id>, <id>, Type("VERTEX")))> (vertices, connections)
+            ; edgesWithTypes := <collect-in-outer-query(?Edge(_, _, _, _, <id>, _); !VariablePlusType(<id>, <id>, Type("EDGE")))> connections
             ; variablesPlusTypes' := <conc> (variablesPlusTypes, verticesWithTypes, edgesWithTypes)
             ; constraints := <collect-in-outer-query(?Constraints(<id>)); concat> graphPattern
             ; graphPattern' := <alltd(add-type(|metadata, variablesPlusTypes', constraints))> graphPattern
@@ -32,7 +32,7 @@ rules
          // GROUP BY
        ; if <?Some(_)> groupBy
          then groupBy' := <alltd(add-type(|metadata, variablesPlusTypes', constraints))> groupBy
-            ; variablesPlusTypes'' := <conc> (variablesPlusTypes', <?Some(GroupByClause(<id>)); map(expAsVar-to-variablePlusType)> groupBy')
+            ; variablesPlusTypes'' := <conc> (variablesPlusTypes', <?Some(GroupByClause(<id>)); map(expAsVar-to-variablePlusType(|variablesPlusTypes'))> groupBy')
          else groupBy' := groupBy
             ; variablesPlusTypes'' := variablesPlusTypes'
          end
@@ -40,7 +40,7 @@ rules
          // SELECT
        ; if <?SelectClause(_, _)> selectOrModifyClause
          then selectOrModifyClause' := <alltd(add-type(|metadata, variablesPlusTypes'', constraints))> selectOrModifyClause
-            ; variablesPlusTypes''' := <conc> (variablesPlusTypes'', <?SelectClause(_, ExpAsVars(<id>)); map(expAsVar-to-variablePlusType)> selectOrModifyClause')
+            ; variablesPlusTypes''' := <conc> (variablesPlusTypes'', <?SelectClause(_, ExpAsVars(<id>)); map(debug; expAsVar-to-variablePlusType(|variablesPlusTypes''); debug)> selectOrModifyClause')
          else selectOrModifyClause' := selectOrModifyClause
             ; variablesPlusTypes''' := variablesPlusTypes''
          end
@@ -51,21 +51,25 @@ rules
          // ORDER BY
        ; orderBy' := <alltd(add-type(|metadata, variablesPlusTypes''', constraints))> orderBy
 
-  expAsVar-to-variablePlusType:
-    ExpAsVar(ExpressionPlusType(_ ,type), _, _, variable) -> VariablePlusType(variable, type)
+  expAsVar-to-variablePlusType(|variablesPlusTypes):
+    ExpAsVar(ExpressionPlusType(exp ,type), _, _, originPosition) -> VariablePlusType(originPosition, dereferencedOriginPosition, type)
+    with if <?VarRef(_, varRefOriginPosition)> exp
+         then dereferencedOriginPosition := <fetch-elem(?VariablePlusType(varRefOriginPosition, <id>, _))> variablesPlusTypes
+         else dereferencedOriginPosition := originPosition
+         end
 
 rules // variable references
 
   add-type(|metadata, variablesPlusTypes, constraints):
     exp@VarRef(_, varRefOriginPosition) -> ExpressionPlusType(exp, type)
-    with type := <fetch-elem(?VariablePlusType(varRefOriginPosition, <id>)) <+ !UnknownType()> variablesPlusTypes
+    with type := <fetch-elem(?VariablePlusType(varRefOriginPosition, _, <id>)) <+ !UnknownType()> variablesPlusTypes
 
 rules // property references
 
   add-type(|metadata, variablesPlusTypes, constraints):
     exp@PropRef(VarRef(_, varRefOriginPosition), Identifier(propName, _)) -> ExpressionPlusType(exp, propType)
-    with elementType := <fetch-elem(?VariablePlusType(varRefOriginPosition, <id>)) <+ !UnknownType()> variablesPlusTypes
-       ; labelExpression := <filter(simplify-label-expression(|varRefOriginPosition)); (?[]; !All() <+ to-label-conjunction)> constraints
+    with elementType := <fetch-elem(?VariablePlusType(varRefOriginPosition, dereferencedOriginPosition, <id>)) <+ !UnknownType()> variablesPlusTypes
+       ; labelExpression := <filter(simplify-label-expression(|dereferencedOriginPosition)); (?[]; !All() <+ to-label-conjunction)> constraints
        ; propType := <get-property-type-from-label-expression(|elementType, propName, metadata)> labelExpression
 
   simplify-label-expression(|varRefOriginPosition):
