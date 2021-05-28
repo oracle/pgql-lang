@@ -15,30 +15,56 @@ rules
 
   add-types = ?AstPlusMetadata(ast, metadata); !ast; add-types-to-query(|metadata, []); !AstPlusMetadata(<id>, metadata)
 
-  add-types-to-query(|metadata, variablesWithTypes):
+  add-types-to-query(|metadata, variablesPlusTypes):
       NormalizedQuery(CommonPathExpressions(pathExpressions), selectOrModifyClause, optionalGraphName, graphPattern, groupBy, having, orderBy, limitOffsets, error-messages, version, bindVariableCount) ->
-        NormalizedQuery(CommonPathExpressions(pathExpressions), selectOrModifyClause, optionalGraphName, graphPattern', groupBy, having, orderBy, limitOffsets, error-messages, version, bindVariableCount)
-    with if <?Some(GraphPattern(Vertices(vertices), connections, _))> := graphPattern
+        NormalizedQuery(CommonPathExpressions(pathExpressions), selectOrModifyClause', optionalGraphName, graphPattern', groupBy', having', orderBy', limitOffsets, error-messages, version, bindVariableCount)
+    with // MATCH
+         if <?Some(GraphPattern(Vertices(vertices), connections, _))> := graphPattern
          then verticesWithTypes := <collect-in-outer-query(?Vertex(_, <id>, _); !VariablePlusType(<id>, Type("VERTEX")))> (vertices, connections)
             ; edgesWithTypes := <collect-in-outer-query(?Edge(_, _, _, _, <id>, _); !VariablePlusType(<id>, Type("EDGE")))> connections
-            ; variablesWithTypes' := <conc> (variablesWithTypes, verticesWithTypes, edgesWithTypes)
+            ; variablesPlusTypes' := <conc> (variablesPlusTypes, verticesWithTypes, edgesWithTypes)
             ; constraints := <collect-in-outer-query(?Constraints(<id>)); concat> graphPattern
-            ; graphPattern' := <alltd(add-type(|metadata, variablesWithTypes', constraints))> graphPattern
-         else variablesWithTypes' := variablesWithTypes
+            ; graphPattern' := <alltd(add-type(|metadata, variablesPlusTypes', constraints))> graphPattern
+         else variablesPlusTypes' := variablesPlusTypes
             ; graphPattern' := graphPattern
          end
 
+         // GROUP BY
+       ; if <?Some(_)> groupBy
+         then groupBy' := <alltd(add-type(|metadata, variablesPlusTypes', constraints))> groupBy
+            ; variablesPlusTypes'' := <conc> (variablesPlusTypes', <?Some(GroupByClause(<id>)); map(expAsVar-to-variablePlusType)> groupBy')
+         else groupBy' := groupBy
+            ; variablesPlusTypes'' := variablesPlusTypes'
+         end
+
+         // SELECT
+       ; if <?SelectClause(_, _)> selectOrModifyClause
+         then selectOrModifyClause' := <alltd(add-type(|metadata, variablesPlusTypes'', constraints))> selectOrModifyClause
+            ; variablesPlusTypes''' := <conc> (variablesPlusTypes'', <?SelectClause(_, ExpAsVars(<id>)); debug; map(expAsVar-to-variablePlusType); debug> selectOrModifyClause')
+         else selectOrModifyClause' := selectOrModifyClause
+            ; variablesPlusTypes''' := variablesPlusTypes''
+         end
+
+         // HAVING
+       ; having' := <alltd(add-type(|metadata, variablesPlusTypes''', constraints))> having
+
+         // ORDER BY
+       ; orderBy' := <alltd(add-type(|metadata, variablesPlusTypes''', constraints))> orderBy
+
+  expAsVar-to-variablePlusType:
+    ExpAsVar(ExpressionPlusType(_ ,type), _, _, variable) -> VariablePlusType(variable, type)
+
 rules // variable references
 
-  add-type(|metadata, variablesWithTypes, constraints):
+  add-type(|metadata, variablesPlusTypes, constraints):
     exp@VarRef(_, varRefOriginPosition) -> ExpressionPlusType(exp, type)
-    with type := <fetch-elem(?VariablePlusType(varRefOriginPosition, <id>)) <+ !UnknownType()> variablesWithTypes
+    with type := <fetch-elem(?VariablePlusType(varRefOriginPosition, <id>)) <+ !UnknownType()> variablesPlusTypes
 
 rules // property references
 
-  add-type(|metadata, variablesWithTypes, constraints):
+  add-type(|metadata, variablesPlusTypes, constraints):
     exp@PropRef(VarRef(_, varRefOriginPosition), Identifier(propName, _)) -> ExpressionPlusType(exp, propType)
-    with elementType := <fetch-elem(?VariablePlusType(varRefOriginPosition, <id>)) <+ !UnknownType()> variablesWithTypes
+    with elementType := <fetch-elem(?VariablePlusType(varRefOriginPosition, <id>)) <+ !UnknownType()> variablesPlusTypes
        ; labelExpression := <filter(simplify-label-expression(|varRefOriginPosition)); (?[]; !All() <+ to-label-conjunction)> constraints
        ; propType := <get-property-type-from-label-expression(|elementType, propName, metadata)> labelExpression
 
@@ -87,23 +113,23 @@ rules // property references
 
 rules // functions
 
-  add-type(|metadata, variablesWithTypes, constraints) = FunctionCall(?None(), ?"has_label", [ add-type(|metadata, variablesWithTypes, constraints), ?Identifier(_, _)]); !ExpressionPlusType(<id>, Type("BOOLEAN"))
+  add-type(|metadata, variablesPlusTypes, constraints) = FunctionCall(?None(), ?"has_label", [ add-type(|metadata, variablesPlusTypes, constraints), ?Identifier(_, _)]); !ExpressionPlusType(<id>, Type("BOOLEAN"))
 
 rules // binary expressions
 
-  add-type(|metadata, variablesWithTypes, constraints) =
+  add-type(|metadata, variablesPlusTypes, constraints) =
     ( 
       ?And(_, _) + ?Or(_, _) +
       ?Eq(_, _) + ?Neq(_, _) + ?Gt(_, _) + ?Lt(_, _) + ?Gte(_, _) + ?Lte(_, _) +
       ?Mul(_, _) + ?Add(_, _) + ?Div(_, _) + ?Mod(_, _) + ?Sub(_, _) +
       ?Cct(_, _)
     )
-    ; add-value-type-to-binary-operation(|metadata, variablesWithTypes, constraints)
+    ; add-value-type-to-binary-operation(|metadata, variablesPlusTypes, constraints)
 
-  add-value-type-to-binary-operation(|metadata, variablesWithTypes, constraints):
+  add-value-type-to-binary-operation(|metadata, variablesPlusTypes, constraints):
     exp -> ExpressionPlusType(exp', type)
     with operation := <get-constructor> exp
-       ; args@[ExpressionPlusType(_, type1), ExpressionPlusType(_, type2)] := <get-arguments; alltd(add-type(|metadata, variablesWithTypes, constraints))> exp
+       ; args@[ExpressionPlusType(_, type1), ExpressionPlusType(_, type2)] := <get-arguments; alltd(add-type(|metadata, variablesPlusTypes, constraints))> exp
        ; if <?AmbiguousType()> type1 + <?AmbiguousType()> type2
          then type := UnknownType()
          else if <?Type(t1)> type1;  <?Type(t2)> type2
