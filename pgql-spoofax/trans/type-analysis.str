@@ -40,7 +40,7 @@ rules
          // SELECT
        ; if <?SelectClause(_, _)> selectOrModifyClause
          then selectOrModifyClause' := <alltd(add-type(|metadata, variablesPlusTypes'', constraints))> selectOrModifyClause
-            ; variablesPlusTypes''' := <conc> (variablesPlusTypes'', <?SelectClause(_, ExpAsVars(<id>)); debug; map(expAsVar-to-variablePlusType); debug> selectOrModifyClause')
+            ; variablesPlusTypes''' := <conc> (variablesPlusTypes'', <?SelectClause(_, ExpAsVars(<id>)); map(expAsVar-to-variablePlusType)> selectOrModifyClause')
          else selectOrModifyClause' := selectOrModifyClause
             ; variablesPlusTypes''' := variablesPlusTypes''
          end
@@ -114,6 +114,16 @@ rules // property references
 rules // functions
 
   add-type(|metadata, variablesPlusTypes, constraints) = FunctionCall(?None(), ?"has_label", [ add-type(|metadata, variablesPlusTypes, constraints), ?Identifier(_, _)]); !ExpressionPlusType(<id>, Type("BOOLEAN"))
+
+rules // subqueries
+
+  add-type(|metadata, variablesPlusTypes, constraints):
+    ScalarSubquery(Subquery(query)) -> ExpressionPlusType(ScalarSubquery(Subquery(query')), type)
+    with query' := <add-types-to-query(|metadata, variablesPlusTypes)> query
+       ; if <?NormalizedQuery(_, SelectClause(_, ExpAsVars([ExpAsVar(ExpressionPlusType(_, Type(t)), _, _, _)])), _, _, _, _, _, _, _, _, _)> query'
+         then type := Type(t)
+         else type := UnknownType()
+         end
 
 rules // binary expressions
 
@@ -202,12 +212,9 @@ rules // binary expressions
 
   add-value-type(|metadata) = ?CharacterSubstring(_, _, _); !ExpressionPlusType(<id>, <get-string-literal-type(|metadata)>)
 
-  add-value-type(|metadata):
-    exp@ScalarSubquery(Subquery(NormalizedQuery(_, SelectClause(_, ExpAsVars(expsAsVars)), _, _, _, _, _, _, _, _, _))) -> ExpressionPlusType(exp, type)
-    with if <?[ExpAsVar(ExpressionPlusType(_, Type(t)), _, _, _)]> expsAsVars
-         then type := Type(t)
-         else type := UnknownType()
-         end
+  
+
+
 
   add-value-type(|metadata) = ?FunctionCall(_, _, _); !ExpressionPlusType(<id>, UnknownType())
 
