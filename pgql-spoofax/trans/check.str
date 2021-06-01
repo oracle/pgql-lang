@@ -370,7 +370,7 @@ rules // IN
 
   check-inPredicate(|ctx, metadata):
     inPredicate@InPredicate(exp, Array(valueExpressions)) -> <fail>
-    with [x|xs] := <map(try(add-default-literal-type))> valueExpressions
+    with [x|xs] := valueExpressions
 
          // check that type of expression on left-hand of IN is compatible with expression of list elements
        ; if <?ExpressionPlusType(_, Type(t1)); !t1; not(same-type(|x, metadata))> exp
@@ -530,8 +530,7 @@ rules // MODIFY
     with <generate-error(|ctx, $[The operator - (unary minus) is undefined for the argument type [t]])> e
 
   nabl-constraint(|ctx):
-    e@Not(ExpressionPlusType(_, Type(t))) -> <fail>
-    where not ( <?"BOOLEAN" + ?UnknownType()> t )
+    ExpressionPlusType(e@Not(ExpressionPlusType(_, Type(t))), Undefined()) -> <fail>
     with <generate-error(|ctx, $[The operator NOT is undefined for the argument type [t]])> e
 
   nabl-constraint(|ctx):

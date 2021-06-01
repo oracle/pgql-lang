@@ -115,6 +115,26 @@ rules // property references
             ; result := <foldl(get-union-type(|metadata))> (types, Undefined())
          end
 
+rules // literals
+
+  add-type(|metadata, variablesPlusTypes, constraints) = ?Null(); !ExpressionPlusType(<id>, UnknownType())
+
+  add-type(|metadata, variablesPlusTypes, constraints) = (?True() + ?False()); !ExpressionPlusType(<id>, Type("BOOLEAN"))
+
+  add-type(|metadata, variablesPlusTypes, constraints) = ?Integer(_); !ExpressionPlusType(<id>, <get-long-integer-type(|metadata)>)
+
+  add-type(|metadata, variablesPlusTypes, constraints) = ?Decimal(_); !ExpressionPlusType(<id>, <get-decimal-literal-type(|metadata)>)
+
+  add-type(|metadata, variablesPlusTypes, constraints) = ?String(_); !ExpressionPlusType(<id>, <get-string-literal-type(|metadata)>)
+
+  add-type(|metadata, variablesPlusTypes, constraints) = ?Date(_); !ExpressionPlusType(<id>, Type("DATE"))
+
+  add-type(|metadata, variablesPlusTypes, constraints) = ?Time(_); !ExpressionPlusType(<id>, Type(<has-timezone; !"TIME WITH TIME ZONE" <+ !"TIME">))
+
+  add-type(|metadata, variablesPlusTypes, constraints) = ?Timestamp(_); !ExpressionPlusType(<id>, Type(<has-timezone; !"TIMESTAMP WITH TIME ZONE" <+ !"TIMESTAMP">))
+
+  external has-timezone(|)
+
 rules // functions
 
   add-type(|metadata, variablesPlusTypes, constraints) = FunctionCall(?None(), ?"has_label", [ add-type(|metadata, variablesPlusTypes, constraints), ?Identifier(_, _)]); !ExpressionPlusType(<id>, Type("BOOLEAN"))
@@ -141,28 +161,66 @@ rules // binary expressions
     ; add-value-type-to-binary-operation(|metadata, variablesPlusTypes, constraints)
 
   add-value-type-to-binary-operation(|metadata, variablesPlusTypes, constraints):
-    exp -> ExpressionPlusType(exp', type)
+    exp -> ExpressionPlusType(exp', type')
     with operation := <get-constructor> exp
        ; args@[ExpressionPlusType(_, type1), ExpressionPlusType(_, type2)] := <get-arguments; alltd(add-type(|metadata, variablesPlusTypes, constraints))> exp
        ; if <?AmbiguousType()> type1 + <?AmbiguousType()> type2
-         then type := UnknownType()
+         then type' := UnknownType()
          else if <?Type(t1)> type1;  <?Type(t2)> type2
-              then type := <get-operation-return-type(|metadata)> (operation, t1, t2)
-              else type := UnknownType()
+              then type' := <get-operation-return-type(|metadata)> (operation, t1, t2)
+              else type' := UnknownType()
               end
          end
        ; exp' := <origin-track-forced(!(operation, args); mkterm)> exp
 
+rules // unary expressions and aggregates
 
-//  add-type:
-//    SetProperty(propRef, exp) -> SetProperty(propRef, <alltd(add-type)> exp) // this assures we skip adding a type to the propRef of a SET clause
+  add-type(|metadata, variablesPlusTypes, constraints):
+    n@Not(exp) -> ExpressionPlusType(n', type')
+    with exp'@ExpressionPlusType(_, type) := <add-type(|metadata, variablesPlusTypes, constraints)> exp
+       ; n' := <origin-track-forced(!Not(exp'))> n
+       ; if <?Type(t)> type
+         then type' := <get-operation-return-type(|metadata)> ("Not", t)
+         else type' := UnknownType()
+         end
 
-//  add-value-type(|metadata):
-//    exp@PropRef(_, Identifier(propName, _), elementType, labelExpression) -> ExpressionPlusType(exp, type)
-//    with type := <get-property-type-from-label-expression(|elementType, propName)> labelExpression
+  add-type(|metadata, variablesPlusTypes, constraints):
+    umin@UMin(exp) -> ExpressionPlusType(umin', type')
+    with exp'@ExpressionPlusType(_, type) := <add-type(|metadata, variablesPlusTypes, constraints)> exp
+       ; umin' := <origin-track-forced(!UMin(exp'))> umin
+       ; if <?Type(t)> type
+         then type' := <get-operation-return-type(|metadata)> ("UMin", t)
+         else type' := UnknownType()
+         end
 
+  add-type(|metadata, variablesPlusTypes, constraints):
+    aggregation -> ExpressionPlusType(aggregation', type')
+    where <?SUM(distinct, exp) +
+           ?MIN(distinct, exp) +
+           ?MAX(distinct, exp) +
+           ?AVG(distinct, exp) +
+           ?ARRAY-AGG(distinct, exp) +
+           ?LISTAGG(distinct, exp, separator)> aggregation
+    with operation := <get-constructor> aggregation
+       ; exp'@ExpressionPlusType(_, type) := <add-type(|metadata, variablesPlusTypes, constraints)> exp
+       ; if <?AmbiguousType()> type
+         then type' := UnknownType()
+         else if <?Type(t)> type
+              then type' := <get-operation-return-type(|metadata)> (operation, t)
+              else type' := UnknownType()
+              end
+         end
+       ; if <?LISTAGG(_, _, _)> aggregation
+         then args := [distinct, exp', separator]
+         else args := [distinct, exp']
+         end
+       ; aggregation' := <origin-track-forced(!(operation, args); mkterm)> aggregation
 
-  add-value-type(|metadata) =
+  add-type(|metadata, variablesPlusTypes, constraints) = ?COUNT(_, _); !ExpressionPlusType(<id>, <get-long-integer-type(|metadata)>)
+
+rules // other expressions
+
+  add-type(|metadata, variablesPlusTypes, constraints) =
     (
       ?InPredicate(_, _, _) +
       ?Exists(_) +
@@ -170,56 +228,20 @@ rules // binary expressions
     )
     ; !ExpressionPlusType(<id>, Type("BOOLEAN"))
 
-  add-value-type(|metadata):
-    t@UMin(ExpressionPlusType(exp, type)) -> ExpressionPlusType(t, type')
-    with type' := <?Type(<id>); !("UMin", <id>); get-operation-return-type(|metadata) <+ !UnknownType()> type
+  add-type(|metadata, variablesPlusTypes, constraints) = ?BindVariable(_); !ExpressionPlusType(<id>, UnknownType())
 
-  add-value-type(|metadata) = ?Not(_); !ExpressionPlusType(<id>, UnknownType())
+  add-type(|metadata, variablesPlusTypes, constraints) = ?Cast(_, type); !ExpressionPlusType(<id>, Type(type))
 
-  add-value-type(|metadata) = ?COUNT(_, _); !ExpressionPlusType(<id>, <get-long-integer-type(|metadata)>)
+  add-type(|metadata, variablesPlusTypes, constraints) = ?CharacterSubstring(_, _, _); !ExpressionPlusType(<id>, <get-string-literal-type(|metadata)>)
 
-  add-value-type(|metadata):
-    aggregation -> ExpressionPlusType(aggregation, type')
-    where <?SUM(_, ExpressionPlusType(_, type)) +
-           ?MIN(_, ExpressionPlusType(_, type)) +
-           ?MAX(_, ExpressionPlusType(_, type)) +
-           ?AVG(_, ExpressionPlusType(_, type)) +
-           ?ARRAY-AGG(_, ExpressionPlusType(_, type)) +
-           ?LISTAGG(_, ExpressionPlusType(_, type), _)> aggregation
-    with operation := <get-constructor> aggregation
-       ; type' := <?Type(<id>); !(operation, <id>); get-operation-return-type(|metadata) <+ !UnknownType()> type
+  add-type(|metadata, variablesPlusTypes, constraints) = ?FunctionCall(_, _, _); !ExpressionPlusType(<id>, UnknownType()) // TODO
 
-  add-value-type(|metadata) = ?BindVariable(_); !ExpressionPlusType(<id>, UnknownType())
+//  add-type:
+//    SetProperty(propRef, exp) -> SetProperty(propRef, <alltd(add-type)> exp) // this assures we skip adding a type to the propRef of a SET clause
 
-  add-value-type(|metadata) = ?Null(); !ExpressionPlusType(<id>, UnknownType())
-  add-value-type(|metadata) = (?True() + ?False()); !ExpressionPlusType(<id>, Type("BOOLEAN"))
-  add-value-type(|metadata) = ?Integer(_); !ExpressionPlusType(<id>, <get-long-integer-type(|metadata)>)
-  add-value-type(|metadata) = ?Decimal(_); !ExpressionPlusType(<id>, <get-decimal-literal-type(|metadata)>)
-  add-value-type(|metadata) = ?String(_); !ExpressionPlusType(<id>, <get-string-literal-type(|metadata)>)
-  add-value-type(|metadata) = ?Date(_); !ExpressionPlusType(<id>, Type("DATE"))
-  add-value-type(|metadata) = ?Time(_); !ExpressionPlusType(<id>, Type(<has-timezone; !"TIME WITH TIME ZONE" <+ !"TIME">))
-  add-value-type(|metadata) = ?Timestamp(_); !ExpressionPlusType(<id>, Type(<has-timezone; !"TIMESTAMP WITH TIME ZONE" <+ !"TIMESTAMP">))
-  external has-timezone(|)
-
-  add-default-literal-type:
-    ExpressionPlusType(exp, UnknownType()) -> ExpressionPlusType(exp, Type(t))
-    where t := <is-numeric-literal; !"NUMBER" +
-                is-boolean-literal; !"BOOLEAN" +
-                ?String(_); !"STRING" +
-                ?Date(_); !"DATE" +
-                ?Time(_); !"TIME" +
-                ?Timestamp(_); !"TIMESTAMP"
-                > exp
-
-  add-value-type(|metadata) = ?Cast(_, type); !ExpressionPlusType(<id>, Type(type))
-
-  add-value-type(|metadata) = ?CharacterSubstring(_, _, _); !ExpressionPlusType(<id>, <get-string-literal-type(|metadata)>)
-
-  
-
-
-
-  add-value-type(|metadata) = ?FunctionCall(_, _, _); !ExpressionPlusType(<id>, UnknownType())
+//  add-value-type(|metadata):
+//    exp@PropRef(_, Identifier(propName, _), elementType, labelExpression) -> ExpressionPlusType(exp, type)
+//    with type := <get-property-type-from-label-expression(|elementType, propName)> labelExpression
 
 //  get-vertex-labels(|metadata) = !None()
 //  get-edge-labels(|metadata) = !None()
@@ -252,7 +274,7 @@ rules // binary expressions
   get-operation-return-type(|metadata) = ?("MIN", "STRING"); !Type("STRING")
   get-operation-return-type(|metadata) = ?("SUM", "INTEGER"); !Type("LONG")
 
-  get-operation-return-type(|metadata) = !UnknownType() // !Undefined()
+  get-operation-return-type(|metadata) = !Undefined()
 
   get-vertex-labels(|metadata) = !["PERSON", "COMPANY"]
 

@@ -61,6 +61,7 @@ import oracle.pgql.lang.editor.completion.PgqlCompletionContext;
 import oracle.pgql.lang.ir.PgqlStatement;
 import oracle.pgql.lang.ir.SchemaQualifiedName;
 import oracle.pgql.lang.ir.StatementType;
+import oracle.pgql.lang.metadata.AbstractMetadataProvider;
 import oracle.pgql.lang.metadata.ModifiedParseUnit;
 
 import static oracle.pgql.lang.CheckInvalidJavaComment.checkInvalidJavaComment;
@@ -194,6 +195,21 @@ public class Pgql implements Closeable {
    *           if the query contains errors
    */
   public PgqlResult parse(String queryString) throws PgqlException {
+    return parse(queryString, null);
+  }
+
+  /**
+   * Parse a PGQL query (either a SELECT or MODIFY query).
+   *
+   * @param queryString
+   *          PGQL query to parse
+   * @param metadataProvider
+   *          the metadata provider for enhanced type checking based on graph schema information and other metadata
+   * @return parse result holding either an AST or error messages
+   * @throws PgqlException
+   *           if the query contains errors
+   */
+  public PgqlResult parse(String queryString, AbstractMetadataProvider metadataProvider) throws PgqlException {
     synchronized (lock) {
       checkInitialized();
       return parseInternal(queryString);

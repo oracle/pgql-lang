@@ -19,8 +19,7 @@ rules
     t@InPredicate(exp1, notIn, exp2@Array(valueExpressions)) -> result
     where <not(is-simple-inPredicate-expression)> exp2
         ; <?[ExpressionPlusType(_, typeOfFirstElement)|_]> valueExpressions
-        ; valueExpressions' := <map(add-default-literal-type)> valueExpressions
-        ; <map(?ExpressionPlusType(_, <id>); (?typeOfFirstElement + !(typeOfFirstElement, <id>); get-union-type(|metadata)))> valueExpressions' // don't tranform IN into set of non-equality if types are not compatible
+        ; <map(?ExpressionPlusType(_, <id>); (?typeOfFirstElement + !(typeOfFirstElement, <id>); get-union-type(|metadata)))> valueExpressions // don't tranform IN into set of non-equality if types are not compatible
     with disjunction := <map(to-eq-expression(|exp1, t)); to-disjunction> valueExpressions
        ; disjunction' := <origin-track-forced(!disjunction)> t
        ; if <?Some(NOT())> notIn
