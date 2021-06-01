@@ -36,7 +36,7 @@ public abstract class AbstractMetadataProvider {
   }
 
   /**
-   * Get the string literal type.
+   * Get the string type, used for e.g. string literals and labels.
    * 
    * Examples:
    * 
@@ -46,7 +46,7 @@ public abstract class AbstractMetadataProvider {
    * 
    * @return the string literal type.
    */
-  public Optional<String> getStringLiteralType() {
+  public Optional<String> getStringType() {
     return Optional.empty();
   }
 
