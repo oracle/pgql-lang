@@ -226,15 +226,21 @@ rules // other expressions
       ?Exists(_) +
       ?IsNull(_)
     )
-    ; !ExpressionPlusType(<id>, Type("BOOLEAN"))
+    ; add-types-to-subterms(|metadata, variablesPlusTypes, constraints); !ExpressionPlusType(<id>, Type("BOOLEAN"))
 
   add-type(|metadata, variablesPlusTypes, constraints) = ?BindVariable(_); !ExpressionPlusType(<id>, UnknownType())
 
-  add-type(|metadata, variablesPlusTypes, constraints) = ?Cast(_, type); !ExpressionPlusType(<id>, Type(type))
+  add-type(|metadata, variablesPlusTypes, constraints) = ?Cast(_, type); add-types-to-subterms(|metadata, variablesPlusTypes, constraints); !ExpressionPlusType(<id>, Type(type))
 
-  add-type(|metadata, variablesPlusTypes, constraints) = ?CharacterSubstring(_, _, _); !ExpressionPlusType(<id>, <get-string-literal-type(|metadata)>)
+  add-type(|metadata, variablesPlusTypes, constraints) = ?CharacterSubstring(_, _, _); add-types-to-subterms(|metadata, variablesPlusTypes, constraints); !ExpressionPlusType(<id>, <get-string-literal-type(|metadata)>)
 
-  add-type(|metadata, variablesPlusTypes, constraints) = ?FunctionCall(_, _, _); !ExpressionPlusType(<id>, UnknownType()) // TODO
+  add-type(|metadata, variablesPlusTypes, constraints) = ?FunctionCall(_, _, _); add-types-to-subterms(|metadata, variablesPlusTypes, constraints); !ExpressionPlusType(<id>, UnknownType()) // TODO
+
+  add-types-to-subterms(|metadata, variablesPlusTypes, constraints):
+    t -> t'
+    with (constructor, args) := <explode-term> t
+       ; args' := <alltd(add-type(|metadata, variablesPlusTypes, constraints))> args
+       ; t' := <origin-track-forced(!(constructor, args'); mkterm)> t
 
 //  add-type:
 //    SetProperty(propRef, exp) -> SetProperty(propRef, <alltd(add-type)> exp) // this assures we skip adding a type to the propRef of a SET clause
