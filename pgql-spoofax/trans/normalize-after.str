@@ -20,8 +20,8 @@ rules
     where <not(is-simple-inPredicate-expression)> exp2
         ; <?[ExpressionPlusType(_, typeOfFirstElement)|_]> valueExpressions
         ; <map(?ExpressionPlusType(_, <id>); (?typeOfFirstElement + !(typeOfFirstElement, <id>); get-union-type(|metadata)))> valueExpressions // don't tranform IN into set of non-equality if types are not compatible
-    with disjunction := <map(to-eq-expression(|exp1, t)); to-disjunction> valueExpressions
-       ; disjunction' := <origin-track-forced(!disjunction)> t
+        ; disjunction := <map(to-eq-expression(|metadata, exp1, t)); to-disjunction-with-types> valueExpressions
+    with disjunction' := <origin-track-forced(!disjunction)> t
        ; if <?Some(NOT())> notIn
          then result := <origin-track-forced(!Not(disjunction'))> t
          else result := disjunction'
@@ -30,8 +30,15 @@ rules
   is-simple-inPredicate-expression = ?BindVariable(_)
   is-simple-inPredicate-expression = ?Array(<id>); map(?ExpressionPlusType(<id>, _); is-literal-no-bindVariable) // array with literals only
 
-  to-eq-expression(|exp1, origin-term):
-    exp2 -> <origin-track-forced(!Eq(exp1, exp2))> origin-term
+  to-eq-expression(|metadata, expPlusType1, origin-term):
+    expPlusType2 -> ExpressionPlusType(exp', type')
+    where <?ExpressionPlusType(exp1, type1)> expPlusType1
+        ; <?ExpressionPlusType(exp2, type2)> expPlusType2
+        ; exp' := <origin-track-forced(!Eq(expPlusType1, expPlusType2))> origin-term
+        ; if <?Type(t1)> type1; <?Type(t2)> type2
+          then type' := <get-operation-return-type(|metadata); not(?Undefined()) /* if equality operation is not supported between these types then we don't want to normalize */> ("Eq", type1, type2)
+          else type' := UnknownType()
+          end
 
   norm-inPredicate:
     t@InPredicate(exp1, notIn, exp2) -> result

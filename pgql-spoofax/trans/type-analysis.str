@@ -185,7 +185,7 @@ rules // binary expressions
        ; args@[ExpressionPlusType(_, type1), ExpressionPlusType(_, type2)] := <get-arguments; alltd(add-type(|metadata, variablesPlusTypes, constraints))> exp
        ; if <?AmbiguousType()> type1 + <?AmbiguousType()> type2
          then type' := UnknownType()
-         else if <?Type(t1)> type1;  <?Type(t2)> type2
+         else if <?Type(t1)> type1; <?Type(t2)> type2
               then type' := <get-operation-return-type(|metadata)> (operation, t1, t2)
               else type' := UnknownType()
               end

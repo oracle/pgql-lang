@@ -105,3 +105,6 @@ rules
 
   to-disjunction = reverse; !(<Tl>, <Hd>); foldl(to-OR)
   to-OR = ?(exp1, exp2); !Or(exp1, exp2)
+
+  to-disjunction-with-types = reverse; !(<Tl>, <Hd>); foldl(to-OR)
+  to-OR = ?(exp1, exp2); !ExpressionPlusType(Or(exp1, exp2), Type("BOOLEAN"))
