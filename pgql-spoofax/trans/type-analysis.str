@@ -17,11 +17,14 @@ rules
 
   add-types-to-query(|metadata, variablesPlusTypes):
       NormalizedQuery(CommonPathExpressions(pathExpressions), selectOrModifyClause, optionalGraphName, graphPattern, groupBy, having, orderBy, limitOffsets, error-messages, version, bindVariableCount) ->
-        NormalizedQuery(CommonPathExpressions(pathExpressions), selectOrModifyClause', optionalGraphName, graphPattern', groupBy', having', orderBy', limitOffsets, error-messages, version, bindVariableCount)
-    with // MATCH
-         if <?Some(GraphPattern(Vertices(vertices), connections, _))> := graphPattern
-         then verticesWithTypes := <collect-in-outer-query(?Vertex(_, <id>, _); !VariablePlusType(<id>, <id>, Type("VERTEX")))> (vertices, connections)
-            ; edgesWithTypes := <collect-in-outer-query(?Edge(_, _, _, _, <id>, _); !VariablePlusType(<id>, <id>, Type("EDGE")))> connections
+        NormalizedQuery(CommonPathExpressions(pathExpressions'), selectOrModifyClause', optionalGraphName, graphPattern', groupBy', having', orderBy', limitOffsets, error-messages, version, bindVariableCount)
+    with // PATH
+         pathExpressions' := <map(add-types-to-path-expression(|metadata))> pathExpressions
+
+       // MATCH
+       ; if <?Some(GraphPattern(Vertices(vertices), connections, _))> := graphPattern
+         then verticesWithTypes := <collect-vertices-with-types> (vertices, connections)
+            ; edgesWithTypes := <collect-edges-with-types> connections
             ; variablesPlusTypes' := <conc> (variablesPlusTypes, verticesWithTypes, edgesWithTypes)
             ; constraints := <collect-in-outer-query(?Constraints(<id>)); concat> graphPattern
             ; graphPattern' := <alltd(add-type(|metadata, variablesPlusTypes', constraints))> graphPattern
@@ -50,6 +53,19 @@ rules
 
          // ORDER BY
        ; orderBy' := <alltd(add-type(|metadata, variablesPlusTypes''', constraints))> orderBy
+
+  collect-vertices-with-types = collect-in-outer-query(?Vertex(_, <id>, _); !VariablePlusType(<id>, <id>, Type("VERTEX")))
+
+  collect-edges-with-types = collect-in-outer-query(?Edge(_, _, _, _, <id>, _); !VariablePlusType(<id>, <id>, Type("EDGE")))
+
+  add-types-to-path-expression(|metadata):
+    pathExpression@CommonPathExpression(_, Vertices(vertices), Edges(edges), Constraints(constraints), _) -> pathExpression'
+    with verticesWithTypes := <collect-vertices-with-types> vertices
+       ; edgesWithTypes := <collect-edges-with-types> edges
+       ; variablesPlusTypes := <conc> (verticesWithTypes, edgesWithTypes)
+       ; pathExpression' := <alltd(add-type(|metadata, variablesPlusTypes, constraints))> pathExpression
+
+rules // exp AS var
 
   expAsVar-to-variablePlusType(|variablesPlusTypes):
     ExpAsVar(ExpressionPlusType(exp ,type), _, _, originPosition) -> VariablePlusType(originPosition, dereferencedOriginPosition, type)
