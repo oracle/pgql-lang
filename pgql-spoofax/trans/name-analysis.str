@@ -268,7 +268,7 @@ rules
   resolve-var-ref(|variables):
     t@VarRef(iden@Identifier(v, _)) -> varRef
     with varRef := <
-           Hd; fetch(?VarDef(Identifier(v, _), origin-offset, _, _, _, _)); !VarRef(iden, origin-offset)
+           Hd; fetch(?VarDef(Identifier(v, _), origin-offset, _, _, _, _)); !t; origin-track-forced(!VarRef(iden, origin-offset))
            <+ !VarRef(iden)
          > variables
 

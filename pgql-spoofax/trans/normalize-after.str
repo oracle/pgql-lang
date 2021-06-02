@@ -11,7 +11,7 @@ imports
 
 rules
 
-  normalize-after = ?AstPlusMetadata(_, metadata); innermost(inPredicate-to-non-equality-constraints(|metadata) <+ norm-inPredicate)
+  normalize-after = try(?AstPlusMetadata(_, metadata); innermost(inPredicate-to-non-equality-constraints(|metadata) <+ norm-inPredicate))
 
 rules
 

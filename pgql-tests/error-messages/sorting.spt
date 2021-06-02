@@ -8,7 +8,7 @@ test Order by vertex (1) [[
       FROM g MATCH (n)
   ORDER BY [[n]]
 
-]] error like "Cannot order by vertex" at #1
+]] error like "Cannot order by VERTEX" at #1
 
 test Order by vertex (2) [[
 
@@ -16,7 +16,7 @@ test Order by vertex (2) [[
       FROM g MATCH (n)
   ORDER BY [[n2]]
 
-]] error like "Cannot order by vertex" at #1
+]] error like "Cannot order by VERTEX" at #1
 
 test Order by vertex (3) [[
 
@@ -24,8 +24,9 @@ test Order by vertex (3) [[
       FROM g MATCH (n)
   ORDER BY [[n]]
 
-]] error like "Cannot order by vertex" at #1
+]] error like "Cannot order by VERTEX" at #1
 
+/* TODO: move to schema-based tests
 test Order by array [[
 
     SELECT ARRAY_AGG(e.prop) AS array
@@ -33,6 +34,7 @@ test Order by array [[
   ORDER BY [[ARRAY_AGG(e.prop)]]
 
 ]] error like "Cannot order by array" at #1
+*/
 
 test Order by vertex (4) [[
 
@@ -65,7 +67,7 @@ test Order by vertex (7) [[
   GROUP BY n
   ORDER BY [[q]]
 
-]] error like "Cannot order by vertex" at #1
+]] error like "Cannot order by VERTEX" at #1
 
 test Order by vertex (7) [[
 
@@ -74,7 +76,7 @@ test Order by vertex (7) [[
   GROUP BY n AS p
   ORDER BY [[n]]
 
-]] error like "Cannot order by vertex" at #1
+]] error like "Cannot order by VERTEX" at #1
 
 test Order by vertex (8) [[
 
@@ -83,7 +85,7 @@ test Order by vertex (8) [[
   GROUP BY n AS p
   ORDER BY [[p]]
 
-]] error like "Cannot order by vertex" at #1
+]] error like "Cannot order by VERTEX" at #1
 
 test Order by vertex (9) [[
 
@@ -92,7 +94,7 @@ test Order by vertex (9) [[
   GROUP BY n AS p
   ORDER BY [[q]]
 
-]] error like "Cannot order by vertex" at #1
+]] error like "Cannot order by VERTEX" at #1
 
 test Order by edge (1) [[
 
@@ -101,7 +103,7 @@ test Order by edge (1) [[
   GROUP BY e
   ORDER BY [[e]]
 
-]] error like "Cannot order by edge" at #1
+]] error like "Cannot order by EDGE" at #1
 
 test DISTINCT projection with ORDER BY [[
 

@@ -244,6 +244,11 @@ rules // subqueries
 
   get-select-clause = ?NormalizedQuery(_, <id>, _, _, _, _, _, _, _, _, _)
 
+  nabl-constraint(|ctx):
+    ScalarSubquery(Subquery(NormalizedQuery(_, SelectClause(_, ExpAsVars([ExpAsVar(ExpressionPlusType(exp, Type(t)), _, _, _)])), _, _, _, _, _, _, _, _, _))) -> <fail>
+    where <?"VERTEX" + ?"EDGE"> t
+    with <debug; generate-error(|ctx, "Scalar subquery not allowed to return a vertex or an edge")> exp
+
 rules // helper rules
 
   batch-generate-error(|ctx, m) = map(generate-error(|ctx, m))
@@ -495,7 +500,7 @@ rules // MODIFY
 
   nabl-constraint(|ctx):
     LISTAGG(_, _, Some(Separator(separator))) -> <fail>
-    where not ( <?ExpressionPlusType(String(_), _)> separator )
+    where not ( <?String(_)> separator )
     with <generate-error(|ctx, "Only string literals are allowed as separator")> separator
 
 // schema
@@ -635,7 +640,7 @@ rules // MODIFY
   nabl-constraint(|ctx):   
     Vertex(Identifier(v, _), _, Correlation(ExpressionPlusType(VarRef(Identifier(outer-var, _), _), type))) -> <fail>
     where <not(?Type("VERTEX"))> type
-    with <generate-error(|ctx, "Duplicate variable (variable with same name is passed from an outer query")> v
+    with <generate-error(|ctx, "Duplicate variable (variable with same name is passed from an outer query)")> v
 
   nabl-constraint(|ctx):
     Edge(_, Identifier(e, _), _, _, _, Correlation(ExpressionPlusType(VarRef(Identifier(outer-var, _), _), type))) -> <fail>
