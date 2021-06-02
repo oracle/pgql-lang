@@ -42,9 +42,9 @@ rules
          end
 
          // SELECT
-       ; if <?SelectClause(_, _)> selectOrModifyClause
+       ; if <?SelectClause(_, ExpAsVars(selectExpAsVars))> selectOrModifyClause
          then selectOrModifyClause' := <alltd(add-type(|metadata, variablesPlusTypes'', constraints))> selectOrModifyClause
-            ; variablesPlusTypes''' := <conc> (variablesPlusTypes'', <?SelectClause(_, ExpAsVars(<id>)); map(expAsVar-to-variablePlusType(|variablesPlusTypes''))> selectOrModifyClause')
+            ; variablesPlusTypes''' := <conc> (variablesPlusTypes'', <map(expAsVar-to-variablePlusType(|variablesPlusTypes''))> selectExpAsVars)
          else selectOrModifyClause' := selectOrModifyClause
             ; variablesPlusTypes''' := variablesPlusTypes''
          end
