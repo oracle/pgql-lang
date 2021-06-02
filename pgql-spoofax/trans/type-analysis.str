@@ -277,68 +277,62 @@ rules // other expressions
          else type' := UnknownType()
          end
 
-//  add-type:
-//    SetProperty(propRef, exp) -> SetProperty(propRef, <alltd(add-type)> exp) // this assures we skip adding a type to the propRef of a SET clause
 
-//  add-value-type(|metadata):
-//    exp@PropRef(_, Identifier(propName, _), elementType, labelExpression) -> ExpressionPlusType(exp, type)
-//    with type := <get-property-type-from-label-expression(|elementType, propName)> labelExpression
+  get-vertex-labels(|metadata) = !None()
+  get-edge-labels(|metadata) = !None()
 
-//  get-vertex-labels(|metadata) = !None()
-//  get-edge-labels(|metadata) = !None()
+  get-vertex-property-type(|metadata) = !UnknownType()
+  get-edge-property-type(|metadata) = !UnknownType()
+
+  get-default-string-type(|metadata) = !UnknownType()
+  get-default-short-integer-type(|metadata) = !UnknownType()
+  get-default-long-integer-type(|metadata) = !UnknownType()
+  get-default-decimal-type(|metadata) = !UnknownType()
+
+  get-operation-return-type(|metadata) = !UnknownType()
+  get-union-type(|metadata) = !UnknownType()
+
+//  get-default-string-type(|metadata) = !Type("STRING")
+//  get-default-short-integer-type(|metadata) = !Type("INTEGER")
+//  get-default-long-integer-type(|metadata) = !Type("LONG")
+//  get-default-decimal-type(|metadata) = !Type("DOUBLE")
 //
-//  get-vertex-property-type(|metadata) = !UnknownType()
-//  get-edge-property-type(|metadata) = !UnknownType()
-
-//  get-string-literal-type(|metadata) = !UnknownType()
-//  get-default-long-integer-type(|metadata) = !UnknownType()
-//  get-default-short-integer-type(|metadata) = !UnknownType()
-//  get-decimal-literal-type(|metadata) = !UnknownType()
-
-//  get-operation-return-type(|metadata) = !UnknownType()
-//  get-union-type(|metadata) = !UnknownType()
-
-  get-default-string-type(|metadata) = !Type("STRING")
-  get-default-short-integer-type(|metadata) = !Type("INTEGER")
-  get-default-long-integer-type(|metadata) = !Type("LONG")
-  get-default-decimal-type(|metadata) = !Type("DOUBLE")
-
-  get-count-aggregate-type(|metadata) = !Type("LONG")
-
-  get-operation-return-type(|metadata) = ?("UMin", "INTEGER"); !Type("INTEGER")
-
-  get-operation-return-type(|metadata) = ?("Cct", "STRING", "STRING"); !Type("STRING")
-
-  get-operation-return-type(|metadata) = ?("Cct", "STRING", "STRING"); !Type("STRING")
-  get-operation-return-type(|metadata) = ?("Add", "INTEGER", "INTEGER"); !Type("INTEGER")
-
-  get-operation-return-type(|metadata) = ?("MIN", "STRING"); !Type("STRING")
-  get-operation-return-type(|metadata) = ?("SUM", "INTEGER"); !Type("LONG")
-
-  get-operation-return-type(|metadata) = !Undefined()
-
-  get-vertex-labels(|metadata) = !["PERSON", "COMPANY"]
-
-  get-edge-labels(|metadata) = !["KNOWS"]
-
-  get-vertex-property-type(|metadata) = ?("PERSON", "FIRSTNAME"); !Type("STRING")
-  get-vertex-property-type(|metadata) = ?("PERSON", "AGE"); !Type("INTEGER")
-  get-vertex-property-type(|metadata) = ?("COMPANY", "AGE"); !Type("DATE")
-
-  get-edge-property-type(|metadata) = ?("KNOWS", "SINCE"); !Type("DATE")
-
-  get-vertex-property-type(|metadata) = !Undefined()
-
-  get-edge-property-type(|metadata) = !Undefined()
-
-  get-union-type(|metadata) = ?(Undefined(), <id>) + ?(<id>, Undefined())
-  get-union-type(|metadata) = (?(AmbiguousType(), _) + ?(_, AmbiguousType())); !AmbiguousType()
-
-  get-union-type(|metadata) = ?(Type("STRING"), Type("STRING")); !Type("STRING")
-
-  get-union-type(|metadata) = ?(Type("INTEGER"), Type("INTEGER")); !Type("INTEGER")
-
-  get-union-type(|metadata) = ?(Type("INTEGER"), Type("DATE"));  !AmbiguousType()
-  get-union-type(|metadata) = ?(Type("DATE"), Type("INTEGER"));  !AmbiguousType()
-
-  get-union-type(|metadata)= !Undefined()
+//  get-count-aggregate-type(|metadata) = !Type("LONG")
+//
+//  get-operation-return-type(|metadata) = ?("UMin", "INTEGER"); !Type("INTEGER")
+//
+//  get-operation-return-type(|metadata) = ?("Cct", "STRING", "STRING"); !Type("STRING")
+//
+//  get-operation-return-type(|metadata) = ?("Cct", "STRING", "STRING"); !Type("STRING")
+//  get-operation-return-type(|metadata) = ?("Add", "INTEGER", "INTEGER"); !Type("INTEGER")
+//
+//  get-operation-return-type(|metadata) = ?("MIN", "STRING"); !Type("STRING")
+//  get-operation-return-type(|metadata) = ?("SUM", "INTEGER"); !Type("LONG")
+//
+//  get-operation-return-type(|metadata) = !Undefined()
+//
+//  get-vertex-labels(|metadata) = !["PERSON", "COMPANY"]
+//
+//  get-edge-labels(|metadata) = !["KNOWS"]
+//
+//  get-vertex-property-type(|metadata) = ?("PERSON", "FIRSTNAME"); !Type("STRING")
+//  get-vertex-property-type(|metadata) = ?("PERSON", "AGE"); !Type("INTEGER")
+//  get-vertex-property-type(|metadata) = ?("COMPANY", "AGE"); !Type("DATE")
+//
+//  get-edge-property-type(|metadata) = ?("KNOWS", "SINCE"); !Type("DATE")
+//
+//  get-vertex-property-type(|metadata) = !Undefined()
+//
+//  get-edge-property-type(|metadata) = !Undefined()
+//
+//  get-union-type(|metadata) = ?(Undefined(), <id>) + ?(<id>, Undefined())
+//  get-union-type(|metadata) = (?(AmbiguousType(), _) + ?(_, AmbiguousType())); !AmbiguousType()
+//
+//  get-union-type(|metadata) = ?(Type("STRING"), Type("STRING")); !Type("STRING")
+//
+//  get-union-type(|metadata) = ?(Type("INTEGER"), Type("INTEGER")); !Type("INTEGER")
+//
+//  get-union-type(|metadata) = ?(Type("INTEGER"), Type("DATE"));  !AmbiguousType()
+//  get-union-type(|metadata) = ?(Type("DATE"), Type("INTEGER"));  !AmbiguousType()
+//
+//  get-union-type(|metadata)= !Undefined()

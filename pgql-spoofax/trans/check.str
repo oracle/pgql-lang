@@ -303,8 +303,9 @@ rules // temporary limitation
 rules
 
   nabl-constraint(|ctx):
-    Path(_, _, _, _, t@Identifier(_, _), _, _, _) -> <fail>
-    with <generate-error(|ctx, "Path variables not supported")> t
+    Path(_, _, _, _, Identifier(i, _), _, _, _) -> <fail>
+    where <not(is-substring(GENERATED))> i
+    with <generate-error(|ctx, "Path variables not supported")> i
 
 rules // CHEAPEST
 
