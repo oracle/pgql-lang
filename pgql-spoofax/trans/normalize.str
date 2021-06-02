@@ -247,7 +247,7 @@ rules
     with ifElseRepresentation := <to-if-else> (caseOperand, whenClauses, elseClause)
 
   to-if-else:
-    (caseOperand, whenClauses, elseClause) -> IfElse(exp1, exp2, exp3)
+    (caseOperand, whenClauses, elseClause) -> ifElse
     with [WhenClause(whenExp, thenExp)|xs] := whenClauses
        ; exp1 := Eq(caseOperand, whenExp)
        ; exp2 := thenExp
@@ -255,13 +255,14 @@ rules
          then exp3 := <to-else> elseClause
          else exp3 := <to-if-else> (caseOperand, xs, elseClause)
          end
+       ; ifElse := <origin-track-forced(!IfElse(exp1, exp2, exp3))> exp2
 
   norm-case:
     SearchedCase(whenClauses, elseClause) -> ifElse
     with ifElse := <to-if-else> (whenClauses, elseClause)
 
   to-if-else:
-    (whenClauses, elseClause) -> IfElse(exp1, exp2, exp3)
+    (whenClauses, elseClause) -> ifElse
     with [WhenClause(whenExp, thenExp)|xs] := whenClauses
        ; exp1 := whenExp
        ; exp2 := thenExp
@@ -269,6 +270,7 @@ rules
          then exp3 := <to-else> elseClause
          else exp3 := <to-if-else> (xs, elseClause)
          end
+       ; ifElse := <origin-track-forced(!IfElse(exp1, exp2, exp3))> exp2
 
   to-else = ?None(); !Null() <+ ?Some(ElseClause(<id>))
 

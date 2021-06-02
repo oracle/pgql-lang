@@ -364,9 +364,9 @@ rules // literals
     where <is-substring(!"\\\"")> identifier
     with <generate-error(|ctx, "Use \"\" instead of \\\" to escape a double quote")> t
 
-rules // IN
+rules // IN predicate and CASE expression
 
-  nabl-constraint(|ctx) = ?AstPlusMetadata(_, metadata); alltd(check-inPredicate(|ctx, metadata)); fail
+  nabl-constraint(|ctx) = ?AstPlusMetadata(_, metadata); alltd(check-inPredicate(|ctx, metadata) + check-CaseExpression(|ctx, metadata)); fail
 
   check-inPredicate(|ctx, metadata):
     inPredicate@InPredicate(exp, Array(valueExpressions)) -> <fail>
@@ -379,12 +379,24 @@ rules // IN
          end
 
          // check that values in the list are of compatible type
-       ; <remove-all(same-type(|x, metadata)); batch-generate-error(|ctx, $[[<!x; ?ExpressionPlusType(_, Type(<id>))>] expected here])> xs
+       ; <remove-all(same-type(|x, metadata)); batch-generate-error(|ctx, <message-compatible-type-exepected> x)> xs
 
   same-type(|x, metadata):
     ExpressionPlusType(_, type1) -> <id>
     where ExpressionPlusType(_, type2) := x
         ; <eq <+ get-union-type(|metadata)> (type1, type2)
+
+  message-compatible-type-exepected = !$[Expression of a type compatible with [<id>] expected]
+
+  nabl-constraint(|ctx):
+    IfElse(ExpressionPlusType(exp, Type(t)), _, _) -> <fail>
+    where <not(?"BOOLEAN")> t
+    with <generate-error(|ctx, "BOOLEAN expression expected")> exp
+
+  check-CaseExpression(|ctx, metadata):
+   ExpressionPlusType(IfElse(_, ExpressionPlusType(_, type1@Type(t1)), ExpressionPlusType(elseExp, type2@Type(_))), Undefined()) -> <fail>
+   where <get-union-type(|metadata); ?Undefined()> (type1, type2)
+   with <generate-error(|ctx, <message-compatible-type-exepected> t1)> elseExp
 
 rules // SELECT
 

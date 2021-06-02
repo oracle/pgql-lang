@@ -36,7 +36,7 @@ public abstract class AbstractMetadataProvider {
   }
 
   /**
-   * Get the string type, used for e.g. string literals and labels.
+   * Get the default string type, used for e.g. string literals and labels.
    * 
    * Examples:
    * 
@@ -46,25 +46,25 @@ public abstract class AbstractMetadataProvider {
    * 
    * @return the string literal type.
    */
-  public Optional<String> getStringType() {
+  public Optional<String> getDefaultStringType() {
     return Optional.empty();
   }
 
   /**
-   * Get the long integer type. For example, INTEGER or NUMBER(20)
+   * Get the default short integer type. For example, INTEGER or NUMBER(20)
    * 
-   * Examples:
+   * Used for:
    * 
    * - Type of EXTRACT function when extracting year/month/day/hour/minute/timezone_hour/timezone_minute
    * 
-   * @return the string literal type.
+   * @return the short integer type.
    */
-  public Optional<String> getShortIntegerType() {
+  public Optional<String> getDefaultShortIntegerType() {
     return Optional.empty();
   }
 
   /**
-   * Get the long integer type. For example, LONG or NUMBER(200)
+   * Get the default long integer type. For example, LONG or NUMBER(200)
    * 
    * Used for:
    * 
@@ -72,18 +72,18 @@ public abstract class AbstractMetadataProvider {
    * 
    * - COUNT aggregate
    * 
-   * @return the string literal type.
+   * @return the long integer type.
    */
-  public Optional<String> getLongIntegerType() {
+  public Optional<String> getDefaultLongIntegerType() {
     return Optional.empty();
   }
 
   /**
-   * Get the decimal literal type. For example, DOUBLE or NUMBER(200).
+   * Get the default decimal type. For example, DOUBLE or NUMBER(200).
    * 
-   * @return the string literal type.
+   * @return the decimal type.
    */
-  public Optional<String> getDecimalLiteralType() {
+  public Optional<String> getDefaultDecimalType() {
     return Optional.empty();
   }
 

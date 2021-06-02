@@ -129,11 +129,11 @@ rules // literals
 
   add-type(|metadata, variablesPlusTypes, constraints) = (?True() + ?False()); !ExpressionPlusType(<id>, Type("BOOLEAN"))
 
-  add-type(|metadata, variablesPlusTypes, constraints) = ?Integer(_); !ExpressionPlusType(<id>, <get-long-integer-type(|metadata)>)
+  add-type(|metadata, variablesPlusTypes, constraints) = ?Integer(_); !ExpressionPlusType(<id>, <get-default-long-integer-type(|metadata)>)
 
-  add-type(|metadata, variablesPlusTypes, constraints) = ?Decimal(_); !ExpressionPlusType(<id>, <get-decimal-literal-type(|metadata)>)
+  add-type(|metadata, variablesPlusTypes, constraints) = ?Decimal(_); !ExpressionPlusType(<id>, <get-default-decimal-type(|metadata)>)
 
-  add-type(|metadata, variablesPlusTypes, constraints) = ?String(_); !ExpressionPlusType(<id>, <get-string-literal-type(|metadata)>)
+  add-type(|metadata, variablesPlusTypes, constraints) = ?String(_); !ExpressionPlusType(<id>, <get-default-string-type(|metadata)>)
 
   add-type(|metadata, variablesPlusTypes, constraints) = ?Date(_); !ExpressionPlusType(<id>, Type("DATE"))
 
@@ -235,7 +235,7 @@ rules // unary expressions and aggregates
          end
        ; aggregation' := <origin-track-forced(!(operation, args); mkterm)> aggregation
 
-  add-type(|metadata, variablesPlusTypes, constraints) = ?COUNT(_, _); !ExpressionPlusType(<id>, <get-long-integer-type(|metadata)>)
+  add-type(|metadata, variablesPlusTypes, constraints) = ?COUNT(_, _); !ExpressionPlusType(<id>, <get-default-long-integer-type(|metadata)>)
 
 rules // other expressions
 
@@ -250,7 +250,7 @@ rules // other expressions
 
   add-type(|metadata, variablesPlusTypes, constraints) = ?Cast(_, type); add-types-to-subterms(|metadata, variablesPlusTypes, constraints); !ExpressionPlusType(<id>, Type(type))
 
-  add-type(|metadata, variablesPlusTypes, constraints) = ?CharacterSubstring(_, _, _); add-types-to-subterms(|metadata, variablesPlusTypes, constraints); !ExpressionPlusType(<id>, <get-string-literal-type(|metadata)>)
+  add-type(|metadata, variablesPlusTypes, constraints) = ?CharacterSubstring(_, _, _); add-types-to-subterms(|metadata, variablesPlusTypes, constraints); !ExpressionPlusType(<id>, <get-default-string-type(|metadata)>)
 
   add-type(|metadata, variablesPlusTypes, constraints) = ?FunctionCall(_, _, _); add-types-to-subterms(|metadata, variablesPlusTypes, constraints); !ExpressionPlusType(<id>, UnknownType()) // TODO
 
@@ -259,6 +259,23 @@ rules // other expressions
     with (constructor, args) := <explode-term> t
        ; args' := <alltd(add-type(|metadata, variablesPlusTypes, constraints))> args
        ; t' := <origin-track-forced(!(constructor, args'); mkterm)> t
+
+  add-type(|metadata, variablesPlusTypes, constraints):
+    extractExp@ExtractExp(part, dateTimeExp) -> ExpressionPlusType(extract', type')
+    with dateTimeExp' := <add-type(|metadata, variablesPlusTypes, constraints)> dateTimeExp
+       ; extract' := <origin-track-forced(!ExtractExp(part, dateTimeExp'))> extractExp
+       ; type' := <?Second(); get-default-decimal-type(|metadata) <+ get-default-short-integer-type(|metadata)> part
+
+  add-type(|metadata, variablesPlusTypes, constraints):
+    ifElse@IfElse(_, _, _) -> ExpressionPlusType(ifElse', type')
+    with ifElse' := <add-types-to-subterms(|metadata, variablesPlusTypes, constraints)> ifElse
+       ; if <?IfElse(_, ExpressionPlusType(_, type1@Type(_)), elseExp)> ifElse'
+         then if <?None()> elseExp
+              then type' := type1
+              else type' := <?ExpressionPlusType(_, type2); !(type1, type2); get-union-type(|metadata) <+ !UnknownType()> elseExp
+              end
+         else type' := UnknownType()
+         end
 
 //  add-type:
 //    SetProperty(propRef, exp) -> SetProperty(propRef, <alltd(add-type)> exp) // this assures we skip adding a type to the propRef of a SET clause
@@ -274,17 +291,17 @@ rules // other expressions
 //  get-edge-property-type(|metadata) = !UnknownType()
 
 //  get-string-literal-type(|metadata) = !UnknownType()
-//  get-long-integer-type(|metadata) = !UnknownType()
-//  get-short-integer-type(|metadata) = !UnknownType()
+//  get-default-long-integer-type(|metadata) = !UnknownType()
+//  get-default-short-integer-type(|metadata) = !UnknownType()
 //  get-decimal-literal-type(|metadata) = !UnknownType()
 
 //  get-operation-return-type(|metadata) = !UnknownType()
 //  get-union-type(|metadata) = !UnknownType()
 
-  get-string-literal-type(|metadata) = !Type("STRING")
-  get-short-integer-type(|metadata) = !Type("INTEGER")
-  get-long-integer-type(|metadata) = !Type("LONG")
-  get-decimal-literal-type(|metadata) = !Type("DOUBLE")
+  get-default-string-type(|metadata) = !Type("STRING")
+  get-default-short-integer-type(|metadata) = !Type("INTEGER")
+  get-default-long-integer-type(|metadata) = !Type("LONG")
+  get-default-decimal-type(|metadata) = !Type("DOUBLE")
 
   get-count-aggregate-type(|metadata) = !Type("LONG")
 
@@ -323,3 +340,5 @@ rules // other expressions
 
   get-union-type(|metadata) = ?(Type("INTEGER"), Type("DATE"));  !AmbiguousType()
   get-union-type(|metadata) = ?(Type("DATE"), Type("INTEGER"));  !AmbiguousType()
+
+  get-union-type(|metadata)= !Undefined()
