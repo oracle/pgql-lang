@@ -64,6 +64,10 @@ rules // variable references
     exp@VarRef(_, varRefOriginPosition) -> ExpressionPlusType(exp, type)
     with type := <fetch-elem(?VariablePlusType(varRefOriginPosition, _, <id>)) <+ !UnknownType()> variablesPlusTypes
 
+  // unresolved variable
+  add-type(|metadata, variablesPlusTypes, constraints):
+    exp@VarRef(_) -> ExpressionPlusType(exp, UnknownType())
+
 rules // property references
 
   add-type(|metadata, variablesPlusTypes, constraints):
@@ -137,7 +141,10 @@ rules // literals
 
 rules // functions
 
-  add-type(|metadata, variablesPlusTypes, constraints) = FunctionCall(?None(), ?"has_label", [ add-type(|metadata, variablesPlusTypes, constraints), ?Identifier(_, _)]); !ExpressionPlusType(<id>, Type("BOOLEAN"))
+  add-type(|metadata, variablesPlusTypes, constraints):
+    func@FunctionCall(package, name, args) -> ExpressionPlusType(func', Type("BOOLEAN")) // TODO fix type
+    with args' := <alltd(add-type(|metadata, variablesPlusTypes, constraints))> func
+       ; func' := <origin-track-forced(!FunctionCall(package, name, args'))> func
 
 rules // subqueries
 
