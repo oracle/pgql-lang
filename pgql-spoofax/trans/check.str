@@ -247,7 +247,7 @@ rules // subqueries
   nabl-constraint(|ctx):
     ScalarSubquery(Subquery(NormalizedQuery(_, SelectClause(_, ExpAsVars([ExpAsVar(ExpressionPlusType(exp, Type(t)), _, _, _)])), _, _, _, _, _, _, _, _, _))) -> <fail>
     where <?"VERTEX" + ?"EDGE"> t
-    with <debug; generate-error(|ctx, "Scalar subquery not allowed to return a vertex or an edge")> exp
+    with <generate-error(|ctx, "Scalar subquery not allowed to return a vertex or an edge")> exp
 
 rules // helper rules
 
@@ -376,16 +376,15 @@ rules // IN predicate and CASE expression
 
   check-inPredicate(|ctx, metadata):
     inPredicate@InPredicate(exp, Array(valueExpressions)) -> <fail>
-    with [x|xs] := valueExpressions
-
-         // check that type of expression on left-hand of IN is compatible with expression of list elements
-       ; if <?ExpressionPlusType(_, Type(t1)); !t1; not(same-type(|x, metadata))> exp
-         then ExpressionPlusType(_, Type(t2)) := x
-            ; <generate-error(|ctx, $[The IN predicate is undefined for left-hand operand type [t1] and list value type [t2]])> inPredicate
+    where [x|xs] := valueExpressions
+        ; <?ExpressionPlusType(_, Type(t2))> := x
+    with // check that type of expression on left-hand of IN is compatible with expression of list elements
+         if <?ExpressionPlusType(_, Type(t1)); !t1; debug; not(same-type(|x, metadata)); debug> exp
+         then <generate-error(|ctx, $[The IN predicate is undefined for left-hand operand type [t1] and list value type [t2]])> inPredicate
          end
 
          // check that values in the list are of compatible type
-       ; <remove-all(same-type(|x, metadata)); batch-generate-error(|ctx, <message-compatible-type-exepected> x)> xs
+       ; <remove-all(same-type(|x, metadata)); batch-generate-error(|ctx, <message-compatible-type-exepected> t2)> xs
 
   same-type(|x, metadata):
     ExpressionPlusType(_, type1) -> <id>
@@ -446,9 +445,9 @@ rules // MODIFY
     t -> <fail>
     where <?VertexInsertion(Identifier(v, originText), _, _, Some(Properties(setProperties))) +
            ?DirectedEdgeInsertion(Identifier(v, originText), _, _, _, _, Some(Properties(setProperties))) +
-           ?Update(VarRef(Identifier(v, originText), _), SetProperties(setProperties))> t
+           ?Update(ExpressionPlusType(VarRef(Identifier(v, originText), _), _), SetProperties(setProperties))> t
     with v' := <strip-annos> v
-       ; otherVariablesThanV := <filter(?SetProperty(ExpressionPlusType(PropRef(ExpressionPlusType(VarRef(Identifier(<id>, _), _), _), _), _), _); strip-annos; not(?v'))> setProperties
+       ; otherVariablesThanV := <filter(?SetProperty(ExpressionPlusType(PropRef(VarRef(Identifier(<id>, _), _), _), _), _); strip-annos; not(?v'))> setProperties
        ; if <eq> (v', <strip-annos> originText)
          then varNameAsString := <origin-text> v
          else varNameAsString := originText // using <origin-text> like above fails SPT tests, thus we avoid using it for unquoted identifier so that we at least can still use unquoted identifiers in INSERT/UPDATE queries in SPT

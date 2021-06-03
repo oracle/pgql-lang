@@ -2,6 +2,7 @@ module select
 
 language pgql-lang
 
+/* TODO: move to type system tests
 test Type conflict in IN [[
 
   SELECT n.prop IN (5, 2.2, [[true]], [[false]], [['abc']], [[DATE '2018-01-01']], [[TIME '16:30:00']], [[TIMESTAMP '2018-01-01 16:30:00']]) AS v1
@@ -30,6 +31,7 @@ test Illegal types in CASE [[
 
 ]] error like "Boolean expected here" at #1, #2, #3
    error like "CASE does not allow vertex or edge output" at #4, #5
+*/
 
 test Illegal separator in LISTAGG [[
 

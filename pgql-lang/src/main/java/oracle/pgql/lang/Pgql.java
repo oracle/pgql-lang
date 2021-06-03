@@ -86,9 +86,13 @@ public class Pgql implements Closeable {
 
   private static final String SPOOFAX_BINARIES = "pgql.spoofax-language";
 
+  private static final int POS_AST_PLUS_METADATA_AST_EXPRESSIONS = 0;
+
   private static final int POS_PGQL_VERSION = 9;
 
   private static final int POS_BIND_VARIABLE_COUNT = 10;
+
+  private static final String AST_PLUS_METADATA_CONSTRUCTOR_NAME = "AstPlusMetadata";
 
   private static final PgqlVersion LATEST_VERSION = PgqlVersion.V_1_3_OR_UP;
 
@@ -247,19 +251,10 @@ public class Pgql implements Closeable {
             0);
       }
 
-      List<SchemaQualifiedName> graphNames = extractGraphNames(parseResult.ast());
-      SchemaQualifiedName graphName = null;
-      if (graphNames.size() == 1) { // multiple graph references in single query are currently not supported; we already
-                                    // generate an error for that during analysis
-        graphName = graphNames.get(0);
-      }
-      System.out.println(graphName);
-
-      IStrategoAppl metadataExtendedAst = spoofax.termFactory.makeAppl("AstPlusMetadata", parseResult.ast(),
-          spoofax.termFactory.makeAppl("None"));
-      ISpoofaxParseUnit extendedParseUnit = new ModifiedParseUnit(parseResult, metadataExtendedAst);
-
       context = spoofax.contextService.getTemporary(dummyFile, dummyProject, pgqlLang);
+
+      ISpoofaxParseUnit extendedParseUnit = addMetadata(parseResult);
+
       ISpoofaxAnalyzeUnit analysisResult = null;
       try (IClosableLock lock = context.write()) {
         analysisResult = spoofax.analysisService.analyze(extendedParseUnit, context).result();
@@ -274,25 +269,28 @@ public class Pgql implements Closeable {
         }
       }
 
+      IStrategoTerm analyizedAst = removeMetadata(analysisResult);
+
       try {
-        statement = SpoofaxAstToGraphQuery.translate(analysisResult.ast());
+        statement = SpoofaxAstToGraphQuery.translate(analyizedAst);
       } catch (Exception e) {
         if (e instanceof PgqlException) {
           prettyMessages = e.getMessage();
           queryValid = false;
           return new PgqlResult(queryString, queryValid, prettyMessages, statement, parseResult, LATEST_VERSION, 0);
         } else {
+          System.out.println(e);
           LOG.debug("Translation of PGQL failed because of semantically invalid AST");
         }
       }
 
-      PgqlVersion pgqlVersion = getPgqlVersion(analysisResult.ast(), statement);
+      PgqlVersion pgqlVersion = getPgqlVersion(analyizedAst, statement);
 
       if (queryValid) {
         checkInvalidJavaComment(queryString, pgqlVersion);
       }
 
-      int bindVariableCount = getBindVariableCount(analysisResult.ast(), statement);
+      int bindVariableCount = getBindVariableCount(analyizedAst, statement);
 
       return new PgqlResult(queryString, queryValid, prettyMessages, statement, parseResult, pgqlVersion,
           bindVariableCount);
@@ -304,6 +302,35 @@ public class Pgql implements Closeable {
       }
       quietlyDelete(dummyFile);
     }
+  }
+
+  private ISpoofaxParseUnit addMetadata(ISpoofaxParseUnit parseResult) {
+    if (!((IStrategoAppl) parseResult.ast()).getConstructor().getName().equals("Query")) {
+      // for DDL statements and other non-query statement, we don't add metadata
+      return parseResult;
+    }
+
+    List<SchemaQualifiedName> graphNames = extractGraphNames(parseResult.ast());
+    SchemaQualifiedName graphName = null;
+    if (graphNames.size() == 1) { // multiple graph references in single query are currently not supported; we already
+                                  // generate an error for that during analysis
+      graphName = graphNames.get(0);
+    }
+
+    IStrategoAppl metadataExtendedAst = spoofax.termFactory.makeAppl(AST_PLUS_METADATA_CONSTRUCTOR_NAME,
+        parseResult.ast(), spoofax.termFactory.makeAppl("None"));
+    ISpoofaxParseUnit extendedParseUnit = new ModifiedParseUnit(parseResult, metadataExtendedAst);
+    return extendedParseUnit;
+  }
+
+  private IStrategoTerm removeMetadata(ISpoofaxAnalyzeUnit analysisResult) {
+    IStrategoTerm analyizedAst;
+    if (((IStrategoAppl) analysisResult.ast()).getConstructor().getName().equals(AST_PLUS_METADATA_CONSTRUCTOR_NAME)) {
+      analyizedAst = analysisResult.ast().getSubterm(POS_AST_PLUS_METADATA_AST_EXPRESSIONS);
+    } else {
+      analyizedAst = analysisResult.ast();
+    }
+    return analyizedAst;
   }
 
   private List<SchemaQualifiedName> extractGraphNames(IStrategoTerm ast) {

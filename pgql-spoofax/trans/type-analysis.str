@@ -13,7 +13,7 @@ imports
 
 rules
 
-  add-types = is-ddl-statement <+ // we don't perform any type anlaysis for DDL for now
+  add-types = not(?AstPlusMetadata(_, _)) <+ // we don't perform any type anlaysis for DDL for now
               ?AstPlusMetadata(ast, metadata); !ast; add-types-to-query(|metadata, []); !AstPlusMetadata(<id>, metadata)
 
   add-types-to-query(|metadata, variablesPlusTypes):
@@ -185,7 +185,7 @@ rules // subqueries
     with (query', type) := <add-types-to-subquery(|metadata, variablesPlusTypes, constraints)> query
 
   add-type(|metadata, variablesPlusTypes, constraints):
-    Exists(Subquery(query)) -> ExpressionPlusType(Exists(Subquery(query')), type)
+    Exists(Subquery(query)) -> ExpressionPlusType(Exists(Subquery(query')), Type("BOOLEAN"))
     with (query', type) := <add-types-to-subquery(|metadata, variablesPlusTypes, constraints)> query
 
   add-types-to-subquery(|metadata, variablesPlusTypes, constraints):
