@@ -71,7 +71,7 @@ rules
             ; (groupBy', variables''') := (groupBy, variables'')
          end
 
-       // SELECT / MODIFY
+       // SELECT / INSERT / UPDATE / DELETE
        ; if <?SelectClause(_, _)> selectOrModifyClause
          then (selectOrModifyClause', variables'''') := <resolve-select-clause(|variables''')> selectOrModifyClause
          else selectOrModifyClause' := <resolve-modify-clause(|variables''')> selectOrModifyClause

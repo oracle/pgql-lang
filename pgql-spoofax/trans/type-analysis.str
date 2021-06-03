@@ -24,8 +24,8 @@ rules
 
        // MATCH
        ; if <?Some(GraphPattern(Vertices(vertices), connections, _))> := graphPattern
-         then verticesWithTypes := <collect-vertices-with-types> (vertices, connections)
-            ; edgesWithTypes := <collect-edges-with-types> connections
+         then verticesWithTypes := <collect-vertices-with-types(?Vertex(_, <id>, _))> (vertices, connections)
+            ; edgesWithTypes := <collect-edges-with-types(?Edge(_, _, _, _, <id>, _))> connections
             ; variablesPlusTypes' := <conc> (variablesPlusTypes, verticesWithTypes, edgesWithTypes)
             ; constraints := <collect-in-outer-query(?Constraints(<id>)); concat> graphPattern
             ; graphPattern' := <alltd(add-type(|metadata, variablesPlusTypes', constraints))> graphPattern
@@ -41,12 +41,19 @@ rules
             ; variablesPlusTypes'' := variablesPlusTypes'
          end
 
-         // SELECT
+       // SELECT / INSERT / UPDATE / DELETE
        ; if <?SelectClause(_, ExpAsVars(_))> selectOrModifyClause
          then selectOrModifyClause' := <alltd(add-type(|metadata, variablesPlusTypes'', constraints))> selectOrModifyClause
             ; variablesPlusTypes''' := <conc> (variablesPlusTypes'', <?SelectClause(_, ExpAsVars(<id>)); map(expAsVar-to-variablePlusType(|variablesPlusTypes''))> selectOrModifyClause')
-         else selectOrModifyClause' := selectOrModifyClause
-            ; variablesPlusTypes''' := variablesPlusTypes''
+         else if <?SelectClause(_, Star())> selectOrModifyClause // SELECT *
+              then selectOrModifyClause' := selectOrModifyClause
+                 ; variablesPlusTypes''' := variablesPlusTypes''
+              else <?ModifyClause(modifications)> selectOrModifyClause // INSERT / UPDATE / DELETE
+                 ; verticesWithTypes' := <collect-vertices-with-types(?VertexInsertion(_, <id>, _, _))> modifications
+                 ; edgesWithTypes' := <collect-edges-with-types(?DirectedEdgeInsertion(_, <id>, _, _, _, _))> modifications
+                 ; variablesPlusTypes''' := <conc> (variablesPlusTypes'', verticesWithTypes', edgesWithTypes')
+                 ; selectOrModifyClause' := <alltd(add-type(|metadata, variablesPlusTypes', constraints))> selectOrModifyClause
+              end
          end
 
          // HAVING
@@ -55,14 +62,14 @@ rules
          // ORDER BY
        ; orderBy' := <alltd(add-type(|metadata, variablesPlusTypes''', constraints))> orderBy
 
-  collect-vertices-with-types = collect-in-outer-query(?Vertex(_, <id>, _); !VariablePlusType(<id>, <id>, Type("VERTEX")))
+  collect-vertices-with-types(s) = collect-in-outer-query(s; !VariablePlusType(<id>, <id>, Type("VERTEX")))
 
-  collect-edges-with-types = collect-in-outer-query(?Edge(_, _, _, _, <id>, _); !VariablePlusType(<id>, <id>, Type("EDGE")))
+  collect-edges-with-types(s) = collect-in-outer-query(s; !VariablePlusType(<id>, <id>, Type("EDGE")))
 
   add-types-to-path-expression(|metadata):
     pathExpression@CommonPathExpression(_, Vertices(vertices), Edges(edges), Constraints(constraints), _) -> pathExpression'
-    with verticesWithTypes := <collect-vertices-with-types> vertices
-       ; edgesWithTypes := <collect-edges-with-types> edges
+    with verticesWithTypes := <collect-vertices-with-types(?Vertex(_, <id>, _))> vertices
+       ; edgesWithTypes := <collect-edges-with-types(?Edge(_, _, _, _, <id>, _))> edges
        ; variablesPlusTypes := <conc> (verticesWithTypes, edgesWithTypes)
        ; pathExpression' := <alltd(add-type(|metadata, variablesPlusTypes, constraints))> pathExpression
 
