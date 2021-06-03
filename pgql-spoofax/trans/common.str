@@ -108,3 +108,6 @@ rules
 
   to-disjunction-with-types = reverse; !(<Tl>, <Hd>); foldl(to-OR)
   to-OR = ?(exp1, exp2); !ExpressionPlusType(Or(exp1, exp2), Type("BOOLEAN"))
+
+  to-function(|name):
+    args -> FunctionCall(None(), name, args)

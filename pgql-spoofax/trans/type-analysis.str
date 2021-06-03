@@ -44,7 +44,7 @@ rules
        // SELECT / INSERT / UPDATE / DELETE
        ; if <?SelectClause(_, ExpAsVars(_))> selectOrModifyClause
          then selectOrModifyClause' := <alltd(add-type(|metadata, variablesPlusTypes'', constraints))> selectOrModifyClause
-            ; variablesPlusTypes''' := <conc> (variablesPlusTypes'', <?SelectClause(_, ExpAsVars(<id>)); map(debug; expAsVar-to-variablePlusType(|variablesPlusTypes''))> selectOrModifyClause')
+            ; variablesPlusTypes''' := <conc> (variablesPlusTypes'', <?SelectClause(_, ExpAsVars(<id>)); map(expAsVar-to-variablePlusType(|variablesPlusTypes''))> selectOrModifyClause')
          else if <?SelectClause(_, Star())> selectOrModifyClause // SELECT *
               then selectOrModifyClause' := selectOrModifyClause
                  ; variablesPlusTypes''' := variablesPlusTypes''
@@ -52,7 +52,8 @@ rules
                  ; verticesWithTypes' := <collect-vertices-with-types(?VertexInsertion(_, <id>, _, _))> modifications
                  ; edgesWithTypes' := <collect-edges-with-types(?DirectedEdgeInsertion(_, <id>, _, _, _, _))> modifications
                  ; variablesPlusTypes''' := <conc> (variablesPlusTypes'', verticesWithTypes', edgesWithTypes')
-                 ; selectOrModifyClause' := <alltd(add-type(|metadata, variablesPlusTypes', constraints))> selectOrModifyClause
+                 ; constraints' := <collect(insertion-to-has-label-constraint); concat> modifications // label constraints are used to type check property references
+                 ; selectOrModifyClause' := <alltd(add-type(|metadata, variablesPlusTypes''', constraints'))> selectOrModifyClause
               end
          end
 
@@ -72,6 +73,9 @@ rules
        ; edgesWithTypes := <collect-edges-with-types(?Edge(_, _, _, _, <id>, _))> edges
        ; variablesPlusTypes := <conc> (verticesWithTypes, edgesWithTypes)
        ; pathExpression' := <alltd(add-type(|metadata, variablesPlusTypes, constraints))> pathExpression
+
+  insertion-to-has-label-constraint = ?VertexInsertion(identifier, originPosition, Some(Labels(<id>)), _); map(![VarRef(identifier, originPosition), <id>]; to-function(|"has_label"))
+  insertion-to-has-label-constraint = ?DirectedEdgeInsertion(identifier, originPosition, _, _, Some(Labels(<id>)), _); map(![VarRef(identifier, originPosition), <id>]; to-function(|"has_label"))
 
 rules // exp AS var
 
@@ -306,7 +310,7 @@ rules // other expressions
    with simpleCase' := <add-types-to-subterms(|metadata, variablesPlusTypes, constraints)> simpleCase
       ; <?SimpleCase(_, _, _, ExpressionPlusType(_, type'))> simpleCase'
 
-
+/*
   get-vertex-labels(|metadata) = !None()
   get-edge-labels(|metadata) = !None()
 
@@ -320,48 +324,49 @@ rules // other expressions
 
   get-operation-return-type(|metadata) = !UnknownType()
   get-union-type(|metadata) = !UnknownType()
+*/
 
-//  get-default-string-type(|metadata) = !Type("STRING")
-//  get-default-short-integer-type(|metadata) = !Type("INTEGER")
-//  get-default-long-integer-type(|metadata) = !Type("LONG")
-//  get-default-decimal-type(|metadata) = !Type("DOUBLE")
-//
-//  get-count-aggregate-type(|metadata) = !Type("LONG")
-//
-//  get-operation-return-type(|metadata) = ?("UMin", "INTEGER"); !Type("INTEGER")
-//
-//  get-operation-return-type(|metadata) = ?("Cct", "STRING", "STRING"); !Type("STRING")
-//
-//  get-operation-return-type(|metadata) = ?("Cct", "STRING", "STRING"); !Type("STRING")
-//  get-operation-return-type(|metadata) = ?("Add", "INTEGER", "INTEGER"); !Type("INTEGER")
-//
-//  get-operation-return-type(|metadata) = ?("MIN", "STRING"); !Type("STRING")
-//  get-operation-return-type(|metadata) = ?("SUM", "INTEGER"); !Type("LONG")
-//
-//  get-operation-return-type(|metadata) = !Undefined()
-//
-//  get-vertex-labels(|metadata) = !["PERSON", "COMPANY"]
-//
-//  get-edge-labels(|metadata) = !["KNOWS"]
-//
-//  get-vertex-property-type(|metadata) = ?("PERSON", "FIRSTNAME"); !Type("STRING")
-//  get-vertex-property-type(|metadata) = ?("PERSON", "AGE"); !Type("INTEGER")
-//  get-vertex-property-type(|metadata) = ?("COMPANY", "AGE"); !Type("DATE")
-//
-//  get-edge-property-type(|metadata) = ?("KNOWS", "SINCE"); !Type("DATE")
-//
-//  get-vertex-property-type(|metadata) = !Undefined()
-//
-//  get-edge-property-type(|metadata) = !Undefined()
-//
-//  get-union-type(|metadata) = ?(Undefined(), <id>) + ?(<id>, Undefined())
-//  get-union-type(|metadata) = (?(AmbiguousType(), _) + ?(_, AmbiguousType())); !AmbiguousType()
-//
-//  get-union-type(|metadata) = ?(Type("STRING"), Type("STRING")); !Type("STRING")
-//
-//  get-union-type(|metadata) = ?(Type("INTEGER"), Type("INTEGER")); !Type("INTEGER")
-//
-//  get-union-type(|metadata) = ?(Type("INTEGER"), Type("DATE"));  !AmbiguousType()
-//  get-union-type(|metadata) = ?(Type("DATE"), Type("INTEGER"));  !AmbiguousType()
-//
-//  get-union-type(|metadata)= !Undefined()
+  get-default-string-type(|metadata) = !Type("STRING")
+  get-default-short-integer-type(|metadata) = !Type("INTEGER")
+  get-default-long-integer-type(|metadata) = !Type("LONG")
+  get-default-decimal-type(|metadata) = !Type("DOUBLE")
+
+  get-count-aggregate-type(|metadata) = !Type("LONG")
+
+  get-operation-return-type(|metadata) = ?("UMin", "INTEGER"); !Type("INTEGER")
+
+  get-operation-return-type(|metadata) = ?("Cct", "STRING", "STRING"); !Type("STRING")
+
+  get-operation-return-type(|metadata) = ?("Cct", "STRING", "STRING"); !Type("STRING")
+  get-operation-return-type(|metadata) = ?("Add", "INTEGER", "INTEGER"); !Type("INTEGER")
+
+  get-operation-return-type(|metadata) = ?("MIN", "STRING"); !Type("STRING")
+  get-operation-return-type(|metadata) = ?("SUM", "INTEGER"); !Type("LONG")
+
+  get-operation-return-type(|metadata) = !Undefined()
+
+  get-vertex-labels(|metadata) = !["PERSON", "COMPANY"]
+
+  get-edge-labels(|metadata) = !["KNOWS"]
+
+  get-vertex-property-type(|metadata) = ?("PERSON", "FIRSTNAME"); !Type("STRING")
+  get-vertex-property-type(|metadata) = ?("PERSON", "AGE"); !Type("INTEGER")
+  get-vertex-property-type(|metadata) = ?("COMPANY", "AGE"); !Type("DATE")
+
+  get-edge-property-type(|metadata) = ?("KNOWS", "SINCE"); !Type("DATE")
+
+  get-vertex-property-type(|metadata) = !Undefined()
+
+  get-edge-property-type(|metadata) = !Undefined()
+
+  get-union-type(|metadata) = ?(Undefined(), <id>) + ?(<id>, Undefined())
+  get-union-type(|metadata) = (?(AmbiguousType(), _) + ?(_, AmbiguousType())); !AmbiguousType()
+
+  get-union-type(|metadata) = ?(Type("STRING"), Type("STRING")); !Type("STRING")
+
+  get-union-type(|metadata) = ?(Type("INTEGER"), Type("INTEGER")); !Type("INTEGER")
+
+  get-union-type(|metadata) = ?(Type("INTEGER"), Type("DATE"));  !AmbiguousType()
+  get-union-type(|metadata) = ?(Type("DATE"), Type("INTEGER"));  !AmbiguousType()
+
+  get-union-type(|metadata)= !Undefined()

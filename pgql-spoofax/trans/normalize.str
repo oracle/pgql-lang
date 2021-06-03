@@ -190,9 +190,6 @@ rules
   copy-graph-name-to-query-without-one(|graphName):
     NormalizedQuery(a, b, None(), c, d, e, f, g, h, i, j) -> NormalizedQuery(a, b, Some(graphName), c, d, e, f, g, h, i, j)
 
-  to-function(|name):
-    args -> FunctionCall(None(), name, args)
-
   norm-BindVariable(|c) = ?BindVariable(); !BindVariable(<next-counter> c)
 
   norm-UMin = ?UMin(Integer(string)); !Integer(<conc-strings> ("-", string))
@@ -380,7 +377,7 @@ rules
        ; otherConstraint' := <?Some(InlinedConstraint(<id>)) <+ ![]> otherConstraint
 
   to-label-constraint(|var):
-    labels ->  <to-hasLabel-expressions(|var)> labels
+    labels -> <to-hasLabel-expressions(|var)> labels
   to-hasLabel-expressions(|var) = bottomup(try(![VarRef(var), <to-label>]; to-function(|"has_label") + origin-track-forced(normalize-label-disjunction)))
   to-label = ?Label(<id>) + ?Legacy10Identifier(<id>); origin-track-forced(!Identifier(<id>, <id>)) + ?BindVariable(_)
   to-id-constraint(|var) = bottomup(try(is-literal; origin-track-forced(!Eq(<to-function(|"id")> [VarRef(var)], <id>))))
