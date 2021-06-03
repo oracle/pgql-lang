@@ -44,7 +44,7 @@ rules
        // SELECT / INSERT / UPDATE / DELETE
        ; if <?SelectClause(_, ExpAsVars(_))> selectOrModifyClause
          then selectOrModifyClause' := <alltd(add-type(|metadata, variablesPlusTypes'', constraints))> selectOrModifyClause
-            ; variablesPlusTypes''' := <conc> (variablesPlusTypes'', <?SelectClause(_, ExpAsVars(<id>)); map(expAsVar-to-variablePlusType(|variablesPlusTypes''))> selectOrModifyClause')
+            ; variablesPlusTypes''' := <conc> (variablesPlusTypes'', <?SelectClause(_, ExpAsVars(<id>)); map(debug; expAsVar-to-variablePlusType(|variablesPlusTypes''))> selectOrModifyClause')
          else if <?SelectClause(_, Star())> selectOrModifyClause // SELECT *
               then selectOrModifyClause' := selectOrModifyClause
                  ; variablesPlusTypes''' := variablesPlusTypes''
@@ -300,6 +300,11 @@ rules // other expressions
               end
          else type' := UnknownType()
          end
+
+  add-type(|metadata, variablesPlusTypes, constraints):
+   simpleCase@SimpleCase(_, _, _, _) -> ExpressionPlusType(simpleCase', type')
+   with simpleCase' := <add-types-to-subterms(|metadata, variablesPlusTypes, constraints)> simpleCase
+      ; <?SimpleCase(_, _, _, ExpressionPlusType(_, type'))> simpleCase'
 
 
   get-vertex-labels(|metadata) = !None()

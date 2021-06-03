@@ -10,7 +10,7 @@ test Type conflict in IN [[
        , n.prop IN (DATE '2018-01-01', [[5]], [[2.2]], [[true]], [[false]], [['abc']], [[TIME '16:30:00']], [[TIMESTAMP '2018-01-01 16:30:00']]) AS v4
        , n.prop IN (TIME '16:30:00', [[5]], [[2.2]], [[true]], [[false]], [['abc']], [[DATE '2018-01-01']], [[TIMESTAMP '2018-01-01 16:30:00']]) AS v5
        , n.prop IN (TIMESTAMP '2018-01-01 16:30:00', [[5]], [[2.2]], [[true]], [[false]], [['abc']], [[DATE '2018-01-01']], [[TIME '16:30:00']]) AS v6
-    FROM g MATCH (n)
+    FROM MATCH (n) ON g
 
 ]] error like "Numeric expected here" at #1, #2, #3, #4, #5, #6
    error like "Boolean expected here" at #7, #8, #9, #10, #11, #12
@@ -26,7 +26,7 @@ test Illegal types in CASE [[
        , CASE WHEN [[e]] THEN 2 END AS v3
        , CASE n.prop WHEN 1 THEN [[n]] ELSE 3 END AS v4
        , CASE n.prop WHEN 1 THEN 2 ELSE [[e]] END AS v5
-   MATCH (n) -[e]-> (m)
+    FROM MATCH (n) -[e]-> (m)
 
 ]] error like "Boolean expected here" at #1, #2, #3
    error like "CASE does not allow vertex or edge output" at #4, #5
