@@ -56,12 +56,12 @@ rules // Unresolved/duplicate variables
          else // MODIFY query
               insertVars := <collect-om(?VertexInsertion(Identifier(<id>, _), _, _, _) + ?DirectedEdgeInsertion(Identifier(<id>, _), _, _, _, _, _), conc)> selectOrModifyClause
             ; <generate-error-on-duplicates(|ctx, "Duplicate variable in INSERT")> insertVars
-            ; updateVars := <collect-om(?Update(VarRef(Identifier(<id>, _)), _) + ?Update(VarRef(Identifier(<id>, _), _), _), conc)> selectOrModifyClause
+            ; updateVars := <collect-om(?Update(ExpressionPlusType(VarRef(Identifier(<id>, _)), _), _) + ?Update(ExpressionPlusType(VarRef(Identifier(<id>, _), _), _), _), conc)> selectOrModifyClause
             ; updates-of-inserts := <isect> (updateVars, insertVars)
             ; <batch-generate-error(|ctx, "Cannot update an element that is being inserted")> updates-of-inserts
-            ; deleteVars := <(collect-one(?DeleteClause(<id>)) <+ ![]); filter(?VarRef(Identifier(<id>, _), _))> selectOrModifyClause
-            ; sourceVertices := <collect-om(?DirectedEdgeInsertion(_, _, VarRef(Identifier(<id>, _), _), _, _, _), conc)> selectOrModifyClause
-            ; destinationVertices := <collect-om(?DirectedEdgeInsertion(_, _, _, VarRef(Identifier(<id>, _), _), _, _), conc)> selectOrModifyClause
+            ; deleteVars := <(collect-one(?DeleteClause(<id>)) <+ ![]); filter(?ExpressionPlusType(VarRef(Identifier(<id>, _), _), _))> selectOrModifyClause
+            ; sourceVertices := <collect-om(?DirectedEdgeInsertion(_, _, ExpressionPlusType(VarRef(Identifier(<id>, _), _), _), _, _, _), conc)> selectOrModifyClause
+            ; destinationVertices := <collect-om(?DirectedEdgeInsertion(_, _, _, ExpressionPlusType(VarRef(Identifier(<id>, _), _), _), _, _), conc)> selectOrModifyClause
             ; all-updateVars := <conc> (updateVars, sourceVertices, destinationVertices)
             ; deletes-of-updates := <isect> (all-updateVars, deleteVars)
             ; <batch-generate-error(|ctx, "Element is deleted in DELETE clause")> deletes-of-updates
@@ -414,14 +414,14 @@ rules // MODIFY
 
   // e.g. UPDATE x.prop = 123 ... GROUP BY x.prop
   nabl-constraint(|ctx):
-    SetProperty(t@VarRef(_, _), _) -> <fail>
+    SetProperty(ExpressionPlusType(t@VarRef(_, _), _), _) -> <fail>
     with <generate-error(|ctx, "Cannot set a property that is grouped by")> t
 
   // setting a property twice, in either UPDATE or INSERT
   nabl-constraint(|ctx):
     properties -> <fail>
     where <?SetProperties(setPropertyExps) + ?Properties(setPropertyExps)> properties
-    with propertyRefs := <filter(?SetProperty(PropRef(_, Identifier(<id>, _)), _))> setPropertyExps
+    with propertyRefs := <filter(?SetProperty(ExpressionPlusType(PropRef(_, Identifier(<id>, _)), _), _))> setPropertyExps
        ; duplicatePropertyRefs := <filter(is-elem-contained-more-than-once(|propertyRefs))> propertyRefs
        ; <batch-generate-error(|ctx, "Property is set multiple times")> duplicatePropertyRefs
 
@@ -432,13 +432,13 @@ rules // MODIFY
 
   nabl-constraint(|ctx):
     UpdateClause(updates) -> <fail>
-    with updateElements := <filter(?Update(VarRef(Identifier(<id>, _), _), _))> updates
+    with updateElements := <filter(?Update(ExpressionPlusType(VarRef(Identifier(<id>, _), _), _), _))> updates
        ; duplicateUpdateElements := <filter(is-elem-contained-more-than-once(|updateElements))> updateElements
        ; <batch-generate-error(|ctx, "Element is updated multiple times (merge the two updates together)")> duplicateUpdateElements
 
   nabl-constraint(|ctx):
     DeleteClause(deletions) -> <fail>
-    with deleteElements := <filter(?VarRef(Identifier(<id>, _), _))> deletions
+    with deleteElements := <filter(?ExpressionPlusType(VarRef(Identifier(<id>, _), _), _))> deletions
        ; duplicateDeleteElements := <filter(is-elem-contained-more-than-once(|deleteElements))> deleteElements
        ; <batch-generate-error(|ctx, "Element is deleted multiple times")> duplicateDeleteElements
 
@@ -463,6 +463,11 @@ rules // MODIFY
        ; <batch-generate-error(|ctx, "Only a single INSERT clause is allowed per query; use commas to insert multiple elements in a single INSERT clause")> additionalInsertClauses
        ; <batch-generate-error(|ctx, "Only a single UPDATE clause is allowed per query; use commas to update multiple elements in a single UPDATE clause")> additionalUpdateClauses
        ; <batch-generate-error(|ctx, "Only a single DELETE clause is allowed per query; use commas to delete multiple elements in a single DELETE clause")> additionalDeleteClauses
+
+  nabl-constraint(|ctx):
+    SetProperty(_, ExpressionPlusType(exp, Type(t))) -> <fail>
+    where <?"VERTEX" + ?"EDGE"> t
+    with <generate-error(|ctx, "Cannot set the value of a property to a vertex or an edge")> exp
 
 // CREATE PROPERTY GRAPH
 

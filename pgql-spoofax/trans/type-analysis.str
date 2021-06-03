@@ -310,7 +310,7 @@ rules // other expressions
    with simpleCase' := <add-types-to-subterms(|metadata, variablesPlusTypes, constraints)> simpleCase
       ; <?SimpleCase(_, _, _, ExpressionPlusType(_, type'))> simpleCase'
 
-/*
+
   get-vertex-labels(|metadata) = !None()
   get-edge-labels(|metadata) = !None()
 
@@ -324,8 +324,9 @@ rules // other expressions
 
   get-operation-return-type(|metadata) = !UnknownType()
   get-union-type(|metadata) = !UnknownType()
-*/
 
+
+/*
   get-default-string-type(|metadata) = !Type("STRING")
   get-default-short-integer-type(|metadata) = !Type("INTEGER")
   get-default-long-integer-type(|metadata) = !Type("LONG")
@@ -370,3 +371,4 @@ rules // other expressions
   get-union-type(|metadata) = ?(Type("DATE"), Type("INTEGER"));  !AmbiguousType()
 
   get-union-type(|metadata)= !Undefined()
+*/
