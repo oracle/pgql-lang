@@ -240,34 +240,36 @@ rules
   norm-isNull = ?IsNotNull(exp); origin-track-forced(!IsNull(exp)); !Not(<id>)
 
   norm-case:
-    SimpleCase(caseOperand, whenClauses, elseClause) -> SimpleCase(caseOperand, whenClauses, elseClause, ifElseRepresentation)
-    with ifElseRepresentation := <to-if-else> (caseOperand, whenClauses, elseClause)
+    t@SimpleCase(caseOperand, whenClauses, elseClause) -> SimpleCase(caseOperand, whenClauses, elseClause, ifElseRepresentation)
+    with ifElseRepresentation := <to-if-else(|t)> (caseOperand, whenClauses, elseClause)
 
-  to-if-else:
+  to-if-else(|origin-term):
     (caseOperand, whenClauses, elseClause) -> ifElse
     with [WhenClause(whenExp, thenExp)|xs] := whenClauses
        ; exp1 := Eq(caseOperand, whenExp)
        ; exp2 := thenExp
        ; if [] := xs
          then exp3 := <to-else> elseClause
-         else exp3 := <to-if-else> (caseOperand, xs, elseClause)
+         else exp3 := <to-if-else(|elseClause)> (caseOperand, xs, elseClause)
          end
-       ; ifElse := <origin-track-forced(!IfElse(exp1, exp2, exp3))> exp2
+       ; ifElse := <origin-track-forced(!IfElse(exp1, exp2, exp3))> origin-term
 
   norm-case:
-    SearchedCase(whenClauses, elseClause) -> ifElse
-    with ifElse := <to-if-else> (whenClauses, elseClause)
+    t@SearchedCase(whenClauses, elseClause) -> ifElse
+    with ifElse := <to-if-else(|t)> (whenClauses, elseClause)
+       ; <origin-text> t
 
-  to-if-else:
+  to-if-else(|origin-term):
     (whenClauses, elseClause) -> ifElse
     with [WhenClause(whenExp, thenExp)|xs] := whenClauses
        ; exp1 := whenExp
        ; exp2 := thenExp
        ; if [] := xs
          then exp3 := <to-else> elseClause
-         else exp3 := <to-if-else> (xs, elseClause)
+         else [WhenClause(_, thenExp2)|_] := xs
+            ; exp3 := <to-if-else(|thenExp2)> (xs, elseClause)
          end
-       ; ifElse := <origin-track-forced(!IfElse(exp1, exp2, exp3))> exp2
+       ; ifElse := <origin-track-forced(!IfElse(exp1, exp2, exp3))> origin-term
 
   to-else = ?None(); !Null() <+ ?Some(ElseClause(<id>))
 

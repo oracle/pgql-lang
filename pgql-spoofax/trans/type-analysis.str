@@ -298,7 +298,7 @@ rules // other expressions
     ifElse@IfElse(_, _, _) -> ExpressionPlusType(ifElse', type')
     with ifElse' := <add-types-to-subterms(|metadata, variablesPlusTypes, constraints)> ifElse
        ; if <?IfElse(_, ExpressionPlusType(_, type1@Type(_)), elseExp)> ifElse'
-         then if <?None()> elseExp
+         then if <?ExpressionPlusType(Null(), _)> elseExp
               then type' := type1
               else type' := <?ExpressionPlusType(_, type2); !(type1, type2); get-union-type(|metadata) <+ !UnknownType()> elseExp
               end
