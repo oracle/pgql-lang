@@ -143,7 +143,7 @@ rules // Unresolved/duplicate variables
     with group-variables := <filter(get-group-variable-from-select-star)> expAsVars
        ; <map(generate-error(|ctx, $[Cannot select all variables since [<id>] is a group variable but group variables cannot be selected]))> group-variables
 
-  get-group-variable-from-select-star = ?ExpAsVar(VarRef(Identifier(<id>, _)), _, _, _); ?v; origin-text; ?"*"; !v
+  get-group-variable-from-select-star = ?ExpAsVar(ExpressionPlusType(VarRef(Identifier(<id>, _)), _), _, _, _); ?v; origin-text; ?"*"; !v
 
 rules // in-lined constraints
 
@@ -379,7 +379,7 @@ rules // IN predicate and CASE expression
     where [x|xs] := valueExpressions
         ; <?ExpressionPlusType(_, Type(t2))> := x
     with // check that type of expression on left-hand of IN is compatible with expression of list elements
-         if <?ExpressionPlusType(_, Type(t1)); !t1; debug; not(same-type(|x, metadata)); debug> exp
+         if <?ExpressionPlusType(_, Type(t1)); !t1; not(same-type(|x, metadata))> exp
          then <generate-error(|ctx, $[The IN predicate is undefined for left-hand operand type [t1] and list value type [t2]])> inPredicate
          end
 
