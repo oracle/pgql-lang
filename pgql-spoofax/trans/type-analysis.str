@@ -263,7 +263,7 @@ rules // unary expressions and aggregates
          end
        ; aggregation' := <origin-track-forced(!(operation, args); mkterm)> aggregation
 
-  add-type(|metadata, variablesPlusTypes, constraints) = ?COUNT(_, _); !ExpressionPlusType(<id>, <get-default-long-integer-type(|metadata)>)
+  add-type(|metadata, variablesPlusTypes, constraints) = ?COUNT(_, _); add-types-to-subterms(|metadata, variablesPlusTypes, constraints); !ExpressionPlusType(<id>, <get-default-long-integer-type(|metadata)>)
 
 rules // other expressions
 
