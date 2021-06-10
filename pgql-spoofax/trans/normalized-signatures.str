@@ -110,4 +110,7 @@ signature constructors // for type anslysis (see trans/type-analysis.str)
   UnknownType        : Type
 
   AmbiguousType      : Type
-  
+
+  VertexLabels       : List(Label) -> VertexLabels
+
+  EdgeLabels         : List(Label) -> EdgeLabels

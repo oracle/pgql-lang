@@ -9,7 +9,6 @@ import java.io.IOException;
 import java.io.OutputStream;
 import java.io.UnsupportedEncodingException;
 import java.net.URL;
-import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.HashSet;
@@ -46,12 +45,9 @@ import org.metaborg.spoofax.core.unit.ISpoofaxParseUnit;
 import org.metaborg.util.concurrent.IClosableLock;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.spoofax.interpreter.terms.IStrategoAppl;
 import org.spoofax.interpreter.terms.IStrategoInt;
 import org.spoofax.interpreter.terms.IStrategoString;
 import org.spoofax.interpreter.terms.IStrategoTerm;
-import org.spoofax.interpreter.terms.TermType;
-import org.spoofax.terms.TermVisitor;
 
 import com.google.common.collect.Lists;
 
@@ -59,14 +55,12 @@ import oracle.pgql.lang.completion.PgqlCompletionGenerator;
 import oracle.pgql.lang.editor.completion.PgqlCompletion;
 import oracle.pgql.lang.editor.completion.PgqlCompletionContext;
 import oracle.pgql.lang.ir.PgqlStatement;
-import oracle.pgql.lang.ir.SchemaQualifiedName;
 import oracle.pgql.lang.ir.StatementType;
 import oracle.pgql.lang.metadata.AbstractMetadataProvider;
-import oracle.pgql.lang.metadata.ModifiedParseUnit;
 
 import static oracle.pgql.lang.CheckInvalidJavaComment.checkInvalidJavaComment;
-import static oracle.pgql.lang.CommonTranslationUtil.getString;
-import static oracle.pgql.lang.CommonTranslationUtil.isSome;
+import static oracle.pgql.lang.MetadataToAstUtil.addMetadata;
+import static oracle.pgql.lang.MetadataToAstUtil.removeMetadata;
 
 public class Pgql implements Closeable {
 
@@ -86,13 +80,9 @@ public class Pgql implements Closeable {
 
   private static final String SPOOFAX_BINARIES = "pgql.spoofax-language";
 
-  private static final int POS_AST_PLUS_METADATA_AST_EXPRESSIONS = 0;
-
   private static final int POS_PGQL_VERSION = 9;
 
   private static final int POS_BIND_VARIABLE_COUNT = 10;
-
-  private static final String AST_PLUS_METADATA_CONSTRUCTOR_NAME = "AstPlusMetadata";
 
   private static final PgqlVersion LATEST_VERSION = PgqlVersion.V_1_3_OR_UP;
 
@@ -181,7 +171,7 @@ public class Pgql implements Closeable {
         }
       });
 
-      parseInternal("SELECT * FROM MATCH (initQuery)"); // make Spoofax initialize the language
+      parseInternal("SELECT * FROM MATCH (initQuery)", null); // make Spoofax initialize the language
     } catch (MetaborgException | IOException e) {
       throw new PgqlException("Failed to initialize PGQL", e);
     }
@@ -216,7 +206,7 @@ public class Pgql implements Closeable {
   public PgqlResult parse(String queryString, AbstractMetadataProvider metadataProvider) throws PgqlException {
     synchronized (lock) {
       checkInitialized();
-      return parseInternal(queryString);
+      return parseInternal(queryString, metadataProvider);
     }
   }
 
@@ -226,7 +216,7 @@ public class Pgql implements Closeable {
     }
   }
 
-  private PgqlResult parseInternal(String queryString) throws PgqlException {
+  private PgqlResult parseInternal(String queryString, AbstractMetadataProvider metadataProvider) throws PgqlException {
     if (queryString.equals("")) {
       String error = "Empty query string";
       return new PgqlResult(queryString, false, error, null, null, LATEST_VERSION, 0);
@@ -253,7 +243,7 @@ public class Pgql implements Closeable {
 
       context = spoofax.contextService.getTemporary(dummyFile, dummyProject, pgqlLang);
 
-      ISpoofaxParseUnit extendedParseUnit = addMetadata(parseResult);
+      ISpoofaxParseUnit extendedParseUnit = addMetadata(parseResult, metadataProvider, spoofax.termFactory);
 
       ISpoofaxAnalyzeUnit analysisResult = null;
       try (IClosableLock lock = context.write()) {
@@ -301,70 +291,6 @@ public class Pgql implements Closeable {
         context.close();
       }
       quietlyDelete(dummyFile);
-    }
-  }
-
-  private ISpoofaxParseUnit addMetadata(ISpoofaxParseUnit parseResult) {
-    if (!((IStrategoAppl) parseResult.ast()).getConstructor().getName().equals("Query")) {
-      // for DDL statements and other non-query statement, we don't add metadata
-      return parseResult;
-    }
-
-    List<SchemaQualifiedName> graphNames = extractGraphNames(parseResult.ast());
-    SchemaQualifiedName graphName = null;
-    if (graphNames.size() == 1) { // multiple graph references in single query are currently not supported; we already
-                                  // generate an error for that during analysis
-      graphName = graphNames.get(0);
-    }
-
-    IStrategoAppl metadataExtendedAst = spoofax.termFactory.makeAppl(AST_PLUS_METADATA_CONSTRUCTOR_NAME,
-        parseResult.ast(), spoofax.termFactory.makeAppl("None"));
-    ISpoofaxParseUnit extendedParseUnit = new ModifiedParseUnit(parseResult, metadataExtendedAst);
-    return extendedParseUnit;
-  }
-
-  private IStrategoTerm removeMetadata(ISpoofaxAnalyzeUnit analysisResult) {
-    IStrategoTerm analyizedAst;
-    if (((IStrategoAppl) analysisResult.ast()).getConstructor().getName().equals(AST_PLUS_METADATA_CONSTRUCTOR_NAME)) {
-      analyizedAst = analysisResult.ast().getSubterm(POS_AST_PLUS_METADATA_AST_EXPRESSIONS);
-    } else {
-      analyizedAst = analysisResult.ast();
-    }
-    return analyizedAst;
-  }
-
-  private List<SchemaQualifiedName> extractGraphNames(IStrategoTerm ast) {
-
-    final List<SchemaQualifiedName> graphNames = new ArrayList<>();
-
-    new TermVisitor() {
-
-      @Override
-      public void preVisit(IStrategoTerm t) {
-        if (t.getType() == TermType.APPL && ((IStrategoAppl) t).getConstructor().getName().equals("OnClause")) {
-          IStrategoTerm nameT = t.getSubterm(0);
-          IStrategoTerm schemaNameT = nameT.getSubterm(0);
-          String schemaName = isSome(schemaNameT) ? identifierToString(schemaNameT.getSubterm(0).getSubterm(0)) : null;
-          String localName = identifierToString(nameT.getSubterm(1));
-          graphNames.add(new SchemaQualifiedName(schemaName, localName));
-        }
-      }
-
-    }.visit(ast);
-
-    return graphNames;
-  }
-
-  private String identifierToString(IStrategoTerm t) {
-    String constructorName = ((IStrategoAppl) t).getConstructor().getName();
-    String identifier = getString(t);
-    switch (constructorName) {
-      case "RegularIdentifier":
-        return identifier.toUpperCase();
-      case "DelimitedIdentifier":
-        return identifier.substring(1, identifier.length() - 2).replaceAll("\"\"", "\"");
-      default:
-        throw new IllegalStateException("Unsupported identifier type: " + constructorName);
     }
   }
 

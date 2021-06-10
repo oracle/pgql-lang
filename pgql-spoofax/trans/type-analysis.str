@@ -311,8 +311,8 @@ rules // other expressions
       ; <?SimpleCase(_, _, _, ExpressionPlusType(_, type'))> simpleCase'
 
 
-  get-vertex-labels(|metadata) = !None()
-  get-edge-labels(|metadata) = !None()
+  get-vertex-labels(|metadata) = !metadata; fetch-elem(?VertexLabels(<id>)); map(?Label(<id>)) <+ !None()
+  get-edge-labels(|metadata) = !metadata; fetch-elem(?EdgeLabels(<id>)); map(?Label(<id>)) <+ !None()
 
   get-vertex-property-type(|metadata) = !UnknownType()
   get-edge-property-type(|metadata) = !UnknownType()

@@ -45,7 +45,7 @@ rules
     where <not(is-ddl-statement)> astPlusMetadata
     with
       ast := <try(?AstPlusMetadata(<id>, _))> astPlusMetadata; // AST does not always come with metadata
-      metadata := [];
+      metadata := <?AstPlusMetadata(_, <id>) <+ ![]> astPlusMetadata;
       variable-counter := <new-counter>;
       bindVariable-counter := <new-counter>;
       error-messages := <
