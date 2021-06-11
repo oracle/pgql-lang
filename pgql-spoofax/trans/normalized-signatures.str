@@ -114,3 +114,7 @@ signature constructors // for type anslysis (see trans/type-analysis.str)
   VertexLabels       : List(Label) -> VertexLabels
 
   EdgeLabels         : List(Label) -> EdgeLabels
+
+  Label              : STRING * List(Property) -> Label
+
+  Property           : STRING * Type -> Property

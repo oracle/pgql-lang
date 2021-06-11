@@ -17,6 +17,8 @@ import org.spoofax.terms.TermVisitor;
 import oracle.pgql.lang.ir.SchemaQualifiedName;
 import oracle.pgql.lang.metadata.AbstractMetadataProvider;
 import oracle.pgql.lang.metadata.EdgeLabel;
+import oracle.pgql.lang.metadata.Label;
+import oracle.pgql.lang.metadata.Property;
 import oracle.pgql.lang.metadata.VertexLabel;
 
 public class MetadataToAstUtil {
@@ -48,14 +50,14 @@ public class MetadataToAstUtil {
 
       List<IStrategoTerm> vertexLabelTerms = new ArrayList<>();
       for (VertexLabel vertexLabel : metadataProvider.getGraphSchema().get().getVertexLabels()) {
-        vertexLabelTerms.add(f.makeAppl("Label", f.makeString(vertexLabel.getLabel())));
+        vertexLabelTerms.add(translateLabel(vertexLabel, f));
       }
       IStrategoAppl vertexLabelsTerm = f.makeAppl("VertexLabels", f.makeList(vertexLabelTerms));
       metadataTerm.add(vertexLabelsTerm);
-      
+
       List<IStrategoTerm> edgeLabelTerms = new ArrayList<>();
       for (EdgeLabel edgeLabel : metadataProvider.getGraphSchema().get().getEdgeLabels()) {
-        edgeLabelTerms.add(f.makeAppl("Label", f.makeString(edgeLabel.getLabel())));
+        edgeLabelTerms.add(translateLabel(edgeLabel, f));
       }
       IStrategoAppl edgeLabelsTerm = f.makeAppl("EdgeLabels", f.makeList(edgeLabelTerms));
       metadataTerm.add(edgeLabelsTerm);
@@ -66,6 +68,15 @@ public class MetadataToAstUtil {
     System.out.println(metadataTerm);
     ISpoofaxParseUnit extendedParseUnit = new ModifiedParseUnit(parseResult, metadataExtendedAst);
     return extendedParseUnit;
+  }
+
+  static IStrategoTerm translateLabel(Label label, ITermFactory f) {
+    List<IStrategoTerm> propertyTerms = new ArrayList<>();
+    for (Property property : label.getProperties()) {
+      propertyTerms.add(f.makeAppl("Property", f.makeString(property.getName()), f.makeString(property.getType())));
+    }
+
+    return f.makeAppl("Label", f.makeString(label.getLabel()), f.makeList(propertyTerms));
   }
 
   static IStrategoTerm removeMetadata(ISpoofaxAnalyzeUnit analysisResult) {

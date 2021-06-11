@@ -4,23 +4,30 @@
 package oracle.pgql.lang;
 
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
 
 import oracle.pgql.lang.metadata.AbstractMetadataProvider;
 import oracle.pgql.lang.metadata.EdgeLabel;
 import oracle.pgql.lang.metadata.GraphSchema;
+import oracle.pgql.lang.metadata.Property;
 import oracle.pgql.lang.metadata.VertexLabel;
 
 public class ExampleMetadataProvider extends AbstractMetadataProvider {
 
   public Optional<GraphSchema> getGraphSchema() {
     List<VertexLabel> vertexLabels = new ArrayList<>();
+
+    List<Property> personProperties = new ArrayList<>();
+    personProperties.add(new Property("firstName", "STRING"));
+    personProperties.add(new Property("dob", "DATE"));
+    vertexLabels.add(new VertexLabel("Person", personProperties));
+
     List<EdgeLabel> edgeLabels = new ArrayList<>();
 
-    vertexLabels.add(new VertexLabel("Person", Collections.emptyList()));
-    edgeLabels.add(new EdgeLabel("knows", Collections.emptyList()));
+    List<Property> knowsProperties = new ArrayList<>();
+    knowsProperties.add(new Property("since", "DATE"));
+    edgeLabels.add(new EdgeLabel("knows", knowsProperties));
 
     GraphSchema graphSchema = new GraphSchema(vertexLabels, edgeLabels);
     return Optional.of(graphSchema);

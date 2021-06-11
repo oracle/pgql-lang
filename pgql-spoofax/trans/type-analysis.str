@@ -311,11 +311,20 @@ rules // other expressions
       ; <?SimpleCase(_, _, _, ExpressionPlusType(_, type'))> simpleCase'
 
 
-  get-vertex-labels(|metadata) = !metadata; fetch-elem(?VertexLabels(<id>)); map(?Label(<id>)) <+ !None()
-  get-edge-labels(|metadata) = !metadata; fetch-elem(?EdgeLabels(<id>)); map(?Label(<id>)) <+ !None()
+  get-vertex-labels(|metadata) = !metadata; fetch-elem(?VertexLabels(<id>)); map(?Label(<id>, _)) <+ !None()
+  get-edge-labels(|metadata) = !metadata; fetch-elem(?EdgeLabels(<id>)); map(?Label(<id>, _)) <+ !None()
 
-  get-vertex-property-type(|metadata) = !UnknownType()
-  get-edge-property-type(|metadata) = !UnknownType()
+  get-vertex-property-type(|metadata) = get-property-type(?VertexLabels(<id>)|metadata)
+
+  get-edge-property-type(|metadata) = get-property-type(?EdgeLabels(<id>)|metadata)
+
+  get-property-type(labelsMatcher|metadata):
+    (labelReference, propName) -> type
+    with if labels := <fetch-elem(labelsMatcher)> metadata
+         then properties := <fetch-elem(?Label(labelReference, <id>)) <+ map(Label(upper-case, id)); fetch-elem(?Label(labelReference, <id>))> labels
+            ; type := <fetch-elem(?Property(propName, <id>)) <+ map(Property(upper-case, id)); fetch-elem(?Property(propName, <id>)) <+ !Undefined()> properties
+         else type := UnknownType() // no schema info known
+         end
 
   get-default-string-type(|metadata) = !UnknownType()
   get-default-short-integer-type(|metadata) = !UnknownType()
