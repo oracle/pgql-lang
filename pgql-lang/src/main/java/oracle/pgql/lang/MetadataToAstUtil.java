@@ -17,7 +17,6 @@ import org.spoofax.terms.TermVisitor;
 import oracle.pgql.lang.ir.SchemaQualifiedName;
 import oracle.pgql.lang.metadata.AbstractMetadataProvider;
 import oracle.pgql.lang.metadata.EdgeLabel;
-import oracle.pgql.lang.metadata.ModifiedParseUnit;
 import oracle.pgql.lang.metadata.VertexLabel;
 
 public class MetadataToAstUtil {

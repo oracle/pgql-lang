@@ -1,7 +1,7 @@
 /*
  * Copyright (C) 2013 - 2021 Oracle and/or its affiliates. All rights reserved.
  */
-package oracle.pgql.lang.metadata;
+package oracle.pgql.lang;
 
 import org.apache.commons.vfs2.FileObject;
 import org.metaborg.core.messages.IMessage;
