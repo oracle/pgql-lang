@@ -17,7 +17,8 @@ public class MetadataTest extends AbstractPgqlTest {
     result = pgql.parse("SELECT * FROM MATCH (n:\"Person\")", new ExampleMetadataProvider());
     assertTrue(result.isQueryValid());
 
-    // TODO: test case insensitive matching
+    // test case insensitive matching
+    result = pgql.parse("SELECT * FROM MATCH (n:Person)", new ExampleMetadataProvider());
   }
 
   @Test
@@ -28,6 +29,7 @@ public class MetadataTest extends AbstractPgqlTest {
     result = pgql.parse("SELECT * FROM MATCH () -[e:\"knows\"]-> ()", new ExampleMetadataProvider());
     assertTrue(result.isQueryValid());
 
-    // TODO: test case insensitive matching
+    // test case insensitive matching
+    result = pgql.parse("SELECT * FROM MATCH () -[e:knows]-> ()", new ExampleMetadataProvider());
   }
 }

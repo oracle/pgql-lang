@@ -537,7 +537,9 @@ rules // MODIFY
   get-unresolved-label(|varDefinitionOriginPositions, labels):
     FunctionCall(None(), "has_label", [ ExpressionPlusType(VarRef(_, originPosition), _), Identifier(labelReference, _) ]) -> labelReference
     where <elem> (originPosition, varDefinitionOriginPositions)
-        ; <not(elem)> (labelReference, labels)
+        ; <not(elem + elem-when-upper-cased)> (labelReference, labels)
+
+  elem-when-upper-cased = (id, map(upper-case)); elem
 
   nabl-constraint(|ctx):
     ExpressionPlusType(PropRef(_, Identifier(propName, _)), Undefined()) -> <fail>
