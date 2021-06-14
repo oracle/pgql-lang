@@ -321,8 +321,10 @@ rules // other expressions
   get-property-type(labelsMatcher|metadata):
     (labelReference, propName) -> type
     with if labels := <fetch-elem(labelsMatcher)> metadata
-         then properties := <fetch-elem(?Label(labelReference, <id>)) <+ map(Label(upper-case, id)); fetch-elem(?Label(labelReference, <id>))> labels
-            ; type := <fetch-elem(?Property(propName, <id>)) <+ map(Property(upper-case, id)); fetch-elem(?Property(propName, <id>)) <+ !Undefined()> properties
+         then if properties := <fetch-elem(?Label(labelReference, <id>)) <+ map(Label(upper-case, id)); fetch-elem(?Label(labelReference, <id>))> labels
+              then type := <fetch-elem(?Property(propName, <id>)) <+ map(Property(upper-case, id)); fetch-elem(?Property(propName, <id>)) <+ !Undefined()> properties
+              else type := Undefined() // label doesn't exist
+              end
          else type := UnknownType() // no schema info known
          end
 
@@ -332,8 +334,11 @@ rules // other expressions
   get-default-decimal-type(|metadata) = !UnknownType()
 
   get-operation-return-type(|metadata) = !UnknownType()
-  get-union-type(|metadata) = !UnknownType()
 
+  get-union-type(|metadata) = ?(Undefined(), <id>) + ?(<id>, Undefined())
+  get-union-type(|metadata) = (?(AmbiguousType(), _) + ?(_, AmbiguousType())); !AmbiguousType()
+  get-union-type(|metadata) = ?(x, x); !x
+  get-union-type(|metadata) = !UnknownType()
 
 /*
   get-default-string-type(|metadata) = !Type("STRING")
@@ -368,9 +373,6 @@ rules // other expressions
   get-vertex-property-type(|metadata) = !Undefined()
 
   get-edge-property-type(|metadata) = !Undefined()
-
-  get-union-type(|metadata) = ?(Undefined(), <id>) + ?(<id>, Undefined())
-  get-union-type(|metadata) = (?(AmbiguousType(), _) + ?(_, AmbiguousType())); !AmbiguousType()
 
   get-union-type(|metadata) = ?(Type("STRING"), Type("STRING")); !Type("STRING")
 

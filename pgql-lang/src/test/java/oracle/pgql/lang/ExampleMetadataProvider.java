@@ -23,11 +23,19 @@ public class ExampleMetadataProvider extends AbstractMetadataProvider {
     personProperties.add(new Property("dob", "DATE"));
     vertexLabels.add(new VertexLabel("Person", personProperties));
 
+    List<Property> universityProperties = new ArrayList<>();
+    universityProperties.add(new Property("name", "STRING"));
+    vertexLabels.add(new VertexLabel("University", universityProperties));
+
     List<EdgeLabel> edgeLabels = new ArrayList<>();
 
     List<Property> knowsProperties = new ArrayList<>();
     knowsProperties.add(new Property("since", "DATE"));
     edgeLabels.add(new EdgeLabel("knows", knowsProperties));
+
+    List<Property> studyAtProperties = new ArrayList<>();
+    studyAtProperties.add(new Property("since", "DATE"));
+    edgeLabels.add(new EdgeLabel("studyAt", studyAtProperties));
 
     GraphSchema graphSchema = new GraphSchema(vertexLabels, edgeLabels);
     return Optional.of(graphSchema);
