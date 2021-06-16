@@ -123,10 +123,7 @@ rules // property references
     labelExpression -> type
     where <is-string> labelExpression
     with labelReference := labelExpression
-       ; if <?Type("VERTEX")> elementType
-         then type := <get-vertex-property-type(|metadata)> (labelReference, propName)
-         else type := <get-edge-property-type(|metadata)> (labelReference, propName)
-         end
+       ; type := <get-property-type(|elementType, metadata)> (labelReference, propName)
 
   get-property-type-from-label-expression(|elementType, propName, metadata):
     LabelAnd(a, b) -> result
@@ -147,8 +144,15 @@ rules // property references
     with labels := <?Type("VERTEX"); get-vertex-labels(|metadata) <+ get-edge-labels(|metadata)> elementType
        ; if <?None()> labels
          then result := UnknownType()
-         else types := <map(!(<id>, propName); get-vertex-property-type(|metadata))> labels
+         else types := <map(!(<id>, propName); get-property-type(|elementType, metadata))> labels
             ; result := <foldl(get-union-type(|metadata))> (types, Undefined())
+         end
+
+  get-property-type(|elementType, metadata):
+    labelPlusPropName -> type
+    with if <?Type("VERTEX")> elementType
+         then type := <get-vertex-property-type(|metadata)> labelPlusPropName
+         else type := <get-edge-property-type(|metadata)> labelPlusPropName
          end
 
 rules // literals

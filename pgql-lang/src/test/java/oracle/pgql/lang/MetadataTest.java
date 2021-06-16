@@ -41,6 +41,9 @@ public class MetadataTest extends AbstractPgqlTest {
     result = pgql.parse("SELECT n.firstName FROM MATCH (n:Person)", new ExampleMetadataProvider());
     assertTrue(result.isQueryValid());
 
+    result = pgql.parse("SELECT n.firstName FROM MATCH (n)", new ExampleMetadataProvider());
+    assertTrue(result.isQueryValid());
+
     result = pgql.parse("SELECT n.firstNme FROM MATCH (n:Person)", new ExampleMetadataProvider());
     assertTrue(result.getErrorMessages().contains("Property does not exist for any of the labels"));
 
@@ -54,6 +57,9 @@ public class MetadataTest extends AbstractPgqlTest {
     assertTrue(result.getErrorMessages().contains("Property does not exist for any of the labels"));
 
     result = pgql.parse("SELECT e.since FROM MATCH () -[e:knows]-> ()", new ExampleMetadataProvider());
+    assertTrue(result.isQueryValid());
+
+    result = pgql.parse("SELECT e.since FROM MATCH () -[e]-> ()", new ExampleMetadataProvider());
     assertTrue(result.isQueryValid());
 
     result = pgql.parse("SELECT e.xyz FROM MATCH () -[e:knows]-> ()", new ExampleMetadataProvider());
