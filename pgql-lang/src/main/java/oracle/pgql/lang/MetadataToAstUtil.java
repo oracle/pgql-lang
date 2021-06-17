@@ -4,7 +4,10 @@ import static oracle.pgql.lang.CommonTranslationUtil.getString;
 import static oracle.pgql.lang.CommonTranslationUtil.isSome;
 
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Optional;
+import java.util.Set;
 
 import org.metaborg.spoofax.core.unit.ISpoofaxAnalyzeUnit;
 import org.metaborg.spoofax.core.unit.ISpoofaxParseUnit;
@@ -17,6 +20,7 @@ import org.spoofax.terms.TermVisitor;
 import oracle.pgql.lang.ir.SchemaQualifiedName;
 import oracle.pgql.lang.metadata.AbstractMetadataProvider;
 import oracle.pgql.lang.metadata.EdgeLabel;
+import oracle.pgql.lang.metadata.GraphSchema;
 import oracle.pgql.lang.metadata.Label;
 import oracle.pgql.lang.metadata.Property;
 import oracle.pgql.lang.metadata.VertexLabel;
@@ -38,25 +42,31 @@ public class MetadataToAstUtil {
       return parseResult;
     }
 
-    List<SchemaQualifiedName> graphNames = extractGraphNames(parseResult.ast());
-    SchemaQualifiedName graphName = null;
-    if (graphNames.size() == 1) { // multiple graph references in single query are currently not supported; we already
-                                  // generate an error for that during analysis
-      graphName = graphNames.get(0);
+    Set<SchemaQualifiedName> graphNames = extractGraphNames(parseResult.ast());
+    Optional<GraphSchema> graphSchema;
+    if (graphNames.size() > 1) {
+      // multiple graph references in single query are currently not supported
+      // we already generate an error for that during analysis so we can just return here
+      return parseResult;
+    } else if (graphNames.size() == 1) {
+      SchemaQualifiedName graphName = graphNames.iterator().next();
+      graphSchema = metadataProvider.getGraphSchema(graphName);
+    } else {
+      graphSchema = metadataProvider.getGraphSchema();
     }
 
     List<IStrategoTerm> metadataTerm = new ArrayList<>();
-    if (metadataProvider.getGraphSchema().isPresent()) {
+    if (graphSchema.isPresent()) {
 
       List<IStrategoTerm> vertexLabelTerms = new ArrayList<>();
-      for (VertexLabel vertexLabel : metadataProvider.getGraphSchema().get().getVertexLabels()) {
+      for (VertexLabel vertexLabel : graphSchema.get().getVertexLabels()) {
         vertexLabelTerms.add(translateLabel(vertexLabel, f));
       }
       IStrategoAppl vertexLabelsTerm = f.makeAppl("VertexLabels", f.makeList(vertexLabelTerms));
       metadataTerm.add(vertexLabelsTerm);
 
       List<IStrategoTerm> edgeLabelTerms = new ArrayList<>();
-      for (EdgeLabel edgeLabel : metadataProvider.getGraphSchema().get().getEdgeLabels()) {
+      for (EdgeLabel edgeLabel : graphSchema.get().getEdgeLabels()) {
         edgeLabelTerms.add(translateLabel(edgeLabel, f));
       }
       IStrategoAppl edgeLabelsTerm = f.makeAppl("EdgeLabels", f.makeList(edgeLabelTerms));
@@ -89,9 +99,9 @@ public class MetadataToAstUtil {
     return analyizedAst;
   }
 
-  static List<SchemaQualifiedName> extractGraphNames(IStrategoTerm ast) {
+  static Set<SchemaQualifiedName> extractGraphNames(IStrategoTerm ast) {
 
-    final List<SchemaQualifiedName> graphNames = new ArrayList<>();
+    final Set<SchemaQualifiedName> graphNames = new HashSet<>();
 
     new TermVisitor() {
 
@@ -118,7 +128,7 @@ public class MetadataToAstUtil {
       case "RegularIdentifier":
         return identifier.toUpperCase();
       case "DelimitedIdentifier":
-        return identifier.substring(1, identifier.length() - 2).replaceAll("\"\"", "\"");
+        return identifier.substring(1, identifier.length() - 1).replaceAll("\"\"", "\"");
       default:
         throw new IllegalStateException("Unsupported identifier type: " + constructorName);
     }

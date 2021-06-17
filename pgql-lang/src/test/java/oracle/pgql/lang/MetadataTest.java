@@ -83,4 +83,29 @@ public class MetadataTest extends AbstractPgqlTest {
     result = pgql.parse("SELECT e.since FROM MATCH () -[e:knows|studyAt]-> ()", new ExampleMetadataProvider());
     assertTrue(result.isQueryValid());
   }
+
+  @Test
+  public void testUserDefinedGraphName() throws Exception {
+    PgqlResult result = pgql.parse(//
+        "SELECT p.name, a.number, c.name AS company, t.amount " //
+            + "FROM MATCH (p:Person) -[:owner]-> (a:Account) -[t:transaction]-> (b:Account) ON financialNetwork, " //
+            + "MATCH (p:Person) -[:worksFor]-> (c:Company) ON financialNetwork",
+        new ExampleMetadataProvider());
+
+    result = pgql.parse("SELECT * FROM MATCH (:notExists) ON financialNetwork", new ExampleMetadataProvider());
+    assertTrue(result.getErrorMessages().contains("Vertex label does not exist"));
+
+    result = pgql.parse("SELECT * FROM MATCH () -[:notExists]-> () ON financialNetwork", new ExampleMetadataProvider());
+    assertTrue(result.getErrorMessages().contains("Edge label does not exist"));
+
+    result = pgql.parse("SELECT * FROM MATCH (:notExists) ON \"financialNetwork\"", new ExampleMetadataProvider());
+    assertTrue(result.getErrorMessages().contains("Vertex label does not exist"));
+
+    result = pgql.parse("SELECT n.notExists FROM MATCH (n) ON financialNetwork", new ExampleMetadataProvider());
+    assertTrue(result.getErrorMessages().contains("Property does not exist for any of the labels"));
+
+    result = pgql.parse("SELECT e.notExists FROM MATCH () -[e]-> () ON \"financialNetwork\"",
+        new ExampleMetadataProvider());
+    assertTrue(result.getErrorMessages().contains("Property does not exist for any of the labels"));
+  }
 }
