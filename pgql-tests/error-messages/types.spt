@@ -10,7 +10,7 @@ test Illegal vertex/edge aggregation [[
        , [[SUM(n)]] AS sum1, [[SUM(e)]] AS sum2
        , [[ARRAY_AGG(n)]] AS array1, [[ARRAY_AGG(e)]] AS array2
        , [[LISTAGG(n)]] AS listagg1, [[LISTAGG(e)]] AS listagg2
-    FROM g MATCH (n) -[e]-> (m)
+    FROM MATCH (n) -[e]-> (m)
 
 ]] error like "The aggregate MIN is undefined for the argument type VERTEX" at #1
    error like "The aggregate MIN is undefined for the argument type EDGE" at #2

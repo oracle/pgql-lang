@@ -145,5 +145,119 @@ public class MetadataTest extends AbstractPgqlTest {
     assertTrue(result.getErrorMessages().contains("Vertex label does not exist"));
   }
 
-  // test PATH, GROUP BY, ORDER BY, HAVING, aggregations, subqueries, INSERT/UPDATE/DELETE
+  @Test
+  public void testTypeCheckingInPathMacro() throws Exception {
+    PgqlResult result = parse("PATH p AS (p:Person) -[study:studyAt]-> (:University) " //
+        + "WHERE p.firstName = 'Alice' AND study.since > DATE '2000-01-01'" //
+        + "SELECT COUNT(*) FROM MATCH () -/:p*/-> ()");
+    assertTrue(result.isQueryValid());
+
+    result = parse("PATH p AS (:University2) -> () SELECT COUNT(*) FROM MATCH () -/:p*/-> ()");
+    assertTrue(result.getErrorMessages().contains("Vertex label does not exist"));
+
+    result = parse("PATH p AS () -[:studyAt2]-> () SELECT COUNT(*) FROM MATCH () -/:p*/-> ()");
+    assertTrue(result.getErrorMessages().contains("Edge label does not exist"));
+
+    result = parse("PATH p AS (n) -[]-> () WHERE n.notExists = 3 SELECT COUNT(*) FROM MATCH () -/:p*/-> ()");
+    assertTrue(result.getErrorMessages().contains("Property does not exist for any of the labels"));
+
+    result = parse("PATH p AS () -[e]-> () WHERE e.notExists = 3 SELECT COUNT(*) FROM MATCH () -/:p*/-> ()");
+    assertTrue(result.getErrorMessages().contains("Property does not exist for any of the labels"));
+  }
+
+  @Test
+  public void testTypeCheckingForGroupVariables() throws Exception {
+    PgqlResult result = parse("SELECT MIN(x.firstName), MAX(e.since), MIN(x.dob) " //
+        + "FROM MATCH ANY SHORTEST (n) (" //
+        + "  (x) -[e]-> (y) WHERE x.dob > DATE '2000-01-01' AND e.since > DATE '2000-01-01' AND y.dob > DATE '2000-01-01'" //
+        + ")* (m)");
+    assertTrue(result.isQueryValid());
+
+    result = parse("SELECT MIN(x.firstName), MAX(e.since), MIN(x.dob) " //
+        + "FROM MATCH ALL (n) (" //
+        + "  (x:Person) -[e:knows]-> (y:Person) WHERE x.dob > DATE '2000-01-01' AND e.since > DATE '2000-01-01' AND y.dob > DATE '2000-01-01'" //
+        + "){1,4} (m)");
+    assertTrue(result.isQueryValid());
+
+    result = parse("SELECT MIN(x.firstName) " //
+        + "FROM MATCH ANY (n) (" //
+        + "  (x:Person2) -[e]-> (y)" //
+        + ")* (m)");
+    assertTrue(result.getErrorMessages().contains("Vertex label does not exist"));
+
+    result = parse("SELECT MIN(x.firstName) " //
+        + "FROM MATCH ANY SHORTEST (n) (" //
+        + "  (x) -[e:knows2]-> (y)" //
+        + ")* (m)");
+    assertTrue(result.getErrorMessages().contains("Edge label does not exist"));
+
+    result = parse("SELECT MIN(x.firstName2) " //
+        + "FROM MATCH ALL SHORTEST (n) (" //
+        + "  (x) -[e]-> (y)" //
+        + ")* (m)");
+    assertTrue(result.getErrorMessages().contains("Property does not exist for any of the labels"));
+
+    result = parse("SELECT MAX(e.since2) " //
+        + "FROM MATCH ANY SHORTEST (n) (" //
+        + "  (x) -[e]-> (y)" //
+        + ")* (m)");
+    assertTrue(result.getErrorMessages().contains("Property does not exist for any of the labels"));
+
+    result = parse("SELECT MIN(y.dob2) " //
+        + "FROM MATCH ANY SHORTEST (n) (" //
+        + "  (x) -[e]-> (y)" //
+        + ")* (m)");
+    assertTrue(result.getErrorMessages().contains("Property does not exist for any of the labels"));
+
+    result = parse("SELECT 123 " //
+        + "FROM MATCH ANY SHORTEST (n) (" //
+        + "  (x:Person) -[e]-> (y) WHERE x.name > 'a'" //
+        + ")* (m)");
+    assertTrue(result.getErrorMessages().contains("Property does not exist for any of the labels"));
+
+    result = parse("SELECT 123 " //
+        + "FROM MATCH ANY SHORTEST (n) (" //
+        + "  (x) -[e:knows]-> (y) WHERE x.studyAt > DATE '2000-01-01'" //
+        + ")* (m)");
+    assertTrue(result.getErrorMessages().contains("Property does not exist for any of the labels"));
+
+    result = parse("SELECT 123 " //
+        + "FROM MATCH ANY CHEAPEST (n) (" //
+        + "  (x) -[e:knows]-> (y) COST x.studyAt > DATE '2000-01-01'" //
+        + ")* (m)");
+    assertTrue(result.getErrorMessages().contains("Property does not exist for any of the labels"));
+  }
+
+  @Test
+  public void testPropertyAccessInWhereGroupByHavingOrderByAggregation() throws Exception {
+    PgqlResult result = parse("SELECT 1 FROM MATCH (u:University) WHERE u.firstName = 'Jack'");
+    assertTrue(result.getErrorMessages().contains("Property does not exist for any of the labels"));
+
+    result = parse("SELECT 1 FROM MATCH (u:University) GROUP BY u.firstName");
+    assertTrue(result.getErrorMessages().contains("Property does not exist for any of the labels"));
+
+    result = parse("SELECT u.firstName FROM MATCH (u:University) GROUP BY u");
+    assertTrue(result.getErrorMessages().contains("Property does not exist for any of the labels"));
+
+    result = parse("SELECT x.firstName FROM MATCH (u:University) GROUP BY u AS x");
+    assertTrue(result.getErrorMessages().contains("Property does not exist for any of the labels"));
+
+    result = parse("SELECT MIN(u.firstName) FROM MATCH (u:University)");
+    assertTrue(result.getErrorMessages().contains("Property does not exist for any of the labels"));
+
+    result = parse("SELECT MIN(u.firstName) FROM MATCH (u:University) GROUP BY u.name");
+    assertTrue(result.getErrorMessages().contains("Property does not exist for any of the labels"));
+
+    result = parse("SELECT 1 FROM MATCH (u:University) ORDER BY u.firstName");
+    assertTrue(result.getErrorMessages().contains("Property does not exist for any of the labels"));
+
+    result = parse("SELECT 1 FROM MATCH (u:University) GROUP BY u.name HAVING MIN(u.firstName) > ''");
+    assertTrue(result.getErrorMessages().contains("Property does not exist for any of the labels"));
+
+    result = parse("SELECT 1 FROM MATCH (u:University) GROUP BY u AS x HAVING x.dob > DATE '2000-01-01'");
+    assertTrue(result.getErrorMessages().contains("Property does not exist for any of the labels"));
+
+    result = parse("SELECT x AS y FROM MATCH (u:University) GROUP BY u AS x ORDER BY y.firstName");
+    assertTrue(result.getErrorMessages().contains("Property does not exist for any of the labels"));
+  }
 }
