@@ -2,6 +2,29 @@ module types
 
 language pgql-lang
 
+test Illegal vertex/edge aggregation [[
+
+  SELECT [[MIN(n)]] AS min1, [[MIN(e)]] AS min2
+       , [[MAX(n)]] AS max1, [[MAX(e)]] AS max2
+       , [[AVG(n)]] AS avg1, [[AVG(e)]] AS avg2
+       , [[SUM(n)]] AS sum1, [[SUM(e)]] AS sum2
+       , [[ARRAY_AGG(n)]] AS array1, [[ARRAY_AGG(e)]] AS array2
+       , [[LISTAGG(n)]] AS listagg1, [[LISTAGG(e)]] AS listagg2
+    FROM g MATCH (n) -[e]-> (m)
+
+]] error like "The aggregate MIN is undefined for the argument type VERTEX" at #1
+   error like "The aggregate MIN is undefined for the argument type EDGE" at #2
+   error like "The aggregate MAX is undefined for the argument type VERTEX" at #3
+   error like "The aggregate MAX is undefined for the argument type EDGE" at #4
+   error like "The aggregate AVG is undefined for the argument type VERTEX" at #5
+   error like "The aggregate AVG is undefined for the argument type EDGE" at #6
+   error like "The aggregate SUM is undefined for the argument type VERTEX" at #7
+   error like "The aggregate SUM is undefined for the argument type EDGE" at #8
+   error like "The aggregate ARRAY_AGG is undefined for the argument type VERTEX" at #9
+   error like "The aggregate ARRAY_AGG is undefined for the argument type EDGE" at #10
+   error like "The aggregate LISTAGG is undefined for the argument type VERTEX" at #11
+   error like "The aggregate LISTAGG is undefined for the argument type EDGE" at #12
+
 /* TODO: move to type system tests
 test Vertex/edge where boolean expected [[
 
@@ -60,18 +83,6 @@ test Illegal array comparison [[
     FROM g MATCH (n) -[e]-> (m)
 
 ]] error like "Comparison not allowed because no order is defined for arrays" at #1, #2, #3, #4
-
-test Illegal vertex/edge aggregation [[
-
-  SELECT MIN([[n]]) AS min1, MIN([[e]]) AS min2
-       , MAX([[n]]) AS max1, MAX([[e]]) AS max2
-       , AVG([[n]]) AS avg1, AVG([[e]]) AS avg2
-       , SUM([[n]]) AS sum1, SUM([[e]]) AS sum2
-       , ARRAY_AGG([[n]]) AS array1, ARRAY_AGG([[e]]) AS array2
-       , LISTAGG([[n]]) AS listagg1, LISTAGG([[e]]) AS listagg2
-    FROM g MATCH (n) -[e]-> (m)
-
-]] error like "Aggregate does not allow vertex or edge input" at #1, #2, #3, #4, #5, #6, #7, #8, #9, #10, #11, #12
 
 test Illegal array aggregation [[
 

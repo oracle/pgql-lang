@@ -257,7 +257,10 @@ rules // unary expressions and aggregates
        ; if <?AmbiguousType()> type
          then type' := UnknownType()
          else if <?Type(t)> type
-              then type' := <get-operation-return-type(|metadata)> (operation, t)
+              then if <?"VERTEX" + ?"EDGE"> t
+                   then type' := Undefined() // there are no aggregrations that support vertex/edge inputs
+                   else type' := <get-operation-return-type(|metadata)> (operation, t)
+                   end
               else type' := UnknownType()
               end
          end
