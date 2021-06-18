@@ -522,12 +522,12 @@ rules // MODIFY
   check-labels-common(|ctx, metadata):
     (term, vertices, edgesAndPaths, constraints) -> <id>
     with vertexDefinititions := <map(?Vertex(_, <id>, _))> vertices
-       ; edgeDefinititions := <filter(?Edge(_, _, _, _, <id>, _))> edgesAndPaths
        ; vertexLabels := <get-vertex-labels(|metadata)>
        ; if <not(?None())> vertexLabels
          then unresolvedVertexLabels := <collect(get-unresolved-label(|vertexDefinititions, vertexLabels))> term
             ; <batch-generate-error(|ctx, "Vertex label does not exist")> unresolvedVertexLabels
          end
+       ; edgeDefinititions := <filter(?Edge(_, _, _, _, <id>, _))> edgesAndPaths
        ; edgeLabels := <get-edge-labels(|metadata)>
        ; if <not(?None())> edgeLabels
          then unresolvedEdgeLabels := <collect(get-unresolved-label(|edgeDefinititions, edgeLabels))> term
@@ -537,7 +537,23 @@ rules // MODIFY
   get-unresolved-label(|varDefinitionOriginPositions, labels):
     FunctionCall(None(), "has_label", [ ExpressionPlusType(VarRef(_, originPosition), _), Identifier(labelReference, _) ]) -> labelReference
     where <elem> (originPosition, varDefinitionOriginPositions)
-        ; <not(elem + elem-when-upper-cased)> (labelReference, labels)
+        ; <not(label-exists(|labels))> labelReference
+
+  check-labels(|ctx, metadata):
+    VertexInsertion(_, _, Some(Labels(labels)), _) -> <fail>
+    where vertexLabels := <get-vertex-labels(|metadata); not(?None())>
+    with unresolvedVertexLabels := <map(?Identifier(<id>, _)); remove-all(label-exists(|vertexLabels))> labels
+       ; <batch-generate-error(|ctx, "Vertex label does not exist")> unresolvedVertexLabels
+
+  check-labels(|ctx, metadata):
+     DirectedEdgeInsertion(_, _, _, _, Some(Labels(labels)), _) -> <fail>
+     where edgeLabels := <get-edge-labels(|metadata); not(?None())>
+     with unresolvedEdgeLabels := <map(?Identifier(<id>, _)); remove-all(label-exists(|edgeLabels))> labels
+        ; <batch-generate-error(|ctx, "Edge label does not exist")> unresolvedEdgeLabels
+
+  label-exists(|labels):
+    labelReference -> <id>
+    where <elem + elem-when-upper-cased> (labelReference, labels)
 
   elem-when-upper-cased = (id, map(upper-case)); elem
 

@@ -107,12 +107,16 @@ public class MetadataToAstUtil {
 
       @Override
       public void preVisit(IStrategoTerm t) {
-        if (t.getType() == TermType.APPL && ((IStrategoAppl) t).getConstructor().getName().equals("OnClause")) {
-          IStrategoTerm nameT = t.getSubterm(0);
-          IStrategoTerm schemaNameT = nameT.getSubterm(0);
-          String schemaName = isSome(schemaNameT) ? identifierToString(schemaNameT.getSubterm(0).getSubterm(0)) : null;
-          String localName = identifierToString(nameT.getSubterm(1));
-          graphNames.add(new SchemaQualifiedName(schemaName, localName));
+        if (t.getType() == TermType.APPL) {
+          String constructor = ((IStrategoAppl) t).getConstructor().getName();
+          if (constructor.equals("OnClause") || constructor.equals("IntoClause")) {
+            IStrategoTerm nameT = t.getSubterm(0);
+            IStrategoTerm schemaNameT = nameT.getSubterm(0);
+            String schemaName = isSome(schemaNameT) ? identifierToString(schemaNameT.getSubterm(0).getSubterm(0))
+                : null;
+            String localName = identifierToString(nameT.getSubterm(1));
+            graphNames.add(new SchemaQualifiedName(schemaName, localName));
+          }
         }
       }
 

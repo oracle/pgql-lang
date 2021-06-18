@@ -327,7 +327,7 @@ rules // other expressions
     with if labels := <fetch-elem(labelsMatcher)> metadata
          then if properties := <fetch-elem(?Label(labelReference, <id>)) <+ map(Label(upper-case, id)); fetch-elem(?Label(labelReference, <id>))> labels
               then type := <fetch-elem(?Property(propName, <id>)) <+ map(Property(upper-case, id)); fetch-elem(?Property(propName, <id>)) <+ !Undefined()> properties
-              else type := Undefined() // label doesn't exist
+              else type := UnknownType() // label doesn't exist
               end
          else type := UnknownType() // no schema info known
          end
