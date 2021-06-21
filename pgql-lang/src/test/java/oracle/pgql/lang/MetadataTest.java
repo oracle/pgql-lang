@@ -260,4 +260,38 @@ public class MetadataTest extends AbstractPgqlTest {
     result = parse("SELECT x AS y FROM MATCH (u:University) GROUP BY u AS x ORDER BY y.firstName");
     assertTrue(result.getErrorMessages().contains("Property does not exist for any of the labels"));
   }
+  
+  @Test
+  public void testNonBooleanInWhereClause() throws Exception {
+    PgqlResult result = parse("SELECT * FROM MATCH (n) WHERE true");
+    assertTrue(result.isQueryValid());
+    
+    result = parse("SELECT * FROM MATCH (n) WHERE 1");
+    assertTrue(result.getErrorMessages().contains("WHERE clause expects a BOOLEAN expression"));
+    
+
+    result = parse("SELECT * FROM MATCH (n) WHERE 1.2");
+    assertTrue(result.getErrorMessages().contains("WHERE clause expects a BOOLEAN expression"));
+    
+
+    result = parse("SELECT * FROM MATCH (n) WHERE 'abc'");
+    assertTrue(result.getErrorMessages().contains("WHERE clause expects a BOOLEAN expression"));
+
+    result = parse("PATH p AS () -> () WHERE 1 SELECT * FROM MATCH (n)");
+    assertTrue(result.getErrorMessages().contains("WHERE clause expects a BOOLEAN expression"));
+    
+
+    result = parse("SELECT 1 FROM MATCH ANY (n) (-[e]-> WHERE 1)* (m)");
+    assertTrue(result.getErrorMessages().contains("WHERE clause expects a BOOLEAN expression"));
+  }
+  
+  @Test
+  public void testNonNumericInCostClause() throws Exception {
+    PgqlResult result = parse("SELECT 1 FROM MATCH ANY CHEAPEST (n) (-[e]-> COST 1)* (m)");
+    assertTrue(result.isQueryValid());
+
+    result = parse("SELECT 1 FROM MATCH ANY CHEAPEST (n) (-[e]-> COST true)* (m)");
+    System.out.println(result.getErrorMessages());
+    assertTrue(result.getErrorMessages().contains("COST clause expects a numeric expression"));
+  }
 }

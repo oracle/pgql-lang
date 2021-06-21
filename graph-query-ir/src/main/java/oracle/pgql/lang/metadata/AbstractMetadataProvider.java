@@ -134,10 +134,12 @@ public abstract class AbstractMetadataProvider {
    * 
    * - VARCHAR(10), VARCHAR(20) => VARCHAR(20)
    * 
+   * - LONG, DATE => null
+   * 
    * @param packageName
    * @param functionName
    * @param argumentTypes
-   * @return the union type of the two type
+   * @return the union type of the two type, or null if the types are incompatible
    */
   public Optional<String> getUnionType(String typeA, String typeB) {
     return Optional.empty();

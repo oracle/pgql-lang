@@ -9,6 +9,7 @@ import java.util.List;
 import java.util.Optional;
 import java.util.Set;
 
+import org.apache.commons.lang3.tuple.Pair;
 import org.metaborg.spoofax.core.unit.ISpoofaxAnalyzeUnit;
 import org.metaborg.spoofax.core.unit.ISpoofaxParseUnit;
 import org.spoofax.interpreter.terms.IStrategoAppl;
@@ -55,23 +56,64 @@ public class MetadataToAstUtil {
       graphSchema = metadataProvider.getGraphSchema();
     }
 
+    Set<String> allTypes = new HashSet<>();
+
     List<IStrategoTerm> metadataTerm = new ArrayList<>();
     if (graphSchema.isPresent()) {
 
       List<IStrategoTerm> vertexLabelTerms = new ArrayList<>();
       for (VertexLabel vertexLabel : graphSchema.get().getVertexLabels()) {
-        vertexLabelTerms.add(translateLabel(vertexLabel, f));
+        vertexLabelTerms.add(translateLabel(vertexLabel, f, allTypes));
       }
       IStrategoAppl vertexLabelsTerm = f.makeAppl("VertexLabels", f.makeList(vertexLabelTerms));
       metadataTerm.add(vertexLabelsTerm);
 
       List<IStrategoTerm> edgeLabelTerms = new ArrayList<>();
       for (EdgeLabel edgeLabel : graphSchema.get().getEdgeLabels()) {
-        edgeLabelTerms.add(translateLabel(edgeLabel, f));
+        edgeLabelTerms.add(translateLabel(edgeLabel, f, allTypes));
       }
       IStrategoAppl edgeLabelsTerm = f.makeAppl("EdgeLabels", f.makeList(edgeLabelTerms));
       metadataTerm.add(edgeLabelsTerm);
     }
+
+    if (metadataProvider.getDefaultStringType().isPresent()) {
+      String type = metadataProvider.getDefaultStringType().get();
+      IStrategoAppl defaultStringType = f.makeAppl("DefaultStringType", f.makeString(type));
+      metadataTerm.add(defaultStringType);
+      allTypes.add(type);
+    }
+
+    if (metadataProvider.getDefaultShortIntegerType().isPresent()) {
+      String type = metadataProvider.getDefaultShortIntegerType().get();
+      IStrategoAppl defaultShortIntegerType = f.makeAppl("DefaultShortIntegerType", f.makeString(type));
+      metadataTerm.add(defaultShortIntegerType);
+      allTypes.add(type);
+    }
+
+    if (metadataProvider.getDefaultLongIntegerType().isPresent()) {
+      String type = metadataProvider.getDefaultLongIntegerType().get();
+      IStrategoAppl defaultLongIntegerType = f.makeAppl("DefaultLongIntegerType", f.makeString(type));
+      metadataTerm.add(defaultLongIntegerType);
+      allTypes.add(type);
+    }
+
+    if (metadataProvider.getDefaultDecimalType().isPresent()) {
+      String type = metadataProvider.getDefaultDecimalType().get();
+      IStrategoAppl defaultDecimalType = f.makeAppl("DefaultDecimalType", f.makeString(type));
+      metadataTerm.add(defaultDecimalType);
+      allTypes.add(type);
+    }
+
+    allTypes.add("BOOLEAN");
+    allTypes.add("DATE");
+    allTypes.add("TIME");
+    allTypes.add("TIME WITH TIME ZONE");
+    allTypes.add("TIMESTAMP");
+    allTypes.add("TIMESTAMP WITH TIME ZONE");
+
+    List<Pair<String, String>> allPairsOfTypes = getAllPairsOfTypes(allTypes);
+    IStrategoTerm unionCompatibleTypes = getUnionCompatibleTypes(allPairsOfTypes, metadataProvider, f);
+    metadataTerm.add(unionCompatibleTypes);
 
     IStrategoAppl metadataExtendedAst = f.makeAppl(AST_PLUS_METADATA_CONSTRUCTOR_NAME, parseResult.ast(),
         f.makeList(metadataTerm));
@@ -80,10 +122,11 @@ public class MetadataToAstUtil {
     return extendedParseUnit;
   }
 
-  static IStrategoTerm translateLabel(Label label, ITermFactory f) {
+  static IStrategoTerm translateLabel(Label label, ITermFactory f, Set<String> allTypes) {
     List<IStrategoTerm> propertyTerms = new ArrayList<>();
     for (Property property : label.getProperties()) {
       propertyTerms.add(f.makeAppl("Property", f.makeString(property.getName()), f.makeString(property.getType())));
+      allTypes.add(property.getType());
     }
 
     return f.makeAppl("Label", f.makeString(label.getLabel()), f.makeList(propertyTerms));
@@ -136,5 +179,37 @@ public class MetadataToAstUtil {
       default:
         throw new IllegalStateException("Unsupported identifier type: " + constructorName);
     }
+  }
+
+  private static List<Pair<String, String>> getAllPairsOfTypes(Set<String> allTypes) {
+    List<Pair<String, String>> result = new ArrayList<>();
+    for (String type1 : allTypes) {
+      for (String type2 : allTypes) {
+        if (!type1.equals(type2)) {
+          result.add(Pair.of(type1, type2));
+        }
+      }
+    }
+    return result;
+  }
+
+  private static IStrategoTerm getUnionCompatibleTypes(List<Pair<String, String>> allPairsOfTypes,
+      AbstractMetadataProvider metadataProvider, ITermFactory f) {
+    List<IStrategoTerm> unionTypes = new ArrayList<>();
+    for (Pair<String, String> pair : allPairsOfTypes) {
+      Optional<String> optionalUnionType = metadataProvider.getUnionType(pair.getLeft(), pair.getRight());
+      if (optionalUnionType == null) {
+        unionTypes.add(f.makeAppl("UnionType", f.makeString(pair.getLeft()), f.makeString(pair.getRight()),
+            f.makeAppl("Undefined")));
+      } else if (optionalUnionType.isPresent()) {
+        String unionType = optionalUnionType.get();
+        if (!unionType.isEmpty()) {
+          unionTypes.add(f.makeAppl("UnionType", f.makeString(pair.getLeft()), f.makeString(pair.getRight()),
+              f.makeString(unionType)));
+        }
+
+      }
+    }
+    return f.makeAppl("UnionTypes", f.makeList(unionTypes));
   }
 }

@@ -346,6 +346,11 @@ rules // CHEAPEST
     where not ( <?Cheapest()> pathFindingGoal )
     with <generate-error(|ctx, "COST clause only allowed in combination with CHEAPEST")> t
 
+  nabl-constraint(|ctx, metadata):
+    CostClause(ExpressionPlusType(exp, type)) -> <fail>
+    where <get-union-type(|metadata); ?Undefined()> (type, <get-default-decimal-type(|metadata)>)
+    with  <generate-error(|ctx, "COST clause expects a numeric expression")> exp
+
 rules // literals
 
   external is-valid-datetime(|)
@@ -370,11 +375,13 @@ rules // literals
     where <is-substring(!"\\\"")> identifier
     with <generate-error(|ctx, "Use \"\" instead of \\\" to escape a double quote")> t
 
+rules
+
+  nabl-constraint(|ctx) = ?AstPlusMetadata(_, metadata); alltd(nabl-constraint(|ctx, metadata)); fail
+
 rules // IN predicate and CASE expression
 
-  nabl-constraint(|ctx) = ?AstPlusMetadata(_, metadata); alltd(check-inPredicate(|ctx, metadata) + check-CaseExpression(|ctx, metadata)); fail
-
-  check-inPredicate(|ctx, metadata):
+  nabl-constraint(|ctx, metadata):
     inPredicate@InPredicate(exp, Array(valueExpressions)) -> <fail>
     where [x|xs] := valueExpressions
         ; <?ExpressionPlusType(_, Type(t2))> := x
@@ -398,7 +405,7 @@ rules // IN predicate and CASE expression
     where <not(?"BOOLEAN")> t
     with <generate-error(|ctx, "BOOLEAN expression expected")> exp
 
-  check-CaseExpression(|ctx, metadata):
+  nabl-constraint(|ctx, metadata):
    ExpressionPlusType(IfElse(_, ExpressionPlusType(_, type1@Type(t1)), ExpressionPlusType(elseExp, type2@Type(_))), Undefined()) -> <fail>
    where <get-union-type(|metadata); ?Undefined()> (type1, type2)
    with <generate-error(|ctx, <message-compatible-type-exepected> t1)> elseExp

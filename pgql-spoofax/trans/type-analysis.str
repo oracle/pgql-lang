@@ -335,17 +335,23 @@ rules // other expressions
          else type := UnknownType() // no schema info known
          end
 
-  get-default-string-type(|metadata) = !UnknownType()
-  get-default-short-integer-type(|metadata) = !UnknownType()
-  get-default-long-integer-type(|metadata) = !UnknownType()
-  get-default-decimal-type(|metadata) = !UnknownType()
+  get-default-string-type(|metadata) = !metadata; fetch-elem(?DefaultStringType(<id>); !Type(<id>)) <+ !UnknownType()
+  get-default-short-integer-type(|metadata) = !metadata; fetch-elem(?DefaultShortIntegerType(<id>); !Type(<id>)) <+ !UnknownType()
+  get-default-long-integer-type(|metadata) = !metadata; fetch-elem(?DefaultLongIntegerType(<id>); !Type(<id>)) <+ !UnknownType()
+  get-default-decimal-type(|metadata) = !metadata; fetch-elem(?DefaultDecimalType(<id>); !Type(<id>)) <+ !UnknownType()
 
   get-operation-return-type(|metadata) = !UnknownType()
 
-  get-union-type(|metadata) = ?(Undefined(), <id>) + ?(<id>, Undefined())
-  get-union-type(|metadata) = (?(AmbiguousType(), _) + ?(_, AmbiguousType())); !AmbiguousType()
-  get-union-type(|metadata) = ?(x, x); !x
-  get-union-type(|metadata) = !UnknownType()
+  get-union-type(|metadata) = ( ?(UnknownType(), _) + ?(_, UnknownType())
+                              + ?(AmbiguousType(), _) + ?(_, AmbiguousType())
+                              ); !UnknownType()
+                           <+ ?(Undefined(), <id>) + ?(<id>, Undefined())
+                           <+ ?(x, x); !x
+                           <+ ?(Type(t1), Type(t2));
+                              !metadata; fetch-elem(?UnionTypes(<id>));
+                              fetch-elem(?UnionType(t1, t2, <id>));
+                              (?Undefined() + is-string; !Type(<id>))
+                           <+ !UnknownType()
 
 /*
   get-default-string-type(|metadata) = !Type("STRING")

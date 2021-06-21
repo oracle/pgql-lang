@@ -95,26 +95,38 @@ signature constructors // for error checking (see trans/check.str)
 
 signature constructors // for type anslysis (see trans/type-analysis.str)
 
-  VariablePlusType   : OriginPosition * DereferencedOriginPosition * Type -> VariablePlusType
+  VariablePlusType        : OriginPosition * DereferencedOriginPosition * Type -> VariablePlusType
 
-  LabelOr            : STRING * STRING -> LabelOr
+  LabelOr                 : STRING * STRING -> LabelOr
 
-  LabelAnd           : STRING * STRING -> LabelAnd
+  LabelAnd                : STRING * STRING -> LabelAnd
 
-  ExpressionPlusType : Exp * Type -> ExpressionPlusType
+  ExpressionPlusType      : Exp * Type -> ExpressionPlusType
 
-  Type               : STRING -> Type
+  Type                    : STRING -> Type
 
-  Undefined          : Type // when the operation is undefined for the input types or the property does not exist
+  Undefined               : Type // when the operation is undefined for the input types or the property does not exist
 
-  UnknownType        : Type
+  UnknownType             : Type
 
-  AmbiguousType      : Type
+  AmbiguousType           : Type
 
-  VertexLabels       : List(Label) -> VertexLabels
+  VertexLabels            : List(Label) -> VertexLabels
 
-  EdgeLabels         : List(Label) -> EdgeLabels
+  EdgeLabels              : List(Label) -> EdgeLabels
 
-  Label              : STRING * List(Property) -> Label
+  Label                   : STRING * List(Property) -> Label
 
-  Property           : STRING * Type -> Property
+  Property                : STRING * Type -> Property
+
+  DefaultStringType       : STRING -> DefaultStringType
+
+  DefaultShortIntegerType : STRING -> DefaultShortIntegerType
+
+  DefaultLongIntegerType  : STRING -> DefaultLongIntegerType
+
+  DefaultDecimalType      : STRING -> DefaultDecimalType
+
+  UnionTypes              : List(UnionType) -> UnionTypes
+
+  UnionType               : STRING * STRING * STRING -> UnionType

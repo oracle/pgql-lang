@@ -79,4 +79,72 @@ public class ExampleMetadataProvider extends AbstractMetadataProvider {
     }
     return Optional.empty();
   }
+
+  @Override
+  public Optional<String> getDefaultStringType() {
+    return Optional.of("STRING");
+  }
+
+  @Override
+  public Optional<String> getDefaultShortIntegerType() {
+    return Optional.of("INTEGER");
+  }
+
+  @Override
+  public Optional<String> getDefaultLongIntegerType() {
+    return Optional.of("LONG");
+  }
+
+  @Override
+  public Optional<String> getDefaultDecimalType() {
+    return Optional.of("DOUBLE");
+  }
+
+  @Override
+  public Optional<String> getUnionType(String typeA, String typeB) {
+    switch (typeA) {
+      case "INTEGER":
+        switch (typeB) {
+          case "LONG":
+            return Optional.of("LONG");
+          case "DOUBLE":
+            return Optional.of("DOUBLE");
+          default:
+            return null; // incompatible types
+        }
+      case "LONG":
+        switch (typeB) {
+          case "INTEGER":
+            return Optional.of("LONG");
+          case "DOUBLE":
+            return Optional.of("DOUBLE");
+          default:
+            return null; // incompatible types
+        }
+      case "DOUBLE":
+        switch (typeB) {
+          case "INTEGER":
+          case "LONG":
+            return Optional.of("DOUBLE");
+          default:
+            return null; // incompatible types
+        }
+      case "TIME":
+        switch (typeB) {
+          case "TIME WITH TIME ZONE":
+            return Optional.of("TIME WITH TIME ZONE");
+          default:
+            return null; // incompatible types
+        }
+      case "TIME WITH TIME ZONE":
+        switch (typeB) {
+          case "TIME":
+            return Optional.of("TIME WITH TIME ZONE");
+          default:
+            return null; // incompatible types
+        }
+      default:
+        return null; // incompatible types
+    }
+  }
 }
