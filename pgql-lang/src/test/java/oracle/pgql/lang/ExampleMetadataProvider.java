@@ -24,10 +24,12 @@ public class ExampleMetadataProvider extends AbstractMetadataProvider {
     List<Property> personProperties = new ArrayList<>();
     personProperties.add(new Property("firstName", "STRING"));
     personProperties.add(new Property("dob", "DATE"));
+    personProperties.add(new Property("numericProp", "INTEGER"));
     vertexLabels.add(new VertexLabel("Person", personProperties));
 
     List<Property> universityProperties = new ArrayList<>();
     universityProperties.add(new Property("name", "STRING"));
+    universityProperties.add(new Property("numericProp", "DOUBLE"));
     vertexLabels.add(new VertexLabel("University", universityProperties));
 
     List<EdgeLabel> edgeLabels = new ArrayList<>();
@@ -140,6 +142,20 @@ public class ExampleMetadataProvider extends AbstractMetadataProvider {
         switch (typeB) {
           case "TIME":
             return Optional.of("TIME WITH TIME ZONE");
+          default:
+            return null; // incompatible types
+        }
+      case "TIMESTAMP":
+        switch (typeB) {
+          case "TIMESTAMP WITH TIME ZONE":
+            return Optional.of("TIMESTAMP WITH TIME ZONE");
+          default:
+            return null; // incompatible types
+        }
+      case "TIMESTAMP WITH TIME ZONE":
+        switch (typeB) {
+          case "TIMESTAMP":
+            return Optional.of("TIMESTAMP WITH TIME ZONE");
           default:
             return null; // incompatible types
         }

@@ -145,7 +145,7 @@ rules // property references
        ; if <?None()> labels
          then result := UnknownType()
          else types := <map(!(<id>, propName); get-property-type(|elementType, metadata))> labels
-            ; result := <foldl(get-union-type(|metadata))> (types, Undefined())
+            ; result := <debug; foldl(get-union-type(|metadata)); debug> (types, Undefined())
          end
 
   get-property-type(|elementType, metadata):
@@ -329,7 +329,7 @@ rules // other expressions
     (labelReference, propName) -> type
     with if labels := <fetch-elem(labelsMatcher)> metadata
          then if properties := <fetch-elem(?Label(labelReference, <id>)) <+ map(Label(upper-case, id)); fetch-elem(?Label(labelReference, <id>))> labels
-              then type := <fetch-elem(?Property(propName, <id>)) <+ map(Property(upper-case, id)); fetch-elem(?Property(propName, <id>)) <+ !Undefined()> properties
+              then type := <fetch-elem(?Property(propName, <id>)) <+ map(Property(upper-case, id)); fetch-elem(?Property(propName, <id>)); !Type(<id>) <+ !Undefined()> properties
               else type := UnknownType() // label doesn't exist
               end
          else type := UnknownType() // no schema info known
@@ -353,12 +353,12 @@ rules // other expressions
                               (?Undefined() + is-string; !Type(<id>))
                            <+ !UnknownType()
 
-/*
-  get-default-string-type(|metadata) = !Type("STRING")
-  get-default-short-integer-type(|metadata) = !Type("INTEGER")
-  get-default-long-integer-type(|metadata) = !Type("LONG")
-  get-default-decimal-type(|metadata) = !Type("DOUBLE")
+  is-compatible-type(|x, metadata):
+    ExpressionPlusType(_, type1) -> <id>
+    where ExpressionPlusType(_, type2) := x
+        ; <get-union-type(|metadata); not(?Undefined())> (type1, type2)
 
+/*
   get-count-aggregate-type(|metadata) = !Type("LONG")
 
   get-operation-return-type(|metadata) = ?("UMin", "INTEGER"); !Type("INTEGER")
@@ -372,27 +372,4 @@ rules // other expressions
   get-operation-return-type(|metadata) = ?("SUM", "INTEGER"); !Type("LONG")
 
   get-operation-return-type(|metadata) = !Undefined()
-
-  get-vertex-labels(|metadata) = !["PERSON", "COMPANY"]
-
-  get-edge-labels(|metadata) = !["KNOWS"]
-
-  get-vertex-property-type(|metadata) = ?("PERSON", "FIRSTNAME"); !Type("STRING")
-  get-vertex-property-type(|metadata) = ?("PERSON", "AGE"); !Type("INTEGER")
-  get-vertex-property-type(|metadata) = ?("COMPANY", "AGE"); !Type("DATE")
-
-  get-edge-property-type(|metadata) = ?("KNOWS", "SINCE"); !Type("DATE")
-
-  get-vertex-property-type(|metadata) = !Undefined()
-
-  get-edge-property-type(|metadata) = !Undefined()
-
-  get-union-type(|metadata) = ?(Type("STRING"), Type("STRING")); !Type("STRING")
-
-  get-union-type(|metadata) = ?(Type("INTEGER"), Type("INTEGER")); !Type("INTEGER")
-
-  get-union-type(|metadata) = ?(Type("INTEGER"), Type("DATE"));  !AmbiguousType()
-  get-union-type(|metadata) = ?(Type("DATE"), Type("INTEGER"));  !AmbiguousType()
-
-  get-union-type(|metadata)= !Undefined()
 */

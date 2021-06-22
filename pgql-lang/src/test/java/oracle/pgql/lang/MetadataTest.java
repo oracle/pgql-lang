@@ -260,38 +260,113 @@ public class MetadataTest extends AbstractPgqlTest {
     result = parse("SELECT x AS y FROM MATCH (u:University) GROUP BY u AS x ORDER BY y.firstName");
     assertTrue(result.getErrorMessages().contains("Property does not exist for any of the labels"));
   }
-  
+
   @Test
   public void testNonBooleanInWhereClause() throws Exception {
     PgqlResult result = parse("SELECT * FROM MATCH (n) WHERE true");
     assertTrue(result.isQueryValid());
-    
+
     result = parse("SELECT * FROM MATCH (n) WHERE 1");
     assertTrue(result.getErrorMessages().contains("WHERE clause expects a BOOLEAN expression"));
-    
 
     result = parse("SELECT * FROM MATCH (n) WHERE 1.2");
     assertTrue(result.getErrorMessages().contains("WHERE clause expects a BOOLEAN expression"));
-    
 
     result = parse("SELECT * FROM MATCH (n) WHERE 'abc'");
     assertTrue(result.getErrorMessages().contains("WHERE clause expects a BOOLEAN expression"));
 
     result = parse("PATH p AS () -> () WHERE 1 SELECT * FROM MATCH (n)");
     assertTrue(result.getErrorMessages().contains("WHERE clause expects a BOOLEAN expression"));
-    
 
     result = parse("SELECT 1 FROM MATCH ANY (n) (-[e]-> WHERE 1)* (m)");
     assertTrue(result.getErrorMessages().contains("WHERE clause expects a BOOLEAN expression"));
   }
-  
+
+  @Test
+  public void testNonBooleanInHavingClause() throws Exception {
+    PgqlResult result = parse("SELECT n.name FROM MATCH (n) GROUP BY n HAVING true");
+    assertTrue(result.isQueryValid());
+
+    result = parse("SELECT n.name  FROM MATCH (n) GROUP BY n HAVING 123");
+    assertTrue(result.getErrorMessages().contains("HAVING clause expects a BOOLEAN expression"));
+  }
+
   @Test
   public void testNonNumericInCostClause() throws Exception {
-    PgqlResult result = parse("SELECT 1 FROM MATCH ANY CHEAPEST (n) (-[e]-> COST 1)* (m)");
+    PgqlResult result = parse("SELECT 1 FROM MATCH ANY CHEAPEST (n) (-[e]-> COST 1.23)* (m)");
+    assertTrue(result.isQueryValid());
+
+    result = parse("SELECT 1 FROM MATCH ANY CHEAPEST (n) (-[e]-> COST 1)* (m)");
     assertTrue(result.isQueryValid());
 
     result = parse("SELECT 1 FROM MATCH ANY CHEAPEST (n) (-[e]-> COST true)* (m)");
-    System.out.println(result.getErrorMessages());
     assertTrue(result.getErrorMessages().contains("COST clause expects a numeric expression"));
+
+    result = parse("SELECT 1 FROM MATCH ANY CHEAPEST (n) (-[e]-> COST 'abc')* (m)");
+    assertTrue(result.getErrorMessages().contains("COST clause expects a numeric expression"));
+
+    result = parse("SELECT 1 FROM MATCH ANY CHEAPEST (n) (-[e]-> COST DATE '2000-01-01')* (m)");
+    assertTrue(result.getErrorMessages().contains("COST clause expects a numeric expression"));
+  }
+
+  @Test
+  public void testInPredicateAndUnionTyping() throws Exception {
+    // mix of LONG and DOUBLE
+    PgqlResult result = parse("SELECT 1 IN ( 1.0, 3, 1.2) FROM MATCH (n)");
+    assertTrue(result.isQueryValid());
+
+    // mix of INTEGER, LONG and DOUBLE
+    result = parse("SELECT 1 IN ( n.numericProp, 1.0, 3) FROM MATCH (n)");
+    assertTrue(result.isQueryValid());
+
+    // mix of INTEGER, LONG and DOUBLE
+    result = parse("SELECT n.numericProp IN ( 1, 1.0, 3) FROM MATCH (n)");
+    assertTrue(result.isQueryValid());
+
+    // mix of TIME WITH TTIME ZONE and TIME
+    result = parse("SELECT TIME '12:30:00+08:00' IN ( TIME '12:30:00' ) FROM MATCH (n)");
+    assertTrue(result.isQueryValid());
+
+    // mix of TIMESTAMP WITH TTIME ZONE and TIMESTAMP
+    result = parse(
+        "SELECT TIMESTAMP '2000-01-01 12:30:00+08:00' IN ( TIMESTAMP '2000-01-01 12:30:00' ) FROM MATCH (n)");
+    assertTrue(result.isQueryValid());
+
+    result = parse("SELECT 1 IN ( true ) FROM MATCH (n)");
+    assertTrue(result.getErrorMessages()
+        .contains("The IN predicate is undefined for left-hand operand type LONG and list value type BOOLEAN"));
+
+    result = parse("SELECT TIMESTAMP '2000-01-01 12:30:00+08:00' IN ( true ) FROM MATCH (n)");
+    assertTrue(result.getErrorMessages().contains(
+        "The IN predicate is undefined for left-hand operand type TIMESTAMP WITH TIME ZONE and list value type BOOLEAN"));
+
+    result = parse("SELECT TIMESTAMP '2000-01-01 12:30:00' IN ( DATE '2000-01-01' ) FROM MATCH (n)");
+    assertTrue(result.getErrorMessages()
+        .contains("The IN predicate is undefined for left-hand operand type TIMESTAMP and list value type DATE"));
+
+    result = parse("SELECT true IN ( true, DATE '2000-01-01' ) FROM MATCH (n)");
+    assertTrue(result.getErrorMessages().contains("Expression of a type compatible with BOOLEAN expected"));
+
+    result = parse("SELECT 123 IN ( 456, true ) FROM MATCH (n)");
+    assertTrue(result.getErrorMessages().contains("Expression of a type compatible with LONG expected"));
+
+    result = parse("SELECT 123 IN ( n.numericProp, true ) FROM MATCH (n)");
+    assertTrue(result.getErrorMessages().contains("Expression of a type compatible with DOUBLE expected"));
+
+    result = parse("SELECT 123 IN ( n.numericProp, true ) FROM MATCH (n:University)");
+    assertTrue(result.getErrorMessages().contains("Expression of a type compatible with DOUBLE expected"));
+
+    result = parse("SELECT 123 IN ( n.numericProp, true ) FROM MATCH (n:Person)");
+    assertTrue(result.getErrorMessages().contains("Expression of a type compatible with INTEGER expected"));
+
+    result = parse("SELECT n.dob IN ( n.dob, true ) FROM MATCH (n)");
+    assertTrue(result.getErrorMessages().contains("Expression of a type compatible with DATE expected"));
+
+    result = parse("SELECT n.dob IN ( DATE '2000-01-01', true ) FROM MATCH (n)");
+    assertTrue(result.getErrorMessages().contains("Expression of a type compatible with DATE expected"));
+
+    result = parse("SELECT 'abc' IN ( n.numericProp ) FROM MATCH (n)");
+    assertTrue(result.getErrorMessages()
+        .contains("The IN predicate is undefined for left-hand operand type STRING and list value type DOUBLE"));
   }
 }

@@ -386,17 +386,12 @@ rules // IN predicate and CASE expression
     where [x|xs] := valueExpressions
         ; <?ExpressionPlusType(_, Type(t2))> := x
     with // check that type of expression on left-hand of IN is compatible with expression of list elements
-         if <?ExpressionPlusType(_, Type(t1)); !t1; not(same-type(|x, metadata))> exp
+         if <?ExpressionPlusType(_, Type(t1)); not(is-compatible-type(|x, metadata))> exp
          then <generate-error(|ctx, $[The IN predicate is undefined for left-hand operand type [t1] and list value type [t2]])> inPredicate
          end
 
          // check that values in the list are of compatible type
-       ; <remove-all(same-type(|x, metadata)); batch-generate-error(|ctx, <message-compatible-type-exepected> t2)> xs
-
-  same-type(|x, metadata):
-    ExpressionPlusType(_, type1) -> <id>
-    where ExpressionPlusType(_, type2) := x
-        ; <eq <+ get-union-type(|metadata)> (type1, type2)
+       ; <remove-all(is-compatible-type(|x, metadata)); batch-generate-error(|ctx, <message-compatible-type-exepected> t2)> xs
 
   message-compatible-type-exepected = !$[Expression of a type compatible with [<id>] expected]
 
