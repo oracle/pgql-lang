@@ -144,7 +144,7 @@ rules // property references
     with labels := <?Type("VERTEX"); get-vertex-labels(|metadata) <+ get-edge-labels(|metadata)> elementType
        ; if <?None()> labels
          then result := UnknownType()
-         else types := <map(!(<id>, propName); get-property-type(|elementType, metadata))> labels
+         else types := <debug; map(!(<id>, propName); get-property-type(|elementType, metadata)); debug> labels
             ; result := <foldl(get-union-type(|metadata))> (types, Undefined())
          end
 
@@ -329,7 +329,7 @@ rules // other expressions
     (labelReference, propName) -> type
     with if labels := <fetch-elem(labelsMatcher)> metadata
          then if properties := <fetch-elem(?Label(labelReference, <id>)) <+ map(Label(upper-case, id)); fetch-elem(?Label(labelReference, <id>))> labels
-              then type := <fetch-elem(?Property(propName, <id>)) <+ map(Property(upper-case, id)); fetch-elem(?Property(propName, <id>)); !Type(<id>) <+ !Undefined()> properties
+              then type := <(fetch-elem(?Property(propName, <id>)) <+ map(Property(upper-case, id)); fetch-elem(?Property(propName, <id>))); !Type(<id>) <+ !Undefined()> properties
               else type := UnknownType() // label doesn't exist
               end
          else type := UnknownType() // no schema info known

@@ -38,10 +38,12 @@ public class ExampleMetadataProvider extends AbstractMetadataProvider {
 
     List<Property> knowsProperties = new ArrayList<>();
     knowsProperties.add(new Property("since", "DATE"));
+    knowsProperties.add(new Property("prop", "TIME"));
     edgeLabels.add(new EdgeLabel("knows", knowsProperties));
 
     List<Property> studyAtProperties = new ArrayList<>();
     studyAtProperties.add(new Property("since", "DATE"));
+    studyAtProperties.add(new Property("PROP", "TIME WITH TIME ZONE"));
     edgeLabels.add(new EdgeLabel("studyAt", studyAtProperties));
 
     GraphSchema graphSchema = new GraphSchema(vertexLabels, edgeLabels);

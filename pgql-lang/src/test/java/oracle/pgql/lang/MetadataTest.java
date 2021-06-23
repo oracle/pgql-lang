@@ -384,4 +384,21 @@ public class MetadataTest extends AbstractPgqlTest {
     result = parse("SELECT n.typeConflictProp FROM MATCH (n:University)");
     assertTrue(result.isQueryValid());
   }
+
+  @Test
+  public void testSamePropertyWhenUpperCased() throws Exception {
+    PgqlResult result = parse("SELECT e.prop FROM MATCH () -[e]-> ()");
+    assertTrue(result.isQueryValid());
+
+    result = parse("SELECT e.prop IN (1) FROM MATCH () -[e]-> ()");
+    assertTrue(result.getErrorMessages().contains(
+        "The IN predicate is undefined for left-hand operand type TIME WITH TIME ZONE and list value type LONG"));
+
+    result = parse("SELECT e.prop FROM MATCH () -[e:knows|studyAt]-> ()");
+    assertTrue(result.isQueryValid());
+
+    result = parse("SELECT e.prop IN (1) FROM MATCH () -[e]-> ()");
+    assertTrue(result.getErrorMessages().contains(
+        "The IN predicate is undefined for left-hand operand type TIME WITH TIME ZONE and list value type LONG"));
+  }
 }
