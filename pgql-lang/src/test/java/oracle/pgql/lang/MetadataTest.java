@@ -369,4 +369,19 @@ public class MetadataTest extends AbstractPgqlTest {
     assertTrue(result.getErrorMessages()
         .contains("The IN predicate is undefined for left-hand operand type STRING and list value type DOUBLE"));
   }
+
+  @Test
+  public void testAmbiguousPropertyType() throws Exception {
+    PgqlResult result = parse("SELECT n.typeConflictProp FROM MATCH (n)");
+    assertTrue(result.getErrorMessages().contains("Property has incompatible types for different labels"));
+
+    result = parse("SELECT n.typeConflictProp FROM MATCH (n:Person|University)");
+    assertTrue(result.getErrorMessages().contains("Property has incompatible types for different labels"));
+
+    result = parse("SELECT n.typeConflictProp FROM MATCH (n:Person)");
+    assertTrue(result.isQueryValid());
+
+    result = parse("SELECT n.typeConflictProp FROM MATCH (n:University)");
+    assertTrue(result.isQueryValid());
+  }
 }

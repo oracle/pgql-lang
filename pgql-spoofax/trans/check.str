@@ -348,7 +348,7 @@ rules // CHEAPEST
 
   nabl-constraint(|ctx, metadata):
     CostClause(ExpressionPlusType(exp, type)) -> <fail>
-    where <get-union-type(|metadata); ?Undefined()> (type, <get-default-decimal-type(|metadata)>)
+    where <get-union-type(|metadata); ?AmbiguousType()> (type, <get-default-decimal-type(|metadata)>)
     with  <generate-error(|ctx, "COST clause expects a numeric expression")> exp
 
 rules // literals
@@ -562,6 +562,10 @@ rules // MODIFY
   nabl-constraint(|ctx):
     ExpressionPlusType(PropRef(_, Identifier(propName, _)), Undefined()) -> <fail>
     with <generate-error(|ctx, $[Property does not exist for any of the labels])> propName
+
+  nabl-constraint(|ctx):
+    ExpressionPlusType(PropRef(_, Identifier(propName, _)), AmbiguousType()) -> <fail>
+    with <generate-error(|ctx, $[Property has incompatible types for different labels])> propName
 
   nabl-constraint(|ctx):
     ExpressionPlusType(PropRef(_, Identifier(propName, _)), AmbiguousType()) -> <fail>

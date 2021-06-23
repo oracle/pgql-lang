@@ -145,7 +145,7 @@ rules // property references
        ; if <?None()> labels
          then result := UnknownType()
          else types := <map(!(<id>, propName); get-property-type(|elementType, metadata))> labels
-            ; result := <debug; foldl(get-union-type(|metadata)); debug> (types, Undefined())
+            ; result := <foldl(get-union-type(|metadata))> (types, Undefined())
          end
 
   get-property-type(|elementType, metadata):
@@ -342,21 +342,24 @@ rules // other expressions
 
   get-operation-return-type(|metadata) = !UnknownType()
 
-  get-union-type(|metadata) = ( ?(UnknownType(), _) + ?(_, UnknownType())
-                              + ?(AmbiguousType(), _) + ?(_, AmbiguousType())
-                              ); !UnknownType()
+  get-union-type(|metadata) = (?(AmbiguousType(), _) + ?(_, AmbiguousType())); !AmbiguousType()
+                           <+ (?(UnknownType(), _) + ?(_, UnknownType())); !UnknownType()
                            <+ ?(Undefined(), <id>) + ?(<id>, Undefined())
                            <+ ?(x, x); !x
                            <+ ?(Type(t1), Type(t2));
-                              !metadata; fetch-elem(?UnionTypes(<id>));
-                              fetch-elem(?UnionType(t1, t2, <id>));
-                              (?Undefined() + is-string; !Type(<id>))
-                           <+ !UnknownType()
+                              !metadata; get-union-type-from-metadata(|t1, t2)
+
+  get-union-type-from-metadata(|t1, t2):
+    metadata -> type
+    with if <fetch-elem(?UnionTypes(unionTypes))> metadata
+         then type := <fetch-elem(?UnionType(t1, t2, <id>)); !Type(<id>) <+ !AmbiguousType()> unionTypes
+         else type := UnknownType()
+         end
 
   is-compatible-type(|x, metadata):
     ExpressionPlusType(_, type1) -> <id>
     where ExpressionPlusType(_, type2) := x
-        ; <get-union-type(|metadata); not(?Undefined())> (type1, type2)
+        ; <get-union-type(|metadata); not(?AmbiguousType())> (type1, type2)
 
 /*
   get-count-aggregate-type(|metadata) = !Type("LONG")

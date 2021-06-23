@@ -112,8 +112,10 @@ public class MetadataToAstUtil {
     allTypes.add("TIMESTAMP WITH TIME ZONE");
 
     List<Pair<String, String>> allPairsOfTypes = getAllPairsOfTypes(allTypes);
-    IStrategoTerm unionCompatibleTypes = getUnionCompatibleTypes(allPairsOfTypes, metadataProvider, f);
-    metadataTerm.add(unionCompatibleTypes);
+    List<IStrategoTerm> unionTypes = getUnionCompatibleTypes(allPairsOfTypes, metadataProvider, f);
+    if (!unionTypes.isEmpty()) {
+      metadataTerm.add(f.makeAppl("UnionTypes", f.makeList(unionTypes)));
+    }
 
     IStrategoAppl metadataExtendedAst = f.makeAppl(AST_PLUS_METADATA_CONSTRUCTOR_NAME, parseResult.ast(),
         f.makeList(metadataTerm));
@@ -193,23 +195,17 @@ public class MetadataToAstUtil {
     return result;
   }
 
-  private static IStrategoTerm getUnionCompatibleTypes(List<Pair<String, String>> allPairsOfTypes,
+  private static List<IStrategoTerm> getUnionCompatibleTypes(List<Pair<String, String>> allPairsOfTypes,
       AbstractMetadataProvider metadataProvider, ITermFactory f) {
     List<IStrategoTerm> unionTypes = new ArrayList<>();
     for (Pair<String, String> pair : allPairsOfTypes) {
       Optional<String> optionalUnionType = metadataProvider.getUnionType(pair.getLeft(), pair.getRight());
-      if (optionalUnionType == null) {
-        unionTypes.add(f.makeAppl("UnionType", f.makeString(pair.getLeft()), f.makeString(pair.getRight()),
-            f.makeAppl("Undefined")));
-      } else if (optionalUnionType.isPresent()) {
+      if (optionalUnionType.isPresent()) {
         String unionType = optionalUnionType.get();
-        if (!unionType.isEmpty()) {
-          unionTypes.add(f.makeAppl("UnionType", f.makeString(pair.getLeft()), f.makeString(pair.getRight()),
-              f.makeString(unionType)));
-        }
-
+        unionTypes.add(f.makeAppl("UnionType", f.makeString(pair.getLeft()), f.makeString(pair.getRight()),
+            f.makeString(unionType)));
       }
     }
-    return f.makeAppl("UnionTypes", f.makeList(unionTypes));
+    return unionTypes;
   }
 }

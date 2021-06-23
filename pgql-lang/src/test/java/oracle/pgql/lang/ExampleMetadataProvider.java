@@ -25,11 +25,13 @@ public class ExampleMetadataProvider extends AbstractMetadataProvider {
     personProperties.add(new Property("firstName", "STRING"));
     personProperties.add(new Property("dob", "DATE"));
     personProperties.add(new Property("numericProp", "INTEGER"));
+    personProperties.add(new Property("typeConflictProp", "BOOLEAN"));
     vertexLabels.add(new VertexLabel("Person", personProperties));
 
     List<Property> universityProperties = new ArrayList<>();
     universityProperties.add(new Property("name", "STRING"));
     universityProperties.add(new Property("numericProp", "DOUBLE"));
+    universityProperties.add(new Property("typeConflictProp", "DATE"));
     vertexLabels.add(new VertexLabel("University", universityProperties));
 
     List<EdgeLabel> edgeLabels = new ArrayList<>();
@@ -112,7 +114,7 @@ public class ExampleMetadataProvider extends AbstractMetadataProvider {
           case "DOUBLE":
             return Optional.of("DOUBLE");
           default:
-            return null; // incompatible types
+            return Optional.empty(); // incompatible types
         }
       case "LONG":
         switch (typeB) {
@@ -121,7 +123,7 @@ public class ExampleMetadataProvider extends AbstractMetadataProvider {
           case "DOUBLE":
             return Optional.of("DOUBLE");
           default:
-            return null; // incompatible types
+            return Optional.empty(); // incompatible types
         }
       case "DOUBLE":
         switch (typeB) {
@@ -129,38 +131,38 @@ public class ExampleMetadataProvider extends AbstractMetadataProvider {
           case "LONG":
             return Optional.of("DOUBLE");
           default:
-            return null; // incompatible types
+            return Optional.empty(); // incompatible types
         }
       case "TIME":
         switch (typeB) {
           case "TIME WITH TIME ZONE":
             return Optional.of("TIME WITH TIME ZONE");
           default:
-            return null; // incompatible types
+            return Optional.empty(); // incompatible types
         }
       case "TIME WITH TIME ZONE":
         switch (typeB) {
           case "TIME":
             return Optional.of("TIME WITH TIME ZONE");
           default:
-            return null; // incompatible types
+            return Optional.empty(); // incompatible types
         }
       case "TIMESTAMP":
         switch (typeB) {
           case "TIMESTAMP WITH TIME ZONE":
             return Optional.of("TIMESTAMP WITH TIME ZONE");
           default:
-            return null; // incompatible types
+            return Optional.empty(); // incompatible types
         }
       case "TIMESTAMP WITH TIME ZONE":
         switch (typeB) {
           case "TIMESTAMP":
             return Optional.of("TIMESTAMP WITH TIME ZONE");
           default:
-            return null; // incompatible types
+            return Optional.empty(); // incompatible types
         }
       default:
-        return null; // incompatible types
+        return Optional.empty(); // incompatible types
     }
   }
 }
