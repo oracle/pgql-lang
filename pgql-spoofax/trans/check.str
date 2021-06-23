@@ -401,8 +401,7 @@ rules // IN predicate and CASE expression
     with <generate-error(|ctx, "BOOLEAN expression expected")> exp
 
   nabl-constraint(|ctx, metadata):
-   ExpressionPlusType(IfElse(_, ExpressionPlusType(_, type1@Type(t1)), ExpressionPlusType(elseExp, type2@Type(_))), Undefined()) -> <fail>
-   where <get-union-type(|metadata); ?Undefined()> (type1, type2)
+   ExpressionPlusType(IfElse(_, ExpressionPlusType(_, type1@Type(t1)), ExpressionPlusType(elseExp, type2@Type(_))), AmbiguousType()) -> <fail>
    with <generate-error(|ctx, <message-compatible-type-exepected> t1)> elseExp
 
 rules // SELECT

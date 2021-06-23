@@ -401,4 +401,26 @@ public class MetadataTest extends AbstractPgqlTest {
     assertTrue(result.getErrorMessages().contains(
         "The IN predicate is undefined for left-hand operand type TIME WITH TIME ZONE and list value type LONG"));
   }
+
+  @Test
+  public void testCaseStatement() throws Exception {
+    PgqlResult result = parse("SELECT CASE WHEN 'a' = 'a' THEN n.firstName ELSE 'abc' END FROM MATCH (n)");
+    assertTrue(result.isQueryValid());
+
+    result = parse("SELECT CASE WHEN 'a' THEN n.firstName ELSE 'abc' END FROM MATCH (n)");
+    assertTrue(result.getErrorMessages().contains("BOOLEAN expression expected"));
+
+    result = parse("SELECT CASE WHEN true THEN n.numericProp ELSE 'abc' END FROM MATCH (n)");
+    assertTrue(result.getErrorMessages().contains("Expression of a type compatible with DOUBLE expected"));
+
+    result = parse("SELECT CASE WHEN true THEN n.firstName ELSE n.dob END FROM MATCH (n)");
+    assertTrue(result.getErrorMessages().contains("Expression of a type compatible with STRING expected"));
+
+    result = parse("SELECT CASE WHEN true THEN n.dob ELSE n.firstName END FROM MATCH (n)");
+    assertTrue(result.getErrorMessages().contains("Expression of a type compatible with DATE expected"));
+
+    result = parse(
+        "SELECT CASE WHEN true THEN n.dob WHEN n.firstName IS NULL THEN DATE '1970-01-01' ELSE n.firstName END FROM MATCH (n)");
+    assertTrue(result.getErrorMessages().contains("Expression of a type compatible with DATE expected"));
+  }
 }
