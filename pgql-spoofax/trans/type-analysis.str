@@ -144,7 +144,7 @@ rules // property references
     with labels := <?Type("VERTEX"); get-vertex-labels(|metadata) <+ get-edge-labels(|metadata)> elementType
        ; if <?None()> labels
          then result := UnknownType()
-         else types := <debug; map(!(<id>, propName); get-property-type(|elementType, metadata)); debug> labels
+         else types := <map(!(<id>, propName); get-property-type(|elementType, metadata))> labels
             ; result := <foldl(get-union-type(|metadata))> (types, Undefined())
          end
 
@@ -213,10 +213,10 @@ rules // binary expressions
 
   add-value-type-to-binary-operation(|metadata, variablesPlusTypes, constraints):
     exp -> ExpressionPlusType(exp', type')
-    with operation := <debug; get-constructor> exp
+    with operation := <get-constructor> exp
        ; args@[ExpressionPlusType(_, type1), ExpressionPlusType(_, type2)] := <get-arguments; alltd(add-type(|metadata, variablesPlusTypes, constraints))> exp
        ; if <?Type(t1)> type1; <?Type(t2)> type2
-         then type' := <debug; get-binary-operation-return-type(|metadata); debug> (operation, t1, t2)
+         then type' := <get-binary-operation-return-type(|metadata)> (operation, t1, t2)
          else type' := UnknownType()
          end
        ; exp' := <origin-track-forced(!(operation, args); mkterm)> exp

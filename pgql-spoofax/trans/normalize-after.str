@@ -39,7 +39,7 @@ rules
         ; <?ExpressionPlusType(exp2, type2)> expPlusType2
         ; exp' := <origin-track-forced(!Eq(expPlusType1, expPlusType2))> origin-term
         ; if <?Type(t1)> type1; <?Type(t2)> type2
-          then type' := <get-binary-operation-return-type(|metadata); not(?Undefined()) /* if equality operation is not supported between these types then we don't want to normalize */> ("Eq", type1, type2)
+          then type' := <get-binary-operation-return-type(|metadata); not(?Undefined()) /* if equality operation is not supported between these types then we don't want to normalize */> ("Eq", t1, t2)
           else type' := UnknownType()
           end
 
