@@ -178,7 +178,7 @@ rules // literals
 rules // functions
 
   add-type(|metadata, variablesPlusTypes, constraints):
-    func@FunctionCall(package, name, args) -> ExpressionPlusType(func', Type("BOOLEAN")) // TODO fix type
+    func@FunctionCall(package, name, args) -> ExpressionPlusType(func', UnknownType()) // TODO fix type
     with args' := <alltd(add-type(|metadata, variablesPlusTypes, constraints))> args
        ; func' := <origin-track-forced(!FunctionCall(package, name, args'))> func
 

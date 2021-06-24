@@ -6,12 +6,11 @@ package oracle.pgql.lang.metadata;
 public enum BinaryOperation {
 
   // arithmetic expressions
-  SUB,
   ADD,
+  SUB,
   MUL,
   DIV,
   MOD,
-  UMIN,
 
   // relational expressions
   EQUAL,

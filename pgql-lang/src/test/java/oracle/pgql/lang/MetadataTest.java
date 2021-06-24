@@ -422,5 +422,7 @@ public class MetadataTest extends AbstractPgqlTest {
     result = parse(
         "SELECT CASE WHEN true THEN n.dob WHEN n.firstName IS NULL THEN DATE '1970-01-01' ELSE n.firstName END FROM MATCH (n)");
     assertTrue(result.getErrorMessages().contains("Expression of a type compatible with DATE expected"));
+
+    // TODO: test simple CASE (requires equality typing)
   }
 }
