@@ -232,18 +232,22 @@ public class ExampleMetadataProvider extends AbstractMetadataProvider {
         if (typeA.startsWith("ARRAY")) {
           return Optional.empty();
         }
-        return getUnionType(typeA, typeB);
+        return getUnionType(typeA, typeB).isPresent() ? Optional.of("BOOLEAN") : Optional.empty();
       case GREATER:
       case GREATER_EQUAL:
       case LESS:
       case LESS_EQUAL:
         if (getUnionTypeForNumerics(typeA, typeB).isPresent() || getUnionTypeForDatetimes(typeA, typeB).isPresent()) {
           return Optional.of("BOOLEAN");
-        } else if (typeA.equals(typeB) && typeA.equals("STRING") && typeA.equals("BOOLEAN")) {
-          return Optional.of("BOOLEAN");
         } else {
-          return Optional.empty();
+          return typeA.equals(typeB) && typeA.equals("STRING") && typeA.equals("BOOLEAN") ? Optional.of("BOOLEAN")
+              : Optional.empty();
         }
+      case AND:
+      case OR:
+        return typeA.equals("BOOLEAN") && typeB.equals("BOOLEAN") ? Optional.of("BOOLEAN") : Optional.empty();
+      case STRING_CONCAT:
+        return typeA.equals("STRING") && typeB.equals("STRING") ? Optional.of("BOOLEAN") : Optional.empty();
       default:
         return Optional.empty();
     }

@@ -213,14 +213,11 @@ rules // binary expressions
 
   add-value-type-to-binary-operation(|metadata, variablesPlusTypes, constraints):
     exp -> ExpressionPlusType(exp', type')
-    with operation := <get-constructor> exp
+    with operation := <debug; get-constructor> exp
        ; args@[ExpressionPlusType(_, type1), ExpressionPlusType(_, type2)] := <get-arguments; alltd(add-type(|metadata, variablesPlusTypes, constraints))> exp
-       ; if <?AmbiguousType()> type1 + <?AmbiguousType()> type2
-         then type' := UnknownType()
-         else if <?Type(t1)> type1; <?Type(t2)> type2
-              then type' := <get-operation-return-type(|metadata)> (operation, t1, t2)
-              else type' := UnknownType()
-              end
+       ; if <?Type(t1)> type1; <?Type(t2)> type2
+         then type' := <debug; get-binary-operation-return-type(|metadata); debug> (operation, t1, t2)
+         else type' := UnknownType()
          end
        ; exp' := <origin-track-forced(!(operation, args); mkterm)> exp
 
@@ -231,7 +228,7 @@ rules // unary expressions and aggregates
     with exp'@ExpressionPlusType(_, type) := <add-type(|metadata, variablesPlusTypes, constraints)> exp
        ; n' := <origin-track-forced(!Not(exp'))> n
        ; if <?Type(t)> type
-         then type' := <get-operation-return-type(|metadata)> ("Not", t)
+         then type' := <get-unary-operation-return-type(|metadata)> ("Not", t)
          else type' := UnknownType()
          end
 
@@ -240,7 +237,7 @@ rules // unary expressions and aggregates
     with exp'@ExpressionPlusType(_, type) := <add-type(|metadata, variablesPlusTypes, constraints)> exp
        ; umin' := <origin-track-forced(!UMin(exp'))> umin
        ; if <?Type(t)> type
-         then type' := <get-operation-return-type(|metadata)> ("UMin", t)
+         then type' := <get-unary-operation-return-type(|metadata)> ("UMin", t)
          else type' := UnknownType()
          end
 
@@ -259,7 +256,7 @@ rules // unary expressions and aggregates
          else if <?Type(t)> type
               then if <?"VERTEX" + ?"EDGE"> t
                    then type' := Undefined() // there are no aggregrations that support vertex/edge inputs
-                   else type' := <get-operation-return-type(|metadata)> (operation, t)
+                   else type' := <get-unary-operation-return-type(|metadata)> (operation, t)
                    end
               else type' := UnknownType()
               end
@@ -340,12 +337,10 @@ rules // other expressions
   get-default-long-integer-type(|metadata) = !metadata; fetch-elem(?DefaultLongIntegerType(<id>); !Type(<id>)) <+ !UnknownType()
   get-default-decimal-type(|metadata) = !metadata; fetch-elem(?DefaultDecimalType(<id>); !Type(<id>)) <+ !UnknownType()
 
-  get-operation-return-type(|metadata) = !UnknownType()
 
   get-union-type(|metadata) = (?(AmbiguousType(), _) + ?(_, AmbiguousType())); !AmbiguousType()
                            <+ (?(UnknownType(), _) + ?(_, UnknownType())); !UnknownType()
-                           <+ ?(Undefined(), <id>) + ?(<id>, Undefined())
-                           <+ ?(x, x); !x
+                           <+ ?(Undefined(), <id>) + ?(<id>, Undefined()) // for properties (when some label doesn't have the property)
                            <+ ?(Type(t1), Type(t2));
                               !metadata; get-union-type-from-metadata(|t1, t2)
 
@@ -361,18 +356,11 @@ rules // other expressions
     where ExpressionPlusType(_, type2) := x
         ; <get-union-type(|metadata); not(?AmbiguousType())> (type1, type2)
 
-/*
-  get-count-aggregate-type(|metadata) = !Type("LONG")
+  get-unary-operation-return-type(|metadata) = !UnknownType()
 
-  get-operation-return-type(|metadata) = ?("UMin", "INTEGER"); !Type("INTEGER")
-
-  get-operation-return-type(|metadata) = ?("Cct", "STRING", "STRING"); !Type("STRING")
-
-  get-operation-return-type(|metadata) = ?("Cct", "STRING", "STRING"); !Type("STRING")
-  get-operation-return-type(|metadata) = ?("Add", "INTEGER", "INTEGER"); !Type("INTEGER")
-
-  get-operation-return-type(|metadata) = ?("MIN", "STRING"); !Type("STRING")
-  get-operation-return-type(|metadata) = ?("SUM", "INTEGER"); !Type("LONG")
-
-  get-operation-return-type(|metadata) = !Undefined()
-*/
+  get-binary-operation-return-type(|metadata):
+    (operation, t1, t2) -> type
+    with if <fetch-elem(?BinaryOperations(binaryOperations))> metadata
+         then type := <fetch-elem(?BinaryOperation(operation, t1, t2, <id>)); !Type(<id>) <+ !Undefined()> binaryOperations
+         else type := UnknownType()
+         end

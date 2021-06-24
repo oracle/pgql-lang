@@ -20,6 +20,7 @@ import org.spoofax.terms.TermVisitor;
 
 import oracle.pgql.lang.ir.SchemaQualifiedName;
 import oracle.pgql.lang.metadata.AbstractMetadataProvider;
+import oracle.pgql.lang.metadata.BinaryOperation;
 import oracle.pgql.lang.metadata.EdgeLabel;
 import oracle.pgql.lang.metadata.GraphSchema;
 import oracle.pgql.lang.metadata.Label;
@@ -116,6 +117,10 @@ public class MetadataToAstUtil {
     if (!unionTypes.isEmpty()) {
       metadataTerm.add(f.makeAppl("UnionTypes", f.makeList(unionTypes)));
     }
+    List<IStrategoTerm> binaryOperations = getBinaryOperationsWithTypes(allPairsOfTypes, metadataProvider, f);
+    if (!binaryOperations.isEmpty()) {
+      metadataTerm.add(f.makeAppl("BinaryOperations", f.makeList(binaryOperations)));
+    }
 
     IStrategoAppl metadataExtendedAst = f.makeAppl(AST_PLUS_METADATA_CONSTRUCTOR_NAME, parseResult.ast(),
         f.makeList(metadataTerm));
@@ -187,9 +192,7 @@ public class MetadataToAstUtil {
     List<Pair<String, String>> result = new ArrayList<>();
     for (String type1 : allTypes) {
       for (String type2 : allTypes) {
-        if (!type1.equals(type2)) {
-          result.add(Pair.of(type1, type2));
-        }
+        result.add(Pair.of(type1, type2));
       }
     }
     return result;
@@ -207,5 +210,71 @@ public class MetadataToAstUtil {
       }
     }
     return unionTypes;
+  }
+
+  private static List<IStrategoTerm> getBinaryOperationsWithTypes(List<Pair<String, String>> allPairsOfTypes,
+      AbstractMetadataProvider metadataProvider, ITermFactory f) {
+    List<IStrategoTerm> binaryOperationsWithTypes = new ArrayList<>();
+    for (Pair<String, String> pair : allPairsOfTypes) {
+      BinaryOperation[] binaryOperations = BinaryOperation.values();
+      for (int i = 0; i < binaryOperations.length; i++) {
+        BinaryOperation operation = binaryOperations[i];
+        Optional<String> optionalReturnType = metadataProvider.getOperationReturnType(operation, pair.getLeft(),
+            pair.getRight());
+        if (optionalReturnType.isPresent()) {
+          String returnType = optionalReturnType.get();
+          String constructorName;
+          switch (operation) {
+            case ADD:
+              constructorName = "Add";
+              break;
+            case SUB:
+              constructorName = "Sub";
+              break;
+            case MUL:
+              constructorName = "Mul";
+              break;
+            case DIV:
+              constructorName = "Div";
+              break;
+            case MOD:
+              constructorName = "Mod";
+              break;
+            case EQUAL:
+              constructorName = "Eq";
+              break;
+            case NOT_EQUAL:
+              constructorName = "Neq";
+              break;
+            case GREATER:
+              constructorName = "Gt";
+              break;
+            case GREATER_EQUAL:
+              constructorName = "Gte";
+              break;
+            case LESS:
+              constructorName = "Lt";
+              break;
+            case LESS_EQUAL:
+              constructorName = "Lte";
+              break;
+            case AND:
+              constructorName = "And";
+              break;
+            case OR:
+              constructorName = "Or";
+              break;
+            case STRING_CONCAT:
+              constructorName = "Cct";
+              break;
+            default:
+              throw new UnsupportedOperationException("Unsupported operations: " + operation);
+          }
+          binaryOperationsWithTypes.add(f.makeAppl("BinaryOperation", f.makeString(constructorName),
+              f.makeString(pair.getLeft()), f.makeString(pair.getRight()), f.makeString(returnType)));
+        }
+      }
+    }
+    return binaryOperationsWithTypes;
   }
 }

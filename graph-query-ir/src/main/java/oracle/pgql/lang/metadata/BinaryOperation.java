@@ -5,19 +5,25 @@ package oracle.pgql.lang.metadata;
 
 public enum BinaryOperation {
 
-  // arithmetic expressions
+  // arithmetic operations
   ADD,
   SUB,
   MUL,
   DIV,
   MOD,
 
-  // relational expressions
+  // relational operations
   EQUAL,
   NOT_EQUAL,
   GREATER,
   GREATER_EQUAL,
   LESS,
-  LESS_EQUAL
+  LESS_EQUAL,
 
+  // logical operations
+  AND,
+  OR,
+
+  // other
+  STRING_CONCAT
 }

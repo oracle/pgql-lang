@@ -130,3 +130,11 @@ signature constructors // for type anslysis (see trans/type-analysis.str)
   UnionTypes              : List(UnionType) -> UnionTypes
 
   UnionType               : STRING * STRING * STRING -> UnionType
+
+  BinaryOperations        : List(BinaryOperation) -> BinaryOperations
+
+  BinaryOperation         : STRING * STRING * STRING * STRING -> BinaryOperation
+
+  UnaryOperations         : List(UnaryOperation) -> UnaryOperations
+
+  UnaryOperation          : STRING * STRING * STRING -> UnaryOperation
