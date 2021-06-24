@@ -423,6 +423,7 @@ public class MetadataTest extends AbstractPgqlTest {
         "SELECT CASE WHEN true THEN n.dob WHEN n.firstName IS NULL THEN DATE '1970-01-01' ELSE n.firstName END FROM MATCH (n)");
     assertTrue(result.getErrorMessages().contains("Expression of a type compatible with DATE expected"));
 
-    // TODO: test simple CASE (requires equality typing)
+    result = parse("SELECT CASE n.firstName WHEN 123 THEN true ELSE false END FROM MATCH (n)");
+    assertTrue(result.getErrorMessages().contains("The operator = is undefined for the argument types STRING, LONG"));
   }
 }

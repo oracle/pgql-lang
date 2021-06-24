@@ -246,7 +246,7 @@ rules
   to-if-else(|origin-term):
     (caseOperand, whenClauses, elseClause) -> ifElse
     with [WhenClause(whenExp, thenExp)|xs] := whenClauses
-       ; exp1 := Eq(caseOperand, whenExp)
+       ; exp1 := <origin-track-forced(!Eq(caseOperand, whenExp))> whenExp
        ; exp2 := thenExp
        ; if [] := xs
          then exp3 := <to-else> elseClause
