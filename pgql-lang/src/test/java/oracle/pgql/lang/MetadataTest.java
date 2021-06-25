@@ -436,4 +436,11 @@ public class MetadataTest extends AbstractPgqlTest {
     assertTrue(
         result.getErrorMessages().contains("The operator = is undefined for the argument types INTEGER, STRING"));
   }
+
+  @Test
+  public void testCastToTypeNotInGraph() throws Exception {
+    // none of the properties in the graph have type FLOAT but we still figure out that FLOAT is compatible with INTEGER
+    PgqlResult result = parse("SELECT CAST('1' AS FLOAT) = CAST('1' AS INTEGER) FROM MATCH (n)");
+    assertTrue(result.isQueryValid());
+  }
 }

@@ -13,6 +13,7 @@ import org.apache.commons.lang3.tuple.Pair;
 import org.metaborg.spoofax.core.unit.ISpoofaxAnalyzeUnit;
 import org.metaborg.spoofax.core.unit.ISpoofaxParseUnit;
 import org.spoofax.interpreter.terms.IStrategoAppl;
+import org.spoofax.interpreter.terms.IStrategoString;
 import org.spoofax.interpreter.terms.IStrategoTerm;
 import org.spoofax.interpreter.terms.ITermFactory;
 import org.spoofax.interpreter.terms.TermType;
@@ -59,6 +60,7 @@ public class MetadataToAstUtil {
     }
 
     Set<String> allTypes = new HashSet<>();
+    allTypes.addAll(extractDataTypesFromCastStatements(parseResult.ast()));
 
     List<IStrategoTerm> metadataTerm = new ArrayList<>();
     if (graphSchema.isPresent()) {
@@ -180,6 +182,28 @@ public class MetadataToAstUtil {
     }.visit(ast);
 
     return graphNames;
+  }
+
+  static Set<String> extractDataTypesFromCastStatements(IStrategoTerm ast) {
+
+    final Set<String> dataTypes = new HashSet<>();
+
+    new TermVisitor() {
+
+      @Override
+      public void preVisit(IStrategoTerm t) {
+        if (t.getType() == TermType.APPL) {
+          String constructor = ((IStrategoAppl) t).getConstructor().getName();
+          if (constructor.equals("Cast")) {
+            IStrategoString dataTypeT = (IStrategoString) t.getSubterm(1);
+            dataTypes.add(dataTypeT.stringValue().toUpperCase());
+          }
+        }
+      }
+
+    }.visit(ast);
+
+    return dataTypes;
   }
 
   static String identifierToString(IStrategoTerm t) {
