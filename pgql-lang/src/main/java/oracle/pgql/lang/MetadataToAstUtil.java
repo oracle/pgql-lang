@@ -60,7 +60,9 @@ public class MetadataToAstUtil {
     }
 
     Set<String> allTypes = new HashSet<>();
-    allTypes.addAll(extractDataTypesFromCastStatements(parseResult.ast()));
+
+    Optional<List<DataTypeSynonym>> dataTypeSynonyms = metadataProvider.getDataTypeSynonyms();
+    allTypes.addAll(extractDataTypesFromCastStatements(parseResult.ast(), dataTypeSynonyms));
 
     List<IStrategoTerm> metadataTerm = new ArrayList<>();
     if (graphSchema.isPresent()) {
@@ -126,14 +128,13 @@ public class MetadataToAstUtil {
     if (!binaryOperations.isEmpty()) {
       metadataTerm.add(f.makeAppl("BinaryOperations", f.makeList(binaryOperations)));
     }
-    List<IStrategoTerm> dataTyeSynonyms = getDataTyeSynonyms(metadataProvider, f);
+    List<IStrategoTerm> dataTyeSynonyms = getDataTyeSynonyms(dataTypeSynonyms, f);
     if (!dataTyeSynonyms.isEmpty()) {
       metadataTerm.add(f.makeAppl("DataTypeSynonyms", f.makeList(dataTyeSynonyms)));
     }
 
     IStrategoAppl metadataExtendedAst = f.makeAppl(AST_PLUS_METADATA_CONSTRUCTOR_NAME, parseResult.ast(),
         f.makeList(metadataTerm));
-    System.out.println(metadataTerm);
     ISpoofaxParseUnit extendedParseUnit = new ModifiedParseUnit(parseResult, metadataExtendedAst);
     return extendedParseUnit;
   }
@@ -184,7 +185,8 @@ public class MetadataToAstUtil {
     return graphNames;
   }
 
-  static Set<String> extractDataTypesFromCastStatements(IStrategoTerm ast) {
+  static Set<String> extractDataTypesFromCastStatements(IStrategoTerm ast,
+      Optional<List<DataTypeSynonym>> dataTypeSynonyms) {
 
     final Set<String> dataTypes = new HashSet<>();
 
@@ -196,7 +198,18 @@ public class MetadataToAstUtil {
           String constructor = ((IStrategoAppl) t).getConstructor().getName();
           if (constructor.equals("Cast")) {
             IStrategoString dataTypeT = (IStrategoString) t.getSubterm(1);
-            dataTypes.add(dataTypeT.stringValue().toUpperCase());
+            String dataType = dataTypeT.stringValue().toUpperCase();
+
+            if (dataTypeSynonyms.isPresent()) {
+              // convert aliases to their proper data type names
+              for (DataTypeSynonym synonym : dataTypeSynonyms.get()) {
+                if (dataType.equals(synonym.getSynonym())) {
+                  dataType = synonym.getDataType();
+                }
+              }
+            }
+
+            dataTypes.add(dataType);
           }
         }
       }
@@ -299,7 +312,7 @@ public class MetadataToAstUtil {
               constructorName = "Cct";
               break;
             default:
-              throw new UnsupportedOperationException("Unsupported operations: " + operation);
+              throw new UnsupportedOperationException("Unsupported operation: " + operation);
           }
           binaryOperationsWithTypes.add(f.makeAppl("BinaryOperation", f.makeString(constructorName),
               f.makeString(pair.getLeft()), f.makeString(pair.getRight()), f.makeString(returnType)));
@@ -309,9 +322,9 @@ public class MetadataToAstUtil {
     return binaryOperationsWithTypes;
   }
 
-  private static List<IStrategoTerm> getDataTyeSynonyms(AbstractMetadataProvider metadataProvider, ITermFactory f) {
+  private static List<IStrategoTerm> getDataTyeSynonyms(Optional<List<DataTypeSynonym>> optionalDataTypeSynonyms,
+      ITermFactory f) {
     List<IStrategoTerm> dataTypeSynonyms = new ArrayList<>();
-    Optional<List<DataTypeSynonym>> optionalDataTypeSynonyms = metadataProvider.getDataTypeSynonyms();
     if (optionalDataTypeSynonyms.isPresent()) {
       for (DataTypeSynonym synonym : optionalDataTypeSynonyms.get()) {
         dataTypeSynonyms.add(

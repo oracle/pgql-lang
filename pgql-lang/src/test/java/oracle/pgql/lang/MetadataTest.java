@@ -443,4 +443,54 @@ public class MetadataTest extends AbstractPgqlTest {
     PgqlResult result = parse("SELECT CAST('1' AS FLOAT) = CAST('1' AS INTEGER) FROM MATCH (n)");
     assertTrue(result.isQueryValid());
   }
+
+  @Test
+  public void testBinaryOperations() throws Exception {
+    PgqlResult result = parse("SELECT 1 = 'abc' FROM MATCH (n)");
+    assertTrue(result.getErrorMessages().contains("The operator = is undefined for the argument types LONG, STRING"));
+
+    result = parse("SELECT 1 < 'abc' FROM MATCH (n)");
+    assertTrue(result.getErrorMessages().contains("The operator < is undefined for the argument types LONG, STRING"));
+
+    result = parse("SELECT 1 <= 'abc' FROM MATCH (n)");
+    assertTrue(result.getErrorMessages().contains("The operator <= is undefined for the argument types LONG, STRING"));
+
+    result = parse("SELECT 1 <> 'abc' FROM MATCH (n)");
+    assertTrue(
+        result.getErrorMessages().contains("The operator <> (or !=) is undefined for the argument types LONG, STRING"));
+
+    result = parse("SELECT 1 != 'abc' FROM MATCH (n)");
+    assertTrue(
+        result.getErrorMessages().contains("The operator <> (or !=) is undefined for the argument types LONG, STRING"));
+
+    result = parse("SELECT 1 >= 'abc' FROM MATCH (n)");
+    assertTrue(result.getErrorMessages().contains("The operator >= is undefined for the argument types LONG, STRING"));
+
+    result = parse("SELECT 1 > 'abc' FROM MATCH (n)");
+    assertTrue(result.getErrorMessages().contains("The operator > is undefined for the argument types LONG, STRING"));
+
+    result = parse("SELECT 1 || 'abc' FROM MATCH (n)");
+    assertTrue(result.getErrorMessages().contains("The operator || is undefined for the argument types LONG, STRING"));
+
+    result = parse("SELECT 1 + 'abc' FROM MATCH (n)");
+    assertTrue(result.getErrorMessages().contains("The operator + is undefined for the argument types LONG, STRING"));
+
+    result = parse("SELECT 1 - 'abc' FROM MATCH (n)");
+    assertTrue(result.getErrorMessages().contains("The operator - is undefined for the argument types LONG, STRING"));
+
+    result = parse("SELECT 1 / 'abc' FROM MATCH (n)");
+    assertTrue(result.getErrorMessages().contains("The operator / is undefined for the argument types LONG, STRING"));
+
+    result = parse("SELECT 1 * 'abc' FROM MATCH (n)");
+    assertTrue(result.getErrorMessages().contains("The operator * is undefined for the argument types LONG, STRING"));
+
+    result = parse("SELECT 1 % 'abc' FROM MATCH (n)");
+    assertTrue(result.getErrorMessages().contains("The operator % is undefined for the argument types LONG, STRING"));
+
+    result = parse("SELECT 1 AND 'abc' FROM MATCH (n)");
+    assertTrue(result.getErrorMessages().contains("The operator AND is undefined for the argument types LONG, STRING"));
+
+    result = parse("SELECT 1 OR 'abc' FROM MATCH (n)");
+    assertTrue(result.getErrorMessages().contains("The operator OR is undefined for the argument types LONG, STRING"));
+  }
 }
