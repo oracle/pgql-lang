@@ -16,6 +16,6 @@ public enum UnaryOperation {
   MIN,
   MAX,
   AVG,
-  LISTAGG
-
+  LISTAGG,
+  ARRAY_AGG
 }

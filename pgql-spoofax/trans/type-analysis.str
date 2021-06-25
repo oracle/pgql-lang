@@ -356,7 +356,12 @@ rules // other expressions
     where ExpressionPlusType(_, type2) := x
         ; <get-union-type(|metadata); not(?AmbiguousType())> (type1, type2)
 
-  get-unary-operation-return-type(|metadata) = !UnknownType()
+  get-unary-operation-return-type(|metadata):
+    (operation, t) -> type
+    with if <fetch-elem(?UnaryOperations(unaryOperations))> metadata
+         then type := <fetch-elem(?UnaryOperation(operation, t, <id>)); !Type(<id>) <+ !Undefined()> unaryOperations
+         else type := UnknownType()
+         end
 
   get-binary-operation-return-type(|metadata):
     (operation, t1, t2) -> type

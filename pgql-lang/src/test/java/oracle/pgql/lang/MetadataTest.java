@@ -493,4 +493,64 @@ public class MetadataTest extends AbstractPgqlTest {
     result = parse("SELECT 1 OR 'abc' FROM MATCH (n)");
     assertTrue(result.getErrorMessages().contains("The operator OR is undefined for the argument types LONG, STRING"));
   }
+
+  @Test
+  public void testUnaryOperations() throws Exception {
+    PgqlResult result = parse("SELECT NOT 'abc' FROM MATCH (n)");
+    assertTrue(result.getErrorMessages().contains("The operator NOT is undefined for the argument type STRING"));
+
+    result = parse("SELECT -'abc' FROM MATCH (n)");
+    assertTrue(
+        result.getErrorMessages().contains("The operator - (unary minus) is undefined for the argument type STRING"));
+
+    result = parse("SELECT -n.numericProp = 'abc' FROM MATCH (n)");
+    assertTrue(result.getErrorMessages().contains("The operator = is undefined for the argument types DOUBLE, STRING"));
+
+    result = parse("SELECT SUM('abc') FROM MATCH (n)");
+    assertTrue(result.getErrorMessages().contains("The aggregate SUM is undefined for the argument type STRING"));
+
+    result = parse("SELECT SUM(CAST(n.numericProp AS FLOAT)) AND SUM(n.numericProp) FROM MATCH (n)");
+    assertTrue(
+        result.getErrorMessages().contains("The operator AND is undefined for the argument types DOUBLE, DOUBLE"));
+
+    result = parse("SELECT SUM(CAST(n.numericProp AS INTEGER)) AND SUM(n.numericProp) FROM MATCH (n)");
+    assertTrue(result.getErrorMessages().contains("The operator AND is undefined for the argument types LONG, DOUBLE"));
+
+    result = parse("SELECT MIN(n) FROM MATCH (n)");
+    assertTrue(result.getErrorMessages().contains("The aggregate MIN is undefined for the argument type VERTEX"));
+
+    result = parse("SELECT MIN(1) AND MIN('abc') FROM MATCH (n)");
+    assertTrue(result.getErrorMessages().contains("The operator AND is undefined for the argument types LONG, STRING"));
+
+    result = parse("SELECT MIN(true) AND MIN(false) FROM MATCH (n)");
+    assertTrue(result.isQueryValid());
+
+    result = parse("SELECT MAX(n) FROM MATCH (n)");
+    assertTrue(result.getErrorMessages().contains("The aggregate MAX is undefined for the argument type VERTEX"));
+
+    result = parse("SELECT MAX(1) AND MAX('abc') FROM MATCH (n)");
+    assertTrue(result.getErrorMessages().contains("The operator AND is undefined for the argument types LONG, STRING"));
+
+    result = parse("SELECT MAX(true) AND MAX(false) FROM MATCH (n)");
+    assertTrue(result.isQueryValid());
+
+    result = parse("SELECT AVG('abc') FROM MATCH (n)");
+    assertTrue(result.getErrorMessages().contains("The aggregate AVG is undefined for the argument type STRING"));
+
+    result = parse("SELECT ARRAY_AGG(n) FROM MATCH (n)");
+    assertTrue(result.getErrorMessages().contains("The aggregate ARRAY_AGG is undefined for the argument type VERTEX"));
+
+    result = parse("SELECT ARRAY_AGG(n.firstName) = ARRAY_AGG(n.dob) FROM MATCH (n)");
+    assertTrue(result.getErrorMessages()
+        .contains("The operator = is undefined for the argument types ARRAY<STRING>, ARRAY<DATE>"));
+
+    result = parse("SELECT ARRAY_AGG(n.firstName) = ARRAY_AGG('abc') FROM MATCH (n)");
+    assertTrue(result.isQueryValid());
+
+    result = parse("SELECT LISTAGG(n) FROM MATCH (n)");
+    assertTrue(result.getErrorMessages().contains("The aggregate LISTAGG is undefined for the argument type VERTEX"));
+
+    result = parse("SELECT LISTAGG(n.firstName) <> LISTAGG(n.dob) AND LISTAGG(n.dob) <> 'abc' FROM MATCH (n)");
+    assertTrue(result.isQueryValid());
+  }
 }

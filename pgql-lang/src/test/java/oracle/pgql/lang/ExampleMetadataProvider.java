@@ -15,6 +15,7 @@ import oracle.pgql.lang.metadata.DataTypeSynonym;
 import oracle.pgql.lang.metadata.EdgeLabel;
 import oracle.pgql.lang.metadata.GraphSchema;
 import oracle.pgql.lang.metadata.Property;
+import oracle.pgql.lang.metadata.UnaryOperation;
 import oracle.pgql.lang.metadata.VertexLabel;
 
 public class ExampleMetadataProvider extends AbstractMetadataProvider {
@@ -220,6 +221,90 @@ public class ExampleMetadataProvider extends AbstractMetadataProvider {
   }
 
   @Override
+  public Optional<String> getOperationReturnType(UnaryOperation op, String type) {
+    switch (op) {
+      case NOT:
+        return type.equals("BOOLEAN") ? Optional.of("BOOLEAN") : Optional.empty();
+      case UMIN:
+      case AVG:
+        switch (type) {
+          case "INTEGER":
+          case "LONG":
+          case "FLOAT":
+          case "DOUBLE":
+            return Optional.of(type);
+          default:
+            return Optional.empty();
+        }
+      case SUM:
+        switch (type) {
+          case "INTEGER":
+          case "LONG":
+            return Optional.of("LONG");
+          case "FLOAT":
+          case "DOUBLE":
+            return Optional.of("DOUBLE");
+          default:
+            return Optional.empty();
+        }
+      case MIN:
+      case MAX:
+        switch (type) {
+          case "INTEGER":
+          case "LONG":
+          case "FLOAT":
+          case "DOUBLE":
+          case "BOOLEAN":
+          case "STRING":
+          case "DATE":
+          case "TIME":
+          case "TIME WITH TIME ZONE":
+          case "TIMESTAMP":
+          case "TIMESTAMP WITH TIME ZONE":
+            return Optional.of(type);
+          default:
+            return Optional.empty();
+        }
+      case ARRAY_AGG:
+        switch (type) {
+          case "INTEGER":
+          case "LONG":
+          case "FLOAT":
+          case "DOUBLE":
+          case "BOOLEAN":
+          case "STRING":
+          case "DATE":
+          case "TIME":
+          case "TIME WITH TIME ZONE":
+          case "TIMESTAMP":
+          case "TIMESTAMP WITH TIME ZONE":
+            return Optional.of("ARRAY<" + type + ">");
+          default:
+            return Optional.empty();
+        }
+      case LISTAGG:
+        switch (type) {
+          case "INTEGER":
+          case "LONG":
+          case "FLOAT":
+          case "DOUBLE":
+          case "BOOLEAN":
+          case "STRING":
+          case "DATE":
+          case "TIME":
+          case "TIME WITH TIME ZONE":
+          case "TIMESTAMP":
+          case "TIMESTAMP WITH TIME ZONE":
+            return Optional.of("STRING");
+          default:
+            return Optional.empty();
+        }
+      default:
+        return Optional.empty();
+    }
+  }
+
+  @Override
   public Optional<String> getOperationReturnType(BinaryOperation op, String typeA, String typeB) {
     switch (op) {
       case ADD:
@@ -230,9 +315,6 @@ public class ExampleMetadataProvider extends AbstractMetadataProvider {
         return getUnionTypeForNumerics(typeA, typeB);
       case EQUAL:
       case NOT_EQUAL:
-        if (typeA.startsWith("ARRAY")) {
-          return Optional.empty();
-        }
         return getUnionType(typeA, typeB).isPresent() ? Optional.of("BOOLEAN") : Optional.empty();
       case GREATER:
       case GREATER_EQUAL:

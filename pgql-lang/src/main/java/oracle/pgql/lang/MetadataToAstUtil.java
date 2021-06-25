@@ -27,6 +27,7 @@ import oracle.pgql.lang.metadata.EdgeLabel;
 import oracle.pgql.lang.metadata.GraphSchema;
 import oracle.pgql.lang.metadata.Label;
 import oracle.pgql.lang.metadata.Property;
+import oracle.pgql.lang.metadata.UnaryOperation;
 import oracle.pgql.lang.metadata.VertexLabel;
 
 public class MetadataToAstUtil {
@@ -123,6 +124,10 @@ public class MetadataToAstUtil {
     List<IStrategoTerm> unionTypes = getUnionCompatibleTypes(allPairsOfTypes, metadataProvider, f);
     if (!unionTypes.isEmpty()) {
       metadataTerm.add(f.makeAppl("UnionTypes", f.makeList(unionTypes)));
+    }
+    List<IStrategoTerm> unaryOperations = getUnaryOperationsWithTypes(allTypes, metadataProvider, f);
+    if (!unaryOperations.isEmpty()) {
+      metadataTerm.add(f.makeAppl("UnaryOperations", f.makeList(unaryOperations)));
     }
     List<IStrategoTerm> binaryOperations = getBinaryOperationsWithTypes(allPairsOfTypes, metadataProvider, f);
     if (!binaryOperations.isEmpty()) {
@@ -254,6 +259,46 @@ public class MetadataToAstUtil {
       }
     }
     return unionTypes;
+  }
+
+  private static List<IStrategoTerm> getUnaryOperationsWithTypes(Set<String> allTypes,
+      AbstractMetadataProvider metadataProvider, ITermFactory f) {
+    List<IStrategoTerm> unaryOperationsWithTypes = new ArrayList<>();
+
+    for (String type : allTypes) {
+      UnaryOperation[] unaryOperations = UnaryOperation.values();
+      for (int i = 0; i < unaryOperations.length; i++) {
+        UnaryOperation operation = unaryOperations[i];
+        Optional<String> optionalReturnType = metadataProvider.getOperationReturnType(operation, type);
+        if (optionalReturnType.isPresent()) {
+          String returnType = optionalReturnType.get();
+          String constructorName;
+          switch (operation) {
+            case NOT:
+              constructorName = "Not";
+              break;
+            case UMIN:
+              constructorName = "UMin";
+              break;
+            case SUM:
+            case MIN:
+            case MAX:
+            case AVG:
+            case LISTAGG:
+              constructorName = operation.name();
+              break;
+            case ARRAY_AGG:
+              constructorName = "ARRAY-AGG";
+              break;
+            default:
+              throw new UnsupportedOperationException("Unsupported operation: " + operation);
+          }
+          unaryOperationsWithTypes.add(f.makeAppl("UnaryOperation", f.makeString(constructorName), f.makeString(type),
+              f.makeString(returnType)));
+        }
+      }
+    }
+    return unaryOperationsWithTypes;
   }
 
   private static List<IStrategoTerm> getBinaryOperationsWithTypes(List<Pair<String, String>> allPairsOfTypes,
