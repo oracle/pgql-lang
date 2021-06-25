@@ -73,7 +73,7 @@ rules
           is-pgql13; alltd(norm-string-literal + norm-identifier) +
           ?Start-Plhdr() // empty query string
         );
-        alltd(norm-timezone);
+        alltd(norm-timezone(|metadata));
         alltd(norm-datetime-literal);
         alltd(norm-hop-distance);
         alltd(name-unnamed-elems(|variable-counter));
@@ -227,15 +227,15 @@ rules
                         + Time(un-single-quote)
                         + Timestamp(un-single-quote)
 
-  norm-timezone:
-    Cast(exp, type) -> Cast(exp, type')
-    with
-      type' := <origin-track-forced(upper-case
-              /* In standard SQL the time zone is denoted by "TIME ZONE" while in java.sql.* it's denoted by "TIMEZONE".
-                 Clearly people have been confusing it. Therefore, we support both notations in PGQL by normalizing one
-                 into the other. Users can then use either. However, please stick to TIME ZONE (with space) in
-                 documentation to follow the standard. */
-              ; string-replace(|"TIME ZONE", "TIMEZONE"))> type
+  norm-timezone(|metadata):
+    Cast(exp, type) -> Cast(exp, type'')
+    with type' := <origin-track-forced(upper-case
+                  /* In standard SQL the time zone is denoted by "TIME ZONE" while in java.sql.* it's denoted by "TIMEZONE".
+                     Clearly people have been confusing it. Therefore, we support both notations in PGQL by normalizing one
+                     into the other. Users can then use either. However, please stick to TIME ZONE (with space) in
+                     documentation to follow the standard. */
+                  ; string-replace(|"TIME ZONE", "TIMEZONE"))> type
+        ; type'' := <try(origin-track-forced(!metadata; fetch-elem(?DataTypeSynonyms(<id>)); fetch-elem(?DataTypeSynonym(type', <id>))))> type'
 
   norm-isNull = ?IsNotNull(exp); origin-track-forced(!IsNull(exp)); !Not(<id>)
 

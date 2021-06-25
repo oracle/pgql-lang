@@ -11,6 +11,7 @@ import java.util.Optional;
 import oracle.pgql.lang.ir.SchemaQualifiedName;
 import oracle.pgql.lang.metadata.AbstractMetadataProvider;
 import oracle.pgql.lang.metadata.BinaryOperation;
+import oracle.pgql.lang.metadata.DataTypeSynonym;
 import oracle.pgql.lang.metadata.EdgeLabel;
 import oracle.pgql.lang.metadata.GraphSchema;
 import oracle.pgql.lang.metadata.Property;
@@ -240,16 +241,23 @@ public class ExampleMetadataProvider extends AbstractMetadataProvider {
         if (getUnionTypeForNumerics(typeA, typeB).isPresent() || getUnionTypeForDatetimes(typeA, typeB).isPresent()) {
           return Optional.of("BOOLEAN");
         } else {
-          return typeA.equals(typeB) && typeA.equals("STRING") && typeA.equals("BOOLEAN") ? Optional.of("BOOLEAN")
+          return typeA.equals(typeB) && (typeA.equals("STRING") || typeA.equals("BOOLEAN")) ? Optional.of("BOOLEAN")
               : Optional.empty();
         }
       case AND:
       case OR:
         return typeA.equals("BOOLEAN") && typeB.equals("BOOLEAN") ? Optional.of("BOOLEAN") : Optional.empty();
       case STRING_CONCAT:
-        return typeA.equals("STRING") && typeB.equals("STRING") ? Optional.of("BOOLEAN") : Optional.empty();
+        return typeA.equals("STRING") && typeB.equals("STRING") ? Optional.of("STRING") : Optional.empty();
       default:
         return Optional.empty();
     }
+  }
+
+  @Override
+  public Optional<List<DataTypeSynonym>> getDataTypeSynonyms() {
+    List<DataTypeSynonym> synonyms = new ArrayList<>();
+    synonyms.add(new DataTypeSynonym("INT", "INTEGER"));
+    return Optional.of(synonyms);
   }
 }

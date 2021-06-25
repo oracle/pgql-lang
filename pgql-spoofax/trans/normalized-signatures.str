@@ -138,3 +138,7 @@ signature constructors // for type anslysis (see trans/type-analysis.str)
   UnaryOperations         : List(UnaryOperation) -> UnaryOperations
 
   UnaryOperation          : STRING * STRING * STRING -> UnaryOperation
+
+  DataTypeSynonyms        : List(DataTypeSynonym) -> DataTypeSynonyms
+
+  DataTypeSynonym         : STRING * STRING -> DataTypeSynonym

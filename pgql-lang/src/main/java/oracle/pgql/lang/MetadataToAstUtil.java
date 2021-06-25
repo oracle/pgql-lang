@@ -21,6 +21,7 @@ import org.spoofax.terms.TermVisitor;
 import oracle.pgql.lang.ir.SchemaQualifiedName;
 import oracle.pgql.lang.metadata.AbstractMetadataProvider;
 import oracle.pgql.lang.metadata.BinaryOperation;
+import oracle.pgql.lang.metadata.DataTypeSynonym;
 import oracle.pgql.lang.metadata.EdgeLabel;
 import oracle.pgql.lang.metadata.GraphSchema;
 import oracle.pgql.lang.metadata.Label;
@@ -111,6 +112,8 @@ public class MetadataToAstUtil {
     allTypes.add("TIME WITH TIME ZONE");
     allTypes.add("TIMESTAMP");
     allTypes.add("TIMESTAMP WITH TIME ZONE");
+    allTypes.add("VERTEX");
+    allTypes.add("EDGE");
 
     List<Pair<String, String>> allPairsOfTypes = getAllPairsOfTypes(allTypes);
     List<IStrategoTerm> unionTypes = getUnionCompatibleTypes(allPairsOfTypes, metadataProvider, f);
@@ -120,6 +123,10 @@ public class MetadataToAstUtil {
     List<IStrategoTerm> binaryOperations = getBinaryOperationsWithTypes(allPairsOfTypes, metadataProvider, f);
     if (!binaryOperations.isEmpty()) {
       metadataTerm.add(f.makeAppl("BinaryOperations", f.makeList(binaryOperations)));
+    }
+    List<IStrategoTerm> dataTyeSynonyms = getDataTyeSynonyms(metadataProvider, f);
+    if (!dataTyeSynonyms.isEmpty()) {
+      metadataTerm.add(f.makeAppl("DataTypeSynonyms", f.makeList(dataTyeSynonyms)));
     }
 
     IStrategoAppl metadataExtendedAst = f.makeAppl(AST_PLUS_METADATA_CONSTRUCTOR_NAME, parseResult.ast(),
@@ -276,5 +283,17 @@ public class MetadataToAstUtil {
       }
     }
     return binaryOperationsWithTypes;
+  }
+
+  private static List<IStrategoTerm> getDataTyeSynonyms(AbstractMetadataProvider metadataProvider, ITermFactory f) {
+    List<IStrategoTerm> dataTypeSynonyms = new ArrayList<>();
+    Optional<List<DataTypeSynonym>> optionalDataTypeSynonyms = metadataProvider.getDataTypeSynonyms();
+    if (optionalDataTypeSynonyms.isPresent()) {
+      for (DataTypeSynonym synonym : optionalDataTypeSynonyms.get()) {
+        dataTypeSynonyms.add(
+            f.makeAppl("DataTypeSynonym", f.makeString(synonym.getSynonym()), f.makeString(synonym.getDataType())));
+      }
+    }
+    return dataTypeSynonyms;
   }
 }

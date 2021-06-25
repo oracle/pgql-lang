@@ -154,4 +154,13 @@ public abstract class AbstractMetadataProvider {
   public Optional<List<FunctionSignature>> getFunctionSignatures() {
     return Optional.empty();
   }
+
+  /**
+   * Gets synonyms for data types (for example INT -> INTEGER)
+   *
+   * @return the list of data type synonyms of the system
+   */
+  public Optional<List<DataTypeSynonym>> getDataTypeSynonyms() {
+    return Optional.empty();
+  }
 }

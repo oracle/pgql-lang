@@ -426,4 +426,14 @@ public class MetadataTest extends AbstractPgqlTest {
     result = parse("SELECT CASE n.firstName WHEN 123 THEN true ELSE false END FROM MATCH (n)");
     assertTrue(result.getErrorMessages().contains("The operator = is undefined for the argument types STRING, LONG"));
   }
+
+  @Test
+  public void testDataTypeSynonyms() throws Exception {
+    PgqlResult result = parse("SELECT CAST('1' AS INT) = CAST('1' AS INTEGER) FROM MATCH (n)");
+    assertTrue(result.isQueryValid());
+
+    result = parse("SELECT CAST('1' AS INT) = CAST('1' AS STRING) FROM MATCH (n)");
+    assertTrue(
+        result.getErrorMessages().contains("The operator = is undefined for the argument types INTEGER, STRING"));
+  }
 }
