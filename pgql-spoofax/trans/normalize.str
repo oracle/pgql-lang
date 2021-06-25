@@ -229,13 +229,13 @@ rules
 
   norm-timezone(|metadata):
     Cast(exp, type) -> Cast(exp, type'')
-    with type' := <try(origin-track-forced(!metadata; fetch-elem(?DataTypeSynonyms(<id>)); fetch-elem(?DataTypeSynonym(type, <id>))))> type
-       ; type'' := <origin-track-forced(upper-case
-                   /* In standard SQL the time zone is denoted by "TIME ZONE" while in java.sql.* it's denoted by "TIMEZONE".
-                      Clearly people have been confusing it. Therefore, we support both notations in PGQL by normalizing one
-                      into the other. Users can then use either. However, please stick to TIME ZONE (with space) in
-                      documentation to follow the standard. */
-                   ; string-replace(|"TIME ZONE", "TIMEZONE"))> type'
+    with type' := <origin-track-forced(upper-case
+                  /* In standard SQL the time zone is denoted by "TIME ZONE" while in java.sql.* it's denoted by "TIMEZONE".
+                     Clearly people have been confusing it. Therefore, we support both notations in PGQL by normalizing one
+                     into the other. Users can then use either. However, please stick to TIME ZONE (with space) in
+                     documentation to follow the standard. */
+                  ; string-replace(|"TIME ZONE", "TIMEZONE"))> type
+        ; type'' := <try(origin-track-forced(!metadata; fetch-elem(?DataTypeSynonyms(<id>)); fetch-elem(?DataTypeSynonym(type', <id>))))> type'
 
   norm-isNull = ?IsNotNull(exp); origin-track-forced(!IsNull(exp)); !Not(<id>)
 
