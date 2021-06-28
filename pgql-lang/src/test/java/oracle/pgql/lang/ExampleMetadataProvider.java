@@ -226,7 +226,6 @@ public class ExampleMetadataProvider extends AbstractMetadataProvider {
       case NOT:
         return type.equals("BOOLEAN") ? Optional.of("BOOLEAN") : Optional.empty();
       case UMIN:
-      case AVG:
         switch (type) {
           case "INTEGER":
           case "LONG":
@@ -262,6 +261,16 @@ public class ExampleMetadataProvider extends AbstractMetadataProvider {
           case "TIMESTAMP":
           case "TIMESTAMP WITH TIME ZONE":
             return Optional.of(type);
+          default:
+            return Optional.empty();
+        }
+      case AVG:
+        switch (type) {
+          case "INTEGER":
+          case "LONG":
+          case "FLOAT":
+          case "DOUBLE":
+            return Optional.of("DOUBLE");
           default:
             return Optional.empty();
         }

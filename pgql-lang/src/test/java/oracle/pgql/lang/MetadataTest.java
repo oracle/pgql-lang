@@ -537,6 +537,9 @@ public class MetadataTest extends AbstractPgqlTest {
     result = parse("SELECT AVG('abc') FROM MATCH (n)");
     assertTrue(result.getErrorMessages().contains("The aggregate AVG is undefined for the argument type STRING"));
 
+    result = parse("SELECT AVG(123) + 'abc' FROM MATCH (n)");
+    assertTrue(result.getErrorMessages().contains("The operator + is undefined for the argument types DOUBLE, STRING"));
+
     result = parse("SELECT ARRAY_AGG(n) FROM MATCH (n)");
     assertTrue(result.getErrorMessages().contains("The aggregate ARRAY_AGG is undefined for the argument type VERTEX"));
 
@@ -552,5 +555,55 @@ public class MetadataTest extends AbstractPgqlTest {
 
     result = parse("SELECT LISTAGG(n.firstName) <> LISTAGG(n.dob) AND LISTAGG(n.dob) <> 'abc' FROM MATCH (n)");
     assertTrue(result.isQueryValid());
+  }
+
+  @Test
+  public void testIsNull() throws Exception {
+    PgqlResult result = parse("SELECT (n.firstName IS NULL) + (n.firstName IS NOT NULL) FROM MATCH (n)");
+    assertTrue(
+        result.getErrorMessages().contains("The operator + is undefined for the argument types BOOLEAN, BOOLEAN"));
+  }
+
+  @Test
+  public void testLiterals() throws Exception {
+    PgqlResult result = parse("SELECT DATE '2000-01-01' + true FROM MATCH (n)");
+    assertTrue(result.getErrorMessages().contains("The operator + is undefined for the argument types DATE, BOOLEAN"));
+
+    result = parse("SELECT TIME '19:30:00' + 123 FROM MATCH (n)");
+    assertTrue(result.getErrorMessages().contains("The operator + is undefined for the argument types TIME, LONG"));
+
+    result = parse("SELECT TIMESTAMP '2000-01-01 19:30:00' + 'abc' FROM MATCH (n)");
+    assertTrue(
+        result.getErrorMessages().contains("The operator + is undefined for the argument types TIMESTAMP, STRING"));
+
+    result = parse("SELECT TIME '19:30:00+08:00' + TIMESTAMP '2000-01-01 19:30:00+08:00' FROM MATCH (n)");
+    assertTrue(result.getErrorMessages()
+        .contains("The operator + is undefined for the argument types TIME WITH TIME ZONE, TIMESTAMP WITH TIME ZONE"));
+  }
+
+  @Test
+  public void testSubqueries() throws Exception {
+    PgqlResult result = parse("SELECT ( SELECT x FROM MATCH (n) GROUP BY n.firstName AS x ) + 123 FROM MATCH (n)");
+    assertTrue(result.getErrorMessages().contains("The operator + is undefined for the argument types STRING, LONG"));
+
+    result = parse(
+        "SELECT EXISTS ( SELECT * FROM MATCH (n) -> (m) ) + NOT EXISTS ( SELECT * FROM MATCH (n) -> (m) ) FROM MATCH (n)");
+    assertTrue(
+        result.getErrorMessages().contains("The operator + is undefined for the argument types BOOLEAN, BOOLEAN"));
+  }
+
+  @Test
+  public void testExtract() throws Exception {
+    PgqlResult result = parse("SELECT EXTRACT(YEAR FROM DATE '2000-01-01') || EXTRACT(MONTH FROM DATE '2000-01-01') FROM MATCH (n)");
+    assertTrue(result.getErrorMessages().contains("The operator || is undefined for the argument types INTEGER, INTEGER"));
+    
+    result = parse("SELECT EXTRACT(DAY FROM DATE '2000-01-01') || EXTRACT(HOUR FROM TIME '20:30:00+08:00') FROM MATCH (n)");
+    assertTrue(result.getErrorMessages().contains("The operator || is undefined for the argument types INTEGER, INTEGER"));
+    
+    result = parse("SELECT EXTRACT(MINUTE FROM TIME '20:30:00+08:00') || EXTRACT(SECOND FROM TIME '20:30:00+08:00') FROM MATCH (n)");
+    assertTrue(result.getErrorMessages().contains("The operator || is undefined for the argument types INTEGER, DOUBLE"));
+
+    result = parse("SELECT EXTRACT(TIMEZONE_HOUR FROM TIME '20:30:00+08:00') || EXTRACT(TIMEZONE_MINUTE FROM TIME '20:30:00+08:00') FROM MATCH (n)");
+    assertTrue(result.getErrorMessages().contains("The operator || is undefined for the argument types INTEGER, INTEGER"));
   }
 }
