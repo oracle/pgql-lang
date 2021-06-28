@@ -673,3 +673,19 @@ rules // MODIFY
   nabl-constraint(|ctx):
     Edge(_, Identifier(e, _), _, _, _, Correlation(ExpressionPlusType(VarRef(Identifier(outer-var, _), _), type))) -> <fail>
     with <generate-error(|ctx, "Duplicate variable (variable with same name is passed from an outer query)")> e
+
+  // SUBSTRING
+  nabl-constraint(|ctx, metadata):
+    CharacterSubstring(ExpressionPlusType(exp, type), _, _) -> <fail>
+    where <get-union-type(|metadata); ?AmbiguousType()> (type, <get-default-string-type(|metadata)>)
+    with  <generate-error(|ctx, "Character string expected")> exp
+
+  nabl-constraint(|ctx, metadata):
+    CharacterSubstring(_, ExpressionPlusType(exp, type), _) -> <fail>
+    where <get-union-type(|metadata); ?AmbiguousType()> (type, <get-default-long-integer-type(|metadata)>)
+    with  <generate-error(|ctx, "Numeric expected")> exp
+
+  nabl-constraint(|ctx, metadata):
+    CharacterSubstring(_, _, Some(StringLength(ExpressionPlusType(exp, type)))) -> <fail>
+    where <get-union-type(|metadata); ?AmbiguousType()> (type, <get-default-long-integer-type(|metadata)>)
+    with  <generate-error(|ctx, "Numeric expected")> exp

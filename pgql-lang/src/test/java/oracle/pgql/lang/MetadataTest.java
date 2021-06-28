@@ -594,16 +594,40 @@ public class MetadataTest extends AbstractPgqlTest {
 
   @Test
   public void testExtract() throws Exception {
-    PgqlResult result = parse("SELECT EXTRACT(YEAR FROM DATE '2000-01-01') || EXTRACT(MONTH FROM DATE '2000-01-01') FROM MATCH (n)");
-    assertTrue(result.getErrorMessages().contains("The operator || is undefined for the argument types INTEGER, INTEGER"));
-    
-    result = parse("SELECT EXTRACT(DAY FROM DATE '2000-01-01') || EXTRACT(HOUR FROM TIME '20:30:00+08:00') FROM MATCH (n)");
-    assertTrue(result.getErrorMessages().contains("The operator || is undefined for the argument types INTEGER, INTEGER"));
-    
-    result = parse("SELECT EXTRACT(MINUTE FROM TIME '20:30:00+08:00') || EXTRACT(SECOND FROM TIME '20:30:00+08:00') FROM MATCH (n)");
-    assertTrue(result.getErrorMessages().contains("The operator || is undefined for the argument types INTEGER, DOUBLE"));
+    PgqlResult result = parse(
+        "SELECT EXTRACT(YEAR FROM DATE '2000-01-01') || EXTRACT(MONTH FROM DATE '2000-01-01') FROM MATCH (n)");
+    assertTrue(
+        result.getErrorMessages().contains("The operator || is undefined for the argument types INTEGER, INTEGER"));
 
-    result = parse("SELECT EXTRACT(TIMEZONE_HOUR FROM TIME '20:30:00+08:00') || EXTRACT(TIMEZONE_MINUTE FROM TIME '20:30:00+08:00') FROM MATCH (n)");
-    assertTrue(result.getErrorMessages().contains("The operator || is undefined for the argument types INTEGER, INTEGER"));
+    result = parse(
+        "SELECT EXTRACT(DAY FROM DATE '2000-01-01') || EXTRACT(HOUR FROM TIME '20:30:00+08:00') FROM MATCH (n)");
+    assertTrue(
+        result.getErrorMessages().contains("The operator || is undefined for the argument types INTEGER, INTEGER"));
+
+    result = parse(
+        "SELECT EXTRACT(MINUTE FROM TIME '20:30:00+08:00') || EXTRACT(SECOND FROM TIME '20:30:00+08:00') FROM MATCH (n)");
+    assertTrue(
+        result.getErrorMessages().contains("The operator || is undefined for the argument types INTEGER, DOUBLE"));
+
+    result = parse(
+        "SELECT EXTRACT(TIMEZONE_HOUR FROM TIME '20:30:00+08:00') || EXTRACT(TIMEZONE_MINUTE FROM TIME '20:30:00+08:00') FROM MATCH (n)");
+    assertTrue(
+        result.getErrorMessages().contains("The operator || is undefined for the argument types INTEGER, INTEGER"));
+  }
+
+  @Test
+  public void testSubstring() throws Exception {
+    PgqlResult result = parse("SELECT SUBSTRING('A string' FROM 3 FOR 2) || true FROM MATCH (n)");
+    assertTrue(
+        result.getErrorMessages().contains("The operator || is undefined for the argument types STRING, BOOLEAN"));
+
+    result = parse("SELECT SUBSTRING(DATE '2000-01-01' FROM 3 FOR 2) FROM MATCH (n)");
+    assertTrue(result.getErrorMessages().contains("Character string expected"));
+
+    result = parse("SELECT SUBSTRING('A string' FROM 'abc' FOR 2) FROM MATCH (n)");
+    assertTrue(result.getErrorMessages().contains("Numeric expected"));
+
+    result = parse("SELECT SUBSTRING('A string' FROM 3 FOR 'abc') FROM MATCH (n)");
+    assertTrue(result.getErrorMessages().contains("Numeric expected"));
   }
 }
