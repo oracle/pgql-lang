@@ -365,7 +365,10 @@ rules // other expressions
 
   get-binary-operation-return-type(|metadata):
     (operation, t1, t2) -> type
-    with if <fetch-elem(?BinaryOperations(binaryOperations))> metadata
-         then type := <fetch-elem(?BinaryOperation(operation, t1, t2, <id>)); !Type(<id>) <+ !Undefined()> binaryOperations
-         else type := UnknownType()
+    with if <eq> (t1, t2); <?"Eq" + ?"Neq"> operation; <string-starts-with(|"ARRAY<")> t1
+         then type := Type("BOOLEAN") // we assume that if arrays are supported, equality and non-equality between arrays are too
+         else if <fetch-elem(?BinaryOperations(binaryOperations))> metadata
+              then type := <fetch-elem(?BinaryOperation(operation, t1, t2, <id>)); !Type(<id>) <+ !Undefined()> binaryOperations
+              else type := UnknownType()
+              end
          end
