@@ -648,13 +648,14 @@ rules // MODIFY
   // check that WHERE clauses contains boolean expressions
   nabl-constraint(|ctx):
     Constraints(constraints) -> <fail>
-    with <remove-all(?ExpressionPlusType(<id>, Type("BOOLEAN")) + ?ExpressionPlusType(<id>, UnknownType()))
-                    ; batch-generate-error(|ctx, "WHERE clause expects a BOOLEAN expression")> constraints
+    with <remove-all(?ExpressionPlusType(_, Type("BOOLEAN")));
+          filter(?ExpressionPlusType(<id>, Type(_)));
+          batch-generate-error(|ctx, "WHERE clause expects a BOOLEAN expression")> constraints
 
   // check that HAVING clauses contains boolean expressions
   nabl-constraint(|ctx):
     HavingClause(ExpressionPlusType(exp, Type(t))) -> <fail>
-    where <not(?"BOOLEAN" + ?UnknownType())> t
+    where <not(?"BOOLEAN")> t
     with <generate-error(|ctx, "HAVING clause expects a BOOLEAN expression")> exp
 
   // check that ORDER BY does not contain vertex/edge/array terms
