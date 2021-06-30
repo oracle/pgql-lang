@@ -510,13 +510,11 @@ rules // MODIFY
 
 // schema
 
-  nabl-constraint(|ctx) = ?AstPlusMetadata(_, metadata); alltd(check-labels(|ctx, metadata)); fail
-
-  check-labels(|ctx, metadata):
+  nabl-constraint(|ctx, metadata):
     term@NormalizedQuery(_, _, _, Some(GraphPattern(Vertices(vertices), edgesAndPaths, Constraints(constraints))), _, _, _, _, _, _, _) -> <fail>
     with <check-labels-common(|ctx, metadata)> (term, vertices, edgesAndPaths, constraints)
 
-  check-labels(|ctx, metadata):
+  nabl-constraint(|ctx, metadata):
     term@CommonPathExpression(_, Vertices(vertices), Edges(edges), Constraints(constraints), _) -> <fail>
     with <check-labels-common(|ctx, metadata)> (term, vertices, edges, constraints)
 
@@ -536,17 +534,17 @@ rules // MODIFY
          end
 
   get-unresolved-label(|varDefinitionOriginPositions, labels):
-    FunctionCall(None(), "has_label", [ ExpressionPlusType(VarRef(_, originPosition), _), Identifier(labelReference, _) ]) -> labelReference
+    FunctionCall(None(), Identifier("has_label", _), [ ExpressionPlusType(VarRef(_, originPosition), _), Identifier(labelReference, _) ]) -> labelReference
     where <elem> (originPosition, varDefinitionOriginPositions)
         ; <not(label-exists(|labels))> labelReference
 
-  check-labels(|ctx, metadata):
+  nabl-constraint(|ctx, metadata):
     VertexInsertion(_, _, Some(Labels(labels)), _) -> <fail>
     where vertexLabels := <get-vertex-labels(|metadata); not(?None())>
     with unresolvedVertexLabels := <map(?Identifier(<id>, _)); remove-all(label-exists(|vertexLabels))> labels
        ; <batch-generate-error(|ctx, "Vertex label does not exist")> unresolvedVertexLabels
 
-  check-labels(|ctx, metadata):
+  nabl-constraint(|ctx, metadata):
      DirectedEdgeInsertion(_, _, _, _, Some(Labels(labels)), _) -> <fail>
      where edgeLabels := <get-edge-labels(|metadata); not(?None())>
      with unresolvedEdgeLabels := <map(?Identifier(<id>, _)); remove-all(label-exists(|edgeLabels))> labels
@@ -689,3 +687,12 @@ rules // MODIFY
     CharacterSubstring(_, _, Some(StringLength(ExpressionPlusType(exp, type)))) -> <fail>
     where <get-union-type(|metadata); ?AmbiguousType()> (type, <get-default-long-integer-type(|metadata)>)
     with  <generate-error(|ctx, "Numeric expected")> exp
+
+  // function calls
+  nabl-constraint(|ctx, metadata):
+    ExpressionPlusType(exp@FunctionCall(_, _, _), Undefined()) -> <fail>
+    with <generate-error(|ctx, "Function does not exist or argument types do not match")> exp
+
+  nabl-constraint(|ctx, metadata):
+    ExpressionPlusType(exp@FunctionCall(_, _, _), AmbiguousType()) -> <fail>
+    with <generate-error(|ctx, "Multiple functions exist that match the specified function name and argument types")> exp

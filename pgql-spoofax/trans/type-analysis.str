@@ -109,7 +109,7 @@ rules // property references
     exp@PropRef(VarRef(_), _) -> ExpressionPlusType(exp, UnknownType())
 
   simplify-label-expression(|varRefOriginPosition):
-    FunctionCall(None(), "has_label", [ VarRef(_, varRefOriginPosition), Identifier(label, _)]) -> label
+    FunctionCall(None(), Identifier("has_label", _), [ VarRef(_, varRefOriginPosition), Identifier(label, _)]) -> label
 
   simplify-label-expression(|varRefOriginPosition):
     Or(a, b) -> LabelOr(a', b')
@@ -181,14 +181,34 @@ rules // functions
     func@FunctionCall(package, name, args) -> ExpressionPlusType(func', type)
     with args' := <alltd(add-type(|metadata, variablesPlusTypes, constraints))> args
        ; func' := <origin-track-forced(!FunctionCall(package, name, args'))> func
-       ; if <fetch-elem(?FunctionSignatures(signatures))> metadata
-         then if argumentTypes := <map(?ExpressionPlusType(_, Type(<id>)))> args'
-               ; <fetch-elem(?FunctionSignature(package, name, argumentTypes, returnType))> signatures
-              then type := Type(returnType)
-              else type := UnknownType()
+       ; if <fetch-elem(?FunctionSignatures(allSignatures))> metadata
+         then package' := <?None() + ?Some(Identifier(p, _)); !Some(p)> package
+            ; name' := <?Identifier(<id>, _)> name
+            ; if argumentTypes := <map(?ExpressionPlusType(_, Type(<id>)))> args'
+              then returnTypes := <get-function-return-types-exact-argument-types(|package', name', argumentTypes); not(?[]) <+ // exact match of package+function name, exact match of arguments
+                                   get-function-return-types-compatible-argument-types(|metadata, package', name', argumentTypes); not(?[]) <+ // exact match of package+function name, union-compatible match of arguments
+                                   map(FunctionSignature(?None() <+ Some(upper-case), upper-case, id, id));
+                                     ( get-function-return-types-exact-argument-types(|package', name', argumentTypes); not(?[]) <+ // case insensitive match of package+function name, exact math of arguments
+                                       get-function-return-types-compatible-argument-types(|metadata, package', name', argumentTypes) // case insensitive match of package+function name, union-compatible match of arguments
+                                     )> allSignatures
+                 ; numFunctionsFound := <length> returnTypes
+                 ; type := <?0; !Undefined() <+ // function not found
+                            ?1; !Type(<?[<id>]> returnTypes) <+ // exactly one function found
+                            !AmbiguousType()> numFunctionsFound // multiple functions found
+              else type := UnknownType() // one or more arguments are untyped
               end
-         else type := UnknownType()
+         else type := UnknownType() // function signatures are not provided
          end
+
+  get-function-return-types-exact-argument-types(|package, name, argumentTypes) = filter(?FunctionSignature(package, name, argumentTypes, <id>))
+
+  get-function-return-types-compatible-argument-types(|metadata, package, name, argumentTypes) = filter(?FunctionSignature(package, name, <check-arguments-are-union-compatible(|metadata, argumentTypes)>, <id>))
+
+  check-arguments-are-union-compatible(|metadata, argumentTypes2):
+    argumentTypes1 -> <id>
+    with argumentTypes1' := <map(!Type(<id>))> argumentTypes1
+       ; argumentTypes2' := <map(!Type(<id>))> argumentTypes2
+    where <zip(get-union-type(|metadata); ?Type(_))> (argumentTypes1', argumentTypes2') // this fails if one of the arguments (when paired-up with the ones from the signature) is not union compatible
 
 rules // subqueries
 

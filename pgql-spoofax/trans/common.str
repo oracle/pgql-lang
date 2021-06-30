@@ -110,4 +110,4 @@ rules
   to-OR = ?(exp1, exp2); !ExpressionPlusType(Or(exp1, exp2), Type("BOOLEAN"))
 
   to-function(|name):
-    args -> FunctionCall(None(), name, args)
+    args -> FunctionCall(None(), Identifier(name, name), args)
