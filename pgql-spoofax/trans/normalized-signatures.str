@@ -142,3 +142,7 @@ signature constructors // for type anslysis (see trans/type-analysis.str)
   DataTypeSynonyms        : List(DataTypeSynonym) -> DataTypeSynonyms
 
   DataTypeSynonym         : STRING * STRING -> DataTypeSynonym
+
+  FunctionSignatures      : List(FunctionSignature) -> FunctionSignatures
+
+  FunctionSignature       : Optional(STRING) * STRING * List(STRING) * STRING -> FunctionSignature

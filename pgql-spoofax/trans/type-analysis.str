@@ -178,9 +178,17 @@ rules // literals
 rules // functions
 
   add-type(|metadata, variablesPlusTypes, constraints):
-    func@FunctionCall(package, name, args) -> ExpressionPlusType(func', UnknownType()) // TODO fix type
+    func@FunctionCall(package, name, args) -> ExpressionPlusType(func', type)
     with args' := <alltd(add-type(|metadata, variablesPlusTypes, constraints))> args
        ; func' := <origin-track-forced(!FunctionCall(package, name, args'))> func
+       ; if <fetch-elem(?FunctionSignatures(signatures))> metadata
+         then if argumentTypes := <map(?ExpressionPlusType(_, Type(<id>)))> args'
+               ; <fetch-elem(?FunctionSignature(package, name, argumentTypes, returnType))> signatures
+              then type := Type(returnType)
+              else type := UnknownType()
+              end
+         else type := UnknownType()
+         end
 
 rules // subqueries
 

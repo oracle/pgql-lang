@@ -24,6 +24,7 @@ import oracle.pgql.lang.metadata.AbstractMetadataProvider;
 import oracle.pgql.lang.metadata.BinaryOperation;
 import oracle.pgql.lang.metadata.DataTypeSynonym;
 import oracle.pgql.lang.metadata.EdgeLabel;
+import oracle.pgql.lang.metadata.FunctionSignature;
 import oracle.pgql.lang.metadata.GraphSchema;
 import oracle.pgql.lang.metadata.Label;
 import oracle.pgql.lang.metadata.Property;
@@ -133,9 +134,15 @@ public class MetadataToAstUtil {
     if (!binaryOperations.isEmpty()) {
       metadataTerm.add(f.makeAppl("BinaryOperations", f.makeList(binaryOperations)));
     }
-    List<IStrategoTerm> dataTyeSynonyms = getDataTyeSynonyms(dataTypeSynonyms, f);
-    if (!dataTyeSynonyms.isEmpty()) {
-      metadataTerm.add(f.makeAppl("DataTypeSynonyms", f.makeList(dataTyeSynonyms)));
+    List<IStrategoTerm> dataTypeSynonymTerms = getDataTypeSynonyms(dataTypeSynonyms, f);
+    if (!dataTypeSynonymTerms.isEmpty()) {
+      metadataTerm.add(f.makeAppl("DataTypeSynonyms", f.makeList(dataTypeSynonymTerms)));
+    }
+
+    Optional<List<FunctionSignature>> functionSignatures = metadataProvider.getFunctionSignatures();
+    List<IStrategoTerm> functionSignatureTerms = getFunctionSignatures(functionSignatures, f);
+    if (!functionSignatureTerms.isEmpty()) {
+      metadataTerm.add(f.makeAppl("FunctionSignatures", f.makeList(functionSignatureTerms)));
     }
 
     IStrategoAppl metadataExtendedAst = f.makeAppl(AST_PLUS_METADATA_CONSTRUCTOR_NAME, parseResult.ast(),
@@ -367,7 +374,7 @@ public class MetadataToAstUtil {
     return binaryOperationsWithTypes;
   }
 
-  private static List<IStrategoTerm> getDataTyeSynonyms(Optional<List<DataTypeSynonym>> optionalDataTypeSynonyms,
+  private static List<IStrategoTerm> getDataTypeSynonyms(Optional<List<DataTypeSynonym>> optionalDataTypeSynonyms,
       ITermFactory f) {
     List<IStrategoTerm> dataTypeSynonyms = new ArrayList<>();
     if (optionalDataTypeSynonyms.isPresent()) {
@@ -377,5 +384,27 @@ public class MetadataToAstUtil {
       }
     }
     return dataTypeSynonyms;
+  }
+
+  private static List<IStrategoTerm> getFunctionSignatures(Optional<List<FunctionSignature>> optionalFunctionSignatures,
+      ITermFactory f) {
+    List<IStrategoTerm> functionSignatures = new ArrayList<>();
+    if (optionalFunctionSignatures.isPresent()) {
+      for (FunctionSignature function : optionalFunctionSignatures.get()) {
+        IStrategoTerm packageName = function.getPackageName() == null ? f.makeAppl("None")
+            : f.makeAppl("Some", f.makeString(function.getPackageName()));
+        IStrategoTerm functionName = f.makeString(function.getFunctionName());
+
+        List<IStrategoTerm> argumentTypes = new ArrayList<>();
+        for (String argumentType : function.getArgumentTypes()) {
+          argumentTypes.add(f.makeString(argumentType));
+        }
+
+        IStrategoTerm returnType = f.makeString(function.getReturnType());
+        functionSignatures
+            .add(f.makeAppl("FunctionSignature", packageName, functionName, f.makeList(argumentTypes), returnType));
+      }
+    }
+    return functionSignatures;
   }
 }

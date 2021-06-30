@@ -4,6 +4,7 @@
 package oracle.pgql.lang;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
@@ -13,6 +14,7 @@ import oracle.pgql.lang.metadata.AbstractMetadataProvider;
 import oracle.pgql.lang.metadata.BinaryOperation;
 import oracle.pgql.lang.metadata.DataTypeSynonym;
 import oracle.pgql.lang.metadata.EdgeLabel;
+import oracle.pgql.lang.metadata.FunctionSignature;
 import oracle.pgql.lang.metadata.GraphSchema;
 import oracle.pgql.lang.metadata.Property;
 import oracle.pgql.lang.metadata.UnaryOperation;
@@ -350,5 +352,73 @@ public class ExampleMetadataProvider extends AbstractMetadataProvider {
     List<DataTypeSynonym> synonyms = new ArrayList<>();
     synonyms.add(new DataTypeSynonym("INT", "INTEGER"));
     return Optional.of(synonyms);
+  }
+
+  @Override
+  public Optional<List<FunctionSignature>> getFunctionSignatures() {
+    List<FunctionSignature> functions = new ArrayList<>();
+
+    functions.add(new FunctionSignature(null, "ID", argumentTypes("VERTEX"), "STRING"));
+    functions.add(new FunctionSignature(null, "ID", argumentTypes("EDGE"), "STRING"));
+
+    functions.add(new FunctionSignature(null, "LABEL", argumentTypes("VERTEX"), "STRING"));
+    functions.add(new FunctionSignature(null, "LABEL", argumentTypes("EDGE"), "STRING"));
+
+    functions.add(new FunctionSignature(null, "LABELS", argumentTypes("VERTEX"), "SET<STRING>"));
+
+    functions.add(new FunctionSignature(null, "HAS_LABEL", argumentTypes("VERTEX"), "BOOLEAN"));
+    functions.add(new FunctionSignature(null, "HAS_LABEL", argumentTypes("EDGE"), "BOOLEAN"));
+
+    functions.add(new FunctionSignature(null, "IN_DEGREE", argumentTypes("VERTEX"), "LONG"));
+    functions.add(new FunctionSignature(null, "IN_DEGREE", argumentTypes("EDGE"), "LONG"));
+
+    functions.add(new FunctionSignature(null, "OUT_DEGREE", argumentTypes("VERTEX"), "LONG"));
+    functions.add(new FunctionSignature(null, "OUT_DEGREE", argumentTypes("EDGE"), "LONG"));
+
+    functions.add(new FunctionSignature(null, "JAVA_REGEXP_LIKE", argumentTypes("STRING", "STRING"), "BOOLEAN"));
+
+    functions.add(new FunctionSignature(null, "UPPER", argumentTypes("STRING"), "STRING"));
+
+    functions.add(new FunctionSignature(null, "LOWER", argumentTypes("STRING"), "STRING"));
+
+    functions.add(new FunctionSignature(null, "OUT_DEGREE", argumentTypes("EDGE"), "STRING"));
+
+    functions.add(new FunctionSignature(null, "ABS", argumentTypes("INTEGER"), "INTEGER"));
+    functions.add(new FunctionSignature(null, "ABS", argumentTypes("LONG"), "LONG"));
+    functions.add(new FunctionSignature(null, "ABS", argumentTypes("FLOAT"), "FLOAT"));
+    functions.add(new FunctionSignature(null, "ABS", argumentTypes("DOUBLE"), "DOUBLE"));
+
+    functions.add(new FunctionSignature(null, "CEIL", argumentTypes("INTEGER"), "INTEGER"));
+    functions.add(new FunctionSignature(null, "CEIL", argumentTypes("LONG"), "LONG"));
+    functions.add(new FunctionSignature(null, "CEIL", argumentTypes("FLOAT"), "FLOAT"));
+    functions.add(new FunctionSignature(null, "CEIL", argumentTypes("DOUBLE"), "DOUBLE"));
+
+    functions.add(new FunctionSignature(null, "CEILING", argumentTypes("INTEGER"), "INTEGER"));
+    functions.add(new FunctionSignature(null, "CEILING", argumentTypes("LONG"), "LONG"));
+    functions.add(new FunctionSignature(null, "CEILING", argumentTypes("FLOAT"), "FLOAT"));
+    functions.add(new FunctionSignature(null, "CEILING", argumentTypes("DOUBLE"), "DOUBLE"));
+
+    functions.add(new FunctionSignature(null, "FLOOR", argumentTypes("INTEGER"), "INTEGER"));
+    functions.add(new FunctionSignature(null, "FLOOR", argumentTypes("LONG"), "LONG"));
+    functions.add(new FunctionSignature(null, "FLOOR", argumentTypes("FLOAT"), "FLOAT"));
+    functions.add(new FunctionSignature(null, "FLOOR", argumentTypes("DOUBLE"), "DOUBLE"));
+
+    functions.add(new FunctionSignature(null, "ROUND", argumentTypes("INTEGER"), "INTEGER"));
+    functions.add(new FunctionSignature(null, "ROUND", argumentTypes("LONG"), "LONG"));
+    functions.add(new FunctionSignature(null, "ROUND", argumentTypes("FLOAT"), "FLOAT"));
+    functions.add(new FunctionSignature(null, "ROUND", argumentTypes("DOUBLE"), "DOUBLE"));
+
+    functions.add(new FunctionSignature("myUdfs", "pi", argumentTypes(), "DOUBLE"));
+
+    functions.add(new FunctionSignature("myUdfs", "numericFunction", argumentTypes("INTEGER"), "INTEGER"));
+
+    functions.add(new FunctionSignature("myUdfs", "ambiguousFunction", argumentTypes("FLOAT"), "FLOAT"));
+    functions.add(new FunctionSignature("myUdfs", "ambiguousFunction", argumentTypes("INTEGER"), "INTEGER"));
+
+    return Optional.of(functions);
+  }
+
+  private List<String> argumentTypes(String... args) {
+    return Arrays.asList(args);
   }
 }
