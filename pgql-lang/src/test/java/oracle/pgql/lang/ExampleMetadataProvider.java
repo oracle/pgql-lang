@@ -412,8 +412,9 @@ public class ExampleMetadataProvider extends AbstractMetadataProvider {
 
     functions.add(new FunctionSignature("myUdfs", "numericFunction", argumentTypes("INTEGER"), "INTEGER"));
 
-    functions.add(new FunctionSignature("myUdfs", "ambiguousFunction", argumentTypes("FLOAT"), "FLOAT"));
+    functions.add(new FunctionSignature("myUdfs", "ambiguousFunction", argumentTypes("DOUBLE"), "FLOAT"));
     functions.add(new FunctionSignature("myUdfs", "ambiguousFunction", argumentTypes("INTEGER"), "INTEGER"));
+    functions.add(new FunctionSignature("MyUdFS", "AmBiguousFuNCtion", argumentTypes("INTEGER"), "DOUBLE"));
 
     return Optional.of(functions);
   }

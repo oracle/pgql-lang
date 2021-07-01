@@ -4,6 +4,7 @@ import static oracle.pgql.lang.CommonTranslationUtil.getString;
 import static oracle.pgql.lang.CommonTranslationUtil.isSome;
 
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Optional;
@@ -65,6 +66,8 @@ public class MetadataToAstUtil {
 
     Optional<List<DataTypeSynonym>> dataTypeSynonyms = metadataProvider.getDataTypeSynonyms();
     allTypes.addAll(extractDataTypesFromCastStatements(parseResult.ast(), dataTypeSynonyms));
+    Optional<List<FunctionSignature>> functionSignatures = metadataProvider.getFunctionSignatures();
+    allTypes.addAll(extractDataTypesFromUdfs(functionSignatures));
 
     List<IStrategoTerm> metadataTerm = new ArrayList<>();
     if (graphSchema.isPresent()) {
@@ -139,7 +142,6 @@ public class MetadataToAstUtil {
       metadataTerm.add(f.makeAppl("DataTypeSynonyms", f.makeList(dataTypeSynonymTerms)));
     }
 
-    Optional<List<FunctionSignature>> functionSignatures = metadataProvider.getFunctionSignatures();
     List<IStrategoTerm> functionSignatureTerms = getFunctionSignatures(functionSignatures, f);
     if (!functionSignatureTerms.isEmpty()) {
       metadataTerm.add(f.makeAppl("FunctionSignatures", f.makeList(functionSignatureTerms)));
@@ -148,6 +150,7 @@ public class MetadataToAstUtil {
     IStrategoAppl metadataExtendedAst = f.makeAppl(AST_PLUS_METADATA_CONSTRUCTOR_NAME, parseResult.ast(),
         f.makeList(metadataTerm));
     ISpoofaxParseUnit extendedParseUnit = new ModifiedParseUnit(parseResult, metadataExtendedAst);
+    System.out.println(f.makeList(metadataTerm));
     return extendedParseUnit;
   }
 
@@ -229,6 +232,20 @@ public class MetadataToAstUtil {
     }.visit(ast);
 
     return dataTypes;
+  }
+
+  private static Collection<? extends String> extractDataTypesFromUdfs(
+      Optional<List<FunctionSignature>> optionalFunctionSignatures) {
+    Set<String> result = new HashSet<>();
+    if (optionalFunctionSignatures.isPresent()) {
+      List<FunctionSignature> functionSignatures = optionalFunctionSignatures.get();
+      for (FunctionSignature signature : functionSignatures) {
+        result.addAll(signature.getArgumentTypes());
+        result.add(signature.getReturnType());
+      }
+    }
+
+    return result;
   }
 
   static String identifierToString(IStrategoTerm t) {

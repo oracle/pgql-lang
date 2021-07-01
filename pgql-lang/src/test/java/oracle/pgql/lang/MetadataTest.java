@@ -630,4 +630,25 @@ public class MetadataTest extends AbstractPgqlTest {
     result = parse("SELECT SUBSTRING('A string' FROM 3 FOR 'abc') FROM MATCH (n)");
     assertTrue(result.getErrorMessages().contains("Numeric expected"));
   }
+
+  @Test
+  public void testUdfs() throws Exception {
+    PgqlResult result = parse("SELECT myUdfs.pi() || true FROM MATCH (n)");
+    assertTrue(
+        result.getErrorMessages().contains("The operator || is undefined for the argument types DOUBLE, BOOLEAN"));
+
+    result = parse("SELECT myUdfs.pi() + 3 + myUdfs.numericFunction(4) FROM MATCH (n)");
+    assertTrue(result.isQueryValid());
+
+    // test union typing
+    result = parse(
+        "SELECT myUdfs.numericFunction(CAST(4 AS INTEGER)), myUdfs.numericFunction(CAST(4 AS FLOAT)), myUdfs.numericFunction(4.0) FROM MATCH (n)");
+    assertTrue(result.isQueryValid());
+
+    // test exact function matching
+    result = parse(
+        "SELECT myUdfs.\"numericFunction\"(CAST(4 AS INTEGER)), \"myUdfs\".numericFunction(CAST(4 AS FLOAT)), \"myUdfs\".\"numericFunction\"(4.0) FROM MATCH (n)");
+    System.out.println(result.getErrorMessages());
+    assertTrue(result.isQueryValid());
+  }
 }
