@@ -179,20 +179,25 @@ rules // functions
 
   add-type(|metadata, variablesPlusTypes, constraints):
     func@FunctionCall(package, name, args) -> ExpressionPlusType(func', type)
+    where not ( <is-all-different-function> func )
     with args' := <alltd(add-type(|metadata, variablesPlusTypes, constraints))> args
        ; func' := <origin-track-forced(!FunctionCall(package, name, args'))> func
        ; if <fetch-elem(?FunctionSignatures(allSignatures))> metadata
          then package' := <?None() + ?Some(PackageName(Identifier(p, _))); !Some(p)> package
             ; name' := <?Identifier(<id>, _)> name
-            ; if argumentTypes := <map(?ExpressionPlusType(_, Type(<id>)))> args'
-              then signaturesForPackage := <filter(?FunctionSignature(package', _, _, _)); not(?[]) <+ map(FunctionSignature(?None() <+ Some(upper-case), id, id, id)); filter(?FunctionSignature(package', _, _, _))> allSignatures
-                 ; signaturesForFunction := <filter(?FunctionSignature(_, name', _, _)); not(?[]) <+ map(FunctionSignature(id, upper-case, id, id)); filter(?FunctionSignature(_, name', _, _))> signaturesForPackage
-                 ; returnTypes := <get-function-return-types-exact-argument-types(|argumentTypes); not(?[]) <+ // exact match of arguments
-                                   get-function-return-types-compatible-argument-types(|metadata, argumentTypes)> signaturesForFunction // union-compatible match of argument types
-                 ; numFunctionsFound := <length> returnTypes
-                 ; type := <?0; !Undefined() <+ // function not found
-                            ?1; !Type(<?[<id>]> returnTypes) <+ // exactly one function found
-                            !AmbiguousType()> numFunctionsFound // multiple functions found
+            ; if argumentTypes := <map(?ExpressionPlusType(_, Type(<id>)))> args' // make sure all arguments are typed
+              then if <is-all-different-function> func
+                   then [x|xs] := args'
+                      ; <map(is-compatible-type(|x, metadata)); !Type("BOOLEAN") <+ !Undefined()> xs // all_different function requires all input types to be compatible with each other
+                   else signaturesForPackage := <filter(?FunctionSignature(package', _, _, _)); not(?[]) <+ map(FunctionSignature(?None() <+ Some(upper-case), id, id, id)); filter(?FunctionSignature(package', _, _, _))> allSignatures
+                      ; signaturesForFunction := <filter(?FunctionSignature(_, name', _, _)); not(?[]) <+ map(FunctionSignature(id, upper-case, id, id)); filter(?FunctionSignature(_, name', _, _))> signaturesForPackage
+                      ; returnTypes := <get-function-return-types-exact-argument-types(|argumentTypes); not(?[]) <+ // exact match of arguments
+                                        get-function-return-types-compatible-argument-types(|metadata, argumentTypes)> signaturesForFunction // union-compatible match of argument types
+                      ; numFunctionsFound := <length> returnTypes
+                      ; type := <?0; !Undefined() <+ // function not found
+                                 ?1; !Type(<?[<id>]> returnTypes) <+ // exactly one function found
+                                 !AmbiguousType()> numFunctionsFound // multiple functions found
+                   end
               else type := UnknownType() // one or more arguments are untyped
               end
          else type := UnknownType() // function signatures are not provided
@@ -207,6 +212,11 @@ rules // functions
     with argumentTypes1' := <map(!Type(<id>))> argumentTypes1
        ; argumentTypes2' := <map(!Type(<id>))> argumentTypes2
     where <zip(get-union-type(|metadata); ?Type(_))> (argumentTypes1', argumentTypes2') // this fails if one of the arguments (when paired-up with the ones from the signature) is not union compatible
+
+  is-all-different-function:
+    func@FunctionCall(None(), name, args) -> func
+    where <upper-case; ?"ALL_DIFFERENT"> name
+        ; <not(length; ?0)> args
 
 rules // subqueries
 

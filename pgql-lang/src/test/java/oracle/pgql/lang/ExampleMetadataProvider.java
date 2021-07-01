@@ -366,8 +366,8 @@ public class ExampleMetadataProvider extends AbstractMetadataProvider {
 
     functions.add(new FunctionSignature(null, "LABELS", argumentTypes("VERTEX"), "SET<STRING>"));
 
-    functions.add(new FunctionSignature(null, "HAS_LABEL", argumentTypes("VERTEX"), "BOOLEAN"));
-    functions.add(new FunctionSignature(null, "HAS_LABEL", argumentTypes("EDGE"), "BOOLEAN"));
+    functions.add(new FunctionSignature(null, "has_label", argumentTypes("VERTEX", "STRING"), "BOOLEAN"));
+    functions.add(new FunctionSignature(null, "has_label", argumentTypes("EDGE", "STRING"), "BOOLEAN"));
 
     functions.add(new FunctionSignature(null, "IN_DEGREE", argumentTypes("VERTEX"), "LONG"));
     functions.add(new FunctionSignature(null, "IN_DEGREE", argumentTypes("EDGE"), "LONG"));
