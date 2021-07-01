@@ -637,8 +637,14 @@ public class MetadataTest extends AbstractPgqlTest {
     assertTrue(
         result.getErrorMessages().contains("The operator || is undefined for the argument types DOUBLE, BOOLEAN"));
 
+    result = parse("SELECT pi('abc') FROM MATCH (n)");
+    assertTrue(result.getErrorMessages().contains("Function does not exist or argument types do not match"));
+
     result = parse("SELECT myUdfs.pi() + 3 + myUdfs.numericFunction(4) FROM MATCH (n)");
     assertTrue(result.isQueryValid());
+
+    result = parse("SELECT myUdfs.numericFunction('abc') FROM MATCH (n)");
+    assertTrue(result.getErrorMessages().contains("Function does not exist or argument types do not match"));
 
     // test union typing
     result = parse(
@@ -648,7 +654,14 @@ public class MetadataTest extends AbstractPgqlTest {
     // test exact function matching
     result = parse(
         "SELECT myUdfs.\"numericFunction\"(CAST(4 AS INTEGER)), \"myUdfs\".numericFunction(CAST(4 AS FLOAT)), \"myUdfs\".\"numericFunction\"(4.0) FROM MATCH (n)");
-    System.out.println(result.getErrorMessages());
     assertTrue(result.isQueryValid());
+
+    result = parse("SELECT \"MyUdFS\".\"AmBiguousFuNCtion\"(123) || true FROM MATCH (n)");
+    assertTrue(
+        result.getErrorMessages().contains("The operator || is undefined for the argument types DOUBLE, BOOLEAN"));
+
+    result = parse("SELECT myUdfs.ambiguousFunction(123)FROM MATCH (n)");
+    assertTrue(result.getErrorMessages()
+        .contains("Multiple functions exist that match the specified function name and argument types"));
   }
 }

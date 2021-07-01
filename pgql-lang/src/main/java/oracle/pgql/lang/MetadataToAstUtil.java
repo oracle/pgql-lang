@@ -150,7 +150,6 @@ public class MetadataToAstUtil {
     IStrategoAppl metadataExtendedAst = f.makeAppl(AST_PLUS_METADATA_CONSTRUCTOR_NAME, parseResult.ast(),
         f.makeList(metadataTerm));
     ISpoofaxParseUnit extendedParseUnit = new ModifiedParseUnit(parseResult, metadataExtendedAst);
-    System.out.println(f.makeList(metadataTerm));
     return extendedParseUnit;
   }
 
