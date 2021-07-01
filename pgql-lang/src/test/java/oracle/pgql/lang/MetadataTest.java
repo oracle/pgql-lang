@@ -632,6 +632,18 @@ public class MetadataTest extends AbstractPgqlTest {
   }
 
   @Test
+  public void testAllDifferent() throws Exception {
+    PgqlResult result = parse("SELECT ALL_DIFFERENT(n, m) FROM MATCH (n) -[e]-> (m)");
+    assertTrue(result.isQueryValid());
+
+    result = parse("SELECT ALL_DIFFERENT(n, e) FROM MATCH (n) -[e]-> (m)");
+    assertTrue(result.getErrorMessages().contains("Function does not exist or argument types do not match"));
+
+    result = parse("SELECT ALL_DIFFERENT() FROM MATCH (n) -[e]-> (m)");
+    assertTrue(result.getErrorMessages().contains("Function does not exist or argument types do not match"));
+  }
+
+  @Test
   public void testUdfs() throws Exception {
     PgqlResult result = parse("SELECT myUdfs.pi() || true FROM MATCH (n)");
     assertTrue(
