@@ -663,7 +663,7 @@ public class MetadataTest extends AbstractPgqlTest {
         "SELECT myUdfs.numericFunction(CAST(4 AS INTEGER)), myUdfs.numericFunction(CAST(4 AS FLOAT)), myUdfs.numericFunction(4.0) FROM MATCH (n)");
     assertTrue(result.isQueryValid());
 
-    // test exact function matching
+    // test exact and case-insensitive function matching
     result = parse(
         "SELECT myUdfs.\"numericFunction\"(CAST(4 AS INTEGER)), \"myUdfs\".numericFunction(CAST(4 AS FLOAT)), \"myUdfs\".\"numericFunction\"(4.0) FROM MATCH (n)");
     assertTrue(result.isQueryValid());
@@ -672,7 +672,7 @@ public class MetadataTest extends AbstractPgqlTest {
     assertTrue(
         result.getErrorMessages().contains("The operator || is undefined for the argument types DOUBLE, BOOLEAN"));
 
-    result = parse("SELECT myUdfs.ambiguousFunction(123)FROM MATCH (n)");
+    result = parse("SELECT myUdfs.ambiguousFunction(123) FROM MATCH (n)");
     assertTrue(result.getErrorMessages()
         .contains("Multiple functions exist that match the specified function name and argument types"));
   }
