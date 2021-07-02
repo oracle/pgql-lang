@@ -676,4 +676,13 @@ public class MetadataTest extends AbstractPgqlTest {
     assertTrue(result.getErrorMessages()
         .contains("Multiple functions exist that match the specified function name and argument types"));
   }
+
+  @Test
+  public void testOlderVersionsOfPgql() throws Exception {
+    PgqlResult result = parse("SELECT a MATCH (a)-[e]-(b) WHERE a = 1"); // PGQL 1.1 syntax
+    assertTrue(result.getErrorMessages().contains("The operator = is undefined for the argument types VERTEX, LONG"));
+
+    result = parse("SELECT a WHERE (a)-[e]-(b), e = 1"); // PGQL 1.0 syntax
+    assertTrue(result.getErrorMessages().contains("The operator = is undefined for the argument types EDGE, LONG"));
+  }
 }

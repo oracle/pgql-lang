@@ -40,9 +40,14 @@ public class MetadataToAstUtil {
 
   static ISpoofaxParseUnit addMetadata(ISpoofaxParseUnit parseResult, AbstractMetadataProvider metadataProvider,
       ITermFactory f) {
-    if (!((IStrategoAppl) parseResult.ast()).getConstructor().getName().equals("Query")) {
-      // for DDL statements and other non-query statement, we don't add metadata
-      return parseResult;
+    switch (((IStrategoAppl) parseResult.ast()).getConstructor().getName()) {
+      case "Query":
+      case "Pgql11Query":
+      case "Pgql10Query":
+        break;
+      default:
+        // for DDL statements and other non-query statement, we don't add metadata
+        return parseResult;
     }
 
     if (metadataProvider == null) {
