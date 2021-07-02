@@ -660,7 +660,7 @@ rules // MODIFY
   nabl-constraint(|ctx):    
     OrderByElem(ExpressionPlusType(exp, Type(t)), _, version) -> <fail>
     where <not(?"v1.0")> version
-        ; <?"VERTEX" + ?"EDGE" + ?"ARRAY"> t
+        ; <?"VERTEX" + ?"EDGE" + string-starts-with(|"ARRAY<") + string-starts-with(|"SET<")> t
     with <generate-error(|ctx, $[Cannot order by [t]])> exp
 
   nabl-constraint(|ctx):   

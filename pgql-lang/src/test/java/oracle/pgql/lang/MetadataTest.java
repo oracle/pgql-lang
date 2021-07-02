@@ -685,4 +685,22 @@ public class MetadataTest extends AbstractPgqlTest {
     result = parse("SELECT a WHERE (a)-[e]-(b), e = 1"); // PGQL 1.0 syntax
     assertTrue(result.getErrorMessages().contains("The operator = is undefined for the argument types EDGE, LONG"));
   }
+
+  @Test
+  public void testUnsupportedTypeInOrderBy() throws Exception {
+    PgqlResult result = parse("SELECT * FROM MATCH (n) ORDER BY n");
+    assertTrue(result.getErrorMessages().contains("Cannot order by VERTEX"));
+
+    result = parse("SELECT * FROM MATCH () -[e]-> () ORDER BY e");
+    assertTrue(result.getErrorMessages().contains("Cannot order by EDGE"));
+
+    result = parse("SELECT ARRAY_AGG(n.firstName) FROM MATCH (n) ORDER BY ARRAY_AGG(n.firstName)");
+    assertTrue(result.getErrorMessages().contains("Cannot order by ARRAY<STRING>"));
+
+    result = parse("SELECT ARRAY_AGG(n.firstName) FROM MATCH (n) ORDER BY ARRAY_AGG(n.dob)");
+    assertTrue(result.getErrorMessages().contains("Cannot order by ARRAY<DATE>"));
+
+    result = parse("SELECT labels(n) FROM MATCH (n) ORDER BY labels(n)");
+    assertTrue(result.getErrorMessages().contains("Cannot order by SET<STRING>"));
+  }
 }

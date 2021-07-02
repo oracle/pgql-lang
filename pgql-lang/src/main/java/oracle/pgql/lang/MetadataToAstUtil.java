@@ -215,7 +215,8 @@ public class MetadataToAstUtil {
       public void preVisit(IStrategoTerm t) {
         if (t.getType() == TermType.APPL) {
           String constructor = ((IStrategoAppl) t).getConstructor().getName();
-          if (constructor.equals("OnClause") || constructor.equals("IntoClause")) {
+          if (constructor.equals("OnClause") || constructor.equals("IntoClause")
+              || constructor.equals("Pgql11FromClause")) {
             IStrategoTerm nameT = t.getSubterm(0);
             IStrategoTerm schemaNameT = nameT.getSubterm(0);
             String schemaName = isSome(schemaNameT)

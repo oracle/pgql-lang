@@ -26,16 +26,6 @@ test Order by vertex (3) [[
 
 ]] error like "Cannot order by VERTEX" at #1
 
-/* TODO: move to schema-based tests
-test Order by array [[
-
-    SELECT ARRAY_AGG(e.prop) AS array
-      FROM g MATCH SHORTEST ( (n) -[e]->* (m) )
-  ORDER BY [[ARRAY_AGG(e.prop)]]
-
-]] error like "Cannot order by array" at #1
-*/
-
 test Order by vertex (4) [[
 
     SELECT n AS c1, ( SELECT [[m AS m]] FROM g MATCH (m) LIMIT 1 ) AS o
