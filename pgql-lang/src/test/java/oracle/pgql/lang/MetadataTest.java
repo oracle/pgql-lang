@@ -425,6 +425,34 @@ public class MetadataTest extends AbstractPgqlTest {
 
     result = parse("SELECT CASE n.firstName WHEN 123 THEN true ELSE false END FROM MATCH (n)");
     assertTrue(result.getErrorMessages().contains("The operator = is undefined for the argument types STRING, LONG"));
+
+    result = parse("SELECT CASE n WHEN n THEN true ELSE false END FROM MATCH (n)");
+    assertTrue(result.getErrorMessages().contains("CASE does not allow VERTEX input"));
+
+    result = parse("SELECT CASE e WHEN e THEN true ELSE false END FROM MATCH () -[e]-> ()");
+    assertTrue(result.getErrorMessages().contains("CASE does not allow EDGE input"));
+
+    result = parse(
+        "SELECT CASE ARRAY_AGG(n.firstName) WHEN ARRAY_AGG(n.firstName) THEN true ELSE false END FROM MATCH (n)");
+    assertTrue(result.getErrorMessages().contains("CASE does not allow ARRAY<STRING> input"));
+
+    result = parse("SELECT CASE labels(n) WHEN labels(n) THEN true ELSE false END FROM MATCH (n)");
+    assertTrue(result.getErrorMessages().contains("CASE does not allow SET<STRING> input"));
+
+    result = parse("SELECT CASE 1 WHEN 1 THEN n ELSE n END FROM MATCH (n)");
+    assertTrue(result.getErrorMessages().contains("CASE does not allow VERTEX output"));
+
+    result = parse("SELECT CASE 1 WHEN 1 THEN e ELSE e END FROM MATCH () -[e]-> ()");
+    assertTrue(result.getErrorMessages().contains("CASE does not allow EDGE output"));
+
+    result = parse("SELECT CASE 1 WHEN 1 THEN ARRAY_AGG(n.firstName) ELSE ARRAY_AGG(n.firstName) END FROM MATCH (n)");
+    assertTrue(result.getErrorMessages().contains("CASE does not allow ARRAY<STRING> output"));
+
+    result = parse("SELECT CASE 1 WHEN 1 THEN labels(n) ELSE labels(n) END FROM MATCH (n)");
+    assertTrue(result.getErrorMessages().contains("CASE does not allow SET<STRING> output"));
+
+    result = parse("SELECT CASE WHEN n THEN 2 ELSE 3 END FROM MATCH (n)");
+    assertTrue(result.getErrorMessages().contains("BOOLEAN expression expected"));
   }
 
   @Test

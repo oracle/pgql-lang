@@ -2,20 +2,6 @@ module select
 
 language pgql-lang
 
-/* TODO: move to type system tests
-test Illegal types in CASE [[
-
-  SELECT CASE WHEN [[1]] THEN 2 ELSE 3 END AS v1
-       , CASE WHEN [[n]] THEN 2 END AS v2
-       , CASE WHEN [[e]] THEN 2 END AS v3
-       , CASE n.prop WHEN 1 THEN [[n]] ELSE 3 END AS v4
-       , CASE n.prop WHEN 1 THEN 2 ELSE [[e]] END AS v5
-    FROM MATCH (n) -[e]-> (m)
-
-]] error like "Boolean expected here" at #1, #2, #3
-   error like "CASE does not allow vertex or edge output" at #4, #5
-*/
-
 test Illegal separator in LISTAGG [[
 
   SELECT LISTAGG(1[[, ?]]) AS v1, LISTAGG(1[[, 2]]) AS v2

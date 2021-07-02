@@ -404,6 +404,23 @@ rules // IN predicate and CASE expression
    ExpressionPlusType(IfElse(_, ExpressionPlusType(_, type1@Type(t1)), ExpressionPlusType(elseExp, type2@Type(_))), AmbiguousType()) -> <fail>
    with <generate-error(|ctx, <message-compatible-type-exepected> t1)> elseExp
 
+  nabl-constraint(|ctx):
+    SimpleCase(ExpressionPlusType(exp, Type(t)), _, _, _) -> <fail>
+    with if <is-unsupported-CASE-type> t
+         then <generate-error(|ctx, $[CASE does not allow [t] input])> exp
+         end
+
+  nabl-constraint(|ctx):
+    IfElse(if, then, else) -> <fail>
+    with if <?ExpressionPlusType(thenExp, Type(<id>)); ?thenType; is-unsupported-CASE-type> then
+         then <generate-error(|ctx, $[CASE does not allow [thenType] output])> thenExp
+         end
+       ; if <?ExpressionPlusType(elseExp, Type(<id>)); ?elseType; is-unsupported-CASE-type> else
+         then <generate-error(|ctx, $[CASE does not allow [elseType] output])> elseExp
+         end
+
+  is-unsupported-CASE-type = ?"VERTEX" + ?"EDGE" + string-starts-with(|"ARRAY<") + string-starts-with(|"SET<")
+
 rules // SELECT
 
   nabl-constraint(|ctx):
@@ -657,13 +674,13 @@ rules // MODIFY
     with <generate-error(|ctx, "HAVING clause expects a BOOLEAN expression")> exp
 
   // check that ORDER BY does not contain vertex/edge/array terms
-  nabl-constraint(|ctx):    
+  nabl-constraint(|ctx):
     OrderByElem(ExpressionPlusType(exp, Type(t)), _, version) -> <fail>
     where <not(?"v1.0")> version
         ; <?"VERTEX" + ?"EDGE" + string-starts-with(|"ARRAY<") + string-starts-with(|"SET<")> t
     with <generate-error(|ctx, $[Cannot order by [t]])> exp
 
-  nabl-constraint(|ctx):   
+  nabl-constraint(|ctx):
     Vertex(Identifier(v, _), _, Correlation(ExpressionPlusType(VarRef(Identifier(outer-var, _), _), type))) -> <fail>
     where <not(?Type("VERTEX"))> type
     with <generate-error(|ctx, "Duplicate variable (variable with same name is passed from an outer query)")> v
