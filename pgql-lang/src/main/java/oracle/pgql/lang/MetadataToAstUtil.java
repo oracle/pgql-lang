@@ -5,12 +5,20 @@ import static oracle.pgql.lang.CommonTranslationUtil.isSome;
 
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Collections;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
 
+import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.tuple.Pair;
+import org.apache.commons.text.translate.AggregateTranslator;
+import org.apache.commons.text.translate.CharSequenceTranslator;
+import org.apache.commons.text.translate.EntityArrays;
+import org.apache.commons.text.translate.LookupTranslator;
 import org.metaborg.spoofax.core.unit.ISpoofaxAnalyzeUnit;
 import org.metaborg.spoofax.core.unit.ISpoofaxParseUnit;
 import org.spoofax.interpreter.terms.IStrategoAppl;
@@ -38,12 +46,30 @@ public class MetadataToAstUtil {
 
   private static final String AST_PLUS_METADATA_CONSTRUCTOR_NAME = "AstPlusMetadata";
 
+  public static final CharSequenceTranslator UNESCAPE_LEGACY_IDENTIFIER;
+  static {
+    final Map<CharSequence, CharSequence> unescapeJavaMap = new HashMap<>();
+    unescapeJavaMap.put("\\\\", "\\");
+    unescapeJavaMap.put("\\\"", "\"");
+    unescapeJavaMap.put("\\'", "'");
+    unescapeJavaMap.put("\\", StringUtils.EMPTY);
+    unescapeJavaMap.put("\"\"", "\"");
+    UNESCAPE_LEGACY_IDENTIFIER = new AggregateTranslator(new LookupTranslator(EntityArrays.JAVA_CTRL_CHARS_UNESCAPE),
+        new LookupTranslator(Collections.unmodifiableMap(unescapeJavaMap)));
+  }
+
   static ISpoofaxParseUnit addMetadata(ISpoofaxParseUnit parseResult, AbstractMetadataProvider metadataProvider,
       ITermFactory f) {
+    PgqlVersion pgqlVersion;
     switch (((IStrategoAppl) parseResult.ast()).getConstructor().getName()) {
       case "Query":
+        pgqlVersion = PgqlVersion.V_1_3_OR_UP;
+        break;
       case "Pgql11Query":
+        pgqlVersion = PgqlVersion.V_1_1_OR_V_1_2;
+        break;
       case "Pgql10Query":
+        pgqlVersion = PgqlVersion.V_1_0;
         break;
       default:
         // for DDL statements and other non-query statement, we don't add metadata
@@ -54,7 +80,7 @@ public class MetadataToAstUtil {
       return parseResult;
     }
 
-    Set<SchemaQualifiedName> graphNames = extractGraphNames(parseResult.ast());
+    Set<SchemaQualifiedName> graphNames = extractGraphNames(parseResult.ast(), pgqlVersion);
     Optional<GraphSchema> graphSchema;
     if (graphNames.size() > 1) {
       // multiple graph references in single query are currently not supported
@@ -179,7 +205,7 @@ public class MetadataToAstUtil {
     return analyizedAst;
   }
 
-  static Set<SchemaQualifiedName> extractGraphNames(IStrategoTerm ast) {
+  static Set<SchemaQualifiedName> extractGraphNames(IStrategoTerm ast, PgqlVersion pgqlVersion) {
 
     final Set<SchemaQualifiedName> graphNames = new HashSet<>();
 
@@ -192,9 +218,10 @@ public class MetadataToAstUtil {
           if (constructor.equals("OnClause") || constructor.equals("IntoClause")) {
             IStrategoTerm nameT = t.getSubterm(0);
             IStrategoTerm schemaNameT = nameT.getSubterm(0);
-            String schemaName = isSome(schemaNameT) ? identifierToString(schemaNameT.getSubterm(0).getSubterm(0))
+            String schemaName = isSome(schemaNameT)
+                ? identifierToString(schemaNameT.getSubterm(0).getSubterm(0), pgqlVersion)
                 : null;
-            String localName = identifierToString(nameT.getSubterm(1));
+            String localName = identifierToString(nameT.getSubterm(1), pgqlVersion);
             graphNames.add(new SchemaQualifiedName(schemaName, localName));
           }
         }
@@ -253,14 +280,21 @@ public class MetadataToAstUtil {
     return result;
   }
 
-  static String identifierToString(IStrategoTerm t) {
+  static String identifierToString(IStrategoTerm t, PgqlVersion pgqlVersion) {
     String constructorName = ((IStrategoAppl) t).getConstructor().getName();
     String identifier = getString(t);
     switch (constructorName) {
       case "RegularIdentifier":
         return identifier.toUpperCase();
       case "DelimitedIdentifier":
-        return identifier.substring(1, identifier.length() - 1).replaceAll("\"\"", "\"");
+        String unquotedPart = identifier.substring(1, identifier.length() - 1);
+        if (pgqlVersion == PgqlVersion.V_1_0 || pgqlVersion == PgqlVersion.V_1_1_OR_V_1_2) {
+          // Java-like escaping rules
+          return UNESCAPE_LEGACY_IDENTIFIER.translate(unquotedPart);
+        } else {
+          // SQL escaping rules
+          return unquotedPart.replaceAll("\"\"", "\"");
+        }
       default:
         throw new IllegalStateException("Unsupported identifier type: " + constructorName);
     }
