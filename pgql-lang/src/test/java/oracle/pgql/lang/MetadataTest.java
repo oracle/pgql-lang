@@ -383,6 +383,18 @@ public class MetadataTest extends AbstractPgqlTest {
 
     result = parse("SELECT n.typeConflictProp FROM MATCH (n:University)");
     assertTrue(result.isQueryValid());
+
+    result = parse("SELECT e.typeConflictProp FROM MATCH () -[e]-> ()");
+    assertTrue(result.getErrorMessages().contains("Property has incompatible types for different labels"));
+
+    result = parse("SELECT e.typeConflictProp FROM MATCH () -[e:knows|studyAt]-> ()");
+    assertTrue(result.getErrorMessages().contains("Property has incompatible types for different labels"));
+
+    result = parse("SELECT e.typeConflictProp FROM MATCH () -[e:knows]-> ()");
+    assertTrue(result.isQueryValid());
+
+    result = parse("SELECT e.typeConflictProp FROM MATCH () -[e:studyAt]-> ()");
+    assertTrue(result.isQueryValid());
   }
 
   @Test

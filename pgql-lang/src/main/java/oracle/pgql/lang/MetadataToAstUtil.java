@@ -286,7 +286,11 @@ public class MetadataToAstUtil {
     String identifier = getString(t);
     switch (constructorName) {
       case "RegularIdentifier":
-        return identifier.toUpperCase();
+        if (pgqlVersion == PgqlVersion.V_1_0 || pgqlVersion == PgqlVersion.V_1_1_OR_V_1_2) {
+          return identifier;
+        } else {
+          return identifier.toUpperCase();
+        }
       case "DelimitedIdentifier":
         String unquotedPart = identifier.substring(1, identifier.length() - 1);
         if (pgqlVersion == PgqlVersion.V_1_0 || pgqlVersion == PgqlVersion.V_1_1_OR_V_1_2) {
