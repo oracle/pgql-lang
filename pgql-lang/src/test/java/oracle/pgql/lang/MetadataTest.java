@@ -267,19 +267,19 @@ public class MetadataTest extends AbstractPgqlTest {
     assertTrue(result.isQueryValid());
 
     result = parse("SELECT * FROM MATCH (n) WHERE 1");
-    assertTrue(result.getErrorMessages().contains("WHERE clause expects a BOOLEAN expression"));
+    assertTrue(result.getErrorMessages().contains("WHERE clause expects a BOOLEAN but a LONG was given"));
 
     result = parse("SELECT * FROM MATCH (n) WHERE 1.2");
-    assertTrue(result.getErrorMessages().contains("WHERE clause expects a BOOLEAN expression"));
+    assertTrue(result.getErrorMessages().contains("WHERE clause expects a BOOLEAN but a DOUBLE was given"));
 
     result = parse("SELECT * FROM MATCH (n) WHERE 'abc'");
-    assertTrue(result.getErrorMessages().contains("WHERE clause expects a BOOLEAN expression"));
+    assertTrue(result.getErrorMessages().contains("WHERE clause expects a BOOLEAN but a STRING was given"));
 
     result = parse("PATH p AS () -> () WHERE 1 SELECT * FROM MATCH (n)");
-    assertTrue(result.getErrorMessages().contains("WHERE clause expects a BOOLEAN expression"));
+    assertTrue(result.getErrorMessages().contains("WHERE clause expects a BOOLEAN but a LONG was given"));
 
     result = parse("SELECT 1 FROM MATCH ANY (n) (-[e]-> WHERE 1)* (m)");
-    assertTrue(result.getErrorMessages().contains("WHERE clause expects a BOOLEAN expression"));
+    assertTrue(result.getErrorMessages().contains("WHERE clause expects a BOOLEAN but a LONG was given"));
   }
 
   @Test
@@ -288,7 +288,7 @@ public class MetadataTest extends AbstractPgqlTest {
     assertTrue(result.isQueryValid());
 
     result = parse("SELECT n.name  FROM MATCH (n) GROUP BY n HAVING 123");
-    assertTrue(result.getErrorMessages().contains("HAVING clause expects a BOOLEAN expression"));
+    assertTrue(result.getErrorMessages().contains("HAVING clause expects a BOOLEAN but a LONG was given"));
   }
 
   @Test
@@ -300,13 +300,13 @@ public class MetadataTest extends AbstractPgqlTest {
     assertTrue(result.isQueryValid());
 
     result = parse("SELECT 1 FROM MATCH ANY CHEAPEST (n) (-[e]-> COST true)* (m)");
-    assertTrue(result.getErrorMessages().contains("COST clause expects a numeric expression"));
+    assertTrue(result.getErrorMessages().contains("COST clause expects a numeric but a BOOLEAN was given"));
 
     result = parse("SELECT 1 FROM MATCH ANY CHEAPEST (n) (-[e]-> COST 'abc')* (m)");
-    assertTrue(result.getErrorMessages().contains("COST clause expects a numeric expression"));
+    assertTrue(result.getErrorMessages().contains("COST clause expects a numeric but a STRING was given"));
 
     result = parse("SELECT 1 FROM MATCH ANY CHEAPEST (n) (-[e]-> COST DATE '2000-01-01')* (m)");
-    assertTrue(result.getErrorMessages().contains("COST clause expects a numeric expression"));
+    assertTrue(result.getErrorMessages().contains("COST clause expects a numeric but a DATE was given"));
   }
 
   @Test
@@ -420,20 +420,20 @@ public class MetadataTest extends AbstractPgqlTest {
     assertTrue(result.isQueryValid());
 
     result = parse("SELECT CASE WHEN 'a' THEN n.firstName ELSE 'abc' END FROM MATCH (n)");
-    assertTrue(result.getErrorMessages().contains("BOOLEAN expression expected"));
+    assertTrue(result.getErrorMessages().contains("BOOLEAN expected but a STRING was given"));
 
     result = parse("SELECT CASE WHEN true THEN n.numericProp ELSE 'abc' END FROM MATCH (n)");
-    assertTrue(result.getErrorMessages().contains("Expression of a type compatible with DOUBLE expected"));
+    assertTrue(result.getErrorMessages().contains("Expression of a type compatible with DOUBLE expected but a STRING was given"));
 
     result = parse("SELECT CASE WHEN true THEN n.firstName ELSE n.dob END FROM MATCH (n)");
-    assertTrue(result.getErrorMessages().contains("Expression of a type compatible with STRING expected"));
+    assertTrue(result.getErrorMessages().contains("Expression of a type compatible with STRING expected but a DATE was given"));
 
     result = parse("SELECT CASE WHEN true THEN n.dob ELSE n.firstName END FROM MATCH (n)");
-    assertTrue(result.getErrorMessages().contains("Expression of a type compatible with DATE expected"));
+    assertTrue(result.getErrorMessages().contains("Expression of a type compatible with DATE expected but a STRING was given"));
 
     result = parse(
         "SELECT CASE WHEN true THEN n.dob WHEN n.firstName IS NULL THEN DATE '1970-01-01' ELSE n.firstName END FROM MATCH (n)");
-    assertTrue(result.getErrorMessages().contains("Expression of a type compatible with DATE expected"));
+    assertTrue(result.getErrorMessages().contains("Expression of a type compatible with DATE expected but a STRING was given"));
 
     result = parse("SELECT CASE n.firstName WHEN 123 THEN true ELSE false END FROM MATCH (n)");
     assertTrue(result.getErrorMessages().contains("The operator = is undefined for the argument types STRING, LONG"));
@@ -464,7 +464,7 @@ public class MetadataTest extends AbstractPgqlTest {
     assertTrue(result.getErrorMessages().contains("CASE does not allow SET<STRING> output"));
 
     result = parse("SELECT CASE WHEN n THEN 2 ELSE 3 END FROM MATCH (n)");
-    assertTrue(result.getErrorMessages().contains("BOOLEAN expression expected"));
+    assertTrue(result.getErrorMessages().contains("BOOLEAN expected but a VERTEX was given"));
   }
 
   @Test

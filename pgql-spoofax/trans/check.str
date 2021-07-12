@@ -347,9 +347,9 @@ rules // CHEAPEST
     with <generate-error(|ctx, "COST clause only allowed in combination with CHEAPEST")> t
 
   nabl-constraint(|ctx, metadata):
-    CostClause(ExpressionPlusType(exp, type)) -> <fail>
+    CostClause(ExpressionPlusType(exp, type@Type(t))) -> <fail>
     where <get-union-type(|metadata); ?AmbiguousType()> (type, <get-default-decimal-type(|metadata)>)
-    with  <generate-error(|ctx, "COST clause expects a numeric expression")> exp
+    with  <generate-error(|ctx, $<COST clause expects a numeric but a <t> was given>)> exp
 
 rules // literals
 
@@ -391,18 +391,21 @@ rules // IN predicate and CASE expression
          end
 
          // check that values in the list are of compatible type
-       ; <remove-all(is-compatible-type(|x, metadata)); batch-generate-error(|ctx, <message-compatible-type-exepected> t2)> xs
+       ; incompatible-expressions := <remove-all(is-compatible-type(|x, metadata))> xs
+       ; <map(generate-compatible-type-exepected-error(|ctx, t2))> incompatible-expressions
 
-  message-compatible-type-exepected = !$[Expression of a type compatible with [<id>] expected]
+  generate-compatible-type-exepected-error(|ctx, expectedType) =
+    ?ExpressionPlusType(<id>, Type(t));
+    generate-error(|ctx, $<Expression of a type compatible with <expectedType> expected but a <t> was given>)
 
   nabl-constraint(|ctx):
     IfElse(ExpressionPlusType(exp, Type(t)), _, _) -> <fail>
     where <not(?"BOOLEAN")> t
-    with <generate-error(|ctx, "BOOLEAN expression expected")> exp
+    with <generate-error(|ctx, $<BOOLEAN expected but a <t> was given>)> exp
 
   nabl-constraint(|ctx, metadata):
-   ExpressionPlusType(IfElse(_, ExpressionPlusType(_, type1@Type(t1)), ExpressionPlusType(elseExp, type2@Type(_))), AmbiguousType()) -> <fail>
-   with <generate-error(|ctx, <message-compatible-type-exepected> t1)> elseExp
+   ExpressionPlusType(IfElse(_, ExpressionPlusType(_, type1@Type(t1)), elseExpPlusType@ExpressionPlusType(_, Type(_))), AmbiguousType()) -> <fail>
+   with <generate-compatible-type-exepected-error(|ctx, t1)> elseExpPlusType
 
   nabl-constraint(|ctx):
     SimpleCase(ExpressionPlusType(exp, Type(t)), _, _, _) -> <fail>
@@ -663,15 +666,14 @@ rules // MODIFY
   // check that WHERE clauses contains boolean expressions
   nabl-constraint(|ctx):
     Constraints(constraints) -> <fail>
-    with <remove-all(?ExpressionPlusType(_, Type("BOOLEAN")));
-          filter(?ExpressionPlusType(<id>, Type(_)));
-          batch-generate-error(|ctx, "WHERE clause expects a BOOLEAN expression")> constraints
+    where ExpressionPlusType(exp, Type(t)) := <remove-all(?ExpressionPlusType(_, Type("BOOLEAN"))); Hd> constraints
+    with <generate-error(|ctx, $<WHERE clause expects a BOOLEAN but a <t> was given>)> exp
 
   // check that HAVING clauses contains boolean expressions
   nabl-constraint(|ctx):
     HavingClause(ExpressionPlusType(exp, Type(t))) -> <fail>
     where <not(?"BOOLEAN")> t
-    with <generate-error(|ctx, "HAVING clause expects a BOOLEAN expression")> exp
+    with <generate-error(|ctx, $<HAVING clause expects a BOOLEAN but a <t> was given>)> exp
 
   // check that ORDER BY does not contain vertex/edge/array terms
   nabl-constraint(|ctx):
@@ -691,19 +693,19 @@ rules // MODIFY
 
   // SUBSTRING
   nabl-constraint(|ctx, metadata):
-    CharacterSubstring(ExpressionPlusType(exp, type), _, _) -> <fail>
+    CharacterSubstring(ExpressionPlusType(exp, type@Type(t)), _, _) -> <fail>
     where <get-union-type(|metadata); ?AmbiguousType()> (type, <get-default-string-type(|metadata)>)
-    with  <generate-error(|ctx, "Character string expected")> exp
+    with  <generate-error(|ctx, $<Character string expected but a <t> was given>)> exp
 
   nabl-constraint(|ctx, metadata):
-    CharacterSubstring(_, ExpressionPlusType(exp, type), _) -> <fail>
+    CharacterSubstring(_, ExpressionPlusType(exp, type@Type(t)), _) -> <fail>
     where <get-union-type(|metadata); ?AmbiguousType()> (type, <get-default-long-integer-type(|metadata)>)
-    with  <generate-error(|ctx, "Numeric expected")> exp
+    with  <generate-error(|ctx, $<Numeric expected but a <t> was given>)> exp
 
   nabl-constraint(|ctx, metadata):
-    CharacterSubstring(_, _, Some(StringLength(ExpressionPlusType(exp, type)))) -> <fail>
+    CharacterSubstring(_, _, Some(StringLength(ExpressionPlusType(exp, type@Type(t))))) -> <fail>
     where <get-union-type(|metadata); ?AmbiguousType()> (type, <get-default-long-integer-type(|metadata)>)
-    with  <generate-error(|ctx, "Numeric expected")> exp
+    with  <generate-error(|ctx, $<Numeric expected but a <t> was given>)> exp
 
   // function calls
   nabl-constraint(|ctx, metadata):
