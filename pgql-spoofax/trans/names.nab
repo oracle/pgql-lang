@@ -40,7 +40,6 @@ binding rules // variable definition
   ExpAsVar(exp, Identifier(v, _), _, origin-offset):
     defines unique Var v // unlike SQL, we currently don't allow duplicate column names. This means that we eagerly detect potential ambiguous references). We may relax this in the future.
       of OriginOffset origin-offset
-      of type ty where exp has type ty
 
   VertexInsertion(Identifier(v, _), origin-offset, _, _):
     defines unique Var v

@@ -41,9 +41,11 @@ rules
 
   // SELECT, INSERT, UPDATE or DELETE
   normalize-before:
-    ast -> result
-    where <not(is-ddl-statement)> ast
+    astPlusMetadata -> AstPlusMetadata(result, metadata)
+    where <not(is-ddl-statement)> astPlusMetadata
     with
+      ast := <try(?AstPlusMetadata(<id>, _))> astPlusMetadata; // AST does not always come with metadata
+      metadata := <?AstPlusMetadata(_, <id>) <+ ![]> astPlusMetadata;
       variable-counter := <new-counter>;
       bindVariable-counter := <new-counter>;
       error-messages := <
@@ -63,7 +65,6 @@ rules
           norm-NEQ +
           norm-singleVertex +
           norm-VertexWithoutBrackets +
-          norm-inPredicate +
           norm-isNull +
           norm-case
         );
@@ -72,7 +73,7 @@ rules
           is-pgql13; alltd(norm-string-literal + norm-identifier) +
           ?Start-Plhdr() // empty query string
         );
-        alltd(norm-timezone);
+        alltd(norm-timezone(|metadata));
         alltd(norm-datetime-literal);
         alltd(norm-hop-distance);
         alltd(name-unnamed-elems(|variable-counter));
@@ -189,9 +190,6 @@ rules
   copy-graph-name-to-query-without-one(|graphName):
     NormalizedQuery(a, b, None(), c, d, e, f, g, h, i, j) -> NormalizedQuery(a, b, Some(graphName), c, d, e, f, g, h, i, j)
 
-  to-function(|name):
-    args -> FunctionCall(None(), name, args)
-
   norm-BindVariable(|c) = ?BindVariable(); !BindVariable(<next-counter> c)
 
   norm-UMin = ?UMin(Integer(string)); !Integer(<conc-strings> ("-", string))
@@ -229,70 +227,49 @@ rules
                         + Time(un-single-quote)
                         + Timestamp(un-single-quote)
 
-  norm-timezone:
-    Cast(exp, type) -> Cast(exp, type')
-    with
-      type' := <origin-track-forced(upper-case
-              /* In standard SQL the time zone is denoted by "TIME ZONE" while in java.sql.* it's denoted by "TIMEZONE".
-                 Clearly people have been confusing it. Therefore, we support both notations in PGQL by normalizing one
-                 into the other. Users can then use either. However, please stick to TIME ZONE (with space) in
-                 documentation to follow the standard. */
-              ; string-replace(|"TIME ZONE", "TIMEZONE"))> type
-
-  norm-inPredicate:
-    t@InPredicate(exp1, notIn, exp2) -> result
-    where <is-simple-inPredicate-expression> exp2
-    with inPredicate := <origin-track-forced(!InPredicate(exp1, exp2))> t
-       ; if <?Some(NOT())> notIn
-         then result := <origin-track-forced(!Not(inPredicate))> t
-         else result := inPredicate
-         end
-
-  norm-inPredicate:
-    t@InPredicate(exp1, notIn, exp2@Array(valueExpressions)) -> result
-    where <not(is-simple-inPredicate-expression)> exp2
-    with disjunction := <map(to-eq-expression(|exp1, t)); to-disjunction> valueExpressions
-       ; disjunction' := <origin-track-forced(!disjunction)> t
-       ; if <?Some(NOT())> notIn
-         then result := <origin-track-forced(!Not(disjunction'))> t
-         else result := disjunction'
-         end
-
-  is-simple-inPredicate-expression = ?BindVariable(_)
-  is-simple-inPredicate-expression = ?Array(<id>); map(is-literal-no-bindVariable) // array with literals only
-
-  to-eq-expression(|exp1, origin-term):
-    exp2 -> <origin-track-forced(!Eq(exp1, exp2))> origin-term
+  norm-timezone(|metadata):
+    Cast(exp, type) -> Cast(exp, type'')
+    with type' := <origin-track-forced(upper-case
+                  /* In standard SQL the time zone is denoted by "TIME ZONE" while in java.sql.* it's denoted by "TIMEZONE".
+                     Clearly people have been confusing it. Therefore, we support both notations in PGQL by normalizing one
+                     into the other. Users can then use either. However, please stick to TIME ZONE (with space) in
+                     documentation to follow the standard. */
+                  ; string-replace(|"TIME ZONE", "TIMEZONE"))> type
+        ; type'' := <try(origin-track-forced(!metadata; fetch-elem(?DataTypeSynonyms(<id>)); fetch-elem(?DataTypeSynonym(type', <id>))))> type'
 
   norm-isNull = ?IsNotNull(exp); origin-track-forced(!IsNull(exp)); !Not(<id>)
 
   norm-case:
-    SimpleCase(caseOperand, whenClauses, elseClause) -> SimpleCase(caseOperand, whenClauses, elseClause, ifElseRepresentation)
-    with ifElseRepresentation := <to-if-else> (caseOperand, whenClauses, elseClause)
+    t@SimpleCase(caseOperand, whenClauses, elseClause) -> SimpleCase(caseOperand, whenClauses, elseClause, ifElseRepresentation)
+    with ifElseRepresentation := <to-if-else(|t)> (caseOperand, whenClauses, elseClause)
 
-  to-if-else:
-    (caseOperand, whenClauses, elseClause) -> IfElse(exp1, exp2, exp3)
+  to-if-else(|origin-term):
+    (caseOperand, whenClauses, elseClause) -> ifElse
     with [WhenClause(whenExp, thenExp)|xs] := whenClauses
-       ; exp1 := Eq(caseOperand, whenExp)
+       ; exp1 := <origin-track-forced(!Eq(caseOperand, whenExp))> whenExp
        ; exp2 := thenExp
        ; if [] := xs
          then exp3 := <to-else> elseClause
-         else exp3 := <to-if-else> (caseOperand, xs, elseClause)
+         else exp3 := <to-if-else(|elseClause)> (caseOperand, xs, elseClause)
          end
+       ; ifElse := <origin-track-forced(!IfElse(exp1, exp2, exp3))> origin-term
 
   norm-case:
-    SearchedCase(whenClauses, elseClause) -> ifElse
-    with ifElse := <to-if-else> (whenClauses, elseClause)
+    t@SearchedCase(whenClauses, elseClause) -> ifElse
+    with ifElse := <to-if-else(|t)> (whenClauses, elseClause)
+       ; <origin-text> t
 
-  to-if-else:
-    (whenClauses, elseClause) -> IfElse(exp1, exp2, exp3)
+  to-if-else(|origin-term):
+    (whenClauses, elseClause) -> ifElse
     with [WhenClause(whenExp, thenExp)|xs] := whenClauses
        ; exp1 := whenExp
        ; exp2 := thenExp
        ; if [] := xs
          then exp3 := <to-else> elseClause
-         else exp3 := <to-if-else> (xs, elseClause)
+         else [WhenClause(_, thenExp2)|_] := xs
+            ; exp3 := <to-if-else(|thenExp2)> (xs, elseClause)
          end
+       ; ifElse := <origin-track-forced(!IfElse(exp1, exp2, exp3))> origin-term
 
   to-else = ?None(); !Null() <+ ?Some(ElseClause(<id>))
 
@@ -322,7 +299,7 @@ rules
     then !ReferenceInInlinedConstraint(v)
     else !CrossReferenceInInlinedConstraint(v)
     end +
-    (?SelfPropRef(propName) + ?SelfPropRef(dot, propName)); !PropRef(VarRef(varName), propName)
+    (?SelfPropRef(propName) + ?SelfPropRef(dot, propName)); !PropRef(VarRef(varName), Identifier(propName, propName))
 
 rules
 
@@ -393,7 +370,7 @@ rules
       non-inlined-constraints := <(?None(); ![]) <+ (?Some(WhereClause(<id>)); ![<id>])> whereClause;
       constraints := <concat; flatten-list; !Constraints(<id>)> [inlined-constraints-for-vertices, inlined-constraints-for-edges, non-inlined-constraints];
       vertices := <collect-om(?Vertex(_), conc); !Vertices(<id>)> path;
-      connections := <get-connections-from-paths(|variable-counter)> [path]
+      connections := <get-connections-from-paths(|variable-counter); !Edges(<id>)> [path]
 
   get-inlined-constraints:
     ElemContents(Some(var), label, id', otherConstraint) -> <concat> [labels, identifiers, otherConstraint']
@@ -402,7 +379,7 @@ rules
        ; otherConstraint' := <?Some(InlinedConstraint(<id>)) <+ ![]> otherConstraint
 
   to-label-constraint(|var):
-    labels ->  <to-hasLabel-expressions(|var)> labels
+    labels -> <to-hasLabel-expressions(|var)> labels
   to-hasLabel-expressions(|var) = bottomup(try(![VarRef(var), <to-label>]; to-function(|"has_label") + origin-track-forced(normalize-label-disjunction)))
   to-label = ?Label(<id>) + ?Legacy10Identifier(<id>); origin-track-forced(!Identifier(<id>, <id>)) + ?BindVariable(_)
   to-id-constraint(|var) = bottomup(try(is-literal; origin-track-forced(!Eq(<to-function(|"id")> [VarRef(var)], <id>))))
@@ -542,12 +519,6 @@ rules
 
   norm-has-prop = ?Legacy10Has(varRef, [prop]); !Legacy10Has(varRef, prop) <+
                   ?Legacy10Has(varRef, <id>); map(!Legacy10Has(varRef, <id>)); to-conjunction
-
-  to-conjunction = reverse; !(<Tl>, <Hd>); foldl(to-AND)
-  to-AND = ?(exp1, exp2); !And(exp1, exp2)
-
-  to-disjunction = reverse; !(<Tl>, <Hd>); foldl(to-OR)
-  to-OR = ?(exp1, exp2); !Or(exp1, exp2)
 
 rules
 

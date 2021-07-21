@@ -1058,8 +1058,8 @@ public interface QueryExpression {
     @Override
     public String toString() {
       String expressions = args.stream().map(QueryExpression::toString).collect(joining(", "));
-      String packageNamePart = packageName == null ? "" : packageName + ".";
-      return packageNamePart + functionName + "(" + expressions + ")";
+      String packageNamePart = packageName == null ? "" : printIdentifier(packageName) + ".";
+      return packageNamePart + printIdentifier(functionName) + "(" + expressions + ")";
     }
 
     @Override

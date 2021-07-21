@@ -70,7 +70,7 @@ rules
 
   get-aggregations = collect-in-outer-query(is-aggregate)
 
-  to-error-message(|message) = !ErrorMessage(<id>, message)
+  to-error-message(|message) = !ErrorMessage(<origin-track-forced(origin-text)>, message)
 
   // just here to get rid of editor errors in e.g. normalize.str
   origin-track-forced(s) = fail
@@ -99,3 +99,15 @@ rules
 
   to-name-without-case-sensitive-info = origin-track-forced(?Name(None(), Identifier(localName, _)); !Name(None(), localName))
   to-name-without-case-sensitive-info = origin-track-forced(?Name(Some(SchemaName(Identifier(schemaName, _))), Identifier(localName, _)); !Name(schemaName, localName))
+
+  to-conjunction = reverse; !(<Tl>, <Hd>); foldl(to-AND)
+  to-AND = ?(exp1, exp2); !And(exp1, exp2)
+
+  to-disjunction = reverse; !(<Tl>, <Hd>); foldl(to-OR)
+  to-OR = ?(exp1, exp2); !Or(exp1, exp2)
+
+  to-disjunction-with-types = reverse; !(<Tl>, <Hd>); foldl(to-OR)
+  to-OR = ?(exp1, exp2); !ExpressionPlusType(Or(exp1, exp2), Type("BOOLEAN"))
+
+  to-function(|name):
+    args -> FunctionCall(None(), Identifier(name, name), args)

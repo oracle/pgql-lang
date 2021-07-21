@@ -17,6 +17,7 @@ signature constructors // for type checking (see trans/types.ts)
 
 signature constructors // for the normalized AST (see trans/normalize.str)
 
+  AstPlusMetadata       : Ast * Metadata -> AstPlusMetadata
   NormalizedQuery       : CommonPathExpressions * Vars * FromClause * GraphPattern * GroupByClause * HavingClause * List(OrderByElem) * LimitOffsetClauses * List(ErrorMessage) * PgqlVersion * BindVariableCount -> NormalizedQuery
   PgqlVersion           : STRING
   GraphName             : LocalOrSchemaQualifiedName -> GraphName
@@ -91,3 +92,57 @@ signature constructors // for error checking (see trans/check.str)
   ErrorMessage                                      : Term * STRING -> ErrorMessage
   ComplexRegularExpressionNotSupported              : Term -> ComplexRegularExpressionNotSupported
   ComplexParenthesizedRegularExpressionNotSupported : Term -> ComplexParenthesizedRegularExpressionNotSupported
+
+signature constructors // for type anslysis (see trans/type-analysis.str)
+
+  VariablePlusType        : OriginPosition * DereferencedOriginPosition * Type -> VariablePlusType
+
+  LabelOr                 : STRING * STRING -> LabelOr
+
+  LabelAnd                : STRING * STRING -> LabelAnd
+
+  ExpressionPlusType      : Exp * Type -> ExpressionPlusType
+
+  Type                    : STRING -> Type
+
+  Undefined               : Type // when the operation is undefined for the input types or the property does not exist
+
+  UnknownType             : Type
+
+  AmbiguousType           : Type
+
+  VertexLabels            : List(Label) -> VertexLabels
+
+  EdgeLabels              : List(Label) -> EdgeLabels
+
+  Label                   : STRING * List(Property) -> Label
+
+  Property                : STRING * Type -> Property
+
+  DefaultStringType       : STRING -> DefaultStringType
+
+  DefaultShortIntegerType : STRING -> DefaultShortIntegerType
+
+  DefaultLongIntegerType  : STRING -> DefaultLongIntegerType
+
+  DefaultDecimalType      : STRING -> DefaultDecimalType
+
+  UnionTypes              : List(UnionType) -> UnionTypes
+
+  UnionType               : STRING * STRING * STRING -> UnionType
+
+  BinaryOperations        : List(BinaryOperation) -> BinaryOperations
+
+  BinaryOperation         : STRING * STRING * STRING * STRING -> BinaryOperation
+
+  UnaryOperations         : List(UnaryOperation) -> UnaryOperations
+
+  UnaryOperation          : STRING * STRING * STRING -> UnaryOperation
+
+  DataTypeSynonyms        : List(DataTypeSynonym) -> DataTypeSynonyms
+
+  DataTypeSynonym         : STRING * STRING -> DataTypeSynonym
+
+  FunctionSignatures      : List(FunctionSignature) -> FunctionSignatures
+
+  FunctionSignature       : Optional(STRING) * STRING * List(STRING) * STRING -> FunctionSignature

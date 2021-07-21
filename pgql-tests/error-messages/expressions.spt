@@ -2,35 +2,6 @@ module select
 
 language pgql-lang
 
-test Type conflict in IN [[
-
-  SELECT n.prop IN (5, 2.2, [[true]], [[false]], [['abc']], [[DATE '2018-01-01']], [[TIME '16:30:00']], [[TIMESTAMP '2018-01-01 16:30:00']]) AS v1
-       , n.prop IN (true, false, [[5]], [[2.2]], [['abc']], [[DATE '2018-01-01']], [[TIME '16:30:00']], [[TIMESTAMP '2018-01-01 16:30:00']]) AS v2
-       , n.prop IN ('abc', [[5]], [[2.2]], [[true]], [[false]], [[DATE '2018-01-01']], [[TIME '16:30:00']], [[TIMESTAMP '2018-01-01 16:30:00']]) AS v3
-       , n.prop IN (DATE '2018-01-01', [[5]], [[2.2]], [[true]], [[false]], [['abc']], [[TIME '16:30:00']], [[TIMESTAMP '2018-01-01 16:30:00']]) AS v4
-       , n.prop IN (TIME '16:30:00', [[5]], [[2.2]], [[true]], [[false]], [['abc']], [[DATE '2018-01-01']], [[TIMESTAMP '2018-01-01 16:30:00']]) AS v5
-       , n.prop IN (TIMESTAMP '2018-01-01 16:30:00', [[5]], [[2.2]], [[true]], [[false]], [['abc']], [[DATE '2018-01-01']], [[TIME '16:30:00']]) AS v6
-    FROM g MATCH (n)
-
-]] error like "Numeric expected here" at #1, #2, #3, #4, #5, #6
-   error like "Boolean expected here" at #7, #8, #9, #10, #11, #12
-   error like "String expected here" at #13, #14, #15, #16, #17, #18
-   error like "Date expected here" at #19, #20, #21, #22, #23, #24
-   error like "Time expected here" at #25, #26, #27, #28, #29, #30
-   error like "Timestamp expected here" at #31, #32, #33, #34, #35, #36
-
-test Illegal types in CASE [[
-
-  SELECT CASE WHEN [[1]] THEN 2 ELSE 3 END AS v1
-       , CASE WHEN [[n]] THEN 2 END AS v2
-       , CASE WHEN [[e]] THEN 2 END AS v3
-       , CASE n.prop WHEN 1 THEN [[n]] ELSE 3 END AS v4
-       , CASE n.prop WHEN 1 THEN 2 ELSE [[e]] END AS v5
-   MATCH (n) -[e]-> (m)
-
-]] error like "Boolean expected here" at #1, #2, #3
-   error like "CASE does not allow vertex or edge output" at #4, #5
-
 test Illegal separator in LISTAGG [[
 
   SELECT LISTAGG(1[[, ?]]) AS v1, LISTAGG(1[[, 2]]) AS v2

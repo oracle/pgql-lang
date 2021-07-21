@@ -158,6 +158,8 @@ public class SpoofaxAstToGraphQuery {
   private static final int IDENTIFIER_NAME = 0;
   private static final int IDENTIFIER_ORIGINNAME = 1;
 
+  private static final int POS_EXP_PLUS_TYPE_EXP = 0;
+
   public static PgqlStatement translate(IStrategoTerm ast) throws PgqlException {
 
     String constructorName = ((IStrategoAppl) ast).getConstructor().getName();
@@ -380,11 +382,10 @@ public class SpoofaxAstToGraphQuery {
       case "DirectedEdgeInsertion": {
         String edgeName = getString(insertionT.getSubterm(POS_EDGE_INSERTION_NAME));
 
-        IStrategoTerm srcVarRefT = insertionT.getSubterm(POS_EDGE_INSERTION_SRC);
+        IStrategoTerm srcVarRefT = insertionT.getSubterm(POS_EDGE_INSERTION_SRC).getSubterm(POS_EXP_PLUS_TYPE_EXP);
         QueryVertex src = dereferenceQueryVertex(getVariable(ctx, srcVarRefT));
 
-        IStrategoTerm dstVarRefT = insertionT.getSubterm(POS_EDGE_INSERTION_DST);
-
+        IStrategoTerm dstVarRefT = insertionT.getSubterm(POS_EDGE_INSERTION_DST).getSubterm(POS_EXP_PLUS_TYPE_EXP);
         QueryVertex dst = dereferenceQueryVertex(getVariable(ctx, dstVarRefT));
 
         QueryEdge edge = new QueryEdge(src, dst, edgeName, false, Direction.OUTGOING);

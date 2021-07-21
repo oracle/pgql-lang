@@ -202,8 +202,8 @@ test Duplicate variable passed from outer query (6) [[
 
 test Scalar subquery return vertex or edge [[
 
-  SELECT ( SELECT [[m AS vertex]] FROM g MATCH (m) LIMIT 1 ) AS o
-       , ( SELECT [[e AS edge]] FROM g MATCH () -[e]-> () LIMIT 1 ) AS o
+  SELECT ( SELECT [[m AS vertex]] FROM g MATCH (m) LIMIT 1 ) AS v1
+       , ( SELECT [[e AS edge]] FROM g MATCH () -[e]-> () LIMIT 1 ) AS v3
     FROM g MATCH (n)
 
 ]] error like "Scalar subquery not allowed to return a vertex or an edge" at #1, #2

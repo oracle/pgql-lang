@@ -33,10 +33,10 @@ test Resolve to inserted elements [[
 test Subquery with vertex/edge with same name as inserted vertex/edge in outer query [[
 
   INSERT VERTEX [[v]]
-                PROPERTIES ( [[v]].prop = ( SELECT [[v]].prop AS c1 FROM g MATCH ([[v]]) LIMIT 1 ) ),
+                PROPERTIES ( [[v]].prop = ( SELECT [[v]].prop AS c1 FROM MATCH ([[v]]) ON g LIMIT 1 ) ),
            EDGE [[e]]
                 BETWEEN v AND v
-                PROPERTIES ( [[e]].prop = ( SELECT [[e]].prop AS c1 FROM g MATCH () -[ [[e]] ]-> () LIMIT 1 ) )
+                PROPERTIES ( [[e]].prop = ( SELECT [[e]].prop AS c1 FROM MATCH () -[ [[e]] ]-> () ON g LIMIT 1 ) )
 
 ]] resolve #2 to #1
    resolve #3 to #4

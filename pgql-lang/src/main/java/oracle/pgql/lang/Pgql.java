@@ -56,8 +56,11 @@ import oracle.pgql.lang.editor.completion.PgqlCompletion;
 import oracle.pgql.lang.editor.completion.PgqlCompletionContext;
 import oracle.pgql.lang.ir.PgqlStatement;
 import oracle.pgql.lang.ir.StatementType;
+import oracle.pgql.lang.metadata.AbstractMetadataProvider;
 
 import static oracle.pgql.lang.CheckInvalidJavaComment.checkInvalidJavaComment;
+import static oracle.pgql.lang.MetadataToAstUtil.addMetadata;
+import static oracle.pgql.lang.MetadataToAstUtil.removeMetadata;
 
 public class Pgql implements Closeable {
 
@@ -168,7 +171,7 @@ public class Pgql implements Closeable {
         }
       });
 
-      parseInternal("SELECT * FROM MATCH (initQuery)"); // make Spoofax initialize the language
+      parseInternal("SELECT * FROM MATCH (initQuery)", null); // make Spoofax initialize the language
     } catch (MetaborgException | IOException e) {
       throw new PgqlException("Failed to initialize PGQL", e);
     }
@@ -186,13 +189,34 @@ public class Pgql implements Closeable {
    *           if the query contains errors
    */
   public PgqlResult parse(String queryString) throws PgqlException {
+    return parse(queryString, null);
+  }
+
+  /**
+   * Parse a PGQL query (either a SELECT or MODIFY query).
+   *
+   * @param queryString
+   *          PGQL query to parse
+   * @param metadataProvider
+   *          the metadata provider for enhanced type checking based on graph schema information and other metadata
+   * @return parse result holding either an AST or error messages
+   * @throws PgqlException
+   *           if the query contains errors
+   */
+  public PgqlResult parse(String queryString, AbstractMetadataProvider metadataProvider) throws PgqlException {
     synchronized (lock) {
       checkInitialized();
-      return parseInternal(queryString);
+      return parseInternal(queryString, metadataProvider);
     }
   }
 
-  private PgqlResult parseInternal(String queryString) throws PgqlException {
+  private void checkInitialized() throws PgqlException {
+    if (!isInitialized) {
+      throw new PgqlException("Pgql instance was closed");
+    }
+  }
+
+  private PgqlResult parseInternal(String queryString, AbstractMetadataProvider metadataProvider) throws PgqlException {
     if (queryString.equals("")) {
       String error = "Empty query string";
       return new PgqlResult(queryString, false, error, null, null, LATEST_VERSION, 0);
@@ -218,9 +242,12 @@ public class Pgql implements Closeable {
       }
 
       context = spoofax.contextService.getTemporary(dummyFile, dummyProject, pgqlLang);
+
+      ISpoofaxParseUnit extendedParseUnit = addMetadata(parseResult, metadataProvider, spoofax.termFactory);
+
       ISpoofaxAnalyzeUnit analysisResult = null;
       try (IClosableLock lock = context.write()) {
-        analysisResult = spoofax.analysisService.analyze(parseResult, context).result();
+        analysisResult = spoofax.analysisService.analyze(extendedParseUnit, context).result();
       }
 
       if (queryValid) {
@@ -232,26 +259,28 @@ public class Pgql implements Closeable {
         }
       }
 
+      IStrategoTerm analyizedAst = removeMetadata(analysisResult);
+
       try {
-        statement = SpoofaxAstToGraphQuery.translate(analysisResult.ast());
+        statement = SpoofaxAstToGraphQuery.translate(analyizedAst);
       } catch (Exception e) {
         if (e instanceof PgqlException) {
           prettyMessages = e.getMessage();
           queryValid = false;
-          return new PgqlResult(queryString, queryValid, prettyMessages, statement, parseResult, LATEST_VERSION,
-              0);
+          return new PgqlResult(queryString, queryValid, prettyMessages, statement, parseResult, LATEST_VERSION, 0);
         } else {
+          System.out.println(e);
           LOG.debug("Translation of PGQL failed because of semantically invalid AST");
         }
       }
 
-      PgqlVersion pgqlVersion = getPgqlVersion(analysisResult.ast(), statement);
+      PgqlVersion pgqlVersion = getPgqlVersion(analyizedAst, statement);
 
       if (queryValid) {
         checkInvalidJavaComment(queryString, pgqlVersion);
       }
 
-      int bindVariableCount = getBindVariableCount(analysisResult.ast(), statement);
+      int bindVariableCount = getBindVariableCount(analyizedAst, statement);
 
       return new PgqlResult(queryString, queryValid, prettyMessages, statement, parseResult, pgqlVersion,
           bindVariableCount);
@@ -262,12 +291,6 @@ public class Pgql implements Closeable {
         context.close();
       }
       quietlyDelete(dummyFile);
-    }
-  }
-
-  private void checkInitialized() throws PgqlException {
-    if (!isInitialized) {
-      throw new PgqlException("Pgql instance was closed");
     }
   }
 

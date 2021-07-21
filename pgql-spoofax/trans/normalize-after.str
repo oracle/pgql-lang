@@ -1,0 +1,52 @@
+module normalize-after
+
+imports
+
+  stratego/-
+  signatures/-
+  normalized-signatures
+  common
+  pp
+  type-analysis
+
+rules
+
+  normalize-after = try(?AstPlusMetadata(_, metadata); innermost(inPredicate-to-non-equality-constraints(|metadata) <+ norm-inPredicate))
+
+rules
+
+  inPredicate-to-non-equality-constraints(|metadata):
+    t@InPredicate(exp1, notIn, exp2@Array(valueExpressions)) -> result
+    where <not(is-simple-inPredicate-expression)> exp2
+
+        // don't tranform IN into set of non-equality if types are not compatible
+        ; [x|xs] := valueExpressions
+        ; <?ExpressionPlusType(_, _); is-compatible-type(|x, metadata)> exp1
+        ; <map(is-compatible-type(|x, metadata))> valueExpressions
+    with disjunction := <map(to-eq-expression(|metadata, exp1, t)); to-disjunction-with-types> valueExpressions
+       ; disjunction' := <origin-track-forced(!disjunction)> t
+       ; if <?Some(NOT())> notIn
+         then result := <origin-track-forced(!Not(disjunction'))> t
+         else result := disjunction'
+         end
+
+  is-simple-inPredicate-expression = ?BindVariable(_)
+  is-simple-inPredicate-expression = ?Array(<id>); map(?ExpressionPlusType(<id>, _); is-literal-no-bindVariable) // array with literals only
+
+  to-eq-expression(|metadata, expPlusType1, origin-term):
+    expPlusType2 -> ExpressionPlusType(exp', type')
+    where <?ExpressionPlusType(exp1, type1)> expPlusType1
+        ; <?ExpressionPlusType(exp2, type2)> expPlusType2
+        ; exp' := <origin-track-forced(!Eq(expPlusType1, expPlusType2))> origin-term
+        ; if <?Type(t1)> type1; <?Type(t2)> type2
+          then type' := <get-binary-operation-return-type(|metadata); not(?Undefined()) /* if equality operation is not supported between these types then we don't want to normalize */> ("Eq", t1, t2)
+          else type' := UnknownType()
+          end
+
+  norm-inPredicate:
+    t@InPredicate(exp1, notIn, exp2) -> result
+    with inPredicate := <origin-track-forced(!InPredicate(exp1, exp2))> t
+       ; if <?Some(NOT())> notIn
+         then result := <origin-track-forced(!Not(inPredicate))> t
+         else result := inPredicate
+         end

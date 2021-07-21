@@ -57,6 +57,7 @@ public class CommonTranslationUtil {
 
   private static int LOCAL_OR_SCHEMA_QUALIFIED_NAME_LOCAL_NAME = 1;
 
+  private static final int POS_EXP_PLUS_TYPE_EXP = 0;
   private static final int POS_BINARY_EXP_LEFT = 0;
   private static final int POS_BINARY_EXP_RIGHT = 1;
   private static final int POS_UNARY_EXP = 0;
@@ -147,6 +148,8 @@ public class CommonTranslationUtil {
     String cons = ((IStrategoAppl) t).getConstructor().getName();
 
     switch (cons) {
+      case "ExpressionPlusType":
+        return translateExp(t.getSubterm(POS_EXP_PLUS_TYPE_EXP), ctx);
       case "Sub":
         QueryExpression exp1 = translateExp(t.getSubterm(POS_BINARY_EXP_LEFT), ctx);
         QueryExpression exp2 = translateExp(t.getSubterm(POS_BINARY_EXP_RIGHT), ctx);

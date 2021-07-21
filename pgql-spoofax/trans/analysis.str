@@ -17,13 +17,15 @@ imports
   types/-
 
   pp
-  trans-for-nabl
+  name-analysis
   normalize
+  normalize-after
+  type-analysis
   check
 
 rules // Analysis
 
-  editor-analyze = analyze-all(normalize-before; trans-for-nabl, id, id|<language>); reorder-error-messages
+  editor-analyze = analyze-all(normalize-before; add-names; add-types; normalize-after, id, id|<language>); reorder-error-messages
 
   reorder-error-messages = Result([FileResult(id,id,id,reorder-error-messages-helper,id, id)], id, id, id, id)
 
@@ -52,7 +54,7 @@ rules // Debugging
     (_, _, ast, path, _) -> (filename, result)
     with
       filename := <guarantee-extension(|"normalized.aterm")> path;
-      result   := <normalize-before; trans-for-nabl> ast
+      result   := <normalize-before; add-names; add-types; normalize-after> ast
 
   debug-show-analyzed:
     (_, _, ast, path, _) -> (filename, result)
