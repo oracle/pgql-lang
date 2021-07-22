@@ -62,6 +62,8 @@ signature constructors // for the normalized AST (see trans/normalize.str)
 
   GraphPatternAndGraphName : GraphPattern * Name * WhereClause -> GraphPatternAndGraphName
 
+  PathPatternAndRowsPerMatch : GraphPattern * RowsPerMatch -> PathPatternAndRowsPerMatch
+
 signature constructors // for name binding (see trans/trans-for-nabl.str)
 
   Vertex                : Var * OriginPosition * Correlation -> Vertex

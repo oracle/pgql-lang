@@ -47,7 +47,7 @@ context-free syntax
 
   GraphMatch.GraphMatch = <<MatchKeyword?> <PathPattern> <RowsPerMatch?> <OnClause?>>
 
-  GraphMatch.ParenthesizedGraphMatch = <MATCH ( <{PathPattern ","}+> ) <OnClause?>> {case-insensitive}
+  GraphMatch.ParenthesizedGraphMatch = <MATCH ( <{PathPattern ","}+> ) <RowsPerMatch?> <OnClause?>> {case-insensitive}
 
   MatchKeyword.MatchKeyword = <MATCH> {case-insensitive}
 
@@ -64,3 +64,5 @@ context-free syntax
   Projection.Star = <*>
 
   RowsPerMatch.OneRowPerMatch = <ONE ROW PER MATCH> {case-insensitive}
+  RowsPerMatch.OneRowPerVertex = <ONE ROW PER VERTEX (<Identifier>)> {case-insensitive}
+  RowsPerMatch.OneRowPerEdge = <ONE ROW PER EDGE (<Identifier>)> {case-insensitive}
