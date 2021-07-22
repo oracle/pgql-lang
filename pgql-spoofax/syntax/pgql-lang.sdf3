@@ -45,7 +45,7 @@ context-free syntax
 
   TableExpression = GraphMatch
 
-  GraphMatch.GraphMatch = <<MatchKeyword?> <PathPattern> <OnClause?>>
+  GraphMatch.GraphMatch = <<MatchKeyword?> <PathPattern> <RowsPerMatch?> <OnClause?>>
 
   GraphMatch.ParenthesizedGraphMatch = <MATCH ( <{PathPattern ","}+> ) <OnClause?>> {case-insensitive}
 
@@ -56,10 +56,11 @@ context-free syntax
   SelectOrModify = SelectClause
   SelectOrModify = ModifyClause
 
-
   CommonPathExpression.CommonPathExpression = <PATH <Identifier> <AsignSymbol> <PathPattern> <WhereClause?> <CostClause?>> {case-insensitive}
   AsignSymbol.Pgql11AsignSymbol = <AS> {case-insensitive}
 
   SelectClause.SelectClause = <SELECT <Distinct?> <Projection>> {case-insensitive}
   Projection.ExpAsVars = <<{ExpAsVar ", "}+>>
   Projection.Star = <*>
+
+  RowsPerMatch.OneRowPerMatch = <ONE ROW PER MATCH> {case-insensitive}

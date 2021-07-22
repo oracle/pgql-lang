@@ -112,7 +112,7 @@ rules
 
   get-pgql13-deprecation = get-pgql11-deprecation // sharing all the deprecations with 1.1
 
-  get-pgql13-errors      = ?GraphMatch(None(), _, _); to-error-message(|"Missing MATCH keyword at start of pattern")
+  get-pgql13-errors      = ?GraphMatch(None(), _, _, _); to-error-message(|"Missing MATCH keyword at start of pattern")
 
   get-pgql10-limitation = ( ?Pgql11FromClause(_)
                           + ?Subquery(_)
@@ -154,12 +154,12 @@ rules
          else errors := []
          end
 
-  get-on-clause-graph-name = ?GraphMatch(_, _, Some(OnClause(<id>))) + ?ParenthesizedGraphMatch(_, Some(OnClause(<id>)))
+  get-on-clause-graph-name = ?GraphMatch(_, _, _, Some(OnClause(<id>))) + ?ParenthesizedGraphMatch(_, Some(OnClause(<id>)))
 
   get-errors-for-missing-on-clauses:
     ast -> errors
     with if <oncetd(?OnClause(_))> ast
-         then clausesWithMissingGraphName := <collect(?GraphMatch(_, _,  None()) + ?ParenthesizedGraphMatch(_, None()))> ast
+         then clausesWithMissingGraphName := <collect(?GraphMatch(_, _, _, None()) + ?ParenthesizedGraphMatch(_, None()))> ast
             ; errors := <map(to-error-message(|"Missing ON clause"))> clausesWithMissingGraphName
          else errors := []
          end
@@ -306,8 +306,8 @@ rules
   // PGQL 1.3
   norm-matchElems(|variable-counter):
     FromWhereClauses(graphMatches, whereClause) -> GraphPatternAndGraphName(graphPattern, graphName, whereClause)
-    with graphName := <map(?GraphMatch(_, _, <id>) + ?ParenthesizedGraphMatch(_, <id>)); (Hd; normalize-OnClause <+ !None())> graphMatches // simply take the first graph name we see; we don't support multiple graph right now
-       ; pathPatterns := <map(?GraphMatch(_, <id>, _); ![<id>] + ?ParenthesizedGraphMatch(<id>, _)); concat> graphMatches
+    with graphName := <map(?GraphMatch(_, _, _, <id>) + ?ParenthesizedGraphMatch(_, <id>)); (Hd; normalize-OnClause <+ !None())> graphMatches // simply take the first graph name we see; we don't support multiple graph right now
+       ; pathPatterns := <map(?GraphMatch(_, <id>, _, _); ![<id>] + ?ParenthesizedGraphMatch(<id>, _)); concat> graphMatches
        ; graphPattern := <norm-matchElems-common(|variable-counter)> pathPatterns
 
   // PGQL 1.1 and 1.2

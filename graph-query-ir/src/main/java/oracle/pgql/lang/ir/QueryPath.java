@@ -6,6 +6,9 @@ package oracle.pgql.lang.ir;
 import java.util.List;
 import java.util.Set;
 
+import oracle.pgql.lang.ir.unnest.OneRowPerMatch;
+import oracle.pgql.lang.ir.unnest.RowsPerMatch;
+
 import static oracle.pgql.lang.ir.PgqlUtils.GENERATED_VAR_PREFIX;
 import static oracle.pgql.lang.ir.PgqlUtils.printHops;
 import static oracle.pgql.lang.ir.PgqlUtils.printIdentifier;
@@ -25,9 +28,11 @@ public class QueryPath extends VertexPairConnection {
 
   private boolean withTies;
 
+  private RowsPerMatch rowsPerMatch;
+
   public QueryPath(QueryVertex src, QueryVertex dst, String name, CommonPathExpression commonPathExpression,
       boolean anonymous, long minHops, long maxHops, PathFindingGoal goal, int kValue, boolean withTies,
-      Direction direction) {
+      Direction direction, RowsPerMatch rowsPerMatch) {
     super(src, dst, name, anonymous, direction);
     this.commonPathExpression = commonPathExpression;
     this.minHops = minHops;
@@ -35,6 +40,14 @@ public class QueryPath extends VertexPairConnection {
     this.goal = goal;
     this.kValue = kValue;
     this.withTies = withTies;
+    this.rowsPerMatch = rowsPerMatch;
+  }
+
+  public QueryPath(QueryVertex src, QueryVertex dst, String name, CommonPathExpression commonPathExpression,
+      boolean anonymous, long minHops, long maxHops, PathFindingGoal goal, int kValue, boolean withTies,
+      Direction direction) {
+    this(src, dst, name, commonPathExpression, anonymous, minHops, maxHops, goal, kValue, withTies, direction,
+        new OneRowPerMatch());
   }
 
   public String getPathExpressionName() {
@@ -128,6 +141,14 @@ public class QueryPath extends VertexPairConnection {
     return VariableType.PATH;
   }
 
+  public RowsPerMatch getRowsPerMatch() {
+    return rowsPerMatch;
+  }
+
+  public void setRowsPerMatch(RowsPerMatch rowsPerMatch) {
+    this.rowsPerMatch = rowsPerMatch;
+  }
+
   @Override
   public String toString() {
     switch (goal) {
@@ -202,6 +223,9 @@ public class QueryPath extends VertexPairConnection {
       return false;
     if (withTies != other.withTies)
       return false;
+    if (!rowsPerMatch.equals(other.rowsPerMatch)) {
+      return false;
+    }
     return true;
   }
 }
