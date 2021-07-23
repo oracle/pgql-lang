@@ -8,6 +8,7 @@ import java.util.Set;
 
 import oracle.pgql.lang.ir.unnest.OneRowPerMatch;
 import oracle.pgql.lang.ir.unnest.RowsPerMatch;
+import oracle.pgql.lang.ir.unnest.RowsPerMatchType;
 
 import static oracle.pgql.lang.ir.PgqlUtils.GENERATED_VAR_PREFIX;
 import static oracle.pgql.lang.ir.PgqlUtils.printHops;
@@ -187,6 +188,9 @@ public class QueryPath extends VertexPairConnection {
     }
 
     result += printHops(this) + " " + getDst();
+    if (rowsPerMatch != null && rowsPerMatch.getRowsPerMatchType() != RowsPerMatchType.ONE_ROW_PER_MATCH) {
+      result += " " + rowsPerMatch;
+    }
     return result;
   }
 

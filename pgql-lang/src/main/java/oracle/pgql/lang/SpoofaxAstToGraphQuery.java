@@ -52,6 +52,10 @@ import oracle.pgql.lang.ir.modify.SetPropertyExpression;
 import oracle.pgql.lang.ir.modify.Update;
 import oracle.pgql.lang.ir.modify.UpdateClause;
 import oracle.pgql.lang.ir.modify.VertexInsertion;
+import oracle.pgql.lang.ir.unnest.OneRowPerEdge;
+import oracle.pgql.lang.ir.unnest.OneRowPerMatch;
+import oracle.pgql.lang.ir.unnest.OneRowPerVertex;
+import oracle.pgql.lang.ir.unnest.RowsPerMatch;
 
 import static oracle.pgql.lang.TranslateCreateExternalSchema.translateCreateExternalSchema;
 import static oracle.pgql.lang.TranslateDropExternalSchema.translateDropExternalSchema;
@@ -144,6 +148,10 @@ public class SpoofaxAstToGraphQuery {
   private static final int POS_PATH_DIRECTION = 5;
   private static final int POS_PATH_FINDING_GOAL = 6;
   private static final int POS_PATH_TOP_K_ANY_ALL = 7;
+  private static final int POS_PATH_ROWS_PER_MATCH = 8;
+
+  private static final int POS_ONE_ROW_PER_VERTEX_VERTEX = 0;
+  private static final int POS_ONE_ROW_PER_EDGE_EDGE = 0;
 
   private static final int POS_ORDERBY_EXP = 0;
   private static final int POS_ORDERBY_ORDERING = 1;
@@ -712,10 +720,35 @@ public class SpoofaxAstToGraphQuery {
       }
     }
 
+    RowsPerMatch rowsPerMatch = getRowsPerMatch(pathT.getSubterm(POS_PATH_ROWS_PER_MATCH));
+
     QueryPath path = new QueryPath(src, dst, name, commonPathExpression, true, minHops, maxHops, goal, kValue, withTies,
-        direction);
+        direction, rowsPerMatch);
 
     return path;
+  }
+
+  private static RowsPerMatch getRowsPerMatch(IStrategoTerm optionalRowsPerMatchT) {
+    if (isNone(optionalRowsPerMatchT)) {
+      return new OneRowPerMatch();
+    }
+
+    IStrategoAppl rowsPerMatchT = (IStrategoAppl) getSome(optionalRowsPerMatchT);
+    String constructorName = rowsPerMatchT.getConstructor().getName();
+    switch (constructorName) {
+      case "OneRowPerMatch":
+        return new OneRowPerMatch();
+      case "OneRowPerVertex":
+        String vertexName = getString(rowsPerMatchT.getSubterm(POS_ONE_ROW_PER_VERTEX_VERTEX));
+        QueryVertex vertex = new QueryVertex(vertexName, false);
+        return new OneRowPerVertex(vertex);
+      case "OneRowPerEdge":
+        String edgeName = getString(rowsPerMatchT.getSubterm(POS_ONE_ROW_PER_EDGE_EDGE));
+        QueryEdge edge = new QueryEdge(null, null, edgeName, false, null);
+        return new OneRowPerEdge(edge);
+      default:
+        throw new IllegalArgumentException(constructorName);
+    }
   }
 
   private static long getMinHops(IStrategoTerm pathT) throws PgqlException {

@@ -28,7 +28,7 @@ signature constructors // for the normalized AST (see trans/normalize.str)
   Edges                 : List(Edge) -> Edges
   NormalizedEdge        : Var * Var * Var * Direction * Quantifier * Constraints -> Edge
   Paths                 : List(Path) -> Paths
-  Path                  : Var * Var * PathPatternRef * Option(KleeneStar) * Var * Direction * PathFindingSemantic * TopKAnyAll -> Path
+  Path                  : Var * Var * PathPatternRef * Option(KleeneStar) * Var * Direction * PathFindingSemantic * TopKAnyAll * RowsPerMatch -> Path
   Constraints           : List(Exp) -> Constraints
   Incoming              : Direction
   Outgoing              : Direction

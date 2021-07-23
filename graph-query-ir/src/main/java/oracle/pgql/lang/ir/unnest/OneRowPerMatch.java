@@ -11,6 +11,11 @@ public class OneRowPerMatch implements RowsPerMatch {
   }
 
   @Override
+  public String toString() {
+    return "ONE ROW PER MATCH";
+  }
+
+  @Override
   public int hashCode() {
     return 31;
   }

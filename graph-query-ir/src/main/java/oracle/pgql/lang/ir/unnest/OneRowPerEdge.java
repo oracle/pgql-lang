@@ -3,6 +3,8 @@
  */
 package oracle.pgql.lang.ir.unnest;
 
+import static oracle.pgql.lang.ir.PgqlUtils.printIdentifier;
+
 import oracle.pgql.lang.ir.QueryEdge;
 
 public class OneRowPerEdge implements RowsPerMatch {
@@ -24,6 +26,11 @@ public class OneRowPerEdge implements RowsPerMatch {
   @Override
   public RowsPerMatchType getRowsPerMatchType() {
     return RowsPerMatchType.ONE_ROW_PER_EDGE;
+  }
+
+  @Override
+  public String toString() {
+    return "ONE ROW PER EDGE (" + printIdentifier(edge.getName()) + ")";
   }
 
   @Override

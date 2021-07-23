@@ -431,13 +431,13 @@ rules
   get-connections-from-quantified-path-patterns(|variable-counter, rowsPerMatch):
     (pathFindingGoal, topKAnyAll, pathPattern, otherPaths) ->  <conc> ([path'], edgesTailPaths)
     with edges := <pathPattern-to-connections(|variable-counter, pathFindingGoal, topKAnyAll, rowsPerMatch)> pathPattern
-       ; path' := <?[single-path-only]; !single-path-only; try(single-edge-to-path(|variable-counter, pathFindingGoal, topKAnyAll)) <+ !ComplexRegularExpressionNotSupported(<id>)> edges
+       ; path' := <?[single-path-only]; !single-path-only; try(single-edge-to-path(|variable-counter, pathFindingGoal, topKAnyAll, rowsPerMatch)) <+ !ComplexRegularExpressionNotSupported(<id>)> edges
        ; edgesTailPaths := <get-connections-from-paths(|variable-counter, rowsPerMatch)> otherPaths
 
-  single-edge-to-path(|variable-counter, pathFindingGoal, topKAnyAll):
+  single-edge-to-path(|variable-counter, pathFindingGoal, topKAnyAll, rowsPerMatch):
     edge@NormalizedEdge(srcVertex, e, dstVertex, direction, quantifier, constraints) -> path
     with costClause := None()
-       ; path := <to-path(|variable-counter, pathFindingGoal, topKAnyAll)> (srcVertex, dstVertex, edge, constraints, costClause, quantifier)
+       ; path := <to-path(|variable-counter, pathFindingGoal, topKAnyAll, rowsPerMatch)> (srcVertex, dstVertex, edge, constraints, costClause, quantifier)
 
   pathPattern-to-connections(|variable-counter, pathFindingGoal, topKAnyAll, rowsPerMatch):
     PathPattern(Vertex(n1), edgeVertices@[EdgeVertex(e, Vertex(n2))|_]) -> <conc> ([edge], edgesPathTail)
@@ -483,10 +483,10 @@ rules
              ; dstVertex := <unique-name(|variable-counter, edgeOrPath)>
              ; edge := <origin-track-forced(!NormalizedEdge(srcVertex, e', dstVertex, dir, None(), Constraints([])))> edgeOrPath
              ; costClause := None()
-             ; connection := <to-path(|variable-counter, pathFindingGoal, topKAnyAll)> (n1, n2, edge, Constraints(constraints), costClause, quantifier)
+             ; connection := <to-path(|variable-counter, pathFindingGoal, topKAnyAll, rowsPerMatch)> (n1, n2, edge, Constraints(constraints), costClause, quantifier)
           end
         case ?Some(Path(Some(pathName), pathPatternName, quantifier')):
-          connection := Path(src, dst, pathPatternName, quantifier', pathName, dir, Reaches(), -1)
+          connection := Path(src, dst, pathPatternName, quantifier', pathName, dir, Reaches(), -1, rowsPerMatch)
         otherwise: fail
       end
 
@@ -505,11 +505,11 @@ rules
        ; constraints := <?None(); ![] <+ ?Some(WhereClause(constraint)); ![constraint]> whereClause
        ; constraints' := Constraints(<conc> (inlinedSrcVertexConstraints, inlinedEdgeConstraints, inlinedDstVertexConstraints, constraints))
        ; if <?[]> otherEdges
-         then path := <to-path(|variable-counter, pathFindingGoal, topKAnyAll)> (n1, n2, edge', constraints', costClause, quantifier)
+         then path := <to-path(|variable-counter, pathFindingGoal, topKAnyAll, rowsPerMatch)> (n1, n2, edge', constraints', costClause, quantifier)
          else path := ComplexParenthesizedRegularExpressionNotSupported(otherEdges)
          end
 
-  to-path(|variable-counter, pathFindingGoal, topKAnyAll):
+  to-path(|variable-counter, pathFindingGoal, topKAnyAll, rowsPerMatch):
     (srcVertex, dstVertex, edge@NormalizedEdge(src, _, dst, direction, _, _), constraints, costClause, quantifier) -> path
     with name := <unique-name(|variable-counter, edge)>
        ; if <?Incoming()> direction
@@ -519,7 +519,7 @@ rules
        ; edges := Edges([edge])
        ; path-variable-name := <unique-name(|variable-counter, edge)> // for now, all paths are anonymous/generated
        ; commonPathExpression := CommonPathExpression(name, vertices, edges, constraints, costClause)
-       ; path := <origin-track-forced(!Path(srcVertex, dstVertex, commonPathExpression, quantifier, path-variable-name, Outgoing(), pathFindingGoal, topKAnyAll))> edge
+       ; path := <origin-track-forced(!Path(srcVertex, dstVertex, commonPathExpression, quantifier, path-variable-name, Outgoing(), pathFindingGoal, topKAnyAll, rowsPerMatch))> edge
 
 rules
 

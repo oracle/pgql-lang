@@ -5,6 +5,8 @@ package oracle.pgql.lang.ir.unnest;
 
 import oracle.pgql.lang.ir.QueryVertex;
 
+import static oracle.pgql.lang.ir.PgqlUtils.printIdentifier;
+
 public class OneRowPerVertex implements RowsPerMatch {
 
   QueryVertex vertex;
@@ -24,6 +26,11 @@ public class OneRowPerVertex implements RowsPerMatch {
   @Override
   public RowsPerMatchType getRowsPerMatchType() {
     return RowsPerMatchType.ONE_ROW_PER_VERTEX;
+  }
+
+  @Override
+  public String toString() {
+    return "ONE ROW PER VERTEX (" + printIdentifier(vertex.getName()) + ")";
   }
 
   @Override
