@@ -329,7 +329,7 @@ rules
     matchElems -> GraphPattern(vertices, connections, constraints)
     with pathPatterns := <remove-all(?Constraint(_))> matchElems // relevant to PGQL 1.0 only
        ; vertices := <collect-outside-repeated-path(?Vertex(ElemContents(Some(<id>), _, _, _)); !Vertex(<id>)); remove-duplicate-vertices; !Vertices(<id>)> pathPatterns
-       ; connections := <map(try(?PathPatternAndRowsPerMatch(<id>, _))); get-connections-from-paths(|variable-counter)> pathPatterns
+       ; connections := <get-connections-from-paths(|variable-counter, None())> pathPatterns
 
        ; non-inlined-constraints := <filter(?Constraint(<id>))> matchElems // PGQL 1.0 only
        ; inlined-constraints-for-vertices := <collect-outside-repeated-path(?Vertex(<id>))
@@ -373,7 +373,7 @@ rules
       non-inlined-constraints := <(?None(); ![]) <+ (?Some(WhereClause(<id>)); ![<id>])> whereClause;
       constraints := <concat; flatten-list; !Constraints(<id>)> [inlined-constraints-for-vertices, inlined-constraints-for-edges, non-inlined-constraints];
       vertices := <collect-om(?Vertex(_), conc); !Vertices(<id>)> path;
-      connections := <get-connections-from-paths(|variable-counter); !Edges(<id>)> [path]
+      connections := <get-connections-from-paths(|variable-counter, None()); !Edges(<id>)> [path]
 
   get-inlined-constraints:
     ElemContents(Some(var), label, id', otherConstraint) -> <concat> [labels, identifiers, otherConstraint']
@@ -389,70 +389,73 @@ rules
   normalize-label-disjunction = ?LabelDisjunction(x, y); !Or(x, y)
 
   // base case: no paths
-  get-connections-from-paths(|variable-counter):
+  get-connections-from-paths(|variable-counter, rowsPerMatch):
     [] -> []
 
+  get-connections-from-paths(|variable-counter, _):
+    [PathPatternAndRowsPerMatch(pathPattern, rowsPerMatch)|otherPaths] -> <get-connections-from-paths(|variable-counter, rowsPerMatch)> [pathPattern|otherPaths]
+
   // head is path with only one vertex => get neighbors for the other paths
-  get-connections-from-paths(|variable-counter):
-    [PathPattern(_, [])|otherPaths] -> <get-connections-from-paths(|variable-counter)> otherPaths
+  get-connections-from-paths(|variable-counter, rowsPerMatch):
+    [PathPattern(_, [])|otherPaths] -> <get-connections-from-paths(|variable-counter, rowsPerMatch)> otherPaths
 
   // paths with more than one vertex
-  get-connections-from-paths(|variable-counter):
+  get-connections-from-paths(|variable-counter, rowsPerMatch):
     [pathPattern|otherPaths] -> <conc> (edges, edgesTailPaths)
-    where not ( <?Shortest(_, _) + ?Cheapest(_, _) + ?AnyPath(_) + ?AllPaths(_)> pathPattern)
+    where not ( <?PathPattern(_, []) + ?Shortest(_, _) + ?Cheapest(_, _) + ?AnyPath(_) + ?AllPaths(_)> pathPattern)
     with topKAnyAll := None()
        ; pathFindingGoal := None()
-       ; edges := <pathPattern-to-connections(|variable-counter, pathFindingGoal, topKAnyAll)> pathPattern
-       ; edgesTailPaths := <get-connections-from-paths(|variable-counter)> otherPaths
+       ; edges := <pathPattern-to-connections(|variable-counter, pathFindingGoal, topKAnyAll, rowsPerMatch)> pathPattern
+       ; edgesTailPaths := <get-connections-from-paths(|variable-counter, rowsPerMatch)> otherPaths
 
   // paths with more than one vertex
-  get-connections-from-paths(|variable-counter):
+  get-connections-from-paths(|variable-counter, rowsPerMatch):
     [Shortest(topKAnyAll, pathPattern)|otherPaths] -> result
-    with result := <get-connections-from-quantified-path-patterns(|variable-counter)> (Shortest(), topKAnyAll, pathPattern, otherPaths)
+    with result := <get-connections-from-quantified-path-patterns(|variable-counter, rowsPerMatch)> (Shortest(), topKAnyAll, pathPattern, otherPaths)
 
   // paths with more than one vertex
-  get-connections-from-paths(|variable-counter):
+  get-connections-from-paths(|variable-counter, rowsPerMatch):
     [Cheapest(topKAnyAll, pathPattern)|otherPaths] -> result
-    with result := <get-connections-from-quantified-path-patterns(|variable-counter)> (Cheapest(), topKAnyAll, pathPattern, otherPaths)
+    with result := <get-connections-from-quantified-path-patterns(|variable-counter, rowsPerMatch)> (Cheapest(), topKAnyAll, pathPattern, otherPaths)
 
   // paths with more than one vertex
-  get-connections-from-paths(|variable-counter):
+  get-connections-from-paths(|variable-counter, rowsPerMatch):
     [AnyPath(pathPattern)|otherPaths] -> result
-    with result := <get-connections-from-quantified-path-patterns(|variable-counter)> (Any(), None(), pathPattern, otherPaths)
+    with result := <get-connections-from-quantified-path-patterns(|variable-counter, rowsPerMatch)> (Any(), None(), pathPattern, otherPaths)
 
   // paths with more than one vertex
-  get-connections-from-paths(|variable-counter):
+  get-connections-from-paths(|variable-counter, rowsPerMatch):
     [AllPaths(pathPattern)|otherPaths] -> result
-    with result := <get-connections-from-quantified-path-patterns(|variable-counter)> (All(), None(), pathPattern, otherPaths)
+    with result := <get-connections-from-quantified-path-patterns(|variable-counter, rowsPerMatch)> (All(), None(), pathPattern, otherPaths)
 
-  get-connections-from-quantified-path-patterns(|variable-counter):
+  get-connections-from-quantified-path-patterns(|variable-counter, rowsPerMatch):
     (pathFindingGoal, topKAnyAll, pathPattern, otherPaths) ->  <conc> ([path'], edgesTailPaths)
-    with edges := <pathPattern-to-connections(|variable-counter, pathFindingGoal, topKAnyAll)> pathPattern
+    with edges := <pathPattern-to-connections(|variable-counter, pathFindingGoal, topKAnyAll, rowsPerMatch)> pathPattern
        ; path' := <?[single-path-only]; !single-path-only; try(single-edge-to-path(|variable-counter, pathFindingGoal, topKAnyAll)) <+ !ComplexRegularExpressionNotSupported(<id>)> edges
-       ; edgesTailPaths := <get-connections-from-paths(|variable-counter)> otherPaths
+       ; edgesTailPaths := <get-connections-from-paths(|variable-counter, rowsPerMatch)> otherPaths
 
   single-edge-to-path(|variable-counter, pathFindingGoal, topKAnyAll):
     edge@NormalizedEdge(srcVertex, e, dstVertex, direction, quantifier, constraints) -> path
     with costClause := None()
        ; path := <to-path(|variable-counter, pathFindingGoal, topKAnyAll)> (srcVertex, dstVertex, edge, constraints, costClause, quantifier)
 
-  pathPattern-to-connections(|variable-counter, pathFindingGoal, topKAnyAll):
+  pathPattern-to-connections(|variable-counter, pathFindingGoal, topKAnyAll, rowsPerMatch):
     PathPattern(Vertex(n1), edgeVertices@[EdgeVertex(e, Vertex(n2))|_]) -> <conc> ([edge], edgesPathTail)
-    with edge := <to-connection(|variable-counter, pathFindingGoal, topKAnyAll)> (n1, e, n2)
-       ; edgesPathTail := <get-connections-from-single-path(|variable-counter, pathFindingGoal, topKAnyAll)> edgeVertices
+    with edge := <to-connection(|variable-counter, pathFindingGoal, topKAnyAll, rowsPerMatch)> (n1, e, n2)
+       ; edgesPathTail := <get-connections-from-single-path(|variable-counter, pathFindingGoal, topKAnyAll, rowsPerMatch)> edgeVertices
 
   // base case: only one edgeVertex
-  get-connections-from-single-path(|variable-counter, pathFindingGoal, topKAnyAll):
+  get-connections-from-single-path(|variable-counter, pathFindingGoal, topKAnyAll, rowsPerMatch):
     [EdgeVertex(_, _)] -> []
     
   // two or more edgeVertices
-  get-connections-from-single-path(|variable-counter, pathFindingGoal, topKAnyAll):
+  get-connections-from-single-path(|variable-counter, pathFindingGoal, topKAnyAll, rowsPerMatch):
     [EdgeVertex(_, Vertex(n1)) | edgeVertices@[EdgeVertex(e, Vertex(n2))|_]]
     -> <conc> ([edge], edgesPathTail)
-    with edge := <to-connection(|variable-counter, pathFindingGoal, topKAnyAll)> (n1, e, n2)
-       ; edgesPathTail := <get-connections-from-single-path(|variable-counter, pathFindingGoal, topKAnyAll)> edgeVertices
+    with edge := <to-connection(|variable-counter, pathFindingGoal, topKAnyAll, rowsPerMatch)> (n1, e, n2)
+       ; edgesPathTail := <get-connections-from-single-path(|variable-counter, pathFindingGoal, topKAnyAll, rowsPerMatch)> edgeVertices
 
-  to-connection(|variable-counter, pathFindingGoal, topKAnyAll):
+  to-connection(|variable-counter, pathFindingGoal, topKAnyAll, rowsPerMatch):
     (n1, edgeOrPath, n2) -> connection
     where <?OutConn(_, quantifier) + ?InConn(_, quantifier) + ?UndirectedEdge(_, quantifier)> edgeOrPath
     with
@@ -487,7 +490,7 @@ rules
         otherwise: fail
       end
 
-  to-connection(|variable-counter, pathFindingGoal, topKAnyAll):
+  to-connection(|variable-counter, pathFindingGoal, topKAnyAll, rowsPerMatch):
     (n1, t@ParenthesizedPath(RelaxedPathPattern(v1, [RelaxedEdgeVertex(edge, v2)|otherEdges]), whereClause, costClause, quantifier), n2) -> path
     with if <has-at-most-one-binding> quantifier
          then srcVertex := <?Some(Vertex(<id>)) <+ ?None(); !n1> v1
@@ -495,7 +498,7 @@ rules
          else srcVertex := <?Some(Vertex(<id>)) <+ ?None(); unique-name(|variable-counter, edge)> v1
             ; dstVertex := <?Some(Vertex(<id>)) <+ ?None(); unique-name(|variable-counter, edge)> v2
          end
-       ; edge' := <to-connection(|variable-counter, pathFindingGoal, topKAnyAll)> (srcVertex, edge, dstVertex)
+       ; edge' := <to-connection(|variable-counter, pathFindingGoal, topKAnyAll, rowsPerMatch)> (srcVertex, edge, dstVertex)
        ; inlinedEdgeConstraints := <?NormalizedEdge(_, _, _, _, _, Constraints(<id>))> edge'
        ; inlinedSrcVertexConstraints := <?Some(Vertex(<id>)); get-inlined-constraints <+ ![]> v1
        ; inlinedDstVertexConstraints := <?Some(Vertex(<id>)); get-inlined-constraints <+ ![]> v2
