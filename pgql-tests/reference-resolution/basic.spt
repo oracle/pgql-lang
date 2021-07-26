@@ -1,4 +1,4 @@
-module select
+module basic
 
 language pgql-lang
 

@@ -42,23 +42,24 @@ rules
 
        ; if <?Some(GraphPattern(vertices, connections, valueExpression))> := graphPattern
          then // MATCH
-              (vertices', connections') := <alltd(trans-elem(|variables'))> (vertices, connections)
-              ; edges := <filter(?Edge(_, _, _, _, _, _) + path-with-at-most-one-binding)> connections'
-              ; paths := <filter(path-with-two-or-more-bindings)> connections'
+              (vertices', connections') := <alltd(trans-elem(|variables'))> (vertices, <alltd(add-origin-offset-to-rows-per-match)> connections)
+            ; edges := <filter(?Edge(_, _, _, _, _, _) + path-with-at-most-one-binding)> connections'
+            ; new-vars := <conc> (<collect(to-varDef)> (vertices', edges), <collect(rows-per-match-to-varDef)> connections')
 
-              ; new-vars := <collect(to-varDef)> (vertices', edges)
-              ; new-groupVars := <collect(to-varDef)> paths
-              ; <?[x|[y|ys]]> variables'
-              ; visible-vars := <replace-or-add-all> (new-vars, x)
-              ; visible-groupVars := <replace-or-add-all> (new-groupVars, y)
-              ; variables'' := [visible-vars|[visible-groupVars|ys]]
+            ; paths := <filter(path-with-two-or-more-bindings)> connections'
+            ; new-groupVars := <collect(to-varDef)> paths
 
-              ; connections'' := <alltd(resolve-var-refs-in-path-expression(|variables''))> connections'
+            ; <?[x|[y|ys]]> variables'
+            ; visible-vars := <replace-or-add-all> (new-vars, x)
+            ; visible-groupVars := <replace-or-add-all> (new-groupVars, y)
+            ; variables'' := [visible-vars|[visible-groupVars|ys]]
+
+            ; connections'' := <alltd(resolve-var-refs-in-path-expression(|variables''))> connections'
        
               // WHERE
-              ; valueExpression' := <resolve-value-expression(|variables'', expAsVars)> valueExpression
+            ; valueExpression' := <resolve-value-expression(|variables'', expAsVars)> valueExpression
 
-              ; graphPattern' := Some(GraphPattern(vertices', connections'', valueExpression'))
+            ; graphPattern' := Some(GraphPattern(vertices', connections'', valueExpression'))
          else graphPattern' := None()
             ; variables'' := variables'
          end
@@ -115,13 +116,18 @@ rules
 
   to-Correlation(|variables):
     v -> correlation
-    with if <Hd; oncetd(?VarDef(Identifier(v, _), _, _, _, _, _); ?VarDef(identifier-from-outer-query, origin-position-from-outer-query, _, _, _, _))> variables
-         then correlation := Correlation(VarRef(identifier-from-outer-query, origin-position-from-outer-query))
+    with if <Hd; oncetd(?VarDef(Identifier(v, _), _, _, _, _, _); ?VarDef(identifier-from-outer-query, origin-offset-from-outer-query, _, _, _, _))> variables
+         then correlation := Correlation(VarRef(identifier-from-outer-query, origin-offset-from-outer-query))
          else correlation := None()
          end
 
+  add-origin-offset-to-rows-per-match = ?OneRowPerVertex(v); !OneRowPerVertex(v, <origin-offset> v) +
+                                        ?OneRowPerEdge(e); !OneRowPerEdge(e, <origin-offset> e)
+
   to-varDef = ?Vertex(iden, origin-offset, _); !VarDef(iden, origin-offset, None(), None(), None(), ThisQuery())
   to-varDef = ?Edge(_, identifier, _, _, origin-offset, _); !VarDef(identifier, origin-offset, None(), None(), None(), ThisQuery())
+
+  rows-per-match-to-varDef = ( ?OneRowPerVertex(iden, origin-offset) + ?OneRowPerEdge(iden, origin-offset) ); !VarDef(iden, origin-offset, None(), None(), None(), ThisQuery())
 
   replace-or-add-all = foldl(replace-or-add)
 
