@@ -121,8 +121,8 @@ rules
          else correlation := None()
          end
 
-  add-origin-offset-to-rows-per-match = ?OneRowPerVertex(v); !OneRowPerVertex(v, <origin-offset> v) +
-                                        ?OneRowPerEdge(e); !OneRowPerEdge(e, <origin-offset> e)
+  add-origin-offset-to-rows-per-match = ?OneRowPerVertex(v); !OneRowPerVertex(v, <origin-track-forced(origin-offset)> v) +
+                                        ?OneRowPerEdge(e); !OneRowPerEdge(e, <origin-track-forced(origin-offset)> e)
 
   to-varDef = ?Vertex(iden, origin-offset, _); !VarDef(iden, origin-offset, None(), None(), None(), ThisQuery())
   to-varDef = ?Edge(_, identifier, _, _, origin-offset, _); !VarDef(identifier, origin-offset, None(), None(), None(), ThisQuery())

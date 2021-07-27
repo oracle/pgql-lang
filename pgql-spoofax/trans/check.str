@@ -128,8 +128,8 @@ rules // Unresolved/duplicate variables
     t@Some(varRefs-in-aggregation) -> <id>
     where group-varRefs := <isect; ?[]> (group-variables, varRefs-in-aggregation)
 
-  is-pattern-elem = ?Vertex(_, _, _) + ?Edge(_, _, _, _, _, _)
-  get-pattern-elem = ?Vertex(Identifier(<id>, _), _, _) + ?Edge(_, Identifier(<id>, _), _, _, _, _)
+  is-pattern-elem = ?Vertex(_, _, _) + ?Edge(_, _, _, _, _, _) + ?OneRowPerVertex(_, _) + ?OneRowPerEdge(_, _)
+  get-pattern-elem = ?Vertex(Identifier(<id>, _), _, _) + ?Edge(_, Identifier(<id>, _), _, _, _, _) + ?OneRowPerVertex(Identifier(<id>, _), _) + ?OneRowPerEdge(Identifier(<id>, _), _)
 
   generate-error-on-duplicates(|ctx, message) = ?vars; map(generate-error-on-duplicate(|ctx, vars, message))
 
@@ -690,6 +690,13 @@ rules // MODIFY
   nabl-constraint(|ctx):
     Edge(_, Identifier(e, _), _, _, _, Correlation(ExpressionPlusType(VarRef(Identifier(outer-var, _), _), type))) -> <fail>
     with <generate-error(|ctx, "Duplicate variable (variable with same name is passed from an outer query)")> e
+
+  nabl-constraint(|ctx):
+    AstPlusMetadata(ast, _) -> <fail>
+    with vars-in-rows-per-match := <collect(?OneRowPerVertex(_, <id>) + ?OneRowPerEdge(_, <id>))> ast
+       ; correlations := <collect(?Correlation(ExpressionPlusType(VarRef(_, <id>), _)))> ast
+       ; unsupported-cross-references := <isect> (vars-in-rows-per-match, correlations)
+       ; <batch-generate-error(|ctx, "Variable with same name is used in an inner query")> unsupported-cross-references
 
   // SUBSTRING
   nabl-constraint(|ctx, metadata):
