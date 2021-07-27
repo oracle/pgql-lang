@@ -114,6 +114,17 @@ rules
 
   get-pgql13-errors      = ?GraphMatch(None(), _, _, _); to-error-message(|"Missing MATCH keyword at start of pattern")
 
+  get-pgql13-errors:
+    ParenthesizedGraphMatch(pathPatterns, rowsPerMatch, _) -> <to-error-message(|"ONE ROW PER VERTEX or EDGE is only permitted if the MATCH clause contains a single path pattern")> rowsPerMatch
+    where <gt> (<length> pathPatterns, 1)
+        ; <?Some(OneRowPerVertex(_)) + ?Some(OneRowPerEdge(_))> rowsPerMatch
+
+  get-pgql13-errors:
+    x -> <to-error-message(|"ONE ROW PER VERTEX or EDGE is only supported if the MATCH clause contains a quantified path pattern")> rowsPerMatch
+    where <?ParenthesizedGraphMatch(pathPatterns, rowsPerMatch, _) + ?GraphMatch(_, pathPatterns, rowsPerMatch, _)> x
+        ; <?Some(OneRowPerVertex(_)) + ?Some(OneRowPerEdge(_))> rowsPerMatch
+        ; <not(oncetd(is-quantifier))> pathPatterns
+
   get-pgql10-limitation = ( ?Pgql11FromClause(_)
                           + ?Subquery(_)
                           + ?Pgql11AsignSymbol()
