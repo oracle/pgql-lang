@@ -120,10 +120,10 @@ rules
         ; <?Some(OneRowPerVertex(_)) + ?Some(OneRowPerEdge(_))> rowsPerMatch
 
   get-pgql13-errors:
-    x -> <to-error-message(|"ONE ROW PER VERTEX or EDGE is only supported if the MATCH clause contains a quantified path pattern")> rowsPerMatch
-    where <?ParenthesizedGraphMatch(pathPatterns, rowsPerMatch, _) + ?GraphMatch(_, pathPatterns, rowsPerMatch, _)> x
+    x -> <to-error-message(|"ONE ROW PER VERTEX or EDGE is only supported in combination with ANY, ALL, SHORTEST or CHEAPEST")> rowsPerMatch
+    where <?ParenthesizedGraphMatch([PathPattern(_, _)], rowsPerMatch, _) + ?GraphMatch(_, PathPattern(_, _), rowsPerMatch, _) +
+           ?ParenthesizedGraphMatch([SingleVertex(_)], rowsPerMatch, _) + ?GraphMatch(_, SingleVertex(_), rowsPerMatch, _)> x
         ; <?Some(OneRowPerVertex(_)) + ?Some(OneRowPerEdge(_))> rowsPerMatch
-        ; <not(oncetd(is-quantifier))> pathPatterns
 
   get-pgql10-limitation = ( ?Pgql11FromClause(_)
                           + ?Subquery(_)
