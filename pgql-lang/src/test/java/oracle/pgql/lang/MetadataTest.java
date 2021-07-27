@@ -423,17 +423,21 @@ public class MetadataTest extends AbstractPgqlTest {
     assertTrue(result.getErrorMessages().contains("BOOLEAN expected but a STRING was given"));
 
     result = parse("SELECT CASE WHEN true THEN n.numericProp ELSE 'abc' END FROM MATCH (n)");
-    assertTrue(result.getErrorMessages().contains("Expression of a type compatible with DOUBLE expected but a STRING was given"));
+    assertTrue(result.getErrorMessages()
+        .contains("Expression of a type compatible with DOUBLE expected but a STRING was given"));
 
     result = parse("SELECT CASE WHEN true THEN n.firstName ELSE n.dob END FROM MATCH (n)");
-    assertTrue(result.getErrorMessages().contains("Expression of a type compatible with STRING expected but a DATE was given"));
+    assertTrue(result.getErrorMessages()
+        .contains("Expression of a type compatible with STRING expected but a DATE was given"));
 
     result = parse("SELECT CASE WHEN true THEN n.dob ELSE n.firstName END FROM MATCH (n)");
-    assertTrue(result.getErrorMessages().contains("Expression of a type compatible with DATE expected but a STRING was given"));
+    assertTrue(result.getErrorMessages()
+        .contains("Expression of a type compatible with DATE expected but a STRING was given"));
 
     result = parse(
         "SELECT CASE WHEN true THEN n.dob WHEN n.firstName IS NULL THEN DATE '1970-01-01' ELSE n.firstName END FROM MATCH (n)");
-    assertTrue(result.getErrorMessages().contains("Expression of a type compatible with DATE expected but a STRING was given"));
+    assertTrue(result.getErrorMessages()
+        .contains("Expression of a type compatible with DATE expected but a STRING was given"));
 
     result = parse("SELECT CASE n.firstName WHEN 123 THEN true ELSE false END FROM MATCH (n)");
     assertTrue(result.getErrorMessages().contains("The operator = is undefined for the argument types STRING, LONG"));
@@ -742,5 +746,23 @@ public class MetadataTest extends AbstractPgqlTest {
 
     result = parse("SELECT labels(n) FROM MATCH (n) ORDER BY labels(n)");
     assertTrue(result.getErrorMessages().contains("Cannot order by SET<STRING>"));
+  }
+
+  @Test
+  public void testOneRowPerVertex() throws Exception {
+    PgqlResult result = parse("SELECT v.firstName FROM MATCH ANY (a) ->* (b) ONE ROW PER VERTEX ( v )");
+    assertTrue(result.isQueryValid());
+
+    result = parse("SELECT v.firstNme FROM MATCH ANY (a) ->* (b) ONE ROW PER VERTEX ( v )");
+    assertTrue(result.getErrorMessages().contains("Property does not exist for any of the labels"));
+  }
+
+  @Test
+  public void testOneRowPerEdge() throws Exception {
+    PgqlResult result = parse("SELECT e.since FROM MATCH ANY (a) ->* (b) ONE ROW PER EDGE ( e )");
+    assertTrue(result.isQueryValid());
+
+    result = parse("SELECT e.xyz FROM MATCH ANY (a) ->* (b) ONE ROW PER EDGE ( e )");
+    assertTrue(result.getErrorMessages().contains("Property does not exist for any of the labels"));
   }
 }
