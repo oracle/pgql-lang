@@ -553,9 +553,9 @@ rules // MODIFY
             ; <batch-generate-error(|ctx, "Edge label does not exist")> unresolvedEdgeLabels
          end
 
-  get-unresolved-label(|varDefinitionOriginPositions, labels):
-    FunctionCall(None(), Identifier("has_label", _), [ ExpressionPlusType(VarRef(_, originPosition), _), Identifier(labelReference, _) ]) -> labelReference
-    where <elem> (originPosition, varDefinitionOriginPositions)
+  get-unresolved-label(|varDefinitionOriginOffsets, labels):
+    FunctionCall(None(), Identifier("has_label", _), [ ExpressionPlusType(VarRef(_, originOffset), _), Identifier(labelReference, _) ]) -> labelReference
+    where <elem> (originOffset, varDefinitionOriginOffsets)
         ; <not(label-exists(|labels))> labelReference
 
   nabl-constraint(|ctx, metadata):
