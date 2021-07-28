@@ -51,12 +51,12 @@ binding rules // variable definition
       of OriginOffset origin-offset
       of type EdgeTy()
 
-  OneRowPerVertex(Identifier(v, _), origin-offset):
+  OneRowPerVertex(Identifier(v, _), origin-offset, _):
     defines unique Var v
       of OriginOffset origin-offset
       of type VertexTy()
 
-  OneRowPerEdge(Identifier(e, _), origin-offset):
+  OneRowPerEdge(Identifier(e, _), origin-offset, _):
     defines unique Var e
       of OriginOffset origin-offset
       of type EdgeTy()

@@ -421,9 +421,10 @@ test ONE ROW PER VERTEX same variable in subquery (1) [[
 
   SELECT 1
     FROM MATCH ANY (a) ->* (b) ONE ROW PER VERTEX ([[v]])
-   WHERE EXISTS ( SELECT 1 FROM MATCH () -[v]-> () )
+   WHERE EXISTS ( SELECT 1 FROM MATCH () -[ [[v]] ]-> () )
 
 ]] error like "Variable with same name is used in an inner query" at #1
+   error like "Duplicate variable (variable with same name is passed from an outer query)" at #2
 
 test ONE ROW PER VERTEX same variable in subquery (2) [[
 
@@ -437,9 +438,10 @@ test ONE ROW PER VERTEX same variable in subquery (3) [[
 
   SELECT 1
     FROM MATCH ANY (a) ->* (b) ONE ROW PER VERTEX ([[v]])
-   WHERE EXISTS ( SELECT 1 FROM MATCH ANY () -[v]->* () )
+   WHERE EXISTS ( SELECT 1 FROM MATCH ANY () -[ [[v]] ]->* () )
 
 ]] error like "Variable with same name is used in an inner query" at #1
+   error like "Duplicate variable (variable with same name is passed from an outer query)" at #2
 
 test ONE ROW PER VERTEX same variable in subquery (4) [[
 
@@ -453,30 +455,43 @@ test ONE ROW PER EDGE same variable in subquery (1) [[
 
   SELECT 1
     FROM MATCH ANY (a) ->* (b) ONE ROW PER EDGE ([[v]])
-   WHERE EXISTS ( SELECT 1 FROM MATCH () -[v]-> () )
+   WHERE EXISTS ( SELECT 1 FROM MATCH () -[ [[v]] ]-> () )
 
 ]] error like "Variable with same name is used in an inner query" at #1
+   error like "Duplicate variable (variable with same name is passed from an outer query)" at #2
 
 test ONE ROW PER EDGE same variable in subquery (2) [[
 
   SELECT 1
     FROM MATCH ANY (a) ->* (b) ONE ROW PER EDGE ([[v]])
-   WHERE EXISTS ( SELECT 1 FROM MATCH () -> (v) )
+   WHERE EXISTS ( SELECT 1 FROM MATCH () -> ([[v]]) )
 
 ]] error like "Variable with same name is used in an inner query" at #1
+   error like "Duplicate variable (variable with same name is passed from an outer query)" at #2
 
 test ONE ROW PER EDGE same variable in subquery (3) [[
 
   SELECT 1
     FROM MATCH ANY (a) ->* (b) ONE ROW PER EDGE ([[v]])
-   WHERE EXISTS ( SELECT 1 FROM MATCH ANY () -[v]->* () )
+   WHERE EXISTS ( SELECT 1 FROM MATCH ANY () -[ [[v]] ]->* () )
 
 ]] error like "Variable with same name is used in an inner query" at #1
+   error like "Duplicate variable (variable with same name is passed from an outer query)" at #2
 
 test ONE ROW PER EDGE same variable in subquery (4) [[
 
   SELECT 1
     FROM MATCH ANY (a) ->* (b) ONE ROW PER EDGE ([[v]])
-   WHERE EXISTS ( SELECT 1 FROM MATCH ANY () (-> (v))* () )
+   WHERE EXISTS ( SELECT 1 FROM MATCH ANY () (-> ([[v]]))* () )
 
 ]] error like "Variable with same name is used in an inner query" at #1
+   error like "Duplicate variable (variable with same name is passed from an outer query)" at #2
+
+test Duplicate variables in ONE ROW PER VERTEX (1) [[
+
+  SELECT 1
+    FROM MATCH ANY (a) ->* (b) ONE ROW PER EDGE ([[v]])
+   WHERE EXISTS ( SELECT 1 FROM MATCH ANY (b) ->* (c) ONE ROW PER VERTEX ([[v]]) )
+
+]] error like "Variable with same name is used in an inner query" at #1
+   error like "Duplicate variable (variable with same name is passed from an outer query)" at #2

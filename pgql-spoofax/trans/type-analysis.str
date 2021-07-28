@@ -24,8 +24,8 @@ rules
 
        // MATCH
        ; if <?Some(GraphPattern(Vertices(vertices), connections, _))> := graphPattern
-         then verticesWithTypes := <collect-vertices-with-types(?Vertex(_, <id>, _) + ?OneRowPerVertex(_, <id>))> (vertices, connections)
-            ; edgesWithTypes := <collect-edges-with-types(?Edge(_, _, _, _, <id>, _) + ?OneRowPerEdge(_, <id>))> connections
+         then verticesWithTypes := <collect-vertices-with-types(?Vertex(_, <id>, _) + ?OneRowPerVertex(_, <id>, _))> (vertices, connections)
+            ; edgesWithTypes := <collect-edges-with-types(?Edge(_, _, _, _, <id>, _) + ?OneRowPerEdge(_, <id>, _))> connections
             ; variablesPlusTypes' := <conc> (variablesPlusTypes, verticesWithTypes, edgesWithTypes)
             ; constraints := <collect-in-outer-query(?Constraints(<id>)); concat> graphPattern
             ; graphPattern' := <alltd(add-type(|metadata, variablesPlusTypes', constraints))> graphPattern

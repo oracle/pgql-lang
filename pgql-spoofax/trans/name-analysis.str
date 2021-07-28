@@ -42,7 +42,7 @@ rules
 
        ; if <?Some(GraphPattern(vertices, connections, valueExpression))> := graphPattern
          then // MATCH
-              (vertices', connections') := <alltd(trans-elem(|variables'))> (vertices, <alltd(add-origin-offset-to-rows-per-match)> connections)
+              (vertices', connections') := <alltd(trans-elem(|variables'))> (vertices, <alltd(trans-rows-per-match(|variables'))> connections)
             ; edges := <filter(?Edge(_, _, _, _, _, _) + path-with-at-most-one-binding)> connections'
             ; new-vars := <conc> (<collect(to-varDef)> (vertices', edges), <collect(rows-per-match-to-varDef)> connections')
 
@@ -121,13 +121,14 @@ rules
          else correlation := None()
          end
 
-  add-origin-offset-to-rows-per-match = ?OneRowPerVertex(v); !OneRowPerVertex(v, <origin-track-forced(origin-offset)> v) +
-                                        ?OneRowPerEdge(e); !OneRowPerEdge(e, <origin-track-forced(origin-offset)> e)
+  trans-rows-per-match(|variables) =
+    ?OneRowPerVertex(iden@Identifier(v, _)); !OneRowPerVertex(iden, <origin-track-forced(origin-offset)> iden, <to-Correlation(|variables)> v) +
+    ?OneRowPerEdge(iden@Identifier(e, _)); !OneRowPerEdge(iden, <origin-track-forced(origin-offset)> iden, <to-Correlation(|variables)> e)
 
   to-varDef = ?Vertex(iden, origin-offset, _); !VarDef(iden, origin-offset, None(), None(), None(), ThisQuery())
   to-varDef = ?Edge(_, identifier, _, _, origin-offset, _); !VarDef(identifier, origin-offset, None(), None(), None(), ThisQuery())
 
-  rows-per-match-to-varDef = ( ?OneRowPerVertex(iden, origin-offset) + ?OneRowPerEdge(iden, origin-offset) ); !VarDef(iden, origin-offset, None(), None(), None(), ThisQuery())
+  rows-per-match-to-varDef = ( ?OneRowPerVertex(iden, origin-offset, _) + ?OneRowPerEdge(iden, origin-offset, _) ); !VarDef(iden, origin-offset, None(), None(), None(), ThisQuery())
 
   replace-or-add-all = foldl(replace-or-add)
 

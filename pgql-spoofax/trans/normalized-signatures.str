@@ -87,8 +87,8 @@ signature constructors // for name analysis (see trans/trans-analysis.str)
 
   Correlation           : VarRef -> CrossRef
 
-  OneRowPerVertex       : Var * OriginOffset -> OneRowPerVertex
-  OneRowPerEdge         : Var * OriginOffset -> OneRowPerEdge
+  OneRowPerVertex       : Var * OriginOffset * Correlation -> OneRowPerVertex
+  OneRowPerEdge         : Var * OriginOffset * Correlation -> OneRowPerEdge
 
 signature constructors // for error checking (see trans/check.str)
 

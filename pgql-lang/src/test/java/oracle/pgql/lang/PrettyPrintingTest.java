@@ -577,6 +577,12 @@ public class PrettyPrintingTest extends AbstractPgqlTest {
   }
 
   @Test
+  public void testOneRowPerMatch() throws Exception {
+    String query = "SELECT v.prop FROM MATCH (v) ONE ROW PER MATCH";
+    checkRoundTrip(query);
+  }
+
+  @Test
   public void testOneRowPerVertex() throws Exception {
     String query = "SELECT v.prop FROM MATCH ANY () -> () ONE ROW PER VERTEX ( v )";
     checkRoundTrip(query);
