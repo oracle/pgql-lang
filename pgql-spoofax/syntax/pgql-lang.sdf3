@@ -61,5 +61,10 @@ context-free syntax
   AsignSymbol.Pgql11AsignSymbol = <AS> {case-insensitive}
 
   SelectClause.SelectClause = <SELECT <Distinct?> <Projection>> {case-insensitive}
-  Projection.ExpAsVars = <<{ExpAsVar ", "}+>>
+
+  Projection.SelectList = <<{SelectElem ", "}+>>
+  SelectElem = ExpAsVar
+  SelectElem.AllProperties = <<VarRef>.* <ColumnNamePrefix?>>
+  ColumnNamePrefix.ColumnNamePrefix = <PREFIX <String>> {case-insensitive}
+
   Projection.Star = <*>

@@ -34,6 +34,7 @@ signature constructors // for the normalized AST (see trans/normalize.str)
   Outgoing              : Direction
   Undirected            : Direction
 
+  ExpAsVars             : List(ExpAsVar) -> ExpAsVars
   ExpAsVar              : Exp * Var * Anonymous -> ExpAsVar
   Anonymous             : Anonymous
   NonAnonymous          : Anonymous
@@ -71,7 +72,7 @@ signature constructors // for name binding (see trans/trans-for-nabl.str)
 
   CreateOneGroup        : CreateOneGroup
 
-  VarDef                : Var * OriginPosition * OriginalExp * ReplacedGroupByExpWithSelectExp * TransformedExp * ThisQueryOrOuterQuery -> VarDef
+  VarDef                : Var * OriginPosition * OriginalExp * ReplacedGroupByExpWithSelectExp * TransformedExp * ThisQueryOrOuterQuery * Type -> VarDef
   VarRef                : Var * OriginPosition -> VarRef
   ThisQuery             : ThisQueryOrOuterQuery
   OuterQuery            : ThisQueryOrOuterQuery

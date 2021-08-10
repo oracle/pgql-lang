@@ -568,21 +568,21 @@ rules
       expAsGroupVars' := <map(norm-ExpAsVar)> expAsGroupVars;
       groupByClause' := <?Some(_); !Some(GroupByClause(expAsGroupVars')) <+ !None()> groupByClause;
 
-      selectOrModifyClause' := <?ModifyClause(_) + ?SelectClause(_, _); (norm-ExpAsVars(|expAsGroupVars', version) <+ norm-select-star(|graphPattern, expAsGroupVars'))> selectOrModifyClause;
+      selectOrModifyClause' := <?ModifyClause(_) + ?SelectClause(_, _); (norm-SelectList(|expAsGroupVars', version) <+ norm-select-star(|graphPattern, expAsGroupVars'))> selectOrModifyClause;
 
-      expAsSelectVars := <(?ModifyClause(_)); ![] + ?SelectClause(_, ExpAsVars(<id>))> selectOrModifyClause';
-      allExpAsVars := <conc> (expAsGroupVars', <try(?Star(); ![])> expAsSelectVars);
+      selectList := <(?ModifyClause(_)); ![] + ?SelectClause(_, ExpAsVars(<id>))> selectOrModifyClause';
+      allExpAsVars := <conc> (expAsGroupVars', <try(?Star(); ![])> selectList);
       orderByElems := <try(norm-orderBy(|allExpAsVars, version))> orderByClause;
 
       limitOffsets' := <norm-limitOffsets> limitOffsets
 
-  norm-ExpAsVars(|expAsGroupVars', version):
-    t1@SelectClause(distinct, t2@ExpAsVars(expAsVars)) -> result
+  norm-SelectList(|expAsGroupVars', version):
+    t1@SelectClause(distinct, t2@SelectList(selectList)) -> result
     with if <?"v1.0" + ?"v1.1"> version
-         then expAsVars' := <map(norm-ExpAsVar)> expAsVars
-         else expAsVars' := <map(norm-ExpAsVar-for-select-clause)> expAsVars
+         then expAsVars := <map(?AllProperties(_, _) + norm-ExpAsVar)> selectList
+         else expAsVars := <map(?AllProperties(_, _) + norm-ExpAsVar-for-select-clause)> selectList
          end
-       ; result := <origin-track-forced(!SelectClause(distinct, <origin-track-forced(!ExpAsVars(expAsVars'))> t2))> t1 
+       ; result := <origin-track-forced(!SelectClause(distinct, <origin-track-forced(!ExpAsVars(expAsVars))> t2))> t1
 
   norm-ExpAsVar-for-select-clause = ?ExpAsVar(exp@PropRef(_, p), None()); !ExpAsVar(exp, p, NonAnonymous()) <+ norm-ExpAsVar
 
