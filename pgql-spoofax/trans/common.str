@@ -111,3 +111,17 @@ rules
 
   to-function(|name):
     args -> FunctionCall(None(), Identifier(name, name), args)
+
+  simplify-label-expression(|varRefOriginOffset):
+    FunctionCall(None(), Identifier("has_label", _), [ VarRef(_, varRefOriginOffset), Identifier(label, _)]) -> label
+
+  simplify-label-expression(|varRefOriginOffset):
+    Or(a, b) -> LabelOr(a', b')
+    where a' := <simplify-label-expression(|varRefOriginOffset)> a
+        ; b' := <simplify-label-expression(|varRefOriginOffset)> b
+
+  to-label-conjunction = reverse; !(<Tl>, <Hd>); foldl(to-label-AND)
+  to-label-AND = ?(exp1, exp2); !LabelAnd(exp1, exp2)
+
+  get-vertex-labels(|metadata) = !metadata; fetch-elem(?VertexLabels(<id>)); map(?Label(<id>, _)) <+ !None()
+  get-edge-labels(|metadata) = !metadata; fetch-elem(?EdgeLabels(<id>)); map(?Label(<id>, _)) <+ !None()

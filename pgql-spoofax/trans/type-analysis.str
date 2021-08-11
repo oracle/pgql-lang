@@ -108,17 +108,6 @@ rules // property references
   add-type(|metadata, variablesPlusTypes, constraints):
     exp@PropRef(VarRef(_), _) -> ExpressionPlusType(exp, UnknownType())
 
-  simplify-label-expression(|varRefOriginPosition):
-    FunctionCall(None(), Identifier("has_label", _), [ VarRef(_, varRefOriginPosition), Identifier(label, _)]) -> label
-
-  simplify-label-expression(|varRefOriginPosition):
-    Or(a, b) -> LabelOr(a', b')
-    where a' := <simplify-label-expression(|varRefOriginPosition)> a
-        ; b' := <simplify-label-expression(|varRefOriginPosition)> b
-
-  to-label-conjunction = reverse; !(<Tl>, <Hd>); foldl(to-label-AND)
-  to-label-AND = ?(exp1, exp2); !LabelAnd(exp1, exp2)
-
   get-property-type-from-label-expression(|elementType, propName, metadata):
     labelExpression -> type
     where <is-string> labelExpression
@@ -348,10 +337,6 @@ rules // other expressions
    simpleCase@SimpleCase(_, _, _, _) -> ExpressionPlusType(simpleCase', type')
    with simpleCase' := <add-types-to-subterms(|metadata, variablesPlusTypes, constraints)> simpleCase
       ; <?SimpleCase(_, _, _, ExpressionPlusType(_, type'))> simpleCase'
-
-
-  get-vertex-labels(|metadata) = !metadata; fetch-elem(?VertexLabels(<id>)); map(?Label(<id>, _)) <+ !None()
-  get-edge-labels(|metadata) = !metadata; fetch-elem(?EdgeLabels(<id>)); map(?Label(<id>, _)) <+ !None()
 
   get-vertex-property-type(|metadata) = get-property-type(?VertexLabels(<id>)|metadata)
 

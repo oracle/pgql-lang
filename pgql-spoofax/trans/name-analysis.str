@@ -61,6 +61,7 @@ rules
               ; graphPattern' := Some(GraphPattern(vertices', connections'', valueExpression'))
          else graphPattern' := None()
             ; variables'' := variables'
+            ; valueExpression' := Constraints([])
          end
 
        // GROUP BY
@@ -73,7 +74,7 @@ rules
 
        // SELECT / INSERT / UPDATE / DELETE
        ; if <?SelectClause(_, _)> selectOrModifyClause
-         then (selectOrModifyClause', variables'''') := <resolve-select-clause(|variables''', metadata)> selectOrModifyClause
+         then (selectOrModifyClause', variables'''') := <resolve-select-clause(|variables''', metadata, valueExpression')> selectOrModifyClause
          else selectOrModifyClause' := <resolve-modify-clause(|variables''', metadata)> selectOrModifyClause
            ; variables'''' := variables'''
         end
@@ -146,13 +147,13 @@ rules
     with vars' := []
        ; variables' := [vars'|variables]
 
-  resolve-select-clause(|variables, metadata):
+  resolve-select-clause(|variables, metadata, valueExpression):
     t@SelectClause(distinct, eav@ExpAsVars(expAsVars)) -> (selectClause', variables')
     with if Star() := expAsVars
          then eav' := expAsVars
             ; variables':= variables
          else varsInCurrentScope := <Hd> variables
-            ; (expAsVars', vars') := <foldl(resolve-exp-as-var-in-select(|variables, metadata))> (expAsVars, ([], varsInCurrentScope))
+            ; (expAsVars', vars') := <foldl(resolve-exp-as-var-in-select(|variables, metadata, valueExpression))> (expAsVars, ([], varsInCurrentScope))
             ; eav' := <origin-track-forced(!ExpAsVars(expAsVars'))> eav
             ; variables' := [vars'|<Tl> variables]
          end
@@ -209,7 +210,7 @@ rules
        ; expAsVar' := <origin-track-forced(!ExpAsVar(exp', iden, anonymous, originOffset))> t
        ; result' := <conc> (result, [expAsVar'])
 
-  resolve-exp-as-var-in-select(|variables, metadata):
+  resolve-exp-as-var-in-select(|variables, metadata, valueExpression):
     (t@ExpAsVar(exp, iden@Identifier(v, _), anonymous), (result, vars)) -> (result', vars')
     with exp' := <resolve-var-refs(|variables, metadata)> exp
        ; originOffset := <origin-offset> v
@@ -223,19 +224,21 @@ rules
        ; expAsVar' := <origin-track-forced(!ExpAsVar(exp', iden, anonymous, unique-origin))> t
        ; result' := <conc> (result, [expAsVar'])
 
-//  resolve-exp-as-var-in-select(|variables, metadata):
-//    (t@AllProperties(varRef, _), (result, vars)) -> (result', vars')
-//    with varRef' := <resolve-var-ref(|variables)> varRef
-//       ; originOffset := <origin-offset> varRef
-//       ; type := UnknownType()
-//       ; vars' := <replace-or-add> (VarDef(iden, originOffset, exp, None(), exp', ThisQuery(), type), vars)
-//       ; expAsVar' := <origin-track-forced(!ExpAsVar(exp', iden, anonymous, originOffset))> t
-//       ; result' := <conc> (result, [expAsVar'])
+  resolve-exp-as-var-in-select(|variables, metadata, valueExpression):
+    (t@AllProperties(varRef, _), (result, vars)) -> (result', vars')
+    with varRef' := <resolve-var-ref(|variables, metadata)> varRef
+       ; originOffset := <?VarRef(_, <id>) <+ !None()> varRef'
+       ; labelExpression := <(?Constraints(<id>) <+ ![]); filter(simplify-label-expression(|originOffset)); (?[]; !All() <+ to-label-conjunction)> valueExpression
+       ; elementType := <get-type-from-varRef-as-var(|variables)> varRef'
+       ; propertyNames := <get-properties-from-label-expression(|elementType, metadata); map(?Property(<id>, _)); debug> labelExpression
+       ; vars' := []//<replace-or-add-all> (VarDef(iden, originOffset, exp, None(), exp', ThisQuery(), type), vars)
+       ; expAsVars := []//<origin-track-forced(!ExpAsVar(exp', iden, anonymous, originOffset))> t
+       ; result' := <conc> (result, expAsVars)
 
   get-type-from-varRef-as-var(|variables):
     exp -> type
     with if <?VarRef(Identifier(v, _), _)> exp
-         then type := <Hd; fetch(?VarDef(Identifier(v, _), _, _, _, _, _, <id>))> variables
+         then type := <Hd; fetch-elem(?VarDef(Identifier(v, _), _, _, _, _, _, <id>))> variables
          else type := UnknownType()
          end
 
@@ -424,4 +427,53 @@ rules
        ; if <?[]> referencedGroupVariables
          then pathFindingGoal := Reaches()
          else pathFindingGoal := Shortest()
+         end
+
+rules
+
+  get-properties-from-label-expression(|elementType, metadata):
+    labelExpression -> result
+    where <is-string> labelExpression
+    with labelReference := labelExpression
+       ; result := <get-properties(|elementType, metadata)> labelReference
+
+  get-properties-from-label-expression(|elementType, metadata):
+    LabelAnd(a, b) -> result
+    with result := <get-union-of-properties(|elementType, metadata)> (a, b)
+
+  get-properties-from-label-expression(|elementType, metadata):
+    LabelOr(a, b) -> result
+    with result := <get-union-of-properties(|elementType, metadata)> (a, b)
+
+  get-union-of-properties(|elementType, metadata):
+    (labelA, labelB) -> result
+    with propertiesA := <get-properties-from-label-expression(|elementType, metadata)> labelA
+       ; propertiesB := <get-properties-from-label-expression(|elementType, metadata)> labelB
+       ; result := <union> (propertiesA, propertiesB)
+
+  get-properties-from-label-expression(|elementType, metadata):
+    All() -> result
+    with labels := <?Type("VERTEX"); get-vertex-labels(|metadata) <+ ?Type("EDGE"); get-edge-labels(|metadata) <+ !None()> elementType
+       ; if <?None()> labels
+         then result := []
+         else properties := <map(get-properties(|elementType, metadata))> labels
+            ; result := <foldl(union)> (properties, [])
+         end
+
+  get-properties(|elementType, metadata):
+    label -> properties
+    with if <?Type("VERTEX")> elementType
+         then properties := <get-vertex-properties(|metadata)> label
+         else properties := <get-edge-properties(|metadata)> label
+         end
+
+  get-vertex-properties(|metadata) = get-properties(?VertexLabels(<id>)|metadata)
+
+  get-edge-properties(|metadata) = get-properties(?EdgeLabels(<id>)|metadata)
+
+  get-properties(labelsMatcher|metadata):
+    labelReference -> properties
+    with if labels := <fetch-elem(labelsMatcher)> metadata
+         then properties := <fetch-elem(?Label(labelReference, <id>)) <+ map(Label(upper-case, id)); fetch-elem(?Label(labelReference, <id>)) <+ ![]> labels
+         else properties := [] // no schema info known
          end
