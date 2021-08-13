@@ -197,7 +197,7 @@ rules
       <generate-error(|ctx, "SELECT * not allowed in combination with GROUP BY")> e
 
   nabl-constraint(|ctx):
-    SelectClause(_, e@ExpAsVars([])) -> <fail>
+    SelectClause(Star(), e@ExpAsVars([])) -> <fail>
     with
       <generate-error(|ctx, "SELECT * not allowed if there are no variables in the graph pattern")> e
 

@@ -743,4 +743,10 @@ public class MetadataTest extends AbstractPgqlTest {
     result = parse("SELECT labels(n) FROM MATCH (n) ORDER BY labels(n)");
     assertTrue(result.getErrorMessages().contains("Cannot order by SET<STRING>"));
   }
+
+  @Test
+  public void testSelectAllPropertiesNoMetadata() throws Exception {
+    PgqlResult result = pgql.parse("SELECT n.* FROM MATCH (n)");
+    assertTrue(result.getErrorMessages().contains("Cannot select all properties because the graph schema is not provided"));
+  }
 }

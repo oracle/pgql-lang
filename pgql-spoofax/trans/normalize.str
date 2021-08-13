@@ -53,8 +53,11 @@ rules
         <+ is-pgql11; (collect(get-pgql11-limitation); not(?[]) <+ collect(get-pgql11-deprecation))
         <+ is-pgql13; collect(get-pgql13-deprecation + get-pgql13-errors); flatten-list
         )
-        ; not(?[]) <+ get-path-limitations; not(?[])
-          <+ get-errors-for-inconsistent-graph-names <+ ![]> ast;
+        ; not(?[]) <+ !( <quantifier-without-path-finding-goal>,
+                         <nested-regular-expression>,
+                         <get-errors-for-inconsistent-graph-names>,
+                         <collect(get-error-for-missing-metadata(|metadata))> ast
+                       ); conc> ast;
       result := <
         alltd(norm-has-prop);
         alltd(norm-pgql10);
@@ -129,13 +132,12 @@ rules
   get-pgql11-limitation = ?VarRef(DelimitedIdentifier(<id>)); to-error-message(|"Double quoted variable references are only available in PGQL 1.3 and up")
                         + ?ModifyClause(_); to-error-message(|"INSERT, UPDATE and DELETE are only supported in PGQL 1.3 and up (use FROM MATCH ...)")
 
-  // TODO: move this to check.str (all the information should be in the normalized AST)
-  get-path-limitations = collect(quantified-path-pattern + is-quantifier)
-                       ; remove-all(quantified-path-pattern)
-                       ; not(?[])
-                       ; map(to-error-message(|"Quantifier needs to be enclosed by ANY, ALL, SHORTEST or CHEAPEST"))
+  quantifier-without-path-finding-goal =
+    collect(quantified-path-pattern <+ is-quantifier)
+  ; remove-all(quantified-path-pattern)
+  ; map(to-error-message(|"Quantifier needs to be enclosed by ANY, ALL, SHORTEST or CHEAPEST"))
 
-  get-path-limitations = collect(?Shortest(_, _) + ?Cheapest(_, _) + ?AnyPath(_) + ?AllPaths(_)); collect(?Path(_, _, _)); not(?[]); map(to-error-message(|"Nested regular expressions not supported"))
+  nested-regular-expression = collect(?Shortest(_, _) + ?Cheapest(_, _) + ?AnyPath(_) + ?AllPaths(_)); collect(?Path(_, _, _)); map(to-error-message(|"Nested regular expressions not supported"))
 
   get-errors-for-inconsistent-graph-names:
     ast -> <conc> (errors-for-multiple-graph-name, errors-for-missing-on-clauses)
@@ -170,6 +172,10 @@ rules
                           + ?AllPaths(_)
                           + ?OutConn(Some(Path(_, _, _)), _)
                           + ?InConn(Some(Path(_, _, _)), _)
+
+  get-error-for-missing-metadata(|metadata):
+    t@AllProperties(_, _) -> <to-error-message(|"Cannot select all properties because the graph schema is not provided")> t
+    where <not(fetch(?VertexLabels(_) + ?EdgeLabels(_)))> metadata
 
   norm-pgql10 = ?Legacy10Label(x); <to-function(|"label")> [x]
   norm-pgql10 = ?Legacy10Labels(x); <to-function(|"labels")> [x]
