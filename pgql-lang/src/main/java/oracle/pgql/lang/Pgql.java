@@ -121,6 +121,12 @@ public class Pgql implements Closeable {
 
   private void initializeGlobalInstance(SpoofaxModule spoofaxModule, String tmpDir) throws PgqlException {
     try {
+      Runtime.getRuntime().addShutdownHook(new Thread(() -> {
+        // clean up temporary files in case the process gets stopped or in case the PGQL instances cannot be closed for
+        // other reasons
+        cleanUp();
+      }));
+
       // initialize a new Spoofax
       spoofax = new Spoofax(spoofaxModule);
 
@@ -457,19 +463,22 @@ public class Pgql implements Closeable {
       if (instances.isEmpty()) {
         isGloballyInitialized = false;
         LOG.info("closing the global PGQL instance");
+        cleanUp();
+      }
+    }
+  }
 
-        if (System.getProperty("os.name").startsWith("Windows")) {
-          return; // Windows issue, also see http://yellowgrass.org/issue/Spoofax/88
-        }
+  private void cleanUp() {
+    if (System.getProperty("os.name").startsWith("Windows")) {
+      return; // Windows issue, also see http://yellowgrass.org/issue/Spoofax/88
+    }
 
-        if (spoofax != null) {
-          spoofax.close();
-        }
-        if (spoofaxBinaryFile != null) {
-          if (!spoofaxBinaryFile.delete()) {
-            LOG.warn("failed to delete Spoofax binary file: " + spoofaxBinaryFile.getAbsolutePath());
-          }
-        }
+    if (spoofax != null) {
+      spoofax.close();
+    }
+    if (spoofaxBinaryFile != null) {
+      if (!spoofaxBinaryFile.delete()) {
+        LOG.warn("failed to delete Spoofax binary file: " + spoofaxBinaryFile.getAbsolutePath());
       }
     }
   }
