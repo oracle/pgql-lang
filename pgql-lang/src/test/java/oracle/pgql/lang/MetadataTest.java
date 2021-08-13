@@ -423,17 +423,21 @@ public class MetadataTest extends AbstractPgqlTest {
     assertTrue(result.getErrorMessages().contains("BOOLEAN expected but a STRING was given"));
 
     result = parse("SELECT CASE WHEN true THEN n.numericProp ELSE 'abc' END FROM MATCH (n)");
-    assertTrue(result.getErrorMessages().contains("Expression of a type compatible with DOUBLE expected but a STRING was given"));
+    assertTrue(result.getErrorMessages()
+        .contains("Expression of a type compatible with DOUBLE expected but a STRING was given"));
 
     result = parse("SELECT CASE WHEN true THEN n.firstName ELSE n.dob END FROM MATCH (n)");
-    assertTrue(result.getErrorMessages().contains("Expression of a type compatible with STRING expected but a DATE was given"));
+    assertTrue(result.getErrorMessages()
+        .contains("Expression of a type compatible with STRING expected but a DATE was given"));
 
     result = parse("SELECT CASE WHEN true THEN n.dob ELSE n.firstName END FROM MATCH (n)");
-    assertTrue(result.getErrorMessages().contains("Expression of a type compatible with DATE expected but a STRING was given"));
+    assertTrue(result.getErrorMessages()
+        .contains("Expression of a type compatible with DATE expected but a STRING was given"));
 
     result = parse(
         "SELECT CASE WHEN true THEN n.dob WHEN n.firstName IS NULL THEN DATE '1970-01-01' ELSE n.firstName END FROM MATCH (n)");
-    assertTrue(result.getErrorMessages().contains("Expression of a type compatible with DATE expected but a STRING was given"));
+    assertTrue(result.getErrorMessages()
+        .contains("Expression of a type compatible with DATE expected but a STRING was given"));
 
     result = parse("SELECT CASE n.firstName WHEN 123 THEN true ELSE false END FROM MATCH (n)");
     assertTrue(result.getErrorMessages().contains("The operator = is undefined for the argument types STRING, LONG"));
@@ -747,6 +751,20 @@ public class MetadataTest extends AbstractPgqlTest {
   @Test
   public void testSelectAllPropertiesNoMetadata() throws Exception {
     PgqlResult result = pgql.parse("SELECT n.* FROM MATCH (n)");
-    assertTrue(result.getErrorMessages().contains("Cannot select all properties because the graph schema is not provided"));
+    assertTrue(
+        result.getErrorMessages().contains("Cannot select all properties because the graph schema is not provided"));
+
+    result = pgql.parse("SELECT e.* FROM MATCH () -[e]-> ()");
+    assertTrue(
+        result.getErrorMessages().contains("Cannot select all properties because the graph schema is not provided"));
+  }
+
+  @Test
+  public void testSelectAllPropertieDuplicateColumnNames() throws Exception {
+    PgqlResult result = parse("SELECT e.*, e.* FROM MATCH () -[e]-> ()");
+    assertTrue(result.getErrorMessages().contains("Duplicate column name in SELECT"));
+
+    result = parse("SELECT v.*, v.* FROM MATCH (v:Person)");
+    assertTrue(result.getErrorMessages().contains("Duplicate column name in SELECT"));
   }
 }

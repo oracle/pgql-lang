@@ -230,7 +230,7 @@ rules
        ; originOffset := <?VarRef(_, <id>) <+ !None()> varRef'
        ; labelExpression := <(?Constraints(<id>) <+ ![]); filter(simplify-label-expression(|originOffset)); (?[]; !All() <+ to-label-conjunction)> valueExpression
        ; elementType := <get-type-from-varRef-as-var(|variables)> varRef'
-       ; propertyNames := <get-properties-from-label-expression(|elementType, metadata); map(?Property(<id>, _))> labelExpression
+       ; propertyNames := <get-properties-from-label-expression(|elementType, metadata); map(?Property(<id>, _)); make-set> labelExpression
        ; expAsVars := <map(property-to-exp-as-var(|t, varRef'))> propertyNames
        ; vars' := <replace-or-add-all> (<map(generated-exp-as-vars-to-varDef(|elementType))> expAsVars, vars)
        ; result' := <conc> (result, expAsVars)
@@ -244,7 +244,7 @@ rules
 
   property-to-exp-as-var(|originTerm, varRef):
     propertyName -> <origin-track-forced(!ExpAsVar(propRef, var, anonymous, originOffset))> originTerm
-    with propIdentifier := Identifier(propertyName, propertyName)
+    with propIdentifier := Identifier(<origin-track-forced(!propertyName)> originTerm, propertyName)
        ; propRef := PropRef(varRef, propIdentifier)
        ; var := propIdentifier
        ; anonymous := Anonymous()
