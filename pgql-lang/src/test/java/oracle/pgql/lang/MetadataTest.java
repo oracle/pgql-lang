@@ -767,4 +767,10 @@ public class MetadataTest extends AbstractPgqlTest {
     result = parse("SELECT v.*, v.* FROM MATCH (v:Person)");
     assertTrue(result.getErrorMessages().contains("Duplicate column name in SELECT"));
   }
+
+  @Test
+  public void testSelectAllPropertieUsingPrefix() throws Exception {
+    PgqlResult result = parse("SELECT e.* PREFIX 'a__', e.* PREFIX 'b__' FROM MATCH () -[e]-> ()");
+    assertTrue(result.isQueryValid());
+  }
 }
