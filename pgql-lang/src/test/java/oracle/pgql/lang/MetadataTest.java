@@ -3,9 +3,15 @@
  */
 package oracle.pgql.lang;
 
+import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
 
+import java.util.List;
+
 import org.junit.Test;
+
+import oracle.pgql.lang.ir.ExpAsVar;
+import oracle.pgql.lang.ir.SelectQuery;
 
 public class MetadataTest extends AbstractPgqlTest {
 
@@ -772,5 +778,28 @@ public class MetadataTest extends AbstractPgqlTest {
   public void testSelectAllPropertieUsingPrefix() throws Exception {
     PgqlResult result = parse("SELECT e.* PREFIX 'a__', e.* PREFIX 'b__' FROM MATCH () -[e]-> ()");
     assertTrue(result.isQueryValid());
+
+    SelectQuery selectQuery = (SelectQuery) result.getGraphQuery();
+    List<ExpAsVar> expAsVars = selectQuery.getProjection().getElements();
+    assertEquals("a__PROP", expAsVars.get(0).getName());
+    assertEquals("a__PROP", expAsVars.get(0).getNameOriginText());
+    assertEquals("a__Typeconflictprop", expAsVars.get(1).getName());
+    assertEquals("a__Typeconflictprop", expAsVars.get(1).getNameOriginText());
+    assertEquals("a__since", expAsVars.get(2).getName());
+    assertEquals("a__since", expAsVars.get(2).getNameOriginText());
+    assertEquals("a__prop", expAsVars.get(3).getName());
+    assertEquals("a__prop", expAsVars.get(3).getNameOriginText());
+    assertEquals("a__typeConflictProp", expAsVars.get(4).getName());
+    assertEquals("a__typeConflictProp", expAsVars.get(4).getNameOriginText());
+    assertEquals("b__PROP", expAsVars.get(5).getName());
+    assertEquals("b__PROP", expAsVars.get(5).getNameOriginText());
+    assertEquals("b__Typeconflictprop", expAsVars.get(6).getName());
+    assertEquals("b__Typeconflictprop", expAsVars.get(6).getNameOriginText());
+    assertEquals("b__since", expAsVars.get(7).getName());
+    assertEquals("b__since", expAsVars.get(7).getNameOriginText());
+    assertEquals("b__prop", expAsVars.get(8).getName());
+    assertEquals("b__prop", expAsVars.get(8).getNameOriginText());
+    assertEquals("b__typeConflictProp", expAsVars.get(9).getName());
+    assertEquals("b__typeConflictProp", expAsVars.get(9).getNameOriginText());
   }
 }

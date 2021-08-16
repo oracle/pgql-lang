@@ -248,7 +248,7 @@ rules
        ; propRef := PropRef(varRef, propIdentifier)
        ; columnName := <?Some(ColumnNamePrefix(String(<id>))); !(<id>, propertyName); conc-strings <+ !propertyName> columnNamePrefix
        ; columnIdentifier := Identifier(<origin-track-forced(!columnName)> originTerm, columnName)
-       ; anonymous := Anonymous()
+       ; anonymous := NonAnonymous()
        ; originOffset := <conc-strings> ("*_", <origin-offset; write-to-string> originTerm, "_", propertyName)
 
   generated-exp-as-vars-to-varDef(|elementType):
