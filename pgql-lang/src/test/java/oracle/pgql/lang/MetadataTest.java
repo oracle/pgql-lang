@@ -775,31 +775,93 @@ public class MetadataTest extends AbstractPgqlTest {
   }
 
   @Test
-  public void testSelectAllPropertieUsingPrefix() throws Exception {
+  public void testColumnOrderPreservation1() throws Exception {
+    PgqlResult result = parse("SELECT e.* FROM MATCH () -[e]-> ()");
+    testColumnOrderPreservation1Helper(result);
+
+    result = parse("SELECT e.* FROM MATCH () -[e:knows|studyAt]-> ()");
+    testColumnOrderPreservation1Helper(result);
+
+    result = parse("SELECT e.* FROM MATCH () -[e:studyAt|knows]-> ()");
+    testColumnOrderPreservation1Helper(result);
+
+    result = parse("SELECT e.* FROM MATCH () -[e:studyAt|studyAt|knows|knows]-> ()");
+    testColumnOrderPreservation1Helper(result);
+  }
+
+  private void testColumnOrderPreservation1Helper(PgqlResult result) {
+    assertTrue(result.isQueryValid());
+
+    SelectQuery selectQuery = (SelectQuery) result.getGraphQuery();
+    List<ExpAsVar> expAsVars = selectQuery.getProjection().getElements();
+    assertEquals("since", expAsVars.get(0).getName());
+    assertEquals("since", expAsVars.get(0).getNameOriginText());
+    assertEquals("prop", expAsVars.get(1).getName());
+    assertEquals("prop", expAsVars.get(1).getNameOriginText());
+    assertEquals("typeConflictProp", expAsVars.get(2).getName());
+    assertEquals("typeConflictProp", expAsVars.get(2).getNameOriginText());
+    assertEquals("PROP", expAsVars.get(3).getName());
+    assertEquals("PROP", expAsVars.get(3).getNameOriginText());
+    assertEquals("Typeconflictprop", expAsVars.get(4).getName());
+    assertEquals("Typeconflictprop", expAsVars.get(4).getNameOriginText());
+  }
+
+  @Test
+  public void testColumnOrderPreservation2() throws Exception {
+    PgqlResult result = parse("SELECT v.* FROM MATCH (v) ON financialNetwork");
+    testColumnOrderPreservation2Helper(result);
+
+    result = parse("SELECT v.* FROM MATCH (v:Person|Account) ON financialNetwork");
+    testColumnOrderPreservation2Helper(result);
+
+    result = parse("SELECT v.* FROM MATCH (v:Account|Person) ON financialNetwork");
+    testColumnOrderPreservation2Helper(result);
+
+    result = parse(
+        "SELECT v.* FROM MATCH (v:Person|Account) ON financialNetwork,  MATCH (v:Account|Person) ON financialNetwork");
+    testColumnOrderPreservation2Helper(result);
+
+    result = parse("SELECT v.* FROM MATCH (v:Person|Person|Account|Account) ON financialNetwork");
+    testColumnOrderPreservation2Helper(result);
+  }
+
+  private void testColumnOrderPreservation2Helper(PgqlResult result) {
+    assertTrue(result.isQueryValid());
+
+    SelectQuery selectQuery = (SelectQuery) result.getGraphQuery();
+    List<ExpAsVar> expAsVars = selectQuery.getProjection().getElements();
+    assertEquals("number", expAsVars.get(0).getName());
+    assertEquals("number", expAsVars.get(0).getNameOriginText());
+    assertEquals("name", expAsVars.get(1).getName());
+    assertEquals("name", expAsVars.get(1).getNameOriginText());
+  }
+
+  @Test
+  public void testSelectAllPropertiesUsingPrefix() throws Exception {
     PgqlResult result = parse("SELECT e.* PREFIX 'a__', e.* PREFIX 'b__' FROM MATCH () -[e]-> ()");
     assertTrue(result.isQueryValid());
 
     SelectQuery selectQuery = (SelectQuery) result.getGraphQuery();
     List<ExpAsVar> expAsVars = selectQuery.getProjection().getElements();
-    assertEquals("a__PROP", expAsVars.get(0).getName());
-    assertEquals("a__PROP", expAsVars.get(0).getNameOriginText());
-    assertEquals("a__Typeconflictprop", expAsVars.get(1).getName());
-    assertEquals("a__Typeconflictprop", expAsVars.get(1).getNameOriginText());
-    assertEquals("a__since", expAsVars.get(2).getName());
-    assertEquals("a__since", expAsVars.get(2).getNameOriginText());
-    assertEquals("a__prop", expAsVars.get(3).getName());
-    assertEquals("a__prop", expAsVars.get(3).getNameOriginText());
-    assertEquals("a__typeConflictProp", expAsVars.get(4).getName());
-    assertEquals("a__typeConflictProp", expAsVars.get(4).getNameOriginText());
-    assertEquals("b__PROP", expAsVars.get(5).getName());
-    assertEquals("b__PROP", expAsVars.get(5).getNameOriginText());
-    assertEquals("b__Typeconflictprop", expAsVars.get(6).getName());
-    assertEquals("b__Typeconflictprop", expAsVars.get(6).getNameOriginText());
-    assertEquals("b__since", expAsVars.get(7).getName());
-    assertEquals("b__since", expAsVars.get(7).getNameOriginText());
-    assertEquals("b__prop", expAsVars.get(8).getName());
-    assertEquals("b__prop", expAsVars.get(8).getNameOriginText());
-    assertEquals("b__typeConflictProp", expAsVars.get(9).getName());
-    assertEquals("b__typeConflictProp", expAsVars.get(9).getNameOriginText());
+    assertEquals("a__since", expAsVars.get(0).getName());
+    assertEquals("a__since", expAsVars.get(0).getNameOriginText());
+    assertEquals("a__prop", expAsVars.get(1).getName());
+    assertEquals("a__prop", expAsVars.get(1).getNameOriginText());
+    assertEquals("a__typeConflictProp", expAsVars.get(2).getName());
+    assertEquals("a__typeConflictProp", expAsVars.get(2).getNameOriginText());
+    assertEquals("a__PROP", expAsVars.get(3).getName());
+    assertEquals("a__PROP", expAsVars.get(3).getNameOriginText());
+    assertEquals("a__Typeconflictprop", expAsVars.get(4).getName());
+    assertEquals("a__Typeconflictprop", expAsVars.get(4).getNameOriginText());
+    assertEquals("b__since", expAsVars.get(5).getName());
+    assertEquals("b__since", expAsVars.get(5).getNameOriginText());
+    assertEquals("b__prop", expAsVars.get(6).getName());
+    assertEquals("b__prop", expAsVars.get(6).getNameOriginText());
+    assertEquals("b__typeConflictProp", expAsVars.get(7).getName());
+    assertEquals("b__typeConflictProp", expAsVars.get(7).getNameOriginText());
+    assertEquals("b__PROP", expAsVars.get(8).getName());
+    assertEquals("b__PROP", expAsVars.get(8).getNameOriginText());
+    assertEquals("b__Typeconflictprop", expAsVars.get(9).getName());
+    assertEquals("b__Typeconflictprop", expAsVars.get(9).getNameOriginText());
   }
 }
