@@ -864,4 +864,10 @@ public class MetadataTest extends AbstractPgqlTest {
     assertEquals("b__Typeconflictprop", expAsVars.get(9).getName());
     assertEquals("b__Typeconflictprop", expAsVars.get(9).getNameOriginText());
   }
+
+  @Test
+  public void testSelectAllPropertieUnresolvedVariable() throws Exception {
+    PgqlResult result = parse("SELECT x.* FROM MATCH (v)");
+    assertTrue(result.getErrorMessages().contains("Unresolved variable"));
+  }
 }

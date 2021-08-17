@@ -227,17 +227,21 @@ rules
   resolve-exp-as-var-in-select(|variables, metadata, valueExpression):
     (t@AllProperties(varRef, columnNamePrefix), (result, vars)) -> (result', vars')
     with varRef' := <resolve-var-ref(|variables, metadata)> varRef
-       ; originOffset := <?VarRef(_, <id>) <+ !None()> varRef'
-       ; labelExpression := <(?Constraints(<id>) <+ ![]); filter(simplify-label-expression(|originOffset)); (?[]; !All() <+ to-label-conjunction)> valueExpression
-       ; elementType := <get-type-from-varRef-as-var(|variables)> varRef'
-       ; propertyNames := <get-properties-from-label-expression(|elementType, metadata); map(?Property(<id>, _))> labelExpression
-       ; if <?All()> labelExpression
-          then propertyNamesInOriginalOrder := propertyNames // property names are already in original order
-          else allPropertyNames := <get-properties-from-label-expression(|elementType, metadata); map(?Property(<id>, _))> All()
-             ; propertyNamesInOriginalOrder := <isect> (allPropertyNames, propertyNames)
-          end
-       ; expAsVars := <map(property-to-exp-as-var(|t, varRef', columnNamePrefix))> propertyNamesInOriginalOrder
-       ; vars' := <replace-or-add-all> (<map(generated-exp-as-vars-to-varDef(|elementType))> expAsVars, vars)
+       ; if <?VarRef(v)> varRef'
+         then expAsVars := [ExpAsVar(varRef', v, Anonymous(), None())] // create a dummy ExpAsVar just to make sure an "unresolved variable" error will be generated
+            ; vars' := vars
+         else originOffset := <?VarRef(_, <id>) <+ !None()> varRef'
+            ; labelExpression := <(?Constraints(<id>) <+ ![]); filter(simplify-label-expression(|originOffset)); (?[]; !All() <+ to-label-conjunction)> valueExpression
+            ; elementType := <get-type-from-varRef-as-var(|variables)> varRef'
+            ; propertyNames := <get-properties-from-label-expression(|elementType, metadata); map(?Property(<id>, _))> labelExpression
+          ; if <?All()> labelExpression
+             then propertyNamesInOriginalOrder := propertyNames // property names are already in original order
+             else allPropertyNames := <get-properties-from-label-expression(|elementType, metadata); map(?Property(<id>, _))> All()
+                ; propertyNamesInOriginalOrder := <isect> (allPropertyNames, propertyNames)
+             end
+          ; expAsVars := <map(property-to-exp-as-var(|t, varRef', columnNamePrefix))> propertyNamesInOriginalOrder
+          ; vars' := <replace-or-add-all> (<map(generated-exp-as-vars-to-varDef(|elementType))> expAsVars, vars)
+         end
        ; result' := <conc> (result, expAsVars)
 
   get-type-from-varRef-as-var(|variables):
