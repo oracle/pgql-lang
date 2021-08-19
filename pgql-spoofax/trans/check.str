@@ -585,10 +585,6 @@ rules // MODIFY
     with <generate-error(|ctx, $[Property has incompatible types for different labels])> propName
 
   nabl-constraint(|ctx):
-    ExpressionPlusType(PropRef(_, Identifier(propName, _)), AmbiguousType()) -> <fail>
-    with <generate-error(|ctx, $[Property has incompatible data types in different labels])> propName
-
-  nabl-constraint(|ctx):
     ExpressionPlusType(e@UMin(ExpressionPlusType(_, Type(t))), Undefined()) -> <fail>
     with <generate-error(|ctx, $[The operator - (unary minus) is undefined for the argument type [t]])> e
 

@@ -233,14 +233,14 @@ rules
          else originOffset := <?VarRef(_, <id>) <+ !None()> varRef'
             ; labelExpression := <(?Constraints(<id>) <+ ![]); filter(simplify-label-expression(|originOffset)); (?[]; !All() <+ to-label-conjunction)> valueExpression
             ; elementType := <get-type-from-varRef-as-var(|variables)> varRef'
-            ; propertyNames := <get-properties-from-label-expression(|elementType, metadata); map(?Property(<id>, _))> labelExpression
-          ; if <?All()> labelExpression
-             then propertyNamesInOriginalOrder := propertyNames // property names are already in original order
-             else allPropertyNames := <get-properties-from-label-expression(|elementType, metadata); map(?Property(<id>, _))> All()
-                ; propertyNamesInOriginalOrder := <isect> (allPropertyNames, propertyNames)
-             end
-          ; expAsVars := <map(property-to-exp-as-var(|t, varRef', columnNamePrefix))> propertyNamesInOriginalOrder
-          ; vars' := <replace-or-add-all> (<map(generated-exp-as-vars-to-varDef(|elementType))> expAsVars, vars)
+            ; allLabels := <?Type("VERTEX"); !metadata; fetch-elem(?VertexLabels(<id>)) <+ ?Type("EDGE"); !metadata; fetch-elem(?EdgeLabels(<id>)) <+ ![]> elementType
+            ; allLabelNames := <(?Type("VERTEX"); get-vertex-labels(|metadata) <+ ?Type("EDGE"); get-edge-labels(|metadata)); try(?None(); ![]) <+ ![]> elementType
+            ; labelReferences := <get-labels-from-label-expression(|allLabelNames)> labelExpression
+            ; properties := <filter(fetch-properties-via-label-reference(|labelReferences)); concat> allLabels
+            ; propertyNames := <map(?Property(<id>, _))> properties
+            ; deduplicatedPropertyNames := <make-set-while-preserving-ordering> propertyNames
+            ; expAsVars := <map(property-to-exp-as-var(|t, varRef', columnNamePrefix))> deduplicatedPropertyNames
+            ; vars' := <replace-or-add-all> (<map(generated-exp-as-vars-to-varDef(|elementType))> expAsVars, vars)
          end
        ; result' := <conc> (result, expAsVars)
 
@@ -452,49 +452,33 @@ rules
 
 rules
 
-  get-properties-from-label-expression(|elementType, metadata):
+  get-labels-from-label-expression(|allLabels):
     labelExpression -> result
     where <is-string> labelExpression
-    with labelReference := labelExpression
-       ; result := <get-properties(|elementType, metadata)> labelReference
+    with result := [labelExpression]
 
-  get-properties-from-label-expression(|elementType, metadata):
+  get-labels-from-label-expression(|allLabels):
     LabelAnd(a, b) -> result
-    with result := <get-union-of-properties(|elementType, metadata)> (a, b)
+    with result := <get-union-of-labels(|allLabels)> (a, b)
 
-  get-properties-from-label-expression(|elementType, metadata):
+  get-labels-from-label-expression(|allLabels):
     LabelOr(a, b) -> result
-    with result := <get-union-of-properties(|elementType, metadata)> (a, b)
+    with result := <get-union-of-labels(|allLabels)> (a, b)
 
-  get-union-of-properties(|elementType, metadata):
-    (labelA, labelB) -> result
-    with propertiesA := <get-properties-from-label-expression(|elementType, metadata)> labelA
-       ; propertiesB := <get-properties-from-label-expression(|elementType, metadata)> labelB
-       ; result := <union> (propertiesA, propertiesB)
+  get-union-of-labels(|allLabels):
+    (labelExpressionA, labelExpressionB) -> result
+    with labelsA := <get-labels-from-label-expression(|allLabels)> labelExpressionA
+       ; labelsB := <get-labels-from-label-expression(|allLabels)> labelExpressionB
+       ; result := <union> (labelsA, labelsB)
 
-  get-properties-from-label-expression(|elementType, metadata):
-    All() -> result
-    with labels := <?Type("VERTEX"); get-vertex-labels(|metadata) <+ ?Type("EDGE"); get-edge-labels(|metadata) <+ !None()> elementType
-       ; if <?None()> labels
-         then result := []
-         else properties := <map(get-properties(|elementType, metadata))> labels
-            ; result := <concat; make-set-while-preserving-ordering> properties
-         end
+  get-labels-from-label-expression(|allLabels):
+    All() -> allLabels
 
-  get-properties(|elementType, metadata):
-    label -> properties
-    with if <?Type("VERTEX")> elementType
-         then properties := <get-vertex-properties(|metadata)> label
-         else properties := <get-edge-properties(|metadata)> label
-         end
+  fetch-properties-via-label-reference(|labelReferences):
+    Label(labelName, properties) -> properties
+    where <fetch-elem(?labelName)> labelReferences
 
-  get-vertex-properties(|metadata) = get-properties(?VertexLabels(<id>)|metadata)
-
-  get-edge-properties(|metadata) = get-properties(?EdgeLabels(<id>)|metadata)
-
-  get-properties(labelsMatcher|metadata):
-    labelReference -> properties
-    with if labels := <fetch-elem(labelsMatcher)> metadata
-         then properties := <fetch-elem(?Label(labelReference, <id>)) <+ map(Label(upper-case, id)); fetch-elem(?Label(labelReference, <id>)) <+ ![]> labels
-         else properties := [] // no schema info known
-         end
+  fetch-properties-via-label-reference(|labelReferences):
+    Label(labelName, properties) -> properties
+    where upperCasedLabelName := <upper-case> labelName
+        ; <fetch-elem(?upperCasedLabelName)> labelReferences

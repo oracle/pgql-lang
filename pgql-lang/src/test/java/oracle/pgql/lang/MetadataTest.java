@@ -837,12 +837,31 @@ public class MetadataTest extends AbstractPgqlTest {
   }
 
   @Test
-  public void testSelectAllPropertiesUsingPrefix() throws Exception {
-    PgqlResult result = parse("SELECT e.* PREFIX 'a__', e.* PREFIX 'b__' FROM MATCH () -[e]-> ()");
-    assertTrue(result.isQueryValid());
+  public void testColumnOrderPreservation3() throws Exception {
+    List<ExpAsVar> expAsVars = getExpAsVars("SELECT n.* FROM MATCH (n) ON graph3");
+    assertEquals("prop1", expAsVars.get(0).getName());
+    assertEquals("prop2", expAsVars.get(1).getName());
 
-    SelectQuery selectQuery = (SelectQuery) result.getGraphQuery();
-    List<ExpAsVar> expAsVars = selectQuery.getProjection().getElements();
+    expAsVars = getExpAsVars("SELECT n.* FROM MATCH (n:Label1) ON graph3");
+    assertEquals("prop1", expAsVars.get(0).getName());
+    assertEquals("prop2", expAsVars.get(1).getName());
+
+    expAsVars = getExpAsVars("SELECT n.* FROM MATCH (n:Label2) ON graph3");
+    assertEquals("prop2", expAsVars.get(0).getName());
+    assertEquals("prop1", expAsVars.get(1).getName());
+
+    expAsVars = getExpAsVars("SELECT n.* FROM MATCH (n:Label1|Label2) ON graph3");
+    assertEquals("prop1", expAsVars.get(0).getName());
+    assertEquals("prop2", expAsVars.get(1).getName());
+
+    expAsVars = getExpAsVars("SELECT n.* FROM MATCH (n:Label2|Label1) ON graph3");
+    assertEquals("prop1", expAsVars.get(0).getName());
+    assertEquals("prop2", expAsVars.get(1).getName());
+  }
+
+  @Test
+  public void testSelectAllPropertiesUsingPrefix() throws Exception {
+    List<ExpAsVar> expAsVars = getExpAsVars("SELECT e.* PREFIX 'a__', e.* PREFIX 'b__' FROM MATCH () -[e]-> ()");
     assertEquals("a__since", expAsVars.get(0).getName());
     assertEquals("a__since", expAsVars.get(0).getNameOriginText());
     assertEquals("a__prop", expAsVars.get(1).getName());
@@ -863,6 +882,14 @@ public class MetadataTest extends AbstractPgqlTest {
     assertEquals("b__PROP", expAsVars.get(8).getNameOriginText());
     assertEquals("b__Typeconflictprop", expAsVars.get(9).getName());
     assertEquals("b__Typeconflictprop", expAsVars.get(9).getNameOriginText());
+  }
+
+  private List<ExpAsVar> getExpAsVars(String query) throws Exception {
+    PgqlResult result = parse(query);
+    assertTrue(result.isQueryValid());
+    SelectQuery selectQuery = (SelectQuery) result.getGraphQuery();
+    List<ExpAsVar> expAsVars = selectQuery.getProjection().getElements();
+    return expAsVars;
   }
 
   @Test
