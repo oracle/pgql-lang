@@ -30,8 +30,8 @@ rules
 rules
 
   trans-query(|variables, metadata):
-    NormalizedQuery(CommonPathExpressions(pathExpressions), selectOrModifyClause, optionalGraphName, graphPattern, groupBy, having, orderBy, limitOffsets, error-messages, version, bindVariableCount) ->
-        NormalizedQuery(CommonPathExpressions(pathExpressions'), selectOrModifyClause', optionalGraphName, graphPattern'', groupBy', having', orderBy', limitOffsets, error-messages, version, bindVariableCount)
+    NormalizedQuery(CommonPathExpressions(pathExpressions), selectOrModifyClause, optionalGraphName, graphPattern, groupBy, having, orderBy, limitOffsets, error-messages, version, bindVariableCount, selectinAllVariables) ->
+        NormalizedQuery(CommonPathExpressions(pathExpressions'), selectOrModifyClause', optionalGraphName, graphPattern'', groupBy', having', orderBy', limitOffsets, error-messages, version, bindVariableCount, selectinAllVariables)
     with variables' := <guarantee-size-two-or-more> variables
 
        // PATH

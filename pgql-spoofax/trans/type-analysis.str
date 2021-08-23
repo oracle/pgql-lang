@@ -17,8 +17,8 @@ rules
               ?AstPlusMetadata(ast, metadata); !ast; add-types-to-query(|metadata, []); !AstPlusMetadata(<id>, metadata)
 
   add-types-to-query(|metadata, variablesPlusTypes):
-      NormalizedQuery(CommonPathExpressions(pathExpressions), selectOrModifyClause, optionalGraphName, graphPattern, groupBy, having, orderBy, limitOffsets, error-messages, version, bindVariableCount) ->
-        NormalizedQuery(CommonPathExpressions(pathExpressions'), selectOrModifyClause', optionalGraphName, graphPattern', groupBy', having', orderBy', limitOffsets, error-messages, version, bindVariableCount)
+      NormalizedQuery(CommonPathExpressions(pathExpressions), selectOrModifyClause, optionalGraphName, graphPattern, groupBy, having, orderBy, limitOffsets, error-messages, version, bindVariableCount, selectinAllVariables) ->
+        NormalizedQuery(CommonPathExpressions(pathExpressions'), selectOrModifyClause', optionalGraphName, graphPattern', groupBy', having', orderBy', limitOffsets, error-messages, version, bindVariableCount, selectinAllVariables)
     with // PATH
          pathExpressions' := <map(add-types-to-path-expression(|metadata))> pathExpressions
 
@@ -219,7 +219,7 @@ rules // subqueries
   add-types-to-subquery(|metadata, variablesPlusTypes, constraints):
     query -> (query', type)
     with query' := <add-types-to-query(|metadata, variablesPlusTypes)> query
-       ; if <?NormalizedQuery(_, SelectClause(_, ExpAsVars([ExpAsVar(ExpressionPlusType(_, Type(t)), _, _, _)])), _, _, _, _, _, _, _, _, _)> query'
+       ; if <?NormalizedQuery(_, SelectClause(_, ExpAsVars([ExpAsVar(ExpressionPlusType(_, Type(t)), _, _, _)])), _, _, _, _, _, _, _, _, _, _)> query'
          then type := Type(t)
          else type := UnknownType()
          end
