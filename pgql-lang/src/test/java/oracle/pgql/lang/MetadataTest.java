@@ -74,6 +74,22 @@ public class MetadataTest extends AbstractPgqlTest {
   }
 
   @Test
+  public void testAllowReferencingAnyProperty() throws Exception {
+    PgqlResult result = parse("SELECT n.firstName FROM MATCH (n:University)");
+    assertTrue(result.getErrorMessages().contains("Property does not exist for any of the labels"));
+
+    result = parse("/*ALLOW_REFERENCING_ANY_PROPERTY*/ SELECT n.firstName FROM MATCH (n:University)");
+    assertTrue(result.isQueryValid());
+
+    result = parse("SELECT e.amount FROM MATCH () -[e:worksFor]-> () ON financialNetwork");
+    assertTrue(result.getErrorMessages().contains("Property does not exist for any of the labels"));
+
+    result = parse(
+        "/*ALLOW_REFERENCING_ANY_PROPERTY*/ SELECT e.amount FROM MATCH () -[e:worksFor]-> () ON financialNetwork");
+    assertTrue(result.isQueryValid());
+  }
+
+  @Test
   public void testLabelDisjunction() throws Exception {
     PgqlResult result = parse("SELECT n.firstName FROM MATCH (n:Person|NotExists)");
     assertTrue(result.getErrorMessages().contains("Vertex label does not exist"));
@@ -423,17 +439,21 @@ public class MetadataTest extends AbstractPgqlTest {
     assertTrue(result.getErrorMessages().contains("BOOLEAN expected but a STRING was given"));
 
     result = parse("SELECT CASE WHEN true THEN n.numericProp ELSE 'abc' END FROM MATCH (n)");
-    assertTrue(result.getErrorMessages().contains("Expression of a type compatible with DOUBLE expected but a STRING was given"));
+    assertTrue(result.getErrorMessages()
+        .contains("Expression of a type compatible with DOUBLE expected but a STRING was given"));
 
     result = parse("SELECT CASE WHEN true THEN n.firstName ELSE n.dob END FROM MATCH (n)");
-    assertTrue(result.getErrorMessages().contains("Expression of a type compatible with STRING expected but a DATE was given"));
+    assertTrue(result.getErrorMessages()
+        .contains("Expression of a type compatible with STRING expected but a DATE was given"));
 
     result = parse("SELECT CASE WHEN true THEN n.dob ELSE n.firstName END FROM MATCH (n)");
-    assertTrue(result.getErrorMessages().contains("Expression of a type compatible with DATE expected but a STRING was given"));
+    assertTrue(result.getErrorMessages()
+        .contains("Expression of a type compatible with DATE expected but a STRING was given"));
 
     result = parse(
         "SELECT CASE WHEN true THEN n.dob WHEN n.firstName IS NULL THEN DATE '1970-01-01' ELSE n.firstName END FROM MATCH (n)");
-    assertTrue(result.getErrorMessages().contains("Expression of a type compatible with DATE expected but a STRING was given"));
+    assertTrue(result.getErrorMessages()
+        .contains("Expression of a type compatible with DATE expected but a STRING was given"));
 
     result = parse("SELECT CASE n.firstName WHEN 123 THEN true ELSE false END FROM MATCH (n)");
     assertTrue(result.getErrorMessages().contains("The operator = is undefined for the argument types STRING, LONG"));
