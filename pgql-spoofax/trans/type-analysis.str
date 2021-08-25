@@ -109,7 +109,9 @@ rules // property references
     exp@PropRef(VarRef(_), _) -> ExpressionPlusType(exp, UnknownType())
 
   simplify-label-expression(|varRefOriginPosition):
-    FunctionCall(None(), Identifier("has_label", _), [ VarRef(_, varRefOriginPosition), Identifier(label, _)]) -> label
+    FunctionCall(None(), Identifier(functionName, _), [ VarRef(_, varRefOriginPosition), identifierOrString]) -> label
+    where <?"has_label" + ?"HAS_LABEL"> functionName
+        ; label := <?Identifier(<id>, _) + ?String(<id>)> identifierOrString
 
   simplify-label-expression(|varRefOriginPosition):
     Or(a, b) -> LabelOr(a', b')

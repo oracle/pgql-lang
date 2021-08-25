@@ -18,6 +18,9 @@ public class MetadataTest extends AbstractPgqlTest {
     PgqlResult result = parse("SELECT * FROM MATCH (n:NotExists)");
     assertTrue(result.getErrorMessages(), result.getErrorMessages().contains("Vertex label does not exist"));
 
+    result = parse("SELECT * FROM MATCH (n) WHERE has_label(n, 'NotExists')");
+    assertTrue(result.getErrorMessages(), result.getErrorMessages().contains("Vertex label does not exist"));
+
     result = parse("SELECT * FROM MATCH (n:\"Person\")");
     assertTrue(result.isQueryValid());
 
@@ -28,6 +31,9 @@ public class MetadataTest extends AbstractPgqlTest {
   @Test
   public void testEdgeLabel() throws Exception {
     PgqlResult result = parse("SELECT * FROM MATCH () -[e:NotExists]-> ()");
+    assertTrue(result.getErrorMessages().contains("Edge label does not exist"));
+
+    result = parse("SELECT * FROM MATCH () -[e]-> () WHERE has_label(e, 'NotExists')");
     assertTrue(result.getErrorMessages().contains("Edge label does not exist"));
 
     result = parse("SELECT * FROM MATCH () -[e:\"knows\"]-> ()");
@@ -84,6 +90,9 @@ public class MetadataTest extends AbstractPgqlTest {
     result = parse("SELECT e.since FROM MATCH () -[e:knows|notExists]-> ()");
     assertTrue(result.getErrorMessages().contains("Edge label does not exist"));
 
+    result = parse("SELECT e.since FROM MATCH () -[e]-> () WHERE has_label(e, 'KNOWS') OR has_label(e, 'notExists')");
+    assertTrue(result.getErrorMessages().contains("Edge label does not exist"));
+
     result = parse("SELECT e.since FROM MATCH () -[e:knows|studyAt]-> ()");
     assertTrue(result.isQueryValid());
   }
@@ -126,7 +135,13 @@ public class MetadataTest extends AbstractPgqlTest {
     result = parse("SELECT * FROM MATCH (:notExists) ON financialNetwork");
     assertTrue(result.getErrorMessages().contains("Vertex label does not exist"));
 
+    result = parse("SELECT * FROM MATCH (n) ON financialNetwork WHERE has_label(n, 'notExists')");
+    assertTrue(result.getErrorMessages().contains("Vertex label does not exist"));
+
     result = parse("SELECT * FROM MATCH () -[:notExists]-> () ON financialNetwork");
+    assertTrue(result.getErrorMessages().contains("Edge label does not exist"));
+
+    result = parse("SELECT * FROM MATCH () -[e]-> () ON financialNetwork WHERE has_label(e, 'notExists')");
     assertTrue(result.getErrorMessages().contains("Edge label does not exist"));
 
     result = parse("SELECT * FROM MATCH (:notExists) ON \"financialNetwork\"");
@@ -423,17 +438,21 @@ public class MetadataTest extends AbstractPgqlTest {
     assertTrue(result.getErrorMessages().contains("BOOLEAN expected but a STRING was given"));
 
     result = parse("SELECT CASE WHEN true THEN n.numericProp ELSE 'abc' END FROM MATCH (n)");
-    assertTrue(result.getErrorMessages().contains("Expression of a type compatible with DOUBLE expected but a STRING was given"));
+    assertTrue(result.getErrorMessages()
+        .contains("Expression of a type compatible with DOUBLE expected but a STRING was given"));
 
     result = parse("SELECT CASE WHEN true THEN n.firstName ELSE n.dob END FROM MATCH (n)");
-    assertTrue(result.getErrorMessages().contains("Expression of a type compatible with STRING expected but a DATE was given"));
+    assertTrue(result.getErrorMessages()
+        .contains("Expression of a type compatible with STRING expected but a DATE was given"));
 
     result = parse("SELECT CASE WHEN true THEN n.dob ELSE n.firstName END FROM MATCH (n)");
-    assertTrue(result.getErrorMessages().contains("Expression of a type compatible with DATE expected but a STRING was given"));
+    assertTrue(result.getErrorMessages()
+        .contains("Expression of a type compatible with DATE expected but a STRING was given"));
 
     result = parse(
         "SELECT CASE WHEN true THEN n.dob WHEN n.firstName IS NULL THEN DATE '1970-01-01' ELSE n.firstName END FROM MATCH (n)");
-    assertTrue(result.getErrorMessages().contains("Expression of a type compatible with DATE expected but a STRING was given"));
+    assertTrue(result.getErrorMessages()
+        .contains("Expression of a type compatible with DATE expected but a STRING was given"));
 
     result = parse("SELECT CASE n.firstName WHEN 123 THEN true ELSE false END FROM MATCH (n)");
     assertTrue(result.getErrorMessages().contains("The operator = is undefined for the argument types STRING, LONG"));
