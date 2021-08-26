@@ -100,9 +100,13 @@ rules // property references
 
   add-type(|metadata, variablesPlusTypes, constraints):
     exp@PropRef(VarRef(_, varRefOriginPosition), Identifier(propName, _)) -> ExpressionPlusType(exp, propType)
-    with elementType := <fetch-elem(?VariablePlusType(varRefOriginPosition, dereferencedOriginPosition, <id>)) <+ !UnknownType()> variablesPlusTypes
+    with <debug> exp    
+       ; elementType := <fetch-elem(?VariablePlusType(varRefOriginPosition, dereferencedOriginPosition, <id>)) <+ !UnknownType()> variablesPlusTypes
+       ; <debug> elementType
        ; labelExpression := <filter(simplify-label-expression(|dereferencedOriginPosition)); (?[]; !All() <+ to-label-conjunction)> constraints
+       ; <debug> labelExpression
        ; propType := <get-property-type-from-label-expression(|elementType, propName, metadata)> labelExpression
+       ; <debug> propType
 
   // unresolved variable
   add-type(|metadata, variablesPlusTypes, constraints):
