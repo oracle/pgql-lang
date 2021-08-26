@@ -104,6 +104,16 @@ public class MetadataTest extends AbstractPgqlTest {
   }
 
   @Test
+  public void testPropertyReferenceInSubquery() throws Exception {
+    PgqlResult result = parse("SELECT EXISTS ( SELECT n.firstName FROM MATCH (m) ) FROM MATCH (n:University)");
+    assertTrue(result.getErrorMessages().contains("Property does not exist for any of the labels"));
+
+    result = parse(
+        "SELECT EXISTS ( SELECT * FROM MATCH (m) ON financialNetwork WHERE e.amount > 0 ) FROM MATCH () -[e:worksFor]-> () ON financialNetwork");
+    assertTrue(result.getErrorMessages().contains("Property does not exist for any of the labels"));
+  }
+
+  @Test
   public void testInsertUpdate() throws Exception {
     PgqlResult result = parse("INSERT VERTEX v LABELS ( Person ) PROPERTIES ( v.firstName = 'Pete' )");
     assertTrue(result.isQueryValid());
@@ -876,7 +886,8 @@ public class MetadataTest extends AbstractPgqlTest {
 
   @Test
   public void testSelectAllPropertiesUsingPrefix() throws Exception {
-    List<ExpAsVar> expAsVars = getExpAsVars("SELECT e.*/*BETA*/ PREFIX 'a__', e.* PREFIX 'b__' FROM MATCH () -[e]-> ()");
+    List<ExpAsVar> expAsVars = getExpAsVars(
+        "SELECT e.*/*BETA*/ PREFIX 'a__', e.* PREFIX 'b__' FROM MATCH () -[e]-> ()");
     assertEquals("a__since", expAsVars.get(0).getName());
     assertEquals("a__since", expAsVars.get(0).getNameOriginText());
     assertEquals("a__prop", expAsVars.get(1).getName());

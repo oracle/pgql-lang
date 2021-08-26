@@ -14,9 +14,9 @@ imports
 rules
 
   add-types = not(?AstPlusMetadata(_, _)) <+ // we don't perform any type anlaysis for DDL for now
-              ?AstPlusMetadata(ast, metadata); !ast; add-types-to-query(|metadata, []); !AstPlusMetadata(<id>, metadata)
+              ?AstPlusMetadata(ast, metadata); !ast; add-types-to-query(|metadata, [], []); !AstPlusMetadata(<id>, metadata)
 
-  add-types-to-query(|metadata, variablesPlusTypes):
+  add-types-to-query(|metadata, variablesPlusTypes, constraintsFromOuterQuery):
       NormalizedQuery(CommonPathExpressions(pathExpressions), selectOrModifyClause, optionalGraphName, graphPattern, groupBy, having, orderBy, limitOffsets, error-messages, version, bindVariableCount, selectinAllVariables) ->
         NormalizedQuery(CommonPathExpressions(pathExpressions'), selectOrModifyClause', optionalGraphName, graphPattern', groupBy', having', orderBy', limitOffsets, error-messages, version, bindVariableCount, selectinAllVariables)
     with // PATH
@@ -27,7 +27,7 @@ rules
          then verticesWithTypes := <collect-vertices-with-types(?Vertex(_, <id>, _))> (vertices, connections)
             ; edgesWithTypes := <collect-edges-with-types(?Edge(_, _, _, _, <id>, _))> connections
             ; variablesPlusTypes' := <conc> (variablesPlusTypes, verticesWithTypes, edgesWithTypes)
-            ; constraints := <collect-in-outer-query(?Constraints(<id>)); concat> graphPattern
+            ; constraints := <conc> (constraintsFromOuterQuery, <collect-in-outer-query(?Constraints(<id>)); concat> graphPattern)
             ; graphPattern' := <alltd(add-type(|metadata, variablesPlusTypes', constraints))> graphPattern
          else variablesPlusTypes' := variablesPlusTypes
             ; graphPattern' := graphPattern
@@ -218,7 +218,7 @@ rules // subqueries
 
   add-types-to-subquery(|metadata, variablesPlusTypes, constraints):
     query -> (query', type)
-    with query' := <add-types-to-query(|metadata, variablesPlusTypes)> query
+    with query' := <add-types-to-query(|metadata, variablesPlusTypes, constraints)> query
        ; if <?NormalizedQuery(_, SelectClause(_, ExpAsVars([ExpAsVar(ExpressionPlusType(_, Type(t)), _, _, _)])), _, _, _, _, _, _, _, _, _, _)> query'
          then type := Type(t)
          else type := UnknownType()
