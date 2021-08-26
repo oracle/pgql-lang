@@ -80,6 +80,22 @@ public class MetadataTest extends AbstractPgqlTest {
   }
 
   @Test
+  public void testAllowReferencingAnyProperty() throws Exception {
+    PgqlResult result = parse("SELECT n.firstName FROM MATCH (n:University)");
+    assertTrue(result.getErrorMessages().contains("Property does not exist for any of the labels"));
+
+    result = parse("/*ALLOW_REFERENCING_ANY_PROPERTY*/ SELECT n.firstName FROM MATCH (n:University)");
+    assertTrue(result.isQueryValid());
+
+    result = parse("SELECT e.amount FROM MATCH () -[e:worksFor]-> () ON financialNetwork");
+    assertTrue(result.getErrorMessages().contains("Property does not exist for any of the labels"));
+
+    result = parse(
+        "/*ALLOW_REFERENCING_ANY_PROPERTY*/ SELECT e.amount FROM MATCH () -[e:worksFor]-> () ON financialNetwork");
+    assertTrue(result.isQueryValid());
+  }
+
+  @Test
   public void testLabelDisjunction() throws Exception {
     PgqlResult result = parse("SELECT n.firstName FROM MATCH (n:Person|NotExists)");
     assertTrue(result.getErrorMessages().contains("Vertex label does not exist"));
