@@ -89,6 +89,8 @@ public class Pgql implements Closeable {
 
   private static final PgqlVersion LATEST_VERSION = PgqlVersion.V_1_3_OR_UP;
 
+  private static String ALLOW_REFERENCING_ANY_PROPERTY_FLAG = "/*ALLOW_REFERENCING_ANY_PROPERTY*/";
+
   private static boolean isGloballyInitialized = false;
 
   private static Spoofax spoofax;
@@ -252,7 +254,9 @@ public class Pgql implements Closeable {
 
       context = spoofax.contextService.getTemporary(dummyFile, dummyProject, pgqlLang);
 
-      ISpoofaxParseUnit extendedParseUnit = addMetadata(parseResult, metadataProvider, spoofax.termFactory);
+      boolean allowReferencingAnyProperty = queryString.contains(ALLOW_REFERENCING_ANY_PROPERTY_FLAG);
+      ISpoofaxParseUnit extendedParseUnit = addMetadata(parseResult, metadataProvider, spoofax.termFactory,
+          allowReferencingAnyProperty);
 
       ISpoofaxAnalyzeUnit analysisResult = null;
       try (IClosableLock lock = context.write()) {

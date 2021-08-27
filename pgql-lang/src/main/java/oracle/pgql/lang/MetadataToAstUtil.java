@@ -59,7 +59,7 @@ public class MetadataToAstUtil {
   }
 
   static ISpoofaxParseUnit addMetadata(ISpoofaxParseUnit parseResult, AbstractMetadataProvider metadataProvider,
-      ITermFactory f) {
+      ITermFactory f, boolean allowReferencingAnyProperty) {
     PgqlVersion pgqlVersion;
     switch (((IStrategoAppl) parseResult.ast()).getConstructor().getName()) {
       case "Query":
@@ -176,6 +176,10 @@ public class MetadataToAstUtil {
     List<IStrategoTerm> functionSignatureTerms = getFunctionSignatures(functionSignatures, f);
     if (!functionSignatureTerms.isEmpty()) {
       metadataTerm.add(f.makeAppl("FunctionSignatures", f.makeList(functionSignatureTerms)));
+    }
+
+    if (allowReferencingAnyProperty) {
+      metadataTerm.add(f.makeAppl("AllowReferencingAnyProperty"));
     }
 
     IStrategoAppl metadataExtendedAst = f.makeAppl(AST_PLUS_METADATA_CONSTRUCTOR_NAME, parseResult.ast(),
