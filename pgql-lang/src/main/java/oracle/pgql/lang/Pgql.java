@@ -89,8 +89,6 @@ public class Pgql implements Closeable {
 
   private static final PgqlVersion LATEST_VERSION = PgqlVersion.V_1_3_OR_UP;
 
-  private static final String BETA_FLAG = "/*BETA*/";
-
   private static boolean isGloballyInitialized = false;
 
   private static Spoofax spoofax;
@@ -294,10 +292,6 @@ public class Pgql implements Closeable {
 
       int bindVariableCount = getBindVariableCount(analyizedAst, statement);
       boolean querySelectsAllProperties = querySelectsAllProperties(analyizedAst, statement);
-
-      if (querySelectsAllProperties && !queryString.contains(BETA_FLAG)) {
-        throw new PgqlException("SELECT x.* is not supported");
-      }
 
       return new PgqlResult(queryString, queryValid, prettyMessages, statement, parseResult, pgqlVersion,
           bindVariableCount, querySelectsAllProperties);

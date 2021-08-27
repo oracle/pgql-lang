@@ -781,36 +781,36 @@ public class MetadataTest extends AbstractPgqlTest {
 
   @Test
   public void testSelectAllPropertiesNoMetadata() throws Exception {
-    PgqlResult result = pgql.parse("SELECT n.*/*BETA*/ FROM MATCH (n)");
+    PgqlResult result = pgql.parse("SELECT n.* FROM MATCH (n)");
     assertTrue(
         result.getErrorMessages().contains("Cannot select all properties because the graph schema is not provided"));
 
-    result = pgql.parse("SELECT e.*/*BETA*/ FROM MATCH () -[e]-> ()");
+    result = pgql.parse("SELECT e.* FROM MATCH () -[e]-> ()");
     assertTrue(
         result.getErrorMessages().contains("Cannot select all properties because the graph schema is not provided"));
   }
 
   @Test
   public void testSelectAllPropertieDuplicateColumnNames() throws Exception {
-    PgqlResult result = parse("SELECT e.*/*BETA*/, e.* FROM MATCH () -[e]-> ()");
+    PgqlResult result = parse("SELECT e.*, e.* FROM MATCH () -[e]-> ()");
     assertTrue(result.getErrorMessages().contains("Duplicate column name in SELECT"));
 
-    result = parse("SELECT v.*/*BETA*/, v.* FROM MATCH (v:Person)");
+    result = parse("SELECT v.*, v.* FROM MATCH (v:Person)");
     assertTrue(result.getErrorMessages().contains("Duplicate column name in SELECT"));
   }
 
   @Test
   public void testColumnOrderPreservation1() throws Exception {
-    PgqlResult result = parse("SELECT e.*/*BETA*/ FROM MATCH () -[e]-> ()");
+    PgqlResult result = parse("SELECT e.* FROM MATCH () -[e]-> ()");
     testColumnOrderPreservation1Helper(result);
 
-    result = parse("SELECT e.*/*BETA*/ FROM MATCH () -[e:knows|studyAt]-> ()");
+    result = parse("SELECT e.* FROM MATCH () -[e:knows|studyAt]-> ()");
     testColumnOrderPreservation1Helper(result);
 
-    result = parse("SELECT e.*/*BETA*/ FROM MATCH () -[e:studyAt|knows]-> ()");
+    result = parse("SELECT e.* FROM MATCH () -[e:studyAt|knows]-> ()");
     testColumnOrderPreservation1Helper(result);
 
-    result = parse("SELECT e.*/*BETA*/ FROM MATCH () -[e:studyAt|studyAt|knows|knows]-> ()");
+    result = parse("SELECT e.* FROM MATCH () -[e:studyAt|studyAt|knows|knows]-> ()");
     testColumnOrderPreservation1Helper(result);
   }
 
@@ -833,20 +833,20 @@ public class MetadataTest extends AbstractPgqlTest {
 
   @Test
   public void testColumnOrderPreservation2() throws Exception {
-    PgqlResult result = parse("SELECT v.*/*BETA*/ FROM MATCH (v) ON financialNetwork");
+    PgqlResult result = parse("SELECT v.* FROM MATCH (v) ON financialNetwork");
     testColumnOrderPreservation2Helper(result);
 
-    result = parse("SELECT v.*/*BETA*/ FROM MATCH (v:Person|Account) ON financialNetwork");
+    result = parse("SELECT v.* FROM MATCH (v:Person|Account) ON financialNetwork");
     testColumnOrderPreservation2Helper(result);
 
-    result = parse("SELECT v.*/*BETA*/ FROM MATCH (v:Account|Person) ON financialNetwork");
+    result = parse("SELECT v.* FROM MATCH (v:Account|Person) ON financialNetwork");
     testColumnOrderPreservation2Helper(result);
 
     result = parse(
-        "SELECT v.*/*BETA*/ FROM MATCH (v:Person|Account) ON financialNetwork,  MATCH (v:Account|Person) ON financialNetwork");
+        "SELECT v.* FROM MATCH (v:Person|Account) ON financialNetwork,  MATCH (v:Account|Person) ON financialNetwork");
     testColumnOrderPreservation2Helper(result);
 
-    result = parse("SELECT v.*/*BETA*/ FROM MATCH (v:Person|Person|Account|Account) ON financialNetwork");
+    result = parse("SELECT v.* FROM MATCH (v:Person|Person|Account|Account) ON financialNetwork");
     testColumnOrderPreservation2Helper(result);
   }
 
@@ -863,31 +863,30 @@ public class MetadataTest extends AbstractPgqlTest {
 
   @Test
   public void testColumnOrderPreservation3() throws Exception {
-    List<ExpAsVar> expAsVars = getExpAsVars("SELECT n.*/*BETA*/ FROM MATCH (n) ON graph3");
+    List<ExpAsVar> expAsVars = getExpAsVars("SELECT n.* FROM MATCH (n) ON graph3");
     assertEquals("prop1", expAsVars.get(0).getName());
     assertEquals("prop2", expAsVars.get(1).getName());
 
-    expAsVars = getExpAsVars("SELECT n.*/*BETA*/ FROM MATCH (n:Label1) ON graph3");
+    expAsVars = getExpAsVars("SELECT n.* FROM MATCH (n:Label1) ON graph3");
     assertEquals("prop1", expAsVars.get(0).getName());
     assertEquals("prop2", expAsVars.get(1).getName());
 
-    expAsVars = getExpAsVars("SELECT n.*/*BETA*/ FROM MATCH (n:Label2) ON graph3");
+    expAsVars = getExpAsVars("SELECT n.* FROM MATCH (n:Label2) ON graph3");
     assertEquals("prop2", expAsVars.get(0).getName());
     assertEquals("prop1", expAsVars.get(1).getName());
 
-    expAsVars = getExpAsVars("SELECT n.*/*BETA*/ FROM MATCH (n:Label1|Label2) ON graph3");
+    expAsVars = getExpAsVars("SELECT n.* FROM MATCH (n:Label1|Label2) ON graph3");
     assertEquals("prop1", expAsVars.get(0).getName());
     assertEquals("prop2", expAsVars.get(1).getName());
 
-    expAsVars = getExpAsVars("SELECT n.*/*BETA*/ FROM MATCH (n:Label2|Label1) ON graph3");
+    expAsVars = getExpAsVars("SELECT n.* FROM MATCH (n:Label2|Label1) ON graph3");
     assertEquals("prop1", expAsVars.get(0).getName());
     assertEquals("prop2", expAsVars.get(1).getName());
   }
 
   @Test
   public void testSelectAllPropertiesUsingPrefix() throws Exception {
-    List<ExpAsVar> expAsVars = getExpAsVars(
-        "SELECT e.*/*BETA*/ PREFIX 'a__', e.* PREFIX 'b__' FROM MATCH () -[e]-> ()");
+    List<ExpAsVar> expAsVars = getExpAsVars("SELECT e.* PREFIX 'a__', e.* PREFIX 'b__' FROM MATCH () -[e]-> ()");
     assertEquals("a__since", expAsVars.get(0).getName());
     assertEquals("a__since", expAsVars.get(0).getNameOriginText());
     assertEquals("a__prop", expAsVars.get(1).getName());
@@ -920,7 +919,7 @@ public class MetadataTest extends AbstractPgqlTest {
 
   @Test
   public void testSelectAllPropertieUnresolvedVariable() throws Exception {
-    PgqlResult result = parse("SELECT x.*/*BETA*/ FROM MATCH (v)");
+    PgqlResult result = parse("SELECT x.* FROM MATCH (v)");
     assertTrue(result.getErrorMessages().contains("Unresolved variable"));
   }
 }
