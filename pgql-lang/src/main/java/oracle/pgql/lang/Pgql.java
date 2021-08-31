@@ -126,7 +126,12 @@ public class Pgql implements Closeable {
       Runtime.getRuntime().addShutdownHook(new Thread(() -> {
         // clean up temporary files in case the process gets stopped or in case the PGQL instances cannot be closed for
         // other reasons
-        cleanUp();
+        synchronized (lock) {
+          if (isGloballyInitialized) {
+            instances.clear();
+            cleanUp();
+          }
+        }
       }));
 
       // initialize a new Spoofax
@@ -465,14 +470,14 @@ public class Pgql implements Closeable {
       isInitialized = false;
       instances.remove(this);
       if (instances.isEmpty()) {
-        isGloballyInitialized = false;
-        LOG.info("closing the global PGQL instance");
         cleanUp();
       }
     }
   }
 
   private void cleanUp() {
+    LOG.info("closing the global PGQL instance");
+    isGloballyInitialized = false;
     if (System.getProperty("os.name").startsWith("Windows")) {
       return; // Windows issue, also see http://yellowgrass.org/issue/Spoofax/88
     }
