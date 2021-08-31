@@ -18,6 +18,9 @@ public class MetadataTest extends AbstractPgqlTest {
     PgqlResult result = parse("SELECT * FROM MATCH (n:NotExists)");
     assertTrue(result.getErrorMessages(), result.getErrorMessages().contains("Vertex label does not exist"));
 
+    result = parse("SELECT * FROM MATCH (n) WHERE has_label(n, 'NotExists')");
+    assertTrue(result.getErrorMessages(), result.getErrorMessages().contains("Vertex label does not exist"));
+
     result = parse("SELECT * FROM MATCH (n:\"Person\")");
     assertTrue(result.isQueryValid());
 
@@ -28,6 +31,9 @@ public class MetadataTest extends AbstractPgqlTest {
   @Test
   public void testEdgeLabel() throws Exception {
     PgqlResult result = parse("SELECT * FROM MATCH () -[e:NotExists]-> ()");
+    assertTrue(result.getErrorMessages().contains("Edge label does not exist"));
+
+    result = parse("SELECT * FROM MATCH () -[e]-> () WHERE has_label(e, 'NotExists')");
     assertTrue(result.getErrorMessages().contains("Edge label does not exist"));
 
     result = parse("SELECT * FROM MATCH () -[e:\"knows\"]-> ()");
@@ -74,6 +80,22 @@ public class MetadataTest extends AbstractPgqlTest {
   }
 
   @Test
+  public void testAllowReferencingAnyProperty() throws Exception {
+    PgqlResult result = parse("SELECT n.firstName FROM MATCH (n:University)");
+    assertTrue(result.getErrorMessages().contains("Property does not exist for any of the labels"));
+
+    result = parse("/*ALLOW_REFERENCING_ANY_PROPERTY*/ SELECT n.firstName FROM MATCH (n:University)");
+    assertTrue(result.isQueryValid());
+
+    result = parse("SELECT e.amount FROM MATCH () -[e:worksFor]-> () ON financialNetwork");
+    assertTrue(result.getErrorMessages().contains("Property does not exist for any of the labels"));
+
+    result = parse(
+        "/*ALLOW_REFERENCING_ANY_PROPERTY*/ SELECT e.amount FROM MATCH () -[e:worksFor]-> () ON financialNetwork");
+    assertTrue(result.isQueryValid());
+  }
+
+  @Test
   public void testLabelDisjunction() throws Exception {
     PgqlResult result = parse("SELECT n.firstName FROM MATCH (n:Person|NotExists)");
     assertTrue(result.getErrorMessages().contains("Vertex label does not exist"));
@@ -82,6 +104,9 @@ public class MetadataTest extends AbstractPgqlTest {
     assertTrue(result.isQueryValid());
 
     result = parse("SELECT e.since FROM MATCH () -[e:knows|notExists]-> ()");
+    assertTrue(result.getErrorMessages().contains("Edge label does not exist"));
+
+    result = parse("SELECT e.since FROM MATCH () -[e]-> () WHERE has_label(e, 'KNOWS') OR has_label(e, 'notExists')");
     assertTrue(result.getErrorMessages().contains("Edge label does not exist"));
 
     result = parse("SELECT e.since FROM MATCH () -[e:knows|studyAt]-> ()");
@@ -126,7 +151,13 @@ public class MetadataTest extends AbstractPgqlTest {
     result = parse("SELECT * FROM MATCH (:notExists) ON financialNetwork");
     assertTrue(result.getErrorMessages().contains("Vertex label does not exist"));
 
+    result = parse("SELECT * FROM MATCH (n) ON financialNetwork WHERE has_label(n, 'notExists')");
+    assertTrue(result.getErrorMessages().contains("Vertex label does not exist"));
+
     result = parse("SELECT * FROM MATCH () -[:notExists]-> () ON financialNetwork");
+    assertTrue(result.getErrorMessages().contains("Edge label does not exist"));
+
+    result = parse("SELECT * FROM MATCH () -[e]-> () ON financialNetwork WHERE has_label(e, 'notExists')");
     assertTrue(result.getErrorMessages().contains("Edge label does not exist"));
 
     result = parse("SELECT * FROM MATCH (:notExists) ON \"financialNetwork\"");

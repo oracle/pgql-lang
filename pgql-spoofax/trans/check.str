@@ -554,8 +554,10 @@ rules // MODIFY
          end
 
   get-unresolved-label(|varDefinitionOriginOffsets, labels):
-    FunctionCall(None(), Identifier("has_label", _), [ ExpressionPlusType(VarRef(_, originOffset), _), Identifier(labelReference, _) ]) -> labelReference
-    where <elem> (originOffset, varDefinitionOriginOffsets)
+    FunctionCall(None(), Identifier(functionName, _), [ ExpressionPlusType(VarRef(_, originOffset), _), identifierOrString ]) -> labelReference
+    where <?"has_label" + ?"HAS_LABEL"> functionName
+        ; labelReference := <?Identifier(<id>, _) + ?ExpressionPlusType(String(<id>), _)> identifierOrString
+        ; <elem> (originOffset, varDefinitionOriginOffsets)
         ; <not(label-exists(|labels))> labelReference
 
   nabl-constraint(|ctx, metadata):

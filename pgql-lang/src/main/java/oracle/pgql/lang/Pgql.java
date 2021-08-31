@@ -86,6 +86,8 @@ public class Pgql implements Closeable {
 
   private static final PgqlVersion LATEST_VERSION = PgqlVersion.V_1_3_OR_UP;
 
+  private static String ALLOW_REFERENCING_ANY_PROPERTY_FLAG = "/*ALLOW_REFERENCING_ANY_PROPERTY*/";
+
   private static boolean isGloballyInitialized = false;
 
   private static Spoofax spoofax;
@@ -121,6 +123,17 @@ public class Pgql implements Closeable {
 
   private void initializeGlobalInstance(SpoofaxModule spoofaxModule, String tmpDir) throws PgqlException {
     try {
+      Runtime.getRuntime().addShutdownHook(new Thread(() -> {
+        // clean up temporary files in case the process gets stopped or in case the PGQL instances cannot be closed for
+        // other reasons
+        synchronized (lock) {
+          if (isGloballyInitialized) {
+            instances.clear();
+            cleanUp();
+          }
+        }
+      }));
+
       // initialize a new Spoofax
       spoofax = new Spoofax(spoofaxModule);
 
@@ -243,7 +256,9 @@ public class Pgql implements Closeable {
 
       context = spoofax.contextService.getTemporary(dummyFile, dummyProject, pgqlLang);
 
-      ISpoofaxParseUnit extendedParseUnit = addMetadata(parseResult, metadataProvider, spoofax.termFactory);
+      boolean allowReferencingAnyProperty = queryString.contains(ALLOW_REFERENCING_ANY_PROPERTY_FLAG);
+      ISpoofaxParseUnit extendedParseUnit = addMetadata(parseResult, metadataProvider, spoofax.termFactory,
+          allowReferencingAnyProperty);
 
       ISpoofaxAnalyzeUnit analysisResult = null;
       try (IClosableLock lock = context.write()) {
@@ -455,21 +470,24 @@ public class Pgql implements Closeable {
       isInitialized = false;
       instances.remove(this);
       if (instances.isEmpty()) {
-        isGloballyInitialized = false;
-        LOG.info("closing the global PGQL instance");
+        cleanUp();
+      }
+    }
+  }
 
-        if (System.getProperty("os.name").startsWith("Windows")) {
-          return; // Windows issue, also see http://yellowgrass.org/issue/Spoofax/88
-        }
+  private void cleanUp() {
+    LOG.info("closing the global PGQL instance");
+    isGloballyInitialized = false;
+    if (System.getProperty("os.name").startsWith("Windows")) {
+      return; // Windows issue, also see http://yellowgrass.org/issue/Spoofax/88
+    }
 
-        if (spoofax != null) {
-          spoofax.close();
-        }
-        if (spoofaxBinaryFile != null) {
-          if (!spoofaxBinaryFile.delete()) {
-            LOG.warn("failed to delete Spoofax binary file: " + spoofaxBinaryFile.getAbsolutePath());
-          }
-        }
+    if (spoofax != null) {
+      spoofax.close();
+    }
+    if (spoofaxBinaryFile != null) {
+      if (!spoofaxBinaryFile.delete()) {
+        LOG.warn("failed to delete Spoofax binary file: " + spoofaxBinaryFile.getAbsolutePath());
       }
     }
   }
