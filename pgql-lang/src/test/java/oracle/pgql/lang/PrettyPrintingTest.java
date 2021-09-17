@@ -582,7 +582,6 @@ public class PrettyPrintingTest extends AbstractPgqlTest {
   @Test
   public void testSchemaQualifiedPackageName() throws Exception {
     String query = "SELECT mySchema.myPackage.myFunction(123), \"mySchema\".\"myPackage\".\"myFunction\"(123) FROM MATCH (n)";
-    System.out.println( pgql.parse(query).getGraphQuery());
     String prettyPrintedQuery = pgql.parse(query).getGraphQuery().toString();
     SelectQuery selectQuery = (SelectQuery) pgql.parse(prettyPrintedQuery).getGraphQuery();
     List<ExpAsVar> expAsVars = selectQuery.getProjection().getElements();
