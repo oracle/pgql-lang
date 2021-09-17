@@ -61,10 +61,10 @@ context-free syntax
 
 context-free syntax // function calls
 
-  Exp.FunctionCall = <<PackageName?><FunctionName>(<{Exp ", "}*>)> {case-insensitive, avoid}
+  Exp.FunctionCall = <<PackageNameDot?><FunctionName>(<{Exp ", "}*>)> {case-insensitive, avoid}
   FunctionName.RegularIdentifier = FUNCTION-NAME
   FunctionName.DelimitedIdentifier = DELIMITED-IDENTIFIER
-  PackageName.PackageName = <<Identifier>.>
+  PackageNameDot.PackageName = <<SchemaNameDot?><Identifier>.>
 
 context-free syntax // Aggregates
 

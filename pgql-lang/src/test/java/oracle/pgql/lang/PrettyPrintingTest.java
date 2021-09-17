@@ -6,12 +6,15 @@ package oracle.pgql.lang;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
 
+import java.util.List;
+
 import org.junit.Test;
 
 import oracle.pgql.lang.ir.QueryExpression.Constant.ConstString;
 import oracle.pgql.lang.ir.QueryExpression.FunctionCall;
 import oracle.pgql.lang.ir.QueryExpression.PropertyAccess;
 import oracle.pgql.lang.ir.SelectQuery;
+import oracle.pgql.lang.ir.ExpAsVar;
 import oracle.pgql.lang.ir.PgqlStatement;
 
 public class PrettyPrintingTest extends AbstractPgqlTest {
@@ -574,6 +577,25 @@ public class PrettyPrintingTest extends AbstractPgqlTest {
   public void testDropExternalSchema() throws Exception {
     String statement = "DROP EXTERNAL SCHEMA \" my schema \"";
     checkRoundTrip(statement);
+  }
+
+  @Test
+  public void testSchemaQualifiedPackageName() throws Exception {
+    String query = "SELECT mySchema.myPackage.myFunction(123), \"mySchema\".\"myPackage\".\"myFunction\"(123) FROM MATCH (n)";
+    System.out.println( pgql.parse(query).getGraphQuery());
+    String prettyPrintedQuery = pgql.parse(query).getGraphQuery().toString();
+    SelectQuery selectQuery = (SelectQuery) pgql.parse(prettyPrintedQuery).getGraphQuery();
+    List<ExpAsVar> expAsVars = selectQuery.getProjection().getElements();
+
+    FunctionCall functionCall1 = (FunctionCall) expAsVars.get(0).getExp();
+    assertEquals("MYSCHEMA", functionCall1.getSchemaName());
+    assertEquals("MYPACKAGE", functionCall1.getPackageName());
+    assertEquals("MYFUNCTION", functionCall1.getFunctionName());
+
+    FunctionCall functionCall2 = (FunctionCall) expAsVars.get(1).getExp();
+    assertEquals("mySchema", functionCall2.getSchemaName());
+    assertEquals("myPackage", functionCall2.getPackageName());
+    assertEquals("myFunction", functionCall2.getFunctionName());
   }
 
   private void checkRoundTrip(String query1) throws PgqlException {

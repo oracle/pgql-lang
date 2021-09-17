@@ -1010,6 +1010,8 @@ public interface QueryExpression {
 
   class FunctionCall implements QueryExpression {
 
+    private String schemaName;
+
     private String packageName;
 
     private String functionName;
@@ -1021,9 +1023,22 @@ public interface QueryExpression {
     }
 
     public FunctionCall(String packageName, String functionName, List<QueryExpression> exps) {
+      this(null, packageName, functionName, exps);
+    }
+
+    public FunctionCall(String schemaName, String packageName, String functionName, List<QueryExpression> exps) {
+      this.schemaName = schemaName;
       this.packageName = packageName;
       this.functionName = functionName;
       this.args = exps;
+    }
+
+    public String getSchemaName() {
+      return schemaName;
+    }
+
+    public void setSchemaName(String schemaName) {
+      this.schemaName = schemaName;
     }
 
     public String getPackageName() {
@@ -1057,9 +1072,10 @@ public interface QueryExpression {
 
     @Override
     public String toString() {
-      String expressions = args.stream().map(QueryExpression::toString).collect(joining(", "));
+      String schemaNamePart = schemaName == null ? "" : printIdentifier(schemaName) + ".";
       String packageNamePart = packageName == null ? "" : printIdentifier(packageName) + ".";
-      return packageNamePart + printIdentifier(functionName) + "(" + expressions + ")";
+      String expressions = args.stream().map(QueryExpression::toString).collect(joining(", "));
+      return schemaNamePart + packageNamePart + printIdentifier(functionName) + "(" + expressions + ")";
     }
 
     @Override
@@ -1086,15 +1102,20 @@ public interface QueryExpression {
           return false;
       } else if (!args.equals(other.args))
         return false;
-      if (functionName == null) {
-        if (other.functionName != null)
+      if (schemaName == null) {
+        if (other.schemaName != null)
           return false;
-      } else if (!functionName.equals(other.functionName))
+      } else if (!schemaName.equals(other.schemaName))
         return false;
       if (packageName == null) {
         if (other.packageName != null)
           return false;
       } else if (!packageName.equals(other.packageName))
+        return false;
+      if (functionName == null) {
+        if (other.functionName != null)
+          return false;
+      } else if (!functionName.equals(other.functionName))
         return false;
       return true;
     }
@@ -1807,7 +1828,7 @@ public interface QueryExpression {
         result += " FOR " + stringLength;
       }
       result += ")";
-      return result; 
+      return result;
     }
 
     @Override
@@ -1906,7 +1927,7 @@ public interface QueryExpression {
             break;
           case AGGR_LISTAGG:
             result = "LISTAGG";
-            separator = ((AggrListagg)this).getSeparator();
+            separator = ((AggrListagg) this).getSeparator();
             if (separator.length() > 0) {
               separator = ", " + printLiteral(separator);
             }
