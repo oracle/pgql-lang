@@ -61,7 +61,7 @@ context-free syntax
 
 context-free syntax // function calls
 
-  Exp.FunctionCall = <<PackageNameDot?><FunctionName>(<{Exp ", "}*>)> {case-insensitive, avoid}
+  Exp.FunctionCall = <<PackageNameDot?><FunctionName>(<{Exp ", "}*>)>
   FunctionName.RegularIdentifier = FUNCTION-NAME
   FunctionName.DelimitedIdentifier = DELIMITED-IDENTIFIER
   PackageNameDot.PackageName = <<SchemaNameDot?><Identifier>.>
@@ -101,17 +101,6 @@ context-free syntax // substring
 
 context-free priorities
 
-  {
-    left:
-      Exp.Legacy10Label
-      Exp.Legacy10Labels
-      Exp.Legacy10HasLabel
-      Exp.Legacy10Id
-      Exp.Legacy10Has
-      Exp.Legacy10InDegree
-      Exp.Legacy10OutDegree
-  }
-  >
   {
     right:
       Exp.UMin
