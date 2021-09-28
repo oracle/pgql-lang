@@ -437,6 +437,9 @@ public class ExampleMetadataProvider extends AbstractMetadataProvider {
     functions.add(new FunctionSignature("myUdfs", "ambiguousFunction", argumentTypes("INTEGER"), "INTEGER"));
     functions.add(new FunctionSignature("MyUdFS", "AmBiguousFuNCtion", argumentTypes("INTEGER"), "DOUBLE"));
 
+    // with schema name
+    functions.add(new FunctionSignature("mySchema", "myPackage", "myFunction", argumentTypes("INTEGER"), "DOUBLE"));
+
     return Optional.of(functions);
   }
 

@@ -174,14 +174,16 @@ rules // functions
     with args' := <alltd(add-type(|metadata, variablesPlusTypes, constraints))> args
        ; func' := <origin-track-forced(!FunctionCall(package, name, args'))> func
        ; if <fetch-elem(?FunctionSignatures(allSignatures))> metadata
-         then package' := <?None() + ?Some(PackageName(Identifier(p, _))); !Some(p)> package
+         then schema' := <?None() <+ ?Some(PackageName(Some(SchemaName(Identifier(<id>, _))), _)); !Some(<id>) <+ !None()> package
+            ; package' := <?None() + ?Some(PackageName(_, Identifier(<id>, _))); !Some(<id>)> package
             ; name' := <?Identifier(<id>, _)> name
             ; if argumentTypes := <map(?ExpressionPlusType(_, Type(<id>)))> args' // make sure all arguments are typed
               then if <is-all-different-function> func
                    then [x|xs] := args'
                       ; type := <map(is-compatible-type(|x, metadata)); !Type("BOOLEAN") <+ !Undefined()> xs // all_different function requires all input types to be compatible with each other
-                   else signaturesForPackage := <filter(?FunctionSignature(package', _, _, _)); not(?[]) <+ map(FunctionSignature(?None() <+ Some(upper-case), id, id, id)); filter(?FunctionSignature(package', _, _, _))> allSignatures
-                      ; signaturesForFunction := <filter(?FunctionSignature(_, name', _, _)); not(?[]) <+ map(FunctionSignature(id, upper-case, id, id)); filter(?FunctionSignature(_, name', _, _))> signaturesForPackage
+                   else signaturesForSchema := <filter(?FunctionSignature(schema', _, _, _, _)); not(?[]) <+ map(FunctionSignature(?None() <+ Some(upper-case), id, id, id, id)); filter(?FunctionSignature(schema', _, _, _, _))> allSignatures
+                      ; signaturesForPackage := <filter(?FunctionSignature(_, package', _, _, _)); not(?[]) <+ map(FunctionSignature(id, ?None() <+ Some(upper-case), id, id, id)); filter(?FunctionSignature(_, package', _, _, _))> signaturesForSchema
+                      ; signaturesForFunction := <filter(?FunctionSignature(_, _, name', _, _)); not(?[]) <+ map(FunctionSignature(id, id, upper-case, id, id)); filter(?FunctionSignature(_, _, name', _, _))> signaturesForPackage
                       ; returnTypes := <get-function-return-types-exact-argument-types(|argumentTypes); not(?[]) <+ // exact match of arguments
                                         get-function-return-types-compatible-argument-types(|metadata, argumentTypes)> signaturesForFunction // union-compatible match of argument types
                       ; numFunctionsFound := <length> returnTypes
@@ -194,12 +196,12 @@ rules // functions
          else type := UnknownType() // function signatures are not provided
          end
 
-  get-function-return-types-exact-argument-types(|argumentTypes) = filter(?FunctionSignature(_, _, argumentTypes, <id>))
+  get-function-return-types-exact-argument-types(|argumentTypes) = filter(?FunctionSignature(_, _, _, argumentTypes, <id>))
 
   get-function-return-types-compatible-argument-types(|metadata, argumentTypes) = filter(get-function-return-type-compatible-argument-types(|metadata, argumentTypes))
 
   get-function-return-type-compatible-argument-types(|metadata, argumentTypes2):
-    t@FunctionSignature(package, name, argumentTypes1, returnType) -> returnType
+    t@FunctionSignature(_, _, _, argumentTypes1, returnType) -> returnType
     with argumentTypes1' := <map(!Type(<id>))> argumentTypes1
        ; argumentTypes2' := <map(!Type(<id>))> argumentTypes2
     where <zip(get-union-type(|metadata); ?Type(_))> (argumentTypes1', argumentTypes2') // this fails if one of the arguments (when paired-up with the ones from the signature) is not union compatible

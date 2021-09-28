@@ -766,6 +766,9 @@ public class MetadataTest extends AbstractPgqlTest {
     result = parse("SELECT myUdfs.ambiguousFunction(123) FROM MATCH (n)");
     assertTrue(result.getErrorMessages()
         .contains("Multiple functions exist that match the specified function name and argument types"));
+
+    result = parse("SELECT mySchema.myPackage.myFunction(4) FROM MATCH (n)");
+    assertTrue(result.isQueryValid());
   }
 
   @Test

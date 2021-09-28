@@ -59,7 +59,6 @@ rules
                          <collect(get-error-for-missing-metadata(|metadata))> ast
                        ); conc> ast;
       result := <
-        alltd(norm-has-prop);
         alltd(norm-pgql10);
       	alltd(norm-BindVariable(|bindVariable-counter));
       	alltd(norm-UMin);
@@ -97,13 +96,21 @@ rules
 
   get-pgql11-deprecation = (?OutConn(None(), _) + ?InConn(None(), _) + ?UndirectedEdge(None(), _)); to-error-message(|"Use [-] instead of [--]")
   get-pgql11-deprecation = ?Pgql10AsignSymbol(); to-error-message(|"Use [AS] instead of [:=]")
-  get-pgql11-deprecation = ?Legacy10Label(_); to-error-message(|"Use [label(x)] instead of [x.label()]")
-  get-pgql11-deprecation = ?Legacy10Labels(_); to-error-message(|"Use [labels(x)] instead of [x.labels()]")
-  get-pgql11-deprecation = ?Legacy10HasLabel(_, _); to-error-message(|"Use [has_label(x, 'lbl')] instead of [x.hasLabel('lbl')]")
-  get-pgql11-deprecation = ?Legacy10Id(_); to-error-message(|"Use [id(x)] instead of [x.id()]")
-  get-pgql11-deprecation = ?Legacy10Has(_, _); to-error-message(|"Use [x.prop IS NOT NULL] instead of [x.has(prop)]")
-  get-pgql11-deprecation = ?Legacy10InDegree(_); to-error-message(|"Use [in_degree(x)] instead of [x.indegree()]")
-  get-pgql11-deprecation = ?Legacy10OutDegree(_); to-error-message(|"Use [out_degree(x)] instead of [x.out_degree()]")
+
+  get-pgql11-deprecation = (?Legacy10Label(_) + get-pgql11-deprecation-helper(|"LABEL", 0, False())); to-error-message(|"Use [label(x)] instead of [x.label()]")
+  get-pgql11-deprecation = (?Legacy10Labels(_) + get-pgql11-deprecation-helper(|"LABELS", 0, False())); to-error-message(|"Use [labels(x)] instead of [x.labels()]")
+  get-pgql11-deprecation = (?Legacy10HasLabel(_, _) + get-pgql11-deprecation-helper(|"HASLABEL", 1, False())); to-error-message(|"Use [has_label(x, 'lbl')] instead of [x.hasLabel('lbl')]")
+  get-pgql11-deprecation = (?Legacy10Id(_) + get-pgql11-deprecation-helper(|"ID", 0, False())); to-error-message(|"Use [id(x)] instead of [x.id()]")
+  get-pgql11-deprecation = (?Legacy10Has(_, _) + get-pgql11-deprecation-helper(|"HAS", -1, True())); to-error-message(|"Use [x.prop IS NOT NULL] instead of [x.has(prop)]")
+  get-pgql11-deprecation = (?Legacy10InDegree(_) + get-pgql11-deprecation-helper(|"INDEGREE", 0, False())); to-error-message(|"Use [in_degree(x)] instead of [x.inDegree()]")
+  get-pgql11-deprecation = (?Legacy10OutDegree(_) + get-pgql11-deprecation-helper(|"OUTDEGREE", 0, False())); to-error-message(|"Use [out_degree(x)] instead of [x.outDegree()]")
+
+  get-pgql11-deprecation-helper(|functionNameToMatch, numArgsToMatch, anyNumberOfArgs):
+    t@FunctionCall(Some(PackageName(None(), x)), RegularIdentifier(functionName), args) -> t
+    where <eq> (<upper-case> functionName, functionNameToMatch)
+        ; if <?False()> anyNumberOfArgs
+          then <eq> (<length> args, numArgsToMatch)
+          end
 
   get-pgql11-deprecation = ?Legacy10Asc(x); to-error-message(|$<Use [<<origin-text> x> ASC] instead of [ASC(<<origin-text> x>)]>)
   get-pgql11-deprecation = ?Legacy10Desc(x); to-error-message(|$<Use [<<origin-text> x> DESC] instead of [DESC(<<origin-text> x>)]>)
@@ -181,10 +188,26 @@ rules
   norm-pgql10 = ?Legacy10Labels(x); <to-function(|"labels")> [x]
   norm-pgql10 = ?Legacy10HasLabel(x, lbl); <to-function(|"has_label")> [x, lbl]
   norm-pgql10 = ?Legacy10Id(x); <to-function(|"id")> [x]
-  norm-pgql10 = ?Legacy10Has(x, prop); <to-function(|"has_prop")> [x, prop]
   norm-pgql10 = ?Legacy10InDegree(x); <to-function(|"in_degree")> [x]
   norm-pgql10 = ?Legacy10OutDegree(x); <to-function(|"out_degree")> [x]
+
+  // e.g. x.id() (PGQL 1.0) => id(x) (PGQL 1.1+)
+  norm-pgql10 = norm-pgql10-function-helper(|"LABEL", 0); to-function(|"label")
+  norm-pgql10 = norm-pgql10-function-helper(|"LABELS", 0); to-function(|"labels")
+  norm-pgql10 = norm-pgql10-function-helper(|"HASLABEL", 1); to-function(|"has_label")
+  norm-pgql10 = norm-pgql10-function-helper(|"ID", 0); to-function(|"id")
+  norm-pgql10 = norm-pgql10-function-helper(|"INDEGREE", 0); to-function(|"in_degree")
+  norm-pgql10 = norm-pgql10-function-helper(|"OUTDEGREE", 0); to-function(|"out_degree")
+
+  norm-pgql10-function-helper(|functionNameToMatch, numArgsToMatch):
+    FunctionCall(Some(PackageName(None(), x)), RegularIdentifier(functionName), args) -> [VarRef(x)|args]
+    where <eq> (<upper-case> functionName, functionNameToMatch)
+        ; <eq> (<length> args, numArgsToMatch)
+
   norm-pgql10 = ?Legacy10Regex(x, regex); <to-function(|"java_regexp_like")> [x, regex]
+
+  norm-pgql10 = ?Legacy10Has(varRef, <id>); map(![varRef, <id>]; to-function(|"has_prop")); to-conjunction
+              + ?FunctionCall(Some(PackageName(None(), x)), RegularIdentifier(functionName), <id>); where ( <eq> ( <upper-case> functionName, "HAS" ) ); map(![VarRef(x), <id>]; to-function(|"has_prop")); to-conjunction
 
   // In PGQL 1.1 and PGQL 1.2, subqueries would inherit the graph name from the outer query.
   // This is no longer the case in PGQL 1.3+, where graph names in subqueries need to be respecified.
@@ -520,11 +543,6 @@ rules
        ; path-variable-name := <unique-name(|variable-counter, edge)> // for now, all paths are anonymous/generated
        ; commonPathExpression := CommonPathExpression(name, vertices, edges, constraints, costClause)
        ; path := <origin-track-forced(!Path(srcVertex, dstVertex, commonPathExpression, quantifier, path-variable-name, Outgoing(), pathFindingGoal, topKAnyAll))> edge
-
-rules
-
-  norm-has-prop = ?Legacy10Has(varRef, [prop]); !Legacy10Has(varRef, prop) <+
-                  ?Legacy10Has(varRef, <id>); map(!Legacy10Has(varRef, <id>)); to-conjunction
 
 rules
 

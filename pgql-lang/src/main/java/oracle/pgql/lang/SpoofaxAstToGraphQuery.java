@@ -62,7 +62,7 @@ import static oracle.pgql.lang.CommonTranslationUtil.getList;
 import static oracle.pgql.lang.CommonTranslationUtil.getSchemaQualifiedName;
 import static oracle.pgql.lang.CommonTranslationUtil.isNone;
 import static oracle.pgql.lang.CommonTranslationUtil.isSome;
-import static oracle.pgql.lang.CommonTranslationUtil.getSome;
+import static oracle.pgql.lang.CommonTranslationUtil.getSomeValue;
 import static oracle.pgql.lang.CommonTranslationUtil.getConstructorName;
 import static oracle.pgql.lang.CommonTranslationUtil.getVariable;
 import static oracle.pgql.lang.CommonTranslationUtil.translateExp;
@@ -200,7 +200,7 @@ public class SpoofaxAstToGraphQuery {
     if (isNone(graphPatternT)) {
       graphPattern = null;
     } else {
-      graphPatternT = getSome(graphPatternT);
+      graphPatternT = getSomeValue(graphPatternT);
 
       // vertices
       IStrategoTerm verticesT = getList(graphPatternT.getSubterm(POS_VERTICES));
@@ -248,7 +248,7 @@ public class SpoofaxAstToGraphQuery {
     IStrategoTerm fromT = ast.getSubterm(POS_GRAPH_NAME);
     SchemaQualifiedName graphName = null;
     if (isSome(fromT)) {
-      IStrategoTerm graphNameT = getSome(fromT).getSubterm(POT_GRAPH_NAME_NAME);
+      IStrategoTerm graphNameT = getSomeValue(fromT).getSubterm(POT_GRAPH_NAME_NAME);
       graphName = getSchemaQualifiedName(graphNameT);
     }
 
@@ -310,7 +310,7 @@ public class SpoofaxAstToGraphQuery {
           IStrategoTerm optionalIntoClauseT = modificationT.getSubterm(POS_INSERT_CLAUSE_INTO_CLAUSE);
           SchemaQualifiedName graphName = null;
           if (isSome(optionalIntoClauseT)) {
-            IStrategoTerm intoClauseT = getSome(optionalIntoClauseT);
+            IStrategoTerm intoClauseT = getSomeValue(optionalIntoClauseT);
             graphName = getSchemaQualifiedName(intoClauseT.getSubterm(POS_INSERT_CLAUSE_INTO_CLAUSE_GRAPH_NAME));
           }
 
@@ -424,7 +424,7 @@ public class SpoofaxAstToGraphQuery {
   private static List<QueryExpression> getLabels(TranslationContext ctx, IStrategoTerm labelsT) throws PgqlException {
     List<QueryExpression> result = new ArrayList<>();
     if (isSome(labelsT)) {
-      IStrategoTerm labelsListT = getSome(labelsT).getSubterm(POS_LABELS_LIST);
+      IStrategoTerm labelsListT = getSomeValue(labelsT).getSubterm(POS_LABELS_LIST);
       for (IStrategoTerm labelT : labelsListT) {
         String label = getString(labelT.getSubterm(IDENTIFIER_NAME));
         result.add(new ConstString(label));
@@ -436,7 +436,7 @@ public class SpoofaxAstToGraphQuery {
   private static List<SetPropertyExpression> getProperties(TranslationContext ctx, IStrategoTerm propertiesT)
       throws PgqlException {
     if (isSome(propertiesT)) {
-      return getSetPropertyExpressions(ctx, getSome(propertiesT));
+      return getSetPropertyExpressions(ctx, getSomeValue(propertiesT));
     } else {
       return new ArrayList<>();
     }
@@ -512,7 +512,7 @@ public class SpoofaxAstToGraphQuery {
     if (isNone(costT)) {
       cost = null;
     } else {
-      cost = translateExp(getSome(costT).getSubterm(POS_COST_EXP), ctx);
+      cost = translateExp(getSomeValue(costT).getSubterm(POS_COST_EXP), ctx);
     }
 
     return new CommonPathExpression(name, vertices, connections, constraints, cost);
@@ -696,7 +696,7 @@ public class SpoofaxAstToGraphQuery {
     if (goal == PathFindingGoal.SHORTEST || goal == PathFindingGoal.CHEAPEST) {
       IStrategoTerm topKAnyAllT = pathT.getSubterm(POS_PATH_TOP_K_ANY_ALL);
       if (isSome(topKAnyAllT)) {
-        IStrategoAppl topKAnyAllContent = (IStrategoAppl) getSome(topKAnyAllT);
+        IStrategoAppl topKAnyAllContent = (IStrategoAppl) getSomeValue(topKAnyAllT);
         switch (topKAnyAllContent.getName()) {
           case "TopK": // TOP k SHORTEST or TOP k CHEAPEST
             kValue = parseInt(topKAnyAllContent.getSubterm(0));
@@ -729,7 +729,7 @@ public class SpoofaxAstToGraphQuery {
   private static long getMinMaxHops(IStrategoTerm pathT, boolean min) throws PgqlException {
     IStrategoTerm pathQuantifiersT = pathT.getSubterm(POS_PATH_QUANTIFIERS);
     if (isSome(pathQuantifiersT)) {
-      pathQuantifiersT = getSome(pathQuantifiersT);
+      pathQuantifiersT = getSomeValue(pathQuantifiersT);
       int position = min ? POS_PATH_QUANTIFIERS_MIN_HOPS : POS_PATH_QUANTIFIERS_MAX_HOPS;
       return parseLong(pathQuantifiersT.getSubterm(position));
     } else {

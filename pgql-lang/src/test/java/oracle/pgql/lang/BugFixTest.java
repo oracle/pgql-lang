@@ -302,4 +302,9 @@ public class BugFixTest extends AbstractPgqlTest {
     assertEquals("a.number in (a.number)", projectionElements.get(0).getName());
     assertEquals("a.number", projectionElements.get(1).getName());
   }
+
+  @Test
+  public void testNoAmbiguityIdFunction() throws Exception {
+    pgql.parse("SELECT n.id() WHERE (n)");
+  }
 }

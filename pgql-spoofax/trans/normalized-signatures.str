@@ -148,6 +148,6 @@ signature constructors // for type anslysis (see trans/type-analysis.str)
 
   FunctionSignatures      : List(FunctionSignature) -> FunctionSignatures
 
-  FunctionSignature       : Optional(STRING) * STRING * List(STRING) * STRING -> FunctionSignature
+  FunctionSignature       : Optional(STRING) * Optional(STRING) * STRING * List(STRING) * STRING -> FunctionSignature
 
   AllowReferencingAnyProperty : AllowReferencingAnyProperty

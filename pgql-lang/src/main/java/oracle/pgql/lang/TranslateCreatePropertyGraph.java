@@ -18,7 +18,7 @@ import oracle.pgql.lang.ir.PgqlStatement;
 
 import static oracle.pgql.lang.CommonTranslationUtil.getList;
 import static oracle.pgql.lang.CommonTranslationUtil.getSchemaQualifiedName;
-import static oracle.pgql.lang.CommonTranslationUtil.getSome;
+import static oracle.pgql.lang.CommonTranslationUtil.getSomeValue;
 import static oracle.pgql.lang.CommonTranslationUtil.getString;
 import static oracle.pgql.lang.CommonTranslationUtil.isNone;
 import static oracle.pgql.lang.CommonTranslationUtil.translateExp;
@@ -166,7 +166,7 @@ public class TranslateCreatePropertyGraph {
     if (isNone(keyClauseT)) {
       return null;
     }
-    keyClauseT = getSome(keyClauseT).getSubterm(KEY_CLAUSE_COLUMN_NAMES);
+    keyClauseT = getSomeValue(keyClauseT).getSubterm(KEY_CLAUSE_COLUMN_NAMES);
     List<String> columnNames = new ArrayList<>();
     for (IStrategoTerm columnReference : keyClauseT) {
       columnNames.add(getString(columnReference));
@@ -190,7 +190,7 @@ public class TranslateCreatePropertyGraph {
     if (isNone(propertiesClauseT)) {
       return null;
     } else {
-      IStrategoTerm propertiesSpecificationT = getSome(propertiesClauseT);
+      IStrategoTerm propertiesSpecificationT = getSomeValue(propertiesClauseT);
       String propertiesSpecificationType = ((IStrategoAppl) propertiesSpecificationT).getConstructor().getName();
       switch (propertiesSpecificationType) {
         case "PropertyExpressions":
@@ -218,7 +218,7 @@ public class TranslateCreatePropertyGraph {
           if (isNone(exceptColumnsT)) {
             return new Label(labelName, propertiesAreAllColumns);
           } else {
-            IStrategoTerm exceptColumnsListT = getSome(exceptColumnsT).getSubterm(EXCEPT_COLUMNS_LIST);
+            IStrategoTerm exceptColumnsListT = getSomeValue(exceptColumnsT).getSubterm(EXCEPT_COLUMNS_LIST);
             List<String> columnNames = new ArrayList<>();
             for (IStrategoTerm columnNameT : exceptColumnsListT) {
               columnNames.add(getString(columnNameT));
