@@ -186,22 +186,32 @@ rules
   norm-pgql10 = ?Legacy10OutDegree(x); <to-function(|"out_degree")> [x]
 
   // e.g. x.id() (PGQL 1.0) => id(x) (PGQL 1.1+)
-  norm-pgql10 = norm-pgql10-function-helper(|"LABEL", 0); to-function(|"label")
-  norm-pgql10 = norm-pgql10-function-helper(|"LABELS", 0); to-function(|"labels")
-  norm-pgql10 = norm-pgql10-function-helper(|"HASLABEL", 1); to-function(|"has_label")
-  norm-pgql10 = norm-pgql10-function-helper(|"ID", 0); to-function(|"id")
-  norm-pgql10 = norm-pgql10-function-helper(|"INDEGREE", 0); to-function(|"in_degree")
-  norm-pgql10 = norm-pgql10-function-helper(|"OUTDEGREE", 0); to-function(|"out_degree")
+  norm-pgql10 = norm-pgql10-function-helper(|"LABEL", 0, "label")
+  norm-pgql10 = norm-pgql10-function-helper(|"LABELS", 0, "labels")
+  norm-pgql10 = norm-pgql10-function-helper(|"HASLABEL", 1, "has_label")
+  norm-pgql10 = norm-pgql10-function-helper(|"ID", 0, "id")
+  norm-pgql10 = norm-pgql10-function-helper(|"INDEGREE", 0, "in_degree")
+  norm-pgql10 = norm-pgql10-function-helper(|"OUTDEGREE", 0, "out_degree")
 
-  norm-pgql10-function-helper(|functionNameToMatch, numArgsToMatch):
-    FunctionCall(Some(PackageName(None(), x)), RegularIdentifier(functionName), args) -> [VarRef(x)|args]
-    where <eq> (<upper-case> functionName, functionNameToMatch)
+  norm-pgql10-function-helper(|pgql10FunctionName, numArgsToMatch, pgql11FunctionName):
+    t@FunctionCall(Some(PackageName(None(), x)), RegularIdentifier(functionName), args) -> result
+    where <eq> (<upper-case> functionName, pgql10FunctionName)
         ; <eq> (<length> args, numArgsToMatch)
+        ; result := <origin-track-forced(![VarRef(x)|args]; to-function(|pgql11FunctionName))> t
 
   norm-pgql10 = ?Legacy10Regex(x, regex); <to-function(|"java_regexp_like")> [x, regex]
 
   norm-pgql10 = ?Legacy10Has(varRef, <id>); map(![varRef, <id>]; to-function(|"has_prop")); to-conjunction
-              + ?FunctionCall(Some(PackageName(None(), x)), RegularIdentifier(functionName), <id>); where ( <eq> ( <upper-case> functionName, "HAS" ) ); map(![VarRef(x), <id>]; to-function(|"has_prop")); to-conjunction
+  norm-pgql10:
+    t@FunctionCall(Some(PackageName(None(), x)), RegularIdentifier(functionName), propertyNames) -> result
+    where <eq> ( <upper-case> functionName, "HAS" )
+    with replacement-expression := <map(to-has-prop-function(|x, t)); to-conjunction> propertyNames
+       ; result := <origin-track-forced(!replacement-expression)> t
+
+  to-has-prop-function(|var, originTerm):
+    propertyName -> result
+    with args := [VarRef(var), propertyName]
+       ; result := <origin-track-forced(!args; to-function(|"has_prop"))> originTerm
 
   // In PGQL 1.1 and PGQL 1.2, subqueries would inherit the graph name from the outer query.
   // This is no longer the case in PGQL 1.3+, where graph names in subqueries need to be respecified.
