@@ -307,4 +307,19 @@ public class BugFixTest extends AbstractPgqlTest {
   public void testNoAmbiguityIdFunction() throws Exception {
     pgql.parse("SELECT n.id() WHERE (n)");
   }
+
+  @Test
+  public void testColumnNamesOfLegacyPgql10Functions() throws Exception {
+    String query = "SELECT x.has('name'), x.has('name', 'age'), x.id(), x.label(), x.labels(), x.inDegree(), x.outDegree() WHERE (x)";
+    SelectQuery selectQuery = (SelectQuery) pgql.parse(query).getGraphQuery();
+    List<ExpAsVar> projectionElements = selectQuery.getProjection().getElements();
+
+    assertEquals("x.has('name')", projectionElements.get(0).getName());
+    assertEquals("x.has('name', 'age')", projectionElements.get(1).getName());
+    assertEquals("x.id()", projectionElements.get(2).getName());
+    assertEquals("x.label()", projectionElements.get(3).getName());
+    assertEquals("x.labels()", projectionElements.get(4).getName());
+    assertEquals("x.inDegree()", projectionElements.get(5).getName());
+    assertEquals("x.outDegree()", projectionElements.get(6).getName());
+  }
 }
