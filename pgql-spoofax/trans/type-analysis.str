@@ -14,11 +14,11 @@ imports
 rules
 
   add-types = not(?AstPlusMetadata(_, _)) <+ // we don't perform any type anlaysis for DDL for now
-              ?AstPlusMetadata(ast, metadata); !ast; add-types-to-query(|metadata, []); !AstPlusMetadata(<id>, metadata)
+              ?AstPlusMetadata(ast, metadata); !ast; add-types-to-query(|metadata, [], []); !AstPlusMetadata(<id>, metadata)
 
-  add-types-to-query(|metadata, variablesPlusTypes):
-      NormalizedQuery(CommonPathExpressions(pathExpressions), selectOrModifyClause, optionalGraphName, graphPattern, groupBy, having, orderBy, limitOffsets, error-messages, version, bindVariableCount) ->
-        NormalizedQuery(CommonPathExpressions(pathExpressions'), selectOrModifyClause', optionalGraphName, graphPattern', groupBy', having', orderBy', limitOffsets, error-messages, version, bindVariableCount)
+  add-types-to-query(|metadata, variablesPlusTypes, constraintsFromOuterQuery):
+      NormalizedQuery(CommonPathExpressions(pathExpressions), selectOrModifyClause, optionalGraphName, graphPattern, groupBy, having, orderBy, limitOffsets, error-messages, version, bindVariableCount, selectinAllVariables) ->
+        NormalizedQuery(CommonPathExpressions(pathExpressions'), selectOrModifyClause', optionalGraphName, graphPattern', groupBy', having', orderBy', limitOffsets, error-messages, version, bindVariableCount, selectinAllVariables)
     with // PATH
          pathExpressions' := <map(add-types-to-path-expression(|metadata))> pathExpressions
 
@@ -27,7 +27,7 @@ rules
          then verticesWithTypes := <collect-vertices-with-types(?Vertex(_, <id>, _))> (vertices, connections)
             ; edgesWithTypes := <collect-edges-with-types(?Edge(_, _, _, _, <id>, _))> connections
             ; variablesPlusTypes' := <conc> (variablesPlusTypes, verticesWithTypes, edgesWithTypes)
-            ; constraints := <collect-in-outer-query(?Constraints(<id>)); concat> graphPattern
+            ; constraints := <conc> (constraintsFromOuterQuery, <collect-in-outer-query(?Constraints(<id>)); concat> graphPattern)
             ; graphPattern' := <alltd(add-type(|metadata, variablesPlusTypes', constraints))> graphPattern
          else variablesPlusTypes' := variablesPlusTypes
             ; graphPattern' := graphPattern
@@ -110,19 +110,6 @@ rules // property references
   // unresolved variable
   add-type(|metadata, variablesPlusTypes, constraints):
     exp@PropRef(VarRef(_), _) -> ExpressionPlusType(exp, UnknownType())
-
-  simplify-label-expression(|varRefOriginPosition):
-    FunctionCall(None(), Identifier(functionName, _), [ VarRef(_, varRefOriginPosition), identifierOrString]) -> label
-    where <?"has_label" + ?"HAS_LABEL"> functionName
-        ; label := <?Identifier(<id>, _) + ?String(<id>)> identifierOrString
-
-  simplify-label-expression(|varRefOriginPosition):
-    Or(a, b) -> LabelOr(a', b')
-    where a' := <simplify-label-expression(|varRefOriginPosition)> a
-        ; b' := <simplify-label-expression(|varRefOriginPosition)> b
-
-  to-label-conjunction = reverse; !(<Tl>, <Hd>); foldl(to-label-AND)
-  to-label-AND = ?(exp1, exp2); !LabelAnd(exp1, exp2)
 
   get-property-type-from-label-expression(|elementType, propName, metadata):
     labelExpression -> type
@@ -236,8 +223,8 @@ rules // subqueries
 
   add-types-to-subquery(|metadata, variablesPlusTypes, constraints):
     query -> (query', type)
-    with query' := <add-types-to-query(|metadata, variablesPlusTypes)> query
-       ; if <?NormalizedQuery(_, SelectClause(_, ExpAsVars([ExpAsVar(ExpressionPlusType(_, Type(t)), _, _, _)])), _, _, _, _, _, _, _, _, _)> query'
+    with query' := <add-types-to-query(|metadata, variablesPlusTypes, constraints)> query
+       ; if <?NormalizedQuery(_, SelectClause(_, ExpAsVars([ExpAsVar(ExpressionPlusType(_, Type(t)), _, _, _)])), _, _, _, _, _, _, _, _, _, _)> query'
          then type := Type(t)
          else type := UnknownType()
          end
@@ -355,10 +342,6 @@ rules // other expressions
    simpleCase@SimpleCase(_, _, _, _) -> ExpressionPlusType(simpleCase', type')
    with simpleCase' := <add-types-to-subterms(|metadata, variablesPlusTypes, constraints)> simpleCase
       ; <?SimpleCase(_, _, _, ExpressionPlusType(_, type'))> simpleCase'
-
-
-  get-vertex-labels(|metadata) = !metadata; fetch-elem(?VertexLabels(<id>)); map(?Label(<id>, _)) <+ !None()
-  get-edge-labels(|metadata) = !metadata; fetch-elem(?EdgeLabels(<id>)); map(?Label(<id>, _)) <+ !None()
 
   get-vertex-property-type(|metadata) = get-property-type(?VertexLabels(<id>)|metadata)
 
