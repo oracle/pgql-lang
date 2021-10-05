@@ -456,6 +456,8 @@ public class MetadataToAstUtil {
     List<IStrategoTerm> functionSignatures = new ArrayList<>();
     if (optionalFunctionSignatures.isPresent()) {
       for (FunctionSignature function : optionalFunctionSignatures.get()) {
+        IStrategoTerm schemaName = function.getSchemaName() == null ? f.makeAppl("None")
+            : f.makeAppl("Some", f.makeString(function.getSchemaName()));
         IStrategoTerm packageName = function.getPackageName() == null ? f.makeAppl("None")
             : f.makeAppl("Some", f.makeString(function.getPackageName()));
         IStrategoTerm functionName = f.makeString(function.getFunctionName());
@@ -466,8 +468,8 @@ public class MetadataToAstUtil {
         }
 
         IStrategoTerm returnType = f.makeString(function.getReturnType());
-        functionSignatures
-            .add(f.makeAppl("FunctionSignature", packageName, functionName, f.makeList(argumentTypes), returnType));
+        functionSignatures.add(f.makeAppl("FunctionSignature", schemaName, packageName, functionName,
+            f.makeList(argumentTypes), returnType));
       }
     }
     return functionSignatures;

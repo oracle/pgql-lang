@@ -45,6 +45,7 @@ import org.metaborg.spoofax.core.unit.ISpoofaxParseUnit;
 import org.metaborg.util.concurrent.IClosableLock;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.spoofax.interpreter.terms.IStrategoAppl;
 import org.spoofax.interpreter.terms.IStrategoInt;
 import org.spoofax.interpreter.terms.IStrategoString;
 import org.spoofax.interpreter.terms.IStrategoTerm;
@@ -83,6 +84,8 @@ public class Pgql implements Closeable {
   private static final int POS_PGQL_VERSION = 9;
 
   private static final int POS_BIND_VARIABLE_COUNT = 10;
+
+  private static final int POS_SELECTING_ALL_PROPERTIES = 11;
 
   private static final PgqlVersion LATEST_VERSION = PgqlVersion.V_1_3_OR_UP;
 
@@ -232,7 +235,7 @@ public class Pgql implements Closeable {
   private PgqlResult parseInternal(String queryString, AbstractMetadataProvider metadataProvider) throws PgqlException {
     if (queryString.equals("")) {
       String error = "Empty query string";
-      return new PgqlResult(queryString, false, error, null, null, LATEST_VERSION, 0);
+      return new PgqlResult(queryString, false, error, null, null, LATEST_VERSION, 0, false);
     }
 
     ITemporaryContext context = null;
@@ -251,7 +254,7 @@ public class Pgql implements Closeable {
       }
       if (!parseResult.valid()) {
         return new PgqlResult(queryString, parseResult.valid(), prettyMessages, statement, parseResult, LATEST_VERSION,
-            0);
+            0, false);
       }
 
       context = spoofax.contextService.getTemporary(dummyFile, dummyProject, pgqlLang);
@@ -282,7 +285,8 @@ public class Pgql implements Closeable {
         if (e instanceof PgqlException) {
           prettyMessages = e.getMessage();
           queryValid = false;
-          return new PgqlResult(queryString, queryValid, prettyMessages, statement, parseResult, LATEST_VERSION, 0);
+          return new PgqlResult(queryString, queryValid, prettyMessages, statement, parseResult, LATEST_VERSION, 0,
+              false);
         } else {
           System.out.println(e);
           LOG.debug("Translation of PGQL failed because of semantically invalid AST");
@@ -296,9 +300,10 @@ public class Pgql implements Closeable {
       }
 
       int bindVariableCount = getBindVariableCount(analyizedAst, statement);
+      boolean querySelectsAllProperties = querySelectsAllProperties(analyizedAst, statement);
 
       return new PgqlResult(queryString, queryValid, prettyMessages, statement, parseResult, pgqlVersion,
-          bindVariableCount);
+          bindVariableCount, querySelectsAllProperties);
     } catch (IOException | ParseException | AnalysisException | ContextException e) {
       throw new PgqlException("Failed to parse PGQL query", e);
     } finally {
@@ -358,6 +363,20 @@ public class Pgql implements Closeable {
     }
 
     return 0;
+  }
+
+  private boolean querySelectsAllProperties(IStrategoTerm ast, PgqlStatement statement) {
+    if (statement == null) {
+      return false;
+    }
+
+    if (statement.getStatementType() == StatementType.SELECT
+        || statement.getStatementType() == StatementType.GRAPH_MODIFY) {
+      IStrategoAppl selectingAllPropertiesT = (IStrategoAppl) ast.getSubterm(POS_SELECTING_ALL_PROPERTIES);
+      return selectingAllPropertiesT.getConstructor().getName().equals("True");
+    }
+
+    return false;
   }
 
   private FileObject getFileObject(String queryString) throws UnsupportedEncodingException, IOException {

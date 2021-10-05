@@ -25,8 +25,11 @@ public class PgqlResult {
 
   private final int bindVariableCount;
 
+  private final boolean querySelectsAllProperties;
+
   public PgqlResult(String queryString, boolean queryValid, String messages, PgqlStatement pgqlStatement,
-      ISpoofaxParseUnit spoofaxParseUnit, PgqlVersion pgqlVersion, int bindVariableCount) {
+      ISpoofaxParseUnit spoofaxParseUnit, PgqlVersion pgqlVersion, int bindVariableCount,
+      boolean querySelectsAllProperties) {
     this.queryString = queryString;
     this.errorMessages = messages;
     this.queryValid = queryValid;
@@ -34,6 +37,7 @@ public class PgqlResult {
     this.spoofaxParseUnit = spoofaxParseUnit;
     this.pgqlVersion = pgqlVersion;
     this.bindVariableCount = bindVariableCount;
+    this.querySelectsAllProperties = querySelectsAllProperties;
   }
 
   /**
@@ -82,6 +86,10 @@ public class PgqlResult {
 
   public int getBindVariableCount() {
     return bindVariableCount;
+  }
+
+  public boolean querySelectsAllProperties() {
+    return querySelectsAllProperties;
   }
 
   protected ISpoofaxParseUnit getSpoofaxParseUnit() {

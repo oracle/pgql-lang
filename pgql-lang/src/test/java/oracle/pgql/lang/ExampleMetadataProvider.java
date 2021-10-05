@@ -89,6 +89,25 @@ public class ExampleMetadataProvider extends AbstractMetadataProvider {
 
       GraphSchema graphSchema = new GraphSchema(vertexLabels, edgeLabels);
       return Optional.of(graphSchema);
+    } else if (graphName.getName().equals("graph3")
+        || graphName.getName().equals("graph3".toUpperCase())) {
+
+      List<VertexLabel> vertexLabels = new ArrayList<>();
+
+      List<Property> label1Properties = new ArrayList<>();
+      label1Properties.add(new Property("prop1", "LONG"));
+      label1Properties.add(new Property("prop2", "LONG"));
+      vertexLabels.add(new VertexLabel("Label1", label1Properties));
+
+      List<Property> label2Properties = new ArrayList<>();
+      label2Properties.add(new Property("prop2", "LONG"));
+      label2Properties.add(new Property("prop1", "LONG"));
+      vertexLabels.add(new VertexLabel("Label2", label2Properties));
+
+      List<EdgeLabel> edgeLabels = new ArrayList<>();
+
+      GraphSchema graphSchema = new GraphSchema(vertexLabels, edgeLabels);
+      return Optional.of(graphSchema);
     }
     return Optional.empty();
   }
@@ -417,6 +436,9 @@ public class ExampleMetadataProvider extends AbstractMetadataProvider {
     functions.add(new FunctionSignature("myUdfs", "ambiguousFunction", argumentTypes("DOUBLE"), "FLOAT"));
     functions.add(new FunctionSignature("myUdfs", "ambiguousFunction", argumentTypes("INTEGER"), "INTEGER"));
     functions.add(new FunctionSignature("MyUdFS", "AmBiguousFuNCtion", argumentTypes("INTEGER"), "DOUBLE"));
+
+    // with schema name
+    functions.add(new FunctionSignature("mySchema", "myPackage", "myFunction", argumentTypes("INTEGER"), "DOUBLE"));
 
     return Optional.of(functions);
   }

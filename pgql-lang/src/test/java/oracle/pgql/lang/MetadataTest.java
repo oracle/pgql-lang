@@ -3,9 +3,15 @@
  */
 package oracle.pgql.lang;
 
+import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
 
+import java.util.List;
+
 import org.junit.Test;
+
+import oracle.pgql.lang.ir.ExpAsVar;
+import oracle.pgql.lang.ir.SelectQuery;
 
 public class MetadataTest extends AbstractPgqlTest {
 
@@ -111,6 +117,16 @@ public class MetadataTest extends AbstractPgqlTest {
 
     result = parse("SELECT e.since FROM MATCH () -[e:knows|studyAt]-> ()");
     assertTrue(result.isQueryValid());
+  }
+
+  @Test
+  public void testPropertyReferenceInSubquery() throws Exception {
+    PgqlResult result = parse("SELECT EXISTS ( SELECT n.firstName FROM MATCH (m) ) FROM MATCH (n:University)");
+    assertTrue(result.getErrorMessages().contains("Property does not exist for any of the labels"));
+
+    result = parse(
+        "SELECT EXISTS ( SELECT * FROM MATCH (m) ON financialNetwork WHERE e.amount > 0 ) FROM MATCH () -[e:worksFor]-> () ON financialNetwork");
+    assertTrue(result.getErrorMessages().contains("Property does not exist for any of the labels"));
   }
 
   @Test
@@ -750,6 +766,9 @@ public class MetadataTest extends AbstractPgqlTest {
     result = parse("SELECT myUdfs.ambiguousFunction(123) FROM MATCH (n)");
     assertTrue(result.getErrorMessages()
         .contains("Multiple functions exist that match the specified function name and argument types"));
+
+    result = parse("SELECT mySchema.myPackage.myFunction(4) FROM MATCH (n)");
+    assertTrue(result.isQueryValid());
   }
 
   @Test
@@ -777,6 +796,150 @@ public class MetadataTest extends AbstractPgqlTest {
 
     result = parse("SELECT labels(n) FROM MATCH (n) ORDER BY labels(n)");
     assertTrue(result.getErrorMessages().contains("Cannot order by SET<STRING>"));
+  }
+
+  @Test
+  public void testSelectAllPropertiesNoMetadata() throws Exception {
+    PgqlResult result = pgql.parse("SELECT n.* FROM MATCH (n)");
+    assertTrue(
+        result.getErrorMessages().contains("Cannot select all properties because the graph schema is not provided"));
+
+    result = pgql.parse("SELECT e.* FROM MATCH () -[e]-> ()");
+    assertTrue(
+        result.getErrorMessages().contains("Cannot select all properties because the graph schema is not provided"));
+  }
+
+  @Test
+  public void testSelectAllPropertieDuplicateColumnNames() throws Exception {
+    PgqlResult result = parse("SELECT e.*, e.* FROM MATCH () -[e]-> ()");
+    assertTrue(result.getErrorMessages().contains("Duplicate column name in SELECT"));
+
+    result = parse("SELECT v.*, v.* FROM MATCH (v:Person)");
+    assertTrue(result.getErrorMessages().contains("Duplicate column name in SELECT"));
+  }
+
+  @Test
+  public void testColumnOrderPreservation1() throws Exception {
+    PgqlResult result = parse("SELECT e.* FROM MATCH () -[e]-> ()");
+    testColumnOrderPreservation1Helper(result);
+
+    result = parse("SELECT e.* FROM MATCH () -[e:knows|studyAt]-> ()");
+    testColumnOrderPreservation1Helper(result);
+
+    result = parse("SELECT e.* FROM MATCH () -[e:studyAt|knows]-> ()");
+    testColumnOrderPreservation1Helper(result);
+
+    result = parse("SELECT e.* FROM MATCH () -[e:studyAt|studyAt|knows|knows]-> ()");
+    testColumnOrderPreservation1Helper(result);
+  }
+
+  private void testColumnOrderPreservation1Helper(PgqlResult result) {
+    assertTrue(result.isQueryValid());
+
+    SelectQuery selectQuery = (SelectQuery) result.getGraphQuery();
+    List<ExpAsVar> expAsVars = selectQuery.getProjection().getElements();
+    assertEquals("since", expAsVars.get(0).getName());
+    assertEquals("since", expAsVars.get(0).getNameOriginText());
+    assertEquals("prop", expAsVars.get(1).getName());
+    assertEquals("prop", expAsVars.get(1).getNameOriginText());
+    assertEquals("typeConflictProp", expAsVars.get(2).getName());
+    assertEquals("typeConflictProp", expAsVars.get(2).getNameOriginText());
+    assertEquals("PROP", expAsVars.get(3).getName());
+    assertEquals("PROP", expAsVars.get(3).getNameOriginText());
+    assertEquals("Typeconflictprop", expAsVars.get(4).getName());
+    assertEquals("Typeconflictprop", expAsVars.get(4).getNameOriginText());
+  }
+
+  @Test
+  public void testColumnOrderPreservation2() throws Exception {
+    PgqlResult result = parse("SELECT v.* FROM MATCH (v) ON financialNetwork");
+    testColumnOrderPreservation2Helper(result);
+
+    result = parse("SELECT v.* FROM MATCH (v:Person|Account) ON financialNetwork");
+    testColumnOrderPreservation2Helper(result);
+
+    result = parse("SELECT v.* FROM MATCH (v:Account|Person) ON financialNetwork");
+    testColumnOrderPreservation2Helper(result);
+
+    result = parse(
+        "SELECT v.* FROM MATCH (v:Person|Account) ON financialNetwork,  MATCH (v:Account|Person) ON financialNetwork");
+    testColumnOrderPreservation2Helper(result);
+
+    result = parse("SELECT v.* FROM MATCH (v:Person|Person|Account|Account) ON financialNetwork");
+    testColumnOrderPreservation2Helper(result);
+  }
+
+  private void testColumnOrderPreservation2Helper(PgqlResult result) {
+    assertTrue(result.isQueryValid());
+
+    SelectQuery selectQuery = (SelectQuery) result.getGraphQuery();
+    List<ExpAsVar> expAsVars = selectQuery.getProjection().getElements();
+    assertEquals("number", expAsVars.get(0).getName());
+    assertEquals("number", expAsVars.get(0).getNameOriginText());
+    assertEquals("name", expAsVars.get(1).getName());
+    assertEquals("name", expAsVars.get(1).getNameOriginText());
+  }
+
+  @Test
+  public void testColumnOrderPreservation3() throws Exception {
+    List<ExpAsVar> expAsVars = getExpAsVars("SELECT n.* FROM MATCH (n) ON graph3");
+    assertEquals("prop1", expAsVars.get(0).getName());
+    assertEquals("prop2", expAsVars.get(1).getName());
+
+    expAsVars = getExpAsVars("SELECT n.* FROM MATCH (n:Label1) ON graph3");
+    assertEquals("prop1", expAsVars.get(0).getName());
+    assertEquals("prop2", expAsVars.get(1).getName());
+
+    expAsVars = getExpAsVars("SELECT n.* FROM MATCH (n:Label2) ON graph3");
+    assertEquals("prop2", expAsVars.get(0).getName());
+    assertEquals("prop1", expAsVars.get(1).getName());
+
+    expAsVars = getExpAsVars("SELECT n.* FROM MATCH (n:Label1|Label2) ON graph3");
+    assertEquals("prop1", expAsVars.get(0).getName());
+    assertEquals("prop2", expAsVars.get(1).getName());
+
+    expAsVars = getExpAsVars("SELECT n.* FROM MATCH (n:Label2|Label1) ON graph3");
+    assertEquals("prop1", expAsVars.get(0).getName());
+    assertEquals("prop2", expAsVars.get(1).getName());
+  }
+
+  @Test
+  public void testSelectAllPropertiesUsingPrefix() throws Exception {
+    List<ExpAsVar> expAsVars = getExpAsVars("SELECT e.* PREFIX 'a__', e.* PREFIX 'b__' FROM MATCH () -[e]-> ()");
+    assertEquals("a__since", expAsVars.get(0).getName());
+    assertEquals("a__since", expAsVars.get(0).getNameOriginText());
+    assertEquals("a__prop", expAsVars.get(1).getName());
+    assertEquals("a__prop", expAsVars.get(1).getNameOriginText());
+    assertEquals("a__typeConflictProp", expAsVars.get(2).getName());
+    assertEquals("a__typeConflictProp", expAsVars.get(2).getNameOriginText());
+    assertEquals("a__PROP", expAsVars.get(3).getName());
+    assertEquals("a__PROP", expAsVars.get(3).getNameOriginText());
+    assertEquals("a__Typeconflictprop", expAsVars.get(4).getName());
+    assertEquals("a__Typeconflictprop", expAsVars.get(4).getNameOriginText());
+    assertEquals("b__since", expAsVars.get(5).getName());
+    assertEquals("b__since", expAsVars.get(5).getNameOriginText());
+    assertEquals("b__prop", expAsVars.get(6).getName());
+    assertEquals("b__prop", expAsVars.get(6).getNameOriginText());
+    assertEquals("b__typeConflictProp", expAsVars.get(7).getName());
+    assertEquals("b__typeConflictProp", expAsVars.get(7).getNameOriginText());
+    assertEquals("b__PROP", expAsVars.get(8).getName());
+    assertEquals("b__PROP", expAsVars.get(8).getNameOriginText());
+    assertEquals("b__Typeconflictprop", expAsVars.get(9).getName());
+    assertEquals("b__Typeconflictprop", expAsVars.get(9).getNameOriginText());
+  }
+
+  private List<ExpAsVar> getExpAsVars(String query) throws Exception {
+    PgqlResult result = parse(query);
+    assertTrue(result.isQueryValid());
+    SelectQuery selectQuery = (SelectQuery) result.getGraphQuery();
+    List<ExpAsVar> expAsVars = selectQuery.getProjection().getElements();
+    return expAsVars;
+  }
+
+  @Test
+  public void testSelectAllPropertieUnresolvedVariable() throws Exception {
+    PgqlResult result = parse("SELECT x.* FROM MATCH (v)");
+    assertTrue(result.getErrorMessages().contains("Unresolved variable"));
   }
 
   @Test

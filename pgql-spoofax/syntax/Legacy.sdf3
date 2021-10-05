@@ -82,14 +82,6 @@ context-free syntax // Expressions.sdf3
   Exp.Legacy10Not = <!<Exp>> {right}
   Exp.Legacy10Regex = [[Exp] =~ [Exp]] {left, prefer}
 
-  Exp.Legacy10Label = <<Exp>. label()> {case-insensitive}
-  Exp.Legacy10Labels = <<Exp>. labels()> {case-insensitive}
-  Exp.Legacy10HasLabel = <<Exp>. hasLabel(<Exp>)> {case-insensitive}
-  Exp.Legacy10Id = <<Exp>. id()> {case-insensitive}
-  Exp.Legacy10Has = <<Exp>. has(<{Exp ", "}+>)> {case-insensitive}
-  Exp.Legacy10InDegree  = <<Exp>. inDegree()> {case-insensitive}
-  Exp.Legacy10OutDegree = <<Exp>. outDegree()> {case-insensitive}
-
   Legacy10InlinedExp = <(<Legacy10InlinedExp>)> {bracket}
   Legacy10InlinedExp = PropRef
   Legacy10InlinedExp = Legacy10DoubleQuotedString1

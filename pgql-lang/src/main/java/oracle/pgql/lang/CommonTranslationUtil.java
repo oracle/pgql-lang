@@ -75,6 +75,8 @@ public class CommonTranslationUtil {
   private static final int POS_SUBQUERY = 0;
   private static final int POS_FUNCTION_CALL_PACKAGE_NAME = 0;
   private static final int POS_FUNCTION_CALL_ROUTINE_NAME = 1;
+  private static final int POS_FUNCTION_CALL_PACKAGE_NAME_SCHEMA_PART = 0;
+  private static final int POS_FUNCTION_CALL_PACKAGE_NAME_PACKAGE_PART = 1;
   private static final int POS_FUNCTION_CALL_EXPS = 2;
   private static final int POS_EXTRACT_FIELD = 0;
   private static final int POS_EXTRACT_EXP = 1;
@@ -125,7 +127,7 @@ public class CommonTranslationUtil {
     return t.getType() == TermType.APPL && ((IStrategoAppl) t).getConstructor().getName().equals("Some");
   }
 
-  protected static IStrategoTerm getSome(IStrategoTerm t) {
+  protected static IStrategoTerm getSomeValue(IStrategoTerm t) {
     return t.getSubterm(0);
   }
 
@@ -286,8 +288,9 @@ public class CommonTranslationUtil {
         exp = translateExp(t.getSubterm(POS_SUBSTRING_EXP), ctx);
         QueryExpression startExp = translateExp(t.getSubterm(POS_SUBSTRING_START), ctx);
         IStrategoTerm lengthExpT = t.getSubterm(POS_SUBSTRING_LENGTH);
-        QueryExpression lengthExp = isSome(lengthExpT) ? 
-          translateExp(getSome(lengthExpT).getSubterm(POS_LENGTH_EXP), ctx) : null;
+        QueryExpression lengthExp = isSome(lengthExpT)
+            ? translateExp(getSomeValue(lengthExpT).getSubterm(POS_LENGTH_EXP), ctx)
+            : null;
         return new SubstringExpression(exp, startExp, lengthExp);
       case "Exists":
         IStrategoTerm subqueryT = t.getSubterm(POS_EXISTS_SUBQUERY);
@@ -299,12 +302,21 @@ public class CommonTranslationUtil {
         return new ScalarSubquery(selectQuery);
       case "CallStatement":
       case "FunctionCall":
-        IStrategoTerm packageDeclT = t.getSubterm(POS_FUNCTION_CALL_PACKAGE_NAME);
-        String packageName = isNone(packageDeclT) ? null : getString(packageDeclT);
+        String schemaName = null;
+        String packageName = null;
+        IStrategoTerm optionalPackageDeclT = t.getSubterm(POS_FUNCTION_CALL_PACKAGE_NAME);
+        if (isSome(optionalPackageDeclT)) {
+          IStrategoTerm packageDeclT = getSomeValue(optionalPackageDeclT);
+          IStrategoTerm schemaT = packageDeclT.getSubterm(POS_FUNCTION_CALL_PACKAGE_NAME_SCHEMA_PART);
+          if (isSome(schemaT)) {
+            schemaName = getString(schemaT);
+          }
+          packageName = getString(packageDeclT.getSubterm(POS_FUNCTION_CALL_PACKAGE_NAME_PACKAGE_PART));
+        }
         String functionName = getString(t.getSubterm(POS_FUNCTION_CALL_ROUTINE_NAME));
         IStrategoTerm argsT = getList(t.getSubterm(POS_FUNCTION_CALL_EXPS));
         List<QueryExpression> args = varArgsToExps(ctx, argsT);
-        return new QueryExpression.FunctionCall(packageName, functionName, args);
+        return new QueryExpression.FunctionCall(schemaName, packageName, functionName, args);
       case "ExtractExp":
         IStrategoAppl fieldT = (IStrategoAppl) t.getSubterm(POS_EXTRACT_FIELD);
         ExtractField field;
@@ -365,7 +377,7 @@ public class CommonTranslationUtil {
         QueryExpression elseExp = null;
         IStrategoTerm elseExpT = t.getSubterm(POS_SIMPLE_CASE_ELSE_EXP);
         if (isSome(elseExpT)) {
-          elseExp = translateExp(getSome(elseExpT).getSubterm(POS_ELSE_EXP), ctx);
+          elseExp = translateExp(getSomeValue(elseExpT).getSubterm(POS_ELSE_EXP), ctx);
         }
         IfElse ifElseAlterantiveRepresentation = (IfElse) translateExp(
             t.getSubterm(POS_SIMPLE_CASE_IFELSE_ALTERNATIVE_REPRESENTATION), ctx);
@@ -480,8 +492,8 @@ public class CommonTranslationUtil {
           case "LISTAGG":
             String separator = "";
             IStrategoTerm optionalSeparator = t.getSubterm(POS_AGGREGATE_SEPARATOR);
-            if(isSome(optionalSeparator)) {
-              IStrategoTerm separatorT = getSome(optionalSeparator);
+            if (isSome(optionalSeparator)) {
+              IStrategoTerm separatorT = getSomeValue(optionalSeparator);
               separator = getString(separatorT);
             }
             return new QueryExpression.Aggregation.AggrListagg(distinct, exp, separator);

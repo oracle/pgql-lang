@@ -47,8 +47,8 @@ test OO-style function call[[
    error like "Use [has_label(x, 'lbl')] instead of [x.hasLabel('lbl')]" at #3
    error like "Use [id(x)] instead of [x.id()]" at #4
    error like "Use [x.prop IS NOT NULL] instead of [x.has(prop)]" at #5
-   error like "Use [in_degree(x)] instead of [x.indegree()]" at #6
-   error like "Use [out_degree(x)] instead of [x.out_degree()]" at #7
+   error like "Use [in_degree(x)] instead of [x.inDegree()]" at #6
+   error like "Use [out_degree(x)] instead of [x.outDegree()]" at #7
 
 test Single-quoted labels [[
 
