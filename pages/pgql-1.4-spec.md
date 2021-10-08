@@ -623,8 +623,10 @@ Take the following schema as example:
 
 {% include image.html file="example_graphs/hr_schema_simplified.png" %}
 
-Here, both tables are clear candidates for vertex tables, but it is not immediately clear which is the edge table that connects the employees and their departments.
-This edge table in fact is the `Employees` table since the `Employees` table contains all the information for connecting the employees and the departments.
+Here, both tables are clear candidates for vertex tables, but it is not immediately clear which are the edge tables corresponding to the
+"employee works for employee" and "department managed by employee" relationships.
+
+These edge tables are in fact the `Employees` and `Departments` tables themselves.
 
 The graph can be created as follows:
 
@@ -639,19 +641,29 @@ CREATE PROPERTY GRAPH hr_simplified
   EDGE TABLES (
     employees AS works_for
       SOURCE KEY ( employee_id ) REFERENCES employees
+      DESTINATION KEY ( manager_id ) REFERENCES employees
+      NO PROPERTIES,
+    departments AS managed_by
+      SOURCE KEY ( department_id ) REFERENCES departments
       DESTINATION employees
       NO PROPERTIES
   )
 ```
 
-As you can see, both the `employee` vertices and the `works_for` edges are created from the `employees` table.
-For the destination vertex we can omit the key so that it defaults to `KEY ( manager_id )`.
+As you can see, the `employee` vertices are created from the `employees` table, but so are the `works_for` edges that represent the managers of employees.
+The source key is the primary key of the table, while the destination key corresponds to the foreign key.
+It is optional to simplify `DESTINATION KEY ( manager_id ) REFERENCES employees` to `DESTINATION employees` to make use of the existing foreign key.
 This is possible only because there exists exactly one foreign key between the `employees` table and itself.
-In case of the source vertex we cannot default to a foreign key so we explicitly specify the key `KEY ( employee_id )`.
+Do note that in this example, we cannot default the _source_ vertex to the foreign key,
+so we need to explicitly specify it (`KEY ( employee_id )`).
 
-Note that although the edges are embedded in the vertex tables, by default it is still the case that a property is created for each column.
-This means that by default, the vertices and edges that are created from the same table will have the same properties.
-Typically this is not desired and the columns are only mapped into vertex properties while `NO PROPERTIES` is used for the edges.
+Similarly, the `department` vertices are created from the `departments` table, but so are the `managed_by` edges that represent the managers of departments.
+The source of the edge table is again the table itself and therefore references the primary key.
+The destination, on the other hand, is the `employees` table. Here, because there exists a (single) foreign key between `departments` and `employees`,
+the destination key `KEY ( manager_id )` was omitted to make it default to the foreign key.
+
+Furthermore, even though the edges are embedded in the vertex tables, it is still the case that by default a property is created for each of the columns of the table.
+Therefore, we specify `NO PROPERTIES` for the edge tables as we already place the necessary properties on the vertex tables.
 
 ### Example: HR schema
 
