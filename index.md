@@ -5,7 +5,7 @@ toc: false
 keywords: pgql property graph query language database analytics oracle sql standard gql cypher opencypher sparql gsql pgx big data spatial
 ---
 
-Graph pattern matching for SQL and NoSQL users
+Graph pattern matching
 ====================================
 
 PGQL is a graph query language built on top of SQL, bringing graph pattern matching capabilities to existing SQL users as well as to new users who are interested in graph technology but who do not have an SQL background.
