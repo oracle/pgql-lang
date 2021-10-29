@@ -18,7 +18,7 @@ public class QueryVertex extends QueryVariable {
 
   @Override
   public String toString() {
-    return "(" + printIdentifier(name) + ")";
+    return "(" + printIdentifier(name, false) + ")";
   }
 
   @Override

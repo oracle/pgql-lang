@@ -26,7 +26,7 @@ public class DropExternalSchema implements PgqlStatement {
 
   @Override
   public String toString() {
-    return "DROP EXTERNAL SCHEMA " + printIdentifier(schemaName);
+    return "DROP EXTERNAL SCHEMA " + printIdentifier(schemaName, false);
   }
 
   @Override

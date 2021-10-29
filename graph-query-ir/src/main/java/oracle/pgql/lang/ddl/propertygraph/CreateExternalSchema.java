@@ -89,7 +89,7 @@ public class CreateExternalSchema implements PgqlStatement {
   @Override
   public String toString() {
     String separator = "\n  ";
-    String result = "CREATE EXTERNAL SCHEMA " + printIdentifier(localSchemaName) + "\nFROM DATABASE";
+    String result = "CREATE EXTERNAL SCHEMA " + printIdentifier(localSchemaName, false) + "\nFROM DATABASE";
     if (url != null) {
       result += separator + "URL " + printLiteral(url);
     }

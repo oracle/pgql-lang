@@ -31,7 +31,7 @@ public class VertexInsertion extends AbstractInsertion {
 
   @Override
   public String toString() {
-    return "VERTEX " + printIdentifier(vertex.getName()) + printLabels() + printProperties();
+    return "VERTEX " + printIdentifier(vertex.getName(), false) + printLabels() + printProperties();
   }
 
   @Override

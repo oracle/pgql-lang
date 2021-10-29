@@ -35,8 +35,9 @@ public class EdgeInsertion extends AbstractInsertion {
 
   @Override
   public String toString() {
-    return "EDGE " + printIdentifier(edge.getName()) + " BETWEEN " + printIdentifier(edge.getSrc().getName()) + " AND "
-        + printIdentifier(edge.getDst().getName()) + printLabels() + printProperties();
+    return "EDGE " + printIdentifier(edge.getName(), false) + " BETWEEN "
+        + printIdentifier(edge.getSrc().getName(), false) + " AND " + printIdentifier(edge.getDst().getName(), false)
+        + printLabels() + printProperties();
   }
 
   @Override

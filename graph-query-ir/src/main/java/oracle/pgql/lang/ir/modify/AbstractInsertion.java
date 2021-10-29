@@ -42,7 +42,7 @@ public abstract class AbstractInsertion implements Insertion {
       return "";
     } else {
       return " LABELS ( " + labels.stream() //
-          .map(x -> printIdentifier(((ConstString) x).getValue())) //
+          .map(x -> printIdentifier(((ConstString) x).getValue(), false)) //
           .collect(Collectors.joining(", ")) + " )";
     }
   }
