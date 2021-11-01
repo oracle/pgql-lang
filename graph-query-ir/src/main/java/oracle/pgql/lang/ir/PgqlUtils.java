@@ -162,13 +162,18 @@ public class PgqlUtils {
   // HELPER METHODS FOR PRETTY-PRINTING BELOW
 
   public static String printIdentifier(String identifier) {
+    return "\"" + identifier.replace("\"", "\"\"") + "\"";
+  }
+
+  public static String printIdentifier(String identifier, boolean alwaysQuote) {
     String lowerCasedIdentifier = identifier.toLowerCase();
-    if (ALL_UPPERCASED_IDENTIFIER.matcher(identifier).matches() && !RESERVED_WORDS.contains(lowerCasedIdentifier)) {
+    if (!alwaysQuote && ALL_UPPERCASED_IDENTIFIER.matcher(identifier).matches()
+        && !RESERVED_WORDS.contains(lowerCasedIdentifier)) {
       // we don't double-quote all-uppercased identifiers, and also make them all-lowercase, to make the pretty-printed
       // queries easier to read
       return lowerCasedIdentifier;
     } else {
-      return "\"" + identifier.replace("\"", "\"\"") + "\"";
+      return printIdentifier(identifier);
     }
   }
 
@@ -236,14 +241,14 @@ public class PgqlUtils {
       }
     }
 
-    return printIdentifier(variable.name);
+    return printIdentifier(variable.name, false);
   }
 
   protected static String printPgqlString(ExpAsVar expAsVar) {
     if (expAsVar.isAnonymous()) {
       return expAsVar.getExp().toString();
     } else {
-      return expAsVar.getExp() + " AS " + printIdentifier(expAsVar.getName());
+      return expAsVar.getExp() + " AS " + printIdentifier(expAsVar.getName(), false);
     }
   }
 
@@ -311,7 +316,7 @@ public class PgqlUtils {
   }
 
   private static String printCommonPathExpression(CommonPathExpression commonPathExpression) {
-    String result = "PATH " + printIdentifier(commonPathExpression.getName()) + " AS ";
+    String result = "PATH " + printIdentifier(commonPathExpression.getName(), false) + " AS ";
     result += printPathExpression(commonPathExpression, false);
     return result + "\n";
   }
@@ -384,8 +389,8 @@ public class PgqlUtils {
         }
       case PATH:
         QueryPath queryPath = (QueryPath) var;
-        return "-/" + (queryPath.isAnonymous() ? "" : printIdentifier(var.name)) + ":"
-            + printIdentifier(queryPath.getPathExpressionName()) + printHops(queryPath) + "/->";
+        return "-/" + (queryPath.isAnonymous() ? "" : printIdentifier(var.name, false)) + ":"
+            + printIdentifier(queryPath.getPathExpressionName(), false) + printHops(queryPath) + "/->";
       case VERTEX:
         return "(" + printVariableAndLabelPredicate(var, printVariableName, labelPredicate) + ")";
       default:
@@ -395,7 +400,7 @@ public class PgqlUtils {
 
   private static String printVariableAndLabelPredicate(QueryVariable var, boolean printVariableName,
       QueryExpression labelPredicate) {
-    String result = printVariableName ? printIdentifier(var.getName()) : "";
+    String result = printVariableName ? printIdentifier(var.getName(), false) : "";
     if (labelPredicate != null) {
       result += ":" + printLabelPredicate(labelPredicate);
     }
@@ -433,7 +438,7 @@ public class PgqlUtils {
       case FUNCTION_CALL: {
         FunctionCall hasLabelPredicate = (FunctionCall) labelPredicate;
         ConstString constString = (ConstString) hasLabelPredicate.getArgs().get(1);
-        return printIdentifier(constString.getValue());
+        return printIdentifier(constString.getValue(), false);
       }
       case OR: {
         Or or = (Or) labelPredicate;

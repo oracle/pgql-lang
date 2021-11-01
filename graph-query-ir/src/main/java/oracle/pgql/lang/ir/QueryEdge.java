@@ -23,7 +23,7 @@ public class QueryEdge extends VertexPairConnection {
   @Override
   public String toString() {
     String edge;
-    edge = "-[" + printIdentifier(name) + "]-";
+    edge = "-[" + printIdentifier(name, false) + "]-";
     if (isDirected()) {
       edge += ">";
     }

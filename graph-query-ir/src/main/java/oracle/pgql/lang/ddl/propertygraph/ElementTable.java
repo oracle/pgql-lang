@@ -79,7 +79,7 @@ public abstract class ElementTable {
     if (tableAlias == null || tableAlias.equals(tableName.getName())) {
       return "";
     } else {
-      return indentation + "AS " + printIdentifier(tableAlias);
+      return indentation + "AS " + printIdentifier(tableAlias, false);
     }
   }
 
@@ -94,7 +94,7 @@ public abstract class ElementTable {
         // skip printing the label since it can default to the table alias
         return indentation + label.printProperties();
       } else {
-     // prints the label and its properties
+        // prints the label and its properties
         return indentation + label.toString();
       }
     }
