@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2013 - 2020 Oracle and/or its affiliates. All rights reserved.
+ * Copyright (C) 2013 - 2021 Oracle and/or its affiliates. All rights reserved.
  */
 package oracle.pgql.lang.ddl.propertygraph;
 
@@ -89,7 +89,7 @@ public class CreateExternalSchema implements PgqlStatement {
   @Override
   public String toString() {
     String separator = "\n  ";
-    String result = "CREATE EXTERNAL SCHEMA " + printIdentifier(localSchemaName) + "\nFROM DATABASE";
+    String result = "CREATE EXTERNAL SCHEMA " + printIdentifier(localSchemaName, false) + "\nFROM DATABASE";
     if (url != null) {
       result += separator + "URL " + printLiteral(url);
     }

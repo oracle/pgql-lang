@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2013 - 2020 Oracle and/or its affiliates. All rights reserved.
+ * Copyright (C) 2013 - 2021 Oracle and/or its affiliates. All rights reserved.
  */
 package oracle.pgql.lang.ir;
 
@@ -161,9 +161,9 @@ public class QueryPath extends VertexPairConnection {
           // -/../->
           String path = "-/";
           if (!isAnonymous()) {
-            path += printIdentifier(name);
+            path += printIdentifier(name, false);
           }
-          return path + ":" + printIdentifier(commonPathExpression.getName()) + printHops(this) + "/->";
+          return path + ":" + printIdentifier(commonPathExpression.getName(), false) + printHops(this) + "/->";
         }
       case SHORTEST:
       case CHEAPEST:

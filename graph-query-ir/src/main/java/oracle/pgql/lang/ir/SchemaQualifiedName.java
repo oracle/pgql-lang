@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2013 - 2020 Oracle and/or its affiliates. All rights reserved.
+ * Copyright (C) 2013 - 2021 Oracle and/or its affiliates. All rights reserved.
  */
 package oracle.pgql.lang.ir;
 
@@ -40,9 +40,9 @@ public class SchemaQualifiedName {
 
   public String toString() {
     if (schemaName == null) {
-      return printIdentifier(name);
+      return printIdentifier(name, false);
     } else {
-      return printIdentifier(schemaName) + "." + printIdentifier(name);
+      return printIdentifier(schemaName, false) + "." + printIdentifier(name, false);
     }
   }
 

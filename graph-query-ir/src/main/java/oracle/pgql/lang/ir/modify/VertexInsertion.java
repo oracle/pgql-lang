@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2013 - 2020 Oracle and/or its affiliates. All rights reserved.
+ * Copyright (C) 2013 - 2021 Oracle and/or its affiliates. All rights reserved.
  */
 package oracle.pgql.lang.ir.modify;
 
@@ -31,7 +31,7 @@ public class VertexInsertion extends AbstractInsertion {
 
   @Override
   public String toString() {
-    return "VERTEX " + printIdentifier(vertex.getName()) + printLabels() + printProperties();
+    return "VERTEX " + printIdentifier(vertex.getName(), false) + printLabels() + printProperties();
   }
 
   @Override

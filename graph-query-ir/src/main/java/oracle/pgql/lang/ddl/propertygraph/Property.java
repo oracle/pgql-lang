@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2013 - 2020 Oracle and/or its affiliates. All rights reserved.
+ * Copyright (C) 2013 - 2021 Oracle and/or its affiliates. All rights reserved.
  */
 package oracle.pgql.lang.ddl.propertygraph;
 
@@ -61,9 +61,9 @@ public class Property {
   @Override
   public String toString() {
     if (getColumnName() != null && getColumnName().equals(propertyName)) {
-      return printIdentifier(propertyName);
+      return printIdentifier(propertyName, false);
     } else {
-      return valueExpression + " AS " + printIdentifier(propertyName);
+      return valueExpression + " AS " + printIdentifier(propertyName, false);
     }
   }
 

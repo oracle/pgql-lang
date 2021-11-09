@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2013 - 2020 Oracle and/or its affiliates. All rights reserved.
+ * Copyright (C) 2013 - 2021 Oracle and/or its affiliates. All rights reserved.
  */
 package oracle.pgql.lang.ddl.propertygraph;
 
@@ -146,9 +146,9 @@ public class EdgeTable extends ElementTable {
         ? referencedVertexTable.getTableName().getName()
         : referencedVertexTable.getTableAlias();
     if (key == null) {
-      return printIdentifier(vertexTableName);
+      return printIdentifier(vertexTableName, false);
     } else {
-      return "KEY " + key + " REFERENCES " + printIdentifier(vertexTableName);
+      return "KEY " + key + " REFERENCES " + printIdentifier(vertexTableName, false);
     }
   }
 

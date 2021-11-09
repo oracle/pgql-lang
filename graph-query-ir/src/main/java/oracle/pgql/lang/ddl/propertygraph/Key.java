@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2013 - 2020 Oracle and/or its affiliates. All rights reserved.
+ * Copyright (C) 2013 - 2021 Oracle and/or its affiliates. All rights reserved.
  */
 package oracle.pgql.lang.ddl.propertygraph;
 
@@ -33,7 +33,7 @@ public class Key {
   @Override
   public String toString() {
     return "( " + columnNames.stream() //
-        .map(x -> printIdentifier(x)) //
+        .map(x -> printIdentifier(x, false)) //
         .collect(Collectors.joining(", ")) + " )";
   }
 

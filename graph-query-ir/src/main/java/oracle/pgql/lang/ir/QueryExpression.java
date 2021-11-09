@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2013 - 2020 Oracle and/or its affiliates. All rights reserved.
+ * Copyright (C) 2013 - 2021 Oracle and/or its affiliates. All rights reserved.
  */
 package oracle.pgql.lang.ir;
 
@@ -880,7 +880,7 @@ public interface QueryExpression {
 
     @Override
     public String toString() {
-      return printPgqlString(variable) + "." + printIdentifier(propertyName);
+      return printPgqlString(variable) + "." + printIdentifier(propertyName, false);
     }
 
     @Override
@@ -1072,10 +1072,10 @@ public interface QueryExpression {
 
     @Override
     public String toString() {
-      String schemaNamePart = schemaName == null ? "" : printIdentifier(schemaName) + ".";
-      String packageNamePart = packageName == null ? "" : printIdentifier(packageName) + ".";
+      String schemaNamePart = schemaName == null ? "" : printIdentifier(schemaName, false) + ".";
+      String packageNamePart = packageName == null ? "" : printIdentifier(packageName, false) + ".";
       String expressions = args.stream().map(QueryExpression::toString).collect(joining(", "));
-      return schemaNamePart + packageNamePart + printIdentifier(functionName) + "(" + expressions + ")";
+      return schemaNamePart + packageNamePart + printIdentifier(functionName, false) + "(" + expressions + ")";
     }
 
     @Override

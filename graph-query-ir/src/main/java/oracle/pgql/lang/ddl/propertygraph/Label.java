@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2013 - 2020 Oracle and/or its affiliates. All rights reserved.
+ * Copyright (C) 2013 - 2021 Oracle and/or its affiliates. All rights reserved.
  */
 package oracle.pgql.lang.ddl.propertygraph;
 
@@ -91,7 +91,7 @@ public class Label {
 
   @Override
   public String toString() {
-    return "LABEL " + printIdentifier(name) + " " + printProperties();
+    return "LABEL " + printIdentifier(name, false) + " " + printProperties();
   }
 
   String printProperties() {
@@ -101,7 +101,7 @@ public class Label {
         return "PROPERTIES ARE ALL COLUMNS";
       } else {
         return "PROPERTIES ARE ALL COLUMNS EXCEPT ( " + propertiesAreAllColumnsExcept.stream() //
-            .map(x -> printIdentifier(x)) //
+            .map(x -> printIdentifier(x, false)) //
             .collect(Collectors.joining(", ")) + " )";
       }
     } else {

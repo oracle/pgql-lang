@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2013 - 2020 Oracle and/or its affiliates. All rights reserved.
+ * Copyright (C) 2013 - 2021 Oracle and/or its affiliates. All rights reserved.
  */
 package oracle.pgql.lang.ir;
 
@@ -18,7 +18,7 @@ public class QueryVertex extends QueryVariable {
 
   @Override
   public String toString() {
-    return "(" + printIdentifier(name) + ")";
+    return "(" + printIdentifier(name, false) + ")";
   }
 
   @Override

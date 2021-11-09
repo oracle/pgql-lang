@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2013 - 2020 Oracle and/or its affiliates. All rights reserved.
+ * Copyright (C) 2013 - 2021 Oracle and/or its affiliates. All rights reserved.
  */
 package oracle.pgql.lang;
 
@@ -62,7 +62,9 @@ public class PgqlResult {
   }
 
   /**
-   * @return a GraphQuery object if the query is valid; null otherwise
+   * @return a GraphQuery object if the query is valid (check {@link #isQueryValid()}). In case the query is invalid and
+   *         contains syntax or semantic errors then this method _may_ return null depending on how recoverable the
+   *         query text is.
    */
   public GraphQuery getGraphQuery() {
     if (pgqlStatement == null) {
@@ -76,6 +78,11 @@ public class PgqlResult {
     }
   }
 
+  /**
+   * @return a PgqlStatement object if the query is valid (check {@link #isQueryValid()}). In case the statement is
+   *         invalid and contains syntax or semantic errors then this method _may_ return null depending on how
+   *         recoverable the statement text is.
+   */
   public PgqlStatement getPgqlStatement() {
     return pgqlStatement;
   }

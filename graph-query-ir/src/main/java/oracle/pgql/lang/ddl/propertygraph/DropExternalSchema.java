@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2013 - 2020 Oracle and/or its affiliates. All rights reserved.
+ * Copyright (C) 2013 - 2021 Oracle and/or its affiliates. All rights reserved.
  */
 package oracle.pgql.lang.ddl.propertygraph;
 
@@ -26,7 +26,7 @@ public class DropExternalSchema implements PgqlStatement {
 
   @Override
   public String toString() {
-    return "DROP EXTERNAL SCHEMA " + printIdentifier(schemaName);
+    return "DROP EXTERNAL SCHEMA " + printIdentifier(schemaName, false);
   }
 
   @Override
