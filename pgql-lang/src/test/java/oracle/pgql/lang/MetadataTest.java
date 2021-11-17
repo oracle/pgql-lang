@@ -941,4 +941,28 @@ public class MetadataTest extends AbstractPgqlTest {
     PgqlResult result = parse("SELECT x.* FROM MATCH (v)");
     assertTrue(result.getErrorMessages().contains("Unresolved variable"));
   }
+
+  @Test
+  public void testSelectAllPropertiesZeroColumnsNotAllowed() throws Exception {
+    String error = "SELECT clause should have at least one column but has zero columns";
+
+    PgqlResult result = parse("SELECT e.* FROM MATCH () -[e:worksFor]-> () ON financialNetwork");
+    assertTrue(result.getErrorMessages().contains(error));
+
+    result = parse("SELECT e1.*, e2.* FROM MATCH () -[e1:worksFor]-> () -[e2:owner]-> () ON financialNetwork");
+    assertTrue(result.getErrorMessages().contains(error));
+
+    result = parse("SELECT DISTINCT e.*, e.* FROM MATCH () -[e:worksFor]-> () ON financialNetwork");
+    assertTrue(result.getErrorMessages().contains(error));
+
+    result = parse("SELECT 123, e.* FROM MATCH () -[e:worksFor]-> () ON financialNetwork");
+    assertTrue(result.isQueryValid());
+
+    result = parse("SELECT DISTINCT e.*, e.*, 123 FROM MATCH () -[e:worksFor]-> () ON financialNetwork");
+    assertTrue(result.isQueryValid());
+
+    result = parse("SELECT e.* FROM MATCH () -[e:worksFor|transaction]-> () ON financialNetwork");
+    assertTrue(result.isQueryValid());
+  }
+
 }

@@ -689,6 +689,12 @@ rules // MODIFY
     Edge(_, Identifier(e, _), _, _, _, Correlation(ExpressionPlusType(VarRef(Identifier(outer-var, _), _), type))) -> <fail>
     with <generate-error(|ctx, "Duplicate variable (variable with same name is passed from an outer query)")> e
 
+  // check SELECT clause is not empty (may happen in case of SELECT n.*)
+  nabl-constraint(|ctx):
+    SelectClause(distinctOrStar, e@ExpAsVars([])) -> <fail>
+    where <not(?Star())> distinctOrStar // for SELECT * (instead of SELECT n.*) with zero columns we already have a different error
+    with <generate-error(|ctx, "SELECT clause should have at least one column but has zero columns")> e
+
   // SUBSTRING
   nabl-constraint(|ctx, metadata):
     CharacterSubstring(ExpressionPlusType(exp, type@Type(t)), _, _) -> <fail>
