@@ -452,7 +452,7 @@ rules
     with groupVariables := <conc> (<map(?Vertex(_, <id>, _))> vertices, <map(?Edge(_, _, _, _, <id>, _))> edges)
        ; references := <Hd; collect(?VarRef(_, <id>))> variables
        ; referencedGroupVariables := <isect> (groupVariables, references)
-       ; if <?[]> referencedGroupVariables
+       ; if <?[]; !rowsPerMatch; (?None() + ?Some(OneRowPerMatch()))> referencedGroupVariables
          then pathFindingGoal := Reaches()
          else pathFindingGoal := Shortest()
          end
