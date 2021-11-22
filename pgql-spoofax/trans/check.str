@@ -706,6 +706,12 @@ rules // MODIFY
        ; unsupported-cross-references := <isect> (vars-in-rows-per-match, correlations)
        ; <batch-generate-error(|ctx, "Variable with same name is used in an inner query")> unsupported-cross-references
 
+  // check SELECT clause is not empty (may happen in case of SELECT n.*)
+  nabl-constraint(|ctx):
+    SelectClause(distinctOrStar, e@ExpAsVars([])) -> <fail>
+    where <not(?Star())> distinctOrStar // for SELECT * (instead of SELECT n.*) with zero columns we already have a different error
+    with <generate-error(|ctx, "SELECT clause should have at least one column but has zero columns")> e
+
   // SUBSTRING
   nabl-constraint(|ctx, metadata):
     CharacterSubstring(ExpressionPlusType(exp, type@Type(t)), _, _) -> <fail>
