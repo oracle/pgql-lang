@@ -235,7 +235,7 @@ public class Pgql implements Closeable {
   private PgqlResult parseInternal(String queryString, AbstractMetadataProvider metadataProvider) throws PgqlException {
     if (queryString.equals("")) {
       String error = "Empty query string";
-      return new PgqlResult(queryString, false, error, null, null, LATEST_VERSION, 0, false);
+      return new PgqlResult(queryString, false, error, null, null, LATEST_VERSION, 0, false, metadataProvider);
     }
 
     ITemporaryContext context = null;
@@ -254,7 +254,7 @@ public class Pgql implements Closeable {
       }
       if (!parseResult.valid()) {
         return new PgqlResult(queryString, parseResult.valid(), prettyMessages, statement, parseResult, LATEST_VERSION,
-            0, false);
+            0, false, metadataProvider);
       }
 
       context = spoofax.contextService.getTemporary(dummyFile, dummyProject, pgqlLang);
@@ -286,7 +286,7 @@ public class Pgql implements Closeable {
           prettyMessages = e.getMessage();
           queryValid = false;
           return new PgqlResult(queryString, queryValid, prettyMessages, statement, parseResult, LATEST_VERSION, 0,
-              false);
+              false, metadataProvider);
         } else {
           System.out.println(e);
           LOG.debug("Translation of PGQL failed because of semantically invalid AST");
@@ -303,7 +303,7 @@ public class Pgql implements Closeable {
       boolean querySelectsAllProperties = querySelectsAllProperties(analyizedAst, statement);
 
       return new PgqlResult(queryString, queryValid, prettyMessages, statement, parseResult, pgqlVersion,
-          bindVariableCount, querySelectsAllProperties);
+          bindVariableCount, querySelectsAllProperties, metadataProvider);
     } catch (IOException | ParseException | AnalysisException | ContextException e) {
       throw new PgqlException("Failed to parse PGQL query", e);
     } finally {

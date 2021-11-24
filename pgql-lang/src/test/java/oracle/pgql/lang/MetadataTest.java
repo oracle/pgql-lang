@@ -6,11 +6,14 @@ package oracle.pgql.lang;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
 
+import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 
 import org.junit.Test;
 
 import oracle.pgql.lang.ir.ExpAsVar;
+import oracle.pgql.lang.ir.QueryVariable;
 import oracle.pgql.lang.ir.SelectQuery;
 
 public class MetadataTest extends AbstractPgqlTest {
@@ -965,4 +968,101 @@ public class MetadataTest extends AbstractPgqlTest {
     assertTrue(result.isQueryValid());
   }
 
+  @Test
+  public void testGetAllVertexPropertiesApi() throws Exception {
+    PgqlResult result = parse("SELECT 1 FROM MATCH (n:Company) ON financialNetwork");
+    List<String> allProperties = getVertexProperties(result);
+    List<String> expectedProperties = new ArrayList<>();
+    expectedProperties.add("name");
+    assertEquals(expectedProperties, allProperties);
+
+    result = parse("SELECT 1 FROM MATCH (n) ON financialNetwork");
+    allProperties = getVertexProperties(result);
+    expectedProperties = new ArrayList<>();
+    expectedProperties.add("number");
+    expectedProperties.add("name");
+    assertEquals(expectedProperties, allProperties);
+
+    result = parse("SELECT 1 FROM MATCH (n) ON financialNetwork WHERE has_label(n, 'Account')");
+    allProperties = getVertexProperties(result);
+    expectedProperties = new ArrayList<>();
+    expectedProperties.add("number");
+    assertEquals(expectedProperties, allProperties);
+
+    result = parse("SELECT 1 FROM MATCH (n) ON financialNetwork WHERE has_label(n, 'ACCOUNT')");
+    allProperties = getVertexProperties(result);
+    assertEquals(expectedProperties, allProperties);
+
+    result = parse("SELECT 1 FROM MATCH (n) ON financialNetwork WHERE \"has_label\"(n, 'Account')");
+    allProperties = getVertexProperties(result);
+    assertEquals(expectedProperties, allProperties);
+
+    result = parse("SELECT 1 FROM MATCH (n)");
+    allProperties = getVertexProperties(result);
+    expectedProperties = new ArrayList<>();
+    expectedProperties.add("firstName");
+    expectedProperties.add("dob");
+    expectedProperties.add("numericProp");
+    expectedProperties.add("typeConflictProp");
+    assertEquals(expectedProperties, allProperties);
+
+    result = parse("SELECT 1 FROM MATCH (n) WHERE has_label(n, 'Person') OR has_label(n, 'University')");
+    assertEquals(expectedProperties, allProperties);
+  }
+
+  @Test
+  public void testGetAllEdgePropertiesApi() throws Exception {
+    PgqlResult result = parse("SELECT 1 FROM MATCH () -[e:worksFor]-> () ON financialNetwork");
+    List<String> allProperties = getEdgeProperties(result);
+    assertEquals(Collections.EMPTY_LIST, allProperties);
+
+    result = parse("SELECT 1 FROM MATCH () -[e:worksFor|transaction]-> () ON financialNetwork");
+    allProperties = getEdgeProperties(result);
+    List<String> expectedProperties = new ArrayList<>();
+    expectedProperties.add("amount");
+    assertEquals(expectedProperties, allProperties);
+
+    result = parse("SELECT 1 FROM MATCH () -[e]-> () ON financialNetwork WHERE has_label(e, 'worksFor')");
+    allProperties = getEdgeProperties(result);
+    expectedProperties = new ArrayList<>();
+    assertEquals(expectedProperties, allProperties);
+
+    result = parse("SELECT 1 FROM MATCH () -[e]-> () ON financialNetwork WHERE has_label(e, 'transaction')");
+    allProperties = getEdgeProperties(result);
+    expectedProperties = new ArrayList<>();
+    expectedProperties.add("amount");
+    assertEquals(expectedProperties, allProperties);
+
+    result = parse("SELECT 1 FROM MATCH () -[e]-> () ON financialNetwork WHERE has_label(e, 'TRANSACTION')");
+    allProperties = getEdgeProperties(result);
+    assertEquals(expectedProperties, allProperties);
+
+    result = parse("SELECT 1 FROM MATCH () -[e]-> () ON financialNetwork WHERE \"has_label\"(e, 'transaction')");
+    allProperties = getEdgeProperties(result);
+    assertEquals(expectedProperties, allProperties);
+
+    result = parse("SELECT 1 FROM MATCH () -[e]-> () ON financialNetwork");
+    allProperties = getEdgeProperties(result);
+    assertEquals(expectedProperties, allProperties);
+
+    result = parse("SELECT 1 FROM MATCH () -[e]-> ()");
+    allProperties = getEdgeProperties(result);
+    expectedProperties = new ArrayList<>();
+    expectedProperties.add("since");
+    expectedProperties.add("prop");
+    expectedProperties.add("typeConflictProp");
+    expectedProperties.add("PROP");
+    expectedProperties.add("Typeconflictprop");
+    assertEquals(expectedProperties, allProperties);
+  }
+
+  private List<String> getEdgeProperties(PgqlResult result) {
+    QueryVariable edge = result.getGraphQuery().getGraphPattern().getConnections().iterator().next();
+    return result.getAllProperties(edge);
+  }
+
+  private List<String> getVertexProperties(PgqlResult result) {
+    QueryVariable vertex = result.getGraphQuery().getGraphPattern().getVertices().iterator().next();
+    return result.getAllProperties(vertex);
+  }
 }
