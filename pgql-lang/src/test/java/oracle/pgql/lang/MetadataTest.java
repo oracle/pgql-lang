@@ -1004,6 +1004,7 @@ public class MetadataTest extends AbstractPgqlTest {
     expectedProperties.add("dob");
     expectedProperties.add("numericProp");
     expectedProperties.add("typeConflictProp");
+    expectedProperties.add("name");
     assertEquals(expectedProperties, allProperties);
 
     result = parse("SELECT 1 FROM MATCH (n) WHERE has_label(n, 'Person') OR has_label(n, 'University')");
