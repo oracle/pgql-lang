@@ -361,7 +361,7 @@ public class PgqlUtils {
     Iterator<QueryExpression> it = constraintsCopy.iterator();
     while (it.hasNext()) {
       QueryExpression exp = it.next();
-      if (isLabelPredicate(var, exp)) {
+      if (isHasLabelFunctionForVar(exp, var)) {
         labelPredicate = exp;
         it.remove();
         break;
@@ -407,12 +407,14 @@ public class PgqlUtils {
     return result;
   }
 
-  private static boolean isLabelPredicate(QueryVariable var, QueryExpression exp) {
+  public static boolean isHasLabelFunctionForVar(QueryExpression exp, QueryVariable var) {
     switch (exp.getExpType()) {
       case FUNCTION_CALL: {
         FunctionCall functionCall = (FunctionCall) exp;
-        if (functionCall.getPackageName() == null && functionCall.getFunctionName().toLowerCase().equals("has_label")
-            && functionCall.getArgs().size() == 2) {
+        boolean hasLabelFunctionName = functionCall.getFunctionName().equals("has_label")
+            || functionCall.getFunctionName().equals("HAS_LABEL");
+
+        if (functionCall.getPackageName() == null && hasLabelFunctionName && functionCall.getArgs().size() == 2) {
           QueryExpression arg0 = functionCall.getArgs().get(0);
           QueryExpression arg1 = functionCall.getArgs().get(1);
           if (arg0.getExpType() == ExpressionType.VARREF && arg1.getExpType() == ExpressionType.STRING) {
@@ -426,7 +428,7 @@ public class PgqlUtils {
       }
       case OR: {
         Or or = (Or) exp;
-        return isLabelPredicate(var, or.getExp1()) && isLabelPredicate(var, or.getExp2());
+        return isHasLabelFunctionForVar(or.getExp1(), var) && isHasLabelFunctionForVar(or.getExp2(), var);
       }
       default:
         return false;
