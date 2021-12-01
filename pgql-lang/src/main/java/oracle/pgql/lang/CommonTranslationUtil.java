@@ -524,15 +524,15 @@ public class CommonTranslationUtil {
 
   protected static QueryVariable getVariable(TranslationContext ctx, IStrategoTerm varRefT) {
     String varName = getString(varRefT.getSubterm(POS_VARREF_VARNAME));
-    IStrategoTerm originPosition = null;
+    IStrategoTerm originOffset = null;
     if (varRefT.getSubtermCount() > 1) {
-      originPosition = varRefT.getSubterm(POS_VARREF_ORIGIN_OFFSET);
+      originOffset = varRefT.getSubterm(POS_VARREF_ORIGIN_OFFSET);
     } else {
       // dangling reference
       return new QueryVertex(varName, false);
     }
 
-    return ctx.getVariable(originPosition);
+    return ctx.getVariable(originOffset);
   }
 
   // helper method

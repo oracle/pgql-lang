@@ -42,23 +42,23 @@ rules
 
        ; if <?Some(GraphPattern(vertices, connections, valueExpression))> := graphPattern
          then // MATCH
-              (vertices', connections') := <alltd(trans-elem(|variables'))> (vertices, connections)
-              ; edges := <filter(?Edge(_, _, _, _, _, _) + path-with-at-most-one-binding)> connections'
-              ; paths := <filter(path-with-two-or-more-bindings)> connections'
+              (vertices', connections') := <alltd(trans-elem(|variables'))> (vertices, <alltd(trans-rows-per-match(|variables'))> connections)
+            ; edges := <filter(?Edge(_, _, _, _, _, _) + path-with-at-most-one-binding)> connections'
+            ; paths := <filter(path-with-two-or-more-bindings)> connections'
 
-              ; new-vars := <collect(to-varDef)> (vertices', edges)
-              ; new-groupVars := <collect(to-varDef)> paths
-              ; <?[x|[y|ys]]> variables'
-              ; visible-vars := <replace-or-add-all> (new-vars, x)
-              ; visible-groupVars := <replace-or-add-all> (new-groupVars, y)
-              ; variables'' := [visible-vars|[visible-groupVars|ys]]
+            ; new-vars := <conc> (<collect(to-varDef)> (vertices', edges), <collect(rows-per-match-to-varDef)> connections')
+            ; new-groupVars := <collect(to-varDef)> paths
+            ; <?[x|[y|ys]]> variables'
+            ; visible-vars := <replace-or-add-all> (new-vars, x)
+            ; visible-groupVars := <replace-or-add-all> (new-groupVars, y)
+            ; variables'' := [visible-vars|[visible-groupVars|ys]]
 
-              ; connections'' := <alltd(resolve-var-refs-in-path-expression(|variables'', metadata))> connections'
-       
+            ; connections'' := <alltd(resolve-var-refs-in-path-expression(|variables'', metadata))> connections'
+
               // WHERE
-              ; valueExpression' := <resolve-value-expression(|variables'', expAsVars, metadata)> valueExpression
+            ; valueExpression' := <resolve-value-expression(|variables'', expAsVars, metadata)> valueExpression
 
-              ; graphPattern' := Some(GraphPattern(vertices', connections'', valueExpression'))
+            ; graphPattern' := Some(GraphPattern(vertices', connections'', valueExpression'))
          else graphPattern' := None()
             ; variables'' := variables'
             ; valueExpression' := Constraints([])
@@ -95,11 +95,11 @@ rules
          end
 
   path-with-at-most-one-binding:
-    t@Path(_, _, _, quantifier, _, _, _, _) -> t
+    t@Path(_, _, _, quantifier, _, _, _, _, _) -> t
     where <has-at-most-one-binding> quantifier
 
   path-with-two-or-more-bindings:
-    t@Path(_, _, _, quantifier, _, _, _, _) -> t
+    t@Path(_, _, _, quantifier, _, _, _, _, _) -> t
     where not( <has-at-most-one-binding> quantifier )
 
   guarantee-size-two-or-more = ?[]; ![[], []] <+ ?[x]; ![x, []] <+ id
@@ -121,8 +121,15 @@ rules
          else correlation := None()
          end
 
+  trans-rows-per-match(|variables) =
+    ?OneRowPerVertex(iden@Identifier(v, _)); !OneRowPerVertex(iden, <origin-track-forced(origin-offset)> iden, <to-Correlation(|variables)> v) +
+    ?OneRowPerEdge(iden@Identifier(e, _)); !OneRowPerEdge(iden, <origin-track-forced(origin-offset)> iden, <to-Correlation(|variables)> e)
+
   to-varDef = ?Vertex(iden, origin-offset, _); !VarDef(iden, origin-offset, None(), None(), None(), ThisQuery(), Type("VERTEX"))
   to-varDef = ?Edge(_, identifier, _, _, origin-offset, _); !VarDef(identifier, origin-offset, None(), None(), None(), ThisQuery(), Type("EDGE"))
+
+  rows-per-match-to-varDef = ?OneRowPerVertex(iden, origin-offset, _); !VarDef(iden, origin-offset, None(), None(), None(), ThisQuery(), Type("VERTEX"))
+  rows-per-match-to-varDef = ?OneRowPerEdge(iden, origin-offset, _); !VarDef(iden, origin-offset, None(), None(), None(), ThisQuery(), Type("EDGE"))
 
   replace-or-add-all = foldl(replace-or-add)
 
@@ -302,7 +309,7 @@ rules
     ; alltd(replace-exp-with-ref-from-outer-queries(|variables) <+ is-subquery <+ is-aggregate)
 
   resolve-var-refs-in-path-expression(|variables, metadata):
-    t@Path(_, _, _, quantifier, _, _, _, _) -> t'
+    t@Path(_, _, _, quantifier, _, _, _, _, _) -> t'
     with [_|variables'] := variables
        ; if <has-at-most-one-binding> quantifier
        then t' := <alltd(resolve-var-ref(|variables, metadata))> t // resolve only to singleton variables
@@ -440,12 +447,12 @@ rules
     with elems' := <make-set-while-preserving-ordering> elems // optimization to translate e.g. ORDER BY x, y, x, y into ORDER BY x, y
 
   normalize-ANY-path(|variables):
-    Path(src, dst, t@CommonPathExpression(_, Vertices(vertices), Edges(edges), _, _), quantifier, edge, direction, Any(), topKAnyAll)
-      -> Path(src, dst, t, quantifier, edge, direction, pathFindingGoal, topKAnyAll)
+    Path(src, dst, t@CommonPathExpression(_, Vertices(vertices), Edges(edges), _, _), quantifier, edge, direction, Any(), topKAnyAll, rowsPerMatch)
+      -> Path(src, dst, t, quantifier, edge, direction, pathFindingGoal, topKAnyAll, rowsPerMatch)
     with groupVariables := <conc> (<map(?Vertex(_, <id>, _))> vertices, <map(?Edge(_, _, _, _, <id>, _))> edges)
        ; references := <Hd; collect(?VarRef(_, <id>))> variables
        ; referencedGroupVariables := <isect> (groupVariables, references)
-       ; if <?[]> referencedGroupVariables
+       ; if <?[]; !rowsPerMatch; (?None() + ?Some(OneRowPerMatch()))> referencedGroupVariables
          then pathFindingGoal := Reaches()
          else pathFindingGoal := Shortest()
          end

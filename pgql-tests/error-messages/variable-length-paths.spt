@@ -45,28 +45,28 @@ test Multiple edges in SHORTEST (1) [[
   SELECT n.prop AS nProp
     FROM g MATCH SHORTEST ( (n) [[-[e1]->* (m) ->*]] (o) )
 
-]] error like "Not yet supported: multiple edge patterns in SHORTEST or CHEAPEST" at #1
+]] error like "Not yet supported: multiple edge patterns in ANY, ALL, SHORTEST or CHEAPEST" at #1
 
 test Multiple edges in SHORTEST (2) [[
 
   SELECT n.prop AS nProp
     FROM g MATCH SHORTEST ( (n) (-[e1]-> () [[-[e2]->)]]* (m) )
 
-]] error like "Not yet supported: multiple edge patterns in SHORTEST or CHEAPEST" at #1
+]] error like "Not yet supported: multiple edge patterns in ANY, ALL, SHORTEST or CHEAPEST" at #1
 
 test Multiple edges in CHEAPEST (1) [[
 
   SELECT n.prop AS nProp
     FROM g MATCH CHEAPEST ( (n) [[-[e1]->* (m) ->*]] (o) )
 
-]] error like "Not yet supported: multiple edge patterns in SHORTEST or CHEAPEST" at #1
+]] error like "Not yet supported: multiple edge patterns in ANY, ALL, SHORTEST or CHEAPEST" at #1
 
 test Multiple edges in CHEAPEST (2) [[
 
   SELECT n.prop AS nProp
     FROM g MATCH CHEAPEST ( (n) (-[e1]-> () [[-[e2]->)]]* (m) )
 
-]] error like "Not yet supported: multiple edge patterns in SHORTEST or CHEAPEST" at #1
+]] error like "Not yet supported: multiple edge patterns in ANY, ALL, SHORTEST or CHEAPEST" at #1
 
 test Unsupport question mark in SHORTEST [[
 
@@ -302,3 +302,196 @@ test Label disjunction in path [[
     FROM MATCH (n) -/:[[likes|dislikes]]*/-> (m)
 
 ]] error like "Label disjunction not supported here" at #1
+
+test ONE ROW PER VERTEX no quantifier (1) [[
+
+  SELECT 1
+    FROM MATCH (n) [[ONE ROW PER VERTEX (v)]]
+
+]] error like "ONE ROW PER VERTEX or EDGE is only supported in combination with ANY, ALL, SHORTEST or CHEAPEST" at #1
+
+test ONE ROW PER VERTEX no quantifier (2) [[
+
+  SELECT 1
+    FROM MATCH (n) -[e]-> (m) [[ONE ROW PER VERTEX (v)]]
+
+]] error like "ONE ROW PER VERTEX or EDGE is only supported in combination with ANY, ALL, SHORTEST or CHEAPEST" at #1
+
+test ONE ROW PER EDGE no quantifier (1) [[
+
+  SELECT 1
+    FROM MATCH (n) [[ONE ROW PER EDGE (e)]]
+
+]] error like "ONE ROW PER VERTEX or EDGE is only supported in combination with ANY, ALL, SHORTEST or CHEAPEST" at #1
+
+test ONE ROW PER EDGE no quantifier (2) [[
+
+  SELECT 1
+    FROM MATCH (n) -[e]-> (m) [[ONE ROW PER EDGE (e)]]
+
+]] error like "ONE ROW PER VERTEX or EDGE is only supported in combination with ANY, ALL, SHORTEST or CHEAPEST" at #1
+
+test ONE ROW PER VERTEX with multiple path patterns [[
+
+  SELECT 1
+    FROM MATCH ( ANY (a) -> (b), ANY (b) -> (c) ) [[ONE ROW PER VERTEX (v)]]
+
+]] error like "ONE ROW PER VERTEX or EDGE is only permitted if the MATCH clause contains a single path pattern" at #1
+
+test ONE ROW PER EDGE with multiple path patterns [[
+
+  SELECT 1
+    FROM MATCH ( ANY (a) -> (b), ANY (b) -> (c) ) [[ONE ROW PER EDGE (e)]]
+
+]] error like "ONE ROW PER VERTEX or EDGE is only permitted if the MATCH clause contains a single path pattern" at #1
+
+test ONE ROW PER VERTEX duplicate variable (1) [[
+
+  SELECT 1
+    FROM MATCH ANY (a) -[e]-> ([[b]]) ONE ROW PER VERTEX ([[b]])
+
+]] error like "Duplicate variable" at #1, #2
+
+test ONE ROW PER VERTEX duplicate variable (2) [[
+
+  SELECT 1
+    FROM MATCH ANY (a) -[ [[e]] ]-> (b) ONE ROW PER VERTEX ([[e]])
+
+]] error like "Duplicate variable" at #1, #2
+
+test ONE ROW PER VERTEX duplicate variable (3) [[
+
+  SELECT 1
+    FROM MATCH ANY (a) (-[e]-> ([[x]]))* (b) ONE ROW PER VERTEX ([[x]])
+
+]] error like "Duplicate variable" at #1, #2
+
+test ONE ROW PER VERTEX duplicate variable (4) [[
+
+  SELECT 1
+    FROM MATCH ANY (a) -[ [[e]] ]->* (b) ONE ROW PER VERTEX ([[e]])
+
+]] error like "Duplicate variable" at #1, #2
+
+test ONE ROW PER VERTEX duplicate variable (5) [[
+
+    SELECT 1
+      FROM MATCH ANY (a) -[e]->* (b) ONE ROW PER VERTEX (v)
+  GROUP BY a.prop AS [[v]]
+
+]] error like "Duplicate variable: variable already defined in the MATCH clause" at #1
+
+test ONE ROW PER EDGE duplicate variable (1) [[
+
+  SELECT 1
+    FROM MATCH ANY (a) -[ [[e]] ]-> (b) ONE ROW PER EDGE ([[e]])
+
+]] error like "Duplicate variable" at #1, #2
+
+test ONE ROW PER EDGE duplicate variable (2) [[
+
+  SELECT 1
+    FROM MATCH ANY (a) -[e]-> ([[b]]) ONE ROW PER EDGE ([[b]])
+
+]] error like "Duplicate variable" at #1, #2
+
+test ONE ROW PER EDGE duplicate variable (3) [[
+
+  SELECT 1
+    FROM MATCH ANY (a) (-[e]-> ([[x]]))* (b) ONE ROW PER EDGE ([[x]])
+
+]] error like "Duplicate variable" at #1, #2
+
+test ONE ROW PER EDGE duplicate variable (4) [[
+
+  SELECT 1
+    FROM MATCH ANY (a) -[ [[e]] ]->* (b) ONE ROW PER EDGE ([[e]])
+
+]] error like "Duplicate variable" at #1, #2
+
+test ONE ROW PER EDGE duplicate variable (5) [[
+
+    SELECT 1
+      FROM MATCH ANY (a) ->* (b) ONE ROW PER EDGE (e)
+  GROUP BY a.prop AS [[e]]
+
+]] error like "Duplicate variable: variable already defined in the MATCH clause" at #1
+
+test ONE ROW PER VERTEX same variable in subquery (1) [[
+
+  SELECT 1
+    FROM MATCH ANY (a) ->* (b) ONE ROW PER VERTEX ([[v]])
+   WHERE EXISTS ( SELECT 1 FROM MATCH () -[ [[v]] ]-> () )
+
+]] error like "Variable with same name is used in an inner query" at #1
+   error like "Duplicate variable (variable with same name is passed from an outer query)" at #2
+
+test ONE ROW PER VERTEX same variable in subquery (2) [[
+
+  SELECT 1
+    FROM MATCH ANY (a) ->* (b) ONE ROW PER VERTEX ([[v]])
+   WHERE EXISTS ( SELECT 1 FROM MATCH () -> (v) )
+
+]] error like "Variable with same name is used in an inner query" at #1
+
+test ONE ROW PER VERTEX same variable in subquery (3) [[
+
+  SELECT 1
+    FROM MATCH ANY (a) ->* (b) ONE ROW PER VERTEX ([[v]])
+   WHERE EXISTS ( SELECT 1 FROM MATCH ANY () -[ [[v]] ]->* () )
+
+]] error like "Variable with same name is used in an inner query" at #1
+   error like "Duplicate variable (variable with same name is passed from an outer query)" at #2
+
+test ONE ROW PER VERTEX same variable in subquery (4) [[
+
+  SELECT 1
+    FROM MATCH ANY (a) ->* (b) ONE ROW PER VERTEX ([[v]])
+   WHERE EXISTS ( SELECT 1 FROM MATCH ANY () (-> (v))* () )
+
+]] error like "Variable with same name is used in an inner query" at #1
+
+test ONE ROW PER EDGE same variable in subquery (1) [[
+
+  SELECT 1
+    FROM MATCH ANY (a) ->* (b) ONE ROW PER EDGE ([[v]])
+   WHERE EXISTS ( SELECT 1 FROM MATCH () -[ [[v]] ]-> () )
+
+]] error like "Variable with same name is used in an inner query" at #1
+   error like "Duplicate variable (variable with same name is passed from an outer query)" at #2
+
+test ONE ROW PER EDGE same variable in subquery (2) [[
+
+  SELECT 1
+    FROM MATCH ANY (a) ->* (b) ONE ROW PER EDGE ([[v]])
+   WHERE EXISTS ( SELECT 1 FROM MATCH () -> ([[v]]) )
+
+]] error like "Variable with same name is used in an inner query" at #1
+   error like "Duplicate variable (variable with same name is passed from an outer query)" at #2
+
+test ONE ROW PER EDGE same variable in subquery (3) [[
+
+  SELECT 1
+    FROM MATCH ANY (a) ->* (b) ONE ROW PER EDGE ([[v]])
+   WHERE EXISTS ( SELECT 1 FROM MATCH ANY () -[ [[v]] ]->* () )
+
+]] error like "Variable with same name is used in an inner query" at #1
+   error like "Duplicate variable (variable with same name is passed from an outer query)" at #2
+
+test ONE ROW PER EDGE same variable in subquery (4) [[
+
+  SELECT 1
+    FROM MATCH ANY (a) ->* (b) ONE ROW PER EDGE ([[v]])
+   WHERE EXISTS ( SELECT 1 FROM MATCH ANY () (-> ([[v]]))* () )
+
+]] error like "Variable with same name is used in an inner query" at #1
+   error like "Duplicate variable (variable with same name is passed from an outer query)" at #2
+
+test Duplicate variables in ONE ROW PER VERTEX (1) [[
+
+  SELECT 1
+    FROM MATCH ANY (a) ->* (b) ONE ROW PER EDGE ([[v]])
+   WHERE EXISTS ( SELECT 1 FROM MATCH ANY (b) ->* (c) ONE ROW PER VERTEX ([[v]]) )
+
+]] error like "Variable with same name is used in an inner query" at #1
+   error like "Duplicate variable (variable with same name is passed from an outer query)" at #2

@@ -969,6 +969,24 @@ public class MetadataTest extends AbstractPgqlTest {
   }
 
   @Test
+  public void testOneRowPerVertex() throws Exception {
+    PgqlResult result = parse("SELECT v.firstName FROM MATCH ANY (a) ->* (b) ONE ROW PER VERTEX ( v )");
+    assertTrue(result.isQueryValid());
+
+    result = parse("SELECT v.firstNme FROM MATCH ANY (a) ->* (b) ONE ROW PER VERTEX ( v )");
+    assertTrue(result.getErrorMessages().contains("Property does not exist for any of the labels"));
+  }
+
+  @Test
+  public void testOneRowPerEdge() throws Exception {
+    PgqlResult result = parse("SELECT e.since FROM MATCH ANY (a) ->* (b) ONE ROW PER EDGE ( e )");
+    assertTrue(result.isQueryValid());
+
+    result = parse("SELECT e.xyz FROM MATCH ANY (a) ->* (b) ONE ROW PER EDGE ( e )");
+    assertTrue(result.getErrorMessages().contains("Property does not exist for any of the labels"));
+  }
+
+  @Test
   public void testGetAllVertexPropertiesApi() throws Exception {
     PgqlResult result = parse("SELECT 1 FROM MATCH (n:Company) ON financialNetwork");
     List<String> allProperties = getVertexProperties(result);

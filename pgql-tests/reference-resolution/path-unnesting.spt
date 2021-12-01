@@ -1,0 +1,19 @@
+module path-unnesting
+
+language pgql-lang
+
+test Resolve to ONE ROW PER VERTEX [[
+
+  SELECT [[v]].prop
+  FROM MATCH ANY SHORTEST (n) -[e]->* (m)
+        ONE ROW PER VERTEX ([[v]]) 
+
+]] resolve #1 to #2
+
+test Resolve to ONE ROW PER EDGE [[
+
+  SELECT [[e2]].prop
+  FROM MATCH ANY SHORTEST (n) -[e]->* (m)
+        ONE ROW PER EDGE ([[e2]]) 
+
+]] resolve #1 to #2
