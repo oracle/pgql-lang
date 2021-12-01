@@ -28,7 +28,7 @@ signature constructors // for the normalized AST (see trans/normalize.str)
   Edges                 : List(Edge) -> Edges
   NormalizedEdge        : Var * Var * Var * Direction * Quantifier * Constraints -> Edge
   Paths                 : List(Path) -> Paths
-  Path                  : Var * Var * PathPatternRef * Option(KleeneStar) * Var * Direction * PathFindingSemantic * TopKAnyAll -> Path
+  Path                  : Var * Var * PathPatternRef * Option(KleeneStar) * Var * Direction * PathFindingSemantic * TopKAnyAll * RowsPerMatch -> Path
   Constraints           : List(Exp) -> Constraints
   Incoming              : Direction
   Outgoing              : Direction
@@ -58,24 +58,27 @@ signature constructors // for the normalized AST (see trans/normalize.str)
   Shortest              : Shortest
   Cheapest              : Cheapest
 
-  VertexInsertion       : Identifier * OriginPosition * LabelsSpecification * PropertiesSpecification -> VertexInsertion
-  DirectedEdgeInsertion : Identifier * OriginPosition * Source * Destination * LabelsSpecification * PropertiesSpecification -> DirectedEdgeInsertion
+  VertexInsertion       : Identifier * OriginOffset * LabelsSpecification * PropertiesSpecification -> VertexInsertion
+  DirectedEdgeInsertion : Identifier * OriginOffset * Source * Destination * LabelsSpecification * PropertiesSpecification -> DirectedEdgeInsertion
 
   GraphPatternAndGraphName : GraphPattern * Name * WhereClause -> GraphPatternAndGraphName
+
+  PathPatternAndRowsPerMatch : PathPattern * RowsPerMatch -> PathPatternAndRowsPerMatch
 
   SelectingAllProperties   : Boolean -> SelectingAllProperties
 
 signature constructors // for name binding (see trans/trans-for-nabl.str)
 
-  Vertex                : Var * OriginPosition * Correlation -> Vertex
-  Edge                  : Var * Var * Var * Direction * OriginPosition * Correlation -> Edge
+  Vertex                : Var * OriginOffset * Correlation -> Vertex
+  Edge                  : Var * Var * Var * Direction * OriginOffset * Correlation -> Edge
 
-  ExpAsVar              : Exp * Var * Anonymous * OriginPosition -> ExpAsVar
+  ExpAsVar              : Exp * Var * Anonymous * OriginOffset -> ExpAsVar
 
   CreateOneGroup        : CreateOneGroup
 
-  VarDef                : Var * OriginPosition * OriginalExp * ReplacedGroupByExpWithSelectExp * TransformedExp * ThisQueryOrOuterQuery * Type -> VarDef
-  VarRef                : Var * OriginPosition -> VarRef
+  VarDef                : Var * OriginOffset * OriginalExp * ReplacedGroupByExpWithSelectExp * TransformedExp * ThisQueryOrOuterQuery * Type -> VarDef
+  VarRef                : Var * OriginOffset -> VarRef
+
   ThisQuery             : ThisQueryOrOuterQuery
   OuterQuery            : ThisQueryOrOuterQuery
 
@@ -88,6 +91,9 @@ signature constructors // for name binding (see trans/trans-for-nabl.str)
 
   Correlation           : VarRef -> CrossRef
 
+  OneRowPerVertex       : Var * OriginOffset * Correlation -> OneRowPerVertex
+  OneRowPerEdge         : Var * OriginOffset * Correlation -> OneRowPerEdge
+
 signature constructors // for error checking (see trans/check.str)
 
   ReferenceInInlinedConstraint                      : Var -> ReferenceInInlinedConstraint
@@ -98,7 +104,7 @@ signature constructors // for error checking (see trans/check.str)
 
 signature constructors // for type anslysis (see trans/type-analysis.str)
 
-  VariablePlusType        : OriginPosition * DereferencedOriginPosition * Type -> VariablePlusType
+  VariablePlusType        : OriginOffset * DereferencedOriginOffset * Type -> VariablePlusType
 
   LabelOr                 : STRING * STRING -> LabelOr
 

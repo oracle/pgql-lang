@@ -128,8 +128,8 @@ rules // Unresolved/duplicate variables
     t@Some(varRefs-in-aggregation) -> <id>
     where group-varRefs := <isect; ?[]> (group-variables, varRefs-in-aggregation)
 
-  is-pattern-elem = ?Vertex(_, _, _) + ?Edge(_, _, _, _, _, _)
-  get-pattern-elem = ?Vertex(Identifier(<id>, _), _, _) + ?Edge(_, Identifier(<id>, _), _, _, _, _)
+  is-pattern-elem = ?Vertex(_, _, _) + ?Edge(_, _, _, _, _, _) + ?OneRowPerVertex(_, _, _) + ?OneRowPerEdge(_, _, _)
+  get-pattern-elem = ?Vertex(Identifier(<id>, _), _, _) + ?Edge(_, Identifier(<id>, _), _, _, _, _) + ?OneRowPerVertex(Identifier(<id>, _), _, _) + ?OneRowPerEdge(Identifier(<id>, _), _, _)
 
   generate-error-on-duplicates(|ctx, message) = ?vars; map(generate-error-on-duplicate(|ctx, vars, message))
 
@@ -269,19 +269,19 @@ rules // temporary limitation
   nabl-constraint(|ctx):
     ComplexRegularExpressionNotSupported(edgesOrPaths) -> <fail>
     with [_|[secondEdgeOrPath|_]] := edgesOrPaths
-       ; <generate-error(|ctx, "Not yet supported: multiple edge patterns in SHORTEST or CHEAPEST")> edgesOrPaths
+       ; <generate-error(|ctx, "Not yet supported: multiple edge patterns in ANY, ALL, SHORTEST or CHEAPEST")> edgesOrPaths
 
   nabl-constraint(|ctx):
     ComplexParenthesizedRegularExpressionNotSupported(edges) -> <fail>
-    with <generate-error(|ctx, "Not yet supported: multiple edge patterns in SHORTEST or CHEAPEST")> edges
+    with <generate-error(|ctx, "Not yet supported: multiple edge patterns in ANY, ALL, SHORTEST or CHEAPEST")> edges
 
   nabl-constraint(|ctx):
-    Path(_, _, _, _, _, _, _, Some(TopK(kValue))) -> <fail>
+    Path(_, _, _, _, _, _, _, Some(TopK(kValue)), _) -> <fail>
     where <?"0"> kValue
     with <generate-error(|ctx, "Value should be greater than 0")> kValue
 
   nabl-constraint(|ctx):
-    Path(_, _, pathExpression, quantifier, _, _, goal, _) -> <fail>
+    Path(_, _, pathExpression, quantifier, _, _, goal, _, _) -> <fail>
     where <?Shortest() + ?Cheapest() + ?Any() + ?All()> goal
         ; <?None() + ?Some(BetweenNAndM("0", "1")); origin-text; ?"?"> quantifier
     with error-term := <?Some(_) <+ !pathExpression; collect-one(?Edge(_, _, _, _, _, _))> quantifier 
@@ -291,14 +291,14 @@ rules // temporary limitation
          end
 
   nabl-constraint(|ctx):
-    Path(_, _, pathExpression, quantifier, _, _, goal, _) -> <fail>
+    Path(_, _, pathExpression, quantifier, _, _, goal, _, _) -> <fail>
     where <?All()> goal
         ; <?Some(BetweenNAndM(_, "-1"))> quantifier
     with <generate-error(|ctx, "Path finding goal ALL requires an upper bound on the path length")> quantifier
 
   nabl-constraint(|ctx):
     t@CommonPathExpression(_, _, connections, _, _) -> <fail>
-    where <collect-in-outer-query(?Path(_, _, _, _, _, _, _, _)); not(?[])> connections
+    where <collect-in-outer-query(?Path(_, _, _, _, _, _, _, _, _)); not(?[])> connections
     with <generate-error(|ctx, "Nested regular expressions not supported")> t
 
   nabl-constraint(|ctx):
@@ -308,14 +308,14 @@ rules // temporary limitation
 rules
 
   nabl-constraint(|ctx):
-    Path(_, _, _, _, Identifier(i, _), _, _, _) -> <fail>
+    Path(_, _, _, _, Identifier(i, _), _, _, _, _) -> <fail>
     where <not(is-substring(GENERATED))> i
     with <generate-error(|ctx, "Path variables not supported")> i
 
 rules // CHEAPEST
 
   nabl-constraint(|ctx):
-    t@Path(_, _, CommonPathExpression(_, _, _, Constraints(constraints), costClause), _, _, _, Cheapest(), _) -> <fail>
+    t@Path(_, _, CommonPathExpression(_, _, _, Constraints(constraints), costClause), _, _, _, Cheapest(), _, _) -> <fail>
     where <?None()> costClause
     with if <?[]> constraints
     then <generate-error(|ctx, "COST clause expected after pattern")> t
@@ -323,7 +323,7 @@ rules // CHEAPEST
     end
 
   nabl-constraint(|ctx):
-    t@Path(_, _, CommonPathExpression(_, vertices, edges, _, Some(CostClause(costExpression))), _, _, _, Cheapest(), _) -> <fail>
+    t@Path(_, _, CommonPathExpression(_, vertices, edges, _, Some(CostClause(costExpression))), _, _, _, Cheapest(), _, _) -> <fail>
     where <?Vertices([Vertex(v1, _, _), Vertex(v2, _, _)])> vertices
         ; <?Edges([Edge(_, e, _, _, _, _)])> edges
     with variablesDefs := [v1, v2, e]
@@ -337,12 +337,12 @@ rules // CHEAPEST
   generate-error-on-cross-constraint(|ctx, variablesDefs):
     t -> t
     where <not(?And(_, _))> t
-    with variables := <collect(?VarRef(<id>, _) + ?Vertex(<id>, _, _) + ?Edge(_, <id>, _, _, _, _) + ?Path(_, _, _, _, <id>, _, _, _))> t
+    with variables := <collect(?VarRef(<id>, _) + ?Vertex(<id>, _, _) + ?Edge(_, <id>, _, _, _, _) + ?Path(_, _, _, _, <id>, _, _, _, _))> t
        ; variableRefs := <strip-annos; isect> (variablesDefs, variables)
        ; <try(!(<length> variableRefs, 1); gt; !t; generate-error(|ctx, "Not yet supported: expressions with multiple variables"))> t
 
   nabl-constraint(|ctx):
-    Path(_, _, CommonPathExpression(_, _, _, _, Some(t@CostClause(_))), _, _, _, pathFindingGoal, _) -> <fail>
+    Path(_, _, CommonPathExpression(_, _, _, _, Some(t@CostClause(_))), _, _, _, pathFindingGoal, _, _) -> <fail>
     where not ( <?Cheapest()> pathFindingGoal )
     with <generate-error(|ctx, "COST clause only allowed in combination with CHEAPEST")> t
 
@@ -547,11 +547,11 @@ rules // MODIFY
             ; <batch-generate-error(|ctx, "Edge label does not exist")> unresolvedEdgeLabels
          end
 
-  get-unresolved-label(|varDefinitionOriginPositions, labels):
-    FunctionCall(None(), Identifier(functionName, _), [ ExpressionPlusType(VarRef(_, originPosition), _), identifierOrString ]) -> labelReference
+  get-unresolved-label(|varDefinitionOriginOffsets, labels):
+    FunctionCall(None(), Identifier(functionName, _), [ ExpressionPlusType(VarRef(_, originOffset), _), identifierOrString ]) -> labelReference
     where <?"has_label" + ?"HAS_LABEL"> functionName
         ; labelReference := <?Identifier(<id>, _) + ?ExpressionPlusType(String(<id>), _)> identifierOrString
-        ; <elem> (originPosition, varDefinitionOriginPositions)
+        ; <elem> (originOffset, varDefinitionOriginOffsets)
         ; <not(label-exists(|labels))> labelReference
 
   nabl-constraint(|ctx, metadata):
@@ -674,14 +674,37 @@ rules // MODIFY
         ; <?"VERTEX" + ?"EDGE" + string-starts-with(|"ARRAY<") + string-starts-with(|"SET<")> t
     with <generate-error(|ctx, $[Cannot order by [t]])> exp
 
+  error-duplicate-var-outer-query = !"Duplicate variable (variable with same name is passed from an outer query)"
+
   nabl-constraint(|ctx):
     Vertex(Identifier(v, _), _, Correlation(ExpressionPlusType(VarRef(Identifier(outer-var, _), _), type))) -> <fail>
     where <not(?Type("VERTEX"))> type
-    with <generate-error(|ctx, "Duplicate variable (variable with same name is passed from an outer query)")> v
+    with <generate-error(|ctx, <error-duplicate-var-outer-query>)> v
 
   nabl-constraint(|ctx):
     Edge(_, Identifier(e, _), _, _, _, Correlation(ExpressionPlusType(VarRef(Identifier(outer-var, _), _), type))) -> <fail>
-    with <generate-error(|ctx, "Duplicate variable (variable with same name is passed from an outer query)")> e
+    with <generate-error(|ctx, <error-duplicate-var-outer-query>)> e
+
+  nabl-constraint(|ctx):
+    OneRowPerVertex(Identifier(v, _), _, Correlation(_)) -> <fail>
+    with <generate-error(|ctx, <error-duplicate-var-outer-query>)> v
+
+  nabl-constraint(|ctx):
+    OneRowPerEdge(Identifier(e, _), _, Correlation(_)) -> <fail>
+    with <generate-error(|ctx, <error-duplicate-var-outer-query>)> e
+
+  nabl-constraint(|ctx):
+    AstPlusMetadata(ast, _) -> <fail>
+    with vars-in-rows-per-match := <collect(?OneRowPerVertex(_, <id>, _) + ?OneRowPerEdge(_, <id>, _))> ast
+       ; correlations := <collect(?Correlation(ExpressionPlusType(VarRef(_, <id>), _)))> ast
+       ; unsupported-cross-references := <isect> (vars-in-rows-per-match, correlations)
+       ; <batch-generate-error(|ctx, "Variable with same name is used in an inner query")> unsupported-cross-references
+
+  // check SELECT clause is not empty (may happen in case of SELECT n.*)
+  nabl-constraint(|ctx):
+    SelectClause(distinctOrStar, e@ExpAsVars([])) -> <fail>
+    where <not(?Star())> distinctOrStar // for SELECT * (instead of SELECT n.*) with zero columns we already have a different error
+    with <generate-error(|ctx, "SELECT clause should have at least one column but has zero columns")> e
 
   // SUBSTRING
   nabl-constraint(|ctx, metadata):

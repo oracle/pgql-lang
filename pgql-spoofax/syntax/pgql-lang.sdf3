@@ -45,9 +45,9 @@ context-free syntax
 
   TableExpression = GraphMatch
 
-  GraphMatch.GraphMatch = <<MatchKeyword?> <PathPattern> <OnClause?>>
+  GraphMatch.GraphMatch = <<MatchKeyword?> <PathPattern> <RowsPerMatch?> <OnClause?>>
 
-  GraphMatch.ParenthesizedGraphMatch = <MATCH ( <{PathPattern ","}+> ) <OnClause?>> {case-insensitive}
+  GraphMatch.ParenthesizedGraphMatch = <MATCH ( <{PathPattern ","}+> ) <RowsPerMatch?> <OnClause?>> {case-insensitive}
 
   MatchKeyword.MatchKeyword = <MATCH> {case-insensitive}
 
@@ -55,7 +55,6 @@ context-free syntax
 
   SelectOrModify = SelectClause
   SelectOrModify = ModifyClause
-
 
   CommonPathExpression.CommonPathExpression = <PATH <Identifier> <AsignSymbol> <PathPattern> <WhereClause?> <CostClause?>> {case-insensitive}
   AsignSymbol.Pgql11AsignSymbol = <AS> {case-insensitive}
@@ -68,3 +67,7 @@ context-free syntax
   ColumnNamePrefix.ColumnNamePrefix = <PREFIX <String>> {case-insensitive}
 
   Projection.Star = <*>
+
+  RowsPerMatch.OneRowPerMatch = <ONE ROW PER MATCH> {case-insensitive}
+  RowsPerMatch.OneRowPerVertex = <ONE ROW PER VERTEX (<Identifier>)> {case-insensitive}
+  RowsPerMatch.OneRowPerEdge = <ONE ROW PER EDGE (<Identifier>)> {case-insensitive}

@@ -24,8 +24,8 @@ rules
 
        // MATCH
        ; if <?Some(GraphPattern(Vertices(vertices), connections, _))> := graphPattern
-         then verticesWithTypes := <collect-vertices-with-types(?Vertex(_, <id>, _))> (vertices, connections)
-            ; edgesWithTypes := <collect-edges-with-types(?Edge(_, _, _, _, <id>, _))> connections
+         then verticesWithTypes := <collect-vertices-with-types(?Vertex(_, <id>, _) + ?OneRowPerVertex(_, <id>, _))> (vertices, connections)
+            ; edgesWithTypes := <collect-edges-with-types(?Edge(_, _, _, _, <id>, _) + ?OneRowPerEdge(_, <id>, _))> connections
             ; variablesPlusTypes' := <conc> (variablesPlusTypes, verticesWithTypes, edgesWithTypes)
             ; constraints := <conc> (constraintsFromOuterQuery, <collect-in-outer-query(?Constraints(<id>)); concat> graphPattern)
             ; graphPattern' := <alltd(add-type(|metadata, variablesPlusTypes', constraints))> graphPattern
@@ -74,23 +74,23 @@ rules
        ; variablesPlusTypes := <conc> (verticesWithTypes, edgesWithTypes)
        ; pathExpression' := <alltd(add-type(|metadata, variablesPlusTypes, constraints))> pathExpression
 
-  insertion-to-has-label-constraint = ?VertexInsertion(identifier, originPosition, Some(Labels(<id>)), _); map(![VarRef(identifier, originPosition), <id>]; to-function(|"has_label"))
-  insertion-to-has-label-constraint = ?DirectedEdgeInsertion(identifier, originPosition, _, _, Some(Labels(<id>)), _); map(![VarRef(identifier, originPosition), <id>]; to-function(|"has_label"))
+  insertion-to-has-label-constraint = ?VertexInsertion(identifier, originOffset, Some(Labels(<id>)), _); map(![VarRef(identifier, originOffset), <id>]; to-function(|"has_label"))
+  insertion-to-has-label-constraint = ?DirectedEdgeInsertion(identifier, originOffset, _, _, Some(Labels(<id>)), _); map(![VarRef(identifier, originOffset), <id>]; to-function(|"has_label"))
 
 rules // exp AS var
 
   expAsVar-to-variablePlusType(|variablesPlusTypes):
-    ExpAsVar(ExpressionPlusType(exp ,type), _, _, originPosition) -> VariablePlusType(originPosition, dereferencedOriginPosition, type)
-    with if <?VarRef(_, varRefOriginPosition)> exp
-         then dereferencedOriginPosition := <fetch-elem(?VariablePlusType(varRefOriginPosition, <id>, _))> variablesPlusTypes
-         else dereferencedOriginPosition := originPosition
+    ExpAsVar(ExpressionPlusType(exp ,type), _, _, originOffset) -> VariablePlusType(originOffset, dereferencedOriginOffset, type)
+    with if <?VarRef(_, varRefOriginOffset)> exp
+         then dereferencedOriginOffset := <fetch-elem(?VariablePlusType(varRefOriginOffset, <id>, _))> variablesPlusTypes
+         else dereferencedOriginOffset := originOffset
          end
 
 rules // variable references
 
   add-type(|metadata, variablesPlusTypes, constraints):
-    exp@VarRef(_, varRefOriginPosition) -> ExpressionPlusType(exp, type)
-    with type := <fetch-elem(?VariablePlusType(varRefOriginPosition, _, <id>)) <+ !UnknownType()> variablesPlusTypes
+    exp@VarRef(_, varRefOriginOffset) -> ExpressionPlusType(exp, type)
+    with type := <fetch-elem(?VariablePlusType(varRefOriginOffset, _, <id>)) <+ !UnknownType()> variablesPlusTypes
 
   // unresolved variable
   add-type(|metadata, variablesPlusTypes, constraints):
@@ -99,9 +99,9 @@ rules // variable references
 rules // property references
 
   add-type(|metadata, variablesPlusTypes, constraints):
-    exp@PropRef(VarRef(_, varRefOriginPosition), Identifier(propName, _)) -> ExpressionPlusType(exp, propType)
-    with elementType := <fetch-elem(?VariablePlusType(varRefOriginPosition, dereferencedOriginPosition, <id>)) <+ !UnknownType()> variablesPlusTypes
-       ; labelExpression := <filter(simplify-label-expression(|dereferencedOriginPosition)); (?[]; !All() <+ to-label-conjunction)> constraints
+    exp@PropRef(VarRef(_, varRefOriginOffset), Identifier(propName, _)) -> ExpressionPlusType(exp, propType)
+    with elementType := <fetch-elem(?VariablePlusType(varRefOriginOffset, dereferencedOriginOffset, <id>)) <+ !UnknownType()> variablesPlusTypes
+       ; labelExpression := <filter(simplify-label-expression(|dereferencedOriginOffset)); (?[]; !All() <+ to-label-conjunction)> constraints
        ; if <fetch-elem(?AllowReferencingAnyProperty())> metadata
          then propType := <get-property-type-from-label-expression(|elementType, propName, metadata)> All()
          else propType := <get-property-type-from-label-expression(|elementType, propName, metadata)> labelExpression

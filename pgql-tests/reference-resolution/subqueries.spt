@@ -1,4 +1,4 @@
-module select
+module subqueries
 
 language pgql-lang
 

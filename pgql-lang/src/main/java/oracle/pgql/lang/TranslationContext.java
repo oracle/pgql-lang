@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2013 - 2020 Oracle and/or its affiliates. All rights reserved.
+ * Copyright (C) 2013 - 2021 Oracle and/or its affiliates. All rights reserved.
  */
 package oracle.pgql.lang;
 
@@ -26,13 +26,13 @@ public class TranslationContext {
     this.commonPathExpressions = commonPathExpressions;
   }
 
-  public void addVar(QueryVariable var, String varName, IStrategoTerm originPosition) {
-    vars.put(originPosition, var);
+  public void addVar(QueryVariable var, String varName, IStrategoTerm originOffset) {
+    vars.put(originOffset, var);
     varNames.add(varName);
   }
 
-  public QueryVariable getVariable(IStrategoTerm originPosition) {
-    return vars.get(originPosition);
+  public QueryVariable getVariable(IStrategoTerm originOffset) {
+    return vars.get(originOffset);
   }
 
   public boolean isVariableNameInUse(String varName) {
