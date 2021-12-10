@@ -16,6 +16,7 @@ import oracle.pgql.lang.ir.QueryExpression.ArithmeticExpression.Mod;
 import oracle.pgql.lang.ir.QueryExpression.ArithmeticExpression.Mul;
 import oracle.pgql.lang.ir.QueryExpression.ArithmeticExpression.Sub;
 import oracle.pgql.lang.ir.QueryExpression.ArithmeticExpression.UMin;
+import oracle.pgql.lang.ir.QueryExpression.BetweenPredicate;
 import oracle.pgql.lang.ir.QueryExpression.BindVariable;
 import oracle.pgql.lang.ir.QueryExpression.ConcatExpression;
 import oracle.pgql.lang.ir.QueryExpressionVisitor;
@@ -153,6 +154,8 @@ public interface QueryExpressionVisitor {
   public void visit(SimpleCase simpleCase);
 
   public void visit(SubstringExpression substringExpression);
+
+  public void visit(BetweenPredicate betweenPredicate);
 
   public void visit(ScalarSubquery sclarSubquery);
 
