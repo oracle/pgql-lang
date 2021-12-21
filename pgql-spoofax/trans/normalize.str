@@ -355,10 +355,32 @@ rules
 
   // PGQL 1.3
   norm-matchElems(|variable-counter):
-    FromWhereClauses(graphMatches, whereClause) -> GraphPatternAndGraphName(graphPattern, graphName, whereClause)
-    with graphName := <map(?GraphMatch(_, _, _, <id>) + ?ParenthesizedGraphMatch(_, _, <id>)); (Hd; normalize-OnClause <+ !None())> graphMatches // simply take the first graph name we see; we don't support multiple graph right now
-       ; pathPatternsWithRowsPerMatch := <map(get-pathPatternsAndRowsPerMatch); concat> graphMatches
-       ; graphPattern := <norm-matchElems-common(|variable-counter)> pathPatternsWithRowsPerMatch
+    FromWhereClauses(tableExpressions, whereClause) -> TableExpressionsAndGraphName(tableExpressions', graphName, whereClause)
+    with graphName := <collect-one(normalize-OnClause) <+ !None()> tableExpressions // simply take the first graph name we see; we don't support multiple graph right now
+       ; tableExpressions' := <normalize-table-expressions(|variable-counter, [])> tableExpressions
+
+  // normalizes the MATCH expressions and merges consequetive MATCH expressions together into into a single GraphPattern
+  normalize-table-expressions(|variable-counter, graphMatches):
+    tableExpressions -> tableExpressions'
+    with if <?[]> tableExpressions
+         then if <?[]> graphMatches
+              then tableExpressions' := tableExpressions
+              else pathPatternsWithRowsPerMatch := <get-pathPatternsAndRowsPerMatch-and-normalize(|variable-counter)> graphMatches
+                 ; tableExpressions' := [pathPatternsWithRowsPerMatch]
+              end
+         else <?[x|xs]> tableExpressions
+            ; if <?GraphMatch(_, _, _, _) + ?ParenthesizedGraphMatch(_, _, _)> x
+              then graphMatches' := <conc> (graphMatches, [x])
+                 ; tableExpressions' := <normalize-table-expressions(|variable-counter, graphMatches')> xs
+              else if <?[]> graphMatches
+                   then tableExpressions' := [x|<normalize-table-expressions(|variable-counter, graphMatches)> xs]
+                   else pathPatternsWithRowsPerMatch := <get-pathPatternsAndRowsPerMatch-and-normalize(|variable-counter)> graphMatches
+                      ; tableExpressions' := [pathPatternsWithRowsPerMatch|<normalize-table-expressions(|variable-counter, graphMatches)> xs]
+                   end
+              end
+         end
+
+  get-pathPatternsAndRowsPerMatch-and-normalize(|variable-counter) = map(get-pathPatternsAndRowsPerMatch); concat; norm-matchElems-common(|variable-counter)
 
   get-pathPatternsAndRowsPerMatch = ?GraphMatch(_, pathPattern, rowsPerMatch, _); ![PathPatternAndRowsPerMatch(pathPattern, rowsPerMatch)]
                                   + ?ParenthesizedGraphMatch(<id>, rowsPerMatch, _); map(!PathPatternAndRowsPerMatch(<id>, rowsPerMatch))
@@ -584,12 +606,13 @@ rules
 
   // pgql 1.3
   norm-query(|error-messages, variable-counter, bindVariableCount):
-    Query(commonPathExpressions, selectOrModifyClause, graphPatternAndGraphName, groupByClause, havingClause, orderByClause, limitOffsets) ->
+    Query(commonPathExpressions, selectOrModifyClause, tableExpressionsAndGraphName, groupByClause, havingClause, orderByClause, limitOffsets) ->
       <norm-query(|error-messages, "v1.3", variable-counter, bindVariableCount)> (commonPathExpressions, selectOrModifyClause, optionalGraphName, graphPattern', groupByClause, havingClause, orderByClause, limitOffsets)
-    with if <?None()> graphPatternAndGraphName
+    with if <?None()> tableExpressionsAndGraphName
          then graphPattern' := None()
             ; optionalGraphName := None()
-         else <?Some(GraphPatternAndGraphName(graphPattern, optionalGraphName, whereClause))> graphPatternAndGraphName
+         else <?Some(TableExpressionsAndGraphName(tableExpressions, optionalGraphName, whereClause))> tableExpressionsAndGraphName
+            ; <?[graphPattern]> tableExpressions
             ; <?GraphPattern(vertices, connections, Constraints(inlined-constraints))> graphPattern
             ; non-inlined-constraints := <?Some(WhereClause(<id>)); ![<id>] + ?None(); ![]> whereClause
             ; constraints := Constraints(<conc> (inlined-constraints,  non-inlined-constraints))

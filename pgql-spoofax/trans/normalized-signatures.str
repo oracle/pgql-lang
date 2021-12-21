@@ -61,7 +61,7 @@ signature constructors // for the normalized AST (see trans/normalize.str)
   VertexInsertion       : Identifier * OriginOffset * LabelsSpecification * PropertiesSpecification -> VertexInsertion
   DirectedEdgeInsertion : Identifier * OriginOffset * Source * Destination * LabelsSpecification * PropertiesSpecification -> DirectedEdgeInsertion
 
-  GraphPatternAndGraphName : GraphPattern * Name * WhereClause -> GraphPatternAndGraphName
+  TableExpressionsAndGraphName : GraphPattern * Name * WhereClause -> TableExpressionsAndGraphName
 
   PathPatternAndRowsPerMatch : PathPattern * RowsPerMatch -> PathPatternAndRowsPerMatch
 
