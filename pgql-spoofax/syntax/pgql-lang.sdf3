@@ -47,8 +47,6 @@ context-free syntax
 
   TableExpression = DerivedTable
 
-  TableExpression = LateralDerivedTable
-
   GraphMatch.GraphMatch = <<MatchKeyword?> <PathPattern> <RowsPerMatch?> <OnClause?>>
 
   GraphMatch.ParenthesizedGraphMatch = <MATCH ( <{PathPattern ","}+> ) <RowsPerMatch?> <OnClause?>> {case-insensitive}
@@ -76,6 +74,6 @@ context-free syntax
   RowsPerMatch.OneRowPerVertex = <ONE ROW PER VERTEX (<Identifier>)> {case-insensitive}
   RowsPerMatch.OneRowPerEdge = <ONE ROW PER EDGE (<Identifier>)> {case-insensitive}
 
-  DerivedTable.DerivedTable = TableSubquery
-  LateralDerivedTable.LateralDerivedTable = <LATERAL <TableSubquery>> {case-insensitive}
+  DerivedTable.DerivedTable = LateralKeyword? TableSubquery
+  LateralKeyword.Lateral = <LATERAL> {case-insensitive}
   TableSubquery = Subquery

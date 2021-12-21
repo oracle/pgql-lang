@@ -359,7 +359,7 @@ rules
     with graphName := <collect-one(normalize-OnClause) <+ !None()> tableExpressions // simply take the first graph name we see; we don't support multiple graph right now
        ; tableExpressions' := <normalize-table-expressions(|variable-counter, [])> tableExpressions
 
-  // normalizes the MATCH expressions and merges consequetive MATCH expressions together into into a single GraphPattern
+  // normalizes the MATCH expressions and merges consequetive MATCH expressions together into a single GraphPattern
   normalize-table-expressions(|variable-counter, graphMatches):
     tableExpressions -> tableExpressions'
     with if <?[]> tableExpressions
@@ -375,7 +375,7 @@ rules
               else if <?[]> graphMatches
                    then tableExpressions' := [x|<normalize-table-expressions(|variable-counter, graphMatches)> xs]
                    else pathPatternsWithRowsPerMatch := <get-pathPatternsAndRowsPerMatch-and-normalize(|variable-counter)> graphMatches
-                      ; tableExpressions' := [pathPatternsWithRowsPerMatch|<normalize-table-expressions(|variable-counter, graphMatches)> xs]
+                      ; tableExpressions' := [pathPatternsWithRowsPerMatch| [x|<normalize-table-expressions(|variable-counter, [])> xs] ]
                    end
               end
          end
@@ -615,13 +615,20 @@ rules
             ; (init, last) := <split-init-last> tableExpressions
             ; last' := <add-constraints-to-table-expression(|whereClause)> last
             ; tableExpressions' := <conc> (init, [last'])
-            ; graphPattern' := <?[<id>]; !Some(<id>)> tableExpressions'// TODO, return all table expressions, not just the first
+            ; graphPattern' := <Hd; !Some(<id>)> tableExpressions' // TODO, return all table expressions, not just the first
          end
 
   add-constraints-to-table-expression(|whereClause):
     GraphPattern(vertices, connections, Constraints(inlined-constraints)) -> GraphPattern(vertices, connections, constraints)
-    with non-inlined-constraints := <?Some(WhereClause(<id>)); ![<id>] + ?None(); ![]> whereClause
-       ; constraints := Constraints(<conc> (inlined-constraints,  non-inlined-constraints))
+    with constraints := Constraints(<add-constraints(|whereClause)> inlined-constraints)
+
+  add-constraints-to-table-expression(|whereClause) =
+    DerivedTable(id, Subquery(NormalizedQuery(id, id, id, Some(GraphPattern(id, id, Constraints(add-constraints(|whereClause)))), id, id, id, id, id, id, id, id)))
+
+  add-constraints(|whereClause):
+    constraints -> constraints'
+    with constraints-from-whereClause := <?Some(WhereClause(<id>)); ![<id>] + ?None(); ![]> whereClause
+       ; constraints' := <conc> (constraints, constraints-from-whereClause)
 
   // pgql 1.1 + 1.2
   norm-query(|error-messages, variable-counter, bindVariableCount):
