@@ -612,12 +612,16 @@ rules
          then graphPattern' := None()
             ; optionalGraphName := None()
          else <?Some(TableExpressionsAndGraphName(tableExpressions, optionalGraphName, whereClause))> tableExpressionsAndGraphName
-            ; <?[graphPattern]> tableExpressions
-            ; <?GraphPattern(vertices, connections, Constraints(inlined-constraints))> graphPattern
-            ; non-inlined-constraints := <?Some(WhereClause(<id>)); ![<id>] + ?None(); ![]> whereClause
-            ; constraints := Constraints(<conc> (inlined-constraints,  non-inlined-constraints))
-            ; graphPattern' := Some(GraphPattern(vertices, connections, constraints))
+            ; (init, last) := <split-init-last> tableExpressions
+            ; last' := <add-constraints-to-table-expression(|whereClause)> last
+            ; tableExpressions' := <conc> (init, [last'])
+            ; graphPattern' := <?[<id>]; !Some(<id>)> tableExpressions'// TODO, return all table expressions, not just the first
          end
+
+  add-constraints-to-table-expression(|whereClause):
+    GraphPattern(vertices, connections, Constraints(inlined-constraints)) -> GraphPattern(vertices, connections, constraints)
+    with non-inlined-constraints := <?Some(WhereClause(<id>)); ![<id>] + ?None(); ![]> whereClause
+       ; constraints := Constraints(<conc> (inlined-constraints,  non-inlined-constraints))
 
   // pgql 1.1 + 1.2
   norm-query(|error-messages, variable-counter, bindVariableCount):
