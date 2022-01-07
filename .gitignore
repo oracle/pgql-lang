@@ -7,3 +7,4 @@ GenerateMenuFromMarkdown.class
 pgql-lang/src/main/resources/pgql-spoofax-binaries/
 *.versionsBackup
 *.bak
+pgql-spoofax/.classpath
