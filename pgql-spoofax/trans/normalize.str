@@ -607,15 +607,14 @@ rules
   // pgql 1.3
   norm-query(|error-messages, variable-counter, bindVariableCount):
     Query(commonPathExpressions, selectOrModifyClause, tableExpressionsAndGraphName, groupByClause, havingClause, orderByClause, limitOffsets) ->
-      <norm-query(|error-messages, "v1.3", variable-counter, bindVariableCount)> (commonPathExpressions, selectOrModifyClause, optionalGraphName, graphPattern', groupByClause, havingClause, orderByClause, limitOffsets)
+      <norm-query(|error-messages, "v1.3", variable-counter, bindVariableCount)> (commonPathExpressions, selectOrModifyClause, optionalGraphName, tableExpressions', groupByClause, havingClause, orderByClause, limitOffsets)
     with if <?None()> tableExpressionsAndGraphName
          then graphPattern' := None()
             ; optionalGraphName := None()
          else <?Some(TableExpressionsAndGraphName(tableExpressions, optionalGraphName, whereClause))> tableExpressionsAndGraphName
             ; (init, last) := <split-init-last> tableExpressions
             ; last' := <add-constraints-to-table-expression(|whereClause)> last
-            ; tableExpressions' := <conc> (init, [last'])
-            ; graphPattern' := <Hd; !Some(<id>)> tableExpressions' // TODO, return all table expressions, not just the first
+            ; tableExpressions' := Some(<conc> (init, [last']))
          end
 
   add-constraints-to-table-expression(|whereClause):
@@ -623,7 +622,13 @@ rules
     with constraints := Constraints(<add-constraints(|whereClause)> inlined-constraints)
 
   add-constraints-to-table-expression(|whereClause) =
-    DerivedTable(id, Subquery(NormalizedQuery(id, id, id, Some(GraphPattern(id, id, Constraints(add-constraints(|whereClause)))), id, id, id, id, id, id, id, id)))
+    DerivedTable(id, Subquery(NormalizedQuery(id, id, id, Some(add-constraints-to-last-table-expression(|whereClause)), id, id, id, id, id, id, id, id)))
+
+  add-constraints-to-last-table-expression(|whereClause):
+    tableExpressions -> tableExpressions'
+    with (init, last) := <split-init-last> tableExpressions
+       ; last' := <add-constraints-to-table-expression(|whereClause)> last
+       ; tableExpressions' := <conc> (init, [last'])
 
   add-constraints(|whereClause):
     constraints -> constraints'
@@ -633,19 +638,19 @@ rules
   // pgql 1.1 + 1.2
   norm-query(|error-messages, variable-counter, bindVariableCount):
     Pgql11Query(commonPathExpressions, selectOrModifyClause, fromClause, graphPattern, groupByClause, havingClause, orderByClause, limitOffsets) ->
-      <norm-query(|error-messages, "v1.1", variable-counter, bindVariableCount)> (commonPathExpressions, selectOrModifyClause, optionalGraphName, Some(graphPattern), groupByClause, havingClause, orderByClause, limitOffsets)
+      <norm-query(|error-messages, "v1.1", variable-counter, bindVariableCount)> (commonPathExpressions, selectOrModifyClause, optionalGraphName, Some([graphPattern]), groupByClause, havingClause, orderByClause, limitOffsets)
     with optionalGraphName := <?None() + ?Some(Pgql11FromClause(graphName)); !Some(GraphName(graphName))> fromClause
 
   // pgql 1.0
   norm-query(|error-messages, variable-counter, bindVariableCount):
     q@Pgql10Query(commonPathExpressions, selectClause, fromClause, graphPattern, groupByClause, orderByClause, limitOffsets) ->
-      <norm-query(|error-messages, "v1.0", variable-counter, bindVariableCount)> (commonPathExpressions, selectClause, optionalGraphName, Some(graphPattern), groupByClause, havingClause, orderByClause, limitOffsets)
+      <norm-query(|error-messages, "v1.0", variable-counter, bindVariableCount)> (commonPathExpressions, selectClause, optionalGraphName, Some([graphPattern]), groupByClause, havingClause, orderByClause, limitOffsets)
       with optionalGraphName := <?None() + ?Some(Pgql11FromClause(graphName)); !Some(GraphName(graphName))> fromClause
          ; havingClause := None()
 
   norm-query(|error-messages, version, variable-counter, bindVariableCount):
-    t@(commonPathExpressions, selectOrModifyClause, optionalGraphName, graphPattern, groupByClause, havingClause, orderByClause, limitOffsets) ->
-        NormalizedQuery(commonPathExpressions', selectOrModifyClause', optionalGraphName, graphPattern, groupByClause', havingClause, orderByElems, limitOffsets', error-messages, version, bindVariableCount, selectingAllProperties)
+    t@(commonPathExpressions, selectOrModifyClause, optionalGraphName, tableExpressions, groupByClause, havingClause, orderByClause, limitOffsets) ->
+        NormalizedQuery(commonPathExpressions', selectOrModifyClause', optionalGraphName, tableExpressions, groupByClause', havingClause, orderByElems, limitOffsets', error-messages, version, bindVariableCount, selectingAllProperties)
     with
       commonPathExpressions' := <map(norm-common-path-expression(|variable-counter)); !CommonPathExpressions(<id>)> commonPathExpressions;
 
@@ -653,7 +658,7 @@ rules
       expAsGroupVars' := <map(norm-ExpAsVar)> expAsGroupVars;
       groupByClause' := <?Some(_); !Some(GroupByClause(expAsGroupVars')) <+ !None()> groupByClause;
 
-      selectOrModifyClause' := <?ModifyClause(_) + ?SelectClause(_, _); (norm-SelectList(|expAsGroupVars', version) <+ norm-select-star(|graphPattern, expAsGroupVars'))> selectOrModifyClause;
+      selectOrModifyClause' := <?ModifyClause(_) + ?SelectClause(_, _); (norm-SelectList(|expAsGroupVars', version) <+ norm-select-star(|tableExpressions, expAsGroupVars'))> selectOrModifyClause;
 
       selectList := <(?ModifyClause(_)); ![] + ?SelectClause(_, ExpAsVars(<id>))> selectOrModifyClause';
       allExpAsVars := <conc> (expAsGroupVars', <try(?Star(); ![])> selectList);
@@ -679,10 +684,11 @@ rules
     with identifier := <(?VarRef(<id>) <+ origin-track-forced(origin-text); origin-track-forced(!Identifier(<id>, <id>)))> exp
        ; anonymous := <?PropRef(_, _); !NonAnonymous() <+ !Anonymous()> exp // 'SELECT n.prop' in PGQL <= 1.2 is 'SELECT n.prop AS "n.prop"' in PGQL 1.3+
 
-  norm-select-star(|graphPattern, group-exps):
+  // TODO: update so that it takes table expressions into account
+  norm-select-star(|tableExpressions, group-exps):
     t@SelectClause(distinct, star@Star()) -> result
     with if [] := group-exps
-         then vars := <collect(?Vertex(<id>) + ?NormalizedEdge(_, <id>, _, _, _, _) + ?Subquery(_)); filter(Identifier(is-string; not(is-substring(GENERATED)), id))> graphPattern;
+         then vars := <collect(?Vertex(<id>) + ?NormalizedEdge(_, <id>, _, _, _, _) + ?Subquery(_)); filter(Identifier(is-string; not(is-substring(GENERATED)), id))> tableExpressions;
               expAsSelectVars := <map(generate-ExpAsVar(|star))> vars
          else expAsSelectVars := star
          end

@@ -24,42 +24,25 @@ imports
 rules
 
   add-names = is-ddl-statement
-              + ?AstPlusMetadata(query, metadata); !AstPlusMetadata(<trans-query(|[], metadata)> query, metadata)
+              + ?AstPlusMetadata(query, metadata); !AstPlusMetadata(<trans-query(|[], metadata); ?(<id>, _)> query, metadata)
               + ?Start-Plhdr() // for empty query string
 
 rules
 
   trans-query(|variables, metadata):
-    NormalizedQuery(CommonPathExpressions(pathExpressions), selectOrModifyClause, optionalGraphName, graphPattern, groupBy, having, orderBy, limitOffsets, error-messages, version, bindVariableCount, selectinAllVariables) ->
-        NormalizedQuery(CommonPathExpressions(pathExpressions'), selectOrModifyClause', optionalGraphName, graphPattern'', groupBy', having', orderBy', limitOffsets, error-messages, version, bindVariableCount, selectinAllVariables)
+    NormalizedQuery(CommonPathExpressions(pathExpressions), selectOrModifyClause, optionalGraphName, graphPattern, groupBy, having, orderBy, limitOffsets, error-messages, version, bindVariableCount, selectingAllVariables) ->
+        (NormalizedQuery(CommonPathExpressions(pathExpressions'), selectOrModifyClause', optionalGraphName, tableExpressions', groupBy', having', orderBy', limitOffsets, error-messages, version, bindVariableCount, selectingAllVariables), variables-in-projection)
     with variables' := <guarantee-size-two-or-more> variables
 
        // PATH
        ; pathExpressions' := <map(trans-path-expression(|variables', metadata))> pathExpressions
 
-       // these expAsVars are used to make the column aliases in SELECT visible in WHERE and GROUP BY
+       // these expAsVars are used to make the column aliasevalueExpressions in SELECT visible in WHERE and GROUP BY
        ; expAsVars := <?SelectClause(_, ExpAsVars(<id>)) <+ ![]> selectOrModifyClause
 
-       ; if <?Some(GraphPattern(vertices, connections, valueExpression))> := graphPattern
-         then // MATCH
-              (vertices', connections') := <alltd(trans-elem(|variables'))> (vertices, <alltd(trans-rows-per-match(|variables'))> connections)
-            ; edges := <filter(?Edge(_, _, _, _, _, _) + path-with-at-most-one-binding)> connections'
-            ; paths := <filter(path-with-two-or-more-bindings)> connections'
-
-            ; new-vars := <conc> (<collect(to-varDef)> (vertices', edges), <collect(rows-per-match-to-varDef)> connections')
-            ; new-groupVars := <collect(to-varDef)> paths
-            ; <?[x|[y|ys]]> variables'
-            ; visible-vars := <replace-or-add-all> (new-vars, x)
-            ; visible-groupVars := <replace-or-add-all> (new-groupVars, y)
-            ; variables'' := [visible-vars|[visible-groupVars|ys]]
-
-            ; connections'' := <alltd(resolve-var-refs-in-path-expression(|variables'', metadata))> connections'
-
-              // WHERE
-            ; valueExpression' := <resolve-value-expression(|variables'', expAsVars, metadata)> valueExpression
-
-            ; graphPattern' := Some(GraphPattern(vertices', connections'', valueExpression'))
-         else graphPattern' := None()
+       ; if <?Some(tableExpressions)> := graphPattern
+         then (tableExpressions', variables'') := <foldl(trans-table-expression(|metadata, expAsVars))> (tableExpressions, ([], variables'))
+         else tableExpressions' := None()
             ; variables'' := variables'
             ; valueExpression' := Constraints([])
          end
@@ -88,11 +71,44 @@ rules
                      ; resolve-prop-refs(|variables''', metadata)
                      ; alltd(optimize-order-by)> orderBy
 
-       ; if <?Some(GraphPattern(vertices', connections'', valueExpression'))> := graphPattern'
-         then connections''' := <map(try(normalize-ANY-path(|variables'''')))> connections'' // normalize ANY either to REACHES or SHORTEST
-            ; graphPattern'' := Some(GraphPattern(vertices', connections''', valueExpression'))
-         else graphPattern'' := graphPattern'
-         end
+       // variables to pass into subsequent table expressions
+       ; variables-in-projection := <diff; guarantee-size-two-or-more> (<Hd> variables'''', variables''')
+
+// TODO fixme
+//       ; if <?Some(GraphPattern(vertices', connections'', valueExpression'))> := graphPattern'
+//         then connections''' := <map(try(normalize-ANY-path(|variables'''')))> connections'' // normalize ANY either to REACHES or SHORTEST
+//            ; graphPattern'' := Some(GraphPattern(vertices', connections''', valueExpression'))
+//         else graphPattern'' := graphPattern'
+//         end
+
+  trans-table-expression(|metadata, expAsVars):
+    (GraphPattern(vertices, connections, valueExpression), (result, variables)) -> (result', variables')
+      with    // MATCH
+              (vertices', connections') := <alltd(trans-elem(|variables))> (vertices, <alltd(trans-rows-per-match(|variables))> connections)
+            ; edges := <filter(?Edge(_, _, _, _, _, _) + path-with-at-most-one-binding)> connections'
+            ; paths := <filter(path-with-two-or-more-bindings)> connections'
+
+            ; new-vars := <conc> (<collect(to-varDef)> (vertices', edges), <collect(rows-per-match-to-varDef)> connections')
+            ; new-groupVars := <collect(to-varDef)> paths
+            ; <?[x|[y|ys]]> variables
+            ; visible-vars := <replace-or-add-all> (new-vars, x)
+            ; visible-groupVars := <replace-or-add-all> (new-groupVars, y)
+            ; variables' := [visible-vars|[visible-groupVars|ys]]
+
+            ; connections'' := <alltd(resolve-var-refs-in-path-expression(|variables', metadata))> connections'
+
+              // WHERE
+            ; valueExpression' := <resolve-value-expression(|variables', expAsVars, metadata)> valueExpression
+            
+            ; graphPattern' := Some(GraphPattern(vertices', connections'', valueExpression'))
+            ; result' := <conc> (result, [graphPattern'])
+
+  trans-table-expression(|metadata, expAsVars):
+    (derivedTable@DerivedTable(lateral, subquery@Subquery(normalizedQuery)), (result, variables)) -> (result', variables')
+    with (normalizedQuery', variables') := <trans-query(|variables, metadata)> normalizedQuery
+       ; subquery' := <origin-track-forced(!Subquery(normalizedQuery'))> subquery
+       ; derivedTable' := <origin-track-forced(!DerivedTable(lateral, subquery'))> derivedTable
+       ; result' := <conc> (result, [derivedTable'])
 
   path-with-at-most-one-binding:
     t@Path(_, _, _, quantifier, _, _, _, _, _) -> t
