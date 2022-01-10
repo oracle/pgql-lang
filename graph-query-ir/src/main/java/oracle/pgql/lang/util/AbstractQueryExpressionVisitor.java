@@ -385,8 +385,10 @@ public abstract class AbstractQueryExpressionVisitor implements QueryExpressionV
     switch (queryPath.getRowsPerMatch().getRowsPerMatchType()) {
       case ONE_ROW_PER_VERTEX:
         ((OneRowPerVertex) rowsPerMatch).getVertex().accept(this);
+        break;
       case ONE_ROW_PER_EDGE:
         ((OneRowPerEdge) rowsPerMatch).getEdge().accept(this);
+        break;
       case ONE_ROW_PER_MATCH:
         break;
       default:

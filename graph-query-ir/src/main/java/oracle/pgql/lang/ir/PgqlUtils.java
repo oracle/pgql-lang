@@ -97,9 +97,11 @@ public class PgqlUtils {
         RowsPerMatch rowsPerMatch = queryPath.getRowsPerMatch();
         switch (queryPath.getRowsPerMatch().getRowsPerMatchType()) {
           case ONE_ROW_PER_VERTEX:
-            ((OneRowPerVertex) rowsPerMatch).getVertex().accept(this);
+            result.add(((OneRowPerVertex) rowsPerMatch).getVertex());
+            break;
           case ONE_ROW_PER_EDGE:
-            ((OneRowPerEdge) rowsPerMatch).getEdge().accept(this);
+            result.add(((OneRowPerEdge) rowsPerMatch).getEdge());
+            break;
           case ONE_ROW_PER_MATCH:
             break;
           default:
