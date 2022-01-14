@@ -1,10 +1,10 @@
 # PGQL - Property Graph Query Language
 
-PGQL is an SQL-based query language for the [property graph data model](http://pgql-lang.org/spec/latest/#property-graph-data-model), bringing graph pattern matching capabilities to SQL and NoSQL users.
+PGQL is an SQL-based query language for the [property graph data model](https://pgql-lang.org/spec/latest/#property-graph-data-model), bringing graph pattern matching capabilities to SQL and NoSQL users.
 
 See the website for a language specification and any newsworthy updates:
 
-[![PGQL Home](pgql_home_screenshot.png)](http://pgql-lang.org/)
+[![PGQL Home](pgql_home_screenshot.png)](https://pgql-lang.org/)
 
 ## PGQL Parser and Static Query Validator
 
@@ -112,11 +112,11 @@ The AST returned by the parser is a [GraphQuery](graph-query-ir/src/main/java/or
 
 ## Documentation
 
-See the [PGQL Specification](http://pgql-lang.org/spec/latest/).
+See the [PGQL Specification](https://pgql-lang.org/spec/latest/).
 
 ## Development
 
-- Download Eclipse with Spoofax 2.5.11 pre-installed [here](http://www.metaborg.org/en/latest/source/release/note/2.5.11.html)
+- Download Eclipse with Spoofax 2.5.16 pre-installed [here](https://www.metaborg.org/en/latest/source/release/note/2.5.16.html)
 - Import the following projects into Eclipse (`File>Import...>Maven>Existing Maven Projects>Browse...`):
     - `graph-query-ir`: Java representation of graph queries
     - `pqgl-spoofax`: Spoofax implementation of PGQL (parser + error checks)
