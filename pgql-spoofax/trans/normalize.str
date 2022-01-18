@@ -623,7 +623,7 @@ rules
     with constraints := Constraints(<add-constraints(|whereClause)> inlined-constraints)
 
   add-constraints-to-table-expression(|whereClause) =
-    DerivedTable(id, Subquery(NormalizedQuery(id, id, id, Some(add-constraints-to-last-table-expression(|whereClause)), id, id, id, id, id, id, id, id)))
+    DerivedTable(id, Subquery(NormalizedQuery(id, id, id, add-constraints-to-last-table-expression(|whereClause), id, id, id, id, id, id, id, id)))
 
   add-constraints-to-last-table-expression(|whereClause):
     tableExpressions -> tableExpressions'

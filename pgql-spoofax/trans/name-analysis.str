@@ -101,10 +101,12 @@ rules
 
   trans-table-expression(|metadata, expAsVars):
     (derivedTable@DerivedTable(lateral, subquery@Subquery(normalizedQuery)), (result, variables, valueExpressionPriorLateralQueries)) -> (result', variables', valueExpressionPriorLateralQueries)
-    with (normalizedQuery', variables') := <trans-query(|variables, metadata)> normalizedQuery
+    with (normalizedQuery', variables-in-projection) := <trans-query(|variables, metadata)> normalizedQuery
        ; subquery' := <origin-track-forced(!Subquery(normalizedQuery'))> subquery
        ; derivedTable' := <origin-track-forced(!DerivedTable(lateral, subquery'))> derivedTable
        ; result' := <conc> (result, [derivedTable'])
+       ; <?[x|xs]> variables
+       ; variables' := [<conc> (x, variables-in-projection)|xs]
 
   path-with-at-most-one-binding:
     t@Path(_, _, _, quantifier, _, _, _, _, _) -> t
