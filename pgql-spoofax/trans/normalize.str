@@ -611,10 +611,11 @@ rules
     with if <?None()> tableExpressionsAndGraphName
          then graphPattern' := None()
             ; optionalGraphName := None()
+            ; tableExpressions' := []
          else <?Some(TableExpressionsAndGraphName(tableExpressions, optionalGraphName, whereClause))> tableExpressionsAndGraphName
             ; (init, last) := <split-init-last> tableExpressions
             ; last' := <add-constraints-to-table-expression(|whereClause)> last
-            ; tableExpressions' := Some(<conc> (init, [last']))
+            ; tableExpressions' := <conc> (init, [last'])
          end
 
   add-constraints-to-table-expression(|whereClause):

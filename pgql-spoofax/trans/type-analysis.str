@@ -17,21 +17,13 @@ rules
               ?AstPlusMetadata(ast, metadata); !ast; add-types-to-query(|metadata, [], []); !AstPlusMetadata(<id>, metadata)
 
   add-types-to-query(|metadata, variablesPlusTypes, constraintsFromOuterQuery):
-      NormalizedQuery(CommonPathExpressions(pathExpressions), selectOrModifyClause, optionalGraphName, graphPattern, groupBy, having, orderBy, limitOffsets, error-messages, version, bindVariableCount, selectinAllVariables) ->
-        NormalizedQuery(CommonPathExpressions(pathExpressions'), selectOrModifyClause', optionalGraphName, graphPattern', groupBy', having', orderBy', limitOffsets, error-messages, version, bindVariableCount, selectinAllVariables)
+      NormalizedQuery(CommonPathExpressions(pathExpressions), selectOrModifyClause, optionalGraphName, tableExpressions, groupBy, having, orderBy, limitOffsets, error-messages, version, bindVariableCount, selectinAllVariables) ->
+        NormalizedQuery(CommonPathExpressions(pathExpressions'), selectOrModifyClause', optionalGraphName, tableExpressions', groupBy', having', orderBy', limitOffsets, error-messages, version, bindVariableCount, selectinAllVariables)
     with // PATH
          pathExpressions' := <map(add-types-to-path-expression(|metadata))> pathExpressions
 
-       // MATCH
-       ; if <?Some(GraphPattern(Vertices(vertices), connections, _))> := graphPattern
-         then verticesWithTypes := <collect-vertices-with-types(?Vertex(_, <id>, _) + ?OneRowPerVertex(_, <id>, _))> (vertices, connections)
-            ; edgesWithTypes := <collect-edges-with-types(?Edge(_, _, _, _, <id>, _) + ?OneRowPerEdge(_, <id>, _))> connections
-            ; variablesPlusTypes' := <conc> (variablesPlusTypes, verticesWithTypes, edgesWithTypes)
-            ; constraints := <conc> (constraintsFromOuterQuery, <collect-in-outer-query(?Constraints(<id>)); concat> graphPattern)
-            ; graphPattern' := <alltd(add-type(|metadata, variablesPlusTypes', constraints))> graphPattern
-         else variablesPlusTypes' := variablesPlusTypes
-            ; graphPattern' := graphPattern
-         end
+       // FROM
+       ; (tableExpressions', variablesPlusTypes', constraints) := <foldl(add-type-to-table-expression(|metadata))> (tableExpressions, ([], variablesPlusTypes, constraintsFromOuterQuery))
 
          // GROUP BY
        ; if <?Some(_)> groupBy
@@ -62,6 +54,23 @@ rules
 
          // ORDER BY
        ; orderBy' := <alltd(add-type(|metadata, variablesPlusTypes''', constraints))> orderBy
+
+  add-type-to-table-expression(|metadata):
+    (graphPattern@GraphPattern(Vertices(vertices), connections, _), (result, variablesPlusTypes, constraints)) -> (result', variablesPlusTypes', constraints')
+    with verticesWithTypes := <collect-vertices-with-types(?Vertex(_, <id>, _) + ?OneRowPerVertex(_, <id>, _))> (vertices, connections)
+         ; edgesWithTypes := <collect-edges-with-types(?Edge(_, _, _, _, <id>, _) + ?OneRowPerEdge(_, <id>, _))> connections
+         ; variablesPlusTypes' := <conc> (variablesPlusTypes, verticesWithTypes, edgesWithTypes)
+         ; constraints' := <conc> (constraints, <collect-in-outer-query(?Constraints(<id>)); concat> graphPattern)
+         ; graphPattern' := <alltd(add-type(|metadata, variablesPlusTypes', constraints))> graphPattern
+         ; result' := <conc> (result, [graphPattern'])
+
+  add-type-to-table-expression(|metadata):
+    (derivedTable@DerivedTable(lateral, subquery@Subquery(normalizedQuery)), (result, variablesPlusTypes, constraints)) -> (result', variablesPlusTypes', constraints')
+    with normalizedQuery' := <add-types-to-query(|metadata, variablesPlusTypes, constraints)> normalizedQuery       ; subquery' := <origin-track-forced(!Subquery(normalizedQuery'))> subquery
+       ; derivedTable' := <origin-track-forced(!DerivedTable(lateral, subquery'))> derivedTable
+       ; result' := <conc> (result, [derivedTable'])
+       ; variablesPlusTypes' := variablesPlusTypes // TODO: make sure the variables projected from the SELECT clause are included here
+       ; constraints' := constraints
 
   collect-vertices-with-types(s) = collect-in-outer-query(s; !VariablePlusType(<id>, <id>, Type("VERTEX")))
 

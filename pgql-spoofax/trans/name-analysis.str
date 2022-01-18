@@ -30,7 +30,7 @@ rules
 rules
 
   trans-query(|variables, metadata):
-    NormalizedQuery(CommonPathExpressions(pathExpressions), selectOrModifyClause, optionalGraphName, graphPattern, groupBy, having, orderBy, limitOffsets, error-messages, version, bindVariableCount, selectingAllVariables) ->
+    NormalizedQuery(CommonPathExpressions(pathExpressions), selectOrModifyClause, optionalGraphName, tableExpressions, groupBy, having, orderBy, limitOffsets, error-messages, version, bindVariableCount, selectingAllVariables) ->
         (NormalizedQuery(CommonPathExpressions(pathExpressions'), selectOrModifyClause', optionalGraphName, tableExpressions', groupBy', having', orderBy', limitOffsets, error-messages, version, bindVariableCount, selectingAllVariables), variables-in-projection)
     with variables' := <guarantee-size-two-or-more> variables
 
@@ -40,12 +40,7 @@ rules
        // these expAsVars are used to make the column aliasevalueExpressions in SELECT visible in WHERE and GROUP BY
        ; expAsVars := <?SelectClause(_, ExpAsVars(<id>)) <+ ![]> selectOrModifyClause
 
-       ; if <?Some(tableExpressions)> := graphPattern
-         then (tableExpressions', variables'') := <foldl(trans-table-expression(|metadata, expAsVars))> (tableExpressions, ([], variables'))
-         else tableExpressions' := None()
-            ; variables'' := variables'
-            ; valueExpression' := Constraints([])
-         end
+       ; (tableExpressions', variables'', valueExpression') := <foldl(trans-table-expression(|metadata, expAsVars))> (tableExpressions, ([], variables', []))
 
        // GROUP BY
        ; if (!groupBy; ?Some(_)) + (!selectOrModifyClause; create-one-group(|variables'')) + (!having; ?Some(_))
@@ -82,29 +77,30 @@ rules
 //         end
 
   trans-table-expression(|metadata, expAsVars):
-    (GraphPattern(vertices, connections, valueExpression), (result, variables)) -> (result', variables')
-      with    // MATCH
-              (vertices', connections') := <alltd(trans-elem(|variables))> (vertices, <alltd(trans-rows-per-match(|variables))> connections)
-            ; edges := <filter(?Edge(_, _, _, _, _, _) + path-with-at-most-one-binding)> connections'
-            ; paths := <filter(path-with-two-or-more-bindings)> connections'
+    (GraphPattern(vertices, connections, Constraints(valueExpression)), (result, variables, valueExpressionPriorLateralQueries)) -> (result', variables', valueExpression'')
+      with  // MATCH
+           (vertices', connections') := <alltd(trans-elem(|variables))> (vertices, <alltd(trans-rows-per-match(|variables))> connections)
+          ; edges := <filter(?Edge(_, _, _, _, _, _) + path-with-at-most-one-binding)> connections'
+          ; paths := <filter(path-with-two-or-more-bindings)> connections'
 
-            ; new-vars := <conc> (<collect(to-varDef)> (vertices', edges), <collect(rows-per-match-to-varDef)> connections')
-            ; new-groupVars := <collect(to-varDef)> paths
-            ; <?[x|[y|ys]]> variables
-            ; visible-vars := <replace-or-add-all> (new-vars, x)
-            ; visible-groupVars := <replace-or-add-all> (new-groupVars, y)
-            ; variables' := [visible-vars|[visible-groupVars|ys]]
+          ; new-vars := <conc> (<collect(to-varDef)> (vertices', edges), <collect(rows-per-match-to-varDef)> connections')
+          ; new-groupVars := <collect(to-varDef)> paths
+          ; <?[x|[y|ys]]> variables
+          ; visible-vars := <replace-or-add-all> (new-vars, x)
+          ; visible-groupVars := <replace-or-add-all> (new-groupVars, y)
+          ; variables' := [visible-vars|[visible-groupVars|ys]]
 
-            ; connections'' := <alltd(resolve-var-refs-in-path-expression(|variables', metadata))> connections'
+          ; connections'' := <alltd(resolve-var-refs-in-path-expression(|variables', metadata))> connections'
 
               // WHERE
-            ; valueExpression' := <resolve-value-expression(|variables', expAsVars, metadata)> valueExpression
-            
-            ; graphPattern' := Some(GraphPattern(vertices', connections'', valueExpression'))
-            ; result' := <conc> (result, [graphPattern'])
+          ; valueExpression' := <resolve-value-expression(|variables', expAsVars, metadata)> valueExpression
+          ; valueExpression'' := <conc> (valueExpressionPriorLateralQueries, valueExpression')
+
+          ; graphPattern' := GraphPattern(vertices', connections'', valueExpression')
+          ; result' := <conc> (result, [graphPattern'])
 
   trans-table-expression(|metadata, expAsVars):
-    (derivedTable@DerivedTable(lateral, subquery@Subquery(normalizedQuery)), (result, variables)) -> (result', variables')
+    (derivedTable@DerivedTable(lateral, subquery@Subquery(normalizedQuery)), (result, variables, valueExpressionPriorLateralQueries)) -> (result', variables', valueExpressionPriorLateralQueries)
     with (normalizedQuery', variables') := <trans-query(|variables, metadata)> normalizedQuery
        ; subquery' := <origin-track-forced(!Subquery(normalizedQuery'))> subquery
        ; derivedTable' := <origin-track-forced(!DerivedTable(lateral, subquery'))> derivedTable
@@ -254,7 +250,7 @@ rules
          then expAsVars := [ExpAsVar(varRef', v, Anonymous(), None())] // create a dummy ExpAsVar just to make sure an "unresolved variable" error will be generated
             ; vars' := vars
          else originOffset := <?VarRef(_, <id>) <+ !None()> varRef'
-            ; labelExpression := <(?Constraints(<id>) <+ ![]); filter(simplify-label-expression(|originOffset)); (?[]; !All() <+ to-label-conjunction)> valueExpression
+            ; labelExpression := <filter(simplify-label-expression(|originOffset)); (?[]; !All() <+ to-label-conjunction)> valueExpression
             ; elementType := <get-type-from-varRef-as-var(|variables)> varRef'
             ; allLabels := <?Type("VERTEX"); !metadata; fetch-elem(?VertexLabels(<id>)) <+ ?Type("EDGE"); !metadata; fetch-elem(?EdgeLabels(<id>)) <+ ![]> elementType
             ; allLabelNames := <(?Type("VERTEX"); get-vertex-labels(|metadata) <+ ?Type("EDGE"); get-edge-labels(|metadata)); try(?None(); ![]) <+ ![]> elementType
