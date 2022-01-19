@@ -35,11 +35,11 @@ rules // Unresolved/duplicate variables
           end
 
   nabl-constraint(|ctx):
-    NormalizedQuery(_, selectOrModifyClauseWithAnnos, _, graphPatternWithAnnos, groupClauseWithAnnos, _, _, _, _, _, _, _) -> <fail>
+    NormalizedQuery(_, selectOrModifyClauseWithAnnos, _, tableExpressionsWithAnnos, groupClauseWithAnnos, _, _, _, _, _, _, _) -> <fail>
     with selectOrModifyClause := <strip-annos> selectOrModifyClauseWithAnnos
-       ; graphPattern := <strip-annos> graphPatternWithAnnos
+       ; tableExpressions := <strip-annos> tableExpressionsWithAnnos
        ; groupClause := <strip-annos> groupClauseWithAnnos
-       ; matchVars := <?None(); ![] <+ ?Some(GraphPattern(vertices, edges, _)); !(vertices, edges); collect(is-pattern-elem); collect-om(get-pattern-elem, conc)> graphPattern
+       ; matchVars := <map(collect-vars-from-table-expression)> tableExpressions
        ; if <?Some(_)> groupClause
          then groupVars := <?Some(GroupByClause(<id>)); map(?ExpAsVar(_, Identifier(<id>, _), _, _))> groupClause
          else groupVars := []
@@ -82,6 +82,13 @@ rules // Unresolved/duplicate variables
                  ; <batch-generate-error(|ctx, "Duplicate variable: variable already defined in the GROUP BY clause")> redefinitions-in-modify
               end
          end
+
+  collect-vars-from-table-expression = ?GraphPattern(vertices, edges, _); !(vertices, edges); collect(is-pattern-elem); collect-om(get-pattern-elem, conc)
+
+  collect-vars-from-table-expression:
+    DerivedTable(_, Subquery(NormalizedQuery(_, SelectClause(_, ExpAsVars(expAsVars)), _, _, _, _, _, _, _, _, _, _))) -> vars
+    with vars := <filter(?ExpAsVar(ExpressionPlusType(VarRef(Identifier(<id>, _), _), Type("VERTEX")), _, _, _) +
+                         ?ExpAsVar(ExpressionPlusType(VarRef(Identifier(<id>, _), _), Type("EDGE")), _, _, _))> expAsVars
 
   nabl-constraint(|ctx):
     query@NormalizedQuery(_, selectClause, _, Some(GraphPattern(_, edges, _)), _, _, _, _, _, _, _, _) -> <fail>
@@ -210,7 +217,7 @@ rules // subqueries
 
   nabl-constraint(|ctx):
     q@NormalizedQuery(_, _, _, _, _, _, _, _, _, _, _, _) -> <fail>
-    with scalarSubqueries := <collect(?Exists(_) + ?Subquery(_)); remove-all(?Exists(_))> q
+    with scalarSubqueries := <collect(?Exists(_) + ?DerivedTable(_, _) + ?Subquery(_)); remove-all(?Exists(_) + ?DerivedTable(_, _))> q
        ; multiColumnScalarSubqueries := <filter(is-multi-column-subquery)> scalarSubqueries
        ; zeroColumnScalarSubqueries := <filter(is-zero-column-subquery)> scalarSubqueries
        ; <batch-generate-error(|ctx, "Scalar subquery is expected to return a single column, but multiple columns were returned")> multiColumnScalarSubqueries
