@@ -67,7 +67,7 @@ rules
                      ; alltd(optimize-order-by)> orderBy
 
        // variables to pass into subsequent table expressions
-       ; variables-in-projection := <diff; guarantee-size-two-or-more> (<Hd> variables'''', variables''')
+       ; variables-in-projection := <diff> (<Hd> variables'''', <Hd> variables''')
 
 // TODO fixme
 //       ; if <?Some(GraphPattern(vertices', connections'', valueExpression'))> := graphPattern'
