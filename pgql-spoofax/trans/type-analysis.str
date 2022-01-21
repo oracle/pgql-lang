@@ -17,25 +17,29 @@ rules
               ?AstPlusMetadata(ast, metadata); !ast; add-types-to-query(|metadata, [], []); !AstPlusMetadata(<id>, metadata)
 
   add-types-to-query(|metadata, variablesPlusTypes, constraintsFromOuterQuery):
-      NormalizedQuery(CommonPathExpressions(pathExpressions), selectOrModifyClause, optionalGraphName, tableExpressions, groupBy, having, orderBy, limitOffsets, error-messages, version, bindVariableCount, selectinAllVariables) ->
-        NormalizedQuery(CommonPathExpressions(pathExpressions'), selectOrModifyClause', optionalGraphName, tableExpressions', groupBy', having', orderBy', limitOffsets, error-messages, version, bindVariableCount, selectinAllVariables)
+      NormalizedQuery(CommonPathExpressions(pathExpressions), selectOrModifyClause, optionalGraphName, tableExpressions, whereClause, groupBy, having, orderBy, limitOffsets, error-messages, version, bindVariableCount, selectinAllVariables) ->
+        NormalizedQuery(CommonPathExpressions(pathExpressions'), selectOrModifyClause', optionalGraphName, tableExpressions, whereClause', groupBy', having', orderBy', limitOffsets, error-messages, version, bindVariableCount, selectinAllVariables)
     with // PATH
          pathExpressions' := <map(add-types-to-path-expression(|metadata))> pathExpressions
 
-       // FROM
-       ; (tableExpressions', variablesPlusTypes', constraints) := <foldl(add-type-to-table-expression(|metadata))> (tableExpressions, ([], variablesPlusTypes, constraintsFromOuterQuery))
+         // FROM
+       ; constraints := <conc> (constraintsFromOuterQuery, <?Some(Constraints(<id>)) <+ ![]> whereClause )
+       ; (tableExpressions', variablesPlusTypes', constraints') := <foldl(debug; add-type-to-table-expression(|metadata))> (tableExpressions, ([], variablesPlusTypes, constraints))
+
+         // WHERE
+       ; whereClause' := <alltd(add-type(|metadata, variablesPlusTypes', constraints'))> whereClause
 
          // GROUP BY
        ; if <?Some(_)> groupBy
-         then groupBy' := <alltd(add-type(|metadata, variablesPlusTypes', constraints))> groupBy
+         then groupBy' := <alltd(add-type(|metadata, variablesPlusTypes', constraints'))> groupBy
             ; variablesPlusTypes'' := <conc> (variablesPlusTypes', <?Some(GroupByClause(<id>)); map(expAsVar-to-variablePlusType(|variablesPlusTypes'))> groupBy')
          else groupBy' := groupBy
             ; variablesPlusTypes'' := variablesPlusTypes'
          end
 
-       // SELECT / INSERT / UPDATE / DELETE
+         // SELECT / INSERT / UPDATE / DELETE
        ; if <?SelectClause(_, ExpAsVars(_))> selectOrModifyClause
-         then selectOrModifyClause' := <alltd(add-type(|metadata, variablesPlusTypes'', constraints))> selectOrModifyClause
+         then selectOrModifyClause' := <alltd(add-type(|metadata, variablesPlusTypes'', constraints'))> selectOrModifyClause
             ; variablesPlusTypes''' := <conc> (variablesPlusTypes'', <?SelectClause(_, ExpAsVars(<id>)); map(expAsVar-to-variablePlusType(|variablesPlusTypes''))> selectOrModifyClause')
          else if <?SelectClause(_, Star())> selectOrModifyClause // SELECT * FROM .. GROUP BY ..
               then selectOrModifyClause' := selectOrModifyClause
@@ -44,16 +48,16 @@ rules
                  ; verticesWithTypes' := <collect-vertices-with-types(?VertexInsertion(_, <id>, _, _))> modifications
                  ; edgesWithTypes' := <collect-edges-with-types(?DirectedEdgeInsertion(_, <id>, _, _, _, _))> modifications
                  ; variablesPlusTypes''' := <conc> (variablesPlusTypes'', verticesWithTypes', edgesWithTypes')
-                 ; constraints' := <collect(insertion-to-has-label-constraint); concat> modifications // label constraints are used to type check property references
-                 ; selectOrModifyClause' := <alltd(add-type(|metadata, variablesPlusTypes''', constraints'))> selectOrModifyClause
+                 ; constraints'' := <collect(insertion-to-has-label-constraint); concat> modifications // label constraints are used to type check property references
+                 ; selectOrModifyClause' := <alltd(add-type(|metadata, variablesPlusTypes''', constraints''))> selectOrModifyClause
               end
          end
 
          // HAVING
-       ; having' := <alltd(add-type(|metadata, variablesPlusTypes''', constraints))> having
+       ; having' := <alltd(add-type(|metadata, variablesPlusTypes''', constraints'))> having
 
          // ORDER BY
-       ; orderBy' := <alltd(add-type(|metadata, variablesPlusTypes''', constraints))> orderBy
+       ; orderBy' := <alltd(add-type(|metadata, variablesPlusTypes''', constraints'))> orderBy
 
   add-type-to-table-expression(|metadata):
     (graphPattern@GraphPattern(Vertices(vertices), connections, _), (result, variablesPlusTypes, constraints)) -> (result', variablesPlusTypes', constraints')
@@ -66,11 +70,12 @@ rules
 
   add-type-to-table-expression(|metadata):
     (derivedTable@DerivedTable(lateral, subquery@Subquery(normalizedQuery)), (result, variablesPlusTypes, constraints)) -> (result', variablesPlusTypes', constraints')
-    with normalizedQuery' := <add-types-to-query(|metadata, variablesPlusTypes, constraints)> normalizedQuery       ; subquery' := <origin-track-forced(!Subquery(normalizedQuery'))> subquery
+    with normalizedQuery' := <add-types-to-query(|metadata, variablesPlusTypes, constraints)> normalizedQuery
+       ; subquery' := <origin-track-forced(!Subquery(normalizedQuery'))> subquery
        ; derivedTable' := <origin-track-forced(!DerivedTable(lateral, subquery'))> derivedTable
        ; result' := <conc> (result, [derivedTable'])
        ; variablesPlusTypes' := variablesPlusTypes // TODO: make sure the variables projected from the SELECT clause are included here
-       ; constraints' := constraints
+       ; constraints' := constraints // TODO: don't we need to add all the label constraints, for type checking?
 
   collect-vertices-with-types(s) = collect-in-outer-query(s; !VariablePlusType(<id>, <id>, Type("VERTEX")))
 
@@ -233,7 +238,7 @@ rules // subqueries
   add-types-to-subquery(|metadata, variablesPlusTypes, constraints):
     query -> (query', type)
     with query' := <add-types-to-query(|metadata, variablesPlusTypes, constraints)> query
-       ; if <?NormalizedQuery(_, SelectClause(_, ExpAsVars([ExpAsVar(ExpressionPlusType(_, Type(t)), _, _, _)])), _, _, _, _, _, _, _, _, _, _)> query'
+       ; if <?NormalizedQuery(_, SelectClause(_, ExpAsVars([ExpAsVar(ExpressionPlusType(_, Type(t)), _, _, _)])), _, _, _, _, _, _, _, _, _, _, _)> query'
          then type := Type(t)
          else type := UnknownType()
          end

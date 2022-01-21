@@ -30,8 +30,8 @@ rules
 rules
 
   trans-query(|variables, metadata):
-    NormalizedQuery(CommonPathExpressions(pathExpressions), selectOrModifyClause, optionalGraphName, tableExpressions, groupBy, having, orderBy, limitOffsets, error-messages, version, bindVariableCount, selectingAllVariables) ->
-        (NormalizedQuery(CommonPathExpressions(pathExpressions'), selectOrModifyClause', optionalGraphName, tableExpressions', groupBy', having', orderBy', limitOffsets, error-messages, version, bindVariableCount, selectingAllVariables), variables-in-projection)
+    NormalizedQuery(CommonPathExpressions(pathExpressions), selectOrModifyClause, optionalGraphName, tableExpressions, whereClause, groupBy, having, orderBy, limitOffsets, error-messages, version, bindVariableCount, selectingAllVariables) ->
+        (NormalizedQuery(CommonPathExpressions(pathExpressions'), selectOrModifyClause', optionalGraphName, tableExpressions', whereClause', groupBy', having', orderBy', limitOffsets, error-messages, version, bindVariableCount, selectingAllVariables), variables-in-projection)
     with variables' := <guarantee-size-two-or-more> variables
 
        // PATH
@@ -41,6 +41,9 @@ rules
        ; expAsVars := <?SelectClause(_, ExpAsVars(<id>)) <+ ![]> selectOrModifyClause
 
        ; (tableExpressions', variables'', valueExpression') := <foldl(trans-table-expression(|metadata, expAsVars))> (tableExpressions, ([], variables', []))
+
+         // WHERE
+       ; whereClause' := <resolve-value-expression(|variables'', expAsVars, metadata)> whereClause
 
        // GROUP BY
        ; if (!groupBy; ?Some(_)) + (!selectOrModifyClause; create-one-group(|variables'')) + (!having; ?Some(_))
@@ -92,21 +95,23 @@ rules
 
           ; connections'' := <alltd(resolve-var-refs-in-path-expression(|variables', metadata))> connections'
 
-              // WHERE
+          // local WHERE clause for has_label constraints and future inlined constraints
           ; valueExpression' := <resolve-value-expression(|variables', expAsVars, metadata)> valueExpression
-          ; valueExpression'' := <conc> (valueExpressionPriorLateralQueries, valueExpression')
 
           ; graphPattern' := GraphPattern(vertices', connections'', valueExpression')
           ; result' := <conc> (result, [graphPattern'])
 
+          ; valueExpression'' := <conc> (valueExpressionPriorLateralQueries, valueExpression') // for SELECT n.* we need to have all the label expression
+
   trans-table-expression(|metadata, expAsVars):
-    (derivedTable@DerivedTable(lateral, subquery@Subquery(normalizedQuery)), (result, variables, valueExpressionPriorLateralQueries)) -> (result', variables', valueExpressionPriorLateralQueries)
+    (derivedTable@DerivedTable(lateral, subquery@Subquery(normalizedQuery)), (result, variables, valueExpressionPriorLateralQueries)) -> (result', variables', constraints')
     with (normalizedQuery', variables-in-projection) := <trans-query(|variables, metadata)> normalizedQuery
        ; subquery' := <origin-track-forced(!Subquery(normalizedQuery'))> subquery
        ; derivedTable' := <origin-track-forced(!DerivedTable(lateral, subquery'))> derivedTable
        ; result' := <conc> (result, [derivedTable'])
        ; <?[x|xs]> variables
        ; variables' := [<conc> (x, variables-in-projection)|xs]
+       ; constraints' := valueExpressionPriorLateralQueries // TODO: for SELECT n.* we need to have all the label expression
 
   path-with-at-most-one-binding:
     t@Path(_, _, _, quantifier, _, _, _, _, _) -> t

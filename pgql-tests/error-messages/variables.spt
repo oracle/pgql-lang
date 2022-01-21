@@ -69,3 +69,12 @@ test Variables in MATCH shadow variables in SELECT [[
   GROUP BY n.prop AS prop
 
 ]] error like "Unresolved variable (did you mean to use a group key?)" at #1
+
+test Unresolved reference to variable inside table expression [[
+
+  SELECT 1
+    FROM MATCH (n)
+       , LATERAL ( SELECT e FROM MATCH (x) )
+   WHERE n.prop = 3 AND [[x]].prop = 4
+
+]] error like "Unresolved variable" at #1
