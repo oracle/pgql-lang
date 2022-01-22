@@ -378,7 +378,7 @@ rules
   resolve-var-ref(|variables, metadata):
     Subquery(query) -> Subquery(query')
     with variables' := <alltd(VarDef(id, id, id, id, id, !OuterQuery(), id))> variables
-       ; query' := <trans-query(|variables', metadata)> query
+       ; (query', _) := <trans-query(|variables', metadata)> query
 
   replace-exp-with-ref-within-this-query(|variables):
     exp -> varRef

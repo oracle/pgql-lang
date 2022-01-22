@@ -24,7 +24,7 @@ rules
 
          // FROM
        ; constraints := <conc> (constraintsFromOuterQuery, <?Some(Constraints(<id>)) <+ ![]> whereClause )
-       ; (tableExpressions', variablesPlusTypes', constraints') := <foldl(debug; add-type-to-table-expression(|metadata))> (tableExpressions, ([], variablesPlusTypes, constraints))
+       ; (tableExpressions', variablesPlusTypes', constraints') := <foldl(add-type-to-table-expression(|metadata))> (tableExpressions, ([], variablesPlusTypes, constraints))
 
          // WHERE
        ; whereClause' := <alltd(add-type(|metadata, variablesPlusTypes', constraints'))> whereClause
