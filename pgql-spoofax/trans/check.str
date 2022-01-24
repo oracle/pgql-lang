@@ -39,7 +39,7 @@ rules // Unresolved/duplicate variables
     with selectOrModifyClause := <strip-annos> selectOrModifyClauseWithAnnos
        ; tableExpressions := <strip-annos> tableExpressionsWithAnnos
        ; groupClause := <strip-annos> groupClauseWithAnnos
-       ; matchVars := <map(collect-vars-from-table-expression)> tableExpressions
+       ; matchVars := <map(collect-vars-from-table-expression); concat> tableExpressions
        ; if <?Some(_)> groupClause
          then groupVars := <?Some(GroupByClause(<id>)); map(?ExpAsVar(_, Identifier(<id>, _), _, _))> groupClause
          else groupVars := []
