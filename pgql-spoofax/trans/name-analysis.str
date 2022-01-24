@@ -250,6 +250,12 @@ rules
        ; expAsVar' := <origin-track-forced(!ExpAsVar(exp', iden, anonymous, unique-origin))> t
        ; result' := <conc> (result, [expAsVar'])
 
+  // expression was defined in GROUP BY and doesn't need to be resolved again
+  resolve-exp-as-var-in-select(|variables, metadata, valueExpression):
+     (expAsVar@ExpAsVar(_, _, _, originOffset), (result, vars)) -> (result', vars')
+     with vars' := vars // it was already added during GROUP BY analysis
+        ; result' := <conc> (result, [expAsVar])
+
   resolve-exp-as-var-in-select(|variables, metadata, valueExpression):
     (t@AllProperties(varRef, columnNamePrefix), (result, vars)) -> (result', vars')
     with varRef' := <resolve-var-ref(|variables, metadata)> varRef
