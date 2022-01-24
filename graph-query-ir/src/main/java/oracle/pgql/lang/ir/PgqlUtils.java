@@ -41,6 +41,9 @@ import oracle.pgql.lang.ir.QueryExpression.Function.Exists;
 import oracle.pgql.lang.ir.QueryVariable.VariableType;
 import oracle.pgql.lang.ir.QueryVertex;
 import oracle.pgql.lang.ir.modify.ModifyQuery;
+import oracle.pgql.lang.ir.unnest.OneRowPerEdge;
+import oracle.pgql.lang.ir.unnest.OneRowPerVertex;
+import oracle.pgql.lang.ir.unnest.RowsPerMatch;
 
 public class PgqlUtils {
 
@@ -91,6 +94,19 @@ public class PgqlUtils {
       @Override
       public void visit(QueryPath queryPath) {
         result.add(queryPath);
+        RowsPerMatch rowsPerMatch = queryPath.getRowsPerMatch();
+        switch (queryPath.getRowsPerMatch().getRowsPerMatchType()) {
+          case ONE_ROW_PER_VERTEX:
+            result.add(((OneRowPerVertex) rowsPerMatch).getVertex());
+            break;
+          case ONE_ROW_PER_EDGE:
+            result.add(((OneRowPerEdge) rowsPerMatch).getEdge());
+            break;
+          case ONE_ROW_PER_MATCH:
+            break;
+          default:
+            throw new UnsupportedOperationException(rowsPerMatch.getRowsPerMatchType() + " not supported");
+        }
       }
     });
     return result;

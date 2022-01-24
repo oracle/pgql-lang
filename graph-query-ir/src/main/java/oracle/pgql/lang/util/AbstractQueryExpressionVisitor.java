@@ -63,6 +63,9 @@ import oracle.pgql.lang.ir.modify.SetPropertyExpression;
 import oracle.pgql.lang.ir.modify.Update;
 import oracle.pgql.lang.ir.modify.UpdateClause;
 import oracle.pgql.lang.ir.modify.VertexInsertion;
+import oracle.pgql.lang.ir.unnest.OneRowPerEdge;
+import oracle.pgql.lang.ir.unnest.OneRowPerVertex;
+import oracle.pgql.lang.ir.unnest.RowsPerMatch;
 import oracle.pgql.lang.ir.QueryExpression.ScalarSubquery;
 import oracle.pgql.lang.ir.QueryExpression.Star;
 import oracle.pgql.lang.ir.QueryExpression.VarRef;
@@ -378,6 +381,19 @@ public abstract class AbstractQueryExpressionVisitor implements QueryExpressionV
   public void visit(QueryPath queryPath) {
     queryPath.getConnections().stream().forEach(e -> e.accept(this));
     queryPath.getConstraints().stream().forEach(e -> e.accept(this));
+    RowsPerMatch rowsPerMatch = queryPath.getRowsPerMatch();
+    switch (queryPath.getRowsPerMatch().getRowsPerMatchType()) {
+      case ONE_ROW_PER_VERTEX:
+        ((OneRowPerVertex) rowsPerMatch).getVertex().accept(this);
+        break;
+      case ONE_ROW_PER_EDGE:
+        ((OneRowPerEdge) rowsPerMatch).getEdge().accept(this);
+        break;
+      case ONE_ROW_PER_MATCH:
+        break;
+      default:
+        throw new UnsupportedOperationException(rowsPerMatch.getRowsPerMatchType() + " not supported");
+    }
   }
 
   @Override

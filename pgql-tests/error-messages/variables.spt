@@ -69,3 +69,14 @@ test Variables in MATCH shadow variables in SELECT [[
   GROUP BY n.prop AS prop
 
 ]] error like "Unresolved variable (did you mean to use a group key?)" at #1
+
+test "Repeat subquery from SELECT in GROUP BY and use unnest variable in subquery" [[
+
+    SELECT COUNT(*), (SELECT id(n2) FROM MATCH (n2) WHERE id(n2) = id([[k]]) limit 1) AS x, id([[k]])
+      FROM MATCH
+             ANY SHORTEST (n) ((src)-[e]->(dst)){2} (m)
+             ONE ROW PER VERTEX (k)
+  GROUP BY x
+
+]] error like "Unresolved variable" at #1
+   error like "Unresolved variable (did you mean to use a group key?)" at #2
