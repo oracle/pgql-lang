@@ -18,7 +18,7 @@ rules
 
   add-types-to-query(|metadata, variablesPlusTypes, constraintsFromOuterQuery):
       NormalizedQuery(CommonPathExpressions(pathExpressions), selectOrModifyClause, optionalGraphName, tableExpressions, whereClause, groupBy, having, orderBy, limitOffsets, error-messages, version, bindVariableCount, selectinAllVariables) ->
-        NormalizedQuery(CommonPathExpressions(pathExpressions'), selectOrModifyClause', optionalGraphName, tableExpressions, whereClause', groupBy', having', orderBy', limitOffsets, error-messages, version, bindVariableCount, selectinAllVariables)
+        NormalizedQuery(CommonPathExpressions(pathExpressions'), selectOrModifyClause', optionalGraphName, tableExpressions', whereClause', groupBy', having', orderBy', limitOffsets, error-messages, version, bindVariableCount, selectinAllVariables)
     with // PATH
          pathExpressions' := <map(add-types-to-path-expression(|metadata))> pathExpressions
 
