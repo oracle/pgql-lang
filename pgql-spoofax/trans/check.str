@@ -91,7 +91,7 @@ rules // Unresolved/duplicate variables
                          ?ExpAsVar(ExpressionPlusType(VarRef(Identifier(<id>, _), _), Type("EDGE")), _, _, _))> expAsVars
 
   nabl-constraint(|ctx):
-    query@NormalizedQuery(_, selectClause, _, Some(GraphPattern(_, edges, _)), _, _, _, _, _, _, _, _, _) -> <fail>
+    query@NormalizedQuery(_, _, _, _, _, _, _, _, _, _, _, _, _) -> <fail>
     with group-variables := <collect-in-outer-query(?CommonPathExpression(_, _, _, _, _); get-origin-positions-of-variables); concat> query
        ; aggregations := <get-aggregations> query
        ; varRefs-per-aggregation := <map(origin-track-forced(collect-in-outer-query(?VarRef(_, <id>)); !Some(<id>)))> aggregations
