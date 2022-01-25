@@ -98,20 +98,19 @@ rules
           // local WHERE clause for has_label constraints and future inlined constraints
           ; valueExpression' := <resolve-value-expression(|variables', expAsVars, metadata)> valueExpression
 
-          ; graphPattern' := GraphPattern(vertices', connections'', valueExpression')
+          ; graphPattern' := GraphPattern(vertices', connections'', Constraints(valueExpression'))
           ; result' := <conc> (result, [graphPattern'])
-
           ; valueExpression'' := <conc> (valueExpressionPriorLateralQueries, valueExpression') // for SELECT n.* we need to have all the label expression
 
   trans-table-expression(|metadata, expAsVars):
-    (derivedTable@DerivedTable(lateral, subquery@Subquery(normalizedQuery)), (result, variables, valueExpressionPriorLateralQueries)) -> (result', variables', constraints')
+    (derivedTable@DerivedTable(lateral, subquery@Subquery(normalizedQuery)), (result, variables, valueExpressionPriorLateralQueries)) -> (result', variables', valueExpression')
     with (normalizedQuery', variables-in-projection) := <trans-query(|variables, metadata)> normalizedQuery
        ; subquery' := <origin-track-forced(!Subquery(normalizedQuery'))> subquery
        ; derivedTable' := <origin-track-forced(!DerivedTable(lateral, subquery'))> derivedTable
        ; result' := <conc> (result, [derivedTable'])
        ; <?[x|xs]> variables
        ; variables' := [<conc> (x, variables-in-projection)|xs]
-       ; constraints' := valueExpressionPriorLateralQueries // TODO: for SELECT n.* we need to have all the label expression
+       ; valueExpression' := valueExpressionPriorLateralQueries // TODO: for SELECT n.* we need to have all the label expression
 
   path-with-at-most-one-binding:
     t@Path(_, _, _, quantifier, _, _, _, _, _) -> t
