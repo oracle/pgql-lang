@@ -434,7 +434,7 @@ rules // IN predicate and CASE expression
 rules // SELECT
 
   nabl-constraint(|ctx):
-    NormalizedQuery(_, t@SelectClause(_, _), _, None(), _, _, _, _, _, _, _, _, _) -> <fail>
+    NormalizedQuery(_, t@SelectClause(_, _), _, [], _, _, _, _, _, _, _, _, _) -> <fail>
     with <generate-error(|ctx, "SELECT query without FROM clause not supported")> t
 
 rules // MODIFY
