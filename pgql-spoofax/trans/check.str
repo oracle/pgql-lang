@@ -21,7 +21,7 @@ rules // Unresolved/duplicate variables
   nabl-check-disable-duplicate(|uri, ns) = id
 
   nabl-constraint(|ctx):
-    query@NormalizedQuery(_, selectClause, _, matchClause, _, group-by, having, order-by, _, _, _, _, _) -> <fail>
+    query@NormalizedQuery(_, selectClause, _, _, _, group-by, having, order-by, _, _, _, _, _) -> <fail>
     with unresolved-vars := <collect-in-outer-query(?VarRef(<id>))> query
         ; if None() := group-by
           then <batch-generate-error(|ctx, "Unresolved variable")> unresolved-vars

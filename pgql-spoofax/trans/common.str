@@ -108,6 +108,15 @@ rules
   to-disjunction-with-types = reverse; !(<Tl>, <Hd>); foldl(to-OR)
   to-OR = ?(exp1, exp2); !ExpressionPlusType(Or(exp1, exp2), Type("BOOLEAN"))
 
+  conjunction-to-list:
+    t@ExpressionPlusType(exp, _) -> result
+    with if <?And(exp1, exp2)> exp
+         then leftExp := <conjunction-to-list> exp1
+            ; rightExp := <conjunction-to-list> exp2
+            ; result := <conc> (leftExp, rightExp)
+         else result := [t]
+         end
+
   to-function(|name):
     args -> FunctionCall(None(), Identifier(name, name), args)
 

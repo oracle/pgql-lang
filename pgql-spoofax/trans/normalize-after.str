@@ -11,7 +11,9 @@ imports
 
 rules
 
-  normalize-after = try(?AstPlusMetadata(_, metadata); innermost(inPredicate-to-non-equality-constraints(|metadata) <+ norm-inPredicate))
+  normalize-after = try(?AstPlusMetadata(_, metadata)
+                  ; innermost(inPredicate-to-non-equality-constraints(|metadata) <+ norm-inPredicate))
+                  ; bottomup(try(push-down-predicates))
 
 rules
 
@@ -50,3 +52,8 @@ rules
          then result := <origin-track-forced(!Not(inPredicate))> t
          else result := inPredicate
          end
+
+  push-down-predicates:
+    NormalizedQuery(t1, t2, t3, tableExpressions, Some(Constraints([exp])), t6, t7, t8, t9, t10, t11, t12, t13)
+      -> NormalizedQuery(t1, t2, t3, tableExpressions, Some(Constraints(expressions)), t6, t7, t8, t9, t10, t11, t12, t13)
+    with expressions := <conjunction-to-list> exp
