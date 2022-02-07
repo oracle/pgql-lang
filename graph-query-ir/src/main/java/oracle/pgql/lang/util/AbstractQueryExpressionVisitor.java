@@ -24,6 +24,7 @@ import oracle.pgql.lang.ir.QueryExpression.ArithmeticExpression.Mod;
 import oracle.pgql.lang.ir.QueryExpression.ArithmeticExpression.Mul;
 import oracle.pgql.lang.ir.QueryExpression.ArithmeticExpression.Sub;
 import oracle.pgql.lang.ir.QueryExpression.ArithmeticExpression.UMin;
+import oracle.pgql.lang.ir.QueryExpression.BetweenPredicate;
 import oracle.pgql.lang.ir.QueryExpression.BindVariable;
 import oracle.pgql.lang.ir.QueryExpression.ConcatExpression;
 import oracle.pgql.lang.ir.QueryExpression.Constant.ConstBoolean;
@@ -315,6 +316,13 @@ public abstract class AbstractQueryExpressionVisitor implements QueryExpressionV
     if (substringExpression.getStringLength() != null) {
       substringExpression.getStringLength().accept(this);
     }
+  }
+
+  @Override
+  public void visit(BetweenPredicate betweenPredicate) {
+    betweenPredicate.getExp1().accept(this);
+    betweenPredicate.getExp2().accept(this);
+    betweenPredicate.getExp3().accept(this);
   }
 
   @Override
