@@ -110,6 +110,7 @@ public class PgqlUtils {
             result.add(oneRowPerStep.getVertex1());
             result.add(oneRowPerStep.getEdge());
             result.add(oneRowPerStep.getVertex2());
+            break;
           default:
             throw new UnsupportedOperationException(rowsPerMatch.getRowsPerMatchType() + " not supported");
         }
