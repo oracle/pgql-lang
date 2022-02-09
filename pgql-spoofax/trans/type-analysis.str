@@ -24,8 +24,11 @@ rules
 
        // MATCH
        ; if <?Some(GraphPattern(Vertices(vertices), connections, _))> := graphPattern
-         then verticesWithTypes := <collect-vertices-with-types(?Vertex(_, <id>, _) + ?OneRowPerVertex(_, <id>, _))> (vertices, connections)
-            ; edgesWithTypes := <collect-edges-with-types(?Edge(_, _, _, _, <id>, _) + ?OneRowPerEdge(_, <id>, _))> connections
+         then verticesWithTypes := <conc> ( <collect-vertices-with-types(?Vertex(_, <id>, _))> (vertices, connections)
+                                          , <collect-vertices-with-types(?OneRowPerVertex(_, <id>, _))> connections
+                                          , <collect-vertices-with-types(?OneRowPerStep(_, <id>, _, _, _, _, _, _, _))> connections
+                                          , <collect-vertices-with-types(?OneRowPerStep(_, _, _, _, _, _, _, <id>, _))> connections )
+            ; edgesWithTypes := <collect-edges-with-types(?Edge(_, _, _, _, <id>, _) + ?OneRowPerEdge(_, <id>, _) + ?OneRowPerStep(_, _, _, _, <id>, _, _, _, _))> connections
             ; variablesPlusTypes' := <conc> (variablesPlusTypes, verticesWithTypes, edgesWithTypes)
             ; constraints := <conc> (constraintsFromOuterQuery, <collect-in-outer-query(?Constraints(<id>)); concat> graphPattern)
             ; graphPattern' := <alltd(add-type(|metadata, variablesPlusTypes', constraints))> graphPattern
