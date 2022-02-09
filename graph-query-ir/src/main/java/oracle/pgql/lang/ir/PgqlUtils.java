@@ -42,6 +42,7 @@ import oracle.pgql.lang.ir.QueryVariable.VariableType;
 import oracle.pgql.lang.ir.QueryVertex;
 import oracle.pgql.lang.ir.modify.ModifyQuery;
 import oracle.pgql.lang.ir.unnest.OneRowPerEdge;
+import oracle.pgql.lang.ir.unnest.OneRowPerStep;
 import oracle.pgql.lang.ir.unnest.OneRowPerVertex;
 import oracle.pgql.lang.ir.unnest.RowsPerMatch;
 
@@ -104,6 +105,11 @@ public class PgqlUtils {
             break;
           case ONE_ROW_PER_MATCH:
             break;
+          case ONE_ROW_PER_STEP:
+            OneRowPerStep oneRowPerStep = (OneRowPerStep) rowsPerMatch;
+            result.add(oneRowPerStep.getVertex1());
+            result.add(oneRowPerStep.getEdge());
+            result.add(oneRowPerStep.getVertex2());
           default:
             throw new UnsupportedOperationException(rowsPerMatch.getRowsPerMatchType() + " not supported");
         }
