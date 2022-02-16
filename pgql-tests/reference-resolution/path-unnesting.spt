@@ -17,3 +17,13 @@ test Resolve to ONE ROW PER EDGE [[
         ONE ROW PER EDGE ([[e2]]) 
 
 ]] resolve #1 to #2
+
+test Resolve to ONE ROW PER STEP [[
+
+  SELECT [[v1]].prop1, [[e2]].prop2, [[v2]].prop3
+  FROM MATCH ANY SHORTEST (n) -[e]->* (m)
+        ONE ROW PER STEP ([[v1]], [[e2]], [[v2]])
+
+]] resolve #1 to #4
+   resolve #2 to #5
+   resolve #3 to #6

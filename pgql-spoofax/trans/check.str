@@ -699,22 +699,6 @@ rules // MODIFY
        ; <generate-error(|ctx, <error-duplicate-var-outer-query>)> e
        ; <generate-error(|ctx, <error-duplicate-var-outer-query>)> v2
 
-  nabl-constraint(|ctx):
-    AstPlusMetadata(ast, _) -> <fail>
-    with correlations := <collect(?Correlation(ExpressionPlusType(VarRef(_, <id>), _)))> ast
-       ; unsupported-cross-references := <collect(one-row-per-match-with-cross-constraint(
-                                           ?OneRowPerVertex(_, <id>, _) +
-                                           ?OneRowPerEdge(_, <id>, _) +
-                                           ?OneRowPerStep(_, <id>, _, _, _, _, _, _, _) +
-                                           ?OneRowPerStep(_, _, _, _, <id>, _, _, _, _) +
-                                           ?OneRowPerStep(_, _, _, _, _, _, _, <id>, _)|correlations))> ast
-       ; <batch-generate-error(|ctx, "Variable with same name is used in an inner query")> unsupported-cross-references
-
-  one-row-per-match-with-cross-constraint(s|correlations):
-    t -> iden
-    where iden := <s> t
-        ; <elem> (iden, correlations)
-
   // check SELECT clause is not empty (may happen in case of SELECT n.*)
   nabl-constraint(|ctx):
     SelectClause(distinctOrStar, e@ExpAsVars([])) -> <fail>
