@@ -623,7 +623,7 @@ public class PrettyPrintingTest extends AbstractPgqlTest {
 
   @Test
   public void testOneRowPerStep() throws Exception {
-    String query = "SELECT v1.prop, e.prop, v2.prop FROM MATCH ANY () ->* () ONE ROW PER STEP ( v1, e, v2 )";
+    String query = "SELECT v1.prop1, e.prop2, v2.prop3 FROM MATCH ANY () ->* () ONE ROW PER STEP ( v1, e, v2 )";
     checkRoundTrip(query);
   }
 
