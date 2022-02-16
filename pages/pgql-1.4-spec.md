@@ -3642,10 +3642,10 @@ For example:
 
 ```sql
 CASE n.age
- WHEN 1 THEN "One"
- WHEN 2 THEN "Two"
- WHEN 3 THEN "Three"
- ELSE "Older than three"
+ WHEN 1 THEN 'One'
+ WHEN 2 THEN 'Two'
+ WHEN 3 THEN 'Three'
+ ELSE 'Older than three'
 END
 ```
 
