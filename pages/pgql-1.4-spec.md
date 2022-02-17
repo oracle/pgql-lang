@@ -710,17 +710,14 @@ CREATE PROPERTY GRAPH hr
     job_history AS for_employee
       SOURCE KEY ( employee_id, start_date ) REFERENCES job_history
       DESTINATION employees
-      LABEL for
       NO PROPERTIES,
     job_history AS for_department
       SOURCE KEY ( employee_id, start_date ) REFERENCES job_history
       DESTINATION departments
-      LABEL for
       NO PROPERTIES,
     job_history AS for_job
       SOURCE KEY ( employee_id, start_date ) REFERENCES job_history
       DESTINATION jobs
-      LABEL for
       NO PROPERTIES,
     departments AS department_located_in
       SOURCE KEY ( department_id ) REFERENCES departments
