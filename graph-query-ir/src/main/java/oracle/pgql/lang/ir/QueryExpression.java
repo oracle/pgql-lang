@@ -83,7 +83,8 @@ public interface QueryExpression {
     IS_NULL,
     IF_ELSE,
     SIMPLE_CASE,
-    SUBSTRING
+    SUBSTRING,
+    BETWEEN_PREDICATE
   }
 
   ExpressionType getExpType();
@@ -168,6 +169,70 @@ public interface QueryExpression {
         return false;
       }
       return exp2.equals(that.exp2);
+    }
+
+    @Override
+    public int hashCode() {
+      return 31;
+    }
+  }
+
+  abstract class TernaryExpression implements QueryExpression {
+
+    private QueryExpression exp1;
+
+    private QueryExpression exp2;
+
+    private QueryExpression exp3;
+
+    public TernaryExpression(QueryExpression exp1, QueryExpression exp2, QueryExpression exp3) {
+      this.exp1 = exp1;
+      this.exp2 = exp2;
+      this.exp3 = exp3;
+    }
+
+    public QueryExpression getExp1() {
+      return exp1;
+    }
+
+    public void setExp1(QueryExpression exp1) {
+      this.exp1 = exp1;
+    }
+
+    public QueryExpression getExp2() {
+      return exp2;
+    }
+
+    public void setExp2(QueryExpression exp2) {
+      this.exp2 = exp2;
+    }
+
+    public QueryExpression getExp3() {
+      return exp3;
+    }
+
+    public void setExp3(QueryExpression exp3) {
+      this.exp3 = exp3;
+    }
+
+    @Override
+    public boolean equals(Object o) {
+      if (this == o) {
+        return true;
+      }
+      if (o == null || getClass() != o.getClass()) {
+        return false;
+      }
+
+      TernaryExpression that = (TernaryExpression) o;
+
+      if (!exp1.equals(that.exp1)) {
+        return false;
+      }
+      if (!exp2.equals(that.exp2)) {
+        return false;
+      }
+      return exp3.equals(that.exp3);
     }
 
     @Override
@@ -1872,6 +1937,28 @@ public interface QueryExpression {
         return false;
       }
       return true;
+    }
+  }
+
+  class BetweenPredicate extends TernaryExpression {
+
+    public BetweenPredicate(QueryExpression exp1, QueryExpression exp2, QueryExpression exp3) {
+      super(exp1, exp2, exp3);
+    }
+
+    @Override
+    public String toString() {
+      return getExp1() + " BETWEEN " + getExp2() + " AND " + getExp3();
+    }
+
+    @Override
+    public ExpressionType getExpType() {
+      return ExpressionType.BETWEEN_PREDICATE;
+    }
+
+    @Override
+    public void accept(QueryExpressionVisitor v) {
+      v.visit(this);
     }
   }
 

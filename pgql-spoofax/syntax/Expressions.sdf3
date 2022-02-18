@@ -59,6 +59,8 @@ context-free syntax
   WhenClause.WhenClause = <WHEN <Exp> THEN <Exp>> {case-insensitive}
   ElseClause.ElseClause = <ELSE <Exp>> {case-insensitive}
 
+  Exp.BetweenPredicate = <<Exp> BETWEEN <Exp> AND <Exp>> {left, case-insensitive}
+
 context-free syntax // function calls
 
   Exp.FunctionCall = <<PackageNameDot?><FunctionName>(<{Exp ", "}*>)>
@@ -140,6 +142,7 @@ context-free priorities
   {
     left:
       Exp.InPredicate
+      Exp.BetweenPredicate
   }
   >
   {

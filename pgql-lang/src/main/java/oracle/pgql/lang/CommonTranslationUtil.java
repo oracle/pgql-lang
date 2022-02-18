@@ -26,6 +26,7 @@ import oracle.pgql.lang.ir.QueryVariable;
 import oracle.pgql.lang.ir.QueryVertex;
 import oracle.pgql.lang.ir.SchemaQualifiedName;
 import oracle.pgql.lang.ir.SelectQuery;
+import oracle.pgql.lang.ir.QueryExpression.BetweenPredicate;
 import oracle.pgql.lang.ir.QueryExpression.ExpressionType;
 import oracle.pgql.lang.ir.QueryExpression.ExtractExpression;
 import oracle.pgql.lang.ir.QueryExpression.IfElse;
@@ -61,6 +62,9 @@ public class CommonTranslationUtil {
   private static final int POS_BINARY_EXP_LEFT = 0;
   private static final int POS_BINARY_EXP_RIGHT = 1;
   private static final int POS_UNARY_EXP = 0;
+  private static final int POS_TERNARY_EXP1 = 0;
+  private static final int POS_TERNARY_EXP2 = 1;
+  private static final int POS_TERNARY_EXP3 = 2;
   private static final int POS_AGGREGATE_DISTINCT = 0;
   private static final int POS_AGGREGATE_EXP = 1;
   private static final int POS_AGGREGATE_SEPARATOR = 2;
@@ -292,6 +296,11 @@ public class CommonTranslationUtil {
             ? translateExp(getSomeValue(lengthExpT).getSubterm(POS_LENGTH_EXP), ctx)
             : null;
         return new SubstringExpression(exp, startExp, lengthExp);
+      case "BetweenPredicate":
+        exp1 = translateExp(t.getSubterm(POS_TERNARY_EXP1), ctx);
+        exp2 = translateExp(t.getSubterm(POS_TERNARY_EXP2), ctx);
+        QueryExpression exp3 = translateExp(t.getSubterm(POS_TERNARY_EXP3), ctx);
+        return new BetweenPredicate(exp1, exp2, exp3);
       case "Exists":
         IStrategoTerm subqueryT = t.getSubterm(POS_EXISTS_SUBQUERY);
         SelectQuery selectQuery = translateSubquery(ctx, subqueryT);
@@ -364,7 +373,7 @@ public class CommonTranslationUtil {
       case "IfElse":
         exp1 = translateExp(t.getSubterm(POS_IF_ELSE_EXP1), ctx);
         exp2 = translateExp(t.getSubterm(POS_IF_ELSE_EXP2), ctx);
-        QueryExpression exp3 = translateExp(t.getSubterm(POS_IF_ELSE_EXP3), ctx);
+        exp3 = translateExp(t.getSubterm(POS_IF_ELSE_EXP3), ctx);
         return new IfElse(exp1, exp2, exp3);
       case "SimpleCase":
         QueryExpression operandExp = translateExp(t.getSubterm(POS_SIMPLE_CASE_OPERAND), ctx);

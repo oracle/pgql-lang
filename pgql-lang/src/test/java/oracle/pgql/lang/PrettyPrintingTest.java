@@ -560,6 +560,12 @@ public class PrettyPrintingTest extends AbstractPgqlTest {
   }
 
   @Test
+  public void testBetweenPredicate() throws Exception {
+    String statement = "SELECT 1 FROM MATCH (n) WHERE n.creationDate BETWEEN DATE '2000-01-01' AND DATE '2000-12-31'";
+    checkRoundTrip(statement);
+  }
+
+  @Test
   public void testCreateExternalSchema1() throws Exception {
     String statement = "CREATE EXTERNAL SCHEMA HR\n"
         + "FROM DATABASE URL 'jdbc:oracle:thin@myhost:1521/oracl' USER 'hr' KEYSTORE_ALIAS 'hr_alias'";
