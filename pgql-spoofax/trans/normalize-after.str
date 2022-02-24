@@ -57,12 +57,15 @@ rules
     NormalizedQuery(t1, t2, t3, tableExpressions, Some(Constraints([exp])), t6, t7, t8, t9, t10, t11, t12, t13)
       -> NormalizedQuery(t1, t2, t3, tableExpressions', Some(Constraints(non-pushed-down-predicates)), t6, t7, t8, t9, t10, t11, t12, t13)
     with expressions := <conjunction-to-list> exp
-       ; expressions-plus-varRefs := <map(make-expressions-varRefs-tuple)> expressions
-       ; (tableExpressions', non-pushed-down-predicates-plus-varRefs) := <foldl(try-push-down-predicates)> (tableExpressions, expressions-plus-varRefs)
-       ; non-pushed-down-predicates := <map(?(<id>, _))> non-pushed-down-predicates-plus-varRefs
+       ; expressions-plus-varRefs := <debug; map(make-expressions-varRefs-tuple); debug> expressions
+       ; (tableExpressions', non-pushed-down-predicates-plus-varRefs) := <foldl(try-push-down-predicates)> (tableExpressions, (expressions-plus-varRefs, []))
+       ; non-pushed-down-predicates := <debug; map(?(<id>, _)); debug> non-pushed-down-predicates-plus-varRefs
 
   make-expressions-varRefs-tuple = ?exp; collect(?VarRef(_, <id>)); !(exp, <id>)
 
   try-push-down-predicates:
-    GraphPattern(vertices, connections, Constraints(valueExpression)) -> GraphPattern(vertices, connections, Constraints(valueExpression'))
-    with variables := <conc> (<map(?Vertex(_, <id>, _))> vertices, <filter(?Edge(_, _, _, _, <id>, _))> connections)
+    (GraphPattern(vertices, connections, Constraints(valueExpression)), (remaining-expressions-plus-varRef, tableExpressions)) -> (remaining-expressions-plus-varRef', tableExpressions')
+    with variables := <collect(?Vertex(_, <id>, _) + ?Edge(_, _, _, _, <id>, _) + ?OneRowPerVertex(_, <id>, _) + ?OneRowPerEdge(_, <id>, _))> (vertices, connections)
+       ; remaining-expressions-plus-varRef' := remaining-expressions-plus-varRef
+       ; graphPattern' := GraphPattern(vertices, connections, Constraints(valueExpression))
+       ; tableExpressions' := <conc> (tableExpressions, [graphPattern'])
