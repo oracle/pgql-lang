@@ -70,6 +70,7 @@ public interface QueryExpression {
     VARREF,
     BIND_VARIABLE,
     STAR,
+    ALL_PROPERTIES,
     SCALAR_SUBQUERY,
 
     // built-in functions and predicates
@@ -2209,6 +2210,60 @@ public interface QueryExpression {
     @Override
     public int hashCode() {
       return 31;
+    }
+  }
+
+  class AllProperties implements QueryExpression {
+
+    private VarRef varRef;
+
+    public AllProperties(VarRef varRef) {
+      this.varRef = varRef;
+    }
+
+    public VarRef getVarRef() {
+      return varRef;
+    }
+
+    public void setVarRef(VarRef varRef) {
+      this.varRef = varRef;
+    }
+
+    @Override
+    public ExpressionType getExpType() {
+      return ExpressionType.ALL_PROPERTIES;
+    }
+
+    @Override
+    public String toString() {
+      return varRef + ".*";
+    }
+
+    @Override
+    public void accept(QueryExpressionVisitor v) {
+      v.visit(this);
+    }
+
+    @Override
+    public int hashCode() {
+      return 31;
+    }
+
+    @Override
+    public boolean equals(Object obj) {
+      if (this == obj)
+        return true;
+      if (obj == null)
+        return false;
+      if (getClass() != obj.getClass())
+        return false;
+      AllProperties other = (AllProperties) obj;
+      if (varRef == null) {
+        if (other.varRef != null)
+          return false;
+      } else if (!varRef.equals(other.varRef))
+        return false;
+      return true;
     }
   }
 
