@@ -42,9 +42,9 @@ rules
          end
 
        // SELECT / INSERT / UPDATE / DELETE
-       ; if <?SelectClause(_, ExpAsVars(_))> selectOrModifyClause
+       ; if <?SelectClause(_, SelectList(_))> selectOrModifyClause
          then selectOrModifyClause' := <alltd(add-type(|metadata, variablesPlusTypes'', constraints))> selectOrModifyClause
-            ; variablesPlusTypes''' := <conc> (variablesPlusTypes'', <?SelectClause(_, ExpAsVars(<id>)); map(expAsVar-to-variablePlusType(|variablesPlusTypes''))> selectOrModifyClause')
+            ; variablesPlusTypes''' := <conc> (variablesPlusTypes'', <?SelectClause(_, SelectList(<id>)); map(expAsVar-to-variablePlusType(|variablesPlusTypes''))> selectOrModifyClause')
          else if <?SelectClause(_, Star())> selectOrModifyClause // SELECT * FROM .. GROUP BY ..
               then selectOrModifyClause' := selectOrModifyClause
                  ; variablesPlusTypes''' := variablesPlusTypes''
@@ -85,6 +85,8 @@ rules // exp AS var
          then dereferencedOriginOffset := <fetch-elem(?VariablePlusType(varRefOriginOffset, <id>, _))> variablesPlusTypes
          else dereferencedOriginOffset := originOffset
          end
+
+  expAsVar-to-variablePlusType(|variablesPlusTypes) = ?AllProperties(_, _)
 
 rules // variable references
 
@@ -224,7 +226,7 @@ rules // subqueries
   add-types-to-subquery(|metadata, variablesPlusTypes, constraints):
     query -> (query', type)
     with query' := <add-types-to-query(|metadata, variablesPlusTypes, constraints)> query
-       ; if <?NormalizedQuery(_, SelectClause(_, ExpAsVars([ExpAsVar(ExpressionPlusType(_, Type(t)), _, _, _)])), _, _, _, _, _, _, _, _, _, _)> query'
+       ; if <?NormalizedQuery(_, SelectClause(_, SelectList([ExpAsVar(ExpressionPlusType(_, Type(t)), _, _, _)])), _, _, _, _, _, _, _, _, _, _)> query'
          then type := Type(t)
          else type := UnknownType()
          end
