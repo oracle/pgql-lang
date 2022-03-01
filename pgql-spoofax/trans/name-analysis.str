@@ -244,15 +244,15 @@ rules
          then selectElems := [ExpAsVar(varRef', v, Anonymous(), None())] // create a dummy ExpAsVar just to make sure an "unresolved variable" error will be generated
             ; vars' := vars
          else elementType := <get-type-from-varRef-as-var(|variables)> varRef'
-            ; if <?[]> metadata
-              then selectElems := <resolve-var-refs(|variables, metadata)> [t] // no metadata is provided so we don't process the n.* other than resolve variable n
+            ; allLabels := <?Type("VERTEX"); !metadata; fetch-elem(?VertexLabels(<id>)) <+ ?Type("EDGE"); !metadata; fetch-elem(?EdgeLabels(<id>)) <+ !None()> elementType
+            ; if <?None()> allLabels
+              then selectElems := <resolve-var-refs(|variables, metadata)> [t] // no label metadata is provided so we don't process the n.* other than resolve variable n
                  ; vars' := vars
               else originOffset := <?VarRef(_, <id>) <+ !None()> varRef'
                  ; labelExpression := <(?Constraints(<id>) <+ ![]); filter(simplify-label-expression(|originOffset)); (?[]; !All() <+ to-label-conjunction)> valueExpression
-                 ; allLabels := <?Type("VERTEX"); !metadata; fetch-elem(?VertexLabels(<id>)) <+ ?Type("EDGE"); !metadata; fetch-elem(?EdgeLabels(<id>)) <+ ![]> elementType
-                 ; allLabelNames := <(?Type("VERTEX"); get-vertex-labels(|metadata) <+ ?Type("EDGE"); get-edge-labels(|metadata)); try(?None(); ![]) <+ ![]> elementType
+                 ; allLabelNames := <(?Type("VERTEX"); get-vertex-labels(|metadata) + ?Type("EDGE"); get-edge-labels(|metadata)); try(?None(); ![])> elementType
                  ; labelReferences := <get-labels-from-label-expression(|allLabelNames)> labelExpression
-                 ; properties := <filter(fetch-properties-via-label-reference(|labelReferences)); concat> allLabels
+                 ; properties := <try(?None(); ![]); filter(fetch-properties-via-label-reference(|labelReferences)); concat> allLabels
                  ; propertyNames := <map(?Property(<id>, _))> properties
                  ; deduplicatedPropertyNames := <make-set-while-preserving-ordering> propertyNames
                  ; selectElems := <map(property-to-exp-as-var(|t, varRef', columnNamePrefix))> deduplicatedPropertyNames
