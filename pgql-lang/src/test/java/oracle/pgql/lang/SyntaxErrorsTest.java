@@ -199,4 +199,11 @@ public class SyntaxErrorsTest extends AbstractPgqlTest {
     PgqlResult result = pgql.parse(query);
     assertTrue(result.getErrorMessages().contains("Querying multiple graphs is not supported"));
   }
+
+  @Test
+  public void testNegativeLowerBound() throws Exception {
+    String query = "SELECT 1 FROM MATCH ANY SHORTEST () ->{-1, 2} ()";
+    PgqlResult result = pgql.parse(query);
+    assertTrue(result.getErrorMessages().contains("Syntax error, not expected here: '-'"));
+  }
 }

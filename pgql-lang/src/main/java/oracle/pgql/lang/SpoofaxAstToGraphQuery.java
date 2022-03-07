@@ -29,6 +29,7 @@ import oracle.pgql.lang.ir.PathFindingGoal;
 import oracle.pgql.lang.ir.Projection;
 import oracle.pgql.lang.ir.QueryEdge;
 import oracle.pgql.lang.ir.QueryExpression;
+import oracle.pgql.lang.ir.QueryExpression.AllProperties;
 import oracle.pgql.lang.ir.QueryExpression.LogicalExpression.And;
 import oracle.pgql.lang.ir.QueryExpression.PropertyAccess;
 import oracle.pgql.lang.ir.QueryExpression.Constant.ConstString;
@@ -76,6 +77,7 @@ import static oracle.pgql.lang.CommonTranslationUtil.parseInt;
 public class SpoofaxAstToGraphQuery {
 
   private static final String GENERATED_VAR_SUBSTR = "<<anonymous>>";
+  private static final String ALL_PROPERTIES_CONSTRUCTOR = "AllProperties";
 
   private static final int POS_COMMON_PATH_EXPRESSIONS = 0;
   private static final int POS_SELECT_OR_MODIFY = 1;
@@ -169,6 +171,8 @@ public class SpoofaxAstToGraphQuery {
   private static final int IDENTIFIER_ORIGINNAME = 1;
 
   private static final int POS_EXP_PLUS_TYPE_EXP = 0;
+
+  private static final int POS_ALLPROPERTIES_VARREF = 0;
 
   public static PgqlStatement translate(IStrategoTerm ast) throws PgqlException {
 
@@ -816,6 +820,15 @@ public class SpoofaxAstToGraphQuery {
   private static List<ExpAsVar> getExpAsVars(TranslationContext ctx, IStrategoTerm expAsVarsT) throws PgqlException {
     List<ExpAsVar> expAsVars = new ArrayList<>(expAsVarsT.getSubtermCount());
     for (IStrategoTerm expAsVarT : expAsVarsT) {
+      if (((IStrategoAppl) expAsVarT).getConstructor().getName().equals(ALL_PROPERTIES_CONSTRUCTOR)) {
+        VarRef varRef = (VarRef) translateExp(expAsVarT.getSubterm(POS_ALLPROPERTIES_VARREF), ctx);
+        String expAsVarName = GENERATED_VAR_SUBSTR + "_" + varRef + ".*"; // this just needs to be some unique name;
+                                                                          // doesn't matter what
+        ExpAsVar expAsVar = new ExpAsVar(new AllProperties(varRef), expAsVarName, true, expAsVarName);
+        expAsVars.add(expAsVar);
+        continue;
+      }
+
       QueryExpression exp = translateExp(expAsVarT.getSubterm(POS_EXPASVAR_EXP), ctx);
       IStrategoTerm columnName = expAsVarT.getSubterm(POS_EXPASVAR_VAR);
       String varName = getString(columnName.getSubterm(IDENTIFIER_NAME));
