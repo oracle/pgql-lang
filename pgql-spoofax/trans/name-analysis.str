@@ -38,7 +38,7 @@ rules
        ; pathExpressions' := <map(trans-path-expression(|variables', metadata))> pathExpressions
 
        // these expAsVars are used to make the column aliases in SELECT visible in WHERE and GROUP BY
-       ; expAsVars := <?SelectClause(_, ExpAsVars(<id>)) <+ ![]> selectOrModifyClause
+       ; expAsVars := <?SelectClause(_, SelectList(<id>)) <+ ![]> selectOrModifyClause
 
        ; if <?Some(GraphPattern(vertices, connections, valueExpression))> := graphPattern
          then // MATCH
@@ -162,16 +162,16 @@ rules
        ; variables' := [vars'|variables]
 
   resolve-select-clause(|variables, metadata, valueExpression):
-    t@SelectClause(distinct, eav@ExpAsVars(expAsVars)) -> (selectClause', variables')
-    with if Star() := expAsVars
-         then eav' := expAsVars
+    t@SelectClause(distinct, t2@SelectList(selectElements)) -> (selectClause', variables')
+    with if Star() := selectElements
+         then selectElements'' := selectElements
             ; variables':= variables
          else varsInCurrentScope := <Hd> variables
-            ; (expAsVars', vars') := <foldl(resolve-exp-as-var-in-select(|variables, metadata, valueExpression))> (expAsVars, ([], varsInCurrentScope))
-            ; eav' := <origin-track-forced(!ExpAsVars(expAsVars'))> eav
+            ; (selectElements', vars') := <foldl(resolve-exp-as-var-in-select(|variables, metadata, valueExpression))> (selectElements, ([], varsInCurrentScope))
+            ; selectElements'' := <origin-track-forced(!SelectList(selectElements'))> t2
             ; variables' := [vars'|<Tl> variables]
          end
-       ; selectClause' := <origin-track-forced(!SelectClause(distinct, eav'))> t
+       ; selectClause' := <origin-track-forced(!SelectClause(distinct, selectElements''))> t
 
   resolve-modify-clause(|variables, metadata):
     t@ModifyClause(modifications) -> modifyClause'
@@ -248,21 +248,25 @@ rules
     (t@AllProperties(varRef, columnNamePrefix), (result, vars)) -> (result', vars')
     with varRef' := <resolve-var-ref(|variables, metadata)> varRef
        ; if <?VarRef(v)> varRef'
-         then expAsVars := [ExpAsVar(varRef', v, Anonymous(), None())] // create a dummy ExpAsVar just to make sure an "unresolved variable" error will be generated
+         then selectElems := [ExpAsVar(varRef', v, Anonymous(), None())] // create a dummy ExpAsVar just to make sure an "unresolved variable" error will be generated
             ; vars' := vars
-         else originOffset := <?VarRef(_, <id>) <+ !None()> varRef'
-            ; labelExpression := <(?Constraints(<id>) <+ ![]); filter(simplify-label-expression(|originOffset)); (?[]; !All() <+ to-label-conjunction)> valueExpression
-            ; elementType := <get-type-from-varRef-as-var(|variables)> varRef'
-            ; allLabels := <?Type("VERTEX"); !metadata; fetch-elem(?VertexLabels(<id>)) <+ ?Type("EDGE"); !metadata; fetch-elem(?EdgeLabels(<id>)) <+ ![]> elementType
-            ; allLabelNames := <(?Type("VERTEX"); get-vertex-labels(|metadata) <+ ?Type("EDGE"); get-edge-labels(|metadata)); try(?None(); ![]) <+ ![]> elementType
-            ; labelReferences := <get-labels-from-label-expression(|allLabelNames)> labelExpression
-            ; properties := <filter(fetch-properties-via-label-reference(|labelReferences)); concat> allLabels
-            ; propertyNames := <map(?Property(<id>, _))> properties
-            ; deduplicatedPropertyNames := <make-set-while-preserving-ordering> propertyNames
-            ; expAsVars := <map(property-to-exp-as-var(|t, varRef', columnNamePrefix))> deduplicatedPropertyNames
-            ; vars' := <replace-or-add-all> (<map(generated-exp-as-vars-to-varDef(|elementType))> expAsVars, vars)
+         else elementType := <get-type-from-varRef-as-var(|variables)> varRef'
+            ; allLabels := <?Type("VERTEX"); !metadata; fetch-elem(?VertexLabels(<id>)) <+ ?Type("EDGE"); !metadata; fetch-elem(?EdgeLabels(<id>)) <+ !None()> elementType
+            ; if <?None()> allLabels
+              then selectElems := <resolve-var-refs(|variables, metadata)> [t] // no label metadata is provided so we don't process the n.* other than resolve variable n
+                 ; vars' := vars
+              else originOffset := <?VarRef(_, <id>) <+ !None()> varRef'
+                 ; labelExpression := <(?Constraints(<id>) <+ ![]); filter(simplify-label-expression(|originOffset)); (?[]; !All() <+ to-label-conjunction)> valueExpression
+                 ; allLabelNames := <(?Type("VERTEX"); get-vertex-labels(|metadata) + ?Type("EDGE"); get-edge-labels(|metadata)); try(?None(); ![])> elementType
+                 ; labelReferences := <get-labels-from-label-expression(|allLabelNames)> labelExpression
+                 ; properties := <try(?None(); ![]); filter(fetch-properties-via-label-reference(|labelReferences)); concat> allLabels
+                 ; propertyNames := <map(?Property(<id>, _))> properties
+                 ; deduplicatedPropertyNames := <make-set-while-preserving-ordering> propertyNames
+                 ; selectElems := <map(property-to-exp-as-var(|t, varRef', columnNamePrefix))> deduplicatedPropertyNames
+                 ; vars' := <replace-or-add-all> (<map(generated-exp-as-vars-to-varDef(|elementType))> selectElems, vars)
+              end
          end
-       ; result' := <conc> (result, expAsVars)
+       ; result' := <conc> (result, selectElems)
 
   get-type-from-varRef-as-var(|variables):
     exp -> type
