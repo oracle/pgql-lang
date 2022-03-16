@@ -125,15 +125,15 @@ rules
   get-pgql13-errors      = ?GraphMatch(None(), _, _, _); to-error-message(|"Missing MATCH keyword at start of pattern")
 
   get-pgql13-errors:
-    ParenthesizedGraphMatch(pathPatterns, rowsPerMatch, _) -> <to-error-message(|"ONE ROW PER VERTEX or EDGE is only permitted if the MATCH clause contains a single path pattern")> rowsPerMatch
+    ParenthesizedGraphMatch(pathPatterns, rowsPerMatch, _) -> <to-error-message(|"ONE ROW PER VERTEX, EDGE or STEP is only permitted if the MATCH clause contains a single path pattern")> rowsPerMatch
     where <gt> (<length> pathPatterns, 1)
-        ; <?Some(OneRowPerVertex(_)) + ?Some(OneRowPerEdge(_))> rowsPerMatch
+        ; <?Some(OneRowPerVertex(_)) + ?Some(OneRowPerEdge(_)) + ?Some(OneRowPerStep(_, _, _))> rowsPerMatch
 
   get-pgql13-errors:
-    x -> <to-error-message(|"ONE ROW PER VERTEX or EDGE is only supported in combination with ANY, ALL, SHORTEST or CHEAPEST")> rowsPerMatch
+    x -> <to-error-message(|"ONE ROW PER VERTEX, EDGE or STEP is only supported in combination with ANY, ALL, SHORTEST or CHEAPEST")> rowsPerMatch
     where <?ParenthesizedGraphMatch([PathPattern(_, _)], rowsPerMatch, _) + ?GraphMatch(_, PathPattern(_, _), rowsPerMatch, _) +
            ?ParenthesizedGraphMatch([SingleVertex(_)], rowsPerMatch, _) + ?GraphMatch(_, SingleVertex(_), rowsPerMatch, _)> x
-        ; <?Some(OneRowPerVertex(_)) + ?Some(OneRowPerEdge(_))> rowsPerMatch
+        ; <?Some(OneRowPerVertex(_)) + ?Some(OneRowPerEdge(_)) + ?Some(OneRowPerStep(_, _, _))> rowsPerMatch
 
   get-pgql10-limitation = ( ?Pgql11FromClause(_)
                           + ?Subquery(_)

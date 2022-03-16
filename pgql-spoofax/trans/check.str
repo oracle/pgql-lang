@@ -39,7 +39,10 @@ rules // Unresolved/duplicate variables
     with selectOrModifyClause := <strip-annos> selectOrModifyClauseWithAnnos
        ; graphPattern := <strip-annos> graphPatternWithAnnos
        ; groupClause := <strip-annos> groupClauseWithAnnos
-       ; matchVars := <?None(); ![] <+ ?Some(GraphPattern(vertices, edges, _)); !(vertices, edges); collect(is-pattern-elem); collect-om(get-pattern-elem, conc)> graphPattern
+       ; matchVars := <?None(); ![] <+ ?Some(GraphPattern(vertices, edges, _))
+                                     ; !(vertices, edges)
+                                     ; collect(?Vertex(_, _, None()) + ?Edge(_, _, _, _, _, None()) + ?OneRowPerVertex(_, _, None()) + ?OneRowPerEdge(_, _, None()) + ?OneRowPerStep(_, _, None(), _, _, None(), _, _, None()))
+                                     ; collect-om(?Edge(_, Identifier(<id>, _), _, _, _, _) <+ ?Identifier(<id>, _), conc)> graphPattern
        ; if <?Some(_)> groupClause
          then groupVars := <?Some(GroupByClause(<id>)); map(?ExpAsVar(_, Identifier(<id>, _), _, _))> groupClause
          else groupVars := []
@@ -127,9 +130,6 @@ rules // Unresolved/duplicate variables
   has-no-groupVarRefs(|group-variables):
     t@Some(varRefs-in-aggregation) -> <id>
     where group-varRefs := <isect; ?[]> (group-variables, varRefs-in-aggregation)
-
-  is-pattern-elem = ?Vertex(_, _, _) + ?Edge(_, _, _, _, _, _) + ?OneRowPerVertex(_, _, _) + ?OneRowPerEdge(_, _, _)
-  get-pattern-elem = ?Vertex(Identifier(<id>, _), _, _) + ?Edge(_, Identifier(<id>, _), _, _, _, _) + ?OneRowPerVertex(Identifier(<id>, _), _, _) + ?OneRowPerEdge(Identifier(<id>, _), _, _)
 
   generate-error-on-duplicates(|ctx, message) = ?vars; map(generate-error-on-duplicate(|ctx, vars, message))
 
@@ -694,11 +694,10 @@ rules // MODIFY
     with <generate-error(|ctx, <error-duplicate-var-outer-query>)> e
 
   nabl-constraint(|ctx):
-    AstPlusMetadata(ast, _) -> <fail>
-    with vars-in-rows-per-match := <collect(?OneRowPerVertex(_, <id>, _) + ?OneRowPerEdge(_, <id>, _))> ast
-       ; correlations := <collect(?Correlation(ExpressionPlusType(VarRef(_, <id>), _)))> ast
-       ; unsupported-cross-references := <isect> (vars-in-rows-per-match, correlations)
-       ; <batch-generate-error(|ctx, "Variable with same name is used in an inner query")> unsupported-cross-references
+    OneRowPerStep(Identifier(v1, _), _, Correlation(_), Identifier(e, _), _, Correlation(_), Identifier(v2, _), _, Correlation(_)) -> <fail>
+    with <generate-error(|ctx, <error-duplicate-var-outer-query>)> v1
+       ; <generate-error(|ctx, <error-duplicate-var-outer-query>)> e
+       ; <generate-error(|ctx, <error-duplicate-var-outer-query>)> v2
 
   // check SELECT clause is not empty (may happen in case of SELECT n.*)
   nabl-constraint(|ctx):
