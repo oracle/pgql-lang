@@ -37,8 +37,8 @@ rules
        // PATH
        ; pathExpressions' := <map(trans-path-expression(|variables', metadata))> pathExpressions
 
-       // these expAsVars are used to make the column aliasevalueExpressions in SELECT visible in WHERE and GROUP BY
-       ; expAsVars := <?SelectClause(_, ExpAsVars(<id>)) <+ ![]> selectOrModifyClause
+       // these expAsVars are used to make the column aliases in SELECT visible in WHERE and GROUP BY
+       ; expAsVars := <?SelectClause(_, SelectList(<id>)) <+ ![]> selectOrModifyClause
 
        ; (tableExpressions', variables'', valueExpression') := <foldl(trans-table-expression(|metadata, expAsVars))> (tableExpressions, ([], variables', []))
 
@@ -86,7 +86,7 @@ rules
           ; edges := <filter(?Edge(_, _, _, _, _, _) + path-with-at-most-one-binding)> connections'
           ; paths := <filter(path-with-two-or-more-bindings)> connections'
 
-          ; new-vars := <conc> (<collect(to-varDef)> (vertices', edges), <collect(rows-per-match-to-varDef)> connections')
+          ; new-vars := <conc> (<collect(to-varDef)> (vertices', edges), <collect(rows-per-match-to-varDef); flatten-list> connections')
           ; new-groupVars := <collect(to-varDef)> paths
           ; <?[x|[y|ys]]> variables
           ; visible-vars := <replace-or-add-all> (new-vars, x)
@@ -141,13 +141,20 @@ rules
 
   trans-rows-per-match(|variables) =
     ?OneRowPerVertex(iden@Identifier(v, _)); !OneRowPerVertex(iden, <origin-track-forced(origin-offset)> iden, <to-Correlation(|variables)> v) +
-    ?OneRowPerEdge(iden@Identifier(e, _)); !OneRowPerEdge(iden, <origin-track-forced(origin-offset)> iden, <to-Correlation(|variables)> e)
+    ?OneRowPerEdge(iden@Identifier(e, _)); !OneRowPerEdge(iden, <origin-track-forced(origin-offset)> iden, <to-Correlation(|variables)> e) +
+    ?OneRowPerStep(iden1@Identifier(v1, _), iden2@Identifier(e, _), iden3@Identifier(v2, _)); !OneRowPerStep(iden1, <origin-track-forced(origin-offset)> iden1, <to-Correlation(|variables)> v1,
+                                                                                                             iden2, <origin-track-forced(origin-offset)> iden2, <to-Correlation(|variables)> e,
+                                                                                                             iden3, <origin-track-forced(origin-offset)> iden3, <to-Correlation(|variables)> v2)
 
   to-varDef = ?Vertex(iden, origin-offset, _); !VarDef(iden, origin-offset, None(), None(), None(), ThisQuery(), Type("VERTEX"))
   to-varDef = ?Edge(_, identifier, _, _, origin-offset, _); !VarDef(identifier, origin-offset, None(), None(), None(), ThisQuery(), Type("EDGE"))
 
   rows-per-match-to-varDef = ?OneRowPerVertex(iden, origin-offset, _); !VarDef(iden, origin-offset, None(), None(), None(), ThisQuery(), Type("VERTEX"))
   rows-per-match-to-varDef = ?OneRowPerEdge(iden, origin-offset, _); !VarDef(iden, origin-offset, None(), None(), None(), ThisQuery(), Type("EDGE"))
+  rows-per-match-to-varDef = ?OneRowPerStep(iden1, origin-offset1, _, iden2, origin-offset2, _, iden3, origin-offset3, _)
+                           ; ![ VarDef(iden1, origin-offset1, None(), None(), None(), ThisQuery(), Type("VERTEX")),
+                                VarDef(iden2, origin-offset2, None(), None(), None(), ThisQuery(), Type("EDGE")),
+                                VarDef(iden3, origin-offset3, None(), None(), None(), ThisQuery(), Type("VERTEX")) ]
 
   replace-or-add-all = foldl(replace-or-add)
 
@@ -173,16 +180,16 @@ rules
        ; variables' := [vars'|variables]
 
   resolve-select-clause(|variables, metadata, valueExpression):
-    t@SelectClause(distinct, eav@ExpAsVars(expAsVars)) -> (selectClause', variables')
-    with if Star() := expAsVars
-         then eav' := expAsVars
+    t@SelectClause(distinct, t2@SelectList(selectElements)) -> (selectClause', variables')
+    with if Star() := selectElements
+         then selectElements'' := selectElements
             ; variables':= variables
          else varsInCurrentScope := <Hd> variables
-            ; (expAsVars', vars') := <foldl(resolve-exp-as-var-in-select(|variables, metadata, valueExpression))> (expAsVars, ([], varsInCurrentScope))
-            ; eav' := <origin-track-forced(!ExpAsVars(expAsVars'))> eav
+            ; (selectElements', vars') := <foldl(resolve-exp-as-var-in-select(|variables, metadata, valueExpression))> (selectElements, ([], varsInCurrentScope))
+            ; selectElements'' := <origin-track-forced(!SelectList(selectElements'))> t2
             ; variables' := [vars'|<Tl> variables]
          end
-       ; selectClause' := <origin-track-forced(!SelectClause(distinct, eav'))> t
+       ; selectClause' := <origin-track-forced(!SelectClause(distinct, selectElements''))> t
 
   resolve-modify-clause(|variables, metadata):
     t@ModifyClause(modifications) -> modifyClause'
@@ -259,21 +266,25 @@ rules
     (t@AllProperties(varRef, columnNamePrefix), (result, vars)) -> (result', vars')
     with varRef' := <resolve-var-ref(|variables, metadata)> varRef
        ; if <?VarRef(v)> varRef'
-         then expAsVars := [ExpAsVar(varRef', v, Anonymous(), None())] // create a dummy ExpAsVar just to make sure an "unresolved variable" error will be generated
+         then selectElems := [ExpAsVar(varRef', v, Anonymous(), None())] // create a dummy ExpAsVar just to make sure an "unresolved variable" error will be generated
             ; vars' := vars
-         else originOffset := <?VarRef(_, <id>) <+ !None()> varRef'
-            ; labelExpression := <filter(simplify-label-expression(|originOffset)); (?[]; !All() <+ to-label-conjunction)> valueExpression
-            ; elementType := <get-type-from-varRef-as-var(|variables)> varRef'
-            ; allLabels := <?Type("VERTEX"); !metadata; fetch-elem(?VertexLabels(<id>)) <+ ?Type("EDGE"); !metadata; fetch-elem(?EdgeLabels(<id>)) <+ ![]> elementType
-            ; allLabelNames := <(?Type("VERTEX"); get-vertex-labels(|metadata) <+ ?Type("EDGE"); get-edge-labels(|metadata)); try(?None(); ![]) <+ ![]> elementType
-            ; labelReferences := <get-labels-from-label-expression(|allLabelNames)> labelExpression
-            ; properties := <filter(fetch-properties-via-label-reference(|labelReferences)); concat> allLabels
-            ; propertyNames := <map(?Property(<id>, _))> properties
-            ; deduplicatedPropertyNames := <make-set-while-preserving-ordering> propertyNames
-            ; expAsVars := <map(property-to-exp-as-var(|t, varRef', columnNamePrefix))> deduplicatedPropertyNames
-            ; vars' := <replace-or-add-all> (<map(generated-exp-as-vars-to-varDef(|elementType))> expAsVars, vars)
+         else elementType := <get-type-from-varRef-as-var(|variables)> varRef'
+            ; allLabels := <?Type("VERTEX"); !metadata; fetch-elem(?VertexLabels(<id>)) <+ ?Type("EDGE"); !metadata; fetch-elem(?EdgeLabels(<id>)) <+ !None()> elementType
+            ; if <?None()> allLabels
+              then selectElems := <resolve-var-refs(|variables, metadata)> [t] // no label metadata is provided so we don't process the n.* other than resolve variable n
+                 ; vars' := vars
+              else originOffset := <?VarRef(_, <id>) <+ !None()> varRef'
+                 ; labelExpression := <filter(simplify-label-expression(|originOffset)); (?[]; !All() <+ to-label-conjunction)> valueExpression
+                 ; allLabelNames := <(?Type("VERTEX"); get-vertex-labels(|metadata) + ?Type("EDGE"); get-edge-labels(|metadata)); try(?None(); ![])> elementType
+                 ; labelReferences := <get-labels-from-label-expression(|allLabelNames)> labelExpression
+                 ; properties := <try(?None(); ![]); filter(fetch-properties-via-label-reference(|labelReferences)); concat> allLabels
+                 ; propertyNames := <map(?Property(<id>, _))> properties
+                 ; deduplicatedPropertyNames := <make-set-while-preserving-ordering> propertyNames
+                 ; selectElems := <map(property-to-exp-as-var(|t, varRef', columnNamePrefix))> deduplicatedPropertyNames
+                 ; vars' := <replace-or-add-all> (<map(generated-exp-as-vars-to-varDef(|elementType))> selectElems, vars)
+              end
          end
-       ; result' := <conc> (result, expAsVars)
+       ; result' := <conc> (result, selectElems)
 
   get-type-from-varRef-as-var(|variables):
     exp -> type

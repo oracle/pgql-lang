@@ -18,6 +18,7 @@ import oracle.pgql.lang.ir.QueryExpression.Aggregation.AggrMax;
 import oracle.pgql.lang.ir.QueryExpression.Aggregation.AggrMin;
 import oracle.pgql.lang.ir.QueryExpression.Aggregation.AggrSum;
 import oracle.pgql.lang.ir.QueryExpression.Aggregation.AggrArrayAgg;
+import oracle.pgql.lang.ir.QueryExpression.AllProperties;
 import oracle.pgql.lang.ir.QueryExpression.ArithmeticExpression.Add;
 import oracle.pgql.lang.ir.QueryExpression.ArithmeticExpression.Div;
 import oracle.pgql.lang.ir.QueryExpression.ArithmeticExpression.Mod;
@@ -65,6 +66,7 @@ import oracle.pgql.lang.ir.modify.Update;
 import oracle.pgql.lang.ir.modify.UpdateClause;
 import oracle.pgql.lang.ir.modify.VertexInsertion;
 import oracle.pgql.lang.ir.unnest.OneRowPerEdge;
+import oracle.pgql.lang.ir.unnest.OneRowPerStep;
 import oracle.pgql.lang.ir.unnest.OneRowPerVertex;
 import oracle.pgql.lang.ir.unnest.RowsPerMatch;
 import oracle.pgql.lang.ir.QueryExpression.ScalarSubquery;
@@ -259,6 +261,11 @@ public abstract class AbstractQueryExpressionVisitor implements QueryExpressionV
   }
 
   @Override
+  public void visit(AllProperties allProperties) {
+    allProperties.getVarRef().accept(this);
+  }
+
+  @Override
   public void visit(Cast cast) {
     cast.getExp().accept(this);
   }
@@ -398,6 +405,12 @@ public abstract class AbstractQueryExpressionVisitor implements QueryExpressionV
         ((OneRowPerEdge) rowsPerMatch).getEdge().accept(this);
         break;
       case ONE_ROW_PER_MATCH:
+        break;
+      case ONE_ROW_PER_STEP:
+        OneRowPerStep oneRowPerStep = (OneRowPerStep) rowsPerMatch;
+        oneRowPerStep.getVertex1().accept(this);
+        oneRowPerStep.getEdge().accept(this);
+        oneRowPerStep.getVertex2().accept(this);
         break;
       default:
         throw new UnsupportedOperationException(rowsPerMatch.getRowsPerMatchType() + " not supported");

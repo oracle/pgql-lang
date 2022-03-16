@@ -804,12 +804,16 @@ public class MetadataTest extends AbstractPgqlTest {
   @Test
   public void testSelectAllPropertiesNoMetadata() throws Exception {
     PgqlResult result = pgql.parse("SELECT n.* FROM MATCH (n)");
-    assertTrue(
-        result.getErrorMessages().contains("Cannot select all properties because the graph schema is not provided"));
+    assertTrue(result.isQueryValid());
 
-    result = pgql.parse("SELECT e.* FROM MATCH () -[e]-> ()");
-    assertTrue(
-        result.getErrorMessages().contains("Cannot select all properties because the graph schema is not provided"));
+    PgqlResult prettyPrintedResult = pgql.parse(result.getGraphQuery().toString());
+    assertEquals(result.getGraphQuery(), prettyPrintedResult.getGraphQuery());
+
+    result = pgql.parse("SELECT e.* FROM MATCH (n) -[e]-> (m)");
+    assertTrue(result.isQueryValid());
+
+    prettyPrintedResult = pgql.parse(result.getGraphQuery().toString());
+    assertEquals(result.getGraphQuery(), prettyPrintedResult.getGraphQuery());
   }
 
   @Test

@@ -73,6 +73,7 @@ context-free syntax
   RowsPerMatch.OneRowPerMatch = <ONE ROW PER MATCH> {case-insensitive}
   RowsPerMatch.OneRowPerVertex = <ONE ROW PER VERTEX (<Identifier>)> {case-insensitive}
   RowsPerMatch.OneRowPerEdge = <ONE ROW PER EDGE (<Identifier>)> {case-insensitive}
+  RowsPerMatch.OneRowPerStep = <ONE ROW PER STEP (<Identifier>, <Identifier>, <Identifier>)> {case-insensitive}
 
   DerivedTable.DerivedTable = LateralKeyword? TableSubquery
   LateralKeyword.Lateral = <LATERAL> {case-insensitive}

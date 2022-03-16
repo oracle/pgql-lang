@@ -38,9 +38,9 @@ rules
          end
 
          // SELECT / INSERT / UPDATE / DELETE
-       ; if <?SelectClause(_, ExpAsVars(_))> selectOrModifyClause
+       ; if <?SelectClause(_, SelectList(_))> selectOrModifyClause
          then selectOrModifyClause' := <alltd(add-type(|metadata, variablesPlusTypes'', constraints'))> selectOrModifyClause
-            ; variablesPlusTypes''' := <conc> (variablesPlusTypes'', <?SelectClause(_, ExpAsVars(<id>)); map(expAsVar-to-variablePlusType(|variablesPlusTypes''))> selectOrModifyClause')
+            ; variablesPlusTypes''' := <conc> (variablesPlusTypes'', <?SelectClause(_, SelectList(<id>)); map(expAsVar-to-variablePlusType(|variablesPlusTypes''))> selectOrModifyClause')
          else if <?SelectClause(_, Star())> selectOrModifyClause // SELECT * FROM .. GROUP BY ..
               then selectOrModifyClause' := selectOrModifyClause
                  ; variablesPlusTypes''' := variablesPlusTypes''
@@ -61,12 +61,15 @@ rules
 
   add-type-to-table-expression(|metadata):
     (graphPattern@GraphPattern(Vertices(vertices), connections, _), (result, variablesPlusTypes, constraints)) -> (result', variablesPlusTypes', constraints')
-    with verticesWithTypes := <collect-vertices-with-types(?Vertex(_, <id>, _) + ?OneRowPerVertex(_, <id>, _))> (vertices, connections)
-         ; edgesWithTypes := <collect-edges-with-types(?Edge(_, _, _, _, <id>, _) + ?OneRowPerEdge(_, <id>, _))> connections
-         ; variablesPlusTypes' := <conc> (variablesPlusTypes, verticesWithTypes, edgesWithTypes)
-         ; constraints' := <conc> (constraints, <collect-in-outer-query(?Constraints(<id>)); concat> graphPattern)
-         ; graphPattern' := <alltd(add-type(|metadata, variablesPlusTypes', constraints))> graphPattern
-         ; result' := <conc> (result, [graphPattern'])
+    with verticesWithTypes := <conc> ( <collect-vertices-with-types(?Vertex(_, <id>, _))> (vertices, connections)
+                                     , <collect-vertices-with-types(?OneRowPerVertex(_, <id>, _))> connections
+                                     , <collect-vertices-with-types(?OneRowPerStep(_, <id>, _, _, _, _, _, _, _))> connections
+                                     , <collect-vertices-with-types(?OneRowPerStep(_, _, _, _, _, _, _, <id>, _))> connections )
+       ; edgesWithTypes := <collect-edges-with-types(?Edge(_, _, _, _, <id>, _) + ?OneRowPerEdge(_, <id>, _) + ?OneRowPerStep(_, _, _, _, <id>, _, _, _, _))> connections
+       ; variablesPlusTypes' := <conc> (variablesPlusTypes, verticesWithTypes, edgesWithTypes)
+       ; constraints' := <conc> (constraints, <collect-in-outer-query(?Constraints(<id>)); concat> graphPattern)
+       ; graphPattern' := <alltd(add-type(|metadata, variablesPlusTypes', constraints))> graphPattern
+       ; result' := <conc> (result, [graphPattern'])
 
   add-type-to-table-expression(|metadata):
     (derivedTable@DerivedTable(lateral, subquery@Subquery(normalizedQuery)), (result, variablesPlusTypes, constraints)) -> (result', variablesPlusTypes', constraints')
@@ -99,6 +102,8 @@ rules // exp AS var
          then dereferencedOriginOffset := <fetch-elem(?VariablePlusType(varRefOriginOffset, <id>, _))> variablesPlusTypes
          else dereferencedOriginOffset := originOffset
          end
+
+  expAsVar-to-variablePlusType(|variablesPlusTypes) = ?AllProperties(_, _)
 
 rules // variable references
 
@@ -238,7 +243,7 @@ rules // subqueries
   add-types-to-subquery(|metadata, variablesPlusTypes, constraints):
     query -> (query', type)
     with query' := <add-types-to-query(|metadata, variablesPlusTypes, constraints)> query
-       ; if <?NormalizedQuery(_, SelectClause(_, ExpAsVars([ExpAsVar(ExpressionPlusType(_, Type(t)), _, _, _)])), _, _, _, _, _, _, _, _, _, _, _)> query'
+       ; if <?NormalizedQuery(_, SelectClause(_, SelectList([ExpAsVar(ExpressionPlusType(_, Type(t)), _, _, _)])), _, _, _, _, _, _, _, _, _, _, _)> query'
          then type := Type(t)
          else type := UnknownType()
          end

@@ -55,8 +55,7 @@ rules
         )
         ; not(?[]) <+ !( <quantifier-without-path-finding-goal>,
                          <nested-regular-expression>,
-                         <get-errors-for-inconsistent-graph-names>,
-                         <collect(get-error-for-missing-metadata(|metadata))> ast
+                         <get-errors-for-inconsistent-graph-names>
                        ); conc> ast;
       result := <
         alltd(norm-pgql10);
@@ -68,7 +67,8 @@ rules
           norm-singleVertex +
           norm-VertexWithoutBrackets +
           norm-isNull +
-          norm-case
+          norm-case +
+          norm-any-path-shortest
         );
       	alltd(norm-edgeContents);
         ( (is-pgql10 + is-pgql11); alltd((?PropRef(_, _) <+ varRef-to-legacy-string-literal) + norm-legacy-string-literal); alltd(norm-legacy-identifier) +
@@ -125,15 +125,15 @@ rules
   get-pgql13-errors      = ?GraphMatch(None(), _, _, _); to-error-message(|"Missing MATCH keyword at start of pattern")
 
   get-pgql13-errors:
-    ParenthesizedGraphMatch(pathPatterns, rowsPerMatch, _) -> <to-error-message(|"ONE ROW PER VERTEX or EDGE is only permitted if the MATCH clause contains a single path pattern")> rowsPerMatch
+    ParenthesizedGraphMatch(pathPatterns, rowsPerMatch, _) -> <to-error-message(|"ONE ROW PER VERTEX, EDGE or STEP is only permitted if the MATCH clause contains a single path pattern")> rowsPerMatch
     where <gt> (<length> pathPatterns, 1)
-        ; <?Some(OneRowPerVertex(_)) + ?Some(OneRowPerEdge(_))> rowsPerMatch
+        ; <?Some(OneRowPerVertex(_)) + ?Some(OneRowPerEdge(_)) + ?Some(OneRowPerStep(_, _, _))> rowsPerMatch
 
   get-pgql13-errors:
-    x -> <to-error-message(|"ONE ROW PER VERTEX or EDGE is only supported in combination with ANY, ALL, SHORTEST or CHEAPEST")> rowsPerMatch
+    x -> <to-error-message(|"ONE ROW PER VERTEX, EDGE or STEP is only supported in combination with ANY, ALL, SHORTEST or CHEAPEST")> rowsPerMatch
     where <?ParenthesizedGraphMatch([PathPattern(_, _)], rowsPerMatch, _) + ?GraphMatch(_, PathPattern(_, _), rowsPerMatch, _) +
            ?ParenthesizedGraphMatch([SingleVertex(_)], rowsPerMatch, _) + ?GraphMatch(_, SingleVertex(_), rowsPerMatch, _)> x
-        ; <?Some(OneRowPerVertex(_)) + ?Some(OneRowPerEdge(_))> rowsPerMatch
+        ; <?Some(OneRowPerVertex(_)) + ?Some(OneRowPerEdge(_)) + ?Some(OneRowPerStep(_, _, _))> rowsPerMatch
 
   get-pgql10-limitation = ( ?Pgql11FromClause(_)
                           + ?Subquery(_)
@@ -156,6 +156,9 @@ rules
   ; map(to-error-message(|"Quantifier needs to be enclosed by ANY, ALL, SHORTEST or CHEAPEST"))
 
   nested-regular-expression = collect(?Shortest(_, _) + ?Cheapest(_, _) + ?AnyPath(_) + ?AllPaths(_)); collect(?Path(_, _, _)); map(to-error-message(|"Nested regular expressions not supported"))
+
+  norm-any-path-shortest:
+    AnyPath(t@Shortest(_, _)) -> t // grammar does not permit it but in case of syntax error it may still show up in the AST in certain cases, so we 'fix' it here so that parsing doesn't fail with a bad error message during normalization
 
   get-errors-for-inconsistent-graph-names:
     ast -> <conc> (errors-for-multiple-graph-name, errors-for-missing-on-clauses)
@@ -190,10 +193,6 @@ rules
                           + ?AllPaths(_)
                           + ?OutConn(Some(Path(_, _, _)), _)
                           + ?InConn(Some(Path(_, _, _)), _)
-
-  get-error-for-missing-metadata(|metadata):
-    t@AllProperties(_, _) -> <to-error-message(|"Cannot select all properties because the graph schema is not provided")> t
-    where <not(fetch(?VertexLabels(_) + ?EdgeLabels(_)))> metadata
 
   norm-pgql10 = ?Legacy10Label(x); <to-function(|"label")> [x]
   norm-pgql10 = ?Legacy10Labels(x); <to-function(|"labels")> [x]
@@ -516,6 +515,9 @@ rules
     with edge := <to-connection(|variable-counter, pathFindingGoal, topKAnyAll, rowsPerMatch)> (n1, e, n2)
        ; edgesPathTail := <get-connections-from-single-path(|variable-counter, pathFindingGoal, topKAnyAll, rowsPerMatch)> edgeVertices
 
+// Shortest(None,PathPattern(Vertex(ElemContents(Some(Identifier("<<anonymous>>_1",None)),None,None,None)),[EdgeVertex(OutConn(ElemContents(Some(Identifier("<<anonymous>>_2",None)),None,None,None),Some(BetweenNAndM("1","2"))),Vertex(ElemContents(Some(Identifier("<<anonymous>>_3",None)),None,None,None)))]))
+
+
   // base case: only one edgeVertex
   get-connections-from-single-path(|variable-counter, pathFindingGoal, topKAnyAll, rowsPerMatch):
     [EdgeVertex(_, _)] -> []
@@ -643,8 +645,8 @@ rules
 
       selectOrModifyClause' := <?ModifyClause(_) + ?SelectClause(_, _); (norm-SelectList(|expAsGroupVars', version) <+ norm-select-star(|tableExpressions, expAsGroupVars'))> selectOrModifyClause;
 
-      selectList := <(?ModifyClause(_)); ![] + ?SelectClause(_, ExpAsVars(<id>))> selectOrModifyClause';
-      allExpAsVars := <conc> (expAsGroupVars', <try(?Star(); ![])> selectList);
+      selectElements := <(?ModifyClause(_)); ![] + ?SelectClause(_, SelectList(<id>))> selectOrModifyClause';
+      allExpAsVars := <conc> (expAsGroupVars', <try(?Star(); ![])> selectElements);
       orderByElems := <try(norm-orderBy(|allExpAsVars, version))> orderByClause;
 
       limitOffsets' := <norm-limitOffsets> limitOffsets;
@@ -652,12 +654,12 @@ rules
       selectingAllProperties := <oncetd(?AllProperties(_, _)); !True() <+ !False()> t
 
   norm-SelectList(|expAsGroupVars', version):
-    t1@SelectClause(distinct, t2@SelectList(selectList)) -> result
+    t1@SelectClause(distinct, t2@SelectList(selectElements)) -> result
     with if <?"v1.0" + ?"v1.1"> version
-         then expAsVars := <map(?AllProperties(_, _) + norm-ExpAsVar)> selectList
-         else expAsVars := <map(?AllProperties(_, _) + norm-ExpAsVar-for-select-clause)> selectList
+         then selectElements' := <map(?AllProperties(_, _) + norm-ExpAsVar)> selectElements
+         else selectElements' := <map(?AllProperties(_, _) + norm-ExpAsVar-for-select-clause)> selectElements
          end
-       ; result := <origin-track-forced(!SelectClause(distinct, <origin-track-forced(!ExpAsVars(expAsVars))> t2))> t1
+       ; result := <origin-track-forced(!SelectClause(distinct, <origin-track-forced(!SelectList(selectElements'))> t2))> t1
 
   norm-ExpAsVar-for-select-clause = ?ExpAsVar(exp@PropRef(_, p), None()); !ExpAsVar(exp, p, NonAnonymous()) <+ norm-ExpAsVar
 
@@ -672,10 +674,10 @@ rules
     t@SelectClause(distinct, star@Star()) -> result
     with if [] := group-exps
          then vars := <collect(?Vertex(<id>) + ?NormalizedEdge(_, <id>, _, _, _, _) + ?Subquery(_)); filter(Identifier(is-string; not(is-substring(GENERATED)), id))> tableExpressions;
-              expAsSelectVars := <map(generate-ExpAsVar(|star))> vars
-         else expAsSelectVars := star
+              selectElements := <map(generate-ExpAsVar(|star))> vars
+         else selectElements := star
          end
-       ; result := <origin-track-forced(!SelectClause(star, <origin-track-forced(!ExpAsVars(expAsSelectVars))> star))> t
+       ; result := <origin-track-forced(!SelectClause(star, <origin-track-forced(!SelectList(selectElements))> star))> t
 
   generate-ExpAsVar(|star):
     t@Identifier(v, originText) -> expAsVar

@@ -7,5 +7,6 @@ public enum RowsPerMatchType {
 
   ONE_ROW_PER_MATCH,
   ONE_ROW_PER_VERTEX,
-  ONE_ROW_PER_EDGE
+  ONE_ROW_PER_EDGE,
+  ONE_ROW_PER_STEP
 }
