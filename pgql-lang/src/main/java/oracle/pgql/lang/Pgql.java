@@ -81,11 +81,11 @@ public class Pgql implements Closeable {
 
   private static final String SPOOFAX_BINARIES = "pgql.spoofax-language";
 
-  private static final int POS_PGQL_VERSION = 9;
+  private static final int POS_PGQL_VERSION = 10;
 
-  private static final int POS_BIND_VARIABLE_COUNT = 10;
+  private static final int POS_BIND_VARIABLE_COUNT = 11;
 
-  private static final int POS_SELECTING_ALL_PROPERTIES = 11;
+  private static final int POS_SELECTING_ALL_PROPERTIES = 12;
 
   private static final PgqlVersion LATEST_VERSION = PgqlVersion.V_1_3_OR_UP;
 

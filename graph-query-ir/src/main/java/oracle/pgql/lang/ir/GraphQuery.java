@@ -7,7 +7,7 @@ import java.util.List;
 
 import static oracle.pgql.lang.ir.PgqlUtils.printPgqlString;
 
-public abstract class GraphQuery implements PgqlStatement {
+public abstract class GraphQuery implements PgqlStatement, TableExpression {
 
   private List<CommonPathExpression> commonPathExpressions;
 
@@ -42,6 +42,11 @@ public abstract class GraphQuery implements PgqlStatement {
   }
 
   public abstract QueryType getQueryType();
+
+  @Override
+  public TableExpressionType getTableExpressionType() {
+    return TableExpressionType.GRAPH_PATTERN;
+  }
 
   public List<CommonPathExpression> getCommonPathExpressions() {
     return commonPathExpressions;

@@ -14,6 +14,7 @@ import java.util.Map;
 import java.util.Set;
 
 import org.spoofax.interpreter.terms.IStrategoAppl;
+import org.spoofax.interpreter.terms.IStrategoList;
 import org.spoofax.interpreter.terms.IStrategoTerm;
 import org.spoofax.interpreter.terms.TermType;
 
@@ -83,11 +84,13 @@ public class SpoofaxAstToGraphQuery {
   private static final int POS_COMMON_PATH_EXPRESSIONS = 0;
   private static final int POS_SELECT_OR_MODIFY = 1;
   private static final int POS_GRAPH_NAME = 2;
-  private static final int POS_GRAPH_PATTERN = 3;
-  private static final int POS_GROUPBY = 4;
-  private static final int POS_HAVING = 5;
-  private static final int POS_ORDERBY = 6;
-  private static final int POS_LIMITOFFSET = 7;
+  private static final int POS_TABLE_EXPRESSIONS = 3;
+  @SuppressWarnings("unused")
+  private static final int POS_NON_PUSHED_DOWN_PREDICATES = 4;
+  private static final int POS_GROUPBY = 5;
+  private static final int POS_HAVING = 6;
+  private static final int POS_ORDERBY = 7;
+  private static final int POS_LIMITOFFSET = 8;
 
   private static final int POT_GRAPH_NAME_NAME = 0;
 
@@ -215,13 +218,13 @@ public class SpoofaxAstToGraphQuery {
     List<CommonPathExpression> commonPathExpressions = getCommonPathExpressions(commonPathExpressionsT, ctx);
 
     // graph pattern
-    IStrategoTerm graphPatternT = ast.getSubterm(POS_GRAPH_PATTERN);
+    IStrategoList tableExpressionsT = (IStrategoList) ast.getSubterm(POS_TABLE_EXPRESSIONS);
 
     GraphPattern graphPattern;
-    if (isNone(graphPatternT)) {
+    if (tableExpressionsT.isEmpty()) {
       graphPattern = null;
     } else {
-      graphPatternT = getSomeValue(graphPatternT);
+      IStrategoTerm graphPatternT = tableExpressionsT.iterator().next(); // TODO: handle multiple table expressions
 
       // vertices
       IStrategoTerm verticesT = getList(graphPatternT.getSubterm(POS_VERTICES));

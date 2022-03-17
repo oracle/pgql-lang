@@ -72,6 +72,7 @@ public interface QueryExpression {
     STAR,
     ALL_PROPERTIES,
     SCALAR_SUBQUERY,
+    DERIVED_TABLE,
 
     // built-in functions and predicates
     PROP_ACCESS,

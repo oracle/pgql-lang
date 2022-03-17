@@ -197,4 +197,6 @@ public interface QueryExpressionVisitor {
   public void visit(Update update);
 
   public void visit(SetPropertyExpression setPropertyExpression);
+
+  public void visit(DerivedTable derivedTable);
 }
