@@ -88,7 +88,7 @@ rules // Unresolved/duplicate variables
                                      ; collect-om(?Edge(_, Identifier(<id>, _), _, _, _, _) <+ ?Identifier(<id>, _), conc)
 
   collect-vars-from-table-expression:
-    DerivedTable(_, Subquery(NormalizedQuery(_, SelectClause(_, ExpAsVars(expAsVars)), _, _, _, _, _, _, _, _, _, _, _))) -> vars
+    DerivedTable(_, Subquery(NormalizedQuery(_, SelectClause(_, SelectList(expAsVars)), _, _, _, _, _, _, _, _, _, _, _))) -> vars
     with vars := <filter(?ExpAsVar(ExpressionPlusType(VarRef(Identifier(<id>, _), _), Type("VERTEX")), _, _, _) +
                          ?ExpAsVar(ExpressionPlusType(VarRef(Identifier(<id>, _), _), Type("EDGE")), _, _, _))> expAsVars
 
