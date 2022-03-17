@@ -109,7 +109,8 @@ rules
        ; derivedTable' := <origin-track-forced(!DerivedTable(lateral, subquery'))> derivedTable
        ; result' := <conc> (result, [derivedTable'])
        ; <?[x|xs]> variables
-       ; variables' := [<conc> (x, variables-in-projection)|xs]
+       ; variables-in-projection' := <alltd(?ThisQuery(); !LateralQuery())> variables-in-projection
+       ; variables' := [<conc> (x, variables-in-projection')|xs]
        ; valueExpression' := valueExpressionPriorLateralQueries // TODO: for SELECT n.* we need to have all the label expression
 
   path-with-at-most-one-binding:
