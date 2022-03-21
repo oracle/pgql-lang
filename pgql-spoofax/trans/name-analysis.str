@@ -72,13 +72,6 @@ rules
        // variables to pass into subsequent table expressions
        ; variables-in-projection := <diff> (<Hd> variables'''', <Hd> variables''')
 
-// TODO fixme
-//       ; if <?Some(GraphPattern(vertices', connections'', valueExpression'))> := graphPattern'
-//         then connections''' := <map(try(normalize-ANY-path(|variables'''')))> connections'' // normalize ANY either to REACHES or SHORTEST
-//            ; graphPattern'' := Some(GraphPattern(vertices', connections''', valueExpression'))
-//         else graphPattern'' := graphPattern'
-//         end
-
   trans-table-expression(|metadata, expAsVars):
     (GraphPattern(vertices, connections, Constraints(valueExpression)), (result, variables, valueExpressionPriorLateralQueries)) -> (result', variables', valueExpression'')
       with  // MATCH
@@ -98,7 +91,8 @@ rules
           // local WHERE clause for has_label constraints and future inlined constraints
           ; valueExpression' := <resolve-value-expression(|variables', expAsVars, metadata)> valueExpression
 
-          ; graphPattern' := GraphPattern(vertices', connections'', Constraints(valueExpression'))
+          ; connections''' := <map(try(normalize-ANY-path(|variables')))> connections'' // normalize ANY either to REACHES or SHORTEST
+          ; graphPattern' := GraphPattern(vertices', connections''', Constraints(valueExpression'))
           ; result' := <conc> (result, [graphPattern'])
           ; valueExpression'' := <conc> (valueExpressionPriorLateralQueries, valueExpression') // for SELECT n.* we need to have all the label expression
 
