@@ -81,6 +81,7 @@ test "Repeat subquery from SELECT in GROUP BY and use unnest variable in subquer
 ]] error like "Unresolved variable" at #1
    error like "Unresolved variable (did you mean to use a group key?)" at #2
 
+/*
 test Unresolved reference to variable inside table expression [[
 
   SELECT 1
@@ -89,3 +90,4 @@ test Unresolved reference to variable inside table expression [[
    WHERE n.prop = 3 AND [[x]].prop = 4
 
 ]] error like "Unresolved variable" at #1
+*/

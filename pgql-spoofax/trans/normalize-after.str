@@ -64,8 +64,18 @@ rules
   make-expressions-varRefs-tuple = ?exp; collect(?VarRef(_, <id>)); !(exp, <id>)
 
   try-push-down-predicates:
-    (t@GraphPattern(vertices, connections, Constraints(valueExpression)), (remaining-expressions-plus-varRef, tableExpressions)) -> (remaining-expressions-plus-varRef', tableExpressions')
+    (t@GraphPattern(vertices, connections, Constraints(valueExpression)), (remaining-expressions-plus-varRefs, tableExpressions)) -> (remaining-expressions-plus-varRef', tableExpressions')
     with variables := <collect-offsets-from-graph-pattern> t
-       ; remaining-expressions-plus-varRef' := remaining-expressions-plus-varRef
-       ; graphPattern' := GraphPattern(vertices, connections, Constraints(valueExpression))
+       ; (pushed-down-predicates, remaining-expressions-plus-varRef') := <foldl(try-push-down-predicate(|variables))> (remaining-expressions-plus-varRefs, ([], []))
+       ; valueExpression' := <conc> (valueExpression, pushed-down-predicates)
+       ; graphPattern' := GraphPattern(vertices, connections, Constraints(valueExpression'))
        ; tableExpressions' := <conc> (tableExpressions, [graphPattern'])
+
+  try-push-down-predicate(|variables):
+    (t@(exp, vars-in-exp), (pushed-down-predicates, remaining-expressions-plus-varRef)) -> (pushed-down-predicates', remaining-expressions-plus-varRef')
+    with if <diff; length; ?0> (vars-in-exp, variables)
+         then pushed-down-predicates' := <conc> (pushed-down-predicates, [exp]) // can push down
+            ; remaining-expressions-plus-varRef' := remaining-expressions-plus-varRef
+         else pushed-down-predicates' := pushed-down-predicates // cannot push down
+            ; remaining-expressions-plus-varRef' := <conc> (remaining-expressions-plus-varRef, [t])
+         end
