@@ -228,6 +228,8 @@ rules // functions
     where <upper-case; ?"ALL_DIFFERENT"> name
         ; <not(length; ?0)> args
 
+  add-type(|metadata, variablesPlusTypes, constraints) = ?BetweenPredicate(_, _, _); !ExpressionPlusType(<id>, Type("BOOLEAN"))
+
 rules // subqueries
 
   add-type(|metadata, variablesPlusTypes, constraints):
