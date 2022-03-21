@@ -348,7 +348,7 @@ test ONE ROW PER STEP no quantifier (2) [[
 test ONE ROW PER VERTEX with multiple path patterns [[
 
   SELECT 1
-    FROM MATCH ( ANY (a) -> (b), ANY (b) -> (c) ) [[ONE ROW PER VERTEX (v)]]
+    FROM MATCH ( ANY (a) ->* (b), ANY (b) ->* (c) ) [[ONE ROW PER VERTEX (v)]]
 
 ]] error like "ONE ROW PER VERTEX, EDGE or STEP is only permitted if the MATCH clause contains a single path pattern" at #1
 
