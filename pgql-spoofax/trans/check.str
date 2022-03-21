@@ -83,15 +83,6 @@ rules // Unresolved/duplicate variables
               end
          end
 
-  collect-vars-from-table-expression = ?GraphPattern(vertices, edges, _); !(vertices, edges)
-                                     ; collect(?Vertex(_, _, None()) + ?Edge(_, _, _, _, _, None()) + ?OneRowPerVertex(_, _, None()) + ?OneRowPerEdge(_, _, None()) + ?OneRowPerStep(_, _, None(), _, _, None(), _, _, None()))
-                                     ; collect-om(?Edge(_, Identifier(<id>, _), _, _, _, _) <+ ?Identifier(<id>, _), conc)
-
-  collect-vars-from-table-expression:
-    DerivedTable(_, Subquery(NormalizedQuery(_, SelectClause(_, SelectList(expAsVars)), _, _, _, _, _, _, _, _, _, _, _))) -> vars
-    with vars := <filter(?ExpAsVar(ExpressionPlusType(VarRef(Identifier(<id>, _), _), Type("VERTEX")), _, _, _) +
-                         ?ExpAsVar(ExpressionPlusType(VarRef(Identifier(<id>, _), _), Type("EDGE")), _, _, _))> expAsVars
-
   nabl-constraint(|ctx):
     query@NormalizedQuery(_, _, _, _, _, _, _, _, _, _, _, _, _) -> <fail>
     with group-variables := <collect-in-outer-query(?CommonPathExpression(_, _, _, _, _); get-origin-positions-of-variables); concat> query
@@ -692,18 +683,8 @@ rules // MODIFY
     with <generate-error(|ctx, <error-duplicate-var-outer-query>)> e
 
   nabl-constraint(|ctx):
-    OneRowPerVertex(Identifier(v, _), _, Correlation(_)) -> <fail>
+    RowsPerMatchVariable(Identifier(v, _), _, Correlation(_), _) -> <fail>
     with <generate-error(|ctx, <error-duplicate-var-outer-query>)> v
-
-  nabl-constraint(|ctx):
-    OneRowPerEdge(Identifier(e, _), _, Correlation(_)) -> <fail>
-    with <generate-error(|ctx, <error-duplicate-var-outer-query>)> e
-
-  nabl-constraint(|ctx):
-    OneRowPerStep(Identifier(v1, _), _, Correlation(_), Identifier(e, _), _, Correlation(_), Identifier(v2, _), _, Correlation(_)) -> <fail>
-    with <generate-error(|ctx, <error-duplicate-var-outer-query>)> v1
-       ; <generate-error(|ctx, <error-duplicate-var-outer-query>)> e
-       ; <generate-error(|ctx, <error-duplicate-var-outer-query>)> v2
 
   // check SELECT clause is not empty (may happen in case of SELECT n.*)
   nabl-constraint(|ctx):

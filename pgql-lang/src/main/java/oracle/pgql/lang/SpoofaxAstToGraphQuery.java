@@ -157,15 +157,12 @@ public class SpoofaxAstToGraphQuery {
   private static final int POS_PATH_ROWS_PER_MATCH = 8;
 
   private static final int POS_ONE_ROW_PER_VERTEX_VERTEX = 0;
-  private static final int POS_ONE_ROW_PER_VERTEX_ORIGIN_OFFSET = 1;
   private static final int POS_ONE_ROW_PER_EDGE_EDGE = 0;
-  private static final int POS_ONE_ROW_PER_EDGE_ORIGIN_OFFSET = 1;
   private static final int POS_ONE_ROW_PER_STEP_VERTEX_1 = 0;
-  private static final int POS_ONE_ROW_PER_STEP_VERTEX_1_ORIGIN_OFFSET = 1;
-  private static final int POS_ONE_ROW_PER_STEP_EDGE = 3;
-  private static final int POS_ONE_ROW_PER_STEP_EDGE_ORIGIN_OFFSET = 4;
-  private static final int POS_ONE_ROW_PER_STEP_VERTEX_2 = 6;
-  private static final int POS_ONE_ROW_PER_STEP_VERTEX_2_ORIGIN_OFFSET = 7;
+  private static final int POS_ONE_ROW_PER_STEP_EDGE = 1;
+  private static final int POS_ONE_ROW_PER_STEP_VERTEX_2 = 2;
+  private static final int POS_ROWS_PER_MATCH_VARIABLE_NAME = 0;
+  private static final int POS_ROWS_PER_MATCH_VARIABLE_ORIGIN_OFFSET = 1;
 
   private static final int POS_ORDERBY_EXP = 0;
   private static final int POS_ORDERBY_ORDERING = 1;
@@ -755,40 +752,42 @@ public class SpoofaxAstToGraphQuery {
       case "OneRowPerMatch":
         return new OneRowPerMatch();
       case "OneRowPerVertex": {
-        String vertexName = getString(rowsPerMatchT.getSubterm(POS_ONE_ROW_PER_VERTEX_VERTEX));
-        QueryVertex vertex = new QueryVertex(vertexName, false);
-        IStrategoTerm originOffset = rowsPerMatchT.getSubterm(POS_ONE_ROW_PER_VERTEX_ORIGIN_OFFSET);
-        ctx.addVar(vertex, vertexName, originOffset);
+        QueryVertex vertex = getRowsPerMatchVertex(rowsPerMatchT, POS_ONE_ROW_PER_VERTEX_VERTEX, ctx);
         return new OneRowPerVertex(vertex);
       }
       case "OneRowPerEdge": {
-        String edgeName = getString(rowsPerMatchT.getSubterm(POS_ONE_ROW_PER_EDGE_EDGE));
-        QueryEdge edge = new QueryEdge(null, null, edgeName, false, null);
-        IStrategoTerm originOffset = rowsPerMatchT.getSubterm(POS_ONE_ROW_PER_EDGE_ORIGIN_OFFSET);
-        ctx.addVar(edge, edgeName, originOffset);
+        QueryEdge edge = getRowsPerMatchEdge(rowsPerMatchT, POS_ONE_ROW_PER_EDGE_EDGE, ctx);
         return new OneRowPerEdge(edge);
       }
       case "OneRowPerStep": {
-        String vertex1Name = getString(rowsPerMatchT.getSubterm(POS_ONE_ROW_PER_STEP_VERTEX_1));
-        QueryVertex vertex1 = new QueryVertex(vertex1Name, false);
-        IStrategoTerm vertex1OriginOffset = rowsPerMatchT.getSubterm(POS_ONE_ROW_PER_STEP_VERTEX_1_ORIGIN_OFFSET);
-        ctx.addVar(vertex1, vertex1Name, vertex1OriginOffset);
-
-        String edgeName = getString(rowsPerMatchT.getSubterm(POS_ONE_ROW_PER_STEP_EDGE));
-        QueryEdge edge = new QueryEdge(null, null, edgeName, false, null);
-        IStrategoTerm originOffset = rowsPerMatchT.getSubterm(POS_ONE_ROW_PER_STEP_EDGE_ORIGIN_OFFSET);
-        ctx.addVar(edge, edgeName, originOffset);
-
-        String vertex2Name = getString(rowsPerMatchT.getSubterm(POS_ONE_ROW_PER_STEP_VERTEX_2));
-        QueryVertex vertex2 = new QueryVertex(vertex2Name, false);
-        IStrategoTerm vertex2OriginOffset = rowsPerMatchT.getSubterm(POS_ONE_ROW_PER_STEP_VERTEX_2_ORIGIN_OFFSET);
-        ctx.addVar(vertex2, vertex2Name, vertex2OriginOffset);
-
+        QueryVertex vertex1 = getRowsPerMatchVertex(rowsPerMatchT, POS_ONE_ROW_PER_STEP_VERTEX_1, ctx);
+        QueryEdge edge = getRowsPerMatchEdge(rowsPerMatchT, POS_ONE_ROW_PER_STEP_EDGE, ctx);
+        QueryVertex vertex2 = getRowsPerMatchVertex(rowsPerMatchT, POS_ONE_ROW_PER_STEP_VERTEX_2, ctx);
         return new OneRowPerStep(vertex1, edge, vertex2);
       }
       default:
         throw new IllegalArgumentException(constructorName);
     }
+  }
+
+  private static QueryVertex getRowsPerMatchVertex(IStrategoAppl rowsPerMatchT, int variablePosition,
+      TranslationContext ctx) {
+    IStrategoTerm vertexVariableT = rowsPerMatchT.getSubterm(variablePosition);
+    String vertexName = getString(vertexVariableT.getSubterm(POS_ROWS_PER_MATCH_VARIABLE_NAME));
+    QueryVertex vertex = new QueryVertex(vertexName, false);
+    IStrategoTerm originOffset = vertexVariableT.getSubterm(POS_ROWS_PER_MATCH_VARIABLE_ORIGIN_OFFSET);
+    ctx.addVar(vertex, vertexName, originOffset);
+    return vertex;
+  }
+
+  private static QueryEdge getRowsPerMatchEdge(IStrategoAppl rowsPerMatchT, int variablePosition,
+      TranslationContext ctx) {
+    IStrategoTerm edgeVariableT = rowsPerMatchT.getSubterm(variablePosition);
+    String edgeName = getString(edgeVariableT.getSubterm(POS_ROWS_PER_MATCH_VARIABLE_NAME));
+    QueryEdge edge = new QueryEdge(null, null, edgeName, false, null);
+    IStrategoTerm originOffset = edgeVariableT.getSubterm(POS_ROWS_PER_MATCH_VARIABLE_ORIGIN_OFFSET);
+    ctx.addVar(edge, edgeName, originOffset);
+    return edge;
   }
 
   private static long getMinHops(IStrategoTerm pathT) throws PgqlException {

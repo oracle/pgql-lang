@@ -64,8 +64,8 @@ rules
   make-expressions-varRefs-tuple = ?exp; collect(?VarRef(_, <id>)); !(exp, <id>)
 
   try-push-down-predicates:
-    (GraphPattern(vertices, connections, Constraints(valueExpression)), (remaining-expressions-plus-varRef, tableExpressions)) -> (remaining-expressions-plus-varRef', tableExpressions')
-    with variables := <collect(?Vertex(_, <id>, _) + ?Edge(_, _, _, _, <id>, _) + ?OneRowPerVertex(_, <id>, _) + ?OneRowPerEdge(_, <id>, _))> (vertices, connections)
+    (t@GraphPattern(vertices, connections, Constraints(valueExpression)), (remaining-expressions-plus-varRef, tableExpressions)) -> (remaining-expressions-plus-varRef', tableExpressions')
+    with variables := <collect-offsets-from-graph-pattern> t
        ; remaining-expressions-plus-varRef' := remaining-expressions-plus-varRef
        ; graphPattern' := GraphPattern(vertices, connections, Constraints(valueExpression))
        ; tableExpressions' := <conc> (tableExpressions, [graphPattern'])

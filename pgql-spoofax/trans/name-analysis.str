@@ -141,21 +141,16 @@ rules
          end
 
   trans-rows-per-match(|variables) =
-    ?OneRowPerVertex(iden@Identifier(v, _)); !OneRowPerVertex(iden, <origin-track-forced(origin-offset)> iden, <to-Correlation(|variables)> v) +
-    ?OneRowPerEdge(iden@Identifier(e, _)); !OneRowPerEdge(iden, <origin-track-forced(origin-offset)> iden, <to-Correlation(|variables)> e) +
-    ?OneRowPerStep(iden1@Identifier(v1, _), iden2@Identifier(e, _), iden3@Identifier(v2, _)); !OneRowPerStep(iden1, <origin-track-forced(origin-offset)> iden1, <to-Correlation(|variables)> v1,
-                                                                                                             iden2, <origin-track-forced(origin-offset)> iden2, <to-Correlation(|variables)> e,
-                                                                                                             iden3, <origin-track-forced(origin-offset)> iden3, <to-Correlation(|variables)> v2)
+    ?OneRowPerVertex(iden@Identifier(v, _)); !OneRowPerVertex(RowsPerMatchVariable(iden, <origin-track-forced(origin-offset)> iden, <to-Correlation(|variables)> v, Type("VERTEX"))) +
+    ?OneRowPerEdge(iden@Identifier(e, _)); !OneRowPerEdge(RowsPerMatchVariable(iden, <origin-track-forced(origin-offset)> iden, <to-Correlation(|variables)> e, Type("EDGE"))) +
+    ?OneRowPerStep(iden1@Identifier(v1, _), iden2@Identifier(e, _), iden3@Identifier(v2, _)); !OneRowPerStep(RowsPerMatchVariable(iden1, <origin-track-forced(origin-offset)> iden1, <to-Correlation(|variables)> v1, Type("VERTEX")),
+                                                                                                             RowsPerMatchVariable(iden2, <origin-track-forced(origin-offset)> iden2, <to-Correlation(|variables)> e, Type("EDGE")),
+                                                                                                             RowsPerMatchVariable(iden3, <origin-track-forced(origin-offset)> iden3, <to-Correlation(|variables)> v2, Type("VERTEX")))
+
+  rows-per-match-to-varDef = ?RowsPerMatchVariable(iden, origin-offset, _, type); !VarDef(iden, origin-offset, None(), None(), None(), ThisQuery(), type)
 
   to-varDef = ?Vertex(iden, origin-offset, _); !VarDef(iden, origin-offset, None(), None(), None(), ThisQuery(), Type("VERTEX"))
   to-varDef = ?Edge(_, identifier, _, _, origin-offset, _); !VarDef(identifier, origin-offset, None(), None(), None(), ThisQuery(), Type("EDGE"))
-
-  rows-per-match-to-varDef = ?OneRowPerVertex(iden, origin-offset, _); !VarDef(iden, origin-offset, None(), None(), None(), ThisQuery(), Type("VERTEX"))
-  rows-per-match-to-varDef = ?OneRowPerEdge(iden, origin-offset, _); !VarDef(iden, origin-offset, None(), None(), None(), ThisQuery(), Type("EDGE"))
-  rows-per-match-to-varDef = ?OneRowPerStep(iden1, origin-offset1, _, iden2, origin-offset2, _, iden3, origin-offset3, _)
-                           ; ![ VarDef(iden1, origin-offset1, None(), None(), None(), ThisQuery(), Type("VERTEX")),
-                                VarDef(iden2, origin-offset2, None(), None(), None(), ThisQuery(), Type("EDGE")),
-                                VarDef(iden3, origin-offset3, None(), None(), None(), ThisQuery(), Type("VERTEX")) ]
 
   replace-or-add-all = foldl(replace-or-add)
 

@@ -92,9 +92,7 @@ signature constructors // for name binding (see trans/trans-for-nabl.str)
 
   Correlation           : VarRef -> CrossRef
 
-  OneRowPerVertex       : Var * OriginOffset * Correlation -> OneRowPerVertex
-  OneRowPerEdge         : Var * OriginOffset * Correlation -> OneRowPerEdge
-  OneRowPerStep         : Var * OriginOffset * Correlation * Var * OriginOffset * Correlation * Var * OriginOffset * Correlation -> OneRowPerStep
+  RowsPerMatchVariable  : Var * OriginOffset * Correlation * Type -> RowsPerMatchVariable
 
 signature constructors // for error checking (see trans/check.str)
 
