@@ -54,8 +54,8 @@ rules
          end
 
   push-down-predicates:
-    NormalizedQuery(t1, t2, t3, tableExpressions, Some(Constraints([exp])), t6, t7, t8, t9, t10, t11, t12, t13)
-      -> NormalizedQuery(t1, t2, t3, tableExpressions', Some(Constraints(non-pushed-down-predicates)), t6, t7, t8, t9, t10, t11, t12, t13)
+    NormalizedQuery(t1, t2, t3, tableExpressions, Constraints([exp]), t6, t7, t8, t9, t10, t11, t12, t13)
+      -> NormalizedQuery(t1, t2, t3, tableExpressions', Constraints(non-pushed-down-predicates), t6, t7, t8, t9, t10, t11, t12, t13)
     with expressions := <conjunction-to-list> exp
        ; expressions-plus-varRefs := <map(make-expressions-varRefs-tuple)> expressions
        ; (non-pushed-down-predicates-plus-varRefs, tableExpressions') := <foldl(try-push-down-predicates)> (tableExpressions, (expressions-plus-varRefs, []))

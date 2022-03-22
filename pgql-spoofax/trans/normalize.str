@@ -613,9 +613,9 @@ rules
     with if <?None()> tableExpressionsAndGraphName
          then optionalGraphName := None()
             ; tableExpressions := []
-            ; whereClause' := None()
+            ; whereClause' := Constraints([])
          else Some(TableExpressionsAndGraphName(tableExpressions, optionalGraphName, whereClause)) := tableExpressionsAndGraphName
-            ; whereClause' := <?Some(WhereClause(<id>)); !Some(Constraints([<id>])) <+ ?None()> whereClause
+            ; whereClause' := <?Some(WhereClause(<id>)); !Constraints([<id>]) <+ ?None(); !Constraints([])> whereClause
          end
 
   // pgql 1.1 + 1.2
@@ -623,14 +623,14 @@ rules
     Pgql11Query(commonPathExpressions, selectOrModifyClause, fromClause, graphPattern, groupByClause, havingClause, orderByClause, limitOffsets) ->
       <norm-query(|error-messages, "v1.1", variable-counter, bindVariableCount)> (commonPathExpressions, selectOrModifyClause, optionalGraphName, [graphPattern], whereClause, groupByClause, havingClause, orderByClause, limitOffsets)
     with optionalGraphName := <?None() + ?Some(Pgql11FromClause(graphName)); !Some(GraphName(graphName))> fromClause
-       ; whereClause := None() // WHERE clause is already merged into graphPattern
+       ; whereClause := Constraints([]) // WHERE clause is already merged into graphPattern
 
   // pgql 1.0
   norm-query(|error-messages, variable-counter, bindVariableCount):
     q@Pgql10Query(commonPathExpressions, selectClause, fromClause, graphPattern, groupByClause, orderByClause, limitOffsets) ->
       <norm-query(|error-messages, "v1.0", variable-counter, bindVariableCount)> (commonPathExpressions, selectClause, optionalGraphName, [graphPattern], whereClause, groupByClause, havingClause, orderByClause, limitOffsets)
       with optionalGraphName := <?None() + ?Some(Pgql11FromClause(graphName)); !Some(GraphName(graphName))> fromClause
-       ; whereClause := None() // WHERE clause is already merged into graphPattern
+       ; whereClause := Constraints([]) // WHERE clause is already merged into graphPattern
        ; havingClause := None()
 
   norm-query(|error-messages, version, variable-counter, bindVariableCount):

@@ -23,7 +23,7 @@ rules
          pathExpressions' := <map(add-types-to-path-expression(|metadata))> pathExpressions
 
          // FROM
-       ; constraints := <conc> (constraintsFromOuterQuery, <?Some(Constraints(<id>)) <+ ![]> whereClause )
+       ; constraints := <conc> (constraintsFromOuterQuery, <?Constraints(<id>)> whereClause )
        ; (tableExpressions', variablesPlusTypes', constraints') := <foldl(add-type-to-table-expression(|metadata))> (tableExpressions, ([], variablesPlusTypes, constraints))
 
          // WHERE
