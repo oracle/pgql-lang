@@ -66,7 +66,7 @@ rules
        ; edgesWithTypes := <collect-edges-with-types(?Edge(_, _, _, _, <id>, _) + ?RowsPerMatchVariable(_, <id>, _, Type("EDGE")))> connections
        ; variablesPlusTypes' := <conc> (variablesPlusTypes, verticesWithTypes, edgesWithTypes)
        ; constraints' := <conc> (constraints, <collect-in-outer-query(?Constraints(<id>)); concat> graphPattern)
-       ; graphPattern' := <alltd(add-type(|metadata, variablesPlusTypes', constraints))> graphPattern
+       ; graphPattern' := <alltd(add-type(|metadata, variablesPlusTypes', constraints'))> graphPattern
        ; result' := <conc> (result, [graphPattern'])
 
   add-type-to-table-expression(|metadata):
