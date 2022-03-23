@@ -31,7 +31,7 @@ rules
 
   trans-query(|variables, metadata):
     NormalizedQuery(CommonPathExpressions(pathExpressions), selectOrModifyClause, optionalGraphName, tableExpressions, whereClause, groupBy, having, orderBy, limitOffsets, error-messages, version, bindVariableCount, selectingAllVariables) ->
-        (NormalizedQuery(CommonPathExpressions(pathExpressions'), selectOrModifyClause', optionalGraphName, tableExpressions', whereClause', groupBy', having', orderBy', limitOffsets, error-messages, version, bindVariableCount, selectingAllVariables), variables-in-projection)
+        (NormalizedQuery(CommonPathExpressions(pathExpressions'), selectOrModifyClause', optionalGraphName, tableExpressions'', whereClause', groupBy', having', orderBy', limitOffsets, error-messages, version, bindVariableCount, selectingAllVariables), variables-in-projection)
     with variables' := <guarantee-size-two-or-more> variables
 
        // PATH
@@ -58,7 +58,9 @@ rules
          then (selectOrModifyClause', variables'''') := <resolve-select-clause(|variables''', metadata, valueExpression')> selectOrModifyClause
          else selectOrModifyClause' := <resolve-modify-clause(|variables''', metadata)> selectOrModifyClause
            ; variables'''' := variables'''
-        end
+         end
+
+       ; tableExpressions'' := <map(try(normalize-ANY-paths(|variables'''')))> tableExpressions' // normalize ANY either to REACHES or SHORTEST
 
        // HAVING
        ; having' := <resolve-having(|variables''', variables'''', metadata)> having // having resolves to GROUP BY variables first, then to SELECT variables
@@ -91,8 +93,7 @@ rules
           // local WHERE clause for has_label constraints and future inlined constraints
           ; valueExpression' := <resolve-value-expression(|variables', expAsVars, metadata)> valueExpression
 
-          ; connections''' := <map(try(normalize-ANY-path(|variables')))> connections'' // normalize ANY either to REACHES or SHORTEST
-          ; graphPattern' := GraphPattern(vertices', connections''', Constraints(valueExpression'))
+          ; graphPattern' := GraphPattern(vertices', connections'', Constraints(valueExpression'))
           ; result' := <conc> (result, [graphPattern'])
           ; valueExpression'' := <conc> (valueExpressionPriorLateralQueries, valueExpression') // for SELECT n.* we need to have all the label expression
 
@@ -470,6 +471,8 @@ rules
   optimize-order-by:
     OrderByClause(elems) -> OrderByClause(elems')
     with elems' := <make-set-while-preserving-ordering> elems // optimization to translate e.g. ORDER BY x, y, x, y into ORDER BY x, y
+
+  normalize-ANY-paths(|variables) = GraphPattern(id, map(try(normalize-ANY-path(|variables))), id)
 
   normalize-ANY-path(|variables):
     Path(src, dst, t@CommonPathExpression(_, Vertices(vertices), Edges(edges), _, _), quantifier, edge, direction, Any(), topKAnyAll, rowsPerMatch)
