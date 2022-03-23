@@ -522,7 +522,7 @@ rules // MODIFY
 // schema
 
   nabl-constraint(|ctx, metadata):
-    term@NormalizedQuery(_, _, _, Some(GraphPattern(Vertices(vertices), edgesAndPaths, _)), _, _, _, _, _, _, _, _, _) -> <fail>
+    term@GraphPattern(Vertices(vertices), edgesAndPaths, _) -> <fail>
     with <check-labels-common(|ctx, metadata)> (term, vertices, edgesAndPaths)
 
   nabl-constraint(|ctx, metadata):
