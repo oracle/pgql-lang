@@ -279,7 +279,7 @@ rules // temporary limitation
 
   nabl-constraint(|ctx):
     Path(_, _, pathExpression, quantifier, _, _, goal, _, _) -> <fail>
-    where <?Shortest() + ?Cheapest() + ?Any() + ?All()> goal
+    where <?Shortest() + ?Cheapest() + ?Reaches() + ?All()> goal
         ; <?None() + ?Some(BetweenNAndM("0", "1")); origin-text; ?"?"> quantifier
     with error-term := <?Some(_) <+ !pathExpression; collect-one(?Edge(_, _, _, _, _, _))> quantifier 
        ; if <?All()> goal
