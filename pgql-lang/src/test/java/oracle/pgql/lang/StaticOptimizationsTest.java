@@ -7,12 +7,15 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
 
 import java.util.List;
+import java.util.Set;
 
 import org.junit.Test;
 
+import oracle.pgql.lang.ir.CommonPathExpression;
 import oracle.pgql.lang.ir.ExpAsVar;
 import oracle.pgql.lang.ir.QueryExpression;
 import oracle.pgql.lang.ir.QueryExpression.ExpressionType;
+import oracle.pgql.lang.ir.QueryExpression.Function.Exists;
 import oracle.pgql.lang.ir.SelectQuery;
 
 public class StaticOptimizationsTest extends AbstractPgqlTest {
@@ -102,5 +105,41 @@ public class StaticOptimizationsTest extends AbstractPgqlTest {
         + "         HAVING prop > 10";
     PgqlResult result = pgql.parse(query);
     assertTrue(result.isQueryValid());
+  }
+
+  @Test
+  public void testPredicatePushdownForExistsQuery1() throws Exception {
+    String query = "SELECT id(n) FROM MATCH (n) WHERE EXISTS (SELECT * FROM MATCH (n) -> (m) WHERE m.age > n.age)";
+    SelectQuery selectQuery = (SelectQuery) pgql.parse(query).getGraphQuery();
+    assertEquals(1L, selectQuery.getGraphPattern().getConstraints().size());
+  }
+
+  @Test
+  public void testPredicatePushdownForExistsQuery2() throws Exception {
+    String query = "SELECT COUNT(*) "//
+        + "FROM MATCH (n) -> (m) " //
+        + "WHERE EXISTS ( SELECT * FROM MATCH (n) -> (o) WHERE id(m) <> id(o) )";
+    SelectQuery selectQuery = (SelectQuery) pgql.parse(query).getGraphQuery();
+    Set<QueryExpression> constraints = selectQuery.getGraphPattern().getConstraints();
+    assertEquals(1L, constraints.size());
+    Exists exists = (Exists) constraints.iterator().next();
+    assertEquals(1L, exists.getQuery().getGraphPattern().getConstraints().size());
+  }
+
+  @Test
+  public void testPredicatePushdownForExistsQuery3() throws Exception {
+    String query = "SELECT n.age FROM MATCH (n) " //
+        + "WHERE EXISTS ( SELECT m.age FROM MATCH (n)->(m) GROUP BY m.age, n.name ) ORDER BY n.age";
+    SelectQuery selectQuery = (SelectQuery) pgql.parse(query).getGraphQuery();
+    assertEquals(1L, selectQuery.getGraphPattern().getConstraints().size());
+  }
+
+  @Test
+  public void testPredicatePushdownForExistsQuery4() throws Exception {
+    String query = "PATH p AS (a) -> (b) WHERE EXISTS ( SELECT x FROM MATCH (x) WHERE x.age > b.age ) " //
+        + "SELECT id(n), id(m) " //
+        + "FROM MATCH (n) -/:p/-> (m)";
+    CommonPathExpression commonPathExpression = pgql.parse(query).getGraphQuery().getCommonPathExpressions().get(0);
+    assertEquals(1L, commonPathExpression.getConstraints().size());
   }
 }
