@@ -123,6 +123,12 @@ public class MetadataTest extends AbstractPgqlTest {
   }
 
   @Test
+  public void testLabelNotExistsInSelectClause() throws Exception {
+    PgqlResult result = parse("SELECT MAX(has_label(n, 'NotExists')) FROM MATCH (n)");
+    assertTrue(result.getErrorMessages().contains("Vertex label does not exist"));
+  }
+
+  @Test
   public void testPropertyReferenceInSubquery() throws Exception {
     PgqlResult result = parse("SELECT EXISTS ( SELECT n.firstName FROM MATCH (m) ) FROM MATCH (n:University)");
     assertTrue(result.getErrorMessages().contains("Property does not exist for any of the labels"));
