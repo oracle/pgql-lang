@@ -172,6 +172,13 @@ rules // literals
 
   external has-timezone(|)
 
+  add-type(|metadata, variablesPlusTypes, constraints):
+    t@Interval(_, dateTimeField) -> ExpressionPlusType(t, Type(type))
+    with if <?Year() + ?Month()> dateTimeField
+         then type := "INTERVAL YEAR TO MONTH"
+         else type := "INTERVAL DAY TO SECOND"
+         end
+
 rules // functions
 
   add-type(|metadata, variablesPlusTypes, constraints):

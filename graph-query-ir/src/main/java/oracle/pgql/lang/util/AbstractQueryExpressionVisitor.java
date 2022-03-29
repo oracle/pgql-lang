@@ -42,6 +42,7 @@ import oracle.pgql.lang.ir.QueryExpression.FunctionCall;
 import oracle.pgql.lang.ir.QueryExpression.IfElse;
 import oracle.pgql.lang.ir.QueryExpression.InPredicate;
 import oracle.pgql.lang.ir.QueryExpression.InPredicate.InValueList;
+import oracle.pgql.lang.ir.QueryExpression.Interval;
 import oracle.pgql.lang.ir.QueryExpression.IsNull;
 import oracle.pgql.lang.ir.QueryExpression.Function.Cast;
 import oracle.pgql.lang.ir.QueryExpression.Function.Exists;
@@ -125,6 +126,10 @@ public abstract class AbstractQueryExpressionVisitor implements QueryExpressionV
 
   @Override
   public void visit(ConstTimestampWithTimezone constTimestampWithTimezone) {
+  }
+
+  @Override
+  public void visit(Interval interval) {
   }
 
   @Override
