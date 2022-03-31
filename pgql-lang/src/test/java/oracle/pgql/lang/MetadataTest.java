@@ -675,7 +675,16 @@ public class MetadataTest extends AbstractPgqlTest {
         .contains("The operator + is undefined for the argument types TIME WITH TIME ZONE, TIMESTAMP WITH TIME ZONE"));
 
     result = parse("SELECT DATE '2000-01-01' * INTERVAL '1' DAY FROM MATCH (n)");
-    assertTrue(result.getErrorMessages().contains("The operator * is undefined for the argument types DATE, INTERVAL DAY TO SECOND"));
+    assertTrue(result.getErrorMessages()
+        .contains("The operator * is undefined for the argument types DATE, INTERVAL DAY TO SECOND"));
+
+    result = parse("SELECT DATE '2000-01-01' * INTERVAL '1' MONTH FROM MATCH (n)");
+    assertTrue(result.getErrorMessages()
+        .contains("The operator * is undefined for the argument types DATE, INTERVAL YEAR TO MONTH"));
+
+    result = parse("SELECT DATE '2000-01-01' + INTERVAL '1' MONTH FROM MATCH (n)");
+    System.out.println(result.getErrorMessages());
+    assertTrue(result.isQueryValid());
   }
 
   @Test
