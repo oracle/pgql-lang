@@ -252,7 +252,7 @@ public class ExampleMetadataProvider extends AbstractMetadataProvider {
     switch (typeA) {
       case "DATE":
         switch (typeB) {
-          case "INTERVAL YEAR TO MONTH":
+          case "INTERVAL":
             return Optional.of("DATE");
           default:
             return Optional.empty();
