@@ -36,8 +36,8 @@ rules // CREATE PROPERTY GRAPH
     EdgeTable(name@Name(_, tableName), tableAlias, keyClause, sourceVertexTable, destinationVertexTable, labelAndPropertiesClause)
       -> EdgeTable(name, tableAlias', keyClause, sourceVertexTable', destinationVertexTable', labelAndPropertiesClause')
     with tableAlias' := <normalize-tableAlias(|tableName)> tableAlias
-       ; sourceVertexTable' := <SourceVertexTable(normalize-ReferencedVertexTableKeyClause, id)> sourceVertexTable
-       ; destinationVertexTable' := <DestinationVertexTable(normalize-ReferencedVertexTableKeyClause, id)> destinationVertexTable
+       ; sourceVertexTable' := <origin-track-forced(SourceVertexTable(normalize-ReferencingKeyClause, id))> sourceVertexTable
+       ; destinationVertexTable' := <origin-track-forced(DestinationVertexTable(normalize-ReferencingKeyClause, id))> destinationVertexTable
        ; labelAndPropertiesClause' := <normalize-LabelAndPropertiesClause(|tableAlias')> labelAndPropertiesClause
 
   normalize-tableAlias(|tableName):
@@ -91,10 +91,10 @@ rules // CREATE PROPERTY GRAPH
     ExpAsVar(exp@VarRef(columnName), None()) -> ExpAsVar(exp, propertyName)
     with propertyName := columnName
 
-  normalize-ReferencedVertexTableKeyClause:
-    Some(ReferencedVertexTableKeyClause(keyClause)) -> Some(keyClause)
+  normalize-ReferencingKeyClause:
+    Some(ReferencingKeyClause(keyClause)) -> Some(keyClause)
 
-  normalize-ReferencedVertexTableKeyClause:
+  normalize-ReferencingKeyClause:
     None() -> None()
 
 rules // DROP PROPERTY GRAPH

@@ -497,7 +497,9 @@ rules // MODIFY
        ; <generate-error-on-duplicates(|ctx, "Duplicate vertex table name; use an alias to make the vertex table name unique (table AS alias)")> vertexTableNames
        ; edgeTableNames := <map(?EdgeTable(_, <id>, _, _, _, _); to-identifier-without-origin-info)> edgeTables
        ; <generate-error-on-duplicates(|ctx, "Duplicate edge table name; use an alias to make the edge table name unique (table AS alias)")> edgeTableNames
-       ; vertexTableReferences := <collect((?SourceVertexTable(_, Name(_, <id>)) + ?DestinationVertexTable(_, Name(_, <id>))); to-identifier-without-origin-info)> edgeTables
+       ; vertexTableReferences := <collect(( ?SourceVertexTable(_, ReferencedVertexTable(Name(_, <id>), _)) +
+                                             ?DestinationVertexTable(_, ReferencedVertexTable(Name(_, <id>), _))
+                                           ); to-identifier-without-origin-info)> edgeTables
        ; unresolvedVertexTableReferences := <diff> (vertexTableReferences, vertexTableNames)
        ; <batch-generate-error(|ctx, "Undefined vertex table")> unresolvedVertexTableReferences
 
@@ -511,9 +513,13 @@ rules // MODIFY
        ; <batch-generate-error(|ctx, "Alias required (.. AS name)")> complexExpressionsWithoutAlias
 
   nabl-constraint(|ctx):
-    t -> <fail>
-    where <?SourceVertexTable(_, Name(Some(schemaName), _)) + ?DestinationVertexTable(_, Name(Some(schemaName), _))> t
+    ReferencedVertexTable(Name(Some(schemaName), _), _) -> <fail>
     with <generate-error(|ctx, "Schema name not allowed here")> schemaName
+
+  nabl-constraint(|ctx):
+    t -> <fail>
+    where <?SourceVertexTable(None(), ReferencedVertexTable(_, Some(_))) + ?DestinationVertexTable(None(), ReferencedVertexTable(_, Some(_)))> t
+    with <generate-error(|ctx, "Referenced column list provided but no KEY clause specified")> t
 
 // LISTAGG
 

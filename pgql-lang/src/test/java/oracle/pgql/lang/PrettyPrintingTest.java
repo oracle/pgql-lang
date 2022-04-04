@@ -505,6 +505,18 @@ public class PrettyPrintingTest extends AbstractPgqlTest {
   }
 
   @Test
+  public void testReferencedVertexTableKeyInCreatePropertyGraph() throws Exception {
+    String statement = "CREATE PROPERTY GRAPH hr " + //
+        "  VERTEX TABLES ( employees ) " + //
+        "  EDGE TABLES ( " + //
+        "    employees AS works_for " + //
+        "      SOURCE KEY ( employee_id ) REFERENCES employees ( employee_id ) " + //
+        "      DESTINATION KEY ( manager_id ) REFERENCES employees ( employee_id ) " + //
+        "  )";
+    checkRoundTrip(statement);
+  }
+
+  @Test
   public void testCreatePropertyGraphPgView() throws Exception {
     String statement = "CREATE PROPERTY GRAPH STUDENT_NETWORK\n" + //
         "  VERTEX TABLES (\n" + //

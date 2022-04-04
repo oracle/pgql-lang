@@ -65,11 +65,13 @@ public class TranslateCreatePropertyGraph {
 
   private static int SOURCE_VERTEX_KEY = 0;
 
-  private static int SOURCE_VERTEX_TABLE_NAME = 1;
-
   private static int DESTINATION_VERTEX_KEY = 0;
 
-  private static int DESTINATION_VERTEX_TABLE_NAME = 1;
+  private static int REFERENCED_VERTEX_TABLE = 1;
+
+  private static int REFERENCED_VERTEX_TABLE_NAME = 0;
+
+  private static int REFERENCED_VERTEX_TABLE_COLUMN_LIST = 1;
 
   private static int LABEL_AND_PROPERTIES_CLAUSE_LABEL_AND_PROPERTIES_LIST = 0;
 
@@ -134,17 +136,21 @@ public class TranslateCreatePropertyGraph {
 
       IStrategoTerm sourceVertexTableT = edgeTableT.getSubterm(EDGE_TABLE_SOURCE_VERTEX_TABLE);
       Key edgeSourceKey = getKey(sourceVertexTableT.getSubterm(SOURCE_VERTEX_KEY));
-      IStrategoTerm sourceVertexTableNameT = sourceVertexTableT.getSubterm(SOURCE_VERTEX_TABLE_NAME);
+      IStrategoTerm referencedSourceVertexTable = sourceVertexTableT.getSubterm(REFERENCED_VERTEX_TABLE);
+      IStrategoTerm sourceVertexTableNameT = referencedSourceVertexTable.getSubterm(REFERENCED_VERTEX_TABLE_NAME);
       String sourceVertexTableName = getSchemaQualifiedName(sourceVertexTableNameT).getName();
       VertexTable sourceVertexTable = getVertexTable(vertexTables, sourceVertexTableName);
-      Key sourceVertexKey = null; // not supported for now
+      Key sourceVertexKey = getKey(referencedSourceVertexTable.getSubterm(REFERENCED_VERTEX_TABLE_COLUMN_LIST));
 
       IStrategoTerm destinationVertexTableT = edgeTableT.getSubterm(EDGE_TABLE_DESTINATION_VERTEX_TABLE);
       Key edgeDestinationKey = getKey(destinationVertexTableT.getSubterm(DESTINATION_VERTEX_KEY));
-      IStrategoTerm destinationVertexTableNameT = destinationVertexTableT.getSubterm(DESTINATION_VERTEX_TABLE_NAME);
+      IStrategoTerm referencedDestinationVertexTable = destinationVertexTableT.getSubterm(REFERENCED_VERTEX_TABLE);
+      IStrategoTerm destinationVertexTableNameT = referencedDestinationVertexTable
+          .getSubterm(REFERENCED_VERTEX_TABLE_NAME);
       String destinationVertexTableName = getSchemaQualifiedName(destinationVertexTableNameT).getName();
       VertexTable destinationVertexTable = getVertexTable(vertexTables, destinationVertexTableName);
-      Key destinationVertexKey = null; // not supported for now
+      Key destinationVertexKey = getKey(
+          referencedDestinationVertexTable.getSubterm(REFERENCED_VERTEX_TABLE_COLUMN_LIST));
 
       List<Label> labels = getLabels(edgeTableT.getSubterm(EDGE_TABLE_LABEL_AND_PROPERTIES));
       result.add(new EdgeTable(tableName, tableAlias, edgeKey, sourceVertexTable, edgeSourceKey, sourceVertexKey,

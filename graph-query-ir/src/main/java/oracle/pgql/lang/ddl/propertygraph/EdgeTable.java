@@ -132,23 +132,23 @@ public class EdgeTable extends ElementTable {
   }
 
   private String printSource() {
-    return "\n      SOURCE " + printVertexTableReference(edgeSourceKey, sourceVertexTable)
-        + printKeyForReferencedVertexTable(sourceVertexKey);
+    return "\n      SOURCE " + printVertexTableReference(edgeSourceKey, sourceVertexTable, sourceVertexKey);
   }
 
   private String printDestination() {
-    return "\n      DESTINATION " + printVertexTableReference(edgeDestinationKey, destinationVertexTable)
-        + printKeyForReferencedVertexTable(destinationVertexKey);
+    return "\n      DESTINATION "
+        + printVertexTableReference(edgeDestinationKey, destinationVertexTable, destinationVertexKey);
   }
 
-  private String printVertexTableReference(Key key, VertexTable referencedVertexTable) {
+  private String printVertexTableReference(Key key, VertexTable referencedVertexTable, Key refercedTableKey) {
     String vertexTableName = referencedVertexTable.getTableAlias() == null
         ? referencedVertexTable.getTableName().getName()
         : referencedVertexTable.getTableAlias();
     if (key == null) {
       return printIdentifier(vertexTableName, false);
     } else {
-      return "KEY " + key + " REFERENCES " + printIdentifier(vertexTableName, false);
+      return "KEY " + key + " REFERENCES " + printIdentifier(vertexTableName, false)
+          + printKeyForReferencedVertexTable(refercedTableKey);
     }
   }
 
