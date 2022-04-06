@@ -679,7 +679,6 @@ public class MetadataTest extends AbstractPgqlTest {
         .contains("The operator * is undefined for the argument types DATE, INTERVAL"));
 
     result = parse("SELECT 1 / INTERVAL '1' MONTH FROM MATCH (n)");
-    System.out.println(result.getErrorMessages());
     assertTrue(result.getErrorMessages()
         .contains("The operator / is undefined for the argument types LONG, INTERVAL"));
 
