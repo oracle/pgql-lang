@@ -531,6 +531,14 @@ public class PrettyPrintingTest extends AbstractPgqlTest {
   }
 
   @Test
+  public void testOptionsWithSpaces() throws Exception {
+    String statement = "CREATE PROPERTY GRAPH hr " + //
+        "  VERTEX TABLES ( employees ) " + //
+        "  OPTIONS ( IGNORE EDGE ON MISSING VERTEX ) ";
+    checkRoundTrip(statement);
+  }
+
+  @Test
   public void testDropPropertyGraph() throws Exception {
     String statement = "DROP PROPERTY GRAPH myGraph";
     checkRoundTrip(statement);
