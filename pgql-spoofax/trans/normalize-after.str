@@ -71,8 +71,8 @@ rules
        ; (non-pushed-down-predicates-plus-varRefs, tableExpressions', allNewVariables) := <foldl(try-push-down-predicates(|variablesOuterQuery))> (tableExpressions, (expressions-plus-varRefs, [], []))
        ; non-pushed-down-predicates := <map(?(<id>, _))> non-pushed-down-predicates-plus-varRefs
        ; variablesOuterQuery' := <conc; make-set> (variablesOuterQuery, allNewVariables)
-       ; variablesOuterQuery'' := <conc; make-set> (variablesOuterQuery', <?SelectClause(_, SelectList(<id>)); map(?ExpAsVar(_, _, _, <id>)) <+ ![]> selectOrModifyClause) // add variables from SELECT
-       ; variablesOuterQuery''' := <conc; make-set> (variablesOuterQuery'', <?Some(GroupByClause(<id>)); map(?ExpAsVar(_, _, _, <id>)) <+ ![]> groupBy) // add variables from GROUP BY
+       ; variablesOuterQuery'' := <conc; make-set> (variablesOuterQuery', <?Some(GroupByClause(<id>)); map(?ExpAsVar(_, _, _, <id>)) <+ ![]> groupBy) // add variables from GROUP BY
+       ; variablesOuterQuery''' := <conc; make-set> (variablesOuterQuery'', <?SelectClause(_, SelectList(<id>)); map(?ExpAsVar(_, _, _, <id>)) <+ ![]> selectOrModifyClause) // add variables from SELECT
 
   make-expressions-varRefs-tuple:
     exp -> (exp, offsets)

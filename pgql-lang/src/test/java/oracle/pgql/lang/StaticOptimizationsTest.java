@@ -16,6 +16,7 @@ import oracle.pgql.lang.ir.ExpAsVar;
 import oracle.pgql.lang.ir.QueryExpression;
 import oracle.pgql.lang.ir.QueryExpression.ExpressionType;
 import oracle.pgql.lang.ir.QueryExpression.Function.Exists;
+import oracle.pgql.lang.ir.QueryExpression.ScalarSubquery;
 import oracle.pgql.lang.ir.SelectQuery;
 
 public class StaticOptimizationsTest extends AbstractPgqlTest {
@@ -141,5 +142,19 @@ public class StaticOptimizationsTest extends AbstractPgqlTest {
         + "FROM MATCH (n) -/:p/-> (m)";
     CommonPathExpression commonPathExpression = pgql.parse(query).getGraphQuery().getCommonPathExpressions().get(0);
     assertEquals(1L, commonPathExpression.getConstraints().size());
+  }
+
+  @Test
+  public void testPredicatePushdownAfterGroupBy() throws Exception {
+    String query = "SELECT m.age, ( " + //
+        "  SELECT COUNT(*) " + //
+        "  FROM MATCH (n) " + //
+        "  WHERE m.age = 24 OR m.age = 28 ) " + //
+        "FROM MATCH (m) " + //
+        "GROUP BY m.age";
+    ExpAsVar expAsVar = ((SelectQuery) pgql.parse(query).getGraphQuery()).getProjection().getElements().get(1);
+    ScalarSubquery scalarSubquery = (ScalarSubquery) expAsVar.getExp();
+    Set<QueryExpression> constraints = scalarSubquery.getQuery().getGraphPattern().getConstraints();
+    assertEquals(1L, constraints.size());
   }
 }
