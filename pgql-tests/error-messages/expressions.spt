@@ -8,3 +8,40 @@ test Illegal separator in LISTAGG [[
    MATCH (n) -[e]-> (m)
 
 ]] error like "Only string literals are allowed as separator" at #1, #2
+
+test Illegal date time field [[
+
+  SELECT 1
+    FROM MATCH (n)
+   WHERE n.prop + INTERVAL '2' [[years]] > n.prop2
+     AND n.prop + INTERVAL '2' [[MONTHS]] > n.prop2
+     AND n.prop + INTERVAL '2' [[days]] > n.prop2
+     AND n.prop + INTERVAL '2' [[HOURS]] > n.prop2
+     AND n.prop + INTERVAL '2' [[minutes]] > n.prop2
+     AND n.prop + INTERVAL '2' [[SECONDS]] > n.prop2
+
+]] error like "Expecting one of YEAR, MONTH, DAY, HOUR, MINUTE, SECOND" at #1, #2, #3, #4, #5, #6
+
+test Illegal date time value [[
+
+  SELECT 1
+    FROM MATCH (n)
+   WHERE n.prop + INTERVAL [['2.0']] YEAR > n.prop2
+     AND n.prop + INTERVAL [['-1']] YEAR > n.prop2
+     AND n.prop + INTERVAL [['12']] MONTH > n.prop2
+     AND n.prop + INTERVAL [['-1']] MONTH > n.prop2
+     AND n.prop + INTERVAL [['2.0']] DAY > n.prop2
+     AND n.prop + INTERVAL [['-1']] DAY > n.prop2
+     AND n.prop + INTERVAL [['-1']] HOUR > n.prop2
+     AND n.prop + INTERVAL [['24']] HOUR > n.prop2
+     AND n.prop + INTERVAL [['-1']] MINUTE > n.prop2
+     AND n.prop + INTERVAL [['60']] MINUTE > n.prop2
+     AND n.prop + INTERVAL [['-0.0001']] SECOND > n.prop2
+     AND n.prop + INTERVAL [['2E3']] SECOND > n.prop2
+     AND n.prop + INTERVAL [['60.0']] SECOND > n.prop2
+
+]] error like "Number 0 or greater expected" at #1, #2, #5, #6
+   error like "Number between 0 and 11 expected" at #3, #4
+   error like "Number between 0 and 23 expected" at #7, #8
+   error like "Number between 0 and 59 expected" at #9, #10
+   error like "Number between 0 and 59.999... expected" at #11, #12, #13

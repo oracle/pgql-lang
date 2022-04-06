@@ -279,8 +279,7 @@ public class CommonTranslationUtil {
         }
       case "Interval":
         String value = getString(t.getSubterm(POS_INTERVAL_VALUE));
-        DateTimeField dateTimeField = DateTimeField.valueOf(
-            ((IStrategoAppl) t.getSubterm(POS_INTERVAL_DATETIME_FIELD)).getConstructor().getName().toUpperCase());
+        DateTimeField dateTimeField = DateTimeField.valueOf(getString(t.getSubterm(POS_INTERVAL_DATETIME_FIELD)));
         return new Interval(value, dateTimeField);
       case "VarRef":
         QueryVariable var = getVariable(ctx, t);

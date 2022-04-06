@@ -59,8 +59,10 @@ rules
                        ); conc> ast;
       result := <
         alltd(norm-pgql10);
-      	alltd(norm-BindVariable(|bindVariable-counter));
-      	alltd(norm-UMin);
+        alltd(
+          norm-BindVariable(|bindVariable-counter) +
+          norm-UMin +
+          norm-DateTimeField);
         innermost(
           norm-NOT +
           norm-NEQ +
@@ -287,6 +289,8 @@ rules
         ; type'' := <try(origin-track-forced(!metadata; fetch-elem(?DataTypeSynonyms(<id>)); fetch-elem(?DataTypeSynonym(type', <id>))))> type'
 
   norm-isNull = ?IsNotNull(exp); origin-track-forced(!IsNull(exp)); !Not(<id>)
+
+  norm-DateTimeField = DateTimeField(origin-track-forced(upper-case))
 
   norm-case:
     t@SimpleCase(caseOperand, whenClauses, elseClause) -> SimpleCase(caseOperand, whenClauses, elseClause, ifElseRepresentation)
