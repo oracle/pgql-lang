@@ -35,6 +35,7 @@ lexical syntax
   DELIMITED-IDENTIFIER-ESCAPE-CHAR = '\\"' | '""'
 
   DATA-TYPE            = [a-zA-Z][a-zA-Z0-9\_\(\)\,]* (' ' [a-zA-Z][a-zA-Z0-9\_]*)*
+  OPTION               = [a-zA-Z][a-zA-Z0-9\_]* (' ' [a-zA-Z][a-zA-Z0-9\_]*)*
 
   FUNCTION-NAME = REGULAR-IDENTIFIER
 

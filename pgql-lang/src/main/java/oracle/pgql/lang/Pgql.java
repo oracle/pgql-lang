@@ -139,6 +139,7 @@ public class Pgql implements Closeable {
 
       // initialize a new Spoofax
       spoofax = new Spoofax(spoofaxModule);
+      spoofax.configureAsHeadlessApplication(); // prevents the class loader from getting stuck for certain versions of macOS
 
       // copy the PGQL Spoofax binary to the local file system.
       // IMPORTANT: don't replace this with resolveFile("res:...") or resolve("res:...") because VFS will fail to
