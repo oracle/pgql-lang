@@ -14,11 +14,12 @@ imports
 rules
 
   add-types = not(?AstPlusMetadata(_, _)) <+ // we don't perform any type anlaysis for DDL for now
-              ?AstPlusMetadata(ast, metadata); !ast; add-types-to-query(|metadata, [], []); !AstPlusMetadata(<id>, metadata)
+              ?AstPlusMetadata(ast, metadata); !ast; add-types-to-query(|metadata, [], []); ?(<id>, _); !AstPlusMetadata(<id>, metadata)
 
   add-types-to-query(|metadata, variablesPlusTypes, constraintsFromOuterQuery):
       NormalizedQuery(CommonPathExpressions(pathExpressions), selectOrModifyClause, optionalGraphName, tableExpressions, whereClause, groupBy, having, orderBy, limitOffsets, error-messages, version, bindVariableCount, selectingAllVariables) ->
-        NormalizedQuery(CommonPathExpressions(pathExpressions'), selectOrModifyClause', optionalGraphName, tableExpressions', whereClause', groupBy', having', orderBy', limitOffsets, error-messages, version, bindVariableCount, selectingAllVariables)
+        ( NormalizedQuery(CommonPathExpressions(pathExpressions'), selectOrModifyClause', optionalGraphName, tableExpressions', whereClause', groupBy', having', orderBy', limitOffsets, error-messages, version, bindVariableCount, selectingAllVariables)
+        , variablesPlusTypes''')
     with // PATH
          pathExpressions' := <map(add-types-to-path-expression(|metadata))> pathExpressions
 
@@ -70,12 +71,14 @@ rules
        ; result' := <conc> (result, [graphPattern'])
 
   add-type-to-table-expression(|metadata):
-    (derivedTable@DerivedTable(lateral, subquery@Subquery(normalizedQuery)), (result, variablesPlusTypes, constraints)) -> (result', variablesPlusTypes', constraints')
-    with normalizedQuery' := <add-types-to-query(|metadata, variablesPlusTypes, constraints)> normalizedQuery
+    (derivedTable@DerivedTable(lateral, subquery@Subquery(normalizedQuery)), (result, variablesPlusTypes, constraints)) -> (result', variablesPlusTypes''', constraints')
+    with (normalizedQuery', variablesPlusTypes') := <add-types-to-query(|metadata, variablesPlusTypes, constraints)> normalizedQuery
        ; subquery' := <origin-track-forced(!Subquery(normalizedQuery'))> subquery
        ; derivedTable' := <origin-track-forced(!DerivedTable(lateral, subquery'))> derivedTable
        ; result' := <conc> (result, [derivedTable'])
-       ; variablesPlusTypes' := variablesPlusTypes // TODO: make sure the variables projected from the SELECT clause are included here
+       ; variablesPlusTypes'' := < ?NormalizedQuery(_, SelectClause(_, SelectList(<id>)), _, _, _, _, _, _, _, _, _, _, _)
+                                 ; map(expAsVar-to-variablePlusType(|variablesPlusTypes'))> normalizedQuery'
+       ; variablesPlusTypes''' := <conc> (variablesPlusTypes, variablesPlusTypes'')
        ; constraints' := constraints // TODO: don't we need to add all the label constraints, for type checking?
 
   collect-vertices-with-types(s) = collect-in-outer-query(s; !VariablePlusType(<id>, <id>, Type("VERTEX")))
@@ -242,7 +245,7 @@ rules // subqueries
 
   add-types-to-subquery(|metadata, variablesPlusTypes, constraints):
     query -> (query', type)
-    with query' := <add-types-to-query(|metadata, variablesPlusTypes, constraints)> query
+    with (query', _) := <add-types-to-query(|metadata, variablesPlusTypes, constraints)> query
        ; if <?NormalizedQuery(_, SelectClause(_, SelectList([ExpAsVar(ExpressionPlusType(_, Type(t)), _, _, _)])), _, _, _, _, _, _, _, _, _, _, _)> query'
          then type := Type(t)
          else type := UnknownType()
