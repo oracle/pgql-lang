@@ -3,11 +3,19 @@
  */
 package oracle.pgql.lang.ir;
 
+import java.util.Collections;
 import java.util.List;
 
 public class SelectQuery extends GraphQuery {
 
   private Projection projection;
+
+  public SelectQuery(List<CommonPathExpression> commonPathExpressions, Projection projection,
+      SchemaQualifiedName graphName, List<TableExpression> tableExpressions, GroupBy groupBy, QueryExpression having,
+      OrderBy orderBy, QueryExpression limit, QueryExpression offset) {
+    super(commonPathExpressions, graphName, tableExpressions, groupBy, having, orderBy, limit, offset);
+    this.projection = projection;
+  }
 
   /**
    * @deprecated use the constructor with schema-qualified graph name
@@ -21,13 +29,14 @@ public class SelectQuery extends GraphQuery {
   }
 
   /**
-   * Constructor
+   * @deprecated use the constructor with an arbitrary number of table expression in FROM clause
    */
+  @Deprecated
   public SelectQuery(List<CommonPathExpression> commonPathExpressions, Projection projection,
       SchemaQualifiedName graphName, GraphPattern graphPattern, GroupBy groupBy, QueryExpression having,
       OrderBy orderBy, QueryExpression limit, QueryExpression offset) {
-    super(commonPathExpressions, graphName, graphPattern, groupBy, having, orderBy, limit, offset);
-    this.projection = projection;
+    this(commonPathExpressions, projection, graphName, Collections.singletonList(graphPattern), groupBy, having,
+        orderBy, limit, offset);
   }
 
   @Override

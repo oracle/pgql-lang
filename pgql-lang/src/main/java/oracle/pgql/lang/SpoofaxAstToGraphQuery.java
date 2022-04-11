@@ -8,6 +8,7 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.Iterator;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
@@ -43,6 +44,7 @@ import oracle.pgql.lang.ir.QueryVertex;
 import oracle.pgql.lang.ir.SchemaQualifiedName;
 import oracle.pgql.lang.ir.SelectQuery;
 import oracle.pgql.lang.ir.PgqlStatement;
+import oracle.pgql.lang.ir.TableExpression;
 import oracle.pgql.lang.ir.VertexPairConnection;
 import oracle.pgql.lang.ir.modify.DeleteClause;
 import oracle.pgql.lang.ir.modify.EdgeInsertion;
@@ -217,31 +219,21 @@ public class SpoofaxAstToGraphQuery {
     // graph pattern
     IStrategoList tableExpressionsT = (IStrategoList) ast.getSubterm(POS_TABLE_EXPRESSIONS);
 
-    GraphPattern graphPattern;
-    if (tableExpressionsT.isEmpty()) {
-      graphPattern = null;
-    } else {
-      IStrategoTerm graphPatternT = tableExpressionsT.iterator().next(); // TODO: handle multiple table expressions
-
-      // vertices
-      IStrategoTerm verticesT = getList(graphPatternT.getSubterm(POS_VERTICES));
-      Set<QueryVertex> vertices = new HashSet<>(getQueryVertices(verticesT, ctx));
-      Map<String, QueryVertex> vertexMap = new HashMap<>();
-      vertices.stream().forEach(vertex -> vertexMap.put(vertex.getName(), vertex));
-
-      // connections
-      IStrategoTerm connectionsT = getList(graphPatternT.getSubterm(POS_CONNECTIONS));
-      LinkedHashSet<VertexPairConnection> connections = getConnections(connectionsT, ctx, vertexMap);
-
-      giveAnonymousVariablesUniqueHiddenName(vertices, ctx);
-      giveAnonymousVariablesUniqueHiddenName(connections, ctx);
-
-      // constraints
-      IStrategoTerm constraintsT = getList(graphPatternT.getSubterm(POS_CONSTRAINTS));
-      LinkedHashSet<QueryExpression> constraints = getQueryExpressions(constraintsT, ctx);
-
-      // graph pattern
-      graphPattern = new GraphPattern(vertices, connections, constraints);
+    List<TableExpression> tableExpressions = new ArrayList<>();
+    Iterator<IStrategoTerm> it = tableExpressionsT.iterator();
+    while (it.hasNext()) {
+      IStrategoAppl tableExpressionT = (IStrategoAppl) it.next();
+      String constructorName = tableExpressionT.getConstructor().getName();
+      switch (constructorName) {
+        case "GraphPattern":
+          GraphPattern graphPattern = translateGraphPattern(ctx, tableExpressionT);
+          tableExpressions.add(graphPattern);
+          break;
+        case "DerivedTable":
+          throw new UnsupportedOperationException();
+        default:
+          throw new IllegalStateException(constructorName + " not supported");
+      }
     }
 
     // GROUP BY
@@ -288,14 +280,39 @@ public class SpoofaxAstToGraphQuery {
 
     switch (selectOrUpdate) {
       case "SelectClause":
-        return new SelectQuery(commonPathExpressions, projection, graphName, graphPattern, groupBy, having, orderBy,
+        return new SelectQuery(commonPathExpressions, projection, graphName, tableExpressions, groupBy, having, orderBy,
             limit, offset);
       case "ModifyClause":
-        return new ModifyQuery(commonPathExpressions, modifications, graphName, graphPattern, groupBy, having, orderBy,
-            limit, offset);
+        return new ModifyQuery(commonPathExpressions, modifications, graphName, tableExpressions, groupBy, having,
+            orderBy, limit, offset);
       default:
         throw new IllegalStateException(selectOrUpdate);
     }
+  }
+
+  private static GraphPattern translateGraphPattern(TranslationContext ctx, IStrategoTerm graphPatternT)
+      throws PgqlException {
+    GraphPattern graphPattern;
+    // vertices
+    IStrategoTerm verticesT = getList(graphPatternT.getSubterm(POS_VERTICES));
+    Set<QueryVertex> vertices = new HashSet<>(getQueryVertices(verticesT, ctx));
+    Map<String, QueryVertex> vertexMap = new HashMap<>();
+    vertices.stream().forEach(vertex -> vertexMap.put(vertex.getName(), vertex));
+
+    // connections
+    IStrategoTerm connectionsT = getList(graphPatternT.getSubterm(POS_CONNECTIONS));
+    LinkedHashSet<VertexPairConnection> connections = getConnections(connectionsT, ctx, vertexMap);
+
+    giveAnonymousVariablesUniqueHiddenName(vertices, ctx);
+    giveAnonymousVariablesUniqueHiddenName(connections, ctx);
+
+    // constraints
+    IStrategoTerm constraintsT = getList(graphPatternT.getSubterm(POS_CONSTRAINTS));
+    LinkedHashSet<QueryExpression> constraints = getQueryExpressions(constraintsT, ctx);
+
+    // graph pattern
+    graphPattern = new GraphPattern(vertices, connections, constraints);
+    return graphPattern;
   }
 
   private static Projection translateSelectClause(TranslationContext ctx, IStrategoTerm selectOrUpdateT)

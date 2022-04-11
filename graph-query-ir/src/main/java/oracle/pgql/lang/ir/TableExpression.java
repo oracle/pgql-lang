@@ -3,7 +3,7 @@
  */
 package oracle.pgql.lang.ir;
 
-interface TableExpression {
+public interface TableExpression {
 
   TableExpressionType getTableExpressionType();
 }

@@ -3,6 +3,7 @@
  */
 package oracle.pgql.lang.ir.modify;
 
+import java.util.Collections;
 import java.util.List;
 
 import oracle.pgql.lang.ir.CommonPathExpression;
@@ -16,6 +17,7 @@ import oracle.pgql.lang.ir.QueryExpressionVisitor;
 import oracle.pgql.lang.ir.QueryType;
 import oracle.pgql.lang.ir.SchemaQualifiedName;
 import oracle.pgql.lang.ir.StatementType;
+import oracle.pgql.lang.ir.TableExpression;
 
 public class ModifyQuery extends GraphQuery {
 
@@ -24,10 +26,21 @@ public class ModifyQuery extends GraphQuery {
   private List<Modification> modifications;
 
   public ModifyQuery(List<CommonPathExpression> commonPathExpressions, List<Modification> modifications,
+      SchemaQualifiedName graphName, List<TableExpression> tableExpressions, GroupBy groupBy, QueryExpression having,
+      OrderBy orderBy, QueryExpression limit, QueryExpression offset) {
+    super(commonPathExpressions, graphName, tableExpressions, groupBy, having, orderBy, limit, offset);
+    this.modifications = modifications;
+  }
+
+  /**
+   * @deprecated use the constructor with an arbitrary number of table expression in FROM clause
+   */
+  @Deprecated
+  public ModifyQuery(List<CommonPathExpression> commonPathExpressions, List<Modification> modifications,
       SchemaQualifiedName graphName, GraphPattern graphPattern, GroupBy groupBy, QueryExpression having,
       OrderBy orderBy, QueryExpression limit, QueryExpression offset) {
-    super(commonPathExpressions, graphName, graphPattern, groupBy, having, orderBy, limit, offset);
-    this.modifications = modifications;
+    this(commonPathExpressions, modifications, graphName, Collections.singletonList(graphPattern), groupBy, having,
+        orderBy, limit, offset);
   }
 
   @Override

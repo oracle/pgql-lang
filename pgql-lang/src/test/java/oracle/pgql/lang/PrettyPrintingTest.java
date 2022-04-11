@@ -15,6 +15,7 @@ import oracle.pgql.lang.ir.QueryExpression.FunctionCall;
 import oracle.pgql.lang.ir.QueryExpression.PropertyAccess;
 import oracle.pgql.lang.ir.SelectQuery;
 import oracle.pgql.lang.ir.ExpAsVar;
+import oracle.pgql.lang.ir.GraphPattern;
 import oracle.pgql.lang.ir.PgqlStatement;
 
 public class PrettyPrintingTest extends AbstractPgqlTest {
@@ -171,7 +172,8 @@ public class PrettyPrintingTest extends AbstractPgqlTest {
 
     assertEquals(identifier, selectQuery.getGraphName().getName());
 
-    FunctionCall funcCall = (FunctionCall) selectQuery.getGraphPattern().getConstraints().iterator().next();
+    GraphPattern graphPattern = (GraphPattern) selectQuery.getTableExpressions().get(0);
+    FunctionCall funcCall = (FunctionCall) graphPattern.getConstraints().iterator().next();
     assertEquals(funcCall.getFunctionName(), "has_label");
     String label = ((ConstString) funcCall.getArgs().get(1)).getValue();
     assertEquals(identifier, label);

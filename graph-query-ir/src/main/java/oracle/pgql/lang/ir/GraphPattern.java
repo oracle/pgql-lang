@@ -8,7 +8,7 @@ import java.util.Set;
 
 import static oracle.pgql.lang.ir.PgqlUtils.printPgqlString;
 
-public class GraphPattern {
+public class GraphPattern implements TableExpression {
 
   private Set<QueryVertex> vertices;
 
@@ -56,6 +56,11 @@ public class GraphPattern {
 
   public void setConstraints(Set<QueryExpression> constraints) {
     this.constraints = constraints;
+  }
+
+  @Override
+  public TableExpressionType getTableExpressionType() {
+    return TableExpressionType.GRAPH_PATTERN;
   }
 
   @Override

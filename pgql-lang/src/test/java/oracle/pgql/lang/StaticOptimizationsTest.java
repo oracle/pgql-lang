@@ -157,4 +157,14 @@ public class StaticOptimizationsTest extends AbstractPgqlTest {
     Set<QueryExpression> constraints = scalarSubquery.getQuery().getGraphPattern().getConstraints();
     assertEquals(1L, constraints.size());
   }
+
+  @Test
+  public void testPredicatePushDownLateral() throws Exception {
+    String query = "SELECT m.prop AS m_prop, n_prop " + //
+        "FROM MATCH (m) " + //
+        "   , LATERAL ( SELECT n.prop AS n_prop FROM MATCH (n) -> (m)  ) " + //
+        "WHERE n_prop > 4 AND m_prop > 4";
+
+    ExpAsVar expAsVar = ((SelectQuery) pgql.parse(query).getGraphQuery()).getProjection().getElements().get(1);
+  }
 }

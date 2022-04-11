@@ -7,13 +7,13 @@ import java.util.List;
 
 import static oracle.pgql.lang.ir.PgqlUtils.printPgqlString;
 
-public abstract class GraphQuery implements PgqlStatement, TableExpression {
+public abstract class GraphQuery implements PgqlStatement {
 
   private List<CommonPathExpression> commonPathExpressions;
 
   private SchemaQualifiedName graphName;
 
-  private GraphPattern graphPattern;
+  private List<TableExpression> tableExpressions;
 
   private GroupBy groupBy;
 
@@ -29,11 +29,11 @@ public abstract class GraphQuery implements PgqlStatement, TableExpression {
    * Constructor
    */
   protected GraphQuery(List<CommonPathExpression> commonPathExpressions, SchemaQualifiedName graphName,
-      GraphPattern graphPattern, GroupBy groupBy, QueryExpression having, OrderBy orderBy, QueryExpression limit,
-      QueryExpression offset) {
+      List<TableExpression> tableExpressions, GroupBy groupBy, QueryExpression having, OrderBy orderBy,
+      QueryExpression limit, QueryExpression offset) {
     this.commonPathExpressions = commonPathExpressions;
     this.graphName = graphName;
-    this.graphPattern = graphPattern;
+    this.tableExpressions = tableExpressions;
     this.groupBy = groupBy;
     this.having = having;
     this.orderBy = orderBy;
@@ -42,11 +42,6 @@ public abstract class GraphQuery implements PgqlStatement, TableExpression {
   }
 
   public abstract QueryType getQueryType();
-
-  @Override
-  public TableExpressionType getTableExpressionType() {
-    return TableExpressionType.GRAPH_PATTERN;
-  }
 
   public List<CommonPathExpression> getCommonPathExpressions() {
     return commonPathExpressions;
@@ -96,12 +91,30 @@ public abstract class GraphQuery implements PgqlStatement, TableExpression {
     this.graphName = graphName;
   }
 
+  /**
+   * @deprecated use {@link #getTableExpressions()} instead
+   */
+  @Deprecated
   public GraphPattern getGraphPattern() {
-    return graphPattern;
+    guaranteeQueryHasSingleGraphPattern();
+    return (GraphPattern) tableExpressions.get(0);
   }
 
+  /**
+   * @deprecated use {@link #setTableExpressions()} instead
+   */
+  @Deprecated
   public void setGraphPattern(GraphPattern graphPattern) {
-    this.graphPattern = graphPattern;
+    guaranteeQueryHasSingleGraphPattern();
+    this.tableExpressions.set(0, graphPattern);
+  }
+
+  public List<TableExpression> getTableExpressions() {
+    return tableExpressions;
+  }
+
+  public void setTableExpressions(List<TableExpression> tableExpressions) {
+    this.tableExpressions = tableExpressions;
   }
 
   public GroupBy getGroupBy() {
@@ -168,10 +181,10 @@ public abstract class GraphQuery implements PgqlStatement, TableExpression {
         return false;
     } else if (!commonPathExpressions.equals(other.commonPathExpressions))
       return false;
-    if (graphPattern == null) {
-      if (other.graphPattern != null)
+    if (graphName == null) {
+      if (other.graphName != null)
         return false;
-    } else if (!graphPattern.equals(other.graphPattern))
+    } else if (!graphName.equals(other.graphName))
       return false;
     if (groupBy == null) {
       if (other.groupBy != null)
@@ -182,11 +195,6 @@ public abstract class GraphQuery implements PgqlStatement, TableExpression {
       if (other.having != null)
         return false;
     } else if (!having.equals(other.having))
-      return false;
-    if (graphName == null) {
-      if (other.graphName != null)
-        return false;
-    } else if (!graphName.equals(other.graphName))
       return false;
     if (limit == null) {
       if (other.limit != null)
@@ -203,8 +211,20 @@ public abstract class GraphQuery implements PgqlStatement, TableExpression {
         return false;
     } else if (!orderBy.equals(other.orderBy))
       return false;
+    if (tableExpressions == null) {
+      if (other.tableExpressions != null)
+        return false;
+    } else if (!tableExpressions.equals(other.tableExpressions))
+      return false;
     return true;
   }
 
   public abstract void accept(QueryExpressionVisitor v);
+
+  private void guaranteeQueryHasSingleGraphPattern() {
+    if (tableExpressions.size() != 1
+        || tableExpressions.get(0).getTableExpressionType() != TableExpressionType.GRAPH_PATTERN) {
+      throw new UnsupportedOperationException("Subqueries in FROM clause not supported");
+    }
+  }
 }
