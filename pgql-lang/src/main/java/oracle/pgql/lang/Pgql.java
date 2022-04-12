@@ -289,7 +289,7 @@ public class Pgql implements Closeable {
           return new PgqlResult(queryString, queryValid, prettyMessages, statement, parseResult, LATEST_VERSION, 0,
               false, metadataProvider);
         } else {
-          System.out.println(e);
+          e.printStackTrace();
           LOG.debug("Translation of PGQL failed because of semantically invalid AST");
         }
       }

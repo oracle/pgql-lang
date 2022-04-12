@@ -12,6 +12,7 @@ import java.util.Set;
 import org.junit.Test;
 
 import oracle.pgql.lang.ir.CommonPathExpression;
+import oracle.pgql.lang.ir.DerivedTable;
 import oracle.pgql.lang.ir.ExpAsVar;
 import oracle.pgql.lang.ir.QueryExpression;
 import oracle.pgql.lang.ir.QueryExpression.ExpressionType;
@@ -163,8 +164,14 @@ public class StaticOptimizationsTest extends AbstractPgqlTest {
     String query = "SELECT m.prop AS m_prop, n_prop " + //
         "FROM MATCH (m) " + //
         "   , LATERAL ( SELECT n.prop AS n_prop FROM MATCH (n) -> (m)  ) " + //
-        "WHERE n_prop > 4 AND m_prop > 4";
+        "WHERE n_prop > 4 AND m_prop > 4 AND m.prop2 > 4";
 
-    ExpAsVar expAsVar = ((SelectQuery) pgql.parse(query).getGraphQuery()).getProjection().getElements().get(1);
+    SelectQuery outerQuery = (SelectQuery) pgql.parse(query).getGraphQuery();
+    Set<QueryExpression> constraintsOuterQuery = outerQuery.getGraphPattern().getConstraints();
+    assertEquals(2L, constraintsOuterQuery.size());
+
+    SelectQuery innerQuery = ((DerivedTable) outerQuery.getTableExpressions().get(1)).getQuery();
+    Set<QueryExpression> constraintsInnerQuery = innerQuery.getGraphPattern().getConstraints();
+    assertEquals(1L, constraintsInnerQuery.size());
   }
 }

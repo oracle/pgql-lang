@@ -91,21 +91,17 @@ public abstract class GraphQuery implements PgqlStatement {
     this.graphName = graphName;
   }
 
-  /**
-   * @deprecated use {@link #getTableExpressions()} instead
-   */
-  @Deprecated
   public GraphPattern getGraphPattern() {
-    guaranteeQueryHasSingleGraphPattern();
-    return (GraphPattern) tableExpressions.get(0);
+    guaranteeQueryHasAtMostSingleGraphPattern();
+    if (tableExpressions.isEmpty()) {
+      return null;
+    } else {
+      return (GraphPattern) tableExpressions.get(0);
+    }
   }
 
-  /**
-   * @deprecated use {@link #setTableExpressions()} instead
-   */
-  @Deprecated
   public void setGraphPattern(GraphPattern graphPattern) {
-    guaranteeQueryHasSingleGraphPattern();
+    guaranteeQueryHasAtMostSingleGraphPattern();
     this.tableExpressions.set(0, graphPattern);
   }
 
@@ -221,9 +217,12 @@ public abstract class GraphQuery implements PgqlStatement {
 
   public abstract void accept(QueryExpressionVisitor v);
 
-  private void guaranteeQueryHasSingleGraphPattern() {
-    if (tableExpressions.size() != 1
-        || tableExpressions.get(0).getTableExpressionType() != TableExpressionType.GRAPH_PATTERN) {
+  private void guaranteeQueryHasAtMostSingleGraphPattern() {
+    if (tableExpressions.size() == 0) {
+      return; // INSERT without FROM clause
+    }
+
+    if (tableExpressions.get(0).getTableExpressionType() != TableExpressionType.GRAPH_PATTERN) {
       throw new UnsupportedOperationException("Subqueries in FROM clause not supported");
     }
   }

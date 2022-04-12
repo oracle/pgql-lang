@@ -20,6 +20,7 @@ import org.spoofax.interpreter.terms.IStrategoTerm;
 import org.spoofax.interpreter.terms.TermType;
 
 import oracle.pgql.lang.ir.CommonPathExpression;
+import oracle.pgql.lang.ir.DerivedTable;
 import oracle.pgql.lang.ir.Direction;
 import oracle.pgql.lang.ir.ExpAsVar;
 import oracle.pgql.lang.ir.GraphPattern;
@@ -183,6 +184,10 @@ public class SpoofaxAstToGraphQuery {
 
   private static final int POS_ALLPROPERTIES_VARREF = 0;
 
+  private static final int POS_DERIVED_TABLE_LATERAL = 0;
+  private static final int POS_DERIVED_TABLE_SUBQUERY = 1;
+  private static final int POS_SUBQUERY_QUERY = 0;
+
   public static PgqlStatement translate(IStrategoTerm ast) throws PgqlException {
 
     String constructorName = ((IStrategoAppl) ast).getConstructor().getName();
@@ -230,7 +235,12 @@ public class SpoofaxAstToGraphQuery {
           tableExpressions.add(graphPattern);
           break;
         case "DerivedTable":
-          throw new UnsupportedOperationException();
+          boolean lateral = isSome(tableExpressionT.getSubterm(POS_DERIVED_TABLE_LATERAL));
+          SelectQuery query = (SelectQuery) translate(
+              tableExpressionT.getSubterm(POS_DERIVED_TABLE_SUBQUERY).getSubterm(POS_SUBQUERY_QUERY));
+          DerivedTable derivedTable = new DerivedTable(query, lateral);
+          tableExpressions.add(derivedTable);
+          break;
         default:
           throw new IllegalStateException(constructorName + " not supported");
       }
