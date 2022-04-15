@@ -39,12 +39,12 @@ rules // Unresolved/duplicate variables
     with selectOrModifyClause := <strip-annos> selectOrModifyClauseWithAnnos
        ; tableExpressions := <strip-annos> tableExpressionsWithAnnos
        ; groupClause := <strip-annos> groupClauseWithAnnos
-       ; matchVars := <map(collect-vars-from-table-expression); concat> tableExpressions
+       ; vars := <map(collect-vars-from-table-expression); concat> tableExpressions
        ; if <?Some(_)> groupClause
          then groupVars := <?Some(GroupByClause(<id>)); map(?ExpAsVar(_, Identifier(<id>, _), _, _))> groupClause
          else groupVars := []
          end
-       ; <generate-error-on-duplicates(|ctx, "Duplicate variable")> matchVars
+       ; <generate-error-on-duplicates(|ctx, "Duplicate variable")> vars
        ; <generate-error-on-duplicates(|ctx, "Duplicate column name in GROUP BY")> groupVars
        ; if <?SelectClause(_, _)> selectOrModifyClause
          then selectVars := <collect-om(?ExpAsVar(_, Identifier(<id>, _), _, _), conc)> selectOrModifyClause // for e.g. SELECT n.age, n.AgE
@@ -71,12 +71,12 @@ rules // Unresolved/duplicate variables
          then nonAnonymousGroupVars := <?Some(GroupByClause(<id>)); filter(?ExpAsVar(_, Identifier(<id>, _), NonAnonymous(), _))> groupClause
          else nonAnonymousGroupVars := []
          end
-       ; redefinitions-in-groupBy := <isect> (nonAnonymousGroupVars, matchVars)
-       ; <batch-generate-error(|ctx, "Duplicate variable: variable already defined in the MATCH clause")> redefinitions-in-groupBy
+       ; redefinitions-in-groupBy := <isect> (nonAnonymousGroupVars, vars)
+       ; <batch-generate-error(|ctx, "Duplicate variable: variable already defined in the FROM clause")> redefinitions-in-groupBy
 
        ; if <?None()> groupClause
-         then redefinition-in-modify := <isect> (insertVars, matchVars)
-            ; <batch-generate-error(|ctx, "Duplicate variable: variable already defined in the MATCH clause")> redefinition-in-modify
+         then redefinition-in-modify := <isect> (insertVars, vars)
+            ; <batch-generate-error(|ctx, "Duplicate variable: variable already defined in the FROM clause")> redefinition-in-modify
          else if <?ModifyClause(_)> selectOrModifyClause
               then redefinitions-in-modify := <isect> (insertVars, nonAnonymousGroupVars)
                  ; <batch-generate-error(|ctx, "Duplicate variable: variable already defined in the GROUP BY clause")> redefinitions-in-modify

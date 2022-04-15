@@ -149,7 +149,7 @@ test Redefine variable from WHERE in GROUP BY [[
       FROM g MATCH (n)
   GROUP BY n AS [[n]]
 
-]] error like "Duplicate variable: variable already defined in the MATCH clause" at #1
+]] error like "Duplicate variable: variable already defined in the FROM clause" at #1
 
 test Nested aggregation (1) [[
 

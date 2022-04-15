@@ -207,3 +207,42 @@ test Scalar subquery return vertex or edge [[
     FROM g MATCH (n)
 
 ]] error like "Scalar subquery not allowed to return a vertex or an edge" at #1, #2
+
+test Duplicate variable from derived table (1) [[
+
+  SELECT *
+    FROM MATCH ([[m]])
+       , LATERAL ( SELECT [[m]] FROM MATCH (n:University) )
+
+]] error like "Duplicate variable" at #1, #2
+
+test Duplicate variable from derived table (2) [[
+
+  SELECT *
+    FROM LATERAL ( SELECT [[n]] FROM MATCH (n:University) )
+       , LATERAL ( SELECT [[n]] FROM MATCH (n:University) )
+
+]] error like "Duplicate variable" at #1, #2
+
+test Duplicate variable from derived table (3) [[
+
+  SELECT 1
+    FROM LATERAL (
+           SELECT n.prop AS [[x]]
+             FROM MATCH (n:Person)
+            WHERE n.id = 1 )
+       , LATERAL (
+           SELECT n.prop AS [[x]]
+             FROM MATCH (n:Person)
+            WHERE n.id = 2 )
+
+]] error like "Duplicate variable" at #1, #2
+
+test Duplicate variable from derived table (4) [[
+
+    SELECT 1
+      FROM MATCH (n)
+         , LATERAL ( SELECT m FROM MATCH (m) )
+  GROUP BY n AS [[m]]
+  
+]] error like "Duplicate variable: variable already defined in the FROM clause" at #1
