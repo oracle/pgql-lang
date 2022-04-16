@@ -244,5 +244,13 @@ test Duplicate variable from derived table (4) [[
       FROM MATCH (n)
          , LATERAL ( SELECT m FROM MATCH (m) )
   GROUP BY n AS [[m]]
-  
+
 ]] error like "Duplicate variable: variable already defined in the FROM clause" at #1
+
+test Duplicate variable from derived table (5) [[
+
+  SELECT 1
+    FROM LATERAL ( SELECT m FROM MATCH (m) )
+       , MATCH ANY () -[ [[m]] ]->* ()
+
+]] error like "Duplicate variable" at #1
