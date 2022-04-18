@@ -14,6 +14,7 @@ import org.junit.Test;
 import oracle.pgql.lang.ir.CommonPathExpression;
 import oracle.pgql.lang.ir.DerivedTable;
 import oracle.pgql.lang.ir.ExpAsVar;
+import oracle.pgql.lang.ir.Projection;
 import oracle.pgql.lang.ir.QueryExpression;
 import oracle.pgql.lang.ir.QueryExpression.ExpressionType;
 import oracle.pgql.lang.ir.QueryExpression.Function.Exists;
@@ -173,5 +174,16 @@ public class StaticOptimizationsTest extends AbstractPgqlTest {
     SelectQuery innerQuery = ((DerivedTable) outerQuery.getTableExpressions().get(1)).getQuery();
     Set<QueryExpression> constraintsInnerQuery = innerQuery.getGraphPattern().getConstraints();
     assertEquals(1L, constraintsInnerQuery.size());
+  }
+
+  @Test
+  public void testSelectStarWithLateral() throws Exception {
+    String query = "SELECT * " + //
+        "FROM MATCH (n) " + //
+        "   , LATERAL ( SELECT m, m.prop FROM MATCH (m) ) " + //
+        "   , MATCH (o)";
+
+    Projection projection = ((SelectQuery) pgql.parse(query).getGraphQuery()).getProjection();
+    assertEquals(4L, projection.getElements().size());
   }
 }
