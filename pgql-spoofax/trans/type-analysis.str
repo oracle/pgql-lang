@@ -71,10 +71,10 @@ rules
        ; result' := <conc> (result, [graphPattern'])
 
   add-type-to-table-expression(|metadata, constraints):
-    (derivedTable@DerivedTable(lateral, subquery@Subquery(normalizedQuery)), (result, variablesPlusTypes)) -> (result', variablesPlusTypes''')
+    (derivedTable@DerivedTable(lateral, subquery@Subquery(normalizedQuery), correlation), (result, variablesPlusTypes)) -> (result', variablesPlusTypes''')
     with (normalizedQuery', variablesPlusTypes') := <add-types-to-query(|metadata, variablesPlusTypes, constraints)> normalizedQuery
        ; subquery' := <origin-track-forced(!Subquery(normalizedQuery'))> subquery
-       ; derivedTable' := <origin-track-forced(!DerivedTable(lateral, subquery'))> derivedTable
+       ; derivedTable' := <origin-track-forced(!DerivedTable(lateral, subquery', correlation))> derivedTable
        ; result' := <conc> (result, [derivedTable'])
        ; variablesPlusTypes'' := < ?NormalizedQuery(_, SelectClause(_, SelectList(<id>)), _, _, _, _, _, _, _, _, _, _, _)
                                  ; map(expAsVar-to-variablePlusType(|variablesPlusTypes'))> normalizedQuery'

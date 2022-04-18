@@ -98,10 +98,10 @@ rules
           ; valueExpression'' := <conc> (valueExpressionPriorLateralQueries, valueExpression') // for SELECT n.* we need to have all the label expression
 
   trans-table-expression(|metadata, expAsVars):
-    (derivedTable@DerivedTable(lateral, subquery@Subquery(normalizedQuery)), (result, variables, valueExpressionPriorLateralQueries)) -> (result', variables', valueExpression')
+    (derivedTable@DerivedTable(lateral, subquery@Subquery(normalizedQuery), correlation), (result, variables, valueExpressionPriorLateralQueries)) -> (result', variables', valueExpression')
     with (normalizedQuery', variables-in-projection) := <trans-query(|variables, metadata)> normalizedQuery
        ; subquery' := <origin-track-forced(!Subquery(normalizedQuery'))> subquery
-       ; derivedTable' := <origin-track-forced(!DerivedTable(lateral, subquery'))> derivedTable
+       ; derivedTable' := <origin-track-forced(!DerivedTable(lateral, subquery', correlation))> derivedTable
        ; result' := <conc> (result, [derivedTable'])
        ; <?[x|xs]> variables
        ; variables-in-projection' := <alltd(?ThisQuery(); !LateralQuery())> variables-in-projection

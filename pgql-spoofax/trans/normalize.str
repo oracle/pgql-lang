@@ -682,7 +682,7 @@ rules
   extract-variables-for-select-star = ?GraphPattern(_, _, _)
                                     ; collect-in-outer-query(?Vertex(<id>) + ?NormalizedEdge(_, <id>, _, _, _, _))
 
-  extract-variables-for-select-star = ?DerivedTable(_, Subquery(NormalizedQuery(_, SelectClause(_, SelectList(<id>)), _, _, _, _, _, _, _, _, _, _, _)))
+  extract-variables-for-select-star = ?DerivedTable(_, Subquery(NormalizedQuery(_, SelectClause(_, SelectList(<id>)), _, _, _, _, _, _, _, _, _, _, _)), _)
                                     ; map(?ExpAsVar(_, <id>, _))
 
   generate-ExpAsVar(|star):

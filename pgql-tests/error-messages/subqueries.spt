@@ -261,3 +261,12 @@ test Derived table without LATERAL keyword not supported [[
     FROM [[( SELECT m FROM MATCH (m) )]]
 
 ]] error like "LATERAL keyword expected at start of derived table expression" at #1
+
+test Unsupported correlation name for derived table [[
+
+  SELECT 1
+    FROM LATERAL ( SELECT n FROM MATCH (n) ) [[t1]]
+       , LATERAL ( SELECT m FROM MATCH (m) ) [[AS t2]]
+
+]] error like "Unsupported correlation name for derived table" at #1, #2
+

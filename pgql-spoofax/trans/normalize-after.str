@@ -95,7 +95,7 @@ rules
 
   try-push-down-predicates(|variablesOuterQuery):
     (
-      t@DerivedTable(lateral, Subquery(normalizedQuery@NormalizedQuery(_, SelectClause(_, SelectList(expAsVars)), _, _, Constraints(subquery-constraints), _, _, _, _, _, _, _, _)))
+      t@DerivedTable(lateral, Subquery(normalizedQuery@NormalizedQuery(_, SelectClause(_, SelectList(expAsVars)), _, _, Constraints(subquery-constraints), _, _, _, _, _, _, _, _)), correlation)
     , (remaining-expressions-plus-varRefs, tableExpressions, allVariablesExceptFromOuterQuery)
     ) -> (remaining-expressions-plus-varRefs', tableExpressions', allVariablesExceptFromOuterQuery')
     with new-variables := <map(?ExpAsVar(_, _, _, <id>))> expAsVars
@@ -105,7 +105,7 @@ rules
        ; constraints' := Constraints(<conc> (subquery-constraints, pushed-down-predicates'))
        ; visible-variables-to-lateral-query := <conc; make-set> (variablesOuterQuery, allVariablesExceptFromOuterQuery)
        ; normalizedQuery' := <NormalizedQuery(id, id, id, id, !constraints', id, id, id, id, id, id, id, id); push-down-predicates(|visible-variables-to-lateral-query)> normalizedQuery
-       ; derivedTable := <origin-track-forced(!DerivedTable(lateral, Subquery(normalizedQuery')))> t
+       ; derivedTable := <origin-track-forced(!DerivedTable(lateral, Subquery(normalizedQuery'), correlation))> t
        ; tableExpressions' := <conc> (tableExpressions, [derivedTable])
        ; allVariablesExceptFromOuterQuery' := <conc; make-set> (allVariablesExceptFromOuterQuery, new-variables)
 

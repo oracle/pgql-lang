@@ -75,6 +75,7 @@ context-free syntax
   RowsPerMatch.OneRowPerEdge = <ONE ROW PER EDGE (<Identifier>)> {case-insensitive}
   RowsPerMatch.OneRowPerStep = <ONE ROW PER STEP (<Identifier>, <Identifier>, <Identifier>)> {case-insensitive}
 
-  DerivedTable.DerivedTable = LateralKeyword? TableSubquery
+  DerivedTable.DerivedTable = LateralKeyword? TableSubquery Correlation?
   LateralKeyword.Lateral = <LATERAL> {case-insensitive}
   TableSubquery = Subquery
+  Correlation.Correlation = AsignSymbol? Identifier

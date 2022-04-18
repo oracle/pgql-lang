@@ -207,7 +207,7 @@ rules // subqueries
 
   nabl-constraint(|ctx):
     q@NormalizedQuery(_, _, _, _, _, _, _, _, _, _, _, _, _) -> <fail>
-    with scalarSubqueries := <collect(?Exists(_) + ?DerivedTable(_, _) + ?Subquery(_)); remove-all(?Exists(_) + ?DerivedTable(_, _))> q
+    with scalarSubqueries := <collect(?Exists(_) + ?DerivedTable(_, _, _) + ?Subquery(_)); remove-all(?Exists(_) + ?DerivedTable(_, _, _))> q
        ; multiColumnScalarSubqueries := <filter(is-multi-column-subquery)> scalarSubqueries
        ; zeroColumnScalarSubqueries := <filter(is-zero-column-subquery)> scalarSubqueries
        ; <batch-generate-error(|ctx, "Scalar subquery is expected to return a single column, but multiple columns were returned")> multiColumnScalarSubqueries
@@ -247,8 +247,12 @@ rules // subqueries
     with <generate-error(|ctx, "Scalar subquery not allowed to return a vertex or an edge")> exp
 
   nabl-constraint(|ctx):
-    t@DerivedTable(None(), _) -> <fail>
+    t@DerivedTable(None(), _, _) -> <fail>
     with <generate-error(|ctx, "LATERAL keyword expected at start of derived table expression")> t
+
+  nabl-constraint(|ctx):
+    DerivedTable(_, _, t@Some(_)) -> <fail>
+    with <generate-error(|ctx, "Unsupported correlation name for derived table")> t
 
 rules // helper rules
 
