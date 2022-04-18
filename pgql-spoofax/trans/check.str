@@ -246,6 +246,10 @@ rules // subqueries
     where <?"VERTEX" + ?"EDGE"> t
     with <generate-error(|ctx, "Scalar subquery not allowed to return a vertex or an edge")> exp
 
+  nabl-constraint(|ctx):
+    t@DerivedTable(None(), _) -> <fail>
+    with <generate-error(|ctx, "LATERAL keyword expected at start of derived table expression")> t
+
 rules // helper rules
 
   batch-generate-error(|ctx, m) = map(generate-error(|ctx, m))

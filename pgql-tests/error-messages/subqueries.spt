@@ -254,3 +254,10 @@ test Duplicate variable from derived table (5) [[
        , MATCH ANY () -[ [[m]] ]->* ()
 
 ]] error like "Duplicate variable" at #1
+
+test Derived table without LATERAL keyword not supported [[
+
+  SELECT 1
+    FROM [[( SELECT m FROM MATCH (m) )]]
+
+]] error like "LATERAL keyword expected at start of derived table expression" at #1
