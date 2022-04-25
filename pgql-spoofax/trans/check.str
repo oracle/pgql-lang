@@ -494,9 +494,9 @@ rules // MODIFY
   nabl-constraint(|ctx):
     CreatePropertyGraph(_, VertexTables(vertexTables), EdgeTables(edgeTables), _) -> <fail>
     with vertexTableNames := <map(?VertexTable(_, <id>, _, _); to-identifier-without-origin-info)> vertexTables
+       ; <generate-error-on-duplicates(|ctx, "Duplicate vertex table name; use an alias to make the vertex table name unique (table AS alias)")> vertexTableNames
        ; edgeTableNames := <map(?EdgeTable(_, <id>, _, _, _, _); to-identifier-without-origin-info)> edgeTables
-       ; allTableNames := <conc> (vertexTableNames, edgeTableNames)
-       ; <generate-error-on-duplicates(|ctx, "Duplicate table name; use an alias to make the table names unique (table AS alias)")> allTableNames
+       ; <generate-error-on-duplicates(|ctx, "Duplicate edge table name; use an alias to make the edge table name unique (table AS alias)")> edgeTableNames
        ; vertexTableReferences := <collect(( ?SourceVertexTable(_, ReferencedVertexTable(Name(_, <id>), _)) +
                                              ?DestinationVertexTable(_, ReferencedVertexTable(Name(_, <id>), _))
                                            ); to-identifier-without-origin-info)> edgeTables

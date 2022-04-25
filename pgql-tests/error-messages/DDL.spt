@@ -27,7 +27,7 @@ test Undefined vertex table (2) [[
 
 ]] error like "Undefined vertex table" at #1 // should use "Employee" instead
 
-test Duplicate vertex and edge tables (1) [[
+test Duplicate vertex and edge tables [[
 
   CREATE PROPERTY GRAPH MyGraph
     VERTEX TABLES (
@@ -38,19 +38,8 @@ test Duplicate vertex and edge tables (1) [[
       [[knows]] SOURCE Person DESTINATION Person
     )
 
-]] error like "Duplicate table name; use an alias to make the table names unique (table AS alias)" at #1, #2, #3, #4
-
-test Duplicate vertex and edge tables (2) [[
-
-  CREATE PROPERTY GRAPH MyGraph
-    VERTEX TABLES (
-      [[Employees]]
-    )
-    EDGE TABLES (
-      [[Employees]] SOURCE Employees DESTINATION Employees
-    )
-
-]] error like "Duplicate table name; use an alias to make the table names unique (table AS alias)" at #1, #2
+]] error like "Duplicate vertex table name; use an alias to make the vertex table name unique (table AS alias)" at #1, #2
+   error like "Duplicate edge table name; use an alias to make the edge table name unique (table AS alias)" at #3, #4
 
 test Complex expressions as property not allowed [[
 
