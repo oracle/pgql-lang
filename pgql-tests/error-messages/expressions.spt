@@ -27,11 +27,9 @@ test Illegal date time value [[
   SELECT 1
     FROM MATCH (n)
    WHERE n.prop + INTERVAL [['2.0']] YEAR > n.prop2
-     AND n.prop + INTERVAL [['-1']] YEAR > n.prop2
      AND n.prop + INTERVAL [['12']] MONTH > n.prop2
      AND n.prop + INTERVAL [['-1']] MONTH > n.prop2
      AND n.prop + INTERVAL [['2.0']] DAY > n.prop2
-     AND n.prop + INTERVAL [['-1']] DAY > n.prop2
      AND n.prop + INTERVAL [['-1']] HOUR > n.prop2
      AND n.prop + INTERVAL [['24']] HOUR > n.prop2
      AND n.prop + INTERVAL [['-1']] MINUTE > n.prop2
@@ -40,8 +38,8 @@ test Illegal date time value [[
      AND n.prop + INTERVAL [['2E3']] SECOND > n.prop2
      AND n.prop + INTERVAL [['60.0']] SECOND > n.prop2
 
-]] error like "Number 0 or greater expected" at #1, #2, #5, #6
-   error like "Number between 0 and 11 expected" at #3, #4
-   error like "Number between 0 and 23 expected" at #7, #8
-   error like "Number between 0 and 59 expected" at #9, #10
-   error like "Number between 0 and 59.999... expected" at #11, #12, #13
+]] error like "Integer expected" at #1, #4
+   error like "Integer between 0 and 11 expected" at #2, #3
+   error like "Integer between 0 and 23 expected" at #5, #6
+   error like "Integer between 0 and 59 expected" at #7, #8
+   error like "Number between 0 and 59.999... expected" at #9, #10, #11

@@ -25,11 +25,11 @@ public class is_invalid_datetime_field_0_0 extends Strategy {
 
     switch (field) {
       case "YEAR":
-        return parseIntAndCheckBounds(context, valueTerm, 0, Long.MAX_VALUE);
+        return parseIntAndCheckBounds(context, valueTerm, Long.MIN_VALUE, Long.MAX_VALUE);
       case "MONTH":
         return parseIntAndCheckBounds(context, valueTerm, 0, 11);
       case "DAY":
-        return parseIntAndCheckBounds(context, valueTerm, 0, Long.MAX_VALUE);
+        return parseIntAndCheckBounds(context, valueTerm, Long.MIN_VALUE, Long.MAX_VALUE);
       case "HOUR":
         return parseIntAndCheckBounds(context, valueTerm, 0, 23);
       case "MINUTE":
@@ -57,9 +57,9 @@ public class is_invalid_datetime_field_0_0 extends Strategy {
       long upperBound) {
     String message;
     if (upperBound == Long.MAX_VALUE) {
-      message = "Number " + lowerBound + " or greater expected";
+      message = "Integer expected";
     } else {
-      message = "Number between " + lowerBound + " and " + upperBound + " expected";
+      message = "Integer between " + lowerBound + " and " + upperBound + " expected";
     }
     try {
       long value = Long.parseLong(valueTerm.stringValue());
@@ -71,7 +71,6 @@ public class is_invalid_datetime_field_0_0 extends Strategy {
     }
 
     return null;
-
   }
 
   private static IStrategoTerm createErrorMessage(Context context, IStrategoTerm errorTerm, String message) {
