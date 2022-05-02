@@ -154,6 +154,7 @@ public class MetadataToAstUtil {
     allTypes.add("TIMESTAMP WITH TIME ZONE");
     allTypes.add("VERTEX");
     allTypes.add("EDGE");
+    allTypes.add("INTERVAL");
 
     List<Pair<String, String>> allPairsOfTypes = getAllPairsOfTypes(allTypes);
     List<IStrategoTerm> unionTypes = getUnionCompatibleTypes(allPairsOfTypes, metadataProvider, f);

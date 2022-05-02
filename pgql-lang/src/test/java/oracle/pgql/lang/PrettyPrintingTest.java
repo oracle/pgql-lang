@@ -635,6 +635,12 @@ public class PrettyPrintingTest extends AbstractPgqlTest {
     checkRoundTrip(query);
   }
 
+  @Test
+  public void testInterval() throws Exception {
+    String query = "SELECT 1 FROM MATCH (n) -> (m) WHERE n.time + INTERVAL '2' HOUR > m.time";
+    checkRoundTrip(query);
+  }
+
   private void checkRoundTrip(String query1) throws PgqlException {
 
     /*
