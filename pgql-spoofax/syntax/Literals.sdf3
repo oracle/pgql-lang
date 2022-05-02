@@ -12,16 +12,20 @@ template options
 
 context-free syntax
 
-  Literal   = Number
-  Literal   = Boolean
-  Literal   = String
-  Literal   = BindVariable
-  Literal   = Date
-  Literal   = Time
-  Literal   = Timestamp
+  Literal                     = Number
+  Literal                     = Boolean
+  Literal                     = String
+  Literal                     = BindVariable
+  Literal                     = Date
+  Literal                     = Time
+  Literal                     = Timestamp
+  Literal                     = Interval
 
-  ArrayLiteral = Array
-  ArrayLiteral = BindVariable
+  ArrayLiteral                = Array
+  ArrayLiteral                = BindVariable
+
+  Interval.Interval           = <INTERVAL <String> <DateTimeField>> {case-insensitive}
+  DateTimeField.DateTimeField = REGULAR-IDENTIFIER
 
 context-free syntax
 

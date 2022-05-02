@@ -89,8 +89,7 @@ public class ExampleMetadataProvider extends AbstractMetadataProvider {
 
       GraphSchema graphSchema = new GraphSchema(vertexLabels, edgeLabels);
       return Optional.of(graphSchema);
-    } else if (graphName.getName().equals("graph3")
-        || graphName.getName().equals("graph3".toUpperCase())) {
+    } else if (graphName.getName().equals("graph3") || graphName.getName().equals("graph3".toUpperCase())) {
 
       List<VertexLabel> vertexLabels = new ArrayList<>();
 
@@ -203,7 +202,12 @@ public class ExampleMetadataProvider extends AbstractMetadataProvider {
   public Optional<String> getUnionTypeForDatetimes(String typeA, String typeB) {
     switch (typeA) {
       case "DATE":
-        return typeB.equals("DATE") ? Optional.of("DATE") : Optional.empty();
+        switch (typeB) {
+          case "DATE":
+            return Optional.of("DATE");
+          default:
+            return Optional.empty();
+        }
       case "TIME":
         switch (typeB) {
           case "TIME":
@@ -235,6 +239,21 @@ public class ExampleMetadataProvider extends AbstractMetadataProvider {
           case "TIMESTAMP":
           case "TIMESTAMP WITH TIME ZONE":
             return Optional.of("TIMESTAMP WITH TIME ZONE");
+          default:
+            return Optional.empty();
+        }
+      default:
+        return Optional.empty();
+    }
+  }
+
+  public Optional<String> getUnionTypeForIntervals(String typeA, String typeB) {
+    // only a partial implementation; for testing purposes only
+    switch (typeA) {
+      case "DATE":
+        switch (typeB) {
+          case "INTERVAL":
+            return Optional.of("DATE");
           default:
             return Optional.empty();
         }
@@ -341,6 +360,12 @@ public class ExampleMetadataProvider extends AbstractMetadataProvider {
     switch (op) {
       case ADD:
       case SUB:
+        Optional<String> result = getUnionTypeForNumerics(typeA, typeB);
+        if (result.isPresent()) {
+          return result;
+        } else {
+          return getUnionTypeForIntervals(typeA, typeB);
+        }
       case MUL:
       case DIV:
       case MOD:

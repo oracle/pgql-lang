@@ -27,10 +27,12 @@ import oracle.pgql.lang.ir.QueryVertex;
 import oracle.pgql.lang.ir.SchemaQualifiedName;
 import oracle.pgql.lang.ir.SelectQuery;
 import oracle.pgql.lang.ir.QueryExpression.BetweenPredicate;
+import oracle.pgql.lang.ir.QueryExpression.DateTimeField;
 import oracle.pgql.lang.ir.QueryExpression.ExpressionType;
 import oracle.pgql.lang.ir.QueryExpression.ExtractExpression;
 import oracle.pgql.lang.ir.QueryExpression.IfElse;
 import oracle.pgql.lang.ir.QueryExpression.InPredicate;
+import oracle.pgql.lang.ir.QueryExpression.Interval;
 import oracle.pgql.lang.ir.QueryExpression.IsNull;
 import oracle.pgql.lang.ir.QueryExpression.ScalarSubquery;
 import oracle.pgql.lang.ir.QueryExpression.SimpleCase;
@@ -101,6 +103,8 @@ public class CommonTranslationUtil {
   private static final int POS_SUBSTRING_START = 1;
   private static final int POS_SUBSTRING_LENGTH = 2;
   private static final int POS_LENGTH_EXP = 0;
+  private static final int POS_INTERVAL_VALUE = 0;
+  private static final int POS_INTERVAL_DATETIME_FIELD = 1;
 
   protected static String getString(IStrategoTerm t) {
     while (t.getType() != TermType.STRING) {
@@ -273,6 +277,10 @@ public class CommonTranslationUtil {
             return new QueryExpression.Constant.ConstTimestamp(LocalDateTime.MIN);
           }
         }
+      case "Interval":
+        String value = getString(t.getSubterm(POS_INTERVAL_VALUE));
+        DateTimeField dateTimeField = DateTimeField.valueOf(getString(t.getSubterm(POS_INTERVAL_DATETIME_FIELD)));
+        return new Interval(value, dateTimeField);
       case "VarRef":
         QueryVariable var = getVariable(ctx, t);
         return new QueryExpression.VarRef(var);

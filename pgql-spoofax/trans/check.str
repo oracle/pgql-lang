@@ -353,11 +353,11 @@ rules // CHEAPEST
 
 rules // literals
 
-  external is-valid-datetime(|)
+  external is-invalid-datetime(|)
 
   nabl-constraint(|ctx):
     datetime-> <fail>
-    where <(?Date(_) + ?Time(_) + ?Timestamp(_)); is-valid-datetime; ?ErrorMessage(_, m)> datetime
+    where <(?Date(_) + ?Time(_) + ?Timestamp(_)); is-invalid-datetime; ?ErrorMessage(_, m)> datetime
     with <generate-error(|ctx, m)> datetime
 
   nabl-constraint(|ctx):
@@ -374,6 +374,18 @@ rules // literals
     t@Identifier(identifier, _) -> <fail>
     where <is-substring(!"\\\"")> identifier
     with <generate-error(|ctx, "Use \"\" instead of \\\" to escape a double quote")> t
+
+  nabl-constraint(|ctx):
+    DateTimeField(field) -> <fail>
+    where <not(?"YEAR" + ?"MONTH" + ?"DAY" + ?"HOUR" + ?"MINUTE" + ?"SECOND")> field
+    with <generate-error(|ctx, "Expecting one of YEAR, MONTH, DAY, HOUR, MINUTE, SECOND")> field
+
+  nabl-constraint(|ctx):
+    Interval(t@String(value), DateTimeField(field))-> <fail>
+    where <is-invalid-datetime-field; ?ErrorMessage(_, m)> (value, field)
+    with <generate-error(|ctx, m)> t
+
+  external is-invalid-datetime-field(|)
 
 rules
 

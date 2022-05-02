@@ -32,6 +32,7 @@ public interface QueryExpression {
     TIMESTAMP,
     TIME_WITH_TIMEZONE,
     TIMESTAMP_WITH_TIMEZONE,
+    INTERVAL,
 
     // arithmetic expressions
     SUB,
@@ -812,6 +813,121 @@ public interface QueryExpression {
         v.visit(this);
       }
     }
+  }
+
+  class Interval implements QueryExpression {
+
+    private DateTimeField dateTimeField;
+
+    private String value;
+
+    public Interval(String value, DateTimeField dateTimeField) {
+      this.value = value;
+      this.dateTimeField = dateTimeField;
+    }
+
+    public DateTimeField getSingleDateTimeField() {
+      return dateTimeField;
+    }
+
+    public void setSingleDateTimeField(DateTimeField dateTimeField) {
+      this.dateTimeField = dateTimeField;
+    }
+
+    public long getYear() {
+      if (dateTimeField != DateTimeField.YEAR) {
+        throw new IllegalStateException("Datetime field is not a year");
+      }
+
+      return Long.parseLong(value);
+    }
+
+    public int getMonth() {
+      if (dateTimeField != DateTimeField.MONTH) {
+        throw new IllegalStateException("Datetime field is not a year");
+      }
+      return Integer.parseInt(value);
+    }
+
+    public int getDay() {
+      if (dateTimeField != DateTimeField.DAY) {
+        throw new IllegalStateException("Datetime field is not a year");
+      }
+      return Integer.parseInt(value);
+    }
+
+    public int getHour() {
+      if (dateTimeField != DateTimeField.HOUR) {
+        throw new IllegalStateException("Datetime field is not a year");
+      }
+      return Integer.parseInt(value);
+    }
+
+    public int getMinute() {
+      if (dateTimeField != DateTimeField.MINUTE) {
+        throw new IllegalStateException("Datetime field is not a year");
+      }
+      return Integer.parseInt(value);
+    }
+
+    public double getSecond() {
+      if (dateTimeField != DateTimeField.SECOND) {
+        throw new IllegalStateException("Datetime field is not a year");
+      }
+      return Double.parseDouble(value);
+    }
+
+    public void setValue(String value) {
+      this.value = value;
+    }
+
+    @Override
+    public ExpressionType getExpType() {
+      return ExpressionType.INTERVAL;
+    }
+
+    @Override
+    public void accept(QueryExpressionVisitor v) {
+      v.visit(this);
+    }
+
+    @Override
+    public String toString() {
+      return "INTERVAL " + printLiteral(value) + " " + dateTimeField.name();
+    }
+
+    @Override
+    public int hashCode() {
+      return 31;
+    }
+
+    @Override
+    public boolean equals(Object obj) {
+      if (this == obj)
+        return true;
+      if (obj == null)
+        return false;
+      if (getClass() != obj.getClass())
+        return false;
+      Interval other = (Interval) obj;
+      if (dateTimeField != other.dateTimeField)
+        return false;
+      if (value == null) {
+        if (other.value != null)
+          return false;
+      } else if (!value.equals(other.value))
+        return false;
+      return true;
+    }
+  }
+
+  enum DateTimeField {
+    YEAR,
+    MONTH,
+    DAY,
+    HOUR,
+    MINUTE,
+    SECOND
   }
 
   class VarRef implements QueryExpression {
