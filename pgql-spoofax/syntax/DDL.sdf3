@@ -30,11 +30,13 @@ context-free syntax // CREATE PROPERTY GRAPH
 
   TableAlias.TableAlias = Identifier
 
-  SourceVertexTable.SourceVertexTable = <SOURCE <ReferencedVertexTableKeyClause?> <TableName>> {case-insensitive}
+  SourceVertexTable.SourceVertexTable = <SOURCE <ReferencingKeyClause?> <ReferencedVertexTable>> {case-insensitive}
 
-  DestinationVertexTable.DestinationVertexTable = <DESTINATION <ReferencedVertexTableKeyClause?> <TableName>> {case-insensitive}
+  DestinationVertexTable.DestinationVertexTable = <DESTINATION <ReferencingKeyClause?> <ReferencedVertexTable>> {case-insensitive}
 
-  ReferencedVertexTableKeyClause.ReferencedVertexTableKeyClause = <<KeyClause> REFERENCES> {case-insensitive}
+  ReferencingKeyClause.ReferencingKeyClause = <<KeyClause> REFERENCES> {case-insensitive}
+
+  ReferencedVertexTable.ReferencedVertexTable = <<TableName> <ReferencedColumnList?>>
 
   LabelAndPropertiesClause.LabelAndPropertiesClause = LabelAndProperties+
 
@@ -55,6 +57,8 @@ context-free syntax // CREATE PROPERTY GRAPH
   ExceptColumns.Except = <EXCEPT ( <{Identifier ","}+> )> {case-insensitive}
 
   KeyClause.KeyClause = <KEY ( <{Identifier ","}+> )> {case-insensitive}
+
+  ReferencedColumnList.ReferencedColumnList = <( <{Identifier ","}+> )>
 
 context-free syntax // DROP PROPERTY GRAPH
 

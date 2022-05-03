@@ -50,3 +50,19 @@ WHERE
   (n1) -> (n2),
   (n2) -> (n3)
 ]]
+
+test ON clause before rows per match (1) [[
+
+SELECT *
+FROM MATCH ANY (n) ->* (m) ON g
+       ONE ROW PER STEP ( v1, e, v2 )
+
+]]
+
+test ON clause before rows per match (2) [[
+
+SELECT *
+FROM MATCH ( ANY (n) ->* (m) ) ON g
+       ONE ROW PER STEP ( v1, e, v2 )
+
+]]

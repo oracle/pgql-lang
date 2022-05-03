@@ -10,7 +10,6 @@ test Aggregate over empty group [[
 
 ]]
 
-
 test Basic GROUP BY 1 [[
 
     SELECT n.age, COUNT(*), AVG(n.salary), LISTAGG(n.salary), MIN(n.salary), MAX(n.salary), SUM(n.salary)

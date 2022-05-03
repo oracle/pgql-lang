@@ -308,63 +308,70 @@ test ONE ROW PER VERTEX no quantifier (1) [[
   SELECT 1
     FROM MATCH (n) [[ONE ROW PER VERTEX (v)]]
 
-]] error like "ONE ROW PER VERTEX, EDGE or STEP is only supported in combination with ANY, ALL, SHORTEST or CHEAPEST" at #1
+]] error like "ONE ROW PER VERTEX or STEP is only supported in combination with ANY, ALL, SHORTEST or CHEAPEST" at #1
 
 test ONE ROW PER VERTEX no quantifier (2) [[
 
   SELECT 1
     FROM MATCH (n) ->* (m) [[ONE ROW PER VERTEX (v)]]
 
-]] error like "ONE ROW PER VERTEX, EDGE or STEP is only supported in combination with ANY, ALL, SHORTEST or CHEAPEST" at #1
+]] error like "ONE ROW PER VERTEX or STEP is only supported in combination with ANY, ALL, SHORTEST or CHEAPEST" at #1
 
 test ONE ROW PER EDGE no quantifier (1) [[
 
   SELECT 1
     FROM MATCH (n) [[ONE ROW PER EDGE (e)]]
 
-]] error like "ONE ROW PER VERTEX, EDGE or STEP is only supported in combination with ANY, ALL, SHORTEST or CHEAPEST" at #1
+]] error like "ONE ROW PER VERTEX or STEP is only supported in combination with ANY, ALL, SHORTEST or CHEAPEST" at #1
 
 test ONE ROW PER EDGE no quantifier (2) [[
 
   SELECT 1
     FROM MATCH (n) ->* (m) [[ONE ROW PER EDGE (e)]]
 
-]] error like "ONE ROW PER VERTEX, EDGE or STEP is only supported in combination with ANY, ALL, SHORTEST or CHEAPEST" at #1
+]] error like "ONE ROW PER VERTEX or STEP is only supported in combination with ANY, ALL, SHORTEST or CHEAPEST" at #1
 
 test ONE ROW PER STEP no quantifier (1) [[
 
   SELECT 1
     FROM MATCH (n) [[ONE ROW PER STEP (v1, e, v2)]]
 
-]] error like "ONE ROW PER VERTEX, EDGE or STEP is only supported in combination with ANY, ALL, SHORTEST or CHEAPEST" at #1
+]] error like "ONE ROW PER VERTEX or STEP is only supported in combination with ANY, ALL, SHORTEST or CHEAPEST" at #1
 
 test ONE ROW PER STEP no quantifier (2) [[
 
   SELECT 1
     FROM MATCH (n) ->* (m) [[ONE ROW PER STEP (v1, e, v2)]]
 
-]] error like "ONE ROW PER VERTEX, EDGE or STEP is only supported in combination with ANY, ALL, SHORTEST or CHEAPEST" at #1
+]] error like "ONE ROW PER VERTEX or STEP is only supported in combination with ANY, ALL, SHORTEST or CHEAPEST" at #1
 
 test ONE ROW PER VERTEX with multiple path patterns [[
 
   SELECT 1
     FROM MATCH ( ANY (a) -> (b), ANY (b) -> (c) ) [[ONE ROW PER VERTEX (v)]]
 
-]] error like "ONE ROW PER VERTEX, EDGE or STEP is only permitted if the MATCH clause contains a single path pattern" at #1
+]] error like "ONE ROW PER VERTEX or STEP is only permitted if the MATCH clause contains a single path pattern" at #1
 
 test ONE ROW PER EDGE with multiple path patterns [[
 
   SELECT 1
     FROM MATCH ( ANY (a) ->* (b), ANY (b) ->* (c) ) [[ONE ROW PER EDGE (e)]]
 
-]] error like "ONE ROW PER VERTEX, EDGE or STEP is only permitted if the MATCH clause contains a single path pattern" at #1
+]] error like "ONE ROW PER VERTEX or STEP is only permitted if the MATCH clause contains a single path pattern" at #1
 
-test ONE ROW PER EDGE with multiple path patterns [[
+test ONE ROW PER STEP with multiple path patterns [[
 
   SELECT 1
     FROM MATCH ( ANY (a) ->* (b), ANY (b) ->* (c) ) [[ONE ROW PER STEP (v1, e, v2)]]
 
-]] error like "ONE ROW PER VERTEX, EDGE or STEP is only permitted if the MATCH clause contains a single path pattern" at #1
+]] error like "ONE ROW PER VERTEX or STEP is only permitted if the MATCH clause contains a single path pattern" at #1
+
+test ONE ROW PER with multiple path patterns and ON clause [[
+
+  SELECT 1
+    FROM MATCH ( ANY (a) ->* (b), ANY (b) ->* (c) ) ON g [[ONE ROW PER STEP (v1, e, v2)]]
+
+]] error like "ONE ROW PER VERTEX or STEP is only permitted if the MATCH clause contains a single path pattern" at #1
 
 test ONE ROW PER VERTEX duplicate variable (1) [[
 
