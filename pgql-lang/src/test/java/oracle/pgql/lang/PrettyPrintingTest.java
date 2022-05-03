@@ -507,6 +507,18 @@ public class PrettyPrintingTest extends AbstractPgqlTest {
   }
 
   @Test
+  public void testReferencedVertexTableKeyInCreatePropertyGraph() throws Exception {
+    String statement = "CREATE PROPERTY GRAPH hr " + //
+        "  VERTEX TABLES ( employees ) " + //
+        "  EDGE TABLES ( " + //
+        "    employees AS works_for " + //
+        "      SOURCE KEY ( employee_id ) REFERENCES employees ( employee_id ) " + //
+        "      DESTINATION KEY ( manager_id ) REFERENCES employees ( employee_id ) " + //
+        "  )";
+    checkRoundTrip(statement);
+  }
+
+  @Test
   public void testCreatePropertyGraphPgView() throws Exception {
     String statement = "CREATE PROPERTY GRAPH STUDENT_NETWORK\n" + //
         "  VERTEX TABLES (\n" + //
@@ -634,6 +646,12 @@ public class PrettyPrintingTest extends AbstractPgqlTest {
   @Test
   public void testOneRowPerStep() throws Exception {
     String query = "SELECT v1.prop1, e.prop2, v2.prop3 FROM MATCH ANY () ->* () ONE ROW PER STEP ( v1, e, v2 )";
+    checkRoundTrip(query);
+  }
+
+  @Test
+  public void testInterval() throws Exception {
+    String query = "SELECT 1 FROM MATCH (n) -> (m) WHERE n.time + INTERVAL '2' HOUR > m.time";
     checkRoundTrip(query);
   }
 

@@ -183,6 +183,8 @@ rules // literals
 
   external has-timezone(|)
 
+  add-type(|metadata, variablesPlusTypes, constraints) = ?Interval(_, _); !ExpressionPlusType(<id>, Type("INTERVAL"))
+
 rules // functions
 
   add-type(|metadata, variablesPlusTypes, constraints):

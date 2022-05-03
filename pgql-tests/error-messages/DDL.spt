@@ -12,7 +12,8 @@ test Undefined vertex table (1) [[
       studentOf SOURCE [[Student.Person]] DESTINATION [[University]]
     )
 
-]] error like "Undefined vertex table" at #1, #2
+]] error like "Schema name not allowed here" at #1
+   error like "Undefined vertex table" at #2
 
 test Undefined vertex table (2) [[
 
@@ -69,3 +70,29 @@ test Missing property name [[
     )
 
 ]] error like "Alias required (.. AS name)" at #1, #2
+
+test Duplicate property name [[
+
+  CREATE PROPERTY GRAPH myGraph
+    VERTEX TABLES (
+      Person PROPERTIES ( [[c1]], c2 AS [[c1]], [[c3]], [[c3]] )
+    )
+    EDGE TABLES (adsfad
+      knows
+        SOURCE Person
+        DESTINATION Person
+        PROPERTIES ( [[c1]], c2 AS [[c1]], [[c3]], [[c3]] )
+    )
+
+]] error like "Duplicate property name" at #1, #2, #3, #4, #5, #6, #7, #8
+
+test Missing KEY clause [[
+
+  CREATE PROPERTY GRAPH hr
+    VERTEX TABLES ( employees )
+    EDGE TABLES (
+      employees AS works_for
+        [[source employees ( employee_id )]]
+        [[destination employees ( employee_id )]]
+    )
+]] error like "Referenced column list provided but no KEY clause specified" at #1, #2

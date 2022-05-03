@@ -23,9 +23,9 @@ import org.spoofax.interpreter.terms.ITermFactory;
 import org.strategoxt.lang.Context;
 import org.strategoxt.lang.Strategy;
 
-public class is_valid_datetime_0_0 extends Strategy {
+public class is_invalid_datetime_0_0 extends Strategy {
 
-  public static is_valid_datetime_0_0 instance = new is_valid_datetime_0_0();
+  public static is_invalid_datetime_0_0 instance = new is_invalid_datetime_0_0();
 
   @Override
   public IStrategoTerm invoke(Context context, IStrategoTerm current) {
@@ -75,9 +75,8 @@ public class is_valid_datetime_0_0 extends Strategy {
     }
   }
 
-  private static IStrategoTerm createErrorMessage(Context context, IStrategoTerm current, String message) {
+  private static IStrategoTerm createErrorMessage(Context context, IStrategoTerm errorTerm, String message) {
     ITermFactory f = context.getFactory();
-    return f.makeAppl(f.makeConstructor("ErrorMessage", 2), current, f.makeString(message));
-
+    return f.makeAppl(f.makeConstructor("ErrorMessage", 2), errorTerm, f.makeString(message));
   }
 }

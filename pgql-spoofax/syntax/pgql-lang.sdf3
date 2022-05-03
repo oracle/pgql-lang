@@ -47,11 +47,14 @@ context-free syntax
 
   TableExpression = DerivedTable
 
-  GraphMatch.GraphMatch = <<MatchKeyword?> <PathPattern> <RowsPerMatch?> <OnClause?>>
+  GraphMatch.GraphMatch = MatchKeyword? PathPattern OptionalGraphMatchParts?
 
-  GraphMatch.ParenthesizedGraphMatch = <MATCH ( <{PathPattern ","}+> ) <RowsPerMatch?> <OnClause?>> {case-insensitive}
+  GraphMatch.ParenthesizedGraphMatch = <MATCH ( <{PathPattern ","}+> ) <OptionalGraphMatchParts?>> {case-insensitive}
 
   MatchKeyword.MatchKeyword = <MATCH> {case-insensitive}
+
+  OptionalGraphMatchParts.OptionalGraphMatchParts1 = RowsPerMatch OnClause? // deprecated
+  OptionalGraphMatchParts.OptionalGraphMatchParts2 = OnClause RowsPerMatch?
 
   OnClause.OnClause = <ON <GraphName>> {case-insensitive}
 
