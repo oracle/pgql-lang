@@ -21,7 +21,7 @@ rules // Unresolved/duplicate variables
   nabl-check-disable-duplicate(|uri, ns) = id
 
   nabl-constraint(|ctx):
-    query@NormalizedQuery(_, selectClause, _, matchClause, group-by, having, order-by, _, _, _, _, _) -> <fail>
+    query@NormalizedQuery(_, selectClause, _, _, _, group-by, having, order-by, _, _, _, _, _) -> <fail>
     with unresolved-vars := <collect-in-outer-query(?VarRef(<id>))> query
         ; if None() := group-by
           then <batch-generate-error(|ctx, "Unresolved variable")> unresolved-vars
@@ -35,19 +35,16 @@ rules // Unresolved/duplicate variables
           end
 
   nabl-constraint(|ctx):
-    NormalizedQuery(_, selectOrModifyClauseWithAnnos, _, graphPatternWithAnnos, groupClauseWithAnnos, _, _, _, _, _, _, _) -> <fail>
+    NormalizedQuery(_, selectOrModifyClauseWithAnnos, _, tableExpressionsWithAnnos, _, groupClauseWithAnnos, _, _, _, _, _, _, _) -> <fail>
     with selectOrModifyClause := <strip-annos> selectOrModifyClauseWithAnnos
-       ; graphPattern := <strip-annos> graphPatternWithAnnos
+       ; tableExpressions := <strip-annos> tableExpressionsWithAnnos
        ; groupClause := <strip-annos> groupClauseWithAnnos
-       ; matchVars := <?None(); ![] <+ ?Some(GraphPattern(vertices, edges, _))
-                                     ; !(vertices, edges)
-                                     ; collect(?Vertex(_, _, None()) + ?Edge(_, _, _, _, _, None()) + ?OneRowPerVertex(_, _, None()) + ?OneRowPerEdge(_, _, None()) + ?OneRowPerStep(_, _, None(), _, _, None(), _, _, None()))
-                                     ; collect-om(?Edge(_, Identifier(<id>, _), _, _, _, _) <+ ?Identifier(<id>, _), conc)> graphPattern
+       ; vars := <map(collect-vars-from-table-expression); concat> tableExpressions
        ; if <?Some(_)> groupClause
          then groupVars := <?Some(GroupByClause(<id>)); map(?ExpAsVar(_, Identifier(<id>, _), _, _))> groupClause
          else groupVars := []
          end
-       ; <generate-error-on-duplicates(|ctx, "Duplicate variable")> matchVars
+       ; <generate-error-on-duplicates(|ctx, "Duplicate variable")> vars
        ; <generate-error-on-duplicates(|ctx, "Duplicate column name in GROUP BY")> groupVars
        ; if <?SelectClause(_, _)> selectOrModifyClause
          then selectVars := <collect-om(?ExpAsVar(_, Identifier(<id>, _), _, _), conc)> selectOrModifyClause // for e.g. SELECT n.age, n.AgE
@@ -74,12 +71,12 @@ rules // Unresolved/duplicate variables
          then nonAnonymousGroupVars := <?Some(GroupByClause(<id>)); filter(?ExpAsVar(_, Identifier(<id>, _), NonAnonymous(), _))> groupClause
          else nonAnonymousGroupVars := []
          end
-       ; redefinitions-in-groupBy := <isect> (nonAnonymousGroupVars, matchVars)
-       ; <batch-generate-error(|ctx, "Duplicate variable: variable already defined in the MATCH clause")> redefinitions-in-groupBy
+       ; redefinitions-in-groupBy := <isect> (nonAnonymousGroupVars, vars)
+       ; <batch-generate-error(|ctx, "Duplicate variable: variable already defined in the FROM clause")> redefinitions-in-groupBy
 
        ; if <?None()> groupClause
-         then redefinition-in-modify := <isect> (insertVars, matchVars)
-            ; <batch-generate-error(|ctx, "Duplicate variable: variable already defined in the MATCH clause")> redefinition-in-modify
+         then redefinition-in-modify := <isect> (insertVars, vars)
+            ; <batch-generate-error(|ctx, "Duplicate variable: variable already defined in the FROM clause")> redefinition-in-modify
          else if <?ModifyClause(_)> selectOrModifyClause
               then redefinitions-in-modify := <isect> (insertVars, nonAnonymousGroupVars)
                  ; <batch-generate-error(|ctx, "Duplicate variable: variable already defined in the GROUP BY clause")> redefinitions-in-modify
@@ -87,7 +84,7 @@ rules // Unresolved/duplicate variables
          end
 
   nabl-constraint(|ctx):
-    query@NormalizedQuery(_, selectClause, _, Some(GraphPattern(_, edges, _)), _, _, _, _, _, _, _, _) -> <fail>
+    query@NormalizedQuery(_, _, _, _, _, _, _, _, _, _, _, _, _) -> <fail>
     with group-variables := <collect-in-outer-query(?CommonPathExpression(_, _, _, _, _); get-origin-positions-of-variables); concat> query
        ; aggregations := <get-aggregations> query
        ; varRefs-per-aggregation := <map(origin-track-forced(collect-in-outer-query(?VarRef(_, <id>)); !Some(<id>)))> aggregations
@@ -169,7 +166,7 @@ rules // vertex in WHERE without rounded brackets
 rules
 
   nabl-constraint(|ctx):
-    NormalizedQuery(_, SelectClause(_, SelectList(selectElements)), _, _, groupClause, havingClause, orderByClause, _, _, _, _, _) -> <fail>
+    NormalizedQuery(_, SelectClause(_, SelectList(selectElements)), _, _, _, groupClause, havingClause, orderByClause, _, _, _, _, _) -> <fail>
     where
       None() := groupClause
     ; [] := <get-aggregations> selectElements // there are no aggregations in the SELECT
@@ -179,7 +176,7 @@ rules
 
   // if SELECT DISTINCT then ORDER BY expressions may only be repetitions of expressions in SELECT
   nabl-constraint(|ctx):
-    NormalizedQuery(_, SelectClause(Some(Distinct()), SelectList(selectElements)), _, _, _, _, Some(OrderByClause(order-by-elems)), _, _, _, _, _) -> <fail>
+    NormalizedQuery(_, SelectClause(Some(Distinct()), SelectList(selectElements)), _, _, _, _, _, Some(OrderByClause(order-by-elems)), _, _, _, _, _) -> <fail>
     with
       select-vars := <map(?ExpAsVar(_, Identifier(<id>, _), _, _)); strip-annos> selectElements
     ; order-by-expressions := <map(?OrderByElem(<id>, _, _)); strip-annos> order-by-elems
@@ -209,26 +206,26 @@ rules
 rules // subqueries
 
   nabl-constraint(|ctx):
-    q@NormalizedQuery(_, _, _, _, _, _, _, _, _, _, _, _) -> <fail>
-    with scalarSubqueries := <collect(?Exists(_) + ?Subquery(_)); remove-all(?Exists(_))> q
+    q@NormalizedQuery(_, _, _, _, _, _, _, _, _, _, _, _, _) -> <fail>
+    with scalarSubqueries := <collect(?Exists(_) + ?DerivedTable(_, _, _) + ?Subquery(_)); remove-all(?Exists(_) + ?DerivedTable(_, _, _))> q
        ; multiColumnScalarSubqueries := <filter(is-multi-column-subquery)> scalarSubqueries
        ; zeroColumnScalarSubqueries := <filter(is-zero-column-subquery)> scalarSubqueries
        ; <batch-generate-error(|ctx, "Scalar subquery is expected to return a single column, but multiple columns were returned")> multiColumnScalarSubqueries
        ; <batch-generate-error(|ctx, "Scalar subquery is expected to return a single column, but zero columns were returned")> zeroColumnScalarSubqueries
 
-  is-multi-column-subquery = ?Subquery(NormalizedQuery(_, SelectClause(_, e@SelectList(selectElements)), _, _, _, _, _, _, _, _, _, _))
+  is-multi-column-subquery = ?Subquery(NormalizedQuery(_, SelectClause(_, e@SelectList(selectElements)), _, _, _, _, _, _, _, _, _, _, _))
                            ; where(not( <eq> (<length> selectElements, 1) )); !e
 
-  is-zero-column-subquery = ?Subquery(NormalizedQuery(_, SelectClause(_, e@SelectList(selectElements)), _, _, _, _, _, _, _, _, _, _))
+  is-zero-column-subquery = ?Subquery(NormalizedQuery(_, SelectClause(_, e@SelectList(selectElements)), _, _, _, _, _, _, _, _, _, _, _))
                            ; where( <eq> (<length> selectElements, 0) ); !e
 
   nabl-constraint(|ctx):
-    Subquery(NormalizedQuery(_, t@selectOrUpdateClause, _, _, _, _, _, _, _, _, _, _)) -> <fail>
+    Subquery(NormalizedQuery(_, t@selectOrUpdateClause, _, _, _, _, _, _, _, _, _, _, _)) -> <fail>
     where not ( <?SelectClause(_, _)> selectOrUpdateClause )
     with <generate-error(|ctx, "SELECT clause expected here")> t
 
   nabl-constraint(|ctx):
-    t@NormalizedQuery(_, _, _, _, _, _, _, _, _, "v1.3", _, _) -> <fail>
+    t@NormalizedQuery(_, _, _, _, _, _, _, _, _, _, "v1.3", _, _) -> <fail>
     with nonPgql13Subqueries := <collect(is-non-pgql13-query)> t
        ; <map(get-select-clause); batch-generate-error(|ctx, "Subquery uses older version of PGQL; please make sure that both inner and outer query use PGQL 1.3 syntax")> nonPgql13Subqueries
 
@@ -238,16 +235,24 @@ rules // subqueries
     with pgql13Subqueries := <collect(is-pgql13-query)> t
        ; <map(get-select-clause); batch-generate-error(|ctx, "Subquery uses PGQL 1.3 syntax but outer query does not")> pgql13Subqueries
 
-  is-pgql13-query = ?NormalizedQuery(_, _, _, _, _, _, _, _, _, "v1.3", _, _)
+  is-pgql13-query = ?NormalizedQuery(_, _, _, _, _, _, _, _, _, _, "v1.3", _, _)
 
-  is-non-pgql13-query = ?NormalizedQuery(_, _, _, _, _, _, _, _, _, version, _, _); where (!version; not(?"v1.3"))
+  is-non-pgql13-query = ?NormalizedQuery(_, _, _, _, _, _, _, _, _, _, version, _, _); where (!version; not(?"v1.3"))
 
-  get-select-clause = ?NormalizedQuery(_, <id>, _, _, _, _, _, _, _, _, _, _)
+  get-select-clause = ?NormalizedQuery(_, <id>, _, _, _, _, _, _, _, _, _, _, _)
 
   nabl-constraint(|ctx):
-    ScalarSubquery(Subquery(NormalizedQuery(_, SelectClause(_, SelectList([ExpAsVar(ExpressionPlusType(exp, Type(t)), _, _, _)])), _, _, _, _, _, _, _, _, _, _))) -> <fail>
+    ScalarSubquery(Subquery(NormalizedQuery(_, SelectClause(_, SelectList([ExpAsVar(ExpressionPlusType(exp, Type(t)), _, _, _)])), _, _, _, _, _, _, _, _, _, _, _))) -> <fail>
     where <?"VERTEX" + ?"EDGE"> t
     with <generate-error(|ctx, "Scalar subquery not allowed to return a vertex or an edge")> exp
+
+  nabl-constraint(|ctx):
+    t@DerivedTable(None(), _, _) -> <fail>
+    with <generate-error(|ctx, "LATERAL keyword expected at start of derived table expression")> t
+
+  nabl-constraint(|ctx):
+    DerivedTable(_, _, t@Some(_)) -> <fail>
+    with <generate-error(|ctx, "Unsupported correlation name for derived table")> t
 
 rules // helper rules
 
@@ -361,7 +366,7 @@ rules // literals
     with <generate-error(|ctx, m)> datetime
 
   nabl-constraint(|ctx):
-    t@NormalizedQuery(_, _, _, _, _, _, _, _, _, pgqlVersion, _, _) -> <fail>
+    t@NormalizedQuery(_, _, _, _, _, _, _, _, _, _, pgqlVersion, _, _) -> <fail>
     where not ( <?"v1.0" + ?"v1.1"> pgqlVersion )
     with <alltd-in-outer-query(check-illegal-java-escaping(|ctx))> t
 
@@ -439,7 +444,7 @@ rules // IN predicate and CASE expression
 rules // SELECT
 
   nabl-constraint(|ctx):
-    NormalizedQuery(_, t@SelectClause(_, _), _, None(), _, _, _, _, _, _, _, _) -> <fail>
+    NormalizedQuery(_, t@SelectClause(_, _), _, [], _, _, _, _, _, _, _, _, _) -> <fail>
     with <generate-error(|ctx, "SELECT query without FROM clause not supported")> t
 
 rules // MODIFY
@@ -544,26 +549,18 @@ rules // MODIFY
 
 // schema
 
-  nabl-constraint(|ctx, metadata):
-    term@NormalizedQuery(_, _, _, Some(GraphPattern(Vertices(vertices), edgesAndPaths, Constraints(constraints))), _, _, _, _, _, _, _, _) -> <fail>
-    with <check-labels-common(|ctx, metadata)> (term, vertices, edgesAndPaths, constraints)
-
-  nabl-constraint(|ctx, metadata):
-    term@CommonPathExpression(_, Vertices(vertices), Edges(edges), Constraints(constraints), _) -> <fail>
-    with <check-labels-common(|ctx, metadata)> (term, vertices, edges, constraints)
-
-  check-labels-common(|ctx, metadata):
-    (term, vertices, edgesAndPaths, constraints) -> <id>
-    with vertexDefinititions := <map(?Vertex(_, <id>, _))> vertices
+  nabl-constraint(|ctx):
+    AstPlusMetadata(ast, metadata) -> <fail>
+    with vertexDefinititions := <collect(?Vertex(_, <id>, _))> ast
        ; vertexLabels := <get-vertex-labels(|metadata)>
        ; if <not(?None())> vertexLabels
-         then unresolvedVertexLabels := <collect(get-unresolved-label(|vertexDefinititions, vertexLabels))> term
+         then unresolvedVertexLabels := <collect(get-unresolved-label(|vertexDefinititions, vertexLabels))> ast
             ; <batch-generate-error(|ctx, "Vertex label does not exist")> unresolvedVertexLabels
          end
-       ; edgeDefinititions := <filter(?Edge(_, _, _, _, <id>, _))> edgesAndPaths
+       ; edgeDefinititions := <collect(?Edge(_, _, _, _, <id>, _))> ast
        ; edgeLabels := <get-edge-labels(|metadata)>
        ; if <not(?None())> edgeLabels
-         then unresolvedEdgeLabels := <collect(get-unresolved-label(|edgeDefinititions, edgeLabels))> term
+         then unresolvedEdgeLabels := <collect(get-unresolved-label(|edgeDefinititions, edgeLabels))> ast
             ; <batch-generate-error(|ctx, "Edge label does not exist")> unresolvedEdgeLabels
          end
 
@@ -706,18 +703,8 @@ rules // MODIFY
     with <generate-error(|ctx, <error-duplicate-var-outer-query>)> e
 
   nabl-constraint(|ctx):
-    OneRowPerVertex(Identifier(v, _), _, Correlation(_)) -> <fail>
+    RowsPerMatchVariable(Identifier(v, _), _, Correlation(_), _) -> <fail>
     with <generate-error(|ctx, <error-duplicate-var-outer-query>)> v
-
-  nabl-constraint(|ctx):
-    OneRowPerEdge(Identifier(e, _), _, Correlation(_)) -> <fail>
-    with <generate-error(|ctx, <error-duplicate-var-outer-query>)> e
-
-  nabl-constraint(|ctx):
-    OneRowPerStep(Identifier(v1, _), _, Correlation(_), Identifier(e, _), _, Correlation(_), Identifier(v2, _), _, Correlation(_)) -> <fail>
-    with <generate-error(|ctx, <error-duplicate-var-outer-query>)> v1
-       ; <generate-error(|ctx, <error-duplicate-var-outer-query>)> e
-       ; <generate-error(|ctx, <error-duplicate-var-outer-query>)> v2
 
   // check SELECT clause is not empty (may happen in case of SELECT n.*)
   nabl-constraint(|ctx):

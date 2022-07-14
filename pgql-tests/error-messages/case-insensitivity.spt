@@ -165,7 +165,7 @@ test Duplicate variables (8) [[
    FROM MATCH SHORTEST ( (n) -[e]->* (m) )
    GROUP BY n AS [[E]]
 
-]] error like "Duplicate variable: variable already defined in the MATCH clause" at #1
+]] error like "Duplicate variable: variable already defined in the FROM clause" at #1
 
 test Duplicate variables (9) [[
 
@@ -173,7 +173,7 @@ test Duplicate variables (9) [[
     FROM MATCH SHORTEST ( (n) (-> (DST))* (m) )
    GROUP BY n AS [[dst]]
 
-]] error like "Duplicate variable: variable already defined in the MATCH clause" at #1
+]] error like "Duplicate variable: variable already defined in the FROM clause" at #1
 
 // tests below are the same as in modify.spt but now also testing it for case insensitive identifiers
 
@@ -197,7 +197,7 @@ test Duplicate variable (1) [[
          EDGE [[V1]] BETWEEN v1 AND V1
   FROM MATCH (v1)
 
-]] error like "Duplicate variable: variable already defined in the MATCH clause" at #1, #2
+]] error like "Duplicate variable: variable already defined in the FROM clause" at #1, #2
 
 test Duplicate variable (2) [[
 

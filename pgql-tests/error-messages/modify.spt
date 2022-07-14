@@ -107,7 +107,7 @@ test Duplicate variable (1) [[
          EDGE [[v1]] BETWEEN v1 AND v1
     FROM MATCH (v1)
 
-]] error like "Duplicate variable: variable already defined in the MATCH clause" at #1, #2
+]] error like "Duplicate variable: variable already defined in the FROM clause" at #1, #2
 
 test Duplicate variable (2) [[
 

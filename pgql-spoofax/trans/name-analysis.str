@@ -24,14 +24,14 @@ imports
 rules
 
   add-names = is-ddl-statement
-              + ?AstPlusMetadata(query, metadata); !AstPlusMetadata(<trans-query(|[], metadata)> query, metadata)
+              + ?AstPlusMetadata(query, metadata); !AstPlusMetadata(<trans-query(|[], metadata); ?(<id>, _)> query, metadata)
               + ?Start-Plhdr() // for empty query string
 
 rules
 
   trans-query(|variables, metadata):
-    NormalizedQuery(CommonPathExpressions(pathExpressions), selectOrModifyClause, optionalGraphName, graphPattern, groupBy, having, orderBy, limitOffsets, error-messages, version, bindVariableCount, selectinAllVariables) ->
-        NormalizedQuery(CommonPathExpressions(pathExpressions'), selectOrModifyClause', optionalGraphName, graphPattern'', groupBy', having', orderBy', limitOffsets, error-messages, version, bindVariableCount, selectinAllVariables)
+    NormalizedQuery(CommonPathExpressions(pathExpressions), selectOrModifyClause, optionalGraphName, tableExpressions, whereClause, groupBy, having, orderBy, limitOffsets, error-messages, version, bindVariableCount, selectingAllVariables) ->
+        (NormalizedQuery(CommonPathExpressions(pathExpressions'), selectOrModifyClause', optionalGraphName, tableExpressions'', whereClause', groupBy', having', orderBy', limitOffsets, error-messages, version, bindVariableCount, selectingAllVariables), variables-in-projection)
     with variables' := <guarantee-size-two-or-more> variables
 
        // PATH
@@ -40,29 +40,10 @@ rules
        // these expAsVars are used to make the column aliases in SELECT visible in WHERE and GROUP BY
        ; expAsVars := <?SelectClause(_, SelectList(<id>)) <+ ![]> selectOrModifyClause
 
-       ; if <?Some(GraphPattern(vertices, connections, valueExpression))> := graphPattern
-         then // MATCH
-              (vertices', connections') := <alltd(trans-elem(|variables'))> (vertices, <alltd(trans-rows-per-match(|variables'))> connections)
-            ; edges := <filter(?Edge(_, _, _, _, _, _) + path-with-at-most-one-binding)> connections'
-            ; paths := <filter(path-with-two-or-more-bindings)> connections'
+       ; (tableExpressions', variables'', valueExpression') := <foldl(trans-table-expression(|metadata, expAsVars))> (tableExpressions, ([], variables', []))
 
-            ; new-vars := <conc> (<collect(to-varDef)> (vertices', edges), <collect(rows-per-match-to-varDef); flatten-list> connections')
-            ; new-groupVars := <collect(to-varDef)> paths
-            ; <?[x|[y|ys]]> variables'
-            ; visible-vars := <replace-or-add-all> (new-vars, x)
-            ; visible-groupVars := <replace-or-add-all> (new-groupVars, y)
-            ; variables'' := [visible-vars|[visible-groupVars|ys]]
-
-            ; connections'' := <alltd(resolve-var-refs-in-path-expression(|variables'', metadata))> connections'
-
-              // WHERE
-            ; valueExpression' := <resolve-value-expression(|variables'', expAsVars, metadata)> valueExpression
-
-            ; graphPattern' := Some(GraphPattern(vertices', connections'', valueExpression'))
-         else graphPattern' := None()
-            ; variables'' := variables'
-            ; valueExpression' := Constraints([])
-         end
+         // WHERE
+       ; whereClause' := <resolve-value-expression(|variables'', expAsVars, metadata)> whereClause
 
        // GROUP BY
        ; if (!groupBy; ?Some(_)) + (!selectOrModifyClause; create-one-group(|variables'')) + (!having; ?Some(_))
@@ -77,7 +58,9 @@ rules
          then (selectOrModifyClause', variables'''') := <resolve-select-clause(|variables''', metadata, valueExpression')> selectOrModifyClause
          else selectOrModifyClause' := <resolve-modify-clause(|variables''', metadata)> selectOrModifyClause
            ; variables'''' := variables'''
-        end
+         end
+
+       ; tableExpressions'' := <map(try(normalize-ANY-paths(|variables'''')))> tableExpressions' // normalize ANY either to REACHES or SHORTEST
 
        // HAVING
        ; having' := <resolve-having(|variables''', variables'''', metadata)> having // having resolves to GROUP BY variables first, then to SELECT variables
@@ -88,11 +71,42 @@ rules
                      ; resolve-prop-refs(|variables''', metadata)
                      ; alltd(optimize-order-by)> orderBy
 
-       ; if <?Some(GraphPattern(vertices', connections'', valueExpression'))> := graphPattern'
-         then connections''' := <map(try(normalize-ANY-path(|variables'''')))> connections'' // normalize ANY either to REACHES or SHORTEST
-            ; graphPattern'' := Some(GraphPattern(vertices', connections''', valueExpression'))
-         else graphPattern'' := graphPattern'
-         end
+       // variables to pass into subsequent table expressions
+       ; variables-in-projection := <diff> (<Hd> variables'''', <Hd> variables''')
+
+  trans-table-expression(|metadata, expAsVars):
+    (GraphPattern(vertices, connections, Constraints(valueExpression)), (result, variables, valueExpressionPriorLateralQueries)) -> (result', variables', valueExpression'')
+      with  // MATCH
+           (vertices', connections') := <alltd(trans-elem(|variables))> (vertices, <alltd(trans-rows-per-match(|variables))> connections)
+          ; edges := <filter(?Edge(_, _, _, _, _, _) + path-with-at-most-one-binding)> connections'
+          ; paths := <filter(path-with-two-or-more-bindings)> connections'
+
+          ; new-vars := <conc> (<collect(to-varDef)> (vertices', edges), <collect(rows-per-match-to-varDef); flatten-list> connections')
+          ; new-groupVars := <collect(to-varDef)> paths
+          ; <?[x|[y|ys]]> variables
+          ; visible-vars := <replace-or-add-all> (new-vars, x)
+          ; visible-groupVars := <replace-or-add-all> (new-groupVars, y)
+          ; variables' := [visible-vars|[visible-groupVars|ys]]
+
+          ; connections'' := <alltd(resolve-var-refs-in-path-expression(|variables', metadata))> connections'
+
+          // local WHERE clause for has_label constraints and future inlined constraints
+          ; valueExpression' := <resolve-value-expression(|variables', expAsVars, metadata)> valueExpression
+
+          ; graphPattern' := GraphPattern(vertices', connections'', Constraints(valueExpression'))
+          ; result' := <conc> (result, [graphPattern'])
+          ; valueExpression'' := <conc> (valueExpressionPriorLateralQueries, valueExpression') // for SELECT n.* we need to have all the label expression
+
+  trans-table-expression(|metadata, expAsVars):
+    (derivedTable@DerivedTable(lateral, subquery@Subquery(normalizedQuery), correlation), (result, variables, valueExpressionPriorLateralQueries)) -> (result', variables', valueExpression')
+    with (normalizedQuery', variables-in-projection) := <trans-query(|variables, metadata)> normalizedQuery
+       ; subquery' := <origin-track-forced(!Subquery(normalizedQuery'))> subquery
+       ; derivedTable' := <origin-track-forced(!DerivedTable(lateral, subquery', correlation))> derivedTable
+       ; result' := <conc> (result, [derivedTable'])
+       ; <?[x|xs]> variables
+       ; variables-in-projection' := <alltd(?ThisQuery(); !LateralQuery())> variables-in-projection
+       ; variables' := [<conc> (x, variables-in-projection')|xs]
+       ; valueExpression' := valueExpressionPriorLateralQueries // TODO: for SELECT n.* we need to have all the label expression
 
   path-with-at-most-one-binding:
     t@Path(_, _, _, quantifier, _, _, _, _, _) -> t
@@ -122,21 +136,16 @@ rules
          end
 
   trans-rows-per-match(|variables) =
-    ?OneRowPerVertex(iden@Identifier(v, _)); !OneRowPerVertex(iden, <origin-track-forced(origin-offset)> iden, <to-Correlation(|variables)> v) +
-    ?OneRowPerEdge(iden@Identifier(e, _)); !OneRowPerEdge(iden, <origin-track-forced(origin-offset)> iden, <to-Correlation(|variables)> e) +
-    ?OneRowPerStep(iden1@Identifier(v1, _), iden2@Identifier(e, _), iden3@Identifier(v2, _)); !OneRowPerStep(iden1, <origin-track-forced(origin-offset)> iden1, <to-Correlation(|variables)> v1,
-                                                                                                             iden2, <origin-track-forced(origin-offset)> iden2, <to-Correlation(|variables)> e,
-                                                                                                             iden3, <origin-track-forced(origin-offset)> iden3, <to-Correlation(|variables)> v2)
+    ?OneRowPerVertex(iden@Identifier(v, _)); !OneRowPerVertex(RowsPerMatchVariable(iden, <origin-track-forced(origin-offset)> iden, <to-Correlation(|variables)> v, Type("VERTEX"))) +
+    ?OneRowPerEdge(iden@Identifier(e, _)); !OneRowPerEdge(RowsPerMatchVariable(iden, <origin-track-forced(origin-offset)> iden, <to-Correlation(|variables)> e, Type("EDGE"))) +
+    ?OneRowPerStep(iden1@Identifier(v1, _), iden2@Identifier(e, _), iden3@Identifier(v2, _)); !OneRowPerStep(RowsPerMatchVariable(iden1, <origin-track-forced(origin-offset)> iden1, <to-Correlation(|variables)> v1, Type("VERTEX")),
+                                                                                                             RowsPerMatchVariable(iden2, <origin-track-forced(origin-offset)> iden2, <to-Correlation(|variables)> e, Type("EDGE")),
+                                                                                                             RowsPerMatchVariable(iden3, <origin-track-forced(origin-offset)> iden3, <to-Correlation(|variables)> v2, Type("VERTEX")))
+
+  rows-per-match-to-varDef = ?RowsPerMatchVariable(iden, origin-offset, _, type); !VarDef(iden, origin-offset, None(), None(), None(), ThisQuery(), type)
 
   to-varDef = ?Vertex(iden, origin-offset, _); !VarDef(iden, origin-offset, None(), None(), None(), ThisQuery(), Type("VERTEX"))
   to-varDef = ?Edge(_, identifier, _, _, origin-offset, _); !VarDef(identifier, origin-offset, None(), None(), None(), ThisQuery(), Type("EDGE"))
-
-  rows-per-match-to-varDef = ?OneRowPerVertex(iden, origin-offset, _); !VarDef(iden, origin-offset, None(), None(), None(), ThisQuery(), Type("VERTEX"))
-  rows-per-match-to-varDef = ?OneRowPerEdge(iden, origin-offset, _); !VarDef(iden, origin-offset, None(), None(), None(), ThisQuery(), Type("EDGE"))
-  rows-per-match-to-varDef = ?OneRowPerStep(iden1, origin-offset1, _, iden2, origin-offset2, _, iden3, origin-offset3, _)
-                           ; ![ VarDef(iden1, origin-offset1, None(), None(), None(), ThisQuery(), Type("VERTEX")),
-                                VarDef(iden2, origin-offset2, None(), None(), None(), ThisQuery(), Type("EDGE")),
-                                VarDef(iden3, origin-offset3, None(), None(), None(), ThisQuery(), Type("VERTEX")) ]
 
   replace-or-add-all = foldl(replace-or-add)
 
@@ -256,7 +265,7 @@ rules
               then selectElems := <resolve-var-refs(|variables, metadata)> [t] // no label metadata is provided so we don't process the n.* other than resolve variable n
                  ; vars' := vars
               else originOffset := <?VarRef(_, <id>) <+ !None()> varRef'
-                 ; labelExpression := <(?Constraints(<id>) <+ ![]); filter(simplify-label-expression(|originOffset)); (?[]; !All() <+ to-label-conjunction)> valueExpression
+                 ; labelExpression := <filter(simplify-label-expression(|originOffset)); (?[]; !All() <+ to-label-conjunction)> valueExpression
                  ; allLabelNames := <(?Type("VERTEX"); get-vertex-labels(|metadata) + ?Type("EDGE"); get-edge-labels(|metadata)); try(?None(); ![])> elementType
                  ; labelReferences := <get-labels-from-label-expression(|allLabelNames)> labelExpression
                  ; properties := <try(?None(); ![]); filter(fetch-properties-via-label-reference(|labelReferences)); concat> allLabels
@@ -376,7 +385,7 @@ rules
   resolve-var-ref(|variables, metadata):
     Subquery(query) -> Subquery(query')
     with variables' := <alltd(VarDef(id, id, id, id, id, !OuterQuery(), id))> variables
-       ; query' := <trans-query(|variables', metadata)> query
+       ; (query', _) := <trans-query(|variables', metadata)> query
 
   replace-exp-with-ref-within-this-query(|variables):
     exp -> varRef
@@ -462,6 +471,8 @@ rules
   optimize-order-by:
     OrderByClause(elems) -> OrderByClause(elems')
     with elems' := <make-set-while-preserving-ordering> elems // optimization to translate e.g. ORDER BY x, y, x, y into ORDER BY x, y
+
+  normalize-ANY-paths(|variables) = GraphPattern(id, map(try(normalize-ANY-path(|variables))), id)
 
   normalize-ANY-path(|variables):
     Path(src, dst, t@CommonPathExpression(_, Vertices(vertices), Edges(edges), _, _), quantifier, edge, direction, Any(), topKAnyAll, rowsPerMatch)

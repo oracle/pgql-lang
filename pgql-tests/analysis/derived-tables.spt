@@ -1,0 +1,12 @@
+module derived-tables
+
+language pgql-lang
+
+/*
+test Same expression in outer SELECT and inner SELECT [[
+
+SELECT 1
+FROM ( SELECT 1 FROM MATCH (m) -[e2]-> (o) )
+
+]] analysis succeeds
+*/

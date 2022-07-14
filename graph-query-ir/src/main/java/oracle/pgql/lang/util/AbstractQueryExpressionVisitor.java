@@ -3,6 +3,7 @@
  */
 package oracle.pgql.lang.util;
 
+import oracle.pgql.lang.ir.DerivedTable;
 import oracle.pgql.lang.ir.ExpAsVar;
 import oracle.pgql.lang.ir.GraphPattern;
 import oracle.pgql.lang.ir.GraphQuery;
@@ -482,5 +483,10 @@ public abstract class AbstractQueryExpressionVisitor implements QueryExpressionV
   public void visit(SetPropertyExpression setPropertyExpression) {
     setPropertyExpression.getPropertyAccess().accept(this);
     setPropertyExpression.getValueExpression().accept(this);
+  }
+
+  @Override
+  public void visit(DerivedTable derivedTable) {
+    derivedTable.getQuery().accept(this);
   }
 }

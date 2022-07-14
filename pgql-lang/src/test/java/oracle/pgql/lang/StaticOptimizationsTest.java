@@ -7,12 +7,18 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
 
 import java.util.List;
+import java.util.Set;
 
 import org.junit.Test;
 
+import oracle.pgql.lang.ir.CommonPathExpression;
+import oracle.pgql.lang.ir.DerivedTable;
 import oracle.pgql.lang.ir.ExpAsVar;
+import oracle.pgql.lang.ir.Projection;
 import oracle.pgql.lang.ir.QueryExpression;
 import oracle.pgql.lang.ir.QueryExpression.ExpressionType;
+import oracle.pgql.lang.ir.QueryExpression.Function.Exists;
+import oracle.pgql.lang.ir.QueryExpression.ScalarSubquery;
 import oracle.pgql.lang.ir.SelectQuery;
 
 public class StaticOptimizationsTest extends AbstractPgqlTest {
@@ -102,5 +108,82 @@ public class StaticOptimizationsTest extends AbstractPgqlTest {
         + "         HAVING prop > 10";
     PgqlResult result = pgql.parse(query);
     assertTrue(result.isQueryValid());
+  }
+
+  @Test
+  public void testPredicatePushdownForExistsQuery1() throws Exception {
+    String query = "SELECT id(n) FROM MATCH (n) WHERE EXISTS (SELECT * FROM MATCH (n) -> (m) WHERE m.age > n.age)";
+    SelectQuery selectQuery = (SelectQuery) pgql.parse(query).getGraphQuery();
+    assertEquals(1L, selectQuery.getGraphPattern().getConstraints().size());
+  }
+
+  @Test
+  public void testPredicatePushdownForExistsQuery2() throws Exception {
+    String query = "SELECT COUNT(*) "//
+        + "FROM MATCH (n) -> (m) " //
+        + "WHERE EXISTS ( SELECT * FROM MATCH (n) -> (o) WHERE id(m) <> id(o) )";
+    SelectQuery selectQuery = (SelectQuery) pgql.parse(query).getGraphQuery();
+    Set<QueryExpression> constraints = selectQuery.getGraphPattern().getConstraints();
+    assertEquals(1L, constraints.size());
+    Exists exists = (Exists) constraints.iterator().next();
+    assertEquals(1L, exists.getQuery().getGraphPattern().getConstraints().size());
+  }
+
+  @Test
+  public void testPredicatePushdownForExistsQuery3() throws Exception {
+    String query = "SELECT n.age FROM MATCH (n) " //
+        + "WHERE EXISTS ( SELECT m.age FROM MATCH (n)->(m) GROUP BY m.age, n.name ) ORDER BY n.age";
+    SelectQuery selectQuery = (SelectQuery) pgql.parse(query).getGraphQuery();
+    assertEquals(1L, selectQuery.getGraphPattern().getConstraints().size());
+  }
+
+  @Test
+  public void testPredicatePushdownForExistsQuery4() throws Exception {
+    String query = "PATH p AS (a) -> (b) WHERE EXISTS ( SELECT x FROM MATCH (x) WHERE x.age > b.age ) " //
+        + "SELECT id(n), id(m) " //
+        + "FROM MATCH (n) -/:p/-> (m)";
+    CommonPathExpression commonPathExpression = pgql.parse(query).getGraphQuery().getCommonPathExpressions().get(0);
+    assertEquals(1L, commonPathExpression.getConstraints().size());
+  }
+
+  @Test
+  public void testPredicatePushdownAfterGroupBy() throws Exception {
+    String query = "SELECT m.age, ( " + //
+        "  SELECT COUNT(*) " + //
+        "  FROM MATCH (n) " + //
+        "  WHERE m.age = 24 OR m.age = 28 ) " + //
+        "FROM MATCH (m) " + //
+        "GROUP BY m.age";
+    ExpAsVar expAsVar = ((SelectQuery) pgql.parse(query).getGraphQuery()).getProjection().getElements().get(1);
+    ScalarSubquery scalarSubquery = (ScalarSubquery) expAsVar.getExp();
+    Set<QueryExpression> constraints = scalarSubquery.getQuery().getGraphPattern().getConstraints();
+    assertEquals(1L, constraints.size());
+  }
+
+  @Test
+  public void testPredicatePushDownLateral() throws Exception {
+    String query = "SELECT m.prop AS m_prop, n_prop " + //
+        "FROM MATCH (m) " + //
+        "   , LATERAL ( SELECT n.prop AS n_prop FROM MATCH (n) -> (m)  ) " + //
+        "WHERE n_prop > 4 AND m_prop > 4 AND m.prop2 > 4";
+
+    SelectQuery outerQuery = (SelectQuery) pgql.parse(query).getGraphQuery();
+    Set<QueryExpression> constraintsOuterQuery = outerQuery.getGraphPattern().getConstraints();
+    assertEquals(2L, constraintsOuterQuery.size());
+
+    SelectQuery innerQuery = ((DerivedTable) outerQuery.getTableExpressions().get(1)).getQuery();
+    Set<QueryExpression> constraintsInnerQuery = innerQuery.getGraphPattern().getConstraints();
+    assertEquals(1L, constraintsInnerQuery.size());
+  }
+
+  @Test
+  public void testSelectStarWithLateral() throws Exception {
+    String query = "SELECT * " + //
+        "FROM MATCH (n) " + //
+        "   , LATERAL ( SELECT m, m.prop FROM MATCH (m) ) " + //
+        "   , MATCH (o)";
+
+    Projection projection = ((SelectQuery) pgql.parse(query).getGraphQuery()).getProjection();
+    assertEquals(4L, projection.getElements().size());
   }
 }

@@ -13,28 +13,24 @@ imports
 
 rules
 
-  add-types = not(?AstPlusMetadata(_, _)) <+ // we don't perform any type anlaysis for DDL for now
-              ?AstPlusMetadata(ast, metadata); !ast; add-types-to-query(|metadata, [], []); !AstPlusMetadata(<id>, metadata)
+  add-types = not(?AstPlusMetadata(_, _)) // we don't perform any type anlaysis for DDL for now
+                <+
+              ?AstPlusMetadata(ast, metadata); !ast
+            ; add-types-to-query(|metadata, [], <collect-all-constraints> ast)
+            ; ?(<id>, _); !AstPlusMetadata(<id>, metadata)
 
-  add-types-to-query(|metadata, variablesPlusTypes, constraintsFromOuterQuery):
-      NormalizedQuery(CommonPathExpressions(pathExpressions), selectOrModifyClause, optionalGraphName, graphPattern, groupBy, having, orderBy, limitOffsets, error-messages, version, bindVariableCount, selectinAllVariables) ->
-        NormalizedQuery(CommonPathExpressions(pathExpressions'), selectOrModifyClause', optionalGraphName, graphPattern', groupBy', having', orderBy', limitOffsets, error-messages, version, bindVariableCount, selectinAllVariables)
+  add-types-to-query(|metadata, variablesPlusTypes, constraints):
+      NormalizedQuery(CommonPathExpressions(pathExpressions), selectOrModifyClause, optionalGraphName, tableExpressions, whereClause, groupBy, having, orderBy, limitOffsets, error-messages, version, bindVariableCount, selectingAllVariables) ->
+        ( NormalizedQuery(CommonPathExpressions(pathExpressions'), selectOrModifyClause', optionalGraphName, tableExpressions', whereClause', groupBy', having', orderBy', limitOffsets, error-messages, version, bindVariableCount, selectingAllVariables)
+        , variablesPlusTypes''')
     with // PATH
          pathExpressions' := <map(add-types-to-path-expression(|metadata))> pathExpressions
 
-       // MATCH
-       ; if <?Some(GraphPattern(Vertices(vertices), connections, _))> := graphPattern
-         then verticesWithTypes := <conc> ( <collect-vertices-with-types(?Vertex(_, <id>, _))> (vertices, connections)
-                                          , <collect-vertices-with-types(?OneRowPerVertex(_, <id>, _))> connections
-                                          , <collect-vertices-with-types(?OneRowPerStep(_, <id>, _, _, _, _, _, _, _))> connections
-                                          , <collect-vertices-with-types(?OneRowPerStep(_, _, _, _, _, _, _, <id>, _))> connections )
-            ; edgesWithTypes := <collect-edges-with-types(?Edge(_, _, _, _, <id>, _) + ?OneRowPerEdge(_, <id>, _) + ?OneRowPerStep(_, _, _, _, <id>, _, _, _, _))> connections
-            ; variablesPlusTypes' := <conc> (variablesPlusTypes, verticesWithTypes, edgesWithTypes)
-            ; constraints := <conc> (constraintsFromOuterQuery, <collect-in-outer-query(?Constraints(<id>)); concat> graphPattern)
-            ; graphPattern' := <alltd(add-type(|metadata, variablesPlusTypes', constraints))> graphPattern
-         else variablesPlusTypes' := variablesPlusTypes
-            ; graphPattern' := graphPattern
-         end
+         // FROM
+       ; (tableExpressions', variablesPlusTypes') := <foldl(add-type-to-table-expression(|metadata, constraints))> (tableExpressions, ([], variablesPlusTypes))
+
+         // WHERE
+       ; whereClause' := <alltd(add-type(|metadata, variablesPlusTypes', constraints))> whereClause
 
          // GROUP BY
        ; if <?Some(_)> groupBy
@@ -44,7 +40,7 @@ rules
             ; variablesPlusTypes'' := variablesPlusTypes'
          end
 
-       // SELECT / INSERT / UPDATE / DELETE
+         // SELECT / INSERT / UPDATE / DELETE
        ; if <?SelectClause(_, SelectList(_))> selectOrModifyClause
          then selectOrModifyClause' := <alltd(add-type(|metadata, variablesPlusTypes'', constraints))> selectOrModifyClause
             ; variablesPlusTypes''' := <conc> (variablesPlusTypes'', <?SelectClause(_, SelectList(<id>)); map(expAsVar-to-variablePlusType(|variablesPlusTypes''))> selectOrModifyClause')
@@ -55,8 +51,7 @@ rules
                  ; verticesWithTypes' := <collect-vertices-with-types(?VertexInsertion(_, <id>, _, _))> modifications
                  ; edgesWithTypes' := <collect-edges-with-types(?DirectedEdgeInsertion(_, <id>, _, _, _, _))> modifications
                  ; variablesPlusTypes''' := <conc> (variablesPlusTypes'', verticesWithTypes', edgesWithTypes')
-                 ; constraints' := <collect(insertion-to-has-label-constraint); concat> modifications // label constraints are used to type check property references
-                 ; selectOrModifyClause' := <alltd(add-type(|metadata, variablesPlusTypes''', constraints'))> selectOrModifyClause
+                 ; selectOrModifyClause' := <alltd(add-type(|metadata, variablesPlusTypes''', constraints))> selectOrModifyClause
               end
          end
 
@@ -65,6 +60,25 @@ rules
 
          // ORDER BY
        ; orderBy' := <alltd(add-type(|metadata, variablesPlusTypes''', constraints))> orderBy
+
+  add-type-to-table-expression(|metadata, constraints):
+    (graphPattern@GraphPattern(Vertices(vertices), connections, _), (result, variablesPlusTypes)) -> (result', variablesPlusTypes')
+    with verticesWithTypes := <conc> ( <collect-vertices-with-types(?Vertex(_, <id>, _))> (vertices, connections)
+                                     , <collect-vertices-with-types(?RowsPerMatchVariable(_, <id>, _, Type("VERTEX")))> connections )
+       ; edgesWithTypes := <collect-edges-with-types(?Edge(_, _, _, _, <id>, _) + ?RowsPerMatchVariable(_, <id>, _, Type("EDGE")))> connections
+       ; variablesPlusTypes' := <conc> (variablesPlusTypes, verticesWithTypes, edgesWithTypes)
+       ; graphPattern' := <alltd(add-type(|metadata, variablesPlusTypes', constraints))> graphPattern
+       ; result' := <conc> (result, [graphPattern'])
+
+  add-type-to-table-expression(|metadata, constraints):
+    (derivedTable@DerivedTable(lateral, subquery@Subquery(normalizedQuery), correlation), (result, variablesPlusTypes)) -> (result', variablesPlusTypes''')
+    with (normalizedQuery', variablesPlusTypes') := <add-types-to-query(|metadata, variablesPlusTypes, constraints)> normalizedQuery
+       ; subquery' := <origin-track-forced(!Subquery(normalizedQuery'))> subquery
+       ; derivedTable' := <origin-track-forced(!DerivedTable(lateral, subquery', correlation))> derivedTable
+       ; result' := <conc> (result, [derivedTable'])
+       ; variablesPlusTypes'' := < ?NormalizedQuery(_, SelectClause(_, SelectList(<id>)), _, _, _, _, _, _, _, _, _, _, _)
+                                 ; map(expAsVar-to-variablePlusType(|variablesPlusTypes'))> normalizedQuery'
+       ; variablesPlusTypes''' := <conc> (variablesPlusTypes, variablesPlusTypes'')
 
   collect-vertices-with-types(s) = collect-in-outer-query(s; !VariablePlusType(<id>, <id>, Type("VERTEX")))
 
@@ -76,9 +90,6 @@ rules
        ; edgesWithTypes := <collect-edges-with-types(?Edge(_, _, _, _, <id>, _))> edges
        ; variablesPlusTypes := <conc> (verticesWithTypes, edgesWithTypes)
        ; pathExpression' := <alltd(add-type(|metadata, variablesPlusTypes, constraints))> pathExpression
-
-  insertion-to-has-label-constraint = ?VertexInsertion(identifier, originOffset, Some(Labels(<id>)), _); map(![VarRef(identifier, originOffset), <id>]; to-function(|"has_label"))
-  insertion-to-has-label-constraint = ?DirectedEdgeInsertion(identifier, originOffset, _, _, Some(Labels(<id>)), _); map(![VarRef(identifier, originOffset), <id>]; to-function(|"has_label"))
 
 rules // exp AS var
 
@@ -218,6 +229,8 @@ rules // functions
     where <upper-case; ?"ALL_DIFFERENT"> name
         ; <not(length; ?0)> args
 
+  add-type(|metadata, variablesPlusTypes, constraints) = ?BetweenPredicate(_, _, _); !ExpressionPlusType(<id>, Type("BOOLEAN"))
+
 rules // subqueries
 
   add-type(|metadata, variablesPlusTypes, constraints):
@@ -230,8 +243,8 @@ rules // subqueries
 
   add-types-to-subquery(|metadata, variablesPlusTypes, constraints):
     query -> (query', type)
-    with query' := <add-types-to-query(|metadata, variablesPlusTypes, constraints)> query
-       ; if <?NormalizedQuery(_, SelectClause(_, SelectList([ExpAsVar(ExpressionPlusType(_, Type(t)), _, _, _)])), _, _, _, _, _, _, _, _, _, _)> query'
+    with (query', _) := <add-types-to-query(|metadata, variablesPlusTypes, constraints)> query
+       ; if <?NormalizedQuery(_, SelectClause(_, SelectList([ExpAsVar(ExpressionPlusType(_, Type(t)), _, _, _)])), _, _, _, _, _, _, _, _, _, _, _)> query'
          then type := Type(t)
          else type := UnknownType()
          end
@@ -320,8 +333,6 @@ rules // other expressions
 
   add-type(|metadata, variablesPlusTypes, constraints) = ?CharacterSubstring(_, _, _); add-types-to-subterms(|metadata, variablesPlusTypes, constraints); !ExpressionPlusType(<id>, <get-default-string-type(|metadata)>)
 
-  add-type(|metadata, variablesPlusTypes, constraints) = ?FunctionCall(_, _, _); add-types-to-subterms(|metadata, variablesPlusTypes, constraints); !ExpressionPlusType(<id>, UnknownType()) // TODO
-
   add-types-to-subterms(|metadata, variablesPlusTypes, constraints):
     t -> t'
     with (constructor, args) := <explode-term> t
@@ -404,3 +415,9 @@ rules // other expressions
               else type := UnknownType()
               end
          end
+
+  // label constraints are needed to type check property references
+  collect-all-constraints = collect(?Constraints(<id>) + insertion-to-has-label-constraint); flatten-list
+
+  insertion-to-has-label-constraint = ?VertexInsertion(identifier, originOffset, Some(Labels(<id>)), _); map(![VarRef(identifier, originOffset), <id>]; to-function(|"has_label"))
+  insertion-to-has-label-constraint = ?DirectedEdgeInsertion(identifier, originOffset, _, _, Some(Labels(<id>)), _); map(![VarRef(identifier, originOffset), <id>]; to-function(|"has_label"))

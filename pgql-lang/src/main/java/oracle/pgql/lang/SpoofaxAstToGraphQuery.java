@@ -8,16 +8,19 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.Iterator;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
 import org.spoofax.interpreter.terms.IStrategoAppl;
+import org.spoofax.interpreter.terms.IStrategoList;
 import org.spoofax.interpreter.terms.IStrategoTerm;
 import org.spoofax.interpreter.terms.TermType;
 
 import oracle.pgql.lang.ir.CommonPathExpression;
+import oracle.pgql.lang.ir.DerivedTable;
 import oracle.pgql.lang.ir.Direction;
 import oracle.pgql.lang.ir.ExpAsVar;
 import oracle.pgql.lang.ir.GraphPattern;
@@ -42,6 +45,7 @@ import oracle.pgql.lang.ir.QueryVertex;
 import oracle.pgql.lang.ir.SchemaQualifiedName;
 import oracle.pgql.lang.ir.SelectQuery;
 import oracle.pgql.lang.ir.PgqlStatement;
+import oracle.pgql.lang.ir.TableExpression;
 import oracle.pgql.lang.ir.VertexPairConnection;
 import oracle.pgql.lang.ir.modify.DeleteClause;
 import oracle.pgql.lang.ir.modify.EdgeInsertion;
@@ -83,11 +87,13 @@ public class SpoofaxAstToGraphQuery {
   private static final int POS_COMMON_PATH_EXPRESSIONS = 0;
   private static final int POS_SELECT_OR_MODIFY = 1;
   private static final int POS_GRAPH_NAME = 2;
-  private static final int POS_GRAPH_PATTERN = 3;
-  private static final int POS_GROUPBY = 4;
-  private static final int POS_HAVING = 5;
-  private static final int POS_ORDERBY = 6;
-  private static final int POS_LIMITOFFSET = 7;
+  private static final int POS_TABLE_EXPRESSIONS = 3;
+  @SuppressWarnings("unused")
+  private static final int POS_NON_PUSHED_DOWN_PREDICATES = 4;
+  private static final int POS_GROUPBY = 5;
+  private static final int POS_HAVING = 6;
+  private static final int POS_ORDERBY = 7;
+  private static final int POS_LIMITOFFSET = 8;
 
   private static final int POT_GRAPH_NAME_NAME = 0;
 
@@ -154,15 +160,12 @@ public class SpoofaxAstToGraphQuery {
   private static final int POS_PATH_ROWS_PER_MATCH = 8;
 
   private static final int POS_ONE_ROW_PER_VERTEX_VERTEX = 0;
-  private static final int POS_ONE_ROW_PER_VERTEX_ORIGIN_OFFSET = 1;
   private static final int POS_ONE_ROW_PER_EDGE_EDGE = 0;
-  private static final int POS_ONE_ROW_PER_EDGE_ORIGIN_OFFSET = 1;
   private static final int POS_ONE_ROW_PER_STEP_VERTEX_1 = 0;
-  private static final int POS_ONE_ROW_PER_STEP_VERTEX_1_ORIGIN_OFFSET = 1;
-  private static final int POS_ONE_ROW_PER_STEP_EDGE = 3;
-  private static final int POS_ONE_ROW_PER_STEP_EDGE_ORIGIN_OFFSET = 4;
-  private static final int POS_ONE_ROW_PER_STEP_VERTEX_2 = 6;
-  private static final int POS_ONE_ROW_PER_STEP_VERTEX_2_ORIGIN_OFFSET = 7;
+  private static final int POS_ONE_ROW_PER_STEP_EDGE = 1;
+  private static final int POS_ONE_ROW_PER_STEP_VERTEX_2 = 2;
+  private static final int POS_ROWS_PER_MATCH_VARIABLE_NAME = 0;
+  private static final int POS_ROWS_PER_MATCH_VARIABLE_ORIGIN_OFFSET = 1;
 
   private static final int POS_ORDERBY_EXP = 0;
   private static final int POS_ORDERBY_ORDERING = 1;
@@ -180,6 +183,10 @@ public class SpoofaxAstToGraphQuery {
   private static final int POS_EXP_PLUS_TYPE_EXP = 0;
 
   private static final int POS_ALLPROPERTIES_VARREF = 0;
+
+  private static final int POS_DERIVED_TABLE_LATERAL = 0;
+  private static final int POS_DERIVED_TABLE_SUBQUERY = 1;
+  private static final int POS_SUBQUERY_QUERY = 0;
 
   public static PgqlStatement translate(IStrategoTerm ast) throws PgqlException {
 
@@ -215,33 +222,28 @@ public class SpoofaxAstToGraphQuery {
     List<CommonPathExpression> commonPathExpressions = getCommonPathExpressions(commonPathExpressionsT, ctx);
 
     // graph pattern
-    IStrategoTerm graphPatternT = ast.getSubterm(POS_GRAPH_PATTERN);
+    IStrategoList tableExpressionsT = (IStrategoList) ast.getSubterm(POS_TABLE_EXPRESSIONS);
 
-    GraphPattern graphPattern;
-    if (isNone(graphPatternT)) {
-      graphPattern = null;
-    } else {
-      graphPatternT = getSomeValue(graphPatternT);
-
-      // vertices
-      IStrategoTerm verticesT = getList(graphPatternT.getSubterm(POS_VERTICES));
-      Set<QueryVertex> vertices = new HashSet<>(getQueryVertices(verticesT, ctx));
-      Map<String, QueryVertex> vertexMap = new HashMap<>();
-      vertices.stream().forEach(vertex -> vertexMap.put(vertex.getName(), vertex));
-
-      // connections
-      IStrategoTerm connectionsT = getList(graphPatternT.getSubterm(POS_CONNECTIONS));
-      LinkedHashSet<VertexPairConnection> connections = getConnections(connectionsT, ctx, vertexMap);
-
-      giveAnonymousVariablesUniqueHiddenName(vertices, ctx);
-      giveAnonymousVariablesUniqueHiddenName(connections, ctx);
-
-      // constraints
-      IStrategoTerm constraintsT = getList(graphPatternT.getSubterm(POS_CONSTRAINTS));
-      LinkedHashSet<QueryExpression> constraints = getQueryExpressions(constraintsT, ctx);
-
-      // graph pattern
-      graphPattern = new GraphPattern(vertices, connections, constraints);
+    List<TableExpression> tableExpressions = new ArrayList<>();
+    Iterator<IStrategoTerm> it = tableExpressionsT.iterator();
+    while (it.hasNext()) {
+      IStrategoAppl tableExpressionT = (IStrategoAppl) it.next();
+      String constructorName = tableExpressionT.getConstructor().getName();
+      switch (constructorName) {
+        case "GraphPattern":
+          GraphPattern graphPattern = translateGraphPattern(ctx, tableExpressionT);
+          tableExpressions.add(graphPattern);
+          break;
+        case "DerivedTable":
+          boolean lateral = isSome(tableExpressionT.getSubterm(POS_DERIVED_TABLE_LATERAL));
+          SelectQuery query = (SelectQuery) translate(
+              tableExpressionT.getSubterm(POS_DERIVED_TABLE_SUBQUERY).getSubterm(POS_SUBQUERY_QUERY));
+          DerivedTable derivedTable = new DerivedTable(query, lateral);
+          tableExpressions.add(derivedTable);
+          break;
+        default:
+          throw new IllegalStateException(constructorName + " not supported");
+      }
     }
 
     // GROUP BY
@@ -288,14 +290,39 @@ public class SpoofaxAstToGraphQuery {
 
     switch (selectOrUpdate) {
       case "SelectClause":
-        return new SelectQuery(commonPathExpressions, projection, graphName, graphPattern, groupBy, having, orderBy,
+        return new SelectQuery(commonPathExpressions, projection, graphName, tableExpressions, groupBy, having, orderBy,
             limit, offset);
       case "ModifyClause":
-        return new ModifyQuery(commonPathExpressions, modifications, graphName, graphPattern, groupBy, having, orderBy,
-            limit, offset);
+        return new ModifyQuery(commonPathExpressions, modifications, graphName, tableExpressions, groupBy, having,
+            orderBy, limit, offset);
       default:
         throw new IllegalStateException(selectOrUpdate);
     }
+  }
+
+  private static GraphPattern translateGraphPattern(TranslationContext ctx, IStrategoTerm graphPatternT)
+      throws PgqlException {
+    GraphPattern graphPattern;
+    // vertices
+    IStrategoTerm verticesT = getList(graphPatternT.getSubterm(POS_VERTICES));
+    Set<QueryVertex> vertices = new HashSet<>(getQueryVertices(verticesT, ctx));
+    Map<String, QueryVertex> vertexMap = new HashMap<>();
+    vertices.stream().forEach(vertex -> vertexMap.put(vertex.getName(), vertex));
+
+    // connections
+    IStrategoTerm connectionsT = getList(graphPatternT.getSubterm(POS_CONNECTIONS));
+    LinkedHashSet<VertexPairConnection> connections = getConnections(connectionsT, ctx, vertexMap);
+
+    giveAnonymousVariablesUniqueHiddenName(vertices, ctx);
+    giveAnonymousVariablesUniqueHiddenName(connections, ctx);
+
+    // constraints
+    IStrategoTerm constraintsT = getList(graphPatternT.getSubterm(POS_CONSTRAINTS));
+    LinkedHashSet<QueryExpression> constraints = getQueryExpressions(constraintsT, ctx);
+
+    // graph pattern
+    graphPattern = new GraphPattern(vertices, connections, constraints);
+    return graphPattern;
   }
 
   private static Projection translateSelectClause(TranslationContext ctx, IStrategoTerm selectOrUpdateT)
@@ -752,40 +779,42 @@ public class SpoofaxAstToGraphQuery {
       case "OneRowPerMatch":
         return new OneRowPerMatch();
       case "OneRowPerVertex": {
-        String vertexName = getString(rowsPerMatchT.getSubterm(POS_ONE_ROW_PER_VERTEX_VERTEX));
-        QueryVertex vertex = new QueryVertex(vertexName, false);
-        IStrategoTerm originOffset = rowsPerMatchT.getSubterm(POS_ONE_ROW_PER_VERTEX_ORIGIN_OFFSET);
-        ctx.addVar(vertex, vertexName, originOffset);
+        QueryVertex vertex = getRowsPerMatchVertex(rowsPerMatchT, POS_ONE_ROW_PER_VERTEX_VERTEX, ctx);
         return new OneRowPerVertex(vertex);
       }
       case "OneRowPerEdge": {
-        String edgeName = getString(rowsPerMatchT.getSubterm(POS_ONE_ROW_PER_EDGE_EDGE));
-        QueryEdge edge = new QueryEdge(null, null, edgeName, false, null);
-        IStrategoTerm originOffset = rowsPerMatchT.getSubterm(POS_ONE_ROW_PER_EDGE_ORIGIN_OFFSET);
-        ctx.addVar(edge, edgeName, originOffset);
+        QueryEdge edge = getRowsPerMatchEdge(rowsPerMatchT, POS_ONE_ROW_PER_EDGE_EDGE, ctx);
         return new OneRowPerEdge(edge);
       }
       case "OneRowPerStep": {
-        String vertex1Name = getString(rowsPerMatchT.getSubterm(POS_ONE_ROW_PER_STEP_VERTEX_1));
-        QueryVertex vertex1 = new QueryVertex(vertex1Name, false);
-        IStrategoTerm vertex1OriginOffset = rowsPerMatchT.getSubterm(POS_ONE_ROW_PER_STEP_VERTEX_1_ORIGIN_OFFSET);
-        ctx.addVar(vertex1, vertex1Name, vertex1OriginOffset);
-
-        String edgeName = getString(rowsPerMatchT.getSubterm(POS_ONE_ROW_PER_STEP_EDGE));
-        QueryEdge edge = new QueryEdge(null, null, edgeName, false, null);
-        IStrategoTerm originOffset = rowsPerMatchT.getSubterm(POS_ONE_ROW_PER_STEP_EDGE_ORIGIN_OFFSET);
-        ctx.addVar(edge, edgeName, originOffset);
-
-        String vertex2Name = getString(rowsPerMatchT.getSubterm(POS_ONE_ROW_PER_STEP_VERTEX_2));
-        QueryVertex vertex2 = new QueryVertex(vertex2Name, false);
-        IStrategoTerm vertex2OriginOffset = rowsPerMatchT.getSubterm(POS_ONE_ROW_PER_STEP_VERTEX_2_ORIGIN_OFFSET);
-        ctx.addVar(vertex2, vertex2Name, vertex2OriginOffset);
-
+        QueryVertex vertex1 = getRowsPerMatchVertex(rowsPerMatchT, POS_ONE_ROW_PER_STEP_VERTEX_1, ctx);
+        QueryEdge edge = getRowsPerMatchEdge(rowsPerMatchT, POS_ONE_ROW_PER_STEP_EDGE, ctx);
+        QueryVertex vertex2 = getRowsPerMatchVertex(rowsPerMatchT, POS_ONE_ROW_PER_STEP_VERTEX_2, ctx);
         return new OneRowPerStep(vertex1, edge, vertex2);
       }
       default:
         throw new IllegalArgumentException(constructorName);
     }
+  }
+
+  private static QueryVertex getRowsPerMatchVertex(IStrategoAppl rowsPerMatchT, int variablePosition,
+      TranslationContext ctx) {
+    IStrategoTerm vertexVariableT = rowsPerMatchT.getSubterm(variablePosition);
+    String vertexName = getString(vertexVariableT.getSubterm(POS_ROWS_PER_MATCH_VARIABLE_NAME));
+    QueryVertex vertex = new QueryVertex(vertexName, false);
+    IStrategoTerm originOffset = vertexVariableT.getSubterm(POS_ROWS_PER_MATCH_VARIABLE_ORIGIN_OFFSET);
+    ctx.addVar(vertex, vertexName, originOffset);
+    return vertex;
+  }
+
+  private static QueryEdge getRowsPerMatchEdge(IStrategoAppl rowsPerMatchT, int variablePosition,
+      TranslationContext ctx) {
+    IStrategoTerm edgeVariableT = rowsPerMatchT.getSubterm(variablePosition);
+    String edgeName = getString(edgeVariableT.getSubterm(POS_ROWS_PER_MATCH_VARIABLE_NAME));
+    QueryEdge edge = new QueryEdge(null, null, edgeName, false, null);
+    IStrategoTerm originOffset = edgeVariableT.getSubterm(POS_ROWS_PER_MATCH_VARIABLE_ORIGIN_OFFSET);
+    ctx.addVar(edge, edgeName, originOffset);
+    return edge;
   }
 
   private static long getMinHops(IStrategoTerm pathT) throws PgqlException {

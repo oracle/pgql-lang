@@ -65,3 +65,19 @@ test Missing graph name (5) [[
        , [[MATCH ( (m) )]]
 
 ]] error like "Missing ON clause" at #1
+
+test Missing ON clause in LATERAL [[
+
+  SELECT *
+    FROM MATCH (n1) ON g1
+       , LATERAL ( SELECT n2 FROM [[MATCH (n2) )]]
+
+]] error like "Missing ON clause" at #1
+
+test Missing ON clause outside LATERAL [[
+
+  SELECT *
+    FROM [[MATCH (n1)
+       ,]] LATERAL ( SELECT n2 FROM MATCH (n2) ON g1 )
+
+]] error like "Missing ON clause" at #1

@@ -128,7 +128,8 @@ public class BugFixTest extends AbstractPgqlTest {
     String query = "SELECT u, v MATCH SHORTEST( (u) -> (x0) -> (x1) -> (x2) -> (v) ) WHERE u != v ORDER BY id(u)";
     PgqlResult result = pgql.parse(query); // this used to fail
     assertFalse(result.isQueryValid());
-    assertTrue(result.getErrorMessages().contains("Not yet supported: multiple edge patterns in ANY, ALL, SHORTEST or CHEAPEST"));
+    assertTrue(result.getErrorMessages()
+        .contains("Not yet supported: multiple edge patterns in ANY, ALL, SHORTEST or CHEAPEST"));
   }
 
   @Test
@@ -136,7 +137,8 @@ public class BugFixTest extends AbstractPgqlTest {
     String query = "SELECT 1 MATCH SHORTEST ( (a) ( (n) -[e1]-> (m) -[e2]-> (o) )* (b) )";
     PgqlResult result = pgql.parse(query); // this should not fail
     assertFalse(result.isQueryValid());
-    assertTrue(result.getErrorMessages().contains("Not yet supported: multiple edge patterns in ANY, ALL, SHORTEST or CHEAPEST"));
+    assertTrue(result.getErrorMessages()
+        .contains("Not yet supported: multiple edge patterns in ANY, ALL, SHORTEST or CHEAPEST"));
   }
 
   @Test

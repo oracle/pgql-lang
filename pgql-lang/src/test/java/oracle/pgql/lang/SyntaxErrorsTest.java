@@ -7,6 +7,8 @@ import static org.junit.Assert.*;
 
 import org.junit.Test;
 
+import oracle.pgql.lang.ir.GraphQuery;
+
 public class SyntaxErrorsTest extends AbstractPgqlTest {
 
   @Test
@@ -205,5 +207,15 @@ public class SyntaxErrorsTest extends AbstractPgqlTest {
     String query = "SELECT 1 FROM MATCH ANY SHORTEST () ->{-1, 2} ()";
     PgqlResult result = pgql.parse(query);
     assertTrue(result.getErrorMessages().contains("Syntax error, not expected here: '-'"));
+  }
+
+  @Test
+  public void testUnsupportedSubqueryInFromClause() throws Exception {
+    String query = "SELECT 1 FROM MATCH LATERAL ( SELECT * FROM MATCH (n) )";
+    GraphQuery result = pgql.parse(query).getGraphQuery();
+    result.getTableExpressions(); // make sure this doesn't fail
+
+    thrown.expectMessage("Subqueries in FROM clause not supported");
+    result.getGraphPattern();
   }
 }

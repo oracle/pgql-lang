@@ -18,7 +18,7 @@ signature constructors // for type checking (see trans/types.ts)
 signature constructors // for the normalized AST (see trans/normalize.str)
 
   AstPlusMetadata       : Ast * Metadata -> AstPlusMetadata
-  NormalizedQuery       : CommonPathExpressions * Vars * FromClause * GraphPattern * GroupByClause * HavingClause * List(OrderByElem) * LimitOffsetClauses * List(ErrorMessage) * PgqlVersion * BindVariableCount * SelectingAllProperties -> NormalizedQuery
+  NormalizedQuery       : CommonPathExpressions * Vars * FromClause * TableExpressions * WhereClause * GroupByClause * HavingClause * List(OrderByElem) * LimitOffsetClauses * List(ErrorMessage) * PgqlVersion * BindVariableCount * SelectingAllProperties -> NormalizedQuery
   PgqlVersion           : STRING
   GraphName             : LocalOrSchemaQualifiedName -> GraphName
   CommonPathExpressions : List(CommonPathExpression) -> CommonPathExpressions
@@ -61,7 +61,7 @@ signature constructors // for the normalized AST (see trans/normalize.str)
   VertexInsertion       : Identifier * OriginOffset * LabelsSpecification * PropertiesSpecification -> VertexInsertion
   DirectedEdgeInsertion : Identifier * OriginOffset * Source * Destination * LabelsSpecification * PropertiesSpecification -> DirectedEdgeInsertion
 
-  GraphPatternAndGraphName : GraphPattern * Name * WhereClause -> GraphPatternAndGraphName
+  TableExpressionsAndGraphName : GraphPattern * Name * WhereClause -> TableExpressionsAndGraphName
 
   PathPatternAndRowsPerMatch : PathPattern * RowsPerMatch -> PathPatternAndRowsPerMatch
 
@@ -76,11 +76,12 @@ signature constructors // for name binding (see trans/trans-for-nabl.str)
 
   CreateOneGroup        : CreateOneGroup
 
-  VarDef                : Var * OriginOffset * OriginalExp * ReplacedGroupByExpWithSelectExp * TransformedExp * ThisQueryOrOuterQuery * Type -> VarDef
+  VarDef                : Var * OriginOffset * OriginalExp * ReplacedGroupByExpWithSelectExp * TransformedExp * ThisQueryOrOuterOrLateralQuery * Type -> VarDef
   VarRef                : Var * OriginOffset -> VarRef
 
-  ThisQuery             : ThisQueryOrOuterQuery
-  OuterQuery            : ThisQueryOrOuterQuery
+  ThisQuery             : ThisQueryOrOuterOrLateralQuery
+  OuterQuery            : ThisQueryOrOuterOrLateralQuery
+  LateralQuery          : ThisQueryOrOuterOrLateralQuery
 
   Exp                   : OriginalExp
   None                  : OriginalExp
@@ -91,9 +92,7 @@ signature constructors // for name binding (see trans/trans-for-nabl.str)
 
   Correlation           : VarRef -> CrossRef
 
-  OneRowPerVertex       : Var * OriginOffset * Correlation -> OneRowPerVertex
-  OneRowPerEdge         : Var * OriginOffset * Correlation -> OneRowPerEdge
-  OneRowPerStep         : Var * OriginOffset * Correlation * Var * OriginOffset * Correlation * Var * OriginOffset * Correlation -> OneRowPerStep
+  RowsPerMatchVariable  : Var * OriginOffset * Correlation * Type -> RowsPerMatchVariable
 
 signature constructors // for error checking (see trans/check.str)
 

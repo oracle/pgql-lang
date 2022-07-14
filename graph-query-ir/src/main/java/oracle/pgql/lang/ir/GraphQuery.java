@@ -13,7 +13,7 @@ public abstract class GraphQuery implements PgqlStatement {
 
   private SchemaQualifiedName graphName;
 
-  private GraphPattern graphPattern;
+  private List<TableExpression> tableExpressions;
 
   private GroupBy groupBy;
 
@@ -29,11 +29,11 @@ public abstract class GraphQuery implements PgqlStatement {
    * Constructor
    */
   protected GraphQuery(List<CommonPathExpression> commonPathExpressions, SchemaQualifiedName graphName,
-      GraphPattern graphPattern, GroupBy groupBy, QueryExpression having, OrderBy orderBy, QueryExpression limit,
-      QueryExpression offset) {
+      List<TableExpression> tableExpressions, GroupBy groupBy, QueryExpression having, OrderBy orderBy,
+      QueryExpression limit, QueryExpression offset) {
     this.commonPathExpressions = commonPathExpressions;
     this.graphName = graphName;
-    this.graphPattern = graphPattern;
+    this.tableExpressions = tableExpressions;
     this.groupBy = groupBy;
     this.having = having;
     this.orderBy = orderBy;
@@ -92,11 +92,25 @@ public abstract class GraphQuery implements PgqlStatement {
   }
 
   public GraphPattern getGraphPattern() {
-    return graphPattern;
+    guaranteeQueryHasAtMostSingleGraphPattern();
+    if (tableExpressions.isEmpty()) {
+      return null;
+    } else {
+      return (GraphPattern) tableExpressions.get(0);
+    }
   }
 
   public void setGraphPattern(GraphPattern graphPattern) {
-    this.graphPattern = graphPattern;
+    guaranteeQueryHasAtMostSingleGraphPattern();
+    this.tableExpressions.set(0, graphPattern);
+  }
+
+  public List<TableExpression> getTableExpressions() {
+    return tableExpressions;
+  }
+
+  public void setTableExpressions(List<TableExpression> tableExpressions) {
+    this.tableExpressions = tableExpressions;
   }
 
   public GroupBy getGroupBy() {
@@ -163,10 +177,10 @@ public abstract class GraphQuery implements PgqlStatement {
         return false;
     } else if (!commonPathExpressions.equals(other.commonPathExpressions))
       return false;
-    if (graphPattern == null) {
-      if (other.graphPattern != null)
+    if (graphName == null) {
+      if (other.graphName != null)
         return false;
-    } else if (!graphPattern.equals(other.graphPattern))
+    } else if (!graphName.equals(other.graphName))
       return false;
     if (groupBy == null) {
       if (other.groupBy != null)
@@ -177,11 +191,6 @@ public abstract class GraphQuery implements PgqlStatement {
       if (other.having != null)
         return false;
     } else if (!having.equals(other.having))
-      return false;
-    if (graphName == null) {
-      if (other.graphName != null)
-        return false;
-    } else if (!graphName.equals(other.graphName))
       return false;
     if (limit == null) {
       if (other.limit != null)
@@ -198,8 +207,23 @@ public abstract class GraphQuery implements PgqlStatement {
         return false;
     } else if (!orderBy.equals(other.orderBy))
       return false;
+    if (tableExpressions == null) {
+      if (other.tableExpressions != null)
+        return false;
+    } else if (!tableExpressions.equals(other.tableExpressions))
+      return false;
     return true;
   }
 
   public abstract void accept(QueryExpressionVisitor v);
+
+  private void guaranteeQueryHasAtMostSingleGraphPattern() {
+    if (tableExpressions.size() == 0) {
+      return; // INSERT without FROM clause
+    }
+
+    if (tableExpressions.get(0).getTableExpressionType() != TableExpressionType.GRAPH_PATTERN) {
+      throw new UnsupportedOperationException("Subqueries in FROM clause not supported");
+    }
+  }
 }

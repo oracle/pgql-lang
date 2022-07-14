@@ -123,6 +123,12 @@ public class MetadataTest extends AbstractPgqlTest {
   }
 
   @Test
+  public void testLabelNotExistsInSelectClause() throws Exception {
+    PgqlResult result = parse("SELECT MAX(has_label(n, 'NotExists')) FROM MATCH (n)");
+    assertTrue(result.getErrorMessages().contains("Vertex label does not exist"));
+  }
+
+  @Test
   public void testPropertyReferenceInSubquery() throws Exception {
     PgqlResult result = parse("SELECT EXISTS ( SELECT n.firstName FROM MATCH (m) ) FROM MATCH (n:University)");
     assertTrue(result.getErrorMessages().contains("Property does not exist for any of the labels"));
@@ -1098,5 +1104,39 @@ public class MetadataTest extends AbstractPgqlTest {
   private List<String> getVertexProperties(PgqlResult result) {
     QueryVariable vertex = result.getGraphQuery().getGraphPattern().getVertices().iterator().next();
     return result.getAllProperties(vertex);
+  }
+
+  @Test
+  public void testPropertyAccessForDerivedTable() throws Exception {
+    PgqlResult result = parse("SELECT n.firstName FROM LATERAL ( SELECT n FROM MATCH (n) )");
+    assertTrue(result.isQueryValid());
+
+    result = parse("SELECT e.amount FROM LATERAL ( SELECT e FROM MATCH () -[e]-> () ON financialNetwork )");
+    assertTrue(result.isQueryValid());
+
+    result = parse("SELECT n.firstName FROM LATERAL ( SELECT n FROM MATCH (n:University) )");
+    assertTrue(result.getErrorMessages().contains("Property does not exist for any of the labels"));
+
+    result = parse("SELECT e.amount FROM LATERAL ( SELECT e FROM MATCH () -[e:worksFor]-> () ON financialNetwork )");
+    assertTrue(result.getErrorMessages().contains("Property does not exist for any of the labels"));
+
+    result = parse(
+        "SELECT n4.firstName FROM LATERAL ( SELECT n2 AS n3 FROM MATCH (n1:University) GROUP BY n1 AS n2 ) GROUP BY n3 AS n4");
+    assertTrue(result.getErrorMessages().contains("Property does not exist for any of the labels"));
+
+    result = parse("SELECT e4.firstName " //
+        + "FROM LATERAL ( SELECT e2 AS e3 FROM MATCH () -[e1:worksFor]-> () ON financialNetwork GROUP BY e1 AS e2 ) " //
+        + "GROUP BY e3 AS e4");
+    assertTrue(result.getErrorMessages().contains("Property does not exist for any of the labels"));
+
+    result = parse("SELECT * " //
+        + "FROM LATERAL ( SELECT n FROM MATCH (n:University) ) " //
+        + "   , LATERAL ( SELECT * FROM MATCH (n2) WHERE n.firstName = n2.firstName )");
+    assertTrue(result.getErrorMessages().contains("Property does not exist for any of the labels"));
+
+    result = parse("SELECT * " //
+        + "FROM LATERAL ( SELECT * FROM MATCH () -[e:worksFor]-> () ON financialNetwork ) " //
+        + "   , LATERAL ( SELECT * FROM MATCH (n:Account) ON financialNetwork WHERE e.amount = n.number )");
+    assertTrue(result.getErrorMessages().contains("Property does not exist for any of the labels"));
   }
 }

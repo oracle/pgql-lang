@@ -194,7 +194,7 @@ test Duplicate variables (8) [[
    FROM g MATCH ANY SHORTEST ( (n) -[e]->* (m) )
    GROUP BY n AS [[e]]
 
-]] error like "Duplicate variable: variable already defined in the MATCH clause" at #1
+]] error like "Duplicate variable: variable already defined in the FROM clause" at #1
 
 test Duplicate variables (9) [[
 
@@ -202,7 +202,7 @@ test Duplicate variables (9) [[
     FROM g MATCH ANY SHORTEST ( (n) (-> (dst))* (m) )
    GROUP BY n AS [[dst]]
 
-]] error like "Duplicate variable: variable already defined in the MATCH clause" at #1
+]] error like "Duplicate variable: variable already defined in the FROM clause" at #1
 
 test Nested regex (1) [[
 
@@ -348,7 +348,7 @@ test ONE ROW PER STEP no quantifier (2) [[
 test ONE ROW PER VERTEX with multiple path patterns [[
 
   SELECT 1
-    FROM MATCH ( ANY (a) -> (b), ANY (b) -> (c) ) [[ONE ROW PER VERTEX (v)]]
+    FROM MATCH ( ANY (a) ->* (b), ANY (b) ->* (c) ) [[ONE ROW PER VERTEX (v)]]
 
 ]] error like "ONE ROW PER VERTEX or STEP is only permitted if the MATCH clause contains a single path pattern" at #1
 
@@ -407,7 +407,7 @@ test ONE ROW PER VERTEX duplicate variable (5) [[
       FROM MATCH ANY (a) -[e]->* (b) ONE ROW PER VERTEX (v)
   GROUP BY a.prop AS [[v]]
 
-]] error like "Duplicate variable: variable already defined in the MATCH clause" at #1
+]] error like "Duplicate variable: variable already defined in the FROM clause" at #1
 
 test ONE ROW PER EDGE duplicate variable (1) [[
 
@@ -443,7 +443,7 @@ test ONE ROW PER EDGE duplicate variable (5) [[
       FROM MATCH ANY (a) ->* (b) ONE ROW PER EDGE (e)
   GROUP BY a.prop AS [[e]]
 
-]] error like "Duplicate variable: variable already defined in the MATCH clause" at #1
+]] error like "Duplicate variable: variable already defined in the FROM clause" at #1
 
 test ONE ROW PER STEP duplicate variable (1) [[
 
@@ -506,7 +506,7 @@ test ONE ROW PER STEP duplicate variable (5) [[
       FROM MATCH ANY (a) ->* (b) ONE ROW PER STEP (v1, e, v2)
   GROUP BY a.prop AS [[v1]], a.prop AS [[e]], a.prop AS [[v2]]
 
-]] error like "Duplicate variable: variable already defined in the MATCH clause" at #1, #2, #3
+]] error like "Duplicate variable: variable already defined in the FROM clause" at #1, #2, #3
 
 test ONE ROW PER VERTEX same variable in subquery (1) [[
 

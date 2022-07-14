@@ -15,7 +15,7 @@ properties
 
 binding rules // scoping
 
-  NormalizedQuery(_, _, _, _, _, _, _, _, _, _, _, _):
+  NormalizedQuery(_, _, _, _, _, _, _, _, _, _, _, _, _):
     scopes Var, CommonPathExpression
 
 binding rules // variable definition
@@ -51,26 +51,15 @@ binding rules // variable definition
       of OriginOffset origin-offset
       of type EdgeTy()
 
-  OneRowPerVertex(Identifier(v, _), origin-offset, _):
+  RowsPerMatchVariable(Identifier(v, _), origin-offset, _, Type("VERTEX")):
     defines unique Var v
       of OriginOffset origin-offset
       of type VertexTy()
 
-  OneRowPerEdge(Identifier(e, _), origin-offset, _):
-    defines unique Var e
+  RowsPerMatchVariable(Identifier(v, _), origin-offset, _, Type("EDGE")):
+    defines unique Var v
       of OriginOffset origin-offset
       of type EdgeTy()
-
-  OneRowPerStep(Identifier(v1, _), origin-offset1, _, Identifier(e, _), origin-offset2, _, Identifier(v2, _), origin-offset3, _):
-    defines unique Var v1
-      of OriginOffset origin-offset1
-      of type VertexTy()
-    defines unique Var e
-      of OriginOffset origin-offset2
-      of type EdgeTy()
-    defines unique Var v2
-      of OriginOffset origin-offset3
-      of type VertexTy()
 
 binding rules // variable reference
 
