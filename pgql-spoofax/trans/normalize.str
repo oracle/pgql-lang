@@ -462,7 +462,7 @@ rules
 
   get-inlined-constraints:
     ElemContents(Some(var), label, id', otherConstraint) -> <concat> [labels, identifiers, otherConstraint']
-    with labels := <?Some(Labels(<id>)); to-label-constraint(|var); ![<id>] <+ ![]> label
+    with labels := <?Some(Labels(_, <id>)); to-label-constraint(|var); ![<id>] <+ ![]> label
        ; identifiers := <?Some(Ids(<id>)); to-id-constraint(|var); ![<id>] <+ ![]> id'
        ; otherConstraint' := <?Some(InlinedConstraint(<id>)) <+ ![]> otherConstraint
 

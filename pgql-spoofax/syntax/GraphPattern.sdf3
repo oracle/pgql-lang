@@ -45,7 +45,7 @@ context-free syntax
 
   EdgeContents.EdgeContents = <[<ElemContents>]>
   EdgeOrPathContents = EdgeContents
-  EdgeOrPathContents.Path = </<Identifier?><LabelPredicate><PathQuantifier?>/>
+  EdgeOrPathContents.Path = </<Identifier?><LabelExpression><PathQuantifier?>/>
 
   PathQuantifier.ZeroOrMore = <*>
   PathQuantifier.OneOrMore = <+>
@@ -57,8 +57,10 @@ context-free syntax
 
 context-free syntax
 
-  ElemContents.ElemContents  = <<Identifier?><LabelPredicate?><Legacy10Ids?><Legacy10WithInlinedConstraints?>>
-  LabelPredicate.Labels      = <:<Labels>>
-  Labels.Label               = Identifier
-  Labels                     = BindVariable
-  Labels.LabelDisjunction    = <<Labels>|<Labels>> {left}
+  ElemContents.ElemContents       = <<Identifier?><LabelExpression?><Legacy10Ids?><Legacy10WithInlinedConstraints?>>
+  LabelExpression.Labels          = <<LabelExpressionIntroducer> <Labels>>
+  LabelExpressionIntroducer.Colon = <:>
+  LabelExpressionIntroducer.IS    = <IS>  {case-insensitive}
+  Labels.Label                    = Identifier
+  Labels                          = BindVariable
+  Labels.LabelDisjunction         = <<Labels>|<Labels>> {left}
