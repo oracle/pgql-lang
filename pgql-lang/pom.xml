@@ -2,13 +2,13 @@
 <project xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd" xmlns="http://maven.apache.org/POM/4.0.0"
     xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
   <modelVersion>4.0.0</modelVersion>
-  <groupId>oracle.pgx</groupId>
+  <groupId>oracle.pg</groupId>
   <artifactId>pgql-lang</artifactId>
   <version>0.0.0-SNAPSHOT</version>
 
   <dependencies>
     <dependency>
-      <groupId>oracle.pgx</groupId>
+      <groupId>oracle.pg</groupId>
       <artifactId>graph-query-ir</artifactId>
       <version>0.0.0-SNAPSHOT</version>
       <scope>compile</scope>
@@ -70,7 +70,7 @@
     <repository>
       <id>labs-pgx-release-local</id>
       <name>Oracle Internal Repository</name>
-      <url>https://artifacthub.oraclecorp.com/labs-pgx-release-local</url>
+      <url>https://artifacthub-iad.oci.oraclecorp.com/graph-onprem-release-local</url>
     </repository>
   </distributionManagement>
 
