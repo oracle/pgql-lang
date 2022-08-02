@@ -38,3 +38,18 @@ SELECT *
 WHERE
   (n1 WITH age = 25 AND age > -25 AND age = 25.0 AND age > -25.0)
 ]]
+
+
+tests Label expression with IS [[
+
+  SELECT *
+  FROM MATCH (n IS Person) -[IS knows]-> (IS Person) -[e IS knows]-> (m)
+
+]]
+
+tests Label expression with mixed IS and : [[
+
+  SELECT *
+  FROM MATCH (n IS Person) -[:knows]-> (:Person) -[e IS knows]-> (m)
+
+]]

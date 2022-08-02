@@ -150,6 +150,8 @@ public class SpoofaxAstToGraphQuery {
   private static final int POS_PATH_SRC = 0;
   private static final int POS_PATH_DST = 1;
   private static final int POS_PATH_EXPRESSION = 2;
+  private static final int POS_PATH_LABEL_EXPRESSION = 2;
+  private static final int POS_PATH_LABEL_EXPRESSION_LABEL = 1;
   private static final int POS_PATH_QUANTIFIERS = 3;
   private static final int POS_PATH_QUANTIFIERS_MIN_HOPS = 0;
   private static final int POS_PATH_QUANTIFIERS_MAX_HOPS = 1;
@@ -701,7 +703,7 @@ public class SpoofaxAstToGraphQuery {
 
   private static CommonPathExpression getCommonPathExpressionFromReaches(IStrategoTerm pathT, TranslationContext ctx) {
     CommonPathExpression commonPathExpression;
-    String label = getString(pathT.getSubterm(POS_PATH_EXPRESSION));
+    String label = getString(pathT.getSubterm(POS_PATH_LABEL_EXPRESSION).getSubterm(POS_PATH_LABEL_EXPRESSION_LABEL));
     commonPathExpression = ctx.getCommonPathExpressions().get(label);
     if (commonPathExpression == null) { // no path expression defined for the label; generate one here
       QueryVertex src = new QueryVertex("n", true);

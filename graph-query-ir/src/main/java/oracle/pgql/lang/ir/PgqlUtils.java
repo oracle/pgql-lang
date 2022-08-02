@@ -423,7 +423,7 @@ public class PgqlUtils {
       QueryExpression labelPredicate) {
     String result = printVariableName ? printIdentifier(var.getName(), false) : "";
     if (labelPredicate != null) {
-      result += ":" + printLabelPredicate(labelPredicate);
+      result += " IS " + printLabelPredicate(labelPredicate);
     }
     return result;
   }
