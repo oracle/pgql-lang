@@ -25,10 +25,10 @@ The following are the changes since PGQL 1.4:
 
 The new features are:
 
- - Specifying the number of rows per match via `ONE ROW PER MATCH`, `ONE ROW PER VERTEX` and `ONE ROW PER STEP`, see [Number of Rows Per Match](#number-of-rows-per-match)
- - `INTERVAL` literals and computations, see [Literals](#literals) and [Operators](#operators)
+ - Ability to specify the number of rows per match via `ONE ROW PER MATCH`, `ONE ROW PER VERTEX` or `ONE ROW PER STEP`, see [Number of Rows Per Match](#number-of-rows-per-match)
+ - `INTERVAL` literals and operations, see [Literals](#literals) and [Operators](#operators)
  - `IS` keyword in label expressions as alternative for colon (`:`), see [Label predicates](#label-predicates)
- - In `CREATE PROPERTY GRAPH` statements, source and destination vertex keys can now be explicitly defined (e.g. `SOURCE KEY ( from_account ) REFERENCES Accounts ( number )`. The old form with implicit vertex key (`SOURCE KEY ( from_account ) REFERENCES Accounts`) is deprecated (undocumented).
+ - Source and destination vertex keys inside `CREATE PROPERTY GRAPH` statements can now be explicitly defined (e.g. `SOURCE KEY ( from_account ) REFERENCES Accounts ( number )`) while the old form with implicit vertex key (`SOURCE KEY ( from_account ) REFERENCES Accounts`) is deprecated (undocumented)
 
 ## A note on the Grammar
 
@@ -128,18 +128,18 @@ CREATE PROPERTY GRAPH financial_transactions
   EDGE TABLES (
     Transactions
       SOURCE KEY ( from_account ) REFERENCES Accounts ( number )
-      DESTINATION KEY ( to_account ) REFERENCES Accounts
+      DESTINATION KEY ( to_account ) REFERENCES Accounts ( number )
       LABEL transaction PROPERTIES ( amount ),
     Accounts AS PersonOwner
-      SOURCE KEY ( number ) REFERENCES Accounts
+      SOURCE KEY ( number ) REFERENCES Accounts ( number )
       DESTINATION Persons
       LABEL owner NO PROPERTIES,
     Accounts AS CompanyOwner
-      SOURCE KEY ( number ) REFERENCES Accounts
+      SOURCE KEY ( number ) REFERENCES Accounts ( number )
       DESTINATION Companies
       LABEL owner NO PROPERTIES,
     Persons AS worksFor
-      SOURCE KEY ( id ) REFERENCES Persons
+      SOURCE KEY ( id ) REFERENCES Persons ( id )
       DESTINATION Companies
       NO PROPERTIES
   )
@@ -221,19 +221,19 @@ CREATE PROPERTY GRAPH financial_transactions
   )
   EDGE TABLES (
     Transactions
-      SOURCE KEY ( from_account ) REFERENCES Accounts
-      DESTINATION KEY ( to_account ) REFERENCES Accounts
+      SOURCE KEY ( from_account ) REFERENCES Accounts ( number )
+      DESTINATION KEY ( to_account ) REFERENCES Accounts ( number )
       LABEL transaction PROPERTIES ( amount ),
     Accounts AS PersonOwner
-      SOURCE KEY ( number ) REFERENCES Accounts
+      SOURCE KEY ( number ) REFERENCES Accounts ( number )
       DESTINATION Persons
       LABEL owner NO PROPERTIES,
     Accounts AS CompanyOwner
-      SOURCE KEY ( number ) REFERENCES Accounts
+      SOURCE KEY ( number ) REFERENCES Accounts ( number )
       DESTINATION Companies
       LABEL owner NO PROPERTIES,
     Persons AS worksFor
-      SOURCE KEY ( id ) REFERENCES Persons
+      SOURCE KEY ( id ) REFERENCES Persons ( id )
       DESTINATION Companies
       NO PROPERTIES
   )
@@ -249,7 +249,7 @@ This means that rows in the table are mapped into both vertices and edges. It is
 This is explained in more detail in [Source or destination is self](#source-or-destination-is-self).
 
 Keys for the destinations of `PersonOwner`, `CompanyOwner` and `worksFor` are omitted because we can default to the existing foreign keys.
-Keys for their sources cannot be omitted because there exist no foreign key to default to (e.g. in case of `PersonOwner` there are zero foreign keys from `Accounts` to `Accounts` hence `SOURCE KEY ( number ) REFERENCES Accounts` needs to be specified).
+Keys for their sources cannot be omitted because there exist no foreign key to default to (e.g. in case of `PersonOwner` there are zero foreign keys from `Accounts` to `Accounts` hence `SOURCE KEY ( number ) REFERENCES Accounts ( number )` needs to be specified).
 Furthermore, keys for the source and destination of `Transactions` cannot be omitted because _two_ foreign keys exist between `Transactions` and `Accounts` so it is necessary to specify which one to use.
 
 If a row in an edge table has a NULL value for any of its source key columns or its destination key columns then no edge is created.
@@ -339,11 +339,11 @@ CREATE PROPERTY GRAPH financial_transactions
   )
   EDGE TABLES (
     Transactions
-      SOURCE KEY ( from_account ) REFERENCES Accounts
-      DESTINATION KEY ( to_account ) REFERENCES Accounts
+      SOURCE KEY ( from_account ) REFERENCES Accounts ( number )
+      DESTINATION KEY ( to_account ) REFERENCES Accounts ( number )
       LABEL transaction PROPERTIES ( amount ),
     Accounts AS PersonOwner
-      SOURCE KEY ( number ) REFERENCES Accounts
+      SOURCE KEY ( number ) REFERENCES Accounts ( number )
       DESTINATION Persons
       LABEL owner NO PROPERTIES,
     ...
@@ -382,23 +382,23 @@ CREATE PROPERTY GRAPH financial_transactions
   EDGE TABLES (
     Transactions
       KEY ( from_account, to_account, date )
-      SOURCE KEY ( from_account ) REFERENCES Accounts
-      DESTINATION KEY ( to_account ) REFERENCES Accounts
+      SOURCE KEY ( from_account ) REFERENCES Accounts ( number )
+      DESTINATION KEY ( to_account ) REFERENCES Accounts ( number )
       LABEL transaction PROPERTIES ( amount ),
     Accounts AS PersonOwner
       KEY ( number )
-      SOURCE KEY ( number ) REFERENCES Accounts
-      DESTINATION KEY ( person_id ) REFERENCES Persons
+      SOURCE KEY ( number ) REFERENCES Accounts ( number )
+      DESTINATION KEY ( person_id ) REFERENCES Persons ( id )
       LABEL owner NO PROPERTIES,
     Accounts AS CompanyOwner
       KEY ( number )
-      SOURCE KEY ( number ) REFERENCES Accounts
-      DESTINATION KEY ( company_id ) REFERENCES Companies
+      SOURCE KEY ( number ) REFERENCES Accounts ( number )
+      DESTINATION KEY ( company_id ) REFERENCES Companies ( id )
       LABEL owner NO PROPERTIES,
   Persons AS worksFor
       KEY ( id )
-      SOURCE KEY ( id ) REFERENCES Persons
-      DESTINATION KEY ( company_id ) REFERENCES Companies
+      SOURCE KEY ( id ) REFERENCES Persons ( id )
+      DESTINATION KEY ( company_id ) REFERENCES Companies ( id )
       NO PROPERTIES
   )
 ```
@@ -576,7 +576,7 @@ An example of an edge table with no properties is:
   EDGE TABLES (
     ...
     Accounts AS PersonOwner
-      SOURCE KEY ( number ) REFERENCES Accounts
+      SOURCE KEY ( number ) REFERENCES Accounts ( number )
       DESTINATION Persons
       LABEL owner NO PROPERTIES
     ...
@@ -636,11 +636,11 @@ CREATE PROPERTY GRAPH hr_simplified
   )
   EDGE TABLES (
     employees AS works_for
-      SOURCE KEY ( employee_id ) REFERENCES employees
-      DESTINATION KEY ( manager_id ) REFERENCES employees
+      SOURCE KEY ( employee_id ) REFERENCES employees ( employee_id )
+      DESTINATION KEY ( manager_id ) REFERENCES employees ( employee_id )
       NO PROPERTIES,
     departments AS managed_by
-      SOURCE KEY ( department_id ) REFERENCES departments
+      SOURCE KEY ( department_id ) REFERENCES departments ( department_id )
       DESTINATION employees
       NO PROPERTIES
   )
@@ -648,7 +648,7 @@ CREATE PROPERTY GRAPH hr_simplified
 
 As you can see, the `employee` vertices are created from the `employees` table, but so are the `works_for` edges that represent the managers of employees.
 The source key is the primary key of the table, while the destination key corresponds to the foreign key.
-It is optional to simplify `DESTINATION KEY ( manager_id ) REFERENCES employees` to `DESTINATION employees` to make use of the existing foreign key.
+It is optional to simplify `DESTINATION KEY ( manager_id ) REFERENCES employees ( employee_id )` to `DESTINATION employees` to make use of the existing foreign key.
 This is possible only because there exists exactly one foreign key between the `employees` table and itself.
 Do note that in this example, we cannot default the _source_ vertex to the foreign key,
 so we need to explicitly specify it (`KEY ( employee_id )`).
@@ -688,45 +688,45 @@ CREATE PROPERTY GRAPH hr
   )
   EDGE TABLES (
     employees AS works_for
-      SOURCE KEY ( employee_id ) REFERENCES employees
-      DESTINATION KEY ( manager_id ) REFERENCES employees
+      SOURCE KEY ( employee_id ) REFERENCES employees ( employee_id )
+      DESTINATION KEY ( manager_id ) REFERENCES employees ( employee_id )
       NO PROPERTIES,
     employees AS works_at
-      SOURCE KEY ( employee_id ) REFERENCES employees
+      SOURCE KEY ( employee_id ) REFERENCES employees ( employee_id )
       DESTINATION departments
       NO PROPERTIES,
     employees AS works_as
-      SOURCE KEY ( employee_id ) REFERENCES employees
+      SOURCE KEY ( employee_id ) REFERENCES employees ( employee_id )
       DESTINATION jobs
       NO PROPERTIES,
     departments AS managed_by
-      SOURCE KEY ( department_id ) REFERENCES departments
+      SOURCE KEY ( department_id ) REFERENCES departments ( department_id )
       DESTINATION employees
       NO PROPERTIES,
     job_history AS for_employee
-      SOURCE KEY ( employee_id, start_date ) REFERENCES job_history
+      SOURCE KEY ( employee_id, start_date ) REFERENCES job_history ( employee_id, start_date)
       DESTINATION employees
       NO PROPERTIES,
     job_history AS for_department
-      SOURCE KEY ( employee_id, start_date ) REFERENCES job_history
+      SOURCE KEY ( employee_id, start_date ) REFERENCES job_history ( employee_id, start_date)
       DESTINATION departments
       NO PROPERTIES,
     job_history AS for_job
-      SOURCE KEY ( employee_id, start_date ) REFERENCES job_history
+      SOURCE KEY ( employee_id, start_date ) REFERENCES job_history ( employee_id, start_date)
       DESTINATION jobs
       NO PROPERTIES,
     departments AS department_located_in
-      SOURCE KEY ( department_id ) REFERENCES departments
+      SOURCE KEY ( department_id ) REFERENCES departments ( department_id )
       DESTINATION locations
       LABEL located_in
       NO PROPERTIES,
     locations AS location_located_in
-      SOURCE KEY ( location_id ) REFERENCES locations
+      SOURCE KEY ( location_id ) REFERENCES locations ( location_id )
       DESTINATION countries
       LABEL located_in
       NO PROPERTIES,
     countries AS country_located_in
-      SOURCE KEY ( country_id ) REFERENCES countries
+      SOURCE KEY ( country_id ) REFERENCES countries ( country_id )
       DESTINATION regions
       LABEL located_in
       NO PROPERTIES
@@ -806,8 +806,8 @@ CREATE PROPERTY GRAPH
   )
   EDGE TABLES (
     MySchema.SameAs
-      SOURCE KEY ( firstName, lastName ) REFERENCES Person
-      DESTINATION KEY ( first_name, last_name ) REFERENCES Employee
+      SOURCE KEY ( firstName, lastName ) REFERENCES Person ( firstName, lastName )
+      DESTINATION KEY ( first_name, last_name ) REFERENCES Employee ( first_name, last_name )
   )
 ```
 
@@ -1425,19 +1425,24 @@ Here, vertices `n2` and `m2` are not connected to vertices `n1` and `m1`, result
 
 ### Label predicates
 
-In the property graph model, vertices and edge may have labels, which are arbitrary (character) strings. Typically, labels are used to encode types of entities. For example, a graph may contain a set of vertices with the label `Person`, a set of vertices with the label `Movie`, and, a set of edges with the label `likes`. A label predicate specifies that a vertex or edge only matches if it has ony of the specified labels. The syntax for specifying a label predicate is through a (`:`) followed by one or more labels that are separate by a vertical bar (`|`).
+In the property graph model, vertices and edge may have labels, which are arbitrary (character) strings. Typically, labels are used to encode types of entities. For example, a graph may contain a set of vertices with the label `Person`, a set of vertices with the label `Movie`, and, a set of edges with the label `likes`. A label predicate specifies that a vertex or edge only matches if it has ony of the specified labels. A label predicate starts with either a colon (`:`) or the keyword `IS`, followed by one or more labels that are separate by a vertical bar (`|`).
 
-This is explained by the following grammar constructs:
+The corresponding grammar is:
 
 ```bash
-LabelPredicate ::= ':' <Label> ( '|' <Label> )*```
+LabelPredicate   ::= <ColonOrIsKeyword> <Label> ( '|' <Label> )*```
+
+ColonOrIsKeyword ::=    ':'
+                     || 'IS'
 ```
+
+Colons and `IS` keywords can be used interchangeably.
 
 Take the following example:
 
 ```sql
 SELECT *
-  FROM MATCH (x:Person) -[e:likes|knows]-> (y:Person)
+  FROM MATCH (x:Person) -[e IS likes|knows]-> (y:Person)
 ```
 
 Here, we specify that vertices `x` and `y` have the label `Person` and that the edge `e` has the label `likes` or the label `knows`.
@@ -1446,7 +1451,7 @@ A label predicate can be specified even when a variable is omitted. For example:
 
 ```sql
 SELECT *
-  FROM MATCH (:Person) -[:likes|knows]-> (:Person)
+  FROM MATCH (IS Person) -[:likes|knows]-> (IS Person)
 ```
 
 There are also built-in functions available for labels:
