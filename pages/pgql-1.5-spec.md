@@ -25,10 +25,15 @@ The following are the changes since PGQL 1.4:
 
 The new features are:
 
- - Ability to specify the number of rows per match via `ONE ROW PER MATCH`, `ONE ROW PER VERTEX` or `ONE ROW PER STEP`, see [Number of Rows Per Match](#number-of-rows-per-match)
+ - Ability to specify the number of rows per match, see [Number of Rows Per Match](#number-of-rows-per-match). The new options are:
+     - `ONE ROW PER MATCH` for obtaining one row per match
+     - `ONE ROW PER VERTEX` for obtaining one row per vertex
+     - `ONE ROW PER STEP` for obtaining one row per step (a step is a vertex-edge-vertex triple)
  - `INTERVAL` literals and operations, see [Literals](#literals) and [Operators](#operators)
  - `IS` keyword in label expressions as alternative for colon (`:`), see [Label predicates](#label-predicates)
- - Source and destination vertex keys inside `CREATE PROPERTY GRAPH` statements can now be explicitly defined (e.g. `SOURCE KEY ( from_account ) REFERENCES Accounts ( number )`) while the old form with implicit vertex key (`SOURCE KEY ( from_account ) REFERENCES Accounts`) is deprecated (undocumented)
+ - When source or destination keys are specified in `CREATE PROPERTY GRAPH` statements, the corresponding source or destination vertex keys are now also explicitly defined. The old form with implicit vertex keys is deprecated and undocumented from the remainder of the specification.
+     - New form with _explicit_ source/destination vertex key: `SOURCE KEY ( from_account ) REFERENCES Accounts ( number )`
+     - Old (deprecated) form with _implicit_ source/destination vertex key: `SOURCE KEY ( from_account ) REFERENCES Accounts`
 
 ## A note on the Grammar
 
@@ -2529,7 +2534,18 @@ Above, we first match shortest paths between four pairs of vertices and then we 
 
 # Number of Rows Per Match
 
-The grammar is:
+Each `MATCH` clause has an optional number of rows per match that specifies the number of rows in the output of the pattern match.
+There are three options:
+
+ - `ONE ROW PER MATCH` (default)
+ - `ONE ROW PER VERTEX`
+ - `ONE ROW PER STEP`
+
+The default is `ONE ROW PER MATCH`. This option can be used for both fixed-length and variable-length graph patterns. The other two options are typically used in combination with variable-length graph pattern and are less useful for fixed-length graph patterns.
+
+The options are placed after the optional `ON` clause, see [MatchClause](#MatchClause).
+
+The syntax of [RowsPerMatch](#RowsPerMatch) is:
 
 ```bash
 RowsPerMatch    ::= <OneRowPerMatch>
@@ -2551,12 +2567,128 @@ EdgeVariable    ::= <VariableName>
 VertexVariable2 ::= <VariableName>
 ```
 
-`ONE ROW PER MATCH` is the default. If you want to unnest you can use either `ONE ROW PER VERTEX` or `ONE ROW PER STEP`.
-
 ## ONE ROW PER MATCH
+
+`ONE ROW PER MATCH` is the default option. [Graph Pattern Matching](#graph-pattern-matching) shows various examples where this option is implicitly used.
+
+An example where the keywords `ONE ROW PER MATCH` are explicitly specified is:
+
+{% include image.html file="example_graphs/financial_transactions.png" %}
+
+```sql
+  SELECT a.number, p.name
+    FROM MATCH (a:Account) -[:owner]-> (p:Person)
+           ON financial_transactions
+           ONE ROW PER MATCH
+ORDER BY a.number
+```
+
+```
++------------------+
+| number | name    |
++------------------+
+| 2090   | Liam    |
+| 8021   | Nikita  |
+| 10039  | Camille |
++------------------+
+```
+
+Above, `ONE ROW PER MATCH` is used for a fixed-length graph pattern.
+Since there are three matches to the pattern, three rows are returned.
+
+`ONE ROW PER MATCH` can be used in combination with variable-length graph pattern too.
+However, then one can only return data from the begin and end points of variable-length paths or aggregations of values along paths.
+
+For example:
+
+
+{% include image.html file="example_graphs/financial_transactions.png" %}
+
+```sql
+  SELECT a1.number AS account1, a2.number AS account2, LISTAGG(t.amount, ' + ') || ' = ', SUM(t.amount) AS total_amount
+    FROM MATCH (p1:Person) <-[:owner]- (a1:Account) ONE ROW PER MATCH
+       , MATCH (p2:Person) <-[:owner]- (a2:Account) ONE ROW PER MATCH
+       , MATCH ALL (a1) -[t:transaction]->{,4} (a2) ONE ROW PER MATCH
+   WHERE p1.name = 'Camille' AND p2.name = 'Liam'
+ORDER BY total_amount
+```
+
+```
++------------------------------------------------------------------------+
+| account1 | account2 | LISTAGG(t.amount, ' + ') || ' = ' | total_amount |
++------------------------------------------------------------------------+
+| 10039    | 2090     | 1000.0 + 1500.3 + 9999.5 =        | 12499.8      |
+| 10039    | 2090     | 1000.0 + 3000.7 + 9999.5 =        | 14000.2      |
++------------------------------------------------------------------------+
+```
+
+Above, since the pattern matches two `transaction` paths between the accounts of `Camille` and `Liam`,
+there are two rows returned since we use `ONE ROW PER MATCH`.
 
 ## ONE ROW PER VERTEX
 
+`ONE ROW PER VERTEX` is used to retrieve information from vertices along paths.
+The output will be one row per vertex.
+This option is typically used in combination with variable-length path patterns.
+
+For example:
+
+{% include image.html file="example_graphs/financial_transactions.png" %}
+
+```sql
+  SELECT v.number, ELEMENT_NUMBER(v)
+    FROM MATCH ANY (a1:Account) -[:transaction]->* (a2:Account)
+           ON financial_transactions
+           ONE ROW PER VERTEX ( v )
+   WHERE a1.number = 1001 AND a2.number = 8021
+ORDER BY ELEMENT_NUMBER(v)
+```
+
+```
++----------------------------+
+| number | ELEMENT_NUMBER(v) |
++----------------------------+
+| 1001   | 1                 |
+| 2090   | 3                 |
+| 10039  | 5                 |
+| 8021   | 7                 |
++----------------------------+
+```
+
+Above, although only a single path matched the pattern, four rows were returned because the path has four vertices.
+We return the `number` of the four (`Account`) vertices together with the element number (see [ELEMENT_NUMBER](#element_number)).
+Note that the element numbers are uneven numbers since the even numbers are taken by the edges that are between the vertices.
+
+Another example is:
+
+{% include image.html file="example_graphs/financial_transactions.png" %}
+
+```sql
+  SELECT v.number, MATCH_NUMBER(v), ELEMENT_NUMBER(v), LISTAGG(t.amount, ' + ') || ' = ', SUM(t.amount) AS total_amount
+    FROM MATCH (p1:Person) <-[:owner]- (a1:Account) ONE ROW PER MATCH
+       , MATCH (p2:Person) <-[:owner]- (a2:Account) ONE ROW PER MATCH
+       , MATCH ALL (a1) -[t:transaction]->{,4} (a2) ONE ROW PER VERTEX (v)
+   WHERE p1.name = 'Camille' AND p2.name = 'Liam'
+ORDER BY MATCH_NUMBER(v), ELEMENT_NUMBER(v)
+```
+
+```
++-------------------------------------------------------------------------------------------------+
+| number | MATCH_NUMBER(v) | ELEMENT_NUMBER(v) | LISTAGG(t.amount, ' + ') || ' = ' | total_amount |
++-------------------------------------------------------------------------------------------------+
+| 10039  | 4               | 1                 | 1000.0 + 1500.3 + 9999.5 =        | 12499.8      |
+| 8021   | 4               | 3                 | 1000.0 + 1500.3 + 9999.5 =        | 12499.8      |
+| 1001   | 4               | 5                 | 1000.0 + 1500.3 + 9999.5 =        | 12499.8      |
+| 2090   | 4               | 7                 | 1000.0 + 1500.3 + 9999.5 =        | 12499.8      |
+| 10039  | 5               | 1                 | 1000.0 + 3000.7 + 9999.5 =        | 14000.2      |
+| 8021   | 5               | 3                 | 1000.0 + 3000.7 + 9999.5 =        | 14000.2      |
+| 1001   | 5               | 5                 | 1000.0 + 3000.7 + 9999.5 =        | 14000.2      |
+| 2090   | 5               | 7                 | 1000.0 + 3000.7 + 9999.5 =        | 14000.2      |
++-------------------------------------------------------------------------------------------------+
+```
+
+Note that above, we mix both `ONE ROW PER MATCH` with `ONE ROW PER VERTEX`: the earlier is used for the two fixed-length patterns while the latter is used for the variable-length pattern.
+Also note that even though we specified `ONE ROW PER VERTEX`, the variable `t` is still available for the (horizontal) aggregations done by `LISTAGG` and `SUM` in the last two expressions of the `SELECT`.
 
 ## ONE ROW PER STEP
 
@@ -3106,7 +3238,7 @@ operator                       | type of A                  | type of B         
 ------------------------------ | ------------------------------------------------------- | -----------
 `-`A (unary minus)             | numeric                    |                            | numeric
 A `||` B                       | string                     | string                     | string
-A `+` `-` B                    | numeric<br>date<br>time [with time zone]<br>timestamp [with time zone] | numeric<br>date<br>interval<br>interval<br>interval | numeric<br>time [with time zone]<br>timestamp [with time zone]
+A `+` `-` B                    | numeric<br>date<br>time [with time zone]<br>timestamp [with time zone] | numeric<br>interval<br>interval<br>interval | numeric<br>date<br>time [with time zone]<br>timestamp [with time zone]
 A `*` `/` `%` B                | numeric                    | numeric                    | numeric
 A `=` `<>` B                   | numeric<br>boolean<br>date<br>time [with time zone]<br>timestamp [with time zone]<br>vertex<br>edge<br>array | numeric<br>boolean<br>date<br>time [with time zone]<br>timestamp [with time zone]<br>vertex<br>edge<br>array | boolean<br>boolean<br>boolean<br>boolean<br>boolean<br>boolean<br>boolean<br>boolean
 A `<` `>` `<=` `>=` B | numeric<br>boolean<br>date<br>time [with time zone]<br>timestamp [with time zone] | numeric<br>boolean<br>date<br>time [with time zone]<br>timestamp [with time zone] | boolean<br>boolean<br>boolean<br>boolean<br>boolean
