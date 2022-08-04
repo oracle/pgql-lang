@@ -29,9 +29,10 @@ The new features are:
      - [ONE ROW PER MATCH](#one-row-per-match) for obtaining one row per match
      - [ONE ROW PER VERTEX](#one-row-per-vertex) for obtaining one row per vertex
      - [ONE ROW PER STEP](#one-row-per-step) for obtaining one row per step (a step is a vertex-edge-vertex triple)
+ - [MATCH_NUMBER](#match_number) and [ELEMENT_NUMBER](#element_number) functions for uniquely identifying the different matches to a pattern and for obtaining the position of each vertex and edge in a match.
  - `INTERVAL` literals and operations, see [Literals](#literals) and [Operators](#operators)
  - `IS` keyword in label expressions as alternative for colon (`:`), see [Label predicates](#label-predicates)
- - When source or destination keys are specified in `CREATE PROPERTY GRAPH` statements, the corresponding source or destination vertex keys are now also explicitly defined. The old form with implicit vertex keys is deprecated and undocumented from the remainder of the specification.
+ - When source or destination keys are specified in [CREATE PROPERTY GRAPH](#create-property-graph) statements, the corresponding source or destination vertex keys are now explicitly defined. The old form with implicit vertex keys is deprecated and undocumented from the remainder of this specification.
      - New form with _explicit_ source/destination vertex key: `SOURCE KEY ( from_account ) REFERENCES Accounts ( number )`
      - Old (deprecated) form with _implicit_ source/destination vertex key: `SOURCE KEY ( from_account ) REFERENCES Accounts`
 
@@ -3795,7 +3796,7 @@ ORDER BY MATCH_NUMBER(v), ELEMENT_NUMBER(v)
 +------------------------------------------------------+
 ```
 
-The numbers returned by the function are unique but are not necessarily incremental (0, 1, 2, 3, 4, ...) and whether gaps between numbers are possible (1, 5, 18, 101) depends on the (multi-threaded) implementation.
+The numbers returned by the function are unique but not necessarily incremental (0, 1, 2, 3, 4, ...) and gaps between numbers are possible (1, 5, 18, 101) depending on the (multi-threaded) implementation.
 
 ### ELEMENT_NUMBER
 
@@ -3851,7 +3852,8 @@ ORDER BY e_elem_nr
 +------------------------------------------------------------------------------+
 ```
 
-Above, we reversed the direction of the edge. Therefore, the first variable `v1` now binds to the destination rather than source vertices of edges.
+Above, we reversed the direction of the edge pattern so that it points from right-to-left instead of left-to-right.
+Therefore, the first variable `v1` now binds to destinations rather than sources of edges.
 
 ### ALL_DIFFERENT
 
