@@ -12,7 +12,7 @@ Once it shows `Generating...` it may seem stuck but you have to be patient (take
 
 Then open [http://localhost:4005/](http://localhost:4005/) in your browser.
 
-Changes to any of the files will automatically be reflected after 10-30 seconds depending on the size of the change.
+Changes to any of the files will automatically be reflected after 30-60 seconds depending on the size of the change.
 
 After changing section titles or grammar snippets, regenerate necessary menus and hyperlinks as follows:
 
