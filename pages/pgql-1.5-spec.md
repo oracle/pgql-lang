@@ -2659,7 +2659,7 @@ ORDER BY ELEMENT_NUMBER(v)
 ```
 
 Above, although only a single path matched the pattern, four rows were returned because the path has four vertices.
-We return the `number` of the four (`Account`) vertices together with the element number (see [`ELEMENT_NUMBER`](#element_number)).
+We return the account numbers of the four vertices together with the element numbers (see [ELEMENT_NUMBER](#element_number)).
 Note that the element numbers are uneven numbers since the even numbers are taken by the edges that are between the vertices.
 
 Another example is:
@@ -2733,10 +2733,10 @@ ORDER BY ELEMENT_NUMBER(e)
 ```
 
 Above, although only a single path matched the pattern, three rows were returned because the path has three steps.
-In each step, we return the account numbers of the two end points (`v1_number` and `v2_number`), the `amount` of the `transaction` edges, and the element numbers of the vertices and edges on the path (see [`ELEMENT_NUMBER`](#element_number)).
+In each step, we return the account numbers of the two end points (`v1_number` and `v2_number`), the `amount` of the `transaction` edges, and the element numbers of the vertices and edges on the path (see [ELEMENT_NUMBER](#element_number)).
 Note that vertices always have uneven element numbers while edges always have even element numbers since paths always start with vertices.
 
-In the example above, the first vertex variable of the step each time binds to the source of an edge while the second vertex variable binds to the destination of an edge, but this is not always the case: if the edge pattern points from right-to-left instead of left-to-right then the first vertex variable binds to destinations of edges while the second vertex variable binds to sources of edges. This because semantically, patterns are always matched from left-to-right independent of edge direction.
+In the example above, the first vertex variable of the step each time binds to the source of an edge while the second vertex variable binds to the destination of an edge, but this is not always the case: if the edge pattern points from right-to-left instead of left-to-right then the first vertex variable binds to destinations of edges while the second vertex variable binds to sources of edges.
 
 For example, if we reverse the direction of the edge pattern:
 
@@ -2796,7 +2796,7 @@ ORDER BY MATCH_NUMBER(e), ELEMENT_NUMBER(e)
 There are a couple things to observe in this example:
  - `ONE ROW PER MATCH` is used for the two fixed-length patterns while `ONE ROW PER STEP` is used for the variable-length pattern: each `MATCH` has its own number of rows per match so it is possible to mix different options if there are multiple `MATCH` clauses.
  - Even though we specified `ONE ROW PER STEP` for the third pattern, the variable `t` is still available for (horizontal) aggregations; it is referenced in the `SUM` aggregation in the `SELECT`.
- - If there are multiple matches (here there are two matches to the pattern), then the [`MATCH_NUMBER`](#match_number) function can be used to identify them.
+ - If there are multiple matches (here there are two matches to the pattern), then the [MATCH_NUMBER](#match_number) function can be used to identify them.
 
 Finally, it is worth noting that if a path is empty (i.e. has length zero) then it has a single step such that the first vertex variable is bound but the edge variable and the second vertex variable are unbound.
 Therefore, the number of steps does not always equal the number of edges on a path.
@@ -3766,11 +3766,92 @@ HAS_LABEL( vertex/edge, string )
 ```
 ### MATCH_NUMBER
 
-TODO
+The `ELEMENT_NUMBER` function allows for obtaining a unique identifier for each match to a graph pattern.
+
+For example:
+
+{% include image.html file="example_graphs/financial_transactions.png" %}
+
+```sql
+  SELECT v.number AS account_number, MATCH_NUMBER(v), ELEMENT_NUMBER(v)
+    FROM MATCH ALL (a1:Account) -[:transaction]->{,4} (a2:Account)
+           ONE ROW PER VERTEX ( v )
+   WHERE a1.number = 10039 AND a2.number = 2090
+ORDER BY MATCH_NUMBER(v), ELEMENT_NUMBER(v)
+```
+
+```
++------------------------------------------------------+
+| account_number | MATCH_NUMBER(v) | ELEMENT_NUMBER(v) |
++------------------------------------------------------+
+| 10039          | 0               | 1                 |
+| 8021           | 0               | 3                 |
+| 1001           | 0               | 5                 |
+| 2090           | 0               | 7                 |
+| 10039          | 1               | 1                 |
+| 8021           | 1               | 3                 |
+| 1001           | 1               | 5                 |
+| 2090           | 1               | 7                 |
++------------------------------------------------------+
+```
+
+The numbers returned by the function are unique but are not necessarily incremental (0, 1, 2, 3, 4, ...) and whether gaps between numbers are possible (1, 5, 18, 101) depends on the (multi-threaded) implementation.
 
 ### ELEMENT_NUMBER
 
-TODO
+The `ELEMENT_NUMBER` function allows for obtaining a unique identifier for each vertex and edge within a solution to a graph pattern.
+
+Vertices and edges are numbered from top-to-bottom and from left-to-right.
+Therefore, vertices have uneven numbers (1, 3, 5, ...) while edges have even numbers (2, 4, 6, ...).
+
+For example:
+
+{% include image.html file="example_graphs/financial_transactions.png" %}
+
+```sql
+  SELECT v1.number AS v1_account_nr, e.amount, v2.number AS v2_account_nr
+       , ELEMENT_NUMBER(v1) AS v1_elem_nr, ELEMENT_NUMBER(e) AS e_elem_nr, ELEMENT_NUMBER(v2) AS v2_elem_nr
+    FROM MATCH ANY (a1:Account) -[:transaction]->+ (a2:Account)
+           ONE ROW PER STEP ( v1, e, v2 )
+   WHERE a1.number = 1001 AND a2.number = 8021
+ORDER BY e_elem_nr
+```
+
+```
++------------------------------------------------------------------------------+
+| v1_account_nr | amount | v2_account_nr | v1_elem_nr | e_elem_nr | v2_elem_nr |
++------------------------------------------------------------------------------+
+| 1001          | 9999.5 | 2090          | 1          | 2         | 3          |
+| 2090          | 9900.0 | 10039         | 3          | 4         | 5          |
+| 10039         | 1000.0 | 8021          | 5          | 6         | 7          |
++------------------------------------------------------------------------------+
+```
+
+The direction of the edge patterns does not affect the left-to-right numbering.
+For example:
+
+{% include image.html file="example_graphs/financial_transactions.png" %}
+
+```sql
+  SELECT v1.number AS v1_account_nr, e.amount, v2.number AS v2_account_nr
+       , ELEMENT_NUMBER(v1) AS v1_elem_nr, ELEMENT_NUMBER(e) AS e_elem_nr, ELEMENT_NUMBER(v2) AS v2_elem_nr
+    FROM MATCH ANY (a2:Account) <-[:transaction]-+ (a1:Account)
+           ONE ROW PER STEP ( v1, e, v2 )
+   WHERE a1.number = 1001 AND a2.number = 8021
+ORDER BY e_elem_nr
+```
+
+```
++------------------------------------------------------------------------------+
+| v1_account_nr | amount | v2_account_nr | v1_elem_nr | e_elem_nr | v2_elem_nr |
++------------------------------------------------------------------------------+
+| 8021          | 1000.0 | 10039         | 1          | 2         | 3          |
+| 10039         | 9900.0 | 2090          | 3          | 4         | 5          |
+| 2090          | 9999.5 | 1001          | 5          | 6         | 7          |
++------------------------------------------------------------------------------+
+```
+
+Above, we reversed the direction of the edge. Therefore, the first variable `v1` now binds to the destination rather than source vertices of edges.
 
 ### ALL_DIFFERENT
 
