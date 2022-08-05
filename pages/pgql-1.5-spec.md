@@ -2533,16 +2533,16 @@ Above, we first match shortest paths between four pairs of vertices and then we 
 
 # Number of Rows Per Match
 
-Each `MATCH` clause has an optional number of rows per match that specifies the number of rows in the output of the pattern match.
+Each `MATCH` clause has an optional number of rows per match that determines the number of rows in the output of the pattern match.
 There are three options:
 
  - [ONE ROW PER MATCH](#one-row-per-match) (default)
  - [ONE ROW PER VERTEX](#one-row-per-vertex)
  - [ONE ROW PER STEP](#one-row-per-step)
 
-The default is `ONE ROW PER MATCH`. This option can be used for both fixed-length and variable-length graph patterns. The other two options are typically used in combination with variable-length graph pattern and are less useful for fixed-length graph patterns.
+The default is `ONE ROW PER MATCH`. This option can be used for both fixed-length and variable-length graph patterns. The other two options are typically used in combination with variable-length graph pattern but can be used for fixed-length graph patterns too.
 
-The options are placed after the optional `ON` clause, see [MatchClause](#MatchClause).
+Syntactically, the number of rows per match are placed after the optional `ON` clause, see [MatchClause](#MatchClause).
 
 The syntax of [RowsPerMatch](#RowsPerMatch) is:
 
@@ -2596,7 +2596,7 @@ Above, `ONE ROW PER MATCH` is used for a fixed-length graph pattern.
 Since there are three matches to the pattern, three rows are returned.
 
 `ONE ROW PER MATCH` can be used in combination with variable-length graph pattern too.
-In that case, data can be returned only from the begin and end points of variable-length paths or via aggregations.
+In that case, data can be returned only from the begin and end points of variable-length paths unless data along paths is aggregated through [horizontal aggregation](#horizontal-aggregation).
 
 For example:
 
@@ -2625,8 +2625,7 @@ ORDER BY total_amount
 Above, since the pattern matches two `transaction` paths between the accounts of `Camille` and `Liam` and since `ONE ROW PER MATCH` is specified,
 there are two rows returned from the query.
 The values along the paths are aggregated via `LISTAGG` and `SUM` aggregations.
-`ONE ROW PER MATCH` does not allow for returning values along paths as individual elements;
-[ONE ROW PER VERTEX](#one-row-per-vertex) and [ONE ROW PER STEP](#one-row-per-step) are used for that.
+`ONE ROW PER MATCH` does not allow for returning values along paths as individual elements but [ONE ROW PER VERTEX](#one-row-per-vertex) and [ONE ROW PER STEP](#one-row-per-step) can be used for that.
 
 ## ONE ROW PER VERTEX
 
@@ -2660,7 +2659,7 @@ ORDER BY ELEMENT_NUMBER(v)
 
 Above, although only a single path matched the pattern, four rows were returned because the path has four vertices.
 We return the account numbers of the four vertices together with the element numbers (see [ELEMENT_NUMBER](#element_number)).
-Note that the element numbers are uneven numbers since the even numbers are taken by the edges that are between the vertices.
+Note that the element numbers are uneven since the even numbers are taken by the edges that connect the vertices.
 
 Another example is:
 
@@ -2691,21 +2690,22 @@ ORDER BY MATCH_NUMBER(v), ELEMENT_NUMBER(v)
 +------------------------------------------------------------------------------------+
 ```
 
-There are a couple things to observe in this example:
- - `ONE ROW PER MATCH` is used for the two fixed-length patterns while `ONE ROW PER VERTEX` is used for the variable-length pattern: each `MATCH` has its own number of rows per match so it is possible to mix different options if there are multiple `MATCH` clauses.
- - Even though we specified `ONE ROW PER VERTEX` for the third pattern, the variable `t` is still available for (horizontal) aggregations; it is referenced in the `LISTAGG` and `SUM` aggregations in the `SELECT`.
- - If there are multiple matches (here there are two matches to the pattern), then the [`MATCH_NUMBER`](#match_number) function can be used to identify them.
+There are a couple things to observe from this example:
+ - `ONE ROW PER MATCH` is used for the two fixed-length patterns while `ONE ROW PER VERTEX` is used for the variable-length pattern. So, each `MATCH` has its own number of rows per match.
+ - Even though we specified `ONE ROW PER VERTEX` for the third pattern, the variable `t` is still available for [horizontal aggregations](#horizontal-aggregation) like the `LISTAGG` and `SUM` aggregations in the `SELECT`.
+ - If there are multiple matches (here there are two matches to the pattern), then the [MATCH_NUMBER](#match_number) function can be used to identify them.
 
 ## ONE ROW PER STEP
 
-`ONE ROW PER STEP` is used to retrieve information from edges on path as well as from the two endpoints of the edges.
-A step is a vertex-edge-vertex triple.
+`ONE ROW PER STEP` is used to retrieve information from edges on paths as well as from the two endpoints of those edges.
 This option is typically used in combination with variable-length path patterns.
 
-Since an edge has two endpoints, `ONE ROW PER STEP` defines three variables:
- - A vertex variable which binds to the vertices on the left of edges
- - An edge variable which binds to the edges
- - Another vertex variable which binds to the vertices on the right of the edges
+A step is a vertex-edge-vertex triple and `ONE ROW PER STEP` therefore defines three variables:
+ - A first vertex variable
+ - An edge variable
+ - A second vertex variable
+
+If the path contains multiple edges then each time the second vertex variable binds to the same vertex as the first vertex variable of the next step.
 
 For example:
 
@@ -2734,11 +2734,11 @@ ORDER BY ELEMENT_NUMBER(e)
 
 Above, although only a single path matched the pattern, three rows were returned because the path has three steps.
 In each step, we return the account numbers of the two end points (`v1_number` and `v2_number`), the `amount` of the `transaction` edges, and the element numbers of the vertices and edges on the path (see [ELEMENT_NUMBER](#element_number)).
-Note that vertices always have uneven element numbers while edges always have even element numbers since paths always start with vertices.
+Note that vertices always have uneven element numbers while edges always have even element numbers since paths always start with a vertex, then an edge, then another vertex, then another edge, etc.
 
-In the example above, the first vertex variable of the step each time binds to the source of an edge while the second vertex variable binds to the destination of an edge, but this is not always the case: if the edge pattern points from right-to-left instead of left-to-right then the first vertex variable binds to destinations of edges while the second vertex variable binds to sources of edges.
+In the example above, the first vertex variable of the step each time binds to the source of an edge while the second vertex variable binds to the destination of an edge. However, it is not always the case that the first variable binds to source vertices of edges: if the edge pattern points from right-to-left instead of left-to-right then the first vertex variable binds to destinations of edges while the second vertex variable binds to sources of edges.
 
-For example, if we reverse the direction of the edge pattern:
+The following example is the same as above but with the direction of the edge pattern and the start and end of the path pattern reversed:
 
 {% include image.html file="example_graphs/financial_transactions.png" %}
 
@@ -2763,14 +2763,14 @@ ORDER BY ELEMENT_NUMBER(e)
 +------------------------------------------------------------------------------+
 ```
 
-Note the difference with before: the first variable `v1` binds to the destinations of the edges rather than the sources.
+Note the difference with before: the first variable `v1` this time binds to destinations of the edges rather than to sources, while the second vertex variable `v2` binds to sources rather than to destinations.
 
 Another example is:
 
 {% include image.html file="example_graphs/financial_transactions.png" %}
 
 ```sql
-  SELECT v1.number AS v1_account_nr, e.amount, v2.number AS v2_account_nr
+  SELECT v1.number AS v1_account_nr, e.amount, v2.number AS v2_account_nr, MATCH_NUMBER(e) AS match_nr
        , ELEMENT_NUMBER(v1) AS v1_elem_nr, ELEMENT_NUMBER(e) AS e_elem_nr
        , ELEMENT_NUMBER(v2) AS v2_elem_nr, SUM(t.amount) AS total_amount
     FROM MATCH (p1:Person) <-[:owner]- (a1:Account) ONE ROW PER MATCH
@@ -2781,21 +2781,21 @@ ORDER BY MATCH_NUMBER(e), ELEMENT_NUMBER(e)
 ```
 
 ```
-+---------------------------------------------------------------------------------------------+
-| v1_account_nr | amount | v2_account_nr | v1_elem_nr | e_elem_nr | v2_elem_nr | total_amount |
-+---------------------------------------------------------------------------------------------+
-| 10039         | 1000.0 | 8021          | 1          | 2         | 3          | 12499.8      |
-| 8021          | 1500.3 | 1001          | 3          | 4         | 5          | 12499.8      |
-| 1001          | 9999.5 | 2090          | 5          | 6         | 7          | 12499.8      |
-| 10039         | 1000.0 | 8021          | 1          | 2         | 3          | 14000.2      |
-| 8021          | 3000.7 | 1001          | 3          | 4         | 5          | 14000.2      |
-| 1001          | 9999.5 | 2090          | 5          | 6         | 7          | 14000.2      |
-+---------------------------------------------------------------------------------------------+
++--------------------------------------------------------------------------------------------------------+
+| v1_account_nr | amount | v2_account_nr | match_nr | v1_elem_nr | e_elem_nr | v2_elem_nr | total_amount |
++--------------------------------------------------------------------------------------------------------+
+| 10039         | 1000.0 | 8021          | 3        | 1          | 2         | 3          | 12499.8      |
+| 8021          | 1500.3 | 1001          | 3        | 3          | 4         | 5          | 12499.8      |
+| 1001          | 9999.5 | 2090          | 3        | 5          | 6         | 7          | 12499.8      |
+| 10039         | 1000.0 | 8021          | 4        | 1          | 2         | 3          | 14000.2      |
+| 8021          | 3000.7 | 1001          | 4        | 3          | 4         | 5          | 14000.2      |
+| 1001          | 9999.5 | 2090          | 4        | 5          | 6         | 7          | 14000.2      |
++--------------------------------------------------------------------------------------------------------+
 ```
 
-There are a couple things to observe in this example:
- - `ONE ROW PER MATCH` is used for the two fixed-length patterns while `ONE ROW PER STEP` is used for the variable-length pattern: each `MATCH` has its own number of rows per match so it is possible to mix different options if there are multiple `MATCH` clauses.
- - Even though we specified `ONE ROW PER STEP` for the third pattern, the variable `t` is still available for (horizontal) aggregations; it is referenced in the `SUM` aggregation in the `SELECT`.
+There are a couple things to observe from this example:
+ - `ONE ROW PER MATCH` is used for the two fixed-length patterns while `ONE ROW PER STEP` is used for the variable-length pattern. So, each `MATCH` has its own number of rows per match.
+ - Even though we specified `ONE ROW PER STEP` for the third pattern, the variable `t` is still available for [horizontal aggregations](#horizontal-aggregation) like the the `SUM` aggregation in the `SELECT`.
  - If there are multiple matches (here there are two matches to the pattern), then the [MATCH_NUMBER](#match_number) function can be used to identify them.
 
 Finally, it is worth noting that if a path is empty (i.e. has length zero) then it has a single step such that the first vertex variable is bound but the edge variable and the second vertex variable are unbound.
