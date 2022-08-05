@@ -15,8 +15,6 @@ toc: false
 
 PGQL is a graph pattern-matching query language for the [property graph data model](#property-graph-data-model). This document specifies the syntax and semantics of the language.
 
-When working with graph feature of Oracle Database, you can use PGQL by installing [Graph Server and Client](https://www.oracle.com/database/technologies/spatialandgraph/property-graph-features/graph-server-and-client/graph-server-and-client-downloads.html) with Oracle Database 12.2 or later.
-
 ## Changelog
 
 The following are the changes since PGQL 1.4:
@@ -2606,7 +2604,8 @@ For example:
 {% include image.html file="example_graphs/financial_transactions.png" %}
 
 ```sql
-  SELECT a1.number AS account1, a2.number AS account2, LISTAGG(t.amount, ' + ') || ' = ', SUM(t.amount) AS total_amount
+  SELECT a1.number AS account1, a2.number AS account2
+       , LISTAGG(t.amount, ' + ') || ' = ', SUM(t.amount) AS total_amount
     FROM MATCH (p1:Person) <-[:owner]- (a1:Account) ONE ROW PER MATCH
        , MATCH (p2:Person) <-[:owner]- (a2:Account) ONE ROW PER MATCH
        , MATCH ALL (a1) -[t:transaction]->{,4} (a2) ONE ROW PER MATCH
@@ -2699,8 +2698,8 @@ There are a couple things to observe in this example:
 
 ## ONE ROW PER STEP
 
-A step is a vertex-edge-vertex triple.
 `ONE ROW PER STEP` is used to retrieve information from edges on path as well as from the two endpoints of the edges.
+A step is a vertex-edge-vertex triple.
 This option is typically used in combination with variable-length path patterns.
 
 Since an edge has two endpoints, `ONE ROW PER STEP` defines three variables:
