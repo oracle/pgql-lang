@@ -2787,7 +2787,7 @@ A step is a vertex-edge-vertex triple and `ONE ROW PER STEP` therefore defines t
  - An edge variable
  - A second vertex variable
 
-If the path contains multiple edges then each time the second vertex variable binds to the same vertex as the first vertex variable of the next step.
+If the path contains multiple edges then each time the second vertex variable binds to the same vertex as the first vertex variable in the next step.
 
 For example:
 
