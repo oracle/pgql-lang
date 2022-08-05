@@ -2659,7 +2659,7 @@ ORDER BY ELEMENT_NUMBER(v)
 
 Above, although only a single path matched the pattern, four rows were returned because the path has four vertices.
 We return the account numbers of the four vertices together with the element numbers (see [ELEMENT_NUMBER](#element_number)).
-Note that the element numbers are uneven since the even numbers are taken by the edges that connect the vertices.
+Note that the element numbers are odd since the even numbers are taken by the edges that connect the vertices.
 
 Another example is:
 
@@ -2734,7 +2734,7 @@ ORDER BY ELEMENT_NUMBER(e)
 
 Above, although only a single path matched the pattern, three rows were returned because the path has three steps.
 In each step, we return the account numbers of the two end points (`v1_number` and `v2_number`), the `amount` of the `transaction` edges, and the element numbers of the vertices and edges on the path (see [ELEMENT_NUMBER](#element_number)).
-Note that vertices always have uneven element numbers while edges always have even element numbers since paths always start with a vertex, then an edge, then another vertex, then another edge, etc.
+Note that vertices always have odd element numbers while edges always have even element numbers since paths always start with a vertex, then an edge, then another vertex, then another edge, etc.
 
 In the example above, the first vertex variable of the step each time binds to the source of an edge while the second vertex variable binds to the destination of an edge. However, it is not always the case that the first variable binds to source vertices of edges: if the edge pattern points from right-to-left instead of left-to-right then the first vertex variable binds to destinations of edges while the second vertex variable binds to sources of edges.
 
@@ -3802,7 +3802,7 @@ The numbers returned by the function are unique but not necessarily incremental 
 The `ELEMENT_NUMBER` function allows for obtaining a unique identifier for each vertex and edge within a solution to a graph pattern.
 
 Vertices and edges are numbered from top-to-bottom and from left-to-right.
-Therefore, vertices have uneven numbers (1, 3, 5, ...) while edges have even numbers (2, 4, 6, ...).
+Therefore, vertices have odd numbers (1, 3, 5, ...) while edges have even numbers (2, 4, 6, ...).
 
 For example:
 
