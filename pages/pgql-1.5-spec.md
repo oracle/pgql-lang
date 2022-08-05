@@ -23,13 +23,14 @@ The following are the changes since PGQL 1.4:
 
 The new features are:
 
- - Ability to specify the number of rows per match, see [Number of Rows Per Match](#number-of-rows-per-match). The new options are:
+ - Ability to specify the [number of rows per match](#number-of-rows-per-match). The new options are:
      - [ONE ROW PER MATCH](#one-row-per-match) for obtaining one row per match
      - [ONE ROW PER VERTEX](#one-row-per-vertex) for obtaining one row per vertex
      - [ONE ROW PER STEP](#one-row-per-step) for obtaining one row per step (a step is a vertex-edge-vertex triple)
  - [MATCH_NUMBER](#match_number) and [ELEMENT_NUMBER](#element_number) functions for uniquely identifying the different matches to a pattern and for obtaining the position of each vertex and edge in a match.
  - `INTERVAL` literals and operations, see [Literals](#literals) and [Operators](#operators)
- - `IS` keyword in label expressions as alternative for colon (`:`), see [Label predicates](#label-predicates)
+ - [Selecting all properties](#selecting-all-properties) of vertices and edges through `SELECT v.*`
+ - `IS` keyword in [label predicates](#label-predicates) as alternative for colon (`:`)
  - When source or destination keys are specified in [CREATE PROPERTY GRAPH](#create-property-graph) statements, the corresponding source or destination vertex keys are now explicitly defined. The old form with implicit vertex keys is deprecated and undocumented from the remainder of this specification.
      - New form with _explicit_ source/destination vertex key: `SOURCE KEY ( from_account ) REFERENCES Accounts ( number )`
      - Old (deprecated) form with _implicit_ source/destination vertex key: `SOURCE KEY ( from_account ) REFERENCES Accounts`
@@ -1199,10 +1200,17 @@ In a PGQL query, the SELECT clause defines the data entities to be returned in t
 The following explains the syntactic structure of SELECT clause.
 
 ```bash
-SelectClause ::= 'SELECT' 'DISTINCT'? <ExpAsVar> ( ',' <ExpAsVar> )*
-               | 'SELECT' '*'
+SelectClause        ::=   'SELECT' 'DISTINCT'? <SelectElement> ( ',' <SelectElement> )*
+                        | 'SELECT' '*'
 
-ExpAsVar     ::= <ValueExpression> ( 'AS' <VariableName> )?
+SelectElement       ::=   ExpAsVar
+                        | AllProperties
+
+ExpAsVar            ::= <ValueExpression> ( 'AS' <VariableName> )?
+
+AllProperties       ::= <VariableReference> '.*' <AllPropertiesPrefix>?
+
+AllPropertiesPrefix ::= 'PREFIX' <StringLiteral>
 ```
 
 A `SELECT` clause consists of the keyword `SELECT` followed by either an optional `DISTINCT` modifier and comma-separated sequence of `<ExpAsVar>` ("expression as variable") elements, or, a special character star `*`. An `<ExpAsVar>` consists of:
@@ -1253,6 +1261,80 @@ SELECT n, m, w
 
 `SELECT *` is not allowed when the graph pattern has zero variables. This is the case when all the vertices and edges in the pattern are anonymous (e.g. `MATCH () -> (:Person)`).
 Furthermore, `SELECT *` in combination with `GROUP BY` is not allowed.
+
+### Selecting All Properties
+
+Through `SELECT v.*` one can select all properties of the vertices or edges that bind to the variable `v`.
+
+For example:
+
+{% include image.html file="example_graphs/financial_transactions.png" %}
+
+```sql
+  SELECT label(n), n.*
+    FROM MATCH (n)
+ORDER BY "number", "name"
+```
+
+```
++-----------------------------+
+| label(n) | number | name    |
++-----------------------------+
+| Account  | 1001   | <null>  |
+| Account  | 2090   | <null>  |
+| Account  | 8021   | <null>  |
+| Account  | 10039  | <null>  |
+| Person   | <null> | Camille |
+| Person   | <null> | Liam    |
+| Person   | <null> | Nikita  |
+| Company  | <null> | Oracle  |
++-----------------------------+
+```
+
+Label expressions are taken into account such that only properties are selected that belong to the specified vertex or
+edge labels:
+
+{% include image.html file="example_graphs/financial_transactions.png" %}
+
+```sql
+  SELECT label(n), n.*
+    FROM MATCH (n:Person)
+ORDER BY "name"
+```
+
+```
++--------------------+
+| label(n) | name    |
++--------------------+
+| Person   | Camille |
+| Person   | Liam    |
+| Person   | Nikita  |
++--------------------+
+```
+
+A `PREFIX` can be specified to avoid duplicate column names in case all properties of multiple vertex or edge variables are selected.
+
+For example:
+
+{% include image.html file="example_graphs/financial_transactions.png" %}
+
+```sql
+  SELECT n.* PREFIX 'n_', e.* PREFIX 'e_', m.* PREFIX 'm_'
+    FROM MATCH (n:Account) -[e:transaction]-> (m:Account)
+ORDER BY "e_amount"
+```
+
+```
++--------------------------------+
+| n_number | e_amount | m_number |
++--------------------------------+
+| 10039    | 1000.0   | 8021     |
+| 8021     | 1500.3   | 1001     |
+| 8021     | 3000.7   | 1001     |
+| 2090     | 9900.0   | 10039    |
+| 1001     | 9999.5   | 2090     |
++--------------------------------+
+```
 
 ## FROM
 
@@ -4752,7 +4834,7 @@ PROPERTY, GRAPH, VERTEX, EDGE, TABLES,
 LABEL, PROPERTIES, ARE, ALL, COLUMNS,
 EXCEPT, NO, INSERT, UPDATE, DELETE, INTO,
 LABELS, SET, BETWEEN, INTERVAL, ONE, ROW,
-PER, STEP
+PER, STEP, PREFIX
 ```
 
 Keywords are case-insensitive and variations such as `SELECT`, `Select` and `sELeCt` can be used interchangeably.

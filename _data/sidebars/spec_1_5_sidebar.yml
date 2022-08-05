@@ -143,6 +143,10 @@ entries:
         url: /spec/1.5/#select-
         output: web
 
+      - title: 'Selecting All Properties'
+        url: /spec/1.5/#selecting-all-properties
+        output: web
+
     - title: 'FROM'
       url: /spec/1.5/#from
       output: web
