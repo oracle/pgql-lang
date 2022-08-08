@@ -15,7 +15,8 @@ public class GeneratePostProcessingRules {
   private static final String[] ADDITIONAL_KEYWORDS = { "PATH", "DATE", "TIME", "TIMEZONE", "INTEGER", "BOOLEAN",
       "STRING", "ARRAY_AGG", "LISTAGG", "ID", "LABELS", "LABEL", "HAS_LABEL", "ALL_DIFFERENT", "IN_DEGREE", "OUT_DEGREE",
       "CEIL", "CEILING", "FLOOR", "ROUND", "JAVA_REGEXP_LIKE", "LOWER", "SUBSTRING", "UPPER", "HOUR", "TOP", "SHORTEST",
-      "PROPERTIES", "VERTEX", "EDGE", "PROPERTY", "GRAPH", "TABLES", "DESTINATION", "COLUMNS", "CHEAPEST", "COST" };
+      "PROPERTIES", "VERTEX", "EDGE", "PROPERTY", "GRAPH", "TABLES", "DESTINATION", "COLUMNS", "CHEAPEST", "COST",
+      "ONE", "ROW", "PER", "STEP", "INTERVAL", "PREFIX" };
 
   private static final String[] NO_KEYWORDS = { "source", "Class", "c", "location", "g", "level", "Result", "owner", "connection" };
 
@@ -48,6 +49,7 @@ public class GeneratePostProcessingRules {
     generateForVersion("1.2", sb);
     generateForVersion("1.3", sb);
     generateForVersion("1.4", sb);
+    generateForVersion("1.5", sb);
 
     String originalContent = new String(Files.readAllBytes(Paths.get("_layouts/page_orig.html")));
     String newContent = originalContent.replaceFirst("\\{\\{content\\}\\}", "{{content\n" + sb.toString() + "}}");

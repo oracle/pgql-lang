@@ -1,0 +1,619 @@
+entries:
+- title: Sidebar
+  product: PGQL 1.5 Specification
+  folders:
+
+  - title: 'Introduction'
+    url: /spec/1.5/#introduction
+    output: web
+    folderitems:
+
+    - title: 'Changelog'
+      url: /spec/1.5/#changelog
+      output: web
+      subfolderitems:
+
+      - title: 'New features in PGQL 1.5'
+        url: /spec/1.5/#new-features-in-pgql-15
+        output: web
+
+    - title: 'A note on the Grammar'
+      url: /spec/1.5/#a-note-on-the-grammar
+      output: web
+
+    - title: 'Document Outline'
+      url: /spec/1.5/#document-outline
+      output: web
+
+    - title: 'Property graph data model'
+      url: /spec/1.5/#property-graph-data-model
+      output: web
+      subfolderitems:
+
+      - title: 'Example 1: Student Network'
+        url: /spec/1.5/#example-1-student-network
+        output: web
+
+      - title: 'Example 2: Financial Transactions'
+        url: /spec/1.5/#example-2-financial-transactions
+        output: web
+
+  - title: 'Creating a Property Graph'
+    url: /spec/1.5/#creating-a-property-graph
+    output: web
+    folderitems:
+
+    - title: 'CREATE PROPERTY GRAPH'
+      url: /spec/1.5/#create-property-graph
+      output: web
+      subfolderitems:
+
+      - title: 'Vertex tables'
+        url: /spec/1.5/#vertex-tables
+        output: web
+
+      - title: 'Edge tables'
+        url: /spec/1.5/#edge-tables
+        output: web
+
+      - title: 'Table aliases'
+        url: /spec/1.5/#table-aliases
+        output: web
+
+      - title: 'Keys'
+        url: /spec/1.5/#keys
+        output: web
+
+      - title: 'Labels'
+        url: /spec/1.5/#labels
+        output: web
+
+      - title: 'Properties'
+        url: /spec/1.5/#properties
+        output: web
+
+      - title: 'Source or destination is self'
+        url: /spec/1.5/#source-or-destination-is-self
+        output: web
+
+      - title: 'Example: HR schema'
+        url: /spec/1.5/#example-hr-schema
+        output: web
+
+      - title: 'Multiple schemas'
+        url: /spec/1.5/#multiple-schemas
+        output: web
+
+    - title: 'DROP PROPERTY GRAPH'
+      url: /spec/1.5/#drop-property-graph
+      output: web
+
+  - title: 'Graph Pattern Matching'
+    url: /spec/1.5/#graph-pattern-matching
+    output: web
+    folderitems:
+
+    - title: 'Writing simple queries'
+      url: /spec/1.5/#writing-simple-queries
+      output: web
+      subfolderitems:
+
+      - title: 'Vertex patterns'
+        url: /spec/1.5/#vertex-patterns
+        output: web
+
+      - title: 'Edge patterns'
+        url: /spec/1.5/#edge-patterns
+        output: web
+
+      - title: 'Label expressions'
+        url: /spec/1.5/#label-expressions
+        output: web
+
+      - title: 'Filter predicates'
+        url: /spec/1.5/#filter-predicates
+        output: web
+
+      - title: 'More complex patterns'
+        url: /spec/1.5/#more-complex-patterns
+        output: web
+
+      - title: 'Binding an element multiple times'
+        url: /spec/1.5/#binding-an-element-multiple-times
+        output: web
+
+      - title: 'Matching edges in any direction'
+        url: /spec/1.5/#matching-edges-in-any-direction
+        output: web
+
+    - title: 'Main query structure'
+      url: /spec/1.5/#main-query-structure
+      output: web
+
+    - title: 'SELECT'
+      url: /spec/1.5/#select
+      output: web
+      subfolderitems:
+
+      - title: 'Assigning variable name to Select Expression'
+        url: /spec/1.5/#assigning-variable-name-to-select-expression
+        output: web
+
+      - title: 'SELECT *'
+        url: /spec/1.5/#select-
+        output: web
+
+      - title: 'Selecting All Properties'
+        url: /spec/1.5/#selecting-all-properties
+        output: web
+
+    - title: 'FROM'
+      url: /spec/1.5/#from
+      output: web
+
+    - title: 'MATCH'
+      url: /spec/1.5/#match
+      output: web
+      subfolderitems:
+
+      - title: 'ON clause'
+        url: /spec/1.5/#on-clause
+        output: web
+
+      - title: 'Repeated variables'
+        url: /spec/1.5/#repeated-variables
+        output: web
+
+      - title: 'Alternatives for specifying graph patterns'
+        url: /spec/1.5/#alternatives-for-specifying-graph-patterns
+        output: web
+
+      - title: 'Disconnected graph patterns'
+        url: /spec/1.5/#disconnected-graph-patterns
+        output: web
+
+      - title: 'Label predicates'
+        url: /spec/1.5/#label-predicates
+        output: web
+
+    - title: 'WHERE'
+      url: /spec/1.5/#where
+      output: web
+
+  - title: 'Variable-Length Paths'
+    url: /spec/1.5/#variable-length-paths
+    output: web
+    folderitems:
+
+    - title: 'Overview of Path Finding Goals'
+      url: /spec/1.5/#overview-of-path-finding-goals
+      output: web
+
+    - title: 'Quantifiers'
+      url: /spec/1.5/#quantifiers
+      output: web
+
+    - title: 'Any Path and Reachability'
+      url: /spec/1.5/#any-path-and-reachability
+      output: web
+      subfolderitems:
+
+      - title: 'Any Path'
+        url: /spec/1.5/#any-path
+        output: web
+
+      - title: 'Reachability'
+        url: /spec/1.5/#reachability
+        output: web
+
+    - title: 'Shortest Path'
+      url: /spec/1.5/#shortest-path
+      output: web
+      subfolderitems:
+
+      - title: 'Any Shortest Path'
+        url: /spec/1.5/#any-shortest-path
+        output: web
+
+      - title: 'All Shortest Path'
+        url: /spec/1.5/#all-shortest-path
+        output: web
+
+      - title: 'Top-K Shortest Path'
+        url: /spec/1.5/#top-k-shortest-path
+        output: web
+
+    - title: 'Cheapest Path'
+      url: /spec/1.5/#cheapest-path
+      output: web
+      subfolderitems:
+
+      - title: 'Any Cheapest Path'
+        url: /spec/1.5/#any-cheapest-path
+        output: web
+
+      - title: 'Top-K Cheapest Path'
+        url: /spec/1.5/#top-k-cheapest-path
+        output: web
+
+    - title: 'All Path'
+      url: /spec/1.5/#all-path
+      output: web
+
+    - title: 'Horizontal Aggregation'
+      url: /spec/1.5/#horizontal-aggregation
+      output: web
+      subfolderitems:
+
+      - title: 'Recap of vertical aggregation'
+        url: /spec/1.5/#recap-of-vertical-aggregation
+        output: web
+
+      - title: 'Group Variables'
+        url: /spec/1.5/#group-variables
+        output: web
+
+      - title: 'Horizontal aggregation using group variables'
+        url: /spec/1.5/#horizontal-aggregation-using-group-variables
+        output: web
+
+      - title: 'Horizontal aggregation in WHERE and GROUP BY'
+        url: /spec/1.5/#horizontal-aggregation-in-where-and-group-by
+        output: web
+
+  - title: 'Number of Rows Per Match'
+    url: /spec/1.5/#number-of-rows-per-match
+    output: web
+    folderitems:
+
+    - title: 'ONE ROW PER MATCH'
+      url: /spec/1.5/#one-row-per-match
+      output: web
+
+    - title: 'ONE ROW PER VERTEX'
+      url: /spec/1.5/#one-row-per-vertex
+      output: web
+
+    - title: 'ONE ROW PER STEP'
+      url: /spec/1.5/#one-row-per-step
+      output: web
+
+  - title: 'Grouping and Aggregation'
+    url: /spec/1.5/#grouping-and-aggregation
+    output: web
+    folderitems:
+
+    - title: 'GROUP BY'
+      url: /spec/1.5/#group-by
+      output: web
+      subfolderitems:
+
+      - title: 'Multiple Terms in GROUP BY'
+        url: /spec/1.5/#multiple-terms-in-group-by
+        output: web
+
+      - title: 'Aliases in GROUP BY'
+        url: /spec/1.5/#aliases-in-group-by
+        output: web
+
+      - title: 'GROUP BY and NULL values'
+        url: /spec/1.5/#group-by-and-null-values
+        output: web
+
+      - title: 'Repetition of Group Expression in Select or Order Expression'
+        url: /spec/1.5/#repetition-of-group-expression-in-select-or-order-expression
+        output: web
+
+    - title: 'Aggregation'
+      url: /spec/1.5/#aggregation
+      output: web
+      subfolderitems:
+
+      - title: 'Aggregation with GROUP BY'
+        url: /spec/1.5/#aggregation-with-group-by
+        output: web
+
+      - title: 'Aggregation without GROUP BY'
+        url: /spec/1.5/#aggregation-without-group-by
+        output: web
+
+      - title: 'COUNT(*)'
+        url: /spec/1.5/#count
+        output: web
+
+      - title: 'DISTINCT in aggregation'
+        url: /spec/1.5/#distinct-in-aggregation
+        output: web
+
+    - title: 'HAVING'
+      url: /spec/1.5/#having
+      output: web
+
+  - title: 'Sorting and Row Limiting'
+    url: /spec/1.5/#sorting-and-row-limiting
+    output: web
+    folderitems:
+
+    - title: 'ORDER BY'
+      url: /spec/1.5/#order-by
+      output: web
+      subfolderitems:
+
+      - title: 'Data types for ORDER BY'
+        url: /spec/1.5/#data-types-for-order-by
+        output: web
+
+      - title: 'Multiple expressions in ORDER BY'
+        url: /spec/1.5/#multiple-expressions-in-order-by
+        output: web
+
+    - title: 'LIMIT and OFFSET'
+      url: /spec/1.5/#limit-and-offset
+      output: web
+
+  - title: 'Functions and Expressions'
+    url: /spec/1.5/#functions-and-expressions
+    output: web
+    folderitems:
+
+    - title: 'Data Types and Literals'
+      url: /spec/1.5/#data-types-and-literals
+      output: web
+      subfolderitems:
+
+      - title: 'Data Types'
+        url: /spec/1.5/#data-types
+        output: web
+
+      - title: 'Literals'
+        url: /spec/1.5/#literals
+        output: web
+
+      - title: 'Bind Variables'
+        url: /spec/1.5/#bind-variables
+        output: web
+
+    - title: 'Operators'
+      url: /spec/1.5/#operators
+      output: web
+      subfolderitems:
+
+      - title: 'Overview of Operators'
+        url: /spec/1.5/#overview-of-operators
+        output: web
+
+      - title: 'Operator Precedence'
+        url: /spec/1.5/#operator-precedence
+        output: web
+
+      - title: 'Implicit Type Conversion'
+        url: /spec/1.5/#implicit-type-conversion
+        output: web
+
+    - title: 'Null values'
+      url: /spec/1.5/#null-values
+      output: web
+      subfolderitems:
+
+      - title: 'Three-Valued Logic'
+        url: /spec/1.5/#three-valued-logic
+        output: web
+
+      - title: 'IS NULL and IS NOT NULL'
+        url: /spec/1.5/#is-null-and-is-not-null
+        output: web
+
+    - title: 'String functions'
+      url: /spec/1.5/#string-functions
+      output: web
+      subfolderitems:
+
+      - title: 'JAVA_REGEXP_LIKE'
+        url: /spec/1.5/#java_regexp_like
+        output: web
+
+      - title: 'LOWER'
+        url: /spec/1.5/#lower
+        output: web
+
+      - title: 'SUBSTRING'
+        url: /spec/1.5/#substring
+        output: web
+
+      - title: 'UPPER'
+        url: /spec/1.5/#upper
+        output: web
+
+    - title: 'Numeric functions'
+      url: /spec/1.5/#numeric-functions
+      output: web
+      subfolderitems:
+
+      - title: 'ABS'
+        url: /spec/1.5/#abs
+        output: web
+
+      - title: 'CEIL or CEILING'
+        url: /spec/1.5/#ceil-or-ceiling
+        output: web
+
+      - title: 'FLOOR'
+        url: /spec/1.5/#floor
+        output: web
+
+      - title: 'ROUND'
+        url: /spec/1.5/#round
+        output: web
+
+    - title: 'Datetime functions'
+      url: /spec/1.5/#datetime-functions
+      output: web
+      subfolderitems:
+
+      - title: 'EXTRACT'
+        url: /spec/1.5/#extract
+        output: web
+
+    - title: 'Vertex and Edge functions'
+      url: /spec/1.5/#vertex-and-edge-functions
+      output: web
+      subfolderitems:
+
+      - title: 'ID'
+        url: /spec/1.5/#id
+        output: web
+
+      - title: 'LABEL'
+        url: /spec/1.5/#label
+        output: web
+
+      - title: 'LABELS (function)'
+        url: /spec/1.5/#labels-function
+        output: web
+
+      - title: 'HAS_LABEL'
+        url: /spec/1.5/#has_label
+        output: web
+
+      - title: 'MATCH_NUMBER'
+        url: /spec/1.5/#match_number
+        output: web
+
+      - title: 'ELEMENT_NUMBER'
+        url: /spec/1.5/#element_number
+        output: web
+
+      - title: 'ALL_DIFFERENT'
+        url: /spec/1.5/#all_different
+        output: web
+
+      - title: 'IN_DEGREE'
+        url: /spec/1.5/#in_degree
+        output: web
+
+      - title: 'OUT_DEGREE'
+        url: /spec/1.5/#out_degree
+        output: web
+
+    - title: 'User-Defined functions'
+      url: /spec/1.5/#user-defined-functions
+      output: web
+
+    - title: 'CAST'
+      url: /spec/1.5/#cast
+      output: web
+
+    - title: 'CASE'
+      url: /spec/1.5/#case
+      output: web
+
+    - title: 'IN and NOT IN'
+      url: /spec/1.5/#in-and-not-in
+      output: web
+
+  - title: 'Subqueries'
+    url: /spec/1.5/#subqueries
+    output: web
+    folderitems:
+
+    - title: 'EXISTS and NOT EXISTS subqueries'
+      url: /spec/1.5/#exists-and-not-exists-subqueries
+      output: web
+
+    - title: 'Scalar subqueries'
+      url: /spec/1.5/#scalar-subqueries
+      output: web
+
+  - title: 'Graph Modification'
+    url: /spec/1.5/#graph-modification
+    output: web
+    folderitems:
+
+    - title: 'INSERT'
+      url: /spec/1.5/#insert
+      output: web
+      subfolderitems:
+
+      - title: 'Inserting vertices'
+        url: /spec/1.5/#inserting-vertices
+        output: web
+
+      - title: 'Inserting edges'
+        url: /spec/1.5/#inserting-edges
+        output: web
+
+      - title: 'Labels'
+        url: /spec/1.5/#labels
+        output: web
+
+      - title: 'Properties'
+        url: /spec/1.5/#properties
+        output: web
+
+      - title: 'Multiple inserts in the same INSERT clause'
+        url: /spec/1.5/#multiple-inserts-in-the-same-insert-clause
+        output: web
+
+    - title: 'UPDATE'
+      url: /spec/1.5/#update
+      output: web
+      subfolderitems:
+
+      - title: 'Handling read after write conflicts'
+        url: /spec/1.5/#handling-read-after-write-conflicts
+        output: web
+
+      - title: 'Handling write after write conflicts'
+        url: /spec/1.5/#handling-write-after-write-conflicts
+        output: web
+
+    - title: 'DELETE'
+      url: /spec/1.5/#delete
+      output: web
+
+    - title: 'Combining INSERT, UPDATE and DELETE'
+      url: /spec/1.5/#combining-insert-update-and-delete
+      output: web
+      subfolderitems:
+
+      - title: 'Isolation semantics of modification queries'
+        url: /spec/1.5/#isolation-semantics-of-modification-queries
+        output: web
+
+      - title: 'Handling conflicting modifications'
+        url: /spec/1.5/#handling-conflicting-modifications
+        output: web
+
+  - title: 'Other Syntactic rules'
+    url: /spec/1.5/#other-syntactic-rules
+    output: web
+    folderitems:
+
+    - title: 'Identifiers'
+      url: /spec/1.5/#identifiers
+      output: web
+      subfolderitems:
+
+      - title: 'Unquoted identifiers'
+        url: /spec/1.5/#unquoted-identifiers
+        output: web
+
+      - title: 'Quoted identifiers'
+        url: /spec/1.5/#quoted-identifiers
+        output: web
+
+    - title: 'String literals'
+      url: /spec/1.5/#string-literals
+      output: web
+
+    - title: 'Keywords'
+      url: /spec/1.5/#keywords
+      output: web
+
+    - title: 'Integers and Decimals'
+      url: /spec/1.5/#integers-and-decimals
+      output: web
+
+    - title: 'Comments'
+      url: /spec/1.5/#comments
+      output: web
