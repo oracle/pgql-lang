@@ -2624,9 +2624,9 @@ There are three options:
 
 The default is `ONE ROW PER MATCH`. This option can be used for both fixed-length and variable-length graph patterns. The other two options are typically used in combination with variable-length graph pattern but can be used for fixed-length graph patterns too.
 
-Syntactically, the number of rows per match are placed after the optional `ON` clause, see [MatchClause](#MatchClause).
+Syntactically, the number of rows per match are placed after the optional `ON` clause, see [`MatchClause`](#MatchClause).
 
-The syntax of [RowsPerMatch](#RowsPerMatch) is:
+The syntax of [`RowsPerMatch`](#RowsPerMatch) is:
 
 ```bash
 RowsPerMatch    ::= <OneRowPerMatch>
@@ -2815,7 +2815,7 @@ ORDER BY ELEMENT_NUMBER(e)
 ```
 
 Above, although only a single path matched the pattern, three rows were returned because the path has three steps.
-In each step, we return the account numbers of the two end points (`v1_number` and `v2_number`), the `amount` of the `transaction` edges, and the element numbers of the vertices and edges on the path (see [ELEMENT_NUMBER](#element_number)).
+In each step, we return the account numbers of the two end points (`v1_account_nr` and `v2_account_nr`), the `amount` of the `transaction` edges, and the [element numbers](#element_number) of the vertices and edges on the path (`v1_elem_nr`, `e_elem_nr` and `v2_elem_nr`).
 Note that vertices always have odd element numbers while edges always have even element numbers since paths always start with a vertex, then an edge, then another vertex, then another edge, etc.
 
 In the example above, the first vertex variable of the step each time binds to the source of an edge while the second vertex variable binds to the destination of an edge. However, it is not always the case that the first variable binds to source vertices of edges: if the edge pattern points from right-to-left instead of left-to-right then the first vertex variable binds to destinations of edges while the second vertex variable binds to sources of edges.
