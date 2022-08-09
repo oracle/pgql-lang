@@ -93,6 +93,7 @@ public class GraphPattern implements TableExpression {
     return 31;
   }
 
+  @Override
   public void accept(QueryExpressionVisitor v) {
     v.visit(this);
   }
