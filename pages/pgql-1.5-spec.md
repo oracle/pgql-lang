@@ -2787,7 +2787,7 @@ A step is a vertex-edge-vertex triple and `ONE ROW PER STEP` therefore defines t
  - An edge variable
  - A second vertex variable
 
-If the path contains multiple edges then each time the second vertex variable binds to the same vertex as the first vertex variable in the next step.
+When iterating through the steps of a path, the second vertex variable of the current step binds to the same vertex as the first vertex variable of the next step, unless there is no next step.
 
 For example:
 
@@ -2818,7 +2818,7 @@ Above, although only a single path matched the pattern, three rows were returned
 In each step, we return the account numbers of the two end points (`v1_account_nr` and `v2_account_nr`), the `amount` of the `transaction` edges, and the [element numbers](#element_number) of the vertices and edges on the path (`v1_elem_nr`, `e_elem_nr` and `v2_elem_nr`).
 Note that vertices always have odd element numbers while edges always have even element numbers since paths always start with a vertex, then an edge, then another vertex, then another edge, etc.
 
-In the example above, the first vertex variable of the step each time binds to the source of an edge while the second vertex variable binds to the destination of an edge. However, it is not always the case that the first variable binds to source vertices of edges: if the edge pattern points from right-to-left instead of left-to-right then the first vertex variable binds to destinations of edges while the second vertex variable binds to sources of edges.
+In the example above, the first vertex variable of a step each time binds to the source of an edge while the second vertex variable binds to the destination of an edge. However, it is not always the case that the first variable binds to the sources of edges: if the edge pattern points from right-to-left instead of left-to-right then the first vertex variable binds to destinations of edges while the second vertex variable binds to sources of edges.
 
 The following example is the same as above but with the direction of the edge pattern and the start and end of the path pattern reversed:
 
