@@ -215,9 +215,17 @@ public class PgqlUtils {
         throw new IllegalArgumentException(graphQuery.getQueryType().toString());
     }
 
-    if (graphQuery.getGraphPattern() != null) {
+    List<TableExpression> tableExpressions = graphQuery.getTableExpressions();
+    if (!tableExpressions.isEmpty()) {
       result += "\nFROM ";
-      result += printPgqlString(graphQuery.getGraphPattern(), graphQuery.getGraphName());
+
+      List<String> tableExpressionStrings = new ArrayList<>();
+      for (TableExpression tableExpression : tableExpressions) {
+        tableExpressionStrings.add(tableExpression.getTableExpressionType() == TableExpressionType.GRAPH_PATTERN
+            ? printPgqlString((GraphPattern) tableExpression, graphQuery.getGraphName())
+            : tableExpression.toString());
+      }
+      result += tableExpressionStrings.stream().collect(Collectors.joining(", "));
     }
     GroupBy groupBy = graphQuery.getGroupBy();
     if (groupBy != null && groupBy.getElements().isEmpty() == false) {

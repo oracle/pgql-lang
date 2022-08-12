@@ -6,4 +6,6 @@ package oracle.pgql.lang.ir;
 public interface TableExpression {
 
   TableExpressionType getTableExpressionType();
+
+  void accept(QueryExpressionVisitor v);
 }
