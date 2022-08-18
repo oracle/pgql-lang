@@ -324,4 +324,10 @@ public class BugFixTest extends AbstractPgqlTest {
     assertEquals("x.inDegree()", projectionElements.get(5).getName());
     assertEquals("x.outDegree()", projectionElements.get(6).getName());
   }
+
+  @Test
+  public void testUniqueNonAnonymousNameAfterPrettyPrintingDuplicateGroupByExpression() throws Exception {
+    String prettyPrintedQuery = pgql.parse("SELECT e AS e1, e AS e2 FROM MATCH (v)-[e]->(v1) GROUP BY e1, e2").getGraphQuery().toString();
+    assertTrue(pgql.parse(prettyPrintedQuery).isQueryValid());
+  }
 }
