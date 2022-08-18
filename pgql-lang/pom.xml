@@ -68,7 +68,7 @@
 
   <distributionManagement>
     <repository>
-      <id>graph-onprem-release-local</id>
+      <id>graph-onprem</id>
       <name>Oracle Internal Repository</name>
       <url>https://artifacthub-iad.oci.oraclecorp.com/graph-onprem-release-local</url>
     </repository>
