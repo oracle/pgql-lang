@@ -329,5 +329,8 @@ public class BugFixTest extends AbstractPgqlTest {
   public void testUniqueNonAnonymousNameAfterPrettyPrintingDuplicateGroupByExpression() throws Exception {
     String prettyPrintedQuery = pgql.parse("SELECT e AS e1, e AS e2 FROM MATCH (v)-[e]->(v1) GROUP BY e1, e2").getGraphQuery().toString();
     assertTrue(pgql.parse(prettyPrintedQuery).isQueryValid());
+
+    prettyPrintedQuery = pgql.parse("SELECT e.prop AS e1, e.prop AS e2 FROM MATCH (v)-[e]->(v1) GROUP BY e1, e2").getGraphQuery().toString();
+    assertTrue(pgql.parse(prettyPrintedQuery).isQueryValid());
   }
 }
