@@ -230,8 +230,13 @@ rules
        ; originOffset := <origin-offset> v
        ; type := <get-type-from-varRef-as-var(|variables)> exp'
        ; vars' := <replace-or-add> (VarDef(iden, originOffset, exp, replaced-groupByExp-with-selectExp, exp', ThisQuery(), type), vars)
-       ; expAsVar' := <origin-track-forced(!ExpAsVar(exp', iden, anonymous, originOffset))> t
+       ; anonymous' := <exp-was-replaced; !NonAnonymous() <+ !anonymous> (exp, replaced-groupByExp-with-selectExp) // SELECT v1 AS v2 FROM MATCH (v1) GROUP BY v2 ==> we want it to be GROUP BY v1 AS v2 not GROUP BY v1
+       ; expAsVar' := <origin-track-forced(!ExpAsVar(exp', iden, anonymous', originOffset))> t
        ; result' := <conc> (result, [expAsVar'])
+
+  exp-was-replaced:
+    (exp1, exp2) -> <id>
+    where <not(eq)> (exp1, exp2)
 
   resolve-exp-as-var-in-select(|variables, metadata, valueExpression):
     (t@ExpAsVar(exp, iden@Identifier(v, _), anonymous), (result, vars)) -> (result', vars')
