@@ -249,3 +249,28 @@ test Reference alias from SELECT in GROUP BY, not allowed when aggregation [[
   GROUP BY v
 
 ]] error like "Aggregation without group variables not allowed in GROUP BY" at #1
+
+test Unexpected aggregation without group variables (1) [[
+
+  SELECT COUNT(e), [[COUNT(*)]], [[COUNT(a)]], [[COUNT(1+1)]]
+    FROM MATCH ANY (a:account) -[e]->* (b:account)
+
+]] error like "Aggregation with group variables expected since SELECT clause has another aggregation with group variables" at #1, #2, #3
+
+test Unexpected aggregation without group variables (2) [[
+
+SELECT 1
+FROM MATCH (n)
+WHERE EXISTS ( SELECT COUNT(e), [[COUNT(*)]], [[COUNT(a)]], [[COUNT(1+1)]]
+                 FROM MATCH ANY (n) -[e]->* (b:account) )
+
+]] error like "Aggregation with group variables expected since SELECT clause has another aggregation with group variables" at #1, #2, #3
+
+test Unexpected aggregation without group variables (3) [[
+
+SELECT 1
+FROM MATCH (n)
+   , LATERAL ( SELECT COUNT(e), [[COUNT(*)]], [[COUNT(a)]], [[COUNT(1+1)]]
+                 FROM MATCH ANY (n) -[e]->* (b:account) )
+
+]] error like "Aggregation with group variables expected since SELECT clause has another aggregation with group variables" at #1, #2, #3

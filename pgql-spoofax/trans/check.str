@@ -84,7 +84,7 @@ rules // Unresolved/duplicate variables
          end
 
   nabl-constraint(|ctx):
-    query@NormalizedQuery(_, _, _, _, _, _, _, _, _, _, _, _, _) -> <fail>
+    query@NormalizedQuery(_, selectOrModifyClause, _, _, _, _, _, _, _, _, _, _, _) -> <fail>
     with group-variables := <collect-in-outer-query(?CommonPathExpression(_, _, _, _, _); get-origin-positions-of-variables); concat> query
        ; aggregations := <get-aggregations> query
        ; varRefs-per-aggregation := <map(origin-track-forced(collect-in-outer-query(?VarRef(_, <id>)); !Some(<id>)))> aggregations
@@ -92,10 +92,19 @@ rules // Unresolved/duplicate variables
        ; <batch-generate-error(|ctx, "Accessing multiple group variables in a single aggregation is not yet supported")> varRefs-per-aggregation-when-multiple
 
        ; aggregations-contents := <map(get-exp-from-aggregation)> aggregations
-       ; nested-aggregations := <map(get-aggregations); concat>
+       ; nested-aggregations := <map(get-aggregations); concat> aggregations-contents
        ; varRefs-per-nested-aggregation := <map(origin-track-forced(collect-in-outer-query(?VarRef(_, <id>)); !Some(<id>)))> nested-aggregations
        ; varRef-per-nested-aggregation-no-groupVar := <filter(has-no-groupVarRefs(|group-variables))> varRefs-per-nested-aggregation
        ; <batch-generate-error(|ctx, "Nested aggregation not allowed here")> varRef-per-nested-aggregation-no-groupVar
+
+       ; if <?SelectClause(_, SelectList(expAsVars))> selectOrModifyClause
+         then aggregations-contents-in-select := <filter(?ExpAsVar(ExpressionPlusType(<get-exp-from-aggregation>, _), _, _, _))> expAsVars
+            ; varRefs-per-aggregation-in-select := <map(origin-track-forced(collect-in-outer-query-outside-aggregation(?VarRef(_, <id>)); !Some(<id>)))> aggregations-contents-in-select
+            ; varRef-per-aggregation-no-groupVar-in-select := <filter(has-no-groupVarRefs(|group-variables))> varRefs-per-aggregation-in-select
+            ; if <gt> (<length> varRefs-per-aggregation-in-select, <length> varRef-per-aggregation-no-groupVar-in-select)
+              then <batch-generate-error(|ctx, "Aggregation with group variables expected since SELECT clause has another aggregation with group variables")> varRef-per-aggregation-no-groupVar-in-select
+              end
+         end
 
    nabl-constraint(|ctx):
     t@Constraints(_) -> <fail>
