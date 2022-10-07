@@ -2334,8 +2334,11 @@ public interface QueryExpression {
 
     private VarRef varRef;
 
-    public AllProperties(VarRef varRef) {
+    private String prefix;
+
+    public AllProperties(VarRef varRef, String prefix) {
       this.varRef = varRef;
+      this.prefix = prefix;
     }
 
     public VarRef getVarRef() {
@@ -2346,6 +2349,14 @@ public interface QueryExpression {
       this.varRef = varRef;
     }
 
+    public String getPrefix() {
+      return prefix;
+    }
+
+    public void setPrefix(String prefix) {
+      this.prefix = prefix;
+    }
+
     @Override
     public ExpressionType getExpType() {
       return ExpressionType.ALL_PROPERTIES;
@@ -2353,7 +2364,7 @@ public interface QueryExpression {
 
     @Override
     public String toString() {
-      return varRef + ".*";
+      return varRef + ".*" + (prefix == null ? "" : " PREFIX " + prefix);
     }
 
     @Override
@@ -2375,6 +2386,11 @@ public interface QueryExpression {
       if (getClass() != obj.getClass())
         return false;
       AllProperties other = (AllProperties) obj;
+      if (prefix == null) {
+        if (other.prefix != null)
+          return false;
+      } else if (!prefix.equals(other.prefix))
+        return false;
       if (varRef == null) {
         if (other.varRef != null)
           return false;

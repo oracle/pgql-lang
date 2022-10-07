@@ -9,20 +9,16 @@ import static org.junit.Assert.assertTrue;
 
 import java.util.List;
 
-import org.junit.Rule;
 import org.junit.Test;
-import org.junit.rules.ExpectedException;
 
 import oracle.pgql.lang.ir.ExpAsVar;
 import oracle.pgql.lang.ir.GraphQuery;
+import oracle.pgql.lang.ir.QueryExpression.AllProperties;
 import oracle.pgql.lang.ir.QueryExpression.FunctionCall;
 import oracle.pgql.lang.ir.QueryExpression.PropertyAccess;
 import oracle.pgql.lang.ir.SelectQuery;
 
 public class BugFixTest extends AbstractPgqlTest {
-
-  @Rule
-  public ExpectedException thrown = ExpectedException.none();
 
   /* OL-Jira GM-13537 */
   @Test
@@ -332,5 +328,12 @@ public class BugFixTest extends AbstractPgqlTest {
 
     prettyPrintedQuery = pgql.parse("SELECT e.prop AS e1, e.prop AS e2 FROM MATCH (v)-[e]->(v1) GROUP BY e1, e2").getGraphQuery().toString();
     assertTrue(pgql.parse(prettyPrintedQuery).isQueryValid());
+  }
+
+  @Test
+  public void testPreservePrefixWhenNoMetadata() throws Exception {
+    SelectQuery query = (SelectQuery) pgql.parse("SELECT n.* PREFIX 'N_' FROM MATCH (n)").getGraphQuery();
+    AllProperties allProperties = (AllProperties) query.getProjection().getElements().get(0).getExp();
+    assertEquals("N_", allProperties.getPrefix());
   }
 }
