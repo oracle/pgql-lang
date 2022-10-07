@@ -185,6 +185,7 @@ public class SpoofaxAstToGraphQuery {
   private static final int POS_EXP_PLUS_TYPE_EXP = 0;
 
   private static final int POS_ALLPROPERTIES_VARREF = 0;
+  private static final int POS_ALLPROPERTIES_PREFIX = 1;
 
   private static final int POS_DERIVED_TABLE_LATERAL = 0;
   private static final int POS_DERIVED_TABLE_SUBQUERY = 1;
@@ -881,7 +882,9 @@ public class SpoofaxAstToGraphQuery {
         VarRef varRef = (VarRef) translateExp(expAsVarT.getSubterm(POS_ALLPROPERTIES_VARREF), ctx);
         String expAsVarName = GENERATED_VAR_SUBSTR + "_" + varRef + ".*"; // this just needs to be some unique name;
                                                                           // doesn't matter what
-        ExpAsVar expAsVar = new ExpAsVar(new AllProperties(varRef), expAsVarName, true, expAsVarName);
+        IStrategoTerm prefixT = expAsVarT.getSubterm(POS_ALLPROPERTIES_PREFIX);
+        String prefix = isSome(prefixT) ? getString(prefixT) : null;
+        ExpAsVar expAsVar = new ExpAsVar(new AllProperties(varRef, prefix), expAsVarName, true, expAsVarName);
         expAsVars.add(expAsVar);
         continue;
       }
