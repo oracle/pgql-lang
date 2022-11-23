@@ -656,8 +656,14 @@ public class PrettyPrintingTest extends AbstractPgqlTest {
   }
 
   @Test
-  public void testLateralSubquery() throws Exception {
+  public void testLateralSubquery1() throws Exception {
     String query = "SELECT n FROM LATERAL ( SELECT n.prop FROM MATCH (n) ON g1 LIMIT 1 ), MATCH (n IS Person) -[e IS likes]-> (m IS Person) ON g1 WHERE n.name = 'Dave'";
+    checkRoundTrip(query);
+  }
+
+  @Test
+  public void testLateralSubquery2() throws Exception {
+    String query = "SELECT a FROM LATERAL ( SELECT 1 AS a FROM MATCH (n) )";
     checkRoundTrip(query);
   }
 
