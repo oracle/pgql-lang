@@ -240,7 +240,7 @@ public class SpoofaxAstToGraphQuery {
         case "DerivedTable":
           boolean lateral = isSome(tableExpressionT.getSubterm(POS_DERIVED_TABLE_LATERAL));
           SelectQuery query = (SelectQuery) translate(
-              tableExpressionT.getSubterm(POS_DERIVED_TABLE_SUBQUERY).getSubterm(POS_SUBQUERY_QUERY));
+              tableExpressionT.getSubterm(POS_DERIVED_TABLE_SUBQUERY).getSubterm(POS_SUBQUERY_QUERY), ctx);
           DerivedTable derivedTable = new DerivedTable(query, lateral);
           tableExpressions.add(derivedTable);
           break;
