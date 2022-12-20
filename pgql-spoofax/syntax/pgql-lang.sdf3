@@ -47,6 +47,8 @@ context-free syntax
 
   TableExpression = DerivedTable
 
+  TableExpression = GraphTableDerivedTable
+
   GraphMatch.GraphMatch = MatchKeyword? PathPattern OptionalGraphMatchParts?
 
   GraphMatch.ParenthesizedGraphMatch = <MATCH ( <{PathPattern ","}+> ) <OptionalGraphMatchParts?>> {case-insensitive}
@@ -68,7 +70,8 @@ context-free syntax
 
   Projection.SelectList = <<{SelectElem ", "}+>>
   SelectElem = ExpAsVar
-  SelectElem.AllProperties = <<VarRef>.* <ColumnNamePrefix?>>
+  SelectElem = AllPropertiesReference
+  AllPropertiesReference.AllProperties = <<VarRef>.* <ColumnNamePrefix?>>
   ColumnNamePrefix.ColumnNamePrefix = <PREFIX <String>> {case-insensitive}
 
   Projection.Star = <*>
@@ -82,3 +85,10 @@ context-free syntax
   LateralKeyword.Lateral = <LATERAL> {case-insensitive}
   TableSubquery = Subquery
   Correlation.Correlation = AsignSymbol? Identifier
+
+  GraphTableDerivedTable.GraphTableDerivedTable = GraphTable Correlation?
+  GraphTable.GraphTable = <GRAPH_TABLE ( <GraphName> MATCH <GraphPattern> <GraphTableShape?> )> {case-insensitive}
+  GraphTableShape = GraphTableColumnsClause
+  GraphTableColumnsClause.GraphTableColumnsClause = <COLUMNS ( <{GraphTableColumnDefinition ","}+> )> {case-insensitive}
+  GraphTableColumnDefinition = ExpAsVar
+  GraphTableColumnDefinition = AllPropertiesReference

@@ -185,6 +185,7 @@ rules
                            + ?ParenthesizedGraphMatch(_, Some(OptionalGraphMatchParts1(_, Some(OnClause(<id>)))))
                            + ?GraphMatch(_, _, Some(OptionalGraphMatchParts2(OnClause(<id>), _)))
                            + ?ParenthesizedGraphMatch(_, Some(OptionalGraphMatchParts2(OnClause(<id>), _)))
+                           + ?GraphTable(<id>, _, _)
 
   get-RowsPerMatch = ?None()
                    + origin-track-forced(?Some(OptionalGraphMatchParts1(<id>, _)); (?None() <+ !Some(<id>)))
@@ -388,12 +389,14 @@ rules
               then graphMatches' := <conc> (graphMatches, [x])
                  ; tableExpressions' := <normalize-table-expressions(|variable-counter, graphMatches')> xs
               else if <?[]> graphMatches
-                   then tableExpressions' := [x|<normalize-table-expressions(|variable-counter, graphMatches)> xs]
+                   then tableExpressions' := [<normalize-table-expression(|variable-counter)> x|<normalize-table-expressions(|variable-counter, graphMatches)> xs]
                    else pathPatternsWithRowsPerMatch := <get-pathPatternsAndRowsPerMatch-and-normalize(|variable-counter)> graphMatches
                       ; tableExpressions' := [pathPatternsWithRowsPerMatch| [x|<normalize-table-expressions(|variable-counter, [])> xs] ]
                    end
               end
          end
+
+  normalize-table-expression(|variable-counter) = ?DerivedTable(_, _, _)
 
   get-pathPatternsAndRowsPerMatch-and-normalize(|variable-counter) = map(get-pathPatternsAndRowsPerMatch); concat; norm-matchElems-common(|variable-counter)
 
@@ -719,3 +722,44 @@ rules
   norm-limitOffsets = ?None(); !LimitOffsetClauses(None(), None())
   norm-limitOffsets = ?Some(LimitOffsetClauses(limitClause, offsetClause)); !LimitOffsetClauses(Some(limitClause), offsetClause)
   norm-limitOffsets = ?Some(OffsetLimitClauses(offsetClause, limitClause)); !LimitOffsetClauses(limitClause, Some(offsetClause))
+
+rules // GRAPH_TABLE
+
+  normalize-table-expression(|variable-counter):
+    t@GraphTableDerivedTable(GraphTable(graphName, GraphPattern(PathPatternList(pathPatterns), keepClause, whereClause), columnsClause), correlation)
+    -> DerivedTable(Some(GraphTable()), Subquery(
+          NormalizedQuery(
+            CommonPathExpressions([])
+          , SelectClause(
+              distinct
+            , SelectList(expAsVars')
+            )
+          , Some(GraphName(graphName))
+          , tableExpressions
+          , whereClause'
+          , groupBy
+          , having
+          , orderBy
+          , limitOffset
+          , errorMessages
+          , pgqlVersion
+          , bindVariableCount
+          , selectingAllProperties
+          )
+        )
+      , correlation)
+    with distinct := None()
+       ; expAsVars := <?None(); ![] <+ ?Some(GraphTableColumnsClause(<id>))> columnsClause
+       ; expAsVars' := <map(?AllProperties(_, _) + norm-ExpAsVar-for-select-clause)> expAsVars
+       ; rowsPerMatch := None()
+       ; graphPattern' := <map(!PathPatternAndRowsPerMatch(<id>, rowsPerMatch)); norm-matchElems-common(|variable-counter)> pathPatterns
+       ; tableExpressions := [ graphPattern' ]
+       ; whereClause' := <?Some(WhereClause(<id>)); !Constraints([<id>]) <+ ?None(); !Constraints([])> whereClause
+       ; groupBy := None()
+       ; having := None()
+       ; orderBy := None()
+       ; limitOffset := LimitOffsetClauses(None(), None())
+       ; errorMessages := [] // not used
+       ; pgqlVersion := "v1.3" // not used
+       ; bindVariableCount := -1 // not used
+       ; selectingAllProperties := False() // not used

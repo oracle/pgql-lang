@@ -63,9 +63,11 @@ signature constructors // for the normalized AST (see trans/normalize.str)
 
   TableExpressionsAndGraphName : GraphPattern * Name * WhereClause -> TableExpressionsAndGraphName
 
-  PathPatternAndRowsPerMatch : PathPattern * RowsPerMatch -> PathPatternAndRowsPerMatch
+  PathPatternAndRowsPerMatch   : PathPattern * RowsPerMatch -> PathPatternAndRowsPerMatch
 
-  SelectingAllProperties   : Boolean -> SelectingAllProperties
+  SelectingAllProperties       : Boolean -> SelectingAllProperties
+
+  GraphTable                   : GraphTable
 
 signature constructors // for name binding (see trans/trans-for-nabl.str)
 

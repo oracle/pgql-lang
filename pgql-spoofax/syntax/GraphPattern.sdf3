@@ -13,11 +13,14 @@ template options
 
 context-free syntax
 
-  PathPattern.PathPattern = <<Vertex> <EdgeVertex+>>
+  GraphPattern.GraphPattern = PathPatternList KeepClause? WhereClause?
+  PathPatternList.PathPatternList = <<{PathPattern ","}+>>
+
+  PathPattern.PathPattern = Vertex EdgeVertex+
   PathPattern.SingleVertex = <(<ElemContents>)> // PGQL 1.0
   Vertex.Vertex = <(<ElemContents>)>
 
-  EdgeVertex.EdgeVertex = <<Connection> <Vertex>>
+  EdgeVertex.EdgeVertex = Connection Vertex
   Connection.OutConn = [-[EdgeOrPathContents?]->[PathQuantifier?]]
   Connection.InConn = [<-[EdgeOrPathContents?]-[PathQuantifier?]]
   Connection.UndirectedEdge = [-[EdgeContents?]-[PathQuantifier?]]
@@ -60,7 +63,33 @@ context-free syntax
   ElemContents.ElemContents       = <<Identifier?><LabelExpression?><Legacy10Ids?><Legacy10WithInlinedConstraints?>>
   LabelExpression.Labels          = <<LabelExpressionIntroducer> <Labels>>
   LabelExpressionIntroducer.Colon = <:>
-  LabelExpressionIntroducer.IS    = <IS>  {case-insensitive}
+  LabelExpressionIntroducer.IS    = <IS> {case-insensitive}
   Labels.Label                    = Identifier
   Labels                          = BindVariable
   Labels.LabelDisjunction         = <<Labels>|<Labels>> {left}
+
+context-free syntax
+
+  KeepClause.KeepClause = <KEEP <PathPatternPrefix>> {case-insensitive}
+  PathPatternPrefix = PathSearchPrefix
+
+  PathSearchPrefix = AllPathSearch
+  PathSearchPrefix = AnyPathSearch
+  PathSearchPrefix = ShortestPathSearch
+  PathSearchPrefix = CheapestPathSearch
+
+  AllPathSearch.AllPathSearch = <ALL <PathOrPaths>> {case-insensitive}
+
+  AnyPathSearch.AnyPathSearch = <ANY <NumberOfPaths?> <PathOrPaths>> {case-insensitive}
+
+  ShortestPathSearch.AllShortestPathSearch = <ALL SHORTEST <PathOrPaths>> {case-insensitive}
+  ShortestPathSearch.AnyShortestPathSearch = <ANY SHORTEST <PathOrPaths>> {case-insensitive}
+  ShortestPathSearch.CountedShortestPathSearch = <SHORTEST <NumberOfPaths> <PathOrPaths>> {case-insensitive}
+
+  CheapestPathSearch.AnyCheapestPathSearch = <ANY CHEAPEST <PathOrPaths>> {case-insensitive}
+  CheapestPathSearch.CountedCheapestPathSearch = <CHEAPEST <NumberOfPaths> <PathOrPaths>> {case-insensitive}
+
+  NumberOfPaths.NumberOfPaths = UNSIGNED-INT
+
+  PathOrPaths.PathKeyword = <PATH> {case-insensitive}
+  PathOrPaths.PathsKeyword = <PATHS> {case-insensitive}
