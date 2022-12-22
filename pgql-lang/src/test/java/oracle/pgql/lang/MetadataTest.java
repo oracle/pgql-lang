@@ -12,7 +12,6 @@ import org.junit.Test;
 
 import oracle.pgql.lang.ir.ExpAsVar;
 import oracle.pgql.lang.ir.SelectQuery;
-import oracle.pgql.lang.metadata.Property;
 
 public class MetadataTest extends AbstractPgqlTest {
 
@@ -831,7 +830,7 @@ public class MetadataTest extends AbstractPgqlTest {
     assertEquals(result.getGraphQuery(), prettyPrintedResult.getGraphQuery());
 
     result = pgql.parse("SELECT * FROM LATERAL ( SELECT e.* FROM MATCH (n) -[e]-> (m) )");
-    assertTrue(result.getErrorMessages().contains("SELECT * not allowed if there are no variables in the graph pattern")); // we may need to support this for GraphViz (i.e. get rid of the error)
+    assertTrue(result.isQueryValid());
 
     prettyPrintedResult = pgql.parse(result.getGraphQuery().toString());
     assertEquals(result.getGraphQuery(), prettyPrintedResult.getGraphQuery());

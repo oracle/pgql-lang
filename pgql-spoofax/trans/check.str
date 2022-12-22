@@ -201,8 +201,10 @@ rules
     with <generate-error(|ctx, "SELECT * not allowed in combination with GROUP BY")> e
 
   nabl-constraint(|ctx):
-    SelectClause(Star(), e@SelectList([])) -> <fail>
-    with <generate-error(|ctx, "SELECT * not allowed if there are no variables in the graph pattern")> e
+    NormalizedQuery(_, SelectClause(Star(), e@SelectList([])), _, tableExpressions, _, _, _, _, _, _, _, _, _) -> <fail>
+    with if <not(oncetd(?AllProperties(_, _)))> tableExpressions // to allow for parsing and pretty printing when no metadata is available, we only generate the error if no lateral derived table contains an n.* because then we don't know how many elements the SELECT * would have
+         then <generate-error(|ctx, "SELECT * not allowed if there are no variables in the graph pattern")> e
+         end
 
   nabl-constraint(|ctx):
     COUNT(Some(Distinct()), e@Star()) -> <fail>
