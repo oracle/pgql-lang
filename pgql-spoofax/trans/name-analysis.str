@@ -46,16 +46,17 @@ rules
        ; whereClause' := <resolve-value-expression(|variables'', expAsVars, metadata)> whereClause
 
        // GROUP BY
-       ; if (!groupBy; ?Some(_)) + (!selectOrModifyClause; create-one-group(|variables'')) + (!having; ?Some(_))
+       ; if (!groupBy; ?Some(GroupByClause(groupByExps))) + (!selectOrModifyClause; create-one-group(|variables'')) + (!having; ?Some(_))
          then hasGroupBy := True()
             ; (groupBy', variables''') := <resolve-group-by(|variables'', expAsVars, metadata)> groupBy
          else hasGroupBy := False()
             ; (groupBy', variables''') := (groupBy, variables'')
+            ; groupByExps := []
          end
 
        // SELECT / INSERT / UPDATE / DELETE
        ; if <?SelectClause(_, _)> selectOrModifyClause
-         then (selectOrModifyClause', variables'''') := <resolve-select-clause(|variables''', metadata, valueExpression')> selectOrModifyClause
+         then (selectOrModifyClause', variables'''') := <resolve-select-clause(|variables''', metadata, valueExpression', tableExpressions', groupByExps)> selectOrModifyClause
          else selectOrModifyClause' := <resolve-modify-clause(|variables''', metadata)> selectOrModifyClause
            ; variables'''' := variables'''
          end
@@ -106,7 +107,7 @@ rules
        ; <?[x|xs]> variables
        ; variables-in-projection' := <alltd(?ThisQuery(); !LateralQuery())> variables-in-projection
        ; variables' := [<conc> (x, variables-in-projection')|xs]
-       ; valueExpression' := valueExpressionPriorLateralQueries // TODO: for SELECT n.* we need to have all the label expression
+       ; valueExpression' := <collect(?Constraints(<id>)); concat> derivedTable' // for SELECT n.* we need to have all the label expression
 
   path-with-at-most-one-binding:
     t@Path(_, _, _, quantifier, _, _, _, _, _) -> t
@@ -170,17 +171,39 @@ rules
     with vars' := []
        ; variables' := [vars'|variables]
 
-  resolve-select-clause(|variables, metadata, valueExpression):
+  resolve-select-clause(|variables, metadata, valueExpression, tableExpressions, group-exps):
     t@SelectClause(distinct, t2@SelectList(selectElements)) -> (selectClause', variables')
-    with if Star() := selectElements
-         then selectElements'' := selectElements
-            ; variables':= variables
-         else varsInCurrentScope := <Hd> variables
-            ; (selectElements', vars') := <foldl(resolve-exp-as-var-in-select(|variables, metadata, valueExpression))> (selectElements, ([], varsInCurrentScope))
-            ; selectElements'' := <origin-track-forced(!SelectList(selectElements'))> t2
-            ; variables' := [vars'|<Tl> variables]
-         end
+    with varsInCurrentScope := <Hd> variables
+       ; (selectElements', vars') := <foldl(resolve-exp-as-var-in-select(|variables, metadata, valueExpression))> (selectElements, ([], varsInCurrentScope))
+       ; selectElements'' := <origin-track-forced(!SelectList(selectElements'))> t2
+       ; variables' := [vars'|<Tl> variables]
        ; selectClause' := <origin-track-forced(!SelectClause(distinct, selectElements''))> t
+
+  resolve-select-clause(|variables, metadata, valueExpression, tableExpressions, group-exps):
+    t@SelectClause(distinct, star@Star()) -> (selectClause', variables')
+    with if [] := group-exps
+         then vars := <map(extract-variables-for-select-star); concat; make-set;
+                       filter(Identifier(is-string; not(is-substring(GENERATED)), id))> tableExpressions;
+              selectElements := <map(generate-ExpAsVar(|star))> vars
+            ; varsInCurrentScope := <Hd> variables
+            ; (selectElements', vars') := <foldl(resolve-exp-as-var-in-select(|variables, metadata, valueExpression))> (selectElements, ([], varsInCurrentScope))
+            ; variables' := [vars'|<Tl> variables]
+            ; star' := star
+         else star' := <origin-track-forced(!GroupBySelectStar())> star // can't use GROUP BY in combination with SELECT *, we'll generate an error later
+            ; selectElements' := []
+            ; variables' := variables
+         end
+       ; selectList := <origin-track-forced(!SelectList(selectElements'))> star
+       ; selectClause' := <origin-track-forced(!SelectClause(star', selectList))> t
+
+  extract-variables-for-select-star = ?GraphPattern(_, _, _)
+                                    ; collect-in-outer-query(?Vertex(<id>, _, _) + ?Edge(_, <id>, _, _, _, _))
+
+  extract-variables-for-select-star = ?DerivedTable(_, Subquery(NormalizedQuery(_, SelectClause(_, SelectList(<id>)), _, _, _, _, _, _, _, _, _, _, _)), _)
+                                    ; map(
+                                        ?AllProperties(_, _); ![] + // no metadata was available to translate the n.*
+                                        ?ExpAsVar(_, <id>, _, _)
+                                      )
 
   resolve-modify-clause(|variables, metadata):
     t@ModifyClause(modifications) -> modifyClause'
@@ -281,6 +304,14 @@ rules
               end
          end
        ; result' := <conc> (result, selectElems)
+
+  generate-ExpAsVar(|star):
+    t@Identifier(v, originText) -> expAsVar
+    with v' := <origin-track-forced(!(v, ""); conc-strings /* generate a new string to make it loose origin */)> star
+       ; originText' := <?None() <+ !star; origin-track-forced(!(originText, ""); conc-strings /* generate a new string to make it loose origin */)> originText
+       ; newIdentifier := <origin-track-forced(!Identifier(v', originText'))> star
+       ; varRef := <origin-track-forced(!VarRef(newIdentifier))> star
+       ; expAsVar := <origin-track-forced(!ExpAsVar(varRef, newIdentifier, Anonymous()))> star
 
   get-type-from-varRef-as-var(|variables):
     exp -> type

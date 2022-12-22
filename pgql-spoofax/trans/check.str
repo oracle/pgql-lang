@@ -194,23 +194,19 @@ rules
 
   nabl-constraint(|ctx):
     e@IllegalNull() -> <fail>
-    with
-      <generate-error(|ctx, "Use IS NULL or IS NOT NULL")> e
+    with <generate-error(|ctx, "Use IS NULL or IS NOT NULL")> e
 
   nabl-constraint(|ctx):
-    SelectClause(_, e@Star()) -> <fail>
-    with
-      <generate-error(|ctx, "SELECT * not allowed in combination with GROUP BY")> e
+    SelectClause(GroupBySelectStar(), e) -> <fail>
+    with <generate-error(|ctx, "SELECT * not allowed in combination with GROUP BY")> e
 
   nabl-constraint(|ctx):
     SelectClause(Star(), e@SelectList([])) -> <fail>
-    with
-      <generate-error(|ctx, "SELECT * not allowed if there are no variables in the graph pattern")> e
+    with <generate-error(|ctx, "SELECT * not allowed if there are no variables in the graph pattern")> e
 
   nabl-constraint(|ctx):
     COUNT(Some(Distinct()), e@Star()) -> <fail>
-    with
-      <generate-error(|ctx, "* not allowed in combination with DISTINCT")> e
+    with <generate-error(|ctx, "* not allowed in combination with DISTINCT")> e
 
 rules // subqueries
 
@@ -223,7 +219,7 @@ rules // subqueries
        ; <batch-generate-error(|ctx, "Scalar subquery is expected to return a single column, but zero columns were returned")> zeroColumnScalarSubqueries
 
   is-multi-column-subquery = ?Subquery(NormalizedQuery(_, SelectClause(_, e@SelectList(selectElements)), _, _, _, _, _, _, _, _, _, _, _))
-                           ; where(not( <eq> (<length> selectElements, 1) )); !e
+                           ; where( <gt> (<length> selectElements, 1) ); !e
 
   is-zero-column-subquery = ?Subquery(NormalizedQuery(_, SelectClause(_, e@SelectList(selectElements)), _, _, _, _, _, _, _, _, _, _, _))
                            ; where( <eq> (<length> selectElements, 0) ); !e
@@ -718,7 +714,7 @@ rules // MODIFY
   // check SELECT clause is not empty (may happen in case of SELECT n.*)
   nabl-constraint(|ctx):
     SelectClause(distinctOrStar, e@SelectList([])) -> <fail>
-    where <not(?Star())> distinctOrStar // for SELECT * (instead of SELECT n.*) with zero columns we already have a different error
+    where <not(?Star() + ?GroupBySelectStar())> distinctOrStar // for SELECT * (instead of SELECT n.*) with zero columns we already have a different error
     with <generate-error(|ctx, "SELECT clause should have at least one column but has zero columns")> e
 
   // SUBSTRING

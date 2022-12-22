@@ -98,7 +98,7 @@ rules
       t@DerivedTable(lateral, Subquery(normalizedQuery@NormalizedQuery(_, SelectClause(_, SelectList(expAsVars)), _, _, Constraints(subquery-constraints), _, _, _, _, _, _, _, _)), correlation)
     , (remaining-expressions-plus-varRefs, tableExpressions, allVariablesExceptFromOuterQuery)
     ) -> (remaining-expressions-plus-varRefs', tableExpressions', allVariablesExceptFromOuterQuery')
-    with new-variables := <map(?ExpAsVar(_, _, _, <id>))> expAsVars
+    with new-variables := <filter(?ExpAsVar(_, _, _, <id>))> expAsVars
        ; visible-variables-to-predicates := <conc; make-set> (variablesOuterQuery, allVariablesExceptFromOuterQuery, new-variables)
        ; (pushed-down-predicates, remaining-expressions-plus-varRefs') := <foldl(try-push-down-predicate(|visible-variables-to-predicates))> (remaining-expressions-plus-varRefs, ([], []))
        ; pushed-down-predicates' := <alltd(replace-varRef-with-expression(|expAsVars))> pushed-down-predicates

@@ -41,18 +41,14 @@ rules
          end
 
          // SELECT / INSERT / UPDATE / DELETE
-       ; if <?SelectClause(_, SelectList(_))> selectOrModifyClause
+       ; if <?SelectClause(_, _)> selectOrModifyClause
          then selectOrModifyClause' := <alltd(add-type(|metadata, variablesPlusTypes'', constraints))> selectOrModifyClause
             ; variablesPlusTypes''' := <conc> (variablesPlusTypes'', <?SelectClause(_, SelectList(<id>)); map(expAsVar-to-variablePlusType(|variablesPlusTypes''))> selectOrModifyClause')
-         else if <?SelectClause(_, Star())> selectOrModifyClause // SELECT * FROM .. GROUP BY ..
-              then selectOrModifyClause' := selectOrModifyClause
-                 ; variablesPlusTypes''' := variablesPlusTypes''
-              else <?ModifyClause(modifications)> selectOrModifyClause // INSERT / UPDATE / DELETE
-                 ; verticesWithTypes' := <collect-vertices-with-types(?VertexInsertion(_, <id>, _, _))> modifications
-                 ; edgesWithTypes' := <collect-edges-with-types(?DirectedEdgeInsertion(_, <id>, _, _, _, _))> modifications
-                 ; variablesPlusTypes''' := <conc> (variablesPlusTypes'', verticesWithTypes', edgesWithTypes')
-                 ; selectOrModifyClause' := <alltd(add-type(|metadata, variablesPlusTypes''', constraints))> selectOrModifyClause
-              end
+         else <?ModifyClause(modifications)> selectOrModifyClause // INSERT / UPDATE / DELETE
+            ; verticesWithTypes' := <collect-vertices-with-types(?VertexInsertion(_, <id>, _, _))> modifications
+            ; edgesWithTypes' := <collect-edges-with-types(?DirectedEdgeInsertion(_, <id>, _, _, _, _))> modifications
+            ; variablesPlusTypes''' := <conc> (variablesPlusTypes'', verticesWithTypes', edgesWithTypes')
+            ; selectOrModifyClause' := <alltd(add-type(|metadata, variablesPlusTypes''', constraints))> selectOrModifyClause
          end
 
          // HAVING
@@ -76,9 +72,11 @@ rules
        ; subquery' := <origin-track-forced(!Subquery(normalizedQuery'))> subquery
        ; derivedTable' := <origin-track-forced(!DerivedTable(lateral, subquery', correlation))> derivedTable
        ; result' := <conc> (result, [derivedTable'])
-       ; variablesPlusTypes'' := < ?NormalizedQuery(_, SelectClause(_, SelectList(<id>)), _, _, _, _, _, _, _, _, _, _, _)
-                                 ; map(expAsVar-to-variablePlusType(|variablesPlusTypes'))> normalizedQuery'
-       ; variablesPlusTypes''' := <conc> (variablesPlusTypes, variablesPlusTypes'')
+       ; if <?NormalizedQuery(_, SelectClause(_, SelectList(selectElements)), _, _, _, _, _, _, _, _, _, _, _)> normalizedQuery'
+         then variablesPlusTypes'' := <map(expAsVar-to-variablePlusType(|variablesPlusTypes'))> selectElements
+            ; variablesPlusTypes''' := <conc> (variablesPlusTypes, variablesPlusTypes'')
+         else variablesPlusTypes''' := variablesPlusTypes
+         end
 
   collect-vertices-with-types(s) = collect-in-outer-query(s; !VariablePlusType(<id>, <id>, Type("VERTEX")))
 

@@ -12,6 +12,7 @@ import org.junit.Test;
 
 import oracle.pgql.lang.ir.ExpAsVar;
 import oracle.pgql.lang.ir.SelectQuery;
+import oracle.pgql.lang.metadata.Property;
 
 public class MetadataTest extends AbstractPgqlTest {
 
@@ -828,6 +829,12 @@ public class MetadataTest extends AbstractPgqlTest {
 
     prettyPrintedResult = pgql.parse(result.getGraphQuery().toString());
     assertEquals(result.getGraphQuery(), prettyPrintedResult.getGraphQuery());
+
+    result = pgql.parse("SELECT * FROM LATERAL ( SELECT e.* FROM MATCH (n) -[e]-> (m) )");
+    assertTrue(result.getErrorMessages().contains("SELECT * not allowed if there are no variables in the graph pattern")); // we may need to support this for GraphViz (i.e. get rid of the error)
+
+    prettyPrintedResult = pgql.parse(result.getGraphQuery().toString());
+    assertEquals(result.getGraphQuery(), prettyPrintedResult.getGraphQuery());
   }
 
   @Test
@@ -1050,5 +1057,26 @@ public class MetadataTest extends AbstractPgqlTest {
         + "FROM LATERAL ( SELECT * FROM MATCH () -[e:worksFor]-> () ON financialNetwork ) " //
         + "   , LATERAL ( SELECT * FROM MATCH (n:Account) ON financialNetwork WHERE e.amount = n.number )");
     assertTrue(result.getErrorMessages().contains("Property does not exist for any of the labels"));
+  }
+
+  @Test
+  public void testSelectAllPropertiesLateral() throws Exception {
+    List<ExpAsVar> expAsVars = getExpAsVars("SELECT * FROM LATERAL ( SELECT n.* FROM MATCH (n IS person) )");
+    assertEquals("firstName", expAsVars.get(0).getName());
+    assertEquals("firstName", expAsVars.get(0).getNameOriginText());
+    assertEquals("dob", expAsVars.get(1).getName());
+    assertEquals("dob", expAsVars.get(1).getNameOriginText());
+    assertEquals("numericProp", expAsVars.get(2).getName());
+    assertEquals("numericProp", expAsVars.get(2).getNameOriginText());
+    assertEquals("typeConflictProp", expAsVars.get(3).getName());
+    assertEquals("typeConflictProp", expAsVars.get(3).getNameOriginText());
+
+    expAsVars = getExpAsVars("SELECT * FROM LATERAL ( SELECT e.* FROM MATCH () -[e IS knows]- () )");
+    assertEquals("since", expAsVars.get(0).getName());
+    assertEquals("since", expAsVars.get(0).getNameOriginText());
+    assertEquals("prop", expAsVars.get(1).getName());
+    assertEquals("prop", expAsVars.get(1).getNameOriginText());
+    assertEquals("typeConflictProp", expAsVars.get(2).getName());
+    assertEquals("typeConflictProp", expAsVars.get(2).getNameOriginText());
   }
 }
