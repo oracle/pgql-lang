@@ -660,11 +660,9 @@ rules
       expAsGroupVars' := <map(norm-ExpAsVar)> expAsGroupVars;
       groupByClause' := <?Some(_); !Some(GroupByClause(expAsGroupVars')) <+ !None()> groupByClause;
 
-      selectOrModifyClause' := <?ModifyClause(_) + ?SelectClause(_, _); (norm-SelectList(|version) <+ norm-select-star(|tableExpressions, expAsGroupVars'))> selectOrModifyClause;
+      selectOrModifyClause' := <?ModifyClause(_) <+ ?SelectClause(_, Star()) <+ ?SelectClause(_, _); norm-SelectList(|version)> selectOrModifyClause;
 
-      selectElements := <(?ModifyClause(_)); ![] + ?SelectClause(_, SelectList(<id>))> selectOrModifyClause';
-      allExpAsVars := <conc> (expAsGroupVars', <try(?Star(); ![])> selectElements);
-      orderByElems := <try(norm-orderBy(|allExpAsVars, version))> orderByClause;
+      orderByElems := <try(norm-orderBy(|version))> orderByClause;
 
       limitOffsets' := <norm-limitOffsets> limitOffsets;
 
@@ -686,31 +684,7 @@ rules
     with identifier := <(?VarRef(<id>) <+ origin-track-forced(origin-text); origin-track-forced(!Identifier(<id>, <id>)))> exp
        ; anonymous := <?PropRef(_, _); !NonAnonymous() <+ !Anonymous()> exp // 'SELECT n.prop' in PGQL <= 1.2 is 'SELECT n.prop AS "n.prop"' in PGQL 1.3+
 
-  norm-select-star(|tableExpressions, group-exps):
-    t@SelectClause(distinct, star@Star()) -> result
-    with if [] := group-exps
-         then vars := <map(extract-variables-for-select-star); concat; make-set;
-                       filter(Identifier(is-string; not(is-substring(GENERATED)), id))> tableExpressions;
-              selectElements := <map(generate-ExpAsVar(|star))> vars
-         else selectElements := star
-         end
-       ; result := <origin-track-forced(!SelectClause(star, <origin-track-forced(!SelectList(selectElements))> star))> t
-
-  extract-variables-for-select-star = ?GraphPattern(_, _, _)
-                                    ; collect-in-outer-query(?Vertex(<id>) + ?NormalizedEdge(_, <id>, _, _, _, _))
-
-  extract-variables-for-select-star = ?DerivedTable(_, Subquery(NormalizedQuery(_, SelectClause(_, SelectList(<id>)), _, _, _, _, _, _, _, _, _, _, _)), _)
-                                    ; map(?ExpAsVar(_, <id>, _))
-
-  generate-ExpAsVar(|star):
-    t@Identifier(v, originText) -> expAsVar
-    with v' := <origin-track-forced(!(v, ""); conc-strings /* generate a new string to make it loose origin */)> star
-       ; originText' := <?None() <+ !star; origin-track-forced(!(originText, ""); conc-strings /* generate a new string to make it loose origin */)> originText
-       ; newIdentifier := <origin-track-forced(!Identifier(v', originText'))> star
-       ; varRef := <origin-track-forced(!VarRef(newIdentifier))> star
-       ; expAsVar := <origin-track-forced(!ExpAsVar(varRef, newIdentifier, Anonymous()))> star
-
-  norm-orderBy(|allExpAsVars, version):
+  norm-orderBy(|version):
     Some(OrderByClause(elems)) -> Some(OrderByClause(elems'))
     with
       elems' := <map(norm-orderBy-ordering(|version))> elems

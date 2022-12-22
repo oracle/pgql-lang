@@ -96,6 +96,8 @@ signature constructors // for name binding (see trans/trans-for-nabl.str)
 
   RowsPerMatchVariable  : Var * OriginOffset * Correlation * Type -> RowsPerMatchVariable
 
+  GroupBySelectStar     : GroupBySelectStar
+
 signature constructors // for error checking (see trans/check.str)
 
   ReferenceInInlinedConstraint                      : Var -> ReferenceInInlinedConstraint
