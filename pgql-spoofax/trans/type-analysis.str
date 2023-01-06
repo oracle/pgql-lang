@@ -27,7 +27,7 @@ rules
          pathExpressions' := <map(add-types-to-path-expression(|metadata))> pathExpressions
 
          // FROM
-       ; (tableExpressions', variablesPlusTypes') := <foldl(add-type-to-table-expression(|metadata, constraints))> (tableExpressions, ([], variablesPlusTypes))
+       ; (tableExpressions', variablesPlusTypes') := <foldl(add-types-to-table-expression(|metadata, constraints))> (tableExpressions, ([], variablesPlusTypes))
 
          // WHERE
        ; whereClause' := <alltd(add-type(|metadata, variablesPlusTypes', constraints))> whereClause
@@ -57,7 +57,7 @@ rules
          // ORDER BY
        ; orderBy' := <alltd(add-type(|metadata, variablesPlusTypes''', constraints))> orderBy
 
-  add-type-to-table-expression(|metadata, constraints):
+  add-types-to-table-expression(|metadata, constraints):
     (graphPattern@GraphPattern(Vertices(vertices), connections, _), (result, variablesPlusTypes)) -> (result', variablesPlusTypes')
     with verticesWithTypes := <conc> ( <collect-vertices-with-types(?Vertex(_, <id>, _))> (vertices, connections)
                                      , <collect-vertices-with-types(?RowsPerMatchVariable(_, <id>, _, Type("VERTEX")))> connections )
@@ -66,7 +66,7 @@ rules
        ; graphPattern' := <alltd(add-type(|metadata, variablesPlusTypes', constraints))> graphPattern
        ; result' := <conc> (result, [graphPattern'])
 
-  add-type-to-table-expression(|metadata, constraints):
+  add-types-to-table-expression(|metadata, constraints):
     (derivedTable@DerivedTable(lateral, subquery@Subquery(normalizedQuery), correlation), (result, variablesPlusTypes)) -> (result', variablesPlusTypes''')
     with (normalizedQuery', variablesPlusTypes') := <add-types-to-query(|metadata, variablesPlusTypes, constraints)> normalizedQuery
        ; subquery' := <origin-track-forced(!Subquery(normalizedQuery'))> subquery
