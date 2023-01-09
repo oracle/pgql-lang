@@ -87,7 +87,7 @@ context-free syntax
   Correlation.Correlation = AsignSymbol? Identifier
 
   GraphTableDerivedTable.GraphTableDerivedTable = GraphTable Correlation?
-  GraphTable.GraphTable = <GRAPH_TABLE ( <GraphName> MATCH <GraphPattern> <GraphTableShape?> )> {case-insensitive}
+  GraphTable.GraphTable = <GRAPH_TABLE ( <GraphName?> MATCH <GraphPattern> <GraphTableShape?> )> {case-insensitive}
   GraphTableShape = GraphTableColumnsClause
   GraphTableColumnsClause.GraphTableColumnsClause = <COLUMNS ( <{GraphTableColumnDefinition ","}+> )> {case-insensitive}
   GraphTableColumnDefinition = ExpAsVar

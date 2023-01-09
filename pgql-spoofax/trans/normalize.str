@@ -709,7 +709,7 @@ rules // GRAPH_TABLE
               distinct
             , SelectList(expAsVars')
             )
-          , Some(GraphName(graphName))
+          , graphName'
           , tableExpressions
           , whereClause'
           , groupBy
@@ -726,6 +726,7 @@ rules // GRAPH_TABLE
     with distinct := None()
        ; expAsVars := <?None(); ![] <+ ?Some(GraphTableColumnsClause(<id>))> columnsClause
        ; expAsVars' := <map(?AllProperties(_, _) + norm-ExpAsVar-for-select-clause)> expAsVars
+       ; graphName' := <?None() + ?Some(<id>); !Some(GraphName(<id>))> graphName
        ; rowsPerMatch := None()
        ; graphPattern' := <map(!PathPatternAndRowsPerMatch(<id>, rowsPerMatch)); norm-matchElems-common(|variable-counter)> pathPatterns
        ; tableExpressions := [ graphPattern' ]
