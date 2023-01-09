@@ -388,10 +388,11 @@ rules
             ; if <?GraphMatch(_, _, _) + ?ParenthesizedGraphMatch(_, _)> x
               then graphMatches' := <conc> (graphMatches, [x])
                  ; tableExpressions' := <normalize-table-expressions(|variable-counter, graphMatches')> xs
-              else if <?[]> graphMatches
-                   then tableExpressions' := [<normalize-table-expression(|variable-counter)> x|<normalize-table-expressions(|variable-counter, graphMatches)> xs]
+              else x' := <normalize-table-expression(|variable-counter)> x
+                 ; if <?[]> graphMatches
+                   then tableExpressions' := [x'|<normalize-table-expressions(|variable-counter, graphMatches)> xs]
                    else pathPatternsWithRowsPerMatch := <get-pathPatternsAndRowsPerMatch-and-normalize(|variable-counter)> graphMatches
-                      ; tableExpressions' := [pathPatternsWithRowsPerMatch| [x|<normalize-table-expressions(|variable-counter, [])> xs] ]
+                      ; tableExpressions' := [pathPatternsWithRowsPerMatch| [x'|<normalize-table-expressions(|variable-counter, [])> xs] ]
                    end
               end
          end
