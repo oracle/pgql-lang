@@ -3848,7 +3848,7 @@ HAS_LABEL( vertex/edge, string )
 ```
 ### MATCH_NUMBER
 
-The `ELEMENT_NUMBER` function allows for obtaining a unique identifier for each match to a graph pattern.
+The `MATCH_NUMBER` function allows for obtaining a unique identifier for each match to a graph pattern.
 
 For example:
 
