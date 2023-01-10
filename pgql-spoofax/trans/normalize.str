@@ -174,18 +174,18 @@ rules
 
   get-errors-for-multiple-graph-names:
     ast -> errors
-    with inputGraphNames := <collect-om(get-on-clause-graph-name; alltd(norm-identifier); to-name-without-case-sensitive-info)> ast
+    with inputGraphNames := <collect-all(get-graph-name; alltd(norm-identifier); to-name-without-case-sensitive-info)> ast
        ; numInputGraphNames := <length> inputGraphNames
        ; if <gt> (numInputGraphNames, 1)
          then errors := <map(to-error-message(|"Querying multiple graphs is not supported"))> inputGraphNames
          else errors := []
          end
 
-  get-on-clause-graph-name = ?GraphMatch(_, _, Some(OptionalGraphMatchParts1(_, Some(OnClause(<id>)))))
-                           + ?ParenthesizedGraphMatch(_, Some(OptionalGraphMatchParts1(_, Some(OnClause(<id>)))))
-                           + ?GraphMatch(_, _, Some(OptionalGraphMatchParts2(OnClause(<id>), _)))
-                           + ?ParenthesizedGraphMatch(_, Some(OptionalGraphMatchParts2(OnClause(<id>), _)))
-                           + ?GraphTable(<id>, _, _)
+  get-graph-name = ?GraphMatch(_, _, Some(OptionalGraphMatchParts1(_, Some(OnClause(<id>)))))
+                 + ?ParenthesizedGraphMatch(_, Some(OptionalGraphMatchParts1(_, Some(OnClause(<id>)))))
+                 + ?GraphMatch(_, _, Some(OptionalGraphMatchParts2(OnClause(<id>), _)))
+                 + ?ParenthesizedGraphMatch(_, Some(OptionalGraphMatchParts2(OnClause(<id>), _)))
+                 + ?GraphTable(Some(<id>), _, _)
 
   get-RowsPerMatch = ?None()
                    + origin-track-forced(?Some(OptionalGraphMatchParts1(<id>, _)); (?None() <+ !Some(<id>)))
@@ -193,12 +193,13 @@ rules
 
   get-errors-for-missing-on-clauses:
     ast -> errors
-    with if <oncetd(?OnClause(_))> ast
+    with if <oncetd(?OnClause(_) + ?GraphTable(_, _, _))> ast
          then clausesWithMissingGraphName := <collect(?GraphMatch(_, _, Some(OptionalGraphMatchParts1(_, None())))
 						                            + ?ParenthesizedGraphMatch(_, Some(OptionalGraphMatchParts1(_, None())))
 						                            + ?GraphMatch(_, _, None())
-						                            + ?ParenthesizedGraphMatch(_, None()))> ast
-            ; errors := <map(to-error-message(|"Missing ON clause"))> clausesWithMissingGraphName
+						                            + ?ParenthesizedGraphMatch(_, None())
+						                            + ?GraphTable(None(), _, _))> ast
+            ; errors := <map(?GraphTable(_, _, _); to-error-message(|"GRAPH_TABLE restriction: graph name required") <+ to-error-message(|"Missing graph name"))> clausesWithMissingGraphName
          else errors := []
          end
 
@@ -372,7 +373,7 @@ rules
   // PGQL 1.3
   norm-matchElems(|variable-counter):
     FromWhereClauses(tableExpressions, whereClause) -> TableExpressionsAndGraphName(tableExpressions', graphName, whereClause)
-    with graphName := <collect-one(get-on-clause-graph-name; !Some(GraphName(<id>))) <+ !None()> tableExpressions // simply take the first graph name we see; we don't support multiple graph right now
+    with graphName := <collect-one(get-graph-name; !Some(GraphName(<id>))) <+ !None()> tableExpressions // simply take the first graph name we see; we don't support multiple graph right now
        ; tableExpressions' := <normalize-table-expressions(|variable-counter, [])> tableExpressions
 
   // normalizes the MATCH expressions and merges consequetive MATCH expressions together into a single GraphPattern

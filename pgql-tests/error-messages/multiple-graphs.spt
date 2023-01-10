@@ -5,79 +5,109 @@ language pgql-lang
 test Multiple graph names (1) [[
 
   SELECT 1 AS v1
-    FROM MATCH (n) ON [[g1]]
-       , MATCH (m) ON [[g2]]
+  FROM MATCH (n) ON [[g1]]
+     , MATCH (m) ON [[g2]]
 
 ]] error like "Querying multiple graphs is not supported" at #1, #2
 
 test Multiple graph names (2) [[
 
   SELECT 1 AS v1
-    FROM MATCH (n) ON [[g1]]
-    WHERE EXISTS ( SELECT 1 AS v2 FROM MATCH (n) -> (m) ON [[g2]] )
+  FROM MATCH (n) ON [[g1]]
+  WHERE EXISTS ( SELECT 1 AS v2 FROM MATCH (n) -> (m) ON [[g2]] )
 
 ]] error like "Querying multiple graphs is not supported" at #1, #2
 
 test Multiple graph names (3) [[
 
   SELECT 1 AS v1
-    FROM MATCH ( (n) ) ON [[g1]]
-       , MATCH (m) ON [[g2]]
+  FROM MATCH ( (n) ) ON [[g1]]
+     , MATCH (m) ON [[g2]]
 
 ]] error like "Querying multiple graphs is not supported" at #1, #2
 
 test Missing graph name (1) [[
 
   SELECT 1 AS n
-    FROM MATCH (n) ON g1
-       , [[MATCH (m)]]
+  FROM MATCH (n) ON g1
+     , [[MATCH (m)]]
 
-]] error like "Missing ON clause" at #1
+]] error like "Missing graph name" at #1
 
 test Missing graph name (2) [[
 
   SELECT EXISTS ( SELECT 1 AS y FROM [[MATCH (m),]] [[MATCH (n) )]] AS v1
-    FROM MATCH (n) ON g
-   WHERE EXISTS ( SELECT 1 AS y FROM [[MATCH (x) )]]
+  FROM MATCH (n) ON g
+  WHERE EXISTS ( SELECT 1 AS y FROM [[MATCH (x) )]]
 
-]] error like "Missing ON clause" at #1, #2, #3
+]] error like "Missing graph name" at #1, #2, #3
 
 test Missing graph name (3) [[
 
   SELECT EXISTS ( SELECT 1 AS y FROM [[MATCH (m),]] [[MATCH ( (n) ) )]] AS v1
-    FROM MATCH ( (n) ) ON g
-   WHERE EXISTS ( SELECT 1 AS y FROM [[MATCH (x) )]]
+  FROM MATCH ( (n) ) ON g
+  WHERE EXISTS ( SELECT 1 AS y FROM [[MATCH (x) )]]
 
-]] error like "Missing ON clause" at #1, #2, #3
+]] error like "Missing graph name" at #1, #2, #3
 
 test Missing graph name (4) [[
 
   SELECT 1 AS x
-    FROM MATCH ( (n) ) ON g
-       , [[MATCH (m)]]
+  FROM MATCH ( (n) ) ON g
+     , [[MATCH (m)]]
 
-]] error like "Missing ON clause" at #1
+]] error like "Missing graph name" at #1
 
 test Missing graph name (5) [[
 
   SELECT 1 AS x
-    FROM MATCH ( (n) ) ON g
-       , [[MATCH ( (m) )]]
+  FROM MATCH ( (n) ) ON g
+     , [[MATCH ( (m) )]]
 
-]] error like "Missing ON clause" at #1
+]] error like "Missing graph name" at #1
 
-test Missing ON clause in LATERAL [[
-
-  SELECT *
-    FROM MATCH (n1) ON g1
-       , LATERAL ( SELECT n2 FROM [[MATCH (n2) )]]
-
-]] error like "Missing ON clause" at #1
-
-test Missing ON clause outside LATERAL [[
+test Missing graph name in LATERAL [[
 
   SELECT *
-    FROM [[MATCH (n1)
-       ,]] LATERAL ( SELECT n2 FROM MATCH (n2) ON g1 )
+  FROM MATCH (n1) ON g1
+     , LATERAL ( SELECT n2 FROM [[MATCH (n2) )]]
 
-]] error like "Missing ON clause" at #1
+]] error like "Missing graph name" at #1
+
+test Missing graph name outside LATERAL [[
+
+  SELECT *
+  FROM [[MATCH (n1)
+     ,]] LATERAL ( SELECT n2 FROM MATCH (n2) ON g1 )
+
+]] error like "Missing graph name" at #1
+
+test Missing graph name in GRAPH_TABLE [[
+
+  SELECT *
+  FROM [[GRAPH_TABLE ( MATCH (n) COLUMNS (n.prop) )]]
+
+]] error like "GRAPH_TABLE restriction: graph name required" at #1
+
+test Multiple graph names in GRAPH_TABLE (1) [[
+
+  SELECT *
+  FROM GRAPH_TABLE ( [[g1]] MATCH (n) COLUMNS (n.prop1) )
+     , GRAPH_TABLE ( [[g2]] MATCH (n) COLUMNS (n.prop2) )
+
+]] error like "Querying multiple graphs is not supported" at #1, #2
+
+test Multiple graph names in GRAPH_TABLE (2) [[
+
+  SELECT *
+  FROM GRAPH_TABLE ( [[g1]] MATCH (n) WHERE EXISTS ( SELECT * FROM GRAPH_TABLE ( [[g2]] MATCH (n) COLUMNS (n.prop2) ) ) COLUMNS (n.prop1) )
+
+]] error like "Querying multiple graphs is not supported" at #1, #2
+
+test Multiple graph names in GRAPH_TABLE (1) [[
+
+  SELECT *
+  FROM MATCH (n) ON [[g1]]
+     , GRAPH_TABLE ( [[g2]] MATCH (n) COLUMNS (n.prop2) )
+
+]] error like "Querying multiple graphs is not supported" at #1, #2
