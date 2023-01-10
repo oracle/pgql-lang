@@ -3892,7 +3892,8 @@ For example:
 
 ```sql
   SELECT v1.number AS v1_account_nr, e.amount, v2.number AS v2_account_nr
-       , ELEMENT_NUMBER(v1) AS v1_elem_nr, ELEMENT_NUMBER(e) AS e_elem_nr, ELEMENT_NUMBER(v2) AS v2_elem_nr
+       , ELEMENT_NUMBER(v1) AS v1_elem_nr, ELEMENT_NUMBER(e) AS e_elem_nr
+       , ELEMENT_NUMBER(v2) AS v2_elem_nr
     FROM MATCH ANY (a1:Account) -[:transaction]->+ (a2:Account)
            ONE ROW PER STEP ( v1, e, v2 )
    WHERE a1.number = 1001 AND a2.number = 8021
