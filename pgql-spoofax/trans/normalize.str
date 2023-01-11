@@ -156,6 +156,8 @@ rules
 
   get-GraphTable-restriction = ?Labels(c@Colon(), _); !c; to-error-message(|"GRAPH_TABLE restriction: use IS instead of :")
 
+  get-GraphTable-restriction = (?GraphMatch(_, _, _) +  ?ParenthesizedGraphMatch(_, _)); to-error-message(|"GRAPH_TABLE restriction: subqueries inside GRAPH_TABLE should use GRAPH_TABLE instead of top-level MATCH")
+
   quantifier-without-path-finding-goal =
     collect(quantified-path-pattern <+ is-quantifier)
   ; remove-all(quantified-path-pattern)
@@ -176,7 +178,7 @@ rules
 
   get-errors-for-multiple-graph-names:
     ast -> errors
-    with inputGraphNames := <collect-all(get-graph-name; alltd(norm-identifier); to-name-without-case-sensitive-info)> ast
+    with inputGraphNames := <collect-all(get-graph-name; alltd(norm-identifier); to-name-without-case-sensitive-info); make-set> ast
        ; numInputGraphNames := <length> inputGraphNames
        ; if <gt> (numInputGraphNames, 1)
          then errors := <map(to-error-message(|"Querying multiple graphs is not supported"))> inputGraphNames

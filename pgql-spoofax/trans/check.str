@@ -234,7 +234,7 @@ rules // subqueries
   nabl-constraint(|ctx):
     t@NormalizedQuery(_, _, _, _, _, _, _, _, _, _, "v1.3", _, _) -> <fail>
     with nonPgql13Subqueries := <collect(is-non-pgql13-query)> t
-       ; <map(get-select-clause); batch-generate-error(|ctx, "Subquery uses older version of PGQL; please make sure that both inner and outer query use PGQL 1.3 syntax")> nonPgql13Subqueries
+       ; <map(get-select-clause); batch-generate-error(|ctx, "Subquery uses older version of PGQL syntax; please make sure that both inner and outer query use the same PGQL version")> nonPgql13Subqueries
 
   nabl-constraint(|ctx):
     t -> <fail>
