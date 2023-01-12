@@ -158,6 +158,10 @@ rules
 
   get-GraphTable-restriction = (?GraphMatch(_, _, _) +  ?ParenthesizedGraphMatch(_, _)); to-error-message(|"GRAPH_TABLE restriction: subqueries inside GRAPH_TABLE should use GRAPH_TABLE instead of top-level MATCH")
 
+  get-GraphTable-restriction = (?GraphMatch(_, _, _) +  ?ParenthesizedGraphMatch(_, _)); to-error-message(|"GRAPH_TABLE restriction: subqueries inside GRAPH_TABLE should use GRAPH_TABLE instead of top-level MATCH")
+
+  get-GraphTable-restriction = ?LimitClause(x); to-error-message(|$<GRAPH_TABLE restriction: use FETCH FIRST <<origin-text> x> ROWS ONLY>)
+
   quantifier-without-path-finding-goal =
     collect(quantified-path-pattern <+ is-quantifier)
   ; remove-all(quantified-path-pattern)

@@ -70,3 +70,18 @@ test Restriction: vertex sharing with outer query (2) [[
 
 ]] error like "GRAPH_TABLE restriction: vertex sharing between inner and outer query is not allowed, introduce a new variable name like person_new and use WHERE element_id(person_new) = element_id(person)" at #1
    error like "GRAPH_TABLE restriction: vertex sharing between inner and outer query is not allowed, introduce a new variable name like n_new and use WHERE element_id(n_new) = element_id(n)" at #2
+
+test Restriction: LIMIT [[
+
+  SELECT *
+  FROM GRAPH_TABLE (
+         g MATCH (person IS person)
+         WHERE EXISTS ( SELECT *
+                        FROM GRAPH_TABLE (
+                               g MATCH (car IS car)
+                               COLUMNS ( 1 )
+                             )
+                        [[LIMIT 11]] )
+         COLUMNS ( person.first_name ) )
+
+]] error like "GRAPH_TABLE restriction: use FETCH FIRST 11 ROWS ONLY" at #1
