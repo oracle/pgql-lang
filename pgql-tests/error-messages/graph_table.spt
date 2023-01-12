@@ -85,3 +85,12 @@ test Restriction: LIMIT [[
          COLUMNS ( person.first_name ) )
 
 ]] error like "GRAPH_TABLE restriction: use FETCH FIRST 11 ROWS ONLY" at #1
+
+test Restriction: projecting vertex/edge objects [[
+
+  SELECT *
+  FROM GRAPH_TABLE (
+         g MATCH (n) -[e]-> (m)
+         COLUMNS ( [[n,]] [[e,]] [[m )]] )
+
+]] error like "GRAPH_TABLE restriction: cannot project vertex or edge objects" at #1, #2, #3

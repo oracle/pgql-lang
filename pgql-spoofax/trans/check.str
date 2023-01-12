@@ -751,3 +751,5 @@ rules // GRAPH_TABLE
     with <alltd(?DerivedTable(Some(GraphTable()), _, _) <+ check-GraphTable-restriction(|ctx))> subquery
 
   check-GraphTable-restriction(|ctx) = ?Vertex(t@Identifier(_, v), _, Correlation(_)); !t; generate-error(|ctx, $<GRAPH_TABLE restriction: vertex sharing between inner and outer query is not allowed, introduce a new variable name like <v>_new and use WHERE element_id(<v>_new) = element_id(<v>)>)
+
+  check-GraphTable-restriction(|ctx) = ?SelectList(<id>); filter(?ExpAsVar(ExpressionPlusType(_, Type("VERTEX")), _, _, _) + ?ExpAsVar(ExpressionPlusType(_, Type("EDGE")), _, _, _)); batch-generate-error(|ctx, "GRAPH_TABLE restriction: cannot project vertex or edge objects")
