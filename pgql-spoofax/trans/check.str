@@ -743,3 +743,11 @@ rules // MODIFY
   nabl-constraint(|ctx, metadata):
     ExpressionPlusType(exp@FunctionCall(_, _, _), AmbiguousType()) -> <fail>
     with <generate-error(|ctx, "Multiple functions exist that match the specified function name and argument types")> exp
+
+rules // GRAPH_TABLE
+
+  nabl-constraint(|ctx, metadata):
+    DerivedTable(Some(GraphTable()), subquery, _) -> <fail>
+    with <alltd(?DerivedTable(Some(GraphTable()), _, _) <+ check-GraphTable-restriction(|ctx))> subquery
+
+  check-GraphTable-restriction(|ctx) = ?Vertex(t@Identifier(_, v), _, Correlation(_)); !t; generate-error(|ctx, $<GRAPH_TABLE restriction: vertex sharing between inner and outer query is not allowed, introduce a new variable name like <v>_new and use WHERE element_id(<v>_new) = element_id(<v>)>)

@@ -20,7 +20,7 @@ test Restriction: subquery without GRAPH_TABLE [[
 
   SELECT *
   FROM GRAPH_TABLE (
-         g MATCH (n IS person)
+         g MATCH (person IS person)
          WHERE EXISTS ( SELECT * 
                         FROM [[MATCH (n) ON g,]]
                              [[MATCH ( (n) ) ON g )]]
@@ -30,3 +30,16 @@ test Restriction: subquery without GRAPH_TABLE [[
 
 ]] error like "GRAPH_TABLE restriction: subqueries inside GRAPH_TABLE should use GRAPH_TABLE instead of top-level MATCH" at #1, #2
    error like "Subquery uses older version of PGQL syntax; please make sure that both inner and outer query use the same PGQL version" at #3, #4
+
+test Restriction: vertex sharing with outer query [[
+
+  SELECT *
+  FROM GRAPH_TABLE (
+         g MATCH (person IS person)
+         WHERE EXISTS ( SELECT *
+                        FROM GRAPH_TABLE (
+                               g MATCH ([[person]])
+                               COLUMNS ( 1 ) ) )
+         COLUMNS ( person.first_name ) )
+
+]] error like "GRAPH_TABLE restriction: vertex sharing between inner and outer query is not allowed, introduce a new variable name like person_new and use WHERE element_id(person_new) = element_id(person)" at #1
