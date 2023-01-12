@@ -1,0 +1,32 @@
+module variables
+
+language pgql-lang
+
+test Restriction: colon [[
+
+  SELECT *
+  FROM GRAPH_TABLE (
+         g MATCH (n[[:]]person)
+         WHERE EXISTS ( SELECT * 
+                        FROM GRAPH_TABLE (
+                               g MATCH (m IS person) -> (o[[:]]person)
+                               WHERE element_id(n) = element_id(m)
+                               COLUMNS ( m.prop ) ) )
+         COLUMNS ( n.prop ) )
+
+]] error like "GRAPH_TABLE restriction: use IS instead of :" at #1, #2
+
+test Restriction: subquery without GRAPH_TABLE [[
+
+  SELECT *
+  FROM GRAPH_TABLE (
+         g MATCH (n IS person)
+         WHERE EXISTS ( SELECT * 
+                        FROM [[MATCH (n) ON g,]]
+                             [[MATCH ( (n) ) ON g )]]
+            OR EXISTS ( [[SELECT * FROM g MATCH (n)]] )
+            OR EXISTS ( [[SELECT * WHERE (n)]] )
+         COLUMNS ( n.prop ) )
+
+]] error like "GRAPH_TABLE restriction: subqueries inside GRAPH_TABLE should use GRAPH_TABLE instead of top-level MATCH" at #1, #2
+   error like "Subquery uses older version of PGQL syntax; please make sure that both inner and outer query use the same PGQL version" at #3, #4
