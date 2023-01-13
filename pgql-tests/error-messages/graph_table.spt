@@ -30,11 +30,11 @@ test Restriction: subquery without GRAPH_TABLE [[
   SELECT *
   FROM GRAPH_TABLE (
          g MATCH (person IS person)
-         WHERE EXISTS ( SELECT * 
+         WHERE EXISTS ( SELECT 1
                         FROM [[MATCH (n) ON g,]]
                              [[MATCH ( (n) ) ON g )]]
-            OR EXISTS ( [[SELECT * FROM g MATCH (n)]] )
-            OR EXISTS ( [[SELECT * WHERE (n)]] )
+            OR EXISTS ( [[SELECT 1 FROM g MATCH (n)]] )
+            OR EXISTS ( [[SELECT 1 WHERE (n)]] )
          COLUMNS ( n.prop ) )
 
 ]] error like "GRAPH_TABLE restriction: subqueries inside GRAPH_TABLE should use GRAPH_TABLE instead of top-level MATCH" at #1, #2
@@ -84,7 +84,7 @@ test Restriction: LIMIT [[
                         [[LIMIT 11]] )
          COLUMNS ( person.first_name ) )
 
-]] error like "GRAPH_TABLE restriction: use FETCH FIRST 11 ROWS ONLY" at #1
+]] error like "GRAPH_TABLE restriction: use FETCH FIRST 11 ROWS ONLY instead of LIMIT 11" at #1
 
 test Restriction: projecting vertex/edge objects [[
 
@@ -94,3 +94,24 @@ test Restriction: projecting vertex/edge objects [[
          COLUMNS ( [[n,]] [[e,]] [[m )]] )
 
 ]] error like "GRAPH_TABLE restriction: cannot project vertex or edge objects" at #1, #2, #3
+
+test Restriction: SHORTEST [[
+
+  SELECT *
+  FROM GRAPH_TABLE (
+         g MATCH [[SHORTEST(n) -[e]->* (m)]]
+         COLUMNS ( 1 )
+       )
+
+]] error like "GRAPH_TABLE restriction: use ANY SHORTEST or ALL SHORTEST instead of SHORTEST" at #1
+
+test Restriction: TOP k SHORTEST [[
+
+  SELECT *
+  FROM GRAPH_TABLE (
+         g MATCH [[TOP 12 SHORTEST(n) -[e]->* (m)]]
+         COLUMNS ( 1 )
+       )
+
+]] error like "GRAPH_TABLE restriction: use SHORTEST 12 instead of TOP 12 SHORTEST" at #1
+
