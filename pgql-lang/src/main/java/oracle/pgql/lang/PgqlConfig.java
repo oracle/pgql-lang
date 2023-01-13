@@ -5,6 +5,7 @@ package oracle.pgql.lang;
 
 import com.google.inject.Singleton;
 
+import org.metaborg.core.config.AConfigurationReaderWriter;
 import org.metaborg.core.editor.IEditorRegistry;
 import org.metaborg.core.editor.NullEditorRegistry;
 import org.metaborg.core.project.IProjectService;
@@ -21,11 +22,17 @@ class PgqlConfig extends SpoofaxModule {
         .in(Singleton.class);
   }
 
-  // to silence warning given by the default DummyProjectService.
+  // to silence warning given by the default DummyProjectService
   @Override
   protected void bindProject() {
     bind(IProjectService.class) //
         .to(SingleFileProjectService.class) //
         .in(Singleton.class);
+  }
+
+  // to get rid of the YAML dependencies
+  @Override
+  protected void bindConfigMisc() {
+    bind(AConfigurationReaderWriter.class).to(PgqlConfigurationReaderWriter.class).in(Singleton.class);
   }
 }
