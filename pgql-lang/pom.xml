@@ -38,6 +38,14 @@
           <groupId>org.reactivestreams</groupId>
           <artifactId>reactive-streams</artifactId>
         </exclusion>
+        <exclusion>
+          <groupId>org.yaml</groupId>
+          <artifactId>snakeyaml</artifactId>
+        </exclusion>
+        <exclusion>
+          <groupId>com.fasterxml.jackson.dataformat</groupId>
+          <artifactId>jackson-dataformat-yaml</artifactId>
+        </exclusion>
       </exclusions>
     </dependency>
     <dependency>
