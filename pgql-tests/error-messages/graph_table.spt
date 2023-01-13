@@ -115,3 +115,24 @@ test Restriction: TOP k SHORTEST [[
 
 ]] error like "GRAPH_TABLE restriction: use SHORTEST 12 instead of TOP 12 SHORTEST" at #1
 
+test Restriction: label(..) and labels(..) [[
+
+  SELECT *
+  FROM GRAPH_TABLE (
+         g MATCH (n)
+         COLUMNS ( [[label(n)]] AS lbl, [[labels(n)]] AS lbls )
+       )
+
+]] error like "GRAPH_TABLE restriction: cannot use label(..) or labels(..), try using the IS LABELED predicate" at #1, #2
+
+test Restriction: has_label(..) [[
+
+  SELECT *
+  FROM GRAPH_TABLE (
+         g MATCH (n)
+         COLUMNS ( [[has_label(n, 'PERSON')]], [["HAS_LABEL"(n, 'Car')]], [[Has_Label(n, 'House')]] )
+       )
+
+]] error like "GRAPH_TABLE restriction: use n IS LABELED " at #1, #2, #3
+
+// columns clause is required for now

@@ -166,6 +166,12 @@ rules
 
   get-GraphTable-restriction = ?Shortest(Some(TopK(k)), _); to-error-message(|$<GRAPH_TABLE restriction: use SHORTEST <k> instead of TOP <k> SHORTEST>)
 
+  get-GraphTable-restriction = ?Shortest(Some(TopK(k)), _); to-error-message(|$<GRAPH_TABLE restriction: use SHORTEST <k> instead of TOP <k> SHORTEST>)
+
+  get-GraphTable-restriction:
+    e@FunctionCall(None(), functionName, [x, String(s)])  -> <to-error-message(|$<GRAPH_TABLE restriction: use <<origin-text> x> IS LABELED "<<un-single-quote> s>">)> e
+    where <?RegularIdentifier(<id>); upper-case; ?"HAS_LABEL" + ?DelimitedIdentifier("\"HAS_LABEL\"")> functionName
+
   quantifier-without-path-finding-goal =
     collect(quantified-path-pattern <+ is-quantifier)
   ; remove-all(quantified-path-pattern)

@@ -750,6 +750,15 @@ rules // GRAPH_TABLE
     DerivedTable(Some(GraphTable()), subquery, _) -> <fail>
     with <alltd(?DerivedTable(Some(GraphTable()), _, _) <+ check-GraphTable-restriction(|ctx))> subquery
 
-  check-GraphTable-restriction(|ctx) = ?Vertex(t@Identifier(_, v), _, Correlation(_)); !t; generate-error(|ctx, $<GRAPH_TABLE restriction: vertex sharing between inner and outer query is not allowed, introduce a new variable name like <v>_new and use WHERE element_id(<v>_new) = element_id(<v>)>)
+  check-GraphTable-restriction(|ctx):
+    Vertex(e@Identifier(_, v), _, Correlation(_)) -> <fail>
+    with <generate-error(|ctx, $<GRAPH_TABLE restriction: vertex sharing between inner and outer query is not allowed, introduce a new variable name like <v>_new and use WHERE element_id(<v>_new) = element_id(<v>)>)> e
 
-  check-GraphTable-restriction(|ctx) = ?SelectList(<id>); filter(?ExpAsVar(ExpressionPlusType(_, Type("VERTEX")), _, _, _) + ?ExpAsVar(ExpressionPlusType(_, Type("EDGE")), _, _, _)); batch-generate-error(|ctx, "GRAPH_TABLE restriction: cannot project vertex or edge objects")
+  check-GraphTable-restriction(|ctx):
+    SelectList(elems) -> <fail>
+    with <filter(?ExpAsVar(ExpressionPlusType(_, Type("VERTEX")), _, _, _) + ?ExpAsVar(ExpressionPlusType(_, Type("EDGE")), _, _, _)); batch-generate-error(|ctx, "GRAPH_TABLE restriction: cannot project vertex or edge objects")> elems
+
+  check-GraphTable-restriction(|ctx):
+    e@FunctionCall(None(), Identifier(functionName, _), [_]) -> <fail>
+    where <?"LABEL" + ?"LABELS"> functionName
+    with <generate-error(|ctx, "GRAPH_TABLE restriction: cannot use label(..) or labels(..), try using the IS LABELED predicate")> e
