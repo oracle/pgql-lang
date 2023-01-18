@@ -55,8 +55,8 @@ context-free syntax
 
   MatchKeyword.MatchKeyword = <MATCH> {case-insensitive}
 
-  OptionalGraphMatchParts.OptionalGraphMatchParts1 = RowsPerMatch OnClause? // deprecated
-  OptionalGraphMatchParts.OptionalGraphMatchParts2 = OnClause RowsPerMatch?
+  OptionalGraphMatchParts.OptionalGraphMatchParts1 = GraphTableRowsClause OnClause? // deprecated
+  OptionalGraphMatchParts.OptionalGraphMatchParts2 = OnClause GraphTableRowsClause?
 
   OnClause.OnClause = <ON <GraphName>> {case-insensitive}
 
@@ -76,10 +76,10 @@ context-free syntax
 
   Projection.Star = <*>
 
-  RowsPerMatch.OneRowPerMatch = <ONE ROW PER MATCH> {case-insensitive}
-  RowsPerMatch.OneRowPerVertex = <ONE ROW PER VERTEX (<Identifier>)> {case-insensitive}
-  RowsPerMatch.OneRowPerEdge = <ONE ROW PER EDGE (<Identifier>)> {case-insensitive}
-  RowsPerMatch.OneRowPerStep = <ONE ROW PER STEP (<Identifier>, <Identifier>, <Identifier>)> {case-insensitive}
+  GraphTableRowsClause.OneRowPerMatch = <ONE ROW PER MATCH> {case-insensitive}
+  GraphTableRowsClause.OneRowPerVertex = <ONE ROW PER VERTEX (<Identifier>)> {case-insensitive}
+  GraphTableRowsClause.OneRowPerEdge = <ONE ROW PER EDGE (<Identifier>)> {case-insensitive}
+  GraphTableRowsClause.OneRowPerStep = <ONE ROW PER STEP (<Identifier>, <Identifier>, <Identifier>)> {case-insensitive}
 
   DerivedTable.DerivedTable = LateralKeyword? TableSubquery Correlation?
   LateralKeyword.Lateral = <LATERAL> {case-insensitive}
@@ -87,8 +87,8 @@ context-free syntax
   Correlation.Correlation = AsignSymbol? Identifier
 
   GraphTableDerivedTable.GraphTableDerivedTable = GraphTable Correlation?
-  GraphTable.GraphTable = <GRAPH_TABLE ( <GraphName?> MATCH <GraphPattern> <GraphTableShape?> )> {case-insensitive}
-  GraphTableShape = GraphTableColumnsClause
+  GraphTable.GraphTable = <GRAPH_TABLE ( <GraphName?> MATCH <GraphPattern> <GraphTableShape> )> {case-insensitive}
+  GraphTableShape.GraphTableShape = GraphTableRowsClause? GraphTableColumnsClause?
   GraphTableColumnsClause.GraphTableColumnsClause = <COLUMNS ( <{GraphTableColumnDefinition ","}+> )> {case-insensitive}
   GraphTableColumnDefinition = ExpAsVar
   GraphTableColumnDefinition = AllPropertiesReference

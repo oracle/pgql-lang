@@ -971,24 +971,33 @@ public class MetadataTest extends AbstractPgqlTest {
 
   @Test
   public void testSelectAllPropertiesZeroColumnsNotAllowed() throws Exception {
-    String error = "SELECT clause should have at least one column but has zero columns";
+    String errorSelectClause = "SELECT clause should have at least one column but has zero columns";
+    String errorColumnsClause = "COLUMNS clause should have at least one column but has zero columns";
 
     PgqlResult result = parse("SELECT e.* FROM MATCH () -[e:worksFor]-> () ON financialNetwork");
-    assertTrue(result.getErrorMessages().contains(error));
+    assertTrue(result.getErrorMessages().contains(errorSelectClause));
+    result = parse("SELECT 1 FROM GRAPH_TABLE ( financialNetwork MATCH () -[e IS worksFor]-> () COLUMNS ( e.* ) )");
+    assertTrue(result.getErrorMessages().contains(errorColumnsClause));
 
     result = parse("SELECT e1.*, e2.* FROM MATCH () -[e1:worksFor]-> () -[e2:owner]-> () ON financialNetwork");
-    assertTrue(result.getErrorMessages().contains(error));
+    assertTrue(result.getErrorMessages().contains(errorSelectClause));
+    result = parse("SELECT 1 FROM GRAPH_TABLE ( financialNetwork MATCH () -[e1:worksFor]-> () -[e2:owner]-> () COLUMNS ( e1.*, e2.*  ) )");
+    assertTrue(result.getErrorMessages().contains(errorColumnsClause));
 
     result = parse("SELECT DISTINCT e.*, e.* FROM MATCH () -[e:worksFor]-> () ON financialNetwork");
-    assertTrue(result.getErrorMessages().contains(error));
+    assertTrue(result.getErrorMessages().contains(errorSelectClause));
 
     result = parse("SELECT 123, e.* FROM MATCH () -[e:worksFor]-> () ON financialNetwork");
+    assertTrue(result.isQueryValid());
+    result = parse("SELECT * FROM GRAPH_TABLE ( financialNetwork MATCH () -[e:worksFor]-> () COLUMNS ( 123, e.* ) )");
     assertTrue(result.isQueryValid());
 
     result = parse("SELECT DISTINCT e.*, e.*, 123 FROM MATCH () -[e:worksFor]-> () ON financialNetwork");
     assertTrue(result.isQueryValid());
 
     result = parse("SELECT e.* FROM MATCH () -[e:worksFor|transaction]-> () ON financialNetwork");
+    assertTrue(result.isQueryValid());
+    result = parse("SELECT * FROM GRAPH_TABLE ( financialNetwork MATCH () -[e:worksFor|transaction]-> () COLUMNS ( e.* ) )");
     assertTrue(result.isQueryValid());
   }
 

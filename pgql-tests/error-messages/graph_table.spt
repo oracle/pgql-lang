@@ -133,6 +133,17 @@ test Restriction: has_label(..) [[
          COLUMNS ( [[has_label(n, 'PERSON')]], [["HAS_LABEL"(n, 'Car')]], [[Has_Label(n, 'House')]] )
        )
 
-]] error like "GRAPH_TABLE restriction: use n IS LABELED " at #1, #2, #3
+]] error like "GRAPH_TABLE restriction: use n IS LABELED " at #1, #2, #3 // Spoofax tests do not support quotes so can't test for the full message string here
 
-// columns clause is required for now
+test Restriction: no COLUMNS clause [[
+
+  SELECT 1
+  FROM [[GRAPH_TABLE (
+         g MATCH (n)
+       )]]
+
+]] error like "GRAPH_TABLE restriction: COLUMNS clause is required" at #1
+
+// ROW PER MATCH clause
+
+// COLUMNS (n.*) should give an error if n has zero propert

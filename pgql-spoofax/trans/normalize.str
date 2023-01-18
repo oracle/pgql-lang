@@ -552,9 +552,6 @@ rules
     with edge := <to-connection(|variable-counter, pathFindingGoal, topKAnyAll, rowsPerMatch)> (n1, e, n2)
        ; edgesPathTail := <get-connections-from-single-path(|variable-counter, pathFindingGoal, topKAnyAll, rowsPerMatch)> edgeVertices
 
-// Shortest(None,PathPattern(Vertex(ElemContents(Some(Identifier("<<anonymous>>_1",None)),None,None,None)),[EdgeVertex(OutConn(ElemContents(Some(Identifier("<<anonymous>>_2",None)),None,None,None),Some(BetweenNAndM("1","2"))),Vertex(ElemContents(Some(Identifier("<<anonymous>>_3",None)),None,None,None)))]))
-
-
   // base case: only one edgeVertex
   get-connections-from-single-path(|variable-counter, pathFindingGoal, topKAnyAll, rowsPerMatch):
     [EdgeVertex(_, _)] -> []
@@ -720,14 +717,11 @@ rules
 rules // GRAPH_TABLE
 
   normalize-table-expression(|variable-counter):
-    t@GraphTableDerivedTable(GraphTable(graphName, GraphPattern(PathPatternList(pathPatterns), keepClause, whereClause), columnsClause), correlation)
+    t@GraphTableDerivedTable(GraphTable(graphName, GraphPattern(PathPatternList(pathPatterns), keepClause, whereClause), GraphTableShape(rowsClause, columnsClause)), correlation)
     -> DerivedTable(Some(GraphTable()), Subquery(
           NormalizedQuery(
             CommonPathExpressions([])
-          , SelectClause(
-              distinct
-            , SelectList(expAsVars')
-            )
+          , selectClause
           , graphName'
           , tableExpressions
           , whereClause'
@@ -743,8 +737,9 @@ rules // GRAPH_TABLE
         )
       , correlation)
     with distinct := None()
-       ; expAsVars := <?None(); ![] <+ ?Some(GraphTableColumnsClause(<id>))> columnsClause
-       ; expAsVars' := <map(?AllProperties(_, _) + norm-ExpAsVar-for-select-clause)> expAsVars
+       ; selectList := <?None(); !t; origin-track-forced(!SelectList([])) <+ // no COLUMNS clause translates to empty COLUMNS clause
+                       ?Some(GraphTableColumnsClause(<id>)); map(?AllProperties(_, _) + norm-ExpAsVar-for-select-clause); !SelectList(<id>)> columnsClause
+       ; selectClause := <origin-track-forced(!SelectClause(distinct, selectList))> selectList
        ; graphName' := <?None() + ?Some(<id>); !Some(GraphName(<id>))> graphName
        ; rowsPerMatch := None()
        ; graphPattern' := <map(!PathPatternAndRowsPerMatch(<id>, rowsPerMatch)); norm-matchElems-common(|variable-counter)> pathPatterns
