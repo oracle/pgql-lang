@@ -103,11 +103,3 @@ test Multiple graph names in GRAPH_TABLE (2) [[
   FROM GRAPH_TABLE ( [[g1]] MATCH (n) WHERE EXISTS ( SELECT * FROM GRAPH_TABLE ( [[g2]] MATCH (n) COLUMNS (n.prop2) ) ) COLUMNS (n.prop1) )
 
 ]] error like "Querying multiple graphs is not supported" at #1, #2
-
-test Multiple graph names in GRAPH_TABLE (1) [[
-
-  SELECT *
-  FROM MATCH (n) ON [[g1]]
-     , GRAPH_TABLE ( [[g2]] MATCH (n) COLUMNS (n.prop2) )
-
-]] error like "Querying multiple graphs is not supported" at #1, #2

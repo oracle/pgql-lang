@@ -401,7 +401,10 @@ rules // literals
 
 rules
 
-  nabl-constraint(|ctx) = ?AstPlusMetadata(_, metadata); alltd(nabl-constraint(|ctx, metadata)); fail
+  nabl-constraint(|ctx) = ?AstPlusMetadata(<id>, metadata)
+                        ; alltd(nabl-constraint(|ctx, metadata))
+                        ; check-all-GraphTable-restrictions(|ctx)
+                        ; fail
 
 rules // IN predicate and CASE expression
 
@@ -756,9 +759,11 @@ rules // MODIFY
 
 rules // GRAPH_TABLE
 
-  nabl-constraint(|ctx, metadata):
-    DerivedTable(Some(GraphTable()), subquery, _) -> <fail>
-    with <alltd(?DerivedTable(Some(GraphTable()), _, _) <+ check-GraphTable-restriction(|ctx))> subquery
+  check-all-GraphTable-restrictions(|ctx):
+   ast -> ast
+   with if <oncetd(?GraphTable())> ast
+        then <alltd(check-GraphTable-restriction(|ctx))> ast
+        end
 
   check-GraphTable-restriction(|ctx):
     Vertex(e@Identifier(_, v), _, Correlation(_)) -> <fail>
@@ -772,3 +777,12 @@ rules // GRAPH_TABLE
     e@FunctionCall(None(), Identifier(functionName, _), [_]) -> <fail>
     where <?"LABEL" + ?"LABELS"> functionName
     with <generate-error(|ctx, "GRAPH_TABLE restriction: cannot use label(..) or labels(..), try using the IS LABELED predicate")> e
+
+  check-GraphTable-restriction(|ctx):
+    FunctionCall(None(), Identifier("ALL_DIFFERENT", _), expressionsPlusType) -> <fail>
+    with nonGraphElements := <filter(not(?ExpressionPlusType(_, Type("VERTEX")) + ?ExpressionPlusType(_, Type("EDGE"))))> expressionsPlusType
+       ; <batch-generate-error(|ctx, "GRAPH_TABLE restriction: ALL_DIFFERENT preciate allows vertex and edge inputs only")> nonGraphElements
+
+  check-GraphTable-restriction(|ctx):
+    e@FunctionCall(None(), Identifier("JAVA_REGEXP_LIKE", _), [_, ExpressionPlusType(String(_), _)]) -> <fail>
+    with <generate-error(|ctx, "GRAPH_TABLE restriction: JAVA_REGEXP_LIKE not supported, try using a UDF instead")> e

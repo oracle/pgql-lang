@@ -16,6 +16,16 @@ test Restriction: colon [[
 
 ]] error like "GRAPH_TABLE restriction: use IS instead of :" at #1, #2
 
+test Restriction: colon [[
+
+  SELECT *
+  FROM GRAPH_TABLE (
+         g MATCH (n IS person)
+         COLUMNS ( n.prop ) )
+     , MATCH (n2[[:]]person) -[e[[:]]knows]-> (n3 IS person)
+
+]] error like "GRAPH_TABLE restriction: use IS instead of :" at #1, #2
+
 test Restriction: graph name [[
 
   SELECT *
@@ -35,10 +45,21 @@ test Restriction: subquery without GRAPH_TABLE [[
                              [[MATCH ( (n) ) ON g )]]
             OR EXISTS ( [[SELECT 1 FROM g MATCH (n)]] )
             OR EXISTS ( [[SELECT 1 WHERE (n)]] )
-         COLUMNS ( n.prop ) )
+         COLUMNS ( person.prop ) )
 
-]] error like "GRAPH_TABLE restriction: subqueries inside GRAPH_TABLE should use GRAPH_TABLE instead of top-level MATCH" at #1, #2
+]] error like "GRAPH_TABLE restriction: wrap top-level MATCH in GRAPH_TABLE" at #1, #2
    error like "Subquery uses older version of PGQL syntax; please make sure that both inner and outer query use the same PGQL version" at #3, #4
+
+test Restriction: MATCH without GRAPH_TABLE [[
+
+  SELECT *
+  FROM GRAPH_TABLE (
+         g MATCH (n IS person)
+         COLUMNS ( n.prop ) )
+     , [[MATCH (n2) ON g]]
+
+]] error like "GRAPH_TABLE restriction: wrap top-level MATCH in GRAPH_TABLE" at #1
+
 
 test Restriction: vertex sharing with outer query (1) [[
 
@@ -83,6 +104,17 @@ test Restriction: LIMIT [[
                              )
                         [[LIMIT 11]] )
          COLUMNS ( person.first_name ) )
+
+]] error like "GRAPH_TABLE restriction: use FETCH FIRST 11 ROWS ONLY instead of LIMIT 11" at #1
+
+test Restriction: LIMIT outsie GRAPH_TABLE [[
+
+  SELECT *
+  FROM GRAPH_TABLE (
+         g MATCH (person IS person)
+         COLUMNS ( person.first_name ) )
+  OFFSET 10
+  [[LIMIT 11]]
 
 ]] error like "GRAPH_TABLE restriction: use FETCH FIRST 11 ROWS ONLY instead of LIMIT 11" at #1
 
@@ -143,5 +175,27 @@ test Restriction: no COLUMNS clause [[
        )]]
 
 ]] error like "GRAPH_TABLE restriction: COLUMNS clause is required" at #1
+
+test Restriction: ALL_DIFFERENT but no vertex/edge input [[
+
+  SELECT 1
+  FROM GRAPH_TABLE (
+         g MATCH (n)
+         WHERE All_Different([[n.prop1]], [[1]], [['x']], n)
+         COLUMNS ( 1 )
+       )
+
+]] error like "GRAPH_TABLE restriction: ALL_DIFFERENT preciate allows vertex and edge inputs only" at #1, #2, #3
+
+test Restriction: JAVA_REGEXP_LIKE [[
+
+  SELECT 1
+  FROM GRAPH_TABLE (
+         g MATCH (n)
+         WHERE [[Java_Regexp_Like('aaaaab', 'a*b')]]
+         COLUMNS ( 1 )
+       )
+
+]] error like "GRAPH_TABLE restriction: JAVA_REGEXP_LIKE not supported, try using a UDF instead" at #1
 
 // ROW PER MATCH clause
