@@ -122,6 +122,8 @@ rules
   get-pgql11-deprecation = ?Legacy10Not(_); to-error-message(|"Use [NOT] instead of [!]")
   get-pgql11-deprecation = ?Legacy10Regex(_, _); to-error-message(|"Use [java_regexp_like(exp1, exp2)] instead of [exp1 =~ exp2]")
 
+  get-pgql11-deprecation = ?LimitOffsetClauses(FetchFirstClause(_, _, _), Some(offsetClause)); !offsetClause; to-error-message(|"OFFSET clause should come before FETCH FIRST clause")
+
   get-pgql13-deprecation = get-pgql11-deprecation // sharing all the deprecations with 1.1
 
   get-pgql13-errors      = ?GraphMatch(None(), _, _); to-error-message(|"Missing MATCH keyword at start of pattern")
@@ -728,8 +730,10 @@ rules
     ((try(?Asc(<id>) + ?Legacy10Asc(<id>))); !OrderByElem(<id>, Asc(), version))
 
   norm-limitOffsets = ?None(); !LimitOffsetClauses(None(), None())
-  norm-limitOffsets = ?Some(LimitOffsetClauses(limitClause, offsetClause)); !LimitOffsetClauses(Some(limitClause), offsetClause)
-  norm-limitOffsets = ?Some(OffsetLimitClauses(offsetClause, limitClause)); !LimitOffsetClauses(limitClause, Some(offsetClause))
+  norm-limitOffsets = ?Some(LimitOffsetClauses(limitOrFetchFirstClause, optionalOffsetClause)); !LimitOffsetClauses(<norm-limit> Some(limitOrFetchFirstClause), optionalOffsetClause)
+  norm-limitOffsets = ?Some(OffsetLimitClauses(offsetClause, optionalLimitOrFetchFirstClause)); !LimitOffsetClauses(<norm-limit> optionalLimitOrFetchFirstClause, Some(offsetClause))
+
+  norm-limit = ?None() + ?Some(LimitClause(_)) + ?Some(FetchFirstClause(_, x, _)); !Some(LimitClause(x))
 
 rules // GRAPH_TABLE
 
