@@ -185,7 +185,7 @@ test Restriction: ALL_DIFFERENT but no vertex/edge input [[
          COLUMNS ( 1 )
        )
 
-]] error like "GRAPH_TABLE restriction: ALL_DIFFERENT preciate allows vertex and edge inputs only" at #1, #2, #3
+]] error like "GRAPH_TABLE restriction: ALL_DIFFERENT predicate allows vertex and edge inputs only" at #1, #2, #3
 
 test Restriction: JAVA_REGEXP_LIKE [[
 
@@ -210,5 +210,19 @@ test Restriction: IN_DEGREE and OUT_DEGREE [[
 ]] error like "GRAPH_TABLE restriction: IN_DEGREE not supported, use a subquery instead" at #1
    error like "GRAPH_TABLE restriction: OUT_DEGREE not supported, use a subquery instead" at #2
 
+test Restriction: vertex and edge equals [[
+
+  SELECT 1
+  FROM GRAPH_TABLE (
+         g MATCH (n) -[e1]-> (m) -[e2]-> (o)
+         WHERE [[n = m]] AND [[e1 = e2]]
+           AND [[n <> m]] AND [[e1 <> e2]]
+         COLUMNS ( 1 )
+       )
+
+]] error like "GRAPH_TABLE restriction: use SAME(n, m)" at #1
+   error like "GRAPH_TABLE restriction: use SAME(e1, e2)" at #2
+   error like "GRAPH_TABLE restriction: use NOT SAME(n, m)" at #3
+   error like "GRAPH_TABLE restriction: use NOT SAME(e1, e2)" at #4
 
 // ROW PER MATCH clause

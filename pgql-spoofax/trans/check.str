@@ -781,7 +781,7 @@ rules // GRAPH_TABLE
   check-GraphTable-restriction(|ctx):
     FunctionCall(None(), Identifier("ALL_DIFFERENT", _), expressionsPlusType) -> <fail>
     with nonGraphElements := <filter(not(?ExpressionPlusType(_, Type("VERTEX")) + ?ExpressionPlusType(_, Type("EDGE"))))> expressionsPlusType
-       ; <batch-generate-error(|ctx, "GRAPH_TABLE restriction: ALL_DIFFERENT preciate allows vertex and edge inputs only")> nonGraphElements
+       ; <batch-generate-error(|ctx, "GRAPH_TABLE restriction: ALL_DIFFERENT predicate allows vertex and edge inputs only")> nonGraphElements
 
   check-GraphTable-restriction(|ctx):
     e@FunctionCall(None(), Identifier("JAVA_REGEXP_LIKE", _), [_, ExpressionPlusType(String(_), _)]) -> <fail>
@@ -794,3 +794,15 @@ rules // GRAPH_TABLE
   check-GraphTable-restriction(|ctx):
     e@FunctionCall(None(), Identifier("OUT_DEGREE", _), [ExpressionPlusType(_, Type("VERTEX"))]) -> <fail>
     with <generate-error(|ctx, "GRAPH_TABLE restriction: OUT_DEGREE not supported, use a subquery instead")> e
+
+  check-GraphTable-restriction(|ctx):
+    e@Eq(ExpressionPlusType(exp1, t1), ExpressionPlusType(exp2, t2)) -> <fail>
+    where <is-vertex-or-edge-type> t1
+        ; <is-vertex-or-edge-type> t2
+    with <generate-error(|ctx, $<GRAPH_TABLE restriction: use SAME(<<origin-text> exp1>, <<origin-text> exp2>)>)> e
+
+  check-GraphTable-restriction(|ctx):
+    e@Neq(ExpressionPlusType(exp1, t1), ExpressionPlusType(exp2, t2)) -> <fail>
+    where <is-vertex-or-edge-type> t1
+        ; <is-vertex-or-edge-type> t2
+    with <generate-error(|ctx, $<GRAPH_TABLE restriction: use NOT SAME(<<origin-text> exp1>, <<origin-text> exp2>)>)> e
