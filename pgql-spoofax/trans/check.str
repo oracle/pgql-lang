@@ -785,7 +785,7 @@ rules // GRAPH_TABLE
 
   check-GraphTable-restriction(|ctx):
     e@FunctionCall(None(), Identifier("JAVA_REGEXP_LIKE", _), [_, ExpressionPlusType(String(_), _)]) -> <fail>
-    with <generate-error(|ctx, "GRAPH_TABLE restriction: JAVA_REGEXP_LIKE not supported, try using a UDF instead")> e
+    with <generate-error(|ctx, "GRAPH_TABLE restriction: JAVA_REGEXP_LIKE is unsupported, please try to use another regexp function if one is available or implement a UDF otherwise")> e
 
   check-GraphTable-restriction(|ctx):
     e@FunctionCall(None(), Identifier("IN_DEGREE", _), [ExpressionPlusType(_, Type("VERTEX"))]) -> <fail>

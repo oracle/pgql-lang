@@ -196,7 +196,7 @@ test Restriction: JAVA_REGEXP_LIKE [[
          COLUMNS ( 1 )
        )
 
-]] error like "GRAPH_TABLE restriction: JAVA_REGEXP_LIKE not supported, try using a UDF instead" at #1
+]] error like "GRAPH_TABLE restriction: JAVA_REGEXP_LIKE is unsupported, please try to use another regexp function if one is available or implement a UDF otherwise" at #1
 
 test Restriction: IN_DEGREE and OUT_DEGREE [[
 
@@ -238,4 +238,4 @@ test Restriction: is_source_of, is_destination_of [[
 ]] error like "GRAPH_TABLE restriction: use n IS SOURCE OF e" at #1
    error like "GRAPH_TABLE restriction: use n IS DESTINATION OF e" at #2
 
-// ROW PER MATCH clause
+// ROWS PER MATCH clause
