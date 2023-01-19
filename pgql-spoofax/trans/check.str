@@ -786,3 +786,11 @@ rules // GRAPH_TABLE
   check-GraphTable-restriction(|ctx):
     e@FunctionCall(None(), Identifier("JAVA_REGEXP_LIKE", _), [_, ExpressionPlusType(String(_), _)]) -> <fail>
     with <generate-error(|ctx, "GRAPH_TABLE restriction: JAVA_REGEXP_LIKE not supported, try using a UDF instead")> e
+
+  check-GraphTable-restriction(|ctx):
+    e@FunctionCall(None(), Identifier("IN_DEGREE", _), [ExpressionPlusType(_, Type("VERTEX"))]) -> <fail>
+    with <generate-error(|ctx, "GRAPH_TABLE restriction: IN_DEGREE not supported, use a subquery instead")> e
+
+  check-GraphTable-restriction(|ctx):
+    e@FunctionCall(None(), Identifier("OUT_DEGREE", _), [ExpressionPlusType(_, Type("VERTEX"))]) -> <fail>
+    with <generate-error(|ctx, "GRAPH_TABLE restriction: OUT_DEGREE not supported, use a subquery instead")> e

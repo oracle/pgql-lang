@@ -198,4 +198,17 @@ test Restriction: JAVA_REGEXP_LIKE [[
 
 ]] error like "GRAPH_TABLE restriction: JAVA_REGEXP_LIKE not supported, try using a UDF instead" at #1
 
+test Restriction: IN_DEGREE and OUT_DEGREE [[
+
+  SELECT 1
+  FROM GRAPH_TABLE (
+         g MATCH (n)
+         WHERE [[in_degree(n)]] > 10 AND [[out_degree(n)]] > 10
+         COLUMNS ( 1 )
+       )
+
+]] error like "GRAPH_TABLE restriction: IN_DEGREE not supported, use a subquery instead" at #1
+   error like "GRAPH_TABLE restriction: OUT_DEGREE not supported, use a subquery instead" at #2
+
+
 // ROW PER MATCH clause
