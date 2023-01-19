@@ -225,4 +225,17 @@ test Restriction: vertex and edge equals [[
    error like "GRAPH_TABLE restriction: use NOT SAME(n, m)" at #3
    error like "GRAPH_TABLE restriction: use NOT SAME(e1, e2)" at #4
 
+test Restriction: is_source_of, is_destination_of [[
+
+  SELECT 1
+  FROM GRAPH_TABLE (
+         g MATCH (n) -[e]-> ()
+         WHERE [[Is_Source_Of(e, n)]]
+           AND [[Is_Destination_Of(e, n)]]
+         COLUMNS ( 1 )
+       )
+
+]] error like "GRAPH_TABLE restriction: use n IS SOURCE OF e" at #1
+   error like "GRAPH_TABLE restriction: use n IS DESTINATION OF e" at #2
+
 // ROW PER MATCH clause
