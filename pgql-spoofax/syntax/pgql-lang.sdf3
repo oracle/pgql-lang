@@ -51,7 +51,7 @@ context-free syntax
 
   GraphMatch.GraphMatch = MatchKeyword? PathPattern OptionalGraphMatchParts?
 
-  GraphMatch.ParenthesizedGraphMatch = <MATCH ( <{PathPattern ","}+> ) <OptionalGraphMatchParts?>> {case-insensitive}
+  GraphMatch.ParenthesizedGraphMatch = <MATCH ( <PathPattern>, <{PathPattern ","}+> ) <OptionalGraphMatchParts?>> {case-insensitive}
 
   MatchKeyword.MatchKeyword = <MATCH> {case-insensitive}
 

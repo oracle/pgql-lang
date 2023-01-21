@@ -137,6 +137,17 @@ test Restriction: SHORTEST [[
 
 ]] error like "GRAPH_TABLE restriction: use ANY SHORTEST or ALL SHORTEST instead of SHORTEST" at #1
 
+test Restriction: CHEAPEST [[
+
+  SELECT *
+  FROM GRAPH_TABLE (
+         g MATCH [[CHEAPEST(n) -[e]->* (m)]]
+         COLUMNS ( 1 )
+       )
+
+]] error like "GRAPH_TABLE restriction: use ANY CHEAPEST instead of CHEAPEST" at #1
+
+
 test Restriction: TOP k SHORTEST [[
 
   SELECT *

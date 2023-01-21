@@ -279,13 +279,21 @@ rules // helper rules
 rules // temporary limitation
 
   nabl-constraint(|ctx):
-    ComplexRegularExpressionNotSupported(edgesOrPaths) -> <fail>
+    ComplexRegularExpressionNotSupported(edgesOrPaths, pathFindingGoal) -> <fail>
     with [_|[secondEdgeOrPath|_]] := edgesOrPaths
-       ; <generate-error(|ctx, "Not yet supported: multiple edge patterns in ANY, ALL, SHORTEST or CHEAPEST")> edgesOrPaths
+       ; <generate-error-for-multiple-edge-patterns(|ctx, pathFindingGoal)> edgesOrPaths
 
   nabl-constraint(|ctx):
-    ComplexParenthesizedRegularExpressionNotSupported(edges) -> <fail>
-    with <generate-error(|ctx, "Not yet supported: multiple edge patterns in ANY, ALL, SHORTEST or CHEAPEST")> edges
+    ComplexParenthesizedRegularExpressionNotSupported(edges, pathFindingGoal) -> <fail>
+    with <generate-error-for-multiple-edge-patterns(|ctx, pathFindingGoal)> edges
+
+  generate-error-for-multiple-edge-patterns(|ctx, pathFindingGoal):
+    edgesOrPaths -> <id>
+    with if <?All()> pathFindingGoal
+         then <generate-error(|ctx, "Not supported: path pattern containing multiple edge patterns in combination with quantifier(s); workaround is to split up the pattern into multiple path patterns")> edgesOrPaths
+         else pathFindingGoal' := <origin-text; trim-whitespace; upper-case> pathFindingGoal
+            ; <generate-error(|ctx, $<Not supported: path pattern containing multiple edge patterns in combination with <pathFindingGoal'>; try splitting up the pattern into multiple path patterns>)> edgesOrPaths
+         end
 
   nabl-constraint(|ctx):
     Path(_, _, _, _, _, _, _, Some(TopK(kValue)), _) -> <fail>

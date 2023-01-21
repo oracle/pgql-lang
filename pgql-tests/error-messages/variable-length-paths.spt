@@ -26,13 +26,13 @@ test Quantifier not enclosed by SHORTEST or CHEAPEST [[
     FROM g MATCH
            (n) ->[[*]] (m)
          , (n) ->[[+]] (m)
-         , (n) ->[[?]] (m)
-         , (n) ->[[{2}]] (m)
-         , (n) ->[[{,2}]] (m)
+         , (n) ->? (m)
+         , (n) ->{2} (m)
+         , (n) ->{,2} (m)
          , (n) ->[[{2,}]] (m)
-         , (n) ->[[{2,3}]] (m)
+         , (n) -> {2,3} (m)
 
-]] error like "Quantifier needs to be enclosed by ANY, ALL, SHORTEST or CHEAPEST" at #1, #2, #3, #4, #5, #6, #7
+]] error like "Path finding goal ALL requires an upper bound on the path length" at #1, #2, #3
 
 test K equals zero [[
 
@@ -43,30 +43,30 @@ test K equals zero [[
 test Multiple edges in SHORTEST (1) [[
 
   SELECT n.prop AS nProp
-    FROM g MATCH ANY SHORTEST ( (n) [[-[e1]->* (m) ->*]] (o) )
+  FROM g MATCH ANY SHORTEST ( (n) [[-[e1]->* (m) ->*]] (o) )
 
-]] error like "Not yet supported: multiple edge patterns in ANY, ALL, SHORTEST or CHEAPEST" at #1
+]] error like "Not supported: path pattern containing multiple edge patterns in combination with ANY SHORTEST; try splitting up the pattern into multiple path patterns" at #1
 
 test Multiple edges in SHORTEST (2) [[
 
   SELECT n.prop AS nProp
-    FROM g MATCH ANY SHORTEST ( (n) (-[e1]-> () [[-[e2]->)]]* (m) )
+  FROM g MATCH ALL SHORTEST ( (n) (-[e1]-> () [[-[e2]->)]]* (m) )
 
-]] error like "Not yet supported: multiple edge patterns in ANY, ALL, SHORTEST or CHEAPEST" at #1
+]] error like "Not supported: path pattern containing multiple edge patterns in combination with ALL SHORTEST; try splitting up the pattern into multiple path patterns" at #1
 
 test Multiple edges in CHEAPEST (1) [[
 
   SELECT n.prop AS nProp
-    FROM g MATCH CHEAPEST ( (n) [[-[e1]->* (m) ->*]] (o) )
+    FROM g MATCH ANY CHEAPEST ( (n) [[-[e1]->* (m) ->*]] (o) )
 
-]] error like "Not yet supported: multiple edge patterns in ANY, ALL, SHORTEST or CHEAPEST" at #1
+]] error like "Not supported: path pattern containing multiple edge patterns in combination with ANY CHEAPEST; try splitting up the pattern into multiple path patterns" at #1
 
 test Multiple edges in CHEAPEST (2) [[
 
   SELECT n.prop AS nProp
-    FROM g MATCH CHEAPEST ( (n) (-[e1]-> () [[-[e2]->)]]* (m) )
+    FROM g MATCH ANY CHEAPEST ( (n) (-[e1]-> () [[-[e2]->)]]* (m) )
 
-]] error like "Not yet supported: multiple edge patterns in ANY, ALL, SHORTEST or CHEAPEST" at #1
+]] error like "Not supported: path pattern containing multiple edge patterns in combination with ANY CHEAPEST; try splitting up the pattern into multiple path patterns" at #1
 
 test Unsupport question mark in SHORTEST [[
 
@@ -102,13 +102,6 @@ test No quantifier in ANY [[
     FROM MATCH ANY  (n) [[(-[e1]->)]] (m)
 
 ]] error like "Quantifier of the form * or + or {1,4} expected" at #1
-
-test No quantifier in ALL [[
-
-  SELECT *
-    FROM MATCH ALL (n) [[-[e1]-> (m)]]
-
-]] error like "Quantifier of the form {1,4} expected" at #1
 
 test Question mark in ALL [[
 
@@ -308,42 +301,49 @@ test ONE ROW PER VERTEX no quantifier (1) [[
   SELECT 1
     FROM MATCH (n) [[ONE ROW PER VERTEX (v)]]
 
-]] error like "ONE ROW PER VERTEX or STEP is only supported in combination with ANY, ALL, SHORTEST or CHEAPEST" at #1
+]] error like "ONE ROW PER VERTEX or STEP is only supported in combination with an edge pattern and quantifier" at #1
 
 test ONE ROW PER VERTEX no quantifier (2) [[
 
   SELECT 1
-    FROM MATCH (n) ->* (m) [[ONE ROW PER VERTEX (v)]]
+    FROM MATCH ( (n) ) [[ONE ROW PER VERTEX (v)]]
 
-]] error like "ONE ROW PER VERTEX or STEP is only supported in combination with ANY, ALL, SHORTEST or CHEAPEST" at #1
+]] error like "ONE ROW PER VERTEX or STEP is only supported in combination with an edge pattern and quantifier" at #1
 
 test ONE ROW PER EDGE no quantifier (1) [[
 
   SELECT 1
-    FROM MATCH (n) [[ONE ROW PER EDGE (e)]]
+    FROM MATCH (n) [[ONE ROW PER EDGE (v)]]
 
-]] error like "ONE ROW PER VERTEX or STEP is only supported in combination with ANY, ALL, SHORTEST or CHEAPEST" at #1
+]] error like "ONE ROW PER VERTEX or STEP is only supported in combination with an edge pattern and quantifier" at #1
 
 test ONE ROW PER EDGE no quantifier (2) [[
 
   SELECT 1
-    FROM MATCH (n) ->* (m) [[ONE ROW PER EDGE (e)]]
+    FROM MATCH (n) [[-> (]]m) ONE ROW PER EDGE (e)
 
-]] error like "ONE ROW PER VERTEX or STEP is only supported in combination with ANY, ALL, SHORTEST or CHEAPEST" at #1
+]] error like "Quantifier of the form {1,4} expected" at #1
 
 test ONE ROW PER STEP no quantifier (1) [[
 
   SELECT 1
     FROM MATCH (n) [[ONE ROW PER STEP (v1, e, v2)]]
 
-]] error like "ONE ROW PER VERTEX or STEP is only supported in combination with ANY, ALL, SHORTEST or CHEAPEST" at #1
+]] error like "ONE ROW PER VERTEX or STEP is only supported in combination with an edge pattern and quantifier" at #1
 
 test ONE ROW PER STEP no quantifier (2) [[
 
   SELECT 1
-    FROM MATCH (n) ->* (m) [[ONE ROW PER STEP (v1, e, v2)]]
+    FROM MATCH (n) [[-> (]]m) ONE ROW PER STEP (v1, e, v2)
 
-]] error like "ONE ROW PER VERTEX or STEP is only supported in combination with ANY, ALL, SHORTEST or CHEAPEST" at #1
+]] error like "Quantifier of the form {1,4} expected" at #1
+
+test ONE ROW PER STEP no quantifier (3) [[
+
+  SELECT 1
+    FROM MATCH ( any (n) -> (m), (m) -> (o) ) [[ONE ROW PER STEP (v1, e, v2)]]
+
+]] error like "ONE ROW PER VERTEX or STEP is only permitted if the MATCH clause contains a single path pattern" at #1
 
 test ONE ROW PER VERTEX with multiple path patterns [[
 
@@ -616,3 +616,10 @@ test Duplicate variables in ONE ROW PER STEP (3) [[
     FROM MATCH ANY (b) ->* (c) ONE ROW PER STEP (v, [[e]], [[e]])
 
 ]] error like "Duplicate variable" at #1, #2
+
+test Nested path pattern prefix [[
+
+  SELECT 1
+    FROM MATCH ANY ( [[ANY (]]n) ->* (m) )
+
+]] error like "Nested path pattern prefix not allowed" at #1
