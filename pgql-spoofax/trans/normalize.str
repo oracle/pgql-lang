@@ -136,7 +136,7 @@ rules
   // MATCH (n) ONE ROW PER VERTEX (v)
   get-pgql13-errors:
     graphMatch -> <to-error-message(|"ONE ROW PER VERTEX or STEP is only supported in combination with an edge pattern and quantifier")> rowsPerMatch
-    where <?GraphMatch(_, SingleVertex(_), Some(OptionalGraphMatchParts1(rowsPerMatch, _))) + 
+    where <?GraphMatch(_, SingleVertex(_), Some(OptionalGraphMatchParts1(rowsPerMatch, _))) +
            ?GraphMatch(_, PathPattern2(_, SingleVertex(_)), Some(OptionalGraphMatchParts1(rowsPerMatch, _)))> graphMatch
         ; <is-not-one-row-per-match> rowsPerMatch
 
@@ -532,8 +532,8 @@ rules
     [PathPattern2(pathPatternPrefix, pathPattern)|otherPaths] -> result
     where <not(?PathPattern(_, []))> pathPattern
     with if <oncetd(is-quantifier) + !rowsPerMatch; ?Some(<id>); is-not-one-row-per-match + !pathPatternPrefix; not(?None() + ?Some(AllPathSearch(_)))> pathPattern // path pattern has a quantifier or it has a search prefix other than ALL or it has a graph table rows clause other than ONE ROW PER MATCH
-         then pathFindingGoal := <origin-track-forced(to-pathFindingGoal)> pathPatternPrefix
-            ; topKAnyAll := <origin-track-forced(to-topKAnyAll)> pathPatternPrefix
+         then pathFindingGoal := <to-pathFindingGoal> pathPatternPrefix
+            ; topKAnyAll := <to-topKAnyAll> pathPatternPrefix
             ; result := <get-connections-from-quantified-path-patterns(|variable-counter, rowsPerMatch)> (pathFindingGoal, topKAnyAll, pathPattern, otherPaths)
          else topKAnyAll := None()
             ; pathFindingGoal := None()
@@ -542,10 +542,8 @@ rules
             ; result := <conc> (edges, edgesTailPaths)
          end
 
-  to-pathFindingGoal = ( ?None() +
-                         ?Some(AllPathSearch(_))
-                       )
-                     ; !All()
+  to-pathFindingGoal = ?None(); !All() +
+                       ?Some(AllPathSearch(_)); origin-track-forced(!All())
 
   to-pathFindingGoal = ( ?Some(AllShortestPathSearch(_)) +
                          ?Some(AnyShortestPathSearch(_)) +
@@ -554,29 +552,27 @@ rules
                          ?Some(CountedShortestPathSearch2(_, _)) + // deprecated
                          ?Some(AnyPathSearch(_, _)) // translate ANY k to ANY SHORTEST k
                        )
-                     ; !Shortest()
+                     ; origin-track-forced(!Shortest())
 
   to-pathFindingGoal = ( ?Some(AnyCheapestPathSearch(_)) +
                          ?Some(AnyCheapestPathSearch2(_)) + // deprecated
                          ?Some(CountedCheapestPathSearch(_, _)) +
                          ?Some(CountedCheapestPathSearch2(_, _)) // deprecated
                        )
-                     ; !Cheapest()
+                     ; origin-track-forced(!Cheapest())
 
-  to-topKAnyAll = ( ?None() +
-                    ?Some(AllPathSearch(_))
-                  )
-                ; !None()
+  to-topKAnyAll = ?None() +
+                  ?Some(AllPathSearch(_)); origin-track-forced(!None())
 
-  to-topKAnyAll = ?Some(AllShortestPathSearch(_)); !Some(All())
+  to-topKAnyAll = ?Some(AllShortestPathSearch(_)); origin-track-forced(!Some(All()))
 
   to-topKAnyAll = ( ?Some(AnyPathSearch(None(), _)) +
                     ?Some(AnyShortestPathSearch(_)) +
-                    ?Some(AnyCheapestPathSearch2(_)) + // deprecated
+                    ?Some(AnyShortestPathSearch2(_)) + // deprecated
                     ?Some(AnyCheapestPathSearch(_)) +
-                    ?Some(AnyCheapestPathSearch(_)) // deprecated
+                    ?Some(AnyCheapestPathSearch2(_)) // deprecated
                   )
-                ; !Some(Any())
+                ; origin-track-forced(!Some(Any()))
 
   to-topKAnyAll = ( ?Some(CountedShortestPathSearch(NumberOfPaths(k), _)) +
                     ?Some(CountedShortestPathSearch2(NumberOfPaths(k), _)) + // deprecated
@@ -584,7 +580,7 @@ rules
                     ?Some(CountedCheapestPathSearch2(NumberOfPaths(k), _)) + // deprecated
                     ?Some(AnyPathSearch(Some(NumberOfPaths(k)), _)) // translate ANY k to ANY SHORTEST k
                   )
-                ; !Some(TopK(k))
+                ; origin-track-forced(!Some(TopK(k)))
 
   get-connections-from-quantified-path-patterns(|variable-counter, rowsPerMatch):
     (pathFindingGoal, topKAnyAll, pathPattern, otherPaths) ->  <conc> ([path'], edgesTailPaths)
