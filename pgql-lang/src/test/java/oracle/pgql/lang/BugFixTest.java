@@ -121,20 +121,20 @@ public class BugFixTest extends AbstractPgqlTest {
 
   @Test /* GM-18250 */
   public void multipleEdgesInShortest() throws Exception {
-    String query = "SELECT u, v MATCH SHORTEST( (u) -> (x0) -> (x1) -> (x2) -> (v) ) WHERE u != v ORDER BY id(u)";
+    String query = "SELECT u, v FROM MATCH ANY SHORTEST( (u) -> (x0) -> (x1) -> (x2) -> (v) ) WHERE u != v ORDER BY id(u)";
     PgqlResult result = pgql.parse(query); // this used to fail
     assertFalse(result.isQueryValid());
     assertTrue(result.getErrorMessages()
-        .contains("Not yet supported: multiple edge patterns in ANY, ALL, SHORTEST or CHEAPEST"));
+        .contains("Not supported: path pattern containing multiple edge patterns in combination with ANY, SHORTEST or CHEAPEST; try splitting up the pattern into multiple path patterns"));
   }
 
   @Test
   public void multipleEdgesInShortest2() throws Exception {
-    String query = "SELECT 1 MATCH SHORTEST ( (a) ( (n) -[e1]-> (m) -[e2]-> (o) )* (b) )";
+    String query = "SELECT 1 FROM MATCH ANY SHORTEST ( (a) ( (n) -[e1]-> (m) -[e2]-> (o) )* (b) )";
     PgqlResult result = pgql.parse(query); // this should not fail
     assertFalse(result.isQueryValid());
     assertTrue(result.getErrorMessages()
-        .contains("Not yet supported: multiple edge patterns in ANY, ALL, SHORTEST or CHEAPEST"));
+        .contains("Not supported: path pattern containing multiple edge patterns in combination with ANY, SHORTEST or CHEAPEST; try splitting up the pattern into multiple path patterns"));
   }
 
   @Test

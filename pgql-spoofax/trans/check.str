@@ -290,9 +290,8 @@ rules // temporary limitation
   generate-error-for-multiple-edge-patterns(|ctx, pathFindingGoal):
     edgesOrPaths -> <id>
     with if <?All()> pathFindingGoal
-         then <generate-error(|ctx, "Not supported: path pattern containing multiple edge patterns in combination with quantifier(s); workaround is to split up the pattern into multiple path patterns")> edgesOrPaths
-         else pathFindingGoal' := <debug; origin-text; trim-whitespace; upper-case> pathFindingGoal
-            ; <generate-error(|ctx, $<Not supported: path pattern containing multiple edge patterns in combination with <pathFindingGoal'>; try splitting up the pattern into multiple path patterns>)> edgesOrPaths
+         then <generate-error(|ctx, "Not supported: path pattern containing multiple edge patterns in combination with quantifier(s); please split up the pattern into multiple path patterns")> edgesOrPaths
+         else <generate-error(|ctx, "Not supported: path pattern containing multiple edge patterns in combination with ANY, SHORTEST or CHEAPEST; try splitting up the pattern into multiple path patterns")> edgesOrPaths
          end
 
   nabl-constraint(|ctx):

@@ -54,7 +54,7 @@ rules
         <+ is-pgql13; collect(get-pgql13-deprecation + get-pgql13-errors); not(?[]) <+ get-all-GraphTable-restrictions
         )
         ; not(?[]) <+ !( <quantifier-without-path-finding-goal>,
-                         <nested-regular-expression>,
+                         <get-all-nested-regular-expressions>,
                          <get-errors-for-inconsistent-graph-names>
                        ); conc> ast;
       result := <
@@ -147,7 +147,7 @@ rules
                           + ?Pgql11AsignSymbol()
                           + ?ExtractExp(_, _)
                           + ?ARRAY-AGG(_, _)
-                          + ?PathPattern2(_, _)
+                          + ?PathPattern2(Some(_), _)
                           )
                         ; to-error-message(|"Use [SELECT .. FROM MATCH .. WHERE ..]")
 
@@ -194,7 +194,17 @@ rules
   ; remove-all(quantified-path-pattern)
   ; map(to-error-message(|"Quantifier needs to be enclosed by ANY, ALL, SHORTEST or CHEAPEST"))
 
-  nested-regular-expression = collect(?PathPattern2(_, _)); collect(?Path(_, _, _)); map(to-error-message(|"Nested regular expressions not supported"))
+  get-all-nested-regular-expressions = collect(get-nested-regular-expression)
+
+  get-nested-regular-expression:
+    t@PathPattern2(_, _) -> error
+    where pathPatterns := <collect-all(?PathPattern2(Some(_), _) + // e.g. ANY SHORTEST ...
+                                       ?Path(_, _, _))> t // e.g. -/../->*
+        ; [PathPattern2(pathPatternPrefix1, _)|[nestedPath|_]] := pathPatterns
+    with if <?PathPattern2(pathPatternPrefix2, _)> nestedPath
+         then error := <to-error-message(|"Nested path-finding goals not allowed")> pathPatternPrefix2 // e.g. ANY ( ANY .. )
+         else error := <to-error-message(|$<Reachability not allowed here since pattern has path-finding goal <<origin-text; upper-case; trim-whitespace> pathPatternPrefix1>>)> nestedPath // e.g. ANY .. -/:knows*/->
+         end
 
   get-errors-for-inconsistent-graph-names:
     ast -> <conc> (errors-for-multiple-graph-name, errors-for-missing-on-clauses)
@@ -531,7 +541,7 @@ rules
   get-connections-from-paths(|variable-counter, rowsPerMatch):
     [PathPattern2(pathPatternPrefix, pathPattern)|otherPaths] -> result
     where <not(?PathPattern(_, []))> pathPattern
-    with if <oncetd(is-quantifier) + !rowsPerMatch; ?Some(<id>); is-not-one-row-per-match + !pathPatternPrefix; not(?None() + ?Some(AllPathSearch(_)))> pathPattern // path pattern has a quantifier or it has a search prefix other than ALL or it has a graph table rows clause other than ONE ROW PER MATCH
+    with if <contains-edge-pattern-with-quantifier + !rowsPerMatch; ?Some(<id>); is-not-one-row-per-match + !pathPatternPrefix; not(?None() + ?Some(AllPathSearch(_)))> pathPattern // path pattern has a quantifier or it has a search prefix other than ALL or it has a graph table rows clause other than ONE ROW PER MATCH
          then pathFindingGoal := <to-pathFindingGoal> pathPatternPrefix
             ; topKAnyAll := <to-topKAnyAll> pathPatternPrefix
             ; result := <get-connections-from-quantified-path-patterns(|variable-counter, rowsPerMatch)> (pathFindingGoal, topKAnyAll, pathPattern, otherPaths)
@@ -541,6 +551,9 @@ rules
             ; edgesTailPaths := <get-connections-from-paths(|variable-counter, rowsPerMatch)> otherPaths
             ; result := <conc> (edges, edgesTailPaths)
          end
+
+  contains-edge-pattern-with-quantifier = collect-om(?Path(_, _, _) <+ is-quantifier) // in case of (n) -[e:lbl]->* (m) -/:lbl*/-> (o) we are only intersted in the first star, so we test if there exist at least one edge pattern with quantifier by ignoring paths with quantifiers
+                                        ; filter(is-quantifier); not(?[])
 
   to-pathFindingGoal = ?None(); !All() +
                        ?Some(AllPathSearch(_)); origin-track-forced(!All())

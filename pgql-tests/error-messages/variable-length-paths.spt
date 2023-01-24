@@ -45,28 +45,42 @@ test Multiple edges in SHORTEST (1) [[
   SELECT n.prop AS nProp
   FROM g MATCH ANY SHORTEST ( (n) [[-[e1]->* (m) ->*]] (o) )
 
-]] error like "Not supported: path pattern containing multiple edge patterns in combination with ANY SHORTEST; try splitting up the pattern into multiple path patterns" at #1
+]] error like "Not supported: path pattern containing multiple edge patterns in combination with ANY, SHORTEST or CHEAPEST; try splitting up the pattern into multiple path patterns" at #1
 
 test Multiple edges in SHORTEST (2) [[
 
   SELECT n.prop AS nProp
   FROM g MATCH ALL SHORTEST ( (n) (-[e1]-> () [[-[e2]->)]]* (m) )
 
-]] error like "Not supported: path pattern containing multiple edge patterns in combination with ALL SHORTEST; try splitting up the pattern into multiple path patterns" at #1
+]] error like "Not supported: path pattern containing multiple edge patterns in combination with ANY, SHORTEST or CHEAPEST; try splitting up the pattern into multiple path patterns" at #1
 
 test Multiple edges in CHEAPEST (1) [[
 
   SELECT n.prop AS nProp
     FROM g MATCH ANY CHEAPEST ( (n) [[-[e1]->* (m) ->*]] (o) )
 
-]] error like "Not supported: path pattern containing multiple edge patterns in combination with ANY CHEAPEST; try splitting up the pattern into multiple path patterns" at #1
+]] error like "Not supported: path pattern containing multiple edge patterns in combination with ANY, SHORTEST or CHEAPEST; try splitting up the pattern into multiple path patterns" at #1
 
 test Multiple edges in CHEAPEST (2) [[
 
   SELECT n.prop AS nProp
     FROM g MATCH ANY CHEAPEST ( (n) (-[e1]-> () [[-[e2]->)]]* (m) )
 
-]] error like "Not supported: path pattern containing multiple edge patterns in combination with ANY CHEAPEST; try splitting up the pattern into multiple path patterns" at #1
+]] error like "Not supported: path pattern containing multiple edge patterns in combination with ANY, SHORTEST or CHEAPEST; try splitting up the pattern into multiple path patterns" at #1
+
+test Multiple edges in ALL (1) [[
+
+  SELECT n.prop AS nProp
+    FROM g MATCH ALL ( (n) (-[e1]-> () [[-[e2]->)]]* (m) )
+
+]] error like "Not supported: path pattern containing multiple edge patterns in combination with quantifier(s); please split up the pattern into multiple path patterns" at #1
+
+test Multiple edges in ALL (2) [[
+
+  SELECT n.prop AS nProp
+    FROM g MATCH ( (n) (-[e1]-> () [[-[e2]->)]]* (m) )
+
+]] error like "Not supported: path pattern containing multiple edge patterns in combination with quantifier(s); please split up the pattern into multiple path patterns" at #1
 
 test Unsupport question mark in SHORTEST [[
 
@@ -213,12 +227,40 @@ test Nested regex (2) [[
 
 ]] error like "Nested regular expressions not supported"
 
-test Nested regex (3) [[
+test Reachability in combination with path-finding goal (1) [[
 
   SELECT n AS c1
-    FROM g MATCH ANY SHORTEST ( (n) [[-/:likes/->]]* (m) )
+  FROM g MATCH ANY SHORTEST ( (n) [[-/:likes/->]]* (m) )
 
-]] error like "Nested regular expressions not supported" at #1
+]] error like "Reachability not allowed here since pattern has path-finding goal ANY" at #1
+
+test Reachability in combination with path-finding goal (2) [[
+
+  SELECT n AS c1
+  FROM g MATCH ALL SHORTEST ( (n) [[-/:likes/->]]* (m) )
+
+]] error like "Reachability not allowed here since pattern has path-finding goal ALL" at #1
+
+test Nested path-finding goal (1) [[
+
+  SELECT n AS c1
+  FROM g MATCH ALL SHORTEST ( [[ANY SHORTEST (]]n) -[e]->* (m) )
+
+]] error like "Nested path-finding goals not allowed" at #1
+
+test Nested path-finding goal (2) [[
+
+  SELECT n AS c1
+  FROM g MATCH ANY ( [[ANY (]]n) -[e]->* (m) )
+
+]] error like "Nested path-finding goals not allowed" at #1
+
+test Nested path-finding goal (3) [[
+
+  SELECT n AS c1
+  FROM g MATCH ANY ( [[ALL (]]n) -[e]->* (m) )
+
+]] error like "Nested path-finding goals not allowed" at #1
 
 test Multiple group variables in aggregation (1) [[
 
