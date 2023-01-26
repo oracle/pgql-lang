@@ -28,7 +28,6 @@ import org.metaborg.core.config.ISourceConfig;
 import org.metaborg.core.context.ContextException;
 import org.metaborg.core.context.ITemporaryContext;
 import org.metaborg.core.language.ILanguageComponent;
-import org.metaborg.core.language.ILanguageDiscoveryRequest;
 import org.metaborg.core.language.ILanguageImpl;
 import org.metaborg.core.language.LanguageIdentifier;
 import org.metaborg.core.language.LanguageUtils;
@@ -148,10 +147,10 @@ public class Pgql implements Closeable {
       spoofaxBinaryFile = tmpDir == null ? File.createTempFile(SPOOFAX_BINARIES, UUID.randomUUID().toString())
           : new File(tmpDir, SPOOFAX_BINARIES + UUID.randomUUID());
       FileUtils.copyURLToFile(inputUrl, spoofaxBinaryFile);
-      FileObject fileObject = spoofax.resourceService.resolve("jar:" + spoofaxBinaryFile.getAbsolutePath() + "!");
+      FileObject fileObject = spoofax.resourceService.resolve(spoofaxBinaryFile.getAbsolutePath());
 
-      Iterable<ILanguageDiscoveryRequest> requests = spoofax.languageDiscoveryService.request(fileObject);
-      Iterable<ILanguageComponent> components = spoofax.languageDiscoveryService.discover(requests);
+      Iterable<ILanguageImpl> languages = spoofax.languageDiscoveryService.languagesFromArchive(fileObject);
+      Set<ILanguageComponent> components = LanguageUtils.toComponents(languages);
       Set<ILanguageImpl> implementations = LanguageUtils.toImpls(components);
       pgqlLang = LanguageUtils.active(implementations);
       assert (pgqlLang != null);
