@@ -781,15 +781,12 @@ public class SpoofaxAstToGraphQuery {
     switch (constructorName) {
       case "Walk":
         return PathMode.WALK;
-      case "Trail": {
+      case "Trail":
         return PathMode.TRAIL;
-      }
-      case "Acyclic": {
+      case "Acyclic":
         return PathMode.ACYCLIC;
-      }
-      case "Simple": {
+      case "Simple":
         return PathMode.SIMPLE;
-      }
       default:
         throw new IllegalArgumentException(constructorName);
     }
