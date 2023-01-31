@@ -20,20 +20,6 @@ test Duplicate group variable (2) [[
 
 ]] error like "Duplicate variable" at #1, #2
 
-test Quantifier not enclosed by SHORTEST or CHEAPEST [[
-
-  SELECT n AS c1
-    FROM g MATCH
-           (n) ->[[*]] (m)
-         , (n) ->[[+]] (m)
-         , (n) ->? (m)
-         , (n) ->{2} (m)
-         , (n) ->{,2} (m)
-         , (n) ->[[{2,}]] (m)
-         , (n) -> {2,3} (m)
-
-]] error like "Path finding goal ALL requires an upper bound on the path length" at #1, #2, #3
-
 test K equals zero [[
 
   SELECT n AS c1 FROM g MATCH TOP [[0]] SHORTEST ( (n) ->* (m) )
@@ -124,19 +110,47 @@ test Question mark in ALL [[
 
 ]] error like "Quantifier of the form {1,4} expected" at #1
 
-test Unbounded ALL (1) [[
+test Potentially infinite solutions (1) [[
+
+  SELECT n AS c1
+    FROM g MATCH
+           (n) ->[[*]] (m)
+         , (n) ->[[+]] (m)
+         , (n) ->? (m)
+         , (n) ->{2} (m)
+         , (n) ->{,2} (m)
+         , (n) ->[[{2,}]] (m)
+         , (n) -> {2,3} (m)
+
+]] error like "Potentially infinite solutions; specify a selective path-finding goal or a quantifier with upper bound" at #1, #2, #3
+
+test Potentially infinite solutions (2) [[
 
   SELECT *
     FROM MATCH ALL (n) -[e1]->[[{1,}]] (m)
 
-]] error like "Path finding goal ALL requires an upper bound on the path length" at #1
+]] error like "Potentially infinite solutions; specify a selective path-finding goal or a quantifier with upper bound" at #1
 
-test Unbounded ALL (2) [[
+test Potentially infinite solutions (3) [[
 
   SELECT *
     FROM MATCH ALL (n) -[e1]->[[+]] (m)
 
-]] error like "Path finding goal ALL requires an upper bound on the path length" at #1
+]] error like "Potentially infinite solutions; specify a selective path-finding goal or a quantifier with upper bound" at #1
+
+test Potentially infinite solutions (4) [[
+
+  SELECT *
+    FROM MATCH ALL (n) -[e1]->[[+]] (m)
+
+]] error like "Potentially infinite solutions; specify a selective path-finding goal or a quantifier with upper bound" at #1
+
+test Potentially infinite solutions (5) [[
+
+  SELECT *
+    FROM MATCH WALK (n) -[e1]->[[{2,}]] (m)
+
+]] error like "Potentially infinite solutions; specify a selective path-finding goal or a quantifier with upper bound" at #1
 
 test Duplicate variables (1) [[
 

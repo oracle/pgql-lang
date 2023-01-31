@@ -310,10 +310,10 @@ rules // temporary limitation
          end
 
   nabl-constraint(|ctx):
-    Path(_, _, pathExpression, quantifier, _, _, goal, _, _, _) -> <fail>
+    Path(_, _, pathExpression, quantifier, _, _, goal, _, Walk(), _) -> <fail>
     where <?All()> goal
         ; <?Some(BetweenNAndM(_, "-1"))> quantifier
-    with <generate-error(|ctx, "Path finding goal ALL requires an upper bound on the path length")> quantifier
+    with <generate-error(|ctx, "Potentially infinite solutions; specify a selective path-finding goal or a quantifier with upper bound")> quantifier
 
   nabl-constraint(|ctx):
     t@CommonPathExpression(_, _, connections, _, _) -> <fail>
@@ -369,7 +369,6 @@ rules // CHEAPEST
     CostClause(ExpressionPlusType(exp, type@Type(t))) -> <fail>
     where <get-union-type(|metadata); ?AmbiguousType()> (type, <get-default-decimal-type(|metadata)>)
     with  <generate-error(|ctx, $<COST clause expects a numeric but a <t> was given>)> exp
-
 rules // literals
 
   external is-invalid-datetime(|)
