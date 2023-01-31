@@ -667,6 +667,16 @@ public class PrettyPrintingTest extends AbstractPgqlTest {
     checkRoundTrip(query);
   }
 
+  @Test
+  public void testWalkTrailAcyclicSimple() throws Exception {
+    String query = "SELECT COUNT(*) " //
+        + "FROM MATCH WALK (n) -[e1]->{,10} (m), " //
+        + "MATCH ANY TRAIL (n) -[e2]->* (m), " //
+        + "MATCH ALL SHORTEST ACYCLIC (n) -[e3]->* (m), " //
+        + "MATCH SHORTEST 10 SIMPLE (n) -[e4]->* (m)";
+    checkRoundTrip(query);
+  }
+
   private void checkRoundTrip(String query1) throws PgqlException {
 
     /*

@@ -295,12 +295,12 @@ rules // temporary limitation
          end
 
   nabl-constraint(|ctx):
-    Path(_, _, _, _, _, _, _, Some(TopK(kValue)), _) -> <fail>
+    Path(_, _, _, _, _, _, _, Some(TopK(kValue)), _, _) -> <fail>
     where <?"0"> kValue
     with <generate-error(|ctx, "Value should be greater than 0")> kValue
 
   nabl-constraint(|ctx):
-    Path(_, _, pathExpression, quantifier, _, _, goal, _, _) -> <fail>
+    Path(_, _, pathExpression, quantifier, _, _, goal, _, _, _) -> <fail>
     where <?Shortest() + ?Cheapest() + ?Any() + ?All()> goal
         ; <?None() + ?Some(BetweenNAndM("0", "1")); origin-text; ?"?"> quantifier
     with error-term := <?Some(_) <+ !pathExpression; collect-one(?Edge(_, _, _, _, _, _))> quantifier 
@@ -310,14 +310,14 @@ rules // temporary limitation
          end
 
   nabl-constraint(|ctx):
-    Path(_, _, pathExpression, quantifier, _, _, goal, _, _) -> <fail>
+    Path(_, _, pathExpression, quantifier, _, _, goal, _, _, _) -> <fail>
     where <?All()> goal
         ; <?Some(BetweenNAndM(_, "-1"))> quantifier
     with <generate-error(|ctx, "Path finding goal ALL requires an upper bound on the path length")> quantifier
 
   nabl-constraint(|ctx):
     t@CommonPathExpression(_, _, connections, _, _) -> <fail>
-    where <collect-in-outer-query(?Path(_, _, _, _, _, _, _, _, _)); not(?[])> connections
+    where <collect-in-outer-query(?Path(_, _, _, _, _, _, _, _, _, _)); not(?[])> connections
     with <generate-error(|ctx, "Nested regular expressions not supported")> t
 
   nabl-constraint(|ctx):
@@ -327,14 +327,14 @@ rules // temporary limitation
 rules
 
   nabl-constraint(|ctx):
-    Path(_, _, _, _, Identifier(i, _), _, _, _, _) -> <fail>
+    Path(_, _, _, _, Identifier(i, _), _, _, _, _, _) -> <fail>
     where <not(is-substring(GENERATED))> i
     with <generate-error(|ctx, "Path variables not supported")> i
 
 rules // CHEAPEST
 
   nabl-constraint(|ctx):
-    t@Path(_, _, CommonPathExpression(_, _, _, Constraints(constraints), costClause), _, _, _, Cheapest(), _, _) -> <fail>
+    t@Path(_, _, CommonPathExpression(_, _, _, Constraints(constraints), costClause), _, _, _, Cheapest(), _, _, _) -> <fail>
     where <?None()> costClause
     with if <?[]> constraints
     then <generate-error(|ctx, "COST clause expected after pattern")> t
@@ -342,7 +342,7 @@ rules // CHEAPEST
     end
 
   nabl-constraint(|ctx):
-    t@Path(_, _, CommonPathExpression(_, vertices, edges, _, Some(CostClause(costExpression))), _, _, _, Cheapest(), _, _) -> <fail>
+    t@Path(_, _, CommonPathExpression(_, vertices, edges, _, Some(CostClause(costExpression))), _, _, _, Cheapest(), _, _, _) -> <fail>
     where <?Vertices([Vertex(v1, _, _), Vertex(v2, _, _)])> vertices
         ; <?Edges([Edge(_, e, _, _, _, _)])> edges
     with variablesDefs := [v1, v2, e]
@@ -356,12 +356,12 @@ rules // CHEAPEST
   generate-error-on-cross-constraint(|ctx, variablesDefs):
     t -> t
     where <not(?And(_, _))> t
-    with variables := <collect(?VarRef(<id>, _) + ?Vertex(<id>, _, _) + ?Edge(_, <id>, _, _, _, _) + ?Path(_, _, _, _, <id>, _, _, _, _))> t
+    with variables := <collect(?VarRef(<id>, _) + ?Vertex(<id>, _, _) + ?Edge(_, <id>, _, _, _, _) + ?Path(_, _, _, _, <id>, _, _, _, _, _))> t
        ; variableRefs := <strip-annos; isect> (variablesDefs, variables)
        ; <try(!(<length> variableRefs, 1); gt; !t; generate-error(|ctx, "Not yet supported: expressions with multiple variables"))> t
 
   nabl-constraint(|ctx):
-    Path(_, _, CommonPathExpression(_, _, _, _, Some(t@CostClause(_))), _, _, _, pathFindingGoal, _, _) -> <fail>
+    Path(_, _, CommonPathExpression(_, _, _, _, Some(t@CostClause(_))), _, _, _, pathFindingGoal, _, _, _) -> <fail>
     where not ( <?Cheapest()> pathFindingGoal )
     with <generate-error(|ctx, "COST clause only allowed in combination with CHEAPEST")> t
 
