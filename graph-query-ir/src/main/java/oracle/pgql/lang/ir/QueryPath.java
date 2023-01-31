@@ -147,6 +147,14 @@ public class QueryPath extends VertexPairConnection {
     this.withTies = withTies;
   }
 
+  public PathMode getPathMode() {
+    return pathMode;
+  }
+
+  public void setPathMode(PathMode pathMode) {
+    this.pathMode = pathMode;
+  }
+
   @Override
   public VariableType getVariableType() {
     return VariableType.PATH;
@@ -246,6 +254,8 @@ public class QueryPath extends VertexPairConnection {
     if (kValue != other.kValue)
       return false;
     if (withTies != other.withTies)
+      return false;
+    if (!pathMode.equals(other.pathMode))
       return false;
     if (!rowsPerMatch.equals(other.rowsPerMatch)) {
       return false;
