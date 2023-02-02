@@ -9,6 +9,7 @@ import java.util.stream.Collectors;
 import oracle.pgql.lang.ir.DerivedTable;
 import oracle.pgql.lang.ir.ExpAsVar;
 import oracle.pgql.lang.ir.GraphPattern;
+import oracle.pgql.lang.ir.GraphQuery;
 import oracle.pgql.lang.ir.GroupBy;
 import oracle.pgql.lang.ir.OrderBy;
 import oracle.pgql.lang.ir.OrderByElem;
@@ -19,14 +20,8 @@ import oracle.pgql.lang.ir.QueryExpressionVisitor;
 import oracle.pgql.lang.ir.QueryPath;
 import oracle.pgql.lang.ir.QueryVertex;
 import oracle.pgql.lang.ir.SelectQuery;
-import oracle.pgql.lang.ir.modify.DeleteClause;
-import oracle.pgql.lang.ir.modify.EdgeInsertion;
-import oracle.pgql.lang.ir.modify.InsertClause;
 import oracle.pgql.lang.ir.modify.ModifyQuery;
 import oracle.pgql.lang.ir.modify.SetPropertyExpression;
-import oracle.pgql.lang.ir.modify.Update;
-import oracle.pgql.lang.ir.modify.UpdateClause;
-import oracle.pgql.lang.ir.modify.VertexInsertion;
 
 /**
  * A visitor that replaces some expressions with another expression.
@@ -351,16 +346,20 @@ public abstract class ReplaceExpressions implements QueryExpressionVisitor {
   @Override
   public void visit(SelectQuery selectQuery) {
     visit(selectQuery.getProjection());
-    selectQuery.getTableExpressions().forEach(e -> e.accept(this));
-    if (selectQuery.getGroupBy() != null) {
-      visit(selectQuery.getGroupBy());
+    visitQuery(selectQuery);
+  }
+
+  public void visitQuery(GraphQuery graphQuery) {
+    graphQuery.getTableExpressions().forEach(e -> e.accept(this));
+    if (graphQuery.getGroupBy() != null) {
+      visit(graphQuery.getGroupBy());
     }
-    if (selectQuery.getHaving() != null) {
-      selectQuery.setHaving(replaceMatching(selectQuery.getHaving()));
+    if (graphQuery.getHaving() != null) {
+      graphQuery.setHaving(replaceMatching(graphQuery.getHaving()));
     }
-    visit(selectQuery.getOrderBy());
-    selectQuery.setLimit(replaceMatching(selectQuery.getLimit()));
-    selectQuery.setOffset(replaceMatching(selectQuery.getOffset()));
+    visit(graphQuery.getOrderBy());
+    graphQuery.setLimit(replaceMatching(graphQuery.getLimit()));
+    graphQuery.setOffset(replaceMatching(graphQuery.getOffset()));
   }
 
   @Override
@@ -408,33 +407,12 @@ public abstract class ReplaceExpressions implements QueryExpressionVisitor {
 
   @Override
   public void visit(ModifyQuery modifyQuery) {
-  }
-
-  @Override
-  public void visit(InsertClause insertClause) {
-  }
-
-  @Override
-  public void visit(UpdateClause updateClause) {
-  }
-
-  @Override
-  public void visit(DeleteClause deleteClause) {
-  }
-
-  @Override
-  public void visit(VertexInsertion vertexInsertion) {
-  }
-
-  @Override
-  public void visit(EdgeInsertion edgeInsertion) {
-  }
-
-  @Override
-  public void visit(Update update) {
+    modifyQuery.getModifications().forEach(modification -> modification.accept(this));
+    visitQuery(modifyQuery);
   }
 
   @Override
   public void visit(SetPropertyExpression setPropertyExpression) {
+    setPropertyExpression.setValueExpression(replaceMatching(setPropertyExpression.getValueExpression()));
   }
 }
