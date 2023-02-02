@@ -3,6 +3,7 @@
  */
 package oracle.pgql.lang.util;
 
+import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
 
@@ -20,15 +21,20 @@ import oracle.pgql.lang.ir.QueryExpressionVisitor;
 import oracle.pgql.lang.ir.QueryPath;
 import oracle.pgql.lang.ir.QueryVertex;
 import oracle.pgql.lang.ir.SelectQuery;
+import oracle.pgql.lang.ir.modify.DeleteClause;
+import oracle.pgql.lang.ir.modify.EdgeInsertion;
+import oracle.pgql.lang.ir.modify.InsertClause;
 import oracle.pgql.lang.ir.modify.ModifyQuery;
 import oracle.pgql.lang.ir.modify.SetPropertyExpression;
+import oracle.pgql.lang.ir.modify.Update;
+import oracle.pgql.lang.ir.modify.UpdateClause;
+import oracle.pgql.lang.ir.modify.VertexInsertion;
 
 /**
- * A visitor that replaces some expressions with another expression.
- * This visitor is only intended to operate on {@code SELECT} clauses.
- * Implementations of this class need to provide implementations for two functions: The first function is used to
- * identify expressions that are to be replaced. The second function is used to construct the replacements for those
- * expressions.
+ * A visitor that replaces some expressions with another expression. This visitor is only intended to operate on
+ * {@code SELECT} clauses. Implementations of this class need to provide implementations for two functions: The first
+ * function is used to identify expressions that are to be replaced. The second function is used to construct the
+ * replacements for those expressions.
  */
 public abstract class ReplaceExpressions implements QueryExpressionVisitor {
 
@@ -37,17 +43,18 @@ public abstract class ReplaceExpressions implements QueryExpressionVisitor {
   /**
    * Check if an expression should be replaced by this operator.
    *
-   * @param expression A query expression.
+   * @param expression
+   *          A query expression.
    * @return {@code true}, iff this expression should be replaced.
    */
   protected abstract boolean matches(QueryExpression expression);
 
   /**
-   * Construct a replacement for a given expression.
-   * Only matching expressions, i.e., those where {@link #matches(QueryExpression)} returns {@code true},
-   * are passed to this function for replacement.
+   * Construct a replacement for a given expression. Only matching expressions, i.e., those where
+   * {@link #matches(QueryExpression)} returns {@code true}, are passed to this function for replacement.
    *
-   * @param expression The expression that is to be replaced in the query.
+   * @param expression
+   *          The expression that is to be replaced in the query.
    * @return A new expression that is used as the replacement.
    */
   public abstract QueryExpression replace(QueryExpression expression);
@@ -265,6 +272,12 @@ public abstract class ReplaceExpressions implements QueryExpressionVisitor {
         .collect(Collectors.toSet());
   }
 
+  private List<QueryExpression> replaceInList(List<QueryExpression> expressions) {
+    return expressions.stream() //
+        .map(this::replaceMatching) //
+        .collect(Collectors.toList());
+  }
+
   // Other expression types
 
   @Override
@@ -414,5 +427,39 @@ public abstract class ReplaceExpressions implements QueryExpressionVisitor {
   @Override
   public void visit(SetPropertyExpression setPropertyExpression) {
     setPropertyExpression.setValueExpression(replaceMatching(setPropertyExpression.getValueExpression()));
+  }
+
+  @Override
+  public void visit(InsertClause insertClause) {
+    insertClause.getInsertions().forEach(insertion -> insertion.accept(this));
+  }
+
+  @Override
+  public void visit(UpdateClause updateClause) {
+    updateClause.getUpdates().forEach(update -> update.accept(this));
+  }
+
+  @Override
+  public void visit(DeleteClause deleteClause) {
+  }
+
+  @Override
+  public void visit(VertexInsertion vertexInsertion) {
+    vertexInsertion.setLabels(replaceInList(vertexInsertion.getLabels()));
+    vertexInsertion.getProperties()
+        .forEach(property -> property.setValueExpression(replaceMatching(property.getValueExpression())));
+  }
+
+  @Override
+  public void visit(EdgeInsertion edgeInsertion) {
+    edgeInsertion.setLabels(replaceInList(edgeInsertion.getLabels()));
+    edgeInsertion.getProperties()
+        .forEach(property -> property.setValueExpression(replaceMatching(property.getValueExpression())));
+  }
+
+  @Override
+  public void visit(Update update) {
+    update.getSetPropertyExpressions().forEach(propertyExpression -> propertyExpression
+        .setValueExpression(replaceMatching(propertyExpression.getValueExpression())));
   }
 }
