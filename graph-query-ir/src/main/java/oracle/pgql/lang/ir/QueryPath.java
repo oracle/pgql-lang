@@ -188,21 +188,29 @@ public class QueryPath extends VertexPairConnection {
       case ALL:
         return printVariableLengthPathPattern(goal);
       default:
-        throw new IllegalArgumentException(goal.toString());
+        throw new UnsupportedOperationException(goal.name());
     }
   }
 
   private String printVariableLengthPathPattern(PathFindingGoal goal) {
-    String pathPatternPrefix;
-    if (withTies) {
-      pathPatternPrefix = "ALL " + goal.toString() + " ";
-    } else if (goal == PathFindingGoal.REACHES) {
-      pathPatternPrefix = "ANY ";
-    } else if (kValue == 1) {
-      pathPatternPrefix = "ANY " + goal.toString() + " ";
-    } else {
-      String kValueAsString = kValue > 1 ? kValue + " " : "";
-      pathPatternPrefix = goal.toString() + " " + kValueAsString;
+    String pathPatternPrefix = null;
+    switch (goal) {
+      case REACHES:
+        pathPatternPrefix = "ANY ";
+        break;
+      case ALL:
+        pathPatternPrefix = "ALL ";
+        break;
+      case SHORTEST:
+      case CHEAPEST:
+        if (kValue == 1) {
+          pathPatternPrefix = (withTies ? "ALL " : "ANY ") + goal.toString() + " ";
+        } else {
+          pathPatternPrefix = goal.toString() + " " + kValue + " ";
+        }
+        break;
+      default:
+        new UnsupportedOperationException(goal.name());
     }
 
     pathPatternPrefix += pathMode == PathMode.WALK ? "" : pathMode.toString() + " ";

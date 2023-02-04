@@ -743,27 +743,38 @@ public class SpoofaxAstToGraphQuery {
     QueryVertex src = getQueryVertex(vertexMap, srcName);
     QueryVertex dst = getQueryVertex(vertexMap, dstName);
 
-    boolean withTies = false; // default
-    int kValue = -1; // default
+    int kValue = -1;
+    boolean withTies = false;
 
-    if (goal == PathFindingGoal.SHORTEST || goal == PathFindingGoal.CHEAPEST) {
-      IStrategoTerm topKAnyAllT = pathT.getSubterm(POS_PATH_TOP_K_ANY_ALL);
-      if (isSome(topKAnyAllT)) {
-        IStrategoAppl topKAnyAllContent = (IStrategoAppl) getSomeValue(topKAnyAllT);
-        switch (topKAnyAllContent.getName()) {
-          case "TopK": // TOP k SHORTEST or TOP k CHEAPEST
-            kValue = parseInt(topKAnyAllContent.getSubterm(0));
-            break;
-          case "Any": // ANY SHORTEST or ANY CHEAPEST
-            kValue = 1;
-            break;
-          case "All": // ALL SHORTEST or ALL CHEAPEST
-            withTies = true;
-            break;
-          default:
-            throw new IllegalArgumentException(topKAnyAllContent.getName());
+    switch (goal) {
+      case ALL:
+        break;
+      case REACHES:
+        kValue = 1;
+        break;
+      case SHORTEST:
+      case CHEAPEST:
+        IStrategoTerm topKAnyAllT = pathT.getSubterm(POS_PATH_TOP_K_ANY_ALL);
+        if (isSome(topKAnyAllT)) {
+          IStrategoAppl topKAnyAllContent = (IStrategoAppl) getSomeValue(topKAnyAllT);
+          switch (topKAnyAllContent.getName()) {
+            case "TopK": // SHORTEST k or CHEAPEST k
+              kValue = parseInt(topKAnyAllContent.getSubterm(0));
+              break;
+            case "Any": // ANY SHORTEST or ANY CHEAPEST
+              kValue = 1;
+              break;
+            case "All": // ALL SHORTEST or ALL CHEAPEST
+              kValue = 1;
+              withTies = true;
+              break;
+            default:
+              throw new IllegalArgumentException(topKAnyAllContent.getName());
+          }
         }
-      }
+        break;
+      default:
+        throw new UnsupportedOperationException(goal.name());
     }
 
     PathMode pathMode = getPathMode(pathT.getSubterm(POS_PATH_PATH_MODE));
