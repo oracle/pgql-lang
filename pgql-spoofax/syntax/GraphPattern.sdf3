@@ -16,7 +16,7 @@ context-free syntax
   GraphPattern.GraphPattern = PathPatternList KeepClause? WhereClause?
   PathPatternList.PathPatternList = <<{PathPattern ","}+>>
 
-  PathPattern.SingleVertex = <<PathPatternPrefix?> (<ElemContents>)> // PGQL 1.0
+  PathPattern.SingleVertex = <(<ElemContents>)> // PGQL 1.0
   Vertex.Vertex = <(<ElemContents>)>
 
   EdgeVertex.EdgeVertex = Connection Vertex

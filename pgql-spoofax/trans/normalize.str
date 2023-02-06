@@ -138,8 +138,8 @@ rules
   // MATCH (n) ONE ROW PER VERTEX (v)
   get-pgql13-errors:
     graphMatch -> <to-error-message(|"ONE ROW PER VERTEX or STEP is only supported in combination with an edge pattern and quantifier")> rowsPerMatch
-    where <?GraphMatch(_, SingleVertex(_, _), Some(OptionalGraphMatchParts1(rowsPerMatch, _))) +
-           ?GraphMatch(_, PathPattern2(_, SingleVertex(_, _)), Some(OptionalGraphMatchParts1(rowsPerMatch, _)))> graphMatch
+    where <?GraphMatch(_, SingleVertex(_), Some(OptionalGraphMatchParts1(rowsPerMatch, _))) +
+           ?GraphMatch(_, PathPattern2(_, SingleVertex(_)), Some(OptionalGraphMatchParts1(rowsPerMatch, _)))> graphMatch
         ; <is-not-one-row-per-match> rowsPerMatch
 
   is-not-one-row-per-match = ?OneRowPerVertex(_) + ?OneRowPerEdge(_) + ?OneRowPerStep(_, _, _)
@@ -397,7 +397,7 @@ rules
 
 rules
 
-  norm-singleVertex = ?SingleVertex(_, elemContents); !PathPattern2(None(), PathPattern(Vertex(elemContents), [])) // SELECT * WHERE ()
+  norm-singleVertex = ?SingleVertex(elemContents); !PathPattern2(None(), PathPattern(Vertex(elemContents), [])) // SELECT * WHERE ()
 
   // translate e.g. MATCH ( (n) -> (m) ) to MATCH (n) -> (m)
   norm-parenthesized-match-single-path:
