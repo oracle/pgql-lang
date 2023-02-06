@@ -42,6 +42,8 @@ context-free syntax
   EdgeOrPathContents = EdgeContents
   EdgeOrPathContents.Path = </<Identifier?><LabelExpression><PathQuantifier?>/>
 
+  ElemContents.ElemContents = Identifier? LabelExpression? Legacy10Ids? Legacy10WithInlinedConstraints?
+
   PathQuantifier.ZeroOrMore = <*>
   PathQuantifier.OneOrMore = <+>
   PathQuantifier.Optional = <?>
@@ -49,16 +51,6 @@ context-free syntax
   PathQuantifier.NOrMore = <{<UNSIGNED-INT>,}>
   PathQuantifier.BetweenNAndM = <{<UNSIGNED-INT>,<UNSIGNED-INT>}>
   PathQuantifier.BetweenZeroAndM = <{,<UNSIGNED-INT>}>
-
-context-free syntax
-
-  ElemContents.ElemContents       = <<Identifier?><LabelExpression?><Legacy10Ids?><Legacy10WithInlinedConstraints?>>
-  LabelExpression.Labels          = <<LabelExpressionIntroducer> <Labels>>
-  LabelExpressionIntroducer.Colon = <:>
-  LabelExpressionIntroducer.IS    = <IS> {case-insensitive}
-  Labels.Label                    = Identifier
-  Labels                          = BindVariable
-  Labels.LabelDisjunction         = <<Labels>|<Labels>> {left}
 
 context-free syntax
 

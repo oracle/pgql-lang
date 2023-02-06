@@ -61,6 +61,10 @@ context-free syntax
 
   Exp.BetweenPredicate = <<Exp> BETWEEN <Exp> AND <Exp>> {left, case-insensitive}
 
+  Exp.SourcePredicate = <<VarRef> IS <Not?> SOURCE <Of?> <VarRef>>  {case-insensitive}
+  Exp.DestinationPredicate = <<VarRef> IS <Not?> DESTINATION <Of?> <VarRef>>  {case-insensitive}
+  Of.Of = <OF> {case-insensitive}
+
 context-free syntax // function calls
 
   Exp.FunctionCall = <<PackageNameDot?><FunctionName>(<{Exp ", "}*>)>
@@ -100,6 +104,19 @@ context-free syntax // substring
 
   Exp.CharacterSubstring = <SUBSTRING(<Exp> FROM <Exp> <StringLength?>)> {case-insensitive}
   StringLength.StringLength = <FOR <Exp>> {case-insensitive}
+
+context-free syntax // labeled predicate
+
+  Exp.LabeledPredicate = <<VarRef> IS <Not?> LABELED <Labels>> {case-insensitive}
+
+context-free syntax // label expression
+
+  LabelExpression.Labels          = <<LabelExpressionIntroducer> <Labels>>
+  LabelExpressionIntroducer.Colon = <:>
+  LabelExpressionIntroducer.IS    = <IS> {case-insensitive}
+  Labels.Label                    = Identifier
+  Labels                          = BindVariable
+  Labels.LabelDisjunction         = <<Labels>|<Labels>> {left}
 
 context-free priorities
 

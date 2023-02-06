@@ -62,7 +62,9 @@ rules
         alltd(
           norm-BindVariable(|bindVariable-counter) +
           norm-UMin +
-          norm-DateTimeField);
+          norm-DateTimeField +
+          norm-labeled-predicate +
+          norm-source-destination-predicate);
         innermost(
           norm-NOT +
           norm-NEQ +
@@ -395,6 +397,30 @@ rules
 
   to-else = ?None(); !Null() <+ ?Some(ElseClause(<id>))
 
+  norm-labeled-predicate:
+    LabeledPredicate(varRef, notTerm, labelExpression) -> result
+    with labelExpression' := <to-label-constraint(|varRef)> labelExpression
+       ; if <?Some(_)> notTerm
+         then result := Not(labelExpression')
+         else result := labelExpression'
+         end
+
+  norm-source-destination-predicate:
+    t@SourcePredicate(vertexRef, notTerm, _, edgeRef) -> <origin-track-forced(!result)> t
+    with isSourceOfCall := FunctionCall(None(), RegularIdentifier("is_source_of"), [edgeRef, vertexRef])
+       ; if <?Some(_)> notTerm
+         then result := Not(isSourceOfCall)
+         else result := isSourceOfCall
+         end
+
+  norm-source-destination-predicate:
+    t@DestinationPredicate(vertexRef, notTerm, _, edgeRef) -> <origin-track-forced(!result)> t
+    with isDestinationOfCall := FunctionCall(None(), RegularIdentifier("is_destination_of"), [edgeRef, vertexRef])
+       ; if <?Some(_)> notTerm
+         then result := Not(isDestinationOfCall)
+         else result := isDestinationOfCall
+         end
+
 rules
 
   norm-singleVertex = ?SingleVertex(elemContents); !PathPattern2(None(), PathPattern(Vertex(elemContents), [])) // SELECT * WHERE ()
@@ -531,13 +557,14 @@ rules
 
   get-inlined-constraints:
     ElemContents(Some(var), label, id', otherConstraint) -> <concat> [labels, identifiers, otherConstraint']
-    with labels := <?Some(Labels(_, <id>)); to-label-constraint(|var); ![<id>] <+ ![]> label
+    with varRef := VarRef(var)
+       ; labels := <?Some(Labels(_, <id>)); to-label-constraint(|varRef); ![<id>] <+ ![]> label
        ; identifiers := <?Some(Ids(<id>)); to-id-constraint(|var); ![<id>] <+ ![]> id'
        ; otherConstraint' := <?Some(InlinedConstraint(<id>)) <+ ![]> otherConstraint
 
-  to-label-constraint(|var):
-    labels -> <to-hasLabel-expressions(|var)> labels
-  to-hasLabel-expressions(|var) = bottomup(try(![VarRef(var), <to-label>]; to-function(|"has_label") + origin-track-forced(normalize-label-disjunction)))
+  to-label-constraint(|varRef):
+    labels -> <to-hasLabel-expressions(|varRef)> labels
+  to-hasLabel-expressions(|varRef) = bottomup(try(![varRef, <to-label>]; to-function(|"has_label") + origin-track-forced(normalize-label-disjunction)))
   to-label = ?Label(<id>) + ?Legacy10Identifier(<id>); origin-track-forced(!Identifier(<id>, <id>)) + ?BindVariable(_)
   to-id-constraint(|var) = bottomup(try(is-literal; origin-track-forced(!Eq(<to-function(|"id")> [VarRef(var)], <id>))))
   normalize-label-disjunction = ?LabelDisjunction(x, y); !Or(x, y)
