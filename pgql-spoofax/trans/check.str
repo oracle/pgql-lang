@@ -411,6 +411,7 @@ rules
   nabl-constraint(|ctx) = ?AstPlusMetadata(<id>, metadata)
                         ; alltd(nabl-constraint(|ctx, metadata))
                         ; check-all-GraphTable-restrictions(|ctx)
+                        ; check-all-restrictions-outside-GraphTable(|ctx)
                         ; fail
 
 rules // IN predicate and CASE expression
@@ -764,6 +765,45 @@ rules // MODIFY
     ExpressionPlusType(exp@FunctionCall(_, _, _), AmbiguousType()) -> <fail>
     with <generate-error(|ctx, "Multiple functions exist that match the specified function name and argument types")> exp
 
+  nabl-constraint(|ctx, metadata):
+    FunctionCall(None(), Identifier("VERTEX_EQUAL", _), [ExpressionPlusType(exp1, t1), ExpressionPlusType(exp2, t2)]) -> <fail>
+    with if <not(?Type("VERTEX"))> t1
+         then <generate-error(|ctx, "Vertex expected")> exp1
+         end
+       ; if <not(?Type("VERTEX"))> t2
+         then <generate-error(|ctx, "Vertex expected")> exp2
+         end
+
+  nabl-constraint(|ctx, metadata):
+    FunctionCall(None(), Identifier("EDGE_EQUAL", _), [ExpressionPlusType(exp1, t1), ExpressionPlusType(exp2, t2)]) -> <fail>
+    with if <not(?Type("EDGE"))> t1
+         then <generate-error(|ctx, "Edge expected")> exp1
+         end
+       ; if <not(?Type("EDGE"))> t2
+         then <generate-error(|ctx, "Edge expected")> exp2
+         end
+
+  nabl-constraint(|ctx, metadata):
+    FunctionCall(None(), Identifier("VERTEX_ID", _), [ExpressionPlusType(exp, t)]) -> <fail>
+    with if <not(?Type("VERTEX"))> t
+         then <generate-error(|ctx, "Vertex expected")> exp
+         end
+
+  nabl-constraint(|ctx, metadata):
+    FunctionCall(None(), Identifier("EDGE_ID", _), [ExpressionPlusType(exp, t)]) -> <fail>
+    with if <not(?Type("EDGE"))> t
+         then <generate-error(|ctx, "Edge expected")> exp
+         end
+
+rules
+
+  check-all-restrictions-outside-GraphTable(|ctx) = alltd(?DerivedTable(Some(GraphTable()), _, _) <+ check-restriction-outside-GraphTable(|ctx))
+
+  // MATCHNUM outside of GRAPH_TABLE
+  check-restriction-outside-GraphTable(|ctx):
+    e@FunctionCall(None(), Identifier("MATCHNUM", _), []) -> <fail>
+    with <generate-error(|ctx, "MATCHNUM without argument not supported unless used inside GRAPH_TABLE")> e
+
 rules // GRAPH_TABLE
 
   check-all-GraphTable-restrictions(|ctx):
@@ -774,7 +814,7 @@ rules // GRAPH_TABLE
 
   check-GraphTable-restriction(|ctx):
     Vertex(e@Identifier(_, v), _, Correlation(_)) -> <fail>
-    with <generate-error(|ctx, $<GRAPH_TABLE restriction: vertex sharing between inner and outer query is not allowed, introduce a new variable name like <v>_new and use WHERE element_id(<v>_new) = element_id(<v>)>)> e
+    with <generate-error(|ctx, $<GRAPH_TABLE restriction: vertex sharing between inner and outer query is not allowed, introduce a new variable name like <v>_new and use WHERE vertex_equal(<v>, <v>_new)>)> e
 
   check-GraphTable-restriction(|ctx):
     SelectList(elems) -> <fail>
@@ -803,13 +843,33 @@ rules // GRAPH_TABLE
     with <generate-error(|ctx, "GRAPH_TABLE restriction: OUT_DEGREE not supported, use a subquery instead")> e
 
   check-GraphTable-restriction(|ctx):
-    e@Eq(ExpressionPlusType(exp1, t1), ExpressionPlusType(exp2, t2)) -> <fail>
-    where <is-vertex-or-edge-type> t1
-        ; <is-vertex-or-edge-type> t2
-    with <generate-error(|ctx, $<GRAPH_TABLE restriction: use SAME(<<origin-text> exp1>, <<origin-text> exp2>)>)> e
+    e@FunctionCall(None(), Identifier("ID", _), [_]) -> <fail>
+    with <generate-error(|ctx, "GRAPH_TABLE restriction: ID not supported, use VERTEX_ID or EDGE_ID instead")> e
 
   check-GraphTable-restriction(|ctx):
-    e@Neq(ExpressionPlusType(exp1, t1), ExpressionPlusType(exp2, t2)) -> <fail>
+    e@FunctionCall(None(), Identifier("MATCH_NUMBER", _), [_]) -> <fail>
+    with <generate-error(|ctx, "GRAPH_TABLE restriction: MATCH_NUMBER not supported, use MATCHNUM instead")> e
+
+  check-GraphTable-restriction(|ctx):
+    e@Eq(ExpressionPlusType(exp1, t1), ExpressionPlusType(exp2, _)) -> <fail>
     where <is-vertex-or-edge-type> t1
-        ; <is-vertex-or-edge-type> t2
-    with <generate-error(|ctx, $<GRAPH_TABLE restriction: use NOT SAME(<<origin-text> exp1>, <<origin-text> exp2>)>)> e
+    with if <?Type("VERTEX")> t1
+         then <generate-error(|ctx, $<GRAPH_TABLE restriction: use VERTEX_EQUAL(<<origin-text> exp1>, <<origin-text> exp2>)>)> e
+         else <generate-error(|ctx, $<GRAPH_TABLE restriction: use EDGE_EQUAL(<<origin-text> exp1>, <<origin-text> exp2>)>)> e
+         end
+
+  check-GraphTable-restriction(|ctx):
+    e@Neq(ExpressionPlusType(exp1, t1), ExpressionPlusType(exp2, _)) -> <fail>
+    where <is-vertex-or-edge-type> t1
+    with if <?Type("VERTEX")> t1
+         then <generate-error(|ctx, $<GRAPH_TABLE restriction: use NOT VERTEX_EQUAL(<<origin-text> exp1>, <<origin-text> exp2>)>)> e
+         else <generate-error(|ctx, $<GRAPH_TABLE restriction: use NOT EDGE_EQUAL(<<origin-text> exp1>, <<origin-text> exp2>)>)> e
+         end
+
+  check-GraphTable-restriction(|ctx):
+    CommonPathExpressions(pathMacros) -> <fail>
+    with <map(?CommonPathExpression(<id>, _, _, _, _); generate-error(|ctx, "GRAPH_TABLE restriction: path macros not supported"))> pathMacros
+
+  check-GraphTable-restriction(|ctx):
+    e@OneRowPerEdge(_) -> <fail>
+    with <generate-error(|ctx, "GRAPH_TABLE restriction: ONE ROW PER EDGE not supported, use ONE ROW PER STEP")> e

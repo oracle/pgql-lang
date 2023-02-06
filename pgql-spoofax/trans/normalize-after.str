@@ -13,6 +13,7 @@ rules
 
   normalize-after = try(?AstPlusMetadata(_, metadata)
                   ; innermost(inPredicate-to-non-equality-constraints(|metadata) <+ norm-inPredicate)
+                  ; alltd(norm-matchnum)
                   ; AstPlusMetadata(push-down-predicates(|[]), id))
 
 rules
@@ -52,6 +53,20 @@ rules
          then result := <origin-track-forced(!Not(inPredicate))> t
          else result := inPredicate
          end
+
+rules
+
+  norm-matchnum:
+    DerivedTable(Some(GraphTable()), Subquery(query), correlation) -> DerivedTable(Some(GraphTable()), Subquery(query'), correlation)
+    with dummyVarRef := <collect-in-outer-query(rowsPerMatchVariable-to-varRef); Hd <+ collect-in-outer-query(vertex-to-varRef); Hd> query
+       ; query' := <alltd-in-outer-query(?FunctionCall(None(), funcName@Identifier("MATCHNUM", _), []);
+                                      !FunctionCall(None(), funcName, [dummyVarRef]))> query
+
+  rowsPerMatchVariable-to-varRef:
+    RowsPerMatchVariable(identifier, origin-position, _, _) -> VarRef(identifier, origin-position)
+
+  vertex-to-varRef:
+    Vertex(identifier, origin-position, _) -> VarRef(identifier, origin-position)
 
 rules
 
