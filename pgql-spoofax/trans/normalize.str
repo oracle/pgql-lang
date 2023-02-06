@@ -129,15 +129,17 @@ rules
   get-pgql13-errors      = ?GraphMatch(None(), _, _); to-error-message(|"Missing MATCH keyword at start of pattern")
 
   get-pgql13-errors:
-    ParenthesizedGraphMatch(_, _, optionalGraphMatchParts) -> <to-error-message(|"ONE ROW PER VERTEX or STEP is only permitted if the MATCH clause contains a single path pattern")> rowsPerMatch
+    ParenthesizedGraphMatch(_, _, optionalGraphMatchParts) -> <error-for-rows-clause-when-multiple-path-patterns> rowsPerMatch
     where rowsPerMatch := <get-RowsPerMatch; ?Some(<id>)> optionalGraphMatchParts
         ; <is-not-one-row-per-match> rowsPerMatch
+
+  error-for-rows-clause-when-multiple-path-patterns = to-error-message(|"ONE ROW PER VERTEX or STEP is only permitted if the MATCH clause contains a single path pattern")
 
   // MATCH (n) ONE ROW PER VERTEX (v)
   get-pgql13-errors:
     graphMatch -> <to-error-message(|"ONE ROW PER VERTEX or STEP is only supported in combination with an edge pattern and quantifier")> rowsPerMatch
-    where <?GraphMatch(_, SingleVertex(_), Some(OptionalGraphMatchParts1(rowsPerMatch, _))) +
-           ?GraphMatch(_, PathPattern2(_, SingleVertex(_)), Some(OptionalGraphMatchParts1(rowsPerMatch, _)))> graphMatch
+    where <?GraphMatch(_, SingleVertex(_, _), Some(OptionalGraphMatchParts1(rowsPerMatch, _))) +
+           ?GraphMatch(_, PathPattern2(_, SingleVertex(_, _)), Some(OptionalGraphMatchParts1(rowsPerMatch, _)))> graphMatch
         ; <is-not-one-row-per-match> rowsPerMatch
 
   is-not-one-row-per-match = ?OneRowPerVertex(_) + ?OneRowPerEdge(_) + ?OneRowPerStep(_, _, _)
@@ -188,6 +190,20 @@ rules
                then error-message := <to-error-message(|$<GRAPH_TABLE restriction: use <<origin-text> vertex> IS DESTINATION OF <<origin-text> edge>>)> e
                end
           end
+
+  get-GraphTable-restriction = ?Path(_, _, _); to-error-message(|"GRAPH_TABLE restriction: -/../-> not supported")
+
+  get-GraphTable-restriction:
+    e@FunctionCall(None(), functionName, [_]) -> <to-error-message(|"GRAPH_TABLE restriction: MATCHNUM with argument not supported, use MATCHNUM without argument instead")> e
+    where <norm-identifier; ?Identifier("MATCHNUM", _)> functionName
+
+  get-GraphTable-restriction = ?KeepClause(_); to-error-message(|"KEEP clause not yet supported")
+
+  get-GraphTable-restriction:
+    GraphTable(_, GraphPattern(PathPatternList(pathPatterns), _, _), GraphTableShape(Some(rowsClause), _))
+      -> <error-for-rows-clause-when-multiple-path-patterns> rowsClause
+    where <length; not(?1)> pathPatterns
+        ; <?OneRowPerVertex(_) + ?OneRowPerStep(_, _, _)> rowsClause
 
   quantifier-without-path-finding-goal =
     collect(quantified-path-pattern <+ is-quantifier)
@@ -381,7 +397,7 @@ rules
 
 rules
 
-  norm-singleVertex = ?SingleVertex(elemContents); !PathPattern2(None(), PathPattern(Vertex(elemContents), [])) // SELECT * WHERE ()
+  norm-singleVertex = ?SingleVertex(_, elemContents); !PathPattern2(None(), PathPattern(Vertex(elemContents), [])) // SELECT * WHERE ()
 
   // translate e.g. MATCH ( (n) -> (m) ) to MATCH (n) -> (m)
   norm-parenthesized-match-single-path:
@@ -829,8 +845,7 @@ rules // GRAPH_TABLE
                        ?Some(GraphTableColumnsClause(<id>)); map(?AllProperties(_, _) + norm-ExpAsVar-for-select-clause); ?list; !columnsClause; origin-track-forced(!SelectList(list))> columnsClause
        ; selectClause := <origin-track-forced(!SelectClause(distinct, selectList))> selectList
        ; graphName' := <?None() + ?Some(<id>); !Some(GraphName(<id>))> graphName
-       ; rowsPerMatch := None()
-       ; graphPattern' := <map(!PathPatternAndRowsPerMatch(<id>, rowsPerMatch)); norm-matchElems-common(|variable-counter)> pathPatterns
+       ; graphPattern' := <map(!PathPatternAndRowsPerMatch(<id>, rowsClause)); norm-matchElems-common(|variable-counter)> pathPatterns
        ; tableExpressions := [ graphPattern' ]
        ; whereClause' := <?Some(WhereClause(<id>)); !Constraints([<id>]) <+ ?None(); !Constraints([])> whereClause
        ; groupBy := None()

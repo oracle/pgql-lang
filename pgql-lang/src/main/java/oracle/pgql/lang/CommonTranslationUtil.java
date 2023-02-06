@@ -333,6 +333,23 @@ public class CommonTranslationUtil {
         String functionName = getString(t.getSubterm(POS_FUNCTION_CALL_ROUTINE_NAME));
         IStrategoTerm argsT = getList(t.getSubterm(POS_FUNCTION_CALL_EXPS));
         List<QueryExpression> args = varArgsToExps(ctx, argsT);
+
+        // normalize some function calls into preexisting equivalents
+        if (schemaName == null && packageName == null) {
+          switch (functionName) {
+            case "VERTEX_ID":
+            case "EDGE_ID":
+              return new QueryExpression.FunctionCall(null, null, "ID", args);
+            case "VERTEX_EQUAL":
+            case "EDGE_EQUAL":
+              return new QueryExpression.RelationalExpression.Equal(args.get(0), args.get(1));
+            case "MATCHNUM":
+              return new QueryExpression.FunctionCall(null, null, "MATCHNUMBER", args);
+            default:
+              break;
+          }
+        }
+
         return new QueryExpression.FunctionCall(schemaName, packageName, functionName, args);
       case "ExtractExp":
         IStrategoAppl fieldT = (IStrategoAppl) t.getSubterm(POS_EXTRACT_FIELD);

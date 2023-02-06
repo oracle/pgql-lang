@@ -2,11 +2,11 @@ module variables
 
 language pgql-lang
 
-test Restriction: colon [[
+test Restriction: colon (1) [[
 
   SELECT *
-  FROM GRAPH_TABLE (
-         g MATCH (n[[:]]person)
+  FROM GRAPH_TABLE ( g
+         MATCH (n[[:]]person)
          WHERE EXISTS ( SELECT * 
                         FROM GRAPH_TABLE (
                                g MATCH (m IS person) -> (o[[:]]person)
@@ -16,11 +16,11 @@ test Restriction: colon [[
 
 ]] error like "GRAPH_TABLE restriction: use IS instead of :" at #1, #2
 
-test Restriction: colon [[
+test Restriction: colon (2) [[
 
   SELECT *
-  FROM GRAPH_TABLE (
-         g MATCH (n IS person)
+  FROM GRAPH_TABLE ( g
+         MATCH (n IS person)
          COLUMNS ( n.prop ) )
      , MATCH (n2[[:]]person) -[e[[:]]knows]-> (n3 IS person)
 
@@ -38,8 +38,8 @@ test Restriction: graph name [[
 test Restriction: subquery without GRAPH_TABLE [[
 
   SELECT *
-  FROM GRAPH_TABLE (
-         g MATCH (person IS person)
+  FROM GRAPH_TABLE ( g
+         MATCH (person IS person)
          WHERE EXISTS ( SELECT 1
                         FROM [[MATCH (n) ON g,]]
                              [[MATCH ( (n) ) ON g )]]
@@ -50,35 +50,24 @@ test Restriction: subquery without GRAPH_TABLE [[
 ]] error like "GRAPH_TABLE restriction: wrap top-level MATCH in GRAPH_TABLE" at #1, #2
    error like "Subquery uses older version of PGQL syntax; please make sure that both inner and outer query use the same PGQL version" at #3, #4
 
-test Restriction: MATCH without GRAPH_TABLE [[
-
-  SELECT *
-  FROM GRAPH_TABLE (
-         g MATCH (n IS person)
-         COLUMNS ( n.prop ) )
-     , [[MATCH (n2) ON g]]
-
-]] error like "GRAPH_TABLE restriction: wrap top-level MATCH in GRAPH_TABLE" at #1
-
-
 test Restriction: vertex sharing with outer query (1) [[
 
   SELECT *
-  FROM GRAPH_TABLE (
-         g MATCH (person IS person)
+  FROM GRAPH_TABLE ( g
+         MATCH (person IS person)
          WHERE EXISTS ( SELECT *
                         FROM GRAPH_TABLE (
                                g MATCH ([[person]])
                                COLUMNS ( 1 ) ) )
          COLUMNS ( person.first_name ) )
 
-]] error like "GRAPH_TABLE restriction: vertex sharing between inner and outer query is not allowed, introduce a new variable name like person_new and use WHERE element_id(person_new) = element_id(person)" at #1
+]] error like "GRAPH_TABLE restriction: vertex sharing between inner and outer query is not allowed, introduce a new variable name like person_new and use WHERE vertex_equal(person, person_new)" at #1
 
 test Restriction: vertex sharing with outer query (2) [[
 
   SELECT *
-  FROM GRAPH_TABLE (
-         g MATCH (person IS person)
+  FROM GRAPH_TABLE ( g
+         MATCH (person IS person)
          WHERE EXISTS ( SELECT *
                         FROM GRAPH_TABLE (
                                g MATCH (n)
@@ -89,14 +78,14 @@ test Restriction: vertex sharing with outer query (2) [[
                                COLUMNS ( 1 ) ) )
          COLUMNS ( person.first_name ) )
 
-]] error like "GRAPH_TABLE restriction: vertex sharing between inner and outer query is not allowed, introduce a new variable name like person_new and use WHERE element_id(person_new) = element_id(person)" at #1
-   error like "GRAPH_TABLE restriction: vertex sharing between inner and outer query is not allowed, introduce a new variable name like n_new and use WHERE element_id(n_new) = element_id(n)" at #2
+]] error like "GRAPH_TABLE restriction: vertex sharing between inner and outer query is not allowed, introduce a new variable name like person_new and use WHERE vertex_equal(person, person_new)" at #1
+   error like "GRAPH_TABLE restriction: vertex sharing between inner and outer query is not allowed, introduce a new variable name like n_new and use WHERE vertex_equal(n, n_new)" at #2
 
 test Restriction: LIMIT [[
 
   SELECT *
-  FROM GRAPH_TABLE (
-         g MATCH (person IS person)
+  FROM GRAPH_TABLE ( g
+         MATCH (person IS person)
          WHERE EXISTS ( SELECT *
                         FROM GRAPH_TABLE (
                                g MATCH (car IS car)
@@ -110,8 +99,8 @@ test Restriction: LIMIT [[
 test Restriction: LIMIT outsie GRAPH_TABLE [[
 
   SELECT *
-  FROM GRAPH_TABLE (
-         g MATCH (person IS person)
+  FROM GRAPH_TABLE ( g
+         MATCH (person IS person)
          COLUMNS ( person.first_name ) )
   OFFSET 10
   [[LIMIT 11]]
@@ -121,8 +110,8 @@ test Restriction: LIMIT outsie GRAPH_TABLE [[
 test Restriction: projecting vertex/edge objects [[
 
   SELECT *
-  FROM GRAPH_TABLE (
-         g MATCH (n) -[e]-> (m)
+  FROM GRAPH_TABLE ( g
+         MATCH (n) -[e]-> (m)
          COLUMNS ( [[n,]] [[e,]] [[m )]] )
 
 ]] error like "GRAPH_TABLE restriction: cannot project vertex or edge objects" at #1, #2, #3
@@ -130,8 +119,8 @@ test Restriction: projecting vertex/edge objects [[
 test Restriction: SHORTEST [[
 
   SELECT *
-  FROM GRAPH_TABLE (
-         g MATCH [[SHORTEST(n) -[e]->* (m)]]
+  FROM GRAPH_TABLE ( g
+         MATCH [[SHORTEST(n) -[e]->* (m)]]
          COLUMNS ( 1 )
        )
 
@@ -140,8 +129,8 @@ test Restriction: SHORTEST [[
 test Restriction: CHEAPEST [[
 
   SELECT *
-  FROM GRAPH_TABLE (
-         g MATCH [[CHEAPEST(n) -[e]->* (m)]]
+  FROM GRAPH_TABLE ( g
+         MATCH [[CHEAPEST(n) -[e]->* (m)]]
          COLUMNS ( 1 )
        )
 
@@ -151,8 +140,8 @@ test Restriction: CHEAPEST [[
 test Restriction: TOP k SHORTEST [[
 
   SELECT *
-  FROM GRAPH_TABLE (
-         g MATCH [[TOP 12 SHORTEST(n) -[e]->* (m)]]
+  FROM GRAPH_TABLE ( g
+         MATCH [[TOP 12 SHORTEST(n) -[e]->* (m)]]
          COLUMNS ( 1 )
        )
 
@@ -161,8 +150,8 @@ test Restriction: TOP k SHORTEST [[
 test Restriction: label(..) and labels(..) [[
 
   SELECT *
-  FROM GRAPH_TABLE (
-         g MATCH (n)
+  FROM GRAPH_TABLE ( g
+         MATCH (n)
          COLUMNS ( [[label(n)]] AS lbl, [[labels(n)]] AS lbls )
        )
 
@@ -171,8 +160,8 @@ test Restriction: label(..) and labels(..) [[
 test Restriction: has_label(..) [[
 
   SELECT *
-  FROM GRAPH_TABLE (
-         g MATCH (n)
+  FROM GRAPH_TABLE ( g
+         MATCH (n)
          COLUMNS ( [[has_label(n, 'PERSON')]], [["HAS_LABEL"(n, 'Car')]], [[Has_Label(n, 'House')]] )
        )
 
@@ -181,17 +170,28 @@ test Restriction: has_label(..) [[
 test Restriction: no COLUMNS clause [[
 
   SELECT 1
-  FROM [[GRAPH_TABLE (
-         g MATCH (n)
+  FROM [[GRAPH_TABLE ( g
+         MATCH (n)
        )]]
 
 ]] error like "GRAPH_TABLE restriction: COLUMNS clause is required" at #1
 
+test Restriction: ID[[
+
+  SELECT 1
+  FROM GRAPH_TABLE ( g
+         MATCH (n) -[e]-> (m)
+         WHERE [[id(n)]] > 0 AND [[id(e)]] > 0
+         COLUMNS ( 1 )
+       )
+
+]] error like "GRAPH_TABLE restriction: ID not supported, use VERTEX_ID or EDGE_ID instead" at #1, #2
+
 test Restriction: ALL_DIFFERENT but no vertex/edge input [[
 
   SELECT 1
-  FROM GRAPH_TABLE (
-         g MATCH (n)
+  FROM GRAPH_TABLE ( g
+         MATCH (n)
          WHERE All_Different([[n.prop1]], [[1]], [['x']], n)
          COLUMNS ( 1 )
        )
@@ -201,8 +201,8 @@ test Restriction: ALL_DIFFERENT but no vertex/edge input [[
 test Restriction: JAVA_REGEXP_LIKE [[
 
   SELECT 1
-  FROM GRAPH_TABLE (
-         g MATCH (n)
+  FROM GRAPH_TABLE ( g
+         MATCH (n)
          WHERE [[Java_Regexp_Like('aaaaab', 'a*b')]]
          COLUMNS ( 1 )
        )
@@ -212,8 +212,8 @@ test Restriction: JAVA_REGEXP_LIKE [[
 test Restriction: IN_DEGREE and OUT_DEGREE [[
 
   SELECT 1
-  FROM GRAPH_TABLE (
-         g MATCH (n)
+  FROM GRAPH_TABLE ( g
+         MATCH (n)
          WHERE [[in_degree(n)]] > 10 AND [[out_degree(n)]] > 10
          COLUMNS ( 1 )
        )
@@ -224,23 +224,23 @@ test Restriction: IN_DEGREE and OUT_DEGREE [[
 test Restriction: vertex and edge equals [[
 
   SELECT 1
-  FROM GRAPH_TABLE (
-         g MATCH (n) -[e1]-> (m) -[e2]-> (o)
+  FROM GRAPH_TABLE ( g
+         MATCH (n) -[e1]-> (m) -[e2]-> (o)
          WHERE [[n = m]] AND [[e1 = e2]]
            AND [[n <> m]] AND [[e1 <> e2]]
          COLUMNS ( 1 )
        )
 
-]] error like "GRAPH_TABLE restriction: use SAME(n, m)" at #1
-   error like "GRAPH_TABLE restriction: use SAME(e1, e2)" at #2
-   error like "GRAPH_TABLE restriction: use NOT SAME(n, m)" at #3
-   error like "GRAPH_TABLE restriction: use NOT SAME(e1, e2)" at #4
+]] error like "GRAPH_TABLE restriction: use VERTEX_EQUAL(n, m)" at #1
+   error like "GRAPH_TABLE restriction: use EDGE_EQUAL(e1, e2)" at #2
+   error like "GRAPH_TABLE restriction: use NOT VERTEX_EQUAL(n, m)" at #3
+   error like "GRAPH_TABLE restriction: use NOT EDGE_EQUAL(e1, e2)" at #4
 
 test Restriction: is_source_of, is_destination_of [[
 
   SELECT 1
-  FROM GRAPH_TABLE (
-         g MATCH (n) -[e]-> ()
+  FROM GRAPH_TABLE ( g
+         MATCH (n) -[e]-> ()
          WHERE [[Is_Source_Of(e, n)]]
            AND [[Is_Destination_Of(e, n)]]
          COLUMNS ( 1 )
@@ -249,4 +249,109 @@ test Restriction: is_source_of, is_destination_of [[
 ]] error like "GRAPH_TABLE restriction: use n IS SOURCE OF e" at #1
    error like "GRAPH_TABLE restriction: use n IS DESTINATION OF e" at #2
 
-// ROWS PER MATCH clause
+test Restriction: PATH [[
+
+  PATH [[p1]] AS () -[IS knows]-> ()
+  SELECT 1
+  FROM GRAPH_TABLE ( g
+         MATCH (n)
+         COLUMNS ( 1 )
+       )
+
+]] error like "GRAPH_TABLE restriction: path macros not supported" at #1
+
+test Restriction: -/.../-> [[
+
+  SELECT 1
+  FROM GRAPH_TABLE ( g
+         MATCH (n) [[<-/IS knows*/-]] (m) [[-/IS knows*/->]] (o)
+         COLUMNS ( 1 )
+       )
+
+]] error like "GRAPH_TABLE restriction: -/../-> not supported" at #1, #2
+
+test Restriction: MATCH_NUMBER, MATCHNUM [[
+
+  SELECT 1
+  FROM GRAPH_TABLE ( g
+         MATCH (n) -[e]->{,10} (m)
+         ONE ROW PER VERTEX ( v )
+         COLUMNS ( [[MATCH_NUMBER(v)]], [[MATCHNUM(v)]] )
+       )
+
+]] error like "GRAPH_TABLE restriction: MATCH_NUMBER not supported, use MATCHNUM instead" at #1
+   error like "GRAPH_TABLE restriction: MATCHNUM with argument not supported, use MATCHNUM without argument instead" at #2
+
+test Restriction: MATCHNUM outside GRAPH_TABLE [[
+
+  SELECT [[MATCHNUM()]]
+  FROM MATCH (n) -[e]->{,10} (m)
+         ONE ROW PER VERTEX ( v )
+
+]] error like "MATCHNUM without argument not supported unless used inside GRAPH_TABLE" at #1
+
+test Restriction: ONE ROW PER EDGE [[
+
+  SELECT 1
+  FROM GRAPH_TABLE ( g
+         MATCH ANY SHORTEST (n) -[e1]->* (m)
+         [[ONE ROW PER EDGE ( v1 )]]
+         COLUMNS ( 1 )
+       )
+
+]] error like "GRAPH_TABLE restriction: ONE ROW PER EDGE not supported, use ONE ROW PER STEP" at #1
+
+test KEEP clause not yet supported [[
+
+  SELECT 1
+  FROM GRAPH_TABLE ( g
+         MATCH (n) -[e]->{,10} (m)
+         [[KEEP ANY SHORTEST
+         COLUMNS]] ( 1 )
+       )
+
+]] error like "KEEP clause not yet supported" at #1
+
+test ONE ROW PER VERTEX without quantifier [[
+
+  SELECT 1
+  FROM GRAPH_TABLE ( g
+         MATCH (n) [[-[e]-> (m)]]
+         ONE ROW PER VERTEX ( v1 )
+         COLUMNS ( 1 )
+       )
+
+]] error like "Quantifier of the form {1,4} expected" at #1
+
+test ONE ROW PER STEP without quantifier [[
+
+  SELECT 1
+  FROM GRAPH_TABLE ( g
+         MATCH ANY SHORTEST (n) [[-> (m)]]
+         ONE ROW PER STEP ( v1, e, v2 )
+         COLUMNS ( 1 )
+       )
+
+]] error like "Quantifier of the form * or + or {1,4} expected" at #1
+
+test ONE ROW PER VERTEX without quantifier [[
+
+  SELECT 1
+  FROM GRAPH_TABLE ( g
+         MATCH ANY (n) ->* (m), ANY (m) ->* (o)
+         [[ONE ROW PER VERTEX ( v1 )]]
+         COLUMNS ( 1 )
+       )
+
+]] error like "ONE ROW PER VERTEX or STEP is only permitted if the MATCH clause contains a single path pattern" at #1
+
+test ONE ROW PER STEP without quantifier [[
+
+  SELECT 1
+  FROM GRAPH_TABLE ( g
+         MATCH ANY (n) ->* (m), ANY (m) ->* (o)
+         [[ONE ROW PER STEP ( v1, e, v2 )]]
+         COLUMNS ( 1 )
+       )
+
+]] error like "ONE ROW PER VERTEX or STEP is only permitted if the MATCH clause contains a single path pattern" at #1
