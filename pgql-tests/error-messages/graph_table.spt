@@ -355,3 +355,23 @@ test ONE ROW PER STEP without quantifier [[
        )
 
 ]] error like "ONE ROW PER VERTEX or STEP is only permitted if the MATCH clause contains a single path pattern" at #1
+
+test Only aggregations with group variables allowed in COLUMNS clause [[
+
+  SELECT 1
+  FROM GRAPH_TABLE ( g
+         MATCH (n)
+         COLUMNS ( [[COUNT(*)]] AS aggr1, [[SUM(n.prop)]] AS aggr2 )
+       )
+
+]] error like "COLUMNS clause allows only aggregations that access at least one group variable" at #1, #2
+
+test Only aggregations with group variables allowed in COLUMNS clause [[
+
+  SELECT 1
+  FROM GRAPH_TABLE ( g
+         MATCH (n) -[e]->{3} (m)
+         COLUMNS ( [[COUNT(*)]] AS aggr1, [[SUM(n.prop)]] AS aggr2, SUM(e.prop) AS aggr3 )
+       )
+
+]] error like "Aggregation with group variables expected since SELECT clause has another aggregation with group variables" at #1, #2
