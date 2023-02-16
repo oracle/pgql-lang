@@ -874,6 +874,15 @@ rules // GRAPH_TABLE
     e@OneRowPerEdge(_) -> <fail>
     with <generate-error(|ctx, "GRAPH_TABLE restriction: ONE ROW PER EDGE not supported, use ONE ROW PER STEP")> e
 
+  // note: UPDATE and DELETE do not need a check since GRAPH_TABLE does not allow for projecting vertex and edges objects (to be updated/deleted) anyway
+  check-GraphTable-restriction(|ctx):
+    e@InsertClause(_, _) -> <fail>
+    with <generate-error(|ctx, "GRAPH_TABLE restriction: INSERT not supported")> e
+
+  check-GraphTable-restriction(|ctx):
+    e@ColumnNamePrefix(_) -> <fail>
+    with <generate-error(|ctx, "GRAPH_TABLE restriction: PREFIX not supported")> e
+
   nabl-constraint(|ctx):
     DerivedTable(Some(GraphTable()), Subquery(NormalizedQuery(_, selectClause, _, _, _, CreateOneGroup(), _, _, _, _, _, _, _)), None()) -> <fail>
     with aggregations := <collect(is-aggregate)> selectClause

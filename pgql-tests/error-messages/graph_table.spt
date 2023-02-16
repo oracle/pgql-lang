@@ -301,6 +301,21 @@ test Restriction: ONE ROW PER EDGE [[
 
 ]] error like "GRAPH_TABLE restriction: ONE ROW PER EDGE not supported, use ONE ROW PER STEP" at #1
 
+test Restriction: INSERT [[
+
+  [[INSERT VERTEX v
+  FROM]] GRAPH_TABLE ( g MATCH (n) COLUMNS ( 1 ) )
+
+]] error like "GRAPH_TABLE restriction: INSERT not supported" at #1
+
+test Restriction: PREFIX [[
+
+  SELECT *
+  FROM GRAPH_TABLE ( g MATCH (n) COLUMNS ( n.* [[PREFIX 'n_']] ) )
+
+]] error like "GRAPH_TABLE restriction: PREFIX not supported" at #1
+
+
 test KEEP clause not yet supported [[
 
   SELECT 1
