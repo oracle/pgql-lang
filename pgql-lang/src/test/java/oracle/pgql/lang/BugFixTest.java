@@ -346,6 +346,6 @@ public class BugFixTest extends AbstractPgqlTest {
         "       SELECT a.number " + //
         "       FROM MATCH (a) ON financial_transactions " + //
         "     )").getGraphQuery();
-    assertEquals("FINANCIAL_TRANSACTIONS", graphQuery.getGraphName());
+    assertEquals("FINANCIAL_TRANSACTIONS", graphQuery.getGraphName().getName());
   }
 }
