@@ -344,7 +344,7 @@ public class CommonTranslationUtil {
             case "EDGE_EQUAL":
               return new QueryExpression.RelationalExpression.Equal(args.get(0), args.get(1));
             case "MATCHNUM":
-              return new QueryExpression.FunctionCall(null, null, "MATCHNUMBER", args);
+              return new QueryExpression.FunctionCall(null, null, "MATCH_NUMBER", args);
             default:
               break;
           }
