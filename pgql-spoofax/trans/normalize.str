@@ -246,6 +246,7 @@ rules
                  + ?GraphMatch(_, _, Some(OptionalGraphMatchParts2(OnClause(<id>), _)))
                  + ?ParenthesizedGraphMatch(_, _, Some(OptionalGraphMatchParts2(OnClause(<id>), _)))
                  + ?GraphTable(Some(<id>), _, _)
+                 + ?GraphName(<id>) // for lateral subqueries that are already normalized at this point
 
   get-RowsPerMatch = ?None()
                    + origin-track-forced(?Some(OptionalGraphMatchParts1(<id>, _)); (?None() <+ !Some(<id>)))
