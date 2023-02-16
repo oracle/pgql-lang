@@ -124,8 +124,8 @@ public class BugFixTest extends AbstractPgqlTest {
     String query = "SELECT u, v FROM MATCH ANY SHORTEST( (u) -> (x0) -> (x1) -> (x2) -> (v) ) WHERE u != v ORDER BY id(u)";
     PgqlResult result = pgql.parse(query); // this used to fail
     assertFalse(result.isQueryValid());
-    assertTrue(result.getErrorMessages()
-        .contains("Not supported: path pattern containing multiple edge patterns in combination with ANY, SHORTEST or CHEAPEST; try splitting up the pattern into multiple path patterns"));
+    assertTrue(result.getErrorMessages().contains(
+        "Not supported: path pattern containing multiple edge patterns in combination with ANY, SHORTEST or CHEAPEST; try splitting up the pattern into multiple path patterns"));
   }
 
   @Test
@@ -133,8 +133,8 @@ public class BugFixTest extends AbstractPgqlTest {
     String query = "SELECT 1 FROM MATCH ANY SHORTEST ( (a) ( (n) -[e1]-> (m) -[e2]-> (o) )* (b) )";
     PgqlResult result = pgql.parse(query); // this should not fail
     assertFalse(result.isQueryValid());
-    assertTrue(result.getErrorMessages()
-        .contains("Not supported: path pattern containing multiple edge patterns in combination with ANY, SHORTEST or CHEAPEST; try splitting up the pattern into multiple path patterns"));
+    assertTrue(result.getErrorMessages().contains(
+        "Not supported: path pattern containing multiple edge patterns in combination with ANY, SHORTEST or CHEAPEST; try splitting up the pattern into multiple path patterns"));
   }
 
   @Test
@@ -323,10 +323,12 @@ public class BugFixTest extends AbstractPgqlTest {
 
   @Test
   public void testUniqueNonAnonymousNameAfterPrettyPrintingDuplicateGroupByExpression() throws Exception {
-    String prettyPrintedQuery = pgql.parse("SELECT e AS e1, e AS e2 FROM MATCH (v)-[e]->(v1) GROUP BY e1, e2").getGraphQuery().toString();
+    String prettyPrintedQuery = pgql.parse("SELECT e AS e1, e AS e2 FROM MATCH (v)-[e]->(v1) GROUP BY e1, e2")
+        .getGraphQuery().toString();
     assertTrue(pgql.parse(prettyPrintedQuery).isQueryValid());
 
-    prettyPrintedQuery = pgql.parse("SELECT e.prop AS e1, e.prop AS e2 FROM MATCH (v)-[e]->(v1) GROUP BY e1, e2").getGraphQuery().toString();
+    prettyPrintedQuery = pgql.parse("SELECT e.prop AS e1, e.prop AS e2 FROM MATCH (v)-[e]->(v1) GROUP BY e1, e2")
+        .getGraphQuery().toString();
     assertTrue(pgql.parse(prettyPrintedQuery).isQueryValid());
   }
 
@@ -335,5 +337,15 @@ public class BugFixTest extends AbstractPgqlTest {
     SelectQuery query = (SelectQuery) pgql.parse("SELECT n.* PREFIX 'N_' FROM MATCH (n)").getGraphQuery();
     AllProperties allProperties = (AllProperties) query.getProjection().getElements().get(0).getExp();
     assertEquals("N_", allProperties.getPrefix());
+  }
+
+  @Test
+  public void testGetGraphNameForLateralQuery() throws Exception {
+    GraphQuery graphQuery = pgql.parse("SELECT number " + //
+        "FROM LATERAL ( " + //
+        "       SELECT a.number " + //
+        "       FROM MATCH (a) ON financial_transactions " + //
+        "     )").getGraphQuery();
+    assertEquals("FINANCIAL_TRANSACTIONS", graphQuery.getGraphName());
   }
 }
