@@ -371,7 +371,7 @@ test ONE ROW PER STEP without quantifier [[
 
 ]] error like "ONE ROW PER VERTEX or STEP is only permitted if the MATCH clause contains a single path pattern" at #1
 
-test Only aggregations with group variables allowed in COLUMNS clause [[
+test Only aggregations with group variables allowed in COLUMNS clause (1) [[
 
   SELECT 1
   FROM GRAPH_TABLE ( g
@@ -381,7 +381,7 @@ test Only aggregations with group variables allowed in COLUMNS clause [[
 
 ]] error like "COLUMNS clause allows only aggregations that access at least one group variable" at #1, #2
 
-test Only aggregations with group variables allowed in COLUMNS clause [[
+test Only aggregations with group variables allowed in COLUMNS clause (2) [[
 
   SELECT 1
   FROM GRAPH_TABLE ( g

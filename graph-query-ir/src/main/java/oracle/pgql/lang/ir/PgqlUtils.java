@@ -165,6 +165,11 @@ public class PgqlUtils {
       public void visit(ScalarSubquery subquery) {
         // don't visit scalar subqueries
       }
+
+      @Override
+      public void visit(DerivedTable derivedTable) {
+        // don't visit LATERAL subqueries
+      }
     });
     return result;
   }
