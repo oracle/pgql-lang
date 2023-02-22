@@ -116,7 +116,7 @@ See the [PGQL Specification](https://pgql-lang.org/spec/latest/).
 
 ## Development
 
-- Download Eclipse with Spoofax 2.5.16 pre-installed [here](https://www.metaborg.org/en/latest/source/release/note/2.5.16.html)
+- Download Eclipse with Spoofax 2.5.18 pre-installed [here](https://www.metaborg.org/en/latest/source/release/note/2.5.18.html)
 - Import the following projects into Eclipse (`File>Import...>Maven>Existing Maven Projects>Browse...`):
     - `graph-query-ir`: Java representation of graph queries
     - `pqgl-spoofax`: Spoofax implementation of PGQL (parser + error checks)

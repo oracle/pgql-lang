@@ -9,7 +9,7 @@ export MAVEN_OPTS="-Xms512m -Xmx1024m -Xss16m $MAVEN_OPTS"
 cd pgql-spoofax/
 sed -i.bak "s/format: ctree/format: jar/g" metaborg.yaml
 sed -i.bak "s/  provider \: target\/metaborg\/stratego.ctree/\/\/  provider \: target\/metaborg\/stratego.ctree/g" editor/Main.esv
-mvn clean install
+#mvn clean install
 sed -i.bak "s/format: jar/format: ctree/g" metaborg.yaml
 sed -i.bak "s/\/\/  provider \: target\/metaborg\/stratego.ctree/  provider \: target\/metaborg\/stratego.ctree/g" editor/Main.esv
 cd ../
