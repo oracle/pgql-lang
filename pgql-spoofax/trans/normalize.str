@@ -177,7 +177,7 @@ rules
 
   get-GraphTable-restriction = ?AnyCheapestPathSearch2(_); to-error-message(|"GRAPH_TABLE restriction: use ANY CHEAPEST instead of CHEAPEST")
 
-  get-GraphTable-restriction = ?CountedShortestPathSearch2(NumberOfPaths(k), _); to-error-message(|$<GRAPH_TABLE restriction: use SHORTEST <k> instead of TOP <k> SHORTEST>)
+  get-GraphTable-restriction = ?CountedShortestPathSearch2(NumberOfPaths(k)); to-error-message(|$<GRAPH_TABLE restriction: use SHORTEST <k> instead of TOP <k> SHORTEST>)
 
   get-GraphTable-restriction:
     e@FunctionCall(None(), functionName, [x, String(s)]) -> <to-error-message(|$<GRAPH_TABLE restriction: use <<origin-text> x> IS LABELED "<<un-single-quote> s>">)> e
@@ -585,13 +585,15 @@ rules
   get-connections-from-paths(|variable-counter, rowsPerMatch):
     [PathPattern2(pathPatternPrefix, pathPattern)|otherPaths] -> result
     where <not(?PathPattern(_, []))> pathPattern
-    with if <contains-edge-pattern-with-quantifier + !rowsPerMatch; ?Some(<id>); is-not-one-row-per-match + !pathPatternPrefix; not(?None() + ?Some(AllPathSearch(_)))> pathPattern // path pattern has a quantifier or it has a search prefix other than ALL or it has a graph table rows clause other than ONE ROW PER MATCH
+    with if <contains-edge-pattern-with-quantifier + !rowsPerMatch; ?Some(<id>); is-not-one-row-per-match + !pathPatternPrefix; not(?None() + ?Some(AllPathSearch(_, _)))> pathPattern // path pattern has a quantifier or it has a search prefix other than ALL or it has a graph table rows clause other than ONE ROW PER MATCH
          then pathFindingGoal := <to-pathFindingGoal> pathPatternPrefix
             ; topKAnyAll := <to-topKAnyAll> pathPatternPrefix
-            ; result := <get-connections-from-quantified-path-patterns(|variable-counter, rowsPerMatch)> (pathFindingGoal, topKAnyAll, pathPattern, otherPaths)
+            ; pathMode := <to-pathMode> pathPatternPrefix
+            ; result := <get-connections-from-quantified-path-patterns(|variable-counter, rowsPerMatch)> (pathFindingGoal, topKAnyAll, pathMode, pathPattern, otherPaths)
          else topKAnyAll := None()
             ; pathFindingGoal := None()
-            ; edges := <pathPattern-to-connections(|variable-counter, pathFindingGoal, topKAnyAll, rowsPerMatch)> pathPattern
+            ; pathMode := Walk()
+            ; edges := <pathPattern-to-connections(|variable-counter, pathFindingGoal, topKAnyAll, pathMode, rowsPerMatch)> pathPattern
             ; edgesTailPaths := <get-connections-from-paths(|variable-counter, rowsPerMatch)> otherPaths
             ; result := <conc> (edges, edgesTailPaths)
          end
@@ -600,73 +602,98 @@ rules
                                         ; filter(is-quantifier); not(?[])
 
   to-pathFindingGoal = ?None(); !All() +
-                       ?Some(AllPathSearch(_)); origin-track-forced(!All())
+                       ( ?Some(PathModePrefix(_, _)) +
+                         ?Some(AllPathSearch(_, _))
+                       )
+                     ; origin-track-forced(!All())
 
-  to-pathFindingGoal = ( ?Some(AllShortestPathSearch(_)) +
-                         ?Some(AnyShortestPathSearch(_)) +
+  to-pathFindingGoal = ( ?Some(AllShortestPathSearch(_, _)) +
+                         ?Some(AnyShortestPathSearch(_, _)) +
                          ?Some(AnyShortestPathSearch2(_)) + // deprecated
-                         ?Some(CountedShortestPathSearch(_, _)) +
-                         ?Some(CountedShortestPathSearch2(_, _)) + // deprecated
-                         ?Some(AnyPathSearch(_, _)) // translate ANY k to ANY SHORTEST k
+                         ?Some(CountedShortestPathSearch(_, _, _)) +
+                         ?Some(CountedShortestPathSearch2(_)) + // deprecated
+                         ?Some(AnyPathSearch(_, _, _)) // translate ANY k to ANY SHORTEST k
                        )
                      ; origin-track-forced(!Shortest())
 
   to-pathFindingGoal = ( ?Some(AnyCheapestPathSearch(_)) +
                          ?Some(AnyCheapestPathSearch2(_)) + // deprecated
                          ?Some(CountedCheapestPathSearch(_, _)) +
-                         ?Some(CountedCheapestPathSearch2(_, _)) // deprecated
+                         ?Some(CountedCheapestPathSearch2(_)) // deprecated
                        )
                      ; origin-track-forced(!Cheapest())
 
   to-topKAnyAll = ?None() +
-                  ?Some(AllPathSearch(_)); origin-track-forced(!None())
+                  ( ?Some(PathModePrefix(_, _)) +
+                    ?Some(AllPathSearch(_, _))
+                  )
+                ; origin-track-forced(!None())
 
-  to-topKAnyAll = ?Some(AllShortestPathSearch(_)); origin-track-forced(!Some(All()))
+  to-topKAnyAll = ?Some(AllShortestPathSearch(_, _)); origin-track-forced(!Some(All()))
 
-  to-topKAnyAll = ( ?Some(AnyPathSearch(None(), _)) +
-                    ?Some(AnyShortestPathSearch(_)) +
+  to-topKAnyAll = ( ?Some(AnyPathSearch(None(), _, _)) +
+                    ?Some(AnyShortestPathSearch(_, _)) +
                     ?Some(AnyShortestPathSearch2(_)) + // deprecated
                     ?Some(AnyCheapestPathSearch(_)) +
                     ?Some(AnyCheapestPathSearch2(_)) // deprecated
                   )
                 ; origin-track-forced(!Some(Any()))
 
-  to-topKAnyAll = ( ?Some(CountedShortestPathSearch(NumberOfPaths(k), _)) +
-                    ?Some(CountedShortestPathSearch2(NumberOfPaths(k), _)) + // deprecated
+  to-topKAnyAll = ( ?Some(CountedShortestPathSearch(NumberOfPaths(k), _, _)) +
+                    ?Some(CountedShortestPathSearch2(NumberOfPaths(k))) + // deprecated
                     ?Some(CountedCheapestPathSearch(NumberOfPaths(k), _)) +
-                    ?Some(CountedCheapestPathSearch2(NumberOfPaths(k), _)) + // deprecated
-                    ?Some(AnyPathSearch(Some(NumberOfPaths(k)), _)) // translate ANY k to ANY SHORTEST k
+                    ?Some(CountedCheapestPathSearch2(NumberOfPaths(k))) + // deprecated
+                    ?Some(AnyPathSearch(Some(NumberOfPaths(k)), _, _)) // translate ANY k to ANY SHORTEST k
                   )
                 ; origin-track-forced(!Some(TopK(k)))
 
+  to-pathMode = ( ?None() +
+                  ?Some(AnyShortestPathSearch2(_)) + // deprecated
+                  ?Some(CountedShortestPathSearch2(_)) + // deprecated
+                  ?Some(AnyCheapestPathSearch(_)) +
+                  ?Some(AnyCheapestPathSearch2(_)) + // deprecated
+                  ?Some(CountedCheapestPathSearch(_, _)) +
+                  ?Some(CountedCheapestPathSearch2(_)) // deprecated
+                )
+              ; !Walk()
+
+  to-pathMode = ?Some(PathModePrefix(<id>, _)) +
+                ( ?Some(AllPathSearch(<id>, _)) +
+                  ?Some(AnyPathSearch(_, <id>, _)) +
+                  ?Some(AllShortestPathSearch(<id>, _)) +
+                  ?Some(AnyShortestPathSearch(<id>, _)) +
+                  ?Some(CountedShortestPathSearch(_, <id>, _))
+                )
+              ; (?None(); !Walk() + ?Some(<id>))
+
   get-connections-from-quantified-path-patterns(|variable-counter, rowsPerMatch):
-    (pathFindingGoal, topKAnyAll, pathPattern, otherPaths) ->  <conc> ([path'], edgesTailPaths)
-    with edges := <pathPattern-to-connections(|variable-counter, pathFindingGoal, topKAnyAll, rowsPerMatch)> pathPattern
-       ; path' := <?[single-path-only]; !single-path-only; try(single-edge-to-path(|variable-counter, pathFindingGoal, topKAnyAll, rowsPerMatch)) <+ !ComplexRegularExpressionNotSupported(<id>, pathFindingGoal)> edges
+    (pathFindingGoal, topKAnyAll, pathMode, pathPattern, otherPaths) ->  <conc> ([path'], edgesTailPaths)
+    with edges := <pathPattern-to-connections(|variable-counter, pathFindingGoal, topKAnyAll, pathMode, rowsPerMatch)> pathPattern
+       ; path' := <?[single-path-only]; !single-path-only; try(single-edge-to-path(|variable-counter, pathFindingGoal, topKAnyAll, pathMode, rowsPerMatch)) <+ !ComplexRegularExpressionNotSupported(<id>, pathFindingGoal)> edges
        ; edgesTailPaths := <get-connections-from-paths(|variable-counter, rowsPerMatch)> otherPaths
 
-  single-edge-to-path(|variable-counter, pathFindingGoal, topKAnyAll, rowsPerMatch):
+  single-edge-to-path(|variable-counter, pathFindingGoal, topKAnyAll, pathMode, rowsPerMatch):
     edge@NormalizedEdge(srcVertex, e, dstVertex, direction, quantifier, constraints) -> path
     with costClause := None()
-       ; path := <to-path(|variable-counter, pathFindingGoal, topKAnyAll, rowsPerMatch)> (srcVertex, dstVertex, edge, constraints, costClause, quantifier)
+       ; path := <to-path(|variable-counter, pathFindingGoal, topKAnyAll, pathMode, rowsPerMatch)> (srcVertex, dstVertex, edge, constraints, costClause, quantifier)
 
-  pathPattern-to-connections(|variable-counter, pathFindingGoal, topKAnyAll, rowsPerMatch):
+  pathPattern-to-connections(|variable-counter, pathFindingGoal, topKAnyAll, pathMode, rowsPerMatch):
     PathPattern(Vertex(n1), edgeVertices@[EdgeVertex(e, Vertex(n2))|_]) -> <conc> ([edge], edgesPathTail)
-    with edge := <to-connection(|variable-counter, pathFindingGoal, topKAnyAll, rowsPerMatch)> (n1, e, n2)
-       ; edgesPathTail := <get-connections-from-single-path(|variable-counter, pathFindingGoal, topKAnyAll, rowsPerMatch)> edgeVertices
+    with edge := <to-connection(|variable-counter, pathFindingGoal, topKAnyAll, pathMode, rowsPerMatch)> (n1, e, n2)
+       ; edgesPathTail := <get-connections-from-single-path(|variable-counter, pathFindingGoal, topKAnyAll, pathMode, rowsPerMatch)> edgeVertices
 
   // base case: only one edgeVertex
-  get-connections-from-single-path(|variable-counter, pathFindingGoal, topKAnyAll, rowsPerMatch):
+  get-connections-from-single-path(|variable-counter, pathFindingGoal, topKAnyAll, pathMode, rowsPerMatch):
     [EdgeVertex(_, _)] -> []
     
   // two or more edgeVertices
-  get-connections-from-single-path(|variable-counter, pathFindingGoal, topKAnyAll, rowsPerMatch):
+  get-connections-from-single-path(|variable-counter, pathFindingGoal, topKAnyAll, pathMode, rowsPerMatch):
     [EdgeVertex(_, Vertex(n1)) | edgeVertices@[EdgeVertex(e, Vertex(n2))|_]]
     -> <conc> ([edge], edgesPathTail)
-    with edge := <to-connection(|variable-counter, pathFindingGoal, topKAnyAll, rowsPerMatch)> (n1, e, n2)
-       ; edgesPathTail := <get-connections-from-single-path(|variable-counter, pathFindingGoal, topKAnyAll, rowsPerMatch)> edgeVertices
+    with edge := <to-connection(|variable-counter, pathFindingGoal, topKAnyAll, pathMode, rowsPerMatch)> (n1, e, n2)
+       ; edgesPathTail := <get-connections-from-single-path(|variable-counter, pathFindingGoal, topKAnyAll, pathMode, rowsPerMatch)> edgeVertices
 
-  to-connection(|variable-counter, pathFindingGoal, topKAnyAll, rowsPerMatch):
+  to-connection(|variable-counter, pathFindingGoal, topKAnyAll, pathMode, rowsPerMatch):
     (n1, edgeOrPath, n2) -> connection
     where <?OutConn(_, quantifier) + ?InConn(_, quantifier) + ?UndirectedEdge(_, quantifier)> edgeOrPath
     with
@@ -694,14 +721,14 @@ rules
              ; dstVertex := <unique-name(|variable-counter, edgeOrPath)>
              ; edge := <origin-track-forced(!NormalizedEdge(srcVertex, e', dstVertex, dir, None(), Constraints([])))> edgeOrPath
              ; costClause := None()
-             ; connection := <to-path(|variable-counter, pathFindingGoal, topKAnyAll, rowsPerMatch)> (n1, n2, edge, Constraints(constraints), costClause, quantifier)
+             ; connection := <to-path(|variable-counter, pathFindingGoal, topKAnyAll, pathMode, rowsPerMatch)> (n1, n2, edge, Constraints(constraints), costClause, quantifier)
           end
         case ?Some(Path(Some(pathName), pathPatternName, quantifier')):
-          connection := Path(src, dst, pathPatternName, quantifier', pathName, dir, Reaches(), -1, rowsPerMatch)
+          connection := Path(src, dst, pathPatternName, quantifier', pathName, dir, Reaches(), -1, pathMode, rowsPerMatch)
         otherwise: fail
       end
 
-  to-connection(|variable-counter, pathFindingGoal, topKAnyAll, rowsPerMatch):
+  to-connection(|variable-counter, pathFindingGoal, topKAnyAll, pathMode, rowsPerMatch):
     (n1, t@ParenthesizedPath(RelaxedPathPattern(v1, [RelaxedEdgeVertex(edge, v2)|otherEdges]), whereClause, costClause, quantifier), n2) -> path
     with if <has-at-most-one-binding> quantifier
          then srcVertex := <?Some(Vertex(<id>)) <+ ?None(); !n1> v1
@@ -709,18 +736,18 @@ rules
          else srcVertex := <?Some(Vertex(<id>)) <+ ?None(); unique-name(|variable-counter, edge)> v1
             ; dstVertex := <?Some(Vertex(<id>)) <+ ?None(); unique-name(|variable-counter, edge)> v2
          end
-       ; edge' := <to-connection(|variable-counter, pathFindingGoal, topKAnyAll, rowsPerMatch)> (srcVertex, edge, dstVertex)
+       ; edge' := <to-connection(|variable-counter, pathFindingGoal, topKAnyAll, pathMode, rowsPerMatch)> (srcVertex, edge, dstVertex)
        ; inlinedEdgeConstraints := <?NormalizedEdge(_, _, _, _, _, Constraints(<id>))> edge'
        ; inlinedSrcVertexConstraints := <?Some(Vertex(<id>)); get-inlined-constraints <+ ![]> v1
        ; inlinedDstVertexConstraints := <?Some(Vertex(<id>)); get-inlined-constraints <+ ![]> v2
        ; constraints := <?None(); ![] <+ ?Some(WhereClause(constraint)); ![constraint]> whereClause
        ; constraints' := Constraints(<conc> (inlinedSrcVertexConstraints, inlinedEdgeConstraints, inlinedDstVertexConstraints, constraints))
        ; if <?[]> otherEdges
-         then path := <to-path(|variable-counter, pathFindingGoal, topKAnyAll, rowsPerMatch)> (n1, n2, edge', constraints', costClause, quantifier)
+         then path := <to-path(|variable-counter, pathFindingGoal, topKAnyAll, pathMode, rowsPerMatch)> (n1, n2, edge', constraints', costClause, quantifier)
          else path := ComplexParenthesizedRegularExpressionNotSupported(otherEdges, pathFindingGoal)
          end
 
-  to-path(|variable-counter, pathFindingGoal, topKAnyAll, rowsPerMatch):
+  to-path(|variable-counter, pathFindingGoal, topKAnyAll, pathMode, rowsPerMatch):
     (srcVertex, dstVertex, edge@NormalizedEdge(src, _, dst, direction, _, _), constraints, costClause, quantifier) -> path
     with name := <unique-name(|variable-counter, edge)>
        ; if <?Incoming()> direction
@@ -730,7 +757,7 @@ rules
        ; edges := Edges([edge])
        ; path-variable-name := <unique-name(|variable-counter, edge)> // for now, all paths are anonymous/generated
        ; commonPathExpression := CommonPathExpression(name, vertices, edges, constraints, costClause)
-       ; path := <origin-track-forced(!Path(srcVertex, dstVertex, commonPathExpression, quantifier, path-variable-name, Outgoing(), pathFindingGoal, topKAnyAll, rowsPerMatch))> edge
+       ; path := <origin-track-forced(!Path(srcVertex, dstVertex, commonPathExpression, quantifier, path-variable-name, Outgoing(), pathFindingGoal, topKAnyAll, pathMode, rowsPerMatch))> edge
 
 rules
 

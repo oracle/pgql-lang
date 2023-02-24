@@ -18,6 +18,7 @@ import oracle.pgql.lang.ir.Projection;
 import oracle.pgql.lang.ir.QueryExpression;
 import oracle.pgql.lang.ir.QueryExpression.ExpressionType;
 import oracle.pgql.lang.ir.QueryExpression.Function.Exists;
+import oracle.pgql.lang.ir.QueryExpression.LogicalExpression.And;
 import oracle.pgql.lang.ir.QueryExpression.ScalarSubquery;
 import oracle.pgql.lang.ir.SelectQuery;
 
@@ -174,6 +175,38 @@ public class StaticOptimizationsTest extends AbstractPgqlTest {
     SelectQuery innerQuery = ((DerivedTable) outerQuery.getTableExpressions().get(1)).getQuery();
     Set<QueryExpression> constraintsInnerQuery = innerQuery.getGraphPattern().getConstraints();
     assertEquals(1L, constraintsInnerQuery.size());
+  }
+
+  @Test
+  public void testPredicatePushDownToHavingInLateral() throws Exception {
+    String query = "SELECT sum FROM LATERAL (SELECT v, sum(v2.integerprop) as sum " //
+        + "FROM MATCH ANY SHORTEST (v) ->* (v2) GROUP BY (v)) WHERE sum > 100";
+    SelectQuery outerQuery = (SelectQuery) pgql.parse(query).getGraphQuery();
+    SelectQuery innerQuery = ((DerivedTable) outerQuery.getTableExpressions().get(0)).getQuery();
+    assertEquals(ExpressionType.GREATER, innerQuery.getHaving().getExpType());
+
+    // check if the pretty printed version is valid
+    PgqlResult result = pgql.parse(outerQuery.toString());
+    assertTrue(result.getErrorMessages(), result.isQueryValid());
+
+    // do the same for a variant of the query
+    query.replace("sum > 100", "id(v) > 5");
+    outerQuery = (SelectQuery) pgql.parse(query).getGraphQuery();
+    innerQuery = ((DerivedTable) outerQuery.getTableExpressions().get(0)).getQuery();
+    assertEquals(ExpressionType.GREATER, innerQuery.getHaving().getExpType());
+
+    // check if the pretty printed version is valid
+    result = pgql.parse(outerQuery.toString());
+    assertTrue(result.getErrorMessages(), result.isQueryValid());
+
+    // also test the case where there already exists a HAVING clause
+    query = "SELECT sum FROM LATERAL (SELECT v, sum(v2.integerprop) as sum " //
+        + "FROM MATCH ANY SHORTEST (v) ->* (v2) GROUP BY (v) HAVING COUNT(*) >= 0) WHERE sum > 100";
+    outerQuery = (SelectQuery) pgql.parse(query).getGraphQuery();
+    innerQuery = ((DerivedTable) outerQuery.getTableExpressions().get(0)).getQuery();
+    And and = (And) innerQuery.getHaving();
+    assertEquals(ExpressionType.GREATER_EQUAL, and.getExp1().getExpType());
+    assertEquals(ExpressionType.GREATER, and.getExp2().getExpType());
   }
 
   @Test

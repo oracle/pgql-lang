@@ -29,6 +29,7 @@ import oracle.pgql.lang.ir.GroupBy;
 import oracle.pgql.lang.ir.OrderBy;
 import oracle.pgql.lang.ir.OrderByElem;
 import oracle.pgql.lang.ir.PathFindingGoal;
+import oracle.pgql.lang.ir.PathMode;
 import oracle.pgql.lang.ir.Projection;
 import oracle.pgql.lang.ir.QueryEdge;
 import oracle.pgql.lang.ir.QueryExpression;
@@ -159,7 +160,8 @@ public class SpoofaxAstToGraphQuery {
   private static final int POS_PATH_DIRECTION = 5;
   private static final int POS_PATH_FINDING_GOAL = 6;
   private static final int POS_PATH_TOP_K_ANY_ALL = 7;
-  private static final int POS_PATH_ROWS_PER_MATCH = 8;
+  private static final int POS_PATH_PATH_MODE = 8;
+  private static final int POS_PATH_ROWS_PER_MATCH = 9;
 
   private static final int POS_ONE_ROW_PER_VERTEX_VERTEX = 0;
   private static final int POS_ONE_ROW_PER_EDGE_EDGE = 0;
@@ -741,34 +743,64 @@ public class SpoofaxAstToGraphQuery {
     QueryVertex src = getQueryVertex(vertexMap, srcName);
     QueryVertex dst = getQueryVertex(vertexMap, dstName);
 
-    boolean withTies = false; // default
-    int kValue = 1; // default
+    int kValue = -1;
+    boolean withTies = false;
 
-    if (goal == PathFindingGoal.SHORTEST || goal == PathFindingGoal.CHEAPEST) {
-      IStrategoTerm topKAnyAllT = pathT.getSubterm(POS_PATH_TOP_K_ANY_ALL);
-      if (isSome(topKAnyAllT)) {
-        IStrategoAppl topKAnyAllContent = (IStrategoAppl) getSomeValue(topKAnyAllT);
-        switch (topKAnyAllContent.getName()) {
-          case "TopK": // TOP k SHORTEST or TOP k CHEAPEST
-            kValue = parseInt(topKAnyAllContent.getSubterm(0));
-            break;
-          case "Any": // ANY SHORTEST or ANY CHEAPEST
-            break;
-          case "All": // ALL SHORTEST or ALL CHEAPEST
-            withTies = true;
-            break;
-          default:
-            throw new IllegalArgumentException(topKAnyAllContent.getName());
+    switch (goal) {
+      case ALL:
+        break;
+      case REACHES:
+        kValue = 1;
+        break;
+      case SHORTEST:
+      case CHEAPEST:
+        IStrategoTerm topKAnyAllT = pathT.getSubterm(POS_PATH_TOP_K_ANY_ALL);
+        if (isSome(topKAnyAllT)) {
+          IStrategoAppl topKAnyAllContent = (IStrategoAppl) getSomeValue(topKAnyAllT);
+          switch (topKAnyAllContent.getName()) {
+            case "TopK": // SHORTEST k or CHEAPEST k
+              kValue = parseInt(topKAnyAllContent.getSubterm(0));
+              break;
+            case "Any": // ANY SHORTEST or ANY CHEAPEST
+              kValue = 1;
+              break;
+            case "All": // ALL SHORTEST or ALL CHEAPEST
+              kValue = 1;
+              withTies = true;
+              break;
+            default:
+              throw new IllegalArgumentException(topKAnyAllContent.getName());
+          }
         }
-      }
+        break;
+      default:
+        throw new UnsupportedOperationException(goal.name());
     }
+
+    PathMode pathMode = getPathMode(pathT.getSubterm(POS_PATH_PATH_MODE));
 
     RowsPerMatch rowsPerMatch = getRowsPerMatch(pathT.getSubterm(POS_PATH_ROWS_PER_MATCH), ctx);
 
     QueryPath path = new QueryPath(src, dst, name, commonPathExpression, true, minHops, maxHops, goal, kValue, withTies,
-        direction, rowsPerMatch);
+        pathMode, direction, rowsPerMatch);
 
     return path;
+  }
+
+  private static PathMode getPathMode(IStrategoTerm pathModeT) {
+    String constructorName = ((IStrategoAppl) pathModeT).getConstructor().getName();
+    switch (constructorName) {
+      case "Walk":
+        return PathMode.WALK;
+      case "Trail":
+        return PathMode.TRAIL;
+      case "Acyclic":
+        return PathMode.ACYCLIC;
+      case "Simple":
+        return PathMode.SIMPLE;
+      default:
+        throw new IllegalArgumentException(constructorName);
+    }
   }
 
   private static RowsPerMatch getRowsPerMatch(IStrategoTerm optionalRowsPerMatchT, TranslationContext ctx) {

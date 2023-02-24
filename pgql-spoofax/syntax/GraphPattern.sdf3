@@ -55,27 +55,35 @@ context-free syntax
 context-free syntax
 
   KeepClause.KeepClause = <KEEP <PathPatternPrefix>> {case-insensitive}
+  PathPatternPrefix = PathModePrefix
   PathPatternPrefix = PathSearchPrefix
+
+  PathModePrefix.PathModePrefix = PathMode PathOrPaths?
+
+  PathMode.Walk = <WALK> {case-insensitive}
+  PathMode.Trail = <TRAIL> {case-insensitive}
+  PathMode.Simple = <SIMPLE> {case-insensitive}
+  PathMode.Acyclic = <ACYCLIC> {case-insensitive}
 
   PathSearchPrefix = AllPathSearch
   PathSearchPrefix = AnyPathSearch
   PathSearchPrefix = ShortestPathSearch
   PathSearchPrefix = CheapestPathSearch
 
-  AllPathSearch.AllPathSearch = <ALL <PathOrPaths?>> {case-insensitive}
+  AllPathSearch.AllPathSearch = <ALL <PathMode?> <PathOrPaths?>> {case-insensitive}
 
-  AnyPathSearch.AnyPathSearch = <ANY <NumberOfPaths?> <PathOrPaths?>> {case-insensitive}
+  AnyPathSearch.AnyPathSearch = <ANY <NumberOfPaths?> <PathMode?> <PathOrPaths?>> {case-insensitive}
 
-  ShortestPathSearch.AllShortestPathSearch = <ALL SHORTEST <PathOrPaths?>> {case-insensitive}
-  ShortestPathSearch.AnyShortestPathSearch = <ANY SHORTEST <PathOrPaths?>> {case-insensitive}
+  ShortestPathSearch.AllShortestPathSearch = <ALL SHORTEST <PathMode?> <PathOrPaths?>> {case-insensitive}
+  ShortestPathSearch.AnyShortestPathSearch = <ANY SHORTEST <PathMode?> <PathOrPaths?>> {case-insensitive}
   ShortestPathSearch.AnyShortestPathSearch2 = <SHORTEST <PathOrPaths?>> {case-insensitive} // deprecated
-  ShortestPathSearch.CountedShortestPathSearch = <SHORTEST <NumberOfPaths> <PathOrPaths?>> {case-insensitive}
-  ShortestPathSearch.CountedShortestPathSearch2 = <TOP <NumberOfPaths> SHORTEST <PathOrPaths?>> {case-insensitive} // deprecated
+  ShortestPathSearch.CountedShortestPathSearch = <SHORTEST <NumberOfPaths> <PathMode?> <PathOrPaths?>> {case-insensitive}
+  ShortestPathSearch.CountedShortestPathSearch2 = <TOP <NumberOfPaths> SHORTEST> {case-insensitive} // deprecated
 
   CheapestPathSearch.AnyCheapestPathSearch = <ANY CHEAPEST <PathOrPaths?>> {case-insensitive}
   CheapestPathSearch.AnyCheapestPathSearch2 = <CHEAPEST <PathOrPaths?>> {case-insensitive} // deprecated
   CheapestPathSearch.CountedCheapestPathSearch = <CHEAPEST <NumberOfPaths> <PathOrPaths?>> {case-insensitive}
-  CheapestPathSearch.CountedCheapestPathSearch2 = <TOP <NumberOfPaths> CHEAPEST <PathOrPaths?>> {case-insensitive} // deprecated
+  CheapestPathSearch.CountedCheapestPathSearch2 = <TOP <NumberOfPaths> CHEAPEST> {case-insensitive} // deprecated
 
   NumberOfPaths.NumberOfPaths = UNSIGNED-INT
 

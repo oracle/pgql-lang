@@ -29,11 +29,13 @@ public class QueryPath extends VertexPairConnection {
 
   private boolean withTies;
 
+  private PathMode pathMode;
+
   private RowsPerMatch rowsPerMatch;
 
   public QueryPath(QueryVertex src, QueryVertex dst, String name, CommonPathExpression commonPathExpression,
       boolean anonymous, long minHops, long maxHops, PathFindingGoal goal, int kValue, boolean withTies,
-      Direction direction, RowsPerMatch rowsPerMatch) {
+      PathMode pathMode, Direction direction, RowsPerMatch rowsPerMatch) {
     super(src, dst, name, anonymous, direction);
     this.commonPathExpression = commonPathExpression;
     this.minHops = minHops;
@@ -41,14 +43,22 @@ public class QueryPath extends VertexPairConnection {
     this.goal = goal;
     this.kValue = kValue;
     this.withTies = withTies;
+    this.pathMode = pathMode;
     this.rowsPerMatch = rowsPerMatch;
   }
 
   public QueryPath(QueryVertex src, QueryVertex dst, String name, CommonPathExpression commonPathExpression,
       boolean anonymous, long minHops, long maxHops, PathFindingGoal goal, int kValue, boolean withTies,
+      Direction direction, RowsPerMatch rowsPerMatch) {
+    this(src, dst, name, commonPathExpression, anonymous, minHops, maxHops, goal, kValue, withTies, PathMode.WALK,
+        direction, rowsPerMatch);
+  }
+
+  public QueryPath(QueryVertex src, QueryVertex dst, String name, CommonPathExpression commonPathExpression,
+      boolean anonymous, long minHops, long maxHops, PathFindingGoal goal, int kValue, boolean withTies,
       Direction direction) {
-    this(src, dst, name, commonPathExpression, anonymous, minHops, maxHops, goal, kValue, withTies, direction,
-        new OneRowPerMatch());
+    this(src, dst, name, commonPathExpression, anonymous, minHops, maxHops, goal, kValue, withTies, PathMode.WALK,
+        direction, new OneRowPerMatch());
   }
 
   public String getPathExpressionName() {
@@ -137,6 +147,14 @@ public class QueryPath extends VertexPairConnection {
     this.withTies = withTies;
   }
 
+  public PathMode getPathMode() {
+    return pathMode;
+  }
+
+  public void setPathMode(PathMode pathMode) {
+    this.pathMode = pathMode;
+  }
+
   @Override
   public VariableType getVariableType() {
     return VariableType.PATH;
@@ -170,15 +188,33 @@ public class QueryPath extends VertexPairConnection {
       case ALL:
         return printVariableLengthPathPattern(goal);
       default:
-        throw new IllegalArgumentException(goal.toString());
+        throw new UnsupportedOperationException(goal.name());
     }
   }
 
   private String printVariableLengthPathPattern(PathFindingGoal goal) {
-    String kValueAsString = kValue > 1 ? "TOP " + kValue + " " : "";
-    String allAsString = withTies ? "ALL " : "";
-    String goalAsString = goal == PathFindingGoal.REACHES ? "ANY" : goal.toString();
-    String result = kValueAsString + allAsString + goalAsString + " " + getSrc() + " ";
+    String pathPatternPrefix = null;
+    switch (goal) {
+      case REACHES:
+        pathPatternPrefix = "ANY ";
+        break;
+      case ALL:
+        pathPatternPrefix = "ALL ";
+        break;
+      case SHORTEST:
+      case CHEAPEST:
+        if (kValue == 1) {
+          pathPatternPrefix = (withTies ? "ALL " : "ANY ") + goal.toString() + " ";
+        } else {
+          pathPatternPrefix = goal.toString() + " " + kValue + " ";
+        }
+        break;
+      default:
+        new UnsupportedOperationException(goal.name());
+    }
+
+    pathPatternPrefix += pathMode == PathMode.WALK ? "" : pathMode.toString() + " ";
+    String result = pathPatternPrefix + getSrc() + " ";
     String pathExpression = printPathExpression(commonPathExpression, true);
     if (pathExpression.contains("WHERE") || pathExpression.contains("COST") || pathExpression.startsWith("(")
         || pathExpression.endsWith(")")) {
@@ -226,6 +262,8 @@ public class QueryPath extends VertexPairConnection {
     if (kValue != other.kValue)
       return false;
     if (withTies != other.withTies)
+      return false;
+    if (!pathMode.equals(other.pathMode))
       return false;
     if (!rowsPerMatch.equals(other.rowsPerMatch)) {
       return false;

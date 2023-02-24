@@ -110,11 +110,11 @@ rules
        ; valueExpression' := <collect(?Constraints(<id>)); concat> derivedTable' // for SELECT n.* we need to have all the label expression
 
   path-with-at-most-one-binding:
-    t@Path(_, _, _, quantifier, _, _, _, _, _) -> t
+    t@Path(_, _, _, quantifier, _, _, _, _, _, _) -> t
     where <has-at-most-one-binding> quantifier
 
   path-with-two-or-more-bindings:
-    t@Path(_, _, _, quantifier, _, _, _, _, _) -> t
+    t@Path(_, _, _, quantifier, _, _, _, _, _, _) -> t
     where not( <has-at-most-one-binding> quantifier )
 
   guarantee-size-two-or-more = ?[]; ![[], []] <+ ?[x]; ![x, []] <+ id
@@ -371,7 +371,7 @@ rules
     ; alltd(replace-exp-with-ref-from-outer-queries(|variables) <+ is-subquery <+ is-aggregate)
 
   resolve-var-refs-in-path-expression(|variables, metadata):
-    t@Path(_, _, _, quantifier, _, _, _, _, _) -> t'
+    t@Path(_, _, _, quantifier, _, _, _, _, _, _) -> t'
     with [_|variables'] := variables
        ; if <has-at-most-one-binding> quantifier
        then t' := <alltd(resolve-var-ref(|variables, metadata))> t // resolve only to singleton variables
@@ -511,12 +511,12 @@ rules
   normalize-ANY-paths(|variables) = GraphPattern(id, map(try(normalize-ANY-path(|variables))), id)
 
   normalize-ANY-path(|variables):
-    Path(src, dst, t@CommonPathExpression(_, Vertices(vertices), Edges(edges), _, _), quantifier, edge, direction, Any(), topKAnyAll, rowsPerMatch)
-      -> Path(src, dst, t, quantifier, edge, direction, pathFindingGoal, topKAnyAll, rowsPerMatch)
+    Path(src, dst, t@CommonPathExpression(_, Vertices(vertices), Edges(edges), _, _), quantifier, edge, direction, Any(), topKAnyAll, pathMode, rowsPerMatch)
+      -> Path(src, dst, t, quantifier, edge, direction, pathFindingGoal, topKAnyAll, pathMode, rowsPerMatch)
     with groupVariables := <conc> (<map(?Vertex(_, <id>, _))> vertices, <map(?Edge(_, _, _, _, <id>, _))> edges)
        ; references := <Hd; collect(?VarRef(_, <id>))> variables
        ; referencedGroupVariables := <isect> (groupVariables, references)
-       ; if <?[]; !rowsPerMatch; (?None() + ?Some(OneRowPerMatch()))> referencedGroupVariables
+       ; if <?[]; !rowsPerMatch; (?None() + ?Some(OneRowPerMatch())); !pathMode; ?Walk()> referencedGroupVariables
          then pathFindingGoal := Reaches()
          else pathFindingGoal := Shortest()
          end

@@ -315,6 +315,12 @@ test Restriction: PREFIX [[
 
 ]] error like "GRAPH_TABLE restriction: PREFIX not supported" at #1
 
+test Restriction: aggregation with vertex/edge input [[
+
+  SELECT *
+  FROM GRAPH_TABLE ( g MATCH (n) -[e]->{1,4} (m)  COLUMNS ( COUNT([[e]]) AS path_length ) )
+
+]] error like "GRAPH_TABLE restriction: aggregation does not allow vertex or edge input; use the vertex/edge identifier or a property instead" at #1
 
 test KEEP clause not yet supported [[
 
@@ -371,7 +377,7 @@ test ONE ROW PER STEP without quantifier [[
 
 ]] error like "ONE ROW PER VERTEX or STEP is only permitted if the MATCH clause contains a single path pattern" at #1
 
-test Only aggregations with group variables allowed in COLUMNS clause [[
+test Only aggregations with group variables allowed in COLUMNS clause (1) [[
 
   SELECT 1
   FROM GRAPH_TABLE ( g
@@ -381,7 +387,7 @@ test Only aggregations with group variables allowed in COLUMNS clause [[
 
 ]] error like "COLUMNS clause allows only aggregations that access at least one group variable" at #1, #2
 
-test Only aggregations with group variables allowed in COLUMNS clause [[
+test Only aggregations with group variables allowed in COLUMNS clause (2) [[
 
   SELECT 1
   FROM GRAPH_TABLE ( g

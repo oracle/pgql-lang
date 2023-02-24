@@ -189,7 +189,7 @@ public interface QueryExpressionVisitor {
 
   public void visit(InsertClause insertClause);
 
-  public void visit(UpdateClause insertClause);
+  public void visit(UpdateClause updateClause);
 
   public void visit(DeleteClause deleteClause);
 
