@@ -13,11 +13,13 @@ template options
 
 context-free syntax
 
-  PathPattern.PathPattern = <<Vertex> <EdgeVertex+>>
+  GraphPattern.GraphPattern = PathPatternList KeepClause? WhereClause?
+  PathPatternList.PathPatternList = <<{PathPattern ","}+>>
+
   PathPattern.SingleVertex = <(<ElemContents>)> // PGQL 1.0
   Vertex.Vertex = <(<ElemContents>)>
 
-  EdgeVertex.EdgeVertex = <<Connection> <Vertex>>
+  EdgeVertex.EdgeVertex = Connection Vertex
   Connection.OutConn = [-[EdgeOrPathContents?]->[PathQuantifier?]]
   Connection.InConn = [<-[EdgeOrPathContents?]-[PathQuantifier?]]
   Connection.UndirectedEdge = [-[EdgeContents?]-[PathQuantifier?]]
@@ -30,22 +32,17 @@ context-free syntax
 
   Connection.ParenthesizedPath = <( <RelaxedPathPattern> <WhereClause?> <CostClause?> )<PathQuantifier?>>
 
-  PathPattern.AnyPath = <ANY <OptionallyParenthesizedPathPattern>> {case-insensitive, avoid}
-  PathPattern.AllPaths = <ALL <OptionallyParenthesizedPathPattern>> {case-insensitive, avoid}
-  PathPattern.Shortest = <<TopKAnyAll?> SHORTEST <OptionallyParenthesizedPathPattern>> {case-insensitive, prefer}
-  PathPattern.Cheapest = <<TopKAnyAll?> CHEAPEST <OptionallyParenthesizedPathPattern>> {case-insensitive, prefer}
+  PathPattern.PathPattern2 = PathPatternPrefix? OptionallyParenthesizedPathPattern
   OptionallyParenthesizedPathPattern = <( <PathPattern> )>
-  OptionallyParenthesizedPathPattern = PathPattern
-
-  TopKAnyAll.TopK = <TOP <UNSIGNED-INT>> {case-insensitive}
-  TopKAnyAll.Any = <Any> {case-insensitive}
-  TopKAnyAll.All = <ALL> {case-insensitive}
+  OptionallyParenthesizedPathPattern.PathPattern = Vertex EdgeVertex+
 
   CostClause.CostClause = <COST <Exp>> {case-insensitive}
 
   EdgeContents.EdgeContents = <[<ElemContents>]>
   EdgeOrPathContents = EdgeContents
   EdgeOrPathContents.Path = </<Identifier?><LabelExpression><PathQuantifier?>/>
+
+  ElemContents.ElemContents = Identifier? LabelExpression? Legacy10Ids? Legacy10WithInlinedConstraints?
 
   PathQuantifier.ZeroOrMore = <*>
   PathQuantifier.OneOrMore = <+>
@@ -57,10 +54,30 @@ context-free syntax
 
 context-free syntax
 
-  ElemContents.ElemContents       = <<Identifier?><LabelExpression?><Legacy10Ids?><Legacy10WithInlinedConstraints?>>
-  LabelExpression.Labels          = <<LabelExpressionIntroducer> <Labels>>
-  LabelExpressionIntroducer.Colon = <:>
-  LabelExpressionIntroducer.IS    = <IS>  {case-insensitive}
-  Labels.Label                    = Identifier
-  Labels                          = BindVariable
-  Labels.LabelDisjunction         = <<Labels>|<Labels>> {left}
+  KeepClause.KeepClause = <KEEP <PathPatternPrefix>> {case-insensitive}
+  PathPatternPrefix = PathSearchPrefix
+
+  PathSearchPrefix = AllPathSearch
+  PathSearchPrefix = AnyPathSearch
+  PathSearchPrefix = ShortestPathSearch
+  PathSearchPrefix = CheapestPathSearch
+
+  AllPathSearch.AllPathSearch = <ALL <PathOrPaths?>> {case-insensitive}
+
+  AnyPathSearch.AnyPathSearch = <ANY <NumberOfPaths?> <PathOrPaths?>> {case-insensitive}
+
+  ShortestPathSearch.AllShortestPathSearch = <ALL SHORTEST <PathOrPaths?>> {case-insensitive}
+  ShortestPathSearch.AnyShortestPathSearch = <ANY SHORTEST <PathOrPaths?>> {case-insensitive}
+  ShortestPathSearch.AnyShortestPathSearch2 = <SHORTEST <PathOrPaths?>> {case-insensitive} // deprecated
+  ShortestPathSearch.CountedShortestPathSearch = <SHORTEST <NumberOfPaths> <PathOrPaths?>> {case-insensitive}
+  ShortestPathSearch.CountedShortestPathSearch2 = <TOP <NumberOfPaths> SHORTEST <PathOrPaths?>> {case-insensitive} // deprecated
+
+  CheapestPathSearch.AnyCheapestPathSearch = <ANY CHEAPEST <PathOrPaths?>> {case-insensitive}
+  CheapestPathSearch.AnyCheapestPathSearch2 = <CHEAPEST <PathOrPaths?>> {case-insensitive} // deprecated
+  CheapestPathSearch.CountedCheapestPathSearch = <CHEAPEST <NumberOfPaths> <PathOrPaths?>> {case-insensitive}
+  CheapestPathSearch.CountedCheapestPathSearch2 = <TOP <NumberOfPaths> CHEAPEST <PathOrPaths?>> {case-insensitive} // deprecated
+
+  NumberOfPaths.NumberOfPaths = UNSIGNED-INT
+
+  PathOrPaths.PathKeyword = <PATH> {case-insensitive}
+  PathOrPaths.PathsKeyword = <PATHS> {case-insensitive}

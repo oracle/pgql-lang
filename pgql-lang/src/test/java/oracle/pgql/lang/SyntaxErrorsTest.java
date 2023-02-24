@@ -164,21 +164,21 @@ public class SyntaxErrorsTest extends AbstractPgqlTest {
   public void testMissingOnClause1() throws Exception {
     String query = "SELECT * FROM MATCH (n), MATCH (m) ON g2";
     PgqlResult result = pgql.parse(query);
-    assertTrue(result.getErrorMessages().contains("Missing ON clause"));
+    assertTrue(result.getErrorMessages().contains("Missing graph name"));
   }
 
   @Test
   public void testMissingOnClause2() throws Exception {
     String query = "SELECT EXISTS ( SELECT * FROM MATCH (n) -[e]-> (m), MATCH (m) -[e2]-> (o) ON g2 ) FROM MATCH (n)";
     PgqlResult result = pgql.parse(query);
-    assertTrue(result.getErrorMessages().contains("Missing ON clause"));
+    assertTrue(result.getErrorMessages().contains("Missing graph name"));
   }
 
   @Test
   public void testMissingOnClause3() throws Exception {
     String query = "SELECT EXISTS ( SELECT * FROM MATCH (n) -[e]-> (m) ) FROM MATCH (n) ON g";
     PgqlResult result = pgql.parse(query);
-    assertTrue(result.getErrorMessages().contains("Missing ON clause"));
+    assertTrue(result.getErrorMessages().contains("Missing graph name"));
   }
 
   @Test

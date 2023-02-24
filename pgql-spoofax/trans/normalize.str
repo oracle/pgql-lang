@@ -51,10 +51,10 @@ rules
       error-messages := <
         (  is-pgql10; collect(get-pgql10-limitation)
         <+ is-pgql11; (collect(get-pgql11-limitation); not(?[]) <+ collect(get-pgql11-deprecation))
-        <+ is-pgql13; collect(get-pgql13-deprecation + get-pgql13-errors); flatten-list
+        <+ is-pgql13; collect(get-pgql13-deprecation + get-pgql13-errors); not(?[]) <+ get-all-GraphTable-restrictions
         )
         ; not(?[]) <+ !( <quantifier-without-path-finding-goal>,
-                         <nested-regular-expression>,
+                         <get-all-nested-regular-expressions>,
                          <get-errors-for-inconsistent-graph-names>
                        ); conc> ast;
       result := <
@@ -62,15 +62,17 @@ rules
         alltd(
           norm-BindVariable(|bindVariable-counter) +
           norm-UMin +
-          norm-DateTimeField);
+          norm-DateTimeField +
+          norm-labeled-predicate +
+          norm-source-destination-predicate);
         innermost(
           norm-NOT +
           norm-NEQ +
           norm-singleVertex +
+          norm-parenthesized-match-single-path +
           norm-VertexWithoutBrackets +
           norm-isNull +
-          norm-case +
-          norm-any-path-shortest
+          norm-case
         );
       	alltd(norm-edgeContents);
         ( (is-pgql10 + is-pgql11); alltd((?PropRef(_, _) <+ varRef-to-legacy-string-literal) + norm-legacy-string-literal); alltd(norm-legacy-identifier) +
@@ -122,47 +124,105 @@ rules
   get-pgql11-deprecation = ?Legacy10Not(_); to-error-message(|"Use [NOT] instead of [!]")
   get-pgql11-deprecation = ?Legacy10Regex(_, _); to-error-message(|"Use [java_regexp_like(exp1, exp2)] instead of [exp1 =~ exp2]")
 
+  get-pgql11-deprecation = ?LimitOffsetClauses(FetchFirstClause(_, _, _), Some(offsetClause)); !offsetClause; to-error-message(|"OFFSET clause should come before FETCH FIRST clause")
+
   get-pgql13-deprecation = get-pgql11-deprecation // sharing all the deprecations with 1.1
 
   get-pgql13-errors      = ?GraphMatch(None(), _, _); to-error-message(|"Missing MATCH keyword at start of pattern")
 
   get-pgql13-errors:
-    ParenthesizedGraphMatch(pathPatterns, optionalGraphMatchParts) -> <to-error-message(|"ONE ROW PER VERTEX or STEP is only permitted if the MATCH clause contains a single path pattern")> rowsPerMatch
-    where <gt> (<length> pathPatterns, 1)
-        ; rowsPerMatch := <get-RowsPerMatch> optionalGraphMatchParts
-        ; <?Some(OneRowPerVertex(_)) + ?Some(OneRowPerEdge(_)) + ?Some(OneRowPerStep(_, _, _))> rowsPerMatch
+    ParenthesizedGraphMatch(_, _, optionalGraphMatchParts) -> <error-for-rows-clause-when-multiple-path-patterns> rowsPerMatch
+    where rowsPerMatch := <get-RowsPerMatch; ?Some(<id>)> optionalGraphMatchParts
+        ; <is-not-one-row-per-match> rowsPerMatch
 
+  error-for-rows-clause-when-multiple-path-patterns = to-error-message(|"ONE ROW PER VERTEX or STEP is only permitted if the MATCH clause contains a single path pattern")
+
+  // MATCH (n) ONE ROW PER VERTEX (v)
   get-pgql13-errors:
-    x -> <to-error-message(|"ONE ROW PER VERTEX or STEP is only supported in combination with ANY, ALL, SHORTEST or CHEAPEST")> rowsPerMatch
-    where <?ParenthesizedGraphMatch([PathPattern(_, _)], optionalGraphMatchParts) + ?GraphMatch(_, PathPattern(_, _), optionalGraphMatchParts) +
-           ?ParenthesizedGraphMatch([SingleVertex(_)], optionalGraphMatchParts) + ?GraphMatch(_, SingleVertex(_), optionalGraphMatchParts)> x
-        ; rowsPerMatch := <get-RowsPerMatch> optionalGraphMatchParts
-        ; <?Some(OneRowPerVertex(_)) + ?Some(OneRowPerEdge(_)) + ?Some(OneRowPerStep(_, _, _))> rowsPerMatch
+    graphMatch -> <to-error-message(|"ONE ROW PER VERTEX or STEP is only supported in combination with an edge pattern and quantifier")> rowsPerMatch
+    where <?GraphMatch(_, SingleVertex(_), Some(OptionalGraphMatchParts1(rowsPerMatch, _))) +
+           ?GraphMatch(_, PathPattern2(_, SingleVertex(_)), Some(OptionalGraphMatchParts1(rowsPerMatch, _)))> graphMatch
+        ; <is-not-one-row-per-match> rowsPerMatch
+
+  is-not-one-row-per-match = ?OneRowPerVertex(_) + ?OneRowPerEdge(_) + ?OneRowPerStep(_, _, _)
 
   get-pgql10-limitation = ( ?Pgql11FromClause(_)
                           + ?Subquery(_)
                           + ?Pgql11AsignSymbol()
                           + ?ExtractExp(_, _)
                           + ?ARRAY-AGG(_, _)
-                          + ?AnyPath(_)
-                          + ?AllPaths(_)
-                          + ?Shortest(_, _)
-                          + ?Cheapest(_, _)
+                          + ?PathPattern2(Some(_), _)
                           )
                         ; to-error-message(|"Use [SELECT .. FROM MATCH .. WHERE ..]")
 
   get-pgql11-limitation = ?VarRef(DelimitedIdentifier(<id>)); to-error-message(|"Double quoted variable references are only available in PGQL 1.3 and up")
                         + ?ModifyClause(_); to-error-message(|"INSERT, UPDATE and DELETE are only supported in PGQL 1.3 and up (use FROM MATCH ...)")
 
+  get-all-GraphTable-restrictions:
+    ast -> restrictions
+    with if <oncetd(?GraphTable(_, _, _))> ast
+         then restrictions := <collect-all(get-GraphTable-restriction, conc)> ast
+         else restrictions := []
+         end
+
+  get-GraphTable-restriction = ?Labels(c@Colon(), _); !c; to-error-message(|"GRAPH_TABLE restriction: use IS instead of :")
+
+  get-GraphTable-restriction = (?GraphMatch(_, _, _) +  ?ParenthesizedGraphMatch(_, _, _)); to-error-message(|<wrap-match-in-graph-table-error>)
+  get-GraphTable-restriction = (?GraphMatch(_, _, _) +  ?ParenthesizedGraphMatch(_, _, _)); to-error-message(|<wrap-match-in-graph-table-error>)
+  wrap-match-in-graph-table-error = !"GRAPH_TABLE restriction: wrap top-level MATCH in GRAPH_TABLE"
+
+  get-GraphTable-restriction = ?LimitClause(x); to-error-message(|$<GRAPH_TABLE restriction: use FETCH FIRST <<origin-text> x> ROWS ONLY instead of LIMIT <<origin-text> x>>)
+
+  get-GraphTable-restriction = ?AnyShortestPathSearch2(_); to-error-message(|"GRAPH_TABLE restriction: use ANY SHORTEST or ALL SHORTEST instead of SHORTEST")
+
+  get-GraphTable-restriction = ?AnyCheapestPathSearch2(_); to-error-message(|"GRAPH_TABLE restriction: use ANY CHEAPEST instead of CHEAPEST")
+
+  get-GraphTable-restriction = ?CountedShortestPathSearch2(NumberOfPaths(k), _); to-error-message(|$<GRAPH_TABLE restriction: use SHORTEST <k> instead of TOP <k> SHORTEST>)
+
+  get-GraphTable-restriction:
+    e@FunctionCall(None(), functionName, [x, String(s)]) -> <to-error-message(|$<GRAPH_TABLE restriction: use <<origin-text> x> IS LABELED "<<un-single-quote> s>">)> e
+    where <norm-identifier; ?Identifier("HAS_LABEL", _)> functionName
+
+  get-GraphTable-restriction:
+    e@FunctionCall(None(), functionName, [edge@VarRef(_), vertex@VarRef(_)]) -> error-message
+    with functionName' := <norm-identifier> functionName
+       ; if <?Identifier("IS_SOURCE_OF", _)> functionName'
+          then error-message := <to-error-message(|$<GRAPH_TABLE restriction: use <<origin-text> vertex> IS SOURCE OF <<origin-text> edge>>)> e
+          else if <?Identifier("IS_DESTINATION_OF", _)> functionName'
+               then error-message := <to-error-message(|$<GRAPH_TABLE restriction: use <<origin-text> vertex> IS DESTINATION OF <<origin-text> edge>>)> e
+               end
+          end
+
+  get-GraphTable-restriction = ?Path(_, _, _); to-error-message(|"GRAPH_TABLE restriction: -/../-> not supported")
+
+  get-GraphTable-restriction:
+    e@FunctionCall(None(), functionName, [_]) -> <to-error-message(|"GRAPH_TABLE restriction: MATCHNUM with argument not supported, use MATCHNUM without argument instead")> e
+    where <norm-identifier; ?Identifier("MATCHNUM", _)> functionName
+
+  get-GraphTable-restriction = ?KeepClause(_); to-error-message(|"KEEP clause not yet supported")
+
+  get-GraphTable-restriction:
+    GraphTable(_, GraphPattern(PathPatternList(pathPatterns), _, _), GraphTableShape(Some(rowsClause), _))
+      -> <error-for-rows-clause-when-multiple-path-patterns> rowsClause
+    where <length; not(?1)> pathPatterns
+        ; <?OneRowPerVertex(_) + ?OneRowPerStep(_, _, _)> rowsClause
+
   quantifier-without-path-finding-goal =
     collect(quantified-path-pattern <+ is-quantifier)
   ; remove-all(quantified-path-pattern)
   ; map(to-error-message(|"Quantifier needs to be enclosed by ANY, ALL, SHORTEST or CHEAPEST"))
 
-  nested-regular-expression = collect(?Shortest(_, _) + ?Cheapest(_, _) + ?AnyPath(_) + ?AllPaths(_)); collect(?Path(_, _, _)); map(to-error-message(|"Nested regular expressions not supported"))
+  get-all-nested-regular-expressions = collect(get-nested-regular-expression)
 
-  norm-any-path-shortest:
-    AnyPath(t@Shortest(_, _)) -> t // grammar does not permit it but in case of syntax error it may still show up in the AST in certain cases, so we 'fix' it here so that parsing doesn't fail with a bad error message during normalization
+  get-nested-regular-expression:
+    t@PathPattern2(_, _) -> error
+    where pathPatterns := <collect-all(?PathPattern2(Some(_), _) + // e.g. ANY SHORTEST ...
+                                       ?Path(_, _, _))> t // e.g. -/../->*
+        ; [PathPattern2(pathPatternPrefix1, _)|[nestedPath|_]] := pathPatterns
+    with if <?PathPattern2(pathPatternPrefix2, _)> nestedPath
+         then error := <to-error-message(|"Nested path-finding goals not allowed")> pathPatternPrefix2 // e.g. ANY ( ANY .. )
+         else error := <to-error-message(|$<Reachability not allowed here since pattern has path-finding goal <<origin-text; upper-case; trim-whitespace> pathPatternPrefix1>>)> nestedPath // e.g. ANY .. -/:knows*/->
+         end
 
   get-errors-for-inconsistent-graph-names:
     ast -> <conc> (errors-for-multiple-graph-name, errors-for-missing-on-clauses)
@@ -174,17 +234,19 @@ rules
 
   get-errors-for-multiple-graph-names:
     ast -> errors
-    with inputGraphNames := <collect-om(get-on-clause-graph-name; alltd(norm-identifier); to-name-without-case-sensitive-info)> ast
+    with inputGraphNames := <collect-all(get-graph-name; alltd(norm-identifier); to-name-without-case-sensitive-info); make-set> ast
        ; numInputGraphNames := <length> inputGraphNames
        ; if <gt> (numInputGraphNames, 1)
          then errors := <map(to-error-message(|"Querying multiple graphs is not supported"))> inputGraphNames
          else errors := []
          end
 
-  get-on-clause-graph-name = ?GraphMatch(_, _, Some(OptionalGraphMatchParts1(_, Some(OnClause(<id>)))))
-                           + ?ParenthesizedGraphMatch(_, Some(OptionalGraphMatchParts1(_, Some(OnClause(<id>)))))
-                           + ?GraphMatch(_, _, Some(OptionalGraphMatchParts2(OnClause(<id>), _)))
-                           + ?ParenthesizedGraphMatch(_, Some(OptionalGraphMatchParts2(OnClause(<id>), _)))
+  get-graph-name = ?GraphMatch(_, _, Some(OptionalGraphMatchParts1(_, Some(OnClause(<id>)))))
+                 + ?ParenthesizedGraphMatch(_, _, Some(OptionalGraphMatchParts1(_, Some(OnClause(<id>)))))
+                 + ?GraphMatch(_, _, Some(OptionalGraphMatchParts2(OnClause(<id>), _)))
+                 + ?ParenthesizedGraphMatch(_, _, Some(OptionalGraphMatchParts2(OnClause(<id>), _)))
+                 + ?GraphTable(Some(<id>), _, _)
+                 + ?GraphName(<id>) // for lateral subqueries that are already normalized at this point
 
   get-RowsPerMatch = ?None()
                    + origin-track-forced(?Some(OptionalGraphMatchParts1(<id>, _)); (?None() <+ !Some(<id>)))
@@ -192,19 +254,17 @@ rules
 
   get-errors-for-missing-on-clauses:
     ast -> errors
-    with if <oncetd(?OnClause(_))> ast
+    with if <oncetd(?OnClause(_) + ?GraphTable(_, _, _))> ast
          then clausesWithMissingGraphName := <collect(?GraphMatch(_, _, Some(OptionalGraphMatchParts1(_, None())))
-						                            + ?ParenthesizedGraphMatch(_, Some(OptionalGraphMatchParts1(_, None())))
+						                            + ?ParenthesizedGraphMatch(_, _, Some(OptionalGraphMatchParts1(_, None())))
 						                            + ?GraphMatch(_, _, None())
-						                            + ?ParenthesizedGraphMatch(_, None()))> ast
-            ; errors := <map(to-error-message(|"Missing ON clause"))> clausesWithMissingGraphName
+						                            + ?ParenthesizedGraphMatch(_, _, None())
+						                            + ?GraphTable(None(), _, _))> ast
+            ; errors := <map(?GraphTable(_, _, _); to-error-message(|"GRAPH_TABLE restriction: graph name required") <+ to-error-message(|"Missing graph name"))> clausesWithMissingGraphName
          else errors := []
          end
 
-  quantified-path-pattern = ?Shortest(_, _)
-                          + ?Cheapest(_, _)
-                          + ?AnyPath(_)
-                          + ?AllPaths(_)
+  quantified-path-pattern = ?PathPattern2(_, _)
                           + ?OutConn(Some(Path(_, _, _)), _)
                           + ?InConn(Some(Path(_, _, _)), _)
 
@@ -338,9 +398,42 @@ rules
 
   to-else = ?None(); !Null() <+ ?Some(ElseClause(<id>))
 
+  norm-labeled-predicate:
+    LabeledPredicate(varRef, notTerm, labelExpression) -> result
+    with labelExpression' := <to-label-constraint(|varRef)> labelExpression
+       ; if <?Some(_)> notTerm
+         then result := Not(labelExpression')
+         else result := labelExpression'
+         end
+
+  norm-source-destination-predicate:
+    t@SourcePredicate(vertexRef, notTerm, _, edgeRef) -> <origin-track-forced(!result)> t
+    with isSourceOfCall := FunctionCall(None(), RegularIdentifier("is_source_of"), [edgeRef, vertexRef])
+       ; if <?Some(_)> notTerm
+         then result := Not(isSourceOfCall)
+         else result := isSourceOfCall
+         end
+
+  norm-source-destination-predicate:
+    t@DestinationPredicate(vertexRef, notTerm, _, edgeRef) -> <origin-track-forced(!result)> t
+    with isDestinationOfCall := FunctionCall(None(), RegularIdentifier("is_destination_of"), [edgeRef, vertexRef])
+       ; if <?Some(_)> notTerm
+         then result := Not(isDestinationOfCall)
+         else result := isDestinationOfCall
+         end
+
 rules
 
-  norm-singleVertex = ?SingleVertex(elemContents); !PathPattern(Vertex(elemContents), []) // SELECT * WHERE ()
+  norm-singleVertex = ?SingleVertex(elemContents); !PathPattern2(None(), PathPattern(Vertex(elemContents), [])) // SELECT * WHERE ()
+
+  // translate e.g. MATCH ( (n) -> (m) ) to MATCH (n) -> (m)
+  norm-parenthesized-match-single-path:
+    PathPattern2(pathPatternPrefix1, pathPattern@PathPattern2(pathPatternPrefix2, pathPatternContent)) -> pathPattern'
+    with pathPatternPrefix' := <?Some(_) <+ !pathPatternPrefix2> pathPatternPrefix1 // take either prefix (if there are two then we'll generate an error below)
+       ; pathPattern' := <origin-track-forced(!PathPattern2(pathPatternPrefix', pathPatternContent))> pathPattern
+
+  get-pgql13-errors:
+    PathPattern2(Some(pathPatternPrefix1), PathPattern2(Some(pathPatternPrefix2), _)) -> <to-error-message(|"Nested path pattern prefix not allowed")> pathPatternPrefix2
 
   norm-VertexWithoutBrackets = ?VertexWithoutBrackets(v); !Vertex(ElemContents(Some(RegularIdentifier(<origin-track-forced(<conc-strings> (v, <VERTEX_WITHOUT_BRACKETS>))>)), None(), None(), None()))
 
@@ -371,7 +464,7 @@ rules
   // PGQL 1.3
   norm-matchElems(|variable-counter):
     FromWhereClauses(tableExpressions, whereClause) -> TableExpressionsAndGraphName(tableExpressions', graphName, whereClause)
-    with graphName := <collect-one(get-on-clause-graph-name; !Some(GraphName(<id>))) <+ !None()> tableExpressions // simply take the first graph name we see; we don't support multiple graph right now
+    with graphName := <collect-one(get-graph-name; !Some(GraphName(<id>))) <+ !None()> tableExpressions // simply take the first graph name we see; we don't support multiple graph right now
        ; tableExpressions' := <normalize-table-expressions(|variable-counter, [])> tableExpressions
 
   // normalizes the MATCH expressions and merges consequetive MATCH expressions together into a single GraphPattern
@@ -384,21 +477,24 @@ rules
                  ; tableExpressions' := [pathPatternsWithRowsPerMatch]
               end
          else <?[x|xs]> tableExpressions
-            ; if <?GraphMatch(_, _, _) + ?ParenthesizedGraphMatch(_, _)> x
+            ; if <?GraphMatch(_, _, _) + ?ParenthesizedGraphMatch(_, _, _)> x
               then graphMatches' := <conc> (graphMatches, [x])
                  ; tableExpressions' := <normalize-table-expressions(|variable-counter, graphMatches')> xs
-              else if <?[]> graphMatches
-                   then tableExpressions' := [x|<normalize-table-expressions(|variable-counter, graphMatches)> xs]
+              else x' := <normalize-table-expression(|variable-counter)> x
+                 ; if <?[]> graphMatches
+                   then tableExpressions' := [x'|<normalize-table-expressions(|variable-counter, graphMatches)> xs]
                    else pathPatternsWithRowsPerMatch := <get-pathPatternsAndRowsPerMatch-and-normalize(|variable-counter)> graphMatches
-                      ; tableExpressions' := [pathPatternsWithRowsPerMatch| [x|<normalize-table-expressions(|variable-counter, [])> xs] ]
+                      ; tableExpressions' := [pathPatternsWithRowsPerMatch| [x'|<normalize-table-expressions(|variable-counter, [])> xs] ]
                    end
               end
          end
 
+  normalize-table-expression(|variable-counter) = ?DerivedTable(_, _, _)
+
   get-pathPatternsAndRowsPerMatch-and-normalize(|variable-counter) = map(get-pathPatternsAndRowsPerMatch); concat; norm-matchElems-common(|variable-counter)
 
   get-pathPatternsAndRowsPerMatch = ?GraphMatch(_, pathPattern, optionalGraphMatchParts); ![PathPatternAndRowsPerMatch(pathPattern, <get-RowsPerMatch> optionalGraphMatchParts)]
-                                  + ?ParenthesizedGraphMatch(<id>, optionalGraphMatchParts); map(!PathPatternAndRowsPerMatch(<id>, <get-RowsPerMatch> optionalGraphMatchParts))
+                                  + ?ParenthesizedGraphMatch(pathPattern1, otherPathPatterns, optionalGraphMatchParts); !([pathPattern1], otherPathPatterns); conc; map(!PathPatternAndRowsPerMatch(<id>, <get-RowsPerMatch> optionalGraphMatchParts))
 
   // PGQL 1.1 and 1.2
   norm-matchElems(|variable-counter):
@@ -462,13 +558,14 @@ rules
 
   get-inlined-constraints:
     ElemContents(Some(var), label, id', otherConstraint) -> <concat> [labels, identifiers, otherConstraint']
-    with labels := <?Some(Labels(_, <id>)); to-label-constraint(|var); ![<id>] <+ ![]> label
+    with varRef := VarRef(var)
+       ; labels := <?Some(Labels(_, <id>)); to-label-constraint(|varRef); ![<id>] <+ ![]> label
        ; identifiers := <?Some(Ids(<id>)); to-id-constraint(|var); ![<id>] <+ ![]> id'
        ; otherConstraint' := <?Some(InlinedConstraint(<id>)) <+ ![]> otherConstraint
 
-  to-label-constraint(|var):
-    labels -> <to-hasLabel-expressions(|var)> labels
-  to-hasLabel-expressions(|var) = bottomup(try(![VarRef(var), <to-label>]; to-function(|"has_label") + origin-track-forced(normalize-label-disjunction)))
+  to-label-constraint(|varRef):
+    labels -> <to-hasLabel-expressions(|varRef)> labels
+  to-hasLabel-expressions(|varRef) = bottomup(try(![varRef, <to-label>]; to-function(|"has_label") + origin-track-forced(normalize-label-disjunction)))
   to-label = ?Label(<id>) + ?Legacy10Identifier(<id>); origin-track-forced(!Identifier(<id>, <id>)) + ?BindVariable(_)
   to-id-constraint(|var) = bottomup(try(is-literal; origin-track-forced(!Eq(<to-function(|"id")> [VarRef(var)], <id>))))
   normalize-label-disjunction = ?LabelDisjunction(x, y); !Or(x, y)
@@ -480,43 +577,72 @@ rules
   get-connections-from-paths(|variable-counter, _):
     [PathPatternAndRowsPerMatch(pathPattern, rowsPerMatch)|otherPaths] -> <get-connections-from-paths(|variable-counter, rowsPerMatch)> [pathPattern|otherPaths]
 
-  // head is path with only one vertex => get neighbors for the other paths
+  // first path pattern has only one vertex => ignore it
   get-connections-from-paths(|variable-counter, rowsPerMatch):
-    [PathPattern(_, [])|otherPaths] -> <get-connections-from-paths(|variable-counter, rowsPerMatch)> otherPaths
+    [PathPattern2(_, PathPattern(_, []))|otherPaths] -> <get-connections-from-paths(|variable-counter, rowsPerMatch)> otherPaths
 
-  // paths with more than one vertex
+  // first path pattern has more than one vertex
   get-connections-from-paths(|variable-counter, rowsPerMatch):
-    [pathPattern|otherPaths] -> <conc> (edges, edgesTailPaths)
-    where not ( <?PathPattern(_, []) + ?Shortest(_, _) + ?Cheapest(_, _) + ?AnyPath(_) + ?AllPaths(_)> pathPattern)
-    with topKAnyAll := None()
-       ; pathFindingGoal := None()
-       ; edges := <pathPattern-to-connections(|variable-counter, pathFindingGoal, topKAnyAll, rowsPerMatch)> pathPattern
-       ; edgesTailPaths := <get-connections-from-paths(|variable-counter, rowsPerMatch)> otherPaths
+    [PathPattern2(pathPatternPrefix, pathPattern)|otherPaths] -> result
+    where <not(?PathPattern(_, []))> pathPattern
+    with if <contains-edge-pattern-with-quantifier + !rowsPerMatch; ?Some(<id>); is-not-one-row-per-match + !pathPatternPrefix; not(?None() + ?Some(AllPathSearch(_)))> pathPattern // path pattern has a quantifier or it has a search prefix other than ALL or it has a graph table rows clause other than ONE ROW PER MATCH
+         then pathFindingGoal := <to-pathFindingGoal> pathPatternPrefix
+            ; topKAnyAll := <to-topKAnyAll> pathPatternPrefix
+            ; result := <get-connections-from-quantified-path-patterns(|variable-counter, rowsPerMatch)> (pathFindingGoal, topKAnyAll, pathPattern, otherPaths)
+         else topKAnyAll := None()
+            ; pathFindingGoal := None()
+            ; edges := <pathPattern-to-connections(|variable-counter, pathFindingGoal, topKAnyAll, rowsPerMatch)> pathPattern
+            ; edgesTailPaths := <get-connections-from-paths(|variable-counter, rowsPerMatch)> otherPaths
+            ; result := <conc> (edges, edgesTailPaths)
+         end
 
-  // paths with more than one vertex
-  get-connections-from-paths(|variable-counter, rowsPerMatch):
-    [Shortest(topKAnyAll, pathPattern)|otherPaths] -> result
-    with result := <get-connections-from-quantified-path-patterns(|variable-counter, rowsPerMatch)> (Shortest(), topKAnyAll, pathPattern, otherPaths)
+  contains-edge-pattern-with-quantifier = collect-om(?Path(_, _, _) <+ is-quantifier) // in case of (n) -[e:lbl]->* (m) -/:lbl*/-> (o) we are only intersted in the first star, so we test if there exist at least one edge pattern with quantifier by ignoring paths with quantifiers
+                                        ; filter(is-quantifier); not(?[])
 
-  // paths with more than one vertex
-  get-connections-from-paths(|variable-counter, rowsPerMatch):
-    [Cheapest(topKAnyAll, pathPattern)|otherPaths] -> result
-    with result := <get-connections-from-quantified-path-patterns(|variable-counter, rowsPerMatch)> (Cheapest(), topKAnyAll, pathPattern, otherPaths)
+  to-pathFindingGoal = ?None(); !All() +
+                       ?Some(AllPathSearch(_)); origin-track-forced(!All())
 
-  // paths with more than one vertex
-  get-connections-from-paths(|variable-counter, rowsPerMatch):
-    [AnyPath(pathPattern)|otherPaths] -> result
-    with result := <get-connections-from-quantified-path-patterns(|variable-counter, rowsPerMatch)> (Any(), None(), pathPattern, otherPaths)
+  to-pathFindingGoal = ( ?Some(AllShortestPathSearch(_)) +
+                         ?Some(AnyShortestPathSearch(_)) +
+                         ?Some(AnyShortestPathSearch2(_)) + // deprecated
+                         ?Some(CountedShortestPathSearch(_, _)) +
+                         ?Some(CountedShortestPathSearch2(_, _)) + // deprecated
+                         ?Some(AnyPathSearch(_, _)) // translate ANY k to ANY SHORTEST k
+                       )
+                     ; origin-track-forced(!Shortest())
 
-  // paths with more than one vertex
-  get-connections-from-paths(|variable-counter, rowsPerMatch):
-    [AllPaths(pathPattern)|otherPaths] -> result
-    with result := <get-connections-from-quantified-path-patterns(|variable-counter, rowsPerMatch)> (All(), None(), pathPattern, otherPaths)
+  to-pathFindingGoal = ( ?Some(AnyCheapestPathSearch(_)) +
+                         ?Some(AnyCheapestPathSearch2(_)) + // deprecated
+                         ?Some(CountedCheapestPathSearch(_, _)) +
+                         ?Some(CountedCheapestPathSearch2(_, _)) // deprecated
+                       )
+                     ; origin-track-forced(!Cheapest())
+
+  to-topKAnyAll = ?None() +
+                  ?Some(AllPathSearch(_)); origin-track-forced(!None())
+
+  to-topKAnyAll = ?Some(AllShortestPathSearch(_)); origin-track-forced(!Some(All()))
+
+  to-topKAnyAll = ( ?Some(AnyPathSearch(None(), _)) +
+                    ?Some(AnyShortestPathSearch(_)) +
+                    ?Some(AnyShortestPathSearch2(_)) + // deprecated
+                    ?Some(AnyCheapestPathSearch(_)) +
+                    ?Some(AnyCheapestPathSearch2(_)) // deprecated
+                  )
+                ; origin-track-forced(!Some(Any()))
+
+  to-topKAnyAll = ( ?Some(CountedShortestPathSearch(NumberOfPaths(k), _)) +
+                    ?Some(CountedShortestPathSearch2(NumberOfPaths(k), _)) + // deprecated
+                    ?Some(CountedCheapestPathSearch(NumberOfPaths(k), _)) +
+                    ?Some(CountedCheapestPathSearch2(NumberOfPaths(k), _)) + // deprecated
+                    ?Some(AnyPathSearch(Some(NumberOfPaths(k)), _)) // translate ANY k to ANY SHORTEST k
+                  )
+                ; origin-track-forced(!Some(TopK(k)))
 
   get-connections-from-quantified-path-patterns(|variable-counter, rowsPerMatch):
     (pathFindingGoal, topKAnyAll, pathPattern, otherPaths) ->  <conc> ([path'], edgesTailPaths)
     with edges := <pathPattern-to-connections(|variable-counter, pathFindingGoal, topKAnyAll, rowsPerMatch)> pathPattern
-       ; path' := <?[single-path-only]; !single-path-only; try(single-edge-to-path(|variable-counter, pathFindingGoal, topKAnyAll, rowsPerMatch)) <+ !ComplexRegularExpressionNotSupported(<id>)> edges
+       ; path' := <?[single-path-only]; !single-path-only; try(single-edge-to-path(|variable-counter, pathFindingGoal, topKAnyAll, rowsPerMatch)) <+ !ComplexRegularExpressionNotSupported(<id>, pathFindingGoal)> edges
        ; edgesTailPaths := <get-connections-from-paths(|variable-counter, rowsPerMatch)> otherPaths
 
   single-edge-to-path(|variable-counter, pathFindingGoal, topKAnyAll, rowsPerMatch):
@@ -528,9 +654,6 @@ rules
     PathPattern(Vertex(n1), edgeVertices@[EdgeVertex(e, Vertex(n2))|_]) -> <conc> ([edge], edgesPathTail)
     with edge := <to-connection(|variable-counter, pathFindingGoal, topKAnyAll, rowsPerMatch)> (n1, e, n2)
        ; edgesPathTail := <get-connections-from-single-path(|variable-counter, pathFindingGoal, topKAnyAll, rowsPerMatch)> edgeVertices
-
-// Shortest(None,PathPattern(Vertex(ElemContents(Some(Identifier("<<anonymous>>_1",None)),None,None,None)),[EdgeVertex(OutConn(ElemContents(Some(Identifier("<<anonymous>>_2",None)),None,None,None),Some(BetweenNAndM("1","2"))),Vertex(ElemContents(Some(Identifier("<<anonymous>>_3",None)),None,None,None)))]))
-
 
   // base case: only one edgeVertex
   get-connections-from-single-path(|variable-counter, pathFindingGoal, topKAnyAll, rowsPerMatch):
@@ -594,7 +717,7 @@ rules
        ; constraints' := Constraints(<conc> (inlinedSrcVertexConstraints, inlinedEdgeConstraints, inlinedDstVertexConstraints, constraints))
        ; if <?[]> otherEdges
          then path := <to-path(|variable-counter, pathFindingGoal, topKAnyAll, rowsPerMatch)> (n1, n2, edge', constraints', costClause, quantifier)
-         else path := ComplexParenthesizedRegularExpressionNotSupported(otherEdges)
+         else path := ComplexParenthesizedRegularExpressionNotSupported(otherEdges, pathFindingGoal)
          end
 
   to-path(|variable-counter, pathFindingGoal, topKAnyAll, rowsPerMatch):
@@ -691,5 +814,46 @@ rules
     ((try(?Asc(<id>) + ?Legacy10Asc(<id>))); !OrderByElem(<id>, Asc(), version))
 
   norm-limitOffsets = ?None(); !LimitOffsetClauses(None(), None())
-  norm-limitOffsets = ?Some(LimitOffsetClauses(limitClause, offsetClause)); !LimitOffsetClauses(Some(limitClause), offsetClause)
-  norm-limitOffsets = ?Some(OffsetLimitClauses(offsetClause, limitClause)); !LimitOffsetClauses(limitClause, Some(offsetClause))
+  norm-limitOffsets = ?Some(LimitOffsetClauses(limitOrFetchFirstClause, optionalOffsetClause)); !LimitOffsetClauses(<norm-limit> Some(limitOrFetchFirstClause), optionalOffsetClause)
+  norm-limitOffsets = ?Some(OffsetLimitClauses(offsetClause, optionalLimitOrFetchFirstClause)); !LimitOffsetClauses(<norm-limit> optionalLimitOrFetchFirstClause, Some(offsetClause))
+
+  norm-limit = ?None() + ?Some(LimitClause(_)) + ?Some(FetchFirstClause(_, x, _)); !Some(LimitClause(x))
+
+rules // GRAPH_TABLE
+
+  normalize-table-expression(|variable-counter):
+    t@GraphTableDerivedTable(GraphTable(graphName, GraphPattern(PathPatternList(pathPatterns), keepClause, whereClause), GraphTableShape(rowsClause, columnsClause)), correlation)
+    -> DerivedTable(Some(GraphTable()), Subquery(
+          NormalizedQuery(
+            CommonPathExpressions([])
+          , selectClause
+          , graphName'
+          , tableExpressions
+          , whereClause'
+          , groupBy
+          , having
+          , orderBy
+          , limitOffset
+          , errorMessages
+          , pgqlVersion
+          , bindVariableCount
+          , selectingAllProperties
+          )
+        )
+      , correlation)
+    with distinct := None()
+       ; selectList := <?None(); !t; origin-track-forced(!SelectList([])) <+ // no COLUMNS clause translates to empty COLUMNS clause
+                       ?Some(GraphTableColumnsClause(<id>)); map(?AllProperties(_, _) + norm-ExpAsVar-for-select-clause); ?list; !columnsClause; origin-track-forced(!SelectList(list))> columnsClause
+       ; selectClause := <origin-track-forced(!SelectClause(distinct, selectList))> selectList
+       ; graphName' := <?None() + ?Some(<id>); !Some(GraphName(<id>))> graphName
+       ; graphPattern' := <map(!PathPatternAndRowsPerMatch(<id>, rowsClause)); norm-matchElems-common(|variable-counter)> pathPatterns
+       ; tableExpressions := [ graphPattern' ]
+       ; whereClause' := <?Some(WhereClause(<id>)); !Constraints([<id>]) <+ ?None(); !Constraints([])> whereClause
+       ; groupBy := None()
+       ; having := None()
+       ; orderBy := None()
+       ; limitOffset := LimitOffsetClauses(None(), None())
+       ; errorMessages := [] // not used
+       ; pgqlVersion := "v1.3" // not used
+       ; bindVariableCount := -1 // not used
+       ; selectingAllProperties := False() // not used

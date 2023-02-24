@@ -234,7 +234,7 @@ rules // subqueries
   nabl-constraint(|ctx):
     t@NormalizedQuery(_, _, _, _, _, _, _, _, _, _, "v1.3", _, _) -> <fail>
     with nonPgql13Subqueries := <collect(is-non-pgql13-query)> t
-       ; <map(get-select-clause); batch-generate-error(|ctx, "Subquery uses older version of PGQL; please make sure that both inner and outer query use PGQL 1.3 syntax")> nonPgql13Subqueries
+       ; <map(get-select-clause); batch-generate-error(|ctx, "Subquery uses older version of PGQL syntax; please make sure that both inner and outer query use the same PGQL version")> nonPgql13Subqueries
 
   nabl-constraint(|ctx):
     t -> <fail>
@@ -279,13 +279,20 @@ rules // helper rules
 rules // temporary limitation
 
   nabl-constraint(|ctx):
-    ComplexRegularExpressionNotSupported(edgesOrPaths) -> <fail>
+    ComplexRegularExpressionNotSupported(edgesOrPaths, pathFindingGoal) -> <fail>
     with [_|[secondEdgeOrPath|_]] := edgesOrPaths
-       ; <generate-error(|ctx, "Not yet supported: multiple edge patterns in ANY, ALL, SHORTEST or CHEAPEST")> edgesOrPaths
+       ; <generate-error-for-multiple-edge-patterns(|ctx, pathFindingGoal)> edgesOrPaths
 
   nabl-constraint(|ctx):
-    ComplexParenthesizedRegularExpressionNotSupported(edges) -> <fail>
-    with <generate-error(|ctx, "Not yet supported: multiple edge patterns in ANY, ALL, SHORTEST or CHEAPEST")> edges
+    ComplexParenthesizedRegularExpressionNotSupported(edges, pathFindingGoal) -> <fail>
+    with <generate-error-for-multiple-edge-patterns(|ctx, pathFindingGoal)> edges
+
+  generate-error-for-multiple-edge-patterns(|ctx, pathFindingGoal):
+    edgesOrPaths -> <id>
+    with if <?All()> pathFindingGoal
+         then <generate-error(|ctx, "Not supported: path pattern containing multiple edge patterns in combination with quantifier(s); please split up the pattern into multiple path patterns")> edgesOrPaths
+         else <generate-error(|ctx, "Not supported: path pattern containing multiple edge patterns in combination with ANY, SHORTEST or CHEAPEST; try splitting up the pattern into multiple path patterns")> edgesOrPaths
+         end
 
   nabl-constraint(|ctx):
     Path(_, _, _, _, _, _, _, Some(TopK(kValue)), _) -> <fail>
@@ -401,7 +408,11 @@ rules // literals
 
 rules
 
-  nabl-constraint(|ctx) = ?AstPlusMetadata(_, metadata); alltd(nabl-constraint(|ctx, metadata)); fail
+  nabl-constraint(|ctx) = ?AstPlusMetadata(<id>, metadata)
+                        ; alltd(nabl-constraint(|ctx, metadata))
+                        ; check-all-GraphTable-restrictions(|ctx)
+                        ; check-all-restrictions-outside-GraphTable(|ctx)
+                        ; fail
 
 rules // IN predicate and CASE expression
 
@@ -713,11 +724,21 @@ rules // MODIFY
     RowsPerMatchVariable(Identifier(v, _), _, Correlation(_), _) -> <fail>
     with <generate-error(|ctx, <error-duplicate-var-outer-query>)> v
 
-  // check SELECT clause is not empty (may happen in case of SELECT n.*)
+  // check SELECT/COLUMNS clause is not empty (may happen in case of SELECT n.*, COLUMNS ( n.* ) or omitting COLUMNS clause)
   nabl-constraint(|ctx):
-    SelectClause(distinctOrStar, e@SelectList([])) -> <fail>
+    t@SelectClause(distinctOrStar, e@SelectList([])) -> <fail>
     where <not(?Star() + ?GroupBySelectStar())> distinctOrStar // for SELECT * (instead of SELECT n.*) with zero columns we already have a different error
-    with <generate-error(|ctx, "SELECT clause should have at least one column but has zero columns")> e
+    with origin-text := <origin-text; upper-case> t
+       ; if <string-starts-with(|"SELECT")> origin-text
+         then messsage := "SELECT clause should have at least one column but has zero columns"
+         else if <string-starts-with(|"COLUMNS")> origin-text
+              then messsage := "COLUMNS clause should have at least one column but has zero columns"
+              else if <string-starts-with(|"GRAPH_TABLE")> origin-text
+                   then messsage := "GRAPH_TABLE restriction: COLUMNS clause is required"
+                   end
+              end
+         end
+       ; <generate-error(|ctx, messsage)> e
 
   // SUBSTRING
   nabl-constraint(|ctx, metadata):
@@ -743,3 +764,126 @@ rules // MODIFY
   nabl-constraint(|ctx, metadata):
     ExpressionPlusType(exp@FunctionCall(_, _, _), AmbiguousType()) -> <fail>
     with <generate-error(|ctx, "Multiple functions exist that match the specified function name and argument types")> exp
+
+  nabl-constraint(|ctx, metadata):
+    FunctionCall(None(), Identifier("VERTEX_EQUAL", _), [ExpressionPlusType(exp1, t1), ExpressionPlusType(exp2, t2)]) -> <fail>
+    with if <not(?Type("VERTEX"))> t1
+         then <generate-error(|ctx, "Vertex expected")> exp1
+         end
+       ; if <not(?Type("VERTEX"))> t2
+         then <generate-error(|ctx, "Vertex expected")> exp2
+         end
+
+  nabl-constraint(|ctx, metadata):
+    FunctionCall(None(), Identifier("EDGE_EQUAL", _), [ExpressionPlusType(exp1, t1), ExpressionPlusType(exp2, t2)]) -> <fail>
+    with if <not(?Type("EDGE"))> t1
+         then <generate-error(|ctx, "Edge expected")> exp1
+         end
+       ; if <not(?Type("EDGE"))> t2
+         then <generate-error(|ctx, "Edge expected")> exp2
+         end
+
+  nabl-constraint(|ctx, metadata):
+    FunctionCall(None(), Identifier("VERTEX_ID", _), [ExpressionPlusType(exp, t)]) -> <fail>
+    with if <not(?Type("VERTEX"))> t
+         then <generate-error(|ctx, "Vertex expected")> exp
+         end
+
+  nabl-constraint(|ctx, metadata):
+    FunctionCall(None(), Identifier("EDGE_ID", _), [ExpressionPlusType(exp, t)]) -> <fail>
+    with if <not(?Type("EDGE"))> t
+         then <generate-error(|ctx, "Edge expected")> exp
+         end
+
+rules
+
+  check-all-restrictions-outside-GraphTable(|ctx) = alltd(?DerivedTable(Some(GraphTable()), _, _) <+ check-restriction-outside-GraphTable(|ctx))
+
+  // MATCHNUM outside of GRAPH_TABLE
+  check-restriction-outside-GraphTable(|ctx):
+    e@FunctionCall(None(), Identifier("MATCHNUM", _), []) -> <fail>
+    with <generate-error(|ctx, "MATCHNUM without argument not supported unless used inside GRAPH_TABLE")> e
+
+rules // GRAPH_TABLE
+
+  check-all-GraphTable-restrictions(|ctx):
+   ast -> ast
+   with if <oncetd(?GraphTable())> ast
+        then <alltd(check-GraphTable-restriction(|ctx))> ast
+        end
+
+  check-GraphTable-restriction(|ctx):
+    Vertex(e@Identifier(_, v), _, Correlation(_)) -> <fail>
+    with <generate-error(|ctx, $<GRAPH_TABLE restriction: vertex sharing between inner and outer query is not allowed, introduce a new variable name like <v>_new and use WHERE vertex_equal(<v>, <v>_new)>)> e
+
+  check-GraphTable-restriction(|ctx):
+    SelectList(elems) -> <fail>
+    with <filter(?ExpAsVar(ExpressionPlusType(_, Type("VERTEX")), _, _, _) + ?ExpAsVar(ExpressionPlusType(_, Type("EDGE")), _, _, _)); batch-generate-error(|ctx, "GRAPH_TABLE restriction: cannot project vertex or edge objects")> elems
+
+  check-GraphTable-restriction(|ctx):
+    e@FunctionCall(None(), Identifier(functionName, _), [_]) -> <fail>
+    where <?"LABEL" + ?"LABELS"> functionName
+    with <generate-error(|ctx, "GRAPH_TABLE restriction: cannot use label(..) or labels(..), try using the IS LABELED predicate")> e
+
+  check-GraphTable-restriction(|ctx):
+    FunctionCall(None(), Identifier("ALL_DIFFERENT", _), expressionsPlusType) -> <fail>
+    with nonGraphElements := <filter(not(?ExpressionPlusType(_, Type("VERTEX")) + ?ExpressionPlusType(_, Type("EDGE"))))> expressionsPlusType
+       ; <batch-generate-error(|ctx, "GRAPH_TABLE restriction: ALL_DIFFERENT predicate allows vertex and edge inputs only")> nonGraphElements
+
+  check-GraphTable-restriction(|ctx):
+    e@FunctionCall(None(), Identifier("JAVA_REGEXP_LIKE", _), [_, ExpressionPlusType(String(_), _)]) -> <fail>
+    with <generate-error(|ctx, "GRAPH_TABLE restriction: JAVA_REGEXP_LIKE is unsupported, please try to use another regexp function if one is available or implement a UDF otherwise")> e
+
+  check-GraphTable-restriction(|ctx):
+    e@FunctionCall(None(), Identifier("IN_DEGREE", _), [ExpressionPlusType(_, Type("VERTEX"))]) -> <fail>
+    with <generate-error(|ctx, "GRAPH_TABLE restriction: IN_DEGREE not supported, use a subquery instead")> e
+
+  check-GraphTable-restriction(|ctx):
+    e@FunctionCall(None(), Identifier("OUT_DEGREE", _), [ExpressionPlusType(_, Type("VERTEX"))]) -> <fail>
+    with <generate-error(|ctx, "GRAPH_TABLE restriction: OUT_DEGREE not supported, use a subquery instead")> e
+
+  check-GraphTable-restriction(|ctx):
+    e@FunctionCall(None(), Identifier("ID", _), [_]) -> <fail>
+    with <generate-error(|ctx, "GRAPH_TABLE restriction: ID not supported, use VERTEX_ID or EDGE_ID instead")> e
+
+  check-GraphTable-restriction(|ctx):
+    e@FunctionCall(None(), Identifier("MATCH_NUMBER", _), [_]) -> <fail>
+    with <generate-error(|ctx, "GRAPH_TABLE restriction: MATCH_NUMBER not supported, use MATCHNUM instead")> e
+
+  check-GraphTable-restriction(|ctx):
+    e@Eq(ExpressionPlusType(exp1, t1), ExpressionPlusType(exp2, _)) -> <fail>
+    where <is-vertex-or-edge-type> t1
+    with if <?Type("VERTEX")> t1
+         then <generate-error(|ctx, $<GRAPH_TABLE restriction: use VERTEX_EQUAL(<<origin-text> exp1>, <<origin-text> exp2>)>)> e
+         else <generate-error(|ctx, $<GRAPH_TABLE restriction: use EDGE_EQUAL(<<origin-text> exp1>, <<origin-text> exp2>)>)> e
+         end
+
+  check-GraphTable-restriction(|ctx):
+    e@Neq(ExpressionPlusType(exp1, t1), ExpressionPlusType(exp2, _)) -> <fail>
+    where <is-vertex-or-edge-type> t1
+    with if <?Type("VERTEX")> t1
+         then <generate-error(|ctx, $<GRAPH_TABLE restriction: use NOT VERTEX_EQUAL(<<origin-text> exp1>, <<origin-text> exp2>)>)> e
+         else <generate-error(|ctx, $<GRAPH_TABLE restriction: use NOT EDGE_EQUAL(<<origin-text> exp1>, <<origin-text> exp2>)>)> e
+         end
+
+  check-GraphTable-restriction(|ctx):
+    CommonPathExpressions(pathMacros) -> <fail>
+    with <map(?CommonPathExpression(<id>, _, _, _, _); generate-error(|ctx, "GRAPH_TABLE restriction: path macros not supported"))> pathMacros
+
+  check-GraphTable-restriction(|ctx):
+    e@OneRowPerEdge(_) -> <fail>
+    with <generate-error(|ctx, "GRAPH_TABLE restriction: ONE ROW PER EDGE not supported, use ONE ROW PER STEP")> e
+
+  // note: UPDATE and DELETE do not need a check since GRAPH_TABLE does not allow for projecting vertex and edges objects (to be updated/deleted) anyway
+  check-GraphTable-restriction(|ctx):
+    e@InsertClause(_, _) -> <fail>
+    with <generate-error(|ctx, "GRAPH_TABLE restriction: INSERT not supported")> e
+
+  check-GraphTable-restriction(|ctx):
+    e@ColumnNamePrefix(_) -> <fail>
+    with <generate-error(|ctx, "GRAPH_TABLE restriction: PREFIX not supported")> e
+
+  nabl-constraint(|ctx):
+    DerivedTable(Some(GraphTable()), Subquery(NormalizedQuery(_, selectClause, _, _, _, CreateOneGroup(), _, _, _, _, _, _, _)), None()) -> <fail>
+    with aggregations := <collect(is-aggregate)> selectClause
+       ; <batch-generate-error(|ctx, "COLUMNS clause allows only aggregations that access at least one group variable")> aggregations

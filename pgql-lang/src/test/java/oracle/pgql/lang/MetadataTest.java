@@ -27,6 +27,9 @@ public class MetadataTest extends AbstractPgqlTest {
     result = parse("SELECT * FROM MATCH (n) WHERE has_label(n, 'NotExists')");
     assertTrue(result.getErrorMessages(), result.getErrorMessages().contains("Vertex label does not exist"));
 
+    result = parse("SELECT * FROM MATCH (n) WHERE n IS LABELED NotExists");
+    assertTrue(result.getErrorMessages(), result.getErrorMessages().contains("Vertex label does not exist"));
+
     result = parse("SELECT * FROM MATCH (n:\"Person\")");
     assertTrue(result.isQueryValid());
 
@@ -40,6 +43,9 @@ public class MetadataTest extends AbstractPgqlTest {
     assertTrue(result.getErrorMessages().contains("Edge label does not exist"));
 
     result = parse("SELECT * FROM MATCH () -[e]-> () WHERE has_label(e, 'NotExists')");
+    assertTrue(result.getErrorMessages().contains("Edge label does not exist"));
+
+    result = parse("SELECT * FROM MATCH () -[e]-> () WHERE e IS LABELED NotExists");
     assertTrue(result.getErrorMessages().contains("Edge label does not exist"));
 
     result = parse("SELECT * FROM MATCH () -[e:\"knows\"]-> ()");
@@ -115,6 +121,9 @@ public class MetadataTest extends AbstractPgqlTest {
     result = parse("SELECT e.since FROM MATCH () -[e]-> () WHERE has_label(e, 'KNOWS') OR has_label(e, 'notExists')");
     assertTrue(result.getErrorMessages().contains("Edge label does not exist"));
 
+    result = parse("SELECT e.since FROM MATCH () -[e]-> () WHERE e IS LABELED knows OR e IS NOT LABELED notExists");
+    assertTrue(result.getErrorMessages().contains("Edge label does not exist"));
+
     result = parse("SELECT e.since FROM MATCH () -[e:knows|studyAt]-> ()");
     assertTrue(result.isQueryValid());
   }
@@ -122,6 +131,9 @@ public class MetadataTest extends AbstractPgqlTest {
   @Test
   public void testLabelNotExistsInSelectClause() throws Exception {
     PgqlResult result = parse("SELECT MAX(has_label(n, 'NotExists')) FROM MATCH (n)");
+    assertTrue(result.getErrorMessages().contains("Vertex label does not exist"));
+
+    result = parse("SELECT MAX(n IS NOT LABELED \"NotExists\") FROM MATCH (n)");
     assertTrue(result.getErrorMessages().contains("Vertex label does not exist"));
   }
 
@@ -971,24 +983,33 @@ public class MetadataTest extends AbstractPgqlTest {
 
   @Test
   public void testSelectAllPropertiesZeroColumnsNotAllowed() throws Exception {
-    String error = "SELECT clause should have at least one column but has zero columns";
+    String errorSelectClause = "SELECT clause should have at least one column but has zero columns";
+    String errorColumnsClause = "COLUMNS clause should have at least one column but has zero columns";
 
     PgqlResult result = parse("SELECT e.* FROM MATCH () -[e:worksFor]-> () ON financialNetwork");
-    assertTrue(result.getErrorMessages().contains(error));
+    assertTrue(result.getErrorMessages().contains(errorSelectClause));
+    result = parse("SELECT 1 FROM GRAPH_TABLE ( financialNetwork MATCH () -[e IS worksFor]-> () COLUMNS ( e.* ) )");
+    assertTrue(result.getErrorMessages().contains(errorColumnsClause));
 
     result = parse("SELECT e1.*, e2.* FROM MATCH () -[e1:worksFor]-> () -[e2:owner]-> () ON financialNetwork");
-    assertTrue(result.getErrorMessages().contains(error));
+    assertTrue(result.getErrorMessages().contains(errorSelectClause));
+    result = parse("SELECT 1 FROM GRAPH_TABLE ( financialNetwork MATCH () -[e1 IS worksFor]-> () -[e2 IS owner]-> () COLUMNS ( e1.*, e2.*  ) )");
+    assertTrue(result.getErrorMessages().contains(errorColumnsClause));
 
     result = parse("SELECT DISTINCT e.*, e.* FROM MATCH () -[e:worksFor]-> () ON financialNetwork");
-    assertTrue(result.getErrorMessages().contains(error));
+    assertTrue(result.getErrorMessages().contains(errorSelectClause));
 
     result = parse("SELECT 123, e.* FROM MATCH () -[e:worksFor]-> () ON financialNetwork");
+    assertTrue(result.isQueryValid());
+    result = parse("SELECT * FROM GRAPH_TABLE ( financialNetwork MATCH () -[e IS worksFor]-> () COLUMNS ( 123, e.* ) )");
     assertTrue(result.isQueryValid());
 
     result = parse("SELECT DISTINCT e.*, e.*, 123 FROM MATCH () -[e:worksFor]-> () ON financialNetwork");
     assertTrue(result.isQueryValid());
 
     result = parse("SELECT e.* FROM MATCH () -[e:worksFor|transaction]-> () ON financialNetwork");
+    assertTrue(result.isQueryValid());
+    result = parse("SELECT * FROM GRAPH_TABLE ( financialNetwork MATCH () -[e IS worksFor|transaction]-> () COLUMNS ( e.* ) )");
     assertTrue(result.isQueryValid());
   }
 

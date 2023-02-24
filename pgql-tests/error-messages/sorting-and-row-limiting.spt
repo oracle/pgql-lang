@@ -122,3 +122,12 @@ SELECT n.age AS nAGE
               )
 
 ]] error like "Because of DISTINCT projection, the expression in ORDER BY should be one of the expressions in the SELECT" at #1, #2
+
+test OFFSET after FETCH FIRST [[
+
+  SELECT 1
+  FROM MATCH (n)
+  FETCH FIRST 3 ROWS ONLY
+  [[OFFSET 2 ROWS]]
+
+]] error like "OFFSET clause should come before FETCH FIRST clause" at #1

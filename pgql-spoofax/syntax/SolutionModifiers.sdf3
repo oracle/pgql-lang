@@ -21,10 +21,18 @@ context-free syntax
   OrderElem.Asc = <<Exp> ASC> {case-insensitive}
   OrderElem.Desc = <<Exp> DESC> {case-insensitive}
 
-  LimitOffsetClauses.LimitOffsetClauses = <<LimitClause> <OffsetClause?>>
-  LimitOffsetClauses.OffsetLimitClauses = <<OffsetClause> <LimitClause?>>
+  LimitOffsetClauses.LimitOffsetClauses = LimitOrFetchFirstClause OffsetClause? // deprecated; wrong order of clauses
+  LimitOffsetClauses.OffsetLimitClauses = OffsetClause LimitOrFetchFirstClause?
+  LimitClauseOnly = LimitClause
+  LimitOrFetchFirstClause = LimitClause
+  LimitOrFetchFirstClause = FetchFirstClause
+  OffsetClause.OffsetClause = <OFFSET <IntOrBindVariable> <RowOrRows?>> {case-insensitive}
   LimitClause.LimitClause = <LIMIT <IntOrBindVariable>> {case-insensitive}
-  OffsetClause.OffsetClause = <OFFSET <IntOrBindVariable>> {case-insensitive}
+  FetchFirstClause.FetchFirstClause = <FETCH <FirstOrNext?> <IntOrBindVariable> <RowOrRows?> ONLY> {case-insensitive}
+  FirstOrNext.First = <FIRST> {case-insensitive}
+  FirstOrNext.Next = <NEXT> {case-insensitive}
+  RowOrRows.Row = <ROW> {case-insensitive}
+  RowOrRows.Rows = <ROWS> {case-insensitive}
 
   IntOrBindVariable.Integer = UNSIGNED-INT
   IntOrBindVariable = BindVariable

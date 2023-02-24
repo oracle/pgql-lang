@@ -153,3 +153,5 @@ rules
     DerivedTable(_, Subquery(NormalizedQuery(_, SelectClause(_, SelectList(expAsVars)), _, _, _, _, _, _, _, _, _, _, _)), _) -> vars
     with vars := <filter(?ExpAsVar(ExpressionPlusType(VarRef(_, <id>), Type("VERTEX")), _, _, _) +
                          ?ExpAsVar(ExpressionPlusType(VarRef(_, <id>), Type("EDGE")), _, _, _))> expAsVars
+
+  is-vertex-or-edge-type = ?Type("VERTEX") + ?Type("EDGE")

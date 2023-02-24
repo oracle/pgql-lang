@@ -57,15 +57,20 @@ signature constructors // for the normalized AST (see trans/normalize.str)
   Reaches               : Reaches
   Shortest              : Shortest
   Cheapest              : Cheapest
+  All                   : All
+  Any                   : Any
+  TopK                  : STRING -> TopK
 
   VertexInsertion       : Identifier * OriginOffset * LabelsSpecification * PropertiesSpecification -> VertexInsertion
   DirectedEdgeInsertion : Identifier * OriginOffset * Source * Destination * LabelsSpecification * PropertiesSpecification -> DirectedEdgeInsertion
 
   TableExpressionsAndGraphName : GraphPattern * Name * WhereClause -> TableExpressionsAndGraphName
 
-  PathPatternAndRowsPerMatch : PathPattern * RowsPerMatch -> PathPatternAndRowsPerMatch
+  PathPatternAndRowsPerMatch   : PathPattern * RowsPerMatch -> PathPatternAndRowsPerMatch
 
-  SelectingAllProperties   : Boolean -> SelectingAllProperties
+  SelectingAllProperties       : Boolean -> SelectingAllProperties
+
+  GraphTable                   : GraphTable
 
 signature constructors // for name binding (see trans/trans-for-nabl.str)
 
@@ -101,8 +106,8 @@ signature constructors // for error checking (see trans/check.str)
   ReferenceInInlinedConstraint                      : Var -> ReferenceInInlinedConstraint
   CrossReferenceInInlinedConstraint                 : Var -> CrossReferenceInInlinedConstraint
   ErrorMessage                                      : Term * STRING -> ErrorMessage
-  ComplexRegularExpressionNotSupported              : Term -> ComplexRegularExpressionNotSupported
-  ComplexParenthesizedRegularExpressionNotSupported : Term -> ComplexParenthesizedRegularExpressionNotSupported
+  ComplexRegularExpressionNotSupported              : Term * Term -> ComplexRegularExpressionNotSupported
+  ComplexParenthesizedRegularExpressionNotSupported : Term * Term -> ComplexParenthesizedRegularExpressionNotSupported
 
 signature constructors // for type anslysis (see trans/type-analysis.str)
 

@@ -43,3 +43,23 @@ test Illegal date time value [[
    error like "Integer between 0 and 23 expected" at #5, #6
    error like "Integer between 0 and 59 expected" at #7, #8
    error like "Number between 0 and 59.999... expected" at #9, #10, #11
+
+test VERTEX_ID, EDGE_ID, VERTEX_EQUAL, EDGE_EQUAL [[
+
+  SELECT 1
+    FROM MATCH (v1) -[e1]-> (v2) -[e2]-> ()
+   WHERE vertex_id([[1]]) > edge_id([[1]])
+     AND vertex_equal([[1]], [[2]]) AND edge_equal([[1]], [[2]])
+
+]] error like "Vertex expected" at #1, #3, #4
+   error like "Edge expected" at #3, #5, #6
+
+test Restriction: MATCH outside of GRAPH_TABLE [[
+
+  SELECT *
+  FROM GRAPH_TABLE (
+         g MATCH (n IS person)
+         COLUMNS ( n.prop ) )
+     , [[MATCH (n2) ON g]]
+
+]] error like "GRAPH_TABLE restriction: wrap top-level MATCH in GRAPH_TABLE" at #1
