@@ -882,6 +882,11 @@ rules // GRAPH_TABLE
     e@ColumnNamePrefix(_) -> <fail>
     with <generate-error(|ctx, "GRAPH_TABLE restriction: PREFIX not supported")> e
 
+  check-GraphTable-restriction(|ctx):
+    t -> <fail>
+    where exp := <get-exp-from-aggregation; debug; (?ExpressionPlusType(_, Type("VERTEX")) + ?ExpressionPlusType(_, Type("EDGE")))> t
+    with <generate-error(|ctx, "GRAPH_TABLE restriction: aggregation does not allow vertex or edge input; use the vertex/edge identifier or a property instead")> exp
+
   nabl-constraint(|ctx):
     DerivedTable(Some(GraphTable()), Subquery(NormalizedQuery(_, selectClause, _, _, _, CreateOneGroup(), _, _, _, _, _, _, _)), None()) -> <fail>
     with aggregations := <collect(is-aggregate)> selectClause

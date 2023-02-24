@@ -315,6 +315,12 @@ test Restriction: PREFIX [[
 
 ]] error like "GRAPH_TABLE restriction: PREFIX not supported" at #1
 
+test Restriction: aggregation with vertex/edge input [[
+
+  SELECT *
+  FROM GRAPH_TABLE ( g MATCH (n) -[e]->{1,4} (m)  COLUMNS ( COUNT([[e]]) AS path_length ) )
+
+]] error like "GRAPH_TABLE restriction: aggregation does not allow vertex or edge input; use the vertex/edge identifier or a property instead" at #1
 
 test KEEP clause not yet supported [[
 
