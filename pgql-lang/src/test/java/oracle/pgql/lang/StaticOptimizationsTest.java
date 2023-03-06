@@ -6,6 +6,7 @@ package oracle.pgql.lang;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
 
+import java.util.Iterator;
 import java.util.List;
 import java.util.Set;
 
@@ -14,6 +15,8 @@ import org.junit.Test;
 import oracle.pgql.lang.ir.CommonPathExpression;
 import oracle.pgql.lang.ir.DerivedTable;
 import oracle.pgql.lang.ir.ExpAsVar;
+import oracle.pgql.lang.ir.GraphPattern;
+import oracle.pgql.lang.ir.GraphQuery;
 import oracle.pgql.lang.ir.Projection;
 import oracle.pgql.lang.ir.QueryExpression;
 import oracle.pgql.lang.ir.QueryExpression.ExpressionType;
@@ -218,5 +221,43 @@ public class StaticOptimizationsTest extends AbstractPgqlTest {
 
     Projection projection = ((SelectQuery) pgql.parse(query).getGraphQuery()).getProjection();
     assertEquals(4L, projection.getElements().size());
+  }
+
+  @Test
+  public void testPredicatePushDownEvenForCorrelatedVertices1() throws Exception {
+    String query = "SELECT x2 AS x3 " + //
+        "FROM LATERAL ( " + //
+        "       SELECT x AS x2, y, z AS p " + //
+        "       FROM MATCH (x) -> (y) -> (z) ) " + //
+        "   , MATCH (y) -> (p) " + //
+        "WHERE id(x3) > id(y) AND p.prop > 3";
+    GraphQuery graphQuery = pgql.parse(query).getGraphQuery();
+
+    DerivedTable lateralQuery = (DerivedTable) graphQuery.getTableExpressions().get(0);
+    Iterator<QueryExpression> it = lateralQuery.getQuery().getGraphPattern().getConstraints().iterator();
+    assertEquals("(id(x) > id(y))", it.next().toString());
+    assertEquals("(z.prop > 3)", it.next().toString());
+
+    GraphPattern graphPattern = (GraphPattern) graphQuery.getTableExpressions().get(1);
+    assertTrue(graphPattern.getConstraints().isEmpty());
+  }
+
+  @Test
+  public void testPredicatePushDownEvenForCorrelatedVertices2() throws Exception {
+    String query = "SELECT x2 AS x3 " + //
+        "FROM LATERAL ( " + //
+        "       SELECT x AS x2, y2, z AS p " + //
+        "       FROM MATCH (x) -> (y) -> (z) " + //
+        "       GROUP BY x, y AS y2, z ) " + //
+        "   , MATCH (y2) -> (p) " + //
+        "WHERE id(x3) > id(y2) AND p.prop > 3";
+    GraphQuery graphQuery = pgql.parse(query).getGraphQuery();
+
+    DerivedTable lateralQuery = (DerivedTable) graphQuery.getTableExpressions().get(0);
+    QueryExpression havingClause = lateralQuery.getQuery().getHaving();
+    assertEquals("((id(x) > id(y2)) AND (z.prop > 3))", havingClause.toString());
+
+    GraphPattern graphPattern = (GraphPattern) graphQuery.getTableExpressions().get(1);
+    assertTrue(graphPattern.getConstraints().isEmpty());
   }
 }
