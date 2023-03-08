@@ -3429,8 +3429,8 @@ operator                       | type of A                  | type of B         
 A `||` B                       | string                     | string                     | string
 A `+` `-` B                    | numeric<br>date<br>time [with time zone]<br>timestamp [with time zone] | numeric<br>interval<br>interval<br>interval | numeric<br>date<br>time [with time zone]<br>timestamp [with time zone]
 A `*` `/` `%` B                | numeric                    | numeric                    | numeric
-A `=` `<>` B                   | numeric<br>boolean<br>date<br>time [with time zone]<br>timestamp [with time zone]<br>vertex<br>edge<br>array | numeric<br>boolean<br>date<br>time [with time zone]<br>timestamp [with time zone]<br>vertex<br>edge<br>array | boolean<br>boolean<br>boolean<br>boolean<br>boolean<br>boolean<br>boolean<br>boolean
-A `<` `>` `<=` `>=` B | numeric<br>boolean<br>date<br>time [with time zone]<br>timestamp [with time zone] | numeric<br>boolean<br>date<br>time [with time zone]<br>timestamp [with time zone] | boolean<br>boolean<br>boolean<br>boolean<br>boolean
+A `=` `<>` B                   | numeric<br>string<br>boolean<br>date<br>time [with time zone]<br>timestamp [with time zone]<br>vertex<br>edge<br>array | numeric<br>string<br>boolean<br>date<br>time [with time zone]<br>timestamp [with time zone]<br>vertex<br>edge<br>array | boolean<br>boolean<br>boolean<br>boolean<br>boolean<br>boolean<br>boolean<br>boolean<br>boolean
+A `<` `>` `<=` `>=` B | numeric<br>string<br>boolean<br>date<br>time [with time zone]<br>timestamp [with time zone] | numeric<br>string<br>boolean<br>date<br>time [with time zone]<br>timestamp [with time zone] | boolean<br>boolean<br>boolean<br>boolean<br>boolean<br>boolean
 `NOT` A                        | boolean                    |                            | boolean
 A `AND` `OR` B                 | boolean                    | boolean                    | boolean
 
