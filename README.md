@@ -122,8 +122,17 @@ See the [PGQL Specification](https://pgql-lang.org/spec/latest/).
     - `pqgl-spoofax`: Spoofax implementation of PGQL (parser + error checks)
     - `pgql-lang`: translation of Spoofax AST into `graph-query-ir`
 
-## Contributions
+## Contributing
 
-PGQL is an open source project. See [Contributing](CONTRIBUTING.md) for details.
+This project welcomes contributions from the community. Before submitting a pull request, please [review our contribution guide](./CONTRIBUTING.md)
 
-Oracle gratefully acknowledges the contributions to PGQL made by the community.
+## Security
+
+Please consult the [security guide](./SECURITY.md) for our responsible security vulnerability disclosure process
+
+## License
+
+Copyright (c) 2023 Oracle and/or its affiliates.
+
+Released under the Apache and the Universal Permissive License (UPL) as shown at
+<https://oss.oracle.com/licenses/upl/>.
