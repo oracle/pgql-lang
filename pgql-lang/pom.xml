@@ -17,6 +17,16 @@
       <groupId>org.metaborg</groupId>
       <artifactId>org.metaborg.spoofax.core.uber</artifactId>
       <version>2.5.11</version>
+      <exclusions>
+        <exclusion>
+          <groupId>org.yaml</groupId>
+          <artifactId>snakeyaml</artifactId>
+        </exclusion>
+        <exclusion>
+          <groupId>com.fasterxml.jackson.dataformat</groupId>
+          <artifactId>jackson-dataformat-yaml</artifactId>
+        </exclusion>
+      </exclusions>
     </dependency>
     <dependency>
       <groupId>org.apache.commons</groupId>
@@ -62,9 +72,9 @@
 
   <distributionManagement>
     <repository>
-      <id>labs-pgx-release-local</id>
+      <id>graph-onprem</id>
       <name>Oracle Internal Repository</name>
-      <url>https://artifacthub.oraclecorp.com/labs-pgx-release-local</url>
+      <url>https://artifacthub-iad.oci.oraclecorp.com/graph-onprem-release-local</url>
     </repository>
   </distributionManagement>
 

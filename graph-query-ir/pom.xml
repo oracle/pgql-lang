@@ -43,9 +43,9 @@
 
   <distributionManagement>
     <repository>
-      <id>labs-pgx-release-local</id>
+      <id>graph-onprem</id>
       <name>Oracle Internal Repository</name>
-      <url>https://artifacthub.oraclecorp.com/labs-pgx-release-local</url>
+      <url>https://artifacthub-iad.oci.oraclecorp.com/graph-onprem-release-local</url>
     </repository>
   </distributionManagement>
 
