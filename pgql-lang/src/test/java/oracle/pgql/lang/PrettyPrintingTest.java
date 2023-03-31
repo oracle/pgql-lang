@@ -673,7 +673,9 @@ public class PrettyPrintingTest extends AbstractPgqlTest {
         + "FROM MATCH WALK (n) -[e1]->{,10} (m), " //
         + "MATCH ANY TRAIL (n) -[e2]->* (m), " //
         + "MATCH ALL SHORTEST ACYCLIC (n) -[e3]->* (m), " //
-        + "MATCH SHORTEST 10 SIMPLE (n) -[e4]->* (m)";
+        + "MATCH ANY CHEAPEST WALK (n) (-[e4]-> COST e3.cost)* (m), " //
+        + "MATCH CHEAPEST 10 ACYCLIC (n) (-[e5]-> COST e3.cost)* (m), " //
+        + "MATCH SHORTEST 10 SIMPLE (n) -[e6]->* (m)";
     checkRoundTrip(query);
   }
 
