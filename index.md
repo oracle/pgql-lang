@@ -50,19 +50,19 @@ CREATE PROPERTY GRAPH financial_transactions
   )
   EDGE TABLES (
     Transactions
-      SOURCE KEY ( from_account ) REFERENCES Accounts
-      DESTINATION KEY ( to_account ) REFERENCES Accounts
+      SOURCE KEY ( from_account ) REFERENCES Accounts ( number )
+      DESTINATION KEY ( to_account ) REFERENCES Accounts ( number )
       LABEL transaction PROPERTIES ( amount ),
     Accounts AS PersonOwner
-      SOURCE KEY ( id ) REFERENCES Accounts
+      SOURCE KEY ( id ) REFERENCES Accounts ( number )
       DESTINATION Persons
       LABEL owner NO PROPERTIES,
     Accounts AS CompanyOwner
-      SOURCE KEY ( id ) REFERENCES Accounts
+      SOURCE KEY ( id ) REFERENCES Accounts ( number )
       DESTINATION Companies
       LABEL owner NO PROPERTIES,
     Persons AS worksFor
-      SOURCE KEY ( id ) REFERENCES Persons
+      SOURCE KEY ( id ) REFERENCES Persons ( id )
       DESTINATION Companies
       NO PROPERTIES
   )
