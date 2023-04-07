@@ -616,9 +616,9 @@ rules
                        )
                      ; origin-track-forced(!Shortest())
 
-  to-pathFindingGoal = ( ?Some(AnyCheapestPathSearch(_)) +
+  to-pathFindingGoal = ( ?Some(AnyCheapestPathSearch(_, _)) +
                          ?Some(AnyCheapestPathSearch2(_)) + // deprecated
-                         ?Some(CountedCheapestPathSearch(_, _)) +
+                         ?Some(CountedCheapestPathSearch(_, _, _)) +
                          ?Some(CountedCheapestPathSearch2(_)) // deprecated
                        )
                      ; origin-track-forced(!Cheapest())
@@ -634,14 +634,14 @@ rules
   to-topKAnyAll = ( ?Some(AnyPathSearch(None(), _, _)) +
                     ?Some(AnyShortestPathSearch(_, _)) +
                     ?Some(AnyShortestPathSearch2(_)) + // deprecated
-                    ?Some(AnyCheapestPathSearch(_)) +
+                    ?Some(AnyCheapestPathSearch(_, _)) +
                     ?Some(AnyCheapestPathSearch2(_)) // deprecated
                   )
                 ; origin-track-forced(!Some(Any()))
 
   to-topKAnyAll = ( ?Some(CountedShortestPathSearch(NumberOfPaths(k), _, _)) +
                     ?Some(CountedShortestPathSearch2(NumberOfPaths(k))) + // deprecated
-                    ?Some(CountedCheapestPathSearch(NumberOfPaths(k), _)) +
+                    ?Some(CountedCheapestPathSearch(NumberOfPaths(k), _, _)) +
                     ?Some(CountedCheapestPathSearch2(NumberOfPaths(k))) + // deprecated
                     ?Some(AnyPathSearch(Some(NumberOfPaths(k)), _, _)) // translate ANY k to ANY SHORTEST k
                   )
@@ -650,9 +650,7 @@ rules
   to-pathMode = ( ?None() +
                   ?Some(AnyShortestPathSearch2(_)) + // deprecated
                   ?Some(CountedShortestPathSearch2(_)) + // deprecated
-                  ?Some(AnyCheapestPathSearch(_)) +
                   ?Some(AnyCheapestPathSearch2(_)) + // deprecated
-                  ?Some(CountedCheapestPathSearch(_, _)) +
                   ?Some(CountedCheapestPathSearch2(_)) // deprecated
                 )
               ; !Walk()
@@ -662,7 +660,9 @@ rules
                   ?Some(AnyPathSearch(_, <id>, _)) +
                   ?Some(AllShortestPathSearch(<id>, _)) +
                   ?Some(AnyShortestPathSearch(<id>, _)) +
-                  ?Some(CountedShortestPathSearch(_, <id>, _))
+                  ?Some(CountedShortestPathSearch(_, <id>, _)) +
+                  ?Some(AnyCheapestPathSearch(<id>, _)) +
+                  ?Some(CountedCheapestPathSearch(_, <id>, _))
                 )
               ; (?None(); !Walk() + ?Some(<id>))
 

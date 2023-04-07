@@ -80,9 +80,9 @@ context-free syntax
   ShortestPathSearch.CountedShortestPathSearch = <SHORTEST <NumberOfPaths> <PathMode?> <PathOrPaths?>> {case-insensitive}
   ShortestPathSearch.CountedShortestPathSearch2 = <TOP <NumberOfPaths> SHORTEST> {case-insensitive} // deprecated
 
-  CheapestPathSearch.AnyCheapestPathSearch = <ANY CHEAPEST <PathOrPaths?>> {case-insensitive}
+  CheapestPathSearch.AnyCheapestPathSearch = <ANY CHEAPEST <PathMode?> <PathOrPaths?>> {case-insensitive}
   CheapestPathSearch.AnyCheapestPathSearch2 = <CHEAPEST <PathOrPaths?>> {case-insensitive} // deprecated
-  CheapestPathSearch.CountedCheapestPathSearch = <CHEAPEST <NumberOfPaths> <PathOrPaths?>> {case-insensitive}
+  CheapestPathSearch.CountedCheapestPathSearch = <CHEAPEST <NumberOfPaths> <PathMode?> <PathOrPaths?>> {case-insensitive}
   CheapestPathSearch.CountedCheapestPathSearch2 = <TOP <NumberOfPaths> CHEAPEST> {case-insensitive} // deprecated
 
   NumberOfPaths.NumberOfPaths = UNSIGNED-INT
