@@ -541,9 +541,7 @@ rules // MODIFY
 
   nabl-constraint(|ctx):
     PropertyExpressions(expAsVars) -> <fail>
-    with expAsVarsWithComplexExpressions := <remove-all(?ExpAsVar(VarRef(Identifier(_, _)), _) + ?ExpAsVar(Cast(VarRef(Identifier(_, _)), _), _))> expAsVars
-       ; <batch-generate-error(|ctx, "Only column references and simple CAST expressions allowed; arbitrary expressions are not yet supported")> expAsVarsWithComplexExpressions
-       ; complexExpressionsWithoutAlias := <remove-all(?ExpAsVar(VarRef(_), _) + ?ExpAsVar(_, Identifier(_, _)))> expAsVars
+    with complexExpressionsWithoutAlias := <remove-all(?ExpAsVar(VarRef(_), _) + ?ExpAsVar(_, Identifier(_, _)))> expAsVars
        ; <batch-generate-error(|ctx, "Alias required (.. AS name)")> complexExpressionsWithoutAlias
        ; propertyNames := <filter(?ExpAsVar(_, Identifier(<id>, _)))> expAsVars
        ; <generate-error-on-duplicates(|ctx, "Duplicate property name")> propertyNames
