@@ -31,7 +31,7 @@ rules
 
   trans-query(|variables, metadata):
     NormalizedQuery(CommonPathExpressions(pathExpressions), selectOrModifyClause, optionalGraphName, tableExpressions, whereClause, groupBy, having, orderBy, limitOffsets, error-messages, version, bindVariableCount, selectingAllVariables) ->
-        (NormalizedQuery(CommonPathExpressions(pathExpressions'), selectOrModifyClause', optionalGraphName, tableExpressions'', whereClause', groupBy', having', orderBy', limitOffsets, error-messages, version, bindVariableCount, selectingAllVariables), variables-in-projection)
+        (NormalizedQuery(CommonPathExpressions(pathExpressions'), selectOrModifyClause', optionalGraphName, tableExpressions''', whereClause', groupBy', having', orderBy', limitOffsets, error-messages, version, bindVariableCount, selectingAllVariables), variables-in-projection)
     with variables' := <guarantee-size-two-or-more> variables
 
        // PATH
@@ -56,12 +56,13 @@ rules
 
        // SELECT / INSERT / UPDATE / DELETE
        ; if <?SelectClause(_, _)> selectOrModifyClause
-         then (selectOrModifyClause', variables'''') := <resolve-select-clause(|variables''', metadata, valueExpression', tableExpressions', groupByExps)> selectOrModifyClause
+         then (selectOrModifyClause', variables'''', tableExpressions'') := <resolve-select-clause(|variables''', metadata, valueExpression', tableExpressions', groupByExps)> selectOrModifyClause
          else selectOrModifyClause' := <resolve-modify-clause(|variables''', metadata)> selectOrModifyClause
-           ; variables'''' := variables'''
+            ; variables'''' := variables'''
+            ; tableExpressions'' := tableExpressions'
          end
 
-       ; tableExpressions'' := <map(try(normalize-ANY-paths(|variables'''')))> tableExpressions' // normalize ANY either to REACHES or SHORTEST
+       ; tableExpressions''' := <map(try(normalize-ANY-paths(|variables'''')))> tableExpressions'' // normalize ANY either to REACHES or SHORTEST
 
        // HAVING
        ; having' := <resolve-having(|variables''', variables'''', metadata)> having // having resolves to GROUP BY variables first, then to SELECT variables
@@ -172,7 +173,7 @@ rules
        ; variables' := [vars'|variables]
 
   resolve-select-clause(|variables, metadata, valueExpression, tableExpressions, group-exps):
-    t@SelectClause(distinct, t2@SelectList(selectElements)) -> (selectClause', variables')
+    t@SelectClause(distinct, t2@SelectList(selectElements)) -> (selectClause', variables', tableExpressions)
     with varsInCurrentScope := <Hd> variables
        ; (selectElements', vars') := <foldl(resolve-exp-as-var-in-select(|variables, metadata, valueExpression))> (selectElements, ([], varsInCurrentScope))
        ; selectElements'' := <origin-track-forced(!SelectList(selectElements'))> t2
@@ -180,30 +181,56 @@ rules
        ; selectClause' := <origin-track-forced(!SelectClause(distinct, selectElements''))> t
 
   resolve-select-clause(|variables, metadata, valueExpression, tableExpressions, group-exps):
-    t@SelectClause(distinct, star@Star()) -> (selectClause', variables')
+    t@SelectClause(distinct, star@Star()) -> (selectClause', variables', tableExpressions')
     with if [] := group-exps
-         then vars := <map(extract-variables-for-select-star); concat; make-set;
-                       filter(Identifier(is-string; not(is-substring(GENERATED)), id))> tableExpressions;
-              selectElements := <map(generate-ExpAsVar(|star))> vars
+         then selectElements := <map(extract-variables-for-select-star(|star)); concat; make-set> tableExpressions
             ; varsInCurrentScope := <Hd> variables
             ; (selectElements', vars') := <foldl(resolve-exp-as-var-in-select(|variables, metadata, valueExpression))> (selectElements, ([], varsInCurrentScope))
             ; variables' := [vars'|<Tl> variables]
             ; star' := star
+            ; tableExpressions' := <map(replace-all-AllProperties)> tableExpressions // replace n.* in LATERAL or GRAPH_TABLE subqueries with a projection of n as we've pulled it up at this point
          else star' := <origin-track-forced(!GroupBySelectStar())> star // can't use GROUP BY in combination with SELECT *, we'll generate an error later
             ; selectElements' := []
             ; variables' := variables
+            ; tableExpressions' := tableExpressions
          end
        ; selectList := <origin-track-forced(!SelectList(selectElements'))> star
        ; selectClause' := <origin-track-forced(!SelectClause(star', selectList))> t
 
-  extract-variables-for-select-star = ?GraphPattern(_, _, _)
-                                    ; collect-in-outer-query(?Vertex(<id>, _, _) + ?Edge(_, <id>, _, _, _, _))
+  extract-variables-for-select-star(|star) = ?GraphPattern(_, _, _)
+                                           ; collect-in-outer-query(?Vertex(<id>, _, _) + ?Edge(_, <id>, _, _, _, _))
+                                           ; filter(is-anonymous-variable)
+                                           ; map(generate-ExpAsVar(|star))
 
-  extract-variables-for-select-star = ?DerivedTable(_, Subquery(NormalizedQuery(_, SelectClause(_, SelectList(<id>)), _, _, _, _, _, _, _, _, _, _, _)), _)
-                                    ; map(
-                                        ?AllProperties(_, _); ![] + // no metadata was available to translate the n.*
-                                        ?ExpAsVar(_, <id>, _, _)
-                                      )
+  extract-variables-for-select-star(|star) = ?DerivedTable(_, Subquery(NormalizedQuery(_, SelectClause(_, SelectList(<id>)), _, _, _, _, _, _, _, _, _, _, _)), _)
+                                           ; filter(
+                                               ?ExpAsVar(_, <id>, _, _); is-anonymous-variable; generate-ExpAsVar(|star) +
+                                               pull-up-AllProperties // no metadata was available to translate the n.* so we pull it up
+                                             )
+
+  is-anonymous-variable = Identifier(is-string; not(is-substring(GENERATED)), id)
+
+  pull-up-AllProperties:
+    t@AllProperties(VarRef(iden, _), prefix) -> result
+    with name := <unique-name-for-AllProperties> t
+       ; identifier := <origin-track-forced(!Identifier(name, name))> t
+       ; originOffset := <origin-offset> t
+       ; result := <origin-track-forced(!AllProperties(VarRef(identifier, originOffset), prefix))> t
+
+  replace-all-AllProperties = ?GraphPattern(_, _, _)
+
+  replace-all-AllProperties = DerivedTable(id, Subquery(NormalizedQuery(id, replace-AllProperties-in-Select, id, id, id, id, id, id, id, id, id, id, id)), id)
+
+  replace-AllProperties-in-Select = origin-track-forced(SelectClause(id, SelectList(map(try(replace-AllProperties)))))
+
+  replace-AllProperties:
+    t@AllProperties(varRef, prefix) -> result
+    with name := <unique-name-for-AllProperties> t
+       ; identifier := <origin-track-forced(!Identifier(name, name))> t
+       ; originOffset := <origin-offset> t
+       ; result := <origin-track-forced(!ExpAsVar(varRef, identifier, NonAnonymous(), originOffset))> t
+
+  unique-name-for-AllProperties = origin-track-forced(!(".*_", <origin-offset; write-to-string>); conc-strings)
 
   resolve-modify-clause(|variables, metadata):
     t@ModifyClause(modifications) -> modifyClause'
@@ -283,12 +310,15 @@ rules
 
   resolve-exp-as-var-in-select(|variables, metadata, valueExpression):
     (t@AllProperties(varRef, columnNamePrefix), (result, vars)) -> (result', vars')
-    with varRef' := <resolve-var-ref(|variables, metadata)> varRef
+    with varRef' := <try(resolve-var-ref(|variables, metadata))> varRef
        ; if <?VarRef(v)> varRef'
          then selectElems := [ExpAsVar(varRef', v, Anonymous(), None())] // create a dummy ExpAsVar just to make sure an "unresolved variable" error will be generated
             ; vars' := vars
-         else elementType := <get-type-from-varRef-as-var(|variables)> varRef'
-            ; allLabels := <?Type("VERTEX"); !metadata; fetch-elem(?VertexLabels(<id>)) <+ ?Type("EDGE"); !metadata; fetch-elem(?EdgeLabels(<id>)) <+ !None()> elementType
+         else if <has-label-metadata> metadata
+              then elementType := <get-type-from-varRef-as-var(|variables) <+ !None()> varRef'
+                 ; allLabels := <?Type("VERTEX"); !metadata; fetch-elem(?VertexLabels(<id>)) <+ ?Type("EDGE"); !metadata; fetch-elem(?EdgeLabels(<id>)) <+ !None()> elementType
+              else allLabels := None()
+              end
             ; if <?None()> allLabels
               then selectElems := <resolve-var-refs(|variables, metadata)> [t] // no label metadata is provided so we don't process the n.* other than resolve variable n
                  ; vars' := vars
@@ -304,6 +334,8 @@ rules
               end
          end
        ; result' := <conc> (result, selectElems)
+
+  has-label-metadata = fetch-elem(?VertexLabels(_))
 
   generate-ExpAsVar(|star):
     t@Identifier(v, originText) -> expAsVar
