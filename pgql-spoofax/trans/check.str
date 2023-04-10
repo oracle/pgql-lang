@@ -882,7 +882,7 @@ rules // GRAPH_TABLE
 
   check-GraphTable-restriction(|ctx):
     t -> <fail>
-    where exp := <get-exp-from-aggregation; debug; (?ExpressionPlusType(_, Type("VERTEX")) + ?ExpressionPlusType(_, Type("EDGE")))> t
+    where exp := <get-exp-from-aggregation; (?ExpressionPlusType(_, Type("VERTEX")) + ?ExpressionPlusType(_, Type("EDGE")))> t
     with <generate-error(|ctx, "GRAPH_TABLE restriction: aggregation does not allow vertex or edge input; use the vertex/edge identifier or a property instead")> exp
 
   nabl-constraint(|ctx):
