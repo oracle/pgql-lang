@@ -20,33 +20,32 @@ imports
 rules
 
   // CREATE PROPERTY GRAPH
-  normalize-before:
+  normalize-before(|variable-counter):
     ast -> <normalize-CreatePropertyGraph> ast
     where <is-CreatePropertyGraph> ast
 
   // DROP PROPERTY GRAPH
-  normalize-before:
+  normalize-before(|variable-counter):
     ast -> <normalize-DropPropertyGraph> ast
     where <is-DropPropertyGraph> ast
 
   // CREATE EXTERNAL SCHEMA
-  normalize-before:
+  normalize-before(|variable-counter):
     ast -> <normalize-CreateExternalSchema> ast
     where <is-CreateExternalSchema> ast
 
   // DROP EXTERNAL SCHEMA
-  normalize-before:
+  normalize-before(|variable-counter):
     ast -> <normalize-DropExternalSchema> ast
     where <is-DropExternalSchema> ast
 
   // SELECT, INSERT, UPDATE or DELETE
-  normalize-before:
+  normalize-before(|variable-counter):
     astPlusMetadata -> AstPlusMetadata(result, metadata)
     where <not(is-ddl-statement)> astPlusMetadata
     with
       ast := <try(?AstPlusMetadata(<id>, _))> astPlusMetadata; // AST does not always come with metadata
       metadata := <?AstPlusMetadata(_, <id>) <+ ![]> astPlusMetadata;
-      variable-counter := <new-counter>;
       bindVariable-counter := <new-counter>;
       error-messages := <
         (  is-pgql10; collect(get-pgql10-limitation)

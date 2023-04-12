@@ -348,4 +348,28 @@ public class BugFixTest extends AbstractPgqlTest {
         "     )").getGraphQuery();
     assertEquals("FINANCIAL_TRANSACTIONS", graphQuery.getGraphName().getName());
   }
+
+  /*
+   * test if SELECT * gets correctly translated into an equivalent query without SELECT * even when no metadata is
+   * available
+   */
+  @Test
+  public void testSelectStartWithSelectAllPropertiesInLateralAndNoMetadata() throws Exception {
+    GraphQuery graphQuery = pgql.parse("SELECT * " + //
+        "FROM LATERAL ( " + //
+        "       SELECT * " + //
+        "       FROM LATERAL ( SELECT n.*, ( SELECT 123 FROM MATCH () LIMIT 1 ) AS sub FROM MATCH (n) -> ()) ) " + //
+        "   , LATERAL ( SELECT n.* FROM MATCH (n) -> () )").getGraphQuery();
+
+    GraphQuery equivalentQuery = pgql.parse("SELECT \"anonymous_7\".*, sub, \"anonymous_8\".*" + //
+        "FROM LATERAL ( " + //
+        "     SELECT \"anonymous_6\" AS \"anonymous_7\", sub " + //
+        "     FROM LATERAL ( " + //
+        "            SELECT n AS \"anonymous_6\", ( SELECT 123 FROM MATCH (\"anonymous_1\") LIMIT 1 ) AS sub " + //
+        "            FROM MATCH (n) -[\"anonymous_2\"]-> (\"anonymous_3\") )) " + //
+        "   , LATERAL ( SELECT n AS \"anonymous_8\" FROM MATCH (n) -[\"anonymous_4\"]-> (\"anonymous_5\") )")
+        .getGraphQuery();
+
+    assertEquals(equivalentQuery.toString(), graphQuery.toString());
+  }
 }
