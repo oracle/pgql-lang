@@ -875,7 +875,7 @@ public class SpoofaxAstToGraphQuery {
       TranslationContext ctx) {
 
     for (QueryVariable var : variables) {
-      if (var.isAnonymous()) {
+      if (var.getName().contains(GENERATED_VAR_SUBSTR)) {
         String name = var.getName().replace(GENERATED_VAR_SUBSTR, "anonymous");
         while (ctx.isVariableNameInUse(name)) {
           name += "_2";
@@ -934,6 +934,7 @@ public class SpoofaxAstToGraphQuery {
       expAsVars.add(expAsVar);
       ctx.addVar(expAsVar, varName, originOffset);
     }
+    giveAnonymousVariablesUniqueHiddenName(expAsVars, ctx);
     return expAsVars;
   }
 

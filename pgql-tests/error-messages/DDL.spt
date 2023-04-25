@@ -41,21 +41,6 @@ test Duplicate vertex and edge tables [[
 ]] error like "Duplicate vertex table name; use an alias to make the vertex table name unique (table AS alias)" at #1, #2
    error like "Duplicate edge table name; use an alias to make the edge table name unique (table AS alias)" at #3, #4
 
-test Complex expressions as property not allowed [[
-
-  CREATE PROPERTY GRAPH myGraph
-    VERTEX TABLES (
-      Person PROPERTIES ( [["age" + "age" AS prop1,]] [[123 AS prop2]] )
-    )
-    EDGE TABLES (adsfad
-      knows
-        SOURCE Person
-        DESTINATION Person
-        PROPERTIES ( [[weight + 1 AS prop1 )]]
-    )
-
-]] error like "Only column references and simple CAST expressions allowed; arbitrary expressions are not yet supported" at #1, #2, #3
-
 test Missing property name [[
 
   CREATE PROPERTY GRAPH myGraph

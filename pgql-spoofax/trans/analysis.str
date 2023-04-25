@@ -25,7 +25,14 @@ imports
 
 rules // Analysis
 
-  editor-analyze = analyze-all(normalize-before; add-names; add-types; normalize-after, id, id|<language>); reorder-error-messages
+  editor-analyze:
+    ast -> result
+    with variable-counter := <new-counter>
+       ; result := <analyze-all( normalize-before(|variable-counter)
+                               ; add-names(|variable-counter)
+                               ; add-types
+                               ; normalize-after
+                 , id, id|<language>); reorder-error-messages> ast
 
   reorder-error-messages = Result([FileResult(id,id,id,reorder-error-messages-helper,id, id)], id, id, id, id)
 
@@ -53,26 +60,30 @@ rules // Debugging
   debug-show-normalized:
     (_, _, ast, path, _) -> (filename, result)
     with
+      variable-counter := <new-counter>;
       filename := <guarantee-extension(|"normalized.aterm")> path;
-      result   := <normalize-before> ast
+      result   := <normalize-before(|variable-counter)> ast
 
   debug-show-normalized-with-names:
     (_, _, ast, path, _) -> (filename, result)
     with
+      variable-counter := <new-counter>;
       filename := <guarantee-extension(|"normalized.aterm")> path;
-      result   := <normalize-before; add-names> ast
+      result   := <normalize-before(|variable-counter); add-names(|variable-counter)> ast
 
   debug-show-normalized-with-types:
     (_, _, ast, path, _) -> (filename, result)
     with
+      variable-counter := <new-counter>;
       filename := <guarantee-extension(|"normalized.aterm")> path;
-      result   := <normalize-before; add-names; add-types> ast
+      result   := <normalize-before(|variable-counter); add-names(|variable-counter); add-types> ast
 
   debug-show-normalized-full:
     (_, _, ast, path, _) -> (filename, result)
     with
+      variable-counter := <new-counter>;
       filename := <guarantee-extension(|"normalized.aterm")> path;
-      result   := <normalize-before; add-names; add-types; normalize-after> ast
+      result   := <normalize-before(|variable-counter); add-names(|variable-counter); add-types; normalize-after> ast
 
   debug-show-analyzed:
     (_, _, ast, path, _) -> (filename, result)
