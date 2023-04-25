@@ -606,12 +606,15 @@ rules
                        )
                      ; origin-track-forced(!All())
 
+  to-pathFindingGoal = ?Some(AnyPathSearch(None(), _, _)) // will be translated to either REACHES or ANY SHORTEST 1 in name-analysis.str
+                     ; origin-track-forced(!Any())
+
   to-pathFindingGoal = ( ?Some(AllShortestPathSearch(_, _)) +
                          ?Some(AnyShortestPathSearch(_, _)) +
                          ?Some(AnyShortestPathSearch2(_)) + // deprecated
                          ?Some(CountedShortestPathSearch(_, _, _)) +
                          ?Some(CountedShortestPathSearch2(_)) + // deprecated
-                         ?Some(AnyPathSearch(_, _, _)) // translate ANY k to ANY SHORTEST k
+                         ?Some(AnyPathSearch(Some(_), _, _)) // translate ANY k to ANY SHORTEST k
                        )
                      ; origin-track-forced(!Shortest())
 
