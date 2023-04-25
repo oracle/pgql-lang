@@ -606,7 +606,7 @@ rules
                        )
                      ; origin-track-forced(!All())
 
-  to-pathFindingGoal = ?Some(AnyPathSearch(None(), _, _)) // will be translated to either REACHES or ANY SHORTEST 1 in name-analysis.str
+  to-pathFindingGoal = ?Some(AnyPathSearch(None(), _, _)) // will be translated to either REACHES or SHORTEST 1 in name-analysis.str
                      ; origin-track-forced(!Any())
 
   to-pathFindingGoal = ( ?Some(AllShortestPathSearch(_, _)) +

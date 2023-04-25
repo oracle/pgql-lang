@@ -265,7 +265,7 @@ public class StaticOptimizationsTest extends AbstractPgqlTest {
 
   @Test
   public void testReachesOptimization() throws Exception {
-    // test that ANY translates to REACHES as long as vertex and edge variables in the parenthesized pattern do not have group degree of reference
+    // test that ANY translates to REACHES as long as vertex and edge variables in the quantified pattern do not have group degree of reference
 
     GraphQuery graphQuery = pgql.parse("SELECT 1 FROM MATCH ANY () ->* ()").getGraphQuery();
     QueryPath path = (QueryPath) graphQuery.getGraphPattern().getConnections().iterator().next();
