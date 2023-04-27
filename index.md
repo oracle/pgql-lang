@@ -54,11 +54,11 @@ CREATE PROPERTY GRAPH financial_transactions
       DESTINATION KEY ( to_account ) REFERENCES Accounts ( number )
       LABEL transaction PROPERTIES ( amount ),
     Accounts AS PersonOwner
-      SOURCE KEY ( id ) REFERENCES Accounts ( number )
+      SOURCE KEY ( number ) REFERENCES Accounts ( number )
       DESTINATION Persons
       LABEL owner NO PROPERTIES,
     Accounts AS CompanyOwner
-      SOURCE KEY ( id ) REFERENCES Accounts ( number )
+      SOURCE KEY ( number ) REFERENCES Accounts ( number )
       DESTINATION Companies
       LABEL owner NO PROPERTIES,
     Persons AS worksFor
