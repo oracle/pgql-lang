@@ -265,7 +265,8 @@ public class StaticOptimizationsTest extends AbstractPgqlTest {
 
   @Test
   public void testReachesOptimization() throws Exception {
-    // test that ANY translates to REACHES as long as vertex and edge variables in the quantified pattern do not have group degree of reference
+    // test that ANY translates to REACHES as long as vertex and edge variables along paths, other than the first and
+    // last vertex variable, are not referenced and there is also no ONE ROW PER VERTEX/STEP specified
 
     GraphQuery graphQuery = pgql.parse("SELECT 1 FROM MATCH ANY () ->* ()").getGraphQuery();
     QueryPath path = (QueryPath) graphQuery.getGraphPattern().getConnections().iterator().next();
@@ -276,6 +277,14 @@ public class StaticOptimizationsTest extends AbstractPgqlTest {
     assertEquals(PathFindingGoal.REACHES, path.getPathFindingGoal());
 
     graphQuery = pgql.parse("SELECT SUM(e.prop) FROM MATCH ANY () (-[e]-> (x))* ()").getGraphQuery();
+    path = (QueryPath) graphQuery.getGraphPattern().getConnections().iterator().next();
+    assertEquals(PathFindingGoal.SHORTEST, path.getPathFindingGoal());
+
+    graphQuery = pgql.parse("SELECT 1 FROM MATCH ANY () ->* () ONE ROW PER STEP ( src, e, dst )").getGraphQuery();
+    path = (QueryPath) graphQuery.getGraphPattern().getConnections().iterator().next();
+    assertEquals(PathFindingGoal.SHORTEST, path.getPathFindingGoal());
+
+    graphQuery = pgql.parse("SELECT 1 FROM MATCH ANY () ->* () ONE ROW PER VERTEX ( v )").getGraphQuery();
     path = (QueryPath) graphQuery.getGraphPattern().getConnections().iterator().next();
     assertEquals(PathFindingGoal.SHORTEST, path.getPathFindingGoal());
   }
