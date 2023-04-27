@@ -17,8 +17,10 @@ import oracle.pgql.lang.ir.DerivedTable;
 import oracle.pgql.lang.ir.ExpAsVar;
 import oracle.pgql.lang.ir.GraphPattern;
 import oracle.pgql.lang.ir.GraphQuery;
+import oracle.pgql.lang.ir.PathFindingGoal;
 import oracle.pgql.lang.ir.Projection;
 import oracle.pgql.lang.ir.QueryExpression;
+import oracle.pgql.lang.ir.QueryPath;
 import oracle.pgql.lang.ir.QueryExpression.ExpressionType;
 import oracle.pgql.lang.ir.QueryExpression.Function.Exists;
 import oracle.pgql.lang.ir.QueryExpression.LogicalExpression.And;
@@ -259,5 +261,31 @@ public class StaticOptimizationsTest extends AbstractPgqlTest {
 
     GraphPattern graphPattern = (GraphPattern) graphQuery.getTableExpressions().get(1);
     assertTrue(graphPattern.getConstraints().isEmpty());
+  }
+
+  @Test
+  public void testReachesOptimization() throws Exception {
+    // test that ANY translates to REACHES as long as vertex and edge variables along paths, other than the first and
+    // last vertex variable, are not referenced and there is also no ONE ROW PER VERTEX/STEP specified
+
+    GraphQuery graphQuery = pgql.parse("SELECT 1 FROM MATCH ANY () ->* ()").getGraphQuery();
+    QueryPath path = (QueryPath) graphQuery.getGraphPattern().getConnections().iterator().next();
+    assertEquals(PathFindingGoal.REACHES, path.getPathFindingGoal());
+
+    graphQuery = pgql.parse("SELECT 1 FROM MATCH ANY () (-[e]-> (x) WHERE e.prop = 1 AND x.prop = 1)* ()").getGraphQuery();
+    path = (QueryPath) graphQuery.getGraphPattern().getConnections().iterator().next();
+    assertEquals(PathFindingGoal.REACHES, path.getPathFindingGoal());
+
+    graphQuery = pgql.parse("SELECT SUM(e.prop) FROM MATCH ANY () (-[e]-> (x))* ()").getGraphQuery();
+    path = (QueryPath) graphQuery.getGraphPattern().getConnections().iterator().next();
+    assertEquals(PathFindingGoal.SHORTEST, path.getPathFindingGoal());
+
+    graphQuery = pgql.parse("SELECT 1 FROM MATCH ANY () ->* () ONE ROW PER STEP ( src, e, dst )").getGraphQuery();
+    path = (QueryPath) graphQuery.getGraphPattern().getConnections().iterator().next();
+    assertEquals(PathFindingGoal.SHORTEST, path.getPathFindingGoal());
+
+    graphQuery = pgql.parse("SELECT 1 FROM MATCH ANY () ->* () ONE ROW PER VERTEX ( v )").getGraphQuery();
+    path = (QueryPath) graphQuery.getGraphPattern().getConnections().iterator().next();
+    assertEquals(PathFindingGoal.SHORTEST, path.getPathFindingGoal());
   }
 }
