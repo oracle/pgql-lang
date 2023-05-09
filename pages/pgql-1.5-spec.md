@@ -1668,6 +1668,29 @@ SELECT a.number AS a,
 Above, we use the quantifier `*` to find a shortest path from account `10039` to account `2090`, following only `transaction` edges.
 Shortest path finding is explained in more detail in [Shortest Path](#shortest-path). `COUNT(e)` and `ARRAY_AGG(e.amount)` are horizontal aggregations which are explained in [Horizontal Aggregation](#horizontal-aggregation).
 
+Another example is:
+
+```sql
+  SELECT LISTAGG(x.number, ', ') AS account_numbers, LISTAGG(e.amount, ', ') AS amounts
+    FROM MATCH TOP 4 SHORTEST (a:Account) ((x:Account) <-[e:transaction]-)+ (a)
+   WHERE a.number = 10039
+ORDER BY SUM(e.amount)
+```
+
+```
++-------------------------------------------------------------------------------------------------------------------+
+| account_numbers                                  | amounts                                                        |
++-------------------------------------------------------------------------------------------------------------------+
+| 10039, 2090, 1001, 8021                          | 9900.0, 9999.5, 1500.3, 1000.0                                 |
+| 10039, 2090, 1001, 8021                          | 9900.0, 9999.5, 3000.7, 1000.0                                 |
+| 10039, 2090, 1001, 8021, 10039, 2090, 1001, 8021 | 9900.0, 9999.5, 1500.3, 1000.0, 9900.0, 9999.5, 1500.3, 1000.0 |
+| 10039, 2090, 1001, 8021, 10039, 2090, 1001, 8021 | 9900.0, 9999.5, 1500.3, 1000.0, 9900.0, 9999.5, 3000.7, 1000.0 |
++-------------------------------------------------------------------------------------------------------------------+
+``
+
+Above, we use the quantifier `+` to find the shortest 4 paths from account `10039` back to itself, following only incoming `transaction` edges.
+We use the `LISTAGG` aggregate to retrieve the account numbers as well as the transaction amounts along the four paths.
+
 ## Any Path and Reachability
 
 ### Any Path
