@@ -1671,25 +1671,26 @@ Shortest path finding is explained in more detail in [Shortest Path](#shortest-p
 Another example is:
 
 ```sql
-  SELECT LISTAGG(x.number, ', ') AS account_numbers, LISTAGG(e.amount, ', ') AS amounts
+  SELECT LISTAGG(x.number, ', ') AS account_numbers, SUM(e.amount) AS total_amount
     FROM MATCH TOP 4 SHORTEST (a:Account) ((x:Account) <-[e:transaction]-)+ (a)
    WHERE a.number = 10039
 ORDER BY SUM(e.amount)
 ```
 
 ```
-+-------------------------------------------------------------------------------------------------------------------+
-| account_numbers                                  | amounts                                                        |
-+-------------------------------------------------------------------------------------------------------------------+
-| 10039, 2090, 1001, 8021                          | 9900.0, 9999.5, 1500.3, 1000.0                                 |
-| 10039, 2090, 1001, 8021                          | 9900.0, 9999.5, 3000.7, 1000.0                                 |
-| 10039, 2090, 1001, 8021, 10039, 2090, 1001, 8021 | 9900.0, 9999.5, 1500.3, 1000.0, 9900.0, 9999.5, 1500.3, 1000.0 |
-| 10039, 2090, 1001, 8021, 10039, 2090, 1001, 8021 | 9900.0, 9999.5, 1500.3, 1000.0, 9900.0, 9999.5, 3000.7, 1000.0 |
-+-------------------------------------------------------------------------------------------------------------------+
-``
++-----------------------------------------------------------------------+
+| account_numbers                                  | total_amount       |
++-----------------------------------------------------------------------+
+| 10039, 2090, 1001, 8021                          | 22399.8            |
+| 10039, 2090, 1001, 8021                          | 23900.2            |
+| 10039, 2090, 1001, 8021, 10039, 2090, 1001, 8021 | 44799.600000000006 |
+| 10039, 2090, 1001, 8021, 10039, 2090, 1001, 8021 | 46300.0            |
++-----------------------------------------------------------------------+
+```
 
 Above, we use the quantifier `+` to find the shortest 4 paths from account `10039` back to itself, following only incoming `transaction` edges.
-We use the `LISTAGG` aggregate to retrieve the account numbers as well as the transaction amounts along the four paths.
+Quantifier `+` will make sure not to include the empty path, which is the path with zero edges that only contains the vertex corresponding to account `10039`.
+We use the `LISTAGG` aggregate to retrieve the account numbers and the `SUM` aggregate to retrieve the total of the transaction amounts along each path.
 
 ## Any Path and Reachability
 
