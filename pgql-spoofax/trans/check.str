@@ -526,7 +526,7 @@ rules // MODIFY
 // CREATE PROPERTY GRAPH
 
   nabl-constraint(|ctx):
-    CreatePropertyGraph(_, VertexTables(vertexTables), EdgeTables(edgeTables), _) -> <fail>
+    CreatePropertyGraph(_, _, VertexTables(vertexTables), EdgeTables(edgeTables), _) -> <fail>
     with vertexTableNames := <map(?VertexTable(_, <id>, _, _); to-identifier-without-origin-info)> vertexTables
        ; <generate-error-on-duplicates(|ctx, "Duplicate vertex table name; use an alias to make the vertex table name unique (table AS alias)")> vertexTableNames
        ; edgeTableNames := <map(?EdgeTable(_, <id>, _, _, _, _); to-identifier-without-origin-info)> edgeTables

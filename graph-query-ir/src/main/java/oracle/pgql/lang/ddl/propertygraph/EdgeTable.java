@@ -127,7 +127,7 @@ public class EdgeTable extends ElementTable {
 
   @Override
   public String toString() {
-    return getTableName() + printAlias(" ") + printKey(" ") + printSource() + printDestination()
+    return getTableName().toString(true) + printAlias(" ") + printKey(" ") + printSource() + printDestination()
         + printLabels("\n      ");
   }
 
@@ -145,9 +145,9 @@ public class EdgeTable extends ElementTable {
         ? referencedVertexTable.getTableName().getName()
         : referencedVertexTable.getTableAlias();
     if (key == null) {
-      return printIdentifier(vertexTableName, false);
+      return printIdentifier(vertexTableName);
     } else {
-      return "KEY " + key + " REFERENCES " + printIdentifier(vertexTableName, false)
+      return "KEY " + key + " REFERENCES " + printIdentifier(vertexTableName)
           + printKeyForReferencedVertexTable(refercedTableKey);
     }
   }

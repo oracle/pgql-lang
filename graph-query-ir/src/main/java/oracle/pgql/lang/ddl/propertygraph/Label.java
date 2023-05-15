@@ -91,7 +91,7 @@ public class Label {
 
   @Override
   public String toString() {
-    return "LABEL " + printIdentifier(name, false) + " " + printProperties();
+    return "LABEL " + printIdentifier(name) + " " + printProperties();
   }
 
   String printProperties() {
@@ -101,7 +101,7 @@ public class Label {
         return "PROPERTIES ARE ALL COLUMNS";
       } else {
         return "PROPERTIES ARE ALL COLUMNS EXCEPT ( " + propertiesAreAllColumnsExcept.stream() //
-            .map(x -> printIdentifier(x, false)) //
+            .map(x -> printIdentifier(x)) //
             .collect(Collectors.joining(", ")) + " )";
       }
     } else {

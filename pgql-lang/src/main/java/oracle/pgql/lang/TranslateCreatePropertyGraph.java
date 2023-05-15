@@ -6,7 +6,10 @@ package oracle.pgql.lang;
 import org.spoofax.interpreter.terms.IStrategoAppl;
 import org.spoofax.interpreter.terms.IStrategoTerm;
 
+import oracle.pgql.lang.ddl.propertygraph.BaseElementTable;
+import oracle.pgql.lang.ddl.propertygraph.BaseGraph;
 import oracle.pgql.lang.ddl.propertygraph.CreatePropertyGraph;
+import oracle.pgql.lang.ddl.propertygraph.CreateSuperPropertyGraph;
 import oracle.pgql.lang.ddl.propertygraph.EdgeTable;
 import oracle.pgql.lang.ddl.propertygraph.Key;
 import oracle.pgql.lang.ddl.propertygraph.Label;
@@ -31,11 +34,29 @@ public class TranslateCreatePropertyGraph {
 
   private static int CREATE_PROPERTY_GRAPH_NAME = 0;
 
-  private static int CREATE_PROPERTY_GRAPH_VERTEX_TABLES = 1;
+  private static int CREATE_PROPERTY_GRAPH_BASE_GRAPHS = 1;
 
-  private static int CREATE_PROPERTY_GRAPH_EDGE_TABLES = 2;
+  private static int CREATE_PROPERTY_GRAPH_VERTEX_TABLES = 2;
 
-  private static int CREATE_PROPERTY_GRAPH_OPTIONS = 3;
+  private static int CREATE_PROPERTY_GRAPH_EDGE_TABLES = 3;
+
+  private static int CREATE_PROPERTY_GRAPH_OPTIONS = 4;
+
+  private static int BASE_GRAPHS_GRAPHS_LIST = 0;
+
+  private static int BASE_GRAPH_NAME = 0;
+
+  private static int BASE_GRAPH_ELEMENT_TABLES = 1;
+
+  private static int BASE_GRAPH_ELEMENT_TABLES_TABLES_LIST = 0;
+
+  private static int BASE_ELEMENT_TABLE_NAME = 0;
+
+  private static int BASE_ELEMENT_TABLE_ALIAS = 1;
+
+  private static int BASE_ELEMENT_TABLE_ALIAS_NAME = 1;
+
+  private static int BASE_GRAPH_ELEMENT_TABLES_TABLES_EXCEPT_LIST = 0;
 
   private static int VERTEX_TABLES_TABLES_LIST = 0;
 
@@ -95,6 +116,8 @@ public class TranslateCreatePropertyGraph {
 
     SchemaQualifiedName graphName = getSchemaQualifiedName(graphNameT);
 
+    List<BaseGraph> baseGraphs = getBaseGraphs(ast.getSubterm(CREATE_PROPERTY_GRAPH_BASE_GRAPHS));
+
     List<VertexTable> vertexTables = getVertexTables(ast.getSubterm(CREATE_PROPERTY_GRAPH_VERTEX_TABLES));
 
     List<EdgeTable> edgeTables = getEdgeTables(ast.getSubterm(CREATE_PROPERTY_GRAPH_EDGE_TABLES), vertexTables);
@@ -103,9 +126,67 @@ public class TranslateCreatePropertyGraph {
 
     List<String> options = isNone(optionsT) ? null : getOptions(optionsT);
 
-    CreatePropertyGraph cpg = new CreatePropertyGraph(graphName, vertexTables, edgeTables);
+    CreatePropertyGraph cpg = baseGraphs == null ? new CreatePropertyGraph(graphName, vertexTables, edgeTables)
+        : new CreateSuperPropertyGraph(graphName, baseGraphs, vertexTables, edgeTables);
     cpg.setOptions(options);
     return cpg;
+  }
+
+  private static List<BaseGraph> getBaseGraphs(IStrategoTerm baseGraphsT) {
+    if (isNone(baseGraphsT)) {
+      return null;
+    }
+
+    IStrategoTerm baseGraphsListT = getSomeValue(baseGraphsT).getSubterm(BASE_GRAPHS_GRAPHS_LIST);
+    List<BaseGraph> result = new ArrayList<>();
+    for (IStrategoTerm baseGraphT : baseGraphsListT) {
+      IStrategoTerm graphNameT = baseGraphT.getSubterm(BASE_GRAPH_NAME);
+      SchemaQualifiedName graphName = getSchemaQualifiedName(graphNameT);
+
+      IStrategoTerm optionalBaseElementTablesT = baseGraphT.getSubterm(BASE_GRAPH_ELEMENT_TABLES);
+      List<BaseElementTable> baseElementTables = null;
+      List<String> allElementTablesExcept = null;
+      if (!isNone(optionalBaseElementTablesT)) {
+        IStrategoAppl baseElementTablesT = (IStrategoAppl) getSomeValue(optionalBaseElementTablesT);
+        String constructorName = baseElementTablesT.getConstructor().getName();
+        switch (constructorName) {
+          case "ElementTables":
+            IStrategoTerm elementTablesT = baseElementTablesT.getSubterm(BASE_GRAPH_ELEMENT_TABLES_TABLES_LIST);
+            baseElementTables = new ArrayList<>();
+            for (IStrategoTerm baseElementTableT : elementTablesT) {
+              String referencedTableName = getString(baseElementTableT.getSubterm(BASE_ELEMENT_TABLE_NAME));
+
+              IStrategoTerm elementTableAliasT = baseElementTableT.getSubterm(BASE_ELEMENT_TABLE_ALIAS);
+              String tableAlias;
+              if (isNone(elementTableAliasT)) {
+                tableAlias = referencedTableName;
+              } else {
+                tableAlias = getString(getSomeValue(elementTableAliasT).getSubterm(BASE_ELEMENT_TABLE_ALIAS_NAME));
+              }
+
+              baseElementTables.add(new BaseElementTable(referencedTableName, tableAlias));
+            }
+            break;
+          case "AllElementTables":
+            IStrategoTerm exceptElementTablesT = baseElementTablesT
+                .getSubterm(BASE_GRAPH_ELEMENT_TABLES_TABLES_EXCEPT_LIST);
+            
+            if (!isNone(exceptElementTablesT)) {
+              allElementTablesExcept = new ArrayList<String>();
+              for (IStrategoTerm exceptElementTableT : getSomeValue(exceptElementTablesT)) {
+                String exceptElementTable = getString(exceptElementTableT);
+                allElementTablesExcept.add(exceptElementTable);
+              }
+            }
+            break;
+          default:
+            throw new IllegalArgumentException("Unknown constructor name: " + constructorName);
+        }
+      }
+
+      result.add(new BaseGraph(graphName, baseElementTables, allElementTablesExcept));
+    }
+    return result;
   }
 
   private static List<VertexTable> getVertexTables(IStrategoTerm vertexTablesT) throws PgqlException {

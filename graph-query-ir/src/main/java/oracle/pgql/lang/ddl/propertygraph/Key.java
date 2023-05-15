@@ -33,7 +33,7 @@ public class Key {
   @Override
   public String toString() {
     return "( " + columnNames.stream() //
-        .map(x -> printIdentifier(x, false)) //
+        .map(x -> printIdentifier(x)) //
         .collect(Collectors.joining(", ")) + " )";
   }
 

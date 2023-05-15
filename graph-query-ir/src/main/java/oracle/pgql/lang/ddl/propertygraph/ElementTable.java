@@ -79,7 +79,7 @@ public abstract class ElementTable {
     if (tableAlias == null || tableAlias.equals(tableName.getName())) {
       return "";
     } else {
-      return indentation + "AS " + printIdentifier(tableAlias, false);
+      return indentation + "AS " + printIdentifier(tableAlias);
     }
   }
 

@@ -25,7 +25,7 @@ public class DropPropertyGraph implements PgqlStatement {
 
   @Override
   public String toString() {
-    return "DROP PROPERTY GRAPH " + schemaName;
+    return "DROP PROPERTY GRAPH " + schemaName.toString(true);
   }
 
   @Override

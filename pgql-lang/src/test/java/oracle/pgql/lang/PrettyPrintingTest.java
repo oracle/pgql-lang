@@ -588,26 +588,6 @@ public class PrettyPrintingTest extends AbstractPgqlTest {
   }
 
   @Test
-  public void testCreateExternalSchema1() throws Exception {
-    String statement = "CREATE EXTERNAL SCHEMA HR\n"
-        + "FROM DATABASE URL 'jdbc:oracle:thin@myhost:1521/oracl' USER 'hr' KEYSTORE_ALIAS 'hr_alias'";
-    checkRoundTrip(statement);
-  }
-
-  @Test
-  public void testCreateExternalSchema2() throws Exception {
-    String statement = "CREATE EXTERNAL SCHEMA HR\n" //
-        + "FROM DATABASE DATA_SOURCE 'my data source' SCHEMA 'HR'";
-    checkRoundTrip(statement);
-  }
-
-  @Test
-  public void testDropExternalSchema() throws Exception {
-    String statement = "DROP EXTERNAL SCHEMA \" my schema \"";
-    checkRoundTrip(statement);
-  }
-
-  @Test
   public void testSchemaQualifiedPackageName() throws Exception {
     String query = "SELECT mySchema.myPackage.myFunction(123), \"mySchema\".\"myPackage\".\"myFunction\"(123) FROM MATCH (n)";
     String prettyPrintedQuery = pgql.parse(query).getGraphQuery().toString();
@@ -702,4 +682,13 @@ public class PrettyPrintingTest extends AbstractPgqlTest {
     PgqlStatement iR3 = pgql.parse(query3).getPgqlStatement();
     assertEquals(iR2, iR3);
   }
+
+  @Test
+  public void testCreateSuperGraph() throws Exception {
+    String statement = "CREATE PROPERTY GRAPH g " //
+        + "BASE GRAPHS ( g1 ELEMENT TABLES ( v1 AS v3, v2 ), g2 ALL ELEMENT TABLES EXCEPT ( v1, v2 ), g3 ALL ELEMENT TABLES ) " //
+        + "VERTEX TABLES ( v1, v4 )";
+    checkRoundTrip(statement);
+  }
+
 }

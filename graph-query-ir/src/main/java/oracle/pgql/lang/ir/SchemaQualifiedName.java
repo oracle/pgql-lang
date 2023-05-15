@@ -38,11 +38,16 @@ public class SchemaQualifiedName {
     this.name = name;
   }
 
+  @Override
   public String toString() {
+    return toString(false);
+  }
+
+  public String toString(boolean alwaysQuote) {
     if (schemaName == null) {
-      return printIdentifier(name, false);
+      return printIdentifier(name, alwaysQuote);
     } else {
-      return printIdentifier(schemaName, false) + "." + printIdentifier(name, false);
+      return printIdentifier(schemaName, alwaysQuote) + "." + printIdentifier(name, alwaysQuote);
     }
   }
 

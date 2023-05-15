@@ -61,9 +61,9 @@ public class Property {
   @Override
   public String toString() {
     if (getColumnName() != null && getColumnName().equals(propertyName)) {
-      return printIdentifier(propertyName, false);
+      return printIdentifier(propertyName);
     } else {
-      return valueExpression + " AS " + printIdentifier(propertyName, false);
+      return valueExpression + " AS " + printIdentifier(propertyName);
     }
   }
 
