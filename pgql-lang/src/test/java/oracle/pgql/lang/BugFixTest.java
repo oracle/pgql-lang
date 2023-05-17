@@ -372,4 +372,23 @@ public class BugFixTest extends AbstractPgqlTest {
 
     assertEquals(equivalentQuery.toString(), graphQuery.toString());
   }
+
+  @Test
+  public void testNoErrorWhenVertexTablesOfBaseGraphAreNotDefined() throws Exception {
+    PgqlResult result = pgql.parse(//
+        "CREATE PROPERTY GRAPH g1 " + //
+            "  BASE GRAPHS ( g2 ) " + //
+            "  EDGE TABLES ( " + //
+            "    e1 SOURCE v1 DESTINATION v2 " + // there should be no issue with references v1 and v2 here
+            "  )");
+    assertTrue(result.isQueryValid());
+
+    result = pgql.parse(//
+        "CREATE PROPERTY GRAPH g1 " + //
+            "  BASE GRAPHS ( g2 ALL ELEMENT TABLES ) " + //
+            "  EDGE TABLES ( " + //
+            "    e1 SOURCE v1 DESTINATION v2 " + // there should be no issue with references v1 and v2 here
+            "  )");
+    assertTrue(result.isQueryValid());
+  }
 }

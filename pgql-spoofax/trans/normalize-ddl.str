@@ -22,9 +22,14 @@ rules // CREATE PROPERTY GRAPH
   normalize-CreatePropertyGraph:
     t@CreatePropertyGraph(_, _, _, _, _) -> result
     with CreatePropertyGraph(graphName, baseGraphs, vertexTables, edgeTables, options) := <alltd(norm-identifier)> t
+       ; baseGraphs' := <alltd(normalize-BaseElementTable)> baseGraphs
        ; vertexTables' := <?Some(<id>); VertexTables(map(normalize-VertexTable)) + ?None(); !VertexTables([])> vertexTables
        ; edgeTables' := <?Some(<id>); EdgeTables(map(normalize-EdgeTable)) + ?None(); !EdgeTables([])> edgeTables
-       ; result := <alltd(normalize-LabelAndProperties)> CreatePropertyGraph(graphName, baseGraphs, vertexTables', edgeTables', options)
+       ; result := <alltd(normalize-LabelAndProperties)> CreatePropertyGraph(graphName, baseGraphs', vertexTables', edgeTables', options)
+
+  normalize-BaseElementTable:
+    BaseElementTable(VarRef(tableName), alias) -> BaseElementTable(tableName, alias')
+    with alias' := <normalize-tableAlias(|tableName)> alias
 
   normalize-VertexTable:
     VertexTable(name@Name(_, tableName), tableAlias, keyClause, labelAndPropertiesClause)

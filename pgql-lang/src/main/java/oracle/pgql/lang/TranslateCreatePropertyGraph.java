@@ -54,8 +54,6 @@ public class TranslateCreatePropertyGraph {
 
   private static int BASE_ELEMENT_TABLE_ALIAS = 1;
 
-  private static int BASE_ELEMENT_TABLE_ALIAS_NAME = 1;
-
   private static int BASE_GRAPH_ELEMENT_TABLES_TABLES_EXCEPT_LIST = 0;
 
   private static int VERTEX_TABLES_TABLES_LIST = 0;
@@ -157,12 +155,7 @@ public class TranslateCreatePropertyGraph {
               String referencedTableName = getString(baseElementTableT.getSubterm(BASE_ELEMENT_TABLE_NAME));
 
               IStrategoTerm elementTableAliasT = baseElementTableT.getSubterm(BASE_ELEMENT_TABLE_ALIAS);
-              String tableAlias;
-              if (isNone(elementTableAliasT)) {
-                tableAlias = referencedTableName;
-              } else {
-                tableAlias = getString(getSomeValue(elementTableAliasT).getSubterm(BASE_ELEMENT_TABLE_ALIAS_NAME));
-              }
+              String tableAlias = getString(elementTableAliasT);
 
               baseElementTables.add(new BaseElementTable(referencedTableName, tableAlias));
             }
