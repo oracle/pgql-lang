@@ -24,8 +24,8 @@ The following are the changes since PGQL 1.5:
 The new features are:
 
  - SQL compatible [GRAPH_TABLE](#graph_table) operator
- - [LATERAL subqueries](#lateral_subqueries)
- - [Path modes](#path_modes): `WALK`, `ACYCLIC`, `SIMPLE`, `TRAIL`
+ - [LATERAL subqueries](#lateral-subqueries)
+ - [Path modes](#path-modes): `WALK`, `ACYCLIC`, `SIMPLE`, `TRAIL`
  - New predicates: IS [NOT] LABELED, IS [NOT] SOURCE OF, IS [NOT] DESTINATION OF
  - FETCH statement
 
