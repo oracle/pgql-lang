@@ -197,10 +197,6 @@ entries:
       url: /spec/2.0/#quantifiers
       output: web
 
-    - title: 'Path modes'
-      url: /spec/2.0/#path-modes
-      output: web
-
     - title: 'Any Path'
       url: /spec/2.0/#any-path
       output: web
@@ -259,6 +255,10 @@ entries:
       - title: 'Horizontal aggregation in WHERE and GROUP BY'
         url: /spec/2.0/#horizontal-aggregation-in-where-and-group-by
         output: web
+
+    - title: 'Path modes'
+      url: /spec/2.0/#path-modes
+      output: web
 
   - title: 'Number of Rows Per Match'
     url: /spec/2.0/#number-of-rows-per-match

@@ -23,8 +23,8 @@ The following are the changes since PGQL 1.5:
 
 The new features are:
 
- - SQL compatible [`GRAPH_TABLE`](#graph_table) operator
- - [`LATERAL` subqueries](#lateral_subqueries)
+ - SQL compatible [GRAPH_TABLE](#graph_table) operator
+ - [LATERAL subqueries](#lateral_subqueries)
  - [Path modes](#path_modes): `WALK`, `ACYCLIC`, `SIMPLE`, `TRAIL`
  - New predicates: IS [NOT] LABELED, IS [NOT] SOURCE OF, IS [NOT] DESTINATION OF
  - FETCH statement
@@ -1671,105 +1671,6 @@ Above, we use the quantifier `+` to find the shortest 4 paths from account `1003
 Quantifier `+` will make sure not to include the empty path, which is the path with zero edges that only contains the vertex corresponding to account `10039`.
 We use the `LISTAGG` aggregate to retrieve the account numbers and the `SUM` aggregate to retrieve the total of the transaction amounts along each path.
 
-## Path modes
-
-The following path modes are available in combination with `ANY`, `ALL`, `ANY SHORTEST`, `SHORTEST k`, `ALL SHORTEST`
-`ANY CHEAPEST` and `CHEAPEST k`:
-
-- `WALK`, the default path mode, where no filtering of paths happen.
-- `TRAIL`, where path bindings with repeated edges are not returned.
-- `ACYCLIC`, where path bindings with repeated vertices are not returned.
-- `SIMPLE`, where path bindings with repeated vertices are not returned unless, per path, the repeated vertex is the
-  first and the last in the path
-
-Syntactically, the path mode is placed directly after `ANY`, `ALL`, `ANY SHORTEST`, `SHORTEST k`, `ALL SHORTEST`,
-`ANY CHEAPEST` or `CHEAPEST k`.
-The path mode is optionally followed by a `PATH` or `PATHS` keyword.
-
-An example with `WALK` is:
-
-```sql
-SELECT LISTAGG(e.amount, ', ') AS amounts_along_path, SUM(e.amount) AS total_cost
-FROM MATCH CHEAPEST 4 WALK (a:account) (-[e:transaction]-> COST e.amount)* (a)
-WHERE a.number = 10039
-ORDER BY total_cost
-```
-
-```
-+-----------------------------------------------------------------------------+
-| amounts_along_path                                             | total_cost |
-+-----------------------------------------------------------------------------+
-| 1000.0, 1500.3, 9999.5, 9900.0                                 | 22399.8    |
-| 1000.0, 3000.7, 9999.5, 9900.0                                 | 23900.2    |
-| 1000.0, 1500.3, 9999.5, 9900.0, 1000.0, 1500.3, 9999.5, 9900.0 | 44799.6    |
-| <null>                                                         | <null>     |
-+-----------------------------------------------------------------------------+
-```
-
-Above, although the first two results are simple paths, the third result is neither acyclic nor simple and is also not a
-trail since various vertices and edges are repeated along the path.
-However, the path is a walk given that walks allow for repeated vertices as well as repeated edges.
-Furthermore, the last result indicates that an empty path was matched, which is possible because quantifier `*` matches
-patterns _zero_ or more times.
-
-An example with `TRAIL` is:
-
-```sql
-SELECT CAST(a.number AS STRING) || ' -> ' || LISTAGG(x.number, ' -> ') AS accounts_along_path
-FROM MATCH ALL TRAIL PATHS (a:account) (-[:transaction]-> (x)){2,} (b:Account)
-WHERE a.number = 8021 AND b.number = 1001
-```
-
-```
-+-----------------------------------------------+
-| accounts_along_path                           |
-+-----------------------------------------------+
-| 8021 -> 1001 -> 2090 -> 10039 -> 8021 -> 1001 |
-| 8021 -> 1001 -> 2090 -> 10039 -> 8021 -> 1001 |
-+-----------------------------------------------+
-```
-
-Above, both paths contain the vertices 8021 and 1001 twice but they are still valid trails as long as no edges are repeated.
-
-An example with `ACYCLIC` is:
-
-```sql
-SELECT CAST(a.number AS STRING) || ' -> ' || LISTAGG(x.number, ' -> ') AS accounts_along_path
-FROM MATCH SHORTEST 10 ACYCLIC PATHS (a:account) (-[:transaction]-> (x))+ (b)
-WHERE a.number = 10039 AND b.number = 1001
-```
-
-```
-+-----------------------+
-| accounts_along_path   |
-+-----------------------+
-| 10039 -> 8021 -> 1001 |
-| 10039 -> 8021 -> 1001 |
-+-----------------------+
-```
-
-Above, we requested 10 shortest paths but only two were returned since all the other paths are cyclic.
-
-An example with `SIMPLE` is:
-
-```sql
-SELECT CAST(a.number AS STRING) || ' -> ' || LISTAGG(x.number, ' -> ') AS accounts_along_path
-FROM MATCH ANY SIMPLE PATH (a:account) (-[:transaction]-> (x))+ (a)
-WHERE a.number = 10039
-```
-
-```
-+----------------------------------------+
-| accounts_along_path                    |
-+----------------------------------------+
-| 10039 -> 8021 -> 1001 -> 2090 -> 10039 |
-+----------------------------------------+
-```
-
-Above, a cyclic path is returned.
-This path is a valid simple path since it starts and ends in the same vertex and there is no other cycle in the path.
-
-
 ## Any Path
 
 `ANY` is used to find any (arbitrary) path between a pair of source-destination vertices.
@@ -2448,6 +2349,104 @@ ORDER BY pathLength
 ```
 
 Above, we first match shortest paths between four pairs of vertices and then we group by the length of the paths (`GROUP BY COUNT(e)`) by means of horizontal aggregation. Then we perform a vertical aggregation `COUNT(*)` to compute the number of paths that have the particular path length. The result shows that one path has length 1, two paths have length 2, and one path as length 3.
+
+## Path modes
+
+The following path modes are available in combination with `ANY`, `ALL`, `ANY SHORTEST`, `SHORTEST k`, `ALL SHORTEST`
+`ANY CHEAPEST` and `CHEAPEST k`:
+
+- `WALK`, the default path mode, where no filtering of paths happen.
+- `TRAIL`, where path bindings with repeated edges are not returned.
+- `ACYCLIC`, where path bindings with repeated vertices are not returned.
+- `SIMPLE`, where path bindings with repeated vertices are not returned unless, per path, the repeated vertex is the
+  first and the last in the path
+
+Syntactically, the path mode is placed directly after `ANY`, `ALL`, `ANY SHORTEST`, `SHORTEST k`, `ALL SHORTEST`,
+`ANY CHEAPEST` or `CHEAPEST k`.
+The path mode is optionally followed by a `PATH` or `PATHS` keyword.
+
+An example with `WALK` is:
+
+```sql
+SELECT LISTAGG(e.amount, ', ') AS amounts_along_path, SUM(e.amount) AS total_cost
+FROM MATCH CHEAPEST 4 WALK (a:account) (-[e:transaction]-> COST e.amount)* (a)
+WHERE a.number = 10039
+ORDER BY total_cost
+```
+
+```
++-----------------------------------------------------------------------------+
+| amounts_along_path                                             | total_cost |
++-----------------------------------------------------------------------------+
+| 1000.0, 1500.3, 9999.5, 9900.0                                 | 22399.8    |
+| 1000.0, 3000.7, 9999.5, 9900.0                                 | 23900.2    |
+| 1000.0, 1500.3, 9999.5, 9900.0, 1000.0, 1500.3, 9999.5, 9900.0 | 44799.6    |
+| <null>                                                         | <null>     |
++-----------------------------------------------------------------------------+
+```
+
+Above, although the first two results are simple paths, the third result is neither acyclic nor simple and is also not a
+trail since various vertices and edges are repeated along the path.
+However, the path is a walk given that walks allow for repeated vertices as well as repeated edges.
+Furthermore, the last result indicates that an empty path was matched, which is possible because quantifier `*` matches
+patterns _zero_ or more times.
+
+An example with `TRAIL` is:
+
+```sql
+SELECT CAST(a.number AS STRING) || ' -> ' || LISTAGG(x.number, ' -> ') AS accounts_along_path
+FROM MATCH ALL TRAIL PATHS (a:account) (-[:transaction]-> (x)){2,} (b:Account)
+WHERE a.number = 8021 AND b.number = 1001
+```
+
+```
++-----------------------------------------------+
+| accounts_along_path                           |
++-----------------------------------------------+
+| 8021 -> 1001 -> 2090 -> 10039 -> 8021 -> 1001 |
+| 8021 -> 1001 -> 2090 -> 10039 -> 8021 -> 1001 |
++-----------------------------------------------+
+```
+
+Above, both paths contain the vertices 8021 and 1001 twice but they are still valid trails as long as no edges are repeated.
+
+An example with `ACYCLIC` is:
+
+```sql
+SELECT CAST(a.number AS STRING) || ' -> ' || LISTAGG(x.number, ' -> ') AS accounts_along_path
+FROM MATCH SHORTEST 10 ACYCLIC PATHS (a:account) (-[:transaction]-> (x))+ (b)
+WHERE a.number = 10039 AND b.number = 1001
+```
+
+```
++-----------------------+
+| accounts_along_path   |
++-----------------------+
+| 10039 -> 8021 -> 1001 |
+| 10039 -> 8021 -> 1001 |
++-----------------------+
+```
+
+Above, we requested 10 shortest paths but only two were returned since all the other paths are cyclic.
+
+An example with `SIMPLE` is:
+
+```sql
+SELECT CAST(a.number AS STRING) || ' -> ' || LISTAGG(x.number, ' -> ') AS accounts_along_path
+FROM MATCH ANY SIMPLE PATH (a:account) (-[:transaction]-> (x))+ (a)
+WHERE a.number = 10039
+```
+
+```
++----------------------------------------+
+| accounts_along_path                    |
++----------------------------------------+
+| 10039 -> 8021 -> 1001 -> 2090 -> 10039 |
++----------------------------------------+
+```
+
+Above, a cyclic path is returned.
+This path is a valid simple path since it starts and ends in the same vertex and there is no other cycle in the path.
 
 # Number of Rows Per Match
 
