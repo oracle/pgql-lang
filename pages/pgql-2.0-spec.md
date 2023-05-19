@@ -23,9 +23,9 @@ The following are the changes since PGQL 1.5:
 
 The new features are:
 
- - GRAPH_TABLE
- - LATERAL subquery
- - Path modes WALK, ACYCLIC, SIMPLE, TRAIL
+ - SQL compatible [`GRAPH_TABLE`](#graph_table) operator
+ - [`LATERAL` subqueries](#lateral_subqueries)
+ - [Path modes](#path_modes): `WALK`, `ACYCLIC`, `SIMPLE`, `TRAIL`
  - New predicates: IS [NOT] LABELED, IS [NOT] SOURCE OF, IS [NOT] DESTINATION OF
  - FETCH statement
 
@@ -1335,22 +1335,18 @@ MatchClause            ::= 'MATCH' ( <PathPattern> | <GraphPattern> ) <OnClause>
 
 GraphPattern           ::= '(' <PathPattern> ( ',' <PathPattern> )* ')'
 
-PathPattern            ::=   <SimplePathPattern>
+PathPattern            ::=   <BasicPathPattern>
                            | <AnyPathPattern>
                            | <AnyShortestPathPattern>
                            | <AllShortestPathPattern>
-                           | <TopKShortestPathPattern>
+                           | <ShortestKPathPattern>
                            | <AnyCheapestPathPattern>
-                           | <TopKCheapestPathPattern>
+                           | <CheapestKPathPattern>
                            | <AllPathPattern>
 
-
-SimplePathPattern      ::= <VertexPattern> ( <PathPrimary> <VertexPattern> )*
+BasicPathPattern       ::= <VertexPattern> ( <EdgePattern> <VertexPattern> )*
 
 VertexPattern          ::= '(' <VariableSpecification> ')'
-
-PathPrimary            ::=   <EdgePattern>
-                           | <ReachabilityPathExpression>
 
 EdgePattern            ::=   <OutgoingEdgePattern>
                            | <IncomingEdgePattern>
@@ -1559,6 +1555,10 @@ WHERE y.age > 25
   AND x.name = 'Jake'
 ```
 
+## GRAPH_TABLE
+
+TODO
+
 # Variable-Length Paths
 
 [Graph Pattern Matching](#graph-pattern-matching) introduced how "fixed-length" patterns can be matched.
@@ -1569,15 +1569,15 @@ Variable-length path patterns match a variable number of vertices and edges such
 
 ## Overview of Path Finding Goals
 
-| goal           | matches              | limitations on quantifier                  |
-|----------------|----------------------|--------------------------------------------|
-| ANY            | any path             | no limitations                             |
-| ANY SHORTEST   | any shortest path    | no limitations                             |
-| ALL SHORTEST   | all shortest paths   | no limitations                             |
-| TOP k SHORTEST | top k shortest paths | no limitations                             |
-| ANY CHEAPEST   | any cheapest path    | no limitations                             |
-| TOP k CHEAPEST | top k cheapest paths | no limitations                             |
-| ALL            | all paths            | requires an upper bound on the path length |
+| goal         | matches              | limitations on quantifier                  |
+|--------------|----------------------|--------------------------------------------|
+| ANY          | any path             | no limitations                             |
+| ANY SHORTEST | any shortest path    | no limitations                             |
+| ALL SHORTEST | all shortest paths   | no limitations                             |
+| SHORTEST k   | shortest k paths     | no limitations                             |
+| ANY CHEAPEST | any cheapest path    | no limitations                             |
+| CHEAPEST k   | cheapest k paths     | no limitations                             |
+| ALL          | all paths            | requires an upper bound on the path length |
 
 ## Quantifiers
 
@@ -1651,7 +1651,7 @@ Another example is:
 
 ```sql
   SELECT LISTAGG(x.number, ', ') AS account_numbers, SUM(e.amount) AS total_amount
-    FROM MATCH TOP 4 SHORTEST (a:Account) ((x:Account) <-[e:transaction]-)+ (a)
+    FROM MATCH SHORTEST 4 PATHS (a:Account) ((x:Account) <-[e:transaction]-)+ (a)
    WHERE a.number = 10039
 ORDER BY SUM(e.amount)
 ```
@@ -1671,9 +1671,106 @@ Above, we use the quantifier `+` to find the shortest 4 paths from account `1003
 Quantifier `+` will make sure not to include the empty path, which is the path with zero edges that only contains the vertex corresponding to account `10039`.
 We use the `LISTAGG` aggregate to retrieve the account numbers and the `SUM` aggregate to retrieve the total of the transaction amounts along each path.
 
-## Any Path and Reachability
+## Path modes
 
-### Any Path
+The following path modes are available in combination with `ANY`, `ALL`, `ANY SHORTEST`, `SHORTEST k`, `ALL SHORTEST`
+`ANY CHEAPEST` and `CHEAPEST k`:
+
+- `WALK`, the default path mode, where no filtering of paths happen.
+- `TRAIL`, where path bindings with repeated edges are not returned.
+- `ACYCLIC`, where path bindings with repeated vertices are not returned.
+- `SIMPLE`, where path bindings with repeated vertices are not returned unless, per path, the repeated vertex is the
+  first and the last in the path
+
+Syntactically, the path mode is placed directly after `ANY`, `ALL`, `ANY SHORTEST`, `SHORTEST k`, `ALL SHORTEST`,
+`ANY CHEAPEST` or `CHEAPEST k`.
+The path mode is optionally followed by a `PATH` or `PATHS` keyword.
+
+An example with `WALK` is:
+
+```sql
+SELECT LISTAGG(e.amount, ', ') AS amounts_along_path, SUM(e.amount) AS total_cost
+FROM MATCH CHEAPEST 4 WALK (a:account) (-[e:transaction]-> COST e.amount)* (a)
+WHERE a.number = 10039
+ORDER BY total_cost
+```
+
+```
++-----------------------------------------------------------------------------+
+| amounts_along_path                                             | total_cost |
++-----------------------------------------------------------------------------+
+| 1000.0, 1500.3, 9999.5, 9900.0                                 | 22399.8    |
+| 1000.0, 3000.7, 9999.5, 9900.0                                 | 23900.2    |
+| 1000.0, 1500.3, 9999.5, 9900.0, 1000.0, 1500.3, 9999.5, 9900.0 | 44799.6    |
+| <null>                                                         | <null>     |
++-----------------------------------------------------------------------------+
+```
+
+Above, although the first two results are simple paths, the third result is neither acyclic nor simple and is also not a
+trail since various vertices and edges are repeated along the path.
+However, the path is a walk given that walks allow for repeated vertices as well as repeated edges.
+Furthermore, the last result indicates that an empty path was matched, which is possible because quantifier `*` matches
+patterns _zero_ or more times.
+
+An example with `TRAIL` is:
+
+```sql
+SELECT CAST(a.number AS STRING) || ' -> ' || LISTAGG(x.number, ' -> ') AS accounts_along_path
+FROM MATCH ALL TRAIL PATHS (a:account) (-[:transaction]-> (x)){2,} (b:Account)
+WHERE a.number = 8021 AND b.number = 1001
+```
+
+```
++-----------------------------------------------+
+| accounts_along_path                           |
++-----------------------------------------------+
+| 8021 -> 1001 -> 2090 -> 10039 -> 8021 -> 1001 |
+| 8021 -> 1001 -> 2090 -> 10039 -> 8021 -> 1001 |
++-----------------------------------------------+
+```
+
+Above, both paths contain the vertices 8021 and 1001 twice but they are still valid trails as long as no edges are repeated.
+
+An example with `ACYCLIC` is:
+
+```sql
+SELECT CAST(a.number AS STRING) || ' -> ' || LISTAGG(x.number, ' -> ') AS accounts_along_path
+FROM MATCH SHORTEST 10 ACYCLIC PATHS (a:account) (-[:transaction]-> (x))+ (b)
+WHERE a.number = 10039 AND b.number = 1001
+```
+
+```
++-----------------------+
+| accounts_along_path   |
++-----------------------+
+| 10039 -> 8021 -> 1001 |
+| 10039 -> 8021 -> 1001 |
++-----------------------+
+```
+
+Above, we requested 10 shortest paths but only two were returned since all the other paths are cyclic.
+
+An example with `SIMPLE` is:
+
+```sql
+SELECT CAST(a.number AS STRING) || ' -> ' || LISTAGG(x.number, ' -> ') AS accounts_along_path
+FROM MATCH ANY SIMPLE PATH (a:account) (-[:transaction]-> (x))+ (a)
+WHERE a.number = 10039
+```
+
+```
++----------------------------------------+
+| accounts_along_path                    |
++----------------------------------------+
+| 10039 -> 8021 -> 1001 -> 2090 -> 10039 |
++----------------------------------------+
+```
+
+Above, a cyclic path is returned.
+This path is a valid simple path since it starts and ends in the same vertex and there is no other cycle in the path.
+
+
+## Any Path
 
 `ANY` is used to find any (arbitrary) path between a pair of source-destination vertices.
 
@@ -1682,17 +1779,20 @@ Two typical uses are:
  - Testing for the _existence_ of a path between a pair of vertices without caring about the actual data along the paths.
  - Matching a path in case of tree-structured graphs or other types of graph structures for which it is known that only single paths exist between pairs of vertices.
 
-Note that in the first case where we test for path existence, it is also possible to use [Reachability](#reachability) instead.
-
 The syntax for matching any path is:
 
 ```bash
-AnyPathPattern ::=                       'ANY' <SourceVertexPattern>
-                                                 <QuantifiedPathPatternPrimary>
-                                                   <DestinationVertexPattern>
-                                       | 'ANY' '(' <SourceVertexPattern>
-                                                     <QuantifiedPathPatternPrimary>
-                                                       <DestinationVertexPattern> ')'
+AnyPathPattern ::=                       'ANY' <PathOrPaths?>
+                                           <SourceVertexPattern>
+                                             <QuantifiedPathPatternPrimary>
+                                               <DestinationVertexPattern>
+                                       | 'ANY' <PathOrPaths?> '('
+                                           <SourceVertexPattern>
+                                             <QuantifiedPathPatternPrimary>
+                                               <DestinationVertexPattern> ')'
+
+PathOrPaths                        ::=   'PATH'
+                                       | 'PATHS'
 
 SourceVertexPattern                ::= <VertexPattern>
 
@@ -1762,8 +1862,8 @@ Shortest path finding allows for finding paths with a minimal number of hops.
 Given a pair of vertices, there are different kinds of shortest paths that can be obtained:
 
  - [any shortest path](#any-shortest-path)
- - [all shortest paths](#any-shortest-path)
- - [top-k shortest paths](#top-k-cheapest-path)
+ - [all shortest paths](#all-shortest-paths)
+ - [shortest-k-paths](#shortest-k-paths)
 
 ### Any Shortest Path
 
@@ -1772,12 +1872,14 @@ Given a pair of vertices, there are different kinds of shortest paths that can b
 The syntax is:
 
 ```bash
-AnyShortestPathPattern ::=   'ANY' 'SHORTEST' <SourceVertexPattern>
-                                                <QuantifiedPathPatternPrimary>
-                                                  <DestinationVertexPattern>
-                           | 'ANY' 'SHORTEST' '(' <SourceVertexPattern>
-                                                    <QuantifiedPathPatternPrimary>
-                                                      <DestinationVertexPattern> ')'
+AnyShortestPathPattern ::=   'ANY' 'SHORTEST' <PathOrPaths?>
+                               <SourceVertexPattern>
+                                 <QuantifiedPathPatternPrimary>
+                                   <DestinationVertexPattern>
+                           | 'ANY' 'SHORTEST' <PathOrPaths?> '('
+                               <SourceVertexPattern>
+                                 <QuantifiedPathPatternPrimary>
+                                   <DestinationVertexPattern> ')'
 ```
 
 For example:
@@ -1840,12 +1942,14 @@ In contrast to `ANY SHORTEST`, `ALL SHORTEST` will return a deterministic result
 The syntax is:
 
 ```bash
-AllShortestPathPattern ::=   'ALL' 'SHORTEST' <SourceVertexPattern>
-                                                <QuantifiedPathPatternPrimary>
-                                                  <DestinationVertexPattern>
-                           | 'ALL' 'SHORTEST' '(' <SourceVertexPattern>
-                                                    <QuantifiedPathPatternPrimary>
-                                                      <DestinationVertexPattern> ')'
+AllShortestPathPattern ::=   'ALL' 'SHORTEST' <PathOrPaths?>
+                               <SourceVertexPattern>
+                                 <QuantifiedPathPatternPrimary>
+                                   <DestinationVertexPattern>
+                           | 'ALL' 'SHORTEST' <PathOrPaths?>
+                               '(' <SourceVertexPattern>
+                                  <QuantifiedPathPatternPrimary>
+                                    <DestinationVertexPattern> ')'
 ```
 
 For example:
@@ -1868,29 +1972,31 @@ ORDER BY total_amount
 +--------------------------------------------------+
 ```
 
-### Top-K Shortest Path
+### Shortest K Paths
 
-`TOP` k `SHORTEST` path matches the k shortest paths for each pair of source and destination vertices. Aggregations can then be computed over their vertices/edges.
+`SHORTEST k PATHS` matches the shortest k paths for each pair of source and destination vertices. Aggregations can then be computed over their vertices/edges.
 
 The syntax is:
 
 ```bash
-TopKShortestPathPattern ::=   'TOP' <KValue> <SourceVertexPattern>
-                                             <QuantifiedPathPatternPrimary>
-                                               <DestinationVertexPattern>
-                            | 'TOP' <KValue> '(' <SourceVertexPattern>
-                                                 <QuantifiedPathPatternPrimary>
-                                                   <DestinationVertexPattern> ')'
+ShortestKPathPattern ::=   'SHORTEST' <KValue> <PathOrPaths?>
+                             <SourceVertexPattern>
+                               <QuantifiedPathPatternPrimary>
+                                 <DestinationVertexPattern>
+                         | 'SHORTEST' <KValue>  <PathOrPaths?> '('
+                             <SourceVertexPattern>
+                               <QuantifiedPathPatternPrimary>
+                                 <DestinationVertexPattern> ')'
 
 KValue                  ::= <UNSIGNED_INTEGER>
 ```
 
-For example the following query will output the sum of the edge weights along each of the top 3 shortest paths between
+For example the following query will output the sum of the edge weights along each of the shortest 3 paths between
 each of the matched source and destination pairs:
 
 ```sql
 SELECT src, SUM(e.weight), dst
-  FROM MATCH TOP 3 SHORTEST (src) -[e]->* (dst)
+  FROM MATCH SHORTEST 3 PATHS (src) -[e]->* (dst)
  WHERE src.age < dst.age
 ```
 
@@ -1902,7 +2008,7 @@ The `ARRAY_AGG` construct allows users to output properties of edges/vertices al
 
 ```sql
 SELECT src, ARRAY_AGG(e.weight), ARRAY_AGG(v1.age), ARRAY_AGG(v2.age), dst
-  FROM MATCH TOP 3 SHORTEST (src) ((v1) -[e]-> (v2))* (dst)
+  FROM MATCH SHORTEST 3 PATHS (src) ((v1) -[e]-> (v2))* (dst)
  WHERE src.age < dst.age
 ```
 
@@ -1918,7 +2024,7 @@ Users can also compose shortest path constructs with other matching operators:
 ```sql
 SELECT ARRAY_AGG(e1.weight), ARRAY_AGG(e2.weight)
   FROM MATCH (start) -> (src)
-     , MATCH TOP 3 SHORTEST (src) (-[e1]->)* (mid)
+     , MATCH SHORTEST 3 PATHS (src) (-[e1]->)* (mid)
      , MATCH ANY SHORTEST (mid) (-[e2]->)* (dst)
      , MATCH (dst) -> (end)
 ```
@@ -1931,7 +2037,7 @@ Another example is:
   SELECT COUNT(e) AS num_hops
        , SUM(e.amount) AS total_amount
        , ARRAY_AGG(e.amount) AS amounts_along_path
-    FROM MATCH TOP 7 SHORTEST (a:Account) -[e:transaction]->* (b:Account)
+    FROM MATCH SHORTEST 7 PATHS (a:Account) -[e:transaction]->* (b:Account)
    WHERE a.number = 10039 AND a = b
 ORDER BY num_hops, total_amount
 ```
@@ -1959,7 +2065,7 @@ The following example shows how such paths could be filtered out, such that we o
   SELECT COUNT(e) AS num_hops
        , SUM(e.amount) AS total_amount
        , ARRAY_AGG(e.amount) AS amounts_along_path
-    FROM MATCH TOP 7 SHORTEST (a:Account) -[e:transaction]->* (b:Account)
+    FROM MATCH SHORTEST 7 PATHS (a:Account) -[e:transaction]->* (b:Account)
    WHERE a.number = 10039 AND a = b AND COUNT(DISTINCT e) = COUNT(e) AND COUNT(e) > 0
 ORDER BY num_hops, total_amount
 ```
@@ -1977,7 +2083,7 @@ ORDER BY num_hops, total_amount
 
 Cheapest path finding allows for finding paths based on a cost function.
 Given a pair of vertices, [single cheapest path finding](#single-cheapest-path) allows for finding a single cheapest path,
-While [top-k cheapest path finding](#top-k-cheapest-path) allows for finding K cheapest paths where paths for which paths with increasing cost are matched.
+While [cheapest k path finding](#cheapest-k-paths) allows for finding K cheapest paths where paths for which paths with increasing cost are matched.
 
 ### Any Cheapest Path
 
@@ -1986,12 +2092,14 @@ The `CHEAPEST` construct allows for finding a cheapest path based on an arbitrar
 The syntax is:
 
 ```
-AnyCheapestPathPattern ::=   'ANY' 'CHEAPEST' <SourceVertexPattern>
-                                                <QuantifiedPathPatternPrimary>
-                                                  <DestinationVertexPattern>
-                           | 'ANY' 'CHEAPEST' '(' <SourceVertexPattern>
-                                                    <QuantifiedPathPatternPrimary>
-                                                      <DestinationVertexPattern> ')'
+AnyCheapestPathPattern ::=   'ANY' 'CHEAPEST' <PathOrPaths?>
+                               <SourceVertexPattern>
+                                 <QuantifiedPathPatternPrimary>
+                                   <DestinationVertexPattern>
+                           | 'ANY' 'CHEAPEST' <PathOrPaths?> '('
+                               <SourceVertexPattern>
+                                 <QuantifiedPathPatternPrimary>
+                                   <DestinationVertexPattern> ')'
 
 CostClause          ::= 'COST' ValueExpression
 ```
@@ -2065,21 +2173,23 @@ SELECT COUNT(e) AS num_hops
 
 Note that above, when the edge is an `owner` edge, `e.amount` will return NULL resulting in a cost of `1` (`WHEN e.amount IS NULL THEN 1`).
 
-### Top-K Cheapest Path
+### Cheapest K Paths
 
-PGQL offers a `TOP k CHEAPEST` clause, which returns the `k` paths that match a given pattern with the lowest cost,
-computed with a user-defined cost function. If the user-defined cost function returns a constant, the `TOP k CHEAPEST`
- clause is equivalent to `TOP k SHORTEST`.
+PGQL offers a `CHEAPEST k PATHS` clause, which returns the `k` paths that match a given pattern with the lowest cost,
+computed with a user-defined cost function. If the user-defined cost function returns a constant, the `CHEAPEST k PATHS`
+ clause is equivalent to `SHORTEST k PATHS`.
 
 The syntax of the queries is extended the following way:
 
 ```
-TopKCheapestPathPattern  ::=   'TOP' <KValue> <SourceVertexPattern>
-                                                <QuantifiedPathPatternPrimary>
-                                                  <DestinationVertexPattern>
-                             | 'TOP' <KValue> '(' <SourceVertexPattern>
-                                                    <QuantifiedPathPatternPrimary>
-                                                      <DestinationVertexPattern> ')'
+CheapestKPathPattern  ::=   'CHEAPEST' <KValue> <PathOrPaths?>
+                              <SourceVertexPattern>
+                                <QuantifiedPathPatternPrimary>
+                                  <DestinationVertexPattern>
+                          | 'CHEAPEST' <KValue>  <PathOrPaths?> '('
+                              <SourceVertexPattern>
+                                <QuantifiedPathPatternPrimary>
+                                  <DestinationVertexPattern> ')'
 ```
 
 The cost function must evaluate to a number.
@@ -2088,7 +2198,7 @@ Over paths returned by a `CHEAPEST` query the same aggregations are defined as o
 
 The `CHEAPEST` queries represent paths the same way as `SHORTEST`, allowing the same path aggregations.
 
-For example, the following query returns the top 3 cheapest paths from account 10039 to itself:
+For example, the following query returns the cheapest 3 paths from account 10039 to itself:
 
 {% include image.html file="example_graphs/financial_transactions.png" %}
 
@@ -2096,7 +2206,7 @@ For example, the following query returns the top 3 cheapest paths from account 1
   SELECT COUNT(e) AS num_hops
        , SUM(e.amount) AS total_amount
        , ARRAY_AGG(e.amount) AS amounts_along_path
-    FROM MATCH TOP 3 CHEAPEST (a:Account) (-[e:transaction]-> COST e.amount)* (a)
+    FROM MATCH CHEAPEST 3 PATHS (a:Account) (-[e:transaction]-> COST e.amount)* (a)
    WHERE a.number = 10039
 ORDER BY total_amount
 ```
@@ -2125,7 +2235,7 @@ while `Account` or `Company` vertices contribute `1` to the total cost.
                       WHEN 'Account' THEN CAST(n_x.number AS STRING)
                     END ) AS names_or_numbers
        , SUM( CASE label(n_x) WHEN 'Person' THEN 8 ELSE 1 END ) AS total_cost
-    FROM MATCH TOP 4 CHEAPEST
+    FROM MATCH CHEAPEST 4 PATHS
           (a:Account)
             (-[e]- (n_x) COST CASE label(n_x) WHEN 'Person' THEN 3 ELSE 1 END)*
               (c:Company)
@@ -2168,12 +2278,14 @@ Whereas these quantifiers are forbidden:
 The syntax is:
 
 ```bash
-AllPathPattern ::=   'ALL' <SourceVertexPattern>
-                             <QuantifiedPathPatternPrimary>
-                               <DestinationVertexPattern>
-                   | 'ALL' '(' <SourceVertexPattern>
-                                 <QuantifiedPathPatternPrimary>
-                                   <DestinationVertexPattern> ')'
+AllPathPattern ::=   'ALL' <PathOrPaths?>
+                       <SourceVertexPattern>
+                         <QuantifiedPathPatternPrimary>
+                           <DestinationVertexPattern>
+                   | 'ALL' <PathOrPaths?> '('
+                       <SourceVertexPattern>
+                         <QuantifiedPathPatternPrimary>
+                           <DestinationVertexPattern> ')'
 ```
 
 For example:
@@ -3925,22 +4037,6 @@ SELECT fof.name, COUNT(friend) AS num_common_friends
 
 Here, vertices `p` and `fof` are passed from the outer query to the inner query. The `EXISTS` returns true if there is at least one `has_friend` edge between vertices `p` and `fof`.
 
-Users can add a subquery in the `WHERE` clause of the `PATH` definition. One might be interested in asserting for specific properties for a vertex in the `PATH`. The following example defines a path ending in a vertex which is not the oldest in the graph:
-
-```sql
-  PATH p AS (a) -> (b) WHERE EXISTS ( SELECT * FROM MATCH (x) WHERE x.age > b.age )
-SELECT ...
-  FROM ...
-```
-
-Topology related constraints can also be imposed. The following example defines a path ending in a vertex which has at least one outgoing edge to some neighbor `c`:
-
-```sql
-  PATH p AS (a) -> (b) WHERE EXISTS ( SELECT * FROM MATCH (b) -> (c) )
-SELECT ...
-  FROM ...
-```
-
 ## Scalar subqueries
 
 Scalar subqueries are queries that return a scalar value (exactly one row and exactly one column) such that they can be part of an expression in a `SELECT`, `WHERE`, `GROUP BY`, `HAVING` or `ORDER BY` clause.
@@ -4015,6 +4111,131 @@ Note that in the query, the graph name `financial_transactions` is repeatedly sp
          ) AS num_companies_transacted_with
     FROM MATCH (p:Person) <-[:owner]- (a:Account)
 ORDER BY sum_outgoing + sum_incoming DESC
+```
+
+## LATERAL subqueries
+
+In addition to `MATCH` clauses, the `FROM` clause can also contain `LATERAL` subqueries.
+A `LATERAL` subquery can be any PGQL SELECT query and all functions of PGQL SELECT queries are supported inside a `LATERAL` subquery.
+A `LATERAL` subquery can project any number of columns and it can have an arbitrary number of result rows.
+All projected elements are available outside a `LATERAL` subquery, and only projected variables are visible to the outer query.
+
+
+In the following query, the `LATERAL` subquery projects the 2 vertices `a` and `p`, while the outer accesses properties of those vertices.
+
+```sql
+SELECT p.name, a.number
+  FROM LATERAL ( SELECT a, p
+                   FROM MATCH (a:Account) -> (p:Person)
+               )
+```
+
+Alternatively, properties can also be projected by the `LATERAL` subquery and then be referenced by the outer query.
+
+```sql
+SELECT name, number
+  FROM LATERAL ( SELECT p.name as name, a.number as number
+                  FROM MATCH (a:Account) -> (p:Person)
+               )
+```
+
+```sql
+SELECT p.name, number
+  FROM LATERAL ( SELECT p, a.number as number
+                   FROM MATCH (a:Account) -> (p:Person)
+               )
+```
+
+### Variable renaming
+
+Variables can be renamed in the projection of a `LATERAL` subquery. In this case, the new name has to be used to reference a variable.
+
+```sql
+SELECT account.name, person.number
+  FROM LATERAL ( SELECT a as account, p as person
+                  FROM MATCH (a:Account) -> (p:Person)
+               )
+```
+
+### Nesting of LATERAL subqueries
+
+`LATERAL` subqueries can be nested. There is no limit on the nesting level.
+
+For example:
+
+```sql
+SELECT name, number
+  FROM LATERAL (SELECT a.name, p.number
+                  FROM LATERAL ( SELECT a,p
+                                   FROM MATCH (a:Account) -> (p:Person)
+                               )
+               )
+```
+
+### LATERAL followed by a MATCH clause
+
+A `LATERAL` subquery can be followed by one or more `MATCH` clauses. Vertices projected by a `LATERAL` subquery can be used in subsequent `MATCH` clauses.
+
+In the example below `(a)` in the outer `MATCH` clause, is the same `(a)` projected in the `LATERAL` subquery.
+```sql
+SELECT p.name as pName, p1.name as p1Name
+  FROM LATERAL ( SELECT a, p
+                   FROM MATCH (a:Account) -> (p:Person)
+               ),
+       MATCH (a) -> (a1:Account) -> (p1:Person)
+```
+
+The `WHERE` clause of the outer query can contain all variables projected in the `LATERAL` subquery and variables in the outer `MATCH` clause.
+
+```sql
+SELECT p.name as pName, p1.name as p1Name
+  FROM LATERAL ( SELECT a, p
+                   FROM MATCH (a:Account) -> (p:Person)
+               ),
+       MATCH (a) -> (a1:Account) -> (p1:Person)
+```
+
+
+### Reusing of variable names
+
+Variables not projected in the `LATERAL` subquery are not visible outside the `LATERAL` subquery.
+Therefore, variables in the outer query with the same name are new variables and independent of the variable in the `LATERAL` subquery with the same name.
+
+
+```sql
+SELECT p.name
+  FROM LATERAL ( SELECT a
+                   FROM MATCH (a:Account) -> (p:Person)
+               ),
+       MATCH (a) -> (a1:Account) -> (p:Person)
+```
+
+#### GROUP BY in `LATERAL` subquery
+
+`GROUP BY` is (like every other function of PGQL SELECT queries) supported inside a `LATERAL` subquery.
+If a vertex is projected after a `LATERAL` subquery, it can be used in a subsequent `MATCH` clause.
+
+```sql
+SELECT p.name, ARRAY_AGG(a.number)
+  FROM LATERAL ( SELECT p, SUM(t.amount) AS sum
+                   FROM MATCH (a1:Account) -[t:transaction] - (a:Account) -> (p:Person)
+                  GROUP BY p
+                  HAVING sum > 5000
+               ),
+       MATCH (p) <- (a:Account)
+       GROUP BY p
+```
+
+### UNNESTING IN `LATERAL` subquery
+Variables from path unnesting with `ONE ROW PER STEP` or `ONE ROW PER VERTEX` can be used like any other variable projected in a `LATERAL` subquery.
+This includes using unnested vertices being used in a subsquent `MATCH` clause
+
+```sql
+SELECT p.name as pName, p1.name as p1Name
+  FROM LATERAL (SELECT p, v
+                  FROM MATCH (p:Person) <- (a:Account),
+                       MATCH ANY (a) ->* (a1:Account) ONE ROW PER VERTEX (v)),
+       MATCH (v) -> (p1:Person)
 ```
 
 # Graph Modification
@@ -4545,20 +4766,23 @@ As you can see, only the single quote (`'`) was escaped (`''`).
 The following is a list of keywords in PGQL.
 
 ```sql
-PATH, SELECT, FROM, MATCH, ON, WHERE, GROUP,
-BY, HAVING, ORDER, ASC, DESC, LIMIT, OFFSET,
+SELECT, FROM, MATCH, ON, WHERE, GROUP,
+BY, HAVING, ORDER, ASC, DESC, OFFSET,
 AND, OR, NOT, true, false, IS, NULL, AS,
 DATE, TIME, TIMESTAMP, WITH, ZONE, DISTINCT,
 COUNT, MIN, MAX, AVG, SUM, ARRAY_AGG, LISTAGG,
 IN, EXISTS, CAST, CASE, WHEN, THEN, ELSE, END,
 EXTRACT, YEAR, MONTH, DAY, HOUR, MINUTE,
 SECOND, TIMEZONE_HOUR, TIMEZONE_MINUTE,
-TOP, SHORTEST, CHEAPEST, COST, CREATE,
-PROPERTY, GRAPH, VERTEX, EDGE, TABLES,
+SHORTEST, CHEAPEST, COST, CREATE, DROP,
+PROPERTY, GRAPH, VERTEX, EDGE, TABLES, KEY,
+SOURCE, DESTINATION, OF, REFERENCES, PROPERTIES,
+LABELED, FETCH, FIRST, NEXT, ROWS, ONLY,
 LABEL, PROPERTIES, ARE, ALL, COLUMNS,
 EXCEPT, NO, INSERT, UPDATE, DELETE, INTO,
 LABELS, SET, BETWEEN, INTERVAL, ONE, ROW,
-PER, STEP, PREFIX
+PER, STEP, PREFIX, WALK, ACYCLIC, SIMPLE, TRAIL,
+GRAPH_TABLE, COLUMNS, LATERAL
 ```
 
 Keywords are case-insensitive and variations such as `SELECT`, `Select` and `sELeCt` can be used interchangeably.

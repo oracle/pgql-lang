@@ -180,6 +180,10 @@ entries:
       url: /spec/2.0/#where
       output: web
 
+    - title: 'GRAPH_TABLE'
+      url: /spec/2.0/#graph_table
+      output: web
+
   - title: 'Variable-Length Paths'
     url: /spec/2.0/#variable-length-paths
     output: web
@@ -193,14 +197,13 @@ entries:
       url: /spec/2.0/#quantifiers
       output: web
 
-    - title: 'Any Path and Reachability'
-      url: /spec/2.0/#any-path-and-reachability
+    - title: 'Path modes'
+      url: /spec/2.0/#path-modes
       output: web
-      subfolderitems:
 
-      - title: 'Any Path'
-        url: /spec/2.0/#any-path
-        output: web
+    - title: 'Any Path'
+      url: /spec/2.0/#any-path
+      output: web
 
     - title: 'Shortest Path'
       url: /spec/2.0/#shortest-path
@@ -215,8 +218,8 @@ entries:
         url: /spec/2.0/#all-shortest-path
         output: web
 
-      - title: 'Top-K Shortest Path'
-        url: /spec/2.0/#top-k-shortest-path
+      - title: 'Shortest K Paths'
+        url: /spec/2.0/#shortest-k-paths
         output: web
 
     - title: 'Cheapest Path'
@@ -228,8 +231,8 @@ entries:
         url: /spec/2.0/#any-cheapest-path
         output: web
 
-      - title: 'Top-K Cheapest Path'
-        url: /spec/2.0/#top-k-cheapest-path
+      - title: 'Cheapest K Paths'
+        url: /spec/2.0/#cheapest-k-paths
         output: web
 
     - title: 'All Path'
@@ -519,6 +522,31 @@ entries:
     - title: 'Scalar subqueries'
       url: /spec/2.0/#scalar-subqueries
       output: web
+
+    - title: 'LATERAL subqueries'
+      url: /spec/2.0/#lateral-subqueries
+      output: web
+      subfolderitems:
+
+      - title: 'Variable renaming'
+        url: /spec/2.0/#variable-renaming
+        output: web
+
+      - title: 'Nesting of LATERAL subqueries'
+        url: /spec/2.0/#nesting-of-lateral-subqueries
+        output: web
+
+      - title: 'LATERAL followed by a MATCH clause'
+        url: /spec/2.0/#lateral-followed-by-a-match-clause
+        output: web
+
+      - title: 'Reusing of variable names'
+        url: /spec/2.0/#reusing-of-variable-names
+        output: web
+
+      - title: 'UNNESTING IN `LATERAL` subquery'
+        url: /spec/2.0/#unnesting-in-`lateral`-subquery
+        output: web
 
   - title: 'Graph Modification'
     url: /spec/2.0/#graph-modification
