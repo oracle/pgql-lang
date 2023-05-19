@@ -1,6 +1,20 @@
 [PGQL's website](http://pgql-lang.org/) is based on Jekyll and GitHub pages. You can change any of the files and GitHub will automatically build and deploy the changes. Changes are reflected after roughly 30 seconds.
 
-To host the website locally, make sure to have Docker installed and have configured the correct proxy settings under Preferences>Resources>Proxies.
+To host the website locally, download Rancher Desktop:
+
+- In the welcome screen choose "dockerd (moby)"
+- Restart your machine
+- To avoid `chown: .jekyll-cache: Permission denied` when running the docker command below, create `~/Library/Application\ Support/rancher-desktop/lima/_config/override.yaml` with contents:
+
+```
+mountType: 9p
+mounts:
+  - location: "~"
+    9p:
+      securityModel: mapped-xattr
+      cache: "mmap"
+```
+Then restart Rancher Desktop.
 
 Then run:
 
