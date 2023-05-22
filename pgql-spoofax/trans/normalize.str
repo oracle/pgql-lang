@@ -173,7 +173,7 @@ rules
     where <norm-identifier; ?Identifier(<id>, _); lower-case; ?"has_label"> functionName
     with if <?String(s)> y
          then error := <to-error-message(|$<GRAPH_TABLE restriction: use <<origin-text> x> IS LABELED "<<un-single-quote> s>">)> e
-         else error := <to-error-message(|$<GRAPH_TABLE restriction: HAS_LABEL function is not supported; try using the IS LABELED predicate">)> e
+         else error := <to-error-message(|$<GRAPH_TABLE restriction: HAS_LABEL function is not supported; try using the IS LABELED predicate>)> e
          end
 
   get-GraphTable-restriction:
