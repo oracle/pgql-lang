@@ -23,7 +23,7 @@ The following are the changes since PGQL 1.5:
 
 The new features are:
 
- - SQL compatible [GRAPH_TABLE](#graph_table) operator
+ - SQL-compatible [GRAPH_TABLE](#graph_table) operator
  - [LATERAL subqueries](#lateral-subqueries)
  - [Path modes](#path-modes): `WALK`, `ACYCLIC`, `SIMPLE`, `TRAIL`
  - New predicates: IS [NOT] LABELED, IS [NOT] SOURCE OF, IS [NOT] DESTINATION OF
@@ -1494,7 +1494,7 @@ In the property graph model, vertices and edge may have labels, which are arbitr
 The corresponding grammar is:
 
 ```bash
-LabelPredicate   ::= <ColonOrIsKeyword> <Label> ( '|' <Label> )*```
+LabelPredicate   ::= <ColonOrIsKeyword> <Label> ( '|' <Label> )*
 
 ColonOrIsKeyword ::=    ':'
                      || 'IS'
