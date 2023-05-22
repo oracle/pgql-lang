@@ -22,6 +22,7 @@ import oracle.pgql.lang.ir.Projection;
 import oracle.pgql.lang.ir.QueryExpression;
 import oracle.pgql.lang.ir.QueryPath;
 import oracle.pgql.lang.ir.QueryExpression.ExpressionType;
+import oracle.pgql.lang.ir.QueryExpression.FunctionCall;
 import oracle.pgql.lang.ir.QueryExpression.Function.Exists;
 import oracle.pgql.lang.ir.QueryExpression.LogicalExpression.And;
 import oracle.pgql.lang.ir.QueryExpression.ScalarSubquery;
@@ -272,7 +273,8 @@ public class StaticOptimizationsTest extends AbstractPgqlTest {
     QueryPath path = (QueryPath) graphQuery.getGraphPattern().getConnections().iterator().next();
     assertEquals(PathFindingGoal.REACHES, path.getPathFindingGoal());
 
-    graphQuery = pgql.parse("SELECT 1 FROM MATCH ANY () (-[e]-> (x) WHERE e.prop = 1 AND x.prop = 1)* ()").getGraphQuery();
+    graphQuery = pgql.parse("SELECT 1 FROM MATCH ANY () (-[e]-> (x) WHERE e.prop = 1 AND x.prop = 1)* ()")
+        .getGraphQuery();
     path = (QueryPath) graphQuery.getGraphPattern().getConnections().iterator().next();
     assertEquals(PathFindingGoal.REACHES, path.getPathFindingGoal());
 
@@ -287,5 +289,20 @@ public class StaticOptimizationsTest extends AbstractPgqlTest {
     graphQuery = pgql.parse("SELECT 1 FROM MATCH ANY () ->* () ONE ROW PER VERTEX ( v )").getGraphQuery();
     path = (QueryPath) graphQuery.getGraphPattern().getConnections().iterator().next();
     assertEquals(PathFindingGoal.SHORTEST, path.getPathFindingGoal());
+  }
+
+  @Test
+  public void normalizeHasLabel() throws Exception {
+    // We want to make sure that has_label / "has_label" / "Has_Label" all end up being the same
+
+    GraphQuery graphQuery = pgql.parse("SELECT 1 FROM MATCH (n:LBL1) " //
+        + "WHERE has_label(n, 'LBL2') AND \"has_label\"(n, 'LBL3') AND \"Has_Label\"(n, 'LBL4')").getGraphQuery();
+    Set<QueryExpression> constraints = graphQuery.getGraphPattern().getConstraints();
+    assertEquals(4, constraints.size());
+
+    for (QueryExpression constraint : constraints) {
+      FunctionCall functionCall = (FunctionCall) constraint;
+      assertEquals("has_label", functionCall.getFunctionName());
+    }
   }
 }

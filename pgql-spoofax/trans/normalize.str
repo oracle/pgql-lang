@@ -169,8 +169,12 @@ rules
   get-GraphTable-restriction = ?CountedShortestPathSearch2(NumberOfPaths(k)); to-error-message(|$<GRAPH_TABLE restriction: use SHORTEST <k> instead of TOP <k> SHORTEST>)
 
   get-GraphTable-restriction:
-    e@FunctionCall(None(), functionName, [x, String(s)]) -> <to-error-message(|$<GRAPH_TABLE restriction: use <<origin-text> x> IS LABELED "<<un-single-quote> s>">)> e
-    where <norm-identifier; ?Identifier("HAS_LABEL", _)> functionName
+    e@FunctionCall(None(), functionName, [VarRef(x), y]) -> error
+    where <norm-identifier; ?Identifier(<id>, _); lower-case; ?"has_label"> functionName
+    with if <?String(s)> y
+         then error := <to-error-message(|$<GRAPH_TABLE restriction: use <<origin-text> x> IS LABELED "<<un-single-quote> s>">)> e
+         else error := <to-error-message(|$<GRAPH_TABLE restriction: HAS_LABEL function is not supported; try using the IS LABELED predicate">)> e
+         end
 
   get-GraphTable-restriction:
     e@FunctionCall(None(), functionName, [edge@VarRef(_), vertex@VarRef(_)]) -> error-message
@@ -394,6 +398,10 @@ rules
          then result := Not(labelExpression')
          else result := labelExpression'
          end
+
+  norm-labeled-predicate:
+    FunctionCall(None(), functionName, args@[VarRef(_), _]) -> FunctionCall(None(), Identifier("has_label", origin), args)
+    where <norm-identifier; ?Identifier(<id>, origin); lower-case; ?"has_label"> functionName
 
   norm-source-destination-predicate:
     t@SourcePredicate(vertexRef, notTerm, _, edgeRef) -> <origin-track-forced(!result)> t
