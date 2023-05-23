@@ -25,8 +25,8 @@ The new (and fully SQL-compatible) features are:
 
  - [GRAPH_TABLE operator](#graph_table-operator)
  - [LATERAL subquery](#lateral-subqueries)
- - [Path Modes](#path-modes): `WALK`, `ACYCLIC`, `SIMPLE`, `TRAIL`
- - [LABELED Preicate](#labeled-predicate), [SOURCE/DESTINATION Predicate](#source--destination-predicate) and [MATCHNUM Function](#matchnum-function)
+ - [Path Modes](#path-modes) (`WALK`, `ACYCLIC`, `SIMPLE`, `TRAIL`)
+ - [LABELED Predicate](#labeled-predicate), [SOURCE/DESTINATION Predicate](#source--destination-predicate) and [MATCHNUM Function](#matchnum-function)
  - [FETCH FIRST clause](#fetch-first-clause) for limiting the number of rows
 
 ## A note on the Grammar
@@ -1072,7 +1072,7 @@ SELECT p1.name AS p1, p2.name AS p2, p3.name AS p3
 
 Above, in the second solution, Lee is bound to both the variable `p1` and the variable `p3`. This solution is obtained since we can hop from Lee to Kathrine via the edge that is outgoing from Lee, and then we can hop back from Kathrine to Lee via the edge that is incoming to Lee.
 
-If such binding of vertices to multiple variables is not desired, one can use either non-equality constraints or the [ALL_DIFFERENT](#all_different) predicate.
+If such binding of vertices to multiple variables is not desired, one can use either non-equality constraints or the [ALL_DIFFERENT predicate](#all_different-predicate).
 
 For example, the predicate `p1 <> p3` in the query below adds the restriction that Lee, which has to bind to variable `p1`, cannot also bind to variable `p3`:
 
@@ -1090,7 +1090,7 @@ SELECT p1.name AS p1, p2.name AS p2, p3.name AS p3
 +-----------------------+
 ```
 
-An alternative is to use the [ALL_DIFFERENT](#all_different) predicate, which can take any number of vertices or edges as input and specifies non-equality between all of them:
+An alternative is to use the [ALL_DIFFERENT predicate](#all_different-predicate), which can take any number of vertices or edges as input and specifies non-equality between all of them:
 
 ```sql
 SELECT p1.name AS p1, p2.name AS p2, p3.name AS p3
@@ -1192,7 +1192,7 @@ SelectElement       ::=   ExpAsVar
 
 ExpAsVar            ::= <ValueExpression> ( 'AS' <VariableName> )?
 
-AllProperties       ::= <VariableReference> '.*' <AllPropertiesPrefix>?
+AllProperties       ::= <ElementReference> '.*' <AllPropertiesPrefix>?
 
 AllPropertiesPrefix ::= 'PREFIX' <StringLiteral>
 ```
@@ -1325,7 +1325,7 @@ ORDER BY "e_amount"
 In a PGQL query, the `FROM` clause defines the graph pattern to be matched.
 
 Syntactically, a `FROM` clause is composed of the keyword `FROM` followed by a comma-separated sequence of table expressions.
-Each table expression is either a MATCH clause, a GRAPH_TABLE operator or a LATERAL subquery.
+Each table expression is either a [MATCH clause](#match-clause), a [GRAPH_TABLE operator](#graph_table-operator) or a [LATERAL subquery](#lateral-subqueries).
 
 ```bash
 FromClause             ::= 'FROM' <TableExpression> ( ',' <TableExpression> )*
@@ -1527,8 +1527,8 @@ FROM MATCH (IS Person) -[:likes|knows]-> (IS Person)
 
 There are also built-in functions and predicates available for labels:
 
- - [label(element)](#label) returns the label of a vertex or edge in the case the vertex/edge has only a single label.
- - [labels(element)](#labels) returns the set of labels of a vertex or edge in the case the vertex/edge has multiple labels.
+ - [label(element)](#label-function) returns the label of a vertex or edge in the case the vertex/edge has only a single label.
+ - [labels(element)](#labels-function) returns the set of labels of a vertex or edge in the case the vertex/edge has multiple labels.
  - [element IS [NOT] LABELED label)](#labeled-predicate) returns `true` or `false` depending on if the vertex or edge has the specified label.
 
 ## WHERE Clause
@@ -2590,7 +2590,7 @@ ORDER BY ELEMENT_NUMBER(v)
 ```
 
 Above, although only a single path matched the pattern, four rows were returned because the path has four vertices.
-We return the account numbers of the four vertices together with the element numbers (see [ELEMENT_NUMBER](#element_number)).
+We return the account numbers of the four vertices together with the element numbers (see [ELEMENT_NUMBER function](#element_number-function)).
 Note that the element numbers are odd since the even numbers are taken by the edges that connect the vertices.
 
 Another example is:
@@ -2625,7 +2625,7 @@ ORDER BY MATCHNUM(v), ELEMENT_NUMBER(v)
 There are a couple things to observe from this example:
  - `ONE ROW PER MATCH` is used for the two fixed-length patterns while `ONE ROW PER VERTEX` is used for the variable-length pattern. So, each `MATCH` has its own number of rows per match.
  - Even though we specified `ONE ROW PER VERTEX` for the third pattern, the variable `t` is still available for [horizontal aggregations](#horizontal-aggregation) like the `LISTAGG` and `SUM` aggregations in the `SELECT`.
- - If there are multiple matches (here there are two matches to the pattern), then the [MATCHNUM](#match_number) function can be used to identify them.
+ - If there are multiple matches (here there are two matches to the pattern), then the [MATCHNUM function](#matchnum-function) can be used to identify them.
 
 ## ONE ROW PER STEP
 
@@ -2665,7 +2665,7 @@ ORDER BY ELEMENT_NUMBER(e)
 ```
 
 Above, although only a single path matched the pattern, three rows were returned because the path has three steps.
-In each step, we return the account numbers of the two end points (`v1_account_nr` and `v2_account_nr`), the `amount` of the `transaction` edges, and the [element numbers](#element_number) of the vertices and edges on the path (`v1_elem_nr`, `e_elem_nr` and `v2_elem_nr`).
+In each step, we return the account numbers of the two end points (`v1_account_nr` and `v2_account_nr`), the `amount` of the `transaction` edges, and the [element numbers](#element_number-function) of the vertices and edges on the path (`v1_elem_nr`, `e_elem_nr` and `v2_elem_nr`).
 Note that vertices always have odd element numbers while edges always have even element numbers since paths always start with a vertex, then an edge, then another vertex, then another edge, etc.
 
 In the example above, the first vertex variable of a step each time binds to the source of an edge while the second vertex variable binds to the destination of an edge. However, it is not always the case that the first variable binds to the sources of edges: if the edge pattern points from right-to-left instead of left-to-right then the first vertex variable binds to destinations of edges while the second vertex variable binds to sources of edges.
@@ -2728,7 +2728,7 @@ ORDER BY MATCHNUM(e), ELEMENT_NUMBER(e)
 There are a couple things to observe from this example:
  - `ONE ROW PER MATCH` is used for the two fixed-length patterns while `ONE ROW PER STEP` is used for the variable-length pattern. So, each `MATCH` has its own number of rows per match.
  - Even though we specified `ONE ROW PER STEP` for the third pattern, the variable `t` is still available for [horizontal aggregations](#horizontal-aggregation) like the the `SUM` aggregation in the `SELECT`.
- - If there are multiple matches (here there are two matches to the pattern), then the [MATCH_NUMBER](#match_number) function can be used to identify them.
+ - If there are multiple matches (here there are two matches to the pattern), then the [MATCHNUM function](#matchnum_function) can be used to identify them.
 
 Finally, it is worth noting that if a path is empty (i.e. has length zero) then it has a single step such that the first vertex variable is bound but the edge variable and the second vertex variable are unbound.
 Therefore, the number of steps does not always equal the number of edges on a path.
@@ -3153,7 +3153,9 @@ ValueExpression          ::=   <VariableReference>
 
 VariableReference        ::= <VariableName>
 
-PropertyReference        ::= <VariableReference> '.' <PropertyName>
+PropertyReference        ::= <ElementReference> '.' <PropertyName>
+
+ElementReference         ::= <VariableName>
 
 BracketedValueExpression ::= '(' <ValueExpression> ')'
 ```
@@ -3440,25 +3442,25 @@ Here, we find all the vertices in the graph that have the property `name` and th
 
 ## Vertex and Edge functions
 
-### ID
+### Id Function
 
-The `ID` function returns a system-generated identifier for the vertex/edge (unique within a graph).
+The `id` function returns a system-generated identifier for the vertex/edge (unique within a graph).
 
 The syntax is:
 
 ```
-ID( vertex/edge )
+id( vertex/edge )
 ```
 
-### LABEL
+### Label Function
 
-The `LABEL` function returns the label of a vertex or an edge. It is an error if the vertex or edge does not have a label, or, has more than one label.
+The `label` function returns the label of a vertex or an edge. It is an error if the vertex or edge does not have a label, or, has more than one label.
 The return type of the function is a string.
 
 The syntax is:
 
 ```
-LABEL( vertex/edge )
+label( vertex/edge )
 ```
 
 For example:
@@ -3470,7 +3472,7 @@ SELECT LABEL(e)
 
 ```
 +----------+
-| LABEL(e) |
+| label(e) |
 +----------+
 | likes    |
 | knows    |
@@ -3478,27 +3480,27 @@ SELECT LABEL(e)
 +----------+
 ```
 
-### LABELS (function)
+### Labels Function
 
-The `LABELS` function returns the set of labels of a vertex or an edge. If the vertex or edge does not have a label, an empty set is returned.
+The `labels` function returns the set of labels of a vertex or an edge. If the vertex or edge does not have a label, an empty set is returned.
 The return type of the function is a set of strings.
 
 The syntax is:
 
 ```
-LABELS( vertex/edge )
+labels( vertex/edge )
 ```
 
 For example:
 
 ```sql
-SELECT LABELS(n)
+SELECT labels(n)
   FROM MATCH (n:Employee|Manager)
 ```
 
 ```
 +---------------------+
-| LABELS(n)           |
+| labels(n)           |
 +---------------------+
 | [Employee]          |
 | [Manager]           |
@@ -3513,7 +3515,7 @@ The `IS [NOT] LABELED` predicate returns true or false depending on whether the 
 The syntax is:
 
 ```bash
-LabeledPredicate ::= <VariableReference> 'IS' ('NOT')? 'LABELED' <Label>
+LabeledPredicate ::= <ElementReference> 'IS' ('NOT')? 'LABELED' <Label>
 ```
 
 For example:
@@ -3539,7 +3541,64 @@ FROM MATCH (n:Person|Company) <-[:owner]- (a:Account)
 
 ### SOURCE / DESTINATION Predicate
 
-TODO
+The `SOURCE` / `DESTINATION` predicate allows for testing if a vertex is the source or the destination of an edge.
+This is in particularly useful when edges were matched through [any-directed edge patterns](##matching-edges-in-any-direction).
+
+The syntax is:
+
+```bash
+SourceDestinationPredicate ::=   <VertexReference> 'IS' ( 'NOT' )? 'SOURCE' 'OF' <EdgeReference>
+                               | <VertexReference> 'IS' ( 'NOT' )? 'DESTINATION' 'OF' <EdgeReference>
+
+VertexReference            ::= <VariableReference>
+
+EdgeReference              ::= <VariableReference>
+```
+
+For example:
+
+```sql
+SELECT e.amount, CASE WHEN n IS SOURCE OF e THEN 'Incoming transaction' ELSE 'Outgoing transaction' END AS transaction_type
+FROM MATCH (n:Account) -[e:transaction]- (m:Account)
+WHERE n.number = 8021
+ORDER BY transaction_type, e.amount
+```
+
+```
++-------------------------------+
+| amount | transaction_type     |
++-------------------------------+
+| 1500.3 | Incoming transaction |
+| 3000.7 | Incoming transaction |
+| 1000.0 | Outgoing transaction |
++-------------------------------+
+```
+
+Another example is:
+
+```sql
+SELECT n.number, n.name,
+       SUM(CASE WHEN n IS DESTINATION OF e THEN 1 ELSE 0 END) AS num_incoming_edges,
+       SUM(CASE WHEN n IS SOURCE OF e THEN 1 ELSE 0 END) AS num_outgoing_edges
+FROM MATCH (n) -[e]- (m)
+GROUP BY number, name
+ORDER BY num_incoming_edges + num_outgoing_edges DESC, number, name
+```
+
+```
++------------------------------------------------------------+
+| number | name    | num_incoming_edges | num_outgoing_edges |
++------------------------------------------------------------+
+| 1001   | <null>  | 2                  | 2                  |
+| 8021   | <null>  | 1                  | 3                  |
+| 2090   | <null>  | 1                  | 2                  |
+| 10039  | <null>  | 1                  | 2                  |
+| <null> | Camille | 1                  | 1                  |
+| <null> | Oracle  | 2                  | 0                  |
+| <null> | Liam    | 1                  | 0                  |
+| <null> | Nikita  | 1                  | 0                  |
++------------------------------------------------------------+
+```
 
 ### MATCHNUM Function
 
@@ -3608,7 +3667,7 @@ ORDER BY MATCHNUM(v), ELEMENT_NUMBER(v)
 
 The numbers returned by the function are unique but not necessarily incremental (0, 1, 2, 3, 4, ...) and gaps between numbers are possible (1, 5, 18, 101) depending on the (multi-threaded) implementation.
 
-### ELEMENT_NUMBER
+### ELEMENT_NUMBER Function
 
 The `ELEMENT_NUMBER` function allows for obtaining a unique identifier for each vertex and edge within a solution to a graph pattern.
 
@@ -3666,9 +3725,9 @@ ORDER BY e_elem_nr
 Above, we reversed the direction of the edge pattern so that it points from right-to-left instead of left-to-right.
 Therefore, the first variable `v1` now binds to destinations rather than sources of edges.
 
-### ALL_DIFFERENT
+### ALL_DIFFERENT Predicate
 
-The `ALL_DIFFERENT` function returns true if the provided values are all different from each other, and false otherwise. The function is typically used for specifying that a particular set of vertices or edges are all different from each other. However, the function can be used for values of any data type, as long as the provided values can be compared for equality.
+The `ALL_DIFFERENT` predicate returns true if the provided values are all different from each other, and false otherwise. The function is typically used for specifying that a particular set of vertices or edges are all different from each other. However, the function can be used for values of any data type, as long as the provided values can be compared for equality.
 
 The syntax is:
 
@@ -3706,7 +3765,7 @@ Result: false
 
 In addition to the (character) string functions in this section, please also notice the string concatenation operator (`||`) documented in [Operators](#operators).
 
-### JAVA_REGEXP_LIKE
+### JAVA_REGEXP_LIKE Function
 
 The `JAVA_REGEXP_LIKE` returns whether the string matches the given [Java regular expression pattern](https://docs.oracle.com/javase/8/docs/api/java/util/regex/Pattern.html).
 
@@ -4579,7 +4638,7 @@ The syntax is:
 ```bash
 UpdateClause       ::= 'UPDATE' <GraphElementUpdate> ( ',' <GraphElementUpdate> )*
 
-GraphElementUpdate ::= <VariableReference> 'SET' '(' <PropertyAssignment> ( ',' <PropertyAssignment> )* ')'
+GraphElementUpdate ::= <ElementReference> 'SET' '(' <PropertyAssignment> ( ',' <PropertyAssignment> )* ')'
 ```
 
 For example, the following query sets the property `age` of every person named "John" to the value `42`:
@@ -4671,7 +4730,7 @@ UPDATE v SET ( v.a = 65 - u.age )
 ## DELETE
 
 ```bash
-DeleteClause ::= 'DELETE' <VariableReference> ( ',' <VariableReference> )*
+DeleteClause ::= 'DELETE' <ElementReference> ( ',' <ElementReference> )*
 ```
 
 

@@ -415,15 +415,15 @@ entries:
       output: web
       subfolderitems:
 
-      - title: 'ID'
-        url: /spec/2.0/#id
+      - title: 'Id Function'
+        url: /spec/2.0/#id-function
         output: web
 
-      - title: 'LABEL'
-        url: /spec/2.0/#label
+      - title: 'Label Function'
+        url: /spec/2.0/#label-function
         output: web
 
-      - title: 'LABELS (function)'
+      - title: 'Labels Function'
         url: /spec/2.0/#labels-function
         output: web
 
@@ -439,12 +439,12 @@ entries:
         url: /spec/2.0/#matchnum-function
         output: web
 
-      - title: 'ELEMENT_NUMBER'
-        url: /spec/2.0/#element_number
+      - title: 'ELEMENT_NUMBER Function'
+        url: /spec/2.0/#element_number-function
         output: web
 
-      - title: 'ALL_DIFFERENT'
-        url: /spec/2.0/#all_different
+      - title: 'ALL_DIFFERENT Predicate'
+        url: /spec/2.0/#all_different-predicate
         output: web
 
     - title: 'String functions'
@@ -452,8 +452,8 @@ entries:
       output: web
       subfolderitems:
 
-      - title: 'JAVA_REGEXP_LIKE'
-        url: /spec/2.0/#java_regexp_like
+      - title: 'JAVA_REGEXP_LIKE Function'
+        url: /spec/2.0/#java_regexp_like-function
         output: web
 
       - title: 'LOWER'
