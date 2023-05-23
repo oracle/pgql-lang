@@ -130,8 +130,8 @@ entries:
       url: /spec/2.0/#main-query-structure
       output: web
 
-    - title: 'SELECT'
-      url: /spec/2.0/#select
+    - title: 'SELECT Clause'
+      url: /spec/2.0/#select-clause
       output: web
       subfolderitems:
 
@@ -147,12 +147,12 @@ entries:
         url: /spec/2.0/#selecting-all-properties
         output: web
 
-    - title: 'FROM'
-      url: /spec/2.0/#from
+    - title: 'FROM Clause'
+      url: /spec/2.0/#from-clause
       output: web
 
-    - title: 'MATCH'
-      url: /spec/2.0/#match
+    - title: 'MATCH Clause'
+      url: /spec/2.0/#match-clause
       output: web
       subfolderitems:
 
@@ -176,12 +176,12 @@ entries:
         url: /spec/2.0/#label-expression
         output: web
 
-    - title: 'WHERE'
-      url: /spec/2.0/#where
+    - title: 'WHERE Clause'
+      url: /spec/2.0/#where-clause
       output: web
 
-    - title: 'GRAPH_TABLE'
-      url: /spec/2.0/#graph_table
+    - title: 'GRAPH_TABLE Operator'
+      url: /spec/2.0/#graph_table-operator
       output: web
 
   - title: 'Variable-Length Paths'
@@ -282,8 +282,8 @@ entries:
     output: web
     folderitems:
 
-    - title: 'GROUP BY'
-      url: /spec/2.0/#group-by
+    - title: 'GROUP BY Clause'
+      url: /spec/2.0/#group-by-clause
       output: web
       subfolderitems:
 
@@ -324,8 +324,8 @@ entries:
         url: /spec/2.0/#distinct-in-aggregation
         output: web
 
-    - title: 'HAVING'
-      url: /spec/2.0/#having
+    - title: 'HAVING Clause'
+      url: /spec/2.0/#having-clause
       output: web
 
   - title: 'Sorting and Row Limiting'
@@ -333,8 +333,8 @@ entries:
     output: web
     folderitems:
 
-    - title: 'ORDER BY'
-      url: /spec/2.0/#order-by
+    - title: 'ORDER BY Clause'
+      url: /spec/2.0/#order-by-clause
       output: web
       subfolderitems:
 
@@ -346,8 +346,16 @@ entries:
         url: /spec/2.0/#multiple-expressions-in-order-by
         output: web
 
-    - title: 'LIMIT and OFFSET'
-      url: /spec/2.0/#limit-and-offset
+    - title: 'OFFSET Clause'
+      url: /spec/2.0/#offset-clause
+      output: web
+
+    - title: 'FETCH FIRST Clause'
+      url: /spec/2.0/#fetch-first-clause
+      output: web
+
+    - title: 'LIMIT Clause'
+      url: /spec/2.0/#limit-clause
       output: web
 
   - title: 'Functions and Expressions'

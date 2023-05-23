@@ -3053,7 +3053,7 @@ OFFSET 1
 
 ## FETCH FIRST Clause
 
-The `FETCH FIRST` specifies the number of solutions that should be returned.
+The `FETCH FIRST` clause provides a limit to the number of solutions to be kept.
 
 The syntax is:
 
@@ -3091,7 +3091,7 @@ FETCH FIRST 2 ROWS ONLY
 
 ## LIMIT Clause
 
-The `LIMIT` clause provides a syntactic alternative to the [FETCH FIRST Clause].
+The `LIMIT` clause provides a (non-SQL-standard compatible) syntactic alternative to the [FETCH FIRST Clause](#fetch-first-clause).
 
 The syntax is:
 
