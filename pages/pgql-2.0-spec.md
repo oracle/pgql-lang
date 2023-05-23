@@ -26,7 +26,7 @@ The new (and fully SQL-compatible) features are:
  - [GRAPH_TABLE Operator](#graph_table-operator)
  - [LATERAL Subquery](#lateral-subqueries)
  - [Path Modes](#path-modes) (`WALK`, `ACYCLIC`, `SIMPLE`, `TRAIL`)
- - [LABELED Predicate](#labeled-predicate), [SOURCE/DESTINATION Predicate](#source--destination-predicate), [MATCHNUM Function](#matchnum-function) and [VERTEX_ID/EDGE_ID function](#vertex_id-edge_id-function)
+ - [LABELED Predicate](#labeled-predicate), [SOURCE/DESTINATION Predicate](#source--destination-predicate), [MATCHNUM Function](#matchnum-function) and [VERTEX_ID/EDGE_ID function](#vertex_idedge_id-function)
  - [FETCH FIRST Clause](#fetch-first-clause) for limiting the number of rows
 
 ## A note on the Grammar
@@ -1570,18 +1570,18 @@ The `GRAPH_TABLE` operator provides a SQL-standard way to express graph queries,
 
 When `GRAPH_TABLE` is used anywhere in a PGQL query, the following features are disallowed:
 
-| Disallowed in combination with `GRAPH_TABLE`                        | What to use instead                                                                 |
-|---------------------------------------------------------------------|-------------------------------------------------------------------------------------|
-| [MATCH clause](#match-clause) as top-level element in a FROM clause | `GRAPH_TABLE` operator with MATCH clause inside                                     |
-| Colon (`:`) in [label expressions](#label-expressions)              | `IS` keyword                                                                        |
-| [LIMIT clause](#limit-clause)                                       | [FETCH FIRST clause](#fetch-first-clause)                                           |
-| [ID function][#id-function]                                         | [VERTEX_ID/EDGE_ID function](#vertex-id-edge-id-function)                           |
-| [LABEL](#label-function) and [LABELS](#labels-function) functions   | [LABELED predicate](#labeled-predicate)                                             |
-| `vertex1`/`edge1` `=`/`<>` `vertex2`/`edge2`                        | [VERTEX_EQUAL/EDGE_EQUAL Function](#vertex_equal-edge_equal-function)               |
-| Aggregation with vertex/edge input (e.g. `COUNT(e)`)                | [VERTEX_ID/EDGE_ID function](#vertex-id-edge-id-function) (e.g. `COUNT(edge_id(e))` |
-| [JAVA_REGEXP_LIKE Function](#java_regexp_like-function)             | `REGEXP_LIKE`, `REGEXP_INSTR` or user-defined function                              |
-| [All properties PREFIX](#AllPropertiesPrefix)                       | To obtain unique column names, write out all properties and provide unique aliases  |
-| [Graph Modification](#graph-modification)                           | PGQL query without `GRAPH_TABLE`                                                    |
+| Disallowed in combination with `GRAPH_TABLE`                        | What to use instead                                                                |
+|---------------------------------------------------------------------|------------------------------------------------------------------------------------|
+| [MATCH clause](#match-clause) as top-level element in a FROM clause | `GRAPH_TABLE` operator with MATCH clause inside                                    |
+| Colon (`:`) in [label expressions](#label-expressions)              | `IS` keyword                                                                       |
+| [LIMIT clause](#limit-clause)                                       | [FETCH FIRST clause](#fetch-first-clause)                                          |
+| [ID function][#id-function]                                         | [VERTEX_ID/EDGE_ID function](#vertex-id-edge-id-function)                          |
+| [LABEL](#label-function) and [LABELS](#labels-function) functions   | [LABELED predicate](#labeled-predicate)                                            |
+| Vertex [not] equals or edge [not] equals (e.g. `v1 <> v2`)          | [ALL_DIFFERENT Predicate](#all_different-predicate) (e.g. `ALL_DIFFERENT(v1, v2)`  |
+| Aggregation with vertex/edge input (e.g. `COUNT(e)`)                | [VERTEX_ID/EDGE_ID function](#vertex_idedge_id-function) (e.g. COUNT(edge_id(e))   |
+| [JAVA_REGEXP_LIKE Function](#java_regexp_like-function)             | `REGEXP_LIKE`, `REGEXP_INSTR` or user-defined function                             |
+| [All properties PREFIX](#AllPropertiesPrefix)                       | To obtain unique column names, write out all properties and provide unique aliases |
+| [Graph Modification](#graph-modification)                           | PGQL query without `GRAPH_TABLE`                                                   |
 
 # Variable-Length Paths
 
@@ -3472,7 +3472,7 @@ EDGE_ID( edge )
 
 #### ID Function
 
-The `ID` function provides a syntactic alternative for the [VERTEX_ID/EDGE_ID function](#vertex_id-edge_id-function).
+The `ID` function provides a syntactic alternative for the [VERTEX_ID/EDGE_ID function](#vertex_idedge_id-function).
 
 The syntax is:
 
