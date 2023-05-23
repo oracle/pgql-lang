@@ -1576,7 +1576,21 @@ The syntax is:
 GraphTable      ::= 'GRAPH_TABLE' '(' <GraphReference> 'MATCH' <GraphPattern> <WhereClause>? <GraphTableShape> ')'
 
 GraphTableShape ::= <RowsPerMatch>? <ColumnsClause>
+
+ColumnsClause   ::= 'COLUMNS' '(' <ExpAsVar> ( ',' <ExpAsVar> )* ')'
 ```
+
+A `GRAPH_TABLE` has the following parts:
+ - A graph reference that references the graph to perform the pattern matching on.
+ - A `MATCH` keyword.
+ - A graph pattern, which is a comma-separted list of path patterns.
+ - An optional [WHERE clause](#where-clause).
+ - A graph table shape.
+
+The graph table shape defines how the result of pattern matching should be transformed into tabular form.
+It has two parts:
+ - An optional [Number of rows per match](#number-of-rows-per-match).
+ - A mandatory `COLUMNS` clause. The `COLUMNS` clause allows for defining a projection that transforms the result of graph pattern matching into a regular table that no longer contains graph objects like vertices and edges but instead regular data values only.
 
 For example:
 
