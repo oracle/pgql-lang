@@ -26,7 +26,7 @@ The new (and fully SQL-compatible) features are:
  - [GRAPH_TABLE Operator](#graph_table-operator)
  - [LATERAL Subquery](#lateral-subqueries)
  - [Path Modes](#path-modes) (`WALK`, `ACYCLIC`, `SIMPLE`, `TRAIL`)
- - [LABELED Predicate](#labeled-predicate), [SOURCE/DESTINATION Predicate](#source--destination-predicate), [MATCHNUM Function](#matchnum-function) and [VERTEX_ID/EDGE_ID function](#vertex_idedge_id-function)
+ - [LABELED Predicate](#labeled-predicate), [SOURCE/DESTINATION Predicate](#source--destination-predicate), [MATCHNUM Function](#matchnum-function) and [VERTEX_ID/EDGE_ID Function](#vertex_idedge_id-function)
  - [FETCH FIRST Clause](#fetch-first-clause) for limiting the number of rows
 
 ## A note on the Grammar
@@ -824,7 +824,7 @@ To drop a property graph use `DROP PROPERTY GRAPH` followed by the name of the g
 The syntax is:
 
 ```bash
-DropPropertyGraph ::= 'DROP' 'PROPERTY' 'GRAPH' <GraphName>
+DropPropertyGraph ::= 'DROP' 'PROPERTY' 'GRAPH' <GraphReference>
 ```
 
 For example:
@@ -1338,39 +1338,41 @@ TableExpression        ::=   <MatchClause>
 ## MATCH Clause
 
 ```bash
-MatchClause            ::= 'MATCH' ( <PathPattern> | <GraphPattern> ) <OnClause>? <RowsPerMatch>?
+MatchClause               ::= 'MATCH' ( <PathPattern> | <ParenthesizedGraphPattern> ) <OnClause>? <RowsPerMatch>?
 
-GraphPattern           ::= '(' <PathPattern> ( ',' <PathPattern> )* ')'
+ParenthesizedGraphPattern ::= '(' <GraphPattern> ')'
 
-PathPattern            ::=   <BasicPathPattern>
-                           | <AnyPathPattern>
-                           | <AnyShortestPathPattern>
-                           | <AllShortestPathPattern>
-                           | <ShortestKPathPattern>
-                           | <AnyCheapestPathPattern>
-                           | <CheapestKPathPattern>
-                           | <AllPathPattern>
+GraphPattern              ::= <PathPattern> ( ',' <PathPattern> )*
 
-BasicPathPattern       ::= <VertexPattern> ( <EdgePattern> <VertexPattern> )*
+PathPattern               ::=   <BasicPathPattern>
+                              | <AnyPathPattern>
+                              | <AnyShortestPathPattern>
+                              | <AllShortestPathPattern>
+                              | <ShortestKPathPattern>
+                              | <AnyCheapestPathPattern>
+                              | <CheapestKPathPattern>
+                              | <AllPathPattern>
 
-VertexPattern          ::= '(' <VariableSpecification> ')'
+BasicPathPattern          ::= <VertexPattern> ( <EdgePattern> <VertexPattern> )*
 
-EdgePattern            ::=   <OutgoingEdgePattern>
-                           | <IncomingEdgePattern>
-                           | <AnyDirectedEdgePattern>
+VertexPattern             ::= '(' <VariableSpecification> ')'
 
-OutgoingEdgePattern    ::=   '->'
-                           | '-[' <VariableSpecification> ']->'
+EdgePattern               ::=   <OutgoingEdgePattern>
+                              | <IncomingEdgePattern>
+                              | <AnyDirectedEdgePattern>
 
-IncomingEdgePattern    ::=   '<-'
-                           | '<-[' <VariableSpecification> ']-'
+OutgoingEdgePattern       ::=   '->'
+                              | '-[' <VariableSpecification> ']->'
 
-AnyDirectedEdgePattern ::=   '-'
-                           | '-[' <VariableSpecification> ']-'
+IncomingEdgePattern       ::=   '<-'
+                              | '<-[' <VariableSpecification> ']-'
 
-VariableSpecification  ::= <VariableName>? <LabelPredicate>?
+AnyDirectedEdgePattern ::=      '-'
+                              | '-[' <VariableSpecification> ']-'
 
-VariableName           ::= <Identifier>
+VariableSpecification     ::= <VariableName>? <LabelPredicate>?
+
+VariableName              ::= <Identifier>
 ```
 
 A path pattern that describes a partial topology of the subgraph pattern. In other words, a topology constraint describes some connectivity relationships between vertices and edges in the pattern, whereas the whole topology of the pattern is described with one or multiple topology constraints.
@@ -1394,7 +1396,9 @@ The `ON` clause is an optional clause that belongs to the `MATCH` clause and spe
 The syntax is:
 
 ```bash
-OnClause ::= 'ON' <GraphName>
+OnClause       ::= 'ON' <GraphReference>
+
+GraphReference ::= <GraphName>
 ```
 
 For example:
@@ -1564,18 +1568,98 @@ WHERE y.age > 25
 
 ## GRAPH_TABLE Operator
 
-The `GRAPH_TABLE` operator provides a SQL-standard way to express graph queries, conforming to the [SQL extension for property graph queries](https://www.iso.org/standard/79473.html).
+The `GRAPH_TABLE` operator provides a SQL-compatible way to express graph queries, conforming to the [SQL extension for property graph queries](https://www.iso.org/standard/79473.html).
 
+The syntax is:
 
+```bash
+GraphTable      ::= 'GRAPH_TABLE' '(' <GraphReference> 'MATCH' <GraphPattern> <WhereClause>? <GraphTableShape> ')'
 
-When `GRAPH_TABLE` is used anywhere in a PGQL query, the following features are disallowed:
+GraphTableShape ::= <RowsPerMatch>? <ColumnsClause>
+```
+
+For example:
+
+```sql
+SELECT *
+FROM GRAPH_TABLE ( financial_transactions
+       MATCH (n IS Person) <-[IS owner]- (a1 IS Account),
+             (a1) -[e IS transaction]- (a2),
+             (a2) -[IS owner]-> (m IS person)
+       WHERE n.name = 'Camille'
+       COLUMNS ( m.name, e.amount, CASE WHEN a1 IS SOURCE OF e THEN 'Incoming transaction' ELSE 'Outgoing transaction' END AS transaction_type )
+     )
+ORDER BY amount DESC
+```
+
+```
++----------------------------------------+
+| name   | amount | transaction_type     |
++----------------------------------------+
+| Liam   | 9900.0 | Outgoing transaction |
+| Nikita | 1000.0 | Incoming transaction |
++----------------------------------------+
+```
+
+An example with [horizontal aggregation](#horizontal-aggregation) is:
+
+```sql
+SELECT *
+FROM GRAPH_TABLE ( financial_transactions
+       MATCH ALL SIMPLE PATHS (a IS Account) -[e IS transaction]->+ (a)
+       WHERE a.number = 10039
+       COLUMNS ( LISTAGG(e.amount, ', ') AS amounts_along_path,
+                 SUM(e.amount) AS total_amount )
+     )
+ORDER BY total_amount DESC
+```
+
+```
++-----------------------------------------------+
+| amounts_along_path             | total_amount |
++-----------------------------------------------+
+| 1000.0, 3000.7, 9999.5, 9900.0 | 23900.2      |
+| 1000.0, 1500.3, 9999.5, 9900.0 | 22399.8      |
++-----------------------------------------------+
+```
+
+An example with [ONE ROW PER STEP](#one-row-per-step) is:
+
+```sql
+SELECT *
+FROM GRAPH_TABLE ( financial_transactions
+       MATCH ALL SIMPLE PATHS (a IS Account) -[IS transaction]->+ (a)
+       WHERE a.number = 10039
+       ONE ROW PER STEP ( v1, e, v2 )
+       COLUMNS ( MATCHNUM() AS match_num, ELEMENT_NUMBER(e) AS elem_num,
+                 v1.number AS account1, e.amount, v2.number AS account2 )
+     )
+ORDER BY match_num, elem_num
+```
+
+```
++-----------------------------------------------------+
+| match_num | elem_num | account1 | amount | account2 |
++-----------------------------------------------------+
+| 0         | 2        | 10039    | 1000.0 | 8021     |
+| 0         | 4        | 8021     | 1500.3 | 1001     |
+| 0         | 6        | 1001     | 9999.5 | 2090     |
+| 0         | 8        | 2090     | 9900.0 | 10039    |
+| 1         | 2        | 10039    | 1000.0 | 8021     |
+| 1         | 4        | 8021     | 3000.7 | 1001     |
+| 1         | 6        | 1001     | 9999.5 | 2090     |
+| 1         | 8        | 2090     | 9900.0 | 10039    |
++-----------------------------------------------------+
+```
+
+The following features are disallowed if `GRAPH_TABLE` is used anywhere in a PGQL query:
 
 | Disallowed in combination with `GRAPH_TABLE`                        | What to use instead                                                                |
 |---------------------------------------------------------------------|------------------------------------------------------------------------------------|
 | [MATCH clause](#match-clause) as top-level element in a FROM clause | `GRAPH_TABLE` operator with MATCH clause inside                                    |
 | Colon (`:`) in [label expressions](#label-expressions)              | `IS` keyword                                                                       |
 | [LIMIT clause](#limit-clause)                                       | [FETCH FIRST clause](#fetch-first-clause)                                          |
-| [ID function][#id-function]                                         | [VERTEX_ID/EDGE_ID function](#vertex-id-edge-id-function)                          |
+| [ID function][#id-function]                                         | [VERTEX_ID/EDGE_ID function](#vertex-idedge-id-function)                           |
 | [LABEL](#label-function) and [LABELS](#labels-function) functions   | [LABELED predicate](#labeled-predicate)                                            |
 | Vertex [not] equals or edge [not] equals (e.g. `v1 <> v2`)          | [ALL_DIFFERENT Predicate](#all_different-predicate) (e.g. `ALL_DIFFERENT(v1, v2)`  |
 | Aggregation with vertex/edge input (e.g. `COUNT(e)`)                | [VERTEX_ID/EDGE_ID function](#vertex_idedge_id-function) (e.g. COUNT(edge_id(e))   |
@@ -4493,7 +4577,7 @@ Modifications follow snapshot isolation semantics, meaning that insertions, upda
 ```bash
 InsertClause            ::= 'INSERT' <IntoClause>? <GraphElementInsertion> ( ',' <GraphElementInsertion> )*
 
-IntoClause              ::= 'INTO' <GraphName>
+IntoClause              ::= 'INTO' <GraphReference>
 
 GraphElementInsertion   ::=   'VERTEX' <VariableName>? <LabelsAndProperties>
                             | 'EDGE' <VariableName>? 'BETWEEN' <VertexReference> 'AND' <VertexReference>
