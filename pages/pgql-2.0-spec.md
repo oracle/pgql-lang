@@ -1815,11 +1815,11 @@ Two typical uses are:
 The syntax for matching any path is:
 
 ```bash
-AnyPathPattern ::=                       'ANY' <PathOrPaths?>
+AnyPathPattern ::=                       'ANY' ( 'PATH' | 'PATHS' )?
                                            <SourceVertexPattern>
                                              <QuantifiedPathPatternPrimary>
                                                <DestinationVertexPattern>
-                                       | 'ANY' <PathOrPaths?> '('
+                                       | 'ANY' ( 'PATH' | 'PATHS' )? '('
                                            <SourceVertexPattern>
                                              <QuantifiedPathPatternPrimary>
                                                <DestinationVertexPattern> ')'
@@ -1905,11 +1905,11 @@ Given a pair of vertices, there are different kinds of shortest paths that can b
 The syntax is:
 
 ```bash
-AnyShortestPathPattern ::=   'ANY' 'SHORTEST' <PathOrPaths?>
+AnyShortestPathPattern ::=   'ANY' 'SHORTEST' ( 'PATH' | 'PATHS' )?
                                <SourceVertexPattern>
                                  <QuantifiedPathPatternPrimary>
                                    <DestinationVertexPattern>
-                           | 'ANY' 'SHORTEST' <PathOrPaths?> '('
+                           | 'ANY' 'SHORTEST' ( 'PATH' | 'PATHS' )? '('
                                <SourceVertexPattern>
                                  <QuantifiedPathPatternPrimary>
                                    <DestinationVertexPattern> ')'
@@ -1975,11 +1975,11 @@ In contrast to `ANY SHORTEST`, `ALL SHORTEST` will return a deterministic result
 The syntax is:
 
 ```bash
-AllShortestPathPattern ::=   'ALL' 'SHORTEST' <PathOrPaths?>
+AllShortestPathPattern ::=   'ALL' 'SHORTEST' ( 'PATH' | 'PATHS' )?
                                <SourceVertexPattern>
                                  <QuantifiedPathPatternPrimary>
                                    <DestinationVertexPattern>
-                           | 'ALL' 'SHORTEST' <PathOrPaths?>
+                           | 'ALL' 'SHORTEST' ( 'PATH' | 'PATHS' )?
                                '(' <SourceVertexPattern>
                                   <QuantifiedPathPatternPrimary>
                                     <DestinationVertexPattern> ')'
@@ -2012,11 +2012,11 @@ ORDER BY total_amount
 The syntax is:
 
 ```bash
-ShortestKPathPattern ::=   'SHORTEST' <KValue> <PathOrPaths?>
+ShortestKPathPattern ::=   'SHORTEST' <KValue> ( 'PATH' | 'PATHS' )?
                              <SourceVertexPattern>
                                <QuantifiedPathPatternPrimary>
                                  <DestinationVertexPattern>
-                         | 'SHORTEST' <KValue>  <PathOrPaths?> '('
+                         | 'SHORTEST' <KValue> ( 'PATH' | 'PATHS' )? '('
                              <SourceVertexPattern>
                                <QuantifiedPathPatternPrimary>
                                  <DestinationVertexPattern> ')'
@@ -2125,11 +2125,11 @@ The `CHEAPEST` construct allows for finding a cheapest path based on an arbitrar
 The syntax is:
 
 ```
-AnyCheapestPathPattern ::=   'ANY' 'CHEAPEST' <PathOrPaths?>
+AnyCheapestPathPattern ::=   'ANY' 'CHEAPEST' ( 'PATH' | 'PATHS' )?
                                <SourceVertexPattern>
                                  <QuantifiedPathPatternPrimary>
                                    <DestinationVertexPattern>
-                           | 'ANY' 'CHEAPEST' <PathOrPaths?> '('
+                           | 'ANY' 'CHEAPEST' ( 'PATH' | 'PATHS' )? '('
                                <SourceVertexPattern>
                                  <QuantifiedPathPatternPrimary>
                                    <DestinationVertexPattern> ')'
@@ -2215,11 +2215,11 @@ computed with a user-defined cost function. If the user-defined cost function re
 The syntax of the queries is extended the following way:
 
 ```
-CheapestKPathPattern  ::=   'CHEAPEST' <KValue> <PathOrPaths?>
+CheapestKPathPattern  ::=   'CHEAPEST' <KValue> ( 'PATH' | 'PATHS' )?
                               <SourceVertexPattern>
                                 <QuantifiedPathPatternPrimary>
                                   <DestinationVertexPattern>
-                          | 'CHEAPEST' <KValue>  <PathOrPaths?> '('
+                          | 'CHEAPEST' <KValue>  ( 'PATH' | 'PATHS' )? '('
                               <SourceVertexPattern>
                                 <QuantifiedPathPatternPrimary>
                                   <DestinationVertexPattern> ')'
@@ -2311,11 +2311,11 @@ Whereas these quantifiers are forbidden:
 The syntax is:
 
 ```bash
-AllPathPattern ::=   'ALL' <PathOrPaths?>
+AllPathPattern ::=   'ALL' ( 'PATH' | 'PATHS' )?
                        <SourceVertexPattern>
                          <QuantifiedPathPatternPrimary>
                            <DestinationVertexPattern>
-                   | 'ALL' <PathOrPaths?> '('
+                   | 'ALL' ( 'PATH' | 'PATHS' )? '('
                        <SourceVertexPattern>
                          <QuantifiedPathPatternPrimary>
                            <DestinationVertexPattern> ')'
@@ -3216,7 +3216,7 @@ FETCH FIRST 2 ROWS ONLY
 
 ## LIMIT Clause
 
-The `LIMIT` clause provides a syntactic alternative to the [FETCH FIRST Clause](#fetch-first-clause).
+The `LIMIT` clause provides a syntactic alternative to the [FETCH FIRST clause](#fetch-first-clause).
 
 The syntax is:
 
