@@ -21,14 +21,13 @@ The following are the changes since PGQL 1.5:
 
 ### New features in PGQL 2.0
 
-The new features are:
+The new (and fully SQL-compatible) features are:
 
- - SQL-compatible [GRAPH_TABLE](#graph_table) operator
- - [LATERAL Subqueries](#lateral-subqueries)
+ - [GRAPH_TABLE operator](#graph_table-operator)
+ - [LATERAL subquery](#lateral-subqueries)
  - [Path Modes](#path-modes): `WALK`, `ACYCLIC`, `SIMPLE`, `TRAIL`
- - [LABELED Predicate](#labeled-predicate)
- - [SOURCE/DESTINATION Predicate](#source-destination-predicate)
- - FETCH statement
+ - [LABELED](#labeled-predicate) and [SOURCE/DESTINATION](#source--destination-predicate) predicates.
+ - [FETCH FIRST clause](#fetch-first-clause) for limiting the number of rows.
 
 ## A note on the Grammar
 
@@ -955,7 +954,7 @@ Note that the query gives the same results as before since both patterns `(n)` a
 ### Filter predicates
 
 Filter predicates provide a way to further restrict which vertices or edges may bind to patterns.
-A filter predicate is a boolean value expression and is placed in a [WHERE](#where) clause.
+A filter predicate is a boolean value expression and is placed in a [WHERE clause](#where-clause).
 
 For example, "find all persons that have a date of birth (dob) greater than 1995-01-01":
 
@@ -1163,20 +1162,22 @@ SelectQuery     ::= <SelectClause>
                     <GroupByClause>?
                     <HavingClause>?
                     <OrderByClause>?
-                    <LimitOffsetClauses>?
+                    <OffsetClause>?
+                    ( <FetchFirstClause> | <LimitClause> )?
 ```
 
 Details of the different clauses of a query can be found in the following sections:
 
- - The [SELECT](#select) clause specifies what should be returned.
- - The [FROM](#from) clause defines the graph pattern that is to be matched.
- - The [WHERE](#where) clause specifies filters.
- - The [GROUP BY](#group-by) clause allows for creating groups of results.
- - The [HAVING](#having) clause allows for filtering entire groups of results.
- - The [ORDER BY](#order-by) clause allows for sorting of results.
- - The [LIMIT and OFFSET](#limit-and-offset) clauses allow for pagination of results.
+ - The [SELECT clause](#select-clause) specifies what should be returned.
+ - The [FROM clause](#from-clause) defines the graph pattern that is to be matched.
+ - The [WHERE clause](#where-clause) specifies filters.
+ - The [GROUP BY clause](#group-by-clause) allows for creating groups of results.
+ - The [HAVING clause](#having-clause) allows for filtering entire groups of results.
+ - The [ORDER BY clause](#order-by-clause) allows for sorting of results.
+ - The [OFFSET clause](#offset-clause) specifies the number of rows to skip.
+ - The [FETCH FIRST clause](#fetch-first-clause) and the [LIMIT clause](#limit-clause) are syntactic variations for limiting the number of rows.
 
-## SELECT
+## SELECT Clause
 
 In a PGQL query, the SELECT clause defines the data entities to be returned in the result. In other words, the select clause defines the columns of the result table.
 
@@ -1319,7 +1320,7 @@ ORDER BY "e_amount"
 +--------------------------------+
 ```
 
-## FROM
+## FROM Clause
 
 In a PGQL query, the `FROM` clause defines the graph pattern to be matched.
 
@@ -1334,7 +1335,7 @@ TableExpression        ::=   <MatchClause>
                            | <LateralSubquery>
 ```
 
-## MATCH
+## MATCH Clause
 
 ```bash
 MatchClause            ::= 'MATCH' ( <PathPattern> | <GraphPattern> ) <OnClause>? <RowsPerMatch>?
@@ -1530,7 +1531,7 @@ There are also built-in functions and predicates available for labels:
  - [labels(element)](#labels) returns the set of labels of a vertex or edge in the case the vertex/edge has multiple labels.
  - [element IS [NOT] LABELED label)](#labeled-predicate) returns `true` or `false` depending on if the vertex or edge has the specified label.
 
-## WHERE
+## WHERE Clause
 
 Filters are applied after pattern matching to remove certain solutions. A filter takes the form of a boolean value expression which typically involves certain property values of the vertices and edges in the graph pattern.
 
@@ -1561,7 +1562,7 @@ WHERE y.age > 25
   AND x.name = 'Jake'
 ```
 
-## GRAPH_TABLE
+## GRAPH_TABLE Operator
 
 TODO
 
@@ -2373,6 +2374,8 @@ The path mode is optionally followed by a `PATH` or `PATHS` keyword.
 
 An example with `WALK` is:
 
+{% include image.html file="example_graphs/financial_transactions.png" %}
+
 ```sql
 SELECT LISTAGG(e.amount, ', ') AS amounts_along_path, SUM(e.amount) AS total_cost
 FROM MATCH CHEAPEST 4 WALK (a:account) (-[e:transaction]-> COST e.amount)* (a)
@@ -2399,6 +2402,8 @@ patterns _zero_ or more times.
 
 An example with `TRAIL` is:
 
+{% include image.html file="example_graphs/financial_transactions.png" %}
+
 ```sql
 SELECT CAST(a.number AS STRING) || ' -> ' || LISTAGG(x.number, ' -> ') AS accounts_along_path
 FROM MATCH ALL TRAIL PATHS (a:account) (-[:transaction]-> (x)){2,} (b:Account)
@@ -2418,6 +2423,8 @@ Above, both paths contain the vertices 8021 and 1001 twice but they are still va
 
 An example with `ACYCLIC` is:
 
+{% include image.html file="example_graphs/financial_transactions.png" %}
+
 ```sql
 SELECT CAST(a.number AS STRING) || ' -> ' || LISTAGG(x.number, ' -> ') AS accounts_along_path
 FROM MATCH SHORTEST 10 ACYCLIC PATHS (a:account) (-[:transaction]-> (x))+ (b)
@@ -2436,6 +2443,8 @@ WHERE a.number = 10039 AND b.number = 1001
 Above, we requested 10 shortest paths but only two were returned since all the other paths are cyclic.
 
 An example with `SIMPLE` is:
+
+{% include image.html file="example_graphs/financial_transactions.png" %}
 
 ```sql
 SELECT CAST(a.number AS STRING) || ' -> ' || LISTAGG(x.number, ' -> ') AS accounts_along_path
@@ -2726,7 +2735,7 @@ Therefore, the number of steps does not always equal the number of edges on a pa
 
 # Grouping and Aggregation
 
-## GROUP BY
+## GROUP BY Clause
 
 `GROUP BY` allows for grouping of solutions and is typically used in combination with aggregates like `MIN` and `MAX` to compute aggregations over groups of solutions.
 
@@ -2772,7 +2781,8 @@ Note, however, that `GROUP BY` can also reference aliases from `SELECT` but it i
 
 The group for which all the group keys are null is a valid group and takes part in further query processing.
 
-To filter out such a group, use a `HAVING` clause (see [HAVING](#having)), for example:
+To filter out such a group, use the [HAVING clause](#having-clause).
+Foror example:
 
 ```sql
   SELECT n.prop1, n.prop2, COUNT(*)
@@ -2929,7 +2939,7 @@ SELECT AVG(DISTINCT m.age)
 
 Here, we aggregate only over distinct `m.age` values.
 
-## HAVING
+## HAVING Clause
 
 The `HAVING` clause is an optional clause that can be placed after a `GROUP BY` clause to filter out particular groups of solutions.
 
@@ -2956,7 +2966,7 @@ This query returns the names of people who have more than 10 friends.
 # Sorting and Row Limiting
 
 
-## ORDER BY
+## ORDER BY Clause
 
 When there are multiple matched subgraph instances to a given query, in general, the ordering between those instances are not defined; the query execution engine can present the result in any order. Still, the user can specify the ordering between the answers in the result using `ORDER BY` clause.
 
@@ -3003,35 +3013,114 @@ An `ORDER BY` may contain more than one expression, in which case the expresison
 ORDER BY f.age ASC, f.salary DESC
 ```
 
-## LIMIT and OFFSET
+## OFFSET Clause
 
-The `LIMIT` puts an upper bound on the number of solutions returned, whereas the `OFFSET` specifies the start of the first solution that should be returned.
+The `OFFSET` specifies the start of the first solution that should be returned.
 
-The following explains the syntactic structure for the LIMIT and OFFSET clauses:
+The syntax is:
 
 ```bash
-LimitOffsetClauses ::=   'LIMIT' <LimitOffsetValue> ( 'OFFSET' <LimitOffsetValue> )?
-                       | 'OFFSET' <LimitOffsetValue> ( 'LIMIT' <LimitOffsetValue> )?
+ResultOffsetClause ::= 'OFFSET' <OffsetRowCount> ( 'ROW' | 'ROWS' )?
 
-LimitOffsetValue   ::=   <UNSIGNED_INTEGER>
+OffsetRowCount     ::=   <UNSIGNED_INTEGER>
                        | <BindVariable>
 ```
 
-The `LIMIT` clause starts with the keyword `LIMIT` and is followed by an integer that defines the limit. Similarly, the `OFFSET` clause starts with the keyword `OFFSET` and is followed by an integer that defines the offset. Furthermore:
-The `LIMIT` and `OFFSET` clauses can be defined in either order.
-The limit and offset may not be negatives.
-The following semantics hold for the `LIMIT` and `OFFSET` clauses:
-The `OFFSET` clause is always applied first, even if the `LIMIT` clause is placed before the `OFFSET` clause inside the query.
-An `OFFSET` of zero has no effect and gives the same result as if the `OFFSET` clause was omitted.
-If the number of actual solutions after `OFFSET` is applied is greater than the limit, then at most the limit number of solutions will be returned.
+The `OFFSET` clause starts with the keyword `OFFSET` and is followed by an offset row count.
+The offset row count needs to be greater than or equal to 0.
+If it is larger than the number of rows in the result, no rows are returned.
 
-In the following query, the first 5 intermediate solutions are pruned from the result (i.e. `OFFSET 5`). The next 10 intermediate solutions are returned and become final solutions of the query (i.e. `LIMIT 10`).
+For example:
+
+{% include image.html file="example_graphs/financial_transactions.png" %}
 
 ```sql
-SELECT n
-  FROM MATCH (n)
- LIMIT 10
-OFFSET 5
+SELECT n.name
+FROM MATCH (n:Person)
+ORDER BY n.name
+OFFSET 1
+```
+
+```
++--------+
+| name   |
++--------+
+| Liam   |
+| Nikita |
+| Oracle |
++--------+
+```
+
+## FETCH FIRST Clause
+
+The `FETCH FIRST` specifies the number of solutions that should be returned.
+
+The syntax is:
+
+```bash
+FetchFirstClause   ::= 'FETCH' ( 'FIRST' | 'NEXT' )? <FetchFirstQuantity> ( 'FIRST' | 'NEXT' )? 'ONLY'
+
+FetchFirstQuantity ::=   <UNSIGNED_INTEGER>
+                       | <BindVariable>
+```
+
+
+The `FETCH FIRST` clause is applied after the [OFFSET clause](#offset-clause).
+If there are fewer solutions than the fetch quantity, all solutions are returned.
+
+For example, in the following query the first solution is pruned from the result (`OFFSET 1`) and the next two solutions are fetched (`FETCH FIRST 2 ROWS ONLY`).
+
+{% include image.html file="example_graphs/financial_transactions.png" %}
+
+```sql
+SELECT n.name
+FROM MATCH (n:Person)
+ORDER BY n.name
+OFFSET 1
+FETCH FIRST 2 ROWS ONLY
+```
+
+```
++--------+
+| name   |
++--------+
+| Liam   |
+| Nikita |
++--------+
+```
+
+## LIMIT Clause
+
+The `LIMIT` clause provides a syntactic alternative to the [FETCH FIRST Clause].
+
+The syntax is:
+
+```bash
+LimitClause   ::= 'LIMIT' <LimitQuantity>
+
+LimitQuantity ::=   <UNSIGNED_INTEGER>
+                  | <BindVariable>
+```
+
+For example:
+
+{% include image.html file="example_graphs/financial_transactions.png" %}
+
+```sql
+SELECT n.name
+FROM MATCH (n:Person)
+ORDER BY n.name
+OFFSET 1
+LIMIT 2
+```
+
+```
++--------+
+| name   |
++--------+
+| Liam   |
+| Nikita |
++--------+
 ```
 
 # Functions and Expressions
@@ -4269,7 +4358,8 @@ ModifyQueryFull   ::= <Modification>+
                       <GroupByClause>?
                       <HavingClause>?
                       <OrderByClause>?
-                      <LimitOffsetClauses>?
+                      <OffsetClause>?
+                      ( <FetchFirstClause> | <LimitClause> )?
 
 Modification      ::=   <InsertClause>
                       | <UpdateClause>
