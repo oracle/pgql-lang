@@ -1605,8 +1605,8 @@ FROM GRAPH_TABLE ( financial_transactions
        WHERE n.name = 'Camille'
        COLUMNS ( m.name, e.amount,
                  CASE
-                   WHEN a1 IS SOURCE OF e THEN 'Incoming transaction'
-                   ELSE 'Outgoing transaction'
+                   WHEN a1 IS SOURCE OF e THEN 'Outgoing transaction'
+                   ELSE 'Incoming transaction'
                  END AS transaction_type )
      )
 ORDER BY amount DESC
@@ -1616,8 +1616,8 @@ ORDER BY amount DESC
 +----------------------------------------+
 | name   | amount | transaction_type     |
 +----------------------------------------+
-| Liam   | 9900.0 | Outgoing transaction |
-| Nikita | 1000.0 | Incoming transaction |
+| Liam   | 9900.0 | Incoming transaction |
+| Nikita | 1000.0 | Outgoing transaction |
 +----------------------------------------+
 ```
 
@@ -3694,7 +3694,7 @@ EdgeReference              ::= <VariableReference>
 For example:
 
 ```sql
-SELECT e.amount, CASE WHEN n IS SOURCE OF e THEN 'Incoming transaction' ELSE 'Outgoing transaction' END AS transaction_type
+SELECT e.amount, CASE WHEN n IS SOURCE OF e THEN 'Outgoing transaction' ELSE 'Incoming transaction' END AS transaction_type
 FROM MATCH (n:Account) -[e:transaction]- (m:Account)
 WHERE n.number = 8021
 ORDER BY transaction_type, e.amount
@@ -3704,9 +3704,9 @@ ORDER BY transaction_type, e.amount
 +-------------------------------+
 | amount | transaction_type     |
 +-------------------------------+
-| 1500.3 | Incoming transaction |
-| 3000.7 | Incoming transaction |
-| 1000.0 | Outgoing transaction |
+| 1000.0 | Incoming transaction |
+| 1500.3 | Outgoing transaction |
+| 3000.7 | Outgoing transaction |
 +-------------------------------+
 ```
 
