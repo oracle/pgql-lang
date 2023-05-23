@@ -398,8 +398,8 @@ entries:
         url: /spec/2.0/#three-valued-logic
         output: web
 
-      - title: 'IS [NOT] NULL'
-        url: /spec/2.0/#is-[not]-null
+      - title: 'NULL Predicate'
+        url: /spec/2.0/#null-predicate
         output: web
 
     - title: 'Vertex and Edge functions'
@@ -419,8 +419,8 @@ entries:
         url: /spec/2.0/#labels-function
         output: web
 
-      - title: 'IS [NOT] LABELED'
-        url: /spec/2.0/#is-[not]-labeled
+      - title: 'LABELED Predicate'
+        url: /spec/2.0/#labeled-predicate
         output: web
 
       - title: 'MATCHNUM'
@@ -498,8 +498,8 @@ entries:
       url: /spec/2.0/#case
       output: web
 
-    - title: '[NOT] IN'
-      url: /spec/2.0/#[not]-in
+    - title: 'IN Predicate'
+      url: /spec/2.0/#in-predicate
       output: web
 
   - title: 'Subqueries'

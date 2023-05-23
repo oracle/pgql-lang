@@ -26,7 +26,7 @@ The new features are:
  - SQL-compatible [GRAPH_TABLE](#graph_table) operator
  - [LATERAL subqueries](#lateral-subqueries)
  - [Path modes](#path-modes): `WALK`, `ACYCLIC`, `SIMPLE`, `TRAIL`
- - New predicates: [IS [NOT] LABELED](#is-not-labeled), IS [NOT] SOURCE OF, IS [NOT] DESTINATION OF
+ - New predicates: [IS [NOT] LABELED](#labeled-predicate), IS [NOT] SOURCE OF, IS [NOT] DESTINATION OF
  - FETCH statement
 
 ## A note on the Grammar
@@ -1526,7 +1526,7 @@ There are also built-in functions and predicates available for labels:
 
  - [label(element)](#label) returns the label of a vertex or edge in the case the vertex/edge has only a single label.
  - [labels(element)](#labels) returns the set of labels of a vertex or edge in the case the vertex/edge has multiple labels.
- - [element IS [NOT] LABELED label)](#is-not-labeled) returns `true` or `false` depending on if the vertex or edge has the specified label.
+ - [element IS [NOT] LABELED label)](#labeled-predicate) returns `true` or `false` depending on if the vertex or edge has the specified label.
 
 ## WHERE
 
@@ -3079,7 +3079,7 @@ A value expression is one of:
  - A character substring function (see [Substring](#substring)).
  - An aggregation (see [Aggregation](#aggregation)).
  - An `EXTRACT` function (see [EXTRACT](#extract)).
- - A [IS [NOT] NULL](#is-not-null)), [[NOT] IN](#not-in)) or [IS [NOT] LABELED](#is-not-labeled) predicate.
+ - A [IS [NOT] NULL](#null-predicate)), [[NOT] IN](#in-predicate)) or [IS [NOT] LABELED](#labeled-predicate) predicate.
  - A [CAST](#cast) specification.
  - An `EXISTS` predicate (see [EXISTS and NOT EXISTS subqueries](#exists-and-not-exists-subqueries)).
  - A scalar subquery (see [Scalar subqueries](#scalar-subqueries)).
@@ -3328,7 +3328,7 @@ A `OR` B                        | `true` if B yields `true`, `null` otherwise   
 
 Note that from the table it follows that `null = null` yields `null` and not `true`.
 
-### IS [NOT] NULL
+### NULL Predicate
 
 To test whether a value exists or not, one can use the `IS NULL` and `IS NOT NULL` constructs.
 
@@ -3415,7 +3415,7 @@ SELECT LABELS(n)
 +---------------------+
 ```
 
-### IS [NOT] LABELED
+### LABELED Predicate
 
 The `IS [NOT] LABELED` predicate returns true or false depending on whether the vertex or edge has the specified label.
 
@@ -3965,7 +3965,7 @@ CASE
 END
 ```
 
-## [NOT] IN
+## IN Predicate
 
 The `[NOT] IN` predicate tests a value for membership in a list of values.
 The PGQL literal types `INTEGER`, `DECIMAL`, `BOOLEAN`, `STRING`, `DATE`, `TIME [WITH TIME ZONE]`, `TIMESTAMP [WITH TIME ZONE]` are allowed in the list.
