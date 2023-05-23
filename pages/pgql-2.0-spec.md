@@ -23,11 +23,11 @@ The following are the changes since PGQL 1.5:
 
 The new (and fully SQL-compatible) features are:
 
- - [GRAPH_TABLE operator](#graph_table-operator)
- - [LATERAL subquery](#lateral-subqueries)
+ - [GRAPH_TABLE Operator](#graph_table-operator)
+ - [LATERAL Subquery](#lateral-subqueries)
  - [Path Modes](#path-modes) (`WALK`, `ACYCLIC`, `SIMPLE`, `TRAIL`)
- - [LABELED Predicate](#labeled-predicate), [SOURCE/DESTINATION Predicate](#source--destination-predicate) and [MATCHNUM Function](#matchnum-function)
- - [FETCH FIRST clause](#fetch-first-clause) for limiting the number of rows
+ - [LABELED Predicate](#labeled-predicate), [SOURCE/DESTINATION Predicate](#source--destination-predicate), [MATCHNUM Function](#matchnum-function) and [VERTEX_ID/EDGE_ID function](#vertex_id-edge_id-function)
+ - [FETCH FIRST Clause](#fetch-first-clause) for limiting the number of rows
 
 ## A note on the Grammar
 
@@ -1564,7 +1564,24 @@ WHERE y.age > 25
 
 ## GRAPH_TABLE Operator
 
-TODO
+The `GRAPH_TABLE` operator provides a SQL-standard way to express graph queries, conforming to the [SQL extension for property graph queries](https://www.iso.org/standard/79473.html).
+
+
+
+When `GRAPH_TABLE` is used anywhere in a PGQL query, the following features are disallowed:
+
+| Disallowed in combination with `GRAPH_TABLE`                        | What to use instead                                                                 |
+|---------------------------------------------------------------------|-------------------------------------------------------------------------------------|
+| [MATCH clause](#match-clause) as top-level element in a FROM clause | `GRAPH_TABLE` operator with MATCH clause inside                                     |
+| Colon (`:`) in [label expressions](#label-expressions)              | `IS` keyword                                                                        |
+| [LIMIT clause](#limit-clause)                                       | [FETCH FIRST clause](#fetch-first-clause)                                           |
+| [ID function][#id-function]                                         | [VERTEX_ID/EDGE_ID function](#vertex-id-edge-id-function)                           |
+| [LABEL](#label-function) and [LABELS](#labels-function) functions   | [LABELED predicate](#labeled-predicate)                                             |
+| `vertex1`/`edge1` `=`/`<>` `vertex2`/`edge2`                        | [VERTEX_EQUAL/EDGE_EQUAL Function](#vertex_equal-edge_equal-function)               |
+| Aggregation with vertex/edge input (e.g. `COUNT(e)`)                | [VERTEX_ID/EDGE_ID function](#vertex-id-edge-id-function) (e.g. `COUNT(edge_id(e))` |
+| [JAVA_REGEXP_LIKE Function](#java_regexp_like-function)             | `REGEXP_LIKE`, `REGEXP_INSTR` or user-defined function                              |
+| [All properties PREFIX](#AllPropertiesPrefix)                       | To obtain unique column names, write out all properties and provide unique aliases  |
+| [Graph Modification](#graph-modification)                           | PGQL query without `GRAPH_TABLE`                                                    |
 
 # Variable-Length Paths
 
@@ -3442,32 +3459,43 @@ Here, we find all the vertices in the graph that have the property `name` and th
 
 ## Vertex and Edge functions
 
-### Id Function
+### VERTEX_ID/EDGE_ID Function
 
-The `id` function returns a system-generated identifier for the vertex/edge (unique within a graph).
+The `VERTEX_ID` and `EDGE_ID` functions return a system-generated identifier for the vertex/edge.
 
 The syntax is:
 
 ```
-id( vertex/edge )
+VERTEX_ID( vertex )
+EDGE_ID( edge )
 ```
 
-### Label Function
+#### ID Function
 
-The `label` function returns the label of a vertex or an edge. It is an error if the vertex or edge does not have a label, or, has more than one label.
+The `ID` function provides a syntactic alternative for the [VERTEX_ID/EDGE_ID function](#vertex_id-edge_id-function).
+
+The syntax is:
+
+```
+ID( vertex/edge )
+```
+
+### LABEL Function
+
+The `LABEL` function returns the label of a vertex or an edge. It is an error if the vertex or edge does not have a label, or, has more than one label.
 The return type of the function is a string.
 
 The syntax is:
 
 ```
-label( vertex/edge )
+LABEL( vertex/edge )
 ```
 
 For example:
 
 ```sql
-SELECT LABEL(e)
-  FROM MATCH (n:Person) -[e]-> (m:Person)
+SELECT label(e)
+FROM MATCH (n:Person) -[e]-> (m:Person)
 ```
 
 ```
@@ -3480,7 +3508,7 @@ SELECT LABEL(e)
 +----------+
 ```
 
-### Labels Function
+### LABELS Function
 
 The `labels` function returns the set of labels of a vertex or an edge. If the vertex or edge does not have a label, an empty set is returned.
 The return type of the function is a set of strings.
@@ -3488,7 +3516,7 @@ The return type of the function is a set of strings.
 The syntax is:
 
 ```
-labels( vertex/edge )
+LABELS( vertex/edge )
 ```
 
 For example:
@@ -4309,7 +4337,6 @@ ORDER BY sum_outgoing + sum_incoming DESC
 
 ## LATERAL Subqueries
 
-In addition to `MATCH` clauses, the `FROM` clause can also contain `LATERAL` subqueries.
 A `LATERAL` subquery can be any PGQL SELECT query and all functions of PGQL SELECT queries are supported inside a `LATERAL` subquery.
 A `LATERAL` subquery can project any number of columns and it can have an arbitrary number of result rows.
 All projected elements are available outside a `LATERAL` subquery, and only projected variables are visible to the outer query.
@@ -4324,39 +4351,39 @@ In the following query, the `LATERAL` subquery projects the two vertices `a` and
 
 ```sql
 SELECT p.name, a.number
-  FROM LATERAL ( SELECT a, p
-                   FROM MATCH (a:Account) -> (p:Person)
-               )
+FROM LATERAL ( SELECT a, p
+               FROM MATCH (a:Account) -> (p:Person)
+             )
 ```
 
 Alternatively, properties can also be projected by the `LATERAL` subquery and then be referenced by the outer query.
 
 ```sql
 SELECT name, number
-  FROM LATERAL ( SELECT p.name as name, a.number as number
-                  FROM MATCH (a:Account) -> (p:Person)
-               )
+FROM LATERAL ( SELECT p.name as name, a.number as number
+               FROM MATCH (a:Account) -> (p:Person)
+             )
 ```
 
 ```sql
 SELECT p.name, number
-  FROM LATERAL ( SELECT p, a.number as number
-                   FROM MATCH (a:Account) -> (p:Person)
-               )
+FROM LATERAL ( SELECT p, a.number as number
+               FROM MATCH (a:Account) -> (p:Person)
+             )
 ```
 
-### Variable renaming
+### Variable Renaming
 
 Variables can be renamed in the projection of a `LATERAL` subquery. In this case, the new name has to be used to reference a variable.
 
 ```sql
 SELECT account.name, person.number
-  FROM LATERAL ( SELECT a as account, p as person
-                  FROM MATCH (a:Account) -> (p:Person)
-               )
+FROM LATERAL ( SELECT a as account, p as person
+               FROM MATCH (a:Account) -> (p:Person)
+             )
 ```
 
-### Nesting of LATERAL Subqueries
+### Nesting Of LATERAL Subqueries
 
 `LATERAL` subqueries can be nested. There is no limit on the nesting level.
 
@@ -4364,38 +4391,38 @@ For example:
 
 ```sql
 SELECT name, number
-  FROM LATERAL (SELECT a.name, p.number
-                  FROM LATERAL ( SELECT a,p
-                                   FROM MATCH (a:Account) -> (p:Person)
-                               )
-               )
+FROM LATERAL ( SELECT a.name, p.number
+               FROM LATERAL ( SELECT a,p
+                              FROM MATCH (a:Account) -> (p:Person)
+                            )
+             )
 ```
 
-### LATERAL followed by a MATCH clause
+### LATERAL Followed By MATCH
 
 A `LATERAL` subquery can be followed by one or more `MATCH` clauses. Vertices projected by a `LATERAL` subquery can be used in subsequent `MATCH` clauses.
 
 In the example below `(a)` in the outer `MATCH` clause, is the same `(a)` projected in the `LATERAL` subquery.
 ```sql
 SELECT p.name as pName, p1.name as p1Name
-  FROM LATERAL ( SELECT a, p
-                   FROM MATCH (a:Account) -> (p:Person)
-               ),
-       MATCH (a) -> (a1:Account) -> (p1:Person)
+FROM LATERAL ( SELECT a, p
+               FROM MATCH (a:Account) -> (p:Person)
+             ),
+     MATCH (a) -> (a1:Account) -> (p1:Person)
 ```
 
 The `WHERE` clause of the outer query can contain all variables projected in the `LATERAL` subquery and variables in the outer `MATCH` clause.
 
 ```sql
 SELECT p.name as pName, p1.name as p1Name
-  FROM LATERAL ( SELECT a, p
-                   FROM MATCH (a:Account) -> (p:Person)
-               ),
-       MATCH (a) -> (a1:Account) -> (p1:Person)
+FROM LATERAL ( SELECT a, p
+               FROM MATCH (a:Account) -> (p:Person)
+             ),
+     MATCH (a) -> (a1:Account) -> (p1:Person)
 ```
 
 
-### Reusing of variable names
+### Reusing Of Variable Names
 
 Variables not projected in the `LATERAL` subquery are not visible outside the `LATERAL` subquery.
 Therefore, variables in the outer query with the same name are new variables and independent of the variable in the `LATERAL` subquery with the same name.
@@ -4403,10 +4430,10 @@ Therefore, variables in the outer query with the same name are new variables and
 
 ```sql
 SELECT p.name
-  FROM LATERAL ( SELECT a
-                   FROM MATCH (a:Account) -> (p:Person)
-               ),
-       MATCH (a) -> (a1:Account) -> (p:Person)
+FROM LATERAL ( SELECT a
+               FROM MATCH (a:Account) -> (p:Person)
+             ),
+     MATCH (a) -> (a1:Account) -> (p:Person)
 ```
 
 #### GROUP BY in `LATERAL` subquery
@@ -4416,25 +4443,25 @@ If a vertex is projected after a `LATERAL` subquery, it can be used in a subsequ
 
 ```sql
 SELECT p.name, ARRAY_AGG(a.number)
-  FROM LATERAL ( SELECT p, SUM(t.amount) AS sum
-                   FROM MATCH (a1:Account) -[t:transaction] - (a:Account) -> (p:Person)
-                  GROUP BY p
-                  HAVING sum > 5000
-               ),
-       MATCH (p) <- (a:Account)
-       GROUP BY p
+FROM LATERAL ( SELECT p, SUM(t.amount) AS sum
+               FROM MATCH (a1:Account) -[t:transaction] - (a:Account) -> (p:Person)
+               GROUP BY p
+               HAVING sum > 5000
+             ),
+     MATCH (p) <- (a:Account)
+     GROUP BY p
 ```
 
-### UNNESTING IN `LATERAL` subquery
+### Unnesting In LATERAL Subquery
 Variables from path unnesting with `ONE ROW PER STEP` or `ONE ROW PER VERTEX` can be used like any other variable projected in a `LATERAL` subquery.
 This includes using unnested vertices being used in a subsquent `MATCH` clause
 
 ```sql
 SELECT p.name as pName, p1.name as p1Name
-  FROM LATERAL (SELECT p, v
-                  FROM MATCH (p:Person) <- (a:Account),
-                       MATCH ANY (a) ->* (a1:Account) ONE ROW PER VERTEX (v)),
-       MATCH (v) -> (p1:Person)
+FROM LATERAL (SELECT p, v
+              FROM MATCH (p:Person) <- (a:Account),
+                   MATCH ANY (a) ->* (a1:Account) ONE ROW PER VERTEX (v)),
+     MATCH (v) -> (p1:Person)
 ```
 
 # Graph Modification

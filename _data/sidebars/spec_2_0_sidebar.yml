@@ -415,15 +415,15 @@ entries:
       output: web
       subfolderitems:
 
-      - title: 'Id Function'
-        url: /spec/2.0/#id-function
+      - title: 'VERTEX_ID/EDGE_ID Function'
+        url: /spec/2.0/#vertex_idedge_id-function
         output: web
 
-      - title: 'Label Function'
+      - title: 'LABEL Function'
         url: /spec/2.0/#label-function
         output: web
 
-      - title: 'Labels Function'
+      - title: 'LABELS Function'
         url: /spec/2.0/#labels-function
         output: web
 
@@ -532,24 +532,24 @@ entries:
       output: web
       subfolderitems:
 
-      - title: 'Variable renaming'
+      - title: 'Variable Renaming'
         url: /spec/2.0/#variable-renaming
         output: web
 
-      - title: 'Nesting of LATERAL Subqueries'
+      - title: 'Nesting Of LATERAL Subqueries'
         url: /spec/2.0/#nesting-of-lateral-subqueries
         output: web
 
-      - title: 'LATERAL followed by a MATCH clause'
-        url: /spec/2.0/#lateral-followed-by-a-match-clause
+      - title: 'LATERAL Followed By MATCH'
+        url: /spec/2.0/#lateral-followed-by-match
         output: web
 
-      - title: 'Reusing of variable names'
+      - title: 'Reusing Of Variable Names'
         url: /spec/2.0/#reusing-of-variable-names
         output: web
 
-      - title: 'UNNESTING IN `LATERAL` subquery'
-        url: /spec/2.0/#unnesting-in-`lateral`-subquery
+      - title: 'Unnesting In LATERAL Subquery'
+        url: /spec/2.0/#unnesting-in-lateral-subquery
         output: web
 
   - title: 'Graph Modification'
