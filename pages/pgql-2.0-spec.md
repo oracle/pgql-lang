@@ -2490,7 +2490,7 @@ The following path modes are available in combination with `ANY`, `ALL`, `ANY SH
 - `WALK`, the default path mode, where no filtering of paths happen.
 - `TRAIL`, where path bindings with repeated edges are not returned.
 - `ACYCLIC`, where path bindings with repeated vertices are not returned.
-- `SIMPLE`, where path bindings with repeated vertices are not returned unless, per path, the repeated vertex is the
+- `SIMPLE`, where path bindings with repeated vertices are not returned unless the repeated vertex is the
   first and the last in the path
 
 Syntactically, the path mode is placed directly after `ANY`, `ALL`, `ANY SHORTEST`, `SHORTEST k`, `ALL SHORTEST`,
