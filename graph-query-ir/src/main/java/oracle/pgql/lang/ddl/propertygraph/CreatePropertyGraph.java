@@ -15,7 +15,7 @@ public class CreatePropertyGraph implements PgqlStatement {
   /**
    * The name of the property graph.
    */
-  private SchemaQualifiedName graphName;
+  protected SchemaQualifiedName graphName;
 
   /**
    * Vertex tables. List may be empty but cannot be null.
@@ -80,14 +80,14 @@ public class CreatePropertyGraph implements PgqlStatement {
     return "CREATE PROPERTY GRAPH " + graphName + printVertexTables() + printEdgeTables() + printOptions();
   }
 
-  private String printOptions() {
+  protected String printOptions() {
     if (options == null) {
       return "";
     }
     return "\n  OPTIONS( " + options.stream().collect(Collectors.joining(", ")) + " )";
   }
 
-  private String printVertexTables() {
+  protected String printVertexTables() {
     if (vertexTables.isEmpty()) {
       return "";
     } else {
@@ -97,7 +97,7 @@ public class CreatePropertyGraph implements PgqlStatement {
     }
   }
 
-  private String printEdgeTables() {
+  protected String printEdgeTables() {
     if (edgeTables.isEmpty()) {
       return "";
     } else {

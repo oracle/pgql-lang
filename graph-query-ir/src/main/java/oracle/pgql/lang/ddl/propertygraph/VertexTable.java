@@ -25,6 +25,6 @@ public class VertexTable extends ElementTable {
 
   @Override
   public String toString() {
-    return getTableName() + printAlias(" ") + printKey("\n      ") + printLabels("\n      ");
+    return getTableName().toString(true) + printAlias(" ") + printKey("\n      ") + printLabels("\n      ");
   }
 }

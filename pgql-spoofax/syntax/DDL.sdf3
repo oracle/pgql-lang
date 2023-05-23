@@ -12,7 +12,7 @@ template options
 
 context-free syntax // CREATE PROPERTY GRAPH
 
-  Statement.CreatePropertyGraph = <CREATE PROPERTY GRAPH <GraphName> <VertexTables?> <EdgeTables?> <OptionsClause?>> {case-insensitive}
+  Statement.CreatePropertyGraph = <CREATE PROPERTY GRAPH <GraphName> <BaseGraphs?> <VertexTables?> <EdgeTables?> <OptionsClause?>> {case-insensitive}
 
   OptionsClause.OptionsClause = <OPTIONS ( <{OPTION ","}+> )> {case-insensitive}
 
@@ -64,31 +64,16 @@ context-free syntax // DROP PROPERTY GRAPH
 
   Statement.DropPropertyGraph = <DROP PROPERTY GRAPH <GraphName>> {case-insensitive}
 
-context-free syntax // CREATE EXTERNAL SCHEMA
+context-free syntax // BASE GRAPHS
 
-  Statement.CreateExternalSchema =
-    <CREATE EXTERNAL SCHEMA <SchemaName>
-       FROM DATABASE
-         <DatabaseConnectionDetails>
-         <RemoteSchemaName?>> {case-insensitive}
+  BaseGraphs.BaseGraphs = <BASE GRAPHS ( <{BaseGraph ","}+> )> {case-insensitive}
 
-  DatabaseConnectionDetails.JdbcConnectionDetails =
-    <
-      <Url>
-      <User?>
-      <KeystoreAlias?>
-    >
+  BaseGraph.BaseGraph = <<GraphName> <ElementTablesClause?>>
 
-  Url.Url = <URL <String>> {case-insensitive}
+  ElementTablesClause.ElementTables = <ELEMENT TABLES ( <{BaseElementTable ","}+> )> {case-insensitive}
 
-  User.User = <USER <String>> {case-insensitive}
+  BaseElementTable.BaseElementTable = <<VarRef> <AsTableAlias?>>
 
-  KeystoreAlias.KeystoreAlias = <KEYSTORE_ALIAS <String>> {case-insensitive}
+  ElementTablesClause.AllElementTables = <ALL ELEMENT TABLES <ExceptElementTables?>> {case-insensitive}
 
-  DatabaseConnectionDetails.DataSource = <DATA_SOURCE <String>> {case-insensitive}
-
-  RemoteSchemaName.RemoteSchemaName = <SCHEMA <String>> {case-insensitive}
-
-context-free syntax // DROP EXTERNAL SCHEMA
-
-  Statement.DropExternalSchema = <DROP EXTERNAL SCHEMA <SchemaName>> {case-insensitive}
+  ExceptElementTables.ExceptElementTables = <EXCEPT ( <{Identifier ","}+> )> {case-insensitive}

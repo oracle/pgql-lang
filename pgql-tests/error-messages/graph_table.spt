@@ -162,10 +162,11 @@ test Restriction: has_label(..) [[
   SELECT *
   FROM GRAPH_TABLE ( g
          MATCH (n)
-         COLUMNS ( [[has_label(n, 'PERSON')]], [["HAS_LABEL"(n, 'Car')]], [[Has_Label(n, 'House')]] )
+         COLUMNS ( [[has_label(n, 'PERSON')]], [["HAS_LABEL"(n, 'Car')]], [[Has_Label(n, 'House')]], [["Has_Label"(n, 'House')]], [[Has_Label(n, ?)]] )
        )
 
-]] error like "GRAPH_TABLE restriction: use n IS LABELED " at #1, #2, #3 // Spoofax tests do not support quotes so we can't test for the full message string here
+]] error like "GRAPH_TABLE restriction: use n IS LABELED " at #1, #2, #3, #4 // Spoofax tests do not support quotes so we can't test for the full message string here
+   error like "GRAPH_TABLE restriction: HAS_LABEL function is not supported; try using the IS LABELED predicate" at #5
 
 test Restriction: no COLUMNS clause [[
 

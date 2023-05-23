@@ -41,6 +41,19 @@ test Duplicate vertex and edge tables [[
 ]] error like "Duplicate vertex table name; use an alias to make the vertex table name unique (table AS alias)" at #1, #2
    error like "Duplicate edge table name; use an alias to make the edge table name unique (table AS alias)" at #3, #4
 
+test Duplicate vertex and edge tables [[
+
+  CREATE PROPERTY GRAPH MyGraph
+    BASE GRAPHS ( g1 ELEMENT TABLES ( [[person]], [[knows]] ) )
+    VERTEX TABLES (
+      [[Person]]
+    )
+    EDGE TABLES (
+      [[knows]] SOURCE Person DESTINATION Person
+    )
+
+]] error like "Duplicate element table name; use an alias to make the element table name unique (table AS alias)" at #1, #2, #3, #4
+
 test Missing property name [[
 
   CREATE PROPERTY GRAPH myGraph
