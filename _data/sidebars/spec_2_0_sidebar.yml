@@ -435,8 +435,8 @@ entries:
         url: /spec/2.0/#source--destination-predicate
         output: web
 
-      - title: 'MATCHNUM'
-        url: /spec/2.0/#matchnum
+      - title: 'MATCHNUM Function'
+        url: /spec/2.0/#matchnum-function
         output: web
 
       - title: 'ELEMENT_NUMBER'

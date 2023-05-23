@@ -26,8 +26,8 @@ The new (and fully SQL-compatible) features are:
  - [GRAPH_TABLE operator](#graph_table-operator)
  - [LATERAL subquery](#lateral-subqueries)
  - [Path Modes](#path-modes): `WALK`, `ACYCLIC`, `SIMPLE`, `TRAIL`
- - [LABELED](#labeled-predicate) and [SOURCE/DESTINATION](#source--destination-predicate) predicates.
- - [FETCH FIRST clause](#fetch-first-clause) for limiting the number of rows.
+ - [LABELED Preicate](#labeled-predicate), [SOURCE/DESTINATION Predicate](#source--destination-predicate) and [MATCHNUM Function](#matchnum-function)
+ - [FETCH FIRST clause](#fetch-first-clause) for limiting the number of rows
 
 ## A note on the Grammar
 
@@ -3091,7 +3091,7 @@ FETCH FIRST 2 ROWS ONLY
 
 ## LIMIT Clause
 
-The `LIMIT` clause provides a (non-SQL-standard compatible) syntactic alternative to the [FETCH FIRST Clause](#fetch-first-clause).
+The `LIMIT` clause provides a syntactic alternative to the [FETCH FIRST Clause](#fetch-first-clause).
 
 The syntax is:
 
@@ -3541,13 +3541,47 @@ FROM MATCH (n:Person|Company) <-[:owner]- (a:Account)
 
 TODO
 
-### MATCHNUM
+### MATCHNUM Function
 
 The `MATCHNUM` function allows for obtaining a unique identifier for each match to a graph pattern.
+
+Inside [GRAPH_TABLE](#graph_table-operator), the `MATCHNUM` function takes no arguments as it is clear which `MATCH` it applies to. This because `GRAPH_TABLE` only has a single `MATCH`.
+
+Outside of `GRAPH_TABLE`, the `MATCHNUM` function takes a vertex or an edge as argument.
+The vertex or edge identifies the `MATCH` clause for which to obtain the match number for.
+It is required that the vertex or edge is defined inside a single `MATCH` clause only.
 
 For example:
 
 {% include image.html file="example_graphs/financial_transactions.png" %}
+
+```sql
+SELECT account_num, match_num, elem_num
+FROM GRAPH_TABLE ( financial_transactions
+       MATCH ALL (a1 IS Account) -[IS transaction]->{,4} (a2 IS Account)
+       WHERE a1.number = 10039 AND a2.number = 2090
+       ONE ROW PER VERTEX ( v )
+       COLUMNS ( v.number AS account_num,
+                 MATCHNUM() AS match_num,
+                 ELEMENT_NUMBER(v) AS elem_num )
+     )
+ORDER BY match_num, elem_num
+```
+
+```
++------------------------------------+
+| account_num | match_num | elem_num |
++------------------------------------+
+| 10039       | 0         | 1        |
+| 8021        | 0         | 3        |
+| 1001        | 0         | 5        |
+| 2090        | 0         | 7        |
+| 10039       | 1         | 1        |
+| 8021        | 1         | 3        |
+| 1001        | 1         | 5        |
+| 2090        | 1         | 7        |
++------------------------------------+
+```
 
 ```sql
 SELECT v.number AS account_number, MATCHNUM(v), ELEMENT_NUMBER(v)
