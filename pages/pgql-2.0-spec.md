@@ -1594,6 +1594,8 @@ It has two parts:
 
 For example:
 
+{% include image.html file="example_graphs/financial_transactions.png" %}
+
 ```sql
 SELECT *
 FROM GRAPH_TABLE ( financial_transactions
@@ -1601,7 +1603,11 @@ FROM GRAPH_TABLE ( financial_transactions
              (a1) -[e IS transaction]- (a2),
              (a2) -[IS owner]-> (m IS person)
        WHERE n.name = 'Camille'
-       COLUMNS ( m.name, e.amount, CASE WHEN a1 IS SOURCE OF e THEN 'Incoming transaction' ELSE 'Outgoing transaction' END AS transaction_type )
+       COLUMNS ( m.name, e.amount,
+                 CASE
+                   WHEN a1 IS SOURCE OF e THEN 'Incoming transaction'
+                   ELSE 'Outgoing transaction'
+                 END AS transaction_type )
      )
 ORDER BY amount DESC
 ```
@@ -1616,6 +1622,8 @@ ORDER BY amount DESC
 ```
 
 An example with [horizontal aggregation](#horizontal-aggregation) is:
+
+{% include image.html file="example_graphs/financial_transactions.png" %}
 
 ```sql
 SELECT *
@@ -1638,6 +1646,8 @@ ORDER BY total_amount DESC
 ```
 
 An example with [ONE ROW PER STEP](#one-row-per-step) is:
+
+{% include image.html file="example_graphs/financial_transactions.png" %}
 
 ```sql
 SELECT *
