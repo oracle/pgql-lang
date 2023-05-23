@@ -1683,7 +1683,7 @@ The following features are disallowed if `GRAPH_TABLE` is used anywhere in a PGQ
 | [MATCH clause](#match-clause) as top-level element in a FROM clause | `GRAPH_TABLE` operator with MATCH clause inside                                    |
 | Colon (`:`) in [label expressions](#label-expressions)              | `IS` keyword                                                                       |
 | [LIMIT clause](#limit-clause)                                       | [FETCH FIRST clause](#fetch-first-clause)                                          |
-| [ID function][#id-function]                                         | [VERTEX_ID/EDGE_ID function](#vertex-idedge-id-function)                           |
+| [ID function][#vertex-idedge-id-function]                           | [VERTEX_ID/EDGE_ID function](#vertex-idedge-id-function)                           |
 | [LABEL](#label-function) and [LABELS](#labels-function) functions   | [LABELED predicate](#labeled-predicate)                                            |
 | Vertex [not] equals or edge [not] equals (e.g. `v1 <> v2`)          | [ALL_DIFFERENT Predicate](#all_different-predicate) (e.g. `ALL_DIFFERENT(v1, v2)`  |
 | Aggregation with vertex/edge input (e.g. `COUNT(e)`)                | [VERTEX_ID/EDGE_ID function](#vertex_idedge_id-function) (e.g. COUNT(edge_id(e))   |
