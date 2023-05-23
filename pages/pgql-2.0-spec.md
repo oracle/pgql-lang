@@ -27,7 +27,7 @@ The new (and fully SQL-compatible) features are:
  - [LATERAL Subquery](#lateral-subqueries)
  - [Path Modes](#path-modes) (`WALK`, `ACYCLIC`, `SIMPLE`, `TRAIL`)
  - [LABELED Predicate](#labeled-predicate), [SOURCE/DESTINATION Predicate](#source--destination-predicate), [MATCHNUM Function](#matchnum-function) and [VERTEX_ID/EDGE_ID Function](#vertex_idedge_id-function)
- - [FETCH FIRST Clause](#fetch-first-clause) for limiting the number of rows
+ - [FETCH FIRST Clause](#fetch-first-clause)
 
 ## A note on the Grammar
 
