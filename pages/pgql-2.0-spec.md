@@ -3183,7 +3183,7 @@ The `FETCH FIRST` clause provides a limit to the number of solutions to be kept.
 The syntax is:
 
 ```bash
-FetchFirstClause   ::= 'FETCH' ( 'FIRST' | 'NEXT' )? <FetchFirstQuantity> ( 'FIRST' | 'NEXT' )? 'ONLY'
+FetchFirstClause   ::= 'FETCH' ( 'FIRST' | 'NEXT' )? <FetchFirstQuantity> ( 'ROW' | 'ROWS' )? 'ONLY'
 
 FetchFirstQuantity ::=   <UNSIGNED_INTEGER>
                        | <BindVariable>
