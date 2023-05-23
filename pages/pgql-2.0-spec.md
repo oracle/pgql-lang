@@ -26,7 +26,7 @@ The new features are:
  - SQL-compatible [GRAPH_TABLE](#graph_table) operator
  - [LATERAL subqueries](#lateral-subqueries)
  - [Path modes](#path-modes): `WALK`, `ACYCLIC`, `SIMPLE`, `TRAIL`
- - New predicates: IS [NOT] LABELED, IS [NOT] SOURCE OF, IS [NOT] DESTINATION OF
+ - New predicates: [IS [NOT] LABELED](#labeled), IS [NOT] SOURCE OF, IS [NOT] DESTINATION OF
  - FETCH statement
 
 ## A note on the Grammar
@@ -1518,11 +1518,11 @@ SELECT *
   FROM MATCH (IS Person) -[:likes|knows]-> (IS Person)
 ```
 
-There are also built-in functions available for labels:
+There are also built-in functions and predicates available for labels:
 
  - [label(element)](#label) returns the label of a vertex or edge in the case the vertex/edge has only a single label
  - [labels(element)](#labels) returns the set of labels of a vertex or edge in the case the vertex/edge has multiple labels.
- - [has_label(element, string)](#has_label) returns `true` if the vertex or edge (first argument) has the specified label (second argument).
+ - [element IS [NOT] LABELED label)](#labeled) returns `true` if the vertex or edge (first argument) has the specified label (second argument).
 
 ## WHERE
 
@@ -1799,7 +1799,7 @@ Another example is:
   SELECT COUNT(e) AS num_hops
        , p1.name AS start
        , ARRAY_AGG ( CASE
-                       WHEN has_label(dst, 'Account')
+                       WHEN dst IS LABELED Account
                          THEN CAST(dst.number AS STRING)
                        ELSE dst.name
                      END
@@ -3036,7 +3036,7 @@ The following are the relevant grammar rules:
 
 ```bash
 ValueExpression          ::=   <VariableReference>
-                             | <PropertyAccess>
+                             | <PropertyReference>
                              | <Literal>
                              | <BindVariable>
                              | <ArithmeticExpression>
@@ -3048,18 +3048,17 @@ ValueExpression          ::=   <VariableReference>
                              | <CharacterSubstring>
                              | <Aggregation>
                              | <ExtractFunction>
-                             | <IsNullPredicate>
-                             | <IsNotNullPredicate>
+                             | <NullPredicate>
+                             | <InPredicate>
+                             | <LabeledPredicate>
                              | <CastSpecification>
                              | <CaseExpression>
-                             | <InPredicate>
-                             | <NotInPredicate>
                              | <ExistsPredicate>
                              | <ScalarSubquery>
 
 VariableReference        ::= <VariableName>
 
-PropertyAccess           ::= <VariableReference> '.' <PropertyName>
+PropertyReference        ::= <VariableReference> '.' <PropertyName>
 
 BracketedValueExpression ::= '(' <ValueExpression> ')'
 ```
@@ -3185,7 +3184,7 @@ The following example shows a bind variable in the position of a label:
 ```sql
   SELECT n.name
     FROM MATCH (n)
-   WHERE has_label(n, ?)
+   WHERE label(n) = ?
 ```
 
 
@@ -3326,9 +3325,7 @@ Note that from the table it follows that `null = null` yields `null` and not `tr
 To test whether a value exists or not, one can use the `IS NULL` and `IS NOT NULL` constructs.
 
 ```bash
-IsNullPredicate    ::= <ValueExpression> 'IS' 'NULL'
-
-IsNotNullPredicate ::= <ValueExpression> 'IS' 'NOT' 'NULL'
+NullPredicate    ::= <ValueExpression> 'IS' 'NOT'? 'NULL'
 ```
 
 For example:
@@ -3672,15 +3669,37 @@ SELECT LABELS(n)
 +---------------------+
 ```
 
-### HAS_LABEL
+### LABELED
 
-The `HAS_LABEL` functions returns true if the vertex or edge (first argument) has the given label (second argument), and false otherwise.
+The `IS [NOT] LABELED` predicate returns true if the vertex or edge has the given label, and false otherwise.
 
 The syntax is:
 
+```bash
+LabeledPredicate ::= <VariableReference> 'IS' 'NOT'? 'LABELED' <Label>
 ```
-HAS_LABEL( vertex/edge, string )
+
+For example:
+
+{% include image.html file="example_graphs/financial_transactions.png" %}
+
+```sql
+SELECT a.number,
+       CASE WHEN n IS LABELED Person THEN 'Personal Account' ELSE 'Business Account' END AS accountType
+FROM MATCH (n:Person|Company) <-[:owner]- (a:Account)
 ```
+
+```
++---------------------------+
+| number | accountType      |
++---------------------------+
+| 10039  | Personal Account |
+| 2090   | Personal Account |
+| 8021   | Personal Account |
+| 1001   | Business Account |
++---------------------------+
+```
+
 ### MATCHNUM
 
 The `MATCHNUM` function allows for obtaining a unique identifier for each match to a graph pattern.
@@ -3690,10 +3709,10 @@ For example:
 {% include image.html file="example_graphs/financial_transactions.png" %}
 
 ```sql
-  SELECT v.number AS account_number, MATCHNUM(v), ELEMENT_NUMBER(v)
-    FROM MATCH ALL (a1:Account) -[:transaction]->{,4} (a2:Account)
-           ONE ROW PER VERTEX ( v )
-   WHERE a1.number = 10039 AND a2.number = 2090
+SELECT v.number AS account_number, MATCHNUM(v), ELEMENT_NUMBER(v)
+FROM MATCH ALL (a1:Account) -[:transaction]->{,4} (a2:Account)
+       ONE ROW PER VERTEX ( v )
+WHERE a1.number = 10039 AND a2.number = 2090
 ORDER BY MATCHNUM(v), ELEMENT_NUMBER(v)
 ```
 
@@ -3965,9 +3984,7 @@ The PGQL literal types `INTEGER`, `DECIMAL`, `BOOLEAN`, `STRING`, `DATE`, `TIME 
 The syntax is:
 
 ```bash
-InPredicate    ::= <ValueExpression> 'IN' <InValueList>
-
-NotInPredicate ::= <ValueExpression> 'NOT' 'IN' <InValueList>
+InPredicate    ::= <ValueExpression> 'NOT'? 'IN' <InValueList>
 
 InValueList    ::=   '(' <ValueExpression> ( ',' <ValueExpression> )* ')'
                    | <BindVariable>
@@ -4279,7 +4296,7 @@ LabelSpecification      ::= 'LABELS' '(' <Label> ( ',' <Label> )* ')'
 
 PropertiesSpecification ::= 'PROPERTIES' '(' <PropertyAssignment> ( ',' <PropertyAssignment> )* ')'
 
-PropertyAssignment      ::= <PropertyAccess> '=' <ValueExpression>
+PropertyAssignment      ::= <PropertyReference> '=' <ValueExpression>
 ```
 
 

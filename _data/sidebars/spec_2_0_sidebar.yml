@@ -470,8 +470,8 @@ entries:
         url: /spec/2.0/#labels-function
         output: web
 
-      - title: 'HAS_LABEL'
-        url: /spec/2.0/#has_label
+      - title: 'LABELED'
+        url: /spec/2.0/#labeled
         output: web
 
       - title: 'MATCHNUM'
