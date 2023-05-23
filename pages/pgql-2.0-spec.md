@@ -26,7 +26,7 @@ The new features are:
  - SQL-compatible [GRAPH_TABLE](#graph_table) operator
  - [LATERAL subqueries](#lateral-subqueries)
  - [Path modes](#path-modes): `WALK`, `ACYCLIC`, `SIMPLE`, `TRAIL`
- - New predicates: [IS [NOT] LABELED](#labeled), IS [NOT] SOURCE OF, IS [NOT] DESTINATION OF
+ - New predicates: [IS [NOT] LABELED](#is-not-labeled), IS [NOT] SOURCE OF, IS [NOT] DESTINATION OF
  - FETCH statement
 
 ## A note on the Grammar
@@ -1229,16 +1229,16 @@ Consider the following query:
 
 ```sql
 SELECT *
-  FROM MATCH (n:Person) -> (m) -> (w)
-     , MATCH (n) -> (w) -> (m)
+FROM MATCH (n:Person) -> (m) -> (w),
+     MATCH (n) -> (w) -> (m)
 ```
 
 This query is semantically equivalent to:
 
 ```sql
 SELECT n, m, w
-  FROM MATCH (n:Person) -> (m) -> (w)
-     , MATCH (n) -> (w) -> (m)
+FROM MATCH (n:Person) -> (m) -> (w),
+     MATCH (n) -> (w) -> (m)
 ```
 
 `SELECT *` is not allowed when the graph pattern has zero variables. This is the case when all the vertices and edges in the pattern are anonymous (e.g. `MATCH () -> (:Person)`).
@@ -1279,8 +1279,8 @@ edge labels:
 {% include image.html file="example_graphs/financial_transactions.png" %}
 
 ```sql
-  SELECT label(n), n.*
-    FROM MATCH (n:Person)
+SELECT label(n), n.*
+FROM MATCH (n:Person)
 ORDER BY "name"
 ```
 
@@ -1301,8 +1301,8 @@ For example:
 {% include image.html file="example_graphs/financial_transactions.png" %}
 
 ```sql
-  SELECT n.* PREFIX 'n_', e.* PREFIX 'e_', m.* PREFIX 'm_'
-    FROM MATCH (n:Account) -[e:transaction]-> (m:Account)
+SELECT n.* PREFIX 'n_', e.* PREFIX 'e_', m.* PREFIX 'm_'
+FROM MATCH (n:Account) -[e:transaction]-> (m:Account)
 ORDER BY "e_amount"
 ```
 
@@ -1325,7 +1325,11 @@ In a PGQL query, the `FROM` clause defines the graph pattern to be matched.
 Syntactically, a `FROM` clause is composed of the keyword `FROM` followed by a comma-separated sequence of `MATCH` clauses, each defining a path pattern:
 
 ```bash
-FromClause             ::= 'FROM' <MatchClause> ( ',' <MatchClause> )*
+FromClause             ::= 'FROM' <TableExpression> ( ',' <TableExpression> )*
+
+TableExpression        ::=   <MatchClause>
+                           | <GraphTable>
+                           | <LateralSubquery>
 ```
 
 ## MATCH
@@ -1387,14 +1391,14 @@ The `ON` clause is an optional clause that belongs to the `MATCH` clause and spe
 The syntax is:
 
 ```bash
-OnClause   ::= 'ON' <GraphName>
+OnClause ::= 'ON' <GraphName>
 ```
 
 For example:
 
 ```sql
-  SELECT p.first_name, p.last_name
-    FROM MATCH (p:Person) ON my_graph
+SELECT p.first_name, p.last_name
+FROM MATCH (p:Person) ON my_graph
 ORDER BY p.first_name, p.last_name
 ```
 
@@ -1410,8 +1414,8 @@ PGQL itself does not (yet) provide syntax for specifying a default graph, but Ja
 If a default graph is provided then the `ON` clause can be omitted:
 
 ```sql
-  SELECT p.first_name, p.last_name
-    FROM MATCH (p:Person)
+SELECT p.first_name, p.last_name
+FROM MATCH (p:Person)
 ORDER BY p.first_name, p.last_name
 ```
 
@@ -1426,8 +1430,8 @@ There can be multiple topology constraints in the `FROM` clause of a PGQL query.
 
 ```sql
 SELECT *
- FROM MATCH (n) -[e1]-> (m1)
-    , MATCH (n) -[e2]-> (m2)
+ FROM MATCH (n) -[e1]-> (m1),
+      MATCH (n) -[e2]-> (m2)
 ```
 
 Here, the vertex term `(n)` in the first constraint indeed refers to the same vertex as the vertex term `(n)` in the second constraint. It is an error, however, if two edge terms have the same variable name, or, if the same variable name is assigned to an edge term as well as to a vertex term in a single query.
@@ -1440,23 +1444,23 @@ First, a single path pattern can be written as a chain of edge terms such that t
 
 ```sql
 SELECT *
-  FROM MATCH (n1) -[e1]-> (n2) -[e2]-> (n3) -[e3]-> (n4)
+FROM MATCH (n1) -[e1]-> (n2) -[e2]-> (n3) -[e3]-> (n4)
 ```
 
 The above graph pattern is equivalent to the graph pattern specified by the following set of comma-separate path patterns:
 
 ```sql
 SELECT *
-  FROM MATCH (n1) -[e1]-> (n2)
-     , MATCH (n2) -[e2]-> (n3)
-     , MATCH (n3) -[e3]-> (n4)
+FROM MATCH (n1) -[e1]-> (n2),
+     MATCH (n2) -[e2]-> (n3),
+     MATCH (n3) -[e3]-> (n4)
 ```
 
 Second, it is allowed to reverse the direction of an edge in the pattern, i.e. right-to-left instead of left-to-right. Therefore, the following is a valid graph pattern:
 
 ```sql
 SELECT *
-  FROM MATCH (n1) -[e1]-> (n2) <-[e2]- (n3)
+FROM MATCH (n1) -[e1]-> (n2) <-[e2]- (n3)
 ```
 
 Please mind the edge directions in the above query – vertex `n2` is a common outgoing neighbor of both vertex `n1` and vertex `n3`.
@@ -1481,20 +1485,20 @@ In the case the `MATCH` clause contains two or more disconnected graph patterns 
 
 ```sql
 SELECT *
-  FROM MATCH (n1) -> (m1)
-     , MATCH (n2) -> (m2)
+FROM MATCH (n1) -> (m1),
+     MATCH (n2) -> (m2)
 ```
 
 Here, vertices `n2` and `m2` are not connected to vertices `n1` and `m1`, resulting in a Cartesian product.
 
-### Label predicates
+### Label expression
 
-In the property graph model, vertices and edge may have labels, which are arbitrary (character) strings. Typically, labels are used to encode types of entities. For example, a graph may contain a set of vertices with the label `Person`, a set of vertices with the label `Movie`, and, a set of edges with the label `likes`. A label predicate specifies that a vertex or edge only matches if it has ony of the specified labels. A label predicate starts with either a colon (`:`) or the keyword `IS`, followed by one or more labels that are separate by a vertical bar (`|`).
+In the property graph model, vertices and edge may have labels, which are arbitrary (character) strings. Typically, labels are used to encode types of entities. For example, a graph may contain a set of vertices with the label `Person`, a set of vertices with the label `Movie`, and, a set of edges with the label `likes`. A label expression specifies that a vertex or edge only matches if it has ony of the specified labels. A label expression starts with either a colon (`:`) or the keyword `IS`, followed by one or more labels that are separate by a vertical bar (`|`).
 
 The corresponding grammar is:
 
 ```bash
-LabelPredicate   ::= <ColonOrIsKeyword> <Label> ( '|' <Label> )*
+LabelExpression  ::= <ColonOrIsKeyword> <Label> ( '|' <Label> )*
 
 ColonOrIsKeyword ::=    ':'
                      || 'IS'
@@ -1506,23 +1510,23 @@ Take the following example:
 
 ```sql
 SELECT *
-  FROM MATCH (x:Person) -[e IS likes|knows]-> (y:Person)
+FROM MATCH (x:Person) -[e IS likes|knows]-> (y:Person)
 ```
 
 Here, we specify that vertices `x` and `y` have the label `Person` and that the edge `e` has the label `likes` or the label `knows`.
 
-A label predicate can be specified even when a variable is omitted. For example:
+A label expression can be specified even when a variable is omitted. For example:
 
 ```sql
 SELECT *
-  FROM MATCH (IS Person) -[:likes|knows]-> (IS Person)
+FROM MATCH (IS Person) -[:likes|knows]-> (IS Person)
 ```
 
 There are also built-in functions and predicates available for labels:
 
- - [label(element)](#label) returns the label of a vertex or edge in the case the vertex/edge has only a single label
+ - [label(element)](#label) returns the label of a vertex or edge in the case the vertex/edge has only a single label.
  - [labels(element)](#labels) returns the set of labels of a vertex or edge in the case the vertex/edge has multiple labels.
- - [element IS [NOT] LABELED label)](#labeled) returns `true` if the vertex or edge (first argument) has the specified label (second argument).
+ - [element IS [NOT] LABELED label)](#is-not-labeled) returns `true` or `false` depending on if the vertex or edge has the specified label.
 
 ## WHERE
 
@@ -3069,12 +3073,16 @@ A value expression is one of:
  - A property access, which syntactically takes the form of a variable reference, followed by a dot (`.`) and the name of a property.
  - A literal (see [Literals](#literals)).
  - A bind variable (see [Bind Variables](#bind-variables)).
- - An arithmetic, relational, or logical expression (see [Operators](#operators)).
+ - An arithmetic expression, relational expression, logical expression or string concatenation (see [Operators](#operators)).
  - A bracketed value expression, which syntactically takes the form of a value expression between rounded brackets. The brackets allow for controlling precedence.
  - A function invocation (see [String functions](#string-functions), [Numeric functions](#numeric-functions), [Datetime functions](#datetime-functions) and [Vertex and Edge functions](#vertex-and-edge-functions)).
- - The `IS NULL` and `IS NOT NULL` predicates (see [IS NULL and IS NOT NULL](#is-null-and-is-not-null)).
- - The `EXISTS` predicate (see [EXISTS and NOT EXISTS subqueries](#exists-and-not-exists-subqueries)).
+ - A character substring function (see [Substring](#substring)).
  - An aggregation (see [Aggregation](#aggregation)).
+ - An `EXTRACT` function (see [EXTRACT](#extract)).
+ - A [IS [NOT] NULL](#is-not-null)), [[NOT] IN](#not-in)) or [IS [NOT] LABELED](#is-not-labeled) predicate.
+ - A [CAST](#cast) specification.
+ - An `EXISTS` predicate (see [EXISTS and NOT EXISTS subqueries](#exists-and-not-exists-subqueries)).
+ - A scalar subquery (see [Scalar subqueries](#scalar-subqueries)).
 
 ## Data Types and Literals
 
@@ -3320,12 +3328,12 @@ A `OR` B                        | `true` if B yields `true`, `null` otherwise   
 
 Note that from the table it follows that `null = null` yields `null` and not `true`.
 
-### IS NULL and IS NOT NULL
+### IS [NOT] NULL
 
 To test whether a value exists or not, one can use the `IS NULL` and `IS NOT NULL` constructs.
 
 ```bash
-NullPredicate    ::= <ValueExpression> 'IS' 'NOT'? 'NULL'
+NullPredicate ::= <ValueExpression> 'IS' ('NOT')? 'NULL'
 ```
 
 For example:
@@ -3337,6 +3345,233 @@ SELECT n.name
 ```
 
 Here, we find all the vertices in the graph that have the property `name` and then return the property.
+
+
+## Vertex and Edge functions
+
+### ID
+
+The `ID` function returns a system-generated identifier for the vertex/edge (unique within a graph).
+
+The syntax is:
+
+```
+ID( vertex/edge )
+```
+
+### LABEL
+
+The `LABEL` function returns the label of a vertex or an edge. It is an error if the vertex or edge does not have a label, or, has more than one label.
+The return type of the function is a string.
+
+The syntax is:
+
+```
+LABEL( vertex/edge )
+```
+
+For example:
+
+```sql
+SELECT LABEL(e)
+  FROM MATCH (n:Person) -[e]-> (m:Person)
+```
+
+```
++----------+
+| LABEL(e) |
++----------+
+| likes    |
+| knows    |
+| likes    |
++----------+
+```
+
+### LABELS (function)
+
+The `LABELS` function returns the set of labels of a vertex or an edge. If the vertex or edge does not have a label, an empty set is returned.
+The return type of the function is a set of strings.
+
+The syntax is:
+
+```
+LABELS( vertex/edge )
+```
+
+For example:
+
+```sql
+SELECT LABELS(n)
+  FROM MATCH (n:Employee|Manager)
+```
+
+```
++---------------------+
+| LABELS(n)           |
++---------------------+
+| [Employee]          |
+| [Manager]           |
+| [Employee, Manager] |
++---------------------+
+```
+
+### IS [NOT] LABELED
+
+The `IS [NOT] LABELED` predicate returns true or false depending on whether the vertex or edge has the specified label.
+
+The syntax is:
+
+```bash
+LabeledPredicate ::= <VariableReference> 'IS' ('NOT')? 'LABELED' <Label>
+```
+
+For example:
+
+{% include image.html file="example_graphs/financial_transactions.png" %}
+
+```sql
+SELECT a.number,
+       CASE WHEN n IS LABELED Person THEN 'Personal Account' ELSE 'Business Account' END AS accountType
+FROM MATCH (n:Person|Company) <-[:owner]- (a:Account)
+```
+
+```
++---------------------------+
+| number | accountType      |
++---------------------------+
+| 10039  | Personal Account |
+| 2090   | Personal Account |
+| 8021   | Personal Account |
+| 1001   | Business Account |
++---------------------------+
+```
+
+### MATCHNUM
+
+The `MATCHNUM` function allows for obtaining a unique identifier for each match to a graph pattern.
+
+For example:
+
+{% include image.html file="example_graphs/financial_transactions.png" %}
+
+```sql
+SELECT v.number AS account_number, MATCHNUM(v), ELEMENT_NUMBER(v)
+FROM MATCH ALL (a1:Account) -[:transaction]->{,4} (a2:Account)
+       ONE ROW PER VERTEX ( v )
+WHERE a1.number = 10039 AND a2.number = 2090
+ORDER BY MATCHNUM(v), ELEMENT_NUMBER(v)
+```
+
+```
++--------------------------------------------------+
+| account_number | MATCHNUM(v) | ELEMENT_NUMBER(v) |
++--------------------------------------------------+
+| 10039          | 0           | 1                 |
+| 8021           | 0           | 3                 |
+| 1001           | 0           | 5                 |
+| 2090           | 0           | 7                 |
+| 10039          | 1           | 1                 |
+| 8021           | 1           | 3                 |
+| 1001           | 1           | 5                 |
+| 2090           | 1           | 7                 |
++--------------------------------------------------+
+```
+
+The numbers returned by the function are unique but not necessarily incremental (0, 1, 2, 3, 4, ...) and gaps between numbers are possible (1, 5, 18, 101) depending on the (multi-threaded) implementation.
+
+### ELEMENT_NUMBER
+
+The `ELEMENT_NUMBER` function allows for obtaining a unique identifier for each vertex and edge within a solution to a graph pattern.
+
+Vertices and edges are numbered from top-to-bottom and from left-to-right.
+Therefore, vertices have odd numbers (1, 3, 5, ...) while edges have even numbers (2, 4, 6, ...).
+
+For example:
+
+{% include image.html file="example_graphs/financial_transactions.png" %}
+
+```sql
+  SELECT v1.number AS v1_account_nr, e.amount, v2.number AS v2_account_nr
+       , ELEMENT_NUMBER(v1) AS v1_elem_nr, ELEMENT_NUMBER(e) AS e_elem_nr
+       , ELEMENT_NUMBER(v2) AS v2_elem_nr
+    FROM MATCH ANY (a1:Account) -[:transaction]->+ (a2:Account)
+           ONE ROW PER STEP ( v1, e, v2 )
+   WHERE a1.number = 1001 AND a2.number = 8021
+ORDER BY e_elem_nr
+```
+
+```
++------------------------------------------------------------------------------+
+| v1_account_nr | amount | v2_account_nr | v1_elem_nr | e_elem_nr | v2_elem_nr |
++------------------------------------------------------------------------------+
+| 1001          | 9999.5 | 2090          | 1          | 2         | 3          |
+| 2090          | 9900.0 | 10039         | 3          | 4         | 5          |
+| 10039         | 1000.0 | 8021          | 5          | 6         | 7          |
++------------------------------------------------------------------------------+
+```
+
+The direction of the edge patterns does not affect the left-to-right numbering.
+For example:
+
+{% include image.html file="example_graphs/financial_transactions.png" %}
+
+```sql
+  SELECT v1.number AS v1_account_nr, e.amount, v2.number AS v2_account_nr
+       , ELEMENT_NUMBER(v1) AS v1_elem_nr, ELEMENT_NUMBER(e) AS e_elem_nr, ELEMENT_NUMBER(v2) AS v2_elem_nr
+    FROM MATCH ANY (a2:Account) <-[:transaction]-+ (a1:Account)
+           ONE ROW PER STEP ( v1, e, v2 )
+   WHERE a1.number = 1001 AND a2.number = 8021
+ORDER BY e_elem_nr
+```
+
+```
++------------------------------------------------------------------------------+
+| v1_account_nr | amount | v2_account_nr | v1_elem_nr | e_elem_nr | v2_elem_nr |
++------------------------------------------------------------------------------+
+| 8021          | 1000.0 | 10039         | 1          | 2         | 3          |
+| 10039         | 9900.0 | 2090          | 3          | 4         | 5          |
+| 2090          | 9999.5 | 1001          | 5          | 6         | 7          |
++------------------------------------------------------------------------------+
+```
+
+Above, we reversed the direction of the edge pattern so that it points from right-to-left instead of left-to-right.
+Therefore, the first variable `v1` now binds to destinations rather than sources of edges.
+
+### ALL_DIFFERENT
+
+The `ALL_DIFFERENT` function returns true if the provided values are all different from each other, and false otherwise. The function is typically used for specifying that a particular set of vertices or edges are all different from each other. However, the function can be used for values of any data type, as long as the provided values can be compared for equality.
+
+The syntax is:
+
+```
+ALL_DIFFERENT( val1, val2, val3, ..., valN )
+```
+
+For example:
+
+```sql
+SELECT *
+  FROM MATCH (n) -> (m) -> (o)
+ WHERE ALL_DIFFERENT( n, m, o )
+```
+
+Note that the above query can be rewritten using non-equality constraints as follows:
+
+```sql
+SELECT *
+  FROM MATCH (n) -> (m) <- (o) -> (n)
+ WHERE n <> m AND n <> o AND m <> o
+```
+
+Another example is:
+
+```sql
+ALL_DIFFERENT( 1, 2, 3 )
+Result: true
+
+ALL_DIFFERENT( 1, 1.0 )
+Result: false
+```
 
 ## String functions
 
@@ -3601,252 +3836,6 @@ EXTRACT(TIMEZONE_MINUTE FROM TIMESTAMP '2018-01-01 12:30:00-02:30')
 Result: -30
 ```
 
-## Vertex and Edge functions
-
-### ID
-
-The `ID` function returns a system-generated identifier for the vertex/edge (unique within a graph).
-
-The syntax is:
-
-```
-ID( vertex/edge )
-```
-
-### LABEL
-
-The `LABEL` function returns the label of a vertex or an edge. It is an error if the vertex or edge does not have a label, or, has more than one label.
-The return type of the function is a string.
-
-The syntax is:
-
-```
-LABEL( vertex/edge )
-```
-
-For example:
-
-```sql
-SELECT LABEL(e)
-  FROM MATCH (n:Person) -[e]-> (m:Person)
-```
-
-```
-+----------+
-| LABEL(e) |
-+----------+
-| likes    |
-| knows    |
-| likes    |
-+----------+
-```
-
-### LABELS (function)
-
-The `LABELS` function returns the set of labels of a vertex or an edge. If the vertex or edge does not have a label, an empty set is returned.
-The return type of the function is a set of strings.
-
-The syntax is:
-
-```
-LABELS( vertex/edge )
-```
-
-For example:
-
-```sql
-SELECT LABELS(n)
-  FROM MATCH (n:Employee|Manager)
-```
-
-```
-+---------------------+
-| LABELS(n)           |
-+---------------------+
-| [Employee]          |
-| [Manager]           |
-| [Employee, Manager] |
-+---------------------+
-```
-
-### LABELED
-
-The `IS [NOT] LABELED` predicate returns true if the vertex or edge has the given label, and false otherwise.
-
-The syntax is:
-
-```bash
-LabeledPredicate ::= <VariableReference> 'IS' 'NOT'? 'LABELED' <Label>
-```
-
-For example:
-
-{% include image.html file="example_graphs/financial_transactions.png" %}
-
-```sql
-SELECT a.number,
-       CASE WHEN n IS LABELED Person THEN 'Personal Account' ELSE 'Business Account' END AS accountType
-FROM MATCH (n:Person|Company) <-[:owner]- (a:Account)
-```
-
-```
-+---------------------------+
-| number | accountType      |
-+---------------------------+
-| 10039  | Personal Account |
-| 2090   | Personal Account |
-| 8021   | Personal Account |
-| 1001   | Business Account |
-+---------------------------+
-```
-
-### MATCHNUM
-
-The `MATCHNUM` function allows for obtaining a unique identifier for each match to a graph pattern.
-
-For example:
-
-{% include image.html file="example_graphs/financial_transactions.png" %}
-
-```sql
-SELECT v.number AS account_number, MATCHNUM(v), ELEMENT_NUMBER(v)
-FROM MATCH ALL (a1:Account) -[:transaction]->{,4} (a2:Account)
-       ONE ROW PER VERTEX ( v )
-WHERE a1.number = 10039 AND a2.number = 2090
-ORDER BY MATCHNUM(v), ELEMENT_NUMBER(v)
-```
-
-```
-+--------------------------------------------------+
-| account_number | MATCHNUM(v) | ELEMENT_NUMBER(v) |
-+--------------------------------------------------+
-| 10039          | 0           | 1                 |
-| 8021           | 0           | 3                 |
-| 1001           | 0           | 5                 |
-| 2090           | 0           | 7                 |
-| 10039          | 1           | 1                 |
-| 8021           | 1           | 3                 |
-| 1001           | 1           | 5                 |
-| 2090           | 1           | 7                 |
-+--------------------------------------------------+
-```
-
-The numbers returned by the function are unique but not necessarily incremental (0, 1, 2, 3, 4, ...) and gaps between numbers are possible (1, 5, 18, 101) depending on the (multi-threaded) implementation.
-
-### ELEMENT_NUMBER
-
-The `ELEMENT_NUMBER` function allows for obtaining a unique identifier for each vertex and edge within a solution to a graph pattern.
-
-Vertices and edges are numbered from top-to-bottom and from left-to-right.
-Therefore, vertices have odd numbers (1, 3, 5, ...) while edges have even numbers (2, 4, 6, ...).
-
-For example:
-
-{% include image.html file="example_graphs/financial_transactions.png" %}
-
-```sql
-  SELECT v1.number AS v1_account_nr, e.amount, v2.number AS v2_account_nr
-       , ELEMENT_NUMBER(v1) AS v1_elem_nr, ELEMENT_NUMBER(e) AS e_elem_nr
-       , ELEMENT_NUMBER(v2) AS v2_elem_nr
-    FROM MATCH ANY (a1:Account) -[:transaction]->+ (a2:Account)
-           ONE ROW PER STEP ( v1, e, v2 )
-   WHERE a1.number = 1001 AND a2.number = 8021
-ORDER BY e_elem_nr
-```
-
-```
-+------------------------------------------------------------------------------+
-| v1_account_nr | amount | v2_account_nr | v1_elem_nr | e_elem_nr | v2_elem_nr |
-+------------------------------------------------------------------------------+
-| 1001          | 9999.5 | 2090          | 1          | 2         | 3          |
-| 2090          | 9900.0 | 10039         | 3          | 4         | 5          |
-| 10039         | 1000.0 | 8021          | 5          | 6         | 7          |
-+------------------------------------------------------------------------------+
-```
-
-The direction of the edge patterns does not affect the left-to-right numbering.
-For example:
-
-{% include image.html file="example_graphs/financial_transactions.png" %}
-
-```sql
-  SELECT v1.number AS v1_account_nr, e.amount, v2.number AS v2_account_nr
-       , ELEMENT_NUMBER(v1) AS v1_elem_nr, ELEMENT_NUMBER(e) AS e_elem_nr, ELEMENT_NUMBER(v2) AS v2_elem_nr
-    FROM MATCH ANY (a2:Account) <-[:transaction]-+ (a1:Account)
-           ONE ROW PER STEP ( v1, e, v2 )
-   WHERE a1.number = 1001 AND a2.number = 8021
-ORDER BY e_elem_nr
-```
-
-```
-+------------------------------------------------------------------------------+
-| v1_account_nr | amount | v2_account_nr | v1_elem_nr | e_elem_nr | v2_elem_nr |
-+------------------------------------------------------------------------------+
-| 8021          | 1000.0 | 10039         | 1          | 2         | 3          |
-| 10039         | 9900.0 | 2090          | 3          | 4         | 5          |
-| 2090          | 9999.5 | 1001          | 5          | 6         | 7          |
-+------------------------------------------------------------------------------+
-```
-
-Above, we reversed the direction of the edge pattern so that it points from right-to-left instead of left-to-right.
-Therefore, the first variable `v1` now binds to destinations rather than sources of edges.
-
-### ALL_DIFFERENT
-
-The `ALL_DIFFERENT` function returns true if the provided values are all different from each other, and false otherwise. The function is typically used for specifying that a particular set of vertices or edges are all different from each other. However, the function can be used for values of any data type, as long as the provided values can be compared for equality.
-
-The syntax is:
-
-```
-ALL_DIFFERENT( val1, val2, val3, ..., valN )
-```
-
-For example:
-
-```sql
-SELECT *
-  FROM MATCH (n) -> (m) -> (o)
- WHERE ALL_DIFFERENT( n, m, o )
-```
-
-Note that the above query can be rewritten using non-equality constraints as follows:
-
-```sql
-SELECT *
-  FROM MATCH (n) -> (m) <- (o) -> (n)
- WHERE n <> m AND n <> o AND m <> o
-```
-
-Another example is:
-
-```sql
-ALL_DIFFERENT( 1, 2, 3 )
-Result: true
-
-ALL_DIFFERENT( 1, 1.0 )
-Result: false
-```
-
-### IN_DEGREE
-
-The `IN_DEGREE` function returns the number of incoming neighbors of a vertex. The return type is an exact numeric.
-
-The syntax is:
-
-```
-IN_DEGREE( vertex )
-```
-
-### OUT_DEGREE
-
-The `OUT_DEGREE` function returns the number of outgoing neighbors of a vertex.  The return type is an exact numeric.
-
-The syntax is:
-
-```
-OUT_DEGREE( vertex )
-```
-
 ## User-Defined functions
 
 User-defined functions (UDFs) are invoked similarly to built-in functions. For example, a user may have registered a function `math.tan` that returns the tangent of a given angle.
@@ -3976,18 +3965,18 @@ CASE
 END
 ```
 
-## IN and NOT IN
+## [NOT] IN
 
-The `IN` and `NOT IN` predicates test a value for membership in a list of values.
+The `[NOT] IN` predicate tests a value for membership in a list of values.
 The PGQL literal types `INTEGER`, `DECIMAL`, `BOOLEAN`, `STRING`, `DATE`, `TIME [WITH TIME ZONE]`, `TIMESTAMP [WITH TIME ZONE]` are allowed in the list.
 
 The syntax is:
 
 ```bash
-InPredicate    ::= <ValueExpression> 'NOT'? 'IN' <InValueList>
+InPredicate ::= <ValueExpression> ('NOT')? 'IN' <InValueList>
 
-InValueList    ::=   '(' <ValueExpression> ( ',' <ValueExpression> )* ')'
-                   | <BindVariable>
+InValueList ::=   '(' <ValueExpression> ( ',' <ValueExpression> )* ')'
+                | <BindVariable>
 ```
 
 For example:
@@ -4029,6 +4018,7 @@ There are two types of subqueries:
 
  - [EXISTS and NOT EXISTS subqueries](#exists-and-not-exists-subqueries).
  - [Scalar subqueries](#scalar-subqueries).
+ - [LATERAL subqueries](#lateral-subqueries).
 
 Both types of subqueries can be used as a value expression in a `SELECT`, `WHERE`, `GROUP BY`, `HAVING` and `ORDER BY` clauses (including `WHERE` clauses of `PATH` expressions). An `EXISTS` or `NOT EXISTS` subquery returns a boolean while a scalar subquery returns a value of any of the supported [data types](#data-types-and-literals).
 
@@ -4136,8 +4126,13 @@ A `LATERAL` subquery can be any PGQL SELECT query and all functions of PGQL SELE
 A `LATERAL` subquery can project any number of columns and it can have an arbitrary number of result rows.
 All projected elements are available outside a `LATERAL` subquery, and only projected variables are visible to the outer query.
 
+The syntax is:
 
-In the following query, the `LATERAL` subquery projects the 2 vertices `a` and `p`, while the outer accesses properties of those vertices.
+```bash
+LateralSubquery ::= 'LATERAL' <Subquery>
+```
+
+In the following query, the `LATERAL` subquery projects the two vertices `a` and `p`, while the outer accesses properties of those vertices.
 
 ```sql
 SELECT p.name, a.number
