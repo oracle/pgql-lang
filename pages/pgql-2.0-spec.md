@@ -24,14 +24,15 @@ The following are the changes since PGQL 1.5:
 The new features are:
 
  - SQL-compatible [GRAPH_TABLE](#graph_table) operator
- - [LATERAL subqueries](#lateral-subqueries)
- - [Path modes](#path-modes): `WALK`, `ACYCLIC`, `SIMPLE`, `TRAIL`
- - New predicates: [IS [NOT] LABELED](#labeled-predicate), IS [NOT] SOURCE OF, IS [NOT] DESTINATION OF
+ - [LATERAL Subqueries](#lateral-subqueries)
+ - [Path Modes](#path-modes): `WALK`, `ACYCLIC`, `SIMPLE`, `TRAIL`
+ - [LABELED Predicate](#labeled-predicate)
+ - [SOURCE/DESTINATION Predicate](#source-destination-predicate)
  - FETCH statement
 
 ## A note on the Grammar
 
-This document contains a complete grammar definition of PGQL, spread throughout the different sections. There is a single entry point into the grammar: `<PgqlStatement>`.
+This document contains a complete grammar definition of PGQL, spread throughout the different sections. There is a single entry point into the grammar: <PgqlStatement>.
 
 ## Document Outline
 
@@ -1322,7 +1323,8 @@ ORDER BY "e_amount"
 
 In a PGQL query, the `FROM` clause defines the graph pattern to be matched.
 
-Syntactically, a `FROM` clause is composed of the keyword `FROM` followed by a comma-separated sequence of `MATCH` clauses, each defining a path pattern:
+Syntactically, a `FROM` clause is composed of the keyword `FROM` followed by a comma-separated sequence of table expressions.
+Each table expression is either a MATCH clause, a GRAPH_TABLE operator or a LATERAL subquery.
 
 ```bash
 FromClause             ::= 'FROM' <TableExpression> ( ',' <TableExpression> )*
@@ -3079,10 +3081,10 @@ A value expression is one of:
  - A character substring function (see [Substring](#substring)).
  - An aggregation (see [Aggregation](#aggregation)).
  - An `EXTRACT` function (see [EXTRACT](#extract)).
- - A [IS [NOT] NULL](#null-predicate)), [[NOT] IN](#in-predicate)) or [IS [NOT] LABELED](#labeled-predicate) predicate.
+ - A [NULL](#null-predicate)), [IN](#in-predicate)) or [LABELED](#labeled-predicate) predicate.
  - A [CAST](#cast) specification.
- - An `EXISTS` predicate (see [EXISTS and NOT EXISTS subqueries](#exists-and-not-exists-subqueries)).
- - A scalar subquery (see [Scalar subqueries](#scalar-subqueries)).
+ - An `EXISTS` predicate (see [EXISTS and NOT EXISTS Subqueries](#exists-and-not-exists-subqueries)).
+ - A scalar subquery (see [Scalar Subqueries](#scalar-subqueries)).
 
 ## Data Types and Literals
 
@@ -3445,6 +3447,10 @@ FROM MATCH (n:Person|Company) <-[:owner]- (a:Account)
 | 1001   | Business Account |
 +---------------------------+
 ```
+
+### SOURCE / DESTINATION Predicate
+
+TODO
 
 ### MATCHNUM
 
@@ -4016,13 +4022,13 @@ SELECT n.date_of_birth
 
 There are two types of subqueries:
 
- - [EXISTS and NOT EXISTS subqueries](#exists-and-not-exists-subqueries).
- - [Scalar subqueries](#scalar-subqueries).
- - [LATERAL subqueries](#lateral-subqueries).
+ - [EXISTS and NOT EXISTS Subqueries](#exists-and-not-exists-subqueries).
+ - [Scalar Subqueries](#scalar-subqueries).
+ - [LATERAL Subqueries](#lateral-subqueries).
 
 Both types of subqueries can be used as a value expression in a `SELECT`, `WHERE`, `GROUP BY`, `HAVING` and `ORDER BY` clauses (including `WHERE` clauses of `PATH` expressions). An `EXISTS` or `NOT EXISTS` subquery returns a boolean while a scalar subquery returns a value of any of the supported [data types](#data-types-and-literals).
 
-## EXISTS and NOT EXISTS subqueries
+## EXISTS and NOT EXISTS Subqueries
 
 `EXISTS` returns true/false depending on whether the subquery produces at least one result, given the bindings obtained in the current (outer) query. No additional binding of variables occurs.
 
@@ -4043,7 +4049,7 @@ SELECT fof.name, COUNT(friend) AS num_common_friends
 
 Here, vertices `p` and `fof` are passed from the outer query to the inner query. The `EXISTS` returns true if there is at least one `has_friend` edge between vertices `p` and `fof`.
 
-## Scalar subqueries
+## Scalar Subqueries
 
 Scalar subqueries are queries that return a scalar value (exactly one row and exactly one column) such that they can be part of an expression in a `SELECT`, `WHERE`, `GROUP BY`, `HAVING` or `ORDER BY` clause.
 
@@ -4119,7 +4125,7 @@ Note that in the query, the graph name `financial_transactions` is repeatedly sp
 ORDER BY sum_outgoing + sum_incoming DESC
 ```
 
-## LATERAL subqueries
+## LATERAL Subqueries
 
 In addition to `MATCH` clauses, the `FROM` clause can also contain `LATERAL` subqueries.
 A `LATERAL` subquery can be any PGQL SELECT query and all functions of PGQL SELECT queries are supported inside a `LATERAL` subquery.
@@ -4168,7 +4174,7 @@ SELECT account.name, person.number
                )
 ```
 
-### Nesting of LATERAL subqueries
+### Nesting of LATERAL Subqueries
 
 `LATERAL` subqueries can be nested. There is no limit on the nesting level.
 

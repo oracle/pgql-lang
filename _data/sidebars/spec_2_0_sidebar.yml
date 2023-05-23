@@ -423,6 +423,10 @@ entries:
         url: /spec/2.0/#labeled-predicate
         output: web
 
+      - title: 'SOURCE / DESTINATION Predicate'
+        url: /spec/2.0/#source--destination-predicate
+        output: web
+
       - title: 'MATCHNUM'
         url: /spec/2.0/#matchnum
         output: web
@@ -507,15 +511,15 @@ entries:
     output: web
     folderitems:
 
-    - title: 'EXISTS and NOT EXISTS subqueries'
+    - title: 'EXISTS and NOT EXISTS Subqueries'
       url: /spec/2.0/#exists-and-not-exists-subqueries
       output: web
 
-    - title: 'Scalar subqueries'
+    - title: 'Scalar Subqueries'
       url: /spec/2.0/#scalar-subqueries
       output: web
 
-    - title: 'LATERAL subqueries'
+    - title: 'LATERAL Subqueries'
       url: /spec/2.0/#lateral-subqueries
       output: web
       subfolderitems:
@@ -524,7 +528,7 @@ entries:
         url: /spec/2.0/#variable-renaming
         output: web
 
-      - title: 'Nesting of LATERAL subqueries'
+      - title: 'Nesting of LATERAL Subqueries'
         url: /spec/2.0/#nesting-of-lateral-subqueries
         output: web
 
