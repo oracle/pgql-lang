@@ -3037,10 +3037,10 @@ The `OFFSET` specifies the start of the first solution that should be returned.
 The syntax is:
 
 ```bash
-ResultOffsetClause ::= 'OFFSET' <OffsetRowCount> ( 'ROW' | 'ROWS' )?
+OffsetClause   ::= 'OFFSET' <OffsetRowCount> ( 'ROW' | 'ROWS' )?
 
-OffsetRowCount     ::=   <UNSIGNED_INTEGER>
-                       | <BindVariable>
+OffsetRowCount ::=   <UNSIGNED_INTEGER>
+                   | <BindVariable>
 ```
 
 The `OFFSET` clause starts with the keyword `OFFSET` and is followed by an offset row count.
