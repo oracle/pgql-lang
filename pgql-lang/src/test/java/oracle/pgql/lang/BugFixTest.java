@@ -14,6 +14,7 @@ import org.junit.Test;
 import oracle.pgql.lang.ir.ExpAsVar;
 import oracle.pgql.lang.ir.GraphQuery;
 import oracle.pgql.lang.ir.QueryExpression.AllProperties;
+import oracle.pgql.lang.ir.QueryExpression.ExpressionType;
 import oracle.pgql.lang.ir.QueryExpression.FunctionCall;
 import oracle.pgql.lang.ir.QueryExpression.PropertyAccess;
 import oracle.pgql.lang.ir.SelectQuery;
@@ -390,5 +391,21 @@ public class BugFixTest extends AbstractPgqlTest {
             "    e1 SOURCE v1 DESTINATION v2 " + // there should be no issue with references v1 and v2 here
             "  )");
     assertTrue(result.isQueryValid());
+  }
+
+  @Test
+  public void testBindVariableInHasLabel() throws Exception {
+    // make sure that both the normalization of the bind variable as well as the normalization of the has_label function are performed, and not only one of them
+    PgqlResult result = pgql.parse("SELECT n.name FROM MATCH (n) WHERE \"Has_Label\"(n, ?)");
+    FunctionCall hasLabel = (FunctionCall) result.getGraphQuery().getGraphPattern().getConstraints().iterator().next();
+    assertEquals("has_label", hasLabel.getFunctionName());
+    assertEquals(ExpressionType.BIND_VARIABLE, hasLabel.getArgs().get(1).getExpType());
+  }
+
+  @Test
+  public void testHasLabelNormalizedInNestedFashion() throws Exception {
+    PgqlResult result1 = pgql.parse("SELECT has_label(n, CASE WHEN has_label(m, 'PERSON') THEN 'CAR' ELSE 'HOUSE' END) FROM MATCH (n) -> (m)");
+    PgqlResult result2 = pgql.parse("SELECT \"has_label\"(n, CASE WHEN \"has_label\"(m, 'PERSON') THEN 'CAR' ELSE 'HOUSE' END) FROM MATCH (n) -> (m)");
+    assertEquals(result2.getGraphQuery().toString(), result1.getGraphQuery().toString());
   }
 }

@@ -47,13 +47,14 @@ rules
                          <get-errors-for-inconsistent-graph-names>
                        ); conc> ast;
       result := <
+        alltd(norm-BindVariable(|bindVariable-counter)); // give numbers to bind variables; this should happen before any other query transformation so that we maintain the order of bind variables as they appear in the original query
         alltd(norm-pgql10);
         alltd(
-          norm-BindVariable(|bindVariable-counter) +
           norm-UMin +
           norm-DateTimeField +
-          norm-labeled-predicate +
-          norm-source-destination-predicate);
+          norm-source-destination-predicate
+        );
+        bottomup(try(norm-labeled-predicate));
         innermost(
           norm-NOT +
           norm-NEQ +
