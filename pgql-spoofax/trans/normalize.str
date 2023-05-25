@@ -401,7 +401,7 @@ rules
          end
 
   norm-labeled-predicate:
-    FunctionCall(None(), functionName, args@[VarRef(_), _]) -> FunctionCall(None(), Identifier("has_label", origin), args)
+    FunctionCall(None(), functionName, args@[VarRef(_), String(_)]) -> FunctionCall(None(), Identifier("has_label", origin), args)
     where <norm-identifier; ?Identifier(<id>, origin); lower-case; ?"has_label"> functionName
 
   norm-source-destination-predicate:

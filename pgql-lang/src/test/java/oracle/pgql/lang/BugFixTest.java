@@ -9,12 +9,13 @@ import static org.junit.Assert.assertTrue;
 
 import java.util.List;
 
+import org.junit.Ignore;
 import org.junit.Test;
+
 
 import oracle.pgql.lang.ir.ExpAsVar;
 import oracle.pgql.lang.ir.GraphQuery;
 import oracle.pgql.lang.ir.QueryExpression.AllProperties;
-import oracle.pgql.lang.ir.QueryExpression.ExpressionType;
 import oracle.pgql.lang.ir.QueryExpression.FunctionCall;
 import oracle.pgql.lang.ir.QueryExpression.PropertyAccess;
 import oracle.pgql.lang.ir.SelectQuery;
@@ -394,15 +395,22 @@ public class BugFixTest extends AbstractPgqlTest {
   }
 
   @Test
-  public void testBindVariableInHasLabel() throws Exception {
-    // make sure that both the normalization of the bind variable as well as the normalization of the has_label function are performed, and not only one of them
-    PgqlResult result = pgql.parse("SELECT n.name FROM MATCH (n) WHERE \"Has_Label\"(n, ?)");
+  public void testNonStringLiteralInHasLabel() throws Exception {
+    // make sure that normalization only happens in case of string literal, but not in case of e.g. a bind variable (PG View limitation)
+    testNonStringLiteralInHasLabelHelper("SELECT n.name FROM MATCH (n) WHERE has_label(n, 'Person')", "has_label");
+    testNonStringLiteralInHasLabelHelper("SELECT n.name FROM MATCH (n) WHERE \"Has_Label\"(n, 'Person')", "has_label");
+    testNonStringLiteralInHasLabelHelper("SELECT n.name FROM MATCH (n) WHERE has_label(n, ?)", "HAS_LABEL");
+    testNonStringLiteralInHasLabelHelper("SELECT n.name FROM MATCH (n) WHERE has_label(n, 'Per' || 'son')", "HAS_LABEL");
+  }
+
+  private void testNonStringLiteralInHasLabelHelper(String query, String expectedFunctionName) throws Exception {
+    PgqlResult result = pgql.parse(query);
     FunctionCall hasLabel = (FunctionCall) result.getGraphQuery().getGraphPattern().getConstraints().iterator().next();
-    assertEquals("has_label", hasLabel.getFunctionName());
-    assertEquals(ExpressionType.BIND_VARIABLE, hasLabel.getArgs().get(1).getExpType());
+    assertEquals(expectedFunctionName, hasLabel.getFunctionName());
   }
 
   @Test
+  @Ignore // fix me once PG View can handle it (see above)
   public void testHasLabelNormalizedInNestedFashion() throws Exception {
     PgqlResult result1 = pgql.parse("SELECT has_label(n, CASE WHEN has_label(m, 'PERSON') THEN 'CAR' ELSE 'HOUSE' END) FROM MATCH (n) -> (m)");
     PgqlResult result2 = pgql.parse("SELECT \"has_label\"(n, CASE WHEN \"has_label\"(m, 'PERSON') THEN 'CAR' ELSE 'HOUSE' END) FROM MATCH (n) -> (m)");
