@@ -2,10 +2,10 @@ module Colorer
 
 colorer
                                   
-  keyword    : 127 0 85 bold      
+  keyword    : surf
   identifier : default            
-  string     : blue               
-  number     : darkgreen          
+  string     : green6
+  number     : green6
   var        : 255 0 100 italic   
   operator   : black            
   layout     : 63 127 95 italic   
@@ -31,10 +31,14 @@ colorer System colors
   brown     = 139 69 19
   default   = _
 
+  // Oracle Redwood colors
+  surf      = 42 104 140 bold
+  green6    = 117 156 108
+
 colorer
 
   IDENTIFIER           : black
   DOUBLE-QUOTED-STRING : black
-  STRING               : darkblue
-  UNSIGNED-INT         : darkblue
-  UNSIGNED-DECIMAL     : darkblue
+  STRING               : green6
+  UNSIGNED-INT         : green6
+  UNSIGNED-DECIMAL     : green6
