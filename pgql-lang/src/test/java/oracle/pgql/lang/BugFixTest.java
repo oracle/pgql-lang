@@ -12,7 +12,7 @@ import java.util.List;
 import org.junit.Ignore;
 import org.junit.Test;
 
-
+import oracle.pgql.lang.ddl.propertygraph.CreateSuperPropertyGraph;
 import oracle.pgql.lang.ir.ExpAsVar;
 import oracle.pgql.lang.ir.GraphQuery;
 import oracle.pgql.lang.ir.QueryExpression.AllProperties;
@@ -415,5 +415,14 @@ public class BugFixTest extends AbstractPgqlTest {
     PgqlResult result1 = pgql.parse("SELECT has_label(n, CASE WHEN has_label(m, 'PERSON') THEN 'CAR' ELSE 'HOUSE' END) FROM MATCH (n) -> (m)");
     PgqlResult result2 = pgql.parse("SELECT \"has_label\"(n, CASE WHEN \"has_label\"(m, 'PERSON') THEN 'CAR' ELSE 'HOUSE' END) FROM MATCH (n) -> (m)");
     assertEquals(result2.getGraphQuery().toString(), result1.getGraphQuery().toString());
+  }
+
+  @Test
+  public void testAllElementTablesExcept() throws Exception {
+    PgqlResult result = pgql.parse("CREATE PROPERTY GRAPH g1 BASE GRAPHS ( g2 ALL ELEMENT TABLES EXCEPT ( t1, t2 ) )");
+    CreateSuperPropertyGraph createPropertyGraph = (CreateSuperPropertyGraph) result.getPgqlStatement();
+    List<String> allEmentTablesExcept = createPropertyGraph.getBaseGraphs().get(0).getAllElementTablesExcept();
+    assertEquals("T1", allEmentTablesExcept.get(0));
+    assertEquals("T2", allEmentTablesExcept.get(1));
   }
 }

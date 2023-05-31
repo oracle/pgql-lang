@@ -54,6 +54,8 @@ public class TranslateCreatePropertyGraph {
 
   private static int BASE_ELEMENT_TABLE_ALIAS = 1;
 
+  private static int BASE_GRAPH_ELEMENT_TABLES_TABLES_EXCEPT = 0;
+
   private static int BASE_GRAPH_ELEMENT_TABLES_TABLES_EXCEPT_LIST = 0;
 
   private static int VERTEX_TABLES_TABLES_LIST = 0;
@@ -161,12 +163,12 @@ public class TranslateCreatePropertyGraph {
             }
             break;
           case "AllElementTables":
-            IStrategoTerm exceptElementTablesT = baseElementTablesT
-                .getSubterm(BASE_GRAPH_ELEMENT_TABLES_TABLES_EXCEPT_LIST);
-            
+            IStrategoTerm exceptElementTablesT = baseElementTablesT.getSubterm(BASE_GRAPH_ELEMENT_TABLES_TABLES_EXCEPT);
+
             if (!isNone(exceptElementTablesT)) {
               allElementTablesExcept = new ArrayList<String>();
-              for (IStrategoTerm exceptElementTableT : getSomeValue(exceptElementTablesT)) {
+              for (IStrategoTerm exceptElementTableT : getSomeValue(exceptElementTablesT)
+                  .getSubterm(BASE_GRAPH_ELEMENT_TABLES_TABLES_EXCEPT_LIST)) {
                 String exceptElementTable = getString(exceptElementTableT);
                 allElementTablesExcept.add(exceptElementTable);
               }
