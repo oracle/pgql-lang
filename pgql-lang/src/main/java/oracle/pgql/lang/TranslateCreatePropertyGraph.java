@@ -241,7 +241,10 @@ public class TranslateCreatePropertyGraph {
         return vertexTable;
       }
     }
-    return null; // simply pass through; parser will generate an appropriate message when a vertex table is undefined
+
+    // create a dummy vertex table for the case we reference a vertex table that is defined in a base graph rather than
+    // in the current statement
+    return new VertexTable(new SchemaQualifiedName(null, tableAlias), null, null);
   }
 
   private static Key getKey(IStrategoTerm keyClauseT) {

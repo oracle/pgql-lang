@@ -5,6 +5,7 @@ package oracle.pgql.lang;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
 
 import java.util.List;
@@ -396,11 +397,13 @@ public class BugFixTest extends AbstractPgqlTest {
 
   @Test
   public void testNonStringLiteralInHasLabel() throws Exception {
-    // make sure that normalization only happens in case of string literal, but not in case of e.g. a bind variable (PG View limitation)
+    // make sure that normalization only happens in case of string literal, but not in case of e.g. a bind variable (PG
+    // View limitation)
     testNonStringLiteralInHasLabelHelper("SELECT n.name FROM MATCH (n) WHERE has_label(n, 'Person')", "has_label");
     testNonStringLiteralInHasLabelHelper("SELECT n.name FROM MATCH (n) WHERE \"Has_Label\"(n, 'Person')", "has_label");
     testNonStringLiteralInHasLabelHelper("SELECT n.name FROM MATCH (n) WHERE has_label(n, ?)", "HAS_LABEL");
-    testNonStringLiteralInHasLabelHelper("SELECT n.name FROM MATCH (n) WHERE has_label(n, 'Per' || 'son')", "HAS_LABEL");
+    testNonStringLiteralInHasLabelHelper("SELECT n.name FROM MATCH (n) WHERE has_label(n, 'Per' || 'son')",
+        "HAS_LABEL");
   }
 
   private void testNonStringLiteralInHasLabelHelper(String query, String expectedFunctionName) throws Exception {
@@ -412,8 +415,10 @@ public class BugFixTest extends AbstractPgqlTest {
   @Test
   @Ignore // fix me once PG View can handle it (see above)
   public void testHasLabelNormalizedInNestedFashion() throws Exception {
-    PgqlResult result1 = pgql.parse("SELECT has_label(n, CASE WHEN has_label(m, 'PERSON') THEN 'CAR' ELSE 'HOUSE' END) FROM MATCH (n) -> (m)");
-    PgqlResult result2 = pgql.parse("SELECT \"has_label\"(n, CASE WHEN \"has_label\"(m, 'PERSON') THEN 'CAR' ELSE 'HOUSE' END) FROM MATCH (n) -> (m)");
+    PgqlResult result1 = pgql.parse(
+        "SELECT has_label(n, CASE WHEN has_label(m, 'PERSON') THEN 'CAR' ELSE 'HOUSE' END) FROM MATCH (n) -> (m)");
+    PgqlResult result2 = pgql.parse(
+        "SELECT \"has_label\"(n, CASE WHEN \"has_label\"(m, 'PERSON') THEN 'CAR' ELSE 'HOUSE' END) FROM MATCH (n) -> (m)");
     assertEquals(result2.getGraphQuery().toString(), result1.getGraphQuery().toString());
   }
 
@@ -424,5 +429,19 @@ public class BugFixTest extends AbstractPgqlTest {
     List<String> allEmentTablesExcept = createPropertyGraph.getBaseGraphs().get(0).getAllElementTablesExcept();
     assertEquals("T1", allEmentTablesExcept.get(0));
     assertEquals("T2", allEmentTablesExcept.get(1));
+  }
+
+  @Test
+  public void testReferenceVertexTableFromBaseGraph() throws Exception {
+    PgqlResult result = pgql.parse(
+        "CREATE PROPERTY GRAPH g1 BASE GRAPHS ( g2 ) EDGE TABLES ( e1 SOURCE v1 DESTINATION KEY ( c1 ) REFERENCES v2 ( c2 ) )");
+    assertTrue(result.isQueryValid());
+
+    CreateSuperPropertyGraph cspg = (CreateSuperPropertyGraph) result.getPgqlStatement();
+    assertNotNull(cspg.getEdgeTables().get(0).getSourceVertexTable());
+    assertNotNull(cspg.getEdgeTables().get(0).getDestinationVertexTable());
+
+    // make sure pretty printing does not fail and pretty printed statement can be parsed
+    assertTrue(pgql.parse(result.getPgqlStatement().toString()).isQueryValid());
   }
 }
