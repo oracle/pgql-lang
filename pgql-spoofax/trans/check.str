@@ -536,8 +536,8 @@ rules // MODIFY
        ; <generate-error-on-duplicates(|ctx, "Duplicate element table name; use an alias to make the element table name unique (table AS alias)")> elementTableNames
 
        // check for unresolved references from edge tables to vertex tables
-       // we only do so if there are no base graphs or if there are base graphs but all their element tables are specified
-       ; if <?None() + ?Some(BaseGraphs(<id>)); not(fetch-elem(?BaseGraph(_, Some(AllElementTables(_))) + ?BaseGraph(_, None())))> baseGraphs
+       // we only do so if there are no base graphs
+       ; if <?None()> baseGraphs
          then vertexTableReferences := <collect(( ?SourceVertexTable(_, ReferencedVertexTable(Name(_, <id>), _)) +
                                                   ?DestinationVertexTable(_, ReferencedVertexTable(Name(_, <id>), _))
                                                 ); to-identifier-without-origin-info)> edgeTables
