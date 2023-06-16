@@ -44,7 +44,7 @@ test Duplicate vertex and edge tables [[
 test Duplicate vertex and edge tables [[
 
   CREATE PROPERTY GRAPH MyGraph
-    BASE GRAPHS ( g1 ELEMENT TABLES ( [[person]], [[knows]] ) )
+    BASE GRAPHS ( g1 ELEMENT TABLES ( [[person]], [[knows]], [[post]], [[post]], v1 AS [[v3]], v2 AS [[v3]] ) )
     VERTEX TABLES (
       [[Person]]
     )
@@ -52,7 +52,7 @@ test Duplicate vertex and edge tables [[
       [[knows]] SOURCE Person DESTINATION Person
     )
 
-]] error like "Duplicate element table name; use an alias to make the element table name unique (table AS alias)" at #1, #2, #3, #4
+]] error like "Duplicate element table name; use an alias to make the element table name unique (table AS alias)" at #1, #2, #3, #4, #5, #6, #7, #8
 
 test Missing property name [[
 
@@ -94,3 +94,10 @@ test Missing KEY clause [[
         [[destination employees ( employee_id )]]
     )
 ]] error like "Referenced column list provided but no KEY clause specified" at #1, #2
+
+test Duplicate base graph reference [[
+
+  CREATE PROPERTY GRAPH MyGraph
+    BASE GRAPHS ( [[g1]], [[g1]] )
+
+]] error like "Duplicate base graph reference" at #1, #2
