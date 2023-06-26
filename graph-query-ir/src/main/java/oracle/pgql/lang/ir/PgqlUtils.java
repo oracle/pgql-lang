@@ -232,6 +232,7 @@ public class PgqlUtils {
       }
       result += tableExpressionStrings.stream().collect(Collectors.joining(", "));
     }
+    result += printWhereClause(graphQuery.getConstraints());
     GroupBy groupBy = graphQuery.getGroupBy();
     if (groupBy != null && groupBy.getElements().isEmpty() == false) {
       result += "\n" + groupBy;
@@ -315,14 +316,19 @@ public class PgqlUtils {
 
     String result = graphPatternMatches.stream().collect(Collectors.joining("\n   , "));
 
-    // print filter expressions
-    if (!graphPattern.getConstraints().isEmpty()) {
-      result += "\nWHERE " + graphPattern.getConstraints().stream() //
+    result += printWhereClause(graphPattern.getConstraints());
+
+    return result;
+  }
+
+  private static String printWhereClause(Set<QueryExpression> constraints) {
+    if (constraints.isEmpty()) {
+      return "";
+    } else {
+      return "\nWHERE " + constraints.stream() //
           .map(x -> x.toString()) //
           .collect(Collectors.joining("\n  AND "));
     }
-
-    return result;
   }
 
   private static boolean isVariableLengthPathPatternNotReaches(VertexPairConnection connection) {

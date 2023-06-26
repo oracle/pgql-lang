@@ -5,16 +5,26 @@ package oracle.pgql.lang.ir;
 
 import java.util.Collections;
 import java.util.List;
+import java.util.Set;
 
 public class SelectQuery extends GraphQuery {
 
   private Projection projection;
 
   public SelectQuery(List<CommonPathExpression> commonPathExpressions, Projection projection,
+      SchemaQualifiedName graphName, List<TableExpression> tableExpressions, Set<QueryExpression> constraints,
+      GroupBy groupBy, QueryExpression having, OrderBy orderBy, QueryExpression limit, QueryExpression offset) {
+    super(commonPathExpressions, graphName, tableExpressions, constraints, groupBy, having, orderBy, limit, offset);
+    this.projection = projection;
+  }
+
+  /**
+   * @deprecated use the constructor with a WHERE clause
+   */
+  public SelectQuery(List<CommonPathExpression> commonPathExpressions, Projection projection,
       SchemaQualifiedName graphName, List<TableExpression> tableExpressions, GroupBy groupBy, QueryExpression having,
       OrderBy orderBy, QueryExpression limit, QueryExpression offset) {
-    super(commonPathExpressions, graphName, tableExpressions, groupBy, having, orderBy, limit, offset);
-    this.projection = projection;
+    this(commonPathExpressions, projection, graphName, tableExpressions, null, groupBy, having, orderBy, limit, offset);
   }
 
   /**

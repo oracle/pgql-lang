@@ -87,7 +87,6 @@ public class SpoofaxAstToGraphQuery {
   private static final int POS_SELECT_OR_MODIFY = 1;
   private static final int POS_GRAPH_NAME = 2;
   private static final int POS_TABLE_EXPRESSIONS = 3;
-  @SuppressWarnings("unused")
   private static final int POS_NON_PUSHED_DOWN_PREDICATES = 4;
   private static final int POS_GROUPBY = 5;
   private static final int POS_HAVING = 6;
@@ -245,6 +244,10 @@ public class SpoofaxAstToGraphQuery {
       }
     }
 
+    // constraints
+    IStrategoTerm constraintsT = getList(ast.getSubterm(POS_NON_PUSHED_DOWN_PREDICATES));
+    Set<QueryExpression> constraints = getQueryExpressions(constraintsT, ctx);
+
     // GROUP BY
     IStrategoTerm groupByT = ast.getSubterm(POS_GROUPBY);
     GroupBy groupBy = getGroupBy(ctx, groupByT);
@@ -289,11 +292,11 @@ public class SpoofaxAstToGraphQuery {
 
     switch (selectOrUpdate) {
       case "SelectClause":
-        return new SelectQuery(commonPathExpressions, projection, graphName, tableExpressions, groupBy, having, orderBy,
-            limit, offset);
-      case "ModifyClause":
-        return new ModifyQuery(commonPathExpressions, modifications, graphName, tableExpressions, groupBy, having,
+        return new SelectQuery(commonPathExpressions, projection, graphName, tableExpressions, constraints, groupBy, having,
             orderBy, limit, offset);
+      case "ModifyClause":
+        return new ModifyQuery(commonPathExpressions, modifications, graphName, tableExpressions, constraints, groupBy,
+            having, orderBy, limit, offset);
       default:
         throw new IllegalStateException(selectOrUpdate);
     }
@@ -551,7 +554,7 @@ public class SpoofaxAstToGraphQuery {
 
     // constraints
     IStrategoTerm constraintsT = getList(pathPatternT.getSubterm(POS_COMMON_PATH_EXPRESSION_CONSTRAINTS));
-    LinkedHashSet<QueryExpression> constraints = getQueryExpressions(constraintsT, ctx);
+    Set<QueryExpression> constraints = getQueryExpressions(constraintsT, ctx);
 
     // COST clause
     IStrategoTerm costT = pathPatternT.getSubterm(POS_COMMON_PATH_EXPRESSION_COST);
