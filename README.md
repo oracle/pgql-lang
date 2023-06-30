@@ -18,7 +18,7 @@ This Git repository contains a parser for PGQL with the following features:
 
    ```sql
    SELECT n.name, o.name
-     FROM MATCH (n) -[e]-> (m)
+   FROM MATCH (n) -[e]-> (m)
    ```
 
    ```
