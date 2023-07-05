@@ -175,8 +175,8 @@ public class StaticOptimizationsTest extends AbstractPgqlTest {
         "WHERE n_prop > 4 AND m_prop > 4 AND m.prop2 > 4";
 
     SelectQuery outerQuery = (SelectQuery) pgql.parse(query).getGraphQuery();
-    Set<QueryExpression> constraintsOuterQuery = outerQuery.getGraphPattern().getConstraints();
-    assertEquals(2L, constraintsOuterQuery.size());
+    GraphPattern graphPattern = (GraphPattern) outerQuery.getTableExpressions().get(0);
+    assertEquals(2L, graphPattern.getConstraints().size());
 
     SelectQuery innerQuery = ((DerivedTable) outerQuery.getTableExpressions().get(1)).getQuery();
     Set<QueryExpression> constraintsInnerQuery = innerQuery.getGraphPattern().getConstraints();
@@ -213,6 +213,61 @@ public class StaticOptimizationsTest extends AbstractPgqlTest {
     And and = (And) innerQuery.getHaving();
     assertEquals(ExpressionType.GREATER_EQUAL, and.getExp1().getExpType());
     assertEquals(ExpressionType.GREATER, and.getExp2().getExpType());
+  }
+
+  @Test
+  public void testPredicatePushDownLateralWithLimitOffset1() throws Exception {
+    String query = "SELECT * FROM LATERAL ( SELECT n.prop FROM MATCH (n) ORDER BY n.prop LIMIT 5 ) "
+        + "WHERE prop < 10";
+
+    SelectQuery outerQuery = (SelectQuery) pgql.parse(query).getGraphQuery();
+    assertEquals(1L, outerQuery.getConstraints().size());
+
+    SelectQuery innerQuery = ((DerivedTable) outerQuery.getTableExpressions().get(0)).getQuery();
+    assertEquals(0L, innerQuery.getGraphPattern().getConstraints().size());
+
+    // now try the same query but without LIMIT (this time the predicate will be pushed down)
+    query = "SELECT * FROM LATERAL ( SELECT n.prop FROM MATCH (n) ORDER BY n.prop ) WHERE prop < 10";
+
+    outerQuery = (SelectQuery) pgql.parse(query).getGraphQuery();
+    assertEquals(0L, outerQuery.getConstraints().size());
+
+    innerQuery = ((DerivedTable) outerQuery.getTableExpressions().get(0)).getQuery();
+    assertEquals(1L, innerQuery.getGraphPattern().getConstraints().size());
+  }
+
+  @Test
+  public void testPredicatePushDownLateralWithLimitOffset2() throws Exception {
+    String query = "SELECT * FROM MATCH (m), LATERAL ( SELECT n.prop FROM MATCH (n) ORDER BY n.prop LIMIT 5 ), MATCH (o) "
+        + "WHERE prop < 10 AND m.prop < 20 AND o.prop < 30";
+
+    SelectQuery outerQuery = (SelectQuery) pgql.parse(query).getGraphQuery();
+    assertEquals(0L, outerQuery.getConstraints().size());
+
+    GraphPattern graphPattern1 = (GraphPattern) outerQuery.getTableExpressions().get(0);
+    assertEquals(1L, graphPattern1.getConstraints().size());
+
+    SelectQuery innerQuery = ((DerivedTable) outerQuery.getTableExpressions().get(1)).getQuery();
+    assertEquals(0L, innerQuery.getGraphPattern().getConstraints().size());
+
+    GraphPattern graphPattern2 = (GraphPattern) outerQuery.getTableExpressions().get(2);
+    assertEquals(2L, graphPattern2.getConstraints().size());
+
+    // now try the same query but without LIMIT
+    query = "SELECT * FROM MATCH (m), LATERAL ( SELECT n.prop FROM MATCH (n) ORDER BY n.prop ), MATCH (o) "
+        + "WHERE prop < 10 AND m.prop < 20 AND o.prop < 30";
+
+    outerQuery = (SelectQuery) pgql.parse(query).getGraphQuery();
+    assertEquals(0L, outerQuery.getConstraints().size());
+
+    graphPattern1 = (GraphPattern) outerQuery.getTableExpressions().get(0);
+    assertEquals(1L, graphPattern1.getConstraints().size());
+
+    innerQuery = ((DerivedTable) outerQuery.getTableExpressions().get(1)).getQuery();
+    assertEquals(1L, innerQuery.getGraphPattern().getConstraints().size());
+
+    graphPattern2 = (GraphPattern) outerQuery.getTableExpressions().get(2);
+    assertEquals(1L, graphPattern2.getConstraints().size());
   }
 
   @Test

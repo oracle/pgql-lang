@@ -4,6 +4,7 @@
 package oracle.pgql.lang.ir;
 
 import java.util.List;
+import java.util.Set;
 
 import static oracle.pgql.lang.ir.PgqlUtils.printPgqlString;
 
@@ -14,6 +15,8 @@ public abstract class GraphQuery implements PgqlStatement {
   private SchemaQualifiedName graphName;
 
   private List<TableExpression> tableExpressions;
+
+  private Set<QueryExpression> constraints; // non pushed-down predicates only
 
   private GroupBy groupBy;
 
@@ -29,11 +32,12 @@ public abstract class GraphQuery implements PgqlStatement {
    * Constructor
    */
   protected GraphQuery(List<CommonPathExpression> commonPathExpressions, SchemaQualifiedName graphName,
-      List<TableExpression> tableExpressions, GroupBy groupBy, QueryExpression having, OrderBy orderBy,
-      QueryExpression limit, QueryExpression offset) {
+      List<TableExpression> tableExpressions, Set<QueryExpression> constraints, GroupBy groupBy, QueryExpression having,
+      OrderBy orderBy, QueryExpression limit, QueryExpression offset) {
     this.commonPathExpressions = commonPathExpressions;
     this.graphName = graphName;
     this.tableExpressions = tableExpressions;
+    this.constraints = constraints;
     this.groupBy = groupBy;
     this.having = having;
     this.orderBy = orderBy;
@@ -113,6 +117,17 @@ public abstract class GraphQuery implements PgqlStatement {
     this.tableExpressions = tableExpressions;
   }
 
+  /**
+   * @return the constraints in the WHERE clause that were not pushed down into any of the table expressions
+   */
+  public Set<QueryExpression> getConstraints() {
+    return constraints;
+  }
+
+  public void setConstraints(Set<QueryExpression> where) {
+    this.constraints = where;
+  }
+
   public GroupBy getGroupBy() {
     return groupBy;
   }
@@ -182,6 +197,16 @@ public abstract class GraphQuery implements PgqlStatement {
         return false;
     } else if (!graphName.equals(other.graphName))
       return false;
+    if (tableExpressions == null) {
+      if (other.tableExpressions != null)
+        return false;
+    } else if (!tableExpressions.equals(other.tableExpressions))
+      return false;
+    if (constraints == null) {
+      if (other.constraints != null)
+        return false;
+    } else if (!constraints.equals(other.constraints))
+      return false;
     if (groupBy == null) {
       if (other.groupBy != null)
         return false;
@@ -191,6 +216,11 @@ public abstract class GraphQuery implements PgqlStatement {
       if (other.having != null)
         return false;
     } else if (!having.equals(other.having))
+      return false;
+    if (orderBy == null) {
+      if (other.orderBy != null)
+        return false;
+    } else if (!orderBy.equals(other.orderBy))
       return false;
     if (limit == null) {
       if (other.limit != null)
@@ -202,16 +232,6 @@ public abstract class GraphQuery implements PgqlStatement {
         return false;
     } else if (!offset.equals(other.offset))
       return false;
-    if (orderBy == null) {
-      if (other.orderBy != null)
-        return false;
-    } else if (!orderBy.equals(other.orderBy))
-      return false;
-    if (tableExpressions == null) {
-      if (other.tableExpressions != null)
-        return false;
-    } else if (!tableExpressions.equals(other.tableExpressions))
-      return false;
     return true;
   }
 
@@ -222,7 +242,8 @@ public abstract class GraphQuery implements PgqlStatement {
       return; // INSERT without FROM clause
     }
 
-    if (tableExpressions.get(0).getTableExpressionType() != TableExpressionType.GRAPH_PATTERN) {
+    if (tableExpressions.size() != 1
+        || tableExpressions.get(0).getTableExpressionType() != TableExpressionType.GRAPH_PATTERN) {
       throw new UnsupportedOperationException("Subqueries in FROM clause not supported");
     }
   }
