@@ -432,7 +432,7 @@ public class BugFixTest extends AbstractPgqlTest {
   }
 
   @Test
-  public void testReferenceVertexTableFromBaseGraph() throws Exception {
+  public void testReferenceVertexTableFromBaseGraph1() throws Exception {
     PgqlResult result = pgql.parse(
         "CREATE PROPERTY GRAPH g1 BASE GRAPHS ( g2 ) EDGE TABLES ( e1 SOURCE v1 DESTINATION KEY ( c1 ) REFERENCES v2 ( c2 ) )");
     assertTrue(result.isQueryValid());
@@ -443,5 +443,20 @@ public class BugFixTest extends AbstractPgqlTest {
 
     // make sure pretty printing does not fail and pretty printed statement can be parsed
     assertTrue(pgql.parse(result.getPgqlStatement().toString()).isQueryValid());
+  }
+
+  @Test
+  public void testReferenceVertexTableFromBaseGraph2() throws Exception {
+    PgqlResult result = pgql.parse(
+        "CREATE PROPERTY GRAPH g1 " + //
+        "  BASE GRAPHS( " + //
+        "   g2 ELEMENT TABLES( v1, v2 ) " + //
+        "  ) " + //
+        "  EDGE TABLES( " + //
+        "    e KEY(id) " + //
+        "    SOURCE KEY (sid) REFERENCES v1 (id) " + //
+        "    DESTINATION KEY (did) REFERENCES v2 (id) " + //
+        "  )");
+    assertTrue(result.isQueryValid());
   }
 }

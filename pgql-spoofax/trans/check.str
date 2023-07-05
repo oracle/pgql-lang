@@ -527,7 +527,7 @@ rules // MODIFY
 
   nabl-constraint(|ctx):
     CreatePropertyGraph(_, baseGraphs, VertexTables(vertexTables), EdgeTables(edgeTables), _) -> <fail>
-    with elementTableNamesFromBaseGraphs := <collect-om(?BaseElementTable(_, <id>); to-identifier-without-origin-info)> baseGraphs
+    with elementTableNamesFromBaseGraphs := <collect-om(?BaseElementTable(_, <id>); to-identifier-without-origin-info, conc)> baseGraphs
        ; vertexTableNames := <map(?VertexTable(_, <id>, _, _); to-identifier-without-origin-info)> vertexTables
        ; <generate-error-on-duplicates(|ctx, "Duplicate vertex table name; use an alias to make the vertex table name unique (table AS alias)")> vertexTableNames
        ; edgeTableNames := <map(?EdgeTable(_, <id>, _, _, _, _); to-identifier-without-origin-info)> edgeTables
@@ -535,14 +535,17 @@ rules // MODIFY
        ; elementTableNames := <conc> (elementTableNamesFromBaseGraphs, <conc; make-set> (vertexTableNames, edgeTableNames))
        ; <generate-error-on-duplicates(|ctx, "Duplicate element table name; use an alias to make the element table name unique (table AS alias)")> elementTableNames
 
-       // check for unresolved references from edge tables to vertex tables
-       // we only do so if there are no base graphs or if there are base graphs but all their element tables are specified
-       ; if <?None() + ?Some(BaseGraphs(<id>)); not(fetch-elem(?BaseGraph(_, Some(AllElementTables(_))) + ?BaseGraph(_, None())))> baseGraphs
-         then vertexTableReferences := <collect(( ?SourceVertexTable(_, ReferencedVertexTable(Name(_, <id>), _)) +
+       ; if <?None()> baseGraphs
+         then // check for unresolved references from edge tables to vertex tables
+              // we only do so if there are no base graphs
+              vertexTableReferences := <collect(( ?SourceVertexTable(_, ReferencedVertexTable(Name(_, <id>), _)) +
                                                   ?DestinationVertexTable(_, ReferencedVertexTable(Name(_, <id>), _))
                                                 ); to-identifier-without-origin-info)> edgeTables
             ; unresolvedVertexTableReferences := <diff> (vertexTableReferences, vertexTableNames)
             ; <batch-generate-error(|ctx, "Undefined vertex table")> unresolvedVertexTableReferences
+         else // check for duplicate base graphs
+              baseGraphNames := <?Some(BaseGraphs(<id>)); map(?BaseGraph(<id>, _)); alltd(to-identifier-without-origin-info)> baseGraphs
+             ; <generate-error-on-duplicates(|ctx, "Duplicate base graph reference")> baseGraphNames
          end
 
   to-identifier-without-origin-info = origin-track-forced(?Identifier(localName, _); !localName)
