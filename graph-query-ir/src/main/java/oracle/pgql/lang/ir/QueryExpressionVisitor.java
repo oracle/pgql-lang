@@ -5,6 +5,7 @@ package oracle.pgql.lang.ir;
 
 import oracle.pgql.lang.ir.QueryExpression.Aggregation.AggrAvg;
 import oracle.pgql.lang.ir.QueryExpression.Aggregation.AggrCount;
+import oracle.pgql.lang.ir.QueryExpression.Aggregation.AggrJsonArrayagg;
 import oracle.pgql.lang.ir.QueryExpression.Aggregation.AggrListagg;
 import oracle.pgql.lang.ir.QueryExpression.Aggregation.AggrMax;
 import oracle.pgql.lang.ir.QueryExpression.Aggregation.AggrMin;
@@ -130,6 +131,8 @@ public interface QueryExpressionVisitor {
   public void visit(AggrAvg aggrAvg);
 
   public void visit(AggrArrayAgg aggrArrayAgg);
+
+  public void visit(AggrJsonArrayagg aggrJsonArrayagg);
 
   public void visit(VarRef varRef);
 
