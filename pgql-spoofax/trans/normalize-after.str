@@ -15,6 +15,7 @@ rules
                   ; innermost(inPredicate-to-non-equality-constraints(|metadata) <+ norm-inPredicate)
                   ; alltd(norm-matchnum)
                   ; AstPlusMetadata(push-down-predicates(|[]), id))
+                  ; bottomup(try(pull-lateral-query-up))
 
 rules
 
@@ -181,3 +182,54 @@ rules
   dereference-vertex-correlation(|vertexCorrelations):
     VarRef(identifier, v) -> VarRef(identifier, v')
     where <oncetd(?Vertex(_, v, Correlation(ExpressionPlusType(VarRef(_, v'), _))))> vertexCorrelations
+
+rules
+
+  pull-lateral-query-up:
+    NormalizedQuery(commonPathExpressions, selectClause, graphName
+    , [DerivedTable(lateralOrGraphTable,
+        Subquery(
+         NormalizedQuery(
+              CommonPathExpressions([])
+            , SelectClause(
+                None() // DISTINCT
+              , SelectList(expAsVars)
+              )
+            , graphName
+            , tableExpressions
+            , Constraints(inner-constraints) // non-pushed down constraints
+            , None() // GROUP BY
+            , None() // HAVING
+            , None() // ORDER BY
+            , LimitOffsetClauses(None(), None())
+            , [] // error messages
+            , pgqlVersion, _, _)
+            )
+        , None()
+        )
+      ]
+    , Constraints(outer-constraints)
+    , groupBy, having, orderBy, limitOffset
+    , errorMessages, pgqlVersion, bindVariableCount, selectingAllProperties)
+    ->
+    NormalizedQuery(commonPathExpressions, selectClause', graphName
+    , tableExpressions
+    , Constraints(<conc> (inner-constraints, outer-constraints'))
+    , groupBy', having', orderBy', limitOffset
+    , errorMessages, pgqlVersion, bindVariableCount, selectingAllProperties)
+    where <map(expAsVar-is-referenced(|(selectClause, outer-constraints, groupBy, having, orderBy)))> expAsVars
+    with selectClause' := <replace-varRefs-with-expressions(|expAsVars)> selectClause
+       ; outer-constraints' := <replace-varRefs-with-expressions(|expAsVars)> outer-constraints
+       ; groupBy' := <replace-varRefs-with-expressions(|expAsVars)> groupBy
+       ; having' := <replace-varRefs-with-expressions(|expAsVars)> having
+       ; orderBy' := <replace-varRefs-with-expressions(|expAsVars)> orderBy
+
+  expAsVar-is-referenced(|outer-query-parts):
+    ExpAsVar(_, _, _, originOffset) -> <id>
+    where <oncetd(?VarRef(_, originOffset))> outer-query-parts
+
+  replace-varRefs-with-expressions(|expAsVars) = alltd(replace-varRef-with-expression(|expAsVars))
+
+  replace-varRef-with-expression(|expAsVars):
+    VarRef(_, originOffset) -> exp
+    where <collect-one(?ExpAsVar(exp, _, _, originOffset))> expAsVars
