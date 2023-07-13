@@ -691,4 +691,9 @@ public class PrettyPrintingTest extends AbstractPgqlTest {
     checkRoundTrip(statement);
   }
 
+  @Test
+  public void testAllPropertiesPrefixWithoutMetadata() throws Exception {
+    String statement = "SELECT n.* PREFIX 'n_' FROM MATCH (n)";
+    checkRoundTrip(statement);
+  }
 }
