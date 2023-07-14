@@ -349,7 +349,7 @@ public class StaticOptimizationsTest extends AbstractPgqlTest {
   }
 
   @Test
-  public void normalizeHasLabel() throws Exception {
+  public void testNormalizeHasLabel() throws Exception {
     // We want to make sure that has_label / "has_label" / "Has_Label" all end up being the same
 
     GraphQuery graphQuery = pgql.parse("SELECT 1 FROM MATCH (n:LBL1) " //
@@ -364,7 +364,48 @@ public class StaticOptimizationsTest extends AbstractPgqlTest {
   }
 
   @Test
-  public void mergeGraphTableAndLateralIntoOuterQuery() throws Exception {
+  public void testNoMergingOfGraphTableOrLateral() throws Exception {
+    checkThatNoMergingHappened("SELECT prop FROM LATERAL ( SELECT 1/0, n.prop FROM MATCH (n) )");
+    checkThatNoMergingHappened("SELECT prop1 FROM LATERAL ( SELECT n.prop1, n.prop2 FROM MATCH (n) )");
+    checkThatNoMergingHappened("SELECT * FROM LATERAL ( SELECT n.prop FROM MATCH (n) ORDER BY n.prop )");
+    checkThatNoMergingHappened("SELECT * FROM LATERAL ( SELECT n.prop FROM MATCH (n) FETCH FIRST 10 ROWS ONLY )");
+    checkThatNoMergingHappened("SELECT * FROM LATERAL ( SELECT n.prop FROM MATCH (n) OFFSET 10 )");
+    checkThatNoMergingHappened("SELECT * FROM LATERAL ( SELECT AVG(n.prop) AS avg FROM MATCH (n) )");
+    checkThatNoMergingHappened("SELECT * FROM LATERAL ( SELECT n.prop AS avg FROM MATCH (n) GROUP BY n.prop )");
+    checkThatNoMergingHappened("SELECT * FROM LATERAL ( SELECT 1 FROM MATCH (n) HAVING COUNT(*) > 10 )");
+  }
+
+  private void checkThatNoMergingHappened(String query) throws Exception {
+    GraphQuery graphQuery = pgql.parse(query).getGraphQuery();
+    TableExpression tableExpression = graphQuery.getTableExpressions().get(0);
+    assertEquals(TableExpressionType.DERIVED_TABLE, tableExpression.getTableExpressionType());
+  }
+
+  @Test
+  public void testMergingOfGraphTableOrLateral() throws Exception {
+    checkThatMergingHappened("SELECT * FROM LATERAL ( SELECT n.* FROM MATCH (n) )");
+    checkThatMergingHappened("SELECT * FROM LATERAL ( SELECT 1/0, n.prop FROM MATCH (n) )");
+
+    // SELECT references prop1 and prop2 while ORDER BY references prop3 and prop4
+    checkThatMergingHappened("SELECT prop1, ( SELECT COUNT(*) FROM MATCH (x) WHERE x.prop = prop2 ) " //
+        + "FROM LATERAL ( SELECT n.prop1, n.prop2, n.prop3, n.prop4 FROM MATCH (n) ) " //
+        + "ORDER BY prop3 + CASE WHEN EXISTS ( SELECT * FROM MATCH (y) WHERE y.prop = prop4 ) THEN 5 ELSE 10 END");
+
+    // GROUP BY references prop1 and prop2 while HAVING references prop3 and prop4
+    checkThatMergingHappened("SELECT 123 " //
+        + "FROM LATERAL ( SELECT n.prop1, n.prop2, n.prop3, n.prop4 FROM MATCH (n) ) " //
+        + "GROUP BY prop1, ( SELECT COUNT(*) FROM MATCH (x) WHERE x.prop = prop2 )"
+        + "HAVING 10 < AVG(prop3) + AVG(CASE WHEN EXISTS ( SELECT * FROM MATCH (y) WHERE y.prop = prop4 ) THEN 5 ELSE 10 END)");
+  }
+
+  private void checkThatMergingHappened(String query) throws Exception {
+    GraphQuery graphQuery = pgql.parse(query).getGraphQuery();
+    TableExpression tableExpression = graphQuery.getTableExpressions().get(0);
+    assertEquals(TableExpressionType.GRAPH_PATTERN, tableExpression.getTableExpressionType());
+  }
+
+  @Test
+  public void testMergeNestedGraphTableAndLateralIntoOuterQuery() throws Exception {
     GraphQuery graphQuery = pgql.parse("SELECT * " + //
         "FROM LATERAL ( SELECT x AS y " + //
         "  FROM LATERAL ( SELECT prop AS x FROM GRAPH_TABLE ( g MATCH (n) COLUMNS ( n.prop ) ) ) " + //

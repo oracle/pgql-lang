@@ -11,7 +11,9 @@ import java.util.List;
 import org.junit.Test;
 
 import oracle.pgql.lang.ir.ExpAsVar;
+import oracle.pgql.lang.ir.GraphQuery;
 import oracle.pgql.lang.ir.SelectQuery;
+import oracle.pgql.lang.ir.TableExpressionType;
 
 public class MetadataTest extends AbstractPgqlTest {
 
@@ -1011,6 +1013,19 @@ public class MetadataTest extends AbstractPgqlTest {
     assertTrue(result.isQueryValid());
     result = parse("SELECT * FROM GRAPH_TABLE ( financialNetwork MATCH () -[e IS worksFor|transaction]-> () COLUMNS ( e.* ) )");
     assertTrue(result.isQueryValid());
+  }
+
+  @Test
+  public void testLateralWithSelectAllPropertiesGetsMergedIntoOuterQuery() throws Exception {
+    GraphQuery graphQuery = parse("SELECT * FROM LATERAL ( SELECT n.* FROM MATCH (n) ON financialNetwork )").getGraphQuery();
+    // check that the LATERAL subquery was eliminated from the result
+    assertEquals(TableExpressionType.GRAPH_PATTERN, graphQuery.getTableExpressions().get(0).getTableExpressionType());
+    assertEquals(2, ((SelectQuery) graphQuery).getProjection().getElements().size());
+
+    // also check the nested case
+    graphQuery = parse("SELECT * FROM LATERAL ( SELECT * FROM GRAPH_TABLE ( financialNetwork MATCH (n) COLUMNS ( n.* ) ) )").getGraphQuery();
+    // check that the LATERAL subquery was eliminated from the result
+    assertEquals(TableExpressionType.GRAPH_PATTERN, graphQuery.getTableExpressions().get(0).getTableExpressionType());
   }
 
   @Test
