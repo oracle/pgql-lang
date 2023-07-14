@@ -4,6 +4,7 @@
 package oracle.pgql.lang.ir.modify;
 
 import java.util.Collections;
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Set;
 
@@ -40,8 +41,8 @@ public class ModifyQuery extends GraphQuery {
   public ModifyQuery(List<CommonPathExpression> commonPathExpressions, List<Modification> modifications,
       SchemaQualifiedName graphName, List<TableExpression> tableExpressions, GroupBy groupBy, QueryExpression having,
       OrderBy orderBy, QueryExpression limit, QueryExpression offset) {
-    this(commonPathExpressions, modifications, graphName, tableExpressions, null, groupBy, having, orderBy, limit,
-        offset);
+    this(commonPathExpressions, modifications, graphName, tableExpressions, new LinkedHashSet<>(), groupBy, having,
+        orderBy, limit, offset);
   }
 
   /**
