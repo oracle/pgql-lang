@@ -21,7 +21,7 @@ rules // Unresolved/duplicate variables
   nabl-check-disable-duplicate(|uri, ns) = id
 
   nabl-constraint(|ctx):
-    query@NormalizedQuery(_, selectClause, _, _, _, group-by, having, order-by, _, _, _, _, _) -> <fail>
+    query@NormalizedQuery(_, selectClause, _, _, _, group-by, having, order-by, _, _) -> <fail>
     with unresolved-vars := <collect-in-outer-query(?VarRef(<id>))> query
         ; if None() := group-by
           then <batch-generate-error(|ctx, "Unresolved variable")> unresolved-vars
@@ -35,7 +35,7 @@ rules // Unresolved/duplicate variables
           end
 
   nabl-constraint(|ctx):
-    NormalizedQuery(_, selectOrModifyClauseWithAnnos, _, tableExpressionsWithAnnos, _, groupClauseWithAnnos, _, _, _, _, _, _, _) -> <fail>
+    NormalizedQuery(_, selectOrModifyClauseWithAnnos, _, tableExpressionsWithAnnos, _, groupClauseWithAnnos, _, _, _, _) -> <fail>
     with selectOrModifyClause := <strip-annos> selectOrModifyClauseWithAnnos
        ; tableExpressions := <strip-annos> tableExpressionsWithAnnos
        ; groupClause := <strip-annos> groupClauseWithAnnos
@@ -84,7 +84,7 @@ rules // Unresolved/duplicate variables
          end
 
   nabl-constraint(|ctx):
-    query@NormalizedQuery(_, selectOrModifyClause, _, _, _, _, _, _, _, _, _, _, _) -> <fail>
+    query@NormalizedQuery(_, selectOrModifyClause, _, _, _, _, _, _, _, _) -> <fail>
     with group-variables := <collect-in-outer-query(?CommonPathExpression(_, _, _, _, _); get-origin-positions-of-variables); concat> query
        ; aggregations := <get-aggregations> query
        ; varRefs-per-aggregation := <map(origin-track-forced(collect-in-outer-query(?VarRef(_, <id>)); !Some(<id>)))> aggregations
@@ -175,7 +175,7 @@ rules // vertex in WHERE without rounded brackets
 rules
 
   nabl-constraint(|ctx):
-    NormalizedQuery(_, SelectClause(_, SelectList(selectElements)), _, _, _, groupClause, havingClause, orderByClause, _, _, _, _, _) -> <fail>
+    NormalizedQuery(_, SelectClause(_, SelectList(selectElements)), _, _, _, groupClause, havingClause, orderByClause, _, _) -> <fail>
     where
       None() := groupClause
     ; [] := <get-aggregations> selectElements // there are no aggregations in the SELECT
@@ -185,7 +185,7 @@ rules
 
   // if SELECT DISTINCT then ORDER BY expressions may only be repetitions of expressions in SELECT
   nabl-constraint(|ctx):
-    NormalizedQuery(_, SelectClause(Some(Distinct()), SelectList(selectElements)), _, _, _, _, _, Some(OrderByClause(order-by-elems)), _, _, _, _, _) -> <fail>
+    NormalizedQuery(_, SelectClause(Some(Distinct()), SelectList(selectElements)), _, _, _, _, _, Some(OrderByClause(order-by-elems)), _, _) -> <fail>
     with
       select-vars := <map(?ExpAsVar(_, Identifier(<id>, _), _, _)); strip-annos> selectElements
     ; order-by-expressions := <map(?OrderByElem(<id>, _, _)); strip-annos> order-by-elems
@@ -201,7 +201,7 @@ rules
     with <generate-error(|ctx, "SELECT * not allowed in combination with GROUP BY")> e
 
   nabl-constraint(|ctx):
-    NormalizedQuery(_, SelectClause(Star(), e@SelectList([])), _, tableExpressions, _, _, _, _, _, _, _, _, _) -> <fail>
+    NormalizedQuery(_, SelectClause(Star(), e@SelectList([])), _, tableExpressions, _, _, _, _, _, _) -> <fail>
     with if <not(oncetd(?AllProperties(_, _)))> tableExpressions // to allow for parsing and pretty printing when no metadata is available, we only generate the error if no lateral derived table contains an n.* because then we don't know how many elements the SELECT * would have
          then <generate-error(|ctx, "SELECT * not allowed if there are no variables in the graph pattern")> e
          end
@@ -213,26 +213,26 @@ rules
 rules // subqueries
 
   nabl-constraint(|ctx):
-    q@NormalizedQuery(_, _, _, _, _, _, _, _, _, _, _, _, _) -> <fail>
+    q@NormalizedQuery(_, _, _, _, _, _, _, _, _, _) -> <fail>
     with scalarSubqueries := <collect(?Exists(_) + ?DerivedTable(_, _, _) + ?Subquery(_)); remove-all(?Exists(_) + ?DerivedTable(_, _, _))> q
        ; multiColumnScalarSubqueries := <filter(is-multi-column-subquery)> scalarSubqueries
        ; zeroColumnScalarSubqueries := <filter(is-zero-column-subquery)> scalarSubqueries
        ; <batch-generate-error(|ctx, "Scalar subquery is expected to return a single column, but multiple columns were returned")> multiColumnScalarSubqueries
        ; <batch-generate-error(|ctx, "Scalar subquery is expected to return a single column, but zero columns were returned")> zeroColumnScalarSubqueries
 
-  is-multi-column-subquery = ?Subquery(NormalizedQuery(_, SelectClause(_, e@SelectList(selectElements)), _, _, _, _, _, _, _, _, _, _, _))
+  is-multi-column-subquery = ?Subquery(NormalizedQuery(_, SelectClause(_, e@SelectList(selectElements)), _, _, _, _, _, _, _, _))
                            ; where( <gt> (<length> selectElements, 1) ); !e
 
-  is-zero-column-subquery = ?Subquery(NormalizedQuery(_, SelectClause(_, e@SelectList(selectElements)), _, _, _, _, _, _, _, _, _, _, _))
+  is-zero-column-subquery = ?Subquery(NormalizedQuery(_, SelectClause(_, e@SelectList(selectElements)), _, _, _, _, _, _, _, _))
                            ; where( <eq> (<length> selectElements, 0) ); !e
 
   nabl-constraint(|ctx):
-    Subquery(NormalizedQuery(_, t@selectOrUpdateClause, _, _, _, _, _, _, _, _, _, _, _)) -> <fail>
+    Subquery(NormalizedQuery(_, t@selectOrUpdateClause, _, _, _, _, _, _, _, _)) -> <fail>
     where not ( <?SelectClause(_, _)> selectOrUpdateClause )
     with <generate-error(|ctx, "SELECT clause expected here")> t
 
   nabl-constraint(|ctx):
-    t@NormalizedQuery(_, _, _, _, _, _, _, _, _, _, "v1.3", _, _) -> <fail>
+    t@NormalizedQuery(_, _, _, _, _, _, _, _, _, QueryAnnotations(_, "v1.3", _, _, _)) -> <fail>
     with nonPgql13Subqueries := <collect(is-non-pgql13-query)> t
        ; <map(get-select-clause); batch-generate-error(|ctx, "Subquery uses older version of PGQL syntax; please make sure that both inner and outer query use the same PGQL version")> nonPgql13Subqueries
 
@@ -242,14 +242,14 @@ rules // subqueries
     with pgql13Subqueries := <collect(is-pgql13-query)> t
        ; <map(get-select-clause); batch-generate-error(|ctx, "Subquery uses PGQL 1.3 syntax but outer query does not")> pgql13Subqueries
 
-  is-pgql13-query = ?NormalizedQuery(_, _, _, _, _, _, _, _, _, _, "v1.3", _, _)
+  is-pgql13-query = ?NormalizedQuery(_, _, _, _, _, _, _, _, _, QueryAnnotations(_, "v1.3", _, _, _))
 
-  is-non-pgql13-query = ?NormalizedQuery(_, _, _, _, _, _, _, _, _, _, version, _, _); where (!version; not(?"v1.3"))
+  is-non-pgql13-query = ?NormalizedQuery(_, _, _, _, _, _, _, _, _,  QueryAnnotations(_, version, _, _, _)); where (!version; not(?"v1.3"))
 
-  get-select-clause = ?NormalizedQuery(_, <id>, _, _, _, _, _, _, _, _, _, _, _)
+  get-select-clause = ?NormalizedQuery(_, <id>, _, _, _, _, _, _, _, _)
 
   nabl-constraint(|ctx):
-    ScalarSubquery(Subquery(NormalizedQuery(_, SelectClause(_, SelectList([ExpAsVar(ExpressionPlusType(exp, Type(t)), _, _, _)])), _, _, _, _, _, _, _, _, _, _, _))) -> <fail>
+    ScalarSubquery(Subquery(NormalizedQuery(_, SelectClause(_, SelectList([ExpAsVar(ExpressionPlusType(exp, Type(t)), _, _, _)])), _, _, _, _, _, _, _, _))) -> <fail>
     where <?"VERTEX" + ?"EDGE"> t
     with <generate-error(|ctx, "Scalar subquery not allowed to return a vertex or an edge")> exp
 
@@ -379,7 +379,7 @@ rules // literals
     with <generate-error(|ctx, m)> datetime
 
   nabl-constraint(|ctx):
-    t@NormalizedQuery(_, _, _, _, _, _, _, _, _, _, pgqlVersion, _, _) -> <fail>
+    t@NormalizedQuery(_, _, _, _, _, _, _, _, _, QueryAnnotations(_, pgqlVersion, _, _, _)) -> <fail>
     where not ( <?"v1.0" + ?"v1.1"> pgqlVersion )
     with <alltd-in-outer-query(check-illegal-java-escaping(|ctx))> t
 
@@ -461,7 +461,7 @@ rules // IN predicate and CASE expression
 rules // SELECT
 
   nabl-constraint(|ctx):
-    NormalizedQuery(_, t@SelectClause(_, _), _, [], _, _, _, _, _, _, _, _, _) -> <fail>
+    NormalizedQuery(_, t@SelectClause(_, _), _, [], _, _, _, _, _, _) -> <fail>
     with <generate-error(|ctx, "SELECT query without FROM clause not supported")> t
 
 rules // MODIFY
@@ -897,6 +897,6 @@ rules // GRAPH_TABLE
     with <generate-error(|ctx, "GRAPH_TABLE restriction: aggregation does not allow vertex or edge input; use the vertex/edge identifier or a property instead")> exp
 
   nabl-constraint(|ctx):
-    DerivedTable(Some(GraphTable()), Subquery(NormalizedQuery(_, selectClause, _, _, _, CreateOneGroup(), _, _, _, _, _, _, _)), None()) -> <fail>
+    DerivedTable(Some(GraphTable()), Subquery(NormalizedQuery(_, selectClause, _, _, _, CreateOneGroup(), _, _, _, _)), None()) -> <fail>
     with aggregations := <collect(is-aggregate)> selectClause
        ; <batch-generate-error(|ctx, "COLUMNS clause allows only aggregations that access at least one group variable")> aggregations

@@ -300,12 +300,12 @@ rules
   // In PGQL 1.1 and PGQL 1.2, subqueries would inherit the graph name from the outer query.
   // This is no longer the case in PGQL 1.3+, where graph names in subqueries need to be respecified.
   copy-graph-name-to-queries-without-one:
-    ast@NormalizedQuery(_, _, _, _, _, _, _, _, _, _, "v1.1", _, _) -> ast'
-    where <oncetd(?NormalizedQuery(_, _, Some(graphName), _, _, _, _, _, _, _, _, _, _))> ast
+    ast@NormalizedQuery(_, _, _, _, _, _, _, _, _, QueryAnnotations(_, "v1.1", _, _, _)) -> ast'
+    where <oncetd(?NormalizedQuery(_, _, Some(graphName), _, _, _, _, _, _, QueryAnnotations(_, _, _, _, _)))> ast
     with ast' := <innermost(copy-graph-name-to-query-without-one(|graphName))> ast
 
   copy-graph-name-to-query-without-one(|graphName):
-    NormalizedQuery(a, b, None(), c, d, e, f, g, h, i, j, k, l) -> NormalizedQuery(a, b, Some(graphName), c, d, e, f, g, h, i, j, k, l)
+    NormalizedQuery(a, b, None(), c, d, e, f, g, h, i) -> NormalizedQuery(a, b, Some(graphName), c, d, e, f, g, h, i)
 
   norm-BindVariable(|c) = ?BindVariable(); !BindVariable(<next-counter> c)
 
@@ -800,7 +800,7 @@ rules
 
   norm-query(|error-messages, version, variable-counter, bindVariableCount):
     t@(commonPathExpressions, selectOrModifyClause, optionalGraphName, tableExpressions, whereClause, groupByClause, havingClause, orderByClause, limitOffsets) ->
-        NormalizedQuery(commonPathExpressions', selectOrModifyClause', optionalGraphName, tableExpressions, whereClause, groupByClause', havingClause, orderByElems, limitOffsets', error-messages, version, bindVariableCount, selectingAllProperties)
+        NormalizedQuery(commonPathExpressions', selectOrModifyClause', optionalGraphName, tableExpressions, whereClause, groupByClause', havingClause, orderByElems, limitOffsets', QueryAnnotations(error-messages, version, bindVariableCount, selectingAllProperties, graphTable))
     with
       commonPathExpressions' := <map(norm-common-path-expression(|variable-counter)); !CommonPathExpressions(<id>)> commonPathExpressions;
 
@@ -814,7 +814,8 @@ rules
 
       limitOffsets' := <norm-limitOffsets> limitOffsets;
 
-      selectingAllProperties := <oncetd(?AllProperties(_, _)); !True() <+ !False()> t
+      selectingAllProperties := <oncetd(?AllProperties(_, _)); !True() <+ !False()> t;
+      graphTable := None()
 
   norm-SelectList(|version):
     t1@SelectClause(distinct, t2@SelectList(selectElements)) -> result
@@ -862,10 +863,7 @@ rules // GRAPH_TABLE
           , having
           , orderBy
           , limitOffset
-          , errorMessages
-          , pgqlVersion
-          , bindVariableCount
-          , selectingAllProperties
+          , QueryAnnotations(errorMessages , pgqlVersion , bindVariableCount, selectingAllProperties, Some(GraphTable()))
           )
         )
       , correlation)
