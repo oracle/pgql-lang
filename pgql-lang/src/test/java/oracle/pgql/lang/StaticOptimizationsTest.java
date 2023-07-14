@@ -27,6 +27,8 @@ import oracle.pgql.lang.ir.QueryExpression.Function.Exists;
 import oracle.pgql.lang.ir.QueryExpression.LogicalExpression.And;
 import oracle.pgql.lang.ir.QueryExpression.ScalarSubquery;
 import oracle.pgql.lang.ir.SelectQuery;
+import oracle.pgql.lang.ir.TableExpression;
+import oracle.pgql.lang.ir.TableExpressionType;
 
 public class StaticOptimizationsTest extends AbstractPgqlTest {
 
@@ -359,5 +361,32 @@ public class StaticOptimizationsTest extends AbstractPgqlTest {
       FunctionCall functionCall = (FunctionCall) constraint;
       assertEquals("has_label", functionCall.getFunctionName());
     }
+  }
+
+  @Test
+  public void mergeGraphTableAndLateralIntoOuterQuery() throws Exception {
+    GraphQuery graphQuery = pgql.parse("SELECT * " + //
+        "FROM LATERAL ( SELECT x AS y " + //
+        "  FROM LATERAL ( SELECT prop AS x FROM GRAPH_TABLE ( g MATCH (n) COLUMNS ( n.prop ) ) ) " + //
+        ") " + //
+        "WHERE y > 10").getGraphQuery();
+
+    assertEquals(1, graphQuery.getTableExpressions().size());
+    assertTrue(graphQuery.getConstraints().isEmpty()); // predicate is pushed down into the graph pattern
+
+    TableExpression tableExpression = graphQuery.getTableExpressions().get(0);
+
+    // outer query has only one table expression which is a graph pattern
+    // all LATERAL subqueries (incl. GRAPH_TABLE operators) disappeared from the query
+    assertEquals(TableExpressionType.GRAPH_PATTERN, tableExpression.getTableExpressionType());
+
+    GraphPattern graphPattern = (GraphPattern) tableExpression;
+
+    // "y > 10" got translated into "n.prop > 10"
+    assertEquals("(n.prop > 10)", graphPattern.getConstraints().iterator().next().toString());
+
+    ExpAsVar column = ((SelectQuery) graphQuery).getProjection().getElements().get(0);
+    assertEquals("Y", column.getName()); // column name is still "Y"
+    assertEquals("y", column.getNameOriginText());
   }
 }

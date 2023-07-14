@@ -192,34 +192,34 @@ rules
          NormalizedQuery(
               CommonPathExpressions([])
             , SelectClause(
-                None() // DISTINCT
+                None() // no DISTINCT
               , SelectList(expAsVars)
               )
             , graphName
             , tableExpressions
-            , Constraints(inner-constraints) // non-pushed down constraints
-            , None() // GROUP BY
-            , None() // HAVING
-            , None() // ORDER BY
-            , LimitOffsetClauses(None(), None())
-            , [] // error messages
-            , pgqlVersion, _, _)
+            , constraints // non-pushed-down constraints
+            , None() // no GROUP BY
+            , None() // no HAVING
+            , None() // no ORDER BY
+            , LimitOffsetClauses(None(), None()) //no LIMIT / FETCH FIRST or OFFSET
+            , [] // o errors
+            , pgqlVersion, _, _) // pgql version of inner query should be the same as outer query (we're using the same variable name below)
             )
         , None()
         )
       ]
-    , Constraints(outer-constraints)
+    , Constraints([]) // outer query will not have any non-pushed down constraints if subquery has no LIMIT / FETCH FIRST / OFFSET, like is asserted above already
     , groupBy, having, orderBy, limitOffset
     , errorMessages, pgqlVersion, bindVariableCount, selectingAllProperties)
     ->
     NormalizedQuery(commonPathExpressions, selectClause', graphName
     , tableExpressions
-    , Constraints(<conc> (inner-constraints, outer-constraints'))
+    , constraints
     , groupBy', having', orderBy', limitOffset
     , errorMessages, pgqlVersion, bindVariableCount, selectingAllProperties)
-    where <map(expAsVar-is-referenced(|(selectClause, outer-constraints, groupBy, having, orderBy)))> expAsVars
+    where <map(expAsVar-is-referenced(|(selectClause, groupBy, having, orderBy)))> expAsVars
+        ; <not(?[])> expAsVars // the inner query has zero columns which is an error; we won't pull up this subquery
     with selectClause' := <replace-varRefs-with-expressions(|expAsVars)> selectClause
-       ; outer-constraints' := <replace-varRefs-with-expressions(|expAsVars)> outer-constraints
        ; groupBy' := <replace-varRefs-with-expressions(|expAsVars)> groupBy
        ; having' := <replace-varRefs-with-expressions(|expAsVars)> having
        ; orderBy' := <replace-varRefs-with-expressions(|expAsVars)> orderBy
