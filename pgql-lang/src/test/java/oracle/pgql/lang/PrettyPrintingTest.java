@@ -696,4 +696,34 @@ public class PrettyPrintingTest extends AbstractPgqlTest {
     String statement = "SELECT n.* PREFIX 'n_' FROM MATCH (n)";
     checkRoundTrip(statement);
   }
+
+  @Test
+  public void testPrettyPrintingOfReferenceToAnonymousExpAsVarInLateral() throws Exception {
+    String statement = "SELECT number " + //
+        "FROM LATERAL ( " + //
+        "       SELECT number, 1 AS c1 " + //
+        "       FROM GRAPH_TABLE ( g " + //
+        "              MATCH (a IS Account) " + //
+        "              COLUMNS ( a.number ) ) ) ";
+    checkRoundTrip(statement);
+  }
+
+  @Test
+  public void testPrintGraphTableWithComplexProjectionFollowedBySelectStar() throws Exception {
+    String statement = "SELECT * " + //
+        "FROM GRAPH_TABLE ( financial_transactions " + //
+        "       MATCH (v IS company | account) " + //
+        "       WHERE v IS LABELED company OR v.number = 1001 " + //
+        "       COLUMNS ( CASE WHEN V IS LABELED CoMpAnY THEN v.name ELSE CAST (v.number AS STRING) END ) )";
+    checkRoundTrip(statement);
+
+    statement = "SELECT * " + //
+        "FROM LATERAL ( " + //
+        "       SELECT CASE WHEN V IS LABELED CoMpAnY THEN v.name ELSE CAST (v.number AS STRING) END " + //
+        "       FROM MATCH (v IS company | account) ON financial_transactions " + //
+        "       WHERE v IS LABELED company OR v.number = 1001 ) " + //
+        "  , MATCH (xyz) ON financial_transactions"; // with extra MATCH clause to test the case where the LATERAL does
+                                                     // not get merged into the outer query
+    checkRoundTrip(statement);
+  }
 }
