@@ -75,9 +75,6 @@ context-free syntax // SolutionModifiers
 
 context-free syntax // Expressions.sdf3
 
-  Exp.Legacy10Not = <!<Exp>> {right}
-  Exp.Legacy10Regex = [[Exp] =~ [Exp]] {left, prefer}
-
   Legacy10InlinedExp = <(<Legacy10InlinedExp>)> {bracket}
   Legacy10InlinedExp = PropRef
   Legacy10InlinedExp = Legacy10DoubleQuotedString1
@@ -108,8 +105,6 @@ context-free syntax // Expressions.sdf3
 
   Legacy10InlinedExp.Neq1 = [[Legacy10InlinedExp] != [Legacy10InlinedExp]] {left}
   Legacy10InlinedExp.Neq2 = [[Legacy10InlinedExp] <> [Legacy10InlinedExp]] {left}
-
-  Legacy10InlinedExp.Legacy10Regex = [[Legacy10InlinedExp] =~ [Legacy10InlinedExp]] {left, prefer}
 
   InlinedCall.Legacy10Label = <<Obj>label()> {case-insensitive}
   InlinedCall.Legacy10Labels = <<Obj>labels()> {case-insensitive}
@@ -164,7 +159,6 @@ context-free priorities
       Legacy10InlinedExp.Lt
       Legacy10InlinedExp.Gte
       Legacy10InlinedExp.Lte
-      Legacy10InlinedExp.Legacy10Regex
   }
   >
   {

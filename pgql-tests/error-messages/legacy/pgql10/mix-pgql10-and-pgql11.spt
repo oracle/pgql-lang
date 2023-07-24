@@ -41,19 +41,3 @@ test Constraints in MATCH [[
     FROM g MATCH (n [[WITH prop = 123]])
 
 ]] error like "Constraints should be specified in the WHERE clause instead of the WITH" at #1
-
-test Constraints in MATCH [[
-
-  SELECT n AS c1
-    FROM g MATCH (n)
-   WHERE [[!n.married]]
-
-]] error like "Use [NOT] instead of [!]" at #1
-
-test Constraints in MATCH [[
-
-  SELECT n AS c1
-    FROM g MATCH (n)
-   WHERE [[n.name =~ 'string']]
-
-]] error like "Use [java_regexp_like(exp1, exp2)] instead of [exp1 =~ exp2]" at #1

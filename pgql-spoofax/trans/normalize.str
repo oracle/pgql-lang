@@ -56,7 +56,6 @@ rules
         );
         bottomup(try(norm-labeled-predicate));
         innermost(
-          norm-NOT +
           norm-NEQ +
           norm-singleVertex +
           norm-parenthesized-match-single-path +
@@ -109,8 +108,6 @@ rules
   get-pgql11-deprecation = ?Legacy10Identifier(_); to-error-message(|"Use double quotes to delimit labels")
   get-pgql11-deprecation = ?Ids(_); to-error-message(|"Use [id(x) = xyz] instead of [@xyz]")
   get-pgql11-deprecation = ?InlinedConstraint(_); to-error-message(|"Constraints should be specified in the WHERE clause instead of the WITH")
-  get-pgql11-deprecation = ?Legacy10Not(_); to-error-message(|"Use [NOT] instead of [!]")
-  get-pgql11-deprecation = ?Legacy10Regex(_, _); to-error-message(|"Use [java_regexp_like(exp1, exp2)] instead of [exp1 =~ exp2]")
 
   get-pgql11-deprecation = ?LimitOffsetClauses(FetchFirstClause(_, _, _), Some(offsetClause)); !offsetClause; to-error-message(|"OFFSET clause should come before FETCH FIRST clause")
 
@@ -281,8 +278,6 @@ rules
         ; <eq> (<length> args, numArgsToMatch)
         ; result := <origin-track-forced(![VarRef(x)|args]; to-function(|pgql11FunctionName))> t
 
-  norm-pgql10 = ?Legacy10Regex(x, regex); <to-function(|"java_regexp_like")> [x, regex]
-
   norm-pgql10 = ?Legacy10Has(varRef, <id>); map(![varRef, <id>]; to-function(|"has_prop")); to-conjunction
   norm-pgql10:
     t@FunctionCall(Some(PackageName(None(), x)), RegularIdentifier(functionName), propertyNames) -> result
@@ -309,8 +304,6 @@ rules
 
   norm-UMin = ?UMin(Integer(string)); !Integer(<conc-strings> ("-", string))
   norm-UMin = ?UMin(Decimal(string)); !Decimal(<conc-strings> ("-", string))
-
-  norm-NOT = ?Legacy10Not(<id>); !Not(<id>)
 
   norm-NEQ = ?Neq1(exp1, exp2); !Neq(exp1, exp2)
   norm-NEQ = ?Neq2(exp1, exp2); !Neq(exp1, exp2)

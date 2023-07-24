@@ -123,7 +123,6 @@ context-free priorities
   {
     right:
       Exp.UMin
-      Exp.Legacy10Not
   }
   >
   {
@@ -153,7 +152,6 @@ context-free priorities
       Exp.Lt
       Exp.Gte
       Exp.Lte
-      Exp.Legacy10Regex
   }
   >
   {
