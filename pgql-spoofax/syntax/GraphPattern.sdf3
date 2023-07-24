@@ -20,9 +20,9 @@ context-free syntax
   Vertex.Vertex = <(<ElemContents>)>
 
   EdgeVertex.EdgeVertex = Connection Vertex
-  Connection.OutConn = [-[EdgeOrPathContents?]->[PathQuantifier?]]
-  Connection.InConn = [<-[EdgeOrPathContents?]-[PathQuantifier?]]
-  Connection.UndirectedEdge = [-[EdgeContents?]-[PathQuantifier?]]
+  Connection.OutConn = [-[EdgeOrPathContents]->[PathQuantifier?]]
+  Connection.InConn = [<-[EdgeOrPathContents]-[PathQuantifier?]]
+  Connection.UndirectedEdge = [-[EdgeContents]-[PathQuantifier?]]
   Connection.OutEdge = [->[PathQuantifier?]]
   Connection.InEdge = [<-[PathQuantifier?]]
   Connection.UndirectedEdge = [-[PathQuantifier?]]

@@ -2,27 +2,6 @@ module mix-pgql10-and-pgql13
 
 language pgql-lang
 
-test Double dash (1) [[
-
-  SELECT n AS c1
-    FROM MATCH (n) [[-- (o)]]
-
-]] error like "Use [-] instead of [--]" at #1
-
-test Double dash (2) [[
-
-  SELECT n AS c1
-    FROM MATCH (n) [[--> (o)]]
-
-]] error like "Use [-] instead of [--]" at #1
-
-test Double dash (3) [[
-
-  SELECT n AS c1
-    FROM MATCH (n) [[<-- (o)]]
-
-]] error like "Use [-] instead of [--]" at #1
-
 test := [[
 
     PATH a [[:=]] ()

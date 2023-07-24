@@ -60,7 +60,6 @@ rules
           norm-NEQ +
           norm-singleVertex +
           norm-parenthesized-match-single-path +
-          norm-VertexWithoutBrackets +
           norm-isNull +
           norm-case
         );
@@ -259,8 +258,8 @@ rules
          end
 
   quantified-path-pattern = ?PathPattern2(_, _)
-                          + ?OutConn(Some(Path(_, _, _)), _)
-                          + ?InConn(Some(Path(_, _, _)), _)
+                          + ?OutConn(Path(_, _, _), _)
+                          + ?InConn(Path(_, _, _), _)
 
   norm-pgql10 = ?Legacy10Label(x); <to-function(|"label")> [x]
   norm-pgql10 = ?Legacy10Labels(x); <to-function(|"labels")> [x]
@@ -433,9 +432,7 @@ rules
   get-pgql13-errors:
     PathPattern2(Some(pathPatternPrefix1), PathPattern2(Some(pathPatternPrefix2), _)) -> <to-error-message(|"Nested path pattern prefix not allowed")> pathPatternPrefix2
 
-  norm-VertexWithoutBrackets = ?VertexWithoutBrackets(v); !Vertex(ElemContents(Some(RegularIdentifier(<origin-track-forced(<conc-strings> (v, <VERTEX_WITHOUT_BRACKETS>))>)), None(), None(), None()))
-
-  norm-edgeContents = ?Some(EdgeContents(<id>))
+  norm-edgeContents = ?EdgeContents(<id>)
 
   name-unnamed-elems(|c) = (?CommonPathExpression(_, _, _, _, _) + ?GraphPattern(_) + ?MatchWhereClauses(_, _) + ?PathPattern(_, _)); alltd(name-unnamed-elem(|c))
   name-unnamed-elem(|c) = ?ElemContents(None(), type, id', constraints); ?origin; !ElemContents(Some(<unique-name(|c, origin)>), type, id', constraints)
@@ -724,7 +721,7 @@ rules
              ; costClause := None()
              ; connection := <to-path(|variable-counter, pathFindingGoal, topKAnyAll, pathMode, rowsPerMatch)> (n1, n2, edge, Constraints(constraints), costClause, quantifier)
           end
-        case ?Some(Path(Some(pathName), pathPatternName, quantifier')):
+        case ?Path(Some(pathName), pathPatternName, quantifier'):
           connection := Path(src, dst, pathPatternName, quantifier', pathName, dir, Reaches(), -1, pathMode, rowsPerMatch)
         otherwise: fail
       end
