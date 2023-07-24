@@ -2,14 +2,6 @@ module mix-pgql10-and-pgql11
 
 language pgql-lang
 
-test := [[
-
-    PATH a [[:=]] ()
-  SELECT n AS c1
-    FROM g MATCH (n)
-
-]] error like "Use [AS] instead of [:=]" at #1
-
 test OO-style function call[[
 
   SELECT [[n.labels()]] AS labels

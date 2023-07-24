@@ -66,8 +66,6 @@ context-free syntax // GraphPattern.sdf3 for PGQL 1.0
   AltLit                 = Literal
   AltLit.String          = REGULAR-IDENTIFIER
 
-  AsignSymbol.Pgql10AsignSymbol = <:=>
-
   Labels.Legacy10Identifier = STRING
 
 context-free syntax // SolutionModifiers

@@ -88,7 +88,6 @@ rules
   is-pgql13 = ?Query(_, _, _, _, _, _, _)
 
   get-pgql11-deprecation = (?OutConn(None(), _) + ?InConn(None(), _) + ?UndirectedEdge(None(), _)); to-error-message(|"Use [-] instead of [--]")
-  get-pgql11-deprecation = ?Pgql10AsignSymbol(); to-error-message(|"Use [AS] instead of [:=]")
 
   get-pgql11-deprecation = (?Legacy10Label(_) + get-pgql11-deprecation-helper(|"LABEL", 0, False())); to-error-message(|"Use [label(x)] instead of [x.label()]")
   get-pgql11-deprecation = (?Legacy10Labels(_) + get-pgql11-deprecation-helper(|"LABELS", 0, False())); to-error-message(|"Use [labels(x)] instead of [x.labels()]")
