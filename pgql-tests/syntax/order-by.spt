@@ -9,11 +9,12 @@ WHERE
 ORDER BY n
 ]]
 
-test Order by node and node [[
-SELECT n.id(), m.id()
-WHERE
-  (n) -[WITH label = 'likes']-> (m)
-ORDER BY n, m
+test Order by two vertices [[
+
+  SELECT n.id(), m.id()
+  FROM MATCH (n) -[:likes]-> (m)
+  ORDER BY n, m
+
 ]]
 
 test Order by node ID [[

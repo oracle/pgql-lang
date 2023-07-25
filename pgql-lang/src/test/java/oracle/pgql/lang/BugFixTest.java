@@ -142,9 +142,6 @@ public class BugFixTest extends AbstractPgqlTest {
 
   @Test
   public void escapingBetweenDifferentPgqlVersions() throws Exception {
-    String pgql10Query = "SELECT n.prop AS prop, '_\\\"_\"_\\'_\\'_\\n_\\t_\\\\n_' AS v1, \"_\\\"_\\\"_'_\\'_\\n_\\t_\\\\n_\" AS v2" //
-        + " WHERE (n:lbl1|lbl2) -[e:'lbl3'|'lbl4'|'_\"_\"_\\'_\\'_\\n_\\t_']-> (m) -/:p*/-> (o)" //
-        + "     , m.prop = o.prop";
     String pgql11Query = "SELECT n.prop AS prop, '_\\\"_\"_''_\\'_\\n_\\t_\\\\n_' AS v1, '_\"_\\\"_''_\\'_\\n_\\t_\\\\n_' AS v2" //
         + " MATCH (n:lbl1|lbl2) -[e:\"lbl3\"|\"lbl4\"|\"_\"\"_\\\"_'_\\'_\\n_\\t_\"]-> (m) -/:p*/-> (o)" //
         + " WHERE m.prop = o.prop";
@@ -152,25 +149,12 @@ public class BugFixTest extends AbstractPgqlTest {
         + "  FROM MATCH (\"n\":\"lbl1\"|\"lbl2\") -[\"e\":\"lbl3\"|\"lbl4\"|\"_\"\"_\"\"_'_'_\n_\t_\"]-> (\"m\") -/:\"p\"*/-> (\"o\")" //
         + " WHERE \"m\".\"prop\" = \"o\".\"prop\"";
 
-    PgqlResult result10 = pgql.parse(pgql10Query);
-    assertTrue(result10.isQueryValid());
     PgqlResult result11 = pgql.parse(pgql11Query);
     assertTrue(result11.isQueryValid());
     PgqlResult result13 = pgql.parse(pgql13Query);
     assertTrue(result13.isQueryValid());
 
-    assertEquals(result10.getGraphQuery(), result11.getGraphQuery());
     assertEquals(result11.getGraphQuery(), result13.getGraphQuery());
-
-    pgql10Query = "SELECT 1 WHERE (n WITH prop = \"xyz\")";
-    pgql11Query = "SELECT 1 MATCH (n) WHERE n.prop = 'xyz'";
-
-    result10 = pgql.parse(pgql10Query);
-    assertTrue(result10.isQueryValid());
-    result11 = pgql.parse(pgql11Query);
-    assertTrue(result11.isQueryValid());
-
-    assertEquals(result10.getGraphQuery(), result11.getGraphQuery());
   }
 
   @Test

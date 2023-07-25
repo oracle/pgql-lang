@@ -42,7 +42,7 @@ context-free syntax
   EdgeOrPathContents = EdgeContents
   EdgeOrPathContents.Path = </<Identifier?><LabelExpression><PathQuantifier?>/>
 
-  ElemContents.ElemContents = Identifier? LabelExpression? Legacy10Ids? Legacy10WithInlinedConstraints?
+  ElemContents.ElemContents = Identifier? LabelExpression?
 
   PathQuantifier.ZeroOrMore = <*>
   PathQuantifier.OneOrMore = <+>

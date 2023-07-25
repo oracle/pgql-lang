@@ -2,14 +2,8 @@ module select
 
 language pgql-lang
 
-test In-lined expression, no variable name [[
-SELECT m.name
-WHERE
-  (WITH name = 'Heather') -[WITH label = 'dislikes']-> (m)
-]]
-
 test User-defined functions [[
-SELECT myFunc1(), myFunc2(n.age, n.name, n.age + 123), myPackage.myFunc3(n)
-WHERE
-  (n)
+
+  SELECT myFunc1(), myFunc2(n.age, n.name, n.age + 123), myPackage.myFunc3(n)
+  FROM MATCH (n)
 ]]

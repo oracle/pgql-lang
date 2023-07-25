@@ -2,42 +2,9 @@ module mix-pgql10-and-pgql11
 
 language pgql-lang
 
-test OO-style function call[[
-
-  SELECT [[n.labels()]] AS labels
-       , [[e.label()]] AS label
-       , [[n.hasLabel('lbl')]] AS hasLabel
-       , [[n.id()]] AS id
-       , [[n.has('prop1', 'prop2')]] AS has
-       , [[n.inDegree()]] AS inDegree
-       , [[n.outDegree()]] AS outDegree
-    FROM g MATCH (n) -[e]-> (m)
-
-]] error like "Use [labels(x)] instead of [x.labels()]" at #1
-   error like "Use [label(x)] instead of [x.label()]" at #2
-   error like "Use [has_label(x, 'lbl')] instead of [x.hasLabel('lbl')]" at #3
-   error like "Use [id(x)] instead of [x.id()]" at #4
-   error like "Use [x.prop IS NOT NULL] instead of [x.has(prop)]" at #5
-   error like "Use [in_degree(x)] instead of [x.inDegree()]" at #6
-   error like "Use [out_degree(x)] instead of [x.outDegree()]" at #7
-
 test Single-quoted labels [[
 
   SELECT n AS c1
     FROM g MATCH (n:[['lbl']])
 
 ]] error like "Use double quotes to delimit labels" at #1
-
-test ID testing through @ [[
-
-  SELECT n AS c1
-    FROM g MATCH (n[[@123]])
-
-]] error like "Use [id(x) = xyz] instead of [@xyz]" at #1
-
-test Constraints in MATCH [[
-
-  SELECT n AS c1
-    FROM g MATCH (n [[WITH prop = 123]])
-
-]] error like "Constraints should be specified in the WHERE clause instead of the WITH" at #1

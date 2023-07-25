@@ -71,12 +71,11 @@ rules
         alltd(norm-datetime-literal);
         alltd(norm-hop-distance);
         alltd(name-unnamed-elems(|variable-counter));
-        alltd(norm-inlined-references);
         bottomup(try(
            norm-matchElems(|variable-counter)
         ));
         bottomup(try(origin-track-forced(norm-query(|error-messages, variable-counter, <get-counter> bindVariable-counter))));
-        alltd(?ElemContents(Some(<id>), _, _, _));
+        alltd(?ElemContents(Some(<id>), _));
         try(copy-graph-name-to-queries-without-one)
       > ast
 
@@ -88,14 +87,6 @@ rules
 
   get-pgql11-deprecation = (?OutConn(None(), _) + ?InConn(None(), _) + ?UndirectedEdge(None(), _)); to-error-message(|"Use [-] instead of [--]")
 
-  get-pgql11-deprecation = (?Legacy10Label(_) + get-pgql11-deprecation-helper(|"LABEL", 0, False())); to-error-message(|"Use [label(x)] instead of [x.label()]")
-  get-pgql11-deprecation = (?Legacy10Labels(_) + get-pgql11-deprecation-helper(|"LABELS", 0, False())); to-error-message(|"Use [labels(x)] instead of [x.labels()]")
-  get-pgql11-deprecation = (?Legacy10HasLabel(_, _) + get-pgql11-deprecation-helper(|"HASLABEL", 1, False())); to-error-message(|"Use [has_label(x, 'lbl')] instead of [x.hasLabel('lbl')]")
-  get-pgql11-deprecation = (?Legacy10Id(_) + get-pgql11-deprecation-helper(|"ID", 0, False())); to-error-message(|"Use [id(x)] instead of [x.id()]")
-  get-pgql11-deprecation = (?Legacy10Has(_, _) + get-pgql11-deprecation-helper(|"HAS", -1, True())); to-error-message(|"Use [x.prop IS NOT NULL] instead of [x.has(prop)]")
-  get-pgql11-deprecation = (?Legacy10InDegree(_) + get-pgql11-deprecation-helper(|"INDEGREE", 0, False())); to-error-message(|"Use [in_degree(x)] instead of [x.inDegree()]")
-  get-pgql11-deprecation = (?Legacy10OutDegree(_) + get-pgql11-deprecation-helper(|"OUTDEGREE", 0, False())); to-error-message(|"Use [out_degree(x)] instead of [x.outDegree()]")
-
   get-pgql11-deprecation-helper(|functionNameToMatch, numArgsToMatch, anyNumberOfArgs):
     t@FunctionCall(Some(PackageName(None(), x)), RegularIdentifier(functionName), args) -> t
     where <eq> (<upper-case> functionName, functionNameToMatch)
@@ -106,8 +97,6 @@ rules
   get-pgql11-deprecation = ?Legacy10Asc(x); to-error-message(|$<Use [<<origin-text> x> ASC] instead of [ASC(<<origin-text> x>)]>)
   get-pgql11-deprecation = ?Legacy10Desc(x); to-error-message(|$<Use [<<origin-text> x> DESC] instead of [DESC(<<origin-text> x>)]>)
   get-pgql11-deprecation = ?Legacy10Identifier(_); to-error-message(|"Use double quotes to delimit labels")
-  get-pgql11-deprecation = ?Ids(_); to-error-message(|"Use [id(x) = xyz] instead of [@xyz]")
-  get-pgql11-deprecation = ?InlinedConstraint(_); to-error-message(|"Constraints should be specified in the WHERE clause instead of the WITH")
 
   get-pgql11-deprecation = ?LimitOffsetClauses(FetchFirstClause(_, _, _), Some(offsetClause)); !offsetClause; to-error-message(|"OFFSET clause should come before FETCH FIRST clause")
 
@@ -257,28 +246,6 @@ rules
                           + ?OutConn(Path(_, _, _), _)
                           + ?InConn(Path(_, _, _), _)
 
-  norm-pgql10 = ?Legacy10Label(x); <to-function(|"label")> [x]
-  norm-pgql10 = ?Legacy10Labels(x); <to-function(|"labels")> [x]
-  norm-pgql10 = ?Legacy10HasLabel(x, lbl); <to-function(|"has_label")> [x, lbl]
-  norm-pgql10 = ?Legacy10Id(x); <to-function(|"id")> [x]
-  norm-pgql10 = ?Legacy10InDegree(x); <to-function(|"in_degree")> [x]
-  norm-pgql10 = ?Legacy10OutDegree(x); <to-function(|"out_degree")> [x]
-
-  // e.g. x.id() (PGQL 1.0) => id(x) (PGQL 1.1+)
-  norm-pgql10 = norm-pgql10-function-helper(|"LABEL", 0, "label")
-  norm-pgql10 = norm-pgql10-function-helper(|"LABELS", 0, "labels")
-  norm-pgql10 = norm-pgql10-function-helper(|"HASLABEL", 1, "has_label")
-  norm-pgql10 = norm-pgql10-function-helper(|"ID", 0, "id")
-  norm-pgql10 = norm-pgql10-function-helper(|"INDEGREE", 0, "in_degree")
-  norm-pgql10 = norm-pgql10-function-helper(|"OUTDEGREE", 0, "out_degree")
-
-  norm-pgql10-function-helper(|pgql10FunctionName, numArgsToMatch, pgql11FunctionName):
-    t@FunctionCall(Some(PackageName(None(), x)), RegularIdentifier(functionName), args) -> result
-    where <eq> (<upper-case> functionName, pgql10FunctionName)
-        ; <eq> (<length> args, numArgsToMatch)
-        ; result := <origin-track-forced(![VarRef(x)|args]; to-function(|pgql11FunctionName))> t
-
-  norm-pgql10 = ?Legacy10Has(varRef, <id>); map(![varRef, <id>]; to-function(|"has_prop")); to-conjunction
   norm-pgql10:
     t@FunctionCall(Some(PackageName(None(), x)), RegularIdentifier(functionName), propertyNames) -> result
     where <eq> ( <upper-case> functionName, "HAS" )
@@ -427,7 +394,7 @@ rules
   norm-edgeContents = ?EdgeContents(<id>)
 
   name-unnamed-elems(|c) = (?CommonPathExpression(_, _, _, _, _) + ?GraphPattern(_) + ?MatchWhereClauses(_, _) + ?PathPattern(_, _)); alltd(name-unnamed-elem(|c))
-  name-unnamed-elem(|c) = ?ElemContents(None(), type, id', constraints); ?origin; !ElemContents(Some(<unique-name(|c, origin)>), type, id', constraints)
+  name-unnamed-elem(|c) = ?ElemContents(None(), type); ?origin; !ElemContents(Some(<unique-name(|c, origin)>), type)
   name-unnamed-elem(|c) = ?origin; (OutConn(?None(); name-unnamed-elem-helper(|c, origin), id) +
                            InConn(?None(); name-unnamed-elem-helper(|c, origin), id) +
                            UndirectedEdge(?None(); name-unnamed-elem-helper(|c, origin), id))
@@ -435,16 +402,7 @@ rules
                           ?InEdge(quantifier); ?origin; !InConn(<name-unnamed-elem-helper(|c, origin)>, quantifier) +
                           ?UndirectedEdge(quantifier); ?origin; !UndirectedEdge(<name-unnamed-elem-helper(|c, origin)>, quantifier) +
                           ?Path(None(), pathPatternRef, kleeneStar); ?origin; !Path(Some(<unique-name(|c, origin)>), pathPatternRef, kleeneStar)
-  name-unnamed-elem-helper(|c, origin) = !ElemContents(Some(<unique-name(|c, origin)>), None(), None(), None())
-
-  norm-inlined-references = ?ElemContents(Some((varName)), _, _, _); alltd(norm-inlined-reference(|varName))
-  norm-inlined-reference(|varName) =
-    ?Obj(dot); !VarRef(varName) + (?Obj(VarRef(v), dot) + ?PropRef(VarRef(v), _));
-    if <eq> (v, varName)
-    then !ReferenceInInlinedConstraint(v)
-    else !CrossReferenceInInlinedConstraint(v)
-    end +
-    (?SelfPropRef(propName) + ?SelfPropRef(dot, propName)); !PropRef(VarRef(varName), Identifier(propName, propName))
+  name-unnamed-elem-helper(|c, origin) = !ElemContents(Some(<unique-name(|c, origin)>), None())
 
 rules
 
@@ -498,7 +456,7 @@ rules
   norm-matchElems-common(|variable-counter):
     matchElems -> GraphPattern(vertices, connections, constraints)
     with pathPatterns := <remove-all(?Constraint(_))> matchElems // relevant to PGQL 1.0 only
-       ; vertices := <collect-outside-repeated-path(?Vertex(ElemContents(Some(<id>), _, _, _)); !Vertex(<id>)); remove-duplicate-vertices; !Vertices(<id>)> pathPatterns
+       ; vertices := <collect-outside-repeated-path(?Vertex(ElemContents(Some(<id>), _)); !Vertex(<id>)); remove-duplicate-vertices; !Vertices(<id>)> pathPatterns
        ; connections := <get-connections-from-paths(|variable-counter, None())> pathPatterns
 
        ; non-inlined-constraints := <filter(?Constraint(<id>))> matchElems // PGQL 1.0 only
@@ -544,11 +502,9 @@ rules
       connections := <get-connections-from-paths(|variable-counter, None()); !Edges(<id>)> [path]
 
   get-inlined-constraints:
-    ElemContents(Some(var), label, id', otherConstraint) -> <concat> [labels, identifiers, otherConstraint']
+    ElemContents(Some(var), label) -> labels
     with varRef := VarRef(var)
        ; labels := <?Some(Labels(_, <id>)); to-label-constraint(|varRef); ![<id>] <+ ![]> label
-       ; identifiers := <?Some(Ids(<id>)); to-id-constraint(|var); ![<id>] <+ ![]> id'
-       ; otherConstraint' := <?Some(InlinedConstraint(<id>)) <+ ![]> otherConstraint
 
   to-label-constraint(|varRef):
     labels -> <to-hasLabel-expressions(|varRef)> labels
@@ -703,7 +659,7 @@ rules
         otherwise: fail
       end;
       switch !edgeOrPath'
-        case ?ElemContents(Some(e'), _, _, _):
+        case ?ElemContents(Some(e'), _):
           constraints := <get-inlined-constraints> edgeOrPath'
         ; if <has-at-most-one-binding> quantifier
           then connection := <origin-track-forced(!NormalizedEdge(src, e', dst, dir, quantifier, Constraints(constraints)))> edgeOrPath
