@@ -61,8 +61,3 @@ context-free syntax // GraphPattern.sdf3 for PGQL 1.0
   Legacy10PatternElem.Constraint = Exp {avoid} // see Expressions.sdf3. Note: 'avoid' disambiguates 'select * where (X.p1)' ('(X.p1)' can be a Constraint or a Vertex)
 
   Labels.Legacy10Identifier = STRING
-
-context-free syntax // SolutionModifiers
-
-  OrderElem.Legacy10Asc = <asc(<Exp>)> {case-insensitive}
-  OrderElem.Legacy10Desc = <desc(<Exp>)> {case-insensitive}

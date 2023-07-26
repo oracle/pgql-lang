@@ -85,17 +85,6 @@ rules
   is-pgql11 = ?Pgql11Query(_, _, _, _, _, _, _, _)
   is-pgql13 = ?Query(_, _, _, _, _, _, _)
 
-  get-pgql11-deprecation = (?OutConn(None(), _) + ?InConn(None(), _) + ?UndirectedEdge(None(), _)); to-error-message(|"Use [-] instead of [--]")
-
-  get-pgql11-deprecation-helper(|functionNameToMatch, numArgsToMatch, anyNumberOfArgs):
-    t@FunctionCall(Some(PackageName(None(), x)), RegularIdentifier(functionName), args) -> t
-    where <eq> (<upper-case> functionName, functionNameToMatch)
-        ; if <?False()> anyNumberOfArgs
-          then <eq> (<length> args, numArgsToMatch)
-          end
-
-  get-pgql11-deprecation = ?Legacy10Asc(x); to-error-message(|$<Use [<<origin-text> x> ASC] instead of [ASC(<<origin-text> x>)]>)
-  get-pgql11-deprecation = ?Legacy10Desc(x); to-error-message(|$<Use [<<origin-text> x> DESC] instead of [DESC(<<origin-text> x>)]>)
   get-pgql11-deprecation = ?Legacy10Identifier(_); to-error-message(|"Use double quotes to delimit labels")
 
   get-pgql11-deprecation = ?LimitOffsetClauses(FetchFirstClause(_, _, _), Some(offsetClause)); !offsetClause; to-error-message(|"OFFSET clause should come before FETCH FIRST clause")
@@ -783,8 +772,8 @@ rules
       elems' := <map(norm-orderBy-ordering(|version))> elems
 
   norm-orderBy-ordering(|version) =
-    ((?Desc(<id>) + ?Legacy10Desc(<id>)); !OrderByElem(<id>, Desc(), version)) <+
-    ((try(?Asc(<id>) + ?Legacy10Asc(<id>))); !OrderByElem(<id>, Asc(), version))
+    (?Desc(<id>); !OrderByElem(<id>, Desc(), version)) <+
+    (try(?Asc(<id>)); !OrderByElem(<id>, Asc(), version))
 
   norm-limitOffsets = ?None(); !LimitOffsetClauses(None(), None())
   norm-limitOffsets = ?Some(LimitOffsetClauses(limitOrFetchFirstClause, optionalOffsetClause)); !LimitOffsetClauses(<norm-limit> Some(limitOrFetchFirstClause), optionalOffsetClause)
