@@ -30,34 +30,3 @@ context-free syntax // PGQL 1.1/1.2
   Pgql11FromClause.Pgql11FromClause = <FROM <GraphName>> {case-insensitive}
 
   MatchWhereClauses.MatchWhereClauses = <MATCH <{PathPattern ","}+> <WhereClause?>> {case-insensitive}
-
-context-free syntax // pgql-lang.sdf3 for PGQL 1.0
-
-  Legacy10Query.Pgql10Query =
-    <
-      <{CommonPathExpression "\n"}*>
-      <SelectClause>
-      <Pgql11FromClause?>
-      <Legacy10GraphPattern>
-      <GroupByClause?>
-      <OrderByClause?>
-      <LimitOffsetClauses?>
-    >
-
-  Legacy10SelectClause.SelectClause = <select <Legacy10Projection>> {case-insensitive}
-  Legacy10Projection.ExpAsVars = <<{ExpAsVar ", "}+>>
-  Legacy10Projection.Star = <*>
-
-context-free syntax // GraphPattern.sdf3 for PGQL 1.0
-
-  Legacy10GraphPattern.GraphPattern = 
-    <
-      where
-        <{Legacy10PatternElem ",\n"}+>
-    > {case-insensitive}
-
-  Legacy10PatternElem = PathPattern
-
-  Legacy10PatternElem.Constraint = Exp {avoid} // see Expressions.sdf3. Note: 'avoid' disambiguates 'select * where (X.p1)' ('(X.p1)' can be a Constraint or a Vertex)
-
-  Labels.Legacy10Identifier = STRING

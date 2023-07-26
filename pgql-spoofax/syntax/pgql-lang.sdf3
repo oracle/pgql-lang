@@ -28,8 +28,6 @@ context-free syntax
 
   Query = Legacy11Query
 
-  Query = Legacy10Query
-
   Query.Query =
     <
       <{CommonPathExpression "\n"}*>

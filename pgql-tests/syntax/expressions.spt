@@ -1,9 +1,0 @@
-module select
-
-language pgql-lang
-
-test User-defined functions [[
-
-  SELECT myFunc1(), myFunc2(n.age, n.name, n.age + 123), myPackage.myFunc3(n)
-  FROM MATCH (n)
-]]

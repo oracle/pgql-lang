@@ -68,9 +68,6 @@ public class MetadataToAstUtil {
       case "Pgql11Query":
         pgqlVersion = PgqlVersion.V_1_1_OR_V_1_2;
         break;
-      case "Pgql10Query":
-        pgqlVersion = PgqlVersion.V_1_0;
-        break;
       default:
         // for DDL statements and other non-query statement, we don't add metadata
         return parseResult;
@@ -298,14 +295,14 @@ public class MetadataToAstUtil {
     String identifier = getString(t);
     switch (constructorName) {
       case "RegularIdentifier":
-        if (pgqlVersion == PgqlVersion.V_1_0 || pgqlVersion == PgqlVersion.V_1_1_OR_V_1_2) {
+        if (pgqlVersion == PgqlVersion.V_1_1_OR_V_1_2) {
           return identifier;
         } else {
           return identifier.toUpperCase();
         }
       case "DelimitedIdentifier":
         String unquotedPart = identifier.substring(1, identifier.length() - 1);
-        if (pgqlVersion == PgqlVersion.V_1_0 || pgqlVersion == PgqlVersion.V_1_1_OR_V_1_2) {
+        if (pgqlVersion == PgqlVersion.V_1_1_OR_V_1_2) {
           // Java-like escaping rules
           return UNESCAPE_LEGACY_IDENTIFIER.translate(unquotedPart);
         } else {

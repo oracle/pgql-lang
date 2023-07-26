@@ -62,10 +62,7 @@ public class BugFixTest extends AbstractPgqlTest {
   }
 
   @Test
-  public void orderByEdgeIsPermittedOnlyInPgql10() throws Exception {
-    String queryPgql10 = "SELECT 1 WHERE () -[e]-> () ORDER BY e";
-    assertTrue(pgql.parse(queryPgql10).isQueryValid());
-
+  public void orderByEdgeNotPermitted() throws Exception {
     String queryPgql11 = "SELECT 1 MATCH () -[e]-> () ORDER BY e";
     assertFalse(pgql.parse(queryPgql11).isQueryValid());
 
@@ -161,18 +158,10 @@ public class BugFixTest extends AbstractPgqlTest {
   public void quotedVariableReferenceInLagacyPgqlVersions() throws Exception {
     String errorMessage = "Double quoted variable references are only available in PGQL 1.3 and up";
 
-    String pgql10Query = "SELECT \"n\" WHERE (n)";
-    PgqlResult result10 = pgql.parse(pgql10Query);
-    assertTrue(result10.isQueryValid());
-
     String pgql11Query = "SELECT \"n\" MATCH (n)";
     PgqlResult result11 = pgql.parse(pgql11Query);
     assertFalse(result11.isQueryValid());
     assertTrue(result11.getErrorMessages().contains(errorMessage));
-
-    pgql10Query = "SELECT \"n\".prop WHERE (n)";
-    result10 = pgql.parse(pgql10Query);
-    assertTrue(result10.isQueryValid());
 
     pgql11Query = "SELECT \"n\".prop MATCH (n)";
     result11 = pgql.parse(pgql11Query);

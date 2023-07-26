@@ -44,11 +44,10 @@ test Restriction: subquery without GRAPH_TABLE [[
                         FROM [[MATCH (n) ON g,]]
                              [[MATCH ( (n) ) ON g )]]
             OR EXISTS ( [[SELECT 1 FROM g MATCH (n)]] )
-            OR EXISTS ( [[SELECT 1 WHERE (n)]] )
          COLUMNS ( person.prop ) )
 
 ]] error like "GRAPH_TABLE restriction: wrap top-level MATCH in GRAPH_TABLE" at #1, #2
-   error like "Subquery uses older version of PGQL syntax; please make sure that both inner and outer query use the same PGQL version" at #3, #4
+   error like "Subquery uses older version of PGQL syntax; please make sure that both inner and outer query use the same PGQL version" at #3
 
 test Restriction: vertex sharing with outer query (1) [[
 

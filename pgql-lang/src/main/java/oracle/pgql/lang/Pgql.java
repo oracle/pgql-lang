@@ -335,9 +335,6 @@ public class Pgql implements Closeable {
     String pgqlVersionString = ((IStrategoString) ast.getSubterm(POS_PGQL_VERSION)).stringValue();
     PgqlVersion pgqlVersion;
     switch (pgqlVersionString) {
-      case "v1.0":
-        pgqlVersion = PgqlVersion.V_1_0;
-        break;
       case "v1.1":
         pgqlVersion = PgqlVersion.V_1_1_OR_V_1_2;
         break;

@@ -38,9 +38,8 @@ rules
       metadata := <?AstPlusMetadata(_, <id>) <+ ![]> astPlusMetadata;
       bindVariable-counter := <new-counter>;
       error-messages := <
-        (  is-pgql10; collect(get-pgql10-limitation)
-        <+ is-pgql11; (collect(get-pgql11-limitation); not(?[]) <+ collect(get-pgql11-deprecation))
-        <+ is-pgql13; collect(get-pgql13-deprecation + get-pgql13-errors); not(?[]) <+ get-all-GraphTable-restrictions
+        (  is-pgql11; (collect(get-pgql11-limitation); not(?[]) <+ collect(get-pgql11-errors))
+        <+ is-pgql13; collect(get-pgql13-errors); not(?[]) <+ get-all-GraphTable-restrictions
         )
         ; not(?[]) <+ !( <quantifier-without-path-finding-goal>,
                          <get-all-nested-regular-expressions>,
@@ -48,7 +47,6 @@ rules
                        ); conc> ast;
       result := <
         alltd(norm-BindVariable(|bindVariable-counter)); // give numbers to bind variables; this should happen before any other query transformation so that we maintain the order of bind variables as they appear in the original query
-        alltd(norm-pgql10);
         alltd(
           norm-UMin +
           norm-DateTimeField +
@@ -63,7 +61,7 @@ rules
           norm-case
         );
       	alltd(norm-edgeContents);
-        ( (is-pgql10 + is-pgql11); alltd((?PropRef(_, _) <+ varRef-to-legacy-string-literal) + norm-legacy-string-literal); alltd(norm-legacy-identifier) +
+        ( is-pgql11; alltd((?PropRef(_, _) <+ varRef-to-legacy-string-literal) + norm-legacy-string-literal); alltd(norm-legacy-identifier) +
           is-pgql13; alltd(norm-string-literal + norm-identifier) +
           ?Start-Plhdr() // empty query string
         );
@@ -81,17 +79,14 @@ rules
 
 rules
 
-  is-pgql10 = ?Pgql10Query(_, _, _, _, _, _, _)
   is-pgql11 = ?Pgql11Query(_, _, _, _, _, _, _, _)
   is-pgql13 = ?Query(_, _, _, _, _, _, _)
 
-  get-pgql11-deprecation = ?Legacy10Identifier(_); to-error-message(|"Use double quotes to delimit labels")
+  get-pgql11-errors = ?LimitOffsetClauses(FetchFirstClause(_, _, _), Some(offsetClause)); !offsetClause; to-error-message(|"OFFSET clause should come before FETCH FIRST clause")
 
-  get-pgql11-deprecation = ?LimitOffsetClauses(FetchFirstClause(_, _, _), Some(offsetClause)); !offsetClause; to-error-message(|"OFFSET clause should come before FETCH FIRST clause")
+  get-pgql13-errors = get-pgql11-errors // sharing all the errors with 1.1
 
-  get-pgql13-deprecation = get-pgql11-deprecation // sharing all the deprecations with 1.1
-
-  get-pgql13-errors      = ?GraphMatch(None(), _, _); to-error-message(|"Missing MATCH keyword at start of pattern")
+  get-pgql13-errors = ?GraphMatch(None(), _, _); to-error-message(|"Missing MATCH keyword at start of pattern")
 
   get-pgql13-errors:
     ParenthesizedGraphMatch(_, _, optionalGraphMatchParts) -> <error-for-rows-clause-when-multiple-path-patterns> rowsPerMatch
@@ -108,15 +103,6 @@ rules
         ; <is-not-one-row-per-match> rowsPerMatch
 
   is-not-one-row-per-match = ?OneRowPerVertex(_) + ?OneRowPerEdge(_) + ?OneRowPerStep(_, _, _)
-
-  get-pgql10-limitation = ( ?Pgql11FromClause(_)
-                          + ?Subquery(_)
-                          + ?Pgql11AsignSymbol()
-                          + ?ExtractExp(_, _)
-                          + ?ARRAY-AGG(_, _)
-                          + ?PathPattern2(Some(_), _)
-                          )
-                        ; to-error-message(|"Use [SELECT .. FROM MATCH .. WHERE ..]")
 
   get-pgql11-limitation = ?VarRef(DelimitedIdentifier(<id>)); to-error-message(|"Double quoted variable references are only available in PGQL 1.3 and up")
                         + ?ModifyClause(_); to-error-message(|"INSERT, UPDATE and DELETE are only supported in PGQL 1.3 and up (use FROM MATCH ...)")
@@ -194,7 +180,7 @@ rules
   get-errors-for-inconsistent-graph-names:
     ast -> <conc> (errors-for-multiple-graph-name, errors-for-missing-on-clauses)
     with errors-for-multiple-graph-name := <get-errors-for-multiple-graph-names> ast
-       ; if <is-pgql10 + is-pgql11> ast
+       ; if <is-pgql11> ast
          then errors-for-missing-on-clauses := [] // before PGQL 1.3 we didn't have these error yet
          else errors-for-missing-on-clauses := <get-errors-for-missing-on-clauses> ast
          end
@@ -235,17 +221,6 @@ rules
                           + ?OutConn(Path(_, _, _), _)
                           + ?InConn(Path(_, _, _), _)
 
-  norm-pgql10:
-    t@FunctionCall(Some(PackageName(None(), x)), RegularIdentifier(functionName), propertyNames) -> result
-    where <eq> ( <upper-case> functionName, "HAS" )
-    with replacement-expression := <map(to-has-prop-function(|x, t)); to-conjunction> propertyNames
-       ; result := <origin-track-forced(!replacement-expression)> t
-
-  to-has-prop-function(|var, originTerm):
-    propertyName -> result
-    with args := [VarRef(var), propertyName]
-       ; result := <origin-track-forced(!args; to-function(|"has_prop"))> originTerm
-
   // In PGQL 1.1 and PGQL 1.2, subqueries would inherit the graph name from the outer query.
   // This is no longer the case in PGQL 1.3+, where graph names in subqueries need to be respecified.
   copy-graph-name-to-queries-without-one:
@@ -278,11 +253,6 @@ rules
   norm-legacy-identifier:
     DelimitedIdentifier(v) -> Identifier(v', v')
     with v' := <origin-track-forced(un-double-quote; unescape-legacy-identifier)> v
-
-  // (n:'lbl')
-  norm-legacy-identifier:
-    Legacy10Identifier(v) -> Legacy10Identifier(v')
-    with v' := <origin-track-forced(un-single-quote; unescape-legacy-string-literal)> v
 
   external unescape-legacy-string-literal(|)
   external unescape-legacy-identifier(|)
@@ -382,7 +352,7 @@ rules
 
   norm-edgeContents = ?EdgeContents(<id>)
 
-  name-unnamed-elems(|c) = (?CommonPathExpression(_, _, _, _, _) + ?GraphPattern(_) + ?MatchWhereClauses(_, _) + ?PathPattern(_, _)); alltd(name-unnamed-elem(|c))
+  name-unnamed-elems(|c) = (?CommonPathExpression(_, _, _, _, _) + ?MatchWhereClauses(_, _) + ?PathPattern(_, _)); alltd(name-unnamed-elem(|c))
   name-unnamed-elem(|c) = ?ElemContents(None(), type); ?origin; !ElemContents(Some(<unique-name(|c, origin)>), type)
   name-unnamed-elem(|c) = ?origin; (OutConn(?None(); name-unnamed-elem-helper(|c, origin), id) +
                            InConn(?None(); name-unnamed-elem-helper(|c, origin), id) +
@@ -437,25 +407,17 @@ rules
        ; non-inlined-constraints := <?Some(WhereClause(<id>)); ![<id>] + ?None(); ![]> whereClause
        ; constraints := Constraints(<conc> (inlined-constraints,  non-inlined-constraints))
 
-  // PGQL 1.0
-  norm-matchElems(|variable-counter):
-    GraphPattern(elems) -> graphPattern
-    with graphPattern := <norm-matchElems-common(|variable-counter)> elems
-
   norm-matchElems-common(|variable-counter):
-    matchElems -> GraphPattern(vertices, connections, constraints)
-    with pathPatterns := <remove-all(?Constraint(_))> matchElems // relevant to PGQL 1.0 only
-       ; vertices := <collect-outside-repeated-path(?Vertex(ElemContents(Some(<id>), _)); !Vertex(<id>)); remove-duplicate-vertices; !Vertices(<id>)> pathPatterns
+    pathPatterns -> GraphPattern(vertices, connections, constraints)
+    with vertices := <collect-outside-repeated-path(?Vertex(ElemContents(Some(<id>), _)); !Vertex(<id>)); remove-duplicate-vertices; !Vertices(<id>)> pathPatterns
        ; connections := <get-connections-from-paths(|variable-counter, None())> pathPatterns
-
-       ; non-inlined-constraints := <filter(?Constraint(<id>))> matchElems // PGQL 1.0 only
        ; inlined-constraints-for-vertices := <collect-outside-repeated-path(?Vertex(<id>))
                                            ; map(get-inlined-constraints); concat> pathPatterns
        ; inlined-constraints-for-edges := <collect-outside-repeated-path(?OutConn(<id>, None())
                                                                        + ?InConn(<id>, None())
                                                                        + ?UndirectedEdge(<id>, None()))
                                         ; filter(get-inlined-constraints); concat> pathPatterns
-       ; constraints := <conc; flatten-list; !Constraints(<id>)> (inlined-constraints-for-vertices, inlined-constraints-for-edges, non-inlined-constraints)
+       ; constraints := <conc; flatten-list; !Constraints(<id>)> (inlined-constraints-for-vertices, inlined-constraints-for-edges)
 
   collect-outside-repeated-path(s) = collect-but-preserve-order(ParenthesizedPath + s); remove-all(ParenthesizedPath)
 
@@ -498,7 +460,7 @@ rules
   to-label-constraint(|varRef):
     labels -> <to-hasLabel-expressions(|varRef)> labels
   to-hasLabel-expressions(|varRef) = bottomup(try(![varRef, <to-label>]; to-function(|"has_label") + origin-track-forced(normalize-label-disjunction)))
-  to-label = ?Label(<id>) + ?Legacy10Identifier(<id>); origin-track-forced(!Identifier(<id>, <id>)) + ?BindVariable(_)
+  to-label = ?Label(<id>) + ?BindVariable(_)
   to-id-constraint(|var) = bottomup(try(is-literal; origin-track-forced(!Eq(<to-function(|"id")> [VarRef(var)], <id>))))
   normalize-label-disjunction = ?LabelDisjunction(x, y); !Or(x, y)
 
@@ -723,14 +685,6 @@ rules
       <norm-query(|error-messages, "v1.1", variable-counter, bindVariableCount)> (commonPathExpressions, selectOrModifyClause, optionalGraphName, [graphPattern], whereClause, groupByClause, havingClause, orderByClause, limitOffsets)
     with optionalGraphName := <?None() + ?Some(Pgql11FromClause(graphName)); !Some(GraphName(graphName))> fromClause
        ; whereClause := Constraints([]) // WHERE clause is already merged into graphPattern
-
-  // pgql 1.0
-  norm-query(|error-messages, variable-counter, bindVariableCount):
-    q@Pgql10Query(commonPathExpressions, selectClause, fromClause, graphPattern, groupByClause, orderByClause, limitOffsets) ->
-      <norm-query(|error-messages, "v1.0", variable-counter, bindVariableCount)> (commonPathExpressions, selectClause, optionalGraphName, [graphPattern], whereClause, groupByClause, havingClause, orderByClause, limitOffsets)
-      with optionalGraphName := <?None() + ?Some(Pgql11FromClause(graphName)); !Some(GraphName(graphName))> fromClause
-       ; whereClause := Constraints([]) // WHERE clause is already merged into graphPattern
-       ; havingClause := None()
 
   norm-query(|error-messages, version, variable-counter, bindVariableCount):
     t@(commonPathExpressions, selectOrModifyClause, optionalGraphName, tableExpressions, whereClause, groupByClause, havingClause, orderByClause, limitOffsets) ->

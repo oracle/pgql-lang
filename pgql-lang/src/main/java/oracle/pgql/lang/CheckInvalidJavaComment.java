@@ -6,7 +6,7 @@ package oracle.pgql.lang;
 public class CheckInvalidJavaComment {
 
   public static void checkInvalidJavaComment(String queryString, PgqlVersion pgqlVersion) throws PgqlException {
-    if (pgqlVersion != PgqlVersion.V_1_0 && pgqlVersion != PgqlVersion.V_1_1_OR_V_1_2) {
+    if (pgqlVersion != PgqlVersion.V_1_1_OR_V_1_2) {
 
       char[] chars = queryString.toCharArray();
       int i = 0;

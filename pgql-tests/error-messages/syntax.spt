@@ -38,7 +38,7 @@ test Single-quoted labels [[
   SELECT x AS y
     FROM g MATCH (x:[['lbl']])
 
-]] error like "Use double quotes to delimit labels"
+]] parse fails
 
 test Invalid date [[
 
