@@ -229,6 +229,8 @@ rules
 
   replace-AllProperties-in-Select(|variable-counter) = origin-track-forced(SelectClause(id, SelectList(map(try(replace-AllProperties(|variable-counter))))))
 
+  replace-AllProperties-in-Select(|variable-counter) = ?ModifyClause(_) // INSERT/UPDATE/DELETE in LATERAL not supported; we'll generate an error elsewhere
+
   replace-AllProperties(|variable-counter):
     t@AllProperties(varRef, prefix) -> result
     with name := <unique-name(|variable-counter, t)>
