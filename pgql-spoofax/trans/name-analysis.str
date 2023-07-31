@@ -205,12 +205,14 @@ rules
     ; filter(is-anonymous-variable)
     ; map(generate-ExpAsVar(|star))
 
-  extract-variables-for-select-star(|star, variable-counter) =
-      ?DerivedTable(_, Subquery(NormalizedQuery(_, SelectClause(_, SelectList(<id>)), _, _, _, _, _, _, _, _, _, _, _)), _)
-    ; filter(
-        ?ExpAsVar(_, <id>, _, _); is-anonymous-variable; generate-ExpAsVar(|star) +
-        pull-up-AllProperties(|variable-counter) // no metadata was available to translate the n.* so we pull it up
-      )
+  extract-variables-for-select-star(|star, variable-counter):
+    DerivedTable(_, Subquery(NormalizedQuery(_, selectOrModifyClause, _, _, _, _, _, _, _, _, _, _, _)), _) -> vars
+    with if <?SelectClause(_, SelectList(selectElems))> selectOrModifyClause
+         then vars := <filter(  ?ExpAsVar(_, <id>, _, _); is-anonymous-variable; generate-ExpAsVar(|star) +
+                                pull-up-AllProperties(|variable-counter) // no metadata was available to translate the n.* so we pull it up
+                             )> selectElems
+         else vars := [] // for INSERT/UPDATE/DELETE we return an empty list and will generate an error elsewhere (not allowed as subquery)
+         end
 
   is-anonymous-variable = Identifier(is-string; not(is-substring(GENERATED)), id)
 
