@@ -17,6 +17,13 @@ test INSERT/UPDATE/DELETE subquery not allowed (2) [[
 
 ]] error like "SELECT clause expected here" at #1
 
+test INSERT/UPDATE/DELETE subquery not allowed (3) [[
+
+  SELECT 123
+    FROM LATERAL ( [[ UPDATE x SET ( x.prop = 3 ) ]] FROM MATCH (x) )
+
+]] error like "SELECT clause expected here" at #1
+
 test Set a property that is grouped by [[
 
     UPDATE n SET ( [[n.prop]] = 123 )
