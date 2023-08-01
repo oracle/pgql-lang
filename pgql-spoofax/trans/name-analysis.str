@@ -56,7 +56,7 @@ rules
 
        // SELECT / INSERT / UPDATE / DELETE
        ; if <?SelectClause(_, _)> selectOrModifyClause
-         then (selectOrModifyClause', variables'''', tableExpressions'') := <resolve-select-clause(|variables''', metadata, variable-counter, valueExpression', tableExpressions', groupByExps)> selectOrModifyClause
+         then (selectOrModifyClause', variables'''', tableExpressions'') := <resolve-select-clause(|variables''', metadata, variable-counter, valueExpression', tableExpressions', groupByExps, groupBy')> selectOrModifyClause
          else selectOrModifyClause' := <resolve-modify-clause(|variables''', metadata, variable-counter)> selectOrModifyClause
             ; variables'''' := variables'''
             ; tableExpressions'' := tableExpressions'
@@ -172,22 +172,22 @@ rules
     with vars' := []
        ; variables' := [vars'|variables]
 
-  resolve-select-clause(|variables, metadata, variable-counter, valueExpression, tableExpressions, group-exps):
+  resolve-select-clause(|variables, metadata, variable-counter, valueExpression, tableExpressions, group-exps, groupBy):
     t@SelectClause(distinct, t2@SelectList(selectElements)) -> (selectClause', variables', tableExpressions)
     with varsInCurrentScope := <Hd> variables
-       ; (selectElements', vars') := <foldl(resolve-exp-as-var-in-select(|variables, metadata, variable-counter, valueExpression))> (selectElements, ([], varsInCurrentScope))
+       ; (selectElements', vars') := <foldl(resolve-exp-as-var-in-select(|variables, metadata, variable-counter, valueExpression, tableExpressions, groupBy))> (selectElements, ([], varsInCurrentScope))
        ; selectElements'' := <origin-track-forced(!SelectList(selectElements'))> t2
        ; variables' := [vars'|<Tl> variables]
        ; selectClause' := <origin-track-forced(!SelectClause(distinct, selectElements''))> t
 
-  resolve-select-clause(|variables, metadata, variable-counter, valueExpression, tableExpressions, group-exps):
+  resolve-select-clause(|variables, metadata, variable-counter, valueExpression, tableExpressions, group-exps, groupBy):
     t@SelectClause(distinct, star@Star()) -> (selectClause', variables', tableExpressions')
     with if [] := group-exps
          then variable-counter-copy := <new-counter>
             ; <set-counter> (variable-counter-copy, <get-counter> variable-counter) // create a copy of the variable counter as we will use one for references and one for definitions
             ; selectElements := <map(extract-variables-for-select-star(|star, variable-counter)); concat; make-set> tableExpressions
             ; varsInCurrentScope := <Hd> variables
-            ; (selectElements', vars') := <foldl(resolve-exp-as-var-in-select(|variables, metadata, variable-counter, valueExpression))> (selectElements, ([], varsInCurrentScope))
+            ; (selectElements', vars') := <foldl(resolve-exp-as-var-in-select(|variables, metadata, variable-counter, valueExpression, tableExpressions, groupBy))> (selectElements, ([], varsInCurrentScope))
             ; variables' := [vars'|<Tl> variables]
             ; star' := star
             ; tableExpressions' := <map(replace-all-AllProperties(|variable-counter-copy))> tableExpressions // replace n.* in LATERAL or GRAPH_TABLE subqueries with a projection of n as we've pulled it up at this point
@@ -294,7 +294,7 @@ rules
     (exp1, exp2) -> <id>
     where <not(eq)> (exp1, exp2)
 
-  resolve-exp-as-var-in-select(|variables, metadata, variable-counter, valueExpression):
+  resolve-exp-as-var-in-select(|variables, metadata, variable-counter, valueExpression, tableExpressions, groupBy):
     (t@ExpAsVar(exp, iden@Identifier(v, _), anonymous), (result, vars)) -> (result', vars')
     with exp' := <resolve-var-refs(|variables, metadata, variable-counter)> exp
        ; originOffset := <origin-offset> v
@@ -309,12 +309,12 @@ rules
        ; result' := <conc> (result, [expAsVar'])
 
   // expression was defined in GROUP BY and doesn't need to be resolved again
-  resolve-exp-as-var-in-select(|variables, metadata, variable-counter, valueExpression):
+  resolve-exp-as-var-in-select(|variables, metadata, variable-counter, valueExpression, tableExpressions, groupBy):
      (expAsVar@ExpAsVar(_, _, _, originOffset), (result, vars)) -> (result', vars')
      with vars' := vars // it was already added during GROUP BY analysis
         ; result' := <conc> (result, [expAsVar])
 
-  resolve-exp-as-var-in-select(|variables, metadata, variable-counter, valueExpression):
+  resolve-exp-as-var-in-select(|variables, metadata, variable-counter, valueExpression, tableExpressions, groupBy):
     (t@AllProperties(varRef, columnNamePrefix), (result, vars)) -> (result', vars')
     with varRef' := <try(resolve-var-ref(|variables, metadata, variable-counter))> varRef
        ; if <?VarRef(v)> varRef'
@@ -328,7 +328,7 @@ rules
             ; if <?None()> allLabels
               then selectElems := <resolve-var-refs(|variables, metadata, variable-counter)> [t] // no label metadata is provided so we don't process the n.* other than resolve variable n
                  ; vars' := vars
-              else originOffset := <?VarRef(_, <id>) <+ !None()> varRef'
+              else originOffset := <get-base-variable(|tableExpressions, groupBy)> varRef'
                  ; labelExpression := <filter(simplify-label-expression(|originOffset)); (?[]; !All() <+ to-label-conjunction)> valueExpression
                  ; allLabelNames := <(?Type("VERTEX"); get-vertex-labels(|metadata) + ?Type("EDGE"); get-edge-labels(|metadata)); try(?None(); ![])> elementType
                  ; labelReferences := <get-labels-from-label-expression(|allLabelNames)> labelExpression
@@ -340,6 +340,16 @@ rules
               end
          end
        ; result' := <conc> (result, selectElems)
+
+  get-base-variable(|tableExpressions, groupBy):
+    VarRef(_, originOffset) -> originOffset'
+    with if <collect-one(?Vertex(_, originOffset, _) + ?Edge(_, _, _, _, originOffset, _))> (tableExpressions, groupBy)
+         then originOffset' := originOffset
+         else varRef := <collect-one(?ExpAsVar(<id>, _, _, originOffset))> (tableExpressions, groupBy)
+            ; originOffset' := <get-base-variable(|tableExpressions, groupBy)> varRef
+         end
+
+  get-base-variable(|tableExpressions, groupBy) = ?VarRef(_); !None() // unresolved reference
 
   has-label-metadata = fetch-elem(?VertexLabels(_))
 

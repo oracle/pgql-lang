@@ -696,4 +696,15 @@ public class PrettyPrintingTest extends AbstractPgqlTest {
     String statement = "SELECT n.* PREFIX 'n_' FROM MATCH (n)";
     checkRoundTrip(statement);
   }
+
+  @Test
+  public void testJsonArrayagg() throws Exception {
+    String statement = "SELECT JSON_ARRAYAGG(n.prop1) AS c1, " //
+        + "JSON_ARRAYAGG(n.prop1 FORMAT JSON) AS c2, " //
+        + "JSON_ARRAYAGG(n.prop1 FORMAT JSON ORDER BY n.prop2 ASC) AS c3, " //
+        + "JSON_ARRAYAGG(n.prop1 FORMAT JSON ORDER BY n.prop2 DESC NULL ON NULL) AS c4, " //
+        + "JSON_ARRAYAGG(n.prop1 FORMAT JSON ORDER BY n.prop2, n.prop3 ABSENT ON NULL RETURNING CLOB) AS c5 " //
+        + "FROM MATCH (n)";
+    checkRoundTrip(statement);
+  }
 }

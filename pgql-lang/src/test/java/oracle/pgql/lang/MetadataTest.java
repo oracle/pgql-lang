@@ -1096,4 +1096,30 @@ public class MetadataTest extends AbstractPgqlTest {
     assertEquals("typeConflictProp", expAsVars.get(2).getName());
     assertEquals("typeConflictProp", expAsVars.get(2).getNameOriginText());
   }
+
+  @Test
+  public void testSelectAllPropertiesAfterVariableRenaming() throws Exception {
+    isValid("SELECT n.* FROM MATCH (n:Account) ON financialNetwork GROUP BY n");
+    isValid("SELECT m.* FROM MATCH (n:Account) ON financialNetwork GROUP BY n AS m");
+    isValid("SELECT n.* FROM LATERAL ( SELECT n FROM MATCH (n:account) ON financialNetwork )");
+    isValid("SELECT m.* FROM LATERAL ( SELECT n AS m FROM MATCH (n:account) ON financialNetwork )");
+    isValid(
+        "SELECT p.* FROM LATERAL ( SELECT m AS o FROM MATCH (n:account) ON financialNetwork GROUP BY n AS m ) GROUP BY o AS p");
+    isValid(
+        "SELECT o.* FROM LATERAL ( SELECT m AS o FROM LATERAL ( SELECT n AS m FROM MATCH (n:account) ON financialNetwork LIMIT 1 ) LIMIT 1 )");
+
+    // now test the same queries but for edges
+    isValid("SELECT n.* FROM MATCH () -[n:transaction]-> () ON financialNetwork GROUP BY n");
+    isValid("SELECT m.* FROM MATCH () -[n:transaction]-> () ON financialNetwork GROUP BY n AS m");
+    isValid("SELECT n.* FROM LATERAL ( SELECT n FROM MATCH () -[n:transaction]-> () ON financialNetwork )");
+    isValid("SELECT m.* FROM LATERAL ( SELECT n AS m FROM MATCH () -[n:transaction]-> () ON financialNetwork )");
+    isValid(
+        "SELECT p.* FROM LATERAL ( SELECT m AS o FROM MATCH () -[n:transaction]-> () ON financialNetwork GROUP BY n AS m ) GROUP BY o AS p");
+    isValid(
+        "SELECT o.* FROM LATERAL ( SELECT m AS o FROM LATERAL ( SELECT n AS m FROM MATCH () -[n:transaction]-> () ON financialNetwork LIMIT 1 ) LIMIT 1 )");
+  }
+
+  private void isValid(String query) throws Exception {
+    assertTrue(parse(query).isQueryValid());
+  }
 }
