@@ -1720,7 +1720,6 @@ The syntax is:
 ```bash
 GraphPatternQuantifier     ::=   <ZeroOrMore>
                                | <OneOrMore>
-                               | <Optional>
                                | <ExactlyN>
                                | <NOrMore>
                                | <BetweenNAndM>
@@ -1729,8 +1728,6 @@ GraphPatternQuantifier     ::=   <ZeroOrMore>
 ZeroOrMore                 ::= '*'
 
 OneOrMore                  ::= '+'
-
-Optional                   ::= '?'
 
 ExactlyN                   ::= '{' <UNSIGNED_INTEGER> '}'
 
@@ -1747,7 +1744,6 @@ The meaning of the different quantifiers is:
 |------------|--------------------------------------|-------------------------------------------------------------------------------------------------------------------------------------|
 | *          | zero (0) or more                     | a path that connects the source and destination of the path by zero or more matches of a given pattern                             |
 | +          | one (1) or more                      | a path that connects the source and destination of the path by one or more matches of a given pattern                              |
-| ?          | zero or one (1), i.e. "optional"     | a path that connects the source and destination of the path by zero or one matches of a given pattern                              |
 | { n }      | exactly _n_                          | a path that connects the source and destination of the path by exactly _n_ matches of a given pattern                              |
 | { n, }     | _n_ or more                          | a path that connects the source and destination of the path by at least _n_ matches of a given pattern                             |
 | { n, m }   | between _n_ and _m_ (inclusive)      | a path that connects the source and destination of the path by at least _n_ and at most _m_ (inclusive) matches of a given pattern |
@@ -2367,12 +2363,11 @@ A singleton variable is a variable that binds to only one vertex or edge, wherea
 
 Consider the pattern `(n) -[e1]-> (m) -[e2]->* (o)`.
 Here, `e1` is a singleton variable because within a single match of the pattern there is always a single edge bound to `e1`, whereas `e2` is a group variable because within a single match of the pattern there may be multiple edges bound to `e2` because of the quantifier `*`.
-Variables are thus either singleton variables or group variables depending on whether they are enclosed by a quantifier with an upper bound greater than 1.
+Variables are thus either singleton variables or group variables depending on whether they are enclosed by a quantifier.
 
-Here are examples with singleton variables:
+Here is an example with a singleton variable:
 
  - `-[e]->`
- - `-[e]->?`
 
 Here are examples with group variables:
 
@@ -2380,10 +2375,9 @@ Here are examples with group variables:
  - `-[e]->+`
  - `-[e]->{1,4}`
 
-Quantifiers with curly braces _always_ introduce group variables, so the following are also examples with group variables:
+Quantifiers with curly braces _always_ introduce group variables, so the following is also an example with a group variable:
 
 - `-[e]->{1,1}` (notice that this is not the same as `-[e]->`)
-- `-[e]->{0,1}` (notice that this is not the same as `-[e]->?`)
 
 Group variables thus form implicit groups without a need to explicitly specify a `GROUP BY`.
 
