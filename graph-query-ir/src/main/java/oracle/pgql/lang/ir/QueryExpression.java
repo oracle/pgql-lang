@@ -65,6 +65,7 @@ public interface QueryExpression {
     AGGR_SUM,
     AGGR_AVG,
     AGGR_ARRAY_AGG,
+    AGGR_JSON_ARRAYAGG,
     AGGR_LISTAGG,
 
     // other
@@ -2266,6 +2267,96 @@ public interface QueryExpression {
       }
     }
 
+    class AggrJsonArrayagg extends AbstractAggregation {
+
+      private OrderBy orderBy;
+
+      private JsonOnNull jsonOnNull;
+
+      private String jsonReturnType;
+
+      public AggrJsonArrayagg(QueryExpression exp, OrderBy orderBy, JsonOnNull jsonOnNull, String jsonReturnType) {
+        super(false, exp);
+        this.orderBy = orderBy;
+        this.jsonOnNull = jsonOnNull;
+        this.jsonReturnType = jsonReturnType;
+      }
+
+      public OrderBy getOrderBy() {
+        return orderBy;
+      }
+
+      public void setOrderBy(OrderBy orderBy) {
+        this.orderBy = orderBy;
+      }
+
+      public JsonOnNull getJsonOnNull() {
+        return jsonOnNull;
+      }
+
+      public void setJsonOnNull(JsonOnNull jsonOnNull) {
+        this.jsonOnNull = jsonOnNull;
+      }
+
+      public String getJsonReturnType() {
+        return jsonReturnType;
+      }
+
+      public void setJsonReturnType(String jsonReturnType) {
+        this.jsonReturnType = jsonReturnType;
+      }
+
+      @Override
+      public ExpressionType getExpType() {
+        return ExpressionType.AGGR_JSON_ARRAYAGG;
+      }
+
+      @Override
+      public void accept(QueryExpressionVisitor v) {
+        v.visit(this);
+      }
+
+      @Override
+      public String toString() {
+        String result = "JSON_ARRAYAGG(";
+        result += getExp();
+        result += orderBy.getElements().isEmpty() ? "" : " " + orderBy.toString();
+        result += jsonOnNull == JsonOnNull.NULL_ON_NULL ? " NULL ON NULL" : "";
+        result += jsonReturnType == null ? "" : " RETURNING " + jsonReturnType;
+        result += ")";
+        return result;
+      }
+
+      @Override
+      public int hashCode() {
+        return 31;
+      }
+
+      @Override
+      public boolean equals(Object obj) {
+        if (this == obj)
+          return true;
+        if (!super.equals(obj))
+          return false;
+        if (getClass() != obj.getClass())
+          return false;
+        AggrJsonArrayagg other = (AggrJsonArrayagg) obj;
+        if (jsonOnNull != other.jsonOnNull)
+          return false;
+        if (jsonReturnType == null) {
+          if (other.jsonReturnType != null)
+            return false;
+        } else if (!jsonReturnType.equals(other.jsonReturnType))
+          return false;
+        if (orderBy == null) {
+          if (other.orderBy != null)
+            return false;
+        } else if (!orderBy.equals(other.orderBy))
+          return false;
+        return true;
+      }
+    }
+
     class AggrListagg extends AbstractAggregation {
 
       private String separator;
@@ -2293,6 +2384,11 @@ public interface QueryExpression {
         v.visit(this);
       }
     }
+  }
+
+  enum JsonOnNull {
+    NULL_ON_NULL,
+    ABSENT_ON_NULL
   }
 
   class Star implements QueryExpression {
