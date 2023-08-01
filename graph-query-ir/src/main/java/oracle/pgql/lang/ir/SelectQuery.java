@@ -4,6 +4,7 @@
 package oracle.pgql.lang.ir;
 
 import java.util.Collections;
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Set;
 
@@ -24,7 +25,8 @@ public class SelectQuery extends GraphQuery {
   public SelectQuery(List<CommonPathExpression> commonPathExpressions, Projection projection,
       SchemaQualifiedName graphName, List<TableExpression> tableExpressions, GroupBy groupBy, QueryExpression having,
       OrderBy orderBy, QueryExpression limit, QueryExpression offset) {
-    this(commonPathExpressions, projection, graphName, tableExpressions, null, groupBy, having, orderBy, limit, offset);
+    this(commonPathExpressions, projection, graphName, tableExpressions, new LinkedHashSet<>(), groupBy, having,
+        orderBy, limit, offset);
   }
 
   /**

@@ -2460,7 +2460,7 @@ public interface QueryExpression {
 
     @Override
     public String toString() {
-      return varRef + ".*" + (prefix == null ? "" : " PREFIX " + prefix);
+      return varRef + ".*" + (prefix == null ? "" : " PREFIX " + printLiteral(prefix));
     }
 
     @Override
