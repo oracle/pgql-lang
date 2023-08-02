@@ -27,7 +27,6 @@ import oracle.pgql.lang.ir.GraphPattern;
 import oracle.pgql.lang.ir.GraphQuery;
 import oracle.pgql.lang.ir.GroupBy;
 import oracle.pgql.lang.ir.OrderBy;
-import oracle.pgql.lang.ir.OrderByElem;
 import oracle.pgql.lang.ir.PathFindingGoal;
 import oracle.pgql.lang.ir.PathMode;
 import oracle.pgql.lang.ir.Projection;
@@ -73,6 +72,7 @@ import static oracle.pgql.lang.CommonTranslationUtil.isNone;
 import static oracle.pgql.lang.CommonTranslationUtil.isSome;
 import static oracle.pgql.lang.CommonTranslationUtil.getSomeValue;
 import static oracle.pgql.lang.CommonTranslationUtil.getConstructorName;
+import static oracle.pgql.lang.CommonTranslationUtil.getOrderBy;
 import static oracle.pgql.lang.CommonTranslationUtil.getVariable;
 import static oracle.pgql.lang.CommonTranslationUtil.translateExp;
 import static oracle.pgql.lang.CommonTranslationUtil.parseLong;
@@ -168,8 +168,6 @@ public class SpoofaxAstToGraphQuery {
   private static final int POS_ROWS_PER_MATCH_VARIABLE_NAME = 0;
   private static final int POS_ROWS_PER_MATCH_VARIABLE_ORIGIN_OFFSET = 1;
 
-  private static final int POS_ORDERBY_EXP = 0;
-  private static final int POS_ORDERBY_ORDERING = 1;
   private static final int POS_LIMIT = 0;
   private static final int POS_OFFSET = 1;
 
@@ -282,8 +280,7 @@ public class SpoofaxAstToGraphQuery {
 
     // ORDER BY
     IStrategoTerm orderByT = ast.getSubterm(POS_ORDERBY);
-    List<OrderByElem> orderByElems = getOrderByElems(ctx, orderByT);
-    OrderBy orderBy = new OrderBy(orderByElems);
+    OrderBy orderBy = getOrderBy(ctx, orderByT);
 
     // LIMIT OFFSET
     IStrategoTerm limitOffsetT = ast.getSubterm(POS_LIMITOFFSET);
@@ -933,20 +930,5 @@ public class SpoofaxAstToGraphQuery {
     }
     giveAnonymousVariablesUniqueHiddenName(expAsVars, ctx);
     return expAsVars;
-  }
-
-  private static List<OrderByElem> getOrderByElems(TranslationContext ctx, IStrategoTerm orderByT)
-      throws PgqlException {
-    List<OrderByElem> orderByElems = new ArrayList<>();
-    if (!isNone(orderByT)) { // has ORDER BY
-      IStrategoTerm orderByElemsT = getList(orderByT);
-      for (IStrategoTerm orderByElemT : orderByElemsT) {
-        QueryExpression exp = translateExp(orderByElemT.getSubterm(POS_ORDERBY_EXP), ctx);
-        boolean ascending = ((IStrategoAppl) orderByElemT.getSubterm(POS_ORDERBY_ORDERING)).getConstructor().getName()
-            .equals("Asc");
-        orderByElems.add(new OrderByElem(exp, ascending));
-      }
-    }
-    return orderByElems;
   }
 }

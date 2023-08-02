@@ -141,6 +141,7 @@ rules
                           + ?Pgql11AsignSymbol()
                           + ?ExtractExp(_, _)
                           + ?ARRAY-AGG(_, _)
+                          + ?JSON-ARRAYAGG(_, _, _, _, _)
                           + ?PathPattern2(Some(_), _)
                           )
                         ; to-error-message(|"Use [SELECT .. FROM MATCH .. WHERE ..]")
@@ -799,23 +800,22 @@ rules
        ; havingClause := None()
 
   norm-query(|error-messages, version, variable-counter, bindVariableCount):
-    t@(commonPathExpressions, selectOrModifyClause, optionalGraphName, tableExpressions, whereClause, groupByClause, havingClause, orderByClause, limitOffsets) ->
-        NormalizedQuery(commonPathExpressions', selectOrModifyClause', optionalGraphName, tableExpressions, whereClause, groupByClause', havingClause, orderByElems, limitOffsets', QueryAnnotations(error-messages, version, bindVariableCount, selectingAllProperties, graphTable))
-    with
-      commonPathExpressions' := <map(norm-common-path-expression(|variable-counter)); !CommonPathExpressions(<id>)> commonPathExpressions;
+    t@(commonPathExpressions, selectOrModifyClause, optionalGraphName, tableExpressions, whereClause, groupByClause, havingClause, orderByClause, limitOffsets) -> result'
+    with commonPathExpressions' := <map(norm-common-path-expression(|variable-counter)); !CommonPathExpressions(<id>)> commonPathExpressions
 
-      expAsGroupVars := <?Some(GroupByClause(<id>)) <+ ![]> groupByClause;
-      expAsGroupVars' := <map(norm-ExpAsVar)> expAsGroupVars;
-      groupByClause' := <?Some(_); !Some(GroupByClause(expAsGroupVars')) <+ !None()> groupByClause;
+       ; expAsGroupVars := <?Some(GroupByClause(<id>)) <+ ![]> groupByClause
+       ; expAsGroupVars' := <map(norm-ExpAsVar)> expAsGroupVars
+       ; groupByClause' := <?Some(_); !Some(GroupByClause(expAsGroupVars')) <+ !None()> groupByClause
 
-      selectOrModifyClause' := <?ModifyClause(_) <+ ?SelectClause(_, Star()) <+ ?SelectClause(_, _); norm-SelectList(|version)> selectOrModifyClause;
+       ; selectOrModifyClause' := <?ModifyClause(_) <+ ?SelectClause(_, Star()) <+ ?SelectClause(_, _); norm-SelectList(|version)> selectOrModifyClause
 
-      orderByElems := <try(norm-orderBy(|version))> orderByClause;
+       ; limitOffsets' := <norm-limitOffsets> limitOffsets
 
-      limitOffsets' := <norm-limitOffsets> limitOffsets;
+       ; selectingAllProperties := <oncetd(?AllProperties(_, _)); !True() <+ !False()> t
 
-      selectingAllProperties := <oncetd(?AllProperties(_, _)); !True() <+ !False()> t;
-      graphTable := None()
+       ; graphTable := None()
+       ; result := NormalizedQuery(commonPathExpressions', selectOrModifyClause', optionalGraphName, tableExpressions, whereClause, groupByClause', havingClause, orderByClause, limitOffsets', QueryAnnotations(error-messages, version, bindVariableCount, selectingAllProperties, graphTable))
+       ; result' := <alltd-in-outer-query(norm-orderBy(|version))> result
 
   norm-SelectList(|version):
     t1@SelectClause(distinct, t2@SelectList(selectElements)) -> result

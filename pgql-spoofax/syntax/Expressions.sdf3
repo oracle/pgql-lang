@@ -6,6 +6,7 @@ imports
   Literals
   pgql-lang
   Legacy
+  SolutionModifiers
 
 template options
 
@@ -74,18 +75,30 @@ context-free syntax // function calls
 
 context-free syntax // Aggregates
 
-  Exp.COUNT        = <COUNT(<Distinct?><StarOrExp>)> {case-insensitive}
-  Exp.MIN          = <MIN(<Distinct?><Exp>)> {case-insensitive}
-  Exp.MAX          = <MAX(<Distinct?><Exp>)> {case-insensitive}
-  Exp.SUM          = <SUM(<Distinct?><Exp>)> {case-insensitive}
-  Exp.AVG          = <AVG(<Distinct?><Exp>)> {case-insensitive}
-  Exp.ARRAY-AGG    = <ARRAY_AGG(<Distinct?><Exp>)> {case-insensitive}
-  Exp.LISTAGG      = <LISTAGG(<Distinct?><Exp><Separator?>)> {case-insensitive}
-  Separator.Separator = <, <Exp>>
+  Exp.COUNT             = <COUNT(<Distinct?><StarOrExp>)> {case-insensitive}
 
-  StarOrExp.Star = <*>
-  StarOrExp = <<Exp>>
-  Distinct.Distinct = <DISTINCT> {case-insensitive}
+  Exp.MIN               = <MIN(<Distinct?><Exp>)> {case-insensitive}
+
+  Exp.MAX               = <MAX(<Distinct?><Exp>)> {case-insensitive}
+
+  Exp.SUM               = <SUM(<Distinct?><Exp>)> {case-insensitive}
+
+  Exp.AVG               = <AVG(<Distinct?><Exp>)> {case-insensitive}
+
+  Exp.ARRAY-AGG         = <ARRAY_AGG(<Distinct?><Exp>)> {case-insensitive}
+
+  Exp.JSON-ARRAYAGG                             = <JSON_ARRAYAGG(<Exp> <FormatJson?> <OrderByClause?> <JsonOnNullClause?> <JsonAggReturningClause?>)> {case-insensitive}
+  FormatJson.FormatJson                         = <FORMAT JSON> {case-insensitive}
+  JsonOnNullClause.NullOnNull                   = <NULL ON NULL> {case-insensitive}  
+  JsonOnNullClause.AbsentOnNull                 = <ABSENT ON NULL> {case-insensitive}  
+  JsonAggReturningClause.JsonAggReturningClause = <RETURNING <DATA-TYPE>> {case-insensitive}  
+
+  Exp.LISTAGG           = <LISTAGG(<Distinct?><Exp><Separator?>)> {case-insensitive}
+  Separator.Separator   = <, <Exp>>
+
+  StarOrExp.Star        = <*>
+  StarOrExp             = <<Exp>>
+  Distinct.Distinct     = <DISTINCT> {case-insensitive}
 
 context-free syntax // extract
 

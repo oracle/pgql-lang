@@ -20,6 +20,8 @@ import org.spoofax.interpreter.terms.IStrategoTerm;
 import org.spoofax.interpreter.terms.TermType;
 
 import oracle.pgql.lang.ir.GraphQuery;
+import oracle.pgql.lang.ir.OrderBy;
+import oracle.pgql.lang.ir.OrderByElem;
 import oracle.pgql.lang.ir.QueryExpression;
 import oracle.pgql.lang.ir.QueryType;
 import oracle.pgql.lang.ir.QueryVariable;
@@ -50,6 +52,7 @@ import oracle.pgql.lang.ir.QueryExpression.Constant.ConstTimestamp;
 import oracle.pgql.lang.ir.QueryExpression.Constant.ConstTimestampWithTimezone;
 import oracle.pgql.lang.ir.QueryExpression.ExtractExpression.ExtractField;
 import oracle.pgql.lang.ir.QueryExpression.InPredicate.InValueList;
+import oracle.pgql.lang.ir.QueryExpression.JsonOnNull;
 import oracle.pgql.lang.util.SqlDateTimeFormatter;
 
 import static oracle.pgql.lang.SpoofaxAstToGraphQuery.translate;
@@ -59,6 +62,9 @@ public class CommonTranslationUtil {
   private static int LOCAL_OR_SCHEMA_QUALIFIED_NAME_SCHEMA_NAME = 0;
 
   private static int LOCAL_OR_SCHEMA_QUALIFIED_NAME_LOCAL_NAME = 1;
+
+  private static final int POS_ORDERBY_EXP = 0;
+  private static final int POS_ORDERBY_ORDERING = 1;
 
   private static final int POS_EXP_PLUS_TYPE_EXP = 0;
   private static final int POS_BINARY_EXP_LEFT = 0;
@@ -70,6 +76,10 @@ public class CommonTranslationUtil {
   private static final int POS_AGGREGATE_DISTINCT = 0;
   private static final int POS_AGGREGATE_EXP = 1;
   private static final int POS_AGGREGATE_SEPARATOR = 2;
+  private static final int POS_JSON_ARRAYAGG_EXP = 0;
+  private static final int POS_JSON_ARRAYAGG_ORDER_BY = 2;
+  private static final int POS_JSON_ARRAYAGG_JSON_ON_NULL = 3;
+  private static final int POS_JSON_ARRAYAGG_RETURN_TYPE = 4;
   private static final int POS_VARREF_VARNAME = 0;
   private static final int POS_VARREF_ORIGIN_OFFSET = 1;
   private static final int POS_PROPREF_VARREF = 0;
@@ -537,6 +547,21 @@ public class CommonTranslationUtil {
           default:
             throw new IllegalArgumentException(cons);
         }
+      case "JSON-ARRAYAGG":
+        exp = translateExp(t.getSubterm(POS_JSON_ARRAYAGG_EXP), ctx);
+
+        OrderBy orderBy = getOrderBy(ctx, t.getSubterm(POS_JSON_ARRAYAGG_ORDER_BY));
+
+        IStrategoTerm jsonOnNullT = t.getSubterm(POS_JSON_ARRAYAGG_JSON_ON_NULL);
+        JsonOnNull jsonOnNull = isSome(jsonOnNullT)
+            && ((IStrategoAppl) getSomeValue(jsonOnNullT)).getConstructor().getName().equals("NullOnNull")
+                ? JsonOnNull.NULL_ON_NULL
+                : JsonOnNull.ABSENT_ON_NULL;
+
+        IStrategoTerm jsonReturnTypeT = t.getSubterm(POS_JSON_ARRAYAGG_RETURN_TYPE);
+        String jsonReturnType = isSome(jsonReturnTypeT) ? getString(jsonReturnTypeT) : null;
+
+        return new QueryExpression.Aggregation.AggrJsonArrayagg(exp, orderBy, jsonOnNull, jsonReturnType);
       case "Star":
         return new QueryExpression.Star();
       default:
@@ -596,5 +621,19 @@ public class CommonTranslationUtil {
       exps.add(translateExp(expT, ctx));
     }
     return exps;
+  }
+
+  protected static OrderBy getOrderBy(TranslationContext ctx, IStrategoTerm orderByT) throws PgqlException {
+    List<OrderByElem> orderByElems = new ArrayList<>();
+    if (!isNone(orderByT)) { // has ORDER BY
+      IStrategoTerm orderByElemsT = getList(orderByT);
+      for (IStrategoTerm orderByElemT : orderByElemsT) {
+        QueryExpression exp = translateExp(orderByElemT.getSubterm(POS_ORDERBY_EXP), ctx);
+        boolean ascending = ((IStrategoAppl) orderByElemT.getSubterm(POS_ORDERBY_ORDERING)).getConstructor().getName()
+            .equals("Asc");
+        orderByElems.add(new OrderByElem(exp, ascending));
+      }
+    }
+    return new OrderBy(orderByElems);
   }
 }

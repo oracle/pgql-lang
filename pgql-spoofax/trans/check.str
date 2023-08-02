@@ -694,8 +694,9 @@ rules // MODIFY
            ?MAX(_, ExpressionPlusType(_, Type(t))) +
            ?AVG(_, ExpressionPlusType(_, Type(t))) +
            ?ARRAY-AGG(_, ExpressionPlusType(_, Type(t))) +
+           ?JSON-ARRAYAGG(ExpressionPlusType(_, Type(t)), _, _, _, _) +
            ?LISTAGG(_, ExpressionPlusType(_, Type(t)), _)> aggregation
-    with operation := <get-constructor; try(?"ARRAY-AGG"; !"ARRAY_AGG")> aggregation
+    with operation := <get-constructor; try(?"ARRAY-AGG"; !"ARRAY_AGG" + ?"JSON-ARRAYAGG"; !"JSON_ARRAYAGG")> aggregation
        ; <generate-error(|ctx, $[The aggregate [operation] is undefined for the argument type [t]])> aggregation
 
   // check that WHERE clauses contains boolean expressions

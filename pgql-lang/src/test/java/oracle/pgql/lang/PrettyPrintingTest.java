@@ -724,6 +724,16 @@ public class PrettyPrintingTest extends AbstractPgqlTest {
         "       WHERE v IS LABELED company OR v.number = 1001 ) " + //
         "  , MATCH (xyz) ON financial_transactions"; // with extra MATCH clause to test the case where the LATERAL does
                                                      // not get merged into the outer query
+  }
+
+  @Test
+  public void testJsonArrayagg() throws Exception {
+    String statement = "SELECT JSON_ARRAYAGG(n.prop1) AS c1, " //
+        + "JSON_ARRAYAGG(n.prop1 FORMAT JSON) AS c2, " //
+        + "JSON_ARRAYAGG(n.prop1 FORMAT JSON ORDER BY n.prop2 ASC) AS c3, " //
+        + "JSON_ARRAYAGG(n.prop1 FORMAT JSON ORDER BY n.prop2 DESC NULL ON NULL) AS c4, " //
+        + "JSON_ARRAYAGG(n.prop1 FORMAT JSON ORDER BY n.prop2, n.prop3 ABSENT ON NULL RETURNING CLOB) AS c5 " //
+        + "FROM MATCH (n)";
     checkRoundTrip(statement);
   }
 }
