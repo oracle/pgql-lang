@@ -462,7 +462,7 @@ public class BugFixTest extends AbstractPgqlTest {
 
   @Test
   public void illegalQueryShouldNotCrashParser() throws Exception {
-    PgqlResult result = pgql.parse("SELECT * FROM MATCH (v:STUDENT), DELETE (w) FROM MATCH (w)");
+    PgqlResult result = pgql.parse("SELECT * FROM MATCH (v:STUDENT), LATERAL ( DELETE (w) FROM MATCH (w) )");
     assertNotNull(result.getErrorMessages());
   }
 }
