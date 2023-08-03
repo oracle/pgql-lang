@@ -15,6 +15,7 @@ rules
                   ; innermost(inPredicate-to-non-equality-constraints(|metadata) <+ norm-inPredicate)
                   ; alltd(norm-matchnum)
                   ; AstPlusMetadata(push-down-predicates(|[]), id))
+                  ; bottomup(try(pull-lateral-query-up))
 
 rules
 
@@ -71,7 +72,7 @@ rules
 rules
 
   push-down-predicates(|variablesOuterQuery):
-    NormalizedQuery(commonPathExpressions, selectOrModifyClause, optionalGraphName, tableExpressions, Constraints(expressions), groupBy, having, orderBy, limitOffsets, error-messages, version, bindVariableCount, selectingAllVariables)
+    NormalizedQuery(commonPathExpressions, selectOrModifyClause, optionalGraphName, tableExpressions, Constraints(expressions), groupBy, having, orderBy, limitOffsets, queryAnnotations)
       -> NormalizedQuery( <push-down-predicates-for-commonPathExpressions(|variablesOuterQuery)> commonPathExpressions
                         , <alltd(push-down-predicates(|variablesOuterQuery''))> selectOrModifyClause
                         , optionalGraphName
@@ -80,12 +81,12 @@ rules
                         , <alltd(push-down-predicates(|variablesOuterQuery'))> groupBy
                         , <alltd(push-down-predicates(|variablesOuterQuery'''))> having
                         , <alltd(push-down-predicates(|variablesOuterQuery'''))> orderBy
-                        , limitOffsets, error-messages, version, bindVariableCount, selectingAllVariables)
+                        , limitOffsets, queryAnnotations)
     with expressions' := <map(conjunction-to-list); concat> expressions
 
          // references to vertices that correlate with vertices in SELECT of prior LATERAL subquery are replaced with references to those prior vertices
          // this allows for pushing down even more predicates
-       ; vertices-projected-by-laterals := <filter(?DerivedTable(Some(Lateral()), Subquery(NormalizedQuery(_, SelectClause(_, SelectList(<id>)), _, _, _, _, _, _, _, _, _, _, _)), _)); flatten-list; filter(?ExpAsVar(_, _, _, <id>))> tableExpressions
+       ; vertices-projected-by-laterals := <filter(?DerivedTable(Some(Lateral()), Subquery(NormalizedQuery(_, SelectClause(_, SelectList(<id>)), _, _, _, _, _, _, _, _)), _)); flatten-list; filter(?ExpAsVar(_, _, _, <id>))> tableExpressions
        ; lateralVertexCorrelations := <collect(vertex-correlates-to-vertex-projected-by-lateral-subquery(|vertices-projected-by-laterals))> tableExpressions
        ; expressions'' := <alltd(dereference-vertex-correlation(|lateralVertexCorrelations))> expressions'
 
@@ -117,7 +118,7 @@ rules
 
   try-push-down-predicates(|variablesOuterQuery):
     (
-      t@DerivedTable(lateral, Subquery(normalizedQuery@NormalizedQuery(_, SelectClause(_, SelectList(expAsVars)), _, _, constraints@Constraints(subquery-constraints), groupByClause, havingClause, _, limitOffsetClauses, _, _, _, _)), correlation)
+      t@DerivedTable(lateral, Subquery(normalizedQuery@NormalizedQuery(_, SelectClause(_, SelectList(expAsVars)), _, _, constraints@Constraints(subquery-constraints), groupByClause, havingClause, _, limitOffsetClauses, _)), correlation)
     , (remaining-expressions-plus-varRefs, tableExpressions, allVariablesExceptFromOuterQuery)
     ) -> (remaining-expressions-plus-varRefs'', tableExpressions', allVariablesExceptFromOuterQuery')
     where <?LimitOffsetClauses(None(), None())> limitOffsetClauses // if there is a LIMIT (or FETCH FIRST) and/or an OFFSET then we cannot push down any predicate without altering the result, in particular if the subquery has an ORDER BY
@@ -137,14 +138,14 @@ rules
             ; havingClause' := havingClause
          end
        ; visible-variables-to-lateral-query := <conc; make-set> (variablesOuterQuery, allVariablesExceptFromOuterQuery)
-       ; normalizedQuery' := <NormalizedQuery(id, id, id, id, !constraints', id, !havingClause', id, id, id, id, id, id); push-down-predicates(|visible-variables-to-lateral-query)> normalizedQuery
+       ; normalizedQuery' := <NormalizedQuery(id, id, id, id, !constraints', id, !havingClause', id, id, id); push-down-predicates(|visible-variables-to-lateral-query)> normalizedQuery
        ; derivedTable := <origin-track-forced(!DerivedTable(lateral, Subquery(normalizedQuery'), correlation))> t
        ; tableExpressions' := <conc> (tableExpressions, [derivedTable])
        ; allVariablesExceptFromOuterQuery' := <conc; make-set> (allVariablesExceptFromOuterQuery, new-variables)
 
   try-push-down-predicates(|variablesOuterQuery):
     (
-      derivedTable@DerivedTable(lateral, Subquery(normalizedQuery@NormalizedQuery(_, SelectClause(_, SelectList(expAsVars)), _, _, _, _, _, _, limitOffsetClauses, _, _, _, _)), _)
+      derivedTable@DerivedTable(lateral, Subquery(normalizedQuery@NormalizedQuery(_, SelectClause(_, SelectList(expAsVars)), _, _, _, _, _, _, limitOffsetClauses, _)), _)
     , (remaining-expressions-plus-varRefs, tableExpressions, allVariablesExceptFromOuterQuery)
     ) -> (remaining-expressions-plus-varRefs, tableExpressions', allVariablesExceptFromOuterQuery')
     where <not(?LimitOffsetClauses(None(), None()))> limitOffsetClauses // if there is a LIMIT (or FETCH FIRST) and/or an OFFSET then we cannot push down any predicate without altering the result, in particular if the subquery has an ORDER BY
@@ -181,3 +182,61 @@ rules
   dereference-vertex-correlation(|vertexCorrelations):
     VarRef(identifier, v) -> VarRef(identifier, v')
     where <oncetd(?Vertex(_, v, Correlation(ExpressionPlusType(VarRef(_, v'), _))))> vertexCorrelations
+
+rules
+
+  pull-lateral-query-up:
+    NormalizedQuery(commonPathExpressions, selectClause, graphName
+    , [DerivedTable(lateralOrGraphTable,
+        Subquery(
+         NormalizedQuery(
+              CommonPathExpressions([])
+            , SelectClause(
+                noneOrStarOrDistinct
+              , SelectList(expAsVars)
+              )
+            , graphName
+            , tableExpressions
+            , constraints // non-pushed-down constraints
+            , None() // no GROUP BY
+            , None() // no HAVING
+            , None() // no ORDER BY
+            , LimitOffsetClauses(None(), None()) //no LIMIT / FETCH FIRST or OFFSET
+            , QueryAnnotations(
+                [] // no errors
+              , pgqlVersion // pgql version of inner query should be the same as outer query (we're using the same variable name below)
+              , _
+              , _
+              , graphTable) // if subquery is a GRAPH_TABLE we want to preserve that info as we need to apply certain checks for GRAPH_TABLE queries
+              )
+            )
+        , None()
+        )
+      ]
+    , Constraints([]) // outer query will not have any non-pushed down constraints if subquery has no LIMIT / FETCH FIRST / OFFSET, like is asserted above already
+    , groupBy, having, orderBy, limitOffset
+    , queryAnnotations)
+    ->
+    NormalizedQuery(commonPathExpressions, selectClause', graphName
+    , tableExpressions
+    , constraints
+    , groupBy', having', orderBy', limitOffset
+    , queryAnnotations')
+    where <not(?Some(Distinct()))> noneOrStarOrDistinct // no DISTINCT
+        ; <map(expAsVar-is-referenced(|(selectClause, groupBy, having, orderBy)))> expAsVars // all projected variables from subquery are referenced by outer query
+        ; <not(?[])> expAsVars // the inner query has zero columns which is an error; we won't pull up this subquery
+    with selectClause' := <replace-varRefs-with-expressions(|expAsVars)> selectClause
+       ; groupBy' := <replace-varRefs-with-expressions(|expAsVars)> groupBy
+       ; having' := <replace-varRefs-with-expressions(|expAsVars)> having
+       ; orderBy' := <replace-varRefs-with-expressions(|expAsVars)> orderBy
+       ; queryAnnotations' := <QueryAnnotations(id, id, id, id, !graphTable)> queryAnnotations
+
+  expAsVar-is-referenced(|outer-query-parts):
+    ExpAsVar(_, _, _, originOffset) -> <id>
+    where <oncetd(?VarRef(_, originOffset))> outer-query-parts
+
+  replace-varRefs-with-expressions(|expAsVars) = alltd(replace-varRef-with-expression(|expAsVars))
+
+  replace-varRef-with-expression(|expAsVars):
+    VarRef(_, originOffset) -> exp
+    where <collect-one(?ExpAsVar(exp, _, _, originOffset))> expAsVars

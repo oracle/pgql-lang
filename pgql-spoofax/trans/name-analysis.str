@@ -30,8 +30,8 @@ rules
 rules
 
   trans-query(|variables, metadata, variable-counter):
-    NormalizedQuery(CommonPathExpressions(pathExpressions), selectOrModifyClause, optionalGraphName, tableExpressions, whereClause, groupBy, having, orderBy, limitOffsets, error-messages, version, bindVariableCount, selectingAllVariables) ->
-        (NormalizedQuery(CommonPathExpressions(pathExpressions'), selectOrModifyClause', optionalGraphName, tableExpressions''', whereClause', groupBy', having', orderBy', limitOffsets, error-messages, version, bindVariableCount, selectingAllVariables), variables-in-projection)
+    NormalizedQuery(CommonPathExpressions(pathExpressions), selectOrModifyClause, optionalGraphName, tableExpressions, whereClause, groupBy, having, orderBy, limitOffsets, queryAnnotations) ->
+        (NormalizedQuery(CommonPathExpressions(pathExpressions'), selectOrModifyClause', optionalGraphName, tableExpressions''', whereClause', groupBy', having', orderBy', limitOffsets, queryAnnotations), variables-in-projection)
     with variables' := <guarantee-size-two-or-more> variables
 
        // PATH
@@ -206,7 +206,7 @@ rules
     ; map(generate-ExpAsVar(|star))
 
   extract-variables-for-select-star(|star, variable-counter) =
-      ?DerivedTable(_, Subquery(NormalizedQuery(_, SelectClause(_, SelectList(<id>)), _, _, _, _, _, _, _, _, _, _, _)), _)
+      ?DerivedTable(_, Subquery(NormalizedQuery(_, SelectClause(_, SelectList(<id>)), _, _, _, _, _, _, _, _)), _)
     ; filter(
         ?ExpAsVar(_, <id>, _, _); is-anonymous-variable; generate-ExpAsVar(|star) +
         pull-up-AllProperties(|variable-counter) // no metadata was available to translate the n.* so we pull it up
@@ -223,7 +223,7 @@ rules
 
   replace-all-AllProperties(|variable-counter) = ?GraphPattern(_, _, _)
 
-  replace-all-AllProperties(|variable-counter) = DerivedTable(id, Subquery(NormalizedQuery(id, replace-AllProperties-in-Select(|variable-counter), id, id, id, id, id, id, id, id, id, id, id)), id)
+  replace-all-AllProperties(|variable-counter) = DerivedTable(id, Subquery(NormalizedQuery(id, replace-AllProperties-in-Select(|variable-counter), id, id, id, id, id, id, id, id)), id)
 
   replace-AllProperties-in-Select(|variable-counter) = origin-track-forced(SelectClause(id, SelectList(map(try(replace-AllProperties(|variable-counter))))))
 

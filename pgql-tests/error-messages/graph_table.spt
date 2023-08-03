@@ -109,12 +109,13 @@ test Restriction: LIMIT outsie GRAPH_TABLE [[
 
 test Restriction: projecting vertex/edge objects [[
 
-  SELECT *
+  SELECT [[*]]
   FROM GRAPH_TABLE ( g
          MATCH (n) -[e]-> (m)
-         COLUMNS ( [[n,]] [[e,]] [[m )]] )
+         COLUMNS ( n, e, m )
+       )
 
-]] error like "GRAPH_TABLE restriction: cannot project vertex or edge objects" at #1, #2, #3
+]] error like "GRAPH_TABLE restriction: cannot project vertex or edge objects" at #1
 
 test Restriction: SHORTEST [[
 

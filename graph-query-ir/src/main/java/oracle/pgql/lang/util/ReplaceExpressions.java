@@ -191,6 +191,11 @@ public abstract class ReplaceExpressions implements QueryExpressionVisitor {
     replaceInUnaryExpression(aggrArrayAgg);
   }
 
+  @Override
+  public void visit(QueryExpression.Aggregation.AggrJsonArrayagg aggrJsonArrayagg) {
+    replaceInUnaryExpression(aggrJsonArrayagg);
+  }
+
   // Other expressions
 
   @Override

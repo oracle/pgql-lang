@@ -273,23 +273,24 @@ public class PgqlUtils {
   }
 
   protected static String printPgqlString(QueryVariable variable) {
-    if (variable.getVariableType() == VariableType.EXP_AS_VAR) {
-      ExpAsVar expAsVar = (ExpAsVar) variable;
-      if (expAsVar.isAnonymous()) {
-        // e.g. in "SELECT x.prop1 + x.prop2 FROM g MATCH( (n) ) ORDER BY x.prop1 + x.prop2", the ORDER BY expression
-        // "x.prop1 + x.prop2" is a VarRef to the anonymous SELECT expression "x.prop1 + x.prop2"
-        return expAsVar.getExp().toString();
-      }
-    }
-
     return printIdentifier(variable.name, false);
   }
 
   protected static String printPgqlString(ExpAsVar expAsVar) {
-    if (expAsVar.isAnonymous()) {
+    if (expAsVar.getExp().getExpType() == ExpressionType.ALL_PROPERTIES) {
       return expAsVar.getExp().toString();
     } else {
-      return expAsVar.getExp() + " AS " + printIdentifier(expAsVar.getName(), false);
+      String printedExpAsVar = expAsVar.getExp().toString();
+      String printedName = printIdentifier(expAsVar.getName(), false);
+      if (expAsVar.isAnonymous() && printedExpAsVar.equals(printedName)) {
+        return printedExpAsVar; // print e.g. GROUP BY x AS GROUP BY x and not GROUP BY x AS x
+      } else {
+        // here we also convert some anonymous ExpAsVars into non-anonymous ExpAsVars, which is needed because the
+        // original query gets transformed/optimized in various ways and an anonymous ExpAsVar may be referenced in
+        // different contexts than in the original query so that it needs to be deanonymized for the pretty-printed
+        // query to be valid
+        return expAsVar.getExp() + " AS " + printIdentifier(expAsVar.getName(), false);
+      }
     }
   }
 

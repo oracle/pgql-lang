@@ -80,11 +80,13 @@ public class Pgql implements Closeable {
 
   private static final String SPOOFAX_BINARIES = "pgql.spoofax-language";
 
-  private static final int POS_PGQL_VERSION = 10;
+  private static final int POS_QUERY_ANNOTATIONS = 9;
 
-  private static final int POS_BIND_VARIABLE_COUNT = 11;
+  private static final int POS_PGQL_VERSION = 1;
 
-  private static final int POS_SELECTING_ALL_PROPERTIES = 12;
+  private static final int POS_BIND_VARIABLE_COUNT = 2;
+
+  private static final int POS_SELECTING_ALL_PROPERTIES = 3;
 
   private static final PgqlVersion LATEST_VERSION = PgqlVersion.V_1_3_OR_UP;
 
@@ -138,7 +140,8 @@ public class Pgql implements Closeable {
 
       // initialize a new Spoofax
       spoofax = new Spoofax(spoofaxModule);
-      spoofax.configureAsHeadlessApplication(); // prevents the class loader from getting stuck for certain versions of macOS
+      spoofax.configureAsHeadlessApplication(); // prevents the class loader from getting stuck for certain versions of
+                                                // macOS
 
       // copy the PGQL Spoofax binary to the local file system.
       // IMPORTANT: don't replace this with resolveFile("res:...") or resolve("res:...") because VFS will fail to
@@ -293,14 +296,17 @@ public class Pgql implements Closeable {
         }
       }
 
-      PgqlVersion pgqlVersion = getPgqlVersion(analyizedAst, statement);
+      IStrategoTerm queryAnnotations = analyizedAst.getSubtermCount() > POS_QUERY_ANNOTATIONS
+          ? analyizedAst.getSubterm(POS_QUERY_ANNOTATIONS)
+          : null;
+      PgqlVersion pgqlVersion = getPgqlVersion(queryAnnotations, statement);
 
       if (queryValid) {
         checkInvalidJavaComment(queryString, pgqlVersion);
       }
 
-      int bindVariableCount = getBindVariableCount(analyizedAst, statement);
-      boolean querySelectsAllProperties = querySelectsAllProperties(analyizedAst, statement);
+      int bindVariableCount = getBindVariableCount(queryAnnotations, statement);
+      boolean querySelectsAllProperties = querySelectsAllProperties(queryAnnotations, statement);
 
       return new PgqlResult(queryString, queryValid, prettyMessages, statement, parseResult, pgqlVersion,
           bindVariableCount, querySelectsAllProperties, metadataProvider);
@@ -321,7 +327,7 @@ public class Pgql implements Closeable {
     }
   }
 
-  private PgqlVersion getPgqlVersion(IStrategoTerm ast, PgqlStatement statement) {
+  private PgqlVersion getPgqlVersion(IStrategoTerm queryAnnotations, PgqlStatement statement) {
     if (statement == null) {
       return LATEST_VERSION;
     }
@@ -332,7 +338,7 @@ public class Pgql implements Closeable {
       return PgqlVersion.V_1_3_OR_UP;
     }
 
-    String pgqlVersionString = ((IStrategoString) ast.getSubterm(POS_PGQL_VERSION)).stringValue();
+    String pgqlVersionString = ((IStrategoString) queryAnnotations.getSubterm(POS_PGQL_VERSION)).stringValue();
     PgqlVersion pgqlVersion;
     switch (pgqlVersionString) {
       case "v1.0":
@@ -351,27 +357,27 @@ public class Pgql implements Closeable {
     return pgqlVersion;
   }
 
-  private int getBindVariableCount(IStrategoTerm ast, PgqlStatement statement) {
+  private int getBindVariableCount(IStrategoTerm queryAnnotations, PgqlStatement statement) {
     if (statement == null) {
       return 0;
     }
 
     if (statement.getStatementType() == StatementType.SELECT
         || statement.getStatementType() == StatementType.GRAPH_MODIFY) {
-      return ((IStrategoInt) ast.getSubterm(POS_BIND_VARIABLE_COUNT)).intValue();
+      return ((IStrategoInt) queryAnnotations.getSubterm(POS_BIND_VARIABLE_COUNT)).intValue();
     }
 
     return 0;
   }
 
-  private boolean querySelectsAllProperties(IStrategoTerm ast, PgqlStatement statement) {
+  private boolean querySelectsAllProperties(IStrategoTerm queryAnnotations, PgqlStatement statement) {
     if (statement == null) {
       return false;
     }
 
     if (statement.getStatementType() == StatementType.SELECT
         || statement.getStatementType() == StatementType.GRAPH_MODIFY) {
-      IStrategoAppl selectingAllPropertiesT = (IStrategoAppl) ast.getSubterm(POS_SELECTING_ALL_PROPERTIES);
+      IStrategoAppl selectingAllPropertiesT = (IStrategoAppl) queryAnnotations.getSubterm(POS_SELECTING_ALL_PROPERTIES);
       return selectingAllPropertiesT.getConstructor().getName().equals("True");
     }
 

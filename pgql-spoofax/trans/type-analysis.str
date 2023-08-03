@@ -20,8 +20,8 @@ rules
             ; ?(<id>, _); !AstPlusMetadata(<id>, metadata)
 
   add-types-to-query(|metadata, variablesPlusTypes, constraints):
-      NormalizedQuery(CommonPathExpressions(pathExpressions), selectOrModifyClause, optionalGraphName, tableExpressions, whereClause, groupBy, having, orderBy, limitOffsets, error-messages, version, bindVariableCount, selectingAllVariables) ->
-        ( NormalizedQuery(CommonPathExpressions(pathExpressions'), selectOrModifyClause', optionalGraphName, tableExpressions', whereClause', groupBy', having', orderBy', limitOffsets, error-messages, version, bindVariableCount, selectingAllVariables)
+      NormalizedQuery(CommonPathExpressions(pathExpressions), selectOrModifyClause, optionalGraphName, tableExpressions, whereClause, groupBy, having, orderBy, limitOffsets, queryAnnotations) ->
+        ( NormalizedQuery(CommonPathExpressions(pathExpressions'), selectOrModifyClause', optionalGraphName, tableExpressions', whereClause', groupBy', having', orderBy', limitOffsets, queryAnnotations)
         , variablesPlusTypes''')
     with // PATH
          pathExpressions' := <map(add-types-to-path-expression(|metadata))> pathExpressions
@@ -72,7 +72,7 @@ rules
        ; subquery' := <origin-track-forced(!Subquery(normalizedQuery'))> subquery
        ; derivedTable' := <origin-track-forced(!DerivedTable(lateral, subquery', correlation))> derivedTable
        ; result' := <conc> (result, [derivedTable'])
-       ; if <?NormalizedQuery(_, SelectClause(_, SelectList(selectElements)), _, _, _, _, _, _, _, _, _, _, _)> normalizedQuery'
+       ; if <?NormalizedQuery(_, SelectClause(_, SelectList(selectElements)), _, _, _, _, _, _, _, _)> normalizedQuery'
          then variablesPlusTypes'' := <map(expAsVar-to-variablePlusType(|variablesPlusTypes'))> selectElements
             ; variablesPlusTypes''' := <conc> (variablesPlusTypes, variablesPlusTypes'')
          else variablesPlusTypes''' := variablesPlusTypes
@@ -242,7 +242,7 @@ rules // subqueries
   add-types-to-subquery(|metadata, variablesPlusTypes, constraints):
     query -> (query', type)
     with (query', _) := <add-types-to-query(|metadata, variablesPlusTypes, constraints)> query
-       ; if <?NormalizedQuery(_, SelectClause(_, SelectList([ExpAsVar(ExpressionPlusType(_, Type(t)), _, _, _)])), _, _, _, _, _, _, _, _, _, _, _)> query'
+       ; if <?NormalizedQuery(_, SelectClause(_, SelectList([ExpAsVar(ExpressionPlusType(_, Type(t)), _, _, _)])), _, _, _, _, _, _, _, _)> query'
          then type := Type(t)
          else type := UnknownType()
          end
