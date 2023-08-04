@@ -343,7 +343,7 @@ rules
 
   get-base-variable(|tableExpressions, groupBy):
     VarRef(_, originOffset) -> originOffset'
-    with if <collect-one(?Vertex(_, originOffset, _) + ?Edge(_, _, _, _, originOffset, _))> (tableExpressions, groupBy)
+    with if <collect-one(?Vertex(_, originOffset, _) + ?Edge(_, _, _, _, originOffset, _) + ?RowsPerMatchVariable(_, originOffset, _, _))> (tableExpressions, groupBy)
          then originOffset' := originOffset
          else varRef := <collect-one(?ExpAsVar(<id>, _, _, originOffset))> (tableExpressions, groupBy)
             ; originOffset' := <get-base-variable(|tableExpressions, groupBy)> varRef
