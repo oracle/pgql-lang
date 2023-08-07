@@ -53,6 +53,7 @@ import oracle.pgql.lang.ir.QueryExpression.Constant.ConstTimestampWithTimezone;
 import oracle.pgql.lang.ir.QueryExpression.ExtractExpression.ExtractField;
 import oracle.pgql.lang.ir.QueryExpression.InPredicate.InValueList;
 import oracle.pgql.lang.ir.QueryExpression.JsonOnNull;
+import oracle.pgql.lang.ir.QueryExpression.SourceDestinationPredicate;
 import oracle.pgql.lang.util.SqlDateTimeFormatter;
 
 import static oracle.pgql.lang.SpoofaxAstToGraphQuery.translate;
@@ -115,6 +116,9 @@ public class CommonTranslationUtil {
   private static final int POS_LENGTH_EXP = 0;
   private static final int POS_INTERVAL_VALUE = 0;
   private static final int POS_INTERVAL_DATETIME_FIELD = 1;
+  private static final int POS_SOURCE_DESTINATION_PREDICATE_VERTEX_REF = 0;
+  private static final int POS_SOURCE_DESTINATION_PREDICATE_EDGE_REF = 1;
+  private static final int POS_SOURCE_DESTINATION_PREDICATE_IS_SOURCE = 2;
 
   protected static String getString(IStrategoTerm t) {
     while (t.getType() != TermType.STRING) {
@@ -135,6 +139,21 @@ public class CommonTranslationUtil {
       t = t.getSubterm(0); // data values are often wrapped multiple times, e.g. Some(OrderElems([...]))
     }
     return t;
+  }
+
+  protected static boolean getBoolean(IStrategoTerm t) {
+    while (t.getType() != TermType.APPL) {
+      t = t.getSubterm(0); // data values are often wrapped multiple times
+    }
+    IStrategoAppl appl = (IStrategoAppl) t;
+    switch (appl.getConstructor().getName()) {
+      case "True":
+        return true;
+      case "False":
+        return false;
+      default:
+        throw new IllegalStateException();
+    }
   }
 
   protected static boolean isNone(IStrategoTerm t) {
@@ -319,6 +338,12 @@ public class CommonTranslationUtil {
         exp2 = translateExp(t.getSubterm(POS_TERNARY_EXP2), ctx);
         QueryExpression exp3 = translateExp(t.getSubterm(POS_TERNARY_EXP3), ctx);
         return new BetweenPredicate(exp1, exp2, exp3);
+      case "SourceDestinationPredicate":
+        VarRef vertexRef = (VarRef) translateExp(t.getSubterm(POS_SOURCE_DESTINATION_PREDICATE_VERTEX_REF), ctx);
+        VarRef edgeRef = (VarRef) translateExp(t.getSubterm(POS_SOURCE_DESTINATION_PREDICATE_EDGE_REF), ctx);
+        boolean isSourcePredicate = getBoolean(
+            t.getSubterm(POS_SOURCE_DESTINATION_PREDICATE_IS_SOURCE).getSubterm(POS_EXP_PLUS_TYPE_EXP));
+        return new SourceDestinationPredicate(vertexRef, edgeRef, isSourcePredicate);
       case "Exists":
         IStrategoTerm subqueryT = t.getSubterm(POS_EXISTS_SUBQUERY);
         SelectQuery selectQuery = translateSubquery(ctx, subqueryT);

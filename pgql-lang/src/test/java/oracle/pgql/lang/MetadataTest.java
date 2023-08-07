@@ -766,6 +766,20 @@ public class MetadataTest extends AbstractPgqlTest {
   }
 
   @Test
+  public void testSourceDestinationPredicate() throws Exception {
+    PgqlResult result = parse("SELECT COUNT(*) FROM MATCH (n) -[e]- (m) WHERE e IS SOURCE OF n");
+    assertTrue(result.getErrorMessages().contains("Vertex reference expected"));
+    assertTrue(result.getErrorMessages().contains("Edge reference expected"));
+
+    result = parse("SELECT COUNT(*) FROM MATCH (n) -[e]- (m) WHERE e IS NOT DESTINATION OF n");
+    assertTrue(result.getErrorMessages().contains("Vertex reference expected"));
+    assertTrue(result.getErrorMessages().contains("Edge reference expected"));
+
+    result = parse("SELECT COUNT(*) FROM MATCH (n) -[e]- (m) WHERE e IS NOT DESTINATION OF n2");
+    assertTrue(result.getErrorMessages().contains("Unresolved variable"));
+  }
+
+  @Test
   public void testUdfs() throws Exception {
     PgqlResult result = parse("SELECT myUdfs.pi() || true FROM MATCH (n)");
     assertTrue(

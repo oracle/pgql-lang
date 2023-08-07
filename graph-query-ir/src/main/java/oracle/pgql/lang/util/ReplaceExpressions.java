@@ -21,6 +21,7 @@ import oracle.pgql.lang.ir.QueryExpressionVisitor;
 import oracle.pgql.lang.ir.QueryPath;
 import oracle.pgql.lang.ir.QueryVertex;
 import oracle.pgql.lang.ir.SelectQuery;
+import oracle.pgql.lang.ir.QueryExpression.SourceDestinationPredicate;
 import oracle.pgql.lang.ir.modify.DeleteClause;
 import oracle.pgql.lang.ir.modify.EdgeInsertion;
 import oracle.pgql.lang.ir.modify.InsertClause;
@@ -253,6 +254,10 @@ public abstract class ReplaceExpressions implements QueryExpressionVisitor {
     betweenPredicate.setExp1(replaceMatching(betweenPredicate.getExp1()));
     betweenPredicate.setExp2(replaceMatching(betweenPredicate.getExp2()));
     betweenPredicate.setExp3(replaceMatching(betweenPredicate.getExp3()));
+  }
+
+  @Override
+  public void visit(SourceDestinationPredicate sourceDestinationPredicate) {
   }
 
   @Override

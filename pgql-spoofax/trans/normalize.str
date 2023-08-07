@@ -407,7 +407,7 @@ rules
 
   norm-source-destination-predicate:
     t@SourcePredicate(vertexRef, notTerm, _, edgeRef) -> <origin-track-forced(!result)> t
-    with isSourceOfCall := FunctionCall(None(), RegularIdentifier("is_source_of"), [edgeRef, vertexRef])
+    with isSourceOfCall := SourceDestinationPredicate(vertexRef, edgeRef, True())
        ; if <?Some(_)> notTerm
          then result := Not(isSourceOfCall)
          else result := isSourceOfCall
@@ -415,7 +415,7 @@ rules
 
   norm-source-destination-predicate:
     t@DestinationPredicate(vertexRef, notTerm, _, edgeRef) -> <origin-track-forced(!result)> t
-    with isDestinationOfCall := FunctionCall(None(), RegularIdentifier("is_destination_of"), [edgeRef, vertexRef])
+    with isDestinationOfCall := SourceDestinationPredicate(vertexRef, edgeRef, False())
        ; if <?Some(_)> notTerm
          then result := Not(isDestinationOfCall)
          else result := isDestinationOfCall

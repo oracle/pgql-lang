@@ -588,6 +588,12 @@ public class PrettyPrintingTest extends AbstractPgqlTest {
   }
 
   @Test
+  public void testSourceDestinationPredicate() throws Exception {
+    String statement = "SELECT COUNT(*) FROM MATCH (n) -[e]- (m) WHERE n IS SOURCE OF e AND m IS NOT DESTINATION OF e";
+    checkRoundTrip(statement);
+  }
+
+  @Test
   public void testSchemaQualifiedPackageName() throws Exception {
     String query = "SELECT mySchema.myPackage.myFunction(123), \"mySchema\".\"myPackage\".\"myFunction\"(123) FROM MATCH (n)";
     String prettyPrintedQuery = pgql.parse(query).getGraphQuery().toString();
