@@ -120,36 +120,30 @@ rules
     (
       t@DerivedTable(lateral, Subquery(normalizedQuery@NormalizedQuery(_, SelectClause(_, SelectList(expAsVars)), _, _, constraints@Constraints(subquery-constraints), groupByClause, havingClause, _, limitOffsetClauses, _)), correlation)
     , (remaining-expressions-plus-varRefs, tableExpressions, allVariablesExceptFromOuterQuery)
-    ) -> (remaining-expressions-plus-varRefs'', tableExpressions', allVariablesExceptFromOuterQuery')
-    where <?LimitOffsetClauses(None(), None())> limitOffsetClauses // if there is a LIMIT (or FETCH FIRST) and/or an OFFSET then we cannot push down any predicate without altering the result, in particular if the subquery has an ORDER BY
+    ) -> (remaining-expressions-plus-varRefs', tableExpressions', allVariablesExceptFromOuterQuery')
     with new-variables := <filter(?ExpAsVar(_, _, _, <id>))> expAsVars
-       ; visible-variables-to-predicates := <conc; make-set> (variablesOuterQuery, allVariablesExceptFromOuterQuery, new-variables)
-       ; (pushed-down-predicates, remaining-expressions-plus-varRefs'') := <foldl(try-push-down-predicate(|visible-variables-to-predicates))> (remaining-expressions-plus-varRefs, ([], []))
-       ; pushed-down-predicates' := <alltd(replace-varRef-with-expression(|expAsVars))> pushed-down-predicates
-       ; if <(?CreateOneGroup() + ?Some(GroupByClause(_))); !pushed-down-predicates'; not(?[])> groupByClause // add to HAVING clause if there is a GROUP BY and predicates to pushdown are not empty
-         then constraints' := constraints
-            ; predicate1 := <?[<id>] <+ to-conjunction; !ExpressionPlusType(<id>, BooleanTy())> pushed-down-predicates'
-            ; if <?Some(HavingClause(predicate2))> havingClause
-              then predicate3 := <to-conjunction; !ExpressionPlusType(<id>, BooleanTy())> [predicate2, predicate1]
-                 ; havingClause' := <Some(HavingClause(!predicate3))> havingClause
-              else havingClause' := Some(HavingClause(predicate1))
+       ; if <?LimitOffsetClauses(None(), None())> limitOffsetClauses // if there is a LIMIT (or FETCH FIRST) and/or an OFFSET then we cannot push down any predicate without altering the result, in particular if the subquery has an ORDER BY
+         then visible-variables-to-predicates := <conc; make-set> (variablesOuterQuery, allVariablesExceptFromOuterQuery, new-variables)
+            ; (pushed-down-predicates, remaining-expressions-plus-varRefs') := <foldl(try-push-down-predicate(|visible-variables-to-predicates))> (remaining-expressions-plus-varRefs, ([], []))
+            ; pushed-down-predicates' := <alltd(replace-varRef-with-expression(|expAsVars))> pushed-down-predicates
+            ; if <(?CreateOneGroup() + ?Some(GroupByClause(_))); !pushed-down-predicates'; not(?[])> groupByClause // add to HAVING clause if there is a GROUP BY and predicates to pushdown are not empty
+              then constraints' := constraints
+                 ; predicate1 := <?[<id>] <+ to-conjunction; !ExpressionPlusType(<id>, BooleanTy())> pushed-down-predicates'
+                 ; if <?Some(HavingClause(predicate2))> havingClause
+                   then predicate3 := <to-conjunction; !ExpressionPlusType(<id>, BooleanTy())> [predicate2, predicate1]
+                      ; havingClause' := <Some(HavingClause(!predicate3))> havingClause
+                   else havingClause' := Some(HavingClause(predicate1))
+                   end
+              else constraints' := Constraints(<conc> (subquery-constraints, pushed-down-predicates'))
+                 ; havingClause' := havingClause
               end
-         else constraints' := Constraints(<conc> (subquery-constraints, pushed-down-predicates'))
-            ; havingClause' := havingClause
-         end
+            ; normalizedQuery' := <NormalizedQuery(id, id, id, id, !constraints', id, !havingClause', id, id, id)> normalizedQuery
+          else normalizedQuery' := normalizedQuery
+             ; remaining-expressions-plus-varRefs' := remaining-expressions-plus-varRefs
+          end
        ; visible-variables-to-lateral-query := <conc; make-set> (variablesOuterQuery, allVariablesExceptFromOuterQuery)
-       ; normalizedQuery' := <NormalizedQuery(id, id, id, id, !constraints', id, !havingClause', id, id, id); push-down-predicates(|visible-variables-to-lateral-query)> normalizedQuery
-       ; derivedTable := <origin-track-forced(!DerivedTable(lateral, Subquery(normalizedQuery'), correlation))> t
-       ; tableExpressions' := <conc> (tableExpressions, [derivedTable])
-       ; allVariablesExceptFromOuterQuery' := <conc; make-set> (allVariablesExceptFromOuterQuery, new-variables)
-
-  try-push-down-predicates(|variablesOuterQuery):
-    (
-      derivedTable@DerivedTable(lateral, Subquery(normalizedQuery@NormalizedQuery(_, SelectClause(_, SelectList(expAsVars)), _, _, _, _, _, _, limitOffsetClauses, _)), _)
-    , (remaining-expressions-plus-varRefs, tableExpressions, allVariablesExceptFromOuterQuery)
-    ) -> (remaining-expressions-plus-varRefs, tableExpressions', allVariablesExceptFromOuterQuery')
-    where <not(?LimitOffsetClauses(None(), None()))> limitOffsetClauses // if there is a LIMIT (or FETCH FIRST) and/or an OFFSET then we cannot push down any predicate without altering the result, in particular if the subquery has an ORDER BY
-    with new-variables := <filter(?ExpAsVar(_, _, _, <id>))> expAsVars
+       ; normalizedQuery'' := <push-down-predicates(|visible-variables-to-lateral-query)> normalizedQuery'
+       ; derivedTable := <origin-track-forced(!DerivedTable(lateral, Subquery(normalizedQuery''), correlation))> t
        ; tableExpressions' := <conc> (tableExpressions, [derivedTable])
        ; allVariablesExceptFromOuterQuery' := <conc; make-set> (allVariablesExceptFromOuterQuery, new-variables)
 

@@ -594,6 +594,19 @@ public class PrettyPrintingTest extends AbstractPgqlTest {
   }
 
   @Test
+  public void testDestinationPredicateAfterLateral() throws Exception {
+    String statement = "SELECT COUNT(*) " //
+        + "FROM LATERAL ( " //
+        + "       SELECT v2, e " //
+        + "       FROM MATCH (v1 IS account) -[e IS transaction]- (v2) " //
+        + "       WHERE v1.number = 1039 " //
+        + "       ORDER BY v2.number " //
+        + "       FETCH FIRST 1 ROW ONLY ) " //
+        + "WHERE v2 IS DESTINATION OF e";
+    checkRoundTrip(statement);
+  }
+
+  @Test
   public void testSchemaQualifiedPackageName() throws Exception {
     String query = "SELECT mySchema.myPackage.myFunction(123), \"mySchema\".\"myPackage\".\"myFunction\"(123) FROM MATCH (n)";
     String prettyPrintedQuery = pgql.parse(query).getGraphQuery().toString();
