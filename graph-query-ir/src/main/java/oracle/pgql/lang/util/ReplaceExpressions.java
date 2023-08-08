@@ -369,11 +369,25 @@ public abstract class ReplaceExpressions implements QueryExpressionVisitor {
   @Override
   public void visit(SelectQuery selectQuery) {
     visit(selectQuery.getProjection());
-    visitQuery(selectQuery);
+    visitQueryCommon(selectQuery);
   }
 
-  public void visitQuery(GraphQuery graphQuery) {
+  public void visit(GraphQuery graphQuery) {
+    switch (graphQuery.getQueryType()) {
+      case SELECT:
+        visit((SelectQuery) graphQuery);
+        break;
+      case MODIFY:
+        visit((ModifyQuery) graphQuery);
+        break;
+      default:
+        throw new IllegalStateException("Unsupported query type: " + graphQuery.getQueryType());
+    }
+  }
+
+  private void visitQueryCommon(GraphQuery graphQuery) {
     graphQuery.getTableExpressions().forEach(e -> e.accept(this));
+    graphQuery.setConstraints(replaceInSet(graphQuery.getConstraints()));
     if (graphQuery.getGroupBy() != null) {
       visit(graphQuery.getGroupBy());
     }
@@ -431,7 +445,7 @@ public abstract class ReplaceExpressions implements QueryExpressionVisitor {
   @Override
   public void visit(ModifyQuery modifyQuery) {
     modifyQuery.getModifications().forEach(modification -> modification.accept(this));
-    visitQuery(modifyQuery);
+    visitQueryCommon(modifyQuery);
   }
 
   @Override
