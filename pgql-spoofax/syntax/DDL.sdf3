@@ -77,3 +77,7 @@ context-free syntax // BASE GRAPHS
   ElementTablesClause.AllElementTables = <ALL ELEMENT TABLES <ExceptElementTables?>> {case-insensitive}
 
   ExceptElementTables.ExceptElementTables = <EXCEPT ( <{Identifier ","}+> )> {case-insensitive}
+
+context-free syntax // CALL
+
+  Statement.CallStatement = <CALL <LocalOrSchemaQualifiedName> ( <{Exp ","}*> )> {case-insensitive}

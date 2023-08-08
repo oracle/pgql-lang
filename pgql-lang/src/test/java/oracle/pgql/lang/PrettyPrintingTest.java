@@ -565,6 +565,12 @@ public class PrettyPrintingTest extends AbstractPgqlTest {
   }
 
   @Test
+  public void testCallStatement() throws Exception {
+    String statement = "CALL \"my schema\".routineXyz(1, 2, 'a', 'b', true, false)";
+    checkRoundTrip(statement);
+  }
+
+  @Test
   public void testSchemaQualifiedNames() throws Exception {
     String statement = "INSERT INTO scott.socialNetwork VERTEX v\n" //
         + "FROM MATCH (n:Person) ON Scott.SocialNetwork";

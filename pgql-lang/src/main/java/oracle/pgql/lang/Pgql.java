@@ -328,14 +328,9 @@ public class Pgql implements Closeable {
   }
 
   private PgqlVersion getPgqlVersion(IStrategoTerm queryAnnotations, PgqlStatement statement) {
-    if (statement == null) {
+    if (statement == null || (statement.getStatementType() != StatementType.SELECT
+        && statement.getStatementType() != StatementType.GRAPH_MODIFY)) {
       return LATEST_VERSION;
-    }
-
-    if (statement.getStatementType() == StatementType.CREATE_PROPERTY_GRAPH
-        || statement.getStatementType() == StatementType.CREATE_SUPER_PROPERTY_GRAPH
-        || statement.getStatementType() == StatementType.DROP_PROPERTY_GRAPH) {
-      return PgqlVersion.V_1_3_OR_UP;
     }
 
     String pgqlVersionString = ((IStrategoString) queryAnnotations.getSubterm(POS_PGQL_VERSION)).stringValue();

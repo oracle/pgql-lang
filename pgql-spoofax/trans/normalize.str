@@ -29,6 +29,11 @@ rules
     ast -> <normalize-DropPropertyGraph> ast
     where <is-DropPropertyGraph> ast
 
+  // CALL
+  normalize-before(|variable-counter):
+    ast -> <normalize-CallStatement> ast
+    where <is-CallStatement> ast
+
   // SELECT, INSERT, UPDATE or DELETE
   normalize-before(|variable-counter):
     astPlusMetadata -> AstPlusMetadata(result, metadata)

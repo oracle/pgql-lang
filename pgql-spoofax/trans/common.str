@@ -80,9 +80,10 @@ rules
 
   has-at-most-one-binding = ?None() + ?Some(BetweenNAndM("0", "1")); origin-text; ?"?"
 
-  is-ddl-statement = is-CreatePropertyGraph + is-DropPropertyGraph
+  is-ddl-statement = is-CreatePropertyGraph + is-DropPropertyGraph + is-CallStatement
   is-CreatePropertyGraph = ?CreatePropertyGraph(_, _, _, _, _)
   is-DropPropertyGraph = ?DropPropertyGraph(_)
+  is-CallStatement = ?CallStatement(_, _)
 
   norm-identifier:
     RegularIdentifier(v) -> Identifier(<origin-track-forced(upper-case)> v, v)

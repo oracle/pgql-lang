@@ -3,6 +3,7 @@
  */
 package oracle.pgql.lang;
 
+import java.util.Collections;
 import java.util.Map;
 import java.util.Set;
 
@@ -24,6 +25,10 @@ public class TranslationContext {
     this.vars = vars;
     this.varNames = varNames;
     this.commonPathExpressions = commonPathExpressions;
+  }
+
+  public TranslationContext() {
+    this(Collections.emptyMap(), Collections.emptySet(), Collections.emptyMap());
   }
 
   public void addVar(QueryVariable var, String varName, IStrategoTerm originOffset) {
