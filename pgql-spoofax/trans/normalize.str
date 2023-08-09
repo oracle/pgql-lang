@@ -65,7 +65,6 @@ rules
           norm-NEQ +
           norm-singleVertex +
           norm-parenthesized-match-single-path +
-          norm-VertexWithoutBrackets +
           norm-isNull +
           norm-case
         );
@@ -93,7 +92,11 @@ rules
   is-pgql11 = ?Pgql11Query(_, _, _, _, _, _, _, _)
   is-pgql13 = ?Query(_, _, _, _, _, _, _)
 
-  get-pgql11-deprecation = (?OutConn(None(), _) + ?InConn(None(), _) + ?UndirectedEdge(None(), _)); to-error-message(|"Use [-] instead of [--]")
+
+  get-pgql11-deprecation = error-for-two-dashes
+  get-pgql10-limitation  = error-for-two-dashes
+  error-for-two-dashes   = (?OutConn(None(), _) + ?InConn(None(), _) + ?UndirectedEdge(None(), _)); to-error-message(|"Use [-] instead of [--]")
+
   get-pgql11-deprecation = ?Pgql10AsignSymbol(); to-error-message(|"Use [AS] instead of [:=]")
 
   get-pgql11-deprecation = (?Legacy10Label(_) + get-pgql11-deprecation-helper(|"LABEL", 0, False())); to-error-message(|"Use [label(x)] instead of [x.label()]")
@@ -440,8 +443,6 @@ rules
 
   get-pgql13-errors:
     PathPattern2(Some(pathPatternPrefix1), PathPattern2(Some(pathPatternPrefix2), _)) -> <to-error-message(|"Nested path pattern prefix not allowed")> pathPatternPrefix2
-
-  norm-VertexWithoutBrackets = ?VertexWithoutBrackets(v); !Vertex(ElemContents(Some(RegularIdentifier(<origin-track-forced(<conc-strings> (v, <VERTEX_WITHOUT_BRACKETS>))>)), None(), None(), None()))
 
   norm-edgeContents = ?Some(EdgeContents(<id>))
 

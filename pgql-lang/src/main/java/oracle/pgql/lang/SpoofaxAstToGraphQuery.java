@@ -39,6 +39,7 @@ import oracle.pgql.lang.ir.QueryExpression.Constant.ConstString;
 import oracle.pgql.lang.ir.QueryExpression.ExpressionType;
 import oracle.pgql.lang.ir.QueryExpression.VarRef;
 import oracle.pgql.lang.ir.QueryPath;
+import oracle.pgql.lang.ir.QueryType;
 import oracle.pgql.lang.ir.QueryVariable;
 import oracle.pgql.lang.ir.QueryVariable.VariableType;
 import oracle.pgql.lang.ir.QueryVertex;
@@ -235,9 +236,13 @@ public class SpoofaxAstToGraphQuery {
           break;
         case "DerivedTable":
           boolean lateral = isSome(tableExpressionT.getSubterm(POS_DERIVED_TABLE_LATERAL));
-          SelectQuery query = (SelectQuery) translate(
+          GraphQuery query = translate(
               tableExpressionT.getSubterm(POS_DERIVED_TABLE_SUBQUERY).getSubterm(POS_SUBQUERY_QUERY), ctx);
-          DerivedTable derivedTable = new DerivedTable(query, lateral);
+          if (query.getQueryType() == QueryType.MODIFY) {
+            break; // INSERT/UPDATE/DELETE not supported in LATERAL subquery; simply ignore it here
+          }
+
+          DerivedTable derivedTable = new DerivedTable((SelectQuery) query, lateral);
           tableExpressions.add(derivedTable);
           break;
         default:
