@@ -324,17 +324,6 @@ test Restriction: aggregation with vertex/edge input [[
 
 ]] error like "GRAPH_TABLE restriction: aggregation does not allow vertex or edge input; use the vertex/edge identifier or a property instead" at #1
 
-test KEEP clause not yet supported [[
-
-  SELECT 1
-  FROM GRAPH_TABLE ( g
-         MATCH (n) -[e]->{,10} (m)
-         [[KEEP ANY SHORTEST
-         COLUMNS]] ( 1 )
-       )
-
-]] error like "KEEP clause not yet supported" at #1
-
 test ONE ROW PER VERTEX without quantifier [[
 
   SELECT 1
