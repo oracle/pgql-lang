@@ -1,0 +1,10 @@
+module disabled-pgql10-features
+
+language pgql-lang
+
+test Double dash will in the future be repurposed for introducing a single-line comment [[
+
+  SELECT 1
+  WHERE (n) [[-- (o)]], (n) [[--> (o)]], (n) [[<-- (o)]]
+
+]] error like "Use [-] instead of [--]" at #1, #2, #3

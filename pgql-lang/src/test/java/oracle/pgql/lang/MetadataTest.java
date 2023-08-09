@@ -692,12 +692,10 @@ public class MetadataTest extends AbstractPgqlTest {
         .contains("The operator + is undefined for the argument types TIME WITH TIME ZONE, TIMESTAMP WITH TIME ZONE"));
 
     result = parse("SELECT DATE '2000-01-01' * INTERVAL '1' DAY FROM MATCH (n)");
-    assertTrue(result.getErrorMessages()
-        .contains("The operator * is undefined for the argument types DATE, INTERVAL"));
+    assertTrue(result.getErrorMessages().contains("The operator * is undefined for the argument types DATE, INTERVAL"));
 
     result = parse("SELECT 1 / INTERVAL '1' MONTH FROM MATCH (n)");
-    assertTrue(result.getErrorMessages()
-        .contains("The operator / is undefined for the argument types LONG, INTERVAL"));
+    assertTrue(result.getErrorMessages().contains("The operator / is undefined for the argument types LONG, INTERVAL"));
 
     result = parse("SELECT DATE '2000-01-01' + INTERVAL '1' MONTH FROM MATCH (n)");
     assertTrue(result.isQueryValid());
@@ -995,7 +993,8 @@ public class MetadataTest extends AbstractPgqlTest {
 
     result = parse("SELECT e1.*, e2.* FROM MATCH () -[e1:worksFor]-> () -[e2:owner]-> () ON financialNetwork");
     assertTrue(result.getErrorMessages().contains(errorSelectClause));
-    result = parse("SELECT 1 FROM GRAPH_TABLE ( financialNetwork MATCH () -[e1 IS worksFor]-> () -[e2 IS owner]-> () COLUMNS ( e1.*, e2.*  ) )");
+    result = parse(
+        "SELECT 1 FROM GRAPH_TABLE ( financialNetwork MATCH () -[e1 IS worksFor]-> () -[e2 IS owner]-> () COLUMNS ( e1.*, e2.*  ) )");
     assertTrue(result.getErrorMessages().contains(errorColumnsClause));
 
     result = parse("SELECT DISTINCT e.*, e.* FROM MATCH () -[e:worksFor]-> () ON financialNetwork");
@@ -1003,7 +1002,8 @@ public class MetadataTest extends AbstractPgqlTest {
 
     result = parse("SELECT 123, e.* FROM MATCH () -[e:worksFor]-> () ON financialNetwork");
     assertTrue(result.isQueryValid());
-    result = parse("SELECT * FROM GRAPH_TABLE ( financialNetwork MATCH () -[e IS worksFor]-> () COLUMNS ( 123, e.* ) )");
+    result = parse(
+        "SELECT * FROM GRAPH_TABLE ( financialNetwork MATCH () -[e IS worksFor]-> () COLUMNS ( 123, e.* ) )");
     assertTrue(result.isQueryValid());
 
     result = parse("SELECT DISTINCT e.*, e.*, 123 FROM MATCH () -[e:worksFor]-> () ON financialNetwork");
@@ -1011,19 +1011,23 @@ public class MetadataTest extends AbstractPgqlTest {
 
     result = parse("SELECT e.* FROM MATCH () -[e:worksFor|transaction]-> () ON financialNetwork");
     assertTrue(result.isQueryValid());
-    result = parse("SELECT * FROM GRAPH_TABLE ( financialNetwork MATCH () -[e IS worksFor|transaction]-> () COLUMNS ( e.* ) )");
+    result = parse(
+        "SELECT * FROM GRAPH_TABLE ( financialNetwork MATCH () -[e IS worksFor|transaction]-> () COLUMNS ( e.* ) )");
     assertTrue(result.isQueryValid());
   }
 
   @Test
   public void testLateralWithSelectAllPropertiesGetsMergedIntoOuterQuery() throws Exception {
-    GraphQuery graphQuery = parse("SELECT * FROM LATERAL ( SELECT n.* FROM MATCH (n) ON financialNetwork )").getGraphQuery();
+    GraphQuery graphQuery = parse("SELECT * FROM LATERAL ( SELECT n.* FROM MATCH (n) ON financialNetwork )")
+        .getGraphQuery();
     // check that the LATERAL subquery was eliminated from the result
     assertEquals(TableExpressionType.GRAPH_PATTERN, graphQuery.getTableExpressions().get(0).getTableExpressionType());
     assertEquals(2, ((SelectQuery) graphQuery).getProjection().getElements().size());
 
     // also check the nested case
-    graphQuery = parse("SELECT * FROM LATERAL ( SELECT * FROM GRAPH_TABLE ( financialNetwork MATCH (n) COLUMNS ( n.* ) ) )").getGraphQuery();
+    graphQuery = parse(
+        "SELECT * FROM LATERAL ( SELECT * FROM GRAPH_TABLE ( financialNetwork MATCH (n) COLUMNS ( n.* ) ) )")
+            .getGraphQuery();
     // check that the LATERAL subquery was eliminated from the result
     assertEquals(TableExpressionType.GRAPH_PATTERN, graphQuery.getTableExpressions().get(0).getTableExpressionType());
   }
@@ -1048,7 +1052,8 @@ public class MetadataTest extends AbstractPgqlTest {
 
   @Test
   public void testOneRowPerStep() throws Exception {
-    PgqlResult result = parse("SELECT v1.firstName, e.since, v2.dob FROM MATCH ANY (a) ->+ (b) ONE ROW PER STEP ( v1, e, v2 )");
+    PgqlResult result = parse(
+        "SELECT v1.firstName, e.since, v2.dob FROM MATCH ANY (a) ->+ (b) ONE ROW PER STEP ( v1, e, v2 )");
     assertTrue(result.isQueryValid());
 
     String errorMessage = "Property does not exist for any of the labels";
@@ -1064,14 +1069,23 @@ public class MetadataTest extends AbstractPgqlTest {
   public void testPropertyAccessForDerivedTable() throws Exception {
     PgqlResult result = parse("SELECT n.firstName FROM LATERAL ( SELECT n FROM MATCH (n) )");
     assertTrue(result.isQueryValid());
+    result = parse("SELECT n.firstName FROM LATERAL ( SELECT n FROM MATCH (n) LIMIT 10 )");
+    assertTrue(result.isQueryValid());
 
     result = parse("SELECT e.amount FROM LATERAL ( SELECT e FROM MATCH () -[e]-> () ON financialNetwork )");
+    assertTrue(result.isQueryValid());
+    result = parse("SELECT e.amount FROM LATERAL ( SELECT e FROM MATCH () -[e]-> () ON financialNetwork LIMIT 10 )");
     assertTrue(result.isQueryValid());
 
     result = parse("SELECT n.firstName FROM LATERAL ( SELECT n FROM MATCH (n:University) )");
     assertTrue(result.getErrorMessages().contains("Property does not exist for any of the labels"));
+    result = parse("SELECT n.firstName FROM LATERAL ( SELECT n FROM MATCH (n:University) LIMIT 10 )");
+    assertTrue(result.getErrorMessages().contains("Property does not exist for any of the labels"));
 
     result = parse("SELECT e.amount FROM LATERAL ( SELECT e FROM MATCH () -[e:worksFor]-> () ON financialNetwork )");
+    assertTrue(result.getErrorMessages().contains("Property does not exist for any of the labels"));
+    result = parse(
+        "SELECT e.amount FROM LATERAL ( SELECT e FROM MATCH () -[e:worksFor]-> () ON financialNetwork LIMIT 10 )");
     assertTrue(result.getErrorMessages().contains("Property does not exist for any of the labels"));
 
     result = parse(
@@ -1096,7 +1110,7 @@ public class MetadataTest extends AbstractPgqlTest {
 
   @Test
   public void testSelectAllPropertiesLateral() throws Exception {
-    List<ExpAsVar> expAsVars = getExpAsVars("SELECT * FROM LATERAL ( SELECT n.* FROM MATCH (n IS person) )");
+    List<ExpAsVar> expAsVars = getExpAsVars("SELECT * FROM LATERAL ( SELECT n.* FROM MATCH (n IS person) LIMIT 10 )");
     assertEquals("firstName", expAsVars.get(0).getName());
     assertEquals("firstName", expAsVars.get(0).getNameOriginText());
     assertEquals("dob", expAsVars.get(1).getName());
@@ -1106,7 +1120,7 @@ public class MetadataTest extends AbstractPgqlTest {
     assertEquals("typeConflictProp", expAsVars.get(3).getName());
     assertEquals("typeConflictProp", expAsVars.get(3).getNameOriginText());
 
-    expAsVars = getExpAsVars("SELECT * FROM LATERAL ( SELECT e.* FROM MATCH () -[e IS knows]- () )");
+    expAsVars = getExpAsVars("SELECT * FROM LATERAL ( SELECT e.* FROM MATCH () -[e IS knows]- () LIMIT 10 )");
     assertEquals("since", expAsVars.get(0).getName());
     assertEquals("since", expAsVars.get(0).getNameOriginText());
     assertEquals("prop", expAsVars.get(1).getName());
@@ -1135,6 +1149,34 @@ public class MetadataTest extends AbstractPgqlTest {
         "SELECT p.* FROM LATERAL ( SELECT m AS o FROM MATCH () -[n:transaction]-> () ON financialNetwork GROUP BY n AS m ) GROUP BY o AS p");
     isValid(
         "SELECT o.* FROM LATERAL ( SELECT m AS o FROM LATERAL ( SELECT n AS m FROM MATCH () -[n:transaction]-> () ON financialNetwork LIMIT 1 ) LIMIT 1 )");
+  }
+
+  @Test
+  public void testSelectAllPropertiesWithOneRowPerStep() throws Exception {
+    String query = "SELECT * " //
+        + "FROM GRAPH_TABLE ( financialNetwork " //
+        + "       MATCH (a IS Account) -[IS transaction]->{4} (a) " //
+        + "       WHERE a.number = 10039 " //
+        + "       ONE ROW PER STEP ( v1, e, v2 ) " //
+        + "       COLUMNS ( a.*, e.* ) )";
+
+    List<ExpAsVar> expAsVars = getExpAsVars(query);
+    assertEquals(2, expAsVars.size());
+    assertEquals("number", expAsVars.get(0).getName());
+    assertEquals("amount", expAsVars.get(1).getName());
+
+    query = "SELECT * " //
+        + "FROM GRAPH_TABLE ( financialNetwork " //
+        + "       MATCH (a) ->{4} (a) " //
+        + "       WHERE a.number = 10039 " //
+        + "       ONE ROW PER STEP ( v1, e, v2 ) " //
+        + "       COLUMNS ( a.*, e.* ) )";
+
+    expAsVars = getExpAsVars(query);
+    assertEquals(3, expAsVars.size());
+    assertEquals("number", expAsVars.get(0).getName());
+    assertEquals("name", expAsVars.get(1).getName());
+    assertEquals("amount", expAsVars.get(2).getName());
   }
 
   private void isValid(String query) throws Exception {

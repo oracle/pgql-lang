@@ -60,8 +60,6 @@ context-free syntax // GraphPattern.sdf3 for PGQL 1.0
 
   Legacy10PatternElem.Constraint = Exp {avoid} // see Expressions.sdf3. Note: 'avoid' disambiguates 'select * where (X.p1)' ('(X.p1)' can be a Constraint or a Vertex)
 
-  Vertex.VertexWithoutBrackets = <<REGULAR-IDENTIFIER>> // deprecated
-
   Legacy10Ids.Ids = <@<AltLit>>
   Legacy10WithInlinedConstraints.InlinedConstraint = < with <{Legacy10InlinedExp ", "}+>> {case-insensitive}
   AltLit.Or              = <<AltLit>|<AltLit>> {left}
