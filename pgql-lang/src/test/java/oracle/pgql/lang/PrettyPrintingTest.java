@@ -566,7 +566,10 @@ public class PrettyPrintingTest extends AbstractPgqlTest {
 
   @Test
   public void testCallStatement() throws Exception {
-    String statement = "CALL \"my schema\".routineXyz(1, 2, 'a', 'b', true, false)";
+    String statement = "CALL \"package\".routineXyz(1, 2, 'a', 'b', true, false)";
+    checkRoundTrip(statement);
+
+    statement = "CALL \"my schema\".package.\"routineXyz\"(DATE '2000-01-01', CAST(time '11:30:00' AS TIME WITH TIME ZONE))";
     checkRoundTrip(statement);
   }
 

@@ -2122,7 +2122,7 @@ public interface QueryExpression {
 
     @Override
     public String toString() {
-      return vertexReference + " IS " + (isSourcePredicate ? "SOURCE" : "DESTINATION") + " " + edgeReference;
+      return vertexReference + " IS " + (isSourcePredicate ? "SOURCE" : "DESTINATION") + " OF " + edgeReference;
     }
 
     @Override

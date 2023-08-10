@@ -62,9 +62,8 @@ context-free syntax
 
   Exp.BetweenPredicate = <<Exp> BETWEEN <Exp> AND <Exp>> {left, case-insensitive}
 
-  Exp.SourcePredicate = <<VarRef> IS <Not?> SOURCE <Of?> <VarRef>>  {case-insensitive}
-  Exp.DestinationPredicate = <<VarRef> IS <Not?> DESTINATION <Of?> <VarRef>>  {case-insensitive}
-  Of.Of = <OF> {case-insensitive}
+  Exp.SourcePredicate = <<VarRef> IS <Not?> SOURCE OF <VarRef>>  {case-insensitive}
+  Exp.DestinationPredicate = <<VarRef> IS <Not?> DESTINATION OF <VarRef>>  {case-insensitive}
 
 context-free syntax // function calls
 

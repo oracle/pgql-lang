@@ -324,6 +324,13 @@ test Restriction: aggregation with vertex/edge input [[
 
 ]] error like "GRAPH_TABLE restriction: aggregation does not allow vertex or edge input; use the vertex/edge identifier or a property instead" at #1
 
+test Restriction: TIMEZONE [[
+
+  SELECT CAST(time '11:30:00' AS [[TiMe WiTh TiMeZoNe]])
+  FROM GRAPH_TABLE ( g MATCH (n) COLUMNS ( n.prop ) ) 
+
+]] error like "GRAPH_TABLE restriction: TIMEZONE should be TIME ZONE (with space)" at #1
+
 test ONE ROW PER VERTEX without quantifier [[
 
   SELECT 1

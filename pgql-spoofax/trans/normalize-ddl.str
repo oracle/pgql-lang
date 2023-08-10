@@ -21,7 +21,7 @@ rules // CREATE PROPERTY GRAPH
 
   normalize-CreatePropertyGraph:
     t@CreatePropertyGraph(_, _, _, _, _) -> result
-    with CreatePropertyGraph(graphName, baseGraphs, vertexTables, edgeTables, options) := <alltd(norm-identifier)> t
+    with CreatePropertyGraph(graphName, baseGraphs, vertexTables, edgeTables, options) := <normalize-value-expressions> t
        ; baseGraphs' := <alltd(normalize-BaseElementTable)> baseGraphs
        ; vertexTables' := <?Some(<id>); VertexTables(map(normalize-VertexTable)) + ?None(); !VertexTables([])> vertexTables
        ; edgeTables' := <?Some(<id>); EdgeTables(map(normalize-EdgeTable)) + ?None(); !EdgeTables([])> edgeTables
@@ -110,4 +110,4 @@ rules // DROP PROPERTY GRAPH
 
 rules // CALL
 
-  normalize-CallStatement = alltd(norm-string-literal + norm-identifier)
+  normalize-CallStatement = normalize-value-expressions

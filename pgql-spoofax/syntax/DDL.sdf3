@@ -80,4 +80,4 @@ context-free syntax // BASE GRAPHS
 
 context-free syntax // CALL
 
-  Statement.CallStatement = <CALL <LocalOrSchemaQualifiedName> ( <{Exp ","}*> )> {case-insensitive}
+  Statement.CallStatement = <CALL <PackageNameDot?><FunctionName>(<{Exp ", "}*>)> {case-insensitive}

@@ -7,6 +7,132 @@ imports
   runtime/editor/-
   names/-
 
+rules // normalization of value expressions
+
+  normalize-value-expressions = normalize-value-expressions(|False())
+
+  normalize-value-expressions(|legacyIdentifiersAndStringLiterals) =
+    alltd(
+      norm-UMin +
+      norm-DateTimeField +
+      norm-source-destination-predicate
+    )
+  ; bottomup(try(norm-labeled-predicate))
+  ; innermost(
+      norm-NOT +
+      norm-NEQ +
+      norm-isNull +
+      norm-case
+    )
+ ; alltd(norm-datetime-literal);
+   if <?False()> legacyIdentifiersAndStringLiterals then alltd(norm-string-literal + norm-identifier) else alltd((?PropRef(_, _) <+ varRef-to-legacy-string-literal) + norm-legacy-string-literal); alltd(norm-legacy-identifier) end
+
+  norm-UMin = ?UMin(Integer(string)); !Integer(<conc-strings> ("-", string))
+  norm-UMin = ?UMin(Decimal(string)); !Decimal(<conc-strings> ("-", string))
+
+  norm-NOT = ?Legacy10Not(<id>); !Not(<id>)
+
+  norm-NEQ = ?Neq1(exp1, exp2); !Neq(exp1, exp2)
+  norm-NEQ = ?Neq2(exp1, exp2); !Neq(exp1, exp2)
+
+  norm-legacy-string-literal:
+    String(s) -> String(s')
+    with s' := <origin-track-forced(un-single-quote; unescape-legacy-string-literal)> s
+
+  varRef-to-legacy-string-literal:
+    VarRef(DelimitedIdentifier(s)) -> String(s')
+    with s' := <origin-track-forced(un-double-quote; unescape-legacy-identifier)> s
+
+  norm-legacy-identifier:
+    RegularIdentifier(v) -> Identifier(v, v)
+
+  norm-legacy-identifier:
+    DelimitedIdentifier(v) -> Identifier(v', v')
+    with v' := <origin-track-forced(un-double-quote; unescape-legacy-identifier)> v
+
+  // (n:'lbl')
+  norm-legacy-identifier:
+    Legacy10Identifier(v) -> Legacy10Identifier(v')
+    with v' := <origin-track-forced(un-single-quote; unescape-legacy-string-literal)> v
+
+  external unescape-legacy-string-literal(|)
+  external unescape-legacy-identifier(|)
+
+  norm-datetime-literal = Date(un-single-quote)
+                        + Time(un-single-quote)
+                        + Timestamp(un-single-quote)
+  norm-isNull = ?IsNotNull(exp); origin-track-forced(!IsNull(exp)); !Not(<id>)
+
+  norm-DateTimeField = DateTimeField(origin-track-forced(upper-case))
+
+  norm-case:
+    t@SimpleCase(caseOperand, whenClauses, elseClause) -> SimpleCase(caseOperand, whenClauses, elseClause, ifElseRepresentation)
+    with ifElseRepresentation := <to-if-else(|t)> (caseOperand, whenClauses, elseClause)
+
+  to-if-else(|origin-term):
+    (caseOperand, whenClauses, elseClause) -> ifElse
+    with [WhenClause(whenExp, thenExp)|xs] := whenClauses
+       ; exp1 := <origin-track-forced(!Eq(caseOperand, whenExp))> whenExp
+       ; exp2 := thenExp
+       ; if [] := xs
+         then exp3 := <to-else> elseClause
+         else exp3 := <to-if-else(|elseClause)> (caseOperand, xs, elseClause)
+         end
+       ; ifElse := <origin-track-forced(!IfElse(exp1, exp2, exp3))> origin-term
+
+  norm-case:
+    t@SearchedCase(whenClauses, elseClause) -> ifElse
+    with ifElse := <to-if-else(|t)> (whenClauses, elseClause)
+       ; <origin-text> t
+
+  to-if-else(|origin-term):
+    (whenClauses, elseClause) -> ifElse
+    with [WhenClause(whenExp, thenExp)|xs] := whenClauses
+       ; exp1 := whenExp
+       ; exp2 := thenExp
+       ; if [] := xs
+         then exp3 := <to-else> elseClause
+         else [WhenClause(_, thenExp2)|_] := xs
+            ; exp3 := <to-if-else(|thenExp2)> (xs, elseClause)
+         end
+       ; ifElse := <origin-track-forced(!IfElse(exp1, exp2, exp3))> origin-term
+
+  to-else = ?None(); !Null() <+ ?Some(ElseClause(<id>))
+
+  norm-labeled-predicate:
+    LabeledPredicate(varRef, notTerm, labelExpression) -> result
+    with labelExpression' := <to-label-constraint(|varRef)> labelExpression
+       ; if <?Some(_)> notTerm
+         then result := Not(labelExpression')
+         else result := labelExpression'
+         end
+
+  norm-labeled-predicate:
+    FunctionCall(None(), functionName, args@[VarRef(_), String(_)]) -> FunctionCall(None(), Identifier("has_label", origin), args)
+    where <norm-identifier; ?Identifier(<id>, origin); lower-case; ?"has_label"> functionName
+
+  to-label-constraint(|varRef):
+    labels -> <to-hasLabel-expressions(|varRef)> labels
+  to-hasLabel-expressions(|varRef) = bottomup(try(![varRef, <to-label>]; to-function(|"has_label") + origin-track-forced(normalize-label-disjunction)))
+  to-label = ?Label(<id>) + ?Legacy10Identifier(<id>); origin-track-forced(!Identifier(<id>, <id>)) + ?BindVariable(_)
+  normalize-label-disjunction = ?LabelDisjunction(x, y); !Or(x, y)
+
+  norm-source-destination-predicate:
+    t@SourcePredicate(vertexRef, notTerm, edgeRef) -> <origin-track-forced(!result)> t
+    with isSourceOfCall := SourceDestinationPredicate(vertexRef, edgeRef, True())
+       ; if <?Some(_)> notTerm
+         then result := Not(isSourceOfCall)
+         else result := isSourceOfCall
+         end
+
+  norm-source-destination-predicate:
+    t@DestinationPredicate(vertexRef, notTerm, edgeRef) -> <origin-track-forced(!result)> t
+    with isDestinationOfCall := SourceDestinationPredicate(vertexRef, edgeRef, False())
+       ; if <?Some(_)> notTerm
+         then result := Not(isDestinationOfCall)
+         else result := isDestinationOfCall
+         end
+         
 rules
 
   is-literal = is-literal-no-bindVariable
@@ -83,7 +209,7 @@ rules
   is-ddl-statement = is-CreatePropertyGraph + is-DropPropertyGraph + is-CallStatement
   is-CreatePropertyGraph = ?CreatePropertyGraph(_, _, _, _, _)
   is-DropPropertyGraph = ?DropPropertyGraph(_)
-  is-CallStatement = ?CallStatement(_, _)
+  is-CallStatement = ?CallStatement(_, _, _)
 
   norm-identifier:
     RegularIdentifier(v) -> Identifier(<origin-track-forced(upper-case)> v, v)
