@@ -112,7 +112,9 @@ rules
        ; visible-variables := <conc; make-set> (variablesOuterQuery, allVariablesExceptFromOuterQuery, new-variables)
        ; (pushed-down-predicates, remaining-expressions-plus-varRefs') := <foldl(try-push-down-predicate(|visible-variables))> (remaining-expressions-plus-varRefs, ([], []))
        ; valueExpression' := <conc> (valueExpression, pushed-down-predicates)
-       ; graphPattern' := GraphPattern(vertices, connections, <alltd(push-down-predicates(|visible-variables))> Constraints(valueExpression'))
+       ; connections' := <alltd(push-down-predicates(|visible-variables))> connections // for quantified path patterns that contain subqueries
+       ; constraints' := <alltd(push-down-predicates(|visible-variables))> Constraints(valueExpression')
+       ; graphPattern' := GraphPattern(vertices, connections', constraints')
        ; tableExpressions' := <conc> (tableExpressions, [graphPattern'])
        ; allVariablesExceptFromOuterQuery' := <conc; make-set> (allVariablesExceptFromOuterQuery, new-variables)
 

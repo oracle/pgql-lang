@@ -158,6 +158,21 @@ public class StaticOptimizationsTest extends AbstractPgqlTest {
   }
 
   @Test
+  public void testPredicatePushdownForExistsInQuantifiedPattern() throws Exception {
+    String query = "SELECT id(s), id(t) " + //
+        "FROM MATCH " + //
+        "  ANY SHORTEST (s) ( (x1) -> (y1) " + //
+        "                     WHERE EXISTS ( SELECT * FROM MATCH (x2) <-[:friend]- (y2) WHERE x1 = x2 AND y1 = y2 ) " + //
+        "                   )* " + //
+        "               (t)";
+    QueryPath pathPattern = (QueryPath) pgql.parse(query).getGraphQuery().getGraphPattern().getConnections().iterator()
+        .next();
+    Exists exists = (Exists) pathPattern.getConstraints().iterator().next();
+    assertTrue(exists.getQuery().getConstraints().isEmpty());
+    assertEquals(3L, exists.getQuery().getGraphPattern().getConstraints().size());
+  }
+
+  @Test
   public void testPredicatePushdownAfterGroupBy() throws Exception {
     String query = "SELECT m.age, ( " + //
         "  SELECT COUNT(*) " + //
