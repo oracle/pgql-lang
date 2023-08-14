@@ -324,16 +324,12 @@ test Restriction: aggregation with vertex/edge input [[
 
 ]] error like "GRAPH_TABLE restriction: aggregation does not allow vertex or edge input; use the vertex/edge identifier or a property instead" at #1
 
-test KEEP clause not yet supported [[
+test Restriction: TIMEZONE [[
 
-  SELECT 1
-  FROM GRAPH_TABLE ( g
-         MATCH (n) -[e]->{,10} (m)
-         [[KEEP ANY SHORTEST
-         COLUMNS]] ( 1 )
-       )
+  SELECT CAST(time '11:30:00' AS [[TiMe WiTh TiMeZoNe]])
+  FROM GRAPH_TABLE ( g MATCH (n) COLUMNS ( n.prop ) ) 
 
-]] error like "KEEP clause not yet supported" at #1
+]] error like "GRAPH_TABLE restriction: TIMEZONE should be TIME ZONE (with space)" at #1
 
 test ONE ROW PER VERTEX without quantifier [[
 

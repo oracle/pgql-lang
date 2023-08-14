@@ -21,6 +21,7 @@ import oracle.pgql.lang.ir.QueryExpressionVisitor;
 import oracle.pgql.lang.ir.QueryPath;
 import oracle.pgql.lang.ir.QueryVertex;
 import oracle.pgql.lang.ir.SelectQuery;
+import oracle.pgql.lang.ir.QueryExpression.SourceDestinationPredicate;
 import oracle.pgql.lang.ir.modify.DeleteClause;
 import oracle.pgql.lang.ir.modify.EdgeInsertion;
 import oracle.pgql.lang.ir.modify.InsertClause;
@@ -256,6 +257,10 @@ public abstract class ReplaceExpressions implements QueryExpressionVisitor {
   }
 
   @Override
+  public void visit(SourceDestinationPredicate sourceDestinationPredicate) {
+  }
+
+  @Override
   public void visit(Projection projection) {
     projection.getElements().forEach(this::visit);
   }
@@ -364,11 +369,25 @@ public abstract class ReplaceExpressions implements QueryExpressionVisitor {
   @Override
   public void visit(SelectQuery selectQuery) {
     visit(selectQuery.getProjection());
-    visitQuery(selectQuery);
+    visitQueryCommon(selectQuery);
   }
 
-  public void visitQuery(GraphQuery graphQuery) {
+  public void visit(GraphQuery graphQuery) {
+    switch (graphQuery.getQueryType()) {
+      case SELECT:
+        visit((SelectQuery) graphQuery);
+        break;
+      case MODIFY:
+        visit((ModifyQuery) graphQuery);
+        break;
+      default:
+        throw new IllegalStateException("Unsupported query type: " + graphQuery.getQueryType());
+    }
+  }
+
+  private void visitQueryCommon(GraphQuery graphQuery) {
     graphQuery.getTableExpressions().forEach(e -> e.accept(this));
+    graphQuery.setConstraints(replaceInSet(graphQuery.getConstraints()));
     if (graphQuery.getGroupBy() != null) {
       visit(graphQuery.getGroupBy());
     }
@@ -426,7 +445,7 @@ public abstract class ReplaceExpressions implements QueryExpressionVisitor {
   @Override
   public void visit(ModifyQuery modifyQuery) {
     modifyQuery.getModifications().forEach(modification -> modification.accept(this));
-    visitQuery(modifyQuery);
+    visitQueryCommon(modifyQuery);
   }
 
   @Override

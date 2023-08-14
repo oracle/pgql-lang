@@ -458,6 +458,17 @@ rules // IN predicate and CASE expression
 
   is-unsupported-CASE-type = ?"VERTEX" + ?"EDGE" + string-starts-with(|"ARRAY<") + string-starts-with(|"SET<")
 
+rules // IS SOURCE OF and IS DESTINATION OF
+
+  nabl-constraint(|ctx):
+    SourceDestinationPredicate(ExpressionPlusType(exp1, Type(t1)), ExpressionPlusType(exp2, Type(t2)), _) -> <fail>
+    with if <not(?"VERTEX")> t1
+         then <generate-error(|ctx, "Vertex reference expected")> exp1
+         end
+       ; if <not(?"EDGE")> t2
+         then <generate-error(|ctx, "Edge reference expected")> exp2
+         end
+
 rules // SELECT
 
   nabl-constraint(|ctx):

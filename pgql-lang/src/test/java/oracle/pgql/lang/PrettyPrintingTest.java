@@ -565,6 +565,15 @@ public class PrettyPrintingTest extends AbstractPgqlTest {
   }
 
   @Test
+  public void testCallStatement() throws Exception {
+    String statement = "CALL \"package\".routineXyz(1, 2, 'a', 'b', true, false)";
+    checkRoundTrip(statement);
+
+    statement = "CALL \"my schema\".package.\"routineXyz\"(DATE '2000-01-01', CAST(time '11:30:00' AS TIME WITH TIME ZONE))";
+    checkRoundTrip(statement);
+  }
+
+  @Test
   public void testSchemaQualifiedNames() throws Exception {
     String statement = "INSERT INTO scott.socialNetwork VERTEX v\n" //
         + "FROM MATCH (n:Person) ON Scott.SocialNetwork";
@@ -584,6 +593,25 @@ public class PrettyPrintingTest extends AbstractPgqlTest {
   @Test
   public void testBetweenPredicate() throws Exception {
     String statement = "SELECT 1 FROM MATCH (n) WHERE n.creationDate BETWEEN DATE '2000-01-01' AND DATE '2000-12-31'";
+    checkRoundTrip(statement);
+  }
+
+  @Test
+  public void testSourceDestinationPredicate() throws Exception {
+    String statement = "SELECT COUNT(*) FROM MATCH (n) -[e]- (m) WHERE n IS SOURCE OF e AND m IS NOT DESTINATION OF e";
+    checkRoundTrip(statement);
+  }
+
+  @Test
+  public void testDestinationPredicateAfterLateral() throws Exception {
+    String statement = "SELECT COUNT(*) " //
+        + "FROM LATERAL ( " //
+        + "       SELECT v2, e " //
+        + "       FROM MATCH (v1 IS account) -[e IS transaction]- (v2) " //
+        + "       WHERE v1.number = 1039 " //
+        + "       ORDER BY v2.number " //
+        + "       FETCH FIRST 1 ROW ONLY ) " //
+        + "WHERE v2 IS DESTINATION OF e";
     checkRoundTrip(statement);
   }
 

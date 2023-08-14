@@ -64,6 +64,7 @@ import oracle.pgql.lang.ir.unnest.OneRowPerStep;
 import oracle.pgql.lang.ir.unnest.OneRowPerVertex;
 import oracle.pgql.lang.ir.unnest.RowsPerMatch;
 
+import static oracle.pgql.lang.TranslateCallStatement.translateCallStatement;
 import static oracle.pgql.lang.TranslateCreatePropertyGraph.translateCreatePropertyGraph;
 import static oracle.pgql.lang.TranslateDropPropertyGraph.translateDropPropertyGraph;
 import static oracle.pgql.lang.CommonTranslationUtil.getString;
@@ -200,6 +201,8 @@ public class SpoofaxAstToGraphQuery {
         return translateCreatePropertyGraph(ast);
       case "DropPropertyGraph":
         return translateDropPropertyGraph(ast);
+      case "CallStatement":
+        return translateCallStatement(ast);
       default:
         return null; // failed to parse query
     }

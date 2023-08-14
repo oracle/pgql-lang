@@ -361,6 +361,10 @@ rules // other expressions
    with simpleCase' := <add-types-to-subterms(|metadata, variablesPlusTypes, constraints)> simpleCase
       ; <?SimpleCase(_, _, _, ExpressionPlusType(_, type'))> simpleCase'
 
+  add-type(|metadata, variablesPlusTypes, constraints):
+    predicate@SourceDestinationPredicate(_, _, _) -> ExpressionPlusType(predicate', Type("BOOLEAN"))
+    with predicate' := <add-types-to-subterms(|metadata, variablesPlusTypes, constraints)> predicate
+
   get-vertex-property-type(|metadata) = get-property-type(?VertexLabels(<id>)|metadata)
 
   get-edge-property-type(|metadata) = get-property-type(?EdgeLabels(<id>)|metadata)

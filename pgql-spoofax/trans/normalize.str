@@ -29,6 +29,11 @@ rules
     ast -> <normalize-DropPropertyGraph> ast
     where <is-DropPropertyGraph> ast
 
+  // CALL
+  normalize-before(|variable-counter):
+    ast -> <normalize-CallStatement> ast
+    where <is-CallStatement> ast
+
   // SELECT, INSERT, UPDATE or DELETE
   normalize-before(|variable-counter):
     astPlusMetadata -> AstPlusMetadata(result, metadata)
@@ -49,27 +54,16 @@ rules
       result := <
         alltd(norm-BindVariable(|bindVariable-counter)); // give numbers to bind variables; this should happen before any other query transformation so that we maintain the order of bind variables as they appear in the original query
         alltd(norm-pgql10);
-        alltd(
-          norm-UMin +
-          norm-DateTimeField +
-          norm-source-destination-predicate
-        );
-        bottomup(try(norm-labeled-predicate));
         innermost(
-          norm-NOT +
-          norm-NEQ +
           norm-singleVertex +
-          norm-parenthesized-match-single-path +
-          norm-isNull +
-          norm-case
+          norm-parenthesized-match-single-path
         );
       	alltd(norm-edgeContents);
-        ( (is-pgql10 + is-pgql11); alltd((?PropRef(_, _) <+ varRef-to-legacy-string-literal) + norm-legacy-string-literal); alltd(norm-legacy-identifier) +
-          is-pgql13; alltd(norm-string-literal + norm-identifier) +
+        ( (is-pgql10 + is-pgql11); normalize-value-expressions(|True()) +
+          is-pgql13; normalize-value-expressions +
           ?Start-Plhdr() // empty query string
         );
         alltd(norm-timezone(|metadata));
-        alltd(norm-datetime-literal);
         alltd(norm-hop-distance);
         alltd(name-unnamed-elems(|variable-counter));
         alltd(norm-inlined-references);
@@ -80,7 +74,7 @@ rules
         alltd(?ElemContents(Some(<id>), _, _, _));
         try(copy-graph-name-to-queries-without-one)
       > ast
-
+        
 rules
 
   is-pgql10 = ?Pgql10Query(_, _, _, _, _, _, _)
@@ -136,6 +130,10 @@ rules
     where <?GraphMatch(_, SingleVertex(_), Some(OptionalGraphMatchParts1(rowsPerMatch, _))) +
            ?GraphMatch(_, PathPattern2(_, SingleVertex(_)), Some(OptionalGraphMatchParts1(rowsPerMatch, _)))> graphMatch
         ; <is-not-one-row-per-match> rowsPerMatch
+
+  get-pgql13-errors:
+    GraphPattern(PathPatternList(pathPatternList), Some(KeepClause(_)), _) -> <to-error-message(|"Path pattern prefix not allowed in combination with KEEP clause")> pathPatternPrefix
+    where pathPatternPrefix := <collect-in-outer-query(?PathPattern2(Some(<id>), _)); Hd> pathPatternList
 
   is-not-one-row-per-match = ?OneRowPerVertex(_) + ?OneRowPerEdge(_) + ?OneRowPerStep(_, _, _)
 
@@ -197,13 +195,15 @@ rules
     e@FunctionCall(None(), functionName, [_]) -> <to-error-message(|"GRAPH_TABLE restriction: MATCHNUM with argument not supported, use MATCHNUM without argument instead")> e
     where <norm-identifier; ?Identifier("MATCHNUM", _)> functionName
 
-  get-GraphTable-restriction = ?KeepClause(_); to-error-message(|"KEEP clause not yet supported")
-
   get-GraphTable-restriction:
     GraphTable(_, GraphPattern(PathPatternList(pathPatterns), _, _), GraphTableShape(Some(rowsClause), _))
       -> <error-for-rows-clause-when-multiple-path-patterns> rowsClause
     where <length; not(?1)> pathPatterns
         ; <?OneRowPerVertex(_) + ?OneRowPerStep(_, _, _)> rowsClause
+
+  get-GraphTable-restriction:
+    Cast(_, dataType) -> <to-error-message(|"GRAPH_TABLE restriction: TIMEZONE should be TIME ZONE (with space)")> dataType
+    where <upper-case; is-substring(!"TIMEZONE")> dataType
 
   quantifier-without-path-finding-goal =
     collect(quantified-path-pattern <+ is-quantifier)
@@ -313,41 +313,6 @@ rules
 
   norm-BindVariable(|c) = ?BindVariable(); !BindVariable(<next-counter> c)
 
-  norm-UMin = ?UMin(Integer(string)); !Integer(<conc-strings> ("-", string))
-  norm-UMin = ?UMin(Decimal(string)); !Decimal(<conc-strings> ("-", string))
-
-  norm-NOT = ?Legacy10Not(<id>); !Not(<id>)
-
-  norm-NEQ = ?Neq1(exp1, exp2); !Neq(exp1, exp2)
-  norm-NEQ = ?Neq2(exp1, exp2); !Neq(exp1, exp2)
-
-  norm-legacy-string-literal:
-    String(s) -> String(s')
-    with s' := <origin-track-forced(un-single-quote; unescape-legacy-string-literal)> s
-
-  varRef-to-legacy-string-literal:
-    VarRef(DelimitedIdentifier(s)) -> String(s')
-    with s' := <origin-track-forced(un-double-quote; unescape-legacy-identifier)> s
-
-  norm-legacy-identifier:
-    RegularIdentifier(v) -> Identifier(v, v)
-
-  norm-legacy-identifier:
-    DelimitedIdentifier(v) -> Identifier(v', v')
-    with v' := <origin-track-forced(un-double-quote; unescape-legacy-identifier)> v
-
-  // (n:'lbl')
-  norm-legacy-identifier:
-    Legacy10Identifier(v) -> Legacy10Identifier(v')
-    with v' := <origin-track-forced(un-single-quote; unescape-legacy-string-literal)> v
-
-  external unescape-legacy-string-literal(|)
-  external unescape-legacy-identifier(|)
-
-  norm-datetime-literal = Date(un-single-quote)
-                        + Time(un-single-quote)
-                        + Timestamp(un-single-quote)
-
   norm-timezone(|metadata):
     Cast(exp, type) -> Cast(exp, type'')
     with type' := <origin-track-forced(upper-case
@@ -357,72 +322,6 @@ rules
                      documentation to follow the standard. */
                   ; string-replace(|"TIME ZONE", "TIMEZONE"))> type
         ; type'' := <try(origin-track-forced(!metadata; fetch-elem(?DataTypeSynonyms(<id>)); fetch-elem(?DataTypeSynonym(type', <id>))))> type'
-
-  norm-isNull = ?IsNotNull(exp); origin-track-forced(!IsNull(exp)); !Not(<id>)
-
-  norm-DateTimeField = DateTimeField(origin-track-forced(upper-case))
-
-  norm-case:
-    t@SimpleCase(caseOperand, whenClauses, elseClause) -> SimpleCase(caseOperand, whenClauses, elseClause, ifElseRepresentation)
-    with ifElseRepresentation := <to-if-else(|t)> (caseOperand, whenClauses, elseClause)
-
-  to-if-else(|origin-term):
-    (caseOperand, whenClauses, elseClause) -> ifElse
-    with [WhenClause(whenExp, thenExp)|xs] := whenClauses
-       ; exp1 := <origin-track-forced(!Eq(caseOperand, whenExp))> whenExp
-       ; exp2 := thenExp
-       ; if [] := xs
-         then exp3 := <to-else> elseClause
-         else exp3 := <to-if-else(|elseClause)> (caseOperand, xs, elseClause)
-         end
-       ; ifElse := <origin-track-forced(!IfElse(exp1, exp2, exp3))> origin-term
-
-  norm-case:
-    t@SearchedCase(whenClauses, elseClause) -> ifElse
-    with ifElse := <to-if-else(|t)> (whenClauses, elseClause)
-       ; <origin-text> t
-
-  to-if-else(|origin-term):
-    (whenClauses, elseClause) -> ifElse
-    with [WhenClause(whenExp, thenExp)|xs] := whenClauses
-       ; exp1 := whenExp
-       ; exp2 := thenExp
-       ; if [] := xs
-         then exp3 := <to-else> elseClause
-         else [WhenClause(_, thenExp2)|_] := xs
-            ; exp3 := <to-if-else(|thenExp2)> (xs, elseClause)
-         end
-       ; ifElse := <origin-track-forced(!IfElse(exp1, exp2, exp3))> origin-term
-
-  to-else = ?None(); !Null() <+ ?Some(ElseClause(<id>))
-
-  norm-labeled-predicate:
-    LabeledPredicate(varRef, notTerm, labelExpression) -> result
-    with labelExpression' := <to-label-constraint(|varRef)> labelExpression
-       ; if <?Some(_)> notTerm
-         then result := Not(labelExpression')
-         else result := labelExpression'
-         end
-
-  norm-labeled-predicate:
-    FunctionCall(None(), functionName, args@[VarRef(_), String(_)]) -> FunctionCall(None(), Identifier("has_label", origin), args)
-    where <norm-identifier; ?Identifier(<id>, origin); lower-case; ?"has_label"> functionName
-
-  norm-source-destination-predicate:
-    t@SourcePredicate(vertexRef, notTerm, _, edgeRef) -> <origin-track-forced(!result)> t
-    with isSourceOfCall := FunctionCall(None(), RegularIdentifier("is_source_of"), [edgeRef, vertexRef])
-       ; if <?Some(_)> notTerm
-         then result := Not(isSourceOfCall)
-         else result := isSourceOfCall
-         end
-
-  norm-source-destination-predicate:
-    t@DestinationPredicate(vertexRef, notTerm, _, edgeRef) -> <origin-track-forced(!result)> t
-    with isDestinationOfCall := FunctionCall(None(), RegularIdentifier("is_destination_of"), [edgeRef, vertexRef])
-       ; if <?Some(_)> notTerm
-         then result := Not(isDestinationOfCall)
-         else result := isDestinationOfCall
-         end
 
 rules
 
@@ -491,7 +390,7 @@ rules
 
   normalize-table-expression(|variable-counter) = ?DerivedTable(_, _, _)
 
-  get-pathPatternsAndRowsPerMatch-and-normalize(|variable-counter) = map(get-pathPatternsAndRowsPerMatch); concat; norm-matchElems-common(|variable-counter)
+  get-pathPatternsAndRowsPerMatch-and-normalize(|variable-counter) = map(get-pathPatternsAndRowsPerMatch); concat; norm-matchElems-common(|variable-counter, None())
 
   get-pathPatternsAndRowsPerMatch = ?GraphMatch(_, pathPattern, optionalGraphMatchParts); ![PathPatternAndRowsPerMatch(pathPattern, <get-RowsPerMatch> optionalGraphMatchParts)]
                                   + ?ParenthesizedGraphMatch(pathPattern1, otherPathPatterns, optionalGraphMatchParts); !([pathPattern1], otherPathPatterns); conc; map(!PathPatternAndRowsPerMatch(<id>, <get-RowsPerMatch> optionalGraphMatchParts))
@@ -499,20 +398,20 @@ rules
   // PGQL 1.1 and 1.2
   norm-matchElems(|variable-counter):
     MatchWhereClauses(elems, whereClause) -> GraphPattern(vertices, connections, constraints)
-    with <?GraphPattern(vertices, connections, Constraints(inlined-constraints))> := <norm-matchElems-common(|variable-counter)> elems
+    with <?GraphPattern(vertices, connections, Constraints(inlined-constraints))> := <norm-matchElems-common(|variable-counter, None())> elems
        ; non-inlined-constraints := <?Some(WhereClause(<id>)); ![<id>] + ?None(); ![]> whereClause
        ; constraints := Constraints(<conc> (inlined-constraints,  non-inlined-constraints))
 
   // PGQL 1.0
   norm-matchElems(|variable-counter):
     GraphPattern(elems) -> graphPattern
-    with graphPattern := <norm-matchElems-common(|variable-counter)> elems
+    with graphPattern := <norm-matchElems-common(|variable-counter, None())> elems
 
-  norm-matchElems-common(|variable-counter):
+  norm-matchElems-common(|variable-counter, keepClause):
     matchElems -> GraphPattern(vertices, connections, constraints)
     with pathPatterns := <remove-all(?Constraint(_))> matchElems // relevant to PGQL 1.0 only
        ; vertices := <collect-outside-repeated-path(?Vertex(ElemContents(Some(<id>), _, _, _)); !Vertex(<id>)); remove-duplicate-vertices; !Vertices(<id>)> pathPatterns
-       ; connections := <get-connections-from-paths(|variable-counter, None())> pathPatterns
+       ; connections := <get-connections-from-paths(|variable-counter, None(), keepClause)> pathPatterns
 
        ; non-inlined-constraints := <filter(?Constraint(<id>))> matchElems // PGQL 1.0 only
        ; inlined-constraints-for-vertices := <collect-outside-repeated-path(?Vertex(<id>))
@@ -554,7 +453,7 @@ rules
       non-inlined-constraints := <(?None(); ![]) <+ (?Some(WhereClause(<id>)); ![<id>])> whereClause;
       constraints := <concat; flatten-list; !Constraints(<id>)> [inlined-constraints-for-vertices, inlined-constraints-for-edges, non-inlined-constraints];
       vertices := <collect-om(?Vertex(_), conc); !Vertices(<id>)> path;
-      connections := <get-connections-from-paths(|variable-counter, None()); !Edges(<id>)> [path]
+      connections := <get-connections-from-paths(|variable-counter, None(), None()); !Edges(<id>)> [path]
 
   get-inlined-constraints:
     ElemContents(Some(var), label, id', otherConstraint) -> <concat> [labels, identifiers, otherConstraint']
@@ -563,38 +462,34 @@ rules
        ; identifiers := <?Some(Ids(<id>)); to-id-constraint(|var); ![<id>] <+ ![]> id'
        ; otherConstraint' := <?Some(InlinedConstraint(<id>)) <+ ![]> otherConstraint
 
-  to-label-constraint(|varRef):
-    labels -> <to-hasLabel-expressions(|varRef)> labels
-  to-hasLabel-expressions(|varRef) = bottomup(try(![varRef, <to-label>]; to-function(|"has_label") + origin-track-forced(normalize-label-disjunction)))
-  to-label = ?Label(<id>) + ?Legacy10Identifier(<id>); origin-track-forced(!Identifier(<id>, <id>)) + ?BindVariable(_)
   to-id-constraint(|var) = bottomup(try(is-literal; origin-track-forced(!Eq(<to-function(|"id")> [VarRef(var)], <id>))))
-  normalize-label-disjunction = ?LabelDisjunction(x, y); !Or(x, y)
 
   // base case: no paths
-  get-connections-from-paths(|variable-counter, rowsPerMatch):
+  get-connections-from-paths(|variable-counter, rowsPerMatch, keepClause):
     [] -> []
 
-  get-connections-from-paths(|variable-counter, _):
-    [PathPatternAndRowsPerMatch(pathPattern, rowsPerMatch)|otherPaths] -> <get-connections-from-paths(|variable-counter, rowsPerMatch)> [pathPattern|otherPaths]
+  get-connections-from-paths(|variable-counter, _, keepClause):
+    [PathPatternAndRowsPerMatch(pathPattern, rowsPerMatch)|otherPaths] -> <get-connections-from-paths(|variable-counter, rowsPerMatch, keepClause)> [pathPattern|otherPaths]
 
   // first path pattern has only one vertex => ignore it
-  get-connections-from-paths(|variable-counter, rowsPerMatch):
-    [PathPattern2(_, PathPattern(_, []))|otherPaths] -> <get-connections-from-paths(|variable-counter, rowsPerMatch)> otherPaths
+  get-connections-from-paths(|variable-counter, rowsPerMatch, keepClause):
+    [PathPattern2(_, PathPattern(_, []))|otherPaths] -> <get-connections-from-paths(|variable-counter, rowsPerMatch, keepClause)> otherPaths
 
   // first path pattern has more than one vertex
-  get-connections-from-paths(|variable-counter, rowsPerMatch):
+  get-connections-from-paths(|variable-counter, rowsPerMatch, keepClause):
     [PathPattern2(pathPatternPrefix, pathPattern)|otherPaths] -> result
     where <not(?PathPattern(_, []))> pathPattern
-    with if <contains-edge-pattern-with-quantifier + !rowsPerMatch; ?Some(<id>); is-not-one-row-per-match + !pathPatternPrefix; not(?None() + ?Some(AllPathSearch(_, _)))> pathPattern // path pattern has a quantifier or it has a search prefix other than ALL or it has a graph table rows clause other than ONE ROW PER MATCH
-         then pathFindingGoal := <to-pathFindingGoal> pathPatternPrefix
-            ; topKAnyAll := <to-topKAnyAll> pathPatternPrefix
-            ; pathMode := <to-pathMode> pathPatternPrefix
-            ; result := <get-connections-from-quantified-path-patterns(|variable-counter, rowsPerMatch)> (pathFindingGoal, topKAnyAll, pathMode, pathPattern, otherPaths)
+    with pathPatternPrefix' := <?Some(KeepClause(<id>)); !Some(<id>) <+ !pathPatternPrefix> keepClause
+       ; if <contains-edge-pattern-with-quantifier + !rowsPerMatch; ?Some(<id>); is-not-one-row-per-match + !pathPatternPrefix'; not(?None() + ?Some(AllPathSearch(_, _)))> pathPattern // path pattern has a quantifier or it has a search prefix other than ALL or it has a graph table rows clause other than ONE ROW PER MATCH
+         then pathFindingGoal := <to-pathFindingGoal> pathPatternPrefix'
+            ; topKAnyAll := <to-topKAnyAll> pathPatternPrefix'
+            ; pathMode := <to-pathMode> pathPatternPrefix'
+            ; result := <get-connections-from-quantified-path-patterns(|variable-counter, rowsPerMatch, keepClause)> (pathFindingGoal, topKAnyAll, pathMode, pathPattern, otherPaths)
          else topKAnyAll := None()
             ; pathFindingGoal := None()
             ; pathMode := Walk()
             ; edges := <pathPattern-to-connections(|variable-counter, pathFindingGoal, topKAnyAll, pathMode, rowsPerMatch)> pathPattern
-            ; edgesTailPaths := <get-connections-from-paths(|variable-counter, rowsPerMatch)> otherPaths
+            ; edgesTailPaths := <get-connections-from-paths(|variable-counter, rowsPerMatch, keepClause)> otherPaths
             ; result := <conc> (edges, edgesTailPaths)
          end
 
@@ -669,11 +564,11 @@ rules
                 )
               ; (?None(); !Walk() + ?Some(<id>))
 
-  get-connections-from-quantified-path-patterns(|variable-counter, rowsPerMatch):
+  get-connections-from-quantified-path-patterns(|variable-counter, rowsPerMatch, keepClause):
     (pathFindingGoal, topKAnyAll, pathMode, pathPattern, otherPaths) ->  <conc> ([path'], edgesTailPaths)
     with edges := <pathPattern-to-connections(|variable-counter, pathFindingGoal, topKAnyAll, pathMode, rowsPerMatch)> pathPattern
        ; path' := <?[single-path-only]; !single-path-only; try(single-edge-to-path(|variable-counter, pathFindingGoal, topKAnyAll, pathMode, rowsPerMatch)) <+ !ComplexRegularExpressionNotSupported(<id>, pathFindingGoal)> edges
-       ; edgesTailPaths := <get-connections-from-paths(|variable-counter, rowsPerMatch)> otherPaths
+       ; edgesTailPaths := <get-connections-from-paths(|variable-counter, rowsPerMatch, keepClause)> otherPaths
 
   single-edge-to-path(|variable-counter, pathFindingGoal, topKAnyAll, pathMode, rowsPerMatch):
     edge@NormalizedEdge(srcVertex, e, dstVertex, direction, quantifier, constraints) -> path
@@ -873,7 +768,7 @@ rules // GRAPH_TABLE
                        ?Some(GraphTableColumnsClause(<id>)); map(?AllProperties(_, _) + norm-ExpAsVar-for-select-clause); ?list; !columnsClause; origin-track-forced(!SelectList(list))> columnsClause
        ; selectClause := <origin-track-forced(!SelectClause(distinct, selectList))> selectList
        ; graphName' := <?None() + ?Some(<id>); !Some(GraphName(<id>))> graphName
-       ; graphPattern' := <map(!PathPatternAndRowsPerMatch(<id>, rowsClause)); norm-matchElems-common(|variable-counter)> pathPatterns
+       ; graphPattern' := <map(!PathPatternAndRowsPerMatch(<id>, rowsClause)); norm-matchElems-common(|variable-counter, keepClause)> pathPatterns
        ; tableExpressions := [ graphPattern' ]
        ; whereClause' := <?Some(WhereClause(<id>)); !Constraints([<id>]) <+ ?None(); !Constraints([])> whereClause
        ; groupBy := None()

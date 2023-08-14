@@ -27,7 +27,6 @@ import static oracle.pgql.lang.CommonTranslationUtil.isNone;
 import static oracle.pgql.lang.CommonTranslationUtil.translateExp;
 
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.List;
 
 public class TranslateCreatePropertyGraph {
@@ -282,8 +281,7 @@ public class TranslateCreatePropertyGraph {
           IStrategoTerm propertiesListT = propertiesSpecificationT.getSubterm(PROPERTIES_CLAUSE_PROPERTIES_LIST);
           List<Property> properties = new ArrayList<>();
           for (IStrategoTerm expAsVarT : propertiesListT) {
-            TranslationContext translationContext = new TranslationContext(Collections.emptyMap(),
-                Collections.emptySet(), Collections.emptyMap());
+            TranslationContext translationContext = new TranslationContext();
             QueryExpression valueExpression = translateExp(expAsVarT.getSubterm(EXP_AS_VAR_EXP), translationContext);
             IStrategoTerm propertyNameT = expAsVarT.getSubterm(EXP_AS_VAR_VAR);
             String propertyName;

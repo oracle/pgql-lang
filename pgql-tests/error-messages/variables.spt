@@ -81,7 +81,6 @@ test "Repeat subquery from SELECT in GROUP BY and use unnest variable in subquer
 ]] error like "Unresolved variable" at #1
    error like "Unresolved variable (did you mean to use a group key?)" at #2
 
-/*
 test Unresolved reference to variable inside table expression [[
 
   SELECT 1
@@ -90,4 +89,14 @@ test Unresolved reference to variable inside table expression [[
    WHERE n.prop = 3 AND [[x]].prop = 4
 
 ]] error like "Unresolved variable" at #1
-*/
+
+test Reference with group degree in IS SOURCE/DESTINATION OF [[
+
+  SELECT * 
+  FROM GRAPH_TABLE ( g
+         MATCH (a IS Account) -[e1 IS transaction]->{4} (a) 
+             , (a IS Account) (-[e2 IS transaction]-> (x)) {4} (a) 
+         WHERE a IS SOURCE OF [[e1]] AND [[x]] IS NOT DESTINATION OF [[e2]]
+         COLUMNS ( e.* ) )
+
+]] error like "Unresolved variable" at #1, #2, #3

@@ -50,6 +50,7 @@ import oracle.pgql.lang.ir.QueryExpression.RelationalExpression.GreaterEqual;
 import oracle.pgql.lang.ir.QueryExpression.RelationalExpression.Less;
 import oracle.pgql.lang.ir.QueryExpression.RelationalExpression.LessEqual;
 import oracle.pgql.lang.ir.QueryExpression.RelationalExpression.NotEqual;
+import oracle.pgql.lang.ir.QueryExpression.SourceDestinationPredicate;
 import oracle.pgql.lang.ir.QueryExpression.SubstringExpression;
 import oracle.pgql.lang.ir.modify.ModifyQuery;
 import oracle.pgql.lang.ir.modify.SetPropertyExpression;
@@ -165,6 +166,8 @@ public interface QueryExpressionVisitor {
   public void visit(SubstringExpression substringExpression);
 
   public void visit(BetweenPredicate betweenPredicate);
+
+  public void visit(SourceDestinationPredicate sourceDestinationPredicate);
 
   public void visit(ScalarSubquery sclarSubquery);
 

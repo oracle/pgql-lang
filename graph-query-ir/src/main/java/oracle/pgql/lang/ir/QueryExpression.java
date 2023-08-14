@@ -88,7 +88,8 @@ public interface QueryExpression {
     IF_ELSE,
     SIMPLE_CASE,
     SUBSTRING,
-    BETWEEN_PREDICATE
+    BETWEEN_PREDICATE,
+    SOURCE_DESTINATION_PREDICATE
   }
 
   ExpressionType getExpType();
@@ -2078,6 +2079,89 @@ public interface QueryExpression {
     @Override
     public void accept(QueryExpressionVisitor v) {
       v.visit(this);
+    }
+  }
+
+  class SourceDestinationPredicate implements QueryExpression {
+
+    private VarRef vertexReference;
+
+    private VarRef edgeReference;
+
+    private boolean isSourcePredicate;
+
+    public SourceDestinationPredicate(VarRef vertexReference, VarRef edgeReference, boolean isSourcePredicate) {
+      this.vertexReference = vertexReference;
+      this.edgeReference = edgeReference;
+      this.isSourcePredicate = isSourcePredicate;
+    }
+
+    public VarRef getVertexReference() {
+      return vertexReference;
+    }
+
+    public void setVertexReference(VarRef vertexReference) {
+      this.vertexReference = vertexReference;
+    }
+
+    public VarRef getEdgeReference() {
+      return edgeReference;
+    }
+
+    public void setEdgeReference(VarRef edgeReference) {
+      this.edgeReference = edgeReference;
+    }
+
+    public boolean isSourcePredicate() {
+      return isSourcePredicate;
+    }
+
+    public void setSourcePredicate(boolean isSourcePredicate) {
+      this.isSourcePredicate = isSourcePredicate;
+    }
+
+    @Override
+    public String toString() {
+      return vertexReference + " IS " + (isSourcePredicate ? "SOURCE" : "DESTINATION") + " OF " + edgeReference;
+    }
+
+    @Override
+    public ExpressionType getExpType() {
+      return ExpressionType.SOURCE_DESTINATION_PREDICATE;
+    }
+
+    @Override
+    public void accept(QueryExpressionVisitor v) {
+      v.visit(this);
+    }
+
+    @Override
+    public int hashCode() {
+      return 31;
+    }
+
+    @Override
+    public boolean equals(Object obj) {
+      if (this == obj)
+        return true;
+      if (obj == null)
+        return false;
+      if (getClass() != obj.getClass())
+        return false;
+      SourceDestinationPredicate other = (SourceDestinationPredicate) obj;
+      if (edgeReference == null) {
+        if (other.edgeReference != null)
+          return false;
+      } else if (!edgeReference.equals(other.edgeReference))
+        return false;
+      if (isSourcePredicate != other.isSourcePredicate)
+        return false;
+      if (vertexReference == null) {
+        if (other.vertexReference != null)
+          return false;
+      } else if (!vertexReference.equals(other.vertexReference))
+        return false;
+      return true;
     }
   }
 

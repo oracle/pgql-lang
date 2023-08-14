@@ -73,6 +73,8 @@ signature constructors // for the normalized AST (see trans/normalize.str)
 
   GraphTable                   : GraphTable
 
+  SourceDestinationPredicate   : VarRef * VarRef * Boolean -> SourceDestinationPredicate
+
 signature constructors // for name binding (see trans/trans-for-nabl.str)
 
   Vertex                : Var * OriginOffset * Correlation -> Vertex

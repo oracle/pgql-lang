@@ -679,3 +679,25 @@ test Nested path pattern prefix [[
     FROM MATCH ANY ( [[ANY (]]n) ->* (m) )
 
 ]] error like "Nested path pattern prefix not allowed" at #1
+
+test Path search prefix in combination with KEEP clause (1) [[
+
+  SELECT 1
+  FROM GRAPH_TABLE ( g
+         MATCH [[ANY SHORTEST ACYCLIC (n)]] ->* (m)
+         KEEP ANY SHORTEST
+         COLUMNS ( n.prop )
+       )
+
+]] error like "Path pattern prefix not allowed in combination with KEEP clause" at #1
+
+test Path search prefix in combination with KEEP clause (2) [[
+
+  SELECT 1
+  FROM GRAPH_TABLE ( g
+         MATCH [[ANY ACYCLIC (n)]] ->* (m)
+         KEEP ALL
+         COLUMNS ( n.prop )
+       )
+
+]] error like "Path pattern prefix not allowed in combination with KEEP clause" at #1

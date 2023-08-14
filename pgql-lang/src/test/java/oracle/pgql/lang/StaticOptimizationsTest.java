@@ -18,6 +18,7 @@ import oracle.pgql.lang.ir.ExpAsVar;
 import oracle.pgql.lang.ir.GraphPattern;
 import oracle.pgql.lang.ir.GraphQuery;
 import oracle.pgql.lang.ir.PathFindingGoal;
+import oracle.pgql.lang.ir.PathMode;
 import oracle.pgql.lang.ir.Projection;
 import oracle.pgql.lang.ir.QueryExpression;
 import oracle.pgql.lang.ir.QueryPath;
@@ -29,6 +30,7 @@ import oracle.pgql.lang.ir.QueryExpression.ScalarSubquery;
 import oracle.pgql.lang.ir.SelectQuery;
 import oracle.pgql.lang.ir.TableExpression;
 import oracle.pgql.lang.ir.TableExpressionType;
+import oracle.pgql.lang.ir.VertexPairConnection;
 
 public class StaticOptimizationsTest extends AbstractPgqlTest {
 
@@ -153,6 +155,21 @@ public class StaticOptimizationsTest extends AbstractPgqlTest {
         + "FROM MATCH (n) -/:p/-> (m)";
     CommonPathExpression commonPathExpression = pgql.parse(query).getGraphQuery().getCommonPathExpressions().get(0);
     assertEquals(1L, commonPathExpression.getConstraints().size());
+  }
+
+  @Test
+  public void testPredicatePushdownForExistsInQuantifiedPattern() throws Exception {
+    String query = "SELECT id(s), id(t) " + //
+        "FROM MATCH " + //
+        "  ANY SHORTEST (s) ( (x1) -> (y1) " + //
+        "                     WHERE EXISTS ( SELECT * FROM MATCH (x2) <-[:friend]- (y2) WHERE x1 = x2 AND y1 = y2 ) " + //
+        "                   )* " + //
+        "               (t)";
+    QueryPath pathPattern = (QueryPath) pgql.parse(query).getGraphQuery().getGraphPattern().getConnections().iterator()
+        .next();
+    Exists exists = (Exists) pathPattern.getConstraints().iterator().next();
+    assertTrue(exists.getQuery().getConstraints().isEmpty());
+    assertEquals(3L, exists.getQuery().getGraphPattern().getConstraints().size());
   }
 
   @Test
@@ -429,5 +446,40 @@ public class StaticOptimizationsTest extends AbstractPgqlTest {
     ExpAsVar column = ((SelectQuery) graphQuery).getProjection().getElements().get(0);
     assertEquals("Y", column.getName()); // column name is still "Y"
     assertEquals("y", column.getNameOriginText());
+  }
+
+  @Test
+  public void keepClause() throws Exception {
+    GraphQuery graphQuery = pgql.parse("SELECT * " + //
+        "FROM GRAPH_TABLE ( g " + //
+        "       MATCH (n) ->* (m), (m) ->* (n) " + //
+        "       KEEP ANY SHORTEST ACYCLIC " + //
+        "       WHERE n.prop > m.prop " + //
+        "       COLUMNS ( n.prop ) " + //
+        "     )").getGraphQuery();
+    Set<VertexPairConnection> connections = graphQuery.getGraphPattern().getConnections();
+    assertEquals(2, connections.size());
+    for (VertexPairConnection connection : connections) {
+      QueryPath path = (QueryPath) connection;
+      assertEquals(PathFindingGoal.SHORTEST, path.getPathFindingGoal());
+      assertEquals(PathMode.ACYCLIC, path.getPathMode());
+      assertEquals(1, path.getKValue());
+    }
+
+    graphQuery = pgql.parse("SELECT * " + //
+        "FROM GRAPH_TABLE ( g " + //
+        "       MATCH (n) ->* (m), (m) ->* (n) " + //
+        "       KEEP CHEAPEST 10 TRAIL " + //
+        "       WHERE n.prop > m.prop " + //
+        "       COLUMNS ( n.prop ) " + //
+        "     )").getGraphQuery();
+    connections = graphQuery.getGraphPattern().getConnections();
+    assertEquals(2, connections.size());
+    for (VertexPairConnection connection : connections) {
+      QueryPath path = (QueryPath) connection;
+      assertEquals(PathFindingGoal.CHEAPEST, path.getPathFindingGoal());
+      assertEquals(PathMode.TRAIL, path.getPathMode());
+      assertEquals(10, path.getKValue());
+    }
   }
 }
