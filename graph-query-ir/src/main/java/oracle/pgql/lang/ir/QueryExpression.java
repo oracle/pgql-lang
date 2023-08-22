@@ -2353,17 +2353,29 @@ public interface QueryExpression {
 
     class AggrJsonArrayagg extends AbstractAggregation {
 
+      private boolean formatJson;
+
       private OrderBy orderBy;
 
       private JsonOnNull jsonOnNull;
 
       private String jsonReturnType;
 
-      public AggrJsonArrayagg(QueryExpression exp, OrderBy orderBy, JsonOnNull jsonOnNull, String jsonReturnType) {
+      public AggrJsonArrayagg(QueryExpression exp, boolean formatJson, OrderBy orderBy, JsonOnNull jsonOnNull,
+          String jsonReturnType) {
         super(false, exp);
+        this.formatJson = formatJson;
         this.orderBy = orderBy;
         this.jsonOnNull = jsonOnNull;
         this.jsonReturnType = jsonReturnType;
+      }
+
+      public boolean isFormatJson() {
+        return formatJson;
+      }
+
+      public void setFormatJson(boolean formatJson) {
+        this.formatJson = formatJson;
       }
 
       public OrderBy getOrderBy() {
@@ -2404,6 +2416,7 @@ public interface QueryExpression {
       public String toString() {
         String result = "JSON_ARRAYAGG(";
         result += getExp();
+        result += formatJson ? " FORMAT JSON" : "";
         result += orderBy.getElements().isEmpty() ? "" : " " + orderBy.toString();
         result += jsonOnNull == JsonOnNull.NULL_ON_NULL ? " NULL ON NULL" : "";
         result += jsonReturnType == null ? "" : " RETURNING " + jsonReturnType;
@@ -2425,6 +2438,8 @@ public interface QueryExpression {
         if (getClass() != obj.getClass())
           return false;
         AggrJsonArrayagg other = (AggrJsonArrayagg) obj;
+        if (formatJson != other.formatJson)
+          return false;
         if (jsonOnNull != other.jsonOnNull)
           return false;
         if (jsonReturnType == null) {
