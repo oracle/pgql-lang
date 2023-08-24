@@ -78,6 +78,7 @@ public class CommonTranslationUtil {
   private static final int POS_AGGREGATE_EXP = 1;
   private static final int POS_AGGREGATE_SEPARATOR = 2;
   private static final int POS_JSON_ARRAYAGG_EXP = 0;
+  private static final int POS_JSON_ARRAYAGG_FORMAT_JSON = 1;
   private static final int POS_JSON_ARRAYAGG_ORDER_BY = 2;
   private static final int POS_JSON_ARRAYAGG_JSON_ON_NULL = 3;
   private static final int POS_JSON_ARRAYAGG_RETURN_TYPE = 4;
@@ -575,6 +576,8 @@ public class CommonTranslationUtil {
       case "JSON-ARRAYAGG":
         exp = translateExp(t.getSubterm(POS_JSON_ARRAYAGG_EXP), ctx);
 
+        boolean formatJson = isSome(t.getSubterm(POS_JSON_ARRAYAGG_FORMAT_JSON));
+
         OrderBy orderBy = getOrderBy(ctx, t.getSubterm(POS_JSON_ARRAYAGG_ORDER_BY));
 
         IStrategoTerm jsonOnNullT = t.getSubterm(POS_JSON_ARRAYAGG_JSON_ON_NULL);
@@ -586,7 +589,7 @@ public class CommonTranslationUtil {
         IStrategoTerm jsonReturnTypeT = t.getSubterm(POS_JSON_ARRAYAGG_RETURN_TYPE);
         String jsonReturnType = isSome(jsonReturnTypeT) ? getString(jsonReturnTypeT) : null;
 
-        return new QueryExpression.Aggregation.AggrJsonArrayagg(exp, orderBy, jsonOnNull, jsonReturnType);
+        return new QueryExpression.Aggregation.AggrJsonArrayagg(exp, formatJson, orderBy, jsonOnNull, jsonReturnType);
       case "Star":
         return new QueryExpression.Star();
       default:

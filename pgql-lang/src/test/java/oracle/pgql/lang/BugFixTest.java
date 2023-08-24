@@ -19,6 +19,7 @@ import oracle.pgql.lang.ir.GraphQuery;
 import oracle.pgql.lang.ir.QueryExpression.AllProperties;
 import oracle.pgql.lang.ir.QueryExpression.FunctionCall;
 import oracle.pgql.lang.ir.QueryExpression.PropertyAccess;
+import oracle.pgql.lang.ir.QueryExpression.Aggregation.AggrJsonArrayagg;
 import oracle.pgql.lang.ir.SelectQuery;
 
 public class BugFixTest extends AbstractPgqlTest {
@@ -447,8 +448,7 @@ public class BugFixTest extends AbstractPgqlTest {
 
   @Test
   public void testReferenceVertexTableFromBaseGraph2() throws Exception {
-    PgqlResult result = pgql.parse(
-        "CREATE PROPERTY GRAPH g1 " + //
+    PgqlResult result = pgql.parse("CREATE PROPERTY GRAPH g1 " + //
         "  BASE GRAPHS( " + //
         "   g2 ELEMENT TABLES( v1, v2 ) " + //
         "  ) " + //
@@ -464,5 +464,18 @@ public class BugFixTest extends AbstractPgqlTest {
   public void illegalQueryShouldNotCrashParser() throws Exception {
     PgqlResult result = pgql.parse("SELECT * FROM MATCH (v:STUDENT), LATERAL ( DELETE (w) FROM MATCH (w) )");
     assertNotNull(result.getErrorMessages());
+  }
+
+  @Test
+  public void formatJson() throws Exception {
+    PgqlResult result = pgql.parse("SELECT JSON_ARRAYAGG(v.prop FORMAT JSON) FROM MATCH (v)");
+    AggrJsonArrayagg agg = (AggrJsonArrayagg) ((SelectQuery) result.getGraphQuery()).getProjection().getElements()
+        .get(0).getExp();
+    assertTrue(agg.isFormatJson());
+
+    result = pgql.parse("SELECT JSON_ARRAYAGG(v.prop) FROM MATCH (v)");
+    agg = (AggrJsonArrayagg) ((SelectQuery) result.getGraphQuery()).getProjection().getElements()
+        .get(0).getExp();
+    assertFalse(agg.isFormatJson());
   }
 }
