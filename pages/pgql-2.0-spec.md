@@ -4513,7 +4513,7 @@ FROM LATERAL ( SELECT a, p
      MATCH (a) -> (a1:Account) -> (p1:Person)
 ```
 
-The `WHERE` clause of the outer query can contain all variables projected in the `LATERAL` subquery and variables in the outer `MATCH` clause.
+The `WHERE` clause of the outer query can reference variables projected in the `LATERAL` subquery and variables in the outer `MATCH` clause.
 
 ```sql
 SELECT p.name as pName, p1.name as p1Name
@@ -4521,6 +4521,7 @@ FROM LATERAL ( SELECT a, p
                FROM MATCH (a:Account) -> (p:Person)
              ),
      MATCH (a) -> (a1:Account) -> (p1:Person)
+WHERE p <> p1
 ```
 
 
