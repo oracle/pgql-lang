@@ -132,7 +132,7 @@ rules
         ; <is-not-one-row-per-match> rowsPerMatch
 
   get-pgql13-errors:
-    GraphPattern(PathPatternList(pathPatternList), Some(KeepClause(_)), _) -> <to-error-message(|"Path pattern prefix not allowed in combination with KEEP clause")> pathPatternPrefix
+    GraphPattern(PathPatternList(pathPatternList), _, _) -> <to-error-message(|"GRAPH_TABLE restriction: use the KEEP clause")> pathPatternPrefix
     where pathPatternPrefix := <collect-in-outer-query(?PathPattern2(Some(<id>), _)); Hd> pathPatternList
 
   is-not-one-row-per-match = ?OneRowPerVertex(_) + ?OneRowPerEdge(_) + ?OneRowPerStep(_, _, _)

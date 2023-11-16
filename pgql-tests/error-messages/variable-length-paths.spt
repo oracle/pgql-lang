@@ -689,7 +689,7 @@ test Path search prefix in combination with KEEP clause (1) [[
          COLUMNS ( n.prop )
        )
 
-]] error like "Path pattern prefix not allowed in combination with KEEP clause" at #1
+]] error like "GRAPH_TABLE restriction: use the KEEP clause" at #1
 
 test Path search prefix in combination with KEEP clause (2) [[
 
@@ -700,4 +700,4 @@ test Path search prefix in combination with KEEP clause (2) [[
          COLUMNS ( n.prop )
        )
 
-]] error like "Path pattern prefix not allowed in combination with KEEP clause" at #1
+]] error like "GRAPH_TABLE restriction: use the KEEP clause" at #1

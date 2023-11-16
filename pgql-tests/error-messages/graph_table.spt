@@ -117,12 +117,53 @@ test Restriction: projecting vertex/edge objects [[
 
 ]] error like "GRAPH_TABLE restriction: cannot project vertex or edge objects" at #1
 
+test Restriction: no KEEP clause (1) [[
+
+  SELECT *
+  FROM GRAPH_TABLE ( g
+         MATCH [[ANY SHORTEST (n)]] -[e]->* (m)
+         COLUMNS ( 1 )
+       )
+
+]] error like "GRAPH_TABLE restriction: use the KEEP clause" at #1
+
+test Restriction: no KEEP clause (2) [[
+
+  SELECT *
+  FROM GRAPH_TABLE ( g
+         MATCH [[ANY (n)]] -[e]->* (m)
+         COLUMNS ( 1 )
+       )
+
+]] error like "GRAPH_TABLE restriction: use the KEEP clause" at #1
+
+test Restriction: no KEEP clause (3) [[
+
+  SELECT *
+  FROM GRAPH_TABLE ( g
+         MATCH [[ACYCLIC (n)]] -[e]->* (m)
+         COLUMNS ( 1 )
+       )
+
+]] error like "GRAPH_TABLE restriction: use the KEEP clause" at #1
+
+test Restriction: no KEEP clause (4) [[
+
+  SELECT *
+  FROM GRAPH_TABLE ( g
+         MATCH [[ALL SHORTEST ACYCLIC PATHS (n)]] -[e]->* (m)
+         COLUMNS ( 1 )
+       )
+
+]] error like "GRAPH_TABLE restriction: use the KEEP clause" at #1
+
 test Restriction: SHORTEST [[
 
   SELECT *
   FROM GRAPH_TABLE ( g
-         MATCH [[SHORTEST(n) -[e]->* (m)]]
-         COLUMNS ( 1 )
+         MATCH (n) -[e]->* (m)
+         [[KEEP SHORTEST
+         COLUMNS ( 1 )]]
        )
 
 ]] error like "GRAPH_TABLE restriction: use ANY SHORTEST or ALL SHORTEST instead of SHORTEST" at #1
@@ -131,8 +172,9 @@ test Restriction: CHEAPEST [[
 
   SELECT *
   FROM GRAPH_TABLE ( g
-         MATCH [[CHEAPEST(n) -[e]->* (m)]]
-         COLUMNS ( 1 )
+         MATCH (n) -[e]->* (m)
+         [[KEEP CHEAPEST
+         COLUMNS ( 1 )]]
        )
 
 ]] error like "GRAPH_TABLE restriction: use ANY CHEAPEST instead of CHEAPEST" at #1
@@ -142,7 +184,8 @@ test Restriction: TOP k SHORTEST [[
 
   SELECT *
   FROM GRAPH_TABLE ( g
-         MATCH [[TOP 12 SHORTEST(n) -[e]->* (m)]]
+         MATCH (n) -[e]->* (m)
+         [[KEEP TOP 12 SHORTEST]]
          COLUMNS ( 1 )
        )
 
@@ -357,7 +400,8 @@ test ONE ROW PER VERTEX without quantifier [[
 
   SELECT 1
   FROM GRAPH_TABLE ( g
-         MATCH ANY (n) ->* (m), ANY (m) ->* (o)
+         MATCH (n) ->* (m), (m) ->* (o)
+         KEEP ANY
          [[ONE ROW PER VERTEX ( v1 )]]
          COLUMNS ( 1 )
        )
@@ -368,7 +412,8 @@ test ONE ROW PER STEP without quantifier [[
 
   SELECT 1
   FROM GRAPH_TABLE ( g
-         MATCH ANY (n) ->* (m), ANY (m) ->* (o)
+         MATCH (n) ->* (m), (m) ->* (o)
+         KEEP ANY
          [[ONE ROW PER STEP ( v1, e, v2 )]]
          COLUMNS ( 1 )
        )
