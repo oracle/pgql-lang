@@ -26,7 +26,7 @@ The new (and fully SQL-compatible) features are:
  - [GRAPH_TABLE Operator](#graph_table-operator)
  - [LATERAL Subquery](#lateral-subqueries)
  - [Path Modes](#path-modes) (`WALK`, `ACYCLIC`, `SIMPLE`, `TRAIL`)
- - [KEEP Clause](#keep-clause)
+ - [KEEP Clause](#KeepClause)
  - [LABELED Predicate](#labeled-predicate), [SOURCE/DESTINATION Predicate](#source--destination-predicate), [MATCHNUM Function](#matchnum-function) and [VERTEX_ID/EDGE_ID Function](#vertex_idedge_id-function)
  - [FETCH FIRST Clause](#fetch-first-clause)
 
@@ -1571,7 +1571,7 @@ The syntax is:
 ```bash
 GraphTable      ::= 'GRAPH_TABLE' '(' <GraphReference>
                                       'MATCH' <GraphPattern>
-                                      <KeepClause?>
+                                      <KeepClause>?
                                       <WhereClause>?
                                       <GraphTableShape> ')'
 
