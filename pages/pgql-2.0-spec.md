@@ -26,6 +26,7 @@ The new (and fully SQL-compatible) features are:
  - [GRAPH_TABLE Operator](#graph_table-operator)
  - [LATERAL Subquery](#lateral-subqueries)
  - [Path Modes](#path-modes) (`WALK`, `ACYCLIC`, `SIMPLE`, `TRAIL`)
+ - [KEEP Clause](#keep-clause)
  - [LABELED Predicate](#labeled-predicate), [SOURCE/DESTINATION Predicate](#source--destination-predicate), [MATCHNUM Function](#matchnum-function) and [VERTEX_ID/EDGE_ID Function](#vertex_idedge_id-function)
  - [FETCH FIRST Clause](#fetch-first-clause)
 
@@ -1340,18 +1341,11 @@ TableExpression        ::=   <MatchClause>
 ```bash
 MatchClause               ::= 'MATCH' ( <PathPattern> | <ParenthesizedGraphPattern> ) <OnClause>? <RowsPerMatch>?
 
-ParenthesizedGraphPattern ::= '(' <GraphPattern> ')'
+PathPattern               ::= <PathPatternPrefix>? <BasicPathPattern>
 
-GraphPattern              ::= <PathPattern> ( ',' <PathPattern> )*
+PathPatternPrefix         ::= <PathModePrefix> | <PathSearchPrefix>
 
-PathPattern               ::=   <BasicPathPattern>
-                              | <AnyPathPattern>
-                              | <AnyShortestPathPattern>
-                              | <AllShortestPathPattern>
-                              | <ShortestKPathPattern>
-                              | <AnyCheapestPathPattern>
-                              | <CheapestKPathPattern>
-                              | <AllPathPattern>
+PathSearchPrefix          ::= <AllPathSearch> | <AnyPathSearch> | <ShortestPathSearch> | <CheapestPathSearch>
 
 BasicPathPattern          ::= <VertexPattern> ( <EdgePattern> <VertexPattern> )*
 
@@ -1373,6 +1367,8 @@ AnyDirectedEdgePattern ::=      '-'
 VariableSpecification     ::= <VariableName>? <LabelPredicate>?
 
 VariableName              ::= <Identifier>
+
+ParenthesizedGraphPattern ::= '(' <PathPattern> ',' <PathPattern> ( ',' <PathPattern> )* ')'
 ```
 
 A path pattern that describes a partial topology of the subgraph pattern. In other words, a topology constraint describes some connectivity relationships between vertices and edges in the pattern, whereas the whole topology of the pattern is described with one or multiple topology constraints.
@@ -1573,7 +1569,13 @@ The `GRAPH_TABLE` operator provides a SQL-compatible way to express graph querie
 The syntax is:
 
 ```bash
-GraphTable      ::= 'GRAPH_TABLE' '(' <GraphReference> 'MATCH' <GraphPattern> <WhereClause>? <GraphTableShape> ')'
+GraphTable      ::= 'GRAPH_TABLE' '(' <GraphReference>
+                                      'MATCH' <GraphPattern>
+                                      <KeepClause?>
+                                      <WhereClause>?
+                                      <GraphTableShape> ')'
+
+KeepClause      ::= 'KEEP' <PathPatternPrefix>
 
 GraphTableShape ::= <RowsPerMatch>? <ColumnsClause>
 
@@ -1584,6 +1586,7 @@ A `GRAPH_TABLE` has the following parts:
  - A graph reference that references the graph to perform the pattern matching on.
  - A `MATCH` keyword.
  - A graph pattern, which is a comma-separted list of path patterns.
+ - A `KEEP` clause for specifying a path mode or path prefix (e.g. `KEEP ANY SHORTEST`)
  - An optional [WHERE clause](#where-clause).
  - A graph table shape.
 
@@ -1628,7 +1631,8 @@ An example with [horizontal aggregation](#horizontal-aggregation) is:
 ```sql
 SELECT *
 FROM GRAPH_TABLE ( financial_transactions
-       MATCH ALL SIMPLE PATHS (a IS Account) -[e IS transaction]->+ (a)
+       MATCH (a IS Account) -[e IS transaction]->+ (a)
+       KEEP ALL SIMPLE PATHS
        WHERE a.number = 10039
        COLUMNS ( LISTAGG(e.amount, ', ') AS amounts_along_path,
                  SUM(e.amount) AS total_amount )
@@ -1652,7 +1656,8 @@ An example with [ONE ROW PER STEP](#one-row-per-step) is:
 ```sql
 SELECT *
 FROM GRAPH_TABLE ( financial_transactions
-       MATCH ALL SIMPLE PATHS (a IS Account) -[IS transaction]->+ (a)
+       MATCH (a IS Account) -[IS transaction]->+ (a)
+       KEEP ALL SIMPLE PATHS
        WHERE a.number = 10039
        ONE ROW PER STEP ( v1, e, v2 )
        COLUMNS ( MATCHNUM() AS match_num, ELEMENT_NUMBER(e) AS elem_num,
@@ -1690,6 +1695,7 @@ The following features are disallowed if `GRAPH_TABLE` is used anywhere in a PGQ
 | [JAVA_REGEXP_LIKE Function](#java_regexp_like-function)             | `REGEXP_LIKE`, `REGEXP_INSTR` or user-defined function                             |
 | [All properties PREFIX](#AllPropertiesPrefix)                       | To obtain unique column names, write out all properties and provide unique aliases |
 | [Graph Modification](#graph-modification)                           | PGQL query without `GRAPH_TABLE`                                                   |
+| Path pattern prefix in path pattern (`e.g. MATCH ANY SHORTEST`)     | `KEEP` clause (e.g. `KEEP ANY SHORTEST`)                                           |
 
 # Variable-Length Paths
 
@@ -1811,30 +1817,9 @@ Two typical uses are:
 The syntax for matching any path is:
 
 ```bash
-AnyPathPattern ::=                       'ANY' ( 'PATH' | 'PATHS' )?
-                                           <SourceVertexPattern>
-                                             <QuantifiedPathPatternPrimary>
-                                               <DestinationVertexPattern>
-                                       | 'ANY' ( 'PATH' | 'PATHS' )? '('
-                                           <SourceVertexPattern>
-                                             <QuantifiedPathPatternPrimary>
-                                               <DestinationVertexPattern> ')'
+AnyPathSearch ::= 'ANY' <PathMode>? <PathOrPaths>?
 
-PathOrPaths                        ::=   'PATH'
-                                       | 'PATHS'
-
-SourceVertexPattern                ::= <VertexPattern>
-
-DestinationVertexPattern           ::= <VertexPattern>
-
-QuantifiedPathPatternPrimary       ::= <PathPatternPrimary> <GraphPatternQuantifier>?
-
-PathPatternPrimary                 ::=   <EdgePattern>
-                                       | <ParenthesizedPathPatternExpression>
-
-ParenthesizedPathPatternExpression ::= '(' <VertexPattern>? <EdgePattern> <VertexPattern>?
-                                             <WhereClause>?
-                                               <CostClause>? ')'
+PathOrPaths   ::= 'PATH' | 'PATHS'
 ```
 
 An example where we test for path existence is:
@@ -1890,9 +1875,46 @@ In this example, all four paths happen to contain the transaction edge with amou
 Shortest path finding allows for finding paths with a minimal number of hops.
 Given a pair of vertices, there are different kinds of shortest paths that can be obtained:
 
+ - [all shortest paths](#all-shortest-path)
  - [any shortest path](#any-shortest-path)
- - [all shortest paths](#all-shortest-paths)
- - [shortest-k-paths](#shortest-k-paths)
+ - [counted shortest path](#counted-shortest-path)
+
+The syntax is:
+
+```bash
+ShortestPathSearch ::= <AllShortestPathSearch> | <AnyShortestPathSearch> | <CountedShortestPathSearch>
+```
+
+### All Shortest Path
+
+Given a pair of source-destination vertices, `ALL SHORTEST` path matches all shortest paths between the two vertices.
+In contrast to `ANY SHORTEST`, `ALL SHORTEST` will return a deterministic result as it will include all shortest paths instead of an arbitrary shortest path.
+
+The syntax is:
+
+```bash
+AllShortestPathSearch ::= 'ALL' 'SHORTEST' <PathMode>? <PathOrPaths>?
+```
+
+For example:
+
+{% include image.html file="example_graphs/financial_transactions.png" %}
+
+```sql
+  SELECT LISTAGG(e.amount, ' + ') || ' = ', SUM(e.amount) AS total_amount
+    FROM MATCH ALL SHORTEST (a:Account) -[e:transaction]->* (b:Account)
+   WHERE a.number = 10039 AND b.number = 2090
+ORDER BY total_amount
+```
+
+```
++--------------------------------------------------+
+| LISTAGG(e.amount, ' + ') || ' = ' | total_amount |
++--------------------------------------------------+
+| 1000.0 + 1500.3 + 9999.5 =        | 12499.8      |
+| 1000.0 + 3000.7 + 9999.5 =        | 14000.2      |
++--------------------------------------------------+
+```
 
 ### Any Shortest Path
 
@@ -1901,14 +1923,7 @@ Given a pair of vertices, there are different kinds of shortest paths that can b
 The syntax is:
 
 ```bash
-AnyShortestPathPattern ::=   'ANY' 'SHORTEST' ( 'PATH' | 'PATHS' )?
-                               <SourceVertexPattern>
-                                 <QuantifiedPathPatternPrimary>
-                                   <DestinationVertexPattern>
-                           | 'ANY' 'SHORTEST' ( 'PATH' | 'PATHS' )? '('
-                               <SourceVertexPattern>
-                                 <QuantifiedPathPatternPrimary>
-                                   <DestinationVertexPattern> ')'
+AnyShortestPathSearch ::= 'ANY' 'SHORTEST' <PathMode>? <PathOrPaths>?
 ```
 
 For example:
@@ -1963,61 +1978,16 @@ SELECT src, ARRAY_AGG(e.weight), dst
 
 Here, the filter is applied only _after_ a shortest path is matched such that if the `WHERE` condition is not satisfied, the path is filtered out and no other path is considered even though another path may exist that does satisfy the `WHERE` condition.
 
-### All Shortest Path
-
-Given a pair of source-destination vertices, `ALL SHORTEST` path matches all shortest paths between the two vertices.
-In contrast to `ANY SHORTEST`, `ALL SHORTEST` will return a deterministic result as it will include all shortest paths instead of an arbitrary shortest path.
-
-The syntax is:
-
-```bash
-AllShortestPathPattern ::=   'ALL' 'SHORTEST' ( 'PATH' | 'PATHS' )?
-                               <SourceVertexPattern>
-                                 <QuantifiedPathPatternPrimary>
-                                   <DestinationVertexPattern>
-                           | 'ALL' 'SHORTEST' ( 'PATH' | 'PATHS' )?
-                               '(' <SourceVertexPattern>
-                                  <QuantifiedPathPatternPrimary>
-                                    <DestinationVertexPattern> ')'
-```
-
-For example:
-
-{% include image.html file="example_graphs/financial_transactions.png" %}
-
-```sql
-  SELECT LISTAGG(e.amount, ' + ') || ' = ', SUM(e.amount) AS total_amount
-    FROM MATCH ALL SHORTEST (a:Account) -[e:transaction]->* (b:Account)
-   WHERE a.number = 10039 AND b.number = 2090
-ORDER BY total_amount
-```
-
-```
-+--------------------------------------------------+
-| LISTAGG(e.amount, ' + ') || ' = ' | total_amount |
-+--------------------------------------------------+
-| 1000.0 + 1500.3 + 9999.5 =        | 12499.8      |
-| 1000.0 + 3000.7 + 9999.5 =        | 14000.2      |
-+--------------------------------------------------+
-```
-
-### Shortest K Paths
+### Counted Shortest Path
 
 `SHORTEST k PATHS` matches the shortest k paths for each pair of source and destination vertices. Aggregations can then be computed over their vertices/edges.
 
 The syntax is:
 
 ```bash
-ShortestKPathPattern ::=   'SHORTEST' <KValue> ( 'PATH' | 'PATHS' )?
-                             <SourceVertexPattern>
-                               <QuantifiedPathPatternPrimary>
-                                 <DestinationVertexPattern>
-                         | 'SHORTEST' <KValue> ( 'PATH' | 'PATHS' )? '('
-                             <SourceVertexPattern>
-                               <QuantifiedPathPatternPrimary>
-                                 <DestinationVertexPattern> ')'
+CountedShortestPathSearch ::= 'SHORTEST' <NumberOfPaths> <PathMode>? <PathOrPaths>?
 
-KValue                  ::= <UNSIGNED_INTEGER>
+NumberOfPaths             ::= <UNSIGNED_INTEGER>
 ```
 
 For example the following query will output the sum of the edge weights along each of the shortest 3 paths between
@@ -2112,7 +2082,7 @@ ORDER BY num_hops, total_amount
 
 Cheapest path finding allows for finding paths based on a cost function.
 Given a pair of vertices, [single cheapest path finding](#single-cheapest-path) allows for finding a single cheapest path,
-While [cheapest k path finding](#cheapest-k-paths) allows for finding K cheapest paths where paths for which paths with increasing cost are matched.
+While [counted cheapest path](#counted-cheapest-path) allows for finding K cheapest paths where paths for which paths with increasing cost are matched.
 
 ### Any Cheapest Path
 
@@ -2121,16 +2091,11 @@ The `CHEAPEST` construct allows for finding a cheapest path based on an arbitrar
 The syntax is:
 
 ```
-AnyCheapestPathPattern ::=   'ANY' 'CHEAPEST' ( 'PATH' | 'PATHS' )?
-                               <SourceVertexPattern>
-                                 <QuantifiedPathPatternPrimary>
-                                   <DestinationVertexPattern>
-                           | 'ANY' 'CHEAPEST' ( 'PATH' | 'PATHS' )? '('
-                               <SourceVertexPattern>
-                                 <QuantifiedPathPatternPrimary>
-                                   <DestinationVertexPattern> ')'
+CheapestPathSearch    ::= <AllCheapestPathSearch> | <AnyCheapestPathSearch>
 
-CostClause          ::= 'COST' ValueExpression
+AnyCheapestPathSearch ::= 'ANY' 'CHEAPEST' <PathMode>? <PathOrPaths>?
+
+CostClause            ::= 'COST' <ValueExpression>
 ```
 
 For example:
@@ -2202,7 +2167,7 @@ SELECT COUNT(e) AS num_hops
 
 Note that above, when the edge is an `owner` edge, `e.amount` will return NULL resulting in a cost of `1` (`WHEN e.amount IS NULL THEN 1`).
 
-### Cheapest K Paths
+### Counted Cheapest Path
 
 PGQL offers a `CHEAPEST k PATHS` clause, which returns the `k` paths that match a given pattern with the lowest cost,
 computed with a user-defined cost function. If the user-defined cost function returns a constant, the `CHEAPEST k PATHS`
@@ -2211,14 +2176,7 @@ computed with a user-defined cost function. If the user-defined cost function re
 The syntax of the queries is extended the following way:
 
 ```
-CheapestKPathPattern  ::=   'CHEAPEST' <KValue> ( 'PATH' | 'PATHS' )?
-                              <SourceVertexPattern>
-                                <QuantifiedPathPatternPrimary>
-                                  <DestinationVertexPattern>
-                          | 'CHEAPEST' <KValue>  ( 'PATH' | 'PATHS' )? '('
-                              <SourceVertexPattern>
-                                <QuantifiedPathPatternPrimary>
-                                  <DestinationVertexPattern> ')'
+CountedCheapestPathSearch ::= 'CHEAPEST' <NumberOfPaths> <PathMode>? <PathOrPaths>?
 ```
 
 The cost function must evaluate to a number.
@@ -2307,14 +2265,7 @@ Whereas these quantifiers are forbidden:
 The syntax is:
 
 ```bash
-AllPathPattern ::=   'ALL' ( 'PATH' | 'PATHS' )?
-                       <SourceVertexPattern>
-                         <QuantifiedPathPatternPrimary>
-                           <DestinationVertexPattern>
-                   | 'ALL' ( 'PATH' | 'PATHS' )? '('
-                       <SourceVertexPattern>
-                         <QuantifiedPathPatternPrimary>
-                           <DestinationVertexPattern> ')'
+AllPathSearch ::= 'ALL' <PathMode>? <PathOrPaths>?
 ```
 
 For example:
@@ -2486,6 +2437,14 @@ The following path modes are available in combination with `ANY`, `ALL`, `ANY SH
 - `ACYCLIC`, where path bindings with repeated vertices are not returned.
 - `SIMPLE`, where path bindings with repeated vertices are not returned unless the repeated vertex is the
   first and the last in the path
+
+The syntax is:
+
+```bash
+PathModePrefix ::= <PathMode> <PathOrPaths>?
+
+PathMode       ::= 'WALK' | 'TRAIL' | 'SIMPLE' | 'ACYCLIC'
+```
 
 Syntactically, the path mode is placed directly after `ANY`, `ALL`, `ANY SHORTEST`, `SHORTEST k`, `ALL SHORTEST`,
 `ANY CHEAPEST` or `CHEAPEST k`.
@@ -5112,7 +5071,7 @@ LABEL, PROPERTIES, ARE, ALL, COLUMNS,
 EXCEPT, NO, INSERT, UPDATE, DELETE, INTO,
 LABELS, SET, BETWEEN, INTERVAL, ONE, ROW,
 PER, STEP, PREFIX, WALK, ACYCLIC, SIMPLE, TRAIL,
-GRAPH_TABLE, COLUMNS, LATERAL
+GRAPH_TABLE, COLUMNS, LATERAL, KEEP
 ```
 
 Keywords are case-insensitive and variations such as `SELECT`, `Select` and `sELeCt` can be used interchangeably.

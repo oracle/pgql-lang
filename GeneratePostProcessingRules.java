@@ -17,7 +17,7 @@ public class GeneratePostProcessingRules {
       "CEIL", "CEILING", "FLOOR", "ROUND", "JAVA_REGEXP_LIKE", "LOWER", "SUBSTRING", "UPPER", "HOUR", "TOP", "SHORTEST",
       "PROPERTIES", "VERTEX", "EDGE", "PROPERTY", "GRAPH", "TABLES", "DESTINATION", "COLUMNS", "CHEAPEST", "COST",
       "ONE", "ROW", "PER", "STEP", "INTERVAL", "PREFIX", "GRAPH_TABLE", "WALK", "ACYCLIC", "SIMPLE", "TRAIL",
-      "LABELED" };
+      "LABELED", "KEEP" };
 
   private static final String[] NO_KEYWORDS = { "source", "Class", "c", "location", "g", "level", "Result", "owner", "connection" };
 

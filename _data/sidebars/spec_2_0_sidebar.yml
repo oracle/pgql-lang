@@ -206,16 +206,16 @@ entries:
       output: web
       subfolderitems:
 
-      - title: 'Any Shortest Path'
-        url: /spec/2.0/#any-shortest-path
-        output: web
-
       - title: 'All Shortest Path'
         url: /spec/2.0/#all-shortest-path
         output: web
 
-      - title: 'Shortest K Paths'
-        url: /spec/2.0/#shortest-k-paths
+      - title: 'Any Shortest Path'
+        url: /spec/2.0/#any-shortest-path
+        output: web
+
+      - title: 'Counted Shortest Path'
+        url: /spec/2.0/#counted-shortest-path
         output: web
 
     - title: 'Cheapest Path'
@@ -227,8 +227,8 @@ entries:
         url: /spec/2.0/#any-cheapest-path
         output: web
 
-      - title: 'Cheapest K Paths'
-        url: /spec/2.0/#cheapest-k-paths
+      - title: 'Counted Cheapest Path'
+        url: /spec/2.0/#counted-cheapest-path
         output: web
 
     - title: 'All Path'
