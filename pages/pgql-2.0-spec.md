@@ -1586,7 +1586,7 @@ A `GRAPH_TABLE` has the following parts:
  - A graph reference that references the graph to perform the pattern matching on.
  - A `MATCH` keyword.
  - A graph pattern, which is a comma-separted list of path patterns.
- - A `KEEP` clause for specifying a path mode or path prefix (e.g. `KEEP ANY SHORTEST`)
+ - A `KEEP` clause for specifying a path mode or path search prefix (e.g. `KEEP ANY SHORTEST`)
  - An optional [WHERE clause](#where-clause).
  - A graph table shape.
 
