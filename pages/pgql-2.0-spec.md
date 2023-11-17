@@ -2091,7 +2091,7 @@ The `CHEAPEST` construct allows for finding a cheapest path based on an arbitrar
 The syntax is:
 
 ```
-CheapestPathSearch    ::= <AllCheapestPathSearch> | <AnyCheapestPathSearch>
+CheapestPathSearch    ::= <AnyCheapestPathSearch> | <CountedCheapestPathSearch>
 
 AnyCheapestPathSearch ::= 'ANY' 'CHEAPEST' <PathMode>? <PathOrPaths>?
 
