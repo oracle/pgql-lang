@@ -131,10 +131,6 @@ rules
            ?GraphMatch(_, PathPattern2(_, SingleVertex(_)), Some(OptionalGraphMatchParts1(rowsPerMatch, _)))> graphMatch
         ; <is-not-one-row-per-match> rowsPerMatch
 
-  get-pgql13-errors:
-    GraphPattern(PathPatternList(pathPatternList), Some(KeepClause(_)), _) -> <to-error-message(|"Path pattern prefix not allowed in combination with KEEP clause")> pathPatternPrefix
-    where pathPatternPrefix := <collect-in-outer-query(?PathPattern2(Some(<id>), _)); Hd> pathPatternList
-
   is-not-one-row-per-match = ?OneRowPerVertex(_) + ?OneRowPerEdge(_) + ?OneRowPerStep(_, _, _)
 
   get-pgql10-limitation = ( ?Pgql11FromClause(_)
@@ -204,6 +200,9 @@ rules
   get-GraphTable-restriction:
     Cast(_, dataType) -> <to-error-message(|"GRAPH_TABLE restriction: TIMEZONE should be TIME ZONE (with space)")> dataType
     where <upper-case; is-substring(!"TIMEZONE")> dataType
+
+  get-GraphTable-restriction:
+    PathPattern2(Some(pathPatternPrefix), _) -> <to-error-message(|"GRAPH_TABLE restriction: use the KEEP clause")> pathPatternPrefix
 
   quantifier-without-path-finding-goal =
     collect(quantified-path-pattern <+ is-quantifier)
