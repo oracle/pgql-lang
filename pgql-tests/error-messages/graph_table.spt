@@ -327,7 +327,7 @@ test Restriction: aggregation with vertex/edge input [[
 test Restriction: TIMEZONE [[
 
   SELECT CAST(time '11:30:00' AS [[TiMe WiTh TiMeZoNe]])
-  FROM GRAPH_TABLE ( g MATCH (n) COLUMNS ( n.prop ) ) 
+  FROM GRAPH_TABLE ( g MATCH (n) COLUMNS ( n.prop ) )
 
 ]] error like "GRAPH_TABLE restriction: TIMEZONE should be TIME ZONE (with space)" at #1
 

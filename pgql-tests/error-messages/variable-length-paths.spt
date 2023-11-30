@@ -504,7 +504,7 @@ test ONE ROW PER EDGE duplicate variable (5) [[
 test ONE ROW PER STEP duplicate variable (1) [[
 
   SELECT 1
-    FROM MATCH ANY ([[a]]) -[ [[e]] ]-> ([[b]]) ONE ROW PER STEP ([[a]], [[e]], [[b]])
+    FROM MATCH ANY ([[a]]) -[ [[e]] ]->* ([[b]]) ONE ROW PER STEP ([[a]], [[e]], [[b]])
 
 ]] error like "Duplicate variable" at #1, #2, #3, #4, #5, #6
 
