@@ -764,4 +764,41 @@ public class PrettyPrintingTest extends AbstractPgqlTest {
         + "FROM MATCH (n)";
     checkRoundTrip(statement);
   }
+
+  @Test
+  public void testMatchWithWhereFollowedByLateral() throws Exception {
+    // here, predicate n.number = 1001 gets pushed down into the first MATCH
+    String query = "SELECT id(p) " + //
+        "FROM MATCH (n) -> (m) " + //
+        "   , MATCH (m) -> (o) " + //
+        "   , LATERAL ( SELECT p FROM MATCH (o) -> (p) WHERE p.number = 8021 ) " + //
+        "WHERE n.number = 1001 AND p.number > 8020";
+    checkRoundTrip(query);
+
+    query = "SELECT id(p) " + //
+        "FROM MATCH ( (n) -> (m), " + //
+        "             (m) -> (o) ) " + //
+        "   , LATERAL ( SELECT p FROM MATCH (o) -> (p) WHERE p.number = 8021 ) " + //
+        "WHERE n.number = 1001 AND p.number > 8020";
+    checkRoundTrip(query);
+
+    query = "SELECT id(p) " + //
+        "FROM MATCH ( (n) -> (m), " + //
+        "             (m) -> (o) WHERE n.age > m.age ) " + //
+        "   , LATERAL ( SELECT p FROM MATCH (o) -> (p) WHERE p.number = 8021 ) " + //
+        "WHERE n.number = 1001 AND p.number > 8020";
+    checkRoundTrip(query);
+
+    query = "SELECT id(p) " + //
+        "FROM MATCH ( (n) -> (o) WHERE n.age > o.age ) " + //
+        "   , LATERAL ( SELECT p FROM MATCH (o) -> (p) WHERE p.number = 8021 ) " + //
+        "WHERE n.number = 1001 AND p.number > 8020";
+    checkRoundTrip(query);
+
+    query = "SELECT id(p) " + //
+        "FROM MATCH ( (n) WHERE n.age > 50 ) " + //
+        "   , LATERAL ( SELECT p FROM MATCH (o) -> (p) WHERE p.number = 8021 ) " + //
+        "WHERE n.number = 1001 AND p.number > 8020";
+    checkRoundTrip(query);
+  }
 }

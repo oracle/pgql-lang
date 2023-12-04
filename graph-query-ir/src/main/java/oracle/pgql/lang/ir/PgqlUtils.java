@@ -231,12 +231,15 @@ public class PgqlUtils {
       result += "\nFROM ";
 
       List<String> tableExpressionStrings = new ArrayList<>();
-      for (TableExpression tableExpression : tableExpressions) {
+      for (int i = 0; i < tableExpressions.size(); i++) {
+        TableExpression tableExpression = tableExpressions.get(i);
+        boolean isLastTableExpression = i == tableExpressions.size() - 1;
         tableExpressionStrings.add(tableExpression.getTableExpressionType() == TableExpressionType.GRAPH_PATTERN
-            ? printPgqlString((GraphPattern) tableExpression, graphQuery.getGraphName())
+            ? printPgqlString((GraphPattern) tableExpression, graphQuery.getGraphName(), isLastTableExpression)
             : tableExpression.toString());
       }
-      result += tableExpressionStrings.stream().collect(Collectors.joining(", "));
+
+      result += tableExpressionStrings.stream().collect(Collectors.joining(",\n"));
     }
     result += printWhereClause(graphQuery.getConstraints());
     GroupBy groupBy = graphQuery.getGroupBy();
@@ -295,12 +298,15 @@ public class PgqlUtils {
   }
 
   protected static String printPgqlString(GraphPattern graphPattern) {
-    return printPgqlString(graphPattern, null);
+    return printPgqlString(graphPattern, null, true);
   }
 
-  private static String printPgqlString(GraphPattern graphPattern, SchemaQualifiedName graphName) {
+  private static String printPgqlString(GraphPattern graphPattern, SchemaQualifiedName graphName,
+      boolean isLastTableExpression) {
     Set<QueryVertex> uncoveredVertices = new LinkedHashSet<>(graphPattern.getVertices());
     List<String> graphPatternMatches = new ArrayList<String>();
+
+    boolean parenthesizeMatch = !graphPattern.getConstraints().isEmpty() && !isLastTableExpression;
 
     Iterator<VertexPairConnection> connectionIt = graphPattern.getConnections().iterator();
     while (connectionIt.hasNext()) {
@@ -308,22 +314,32 @@ public class PgqlUtils {
       uncoveredVertices.remove(connection.getSrc());
       uncoveredVertices.remove(connection.getDst());
       if (isVariableLengthPathPatternNotReaches(connection)) {
-        graphPatternMatches.add("MATCH " + connection.toString() + printOnClause(graphName));
+        graphPatternMatches.add(connection.toString());
       } else {
-        graphPatternMatches.add(
-            "MATCH " + connection.getSrc() + " " + connection + " " + connection.getDst() + printOnClause(graphName));
+        graphPatternMatches.add(connection.getSrc() + " " + connection + " " + connection.getDst());
       }
     }
 
     // print remaining vertices that are not part of any connection
     Iterator<QueryVertex> vertexIt = uncoveredVertices.iterator();
     while (vertexIt.hasNext()) {
-      graphPatternMatches.add("MATCH " + vertexIt.next() + printOnClause(graphName));
+      graphPatternMatches.add(vertexIt.next().toString());
     }
 
-    String result = graphPatternMatches.stream().collect(Collectors.joining("\n   , "));
+    String result;
+    if (parenthesizeMatch) {
+      result = "MATCH ( " + graphPatternMatches.stream().collect(Collectors.joining("\n     , "));
+    } else {
+      result = "MATCH "
+          + graphPatternMatches.stream().collect(Collectors.joining(printOnClause(graphName) + "\n   , MATCH "))
+          + printOnClause(graphName);
+    }
 
     result += printWhereClause(graphPattern.getConstraints());
+
+    if (parenthesizeMatch) {
+      result += ")" + printOnClause(graphName);
+    }
 
     return result;
   }

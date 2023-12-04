@@ -33,7 +33,7 @@ context-free syntax
   Connection.ParenthesizedPath = <( <RelaxedPathPattern> <WhereClause?> <CostClause?> )<PathQuantifier?>>
 
   PathPattern.PathPattern2 = PathPatternPrefix? OptionallyParenthesizedPathPattern
-  OptionallyParenthesizedPathPattern = <( <PathPattern> )>
+  OptionallyParenthesizedPathPattern.ParenthesizedPathPattern = <( <PathPattern> <WhereClause?> )>
   OptionallyParenthesizedPathPattern.PathPattern = Vertex EdgeVertex+
 
   CostClause.CostClause = <COST <Exp>> {case-insensitive}
