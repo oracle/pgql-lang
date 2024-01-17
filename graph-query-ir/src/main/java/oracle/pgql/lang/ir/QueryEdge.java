@@ -7,8 +7,16 @@ import static oracle.pgql.lang.ir.PgqlUtils.printIdentifier;
 
 public class QueryEdge extends VertexPairConnection {
 
+  private QueryVariable correlationEdgeInOuterQuery;
+
   public QueryEdge(QueryVertex src, QueryVertex dst, String name, boolean anonymous, Direction direction) {
-    super(src, dst, name, anonymous, direction);
+    this(src, dst, name, null, anonymous, direction, null);
+  }
+
+  public QueryEdge(QueryVertex src, QueryVertex dst, String name, String uniqueName, boolean anonymous,
+      Direction direction, QueryVariable correlationEdgeInOuterQuery) {
+    super(src, dst, name, uniqueName, anonymous, direction);
+    this.correlationEdgeInOuterQuery = correlationEdgeInOuterQuery;
   }
 
   @Override
@@ -18,6 +26,14 @@ public class QueryEdge extends VertexPairConnection {
 
   public boolean isDirected() {
     return direction != Direction.ANY;
+  }
+
+  public QueryVariable getCorrelationEdgeInOuterQuery() {
+    return correlationEdgeInOuterQuery;
+  }
+
+  public void setCorrelationEdgeInOuterQuery(QueryVariable correlationEdgeInOuterQuery) {
+    this.correlationEdgeInOuterQuery = correlationEdgeInOuterQuery;
   }
 
   @Override

@@ -37,7 +37,25 @@ public class ExpAsVar extends QueryVariable {
    *          upper cased.
    */
   public ExpAsVar(QueryExpression exp, String name, boolean anonymous, String nameOriginText) {
-    super(name, anonymous);
+    this(exp, name, null, anonymous, nameOriginText);
+  }
+
+  /**
+   * @param exp
+   *          an expression
+   * @param name
+   *          the name with which the the element can be referred to in the result set
+   * @param uniqueName
+   *          a query-wide unique generated name for the variable
+   * @param anonymous
+   *          false if the name was provided via the query (i.e. exp AS name), true if the name was not provided via the
+   *          query (i.e. exp) but via some other mechanism
+   * @param nameOriginText
+   *          the text of the column name as it appear in the query string. Should be NULL unless name was unquoted and
+   *          upper cased.
+   */
+  public ExpAsVar(QueryExpression exp, String name, String uniqueName, boolean anonymous, String nameOriginText) {
+    super(name, uniqueName, anonymous);
     this.exp = exp;
     this.nameOriginText = nameOriginText;
   }

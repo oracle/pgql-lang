@@ -7,13 +7,28 @@ import static oracle.pgql.lang.ir.PgqlUtils.printIdentifier;
 
 public class QueryVertex extends QueryVariable {
 
+  private QueryVariable correlationVertexInOuterQuery;
+
   public QueryVertex(String name, boolean anonymous) {
-    super(name, anonymous);
+    this(name, null, anonymous, null);
+  }
+
+  public QueryVertex(String name, String uniqueName, boolean anonymous, QueryVariable correlationVertexInOuterQuery) {
+    super(name, uniqueName, anonymous);
+    this.correlationVertexInOuterQuery = correlationVertexInOuterQuery;
   }
 
   @Override
   public VariableType getVariableType() {
     return VariableType.VERTEX;
+  }
+
+  public QueryVariable getCorrelationVertexInOuterQuery() {
+    return correlationVertexInOuterQuery;
+  }
+
+  public void setCorrelationVertexInOuterQuery(QueryVariable correlationVertexInOuterQuery) {
+    this.correlationVertexInOuterQuery = correlationVertexInOuterQuery;
   }
 
   @Override
