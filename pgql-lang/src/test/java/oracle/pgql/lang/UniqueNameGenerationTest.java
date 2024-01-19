@@ -48,7 +48,7 @@ public class UniqueNameGenerationTest extends AbstractPgqlTest {
     GraphPattern graphPattern = result.getGraphQuery().getGraphPattern();
     QueryVertex vertexN1 = graphPattern.getVertices().iterator().next();
     assertEquals("N", vertexN1.getName());
-    assertEquals("(28,29)", vertexN1.getUniqueName());
+    assertEquals("N_(28,29)", vertexN1.getUniqueName());
 
     Exists existsSubquery = (Exists) graphPattern.getConstraints().iterator().next();
     Iterator<QueryVertex> it = existsSubquery.getQuery().getGraphPattern().getVertices().iterator();
@@ -56,11 +56,11 @@ public class UniqueNameGenerationTest extends AbstractPgqlTest {
     QueryVertex vertexM = it.next();
 
     assertEquals("N", vertexN2.getName());
-    assertEquals("(67,68)", vertexN2.getUniqueName());
-    assertEquals("(28,29)", vertexN2.getCorrelationVertexInOuterQuery().getUniqueName());
+    assertEquals("N_(67,68)", vertexN2.getUniqueName());
+    assertEquals("N_(28,29)", vertexN2.getCorrelationVertexInOuterQuery().getUniqueName());
 
     assertEquals("M", vertexM.getName());
-    assertEquals("(74,75)", vertexM.getUniqueName());
+    assertEquals("M_(74,75)", vertexM.getUniqueName());
     assertNull(vertexM.getCorrelationVertexInOuterQuery());
   }
 
@@ -75,10 +75,10 @@ public class UniqueNameGenerationTest extends AbstractPgqlTest {
     QueryEdge edgeE2 = (QueryEdge) it.next();
 
     assertEquals("E1", edgeE1.getName());
-    assertEquals("(32,34)", edgeE1.getUniqueName());
+    assertEquals("E1_(32,34)", edgeE1.getUniqueName());
 
     assertEquals("E2", edgeE2.getName());
-    assertEquals("(43,45)", edgeE2.getUniqueName());
+    assertEquals("E2_(43,45)", edgeE2.getUniqueName());
   }
 
   @Test
@@ -91,7 +91,7 @@ public class UniqueNameGenerationTest extends AbstractPgqlTest {
     OneRowPerVertex oneRowPerVertex = (OneRowPerVertex) path.getRowsPerMatch();
 
     assertEquals("V", oneRowPerVertex.getVertex().getName());
-    assertEquals("(54,55)", oneRowPerVertex.getVertex().getUniqueName());
+    assertEquals("V_(54,55)", oneRowPerVertex.getVertex().getUniqueName());
 
     result = pgql.parse("SELECT 1 FROM MATCH () ->{1,4} () ONE ROW PER EDGE (e)");
     assertTrue(result.isQueryValid());
@@ -101,7 +101,7 @@ public class UniqueNameGenerationTest extends AbstractPgqlTest {
     OneRowPerEdge oneRowPerEdge = (OneRowPerEdge) path.getRowsPerMatch();
 
     assertEquals("E", oneRowPerEdge.getEdge().getName());
-    assertEquals("(52,53)", oneRowPerEdge.getEdge().getUniqueName());
+    assertEquals("E_(52,53)", oneRowPerEdge.getEdge().getUniqueName());
 
     result = pgql.parse("SELECT 1 FROM MATCH () ->{1,4} () ONE ROW PER STEP (v1, e, v2)");
     assertTrue(result.isQueryValid());
@@ -111,11 +111,11 @@ public class UniqueNameGenerationTest extends AbstractPgqlTest {
     OneRowPerStep oneRowPerStep = (OneRowPerStep) path.getRowsPerMatch();
 
     assertEquals("V1", oneRowPerStep.getVertex1().getName());
-    assertEquals("(52,54)", oneRowPerStep.getVertex1().getUniqueName());
+    assertEquals("V1_(52,54)", oneRowPerStep.getVertex1().getUniqueName());
     assertEquals("E", oneRowPerStep.getEdge().getName());
-    assertEquals("(56,57)", oneRowPerStep.getEdge().getUniqueName());
+    assertEquals("E_(56,57)", oneRowPerStep.getEdge().getUniqueName());
     assertEquals("V2", oneRowPerStep.getVertex2().getName());
-    assertEquals("(59,61)", oneRowPerStep.getVertex2().getUniqueName());
+    assertEquals("V2_(59,61)", oneRowPerStep.getVertex2().getUniqueName());
   }
 
   @Test
@@ -133,10 +133,10 @@ public class UniqueNameGenerationTest extends AbstractPgqlTest {
     QueryEdge edgeE = edgeInsertion.getEdge();
 
     assertEquals("V", vertexV.getName());
-    assertEquals("(14,15)", vertexV.getUniqueName());
+    assertEquals("V_(14,15)", vertexV.getUniqueName());
 
     assertEquals("E", edgeE.getName());
-    assertEquals("(22,23)", edgeE.getUniqueName());
+    assertEquals("E_(22,23)", edgeE.getUniqueName());
   }
 
   @Test
@@ -151,16 +151,16 @@ public class UniqueNameGenerationTest extends AbstractPgqlTest {
     ExpAsVar expAsVar4 = selectQuery.getGroupBy().getElements().get(1);
 
     assertEquals("PROP", expAsVar1.getName());
-    assertEquals("(9,13)", expAsVar1.getUniqueName());
+    assertEquals("PROP_(9,13)", expAsVar1.getUniqueName());
 
     assertEquals("n.c*2", expAsVar2.getName());
-    assertEquals("(15,20)", expAsVar2.getUniqueName());
+    assertEquals("n.c*2_(15,20)", expAsVar2.getUniqueName());
 
     assertEquals("n.prop", expAsVar3.getName());
-    assertEquals("(45,51)", expAsVar3.getUniqueName());
+    assertEquals("n.prop_(45,51)", expAsVar3.getUniqueName());
 
     assertEquals("n.c*2", expAsVar4.getName());
-    assertEquals("(53,58)", expAsVar4.getUniqueName());
+    assertEquals("n.c*2_(53,58)", expAsVar4.getUniqueName());
   }
 
   @Test
