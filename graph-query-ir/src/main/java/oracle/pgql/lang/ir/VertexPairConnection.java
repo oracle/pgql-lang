@@ -12,7 +12,12 @@ public abstract class VertexPairConnection extends QueryVariable {
   protected Direction direction;
 
   public VertexPairConnection(QueryVertex src, QueryVertex dst, String name, boolean anonymous, Direction direction) {
-    super(name, anonymous);
+    this(src, dst, name, null, anonymous, direction);
+  }
+
+  public VertexPairConnection(QueryVertex src, QueryVertex dst, String name, String uniqueName, boolean anonymous,
+      Direction direction) {
+    super(name, uniqueName, anonymous);
     this.src = src;
     this.dst = dst;
     this.direction = direction;

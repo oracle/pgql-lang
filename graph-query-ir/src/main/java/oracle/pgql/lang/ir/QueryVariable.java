@@ -14,10 +14,20 @@ public abstract class QueryVariable {
 
   protected String name;
 
+  /**
+   * Generated name that is unique even across subqueries
+   */
+  protected String uniqueName;
+
   protected boolean anonymous;
 
   public QueryVariable(String name, boolean anonymous) {
+    this(name, null, anonymous);
+  }
+
+  public QueryVariable(String name, String uniqueName, boolean anonymous) {
     this.name = name;
+    this.uniqueName = uniqueName;
     this.anonymous = anonymous;
   }
 
@@ -31,6 +41,14 @@ public abstract class QueryVariable {
 
   public void setName(String name) {
     this.name = name;
+  }
+
+  public String getUniqueName() {
+    return uniqueName;
+  }
+
+  public void setUniqueName(String uniqueName) {
+    this.uniqueName = uniqueName;
   }
 
   public boolean isAnonymous() {
