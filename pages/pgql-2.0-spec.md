@@ -4434,7 +4434,7 @@ The syntax is:
 LateralSubquery ::= 'LATERAL' <Subquery>
 ```
 
-For example, the following query finds the top two people that transacted the most money (largest sum of incoming plus outgoing transfers). For each of those two people, it returns the two largest transactions.
+For example, the following query finds the top two people that transacted the most money (largest sum of incoming plus outgoing transactions). For each of those two people, it returns the two largest transactions.
 
 {% include image.html file="example_graphs/financial_transactions.png" %}
 
@@ -4634,28 +4634,22 @@ PropertyAssignment      ::= <PropertyReference> '=' <ValueExpression>
 
 PGQL supports the insertions of edges and vertices into a graph.
 In the same query, multiple vertices and edges can be inserted by enumerating them after the `INSERT` keyword.
-All inserted entities must be identified with a variable name that has to be unique for the whole modification query.
-
-So the following query should fail, because the variable `x` is not only local to the vertex insertion term:
-
-```sql
-INSERT INTO my_graph VERTEX x, VERTEX x
-```
-
-The id values for the inserted entities are automatically generated.
+Each vertex or edge declared in the `INSERT` needs to have a unique name.
 
 ### Inserting vertices
 
-Vertices can be inserted with or without a match.
+Vertices can be inserted with or without a `FROM` clause.
 
-If the match is missing, one unconnected vertex is inserted to the graph. For example in case of the following query
+If the `FROM` clause is missing, exactly one vertex is inserted per vertex insertion.
+For examle, since the following query has only one vertex insertion, it will insert exactly one vertex in the graph.
+The vertex will not be connected to any other vertices in the graph.
 
 ```sql
 INSERT INTO my_graph VERTEX x LABELS ( Male ) PROPERTIES ( x.age = 22 )
 ```
 
-In the presence of a match, as many vertices are inserted as many rows are matched.
-So the following query inserts a new vertex for every vertex in the graph that is labelled `Male`.
+In the presence of a `FROM` clause, per vertex insertion, as many vertices are inserted as there are rows returned from the query.
+For example, the following query inserts a new vertex for every vertex in the graph that is labelled `Male`.
 
 
 ```sql
