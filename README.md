@@ -1,42 +1,138 @@
-[PGQL's website](http://pgql-lang.org/) is based on Jekyll and GitHub pages. You can change any of the files and GitHub will automatically build and deploy the changes. Changes are reflected after roughly 30 seconds.
+# PGQL - Property Graph Query Language
 
-To host the website locally, download Rancher Desktop:
+PGQL is an SQL-based query language for the [property graph data model](https://pgql-lang.org/spec/latest/#property-graph-data-model), bringing graph pattern matching capabilities to SQL and NoSQL users.
 
-- In the welcome screen choose "dockerd (moby)"
-- Restart your machine
-- To avoid `chown: .jekyll-cache: Permission denied` when running the docker command below, create `~/Library/Application\ Support/rancher-desktop/lima/_config/override.yaml` with contents:
+See the website for a language specification and any newsworthy updates:
 
+[![PGQL Home](pgql_home_screenshot.png)](https://pgql-lang.org/)
+
+## PGQL Parser and Static Query Validator
+
+This Git repository contains a parser for PGQL with the following features:
+
+ - Easy-to-understand IR: Given a query string, the parser returns an easy-to-understand intermediate representation (IR) of the query as a set of Java objects
+    - see [__GraphQuery.java__](graph-query-ir/src/main/java/oracle/pgql/lang/ir/GraphQuery.java)
+ - Query validation: built-in to the parser is a static query validator that provides meaningful caret-style (e.g. `^^^`) error messages:
+
+   _Example 1_
+
+   ```sql
+   SELECT n.name, o.name
+     FROM MATCH (n) -[e]-> (m)
+   ```
+
+   ```
+   Error(s) in line 1:
+
+       SELECT n.name, o.name
+                      ^
+       Unresolved variable
+   ```
+
+   _Example 2_
+
+   ```sql
+   SELECT AVG(n.age), n
+     FROM MATCH (n:Person)
+   ```
+
+   ```
+   Error(s) in line 1:
+
+       SELECT AVG(n.age), n
+                          ^
+       Aggregation expected here since SELECT has other aggregation
+   ```
+
+ - __Pretty printing__: invoking `GraphQuery.toString()` will "pretty print" the graph query, which turns unformatted queries into formatted ones:
+
+   ```sql
+   SELECT n.name FROM MATCH
+   (n:Person) WHERE n.name = 'Anthony'
+   OR n.name = 'James'
+   ```
+
+   ```sql
+   SELECT n.name
+     FROM MATCH (n:person)
+    WHERE n.name = 'Anthony'
+       OR n.name = 'James'
+   ```
+
+ - __Code completion__: given a (partial) query string and a cursor position, the parser can suggest a set of code completions, including built-in functions, labels and properties. These completions can for example be used by an interactive web editor.
+   By providing the parser with metadata about the graph (existing properties and labels), the completions will also include label and property suggestions.
+
+## Build and Install the Parser
+
+PGQL's parser can be built on Linux, macOS or Window.
+
+First install JDK 1.8 or higher and Maven 3.5.4 or higher.
+Then, follow these instructions:
+
+On Linux or macOS:
+
+ - Build and install to your local Maven repository by running `sh install.sh`
+
+On Windows:
+
+ - Open System Properties and add a new variable `JAVA_OPTS` with value `-Xms512m -Xmx1024m -Xss16m`
+ - Build and install to your local Maven repository by running `install_on_windows.bat`
+
+## Getting Started
+
+After you have installed the parser like explained above, parse two [example](example/src/main/java/oracle/pgql/lang/example/Main.java) queries:
+ - On Linux or macOS execute `cd example; sh run.sh`
+ - On Windows execute:
+   ```
+   cd example
+   mvn clean package exec:java -Dexec.mainClass="oracle.pgql.lang.example.Main" -Dexec.cleanupDaemonThreads=false
+   ```
+
+```java
+public class Main {
+
+  public static void main(String[] args) throws PgqlException {
+
+    try (Pgql pgql = new Pgql()) {
+
+      // parse query and print graph query
+      PgqlResult result1 = pgql.parse("SELECT n FROM MATCH (n:Person) -[e:likes]-> (m:Person) WHERE n.name = 'Dave'");
+      System.out.println(result1.getPgqlStatement());
+
+      // parse query with errors and print error messages
+      PgqlResult result2 = pgql.parse("SELECT x, y, FROM MATCH (n) -[e]-> (m)");
+      System.out.println(result2.getErrorMessages());
+
+    }
+  }
+}
 ```
-mountType: 9p
-mounts:
-  - location: "~"
-    9p:
-      securityModel: mapped-xattr
-      cache: "mmap"
-```
-Then restart Rancher Desktop.
 
-Then run:
+The AST returned by the parser is a [GraphQuery](graph-query-ir/src/main/java/oracle/pgql/lang/ir/GraphQuery.java) object. This would be the input to your query planner.
 
-```
-docker run --rm --volume="$PWD:/srv/jekyll:Z" -it -p 4005:4005 jekyll/jekyll jekyll serve
-```
+## Documentation
 
-Once it shows `Generating...` it may seem stuck but you have to be patient (takes ~10 minutes).
+See the [PGQL Specification](https://pgql-lang.org/spec/latest/).
 
-Then open [http://localhost:4005/](http://localhost:4005/) in your browser.
+## Development
 
-Changes to any of the files will automatically be reflected after 30-60 seconds depending on the size of the change.
+- Download Eclipse with Spoofax 2.5.18 pre-installed [here](https://spoofax.dev/release/note/2.5.18/)
+- Import the following projects into Eclipse (`File>Import...>Maven>Existing Maven Projects>Browse...`):
+    - `graph-query-ir`: Java representation of graph queries
+    - `pqgl-spoofax`: Spoofax implementation of PGQL (parser + error checks)
+    - `pgql-lang`: translation of Spoofax AST into `graph-query-ir`
 
-After changing section titles or grammar snippets, regenerate necessary menus and hyperlinks as follows:
+## Contributing
 
-```
-bash generate-menus-and-hyperlinks.sh
-```
+This project welcomes contributions from the community. Before submitting a pull request, please [review our contribution guide](./CONTRIBUTING.md)
 
-Once in a while we should update the dependencies:
+## Security
 
-```
-export JEKYLL_VERSION=3.8
-docker run --rm --volume="$PWD:/srv/jekyll:Z" -it jekyll/jekyll:$JEKYLL_VERSION bundle update
-```
+Please consult the [security guide](./SECURITY.md) for our responsible security vulnerability disclosure process
+
+## License
+
+Copyright (c) 2023 Oracle and/or its affiliates.
+
+Released under the Apache and the Universal Permissive License (UPL) as shown at
+<https://oss.oracle.com/licenses/upl/>.
