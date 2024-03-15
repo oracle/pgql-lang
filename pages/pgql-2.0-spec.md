@@ -742,8 +742,8 @@ For example, we may want to see an overview of the vertex and edge labels and th
 Therefore, we first perform a `SELECT` query to create such an overview for the vertex labels:
 
 ```sql
-  SELECT label(n) AS lbl, COUNT(*)
-    FROM MATCH (n)
+SELECT label(n) AS lbl, COUNT(*)
+FROM MATCH (n) ON hr
 GROUP BY lbl
 ORDER BY COUNT(*) DESC
 ```
@@ -768,8 +768,8 @@ Like in SQL, [quoted identifiers](#quoted-identifiers) can be used if such impli
 Then, we create an overview of labels of edges and labels of their source and destination vertices, again with frequencies for each combination:
 
 ```sql
-  SELECT label(n) AS srcLbl, label(e) AS edgeLbl, label(m) AS dstLbl, COUNT(*)
-    FROM MATCH (n) -[e]-> (m)
+SELECT label(n) AS srcLbl, label(e) AS edgeLbl, label(m) AS dstLbl, COUNT(*)
+FROM MATCH (n) -[e]-> (m) ON hr
 GROUP BY srcLbl, edgeLbl, dstLbl
 ORDER BY COUNT(*) DESC
 ```
@@ -848,7 +848,7 @@ The following query matches all the vertices with the label `Person` and retriev
 
 ```sql
 SELECT n.name, n.dob
-  FROM MATCH (n:Person)
+FROM MATCH (n:Person) ON student_network
 ```
 
 ```
@@ -879,7 +879,7 @@ For example:
 
 ```sql
 SELECT a.name AS a, b.name AS b
-  FROM MATCH (a:Person) -[e:knows]-> (b:Person)
+FROM MATCH (a:Person) -[e:knows]-> (b:Person) ON student_network
 ```
 
 ```
@@ -910,7 +910,7 @@ For example:
 
 ```sql
 SELECT n.name, n.dob
-  FROM MATCH (n:Person|University)
+FROM MATCH (n:Person|University) ON student_network
 ```
 
 ```
@@ -936,7 +936,7 @@ For example:
 
 ```sql
 SELECT n.name, n.dob
-  FROM MATCH (n)
+FROM MATCH (n) ON student_network
 ```
 
 ```
@@ -963,8 +963,8 @@ For example, "find all persons that have a date of birth (dob) greater than 1995
 
 ```sql
 SELECT n.name, n.dob
-  FROM MATCH (n)
- WHERE n.dob > DATE '1995-01-01'
+FROM MATCH (n) ON student_network
+WHERE n.dob > DATE '1995-01-01'
 ```
 
 ```
@@ -986,8 +986,8 @@ Another example is to "find people that Kathrine knows and that are old than her
 
 ```sql
 SELECT m.name AS name, m.dob AS dob
-  FROM MATCH (n) -[e]-> (m)
- WHERE n.name = 'Kathrine' AND n.dob <= m.dob
+FROM MATCH (n) -[e]-> (m) ON student_network
+WHERE n.name = 'Kathrine' AND n.dob <= m.dob
 ```
 
 ```
@@ -1013,8 +1013,9 @@ For example, "find people that Lee knows and that are a student at the same univ
 
 ```sql
 SELECT p2.name AS friend, u.name AS university
-  FROM MATCH (u:University) <-[:studentOf]- (p1:Person) -[:knows]-> (p2:Person) -[:studentOf]-> (u)
- WHERE p1.name = 'Lee'
+FROM MATCH (u:University) <-[:studentOf]- (p1:Person) -[:knows]-> (p2:Person) -[:studentOf]-> (u)
+       ON student_network
+WHERE p1.name = 'Lee'
 ```
 
 ```
@@ -1032,10 +1033,10 @@ The same query as above may be expressed through multiple comma-separated path p
 
 ```sql
 SELECT p2.name AS friend, u.name AS university
-  FROM MATCH (p1:Person) -[:knows]-> (p2:Person)
-     , MATCH (p1) -[:studentOf]-> (u:University)
-     , MATCH (p2) -[:studentOf]-> (u)
- WHERE p1.name = 'Lee'
+FROM MATCH (p1:Person) -[:knows]-> (p2:Person) ON student_network
+   , MATCH (p1) -[:studentOf]-> (u:University) ON student_network
+   , MATCH (p2) -[:studentOf]-> (u) ON student_network
+WHERE p1.name = 'Lee'
 ```
 
 ```
@@ -1058,8 +1059,9 @@ For example, "find friends of friends of Lee" (friendship being defined by the p
 
 ```sql
 SELECT p1.name AS p1, p2.name AS p2, p3.name AS p3
-  FROM MATCH (p1:Person) -[:knows]-> (p2:Person) -[:knows]-> (p3:Person)
- WHERE p1.name = 'Lee'
+FROM MATCH (p1:Person) -[:knows]-> (p2:Person) -[:knows]-> (p3:Person)
+       ON student_network
+WHERE p1.name = 'Lee'
 ```
 
 ```
@@ -1069,7 +1071,7 @@ SELECT p1.name AS p1, p2.name AS p2, p3.name AS p3
 | Lee | Kathrine | Riya |
 | Lee | Kathrine | Lee  |
 +-----------------------+
-````
+```
 
 Above, in the second solution, Lee is bound to both the variable `p1` and the variable `p3`. This solution is obtained since we can hop from Lee to Kathrine via the edge that is outgoing from Lee, and then we can hop back from Kathrine to Lee via the edge that is incoming to Lee.
 
@@ -1079,8 +1081,9 @@ For example, the predicate `p1 <> p3` in the query below adds the restriction th
 
 ```sql
 SELECT p1.name AS p1, p2.name AS p2, p3.name AS p3
-  FROM MATCH (p1:Person) -[:knows]-> (p2:Person) -[:knows]-> (p3:Person)
- WHERE p1.name = 'Lee' AND p1 <> p3
+FROM MATCH (p1:Person) -[:knows]-> (p2:Person) -[:knows]-> (p3:Person)
+       ON student_network
+WHERE p1.name = 'Lee' AND p1 <> p3
 ```
 
 ```
@@ -1095,8 +1098,9 @@ An alternative is to use the [ALL_DIFFERENT predicate](#all_different-predicate)
 
 ```sql
 SELECT p1.name AS p1, p2.name AS p2, p3.name AS p3
-  FROM MATCH (p1:Person) -[:knows]-> (p2:Person) -[:knows]-> (p3:Person)
- WHERE p1.name = 'Lee' AND ALL_DIFFERENT(p1, p3)
+FROM MATCH (p1:Person) -[:knows]-> (p2:Person) -[:knows]-> (p3:Person)
+       ON student_network
+WHERE p1.name = 'Lee' AND ALL_DIFFERENT(p1, p3)
 ```
 
 ```
@@ -1113,9 +1117,9 @@ For example, "find two people that both know Riya":
 
 ```sql
 SELECT p1.name AS p1, p2.name AS p2, e1 = e2
-  FROM MATCH (p1:Person) -[e1:knows]-> (riya:Person)
-     , MATCH (p2:Person) -[e2:knows]-> (riya)
- WHERE riya.name = 'Riya'
+FROM MATCH (p1:Person) -[e1:knows]-> (riya:Person) ON student_network
+   , MATCH (p2:Person) -[e2:knows]-> (riya) ON student_network
+WHERE riya.name = 'Riya'
 ```
 
 ```
@@ -1138,7 +1142,7 @@ An example query with two any-directed edge patterns is:
 
 ```sql
 SELECT *
-  FROM MATCH (n) -[e1]- (m) -[e2]- (o)
+FROM MATCH (n) -[e1]- (m) -[e2]- (o) ON student_network
 ```
 
 Note that in case there are both incoming and outgoing data edges between two data vertices, there will be separate result bindings for each of the edges.
@@ -1207,7 +1211,7 @@ Consider the following example:
 
 ```sql
 SELECT n, m, n.age AS age
-  FROM MATCH (n:Person) -[e:friend_of]-> (m:Person)
+FROM MATCH (n:Person) -[e:friend_of]-> (m:Person) ON my_graph
 ```
 
 Per each matched subgraph, the query returns two vertices `n` and `m` and the value for property age of vertex `n`.  Note that edge `e` is omitted from the result even though it is used for describing the pattern.
@@ -1219,8 +1223,8 @@ The `DISTINCT` modifier allows for filtering out duplicate results. The operatio
 It is possible to assign a variable name to any of the selection expression, by appending the keyword `AS` and a variable name. The variable name is used as the column name of the result set. In addition, the variable name can be later used in the `ORDER BY` clause. See the related section later in this document.
 
 ```sql
-  SELECT n.age * 2 - 1 AS pivot, n.name, n
-    FROM MATCH (n:Person) -> (m:Car)
+SELECT n.age * 2 - 1 AS pivot, n.name, n
+FROM MATCH (n:Person) -> (m:Car) ON my_graph
 ORDER BY pivot
 ```
 
@@ -1232,16 +1236,16 @@ Consider the following query:
 
 ```sql
 SELECT *
-FROM MATCH (n:Person) -> (m) -> (w),
-     MATCH (n) -> (w) -> (m)
+FROM MATCH (n:Person) -> (m) -> (w) ON my_graph,
+     MATCH (n) -> (w) -> (m) ON my_graph
 ```
 
 This query is semantically equivalent to:
 
 ```sql
 SELECT n, m, w
-FROM MATCH (n:Person) -> (m) -> (w),
-     MATCH (n) -> (w) -> (m)
+FROM MATCH (n:Person) -> (m) -> (w) ON my_graph,
+     MATCH (n) -> (w) -> (m) ON my_graph
 ```
 
 `SELECT *` is not allowed when the graph pattern has zero variables. This is the case when all the vertices and edges in the pattern are anonymous (e.g. `MATCH () -> (:Person)`).
@@ -1256,8 +1260,8 @@ For example:
 {% include image.html file="example_graphs/financial_transactions.png" %}
 
 ```sql
-  SELECT label(n), n.*
-    FROM MATCH (n)
+SELECT label(n), n.*
+FROM MATCH (n) ON financial_transactions
 ORDER BY "number", "name"
 ```
 
@@ -1283,7 +1287,7 @@ edge labels:
 
 ```sql
 SELECT label(n), n.*
-FROM MATCH (n:Person)
+FROM MATCH (n:Person) ON financial_transactions
 ORDER BY "name"
 ```
 
@@ -1305,7 +1309,7 @@ For example:
 
 ```sql
 SELECT n.* PREFIX 'n_', e.* PREFIX 'e_', m.* PREFIX 'm_'
-FROM MATCH (n:Account) -[e:transaction]-> (m:Account)
+FROM MATCH (n:Account) -[e:transaction]-> (m:Account) ON financial_transactions
 ORDER BY "e_amount"
 ```
 
@@ -1433,8 +1437,8 @@ There can be multiple topology constraints in the `FROM` clause of a PGQL query.
 
 ```sql
 SELECT *
- FROM MATCH (n) -[e1]-> (m1),
-      MATCH (n) -[e2]-> (m2)
+ FROM MATCH (n) -[e1]-> (m1) ON my_graph,
+      MATCH (n) -[e2]-> (m2) ON my_graph
 ```
 
 Here, the vertex term `(n)` in the first constraint indeed refers to the same vertex as the vertex term `(n)` in the second constraint. It is an error, however, if two edge terms have the same variable name, or, if the same variable name is assigned to an edge term as well as to a vertex term in a single query.
@@ -1447,23 +1451,23 @@ First, a single path pattern can be written as a chain of edge terms such that t
 
 ```sql
 SELECT *
-FROM MATCH (n1) -[e1]-> (n2) -[e2]-> (n3) -[e3]-> (n4)
+FROM MATCH (n1) -[e1]-> (n2) -[e2]-> (n3) -[e3]-> (n4) ON my_graph
 ```
 
 The above graph pattern is equivalent to the graph pattern specified by the following set of comma-separate path patterns:
 
 ```sql
 SELECT *
-FROM MATCH (n1) -[e1]-> (n2),
-     MATCH (n2) -[e2]-> (n3),
-     MATCH (n3) -[e3]-> (n4)
+FROM MATCH (n1) -[e1]-> (n2) ON my_graph,
+     MATCH (n2) -[e2]-> (n3) ON my_graph,
+     MATCH (n3) -[e3]-> (n4) ON my_graph
 ```
 
 Second, it is allowed to reverse the direction of an edge in the pattern, i.e. right-to-left instead of left-to-right. Therefore, the following is a valid graph pattern:
 
 ```sql
 SELECT *
-FROM MATCH (n1) -[e1]-> (n2) <-[e2]- (n3)
+FROM MATCH (n1) -[e1]-> (n2) <-[e2]- (n3) ON my_graph
 ```
 
 Please mind the edge directions in the above query – vertex `n2` is a common outgoing neighbor of both vertex `n1` and vertex `n3`.
@@ -1488,8 +1492,8 @@ In the case the `MATCH` clause contains two or more disconnected graph patterns 
 
 ```sql
 SELECT *
-FROM MATCH (n1) -> (m1),
-     MATCH (n2) -> (m2)
+FROM MATCH (n1) -> (m1) ON my_graph,
+     MATCH (n2) -> (m2) ON my_graph
 ```
 
 Here, vertices `n2` and `m2` are not connected to vertices `n1` and `m1`, resulting in a Cartesian product.
@@ -1513,7 +1517,7 @@ Take the following example:
 
 ```sql
 SELECT *
-FROM MATCH (x:Person) -[e IS likes|knows]-> (y:Person)
+FROM MATCH (x:Person) -[e IS likes|knows]-> (y:Person) ON my_graph
 ```
 
 Here, we specify that vertices `x` and `y` have the label `Person` and that the edge `e` has the label `likes` or the label `knows`.
@@ -1522,7 +1526,7 @@ A label expression can be specified even when a variable is omitted. For example
 
 ```sql
 SELECT *
-FROM MATCH (IS Person) -[:likes|knows]-> (IS Person)
+FROM MATCH (IS Person) -[:likes|knows]-> (IS Person) ON my_graph
 ```
 
 There are also built-in functions and predicates available for labels:
@@ -1546,7 +1550,7 @@ For example:
 
 ```sql
 SELECT y.name
-  FROM MATCH (x) -> (y)
+  FROM MATCH (x) -> (y) ON my_graph
  WHERE x.name = 'Jake'
    AND y.age > 25
 ```
@@ -1557,7 +1561,7 @@ Note that the ordering of constraints does not have an affect on the result, suc
 
 ```sql
 SELECT y.name
- FROM MATCH (x) -> (y)
+ FROM MATCH (x) -> (y) ON my_graph
 WHERE y.age > 25
   AND x.name = 'Jake'
 ```
@@ -1766,8 +1770,9 @@ SELECT a.number AS a,
        b.number AS b,
        COUNT(e) AS pathLength,
        ARRAY_AGG(e.amount) AS amounts
-  FROM MATCH ANY SHORTEST (a:Account) -[e:transaction]->* (b:Account)
- WHERE a.number = 10039 AND b.number = 2090
+FROM MATCH ANY SHORTEST (a:Account) -[e:transaction]->* (b:Account)
+       ON financial_transactions
+WHERE a.number = 10039 AND b.number = 2090
 ```
 
 ```
@@ -1784,9 +1789,10 @@ Shortest path finding is explained in more detail in [Shortest Path](#shortest-p
 Another example is:
 
 ```sql
-  SELECT LISTAGG(x.number, ', ') AS account_numbers, SUM(e.amount) AS total_amount
-    FROM MATCH SHORTEST 4 PATHS (a:Account) ((x:Account) <-[e:transaction]-)+ (a)
-   WHERE a.number = 10039
+SELECT LISTAGG(x.number, ', ') AS account_numbers, SUM(e.amount) AS total_amount
+FROM MATCH SHORTEST 4 PATHS (a:Account) ((x:Account) <-[e:transaction]-)+ (a)
+       ON financial_transactions
+WHERE a.number = 10039
 ORDER BY SUM(e.amount)
 ```
 
@@ -1827,9 +1833,10 @@ An example where we test for path existence is:
 {% include image.html file="example_graphs/financial_transactions.png" %}
 
 ```sql
-  SELECT dst.number
-    FROM MATCH ANY (src:Account) -[e]->+ (dst:Account)
-   WHERE src.number = 8021
+SELECT dst.number
+FROM MATCH ANY (src:Account) -[e]->+ (dst:Account)
+       ON financial_transactions
+WHERE src.number = 8021
 ORDER BY dst.number
 ```
 
@@ -1849,9 +1856,9 @@ An example where we return data along the path is:
 {% include image.html file="example_graphs/financial_transactions.png" %}
 
 ```sql
-  SELECT dst.number, LISTAGG(e.amount, ' + ') || ' = ', SUM(e.amount)
-    FROM MATCH ANY (src:Account) -[e]->+ (dst:Account)
-   WHERE src.number = 8021
+SELECT dst.number, LISTAGG(e.amount, ' + ') || ' = ', SUM(e.amount)
+FROM MATCH ANY (src:Account) -[e]->+ (dst:Account) ON financial_transactions
+WHERE src.number = 8021
 ORDER BY dst.number
 ```
 
@@ -1901,9 +1908,10 @@ For example:
 {% include image.html file="example_graphs/financial_transactions.png" %}
 
 ```sql
-  SELECT LISTAGG(e.amount, ' + ') || ' = ', SUM(e.amount) AS total_amount
-    FROM MATCH ALL SHORTEST (a:Account) -[e:transaction]->* (b:Account)
-   WHERE a.number = 10039 AND b.number = 2090
+SELECT LISTAGG(e.amount, ' + ') || ' = ', SUM(e.amount) AS total_amount
+FROM MATCH ALL SHORTEST (a:Account) -[e:transaction]->* (b:Account)
+       ON financial_transactions
+WHERE a.number = 10039 AND b.number = 2090
 ORDER BY total_amount
 ```
 
@@ -1930,8 +1938,8 @@ For example:
 
 ```sql
 SELECT src, SUM(e.weight), dst
-  FROM MATCH ANY SHORTEST (src) -[e]->* (dst)
- WHERE src.age < dst.age
+FROM MATCH ANY SHORTEST (src) -[e]->* (dst) ON financial_transactions
+WHERE src.age < dst.age
 ```
 
 Another example is:
@@ -1939,16 +1947,17 @@ Another example is:
 {% include image.html file="example_graphs/financial_transactions.png" %}
 
 ```sql
-  SELECT COUNT(e) AS num_hops
-       , p1.name AS start
-       , ARRAY_AGG ( CASE
-                       WHEN dst IS LABELED Account
-                         THEN CAST(dst.number AS STRING)
-                       ELSE dst.name
-                     END
-                   ) AS path
-    FROM MATCH ANY SHORTEST (p1:Person) (-[e]- (dst))* (p2:Person)
-   WHERE p1.name = 'Camille' AND p2.name = 'Liam'
+SELECT COUNT(e) AS num_hops
+     , p1.name AS start
+     , ARRAY_AGG ( CASE
+                     WHEN dst IS LABELED Account
+                       THEN CAST(dst.number AS STRING)
+                     ELSE dst.name
+                   END
+                 ) AS path
+FROM MATCH ANY SHORTEST (p1:Person) (-[e]- (dst))* (p2:Person)
+       ON financial_transactions
+WHERE p1.name = 'Camille' AND p2.name = 'Liam'
 ORDER BY num_hops
 ```
 
@@ -1966,14 +1975,15 @@ For example, the following query matches a shortest path (if one exists) such th
 
 ```sql
 SELECT src, ARRAY_AGG(e.weight), dst
-  FROM MATCH ANY SHORTEST (src) (-[e]-> WHERE e.weight > 10)* (dst)
+FROM MATCH ANY SHORTEST (src) (-[e]-> WHERE e.weight > 10)* (dst) ON my_graph
 ```
 
 Note that this is different from a `WHERE` clause that is placed outside of the quantified pattern:
 
 ```sql
 SELECT src, ARRAY_AGG(e.weight), dst
-  FROM MATCH ANY SHORTEST (src) -[e]->* (dst) WHERE SUM(e.cost) < 100
+FROM MATCH ANY SHORTEST (src) -[e]->* (dst) ON my_graph
+WHERE SUM(e.cost) < 100
 ```
 
 Here, the filter is applied only _after_ a shortest path is matched such that if the `WHERE` condition is not satisfied, the path is filtered out and no other path is considered even though another path may exist that does satisfy the `WHERE` condition.
@@ -1995,8 +2005,8 @@ each of the matched source and destination pairs:
 
 ```sql
 SELECT src, SUM(e.weight), dst
-  FROM MATCH SHORTEST 3 PATHS (src) -[e]->* (dst)
- WHERE src.age < dst.age
+FROM MATCH SHORTEST 3 PATHS (src) -[e]->* (dst) ON my_graph
+WHERE src.age < dst.age
 ```
 
 Notice that the sum aggregation is computed for each matching path. In other words, the number of rows returned by the
@@ -2007,8 +2017,8 @@ The `ARRAY_AGG` construct allows users to output properties of edges/vertices al
 
 ```sql
 SELECT src, ARRAY_AGG(e.weight), ARRAY_AGG(v1.age), ARRAY_AGG(v2.age), dst
-  FROM MATCH SHORTEST 3 PATHS (src) ((v1) -[e]-> (v2))* (dst)
- WHERE src.age < dst.age
+FROM MATCH SHORTEST 3 PATHS (src) ((v1) -[e]-> (v2))* (dst) ON my_graph
+WHERE src.age < dst.age
 ```
 
 the `ARRAY_AGG(e.weight)` outputs a list containing the weight property of all the edges along the path,
@@ -2022,10 +2032,10 @@ Users can also compose shortest path constructs with other matching operators:
 
 ```sql
 SELECT ARRAY_AGG(e1.weight), ARRAY_AGG(e2.weight)
-  FROM MATCH (start) -> (src)
-     , MATCH SHORTEST 3 PATHS (src) (-[e1]->)* (mid)
-     , MATCH ANY SHORTEST (mid) (-[e2]->)* (dst)
-     , MATCH (dst) -> (end)
+FROM MATCH (start) -> (src) ON my_graph
+   , MATCH SHORTEST 3 PATHS (src) (-[e1]->)* (mid) ON my_graph
+   , MATCH ANY SHORTEST (mid) (-[e2]->)* (dst) ON my_graph
+   , MATCH (dst) -> (end) ON my_graph
 ```
 
 Another example is:
@@ -2033,11 +2043,12 @@ Another example is:
 {% include image.html file="example_graphs/financial_transactions.png" %}
 
 ```sql
-  SELECT COUNT(e) AS num_hops
-       , SUM(e.amount) AS total_amount
-       , ARRAY_AGG(e.amount) AS amounts_along_path
-    FROM MATCH SHORTEST 7 PATHS (a:Account) -[e:transaction]->* (b:Account)
-   WHERE a.number = 10039 AND a = b
+SELECT COUNT(e) AS num_hops
+     , SUM(e.amount) AS total_amount
+     , ARRAY_AGG(e.amount) AS amounts_along_path
+FROM MATCH SHORTEST 7 PATHS (a:Account) -[e:transaction]->* (b:Account)
+       ON financial_transactions
+WHERE a.number = 10039 AND a = b
 ORDER BY num_hops, total_amount
 ```
 
@@ -2061,11 +2072,12 @@ The following example shows how such paths could be filtered out, such that we o
 {% include image.html file="example_graphs/financial_transactions.png" %}
 
 ```sql
-  SELECT COUNT(e) AS num_hops
-       , SUM(e.amount) AS total_amount
-       , ARRAY_AGG(e.amount) AS amounts_along_path
-    FROM MATCH SHORTEST 7 PATHS (a:Account) -[e:transaction]->* (b:Account)
-   WHERE a.number = 10039 AND a = b AND COUNT(DISTINCT e) = COUNT(e) AND COUNT(e) > 0
+SELECT COUNT(e) AS num_hops
+     , SUM(e.amount) AS total_amount
+     , ARRAY_AGG(e.amount) AS amounts_along_path
+FROM MATCH SHORTEST 7 PATHS (a:Account) -[e:transaction]->* (b:Account)
+       ON financial_transactions
+WHERE a.number = 10039 AND a = b AND COUNT(DISTINCT e) = COUNT(e) AND COUNT(e) > 0
 ORDER BY num_hops, total_amount
 ```
 
@@ -2106,8 +2118,9 @@ For example:
 SELECT COUNT(e) AS num_hops
      , SUM(e.amount) AS total_amount
      , ARRAY_AGG(e.amount) AS amounts_along_path
-  FROM MATCH ANY CHEAPEST (a:Account) (-[e:transaction]-> COST e.amount)* (b:Account)
- WHERE a.number = 10039 AND b.number = 2090
+FROM MATCH ANY CHEAPEST (a:Account) (-[e:transaction]-> COST e.amount)* (b:Account)
+       ON financial_transactions
+WHERE a.number = 10039 AND b.number = 2090
 ```
 
 ```
@@ -2126,8 +2139,9 @@ The following example with `CHEAPEST` contains an any-directed edge pattern (`-[
 SELECT COUNT(e) AS num_hops
      , SUM(e.amount) AS total_amount
      , ARRAY_AGG(e.amount) AS amounts_along_path
-  FROM MATCH ANY CHEAPEST (a:Account) (-[e:transaction]- COST e.amount)* (b:Account)
- WHERE a.number = 10039 AND b.number = 2090
+FROM MATCH ANY CHEAPEST (a:Account) (-[e:transaction]- COST e.amount)* (b:Account)
+       ON financial_transactions
+WHERE a.number = 10039 AND b.number = 2090
 ```
 
 ```
@@ -2149,12 +2163,13 @@ The following example has a `CASE` statement that defines a different cost for d
 SELECT COUNT(e) AS num_hops
      , SUM(e.amount) AS total_amount
      , ARRAY_AGG(e.amount) AS amounts_along_path
-  FROM MATCH ANY CHEAPEST (p1:Person) (-[e:owner|transaction]-
-                                      COST CASE
-                                             WHEN e.amount IS NULL THEN 1
-                                             ELSE e.amount
-                                           END)* (p2:Person)
- WHERE p1.name = 'Nikita' AND p2.name = 'Liam'
+FROM MATCH ANY CHEAPEST (p1:Person) (-[e:owner|transaction]-
+                                    COST CASE
+                                           WHEN e.amount IS NULL THEN 1
+                                           ELSE e.amount
+                                         END)* (p2:Person)
+     ON financial_transactions
+WHERE p1.name = 'Nikita' AND p2.name = 'Liam'
 ```
 
 ```
@@ -2190,11 +2205,12 @@ For example, the following query returns the cheapest 3 paths from account 10039
 {% include image.html file="example_graphs/financial_transactions.png" %}
 
 ```sql
-  SELECT COUNT(e) AS num_hops
-       , SUM(e.amount) AS total_amount
-       , ARRAY_AGG(e.amount) AS amounts_along_path
-    FROM MATCH CHEAPEST 3 PATHS (a:Account) (-[e:transaction]-> COST e.amount)* (a)
-   WHERE a.number = 10039
+SELECT COUNT(e) AS num_hops
+     , SUM(e.amount) AS total_amount
+     , ARRAY_AGG(e.amount) AS amounts_along_path
+FROM MATCH CHEAPEST 3 PATHS (a:Account) (-[e:transaction]-> COST e.amount)* (a)
+       ON financial_transactions
+WHERE a.number = 10039
 ORDER BY total_amount
 ```
 
@@ -2215,18 +2231,18 @@ while `Account` or `Company` vertices contribute `1` to the total cost.
 {% include image.html file="example_graphs/financial_transactions.png" %}
 
 ```sql
-  SELECT COUNT(e) AS num_hops
-       , ARRAY_AGG( CASE label(n_x)
-                      WHEN 'Person' THEN n_x.name
-                      WHEN 'Company' THEN n_x.name
-                      WHEN 'Account' THEN CAST(n_x.number AS STRING)
-                    END ) AS names_or_numbers
-       , SUM( CASE label(n_x) WHEN 'Person' THEN 8 ELSE 1 END ) AS total_cost
-    FROM MATCH CHEAPEST 4 PATHS
-          (a:Account)
-            (-[e]- (n_x) COST CASE label(n_x) WHEN 'Person' THEN 3 ELSE 1 END)*
-              (c:Company)
-   WHERE a.number = 10039 AND c.name = 'Oracle'
+SELECT COUNT(e) AS num_hops
+     , ARRAY_AGG( CASE label(n_x)
+                    WHEN 'Person' THEN n_x.name
+                    WHEN 'Company' THEN n_x.name
+                    WHEN 'Account' THEN CAST(n_x.number AS STRING)
+                  END ) AS names_or_numbers
+     , SUM( CASE label(n_x) WHEN 'Person' THEN 8 ELSE 1 END ) AS total_cost
+FROM MATCH CHEAPEST 4 PATHS
+      (a:Account)
+        (-[e]- (n_x) COST CASE label(n_x) WHEN 'Person' THEN 3 ELSE 1 END)*
+          (c:Company) ON financial_transactions
+WHERE a.number = 10039 AND c.name = 'Oracle'
 ORDER BY total_cost
 ```
 
@@ -2273,9 +2289,10 @@ For example:
 {% include image.html file="example_graphs/financial_transactions.png" %}
 
 ```sql
-  SELECT LISTAGG(e.amount, ' + ') || ' = ', SUM(e.amount) AS total_amount
-    FROM MATCH ALL (a:Account) -[e:transaction]->{,7} (b:Account)
-   WHERE a.number = 10039 AND b.number = 2090
+SELECT LISTAGG(e.amount, ' + ') || ' = ', SUM(e.amount) AS total_amount
+FROM MATCH ALL (a:Account) -[e:transaction]->{,7} (b:Account)
+      ON financial_transactions
+WHERE a.number = 10039 AND b.number = 2090
 ORDER BY total_amount
 ```
 
@@ -2353,8 +2370,9 @@ It is possible to mix vertical and horizontal aggregation in a single query. For
 
 ```sql
 SELECT SUM(COUNT(e)) AS sumOfPathLengths
-  FROM MATCH ANY SHORTEST (a:Account) -[e:transaction]->* (b:Account)
- WHERE a.number = 10039 AND (b.number = 1001 OR b.number = 2090)
+FROM MATCH ANY SHORTEST (a:Account) -[e:transaction]->* (b:Account)
+       ON financial_transactions
+WHERE a.number = 10039 AND (b.number = 1001 OR b.number = 2090)
 ```
 
 ```
@@ -2379,13 +2397,14 @@ An example of a horizontal aggregation in `WHERE` is:
 {% include image.html file="example_graphs/financial_transactions.png" %}
 
 ```sql
-  SELECT b.number AS b,
-         COUNT(e) AS pathLength,
-         ARRAY_AGG(e.amount) AS transactions
-    FROM MATCH ANY SHORTEST (a:Account) -[e:transaction]->* (b:Account)
-   WHERE a.number = 10039 AND
-         (b.number = 8021 OR b.number = 1001 OR b.number = 2090) AND
-         COUNT(e) <= 2
+SELECT b.number AS b,
+       COUNT(e) AS pathLength,
+       ARRAY_AGG(e.amount) AS transactions
+FROM MATCH ANY SHORTEST (a:Account) -[e:transaction]->* (b:Account)
+       ON financial_transactions
+WHERE a.number = 10039 AND
+      (b.number = 8021 OR b.number = 1001 OR b.number = 2090) AND
+      COUNT(e) <= 2
 ORDER BY pathLength
 ```
 
@@ -2406,11 +2425,12 @@ An example of a horizontal aggregation in `GROUP BY` is:
 {% include image.html file="example_graphs/financial_transactions.png" %}
 
 ```sql
-  SELECT COUNT(e) AS pathLength,
-         COUNT(*) AS cnt
-    FROM MATCH ANY SHORTEST (a:Account) -[e:transaction]->* (b:Account)
-   WHERE (a.number = 10039 OR a.number = 8021) AND
-         (b.number = 1001 OR b.number = 2090)
+SELECT COUNT(e) AS pathLength,
+       COUNT(*) AS cnt
+FROM MATCH ANY SHORTEST (a:Account) -[e:transaction]->* (b:Account)
+       ON financial_transactions
+WHERE (a.number = 10039 OR a.number = 8021) AND
+      (b.number = 1001 OR b.number = 2090)
 GROUP BY COUNT(e)
 ORDER BY pathLength
 ```
@@ -2457,6 +2477,7 @@ An example with `WALK` is:
 ```sql
 SELECT LISTAGG(e.amount, ', ') AS amounts_along_path, SUM(e.amount) AS total_cost
 FROM MATCH CHEAPEST 4 WALK (a:account) (-[e:transaction]-> COST e.amount)* (a)
+       ON financial_transactions
 WHERE a.number = 10039
 ORDER BY total_cost
 ```
@@ -2485,6 +2506,7 @@ An example with `TRAIL` is:
 ```sql
 SELECT CAST(a.number AS STRING) || ' -> ' || LISTAGG(x.number, ' -> ') AS accounts_along_path
 FROM MATCH ALL TRAIL PATHS (a:account) (-[:transaction]-> (x)){2,} (b:Account)
+       ON financial_transactions
 WHERE a.number = 8021 AND b.number = 1001
 ```
 
@@ -2506,6 +2528,7 @@ An example with `ACYCLIC` is:
 ```sql
 SELECT CAST(a.number AS STRING) || ' -> ' || LISTAGG(x.number, ' -> ') AS accounts_along_path
 FROM MATCH SHORTEST 10 ACYCLIC PATHS (a:account) (-[:transaction]-> (x))+ (b)
+       ON financial_transactions
 WHERE a.number = 10039 AND b.number = 1001
 ```
 
@@ -2527,6 +2550,7 @@ An example with `SIMPLE` is:
 ```sql
 SELECT CAST(a.number AS STRING) || ' -> ' || LISTAGG(x.number, ' -> ') AS accounts_along_path
 FROM MATCH ANY SIMPLE PATH (a:account) (-[:transaction]-> (x))+ (a)
+       ON financial_transactions
 WHERE a.number = 10039
 ```
 
@@ -2585,10 +2609,10 @@ An example where the keywords `ONE ROW PER MATCH` are explicitly specified is:
 {% include image.html file="example_graphs/financial_transactions.png" %}
 
 ```sql
-  SELECT a.number, p.name
-    FROM MATCH (a:Account) -[:owner]-> (p:Person)
-           ON financial_transactions
-           ONE ROW PER MATCH
+SELECT a.number, p.name
+FROM MATCH (a:Account) -[:owner]-> (p:Person)
+       ON financial_transactions
+       ONE ROW PER MATCH
 ORDER BY a.number
 ```
 
@@ -2614,12 +2638,12 @@ For example:
 {% include image.html file="example_graphs/financial_transactions.png" %}
 
 ```sql
-  SELECT a1.number AS account1, a2.number AS account2
-       , LISTAGG(t.amount, ' + ') || ' = ', SUM(t.amount) AS total_amount
-    FROM MATCH (p1:Person) <-[:owner]- (a1:Account) ONE ROW PER MATCH
-       , MATCH (p2:Person) <-[:owner]- (a2:Account) ONE ROW PER MATCH
-       , MATCH ALL (a1) -[t:transaction]->{,4} (a2) ONE ROW PER MATCH
-   WHERE p1.name = 'Camille' AND p2.name = 'Liam'
+SELECT a1.number AS account1, a2.number AS account2
+     , LISTAGG(t.amount, ' + ') || ' = ', SUM(t.amount) AS total_amount
+FROM MATCH (p1:Person) <-[:owner]- (a1:Account) ON financial_transactions ONE ROW PER MATCH
+   , MATCH (p2:Person) <-[:owner]- (a2:Account) ON financial_transactions ONE ROW PER MATCH
+   , MATCH ALL (a1) -[t:transaction]->{,4} (a2) ON financial_transactions ONE ROW PER MATCH
+WHERE p1.name = 'Camille' AND p2.name = 'Liam'
 ORDER BY total_amount
 ```
 
@@ -2648,11 +2672,11 @@ For example:
 {% include image.html file="example_graphs/financial_transactions.png" %}
 
 ```sql
-  SELECT v.number AS account_nr, ELEMENT_NUMBER(v) AS elem_nr
-    FROM MATCH ANY (a1:Account) -[:transaction]->* (a2:Account)
-           ON financial_transactions
-           ONE ROW PER VERTEX ( v )
-   WHERE a1.number = 1001 AND a2.number = 8021
+SELECT v.number AS account_nr, ELEMENT_NUMBER(v) AS elem_nr
+FROM MATCH ANY (a1:Account) -[:transaction]->* (a2:Account)
+       ON financial_transactions
+       ONE ROW PER VERTEX ( v )
+WHERE a1.number = 1001 AND a2.number = 8021
 ORDER BY ELEMENT_NUMBER(v)
 ```
 
@@ -2676,12 +2700,12 @@ Another example is:
 {% include image.html file="example_graphs/financial_transactions.png" %}
 
 ```sql
-  SELECT v.number AS account_nr, MATCHNUM(v) AS match_nr, ELEMENT_NUMBER(v) AS elem_nr
-       , LISTAGG(t.amount, ' + ') || ' = ', SUM(t.amount) AS total_amount
-    FROM MATCH (p1:Person) <-[:owner]- (a1:Account) ONE ROW PER MATCH
-       , MATCH (p2:Person) <-[:owner]- (a2:Account) ONE ROW PER MATCH
-       , MATCH ALL (a1) -[t:transaction]->{,4} (a2) ONE ROW PER VERTEX (v)
-   WHERE p1.name = 'Camille' AND p2.name = 'Liam'
+SELECT v.number AS account_nr, MATCHNUM(v) AS match_nr, ELEMENT_NUMBER(v) AS elem_nr
+     , LISTAGG(t.amount, ' + ') || ' = ', SUM(t.amount) AS total_amount
+FROM MATCH (p1:Person) <-[:owner]- (a1:Account) ON financial_transactions ONE ROW PER MATCH
+   , MATCH (p2:Person) <-[:owner]- (a2:Account) ON financial_transactions ONE ROW PER MATCH
+   , MATCH ALL (a1) -[t:transaction]->{,4} (a2) ON financial_transactions ONE ROW PER VERTEX (v)
+WHERE p1.name = 'Camille' AND p2.name = 'Liam'
 ORDER BY MATCHNUM(v), ELEMENT_NUMBER(v)
 ```
 
@@ -2722,13 +2746,13 @@ For example:
 {% include image.html file="example_graphs/financial_transactions.png" %}
 
 ```sql
-  SELECT v1.number AS v1_account_nr, e.amount, v2.number AS v2_account_nr
-       , ELEMENT_NUMBER(v1) AS v1_elem_nr, ELEMENT_NUMBER(e) AS e_elem_nr
-       , ELEMENT_NUMBER(v2) AS v2_elem_nr
-    FROM MATCH ANY (a1:Account) -[:transaction]->+ (a2:Account)
-           ON financial_transactions
-           ONE ROW PER STEP ( v1, e, v2 )
-   WHERE a1.number = 1001 AND a2.number = 8021
+SELECT v1.number AS v1_account_nr, e.amount, v2.number AS v2_account_nr
+     , ELEMENT_NUMBER(v1) AS v1_elem_nr, ELEMENT_NUMBER(e) AS e_elem_nr
+     , ELEMENT_NUMBER(v2) AS v2_elem_nr
+FROM MATCH ANY (a1:Account) -[:transaction]->+ (a2:Account)
+       ON financial_transactions
+       ONE ROW PER STEP ( v1, e, v2 )
+WHERE a1.number = 1001 AND a2.number = 8021
 ORDER BY ELEMENT_NUMBER(e)
 ```
 
@@ -2753,13 +2777,13 @@ The following example is the same as above but with the direction of the edge pa
 {% include image.html file="example_graphs/financial_transactions.png" %}
 
 ```sql
-  SELECT v1.number AS v1_account_nr, e.amount, v2.number AS v2_account_nr
-       , ELEMENT_NUMBER(v1) AS v1_elem_nr, ELEMENT_NUMBER(e) AS e_elem_nr
-       , ELEMENT_NUMBER(v2) AS v2_elem_nr
-    FROM MATCH ANY (a2:Account) <-[:transaction]-+ (a1:Account)
-           ON financial_transactions
-           ONE ROW PER STEP ( v1, e, v2 )
-   WHERE a1.number = 1001 AND a2.number = 8021
+SELECT v1.number AS v1_account_nr, e.amount, v2.number AS v2_account_nr
+     , ELEMENT_NUMBER(v1) AS v1_elem_nr, ELEMENT_NUMBER(e) AS e_elem_nr
+     , ELEMENT_NUMBER(v2) AS v2_elem_nr
+FROM MATCH ANY (a2:Account) <-[:transaction]-+ (a1:Account)
+       ON financial_transactions
+       ONE ROW PER STEP ( v1, e, v2 )
+WHERE a1.number = 1001 AND a2.number = 8021
 ORDER BY ELEMENT_NUMBER(e)
 ```
 
@@ -2780,13 +2804,13 @@ Another example is:
 {% include image.html file="example_graphs/financial_transactions.png" %}
 
 ```sql
-  SELECT v1.number AS v1_account_nr, e.amount, v2.number AS v2_account_nr, MATCHNUM(e) AS match_nr
-       , ELEMENT_NUMBER(v1) AS v1_elem_nr, ELEMENT_NUMBER(e) AS e_elem_nr
-       , ELEMENT_NUMBER(v2) AS v2_elem_nr, SUM(t.amount) AS total_amount
-    FROM MATCH (p1:Person) <-[:owner]- (a1:Account) ONE ROW PER MATCH
-       , MATCH (p2:Person) <-[:owner]- (a2:Account) ONE ROW PER MATCH
-       , MATCH ALL (a1) -[t:transaction]->{1,4} (a2) ONE ROW PER STEP (v1, e, v2)
-   WHERE p1.name = 'Camille' AND p2.name = 'Liam'
+SELECT v1.number AS v1_account_nr, e.amount, v2.number AS v2_account_nr, MATCHNUM(e) AS match_nr
+     , ELEMENT_NUMBER(v1) AS v1_elem_nr, ELEMENT_NUMBER(e) AS e_elem_nr
+     , ELEMENT_NUMBER(v2) AS v2_elem_nr, SUM(t.amount) AS total_amount
+FROM MATCH (p1:Person) <-[:owner]- (a1:Account) ON financial_transactions ONE ROW PER MATCH
+   , MATCH (p2:Person) <-[:owner]- (a2:Account) ON financial_transactions ONE ROW PER MATCH
+   , MATCH ALL (a1) -[t:transaction]->{1,4} (a2) ON financial_transactions ONE ROW PER STEP (v1, e, v2)
+WHERE p1.name = 'Camille' AND p2.name = 'Liam'
 ORDER BY MATCHNUM(e), ELEMENT_NUMBER(e)
 ```
 
@@ -2828,8 +2852,8 @@ The `GROUP BY` clause starts with the keywords GROUP BY and is followed by a com
 Consider the following query:
 
 ```sql
-  SELECT n.first_name, COUNT(*), AVG(n.age)
-    FROM MATCH (n:Person)
+SELECT n.first_name, COUNT(*), AVG(n.age)
+FROM MATCH (n:Person) ON my_graph
 GROUP BY n.first_name
 ```
 
@@ -2842,8 +2866,8 @@ It is possible that the `GROUP BY` clause consists of multiple terms. In such a 
 Consider the following query:
 
 ```sql
-  SELECT n.first_name, n.last_name, COUNT(*)
-    FROM MATCH (n:Person)
+SELECT n.first_name, n.last_name, COUNT(*)
+FROM MATCH (n:Person) ON my_graph
 GROUP BY n.first_name, n.last_name
 ```
 
@@ -2863,10 +2887,10 @@ To filter out such a group, use the [HAVING clause](#having-clause).
 Foror example:
 
 ```sql
-  SELECT n.prop1, n.prop2, COUNT(*)
-    FROM MATCH (n)
+SELECT n.prop1, n.prop2, COUNT(*)
+FROM MATCH (n) ON my_graph
 GROUP BY n.prop1, n.prop2
-  HAVING n.prop1 IS NOT NULL AND n.prop2 IS NOT NULL
+HAVING n.prop1 IS NOT NULL AND n.prop2 IS NOT NULL
 ```
 
 ### Repetition of Group Expression in Select or Order Expression
@@ -2876,8 +2900,8 @@ Group expressions may be repeated in select or order expressions.
 Consider the following query:
 
 ```sql
-  SELECT n.age, COUNT(*)
-    FROM MATCH (n)
+SELECT n.age, COUNT(*)
+FROM MATCH (n) ON my_graph
 GROUP BY n.age
 ORDER BY n.age
 ```
@@ -2950,8 +2974,8 @@ SELECT label(owner),
        COUNT(*) AS numTransactions,
        SUM(out.amount) AS totalOutgoing,
        LISTAGG(out.amount, ', ') AS amounts
-  FROM MATCH (a:Account) -[:owner]-> (owner:Person|Company)
-     , MATCH (a) -[out:transaction]-> (:Account)
+FROM MATCH (a:Account) -[:owner]-> (owner:Person|Company) ON financial_transactions
+   , MATCH (a) -[out:transaction]-> (:Account) ON financial_transactions
 GROUP BY label(owner)
 ORDER BY label(owner)
 ```
@@ -2979,8 +3003,8 @@ If _no_ `GROUP BY` is specified, aggregations are applied to the entire set of s
 SELECT COUNT(*) AS numTransactions,
        SUM(out.amount) AS totalOutgoing,
        LISTAGG(out.amount, ', ') AS amounts
-  FROM MATCH (a:Account) -[:owner]-> (owner:Person|Company)
-     , MATCH (a) -[out:transaction]-> (:Account)
+FROM MATCH (a:Account) -[:owner]-> (owner:Person|Company) ON financial_transactions
+   , MATCH (a) -[out:transaction]-> (:Account) ON financial_transactions
 ```
 
 ```
@@ -3001,7 +3025,7 @@ For example:
 
 ```sql
 SELECT COUNT(*)
-  FROM MATCH (m:Person)
+FROM MATCH (m:Person) ON my_graph
 ```
 
 ### DISTINCT in aggregation
@@ -3012,7 +3036,7 @@ For example:
 
 ```sql
 SELECT AVG(DISTINCT m.age)
-  FROM MATCH (m:Person)
+FROM MATCH (m:Person) ON my_graph
 ```
 
 Here, we aggregate only over distinct `m.age` values.
@@ -3032,10 +3056,10 @@ The value expression needs to be a boolean expression.
 For example:
 
 ```sql
-  SELECT n.name
-    FROM MATCH (n) -[:has_friend]-> (m)
+SELECT n.name
+FROM MATCH (n) -[:has_friend]-> (m) ON my_graph
 GROUP BY n
-  HAVING COUNT(m) > 10
+HAVING COUNT(m) > 10
 ```
 
 This query returns the names of people who have more than 10 friends.
@@ -3065,8 +3089,8 @@ The `ORDER BY` clause starts with the keywords `ORDER BY` and is followed by com
 The following is an example in which the results are ordered by property access `n.age` in ascending order:
 
 ```sql
-  SELECT n.name
-    FROM MATCH (n:Person)
+SELECT n.name
+FROM MATCH (n:Person) ON my_graph
 ORDER BY n.age ASC
 ```
 
@@ -3086,8 +3110,8 @@ Vertices, edges and arrays cannot be ordered directly.
 An `ORDER BY` may contain more than one expression, in which case the expresisons are evaluated from left to right. That is, (n+1)th ordering term is used only for the tie-break rule for n-th ordering term. Note that different expressions can have different ascending or descending decorators.
 
 ```sql
-  SELECT f.name
-    FROM MATCH (f:Person)
+SELECT f.name
+FROM MATCH (f:Person) ON my_graph
 ORDER BY f.age ASC, f.salary DESC
 ```
 
@@ -3114,7 +3138,7 @@ For example:
 
 ```sql
 SELECT n.name
-FROM MATCH (n:Person)
+FROM MATCH (n:Person) ON my_graph
 ORDER BY n.name
 OFFSET 1
 ```
@@ -3152,7 +3176,7 @@ For example, in the following query the first solution is pruned from the result
 
 ```sql
 SELECT n.name
-FROM MATCH (n:Person)
+FROM MATCH (n:Person) ON financial_transactions
 ORDER BY n.name
 OFFSET 1
 FETCH FIRST 2 ROWS ONLY
@@ -3186,7 +3210,7 @@ For example:
 
 ```sql
 SELECT n.name
-FROM MATCH (n:Person)
+FROM MATCH (n:Person) ON financial_transactions
 ORDER BY n.name
 OFFSET 1
 LIMIT 2
@@ -3343,27 +3367,27 @@ An example query with two bind variables is as follows:
 
 ```sql
 SELECT n.age
-  FROM MATCH (n)
- WHERE n.name = ?
-    OR n.age > ?
+FROM MATCH (n) ON my_graph
+WHERE n.name = ?
+   OR n.age > ?
 ```
 
-In the following query, bind variables are used in `LIMIT` and `OFFSET`:
+In the following query, bind variables are used in `OFFSET` and `FETCH FIRST`:
 
 ```sql
-  SELECT n.name, n.age
-    FROM MATCH (n)
+SELECT n.name, n.age
+FROM MATCH (n) ON my_graph
 ORDER BY n.age
-   LIMIT ?
-  OFFSET ?
+OFFSET ?
+FETCH FIRST ? ROWS ONLY
 ```
 
 The following example shows a bind variable in the position of a label:
 
 ```sql
-  SELECT n.name
-    FROM MATCH (n)
-   WHERE label(n) = ?
+SELECT n.name
+FROM MATCH (n) ON my_graph
+WHERE label(n) = ?
 ```
 
 
@@ -3511,8 +3535,8 @@ For example:
 
 ```sql
 SELECT n.name
-  FROM MATCH (n)
- WHERE n.name IS NOT NULL
+FROM MATCH (n) ON my_graph
+WHERE n.name IS NOT NULL
 ```
 
 Here, we find all the vertices in the graph that have the property `name` and then return the property.
@@ -3556,7 +3580,7 @@ For example:
 
 ```sql
 SELECT label(e)
-FROM MATCH (n:Person) -[e]-> (m:Person)
+FROM MATCH (n:Person) -[e]-> (m:Person) ON my_graph
 ```
 
 ```
@@ -3584,7 +3608,7 @@ For example:
 
 ```sql
 SELECT labels(n)
-  FROM MATCH (n:Employee|Manager)
+FROM MATCH (n:Employee|Manager) ON my_graph
 ```
 
 ```
@@ -3614,7 +3638,7 @@ For example:
 ```sql
 SELECT a.number,
        CASE WHEN n IS LABELED Person THEN 'Personal Account' ELSE 'Business Account' END AS accountType
-FROM MATCH (n:Person|Company) <-[:owner]- (a:Account)
+FROM MATCH (n:Person|Company) <-[:owner]- (a:Account) ON financial_transactions
 ```
 
 ```
@@ -3648,7 +3672,7 @@ For example:
 
 ```sql
 SELECT e.amount, CASE WHEN n IS SOURCE OF e THEN 'Outgoing transaction' ELSE 'Incoming transaction' END AS transaction_type
-FROM MATCH (n:Account) -[e:transaction]- (m:Account)
+FROM MATCH (n:Account) -[e:transaction]- (m:Account) ON financial_transactions
 WHERE n.number = 8021
 ORDER BY transaction_type, e.amount
 ```
@@ -3669,7 +3693,7 @@ Another example is:
 SELECT n.number, n.name,
        SUM(CASE WHEN n IS DESTINATION OF e THEN 1 ELSE 0 END) AS num_incoming_edges,
        SUM(CASE WHEN n IS SOURCE OF e THEN 1 ELSE 0 END) AS num_outgoing_edges
-FROM MATCH (n) -[e]- (m)
+FROM MATCH (n) -[e]- (m) ON financial_transactions
 GROUP BY number, name
 ORDER BY num_incoming_edges + num_outgoing_edges DESC, number, name
 ```
@@ -3734,6 +3758,7 @@ ORDER BY match_num, elem_num
 ```sql
 SELECT v.number AS account_number, MATCHNUM(v), ELEMENT_NUMBER(v)
 FROM MATCH ALL (a1:Account) -[:transaction]->{,4} (a2:Account)
+       ON financial_transactions
        ONE ROW PER VERTEX ( v )
 WHERE a1.number = 10039 AND a2.number = 2090
 ORDER BY MATCHNUM(v), ELEMENT_NUMBER(v)
@@ -3768,12 +3793,13 @@ For example:
 {% include image.html file="example_graphs/financial_transactions.png" %}
 
 ```sql
-  SELECT v1.number AS v1_account_nr, e.amount, v2.number AS v2_account_nr
-       , ELEMENT_NUMBER(v1) AS v1_elem_nr, ELEMENT_NUMBER(e) AS e_elem_nr
-       , ELEMENT_NUMBER(v2) AS v2_elem_nr
-    FROM MATCH ANY (a1:Account) -[:transaction]->+ (a2:Account)
-           ONE ROW PER STEP ( v1, e, v2 )
-   WHERE a1.number = 1001 AND a2.number = 8021
+SELECT v1.number AS v1_account_nr, e.amount, v2.number AS v2_account_nr
+     , ELEMENT_NUMBER(v1) AS v1_elem_nr, ELEMENT_NUMBER(e) AS e_elem_nr
+     , ELEMENT_NUMBER(v2) AS v2_elem_nr
+FROM MATCH ANY (a1:Account) -[:transaction]->+ (a2:Account)
+       ON financial_transactions
+       ONE ROW PER STEP ( v1, e, v2 )
+WHERE a1.number = 1001 AND a2.number = 8021
 ORDER BY e_elem_nr
 ```
 
@@ -3793,11 +3819,12 @@ For example:
 {% include image.html file="example_graphs/financial_transactions.png" %}
 
 ```sql
-  SELECT v1.number AS v1_account_nr, e.amount, v2.number AS v2_account_nr
-       , ELEMENT_NUMBER(v1) AS v1_elem_nr, ELEMENT_NUMBER(e) AS e_elem_nr, ELEMENT_NUMBER(v2) AS v2_elem_nr
-    FROM MATCH ANY (a2:Account) <-[:transaction]-+ (a1:Account)
-           ONE ROW PER STEP ( v1, e, v2 )
-   WHERE a1.number = 1001 AND a2.number = 8021
+SELECT v1.number AS v1_account_nr, e.amount, v2.number AS v2_account_nr
+     , ELEMENT_NUMBER(v1) AS v1_elem_nr, ELEMENT_NUMBER(e) AS e_elem_nr, ELEMENT_NUMBER(v2) AS v2_elem_nr
+FROM MATCH ANY (a2:Account) <-[:transaction]-+ (a1:Account)
+     ON financial_transactions
+     ONE ROW PER STEP ( v1, e, v2 )
+WHERE a1.number = 1001 AND a2.number = 8021
 ORDER BY e_elem_nr
 ```
 
@@ -3828,16 +3855,16 @@ For example:
 
 ```sql
 SELECT *
-  FROM MATCH (n) -> (m) -> (o)
- WHERE ALL_DIFFERENT( n, m, o )
+FROM MATCH (n) -> (m) -> (o) ON my_graph
+WHERE ALL_DIFFERENT( n, m, o )
 ```
 
 Note that the above query can be rewritten using non-equality constraints as follows:
 
 ```sql
 SELECT *
-  FROM MATCH (n) -> (m) <- (o) -> (n)
- WHERE n <> m AND n <> o AND m <> o
+FROM MATCH (n) -> (m) <- (o) -> (n) ON my_graph
+WHERE n <> m AND n <> o AND m <> o
 ```
 
 Another example is:
@@ -4119,8 +4146,8 @@ User-defined functions (UDFs) are invoked similarly to built-in functions. For e
 An example invocation of this function is then:
 
 ```sql
-  SELECT math.tan(n.angle) AS tangent
-    FROM MATCH (n)
+SELECT math.tan(n.angle) AS tangent
+FROM MATCH (n) ON my_graph
 ORDER BY tangent
 ```
 
@@ -4171,7 +4198,7 @@ For example:
 
 ```sql
 SELECT CAST(n.age AS STRING), CAST('123' AS INTEGER), CAST('09:15:00+01:00' AS TIME WITH TIME ZONE)
-  FROM MATCH (n:Person)
+FROM MATCH (n:Person) ON my_graph
 ```
 
 Casting is allowed between the following data types:
@@ -4285,8 +4312,8 @@ Bind variables are also supported in the position of the list. For example:
 
 ```sql
 SELECT n.date_of_birth
-  FROM MATCH (n:Person)
- WHERE n.date_of_birth IN ? /* use PreparedStatement.setArray(int, java.util.List) */
+FROM MATCH (n:Person) ON my_graph
+WHERE n.date_of_birth IN ? /* use PreparedStatement.setArray(int, java.util.List) */
 ```
 
 # Subqueries
@@ -4314,8 +4341,9 @@ An example is to find friend of friends, and, for each friend of friend, return 
 
 ```sql
 SELECT fof.name, COUNT(friend) AS num_common_friends
-  FROM MATCH (p:Person) -[:has_friend]-> (friend:Person) -[:has_friend]-> (fof:Person)
- WHERE NOT EXISTS ( SELECT * FROM MATCH (p) -[:has_friend]-> (fof) )
+FROM MATCH (p:Person) -[:has_friend]-> (friend:Person) -[:has_friend]-> (fof:Person)
+      ON my_graph
+WHERE NOT EXISTS ( SELECT * FROM MATCH (p) -[:has_friend]-> (fof) ON my_graph )
 ```
 
 Here, vertices `p` and `fof` are passed from the outer query to the inner query. The `EXISTS` returns true if there is at least one `has_friend` edge between vertices `p` and `fof`.
@@ -4334,8 +4362,8 @@ For example:
 
 ```sql
 SELECT a.name
-  FROM MATCH (a)
- WHERE a.age > ( SELECT AVG(b.age) FROM MATCH (a) -[:friendOf]-> (b) )
+FROM MATCH (a) ON my_graph
+WHERE a.age > ( SELECT AVG(b.age) FROM MATCH (a) -[:friendOf]-> (b) ON my_graph )
 ```
 
 Another example is:
@@ -4343,25 +4371,23 @@ Another example is:
 {% include image.html file="example_graphs/financial_transactions.png" %}
 
 ```sql
-  SELECT p.name AS name
-       , ( SELECT SUM(t.amount)
-             FROM MATCH (a) <-[t:transaction]- (:Account)
-                     ON financial_transactions
-         ) AS sum_incoming
-       , ( SELECT SUM(t.amount)
-             FROM MATCH (a) -[t:transaction]-> (:Account)
-                     ON financial_transactions
-         ) AS sum_outgoing
-       , ( SELECT COUNT(DISTINCT p2)
-             FROM MATCH (a) -[t:transaction]- (:Account) -[:owner]-> (p2:Person)
-                     ON financial_transactions
-            WHERE p2 <> p
-         ) AS num_persons_transacted_with
-       , ( SELECT COUNT(DISTINCT c)
-             FROM MATCH (a) -[t:transaction]- (:Account) -[:owner]-> (c:Company)
-                     ON financial_transactions
-         ) AS num_companies_transacted_with
-    FROM MATCH (p:Person) <-[:owner]- (a:Account) ON financial_transactions
+SELECT p.name AS name
+     , ( SELECT SUM(t.amount)
+         FROM MATCH (a) <-[t:transaction]- (:Account) ON financial_transactions
+       ) AS sum_incoming
+    , ( SELECT SUM(t.amount)
+        FROM MATCH (a) -[t:transaction]-> (:Account) ON financial_transactions
+      ) AS sum_outgoing
+    , ( SELECT COUNT(DISTINCT p2)
+        FROM MATCH (a) -[t:transaction]- (:Account) -[:owner]-> (p2:Person)
+          ON financial_transactions
+        WHERE p2 <> p
+      ) AS num_persons_transacted_with
+    , ( SELECT COUNT(DISTINCT c)
+        FROM MATCH (a) -[t:transaction]- (:Account) -[:owner]-> (c:Company)
+               ON financial_transactions
+      ) AS num_companies_transacted_with
+FROM MATCH (p:Person) <-[:owner]- (a:Account) ON financial_transactions
 ORDER BY sum_outgoing + sum_incoming DESC
 ```
 
@@ -4408,12 +4434,43 @@ The syntax is:
 LateralSubquery ::= 'LATERAL' <Subquery>
 ```
 
+For example, the following query finds the top two people that transacted the most money (largest sum of incoming plus outgoing transactions). For each of those two people, it returns the two largest transactions.
+
+{% include image.html file="example_graphs/financial_transactions.png" %}
+
+```sql
+SELECT p.name, total_transacted, top_transaction
+FROM LATERAL ( SELECT p, SUM(t.amount) AS total_transacted
+               FROM MATCH (p:person) <- (a:account) -[t:transaction]- ()
+                      ON financial_transactions
+               GROUP BY p
+               ORDER BY total_transacted DESC
+               FETCH FIRST 2 ROW ONLY ),
+     LATERAL ( SELECT t.amount AS top_transaction
+               FROM MATCH (p) <- (a:account) -[t:transaction]- ()
+                      ON financial_transactions
+               ORDER BY t.amount DESC
+               FETCH FIRST 2 ROW ONLY )
+ORDER BY total_transacted DESC, top_transaction DESC
+```
+
+```
++----------------------------------------------+
+| name    | total_transacted | top_transaction |
++----------------------------------------------+
+| Liam    | 19899.5          | 9999.5          |
+| Liam    | 19899.5          | 9900.0          |
+| Camille | 10900.0          | 9900.0          |
+| Camille | 10900.0          | 1000.0          |
++----------------------------------------------+
+```
+
 In the following query, the `LATERAL` subquery projects the two vertices `a` and `p`, while the outer accesses properties of those vertices.
 
 ```sql
 SELECT p.name, a.number
 FROM LATERAL ( SELECT a, p
-               FROM MATCH (a:Account) -> (p:Person)
+               FROM MATCH (a:Account) -> (p:Person) ON financial_transactions
              )
 ```
 
@@ -4422,14 +4479,14 @@ Alternatively, properties can also be projected by the `LATERAL` subquery and th
 ```sql
 SELECT name, number
 FROM LATERAL ( SELECT p.name as name, a.number as number
-               FROM MATCH (a:Account) -> (p:Person)
+               FROM MATCH (a:Account) -> (p:Person) ON financial_transactions
              )
 ```
 
 ```sql
 SELECT p.name, number
 FROM LATERAL ( SELECT p, a.number as number
-               FROM MATCH (a:Account) -> (p:Person)
+               FROM MATCH (a:Account) -> (p:Person) ON financial_transactions
              )
 ```
 
@@ -4440,7 +4497,7 @@ Variables can be renamed in the projection of a `LATERAL` subquery. In this case
 ```sql
 SELECT account.name, person.number
 FROM LATERAL ( SELECT a as account, p as person
-               FROM MATCH (a:Account) -> (p:Person)
+               FROM MATCH (a:Account) -> (p:Person) ON financial_transactions
              )
 ```
 
@@ -4454,7 +4511,7 @@ For example:
 SELECT name, number
 FROM LATERAL ( SELECT a.name, p.number
                FROM LATERAL ( SELECT a,p
-                              FROM MATCH (a:Account) -> (p:Person)
+                              FROM MATCH (a:Account) -> (p:Person) ON financial_transactions
                             )
              )
 ```
@@ -4467,9 +4524,9 @@ In the example below `(a)` in the outer `MATCH` clause, is the same `(a)` projec
 ```sql
 SELECT p.name as pName, p1.name as p1Name
 FROM LATERAL ( SELECT a, p
-               FROM MATCH (a:Account) -> (p:Person)
+               FROM MATCH (a:Account) -> (p:Person) ON financial_transactions
              ),
-     MATCH (a) -> (a1:Account) -> (p1:Person)
+     MATCH (a) -> (a1:Account) -> (p1:Person) ON financial_transactions
 ```
 
 The `WHERE` clause of the outer query can reference variables projected in the `LATERAL` subquery and variables in the outer `MATCH` clause.
@@ -4477,9 +4534,9 @@ The `WHERE` clause of the outer query can reference variables projected in the `
 ```sql
 SELECT p.name as pName, p1.name as p1Name
 FROM LATERAL ( SELECT a, p
-               FROM MATCH (a:Account) -> (p:Person)
+               FROM MATCH (a:Account) -> (p:Person) ON financial_transactions
              ),
-     MATCH (a) -> (a1:Account) -> (p1:Person)
+     MATCH (a) -> (a1:Account) -> (p1:Person) ON financial_transactions
 WHERE p <> p1
 ```
 
@@ -4493,9 +4550,9 @@ Therefore, variables in the outer query with the same name are new variables and
 ```sql
 SELECT p.name
 FROM LATERAL ( SELECT a
-               FROM MATCH (a:Account) -> (p:Person)
+               FROM MATCH (a:Account) -> (p:Person) ON financial_transactions
              ),
-     MATCH (a) -> (a1:Account) -> (p:Person)
+     MATCH (a) -> (a1:Account) -> (p:Person) ON financial_transactions
 ```
 
 #### GROUP BY in `LATERAL` subquery
@@ -4507,10 +4564,11 @@ If a vertex is projected after a `LATERAL` subquery, it can be used in a subsequ
 SELECT p.name, ARRAY_AGG(a.number)
 FROM LATERAL ( SELECT p, SUM(t.amount) AS sum
                FROM MATCH (a1:Account) -[t:transaction] - (a:Account) -> (p:Person)
+                 ON financial_transactions
                GROUP BY p
                HAVING sum > 5000
              ),
-     MATCH (p) <- (a:Account)
+     MATCH (p) <- (a:Account) ON financial_transactions
      GROUP BY p
 ```
 
@@ -4521,9 +4579,10 @@ This includes using unnested vertices being used in a subsquent `MATCH` clause
 ```sql
 SELECT p.name as pName, p1.name as p1Name
 FROM LATERAL (SELECT p, v
-              FROM MATCH (p:Person) <- (a:Account),
-                   MATCH ANY (a) ->* (a1:Account) ONE ROW PER VERTEX (v)),
-     MATCH (v) -> (p1:Person)
+              FROM MATCH (p:Person) <- (a:Account) ON financial_transactions,
+                   MATCH ANY (a) ->* (a1:Account) ONE ROW PER VERTEX (v))
+                     ON financial_transactions,
+     MATCH (v) -> (p1:Person) ON financial_transactions
 ```
 
 # Graph Modification
@@ -4575,41 +4634,37 @@ PropertyAssignment      ::= <PropertyReference> '=' <ValueExpression>
 
 PGQL supports the insertions of edges and vertices into a graph.
 In the same query, multiple vertices and edges can be inserted by enumerating them after the `INSERT` keyword.
-All inserted entities must be identified with a variable name that has to be unique for the whole modification query.
-
-So the following query should fail, because the variable `x` is not only local to the vertex insertion term:
-
-```sql
-INSERT VERTEX x, VERTEX x
-```
-
-The id values for the inserted entities are automatically generated.
+Each vertex or edge declared in the `INSERT` needs to have a unique name.
 
 ### Inserting vertices
 
-Vertices can be inserted with or without a match.
+Vertices can be inserted with or without a `FROM` clause.
 
-If the match is missing, one unconnected vertex is inserted to the graph. For example in case of the following query
+If the `FROM` clause is missing, exactly one vertex is inserted per vertex insertion.
+For examle, since the following query has only one vertex insertion, it will insert exactly one vertex in the graph.
+The vertex will not be connected to any other vertices in the graph.
 
 ```sql
-INSERT VERTEX x LABELS ( Male ) PROPERTIES ( x.age = 22 )
+INSERT INTO my_graph VERTEX x LABELS ( Male ) PROPERTIES ( x.age = 22 )
 ```
 
-In the presence of a match, as many vertices are inserted as many rows are matched.
-So the following query inserts a new vertex for every vertex in the graph that is labelled `Male`.
+In the presence of a `FROM` clause, per vertex insertion, as many vertices are inserted as there are rows returned from the query.
+For example, the following query inserts a new vertex for every vertex in the graph that is labelled `Male`.
 
 
 ```sql
-INSERT VERTEX x LABELS ( Male ) PROPERTIES ( x.age = y.age )
-  FROM MATCH (y:Male)
+INSERT INTO my_graph
+  VERTEX x LABELS ( Male ) PROPERTIES ( x.age = y.age )
+FROM MATCH (y:Male) ON my_graph
 ```
 
 In the presence of a `GROUP BY` expression, as many vertices are inserted, as many groups are matched.
 For example the following query inserts a new vertex for every profession in the graph.
 
 ```sql
-  INSERT VERTEX x LABELS ( Profession ) PROPERTIES ( x.name = y.profession )
-    FROM MATCH (y:Person)
+INSERT INTO my_graph
+  VERTEX x LABELS ( Profession ) PROPERTIES ( x.name = y.profession )
+FROM MATCH (y:Person) ON my_graph
 GROUP BY y.profession
 ```
 
@@ -4621,10 +4676,10 @@ Only the insertion of directed edges are supported.
 For example the following query inserts a vertex with source `x` and destination `y`:
 
 ```sql
-INSERT EDGE e BETWEEN x AND y
-  FROM MATCH (x)
-     , MATCH (y)
- WHERE id(x) = 1 AND id(y) = 2
+INSERT INTO my_graph EDGE e BETWEEN x AND y
+FROM MATCH (x) ON my_graph
+   , MATCH (y) ON my_graph
+WHERE id(x) = 1 AND id(y) = 2
 ```
 
 ### Labels
@@ -4635,9 +4690,9 @@ For example:
 
 ```sql
 INSERT EDGE e BETWEEN x AND y LABELS ( knows )
-  FROM MATCH (x:Person)
-     , MATCH (y:Person)
- WHERE id(x) = 1 AND id(y) = 2
+FROM MATCH (x:Person) ON my_graph
+   , MATCH (y:Person) ON my_graph
+WHERE id(x) = 1 AND id(y) = 2
 ```
 
 ### Properties
@@ -4650,16 +4705,17 @@ Property expressions cannot refer to other entities that are inserted at the sam
 For example, the following query inserts a new vertex with `age = 22`:
 
 ```sql
-INSERT VERTEX v PROPERTIES ( v.age = 22 )
+INSERT INTO my_graph VERTEX v PROPERTIES ( v.age = 22 )
 ```
 
 Edge properties can be specified in the same manner:
 
 ```sql
-INSERT EDGE e BETWEEN x AND y LABELS ( knows ) PROPERTIES ( e.since = DATE '2017-09-21' )
-  FROM MATCH (x:Person)
-     , MATCH (y:Person)
- WHERE id(x) = 1 AND id(y) = 2
+INSERT INTO my_graph
+  EDGE e BETWEEN x AND y LABELS ( knows ) PROPERTIES ( e.since = DATE '2017-09-21' )
+FROM MATCH (x:Person) ON my_graph
+   , MATCH (y:Person) ON my_graph
+WHERE id(x) = 1 AND id(y) = 2
 ```
 
 In case of partitioned schema, only those properties can be assigned that are defined for the type of the entity.
@@ -4672,7 +4728,7 @@ One insert clause can contain multiple inserts.
 For example, the query below inserts two vertices into the graph:
 
 ```sql
-INSERT
+INSERT INTO my_graph
   VERTEX v LABELS ( Male ) PROPERTIES ( v.age = 23, v.name = 'John' ),
   VERTEX u LABELS ( Female ) PROPERTIES ( u.age = 24, u.name = 'Jane' )
 ```
@@ -4682,10 +4738,11 @@ Multiple insertions under the same `INSERT` can be used to set a newly inserted 
 For example, the following query inserts a vertex and an edge that connects it to the matched vertex `y`:
 
 ```sql
-INSERT VERTEX x LABELS ( Person ) PROPERTIES ( x.name = 'John' )
-     , EDGE e BETWEEN x AND y LABELS ( knows ) PROPERTIES ( e.since = DATE '2017-09-21' )
-  FROM MATCH (y)
- WHERE y.name = 'Jane'
+INSERT INTO my_graph
+  VERTEX x LABELS ( Person ) PROPERTIES ( x.name = 'John' ),
+  EDGE e BETWEEN x AND y LABELS ( knows ) PROPERTIES ( e.since = DATE '2017-09-21' )
+FROM MATCH (y) ON my_graph
+WHERE y.name = 'Jane'
 ```
 
 Note that the properties of `x` cannot be accessed in the property assignments of `e`, only the variable itself is visible as source of the edge.
@@ -4697,9 +4754,9 @@ If a vertex pair is matched more than once, multiple edges will be inserted betw
 
 For example consider the following query:
 ```sql
-INSERT EDGE e BETWEEN x AND y
-  FROM MATCH (x)
-     , MATCH (y) -> (z)
+INSERT INTO my_graph EDGE e BETWEEN x AND y
+FROM MATCH (x) ON my_graph
+   , MATCH (y) -> (z) ON my_graph
  WHERE id(x) = 1
 ```
 
@@ -4734,8 +4791,8 @@ For example, the following query sets the property `age` of every person named "
 
 ```sql
 UPDATE x SET ( x.age = 42 )
-  FROM MATCH (x:Person)
- WHERE x.name = 'John'
+FROM MATCH (x:Person) ON my_graph
+WHERE x.name = 'John'
 ```
 
 An example in which properties of multiple vertices and edges are update is:
@@ -4744,8 +4801,8 @@ An example in which properties of multiple vertices and edges are update is:
 UPDATE v SET ( v.carOwner = true )
      , u SET ( u.weight = 3500 )
      , e SET ( e.since = DATE '2010-01-03' )
-  FROM MATCH (v:Person) <-[e:belongs_to]- (u:Car)
- WHERE v.name = 'John'
+FROM MATCH (v:Person) <-[e:belongs_to]- (u:Car) ON my_graph
+WHERE v.name = 'John'
 ```
 
 Above, we match a person named John and the car that belongs to John. We then set the property `carOwner` of John to true, we set the property `weight` of the car to 3500, and we set the property `since` of the `belongs_to` edge to the date 2010-01-03.
@@ -4759,7 +4816,7 @@ For example consider the following update:
 
 ```sql
 UPDATE x SET ( x.a = y.b, x.b = 12 )
-  FROM MATCH (x) -> (y)
+FROM MATCH (x) -> (y) ON my_graph
 ```
 
 It is possible, that a vertex is matched by both `(x)` and `(y)` for example
@@ -4781,7 +4838,7 @@ For example consider the following query:
 
 ```sql
 UPDATE x SET ( x.a = y.a )
-  FROM MATCH (x) -> (y)
+FROM MATCH (x) -> (y) ON my_graph
 ```
 
 If the following vertices are matched
@@ -4803,8 +4860,8 @@ times `v.a` is written, it is always assigned the same value (65 minus its age p
 
 ```sql
 UPDATE v SET ( v.a = 65 - v.age )
-  FROM MATCH (v:Person) -> (u:Person)
- WHERE v.name = 'John'
+FROM MATCH (v:Person) -> (u:Person) ON my_graph
+WHERE v.name = 'John'
 ```
 
 In the following case, however, multiple writes to `v.a` are not allowed, because the value of the property would be
@@ -4812,8 +4869,8 @@ ambiguous, 65 minus the other vertex's age property, that can be different for d
 
 ```sql
 UPDATE v SET ( v.a = 65 - u.age )
-  FROM MATCH (v:Person) -> (u:Person)
- WHERE v.name = 'John'
+FROM MATCH (v:Person) -> (u:Person) ON my_graph
+WHERE v.name = 'John'
 ```
 
 ## DELETE
@@ -4829,14 +4886,14 @@ For example, one can delete all edges from a graph using the following query
 
 ```sql
 DELETE e
-  FROM MATCH () -[e]-> ()
+FROM MATCH () -[e]-> () ON my_graph
 ```
 
 Multiple deletes to the same entity are not considered conflicting. For example consider the following query:
 
 ```sql
 DELETE x, y
-  FROM MATCH (x) -> (y)
+FROM MATCH (x) -> (y) ON my_graph
 ```
 
 In that case, even if a vertex is matched multiple times by `(x)` or `(y)`, and deleted multiple times, the query will complete without an exception.
@@ -4847,15 +4904,15 @@ So the following query not only deletes the vertex with id `11` but also all edg
 
 ```sql
 DELETE x
-  FROM MATCH (x)
- WHERE id(x) = 11
+FROM MATCH (x) ON my_graph
+WHERE id(x) = 11
 ```
 
 Because of implicit deletion of edges, the following query can be used to delete all edges as well as all vertices from a graph:
 
 ```sql
 DELETE x
-  FROM MATCH (x)
+FROM MATCH (x) ON my_graph
 ```
 
 ## Combining INSERT, UPDATE and DELETE
@@ -4864,10 +4921,10 @@ Multiple modifications can be executed in the same query.
 For example, to update a vertex and also insert an edge with the same vertex as source, the following query can be used:
 
 ```sql
-INSERT EDGE e BETWEEN x AND y
+INSERT INTO my_graph EDGE e BETWEEN x AND y
 UPDATE y SET ( y.a = 12 )
-  FROM MATCH (x), MATCH (y)
- WHERE id(x) = 1 AND id(y) = 2
+FROM MATCH (x) ON my_graph, MATCH (y) ON my_graph
+WHERE id(x) = 1 AND id(y) = 2
 ```
 
 ### Isolation semantics of modification queries
@@ -4878,17 +4935,18 @@ For this reason, property assignments can come from updated and deleted vertices
 For example, the query below succeeds, because `y.age` is evaluated based on the graph's status before the query.
 
 ```sql
-INSERT VERTEX x PROPERTIES ( x.age = y.age )
+INSERT INTO my_graph VERTEX x PROPERTIES ( x.age = y.age )
 DELETE y
-  FROM MATCH (y)
+FROM MATCH (y) ON my_graph
 ```
 
 Please note, that for the same reason, properties of newly inserted vertices cannot be referenced in the right-hand-side expressions.
 For example, the following query would fail as `x` is not yet in the graph, and `x.age` cannot be evaluated:
 
 ```sql
-INSERT VERTEX x PROPERTIES ( v.age = 24 )
-     , VERTEX y PROPERTIES ( y.age = x.age )
+INSERT INTO my_graph
+  VERTEX x PROPERTIES ( v.age = 24 ),
+  VERTEX y PROPERTIES ( y.age = x.age )
 ```
 
 ### Handling conflicting modifications
@@ -4905,7 +4963,7 @@ For example, let us consider the following query:
 ```sql
 UPDATE x SET ( x.a = 11 )
 DELETE x
-  FROM MATCH (x)
+FROM MATCH (x) ON my_graph
 ```
 
 There the conflict is trivial between the deleted and the updated vertex.
@@ -4915,7 +4973,7 @@ the following query can also fail due to conflicting update and delete:
 ```sql
 UPDATE x SET ( x.a = 11 )
 DELETE y
-  FROM MATCH (x) -> (y)
+FROM MATCH (x) -> (y) ON my_graph
 ```
 
 If the vertices matched by `x` are distinct to the ones matched by `y` the query should pass, however, if there is a vertex that is matched by both `x` and `y` the query will fail with an exception.
@@ -4927,10 +4985,10 @@ Note that because of the snapshot semantics, this is only possible if an edge is
 For example, consider the following, not trivial case:
 
 ```sql
-INSERT EDGE e BETWEEN x AND y
+INSERT INTO my_graph EDGE e BETWEEN x AND y
 DELETE z
-  FROM MATCH (x) -> (y), MATCH (z)
- WHERE id(z) = 11
+FROM MATCH (x) -> (y) ON my_graph, MATCH (z) ON my_graph
+WHERE id(z) = 11
 ```
 
 If any vertex is matched by `z` and either `x` or `z` then after executing the query the inserted edge would not have a source or destination.
@@ -4962,14 +5020,14 @@ For example, the following two queries are equivalent:
 
 ```sql
 SELECT n.dob AS name
-  FROM MATCH (n:Person) ON myGraph
- WHERE n.firstName = 'Nikita'
+FROM MATCH (n:Person) ON myGraph
+WHERE n.firstName = 'Nikita'
 ```
 
 ```sql
 SELECT "N"."DOB"
-  FROM MATCH ("N":"PERSON") ON "MYGRAPH"
- WHERE "N"."FIRSTNAME" = 'Nikita'
+FROM MATCH ("N":"PERSON") ON "MYGRAPH"
+WHERE "N"."FIRSTNAME" = 'Nikita'
 ```
 
 Note that this is aligned to SQL, which also automatically uppercases unquoted identifiers.
@@ -5006,8 +5064,8 @@ Here is an example of how to use such a string as a property name in PGQL:
 
 ```sql
 SELECT *
-  FROM MATCH (n)
- WHERE n."My string with single quotes ', double quotes "", backslashes \
+FROM MATCH (n) ON my_graph
+WHERE n."My string with single quotes ', double quotes "", backslashes \
 new lines and tabs	." = 123
 ```
 
@@ -5043,8 +5101,8 @@ Here is an example of how to use such a string as literal in PGQL:
 
 ```sql
 SELECT *
-  FROM MATCH (n)
- WHERE n.prop = 'My string with single quotes '', double quotes ", backslashes \
+FROM MATCH (n) ON my_graph
+WHERE n.prop = 'My string with single quotes '', double quotes ", backslashes \
 new lines and tabs	.'
 ```
 
@@ -5108,5 +5166,5 @@ For example:
    multi-line
    comment. */
 SELECT n.name, n.age
-  FROM MATCH (n:Person) /* this is a single-line comment */
+FROM MATCH (n:Person) ON my_graph /* this is a single-line comment */
 ```
