@@ -1192,8 +1192,8 @@ The following explains the syntactic structure of SELECT clause.
 SelectClause        ::=   'SELECT' 'DISTINCT'? <SelectElement> ( ',' <SelectElement> )*
                         | 'SELECT' '*'
 
-SelectElement       ::=   ExpAsVar
-                        | AllProperties
+SelectElement       ::=   <ExpAsVar>
+                        | <AllProperties>
 
 ExpAsVar            ::= <ValueExpression> ( 'AS' <VariableName> )?
 
