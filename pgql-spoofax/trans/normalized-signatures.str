@@ -23,7 +23,7 @@ signature constructors // for the normalized AST (see trans/normalize.str)
   PgqlVersion           : STRING
   GraphName             : LocalOrSchemaQualifiedName -> GraphName
   CommonPathExpressions : List(CommonPathExpression) -> CommonPathExpressions
-  GraphPattern          : Vertices * Connections * Constraints -> GraphPattern
+  GraphPattern          : Vertices * Connections * Constraints * OptionalMatchKeyWord -> GraphPattern
   Vertices              : List(Vertex) -> Vertices
   Vertex                : Var -> Vertex
   Edges                 : List(Edge) -> Edges
@@ -67,7 +67,7 @@ signature constructors // for the normalized AST (see trans/normalize.str)
 
   TableExpressionsAndGraphName : GraphPattern * Name * WhereClause -> TableExpressionsAndGraphName
 
-  PathPatternAndRowsPerMatch   : PathPattern * RowsPerMatch * WhereClause -> PathPatternAndRowsPerMatch
+  PathPatternAndRowsPerMatch   : PathPattern * RowsPerMatch * WhereClause * Optional(OptionalKeyword) -> PathPatternAndRowsPerMatch
 
   SelectingAllProperties       : Boolean -> SelectingAllProperties
 
@@ -96,7 +96,7 @@ signature constructors // for name binding (see trans/trans-for-nabl.str)
   Exp                   : TransformedExp
   None                  : TransformedExp
 
-  GraphPattern          : Vertices * Connections * Constraints * CrossReferences -> GraphPattern
+  GraphPattern          : Vertices * Connections * Constraints * CrossReferences * OptionalMatchKeyWord -> GraphPattern
 
   Correlation           : VarRef -> CrossRef
 

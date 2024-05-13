@@ -4,8 +4,10 @@
 package oracle.pgql.lang.ir;
  
 public enum TableExpressionType {
- 
+
   GRAPH_PATTERN,
- 
+
+  OPTIONAL_GRAPH_PATTERN,
+
   DERIVED_TABLE
 }

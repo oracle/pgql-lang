@@ -77,7 +77,7 @@ rules
        ; variables-in-projection := <diff> (<Hd> variables'''', <Hd> variables''')
 
   trans-table-expression(|metadata, variable-counter, expAsVars):
-    (GraphPattern(vertices, connections, Constraints(valueExpression)), (result, variables, valueExpressionPriorLateralQueries)) -> (result', variables', valueExpression'')
+    (GraphPattern(vertices, connections, Constraints(valueExpression), optionalMatchKeyword), (result, variables, valueExpressionPriorLateralQueries)) -> (result', variables', valueExpression'')
       with  // MATCH
            (vertices', connections') := <alltd(trans-elem(|variables))> (vertices, <alltd(trans-rows-per-match(|variables))> connections)
           ; edges := <filter(?Edge(_, _, _, _, _, _) + path-with-at-most-one-binding)> connections'
@@ -95,7 +95,7 @@ rules
           // local WHERE clause for has_label constraints and future inlined constraints
           ; valueExpression' := <resolve-value-expression(|variables', expAsVars, metadata, variable-counter)> valueExpression
 
-          ; graphPattern' := GraphPattern(vertices', connections'', Constraints(valueExpression'))
+          ; graphPattern' := GraphPattern(vertices', connections'', Constraints(valueExpression'), optionalMatchKeyword)
           ; result' := <conc> (result, [graphPattern'])
           ; valueExpression'' := <conc> (valueExpressionPriorLateralQueries, valueExpression') // for SELECT n.* we need to have all the label expression
 
@@ -200,7 +200,7 @@ rules
        ; selectClause' := <origin-track-forced(!SelectClause(star', selectList))> t
 
   extract-variables-for-select-star(|star, variable-counter) =
-      ?GraphPattern(_, _, _)
+      ?GraphPattern(_, _, _, _)
     ; collect-in-outer-query(?Vertex(<id>, _, _) + ?Edge(_, <id>, _, _, _, _))
     ; filter(is-anonymous-variable)
     ; map(generate-ExpAsVar(|star))
@@ -223,7 +223,7 @@ rules
        ; originOffset := <origin-offset> t
        ; result := <origin-track-forced(!AllProperties(VarRef(identifier, originOffset), prefix))> t
 
-  replace-all-AllProperties(|variable-counter) = ?GraphPattern(_, _, _)
+  replace-all-AllProperties(|variable-counter) = ?GraphPattern(_, _, _, _)
 
   replace-all-AllProperties(|variable-counter) = DerivedTable(id, Subquery(NormalizedQuery(id, replace-AllProperties-in-Select(|variable-counter), id, id, id, id, id, id, id, id)), id)
 
@@ -556,7 +556,7 @@ rules
     OrderByClause(elems) -> OrderByClause(elems')
     with elems' := <make-set-while-preserving-ordering> elems // optimization to translate e.g. ORDER BY x, y, x, y into ORDER BY x, y
 
-  normalize-ANY-paths(|variables) = GraphPattern(id, map(try(normalize-ANY-path(|variables))), id)
+  normalize-ANY-paths(|variables) = GraphPattern(id, map(try(normalize-ANY-path(|variables))), id, id)
 
   normalize-ANY-path(|variables):
     Path(src, dst, t@CommonPathExpression(_, Vertices(vertices), Edges(edges), _, _), quantifier, edge, direction, Any(), topKAnyAll, pathMode, rowsPerMatch)
