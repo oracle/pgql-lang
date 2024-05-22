@@ -1,7 +1,7 @@
 ---
 title: "PGQL 2.0 Specification"
 date: "19 May 2023"
-permalink: /spec/2.0/
+#permalink: /spec/2.0/
 summary: "PGQL is an SQL-based query language for the property graph data model that allows
 you to specify high-level graph patterns which are matched against vertices and edges in a graph.
 PGQL has support for grouping (GROUP BY), aggregation (e.g. MIN, MAX, AVG, SUM), sorting (ORDER BY) and many other familiar SQL constructs.
@@ -847,8 +847,14 @@ The following query matches all the vertices with the label `Person` and retriev
 {% include image.html file="example_graphs/student_network.png"  %}
 
 ```sql
+--PGQL
 SELECT n.name, n.dob
 FROM MATCH (n:Person) ON student_network
+--SQL
+SELECT name, dob 
+FROM GRAPH_TABLE(student_network 
+  MATCH (n IS Person) 
+  COLUMNS(n.name, n.dob))
 ```
 
 ```
@@ -878,8 +884,14 @@ For example:
 {% include image.html file="example_graphs/student_network.png"  %}
 
 ```sql
+--PGQL
 SELECT a.name AS a, b.name AS b
 FROM MATCH (a:Person) -[e:knows]-> (b:Person) ON student_network
+--SQL
+SELECT a, b 
+FROM GRAPH_TABLE(student_network 
+  MATCH (a IS Person)-[e is knows]->(b is Person)
+  COLUMNS(a.name as a, b.name as b))
 ```
 
 ```
@@ -909,8 +921,14 @@ For example:
 {% include image.html file="example_graphs/student_network.png"  %}
 
 ```sql
+--PGQL
 SELECT n.name, n.dob
 FROM MATCH (n:Person|University) ON student_network
+--SQL
+SELECT name, dob 
+FROM GRAPH_TABLE(student_network 
+  MATCH (n IS Person|university)
+  COLUMNS(n.name, n.dob))
 ```
 
 ```
@@ -935,8 +953,14 @@ For example:
 {% include image.html file="example_graphs/student_network.png"  %}
 
 ```sql
+---PGQL
 SELECT n.name, n.dob
 FROM MATCH (n) ON student_network
+--SQL
+SELECT name, dob 
+FROM GRAPH_TABLE(student_network
+  MATCH (n)
+  COLUMNS(n.name, n.dob))
 ```
 
 ```
@@ -962,9 +986,16 @@ For example, "find all persons that have a date of birth (dob) greater than 1995
 {% include image.html file="example_graphs/student_network.png"  %}
 
 ```sql
+--PGQl
 SELECT n.name, n.dob
 FROM MATCH (n) ON student_network
 WHERE n.dob > DATE '1995-01-01'
+--SQL
+SELECT name, dob 
+FROM GRAPH_TABLE(student_network 
+  MATCH (n) 
+  WHERE n.dob > DATE '1995-01-01'
+  COLUMNS(n.name, n.dob))
 ```
 
 ```
@@ -985,9 +1016,16 @@ Another example is to "find people that Kathrine knows and that are old than her
 {% include image.html file="example_graphs/student_network.png"  %}
 
 ```sql
+--PGQL
 SELECT m.name AS name, m.dob AS dob
 FROM MATCH (n) -[e]-> (m) ON student_network
 WHERE n.name = 'Kathrine' AND n.dob <= m.dob
+--SQL
+SELECT name, dob 
+FROM GRAPH_TABLE(student_network 
+  MATCH (n) -[e]-> (m) 
+  WHERE n.name = 'Kathrine' AND n.dob <= m.dob 
+  COLUMNS(m.name, m.dob))
 ```
 
 ```
@@ -1012,10 +1050,17 @@ For example, "find people that Lee knows and that are a student at the same univ
 {% include image.html file="example_graphs/student_network.png"  %}
 
 ```sql
+--PGQL
 SELECT p2.name AS friend, u.name AS university
 FROM MATCH (u:University) <-[:studentOf]- (p1:Person) -[:knows]-> (p2:Person) -[:studentOf]-> (u)
        ON student_network
 WHERE p1.name = 'Lee'
+--SQL
+SELECT friend, university 
+FROM GRAPH_TABLE(student_network 
+  MATCH (u IS university) <-[IS studentOf]- (p1 IS Person) -[IS knows]-> (p2 IS Person) -[IS studentOf]-> (u) 
+  WHERE p1.name = 'Lee' 
+  COLUMNS(p2.name AS friend, u.name AS university))
 ```
 
 ```
@@ -1032,11 +1077,20 @@ Note that the first and last vertex pattern both have the variable `u`. This mea
 The same query as above may be expressed through multiple comma-separated path patterns, like this:
 
 ```sql
+--PGQL
 SELECT p2.name AS friend, u.name AS university
 FROM MATCH (p1:Person) -[:knows]-> (p2:Person) ON student_network
    , MATCH (p1) -[:studentOf]-> (u:University) ON student_network
    , MATCH (p2) -[:studentOf]-> (u) ON student_network
 WHERE p1.name = 'Lee'
+--SQL
+SELECT friend, university 
+FROM GRAPH_TABLE(student_network 
+  MATCH (p1 IS Person) -[IS knows]-> (p2 IS Person), 
+        (p1) -[IS studentOf]-> (u IS University), 
+        (p2) -[IS studentOf]-> (u) 
+  WHERE p1.name = 'Lee' 
+  COLUMNS(p2.name AS friend, u.name AS university))
 ```
 
 ```
@@ -1058,10 +1112,17 @@ For example, "find friends of friends of Lee" (friendship being defined by the p
 {% include image.html file="example_graphs/student_network.png"  %}
 
 ```sql
+--PGQL
 SELECT p1.name AS p1, p2.name AS p2, p3.name AS p3
 FROM MATCH (p1:Person) -[:knows]-> (p2:Person) -[:knows]-> (p3:Person)
        ON student_network
 WHERE p1.name = 'Lee'
+--SQL
+SELECT p1, p2, p3 
+FROM GRAPH_TABLE(student_network 
+  MATCH (p1 IS Person) -[IS knows]-> (p2 IS Person) -[IS knows]-> (p3 IS Person) 
+  WHERE p1.name = 'Lee' 
+  COLUMNS(p1.name AS p1, p2.name AS p2, p3.name AS p3))
 ```
 
 ```
@@ -1080,10 +1141,17 @@ If such binding of vertices to multiple variables is not desired, one can use ei
 For example, the predicate `p1 <> p3` in the query below adds the restriction that Lee, which has to bind to variable `p1`, cannot also bind to variable `p3`:
 
 ```sql
+--PGQL
 SELECT p1.name AS p1, p2.name AS p2, p3.name AS p3
 FROM MATCH (p1:Person) -[:knows]-> (p2:Person) -[:knows]-> (p3:Person)
        ON student_network
 WHERE p1.name = 'Lee' AND p1 <> p3
+--SQL
+SELECT p1, p2, p3 
+FROM GRAPH_TABLE(student_network 
+  MATCH (p1 IS Person) -[IS knows]-> (p2 IS Person) -[IS knows]-> (p3 IS Person) 
+  WHERE p1.name = 'Lee' AND NOT VERTEX_EQUAL(p1, p3) 
+  COLUMNS(p1.name AS p1, p2.name AS p2, p3.name AS p3))
 ```
 
 ```
@@ -1097,10 +1165,17 @@ WHERE p1.name = 'Lee' AND p1 <> p3
 An alternative is to use the [ALL_DIFFERENT predicate](#all_different-predicate), which can take any number of vertices or edges as input and specifies non-equality between all of them:
 
 ```sql
+--PGQL
 SELECT p1.name AS p1, p2.name AS p2, p3.name AS p3
 FROM MATCH (p1:Person) -[:knows]-> (p2:Person) -[:knows]-> (p3:Person)
        ON student_network
 WHERE p1.name = 'Lee' AND ALL_DIFFERENT(p1, p3)
+--SQL
+SELECT * 
+FROM GRAPH_TABLE(student_network 
+  MATCH (p1 IS Person) -[ IS knows]-> (p2 IS Person) -[ IS knows]-> (p3 IS Person) 
+  WHERE p1.name = 'Lee' AND ALL_DIFFERENT(p1, p3) 
+  COLUMNS(p1.name AS p1, p2.name AS p2, p3.name AS p3))
 ```
 
 ```
@@ -1116,18 +1191,25 @@ Besides vertices binding to multiple variables, it is also possible for edges to
 For example, "find two people that both know Riya":
 
 ```sql
-SELECT p1.name AS p1, p2.name AS p2, e1 = e2
+--PGQL
+SELECT p1.name AS p1, p2.name AS p2, e1 = e2 AS e1_equals_e2
 FROM MATCH (p1:Person) -[e1:knows]-> (riya:Person) ON student_network
    , MATCH (p2:Person) -[e2:knows]-> (riya) ON student_network
 WHERE riya.name = 'Riya'
+--SQL
+SELECT p1, p2, e1_equals_e2 
+FROM GRAPH_TABLE(student_network 
+  MATCH (p1 IS Person) -[e1 IS knows]-> (riya IS Person), (p2 IS Person) -[e2 IS knows]-> (riya) 
+  WHERE riya.name = 'Riya'  
+  COLUMNS(p1.name AS p1, p2.name AS p2, EDGE_EQUAL(e1, e2) AS e1_equals_e2))
 ```
 
 ```
-+-------------------------------+
-| p1       | p2       | e1 = e2 |
-+-------------------------------+
-| Kathrine | Kathrine | true    |
-+-------------------------------+
++------------------------------------+
+| p1       | p2       | e1_equals_e2 |
++------------------------------------+
+| Kathrine | Kathrine | true         |
++------------------------------------+
 ```
 
 Above, the only solution has Kathrine bound to both variables `p1` and `p2` and the single edge between Kathrine and Riya is bound to both `e1` and `e2`, which is why `e1 = e2` in the `SELECT` clause returns `true`.
@@ -1141,8 +1223,14 @@ Any-directed edge patterns match edges in the graph no matter if they are incomi
 An example query with two any-directed edge patterns is:
 
 ```sql
-SELECT *
+--PGQL
+SELECT n.name AS n, m.name AS m, o.name AS o
 FROM MATCH (n) -[e1]- (m) -[e2]- (o) ON student_network
+--SQL
+SELECT * 
+FROM GRAPH_TABLE(student_network 
+  MATCH (n) -[e1]- (m) -[e2]- (o) 
+  COLUMNS(n.name AS n, m.name AS m, o.name AS o))
 ```
 
 Note that in case there are both incoming and outgoing data edges between two data vertices, there will be separate result bindings for each of the edges.
@@ -1210,8 +1298,14 @@ A `SELECT` clause consists of the keyword `SELECT` followed by either an optiona
 Consider the following example:
 
 ```sql
-SELECT n, m, n.age AS age
+--PGQL
+SELECT ID(n) AS n, ID(m) AS m, n.age AS age
 FROM MATCH (n:Person) -[e:friend_of]-> (m:Person) ON my_graph
+--SQL
+SELECT n, m, age
+FROM GRAPH_TABLE(student_network 
+  MATCH (n) -[e1]- (m) -[e2]- (o) 
+  COLUMNS(VERTEX_ID(n) AS n, VERTEX_ID(m) AS m, n.age AS age))
 ```
 
 Per each matched subgraph, the query returns two vertices `n` and `m` and the value for property age of vertex `n`.  Note that edge `e` is omitted from the result even though it is used for describing the pattern.
@@ -1223,15 +1317,22 @@ The `DISTINCT` modifier allows for filtering out duplicate results. The operatio
 It is possible to assign a variable name to any of the selection expression, by appending the keyword `AS` and a variable name. The variable name is used as the column name of the result set. In addition, the variable name can be later used in the `ORDER BY` clause. See the related section later in this document.
 
 ```sql
-SELECT n.age * 2 - 1 AS pivot, n.name, n
+--PGQL
+SELECT n.age * 2 - 1 AS pivot, n.name
 FROM MATCH (n:Person) -> (m:Car) ON my_graph
+ORDER BY pivot
+--SQL
+SELECT age * 2 - 1 AS pivot, name
+FROM GRAPH_TABLE(my_graph 
+  MATCH(n IS Person) -> (m IS Car)
+  COLUMNS (n.age, n.name))
 ORDER BY pivot
 ```
 
 ### SELECT *
 
 `SELECT *` is a special `SELECT` clause. The semantic of `SELECT *` is to select all the variables in the graph pattern.
-
+Note that with the `GRAPH_TABLE` operator, it is not possible to select all variables in the `COLUMNS` clause. Instead, all needed properties has to be explicitly selected.
 Consider the following query:
 
 ```sql
@@ -1260,8 +1361,15 @@ For example:
 {% include image.html file="example_graphs/financial_transactions.png" %}
 
 ```sql
-SELECT label(n), n.*
+--PGQL
+SELECT ID(n), n.*
 FROM MATCH (n) ON financial_transactions
+ORDER BY "number", "name"
+--SQL
+SELECT  *  
+FROM GRAPH_TABLE (financial_transactions 
+  MATCH(n) 
+  COLUMNS(VERTEX_ID(n) as n_id, n.*)) 
 ORDER BY "number", "name"
 ```
 
@@ -1286,9 +1394,16 @@ edge labels:
 {% include image.html file="example_graphs/financial_transactions.png" %}
 
 ```sql
-SELECT label(n), n.*
+--PGQL
+SELECT ID(n), n.*
 FROM MATCH (n:Person) ON financial_transactions
 ORDER BY "name"
+--SQL
+SELECT  *  
+FROM GRAPH_TABLE (financial_transactions 
+  MATCH(n IS Person) 
+  COLUMNS(VERTEX_ID(n) as n_id, n.*)) 
+ORDER BY  "name"
 ```
 
 ```
@@ -1302,6 +1417,7 @@ ORDER BY "name"
 ```
 
 A `PREFIX` can be specified to avoid duplicate column names in case all properties of multiple vertex or edge variables are selected.
+Note: `PREFIX` cannot be used withing the GRAPH_TABLE operator.
 
 For example:
 
@@ -1404,9 +1520,16 @@ GraphReference ::= <GraphName>
 For example:
 
 ```sql
+--PGQL
 SELECT p.first_name, p.last_name
 FROM MATCH (p:Person) ON my_graph
 ORDER BY p.first_name, p.last_name
+--SQL
+SELECT first_name, last_name 
+FROM GRAPH_TABLE(my_graph
+  MATCH(p IS Person)
+  COLUMNS(p.first_name, p.last_name))
+ORDER BY first_name, last_name
 ```
 
 Above, the pattern `(p:Person)` is matched on graph `my_graph`.
@@ -1418,6 +1541,7 @@ PGQL itself does not (yet) provide syntax for specifying a default graph, but Ja
  - Oracle's in-memory analytics engine PGX has the API `PgxGraph.queryPgql("SELECT ...")` such that the default graph corresponds to `PgxGraph.getName()` such that `ON` clauses can be omitted from queries.
  - Oracle's PGQL-on-RDBMS provides the API `PgqlConnection.setGraph("myGraph")` for setting the default graph such that the `ON` clauses can be omitted from queries.
 
+Note: graph names has to be explicitly provided for the GRAPH_TABLE operator.
 If a default graph is provided then the `ON` clause can be omitted:
 
 ```sql
@@ -1436,9 +1560,16 @@ Therefore, it is not possible for two `MATCH` clauses to have `ON` clauses with 
 There can be multiple topology constraints in the `FROM` clause of a PGQL query. In such a case, vertex terms that have the same variable name correspond to the same vertex entity. For example, consider the following two lines of topology constraints:
 
 ```sql
-SELECT *
+--PGQL
+SELECT n.*
  FROM MATCH (n) -[e1]-> (m1) ON my_graph,
       MATCH (n) -[e2]-> (m2) ON my_graph
+--SQL
+SELECT *
+FROM GRAPH_TABLE(my_graph
+  MATCH (n) -[e1]-> (m1),
+      (n) -[e2]-> (m2)
+  COLUMNS(n.*))
 ```
 
 Here, the vertex term `(n)` in the first constraint indeed refers to the same vertex as the vertex term `(n)` in the second constraint. It is an error, however, if two edge terms have the same variable name, or, if the same variable name is assigned to an edge term as well as to a vertex term in a single query.
@@ -1450,24 +1581,44 @@ There are various ways in which a particular graph pattern can be specified.
 First, a single path pattern can be written as a chain of edge terms such that two consecutive edge terms share the common vertex term in between. For example:
 
 ```sql
-SELECT *
+--PGQL
+SELECT n1.*
 FROM MATCH (n1) -[e1]-> (n2) -[e2]-> (n3) -[e3]-> (n4) ON my_graph
+--SQL
+SELECT *
+FROM GRAPH_TABLE(my_graph 
+  MATCH (n1) -[e1]-> (n2) -[e2]-> (n3) -[e3]-> (n4)
+  COLUMNS(n1.*))
 ```
 
 The above graph pattern is equivalent to the graph pattern specified by the following set of comma-separate path patterns:
 
 ```sql
-SELECT *
+--PGQL
+SELECT n1.*
 FROM MATCH (n1) -[e1]-> (n2) ON my_graph,
      MATCH (n2) -[e2]-> (n3) ON my_graph,
      MATCH (n3) -[e3]-> (n4) ON my_graph
+--SQL
+SELECT * 
+FROM GRAPH_TABLE(my_graph
+  MATCH (n1) -[e1]-> (n2),
+      (n2) -[e2]-> (n3),
+      (n3) -[e3]-> (n4)
+  COLUMNS(n1.*))
 ```
 
 Second, it is allowed to reverse the direction of an edge in the pattern, i.e. right-to-left instead of left-to-right. Therefore, the following is a valid graph pattern:
 
 ```sql
-SELECT *
+--PGQL
+SELECT n1.*
 FROM MATCH (n1) -[e1]-> (n2) <-[e2]- (n3) ON my_graph
+--SQL
+SELECT * 
+FROM GRAPH_TABLE(my_graph
+  MATCH (n1) -[e1]-> (n2) <-[e2]- (n3)
+  COLUMNS(n1.*))
 ```
 
 Please mind the edge directions in the above query – vertex `n2` is a common outgoing neighbor of both vertex `n1` and vertex `n3`.
@@ -1513,11 +1664,19 @@ ColonOrIsKeyword ::=    ':'
 
 Colons and `IS` keywords can be used interchangeably.
 
+Note: With GRAPH_TABLE operator only IS is allowed.
+
 Take the following example:
 
 ```sql
-SELECT *
+--PGQL
+SELECT x.*
 FROM MATCH (x:Person) -[e IS likes|knows]-> (y:Person) ON my_graph
+--SQL
+SELECT *
+FROM GRAPH_TABLE(my_graph
+  MATCH (x IS Person) -[e IS likes|knows]-> (y IS Person)
+  COLUMNS(x.*))
 ```
 
 Here, we specify that vertices `x` and `y` have the label `Person` and that the edge `e` has the label `likes` or the label `knows`.
@@ -1525,8 +1684,14 @@ Here, we specify that vertices `x` and `y` have the label `Person` and that the 
 A label expression can be specified even when a variable is omitted. For example:
 
 ```sql
+--PGQL
+SELECT x.*
+FROM MATCH (x IS Person) -[:likes|knows]-> (IS Person) ON my_graph
+--SQL
 SELECT *
-FROM MATCH (IS Person) -[:likes|knows]-> (IS Person) ON my_graph
+FROM GRAPH_TABLE(my_graph
+  MATCH (x IS Person) -[IS likes|knows]-> (IS Person)
+  COLUMNS(x.*))
 ```
 
 There are also built-in functions and predicates available for labels:
@@ -1549,10 +1714,18 @@ WhereClause ::= 'WHERE' <ValueExpression>
 For example:
 
 ```sql
+--PGQL
 SELECT y.name
   FROM MATCH (x) -> (y) ON my_graph
  WHERE x.name = 'Jake'
    AND y.age > 25
+--SQL
+SELECT name
+FROM GRAPH_TABLE(my_graph
+  MATCH(x) -> (y)
+  WHERE x.name = 'Jake'
+    AND y.age > 25
+  COLUMNS(y.name AS name))
 ```
 
 Here, the first filter describes that the vertex `x` has a property `name` and its value is `Jake`. Similarly, the second filter describes that the vertex `y` has a property `age` and its value is larger than `25`. Here, in the filter, the dot (`.`) operator is used for property access. For the detailed syntax and semantic of expressions, see [Functions and Expressions](#functions-and-expressions).
@@ -1560,10 +1733,18 @@ Here, the first filter describes that the vertex `x` has a property `name` and i
 Note that the ordering of constraints does not have an affect on the result, such that query from the previous example is equivalent to:
 
 ```sql
+--PGQL
 SELECT y.name
  FROM MATCH (x) -> (y) ON my_graph
 WHERE y.age > 25
   AND x.name = 'Jake'
+--SQL
+SELECT name
+FROM GRAPH_TABLE(my_graph
+  MATCH(x) -> (y)
+  WHERE y.age > 25
+    AND x.name = 'Jake'
+  COLUMNS(y.name AS name))
 ```
 
 ## GRAPH_TABLE Operator
@@ -1766,6 +1947,7 @@ An example is:
 {% include image.html file="example_graphs/financial_transactions.png" %}
 
 ```sql
+--PGQL
 SELECT a.number AS a,
        b.number AS b,
        COUNT(e) AS pathLength,
@@ -1773,6 +1955,17 @@ SELECT a.number AS a,
 FROM MATCH ANY SHORTEST (a:Account) -[e:transaction]->* (b:Account)
        ON financial_transactions
 WHERE a.number = 10039 AND b.number = 2090
+--SQL
+SELECT  a, b, pathLength, amounts 
+FROM GRAPH_TABLE(financial_transactions 
+  MATCH (a IS Account) -[e IS transaction]->* (b IS Account) 
+  KEEP ANY SHORTEST 
+  WHERE a.number = 10039 
+    AND b.number = 2090 
+  COLUMNS(a.number AS a,
+          b.number AS b, 
+          COUNT(EDGE_ID(e)) AS pathLength,
+          ARRAY_AGG(e.amount) AS amounts))
 ```
 
 ```
@@ -1789,11 +1982,20 @@ Shortest path finding is explained in more detail in [Shortest Path](#shortest-p
 Another example is:
 
 ```sql
+--PGQL
 SELECT LISTAGG(x.number, ', ') AS account_numbers, SUM(e.amount) AS total_amount
 FROM MATCH SHORTEST 4 PATHS (a:Account) ((x:Account) <-[e:transaction]-)+ (a)
        ON financial_transactions
 WHERE a.number = 10039
 ORDER BY SUM(e.amount)
+--SQL
+SELECT account_numbers, total_amount 
+FROM GRAPH_TABLE(financial_transactions 
+  MATCH (a IS Account) ((x IS Account) <-[e IS transaction]-)+ (a) 
+  KEEP SHORTEST 4 PATHS 
+  WHERE a.number = 10039 
+  COLUMNS(LISTAGG(x.number, ', ') AS account_numbers, SUM(e.amount) AS total_amount)) 
+ORDER BY total_amount
 ```
 
 ```
@@ -1833,11 +2035,20 @@ An example where we test for path existence is:
 {% include image.html file="example_graphs/financial_transactions.png" %}
 
 ```sql
+--PGQL
 SELECT dst.number
 FROM MATCH ANY (src:Account) -[e]->+ (dst:Account)
        ON financial_transactions
 WHERE src.number = 8021
 ORDER BY dst.number
+--SQL
+SELECT number 
+FROM GRAPH_TABLE(financial_transactions 
+  MATCH (src IS Account) -[e]->+ (dst IS Account) 
+  KEEP ANY 
+  WHERE src.number = 8021 
+  COLUMNS(dst.number)) 
+ORDER BY number
 ```
 
 ```
@@ -1856,10 +2067,19 @@ An example where we return data along the path is:
 {% include image.html file="example_graphs/financial_transactions.png" %}
 
 ```sql
+--PGQL
 SELECT dst.number, LISTAGG(e.amount, ' + ') || ' = ', SUM(e.amount)
 FROM MATCH ANY (src:Account) -[e]->+ (dst:Account) ON financial_transactions
 WHERE src.number = 8021
 ORDER BY dst.number
+--SQL
+SELECT * 
+FROM GRAPH_TABLE(financial_transactions 
+  MATCH (src IS Account) -[e]->+ (dst IS Account) 
+  KEEP ANY 
+  WHERE src.number = 8021 
+  COLUMNS(dst.number, LISTAGG(e.amount, ' + ') || ' = ', SUM(e.amount))) 
+ORDER BY number
 ```
 
 ```
@@ -1908,10 +2128,19 @@ For example:
 {% include image.html file="example_graphs/financial_transactions.png" %}
 
 ```sql
+--PGQL
 SELECT LISTAGG(e.amount, ' + ') || ' = ', SUM(e.amount) AS total_amount
 FROM MATCH ALL SHORTEST (a:Account) -[e:transaction]->* (b:Account)
        ON financial_transactions
 WHERE a.number = 10039 AND b.number = 2090
+ORDER BY total_amount
+--SQL
+SELECT * 
+FROM GRAPH_TABLE(financial_transactions 
+  MATCH (a IS Account) -[e IS transaction]->* (b IS Account) 
+  KEEP ALL SHORTEST 
+  WHERE a.number = 10039 AND b.number = 2090 
+  COLUMNS(LISTAGG(e.amount, ' + ') || ' = ', SUM(e.amount) AS total_amount)) 
 ORDER BY total_amount
 ```
 
@@ -1937,9 +2166,16 @@ AnyShortestPathSearch ::= 'ANY' 'SHORTEST' <PathMode>? <PathOrPaths>?
 For example:
 
 ```sql
+--PGQL
 SELECT src, SUM(e.weight), dst
 FROM MATCH ANY SHORTEST (src) -[e]->* (dst) ON financial_transactions
 WHERE src.age < dst.age
+--SQL
+SELECT *
+FROM GRAPH_TABLE(financial_transactions 
+  MATCH ANY SHORTEST (src) -[e]->* (dst)
+  WHERE src.age < dst.age
+  COLUMNS(src, SUM(e.weight), dst))
 ```
 
 Another example is:
@@ -1947,6 +2183,7 @@ Another example is:
 {% include image.html file="example_graphs/financial_transactions.png" %}
 
 ```sql
+--PGQL
 SELECT COUNT(e) AS num_hops
      , p1.name AS start
      , ARRAY_AGG ( CASE
@@ -1958,6 +2195,22 @@ SELECT COUNT(e) AS num_hops
 FROM MATCH ANY SHORTEST (p1:Person) (-[e]- (dst))* (p2:Person)
        ON financial_transactions
 WHERE p1.name = 'Camille' AND p2.name = 'Liam'
+ORDER BY num_hops
+--SQL
+SELECT * 
+FROM GRAPH_TABLE(financial_transactions 
+  MATCH(p1 IS Person) (-[e]- (dst))* (p2 IS Person) 
+  KEEP ANY SHORTEST 
+  WHERE p1.name = 'Camille' 
+    AND p2.name = 'Liam' 
+  COLUMNS(COUNT(edge_id(e)) AS num_hops , 
+          p1.name AS start , 
+          ARRAY_AGG ( CASE 
+                        WHEN dst IS LABELED Account 
+                          THEN CAST(dst.number AS STRING) 
+                        ELSE dst.name 
+                      END 
+                    ) AS path)) 
 ORDER BY num_hops
 ```
 
@@ -1974,16 +2227,31 @@ Filters on vertices and edges along paths can be specified by adding a `WHERE` c
 For example, the following query matches a shortest path (if one exists) such that each edge along the path has a property `weight` with a value greater than `10`:
 
 ```sql
-SELECT src, ARRAY_AGG(e.weight), dst
+--PGQL
+SELECT src.*, ARRAY_AGG(e.weight), dst.*
 FROM MATCH ANY SHORTEST (src) (-[e]-> WHERE e.weight > 10)* (dst) ON my_graph
+--SQL
+SELECT *
+FROM GRAPH_TABLE(my_graph 
+  MATCH (src) (-[e]-> WHERE e.weight > 10)* (dst) 
+  KEEP ANY SHORTEST 
+  COLUMNS(src.*, ARRAY_AGG(e.weight), dst.*))
 ```
 
 Note that this is different from a `WHERE` clause that is placed outside of the quantified pattern:
 
 ```sql
-SELECT src, ARRAY_AGG(e.weight), dst
+--PGQL
+SELECT src.*, ARRAY_AGG(e.weight), dst.*
 FROM MATCH ANY SHORTEST (src) -[e]->* (dst) ON my_graph
 WHERE SUM(e.cost) < 100
+--SQL
+SELECT *
+FROM GRAPH_TABLE(my_graph 
+  MATCH (src) -[e]->* (dst) 
+  KEEP ANY SHORTEST
+  WHERE e.weight > 10
+  COLUMNS(src.*, ARRAY_AGG(e.weight), dst.*))
 ```
 
 Here, the filter is applied only _after_ a shortest path is matched such that if the `WHERE` condition is not satisfied, the path is filtered out and no other path is considered even though another path may exist that does satisfy the `WHERE` condition.
@@ -2004,9 +2272,17 @@ For example the following query will output the sum of the edge weights along ea
 each of the matched source and destination pairs:
 
 ```sql
-SELECT src, SUM(e.weight), dst
+--PGQL
+SELECT src.*, SUM(e.weight), dst.*
 FROM MATCH SHORTEST 3 PATHS (src) -[e]->* (dst) ON my_graph
 WHERE src.age < dst.age
+--SQL
+SELECT *
+FROM GRAPH_TABLE(my_graph 
+  MATCH (src) -[e]->* (dst)
+  KEEP SHORTEST 3 PATHS
+  WHERE src.age < dst.age
+  COLUMNS(src.*, SUM(e.weight), dst.*))
 ```
 
 Notice that the sum aggregation is computed for each matching path. In other words, the number of rows returned by the
@@ -2016,9 +2292,17 @@ query is equal to the number of paths that match, which is at most three times t
 The `ARRAY_AGG` construct allows users to output properties of edges/vertices along the path. For example, in the following query:
 
 ```sql
-SELECT src, ARRAY_AGG(e.weight), ARRAY_AGG(v1.age), ARRAY_AGG(v2.age), dst
+--PGQL
+SELECT src.*, ARRAY_AGG(e.weight), ARRAY_AGG(v1.age), ARRAY_AGG(v2.age), dst.*
 FROM MATCH SHORTEST 3 PATHS (src) ((v1) -[e]-> (v2))* (dst) ON my_graph
 WHERE src.age < dst.age
+--SQL
+SELECT * 
+FROM GRAPH_TABLE(my_graph 
+  MATCH (src) ((v1) -[e]-> (v2))* (dst) 
+  KEEP SHORTEST 3 PATHS 
+  WHERE src.age < dst.age 
+  COLUMNS(src.*, ARRAY_AGG(e.weight), ARRAY_AGG(v1.age), ARRAY_AGG(v2.age), dst.*))
 ```
 
 the `ARRAY_AGG(e.weight)` outputs a list containing the weight property of all the edges along the path,
@@ -2028,7 +2312,7 @@ the `ARRAY_AGG(v1.cost)` outputs a list containing the age property of all the v
 the `ARRAY_AGG(v2.cost)` outputs a list containing the age property of all the vertices along the path except the first one.
 
 
-Users can also compose shortest path constructs with other matching operators:
+Users can also compose shortest path constructs with other matching operators (Note that this behavior is not allowed with `GRAPH_TABLE` operator):
 
 ```sql
 SELECT ARRAY_AGG(e1.weight), ARRAY_AGG(e2.weight)
@@ -2043,12 +2327,23 @@ Another example is:
 {% include image.html file="example_graphs/financial_transactions.png" %}
 
 ```sql
+--PGQL
 SELECT COUNT(e) AS num_hops
      , SUM(e.amount) AS total_amount
      , ARRAY_AGG(e.amount) AS amounts_along_path
 FROM MATCH SHORTEST 7 PATHS (a:Account) -[e:transaction]->* (b:Account)
        ON financial_transactions
 WHERE a.number = 10039 AND a = b
+ORDER BY num_hops, total_amount
+--SQl
+SELECT * 
+FROM GRAPH_TABLE(financial_transactions 
+  MATCH (a IS Account) -[e IS transaction]->* (b IS Account) 
+  KEEP SHORTEST 7 PATHS 
+  WHERE a.number = 10039 AND VERTEX_EQUAL(a, b) 
+  COLUMNS(COUNT(EDGE_ID(e)) AS num_hops , 
+        SUM(e.amount) AS total_amount , 
+        ARRAY_AGG(e.amount) AS amounts_along_path))
 ORDER BY num_hops, total_amount
 ```
 
@@ -2072,12 +2367,23 @@ The following example shows how such paths could be filtered out, such that we o
 {% include image.html file="example_graphs/financial_transactions.png" %}
 
 ```sql
+--PGQL
 SELECT COUNT(e) AS num_hops
      , SUM(e.amount) AS total_amount
      , ARRAY_AGG(e.amount) AS amounts_along_path
 FROM MATCH SHORTEST 7 PATHS (a:Account) -[e:transaction]->* (b:Account)
        ON financial_transactions
 WHERE a.number = 10039 AND a = b AND COUNT(DISTINCT e) = COUNT(e) AND COUNT(e) > 0
+ORDER BY num_hops, total_amount
+--SQL
+SELECT * 
+FROM GRAPH_TABLE(financial_transactions 
+  MATCH (a IS Account) -[e IS transaction]->* (b IS Account) 
+  KEEP SHORTEST 7 PATHS 
+  WHERE a.number = 10039 AND VERTEX_EQUAL(a, b) AND COUNT(DISTINCT EDGE_ID(e)) = COUNT(EDGE_ID(e)) AND COUNT(EDGE_ID(e)) > 0 
+  COLUMNS(COUNT(EDGE_ID(e)) AS num_hops , 
+          SUM(e.amount) AS total_amount , 
+          ARRAY_AGG(e.amount) AS amounts_along_path)) 
 ORDER BY num_hops, total_amount
 ```
 
@@ -2115,12 +2421,22 @@ For example:
 {% include image.html file="example_graphs/financial_transactions.png" %}
 
 ```sql
+--PGQL
 SELECT COUNT(e) AS num_hops
      , SUM(e.amount) AS total_amount
      , ARRAY_AGG(e.amount) AS amounts_along_path
 FROM MATCH ANY CHEAPEST (a:Account) (-[e:transaction]-> COST e.amount)* (b:Account)
        ON financial_transactions
 WHERE a.number = 10039 AND b.number = 2090
+--SQL
+SELECT * 
+FROM GRAPH_TABLE(financial_transactions 
+  MATCH (a IS Account) (-[e IS transaction]-> COST e.amount)* (b IS Account) 
+  KEEP ANY CHEAPEST 
+  WHERE a.number = 10039 AND b.number = 2090 
+  COLUMNS(COUNT(EDGE_ID(e)) AS num_hops, 
+          SUM(e.amount) AS total_amount, 
+          ARRAY_AGG(e.amount) AS amounts_along_path))
 ```
 
 ```
@@ -2136,12 +2452,22 @@ The following example with `CHEAPEST` contains an any-directed edge pattern (`-[
 {% include image.html file="example_graphs/financial_transactions.png" %}
 
 ```sql
+--PGQL
 SELECT COUNT(e) AS num_hops
      , SUM(e.amount) AS total_amount
      , ARRAY_AGG(e.amount) AS amounts_along_path
 FROM MATCH ANY CHEAPEST (a:Account) (-[e:transaction]- COST e.amount)* (b:Account)
        ON financial_transactions
 WHERE a.number = 10039 AND b.number = 2090
+--SQL
+SELECT *
+FROM GRAPH_TABLE(financial_transactions 
+  MATCH (a IS Account) (-[e IS transaction]- COST e.amount)* (b IS Account)
+  KEEP ANY CHEAPEST
+  WHERE a.number = 10039 AND b.number = 2090
+  COLUMNS(COUNT(EDGE_ID(e)) AS num_hops
+     , SUM(e.amount) AS total_amount
+     , ARRAY_AGG(e.amount) AS amounts_along_path))
 ```
 
 ```
@@ -2160,6 +2486,7 @@ The following example has a `CASE` statement that defines a different cost for d
 {% include image.html file="example_graphs/financial_transactions.png" %}
 
 ```sql
+--PGQL
 SELECT COUNT(e) AS num_hops
      , SUM(e.amount) AS total_amount
      , ARRAY_AGG(e.amount) AS amounts_along_path
@@ -2170,6 +2497,18 @@ FROM MATCH ANY CHEAPEST (p1:Person) (-[e:owner|transaction]-
                                          END)* (p2:Person)
      ON financial_transactions
 WHERE p1.name = 'Nikita' AND p2.name = 'Liam'
+--SQL
+SELECT * 
+FROM GRAPH_TABLE(financial_transactions 
+  MATCH (p1 IS Person) (-[e IS owner|transaction]- COST CASE 
+                                                          WHEN e.amount IS NULL THEN 1 
+                                                          ELSE e.amount 
+                                                        END)* (p2 IS Person) 
+  KEEP ANY CHEAPEST 
+  WHERE p1.name = 'Nikita' AND p2.name = 'Liam' 
+  COLUMNS(COUNT(EDGE_ID(e)) AS num_hops , 
+          SUM(e.amount) AS total_amount , 
+          ARRAY_AGG(e.amount) AS amounts_along_path))
 ```
 
 ```
@@ -2205,12 +2544,23 @@ For example, the following query returns the cheapest 3 paths from account 10039
 {% include image.html file="example_graphs/financial_transactions.png" %}
 
 ```sql
+--PGQL
 SELECT COUNT(e) AS num_hops
      , SUM(e.amount) AS total_amount
      , ARRAY_AGG(e.amount) AS amounts_along_path
 FROM MATCH CHEAPEST 3 PATHS (a:Account) (-[e:transaction]-> COST e.amount)* (a)
        ON financial_transactions
 WHERE a.number = 10039
+ORDER BY total_amount
+--SQL
+SELECT * 
+FROM GRAPH_TABLE(financial_transactions 
+  MATCH (a IS Account) (-[e IS transaction]-> COST e.amount)* (a) 
+  KEEP CHEAPEST 3 PATHS 
+  WHERE a.number = 10039 
+  COLUMNS(COUNT(EDGE_ID(e)) AS num_hops,
+          SUM(e.amount) AS total_amount , 
+          ARRAY_AGG(e.amount) AS amounts_along_path))
 ORDER BY total_amount
 ```
 
@@ -2231,6 +2581,7 @@ while `Account` or `Company` vertices contribute `1` to the total cost.
 {% include image.html file="example_graphs/financial_transactions.png" %}
 
 ```sql
+--PGQL
 SELECT COUNT(e) AS num_hops
      , ARRAY_AGG( CASE label(n_x)
                     WHEN 'Person' THEN n_x.name
@@ -2243,6 +2594,22 @@ FROM MATCH CHEAPEST 4 PATHS
         (-[e]- (n_x) COST CASE label(n_x) WHEN 'Person' THEN 3 ELSE 1 END)*
           (c:Company) ON financial_transactions
 WHERE a.number = 10039 AND c.name = 'Oracle'
+ORDER BY total_cost
+--SQL
+SELECT * 
+FROM GRAPH_TABLE(financial_transactions 
+  MATCH (a IS Account) 
+          (-[e]- (n_x) COST CASE WHEN n_x IS LABELED Person THEN 3 ELSE 1 END)* 
+            (c IS Company) 
+  KEEP CHEAPEST 4 PATHS 
+  WHERE a.number = 10039 AND c.name = 'Oracle' 
+  COLUMNS(COUNT(EDGE_ID(e)) AS num_hops , 
+          ARRAY_AGG(CASE 
+                      WHEN n_x IS LABELED Person THEN n_x.name 
+                      WHEN n_x IS LABELED Company THEN n_x.name 
+                      WHEN n_x IS LABELED Account THEN CAST(n_x.number AS STRING) 
+                    END ) AS names_or_numbers , 
+          SUM(CASE WHEN n_x IS LABELED Person THEN 8 ELSE 1 END) AS total_cost)) 
 ORDER BY total_cost
 ```
 
@@ -2289,10 +2656,18 @@ For example:
 {% include image.html file="example_graphs/financial_transactions.png" %}
 
 ```sql
+--PGQL
 SELECT LISTAGG(e.amount, ' + ') || ' = ', SUM(e.amount) AS total_amount
 FROM MATCH ALL (a:Account) -[e:transaction]->{,7} (b:Account)
       ON financial_transactions
 WHERE a.number = 10039 AND b.number = 2090
+ORDER BY total_amount
+--SQL
+SELECT * 
+FROM GRAPH_TABLE(financial_transactions 
+  MATCH (a IS Account) -[e IS transaction]->{,7} (b IS Account) 
+  KEEP ALL WHERE a.number = 10039 AND b.number = 2090 
+  COLUMNS(LISTAGG(e.amount, ' + ') || ' = ', SUM(e.amount) AS total_amount)) 
 ORDER BY total_amount
 ```
 
@@ -2369,10 +2744,18 @@ It is possible to mix vertical and horizontal aggregation in a single query. For
 {% include image.html file="example_graphs/financial_transactions.png" %}
 
 ```sql
+--PGQL
 SELECT SUM(COUNT(e)) AS sumOfPathLengths
 FROM MATCH ANY SHORTEST (a:Account) -[e:transaction]->* (b:Account)
        ON financial_transactions
 WHERE a.number = 10039 AND (b.number = 1001 OR b.number = 2090)
+--SQL
+SELECT SUM(countOfPathLengths) AS sumOfPathLengths 
+FROM GRAPH_TABLE(financial_transactions 
+  MATCH (a IS Account) - [e IS transaction] -> * (b IS Account) 
+  KEEP ANY SHORTEST 
+  WHERE a.number = 10039 AND ( b.number = 1001 OR b.number = 2090 ) 
+  COLUMNS(COUNT(EDGE_ID(e)) AS countOfPathLengths))
 ```
 
 ```
@@ -2397,6 +2780,7 @@ An example of a horizontal aggregation in `WHERE` is:
 {% include image.html file="example_graphs/financial_transactions.png" %}
 
 ```sql
+--PGQL
 SELECT b.number AS b,
        COUNT(e) AS pathLength,
        ARRAY_AGG(e.amount) AS transactions
@@ -2405,6 +2789,18 @@ FROM MATCH ANY SHORTEST (a:Account) -[e:transaction]->* (b:Account)
 WHERE a.number = 10039 AND
       (b.number = 8021 OR b.number = 1001 OR b.number = 2090) AND
       COUNT(e) <= 2
+ORDER BY pathLength
+--SQL
+SELECT * 
+FROM GRAPH_TABLE(financial_transactions 
+  MATCH (a IS Account) -[e IS transaction]->* (b IS Account) 
+  KEEP ANY SHORTEST 
+  WHERE a.number = 10039 AND 
+        (b.number = 8021 OR b.number = 1001 OR b.number = 2090) AND 
+        COUNT(EDGE_ID(e)) <= 2 
+  COLUMNS(b.number AS b,
+          COUNT(EDGE_ID(e)) AS pathLength, 
+          ARRAY_AGG(e.amount) AS transactions)) 
 ORDER BY pathLength
 ```
 
@@ -2425,6 +2821,7 @@ An example of a horizontal aggregation in `GROUP BY` is:
 {% include image.html file="example_graphs/financial_transactions.png" %}
 
 ```sql
+--PGQL
 SELECT COUNT(e) AS pathLength,
        COUNT(*) AS cnt
 FROM MATCH ANY SHORTEST (a:Account) -[e:transaction]->* (b:Account)
@@ -2432,6 +2829,16 @@ FROM MATCH ANY SHORTEST (a:Account) -[e:transaction]->* (b:Account)
 WHERE (a.number = 10039 OR a.number = 8021) AND
       (b.number = 1001 OR b.number = 2090)
 GROUP BY COUNT(e)
+ORDER BY pathLength
+--SQL
+SELECT pathLength, COUNT(*) AS cnt 
+FROM GRAPH_TABLE(financial_transactions 
+  MATCH (a IS Account) -[e IS transaction]->* (b IS Account) 
+  KEEP ANY SHORTEST 
+  WHERE (a.number = 10039 OR a.number = 8021) AND 
+        (b.number = 1001 OR b.number = 2090) 
+  COLUMNS(COUNT(EDGE_ID(e)) AS pathLength)) 
+GROUP BY pathLength 
 ORDER BY pathLength
 ```
 
@@ -2475,10 +2882,19 @@ An example with `WALK` is:
 {% include image.html file="example_graphs/financial_transactions.png" %}
 
 ```sql
+--PGQL
 SELECT LISTAGG(e.amount, ', ') AS amounts_along_path, SUM(e.amount) AS total_cost
 FROM MATCH CHEAPEST 4 WALK (a:account) (-[e:transaction]-> COST e.amount)* (a)
        ON financial_transactions
 WHERE a.number = 10039
+ORDER BY total_cost
+--SQL
+SELECT * 
+FROM GRAPH_TABLE(financial_transactions 
+  MATCH (a IS account) (-[e IS transaction]-> COST e.amount)* (a) 
+  KEEP CHEAPEST 4 WALK 
+  WHERE a.number = 10039 
+  COLUMNS(LISTAGG(e.amount, ', ') AS amounts_along_path, SUM(e.amount) AS total_cost)) 
 ORDER BY total_cost
 ```
 
@@ -2504,10 +2920,18 @@ An example with `TRAIL` is:
 {% include image.html file="example_graphs/financial_transactions.png" %}
 
 ```sql
+--PGQL
 SELECT CAST(a.number AS STRING) || ' -> ' || LISTAGG(x.number, ' -> ') AS accounts_along_path
 FROM MATCH ALL TRAIL PATHS (a:account) (-[:transaction]-> (x)){2,} (b:Account)
        ON financial_transactions
 WHERE a.number = 8021 AND b.number = 1001
+--SQL
+SELECT * 
+FROM GRAPH_TABLE(financial_transactions 
+  MATCH (a IS account) (-[ IS transaction]-> (x)){2,} (b IS Account) 
+  KEEP ALL TRAIL PATHS 
+  WHERE a.number = 8021 AND b.number = 1001 
+  COLUMNS(CAST(a.number AS STRING) || ' -> ' || LISTAGG(x.number, ' -> ') AS accounts_along_path))
 ```
 
 ```
@@ -2526,10 +2950,18 @@ An example with `ACYCLIC` is:
 {% include image.html file="example_graphs/financial_transactions.png" %}
 
 ```sql
+--PGQL
 SELECT CAST(a.number AS STRING) || ' -> ' || LISTAGG(x.number, ' -> ') AS accounts_along_path
 FROM MATCH SHORTEST 10 ACYCLIC PATHS (a:account) (-[:transaction]-> (x))+ (b)
        ON financial_transactions
 WHERE a.number = 10039 AND b.number = 1001
+--SQL
+SELECT * 
+FROM GRAPH_TABLE(financial_transactions 
+  MATCH (a IS account) (-[ IS transaction]-> (x))+ (b) 
+  KEEP SHORTEST 10 ACYCLIC PATHS 
+  WHERE a.number = 10039 AND b.number = 1001 
+  COLUMNS(CAST(a.number AS STRING) || ' -> ' || LISTAGG(x.number, ' -> ') AS accounts_along_path))
 ```
 
 ```
@@ -2548,10 +2980,18 @@ An example with `SIMPLE` is:
 {% include image.html file="example_graphs/financial_transactions.png" %}
 
 ```sql
+--PGQL
 SELECT CAST(a.number AS STRING) || ' -> ' || LISTAGG(x.number, ' -> ') AS accounts_along_path
 FROM MATCH ANY SIMPLE PATH (a:account) (-[:transaction]-> (x))+ (a)
        ON financial_transactions
 WHERE a.number = 10039
+--SQL
+SELECT * 
+FROM GRAPH_TABLE(financial_transactions 
+  MATCH (a IS account) (-[ IS transaction]-> (x))+ (a) 
+  KEEP ANY SIMPLE PATH 
+  WHERE a.number = 10039 
+  COLUMNS(CAST(a.number AS STRING) || ' -> ' || LISTAGG(x.number, ' -> ') AS accounts_along_path))
 ```
 
 ```
@@ -2609,11 +3049,19 @@ An example where the keywords `ONE ROW PER MATCH` are explicitly specified is:
 {% include image.html file="example_graphs/financial_transactions.png" %}
 
 ```sql
+--PGQL
 SELECT a.number, p.name
 FROM MATCH (a:Account) -[:owner]-> (p:Person)
        ON financial_transactions
        ONE ROW PER MATCH
 ORDER BY a.number
+--SQL
+SELECT * 
+FROM GRAPH_TABLE(financial_transactions 
+  MATCH (a IS Account) -[ IS owner]-> (p IS Person) 
+  ONE ROW PER MATCH 
+  COLUMNS(a.number, p.name)) 
+ORDER BY number
 ```
 
 ```
@@ -2672,12 +3120,22 @@ For example:
 {% include image.html file="example_graphs/financial_transactions.png" %}
 
 ```sql
+--PGQL
 SELECT v.number AS account_nr, ELEMENT_NUMBER(v) AS elem_nr
 FROM MATCH ANY (a1:Account) -[:transaction]->* (a2:Account)
        ON financial_transactions
        ONE ROW PER VERTEX ( v )
 WHERE a1.number = 1001 AND a2.number = 8021
 ORDER BY ELEMENT_NUMBER(v)
+--SQL
+SELECT *
+FROM GRAPH_TABLE(financial_transactions
+  MATCH (a1 IS Account) -[ IS transaction]->* (a2 IS Account)
+  KEEP ANY
+  WHERE a1.number = 1001 AND a2.number = 8021
+  ONE ROW PER VERTEX ( v )
+  COLUMNS(v.number AS account_nr, ELEMENT_NUMBER(v) AS elem_nr))
+ORDER BY elem_nr
 ```
 
 ```
@@ -2746,6 +3204,7 @@ For example:
 {% include image.html file="example_graphs/financial_transactions.png" %}
 
 ```sql
+--PGQL
 SELECT v1.number AS v1_account_nr, e.amount, v2.number AS v2_account_nr
      , ELEMENT_NUMBER(v1) AS v1_elem_nr, ELEMENT_NUMBER(e) AS e_elem_nr
      , ELEMENT_NUMBER(v2) AS v2_elem_nr
@@ -2754,6 +3213,17 @@ FROM MATCH ANY (a1:Account) -[:transaction]->+ (a2:Account)
        ONE ROW PER STEP ( v1, e, v2 )
 WHERE a1.number = 1001 AND a2.number = 8021
 ORDER BY ELEMENT_NUMBER(e)
+--SQL
+SELECT * 
+FROM GRAPH_TABLE(financial_transactions 
+  MATCH  (a1 IS Account) -[ IS transaction]->+ (a2 IS Account) 
+  KEEP ANY 
+  WHERE a1.number = 1001 AND a2.number = 8021 
+  ONE ROW PER STEP ( v1, e, v2 ) 
+  COLUMNS(v1.number AS v1_account_nr, e.amount, v2.number AS v2_account_nr, 
+          ELEMENT_NUMBER(v1) AS v1_elem_nr, ELEMENT_NUMBER(e) AS e_elem_nr,
+          ELEMENT_NUMBER(v2) AS v2_elem_nr)) 
+ORDER BY e_elem_nr
 ```
 
 ```
@@ -2777,6 +3247,7 @@ The following example is the same as above but with the direction of the edge pa
 {% include image.html file="example_graphs/financial_transactions.png" %}
 
 ```sql
+--PGQL
 SELECT v1.number AS v1_account_nr, e.amount, v2.number AS v2_account_nr
      , ELEMENT_NUMBER(v1) AS v1_elem_nr, ELEMENT_NUMBER(e) AS e_elem_nr
      , ELEMENT_NUMBER(v2) AS v2_elem_nr
@@ -2785,6 +3256,17 @@ FROM MATCH ANY (a2:Account) <-[:transaction]-+ (a1:Account)
        ONE ROW PER STEP ( v1, e, v2 )
 WHERE a1.number = 1001 AND a2.number = 8021
 ORDER BY ELEMENT_NUMBER(e)
+--SQL
+SELECT * 
+FROM GRAPH_TABLE(financial_transactions 
+  MATCH  (a2 IS Account) <-[ IS transaction]-+ (a1 IS Account) 
+  KEEP ANY 
+  WHERE a1.number = 1001 AND a2.number = 8021 
+  ONE ROW PER STEP ( v1, e, v2 ) 
+  COLUMNS(v1.number AS v1_account_nr, e.amount, v2.number AS v2_account_nr, 
+          ELEMENT_NUMBER(v1) AS v1_elem_nr, ELEMENT_NUMBER(e) AS e_elem_nr,
+          ELEMENT_NUMBER(v2) AS v2_elem_nr)) 
+ORDER BY e_elem_nr
 ```
 
 ```
@@ -2852,9 +3334,16 @@ The `GROUP BY` clause starts with the keywords GROUP BY and is followed by a com
 Consider the following query:
 
 ```sql
+--PGQL
 SELECT n.first_name, COUNT(*), AVG(n.age)
 FROM MATCH (n:Person) ON my_graph
 GROUP BY n.first_name
+--SQL
+SELECT first_name, COUNT(*), AVG(age) 
+FROM GRAPH_TABLE(my_graph 
+  MATCH (n IS Person)
+  COLUMNS(n.first_name, n.age)) 
+GROUP BY first_name
 ```
 
 Matches are grouped by their values for `n.first_name`. For each group, the query selects `n.first_name` (i.e. the group key), the number of solutions in the group (i.e. `COUNT(*)`), and the average value of the property age for vertex n (i.e. `AVG(n.age)`).
@@ -2866,9 +3355,16 @@ It is possible that the `GROUP BY` clause consists of multiple terms. In such a 
 Consider the following query:
 
 ```sql
+--PGQL
 SELECT n.first_name, n.last_name, COUNT(*)
 FROM MATCH (n:Person) ON my_graph
 GROUP BY n.first_name, n.last_name
+--SQL
+SELECT first_name, last_name, COUNT(*) 
+FROM GRAPH_TABLE(my_graph 
+  MATCH (n IS Person) 
+  COLUMNS(n.first_name, n.last_name)) 
+GROUP BY first_name, last_name
 ```
 
 Matches will be grouped together only if they hold the same values for `n.first_name` and the same values for `n.last_name`.
@@ -2887,10 +3383,18 @@ To filter out such a group, use the [HAVING clause](#having-clause).
 Foror example:
 
 ```sql
+--PGQL
 SELECT n.prop1, n.prop2, COUNT(*)
 FROM MATCH (n) ON my_graph
 GROUP BY n.prop1, n.prop2
 HAVING n.prop1 IS NOT NULL AND n.prop2 IS NOT NULL
+--SQL
+SELECT prop1, prop2, COUNT(*) 
+FROM GRAPH_TABLE(my_graph 
+  MATCH (n) 
+  COLUMNS(n.prop1, n.prop2))
+GROUP BY prop1, prop2 
+HAVING prop1 IS NOT NULL AND prop2 IS NOT NULL
 ```
 
 ### Repetition of Group Expression in Select or Order Expression
@@ -2900,10 +3404,18 @@ Group expressions may be repeated in select or order expressions.
 Consider the following query:
 
 ```sql
+--PGQL
 SELECT n.age, COUNT(*)
 FROM MATCH (n) ON my_graph
 GROUP BY n.age
 ORDER BY n.age
+--SQL
+SELECT age, COUNT(*) 
+FROM GRAPH_TABLE(my_graph 
+  MATCH (n) 
+  COLUMNS(n.age)) 
+GROUP BY age 
+ORDER BY age
 ```
 
 Here, the group expression `n.age` is repeated in the SELECT and ORDER BY.
@@ -2970,6 +3482,7 @@ For example:
 {% include image.html file="example_graphs/financial_transactions.png" %}
 
 ```sql
+--PGQL
 SELECT label(owner),
        COUNT(*) AS numTransactions,
        SUM(out.amount) AS totalOutgoing,
@@ -2978,6 +3491,19 @@ FROM MATCH (a:Account) -[:owner]-> (owner:Person|Company) ON financial_transacti
    , MATCH (a) -[out:transaction]-> (:Account) ON financial_transactions
 GROUP BY label(owner)
 ORDER BY label(owner)
+--SQL
+SELECT owner_lbl, 
+       COUNT(*) AS numTransactions, 
+       SUM(amount) AS totalOutgoing, 
+       LISTAGG(amount, ', ') AS amounts 
+FROM GRAPH_TABLE(financial_transactions 
+  MATCH (a IS Account) -[ IS owner]-> (owner IS Person|Company),
+        (a) -[out IS transaction]-> ( IS Account) 
+  COLUMNS(CASE WHEN owner IS LABELED Person THEN 'Person' 
+            ELSE 'Company' END AS owner_lbl, 
+          out.amount))
+GROUP BY owner_lbl 
+ORDER BY owner_lbl
 ```
 
 ```
@@ -3000,11 +3526,20 @@ If _no_ `GROUP BY` is specified, aggregations are applied to the entire set of s
 {% include image.html file="example_graphs/financial_transactions.png" %}
 
 ```sql
+--PGQL
 SELECT COUNT(*) AS numTransactions,
        SUM(out.amount) AS totalOutgoing,
        LISTAGG(out.amount, ', ') AS amounts
 FROM MATCH (a:Account) -[:owner]-> (owner:Person|Company) ON financial_transactions
    , MATCH (a) -[out:transaction]-> (:Account) ON financial_transactions
+--SQL
+SELECT COUNT(*) AS numTransactions,
+      SUM(amount) AS totalOutgoing, 
+      LISTAGG(amount, ', ') AS amounts 
+FROM GRAPH_TABLE(financial_transactions 
+  MATCH (a IS Account) -[ IS owner]-> (owner IS Person|Company),
+        (a) -[out IS transaction]-> ( IS Account)
+  COLUMNS(out.amount))
 ```
 
 ```
@@ -3024,8 +3559,14 @@ Note that the result will always be a single row, unless nothing was matched in 
 For example:
 
 ```sql
+--PGQL
 SELECT COUNT(*)
 FROM MATCH (m:Person) ON my_graph
+--SQL
+SELECT COUNT(*) 
+FROM GRAPH_TABLE(my_graph 
+  MATCH (m IS Person) 
+  COLUMNS(m.*))
 ```
 
 ### DISTINCT in aggregation
@@ -3035,8 +3576,14 @@ The `DISTINCT` modifier specifies that duplicate values should be removed before
 For example:
 
 ```sql
+--PGQL
 SELECT AVG(DISTINCT m.age)
 FROM MATCH (m:Person) ON my_graph
+--SQL
+SELECT AVG(DISTINCT age) 
+FROM GRAPH_TABLE(my_graph 
+  MATCH (m IS Person) 
+  COLUMNS(m.age))
 ```
 
 Here, we aggregate only over distinct `m.age` values.
@@ -3056,9 +3603,17 @@ The value expression needs to be a boolean expression.
 For example:
 
 ```sql
-SELECT n.name
+--PGQL
+SELECT id(n) AS id, n.name
 FROM MATCH (n) -[:has_friend]-> (m) ON my_graph
-GROUP BY n
+GROUP BY id, name
+HAVING COUNT(m) > 10
+--SQL
+SELECT id, name 
+FROM GRAPH_TABLE(my_graph 
+  MATCH (n) -[IS has_friend]-> (m) 
+  COLUMNS(VERTEX_ID(n) AS id, n.name, VERTEX_ID(m) AS m)) 
+GROUP BY id, name 
 HAVING COUNT(m) > 10
 ```
 
@@ -3089,9 +3644,16 @@ The `ORDER BY` clause starts with the keywords `ORDER BY` and is followed by com
 The following is an example in which the results are ordered by property access `n.age` in ascending order:
 
 ```sql
+--PGQL
 SELECT n.name
 FROM MATCH (n:Person) ON my_graph
 ORDER BY n.age ASC
+--SQL
+SELECT name 
+FROM GRAPH_TABLE(my_graph 
+  MATCH (n IS Person)
+  COLUMNS(n.name, n.age)) 
+ORDER BY age ASC
 ```
 
 ### Data types for ORDER BY
@@ -3110,9 +3672,16 @@ Vertices, edges and arrays cannot be ordered directly.
 An `ORDER BY` may contain more than one expression, in which case the expresisons are evaluated from left to right. That is, (n+1)th ordering term is used only for the tie-break rule for n-th ordering term. Note that different expressions can have different ascending or descending decorators.
 
 ```sql
+--PGQL
 SELECT f.name
 FROM MATCH (f:Person) ON my_graph
 ORDER BY f.age ASC, f.salary DESC
+--SQL
+SELECT name 
+FROM GRAPH_TABLE(my_graph 
+  MATCH (f IS Person) 
+  COLUMNS(f.name, f.age, f.salary)) 
+ORDER BY age ASC, salary DESC
 ```
 
 ## OFFSET Clause
@@ -3137,9 +3706,17 @@ For example:
 {% include image.html file="example_graphs/financial_transactions.png" %}
 
 ```sql
+--PGQL
 SELECT n.name
-FROM MATCH (n:Person) ON my_graph
+FROM MATCH (n:Person) ON financial_transactions
 ORDER BY n.name
+OFFSET 1
+--SQL
+SELECT name 
+FROM GRAPH_TABLE(financial_transactions 
+  MATCH (n IS Person) 
+  COLUMNS(n.name)) 
+ORDER BY name 
 OFFSET 1
 ```
 
@@ -3149,7 +3726,6 @@ OFFSET 1
 +--------+
 | Liam   |
 | Nikita |
-| Oracle |
 +--------+
 ```
 
@@ -3175,11 +3751,20 @@ For example, in the following query the first solution is pruned from the result
 {% include image.html file="example_graphs/financial_transactions.png" %}
 
 ```sql
+--PGQL
 SELECT n.name
 FROM MATCH (n:Person) ON financial_transactions
 ORDER BY n.name
 OFFSET 1
-FETCH FIRST 2 ROWS ONLY
+FETCH FIRST 1 ROWS ONLY
+--SQL
+SELECT name 
+FROM GRAPH_TABLE(financial_transactions 
+  MATCH (n IS Person) 
+  COLUMNS(n.name)) 
+ORDER BY name 
+OFFSET 1 
+FETCH FIRST 1 ROWS ONLY
 ```
 
 ```
@@ -3187,13 +3772,13 @@ FETCH FIRST 2 ROWS ONLY
 | name   |
 +--------+
 | Liam   |
-| Nikita |
 +--------+
 ```
 
 ## LIMIT Clause
 
 The `LIMIT` clause provides a syntactic alternative to the [FETCH FIRST clause](#fetch-first-clause).
+Note that `LIMIT` cannot be used with GRAPH_TABLE operator.
 
 The syntax is:
 
@@ -3213,7 +3798,7 @@ SELECT n.name
 FROM MATCH (n:Person) ON financial_transactions
 ORDER BY n.name
 OFFSET 1
-LIMIT 2
+LIMIT 1
 ```
 
 ```
@@ -3366,28 +3951,52 @@ BindVariable ::= '?'
 An example query with two bind variables is as follows:
 
 ```sql
+--PGQL
 SELECT n.age
 FROM MATCH (n) ON my_graph
 WHERE n.name = ?
    OR n.age > ?
+--SQL
+SELECT age 
+FROM GRAPH_TABLE(my_graph 
+  MATCH (n) 
+  WHERE n.name = ? 
+     OR n.age > ? 
+  COLUMNS(n.age))
 ```
 
 In the following query, bind variables are used in `OFFSET` and `FETCH FIRST`:
 
 ```sql
+--PGQL
 SELECT n.name, n.age
 FROM MATCH (n) ON my_graph
 ORDER BY n.age
 OFFSET ?
+FETCH FIRST ? ROWS ONLY
+--SQL
+SELECT name, age 
+FROM GRAPH_TABLE(my_graph 
+  MATCH (n) 
+  COLUMNS(n.name, n.age)) 
+ORDER BY age 
+OFFSET ? 
 FETCH FIRST ? ROWS ONLY
 ```
 
 The following example shows a bind variable in the position of a label:
 
 ```sql
+--PGQL
 SELECT n.name
 FROM MATCH (n) ON my_graph
 WHERE label(n) = ?
+--SQL
+SELECT name 
+FROM GRAPH_TABLE(my_graph 
+  MATCH (n) 
+  WHERE n IS LABELED ? 
+  COLUMNS(n.name))
 ```
 
 
@@ -3534,9 +4143,16 @@ NullPredicate ::= <ValueExpression> 'IS' ('NOT')? 'NULL'
 For example:
 
 ```sql
+--PGQL
 SELECT n.name
 FROM MATCH (n) ON my_graph
 WHERE n.name IS NOT NULL
+--SQL
+SELECT name 
+FROM GRAPH_TABLE(my_graph 
+  MATCH (n) 
+  WHERE n.name IS NOT NULL 
+  COLUMNS(n.name))
 ```
 
 Here, we find all the vertices in the graph that have the property `name` and then return the property.
@@ -3570,6 +4186,8 @@ ID( vertex/edge )
 The `LABEL` function returns the label of a vertex or an edge. It is an error if the vertex or edge does not have a label, or, has more than one label.
 The return type of the function is a string.
 
+Note: `LABEL` function is not allowed with `GRAPH_TABLE` operator.
+
 The syntax is:
 
 ```
@@ -3597,6 +4215,8 @@ FROM MATCH (n:Person) -[e]-> (m:Person) ON my_graph
 
 The `labels` function returns the set of labels of a vertex or an edge. If the vertex or edge does not have a label, an empty set is returned.
 The return type of the function is a set of strings.
+
+Note: `LABELS` function is not allowed with `GRAPH_TABLE` operator.
 
 The syntax is:
 
@@ -3636,9 +4256,16 @@ For example:
 {% include image.html file="example_graphs/financial_transactions.png" %}
 
 ```sql
+--PGQL
 SELECT a.number,
        CASE WHEN n IS LABELED Person THEN 'Personal Account' ELSE 'Business Account' END AS accountType
 FROM MATCH (n:Person|Company) <-[:owner]- (a:Account) ON financial_transactions
+--SQL
+SELECT * 
+FROM GRAPH_TABLE(financial_transactions 
+  MATCH (n IS Person|Company) <-[ IS owner]- (a IS Account)
+  COLUMNS(a.number, 
+        CASE WHEN n IS LABELED Person THEN 'Personal Account' ELSE 'Business Account' END AS accountType)) 
 ```
 
 ```
@@ -3671,10 +4298,18 @@ EdgeReference              ::= <VariableReference>
 For example:
 
 ```sql
+--PGQL
 SELECT e.amount, CASE WHEN n IS SOURCE OF e THEN 'Outgoing transaction' ELSE 'Incoming transaction' END AS transaction_type
 FROM MATCH (n:Account) -[e:transaction]- (m:Account) ON financial_transactions
 WHERE n.number = 8021
 ORDER BY transaction_type, e.amount
+--SQL
+SELECT amount, transaction_type 
+FROM GRAPH_TABLE(financial_transactions 
+  MATCH (n IS Account) -[e IS transaction]- (m IS Account) 
+  WHERE n.number = 8021 
+  COLUMNS(e.amount, CASE WHEN n IS SOURCE OF e THEN 'Outgoing transaction' ELSE 'Incoming transaction' END AS transaction_type)) 
+ORDER BY transaction_type, amount
 ```
 
 ```
@@ -3690,11 +4325,23 @@ ORDER BY transaction_type, e.amount
 Another example is:
 
 ```sql
+--PGQL
 SELECT n.number, n.name,
        SUM(CASE WHEN n IS DESTINATION OF e THEN 1 ELSE 0 END) AS num_incoming_edges,
        SUM(CASE WHEN n IS SOURCE OF e THEN 1 ELSE 0 END) AS num_outgoing_edges
 FROM MATCH (n) -[e]- (m) ON financial_transactions
 GROUP BY number, name
+ORDER BY num_incoming_edges + num_outgoing_edges DESC, number, name
+--SQL
+SELECT number, name, 
+      SUM(incoming_edges) AS num_incoming_edges, 
+      SUM(outgoing_edges) AS num_outgoing_edges 
+FROM GRAPH_TABLE(financial_transactions 
+  MATCH (n) -[e]- (m) 
+  COLUMNS(n.number, n.name, 
+          CASE WHEN n IS DESTINATION OF e THEN 1 ELSE 0 END AS incoming_edges, 
+          CASE WHEN n IS SOURCE OF e THEN 1 ELSE 0 END AS outgoing_edges)) 
+GROUP BY number, name 
 ORDER BY num_incoming_edges + num_outgoing_edges DESC, number, name
 ```
 
@@ -3793,6 +4440,7 @@ For example:
 {% include image.html file="example_graphs/financial_transactions.png" %}
 
 ```sql
+--PGQL
 SELECT v1.number AS v1_account_nr, e.amount, v2.number AS v2_account_nr
      , ELEMENT_NUMBER(v1) AS v1_elem_nr, ELEMENT_NUMBER(e) AS e_elem_nr
      , ELEMENT_NUMBER(v2) AS v2_elem_nr
@@ -3800,6 +4448,17 @@ FROM MATCH ANY (a1:Account) -[:transaction]->+ (a2:Account)
        ON financial_transactions
        ONE ROW PER STEP ( v1, e, v2 )
 WHERE a1.number = 1001 AND a2.number = 8021
+ORDER BY e_elem_nr
+--SQL
+SELECT * 
+FROM GRAPH_TABLE(financial_transactions 
+  MATCH (a1 IS Account) -[ IS transaction]->+ (a2 IS Account) 
+  KEEP ANY 
+  WHERE a1.number = 1001 AND a2.number = 8021 
+  ONE ROW PER STEP ( v1, e, v2 ) 
+  COLUMNS(v1.number AS v1_account_nr, e.amount, v2.number AS v2_account_nr , 
+          ELEMENT_NUMBER(v1) AS v1_elem_nr, ELEMENT_NUMBER(e) AS e_elem_nr , 
+          ELEMENT_NUMBER(v2) AS v2_elem_nr)) 
 ORDER BY e_elem_nr
 ```
 
@@ -3819,12 +4478,24 @@ For example:
 {% include image.html file="example_graphs/financial_transactions.png" %}
 
 ```sql
+--PGQL
 SELECT v1.number AS v1_account_nr, e.amount, v2.number AS v2_account_nr
      , ELEMENT_NUMBER(v1) AS v1_elem_nr, ELEMENT_NUMBER(e) AS e_elem_nr, ELEMENT_NUMBER(v2) AS v2_elem_nr
 FROM MATCH ANY (a2:Account) <-[:transaction]-+ (a1:Account)
      ON financial_transactions
      ONE ROW PER STEP ( v1, e, v2 )
 WHERE a1.number = 1001 AND a2.number = 8021
+ORDER BY e_elem_nr
+--SQL
+SELECT * 
+FROM GRAPH_TABLE(financial_transactions
+  MATCH (a2 IS Account) <-[ IS transaction]-+ (a1 IS Account)
+  KEEP ANY
+  WHERE a1.number = 1001 AND a2.number = 8021
+  ONE ROW PER STEP ( v1, e, v2 )
+  COLUMNS(v1.number AS v1_account_nr, e.amount, v2.number AS v2_account_nr,
+          ELEMENT_NUMBER(v1) AS v1_elem_nr, ELEMENT_NUMBER(e) AS e_elem_nr,
+          ELEMENT_NUMBER(v2) AS v2_elem_nr))
 ORDER BY e_elem_nr
 ```
 
@@ -3854,17 +4525,31 @@ ALL_DIFFERENT( val1, val2, val3, ..., valN )
 For example:
 
 ```sql
-SELECT *
+--PGQL
+SELECT n.*, m.*, o.*
 FROM MATCH (n) -> (m) -> (o) ON my_graph
 WHERE ALL_DIFFERENT( n, m, o )
+--SQL
+SELECT * 
+FROM GRAPH_TABLE(my_graph 
+  MATCH (n) -> (m) -> (o) 
+  WHERE ALL_DIFFERENT( n, m, o ) 
+  COLUMNS(n.*, m.*, o.*))
 ```
 
 Note that the above query can be rewritten using non-equality constraints as follows:
 
 ```sql
+--PGQL
 SELECT *
 FROM MATCH (n) -> (m) <- (o) -> (n) ON my_graph
 WHERE n <> m AND n <> o AND m <> o
+--SQL
+SELECT * 
+FROM GRAPH_TABLE(my_graph 
+  MATCH (n) -> (m) <- (o) -> (n) 
+  WHERE NOT VERTEX_EQUAL(n, m) AND NOT VERTEX_EQUAL(n, o) AND NOT VERTEX_EQUAL(m, o) 
+  COLUMNS(n.*, m.*, o.*))
 ```
 
 Another example is:
@@ -4146,8 +4831,15 @@ User-defined functions (UDFs) are invoked similarly to built-in functions. For e
 An example invocation of this function is then:
 
 ```sql
+--PGQL
 SELECT math.tan(n.angle) AS tangent
 FROM MATCH (n) ON my_graph
+ORDER BY tangent
+--SQL
+SELECT * 
+FROM GRAPH_TABLE(my_graph 
+  MATCH (n) 
+  COLUMNS(math.tan(n.angle) AS tangent))
 ORDER BY tangent
 ```
 
@@ -4197,8 +4889,14 @@ DataType          ::=   'STRING'
 For example:
 
 ```sql
+--PGQL
 SELECT CAST(n.age AS STRING), CAST('123' AS INTEGER), CAST('09:15:00+01:00' AS TIME WITH TIME ZONE)
 FROM MATCH (n:Person) ON my_graph
+--SQL
+SELECT * 
+FROM GRAPH_TABLE(my_graph 
+  MATCH (n IS Person) 
+  COLUMNS(CAST(n.age AS STRING), CAST('123' AS INTEGER), CAST('09:15:00+01:00' AS TIME WITH TIME ZONE)))
 ```
 
 Casting is allowed between the following data types:
@@ -4340,10 +5038,23 @@ Subquery        ::= '(' <Query> ')'
 An example is to find friend of friends, and, for each friend of friend, return the number of common friends:
 
 ```sql
+--PGQL
 SELECT fof.name, COUNT(friend) AS num_common_friends
 FROM MATCH (p:Person) -[:has_friend]-> (friend:Person) -[:has_friend]-> (fof:Person)
       ON my_graph
 WHERE NOT EXISTS ( SELECT * FROM MATCH (p) -[:has_friend]-> (fof) ON my_graph )
+GROUP BY fof.name
+--SQL
+SELECT name, COUNT(friend) AS num_common_friends 
+FROM GRAPH_TABLE(my_graph 
+  MATCH (p IS Person) -[ IS has_friend]-> (friend IS Person) -[ IS has_friend]-> (fof IS Person) 
+  COLUMNS(fof.name, VERTEX_ID(friend) AS friend, VERTEX_ID(p) AS p_id, VERTEX_ID(fof) AS fof_id)) 
+WHERE NOT EXISTS (SELECT * 
+                  FROM GRAPH_TABLE(my_graph 
+                    MATCH (p IS Person) -[ IS has_friend]-> (fof IS Person) 
+                    COLUMNS(VERTEX_ID(p) AS id1, VERTEX_id(fof) AS id2)) 
+                  WHERE id1 = p_id AND id2 = fof_id)
+GROUP BY name
 ```
 
 Here, vertices `p` and `fof` are passed from the outer query to the inner query. The `EXISTS` returns true if there is at least one `has_friend` edge between vertices `p` and `fof`.
@@ -4361,9 +5072,20 @@ ScalarSubquery ::= <Subquery>
 For example:
 
 ```sql
+--PGQL
 SELECT a.name
 FROM MATCH (a) ON my_graph
 WHERE a.age > ( SELECT AVG(b.age) FROM MATCH (a) -[:friendOf]-> (b) ON my_graph )
+--SQL
+SELECT name 
+FROM GRAPH_TABLE(my_graph 
+  MATCH (a) 
+  COLUMNS(a.name, a.age, VERTEX_ID(a) AS a_id)) 
+WHERE age > ( SELECT AVG(b_age) 
+              FROM GRAPH_TABLE(my_graph 
+                MATCH (a) -[IS friendOf]-> (b) 
+                COLUMNS(VERTEX_ID(a) AS id, b.age AS b_age)) 
+              WHERE id = a_id)
 ```
 
 Another example is:
@@ -4371,6 +5093,7 @@ Another example is:
 {% include image.html file="example_graphs/financial_transactions.png" %}
 
 ```sql
+--PGQL
 SELECT p.name AS name
      , ( SELECT SUM(t.amount)
          FROM MATCH (a) <-[t:transaction]- (:Account) ON financial_transactions
@@ -4389,6 +5112,32 @@ SELECT p.name AS name
       ) AS num_companies_transacted_with
 FROM MATCH (p:Person) <-[:owner]- (a:Account) ON financial_transactions
 ORDER BY sum_outgoing + sum_incoming DESC
+--SQL
+SELECT name, 
+      ( SELECT SUM(amount) 
+        FROM GRAPH_TABLE(financial_transactions 
+          MATCH (a IS Account) <-[t IS transaction]- ( IS Account) 
+          COLUMNS(t.amount, VERTEX_ID(a) AS id)) 
+      WHERE id = a_id ) AS sum_incoming , 
+      ( SELECT SUM(amount) 
+        FROM GRAPH_TABLE(financial_transactions 
+          MATCH (a IS Account) -[t IS transaction]-> ( IS Account) 
+          COLUMNS(t.amount, VERTEX_ID(a) AS id)) 
+        WHERE id = a_id ) AS sum_outgoing , 
+      ( SELECT COUNT(DISTINCT p2) 
+        FROM GRAPH_TABLE(financial_transactions 
+          MATCH (a IS Account) -[t IS transaction]- ( IS Account) -[ IS owner]-> (p2 IS Person) 
+          COLUMNS(VERTEX_ID(p2) AS p2, VERTEX_id(a) AS id)) 
+        WHERE p2 <> p_id AND id = a_id ) AS num_persons_transacted_with , 
+      ( SELECT COUNT(DISTINCT c) 
+        FROM GRAPH_TABLE(financial_transactions 
+          MATCH (a IS Account) -[t IS transaction]- ( IS Account) -[ IS owner]-> (c IS Company) 
+          COLUMNS(VERTEX_ID(a) AS id, VERTEX_ID(c) AS c)) 
+        WHERE id = a_id ) AS num_companies_transacted_with 
+FROM GRAPH_TABLE(financial_transactions 
+  MATCH (p IS Person) <-[ IS owner]- (a IS Account) 
+  COLUMNS(p.name, VERTEX_ID(a) AS a_id, VERTEX_ID(p) AS p_id)) 
+ORDER BY sum_outgoing + sum_incoming DESC
 ```
 
 ```
@@ -4401,7 +5150,8 @@ ORDER BY sum_outgoing + sum_incoming DESC
 +-----------------------------------------------------------------------------------------------------+
 ```
 
-Note that in the query, the graph name `financial_transactions` is repeatedly specified. Such repetition can be avoided by using a [default graph](#default-graphs), which simplifies the query:
+Note that in the query, the graph name `financial_transactions` is repeatedly specified. Such repetition can be avoided by using a [default graph](#default-graphs), which simplifies the query (Note: With `GRAPH_TABLE` operator, the graph name has to be specified explicitly inside each operator):
+
 
 ```sql
   SELECT p.name AS name

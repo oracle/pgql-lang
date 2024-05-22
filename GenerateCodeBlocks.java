@@ -59,9 +59,9 @@ public class GenerateCodeBlocks {
             // Placeholder HTML code
             // String htmlStart = "<div class=\"code-block\">";
             String buttonCode = "<div class=\"tab\">\n" +
-                    "<button name=\"sql-button\" class=\"tablinks active\" onclick=\"openTab(event, 'sql')\">SQL</button>\n"
+                    "<button name=\"sql-button\" class=\"tablinks active\" onclick=\"openTab(event, 'sql')\">SQL standard syntax</button>\n"
                     +
-                    "<button name=\"pgql-button\" class=\"tablinks\" onclick=\"openTab(event, 'pgql')\">PGQL</button>\n"
+                    "<button name=\"pgql-button\" class=\"tablinks\" onclick=\"openTab(event, 'pgql')\">Legacy PGQL syntax</button>\n"
                     +
                     "</div>";
             // String htmlEnd = "</div>";
@@ -80,14 +80,13 @@ public class GenerateCodeBlocks {
                     tosplit = codeBlock.split("(?i)--SQL");
                     if (tosplit.length == 2) {
                         writer.write(buttonCode);
-                        pgql = getHtmlForQuery(tosplit[0].substring(6), true);
-                        sql = getHtmlForQuery(tosplit[1], false);
+                        pgql = getHtmlForQuery(tosplit[0].substring(6), true) + "\n";
+                        sql = getHtmlForQuery(tosplit[1], false) + "\n";
                     } else {
-                        pgql = "```sql\n" + tosplit[0] + "```";
+                        pgql = "```sql\n" + tosplit[0] + "```\n";
                         sql = "";
                     }
                     writer.write(sql);
-                    writer.newLine();
                     writer.write(pgql);
                     codeBlock = "";
                     inCodeBlock = false;// Reset codeBlock for next block
@@ -97,6 +96,8 @@ public class GenerateCodeBlocks {
                         codeBlock += line + "\n"; // Add newline character
                     } else {
                         // If not in a code block, write the line as is
+                        if (line.startsWith("#permalink:"))
+                            line = line.substring(1);
                         writer.write(line);
                         writer.newLine();
                     }
