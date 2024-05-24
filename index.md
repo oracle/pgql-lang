@@ -71,12 +71,17 @@ CREATE PROPERTY GRAPH financial_transactions
 After we created the graph, we can execute a `SELECT` query to "produce an overview of account holders that have transacted with a person named Nikita":
 
 ```sql
-  SELECT owner.name AS account_holder, SUM(t.amount) AS total_transacted_with_Nikita
-    FROM MATCH (p:Person) <-[:owner]- (account1:Account)
-       , MATCH (account1) -[t:transaction]- (account2) /* match both incoming and outgoing transactions */
-       , MATCH (account2:Account) -[:owner]-> (owner:Person|Company)
-   WHERE p.name = 'Nikita'
-GROUP BY owner
+SELECT account_holder, SUM(amount) AS total_transacted_with_Nikita
+FROM
+  GRAPH_TABLE ( financial_transactions
+    MATCH
+      (p IS Person) <-[IS owner]- (account1 IS Account),
+      (account1) -[t IS transaction]- (account2), /* match both incoming and outgoing transactions */
+      (account2 IS Account) -[IS owner]-> (owner IS Person|Company)
+    WHERE p.name = 'Nikita'
+    COLUMNS ( owner.name AS account_holder, t.amount )
+  )
+GROUP BY account_holder
 ```
 
 The result is:
