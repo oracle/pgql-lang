@@ -1374,18 +1374,18 @@ ORDER BY "number", "name"
 ```
 
 ```
-+-----------------------------+
-| label(n) | number | name    |
-+-----------------------------+
-| Account  | 1001   | <null>  |
-| Account  | 2090   | <null>  |
-| Account  | 8021   | <null>  |
-| Account  | 10039  | <null>  |
-| Person   | <null> | Camille |
-| Person   | <null> | Liam    |
-| Person   | <null> | Nikita  |
-| Company  | <null> | Oracle  |
-+-----------------------------+
++------------------+
+| number | name    |
++------------------+
+| 1001   | <null>  |
+| 2090   | <null>  |
+| 8021   | <null>  |
+| 10039  | <null>  |
+| <null> | Camille |
+| <null> | Liam    |
+| <null> | Nikita  |
+| <null> | Oracle  |
++------------------+
 ```
 
 Label expressions are taken into account such that only properties are selected that belong to the specified vertex or
@@ -1407,13 +1407,13 @@ ORDER BY "name"
 ```
 
 ```
-+--------------------+
-| label(n) | name    |
-+--------------------+
-| Person   | Camille |
-| Person   | Liam    |
-| Person   | Nikita  |
-+--------------------+
++---------+
+| name    |
++---------+
+| Camille |
+| Liam    |
+| Nikita  |
++---------+
 ```
 
 A `PREFIX` can be specified to avoid duplicate column names in case all properties of multiple vertex or edge variables are selected.
