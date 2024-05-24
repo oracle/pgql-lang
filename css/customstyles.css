@@ -1173,3 +1173,50 @@ h4.panel-title {
     padding-top: 0px;
     margin-top: 0px;
 }
+
+
+.tab-content {
+    display: none;
+    padding: 0px;
+    margin: 0px 0px 0px 0px;
+    border: 1px solid #ccc;
+  }
+  
+  /* Style the active tab content */
+  .tab-content.active {
+    display: contents;
+    padding: 0px;
+    margin: 0px;
+  }
+
+  div.tab-content div.highlight pre {
+    margin: 0px 0px 25px 0px;
+  }
+  
+  /* Style the tabs */
+  .tab {
+    overflow: hidden;
+    border: 1px solid #ccc;
+    background-color: #f1f1f1;
+  }
+  
+  /* Style the tab buttons */
+  .tab button {
+    background-color: inherit;
+    float: left;
+    border: none;
+    outline: none;
+    cursor: pointer;
+    padding: 5px 10px;
+    transition: 0.3s;
+  }
+  
+  /* Change background color of buttons on hover */
+  .tab button:hover {
+    background-color: #ddd;
+  }
+  
+  /* Style the active tab button */
+  .tab button.active {
+    background-color: #ccc;
+  }
