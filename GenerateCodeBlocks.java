@@ -31,9 +31,6 @@ public class GenerateCodeBlocks {
             "TABLE", "THEN", "TO", "TRIGGER", "UID", "UNION", "UNIQUE", "UPDATE", "USER",
             "VALIDATE", "VALUES", "VARCHAR", "VARCHAR2", "VIEW", "WHENEVER", "WHERE", "WITH", 
             "SUM", "ABS", "ID", "PATH", "ON", "AS"};
-        
-    //private static String opRegex = "(?=([^'\"]|'[^']*'|\"[^\"]*\")*$)([\\+\\-\\*\\/=%><\\|])";
-    //private static String valRegex = "('.*?'|\\b\\d+\\b)";
 
     private static String regex;
     

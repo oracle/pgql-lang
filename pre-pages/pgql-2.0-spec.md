@@ -1362,14 +1362,14 @@ For example:
 
 ```sql
 --PGQL
-SELECT ID(n), n.*
+SELECT n.*
 FROM MATCH (n) ON financial_transactions
 ORDER BY "number", "name"
 --SQL
-SELECT  *  
+SELECT *  
 FROM GRAPH_TABLE (financial_transactions 
   MATCH(n) 
-  COLUMNS(VERTEX_ID(n) as n_id, n.*)) 
+  COLUMNS(n.*)) 
 ORDER BY "number", "name"
 ```
 
@@ -1395,15 +1395,15 @@ edge labels:
 
 ```sql
 --PGQL
-SELECT ID(n), n.*
+SELECT n.*
 FROM MATCH (n:Person) ON financial_transactions
 ORDER BY "name"
 --SQL
 SELECT  *  
 FROM GRAPH_TABLE (financial_transactions 
   MATCH(n IS Person) 
-  COLUMNS(VERTEX_ID(n) as n_id, n.*)) 
-ORDER BY  "name"
+  COLUMNS(n.*)) 
+ORDER BY "name"
 ```
 
 ```
@@ -1417,7 +1417,7 @@ ORDER BY  "name"
 ```
 
 A `PREFIX` can be specified to avoid duplicate column names in case all properties of multiple vertex or edge variables are selected.
-Note: `PREFIX` cannot be used withing the GRAPH_TABLE operator.
+Note: `PREFIX` cannot be used within the GRAPH_TABLE operator.
 
 For example:
 
@@ -1541,7 +1541,7 @@ PGQL itself does not (yet) provide syntax for specifying a default graph, but Ja
  - Oracle's in-memory analytics engine PGX has the API `PgxGraph.queryPgql("SELECT ...")` such that the default graph corresponds to `PgxGraph.getName()` such that `ON` clauses can be omitted from queries.
  - Oracle's PGQL-on-RDBMS provides the API `PgqlConnection.setGraph("myGraph")` for setting the default graph such that the `ON` clauses can be omitted from queries.
 
-Note: graph names has to be explicitly provided for the GRAPH_TABLE operator.
+Note: graph names have to be explicitly provided for the GRAPH_TABLE operator.
 If a default graph is provided then the `ON` clause can be omitted:
 
 ```sql
@@ -1664,7 +1664,7 @@ ColonOrIsKeyword ::=    ':'
 
 Colons and `IS` keywords can be used interchangeably.
 
-Note: With GRAPH_TABLE operator only IS is allowed.
+Note: With `GRAPH_TABLE` operator only `IS` is allowed.
 
 Take the following example:
 
@@ -2421,22 +2421,12 @@ For example:
 {% include image.html file="example_graphs/financial_transactions.png" %}
 
 ```sql
---PGQL
 SELECT COUNT(e) AS num_hops
      , SUM(e.amount) AS total_amount
      , ARRAY_AGG(e.amount) AS amounts_along_path
 FROM MATCH ANY CHEAPEST (a:Account) (-[e:transaction]-> COST e.amount)* (b:Account)
        ON financial_transactions
 WHERE a.number = 10039 AND b.number = 2090
---SQL
-SELECT * 
-FROM GRAPH_TABLE(financial_transactions 
-  MATCH (a IS Account) (-[e IS transaction]-> COST e.amount)* (b IS Account) 
-  KEEP ANY CHEAPEST 
-  WHERE a.number = 10039 AND b.number = 2090 
-  COLUMNS(COUNT(EDGE_ID(e)) AS num_hops, 
-          SUM(e.amount) AS total_amount, 
-          ARRAY_AGG(e.amount) AS amounts_along_path))
 ```
 
 ```
@@ -2452,22 +2442,12 @@ The following example with `CHEAPEST` contains an any-directed edge pattern (`-[
 {% include image.html file="example_graphs/financial_transactions.png" %}
 
 ```sql
---PGQL
 SELECT COUNT(e) AS num_hops
      , SUM(e.amount) AS total_amount
      , ARRAY_AGG(e.amount) AS amounts_along_path
 FROM MATCH ANY CHEAPEST (a:Account) (-[e:transaction]- COST e.amount)* (b:Account)
        ON financial_transactions
 WHERE a.number = 10039 AND b.number = 2090
---SQL
-SELECT *
-FROM GRAPH_TABLE(financial_transactions 
-  MATCH (a IS Account) (-[e IS transaction]- COST e.amount)* (b IS Account)
-  KEEP ANY CHEAPEST
-  WHERE a.number = 10039 AND b.number = 2090
-  COLUMNS(COUNT(EDGE_ID(e)) AS num_hops
-     , SUM(e.amount) AS total_amount
-     , ARRAY_AGG(e.amount) AS amounts_along_path))
 ```
 
 ```
@@ -2486,7 +2466,6 @@ The following example has a `CASE` statement that defines a different cost for d
 {% include image.html file="example_graphs/financial_transactions.png" %}
 
 ```sql
---PGQL
 SELECT COUNT(e) AS num_hops
      , SUM(e.amount) AS total_amount
      , ARRAY_AGG(e.amount) AS amounts_along_path
@@ -2497,18 +2476,6 @@ FROM MATCH ANY CHEAPEST (p1:Person) (-[e:owner|transaction]-
                                          END)* (p2:Person)
      ON financial_transactions
 WHERE p1.name = 'Nikita' AND p2.name = 'Liam'
---SQL
-SELECT * 
-FROM GRAPH_TABLE(financial_transactions 
-  MATCH (p1 IS Person) (-[e IS owner|transaction]- COST CASE 
-                                                          WHEN e.amount IS NULL THEN 1 
-                                                          ELSE e.amount 
-                                                        END)* (p2 IS Person) 
-  KEEP ANY CHEAPEST 
-  WHERE p1.name = 'Nikita' AND p2.name = 'Liam' 
-  COLUMNS(COUNT(EDGE_ID(e)) AS num_hops , 
-          SUM(e.amount) AS total_amount , 
-          ARRAY_AGG(e.amount) AS amounts_along_path))
 ```
 
 ```
@@ -2544,23 +2511,12 @@ For example, the following query returns the cheapest 3 paths from account 10039
 {% include image.html file="example_graphs/financial_transactions.png" %}
 
 ```sql
---PGQL
 SELECT COUNT(e) AS num_hops
      , SUM(e.amount) AS total_amount
      , ARRAY_AGG(e.amount) AS amounts_along_path
 FROM MATCH CHEAPEST 3 PATHS (a:Account) (-[e:transaction]-> COST e.amount)* (a)
        ON financial_transactions
 WHERE a.number = 10039
-ORDER BY total_amount
---SQL
-SELECT * 
-FROM GRAPH_TABLE(financial_transactions 
-  MATCH (a IS Account) (-[e IS transaction]-> COST e.amount)* (a) 
-  KEEP CHEAPEST 3 PATHS 
-  WHERE a.number = 10039 
-  COLUMNS(COUNT(EDGE_ID(e)) AS num_hops,
-          SUM(e.amount) AS total_amount , 
-          ARRAY_AGG(e.amount) AS amounts_along_path))
 ORDER BY total_amount
 ```
 
@@ -2581,7 +2537,6 @@ while `Account` or `Company` vertices contribute `1` to the total cost.
 {% include image.html file="example_graphs/financial_transactions.png" %}
 
 ```sql
---PGQL
 SELECT COUNT(e) AS num_hops
      , ARRAY_AGG( CASE label(n_x)
                     WHEN 'Person' THEN n_x.name
@@ -2594,22 +2549,6 @@ FROM MATCH CHEAPEST 4 PATHS
         (-[e]- (n_x) COST CASE label(n_x) WHEN 'Person' THEN 3 ELSE 1 END)*
           (c:Company) ON financial_transactions
 WHERE a.number = 10039 AND c.name = 'Oracle'
-ORDER BY total_cost
---SQL
-SELECT * 
-FROM GRAPH_TABLE(financial_transactions 
-  MATCH (a IS Account) 
-          (-[e]- (n_x) COST CASE WHEN n_x IS LABELED Person THEN 3 ELSE 1 END)* 
-            (c IS Company) 
-  KEEP CHEAPEST 4 PATHS 
-  WHERE a.number = 10039 AND c.name = 'Oracle' 
-  COLUMNS(COUNT(EDGE_ID(e)) AS num_hops , 
-          ARRAY_AGG(CASE 
-                      WHEN n_x IS LABELED Person THEN n_x.name 
-                      WHEN n_x IS LABELED Company THEN n_x.name 
-                      WHEN n_x IS LABELED Account THEN CAST(n_x.number AS STRING) 
-                    END ) AS names_or_numbers , 
-          SUM(CASE WHEN n_x IS LABELED Person THEN 8 ELSE 1 END) AS total_cost)) 
 ORDER BY total_cost
 ```
 
@@ -2882,19 +2821,10 @@ An example with `WALK` is:
 {% include image.html file="example_graphs/financial_transactions.png" %}
 
 ```sql
---PGQL
 SELECT LISTAGG(e.amount, ', ') AS amounts_along_path, SUM(e.amount) AS total_cost
 FROM MATCH CHEAPEST 4 WALK (a:account) (-[e:transaction]-> COST e.amount)* (a)
        ON financial_transactions
 WHERE a.number = 10039
-ORDER BY total_cost
---SQL
-SELECT * 
-FROM GRAPH_TABLE(financial_transactions 
-  MATCH (a IS account) (-[e IS transaction]-> COST e.amount)* (a) 
-  KEEP CHEAPEST 4 WALK 
-  WHERE a.number = 10039 
-  COLUMNS(LISTAGG(e.amount, ', ') AS amounts_along_path, SUM(e.amount) AS total_cost)) 
 ORDER BY total_cost
 ```
 
@@ -3746,7 +3676,7 @@ FetchFirstQuantity ::=   <UNSIGNED_INTEGER>
 The `FETCH FIRST` clause is applied after the [OFFSET clause](#offset-clause).
 If there are fewer solutions than the fetch quantity, all solutions are returned.
 
-For example, in the following query the first solution is pruned from the result (`OFFSET 1`) and the next two solutions are fetched (`FETCH FIRST 2 ROWS ONLY`).
+For example, in the following query the first solution is pruned from the result (`OFFSET 1`) and the next one solution is fetched (`FETCH FIRST 1 ROWS ONLY`).
 
 {% include image.html file="example_graphs/financial_transactions.png" %}
 
@@ -3806,7 +3736,6 @@ LIMIT 1
 | name   |
 +--------+
 | Liam   |
-| Nikita |
 +--------+
 ```
 
@@ -5189,6 +5118,7 @@ For example, the following query finds the top two people that transacted the mo
 {% include image.html file="example_graphs/financial_transactions.png" %}
 
 ```sql
+--PGQL
 SELECT p.name, total_transacted, top_transaction
 FROM LATERAL ( SELECT p, SUM(t.amount) AS total_transacted
                FROM MATCH (p:person) <- (a:account) -[t:transaction]- ()
@@ -5200,6 +5130,21 @@ FROM LATERAL ( SELECT p, SUM(t.amount) AS total_transacted
                FROM MATCH (p) <- (a:account) -[t:transaction]- ()
                       ON financial_transactions
                ORDER BY t.amount DESC
+               FETCH FIRST 2 ROW ONLY )
+ORDER BY total_transacted DESC, top_transaction DESC
+--SQL
+SELECT name, total_transacted, top_transaction
+FROM LATERAL ( SELECT p1_id, name, SUM(amount) AS total_transacted
+               FROM GRAPH_TABLE(financial_transactions MATCH (p1 IS person) <- (a1 IS account) -[t1 IS transaction]- ()
+               COLUMNS(VERTEX_ID(p1) AS p1_id, p1.name, t1.amount))
+               GROUP BY p1_id, name
+               ORDER BY total_transacted DESC
+               FETCH FIRST 2 ROW ONLY ),
+     LATERAL ( SELECT amount AS top_transaction
+               FROM GRAPH_TABLE(financial_transactions MATCH (p2 IS Person) <- (a2 IS account) -[t2 IS transaction]- ()
+                      COLUMNS(VERTEX_ID(p2) AS p2_id, t2.amount))
+               WHERE p2_id = p1_id
+               ORDER BY amount DESC
                FETCH FIRST 2 ROW ONLY )
 ORDER BY total_transacted DESC, top_transaction DESC
 ```
@@ -5216,6 +5161,7 @@ ORDER BY total_transacted DESC, top_transaction DESC
 ```
 
 In the following query, the `LATERAL` subquery projects the two vertices `a` and `p`, while the outer accesses properties of those vertices.
+Note: Vertex and edge variables cannot be projected with `GRAPH_TABLE` operator
 
 ```sql
 SELECT p.name, a.number
