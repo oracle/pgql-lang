@@ -116,18 +116,18 @@ SQL/PGQ allows the user to create property graphs on top of one or more existing
 and query these graphs natively using a powerful new operator, called GRAPH_TABLE, which provides a graph pattern matching language fully integrated into SQL.
 
 The plan for PGQL is to align it with the SQL Standard where possible.
-As such, the GRAPH_TABLE operator as SQL's CREATE PROPERTY GRAPH statement were added to PGQL.
+As such, the GRAPH_TABLE operator as well as SQL's CREATE PROPERTY GRAPH statement were previously added to PGQL.
 
-PGQL also has a syntax that was developed before SQL:2023 was finalized, which is referred to in the PGQL Specification as 'PGQL with custom syntax'.
+PGQL also has a custom syntax that was developed before SQL:2023 was finalized, which is referred to in the PGQL Specification as 'PGQL with custom syntax'.
 Queries with custom syntax can be easily distinguished from queries with SQL Standard syntax as they do not use the GRAPH_TABLE operator.
-The plan is to maintain the custom syntax over time and give users the freedom to pick whichever syntax they prefer.
+The plan is to maintain the custom syntax over time and give users the choice to use whichever syntax they prefer.
 
 Property Graphs in Oracle Database
 ----------------------------
 
 PGQL has been part of the Oracle Database as a standalone language since Oracle Database 12c.
-In Oracle Database 23ai, property graphs were added directly into SQL as a more integrated feature of the converged database.
-Nevertheless, PGQL remains available also in Oracle Database 23ai and users can [choose](https://blogs.oracle.com/database/post/querying-graphs-with-sql-and-pgql-what-is-the-difference) the language that best suits their needs.
+However, in Oracle Database 23ai, property graphs were added directly into SQL as a more integrated feature of the converged database.
+Nevertheless, PGQL remains available in Oracle Database 23ai and users can [choose](https://blogs.oracle.com/database/post/querying-graphs-with-sql-and-pgql-what-is-the-difference) the language that best suits their needs and easily migrate between them.
 
 {::nomarkdown}
 <a href="https://www.oracle.com/database/graph/">
