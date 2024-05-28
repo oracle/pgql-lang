@@ -68,7 +68,18 @@ CREATE PROPERTY GRAPH financial_transactions
   )
 ```
 
-After we created the graph, we can execute a `SELECT` query to "produce an overview of account holders that have transacted with a person named Nikita":
+After we created the graph, we can run a `SELECT` query to "produce an overview of account holders that have transacted with a person named Nikita":
+
+```sql
+  SELECT owner.name AS account_holder, SUM(t.amount) AS total_transacted_with_Nikita
+    FROM MATCH (p:Person) <-[:owner]- (account1:Account)
+       , MATCH (account1) -[t:transaction]- (account2) /* match both incoming and outgoing transactions */
+       , MATCH (account2:Account) -[:owner]-> (owner:Person|Company)
+   WHERE p.name = 'Nikita'
+GROUP BY owner
+```
+
+Or, using PGQL with SQL Standard syntax:
 
 ```sql
 SELECT account_holder, SUM(amount) AS total_transacted_with_Nikita
@@ -97,16 +108,29 @@ The result is:
 
 Please see the [PGQL Specification](spec/latest/) for more examples and a detailed specification of the language.
 
-Oracle's Graph Database
+Relationship to the SQL Standard
 ----------------------------
 
-PGQL is one of the central components of [Oracle's Graph Database](https://www.oracle.com/database/graph/).
-Graphs can be created through mapping from tabular data by using PGQL's `CREATE PROPERTY GRAPH` statement.
-Results of PGQL `SELECT` queries can be visualized in intuitive manner.
-In addition to PGQL, Oracle's Graph Database provides support for RDF knowledge graphs, powerful built-in graph algorithms, support for popular notebooks, and much more.
+In its latest revision, the SQL Standard added support for property graphs ([SQL:2023 Part 16: SQL/PGQ – Property Graph Queries](https://www.iso.org/standard/79473.html)).
+SQL/PGQ allows the user to create property graphs on top of one or more existing relational tables,
+and query these graphs natively using a powerful new operator, called GRAPH_TABLE, which provides a graph pattern matching language fully integrated into SQL.
+
+The plan for PGQL is to align it with the SQL Standard where possible.
+As such, the GRAPH_TABLE operator as SQL's CREATE PROPERTY GRAPH statement were added to PGQL.
+
+PGQL also has a syntax that was developed before SQL:2023 was finalized, which is referred to in the PGQL Specification as 'PGQL with custom syntax'.
+Queries with custom syntax can be easily distinguished from queries with SQL Standard syntax as they do not use the GRAPH_TABLE operator.
+The plan is to maintain the custom syntax over time and give users the freedom to pick whichever syntax they prefer.
+
+Property Graphs in Oracle Database
+----------------------------
+
+PGQL has been part of the Oracle Database as a standalone language since Oracle Database 12c.
+In Oracle Database 23ai, property graphs were added directly into SQL as a more integrated feature of the converged database.
+Nevertheless, PGQL remains available also in Oracle Database 23ai and users can [choose](https://blogs.oracle.com/database/post/querying-graphs-with-sql-and-pgql-what-is-the-difference) the language that best suits their needs.
 
 {::nomarkdown}
 <a href="https://www.oracle.com/database/graph/">
-  <img src="images/oracle_graph_database.png" alt="Oracle's Graph Database" style="width:500px;">
+  <img src="images/oracle_graph_database.png" alt="Integrated Graph Database" style="width:500px;">
 </a>
 {:/}
