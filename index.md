@@ -127,7 +127,7 @@ Property Graphs in Oracle Database
 
 PGQL has been part of the Oracle Database as a standalone language since Oracle Database 12c.
 However, in Oracle Database 23ai, property graphs were added directly into SQL as a more integrated feature of the converged database.
-Nevertheless, PGQL remains available in Oracle Database 23ai and users can [choose](https://blogs.oracle.com/database/post/querying-graphs-with-sql-and-pgql-what-is-the-difference) the language that best suits their needs and easily migrate between them.
+Nevertheless, PGQL remains available in Oracle Database 23ai and users can [choose](https://blogs.oracle.com/database/post/querying-graphs-with-sql-and-pgql-what-is-the-difference) the language that best suits their needs and can easily migrate between them.
 
 {::nomarkdown}
 <a href="https://www.oracle.com/database/graph/">
