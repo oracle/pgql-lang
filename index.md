@@ -17,7 +17,7 @@ Alongside SQL constructs like `SELECT`, `FROM`, `WHERE`, `GROUP BY` and `ORDER B
 Fixed-length graph patterns match a fixed number of vertices and edges per solution.
 The types of the vertices and edges can be defined through arbitrary label expressions such as `friend_of|sibling_of`, for example to match edges that have either the label `friend_of` or the label `sibling_of`.
 This means that edge patterns are higher-level joins that can relate different types of entities at once.
-Variable-length graph patterns, on the other hand, contain one or more quantifiers like `*`, `+`, `?` or `{2,4}` for matching vertices and edges in a recursive fashion.
+Variable-length graph patterns, on the other hand, contain one or more quantifiers like `*`, `+` or `{2,4}` for matching vertices and edges in a recursive fashion.
 This allows for encoding graph reachability (transitive closure) queries as well as shortest and cheapest path finding queries.
 
 PGQL deeply integrates graph pattern matching with subquery capabilities so that vertices and edges that are matched in one query can be passed into another query for continued joining or pattern matching.
