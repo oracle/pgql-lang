@@ -56,9 +56,9 @@ public class GenerateCodeBlocks {
             // Placeholder HTML code
             // String htmlStart = "<div class=\"code-block\">";
             String buttonCode = "<div class=\"tab\">\n" +
-                    "<button name=\"sql-button\" class=\"tablinks active\" onclick=\"openTab(event, 'sql')\">SQL standard syntax</button>\n"
+                    "<button name=\"sql-button\" class=\"tablinks active\" onclick=\"openTab(event, 'sql')\">PGQL with SQL Standard syntax</button>\n"
                     +
-                    "<button name=\"pgql-button\" class=\"tablinks\" onclick=\"openTab(event, 'pgql')\">Legacy PGQL syntax</button>\n"
+                    "<button name=\"pgql-button\" class=\"tablinks\" onclick=\"openTab(event, 'pgql')\">PGQL with custom syntax</button>\n"
                     +
                     "</div>";
             // String htmlEnd = "</div>";

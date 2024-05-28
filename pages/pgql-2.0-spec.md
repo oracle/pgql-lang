@@ -847,8 +847,8 @@ The following query matches all the vertices with the label `Person` and retriev
 {% include image.html file="example_graphs/student_network.png"  %}
 
 <div class="tab">
-<button name="sql-button" class="tablinks active" onclick="openTab(event, 'sql')">SQL standard syntax</button>
-<button name="pgql-button" class="tablinks" onclick="openTab(event, 'pgql')">Legacy PGQL syntax</button>
+<button name="sql-button" class="tablinks active" onclick="openTab(event, 'sql')">PGQL with SQL Standard syntax</button>
+<button name="pgql-button" class="tablinks" onclick="openTab(event, 'pgql')">PGQL with custom syntax</button>
 </div><div name="sql" class="tab-content active"><div class="language-sql highlighter-rouge"><div class="highlight"><pre class="highlight">
 <span class="k">SELECT</span> name, dob 
 <span class="k">FROM</span> <span class="k">GRAPH_TABLE</span>(student_network 
@@ -887,8 +887,8 @@ For example:
 {% include image.html file="example_graphs/student_network.png"  %}
 
 <div class="tab">
-<button name="sql-button" class="tablinks active" onclick="openTab(event, 'sql')">SQL standard syntax</button>
-<button name="pgql-button" class="tablinks" onclick="openTab(event, 'pgql')">Legacy PGQL syntax</button>
+<button name="sql-button" class="tablinks active" onclick="openTab(event, 'sql')">PGQL with SQL Standard syntax</button>
+<button name="pgql-button" class="tablinks" onclick="openTab(event, 'pgql')">PGQL with custom syntax</button>
 </div><div name="sql" class="tab-content active"><div class="language-sql highlighter-rouge"><div class="highlight"><pre class="highlight">
 <span class="k">SELECT</span> a, b 
 <span class="k">FROM</span> <span class="k">GRAPH_TABLE</span>(student_network 
@@ -927,8 +927,8 @@ For example:
 {% include image.html file="example_graphs/student_network.png"  %}
 
 <div class="tab">
-<button name="sql-button" class="tablinks active" onclick="openTab(event, 'sql')">SQL standard syntax</button>
-<button name="pgql-button" class="tablinks" onclick="openTab(event, 'pgql')">Legacy PGQL syntax</button>
+<button name="sql-button" class="tablinks active" onclick="openTab(event, 'sql')">PGQL with SQL Standard syntax</button>
+<button name="pgql-button" class="tablinks" onclick="openTab(event, 'pgql')">PGQL with custom syntax</button>
 </div><div name="sql" class="tab-content active"><div class="language-sql highlighter-rouge"><div class="highlight"><pre class="highlight">
 <span class="k">SELECT</span> name, dob 
 <span class="k">FROM</span> <span class="k">GRAPH_TABLE</span>(student_network 
@@ -962,8 +962,8 @@ For example:
 {% include image.html file="example_graphs/student_network.png"  %}
 
 <div class="tab">
-<button name="sql-button" class="tablinks active" onclick="openTab(event, 'sql')">SQL standard syntax</button>
-<button name="pgql-button" class="tablinks" onclick="openTab(event, 'pgql')">Legacy PGQL syntax</button>
+<button name="sql-button" class="tablinks active" onclick="openTab(event, 'sql')">PGQL with SQL Standard syntax</button>
+<button name="pgql-button" class="tablinks" onclick="openTab(event, 'pgql')">PGQL with custom syntax</button>
 </div><div name="sql" class="tab-content active"><div class="language-sql highlighter-rouge"><div class="highlight"><pre class="highlight">
 <span class="k">SELECT</span> name, dob 
 <span class="k">FROM</span> <span class="k">GRAPH_TABLE</span>(student_network
@@ -998,8 +998,8 @@ For example, "find all persons that have a date of birth (dob) greater than 1995
 {% include image.html file="example_graphs/student_network.png"  %}
 
 <div class="tab">
-<button name="sql-button" class="tablinks active" onclick="openTab(event, 'sql')">SQL standard syntax</button>
-<button name="pgql-button" class="tablinks" onclick="openTab(event, 'pgql')">Legacy PGQL syntax</button>
+<button name="sql-button" class="tablinks active" onclick="openTab(event, 'sql')">PGQL with SQL Standard syntax</button>
+<button name="pgql-button" class="tablinks" onclick="openTab(event, 'pgql')">PGQL with custom syntax</button>
 </div><div name="sql" class="tab-content active"><div class="language-sql highlighter-rouge"><div class="highlight"><pre class="highlight">
 <span class="k">SELECT</span> name, dob 
 <span class="k">FROM</span> <span class="k">GRAPH_TABLE</span>(student_network 
@@ -1031,8 +1031,8 @@ Another example is to "find people that Kathrine knows and that are old than her
 {% include image.html file="example_graphs/student_network.png"  %}
 
 <div class="tab">
-<button name="sql-button" class="tablinks active" onclick="openTab(event, 'sql')">SQL standard syntax</button>
-<button name="pgql-button" class="tablinks" onclick="openTab(event, 'pgql')">Legacy PGQL syntax</button>
+<button name="sql-button" class="tablinks active" onclick="openTab(event, 'sql')">PGQL with SQL Standard syntax</button>
+<button name="pgql-button" class="tablinks" onclick="openTab(event, 'pgql')">PGQL with custom syntax</button>
 </div><div name="sql" class="tab-content active"><div class="language-sql highlighter-rouge"><div class="highlight"><pre class="highlight">
 <span class="k">SELECT</span> name, dob 
 <span class="k">FROM</span> <span class="k">GRAPH_TABLE</span>(student_network 
@@ -1068,8 +1068,8 @@ For example, "find people that Lee knows and that are a student at the same univ
 {% include image.html file="example_graphs/student_network.png"  %}
 
 <div class="tab">
-<button name="sql-button" class="tablinks active" onclick="openTab(event, 'sql')">SQL standard syntax</button>
-<button name="pgql-button" class="tablinks" onclick="openTab(event, 'pgql')">Legacy PGQL syntax</button>
+<button name="sql-button" class="tablinks active" onclick="openTab(event, 'sql')">PGQL with SQL Standard syntax</button>
+<button name="pgql-button" class="tablinks" onclick="openTab(event, 'pgql')">PGQL with custom syntax</button>
 </div><div name="sql" class="tab-content active"><div class="language-sql highlighter-rouge"><div class="highlight"><pre class="highlight">
 <span class="k">SELECT</span> friend, university 
 <span class="k">FROM</span> <span class="k">GRAPH_TABLE</span>(student_network 
@@ -1098,8 +1098,8 @@ Note that the first and last vertex pattern both have the variable `u`. This mea
 The same query as above may be expressed through multiple comma-separated path patterns, like this:
 
 <div class="tab">
-<button name="sql-button" class="tablinks active" onclick="openTab(event, 'sql')">SQL standard syntax</button>
-<button name="pgql-button" class="tablinks" onclick="openTab(event, 'pgql')">Legacy PGQL syntax</button>
+<button name="sql-button" class="tablinks active" onclick="openTab(event, 'sql')">PGQL with SQL Standard syntax</button>
+<button name="pgql-button" class="tablinks" onclick="openTab(event, 'pgql')">PGQL with custom syntax</button>
 </div><div name="sql" class="tab-content active"><div class="language-sql highlighter-rouge"><div class="highlight"><pre class="highlight">
 <span class="k">SELECT</span> friend, university 
 <span class="k">FROM</span> <span class="k">GRAPH_TABLE</span>(student_network 
@@ -1136,8 +1136,8 @@ For example, "find friends of friends of Lee" (friendship being defined by the p
 {% include image.html file="example_graphs/student_network.png"  %}
 
 <div class="tab">
-<button name="sql-button" class="tablinks active" onclick="openTab(event, 'sql')">SQL standard syntax</button>
-<button name="pgql-button" class="tablinks" onclick="openTab(event, 'pgql')">Legacy PGQL syntax</button>
+<button name="sql-button" class="tablinks active" onclick="openTab(event, 'sql')">PGQL with SQL Standard syntax</button>
+<button name="pgql-button" class="tablinks" onclick="openTab(event, 'pgql')">PGQL with custom syntax</button>
 </div><div name="sql" class="tab-content active"><div class="language-sql highlighter-rouge"><div class="highlight"><pre class="highlight">
 <span class="k">SELECT</span> p1, p2, p3 
 <span class="k">FROM</span> <span class="k">GRAPH_TABLE</span>(student_network 
@@ -1168,8 +1168,8 @@ If such binding of vertices to multiple variables is not desired, one can use ei
 For example, the predicate `p1 <> p3` in the query below adds the restriction that Lee, which has to bind to variable `p1`, cannot also bind to variable `p3`:
 
 <div class="tab">
-<button name="sql-button" class="tablinks active" onclick="openTab(event, 'sql')">SQL standard syntax</button>
-<button name="pgql-button" class="tablinks" onclick="openTab(event, 'pgql')">Legacy PGQL syntax</button>
+<button name="sql-button" class="tablinks active" onclick="openTab(event, 'sql')">PGQL with SQL Standard syntax</button>
+<button name="pgql-button" class="tablinks" onclick="openTab(event, 'pgql')">PGQL with custom syntax</button>
 </div><div name="sql" class="tab-content active"><div class="language-sql highlighter-rouge"><div class="highlight"><pre class="highlight">
 <span class="k">SELECT</span> p1, p2, p3 
 <span class="k">FROM</span> <span class="k">GRAPH_TABLE</span>(student_network 
@@ -1195,8 +1195,8 @@ For example, the predicate `p1 <> p3` in the query below adds the restriction th
 An alternative is to use the [ALL_DIFFERENT predicate](#all_different-predicate), which can take any number of vertices or edges as input and specifies non-equality between all of them:
 
 <div class="tab">
-<button name="sql-button" class="tablinks active" onclick="openTab(event, 'sql')">SQL standard syntax</button>
-<button name="pgql-button" class="tablinks" onclick="openTab(event, 'pgql')">Legacy PGQL syntax</button>
+<button name="sql-button" class="tablinks active" onclick="openTab(event, 'sql')">PGQL with SQL Standard syntax</button>
+<button name="pgql-button" class="tablinks" onclick="openTab(event, 'pgql')">PGQL with custom syntax</button>
 </div><div name="sql" class="tab-content active"><div class="language-sql highlighter-rouge"><div class="highlight"><pre class="highlight">
 <span class="k">SELECT</span> <span class="o">*</span> 
 <span class="k">FROM</span> <span class="k">GRAPH_TABLE</span>(student_network 
@@ -1224,8 +1224,8 @@ Besides vertices binding to multiple variables, it is also possible for edges to
 For example, "find two people that both know Riya":
 
 <div class="tab">
-<button name="sql-button" class="tablinks active" onclick="openTab(event, 'sql')">SQL standard syntax</button>
-<button name="pgql-button" class="tablinks" onclick="openTab(event, 'pgql')">Legacy PGQL syntax</button>
+<button name="sql-button" class="tablinks active" onclick="openTab(event, 'sql')">PGQL with SQL Standard syntax</button>
+<button name="pgql-button" class="tablinks" onclick="openTab(event, 'pgql')">PGQL with custom syntax</button>
 </div><div name="sql" class="tab-content active"><div class="language-sql highlighter-rouge"><div class="highlight"><pre class="highlight">
 <span class="k">SELECT</span> p1, p2, e1_equals_e2 
 <span class="k">FROM</span> <span class="k">GRAPH_TABLE</span>(student_network 
@@ -1259,8 +1259,8 @@ Any-directed edge patterns match edges in the graph no matter if they are incomi
 An example query with two any-directed edge patterns is:
 
 <div class="tab">
-<button name="sql-button" class="tablinks active" onclick="openTab(event, 'sql')">SQL standard syntax</button>
-<button name="pgql-button" class="tablinks" onclick="openTab(event, 'pgql')">Legacy PGQL syntax</button>
+<button name="sql-button" class="tablinks active" onclick="openTab(event, 'sql')">PGQL with SQL Standard syntax</button>
+<button name="pgql-button" class="tablinks" onclick="openTab(event, 'pgql')">PGQL with custom syntax</button>
 </div><div name="sql" class="tab-content active"><div class="language-sql highlighter-rouge"><div class="highlight"><pre class="highlight">
 <span class="k">SELECT</span> <span class="o">*</span> 
 <span class="k">FROM</span> <span class="k">GRAPH_TABLE</span>(student_network 
@@ -1337,8 +1337,8 @@ A `SELECT` clause consists of the keyword `SELECT` followed by either an optiona
 Consider the following example:
 
 <div class="tab">
-<button name="sql-button" class="tablinks active" onclick="openTab(event, 'sql')">SQL standard syntax</button>
-<button name="pgql-button" class="tablinks" onclick="openTab(event, 'pgql')">Legacy PGQL syntax</button>
+<button name="sql-button" class="tablinks active" onclick="openTab(event, 'sql')">PGQL with SQL Standard syntax</button>
+<button name="pgql-button" class="tablinks" onclick="openTab(event, 'pgql')">PGQL with custom syntax</button>
 </div><div name="sql" class="tab-content active"><div class="language-sql highlighter-rouge"><div class="highlight"><pre class="highlight">
 <span class="k">SELECT</span> n, m, age
 <span class="k">FROM</span> <span class="k">GRAPH_TABLE</span>(student_network 
@@ -1359,8 +1359,8 @@ The `DISTINCT` modifier allows for filtering out duplicate results. The operatio
 It is possible to assign a variable name to any of the selection expression, by appending the keyword `AS` and a variable name. The variable name is used as the column name of the result set. In addition, the variable name can be later used in the `ORDER BY` clause. See the related section later in this document.
 
 <div class="tab">
-<button name="sql-button" class="tablinks active" onclick="openTab(event, 'sql')">SQL standard syntax</button>
-<button name="pgql-button" class="tablinks" onclick="openTab(event, 'pgql')">Legacy PGQL syntax</button>
+<button name="sql-button" class="tablinks active" onclick="openTab(event, 'sql')">PGQL with SQL Standard syntax</button>
+<button name="pgql-button" class="tablinks" onclick="openTab(event, 'pgql')">PGQL with custom syntax</button>
 </div><div name="sql" class="tab-content active"><div class="language-sql highlighter-rouge"><div class="highlight"><pre class="highlight">
 <span class="k">SELECT</span> age <span class="o">*</span> <span class="mi">2</span> <span class="o">-</span> <span class="mi">1</span> <span class="k">AS</span> pivot, name
 <span class="k">FROM</span> <span class="k">GRAPH_TABLE</span>(my_graph 
@@ -1406,8 +1406,8 @@ For example:
 {% include image.html file="example_graphs/financial_transactions.png" %}
 
 <div class="tab">
-<button name="sql-button" class="tablinks active" onclick="openTab(event, 'sql')">SQL standard syntax</button>
-<button name="pgql-button" class="tablinks" onclick="openTab(event, 'pgql')">Legacy PGQL syntax</button>
+<button name="sql-button" class="tablinks active" onclick="openTab(event, 'sql')">PGQL with SQL Standard syntax</button>
+<button name="pgql-button" class="tablinks" onclick="openTab(event, 'pgql')">PGQL with custom syntax</button>
 </div><div name="sql" class="tab-content active"><div class="language-sql highlighter-rouge"><div class="highlight"><pre class="highlight">
 <span class="k">SELECT</span> <span class="o">*</span>  
 <span class="k">FROM</span> <span class="k">GRAPH_TABLE</span> (financial_transactions 
@@ -1442,8 +1442,8 @@ edge labels:
 {% include image.html file="example_graphs/financial_transactions.png" %}
 
 <div class="tab">
-<button name="sql-button" class="tablinks active" onclick="openTab(event, 'sql')">SQL standard syntax</button>
-<button name="pgql-button" class="tablinks" onclick="openTab(event, 'pgql')">Legacy PGQL syntax</button>
+<button name="sql-button" class="tablinks active" onclick="openTab(event, 'sql')">PGQL with SQL Standard syntax</button>
+<button name="pgql-button" class="tablinks" onclick="openTab(event, 'pgql')">PGQL with custom syntax</button>
 </div><div name="sql" class="tab-content active"><div class="language-sql highlighter-rouge"><div class="highlight"><pre class="highlight">
 <span class="k">SELECT</span>  <span class="o">*</span>  
 <span class="k">FROM</span> <span class="k">GRAPH_TABLE</span> (financial_transactions 
@@ -1571,8 +1571,8 @@ GraphReference ::= <GraphName>
 For example:
 
 <div class="tab">
-<button name="sql-button" class="tablinks active" onclick="openTab(event, 'sql')">SQL standard syntax</button>
-<button name="pgql-button" class="tablinks" onclick="openTab(event, 'pgql')">Legacy PGQL syntax</button>
+<button name="sql-button" class="tablinks active" onclick="openTab(event, 'sql')">PGQL with SQL Standard syntax</button>
+<button name="pgql-button" class="tablinks" onclick="openTab(event, 'pgql')">PGQL with custom syntax</button>
 </div><div name="sql" class="tab-content active"><div class="language-sql highlighter-rouge"><div class="highlight"><pre class="highlight">
 <span class="k">SELECT</span> first_name, last_name 
 <span class="k">FROM</span> <span class="k">GRAPH_TABLE</span>(my_graph
@@ -1614,8 +1614,8 @@ Therefore, it is not possible for two `MATCH` clauses to have `ON` clauses with 
 There can be multiple topology constraints in the `FROM` clause of a PGQL query. In such a case, vertex terms that have the same variable name correspond to the same vertex entity. For example, consider the following two lines of topology constraints:
 
 <div class="tab">
-<button name="sql-button" class="tablinks active" onclick="openTab(event, 'sql')">SQL standard syntax</button>
-<button name="pgql-button" class="tablinks" onclick="openTab(event, 'pgql')">Legacy PGQL syntax</button>
+<button name="sql-button" class="tablinks active" onclick="openTab(event, 'sql')">PGQL with SQL Standard syntax</button>
+<button name="pgql-button" class="tablinks" onclick="openTab(event, 'pgql')">PGQL with custom syntax</button>
 </div><div name="sql" class="tab-content active"><div class="language-sql highlighter-rouge"><div class="highlight"><pre class="highlight">
 <span class="k">SELECT</span> <span class="o">*</span>
 <span class="k">FROM</span> <span class="k">GRAPH_TABLE</span>(my_graph
@@ -1638,8 +1638,8 @@ There are various ways in which a particular graph pattern can be specified.
 First, a single path pattern can be written as a chain of edge terms such that two consecutive edge terms share the common vertex term in between. For example:
 
 <div class="tab">
-<button name="sql-button" class="tablinks active" onclick="openTab(event, 'sql')">SQL standard syntax</button>
-<button name="pgql-button" class="tablinks" onclick="openTab(event, 'pgql')">Legacy PGQL syntax</button>
+<button name="sql-button" class="tablinks active" onclick="openTab(event, 'sql')">PGQL with SQL Standard syntax</button>
+<button name="pgql-button" class="tablinks" onclick="openTab(event, 'pgql')">PGQL with custom syntax</button>
 </div><div name="sql" class="tab-content active"><div class="language-sql highlighter-rouge"><div class="highlight"><pre class="highlight">
 <span class="k">SELECT</span> <span class="o">*</span>
 <span class="k">FROM</span> <span class="k">GRAPH_TABLE</span>(my_graph 
@@ -1654,8 +1654,8 @@ First, a single path pattern can be written as a chain of edge terms such that t
 The above graph pattern is equivalent to the graph pattern specified by the following set of comma-separate path patterns:
 
 <div class="tab">
-<button name="sql-button" class="tablinks active" onclick="openTab(event, 'sql')">SQL standard syntax</button>
-<button name="pgql-button" class="tablinks" onclick="openTab(event, 'pgql')">Legacy PGQL syntax</button>
+<button name="sql-button" class="tablinks active" onclick="openTab(event, 'sql')">PGQL with SQL Standard syntax</button>
+<button name="pgql-button" class="tablinks" onclick="openTab(event, 'pgql')">PGQL with custom syntax</button>
 </div><div name="sql" class="tab-content active"><div class="language-sql highlighter-rouge"><div class="highlight"><pre class="highlight">
 <span class="k">SELECT</span> <span class="o">*</span> 
 <span class="k">FROM</span> <span class="k">GRAPH_TABLE</span>(my_graph
@@ -1674,8 +1674,8 @@ The above graph pattern is equivalent to the graph pattern specified by the foll
 Second, it is allowed to reverse the direction of an edge in the pattern, i.e. right-to-left instead of left-to-right. Therefore, the following is a valid graph pattern:
 
 <div class="tab">
-<button name="sql-button" class="tablinks active" onclick="openTab(event, 'sql')">SQL standard syntax</button>
-<button name="pgql-button" class="tablinks" onclick="openTab(event, 'pgql')">Legacy PGQL syntax</button>
+<button name="sql-button" class="tablinks active" onclick="openTab(event, 'sql')">PGQL with SQL Standard syntax</button>
+<button name="pgql-button" class="tablinks" onclick="openTab(event, 'pgql')">PGQL with custom syntax</button>
 </div><div name="sql" class="tab-content active"><div class="language-sql highlighter-rouge"><div class="highlight"><pre class="highlight">
 <span class="k">SELECT</span> <span class="o">*</span> 
 <span class="k">FROM</span> <span class="k">GRAPH_TABLE</span>(my_graph
@@ -1735,8 +1735,8 @@ Note: With `GRAPH_TABLE` operator only `IS` is allowed.
 Take the following example:
 
 <div class="tab">
-<button name="sql-button" class="tablinks active" onclick="openTab(event, 'sql')">SQL standard syntax</button>
-<button name="pgql-button" class="tablinks" onclick="openTab(event, 'pgql')">Legacy PGQL syntax</button>
+<button name="sql-button" class="tablinks active" onclick="openTab(event, 'sql')">PGQL with SQL Standard syntax</button>
+<button name="pgql-button" class="tablinks" onclick="openTab(event, 'pgql')">PGQL with custom syntax</button>
 </div><div name="sql" class="tab-content active"><div class="language-sql highlighter-rouge"><div class="highlight"><pre class="highlight">
 <span class="k">SELECT</span> <span class="o">*</span>
 <span class="k">FROM</span> <span class="k">GRAPH_TABLE</span>(my_graph
@@ -1753,8 +1753,8 @@ Here, we specify that vertices `x` and `y` have the label `Person` and that the 
 A label expression can be specified even when a variable is omitted. For example:
 
 <div class="tab">
-<button name="sql-button" class="tablinks active" onclick="openTab(event, 'sql')">SQL standard syntax</button>
-<button name="pgql-button" class="tablinks" onclick="openTab(event, 'pgql')">Legacy PGQL syntax</button>
+<button name="sql-button" class="tablinks active" onclick="openTab(event, 'sql')">PGQL with SQL Standard syntax</button>
+<button name="pgql-button" class="tablinks" onclick="openTab(event, 'pgql')">PGQL with custom syntax</button>
 </div><div name="sql" class="tab-content active"><div class="language-sql highlighter-rouge"><div class="highlight"><pre class="highlight">
 <span class="k">SELECT</span> <span class="o">*</span>
 <span class="k">FROM</span> <span class="k">GRAPH_TABLE</span>(my_graph
@@ -1786,8 +1786,8 @@ WhereClause ::= 'WHERE' <ValueExpression>
 For example:
 
 <div class="tab">
-<button name="sql-button" class="tablinks active" onclick="openTab(event, 'sql')">SQL standard syntax</button>
-<button name="pgql-button" class="tablinks" onclick="openTab(event, 'pgql')">Legacy PGQL syntax</button>
+<button name="sql-button" class="tablinks active" onclick="openTab(event, 'sql')">PGQL with SQL Standard syntax</button>
+<button name="pgql-button" class="tablinks" onclick="openTab(event, 'pgql')">PGQL with custom syntax</button>
 </div><div name="sql" class="tab-content active"><div class="language-sql highlighter-rouge"><div class="highlight"><pre class="highlight">
 <span class="k">SELECT</span> name
 <span class="k">FROM</span> <span class="k">GRAPH_TABLE</span>(my_graph
@@ -1808,8 +1808,8 @@ Here, the first filter describes that the vertex `x` has a property `name` and i
 Note that the ordering of constraints does not have an affect on the result, such that query from the previous example is equivalent to:
 
 <div class="tab">
-<button name="sql-button" class="tablinks active" onclick="openTab(event, 'sql')">SQL standard syntax</button>
-<button name="pgql-button" class="tablinks" onclick="openTab(event, 'pgql')">Legacy PGQL syntax</button>
+<button name="sql-button" class="tablinks active" onclick="openTab(event, 'sql')">PGQL with SQL Standard syntax</button>
+<button name="pgql-button" class="tablinks" onclick="openTab(event, 'pgql')">PGQL with custom syntax</button>
 </div><div name="sql" class="tab-content active"><div class="language-sql highlighter-rouge"><div class="highlight"><pre class="highlight">
 <span class="k">SELECT</span> name
 <span class="k">FROM</span> <span class="k">GRAPH_TABLE</span>(my_graph
@@ -2025,8 +2025,8 @@ An example is:
 {% include image.html file="example_graphs/financial_transactions.png" %}
 
 <div class="tab">
-<button name="sql-button" class="tablinks active" onclick="openTab(event, 'sql')">SQL standard syntax</button>
-<button name="pgql-button" class="tablinks" onclick="openTab(event, 'pgql')">Legacy PGQL syntax</button>
+<button name="sql-button" class="tablinks active" onclick="openTab(event, 'sql')">PGQL with SQL Standard syntax</button>
+<button name="pgql-button" class="tablinks" onclick="openTab(event, 'pgql')">PGQL with custom syntax</button>
 </div><div name="sql" class="tab-content active"><div class="language-sql highlighter-rouge"><div class="highlight"><pre class="highlight">
 <span class="k">SELECT</span>  a, b, pathLength, amounts 
 <span class="k">FROM</span> <span class="k">GRAPH_TABLE</span>(financial_transactions 
@@ -2063,8 +2063,8 @@ Shortest path finding is explained in more detail in [Shortest Path](#shortest-p
 Another example is:
 
 <div class="tab">
-<button name="sql-button" class="tablinks active" onclick="openTab(event, 'sql')">SQL standard syntax</button>
-<button name="pgql-button" class="tablinks" onclick="openTab(event, 'pgql')">Legacy PGQL syntax</button>
+<button name="sql-button" class="tablinks active" onclick="openTab(event, 'sql')">PGQL with SQL Standard syntax</button>
+<button name="pgql-button" class="tablinks" onclick="openTab(event, 'pgql')">PGQL with custom syntax</button>
 </div><div name="sql" class="tab-content active"><div class="language-sql highlighter-rouge"><div class="highlight"><pre class="highlight">
 <span class="k">SELECT</span> account_numbers, total_amount 
 <span class="k">FROM</span> <span class="k">GRAPH_TABLE</span>(financial_transactions 
@@ -2119,8 +2119,8 @@ An example where we test for path existence is:
 {% include image.html file="example_graphs/financial_transactions.png" %}
 
 <div class="tab">
-<button name="sql-button" class="tablinks active" onclick="openTab(event, 'sql')">SQL standard syntax</button>
-<button name="pgql-button" class="tablinks" onclick="openTab(event, 'pgql')">Legacy PGQL syntax</button>
+<button name="sql-button" class="tablinks active" onclick="openTab(event, 'sql')">PGQL with SQL Standard syntax</button>
+<button name="pgql-button" class="tablinks" onclick="openTab(event, 'pgql')">PGQL with custom syntax</button>
 </div><div name="sql" class="tab-content active"><div class="language-sql highlighter-rouge"><div class="highlight"><pre class="highlight">
 <span class="k">SELECT</span> number 
 <span class="k">FROM</span> <span class="k">GRAPH_TABLE</span>(financial_transactions 
@@ -2154,8 +2154,8 @@ An example where we return data along the path is:
 {% include image.html file="example_graphs/financial_transactions.png" %}
 
 <div class="tab">
-<button name="sql-button" class="tablinks active" onclick="openTab(event, 'sql')">SQL standard syntax</button>
-<button name="pgql-button" class="tablinks" onclick="openTab(event, 'pgql')">Legacy PGQL syntax</button>
+<button name="sql-button" class="tablinks active" onclick="openTab(event, 'sql')">PGQL with SQL Standard syntax</button>
+<button name="pgql-button" class="tablinks" onclick="openTab(event, 'pgql')">PGQL with custom syntax</button>
 </div><div name="sql" class="tab-content active"><div class="language-sql highlighter-rouge"><div class="highlight"><pre class="highlight">
 <span class="k">SELECT</span> <span class="o">*</span> 
 <span class="k">FROM</span> <span class="k">GRAPH_TABLE</span>(financial_transactions 
@@ -2218,8 +2218,8 @@ For example:
 {% include image.html file="example_graphs/financial_transactions.png" %}
 
 <div class="tab">
-<button name="sql-button" class="tablinks active" onclick="openTab(event, 'sql')">SQL standard syntax</button>
-<button name="pgql-button" class="tablinks" onclick="openTab(event, 'pgql')">Legacy PGQL syntax</button>
+<button name="sql-button" class="tablinks active" onclick="openTab(event, 'sql')">PGQL with SQL Standard syntax</button>
+<button name="pgql-button" class="tablinks" onclick="openTab(event, 'pgql')">PGQL with custom syntax</button>
 </div><div name="sql" class="tab-content active"><div class="language-sql highlighter-rouge"><div class="highlight"><pre class="highlight">
 <span class="k">SELECT</span> <span class="o">*</span> 
 <span class="k">FROM</span> <span class="k">GRAPH_TABLE</span>(financial_transactions 
@@ -2259,8 +2259,8 @@ AnyShortestPathSearch ::= 'ANY' 'SHORTEST' <PathMode>? <PathOrPaths>?
 For example:
 
 <div class="tab">
-<button name="sql-button" class="tablinks active" onclick="openTab(event, 'sql')">SQL standard syntax</button>
-<button name="pgql-button" class="tablinks" onclick="openTab(event, 'pgql')">Legacy PGQL syntax</button>
+<button name="sql-button" class="tablinks active" onclick="openTab(event, 'sql')">PGQL with SQL Standard syntax</button>
+<button name="pgql-button" class="tablinks" onclick="openTab(event, 'pgql')">PGQL with custom syntax</button>
 </div><div name="sql" class="tab-content active"><div class="language-sql highlighter-rouge"><div class="highlight"><pre class="highlight">
 <span class="k">SELECT</span> <span class="o">*</span>
 <span class="k">FROM</span> <span class="k">GRAPH_TABLE</span>(financial_transactions 
@@ -2279,8 +2279,8 @@ Another example is:
 {% include image.html file="example_graphs/financial_transactions.png" %}
 
 <div class="tab">
-<button name="sql-button" class="tablinks active" onclick="openTab(event, 'sql')">SQL standard syntax</button>
-<button name="pgql-button" class="tablinks" onclick="openTab(event, 'pgql')">Legacy PGQL syntax</button>
+<button name="sql-button" class="tablinks active" onclick="openTab(event, 'sql')">PGQL with SQL Standard syntax</button>
+<button name="pgql-button" class="tablinks" onclick="openTab(event, 'pgql')">PGQL with custom syntax</button>
 </div><div name="sql" class="tab-content active"><div class="language-sql highlighter-rouge"><div class="highlight"><pre class="highlight">
 <span class="k">SELECT</span> <span class="o">*</span> 
 <span class="k">FROM</span> <span class="k">GRAPH_TABLE</span>(financial_transactions 
@@ -2326,8 +2326,8 @@ Filters on vertices and edges along paths can be specified by adding a `WHERE` c
 For example, the following query matches a shortest path (if one exists) such that each edge along the path has a property `weight` with a value greater than `10`:
 
 <div class="tab">
-<button name="sql-button" class="tablinks active" onclick="openTab(event, 'sql')">SQL standard syntax</button>
-<button name="pgql-button" class="tablinks" onclick="openTab(event, 'pgql')">Legacy PGQL syntax</button>
+<button name="sql-button" class="tablinks active" onclick="openTab(event, 'sql')">PGQL with SQL Standard syntax</button>
+<button name="pgql-button" class="tablinks" onclick="openTab(event, 'pgql')">PGQL with custom syntax</button>
 </div><div name="sql" class="tab-content active"><div class="language-sql highlighter-rouge"><div class="highlight"><pre class="highlight">
 <span class="k">SELECT</span> <span class="o">*</span>
 <span class="k">FROM</span> <span class="k">GRAPH_TABLE</span>(my_graph 
@@ -2343,8 +2343,8 @@ For example, the following query matches a shortest path (if one exists) such th
 Note that this is different from a `WHERE` clause that is placed outside of the quantified pattern:
 
 <div class="tab">
-<button name="sql-button" class="tablinks active" onclick="openTab(event, 'sql')">SQL standard syntax</button>
-<button name="pgql-button" class="tablinks" onclick="openTab(event, 'pgql')">Legacy PGQL syntax</button>
+<button name="sql-button" class="tablinks active" onclick="openTab(event, 'sql')">PGQL with SQL Standard syntax</button>
+<button name="pgql-button" class="tablinks" onclick="openTab(event, 'pgql')">PGQL with custom syntax</button>
 </div><div name="sql" class="tab-content active"><div class="language-sql highlighter-rouge"><div class="highlight"><pre class="highlight">
 <span class="k">SELECT</span> <span class="o">*</span>
 <span class="k">FROM</span> <span class="k">GRAPH_TABLE</span>(my_graph 
@@ -2377,8 +2377,8 @@ For example the following query will output the sum of the edge weights along ea
 each of the matched source and destination pairs:
 
 <div class="tab">
-<button name="sql-button" class="tablinks active" onclick="openTab(event, 'sql')">SQL standard syntax</button>
-<button name="pgql-button" class="tablinks" onclick="openTab(event, 'pgql')">Legacy PGQL syntax</button>
+<button name="sql-button" class="tablinks active" onclick="openTab(event, 'sql')">PGQL with SQL Standard syntax</button>
+<button name="pgql-button" class="tablinks" onclick="openTab(event, 'pgql')">PGQL with custom syntax</button>
 </div><div name="sql" class="tab-content active"><div class="language-sql highlighter-rouge"><div class="highlight"><pre class="highlight">
 <span class="k">SELECT</span> <span class="o">*</span>
 <span class="k">FROM</span> <span class="k">GRAPH_TABLE</span>(my_graph 
@@ -2400,8 +2400,8 @@ query is equal to the number of paths that match, which is at most three times t
 The `ARRAY_AGG` construct allows users to output properties of edges/vertices along the path. For example, in the following query:
 
 <div class="tab">
-<button name="sql-button" class="tablinks active" onclick="openTab(event, 'sql')">SQL standard syntax</button>
-<button name="pgql-button" class="tablinks" onclick="openTab(event, 'pgql')">Legacy PGQL syntax</button>
+<button name="sql-button" class="tablinks active" onclick="openTab(event, 'sql')">PGQL with SQL Standard syntax</button>
+<button name="pgql-button" class="tablinks" onclick="openTab(event, 'pgql')">PGQL with custom syntax</button>
 </div><div name="sql" class="tab-content active"><div class="language-sql highlighter-rouge"><div class="highlight"><pre class="highlight">
 <span class="k">SELECT</span> <span class="o">*</span> 
 <span class="k">FROM</span> <span class="k">GRAPH_TABLE</span>(my_graph 
@@ -2438,8 +2438,8 @@ Another example is:
 {% include image.html file="example_graphs/financial_transactions.png" %}
 
 <div class="tab">
-<button name="sql-button" class="tablinks active" onclick="openTab(event, 'sql')">SQL standard syntax</button>
-<button name="pgql-button" class="tablinks" onclick="openTab(event, 'pgql')">Legacy PGQL syntax</button>
+<button name="sql-button" class="tablinks active" onclick="openTab(event, 'sql')">PGQL with SQL Standard syntax</button>
+<button name="pgql-button" class="tablinks" onclick="openTab(event, 'pgql')">PGQL with custom syntax</button>
 </div><div name="sql" class="tab-content active"><div class="language-sql highlighter-rouge"><div class="highlight"><pre class="highlight">
 <span class="k">SELECT</span> <span class="o">*</span> 
 <span class="k">FROM</span> <span class="k">GRAPH_TABLE</span>(financial_transactions 
@@ -2481,8 +2481,8 @@ The following example shows how such paths could be filtered out, such that we o
 {% include image.html file="example_graphs/financial_transactions.png" %}
 
 <div class="tab">
-<button name="sql-button" class="tablinks active" onclick="openTab(event, 'sql')">SQL standard syntax</button>
-<button name="pgql-button" class="tablinks" onclick="openTab(event, 'pgql')">Legacy PGQL syntax</button>
+<button name="sql-button" class="tablinks active" onclick="openTab(event, 'sql')">PGQL with SQL Standard syntax</button>
+<button name="pgql-button" class="tablinks" onclick="openTab(event, 'pgql')">PGQL with custom syntax</button>
 </div><div name="sql" class="tab-content active"><div class="language-sql highlighter-rouge"><div class="highlight"><pre class="highlight">
 <span class="k">SELECT</span> <span class="o">*</span> 
 <span class="k">FROM</span> <span class="k">GRAPH_TABLE</span>(financial_transactions 
@@ -2712,8 +2712,8 @@ For example:
 {% include image.html file="example_graphs/financial_transactions.png" %}
 
 <div class="tab">
-<button name="sql-button" class="tablinks active" onclick="openTab(event, 'sql')">SQL standard syntax</button>
-<button name="pgql-button" class="tablinks" onclick="openTab(event, 'pgql')">Legacy PGQL syntax</button>
+<button name="sql-button" class="tablinks active" onclick="openTab(event, 'sql')">PGQL with SQL Standard syntax</button>
+<button name="pgql-button" class="tablinks" onclick="openTab(event, 'pgql')">PGQL with custom syntax</button>
 </div><div name="sql" class="tab-content active"><div class="language-sql highlighter-rouge"><div class="highlight"><pre class="highlight">
 <span class="k">SELECT</span> <span class="o">*</span> 
 <span class="k">FROM</span> <span class="k">GRAPH_TABLE</span>(financial_transactions 
@@ -2803,8 +2803,8 @@ It is possible to mix vertical and horizontal aggregation in a single query. For
 {% include image.html file="example_graphs/financial_transactions.png" %}
 
 <div class="tab">
-<button name="sql-button" class="tablinks active" onclick="openTab(event, 'sql')">SQL standard syntax</button>
-<button name="pgql-button" class="tablinks" onclick="openTab(event, 'pgql')">Legacy PGQL syntax</button>
+<button name="sql-button" class="tablinks active" onclick="openTab(event, 'sql')">PGQL with SQL Standard syntax</button>
+<button name="pgql-button" class="tablinks" onclick="openTab(event, 'pgql')">PGQL with custom syntax</button>
 </div><div name="sql" class="tab-content active"><div class="language-sql highlighter-rouge"><div class="highlight"><pre class="highlight">
 <span class="k">SELECT</span> <span class="k">SUM</span>(countOfPathLengths) <span class="k">AS</span> sumOfPathLengths 
 <span class="k">FROM</span> <span class="k">GRAPH_TABLE</span>(financial_transactions 
@@ -2842,8 +2842,8 @@ An example of a horizontal aggregation in `WHERE` is:
 {% include image.html file="example_graphs/financial_transactions.png" %}
 
 <div class="tab">
-<button name="sql-button" class="tablinks active" onclick="openTab(event, 'sql')">SQL standard syntax</button>
-<button name="pgql-button" class="tablinks" onclick="openTab(event, 'pgql')">Legacy PGQL syntax</button>
+<button name="sql-button" class="tablinks active" onclick="openTab(event, 'sql')">PGQL with SQL Standard syntax</button>
+<button name="pgql-button" class="tablinks" onclick="openTab(event, 'pgql')">PGQL with custom syntax</button>
 </div><div name="sql" class="tab-content active"><div class="language-sql highlighter-rouge"><div class="highlight"><pre class="highlight">
 <span class="k">SELECT</span> <span class="o">*</span> 
 <span class="k">FROM</span> <span class="k">GRAPH_TABLE</span>(financial_transactions 
@@ -2886,8 +2886,8 @@ An example of a horizontal aggregation in `GROUP BY` is:
 {% include image.html file="example_graphs/financial_transactions.png" %}
 
 <div class="tab">
-<button name="sql-button" class="tablinks active" onclick="openTab(event, 'sql')">SQL standard syntax</button>
-<button name="pgql-button" class="tablinks" onclick="openTab(event, 'pgql')">Legacy PGQL syntax</button>
+<button name="sql-button" class="tablinks active" onclick="openTab(event, 'sql')">PGQL with SQL Standard syntax</button>
+<button name="pgql-button" class="tablinks" onclick="openTab(event, 'pgql')">PGQL with custom syntax</button>
 </div><div name="sql" class="tab-content active"><div class="language-sql highlighter-rouge"><div class="highlight"><pre class="highlight">
 <span class="k">SELECT</span> pathLength, COUNT(<span class="o">*</span>) <span class="k">AS</span> cnt 
 <span class="k">FROM</span> <span class="k">GRAPH_TABLE</span>(financial_transactions 
@@ -2979,8 +2979,8 @@ An example with `TRAIL` is:
 {% include image.html file="example_graphs/financial_transactions.png" %}
 
 <div class="tab">
-<button name="sql-button" class="tablinks active" onclick="openTab(event, 'sql')">SQL standard syntax</button>
-<button name="pgql-button" class="tablinks" onclick="openTab(event, 'pgql')">Legacy PGQL syntax</button>
+<button name="sql-button" class="tablinks active" onclick="openTab(event, 'sql')">PGQL with SQL Standard syntax</button>
+<button name="pgql-button" class="tablinks" onclick="openTab(event, 'pgql')">PGQL with custom syntax</button>
 </div><div name="sql" class="tab-content active"><div class="language-sql highlighter-rouge"><div class="highlight"><pre class="highlight">
 <span class="k">SELECT</span> <span class="o">*</span> 
 <span class="k">FROM</span> <span class="k">GRAPH_TABLE</span>(financial_transactions 
@@ -3012,8 +3012,8 @@ An example with `ACYCLIC` is:
 {% include image.html file="example_graphs/financial_transactions.png" %}
 
 <div class="tab">
-<button name="sql-button" class="tablinks active" onclick="openTab(event, 'sql')">SQL standard syntax</button>
-<button name="pgql-button" class="tablinks" onclick="openTab(event, 'pgql')">Legacy PGQL syntax</button>
+<button name="sql-button" class="tablinks active" onclick="openTab(event, 'sql')">PGQL with SQL Standard syntax</button>
+<button name="pgql-button" class="tablinks" onclick="openTab(event, 'pgql')">PGQL with custom syntax</button>
 </div><div name="sql" class="tab-content active"><div class="language-sql highlighter-rouge"><div class="highlight"><pre class="highlight">
 <span class="k">SELECT</span> <span class="o">*</span> 
 <span class="k">FROM</span> <span class="k">GRAPH_TABLE</span>(financial_transactions 
@@ -3045,8 +3045,8 @@ An example with `SIMPLE` is:
 {% include image.html file="example_graphs/financial_transactions.png" %}
 
 <div class="tab">
-<button name="sql-button" class="tablinks active" onclick="openTab(event, 'sql')">SQL standard syntax</button>
-<button name="pgql-button" class="tablinks" onclick="openTab(event, 'pgql')">Legacy PGQL syntax</button>
+<button name="sql-button" class="tablinks active" onclick="openTab(event, 'sql')">PGQL with SQL Standard syntax</button>
+<button name="pgql-button" class="tablinks" onclick="openTab(event, 'pgql')">PGQL with custom syntax</button>
 </div><div name="sql" class="tab-content active"><div class="language-sql highlighter-rouge"><div class="highlight"><pre class="highlight">
 <span class="k">SELECT</span> <span class="o">*</span> 
 <span class="k">FROM</span> <span class="k">GRAPH_TABLE</span>(financial_transactions 
@@ -3117,8 +3117,8 @@ An example where the keywords `ONE ROW PER MATCH` are explicitly specified is:
 {% include image.html file="example_graphs/financial_transactions.png" %}
 
 <div class="tab">
-<button name="sql-button" class="tablinks active" onclick="openTab(event, 'sql')">SQL standard syntax</button>
-<button name="pgql-button" class="tablinks" onclick="openTab(event, 'pgql')">Legacy PGQL syntax</button>
+<button name="sql-button" class="tablinks active" onclick="openTab(event, 'sql')">PGQL with SQL Standard syntax</button>
+<button name="pgql-button" class="tablinks" onclick="openTab(event, 'pgql')">PGQL with custom syntax</button>
 </div><div name="sql" class="tab-content active"><div class="language-sql highlighter-rouge"><div class="highlight"><pre class="highlight">
 <span class="k">SELECT</span> <span class="o">*</span> 
 <span class="k">FROM</span> <span class="k">GRAPH_TABLE</span>(financial_transactions 
@@ -3191,8 +3191,8 @@ For example:
 {% include image.html file="example_graphs/financial_transactions.png" %}
 
 <div class="tab">
-<button name="sql-button" class="tablinks active" onclick="openTab(event, 'sql')">SQL standard syntax</button>
-<button name="pgql-button" class="tablinks" onclick="openTab(event, 'pgql')">Legacy PGQL syntax</button>
+<button name="sql-button" class="tablinks active" onclick="openTab(event, 'sql')">PGQL with SQL Standard syntax</button>
+<button name="pgql-button" class="tablinks" onclick="openTab(event, 'pgql')">PGQL with custom syntax</button>
 </div><div name="sql" class="tab-content active"><div class="language-sql highlighter-rouge"><div class="highlight"><pre class="highlight">
 <span class="k">SELECT</span> <span class="o">*</span>
 <span class="k">FROM</span> <span class="k">GRAPH_TABLE</span>(financial_transactions
@@ -3278,8 +3278,8 @@ For example:
 {% include image.html file="example_graphs/financial_transactions.png" %}
 
 <div class="tab">
-<button name="sql-button" class="tablinks active" onclick="openTab(event, 'sql')">SQL standard syntax</button>
-<button name="pgql-button" class="tablinks" onclick="openTab(event, 'pgql')">Legacy PGQL syntax</button>
+<button name="sql-button" class="tablinks active" onclick="openTab(event, 'sql')">PGQL with SQL Standard syntax</button>
+<button name="pgql-button" class="tablinks" onclick="openTab(event, 'pgql')">PGQL with custom syntax</button>
 </div><div name="sql" class="tab-content active"><div class="language-sql highlighter-rouge"><div class="highlight"><pre class="highlight">
 <span class="k">SELECT</span> <span class="o">*</span> 
 <span class="k">FROM</span> <span class="k">GRAPH_TABLE</span>(financial_transactions 
@@ -3324,8 +3324,8 @@ The following example is the same as above but with the direction of the edge pa
 {% include image.html file="example_graphs/financial_transactions.png" %}
 
 <div class="tab">
-<button name="sql-button" class="tablinks active" onclick="openTab(event, 'sql')">SQL standard syntax</button>
-<button name="pgql-button" class="tablinks" onclick="openTab(event, 'pgql')">Legacy PGQL syntax</button>
+<button name="sql-button" class="tablinks active" onclick="openTab(event, 'sql')">PGQL with SQL Standard syntax</button>
+<button name="pgql-button" class="tablinks" onclick="openTab(event, 'pgql')">PGQL with custom syntax</button>
 </div><div name="sql" class="tab-content active"><div class="language-sql highlighter-rouge"><div class="highlight"><pre class="highlight">
 <span class="k">SELECT</span> <span class="o">*</span> 
 <span class="k">FROM</span> <span class="k">GRAPH_TABLE</span>(financial_transactions 
@@ -3414,8 +3414,8 @@ The `GROUP BY` clause starts with the keywords GROUP BY and is followed by a com
 Consider the following query:
 
 <div class="tab">
-<button name="sql-button" class="tablinks active" onclick="openTab(event, 'sql')">SQL standard syntax</button>
-<button name="pgql-button" class="tablinks" onclick="openTab(event, 'pgql')">Legacy PGQL syntax</button>
+<button name="sql-button" class="tablinks active" onclick="openTab(event, 'sql')">PGQL with SQL Standard syntax</button>
+<button name="pgql-button" class="tablinks" onclick="openTab(event, 'pgql')">PGQL with custom syntax</button>
 </div><div name="sql" class="tab-content active"><div class="language-sql highlighter-rouge"><div class="highlight"><pre class="highlight">
 <span class="k">SELECT</span> first_name, COUNT(<span class="o">*</span>), AVG(age) 
 <span class="k">FROM</span> <span class="k">GRAPH_TABLE</span>(my_graph 
@@ -3438,8 +3438,8 @@ It is possible that the `GROUP BY` clause consists of multiple terms. In such a 
 Consider the following query:
 
 <div class="tab">
-<button name="sql-button" class="tablinks active" onclick="openTab(event, 'sql')">SQL standard syntax</button>
-<button name="pgql-button" class="tablinks" onclick="openTab(event, 'pgql')">Legacy PGQL syntax</button>
+<button name="sql-button" class="tablinks active" onclick="openTab(event, 'sql')">PGQL with SQL Standard syntax</button>
+<button name="pgql-button" class="tablinks" onclick="openTab(event, 'pgql')">PGQL with custom syntax</button>
 </div><div name="sql" class="tab-content active"><div class="language-sql highlighter-rouge"><div class="highlight"><pre class="highlight">
 <span class="k">SELECT</span> first_name, last_name, COUNT(<span class="o">*</span>) 
 <span class="k">FROM</span> <span class="k">GRAPH_TABLE</span>(my_graph 
@@ -3469,8 +3469,8 @@ To filter out such a group, use the [HAVING clause](#having-clause).
 Foror example:
 
 <div class="tab">
-<button name="sql-button" class="tablinks active" onclick="openTab(event, 'sql')">SQL standard syntax</button>
-<button name="pgql-button" class="tablinks" onclick="openTab(event, 'pgql')">Legacy PGQL syntax</button>
+<button name="sql-button" class="tablinks active" onclick="openTab(event, 'sql')">PGQL with SQL Standard syntax</button>
+<button name="pgql-button" class="tablinks" onclick="openTab(event, 'pgql')">PGQL with custom syntax</button>
 </div><div name="sql" class="tab-content active"><div class="language-sql highlighter-rouge"><div class="highlight"><pre class="highlight">
 <span class="k">SELECT</span> prop1, prop2, COUNT(<span class="o">*</span>) 
 <span class="k">FROM</span> <span class="k">GRAPH_TABLE</span>(my_graph 
@@ -3493,8 +3493,8 @@ Group expressions may be repeated in select or order expressions.
 Consider the following query:
 
 <div class="tab">
-<button name="sql-button" class="tablinks active" onclick="openTab(event, 'sql')">SQL standard syntax</button>
-<button name="pgql-button" class="tablinks" onclick="openTab(event, 'pgql')">Legacy PGQL syntax</button>
+<button name="sql-button" class="tablinks active" onclick="openTab(event, 'sql')">PGQL with SQL Standard syntax</button>
+<button name="pgql-button" class="tablinks" onclick="openTab(event, 'pgql')">PGQL with custom syntax</button>
 </div><div name="sql" class="tab-content active"><div class="language-sql highlighter-rouge"><div class="highlight"><pre class="highlight">
 <span class="k">SELECT</span> age, COUNT(<span class="o">*</span>) 
 <span class="k">FROM</span> <span class="k">GRAPH_TABLE</span>(my_graph 
@@ -3574,8 +3574,8 @@ For example:
 {% include image.html file="example_graphs/financial_transactions.png" %}
 
 <div class="tab">
-<button name="sql-button" class="tablinks active" onclick="openTab(event, 'sql')">SQL standard syntax</button>
-<button name="pgql-button" class="tablinks" onclick="openTab(event, 'pgql')">Legacy PGQL syntax</button>
+<button name="sql-button" class="tablinks active" onclick="openTab(event, 'sql')">PGQL with SQL Standard syntax</button>
+<button name="pgql-button" class="tablinks" onclick="openTab(event, 'pgql')">PGQL with custom syntax</button>
 </div><div name="sql" class="tab-content active"><div class="language-sql highlighter-rouge"><div class="highlight"><pre class="highlight">
 <span class="k">SELECT</span> owner_lbl, 
        COUNT(<span class="o">*</span>) <span class="k">AS</span> numTransactions, 
@@ -3621,8 +3621,8 @@ If _no_ `GROUP BY` is specified, aggregations are applied to the entire set of s
 {% include image.html file="example_graphs/financial_transactions.png" %}
 
 <div class="tab">
-<button name="sql-button" class="tablinks active" onclick="openTab(event, 'sql')">SQL standard syntax</button>
-<button name="pgql-button" class="tablinks" onclick="openTab(event, 'pgql')">Legacy PGQL syntax</button>
+<button name="sql-button" class="tablinks active" onclick="openTab(event, 'sql')">PGQL with SQL Standard syntax</button>
+<button name="pgql-button" class="tablinks" onclick="openTab(event, 'pgql')">PGQL with custom syntax</button>
 </div><div name="sql" class="tab-content active"><div class="language-sql highlighter-rouge"><div class="highlight"><pre class="highlight">
 <span class="k">SELECT</span> COUNT(<span class="o">*</span>) <span class="k">AS</span> numTransactions,
       <span class="k">SUM</span>(amount) <span class="k">AS</span> totalOutgoing, 
@@ -3657,8 +3657,8 @@ Note that the result will always be a single row, unless nothing was matched in 
 For example:
 
 <div class="tab">
-<button name="sql-button" class="tablinks active" onclick="openTab(event, 'sql')">SQL standard syntax</button>
-<button name="pgql-button" class="tablinks" onclick="openTab(event, 'pgql')">Legacy PGQL syntax</button>
+<button name="sql-button" class="tablinks active" onclick="openTab(event, 'sql')">PGQL with SQL Standard syntax</button>
+<button name="pgql-button" class="tablinks" onclick="openTab(event, 'pgql')">PGQL with custom syntax</button>
 </div><div name="sql" class="tab-content active"><div class="language-sql highlighter-rouge"><div class="highlight"><pre class="highlight">
 <span class="k">SELECT</span> COUNT(<span class="o">*</span>) 
 <span class="k">FROM</span> <span class="k">GRAPH_TABLE</span>(my_graph 
@@ -3677,8 +3677,8 @@ The `DISTINCT` modifier specifies that duplicate values should be removed before
 For example:
 
 <div class="tab">
-<button name="sql-button" class="tablinks active" onclick="openTab(event, 'sql')">SQL standard syntax</button>
-<button name="pgql-button" class="tablinks" onclick="openTab(event, 'pgql')">Legacy PGQL syntax</button>
+<button name="sql-button" class="tablinks active" onclick="openTab(event, 'sql')">PGQL with SQL Standard syntax</button>
+<button name="pgql-button" class="tablinks" onclick="openTab(event, 'pgql')">PGQL with custom syntax</button>
 </div><div name="sql" class="tab-content active"><div class="language-sql highlighter-rouge"><div class="highlight"><pre class="highlight">
 <span class="k">SELECT</span> AVG(<span class="k">DISTINCT</span> age) 
 <span class="k">FROM</span> <span class="k">GRAPH_TABLE</span>(my_graph 
@@ -3707,8 +3707,8 @@ The value expression needs to be a boolean expression.
 For example:
 
 <div class="tab">
-<button name="sql-button" class="tablinks active" onclick="openTab(event, 'sql')">SQL standard syntax</button>
-<button name="pgql-button" class="tablinks" onclick="openTab(event, 'pgql')">Legacy PGQL syntax</button>
+<button name="sql-button" class="tablinks active" onclick="openTab(event, 'sql')">PGQL with SQL Standard syntax</button>
+<button name="pgql-button" class="tablinks" onclick="openTab(event, 'pgql')">PGQL with custom syntax</button>
 </div><div name="sql" class="tab-content active"><div class="language-sql highlighter-rouge"><div class="highlight"><pre class="highlight">
 <span class="k">SELECT</span> id, name 
 <span class="k">FROM</span> <span class="k">GRAPH_TABLE</span>(my_graph 
@@ -3751,8 +3751,8 @@ The `ORDER BY` clause starts with the keywords `ORDER BY` and is followed by com
 The following is an example in which the results are ordered by property access `n.age` in ascending order:
 
 <div class="tab">
-<button name="sql-button" class="tablinks active" onclick="openTab(event, 'sql')">SQL standard syntax</button>
-<button name="pgql-button" class="tablinks" onclick="openTab(event, 'pgql')">Legacy PGQL syntax</button>
+<button name="sql-button" class="tablinks active" onclick="openTab(event, 'sql')">PGQL with SQL Standard syntax</button>
+<button name="pgql-button" class="tablinks" onclick="openTab(event, 'pgql')">PGQL with custom syntax</button>
 </div><div name="sql" class="tab-content active"><div class="language-sql highlighter-rouge"><div class="highlight"><pre class="highlight">
 <span class="k">SELECT</span> name 
 <span class="k">FROM</span> <span class="k">GRAPH_TABLE</span>(my_graph 
@@ -3782,8 +3782,8 @@ Vertices, edges and arrays cannot be ordered directly.
 An `ORDER BY` may contain more than one expression, in which case the expresisons are evaluated from left to right. That is, (n+1)th ordering term is used only for the tie-break rule for n-th ordering term. Note that different expressions can have different ascending or descending decorators.
 
 <div class="tab">
-<button name="sql-button" class="tablinks active" onclick="openTab(event, 'sql')">SQL standard syntax</button>
-<button name="pgql-button" class="tablinks" onclick="openTab(event, 'pgql')">Legacy PGQL syntax</button>
+<button name="sql-button" class="tablinks active" onclick="openTab(event, 'sql')">PGQL with SQL Standard syntax</button>
+<button name="pgql-button" class="tablinks" onclick="openTab(event, 'pgql')">PGQL with custom syntax</button>
 </div><div name="sql" class="tab-content active"><div class="language-sql highlighter-rouge"><div class="highlight"><pre class="highlight">
 <span class="k">SELECT</span> name 
 <span class="k">FROM</span> <span class="k">GRAPH_TABLE</span>(my_graph 
@@ -3819,8 +3819,8 @@ For example:
 {% include image.html file="example_graphs/financial_transactions.png" %}
 
 <div class="tab">
-<button name="sql-button" class="tablinks active" onclick="openTab(event, 'sql')">SQL standard syntax</button>
-<button name="pgql-button" class="tablinks" onclick="openTab(event, 'pgql')">Legacy PGQL syntax</button>
+<button name="sql-button" class="tablinks active" onclick="openTab(event, 'sql')">PGQL with SQL Standard syntax</button>
+<button name="pgql-button" class="tablinks" onclick="openTab(event, 'pgql')">PGQL with custom syntax</button>
 </div><div name="sql" class="tab-content active"><div class="language-sql highlighter-rouge"><div class="highlight"><pre class="highlight">
 <span class="k">SELECT</span> name 
 <span class="k">FROM</span> <span class="k">GRAPH_TABLE</span>(financial_transactions 
@@ -3867,8 +3867,8 @@ For example, in the following query the first solution is pruned from the result
 {% include image.html file="example_graphs/financial_transactions.png" %}
 
 <div class="tab">
-<button name="sql-button" class="tablinks active" onclick="openTab(event, 'sql')">SQL standard syntax</button>
-<button name="pgql-button" class="tablinks" onclick="openTab(event, 'pgql')">Legacy PGQL syntax</button>
+<button name="sql-button" class="tablinks active" onclick="openTab(event, 'sql')">PGQL with SQL Standard syntax</button>
+<button name="pgql-button" class="tablinks" onclick="openTab(event, 'pgql')">PGQL with custom syntax</button>
 </div><div name="sql" class="tab-content active"><div class="language-sql highlighter-rouge"><div class="highlight"><pre class="highlight">
 <span class="k">SELECT</span> name 
 <span class="k">FROM</span> <span class="k">GRAPH_TABLE</span>(financial_transactions 
@@ -4069,8 +4069,8 @@ BindVariable ::= '?'
 An example query with two bind variables is as follows:
 
 <div class="tab">
-<button name="sql-button" class="tablinks active" onclick="openTab(event, 'sql')">SQL standard syntax</button>
-<button name="pgql-button" class="tablinks" onclick="openTab(event, 'pgql')">Legacy PGQL syntax</button>
+<button name="sql-button" class="tablinks active" onclick="openTab(event, 'sql')">PGQL with SQL Standard syntax</button>
+<button name="pgql-button" class="tablinks" onclick="openTab(event, 'pgql')">PGQL with custom syntax</button>
 </div><div name="sql" class="tab-content active"><div class="language-sql highlighter-rouge"><div class="highlight"><pre class="highlight">
 <span class="k">SELECT</span> age 
 <span class="k">FROM</span> <span class="k">GRAPH_TABLE</span>(my_graph 
@@ -4089,8 +4089,8 @@ An example query with two bind variables is as follows:
 In the following query, bind variables are used in `OFFSET` and `FETCH FIRST`:
 
 <div class="tab">
-<button name="sql-button" class="tablinks active" onclick="openTab(event, 'sql')">SQL standard syntax</button>
-<button name="pgql-button" class="tablinks" onclick="openTab(event, 'pgql')">Legacy PGQL syntax</button>
+<button name="sql-button" class="tablinks active" onclick="openTab(event, 'sql')">PGQL with SQL Standard syntax</button>
+<button name="pgql-button" class="tablinks" onclick="openTab(event, 'pgql')">PGQL with custom syntax</button>
 </div><div name="sql" class="tab-content active"><div class="language-sql highlighter-rouge"><div class="highlight"><pre class="highlight">
 <span class="k">SELECT</span> name, age 
 <span class="k">FROM</span> <span class="k">GRAPH_TABLE</span>(my_graph 
@@ -4111,8 +4111,8 @@ FETCH FIRST ? <span class="k">ROWS</span> <span class="k">ON</span>LY
 The following example shows a bind variable in the position of a label:
 
 <div class="tab">
-<button name="sql-button" class="tablinks active" onclick="openTab(event, 'sql')">SQL standard syntax</button>
-<button name="pgql-button" class="tablinks" onclick="openTab(event, 'pgql')">Legacy PGQL syntax</button>
+<button name="sql-button" class="tablinks active" onclick="openTab(event, 'sql')">PGQL with SQL Standard syntax</button>
+<button name="pgql-button" class="tablinks" onclick="openTab(event, 'pgql')">PGQL with custom syntax</button>
 </div><div name="sql" class="tab-content active"><div class="language-sql highlighter-rouge"><div class="highlight"><pre class="highlight">
 <span class="k">SELECT</span> name 
 <span class="k">FROM</span> <span class="k">GRAPH_TABLE</span>(my_graph 
@@ -4270,8 +4270,8 @@ NullPredicate ::= <ValueExpression> 'IS' ('NOT')? 'NULL'
 For example:
 
 <div class="tab">
-<button name="sql-button" class="tablinks active" onclick="openTab(event, 'sql')">SQL standard syntax</button>
-<button name="pgql-button" class="tablinks" onclick="openTab(event, 'pgql')">Legacy PGQL syntax</button>
+<button name="sql-button" class="tablinks active" onclick="openTab(event, 'sql')">PGQL with SQL Standard syntax</button>
+<button name="pgql-button" class="tablinks" onclick="openTab(event, 'pgql')">PGQL with custom syntax</button>
 </div><div name="sql" class="tab-content active"><div class="language-sql highlighter-rouge"><div class="highlight"><pre class="highlight">
 <span class="k">SELECT</span> name 
 <span class="k">FROM</span> <span class="k">GRAPH_TABLE</span>(my_graph 
@@ -4386,8 +4386,8 @@ For example:
 {% include image.html file="example_graphs/financial_transactions.png" %}
 
 <div class="tab">
-<button name="sql-button" class="tablinks active" onclick="openTab(event, 'sql')">SQL standard syntax</button>
-<button name="pgql-button" class="tablinks" onclick="openTab(event, 'pgql')">Legacy PGQL syntax</button>
+<button name="sql-button" class="tablinks active" onclick="openTab(event, 'sql')">PGQL with SQL Standard syntax</button>
+<button name="pgql-button" class="tablinks" onclick="openTab(event, 'pgql')">PGQL with custom syntax</button>
 </div><div name="sql" class="tab-content active"><div class="language-sql highlighter-rouge"><div class="highlight"><pre class="highlight">
 <span class="k">SELECT</span> <span class="o">*</span> 
 <span class="k">FROM</span> <span class="k">GRAPH_TABLE</span>(financial_transactions 
@@ -4431,8 +4431,8 @@ EdgeReference              ::= <VariableReference>
 For example:
 
 <div class="tab">
-<button name="sql-button" class="tablinks active" onclick="openTab(event, 'sql')">SQL standard syntax</button>
-<button name="pgql-button" class="tablinks" onclick="openTab(event, 'pgql')">Legacy PGQL syntax</button>
+<button name="sql-button" class="tablinks active" onclick="openTab(event, 'sql')">PGQL with SQL Standard syntax</button>
+<button name="pgql-button" class="tablinks" onclick="openTab(event, 'pgql')">PGQL with custom syntax</button>
 </div><div name="sql" class="tab-content active"><div class="language-sql highlighter-rouge"><div class="highlight"><pre class="highlight">
 <span class="k">SELECT</span> amount, transaction_type 
 <span class="k">FROM</span> <span class="k">GRAPH_TABLE</span>(financial_transactions 
@@ -4461,8 +4461,8 @@ For example:
 Another example is:
 
 <div class="tab">
-<button name="sql-button" class="tablinks active" onclick="openTab(event, 'sql')">SQL standard syntax</button>
-<button name="pgql-button" class="tablinks" onclick="openTab(event, 'pgql')">Legacy PGQL syntax</button>
+<button name="sql-button" class="tablinks active" onclick="openTab(event, 'sql')">PGQL with SQL Standard syntax</button>
+<button name="pgql-button" class="tablinks" onclick="openTab(event, 'pgql')">PGQL with custom syntax</button>
 </div><div name="sql" class="tab-content active"><div class="language-sql highlighter-rouge"><div class="highlight"><pre class="highlight">
 <span class="k">SELECT</span> number, name, 
       <span class="k">SUM</span>(incoming_edges) <span class="k">AS</span> num_incoming_edges, 
@@ -4579,8 +4579,8 @@ For example:
 {% include image.html file="example_graphs/financial_transactions.png" %}
 
 <div class="tab">
-<button name="sql-button" class="tablinks active" onclick="openTab(event, 'sql')">SQL standard syntax</button>
-<button name="pgql-button" class="tablinks" onclick="openTab(event, 'pgql')">Legacy PGQL syntax</button>
+<button name="sql-button" class="tablinks active" onclick="openTab(event, 'sql')">PGQL with SQL Standard syntax</button>
+<button name="pgql-button" class="tablinks" onclick="openTab(event, 'pgql')">PGQL with custom syntax</button>
 </div><div name="sql" class="tab-content active"><div class="language-sql highlighter-rouge"><div class="highlight"><pre class="highlight">
 <span class="k">SELECT</span> <span class="o">*</span> 
 <span class="k">FROM</span> <span class="k">GRAPH_TABLE</span>(financial_transactions 
@@ -4620,8 +4620,8 @@ For example:
 {% include image.html file="example_graphs/financial_transactions.png" %}
 
 <div class="tab">
-<button name="sql-button" class="tablinks active" onclick="openTab(event, 'sql')">SQL standard syntax</button>
-<button name="pgql-button" class="tablinks" onclick="openTab(event, 'pgql')">Legacy PGQL syntax</button>
+<button name="sql-button" class="tablinks active" onclick="openTab(event, 'sql')">PGQL with SQL Standard syntax</button>
+<button name="pgql-button" class="tablinks" onclick="openTab(event, 'pgql')">PGQL with custom syntax</button>
 </div><div name="sql" class="tab-content active"><div class="language-sql highlighter-rouge"><div class="highlight"><pre class="highlight">
 <span class="k">SELECT</span> <span class="o">*</span> 
 <span class="k">FROM</span> <span class="k">GRAPH_TABLE</span>(financial_transactions
@@ -4670,8 +4670,8 @@ ALL_DIFFERENT( val1, val2, val3, ..., valN )
 For example:
 
 <div class="tab">
-<button name="sql-button" class="tablinks active" onclick="openTab(event, 'sql')">SQL standard syntax</button>
-<button name="pgql-button" class="tablinks" onclick="openTab(event, 'pgql')">Legacy PGQL syntax</button>
+<button name="sql-button" class="tablinks active" onclick="openTab(event, 'sql')">PGQL with SQL Standard syntax</button>
+<button name="pgql-button" class="tablinks" onclick="openTab(event, 'pgql')">PGQL with custom syntax</button>
 </div><div name="sql" class="tab-content active"><div class="language-sql highlighter-rouge"><div class="highlight"><pre class="highlight">
 <span class="k">SELECT</span> <span class="o">*</span> 
 <span class="k">FROM</span> <span class="k">GRAPH_TABLE</span>(my_graph 
@@ -4688,8 +4688,8 @@ For example:
 Note that the above query can be rewritten using non-equality constraints as follows:
 
 <div class="tab">
-<button name="sql-button" class="tablinks active" onclick="openTab(event, 'sql')">SQL standard syntax</button>
-<button name="pgql-button" class="tablinks" onclick="openTab(event, 'pgql')">Legacy PGQL syntax</button>
+<button name="sql-button" class="tablinks active" onclick="openTab(event, 'sql')">PGQL with SQL Standard syntax</button>
+<button name="pgql-button" class="tablinks" onclick="openTab(event, 'pgql')">PGQL with custom syntax</button>
 </div><div name="sql" class="tab-content active"><div class="language-sql highlighter-rouge"><div class="highlight"><pre class="highlight">
 <span class="k">SELECT</span> <span class="o">*</span> 
 <span class="k">FROM</span> <span class="k">GRAPH_TABLE</span>(my_graph 
@@ -4982,8 +4982,8 @@ User-defined functions (UDFs) are invoked similarly to built-in functions. For e
 An example invocation of this function is then:
 
 <div class="tab">
-<button name="sql-button" class="tablinks active" onclick="openTab(event, 'sql')">SQL standard syntax</button>
-<button name="pgql-button" class="tablinks" onclick="openTab(event, 'pgql')">Legacy PGQL syntax</button>
+<button name="sql-button" class="tablinks active" onclick="openTab(event, 'sql')">PGQL with SQL Standard syntax</button>
+<button name="pgql-button" class="tablinks" onclick="openTab(event, 'pgql')">PGQL with custom syntax</button>
 </div><div name="sql" class="tab-content active"><div class="language-sql highlighter-rouge"><div class="highlight"><pre class="highlight">
 <span class="k">SELECT</span> <span class="o">*</span> 
 <span class="k">FROM</span> <span class="k">GRAPH_TABLE</span>(my_graph 
@@ -5043,8 +5043,8 @@ DataType          ::=   'STRING'
 For example:
 
 <div class="tab">
-<button name="sql-button" class="tablinks active" onclick="openTab(event, 'sql')">SQL standard syntax</button>
-<button name="pgql-button" class="tablinks" onclick="openTab(event, 'pgql')">Legacy PGQL syntax</button>
+<button name="sql-button" class="tablinks active" onclick="openTab(event, 'sql')">PGQL with SQL Standard syntax</button>
+<button name="pgql-button" class="tablinks" onclick="openTab(event, 'pgql')">PGQL with custom syntax</button>
 </div><div name="sql" class="tab-content active"><div class="language-sql highlighter-rouge"><div class="highlight"><pre class="highlight">
 <span class="k">SELECT</span> <span class="o">*</span> 
 <span class="k">FROM</span> <span class="k">GRAPH_TABLE</span>(my_graph 
@@ -5195,8 +5195,8 @@ Subquery        ::= '(' <Query> ')'
 An example is to find friend of friends, and, for each friend of friend, return the number of common friends:
 
 <div class="tab">
-<button name="sql-button" class="tablinks active" onclick="openTab(event, 'sql')">SQL standard syntax</button>
-<button name="pgql-button" class="tablinks" onclick="openTab(event, 'pgql')">Legacy PGQL syntax</button>
+<button name="sql-button" class="tablinks active" onclick="openTab(event, 'sql')">PGQL with SQL Standard syntax</button>
+<button name="pgql-button" class="tablinks" onclick="openTab(event, 'pgql')">PGQL with custom syntax</button>
 </div><div name="sql" class="tab-content active"><div class="language-sql highlighter-rouge"><div class="highlight"><pre class="highlight">
 <span class="k">SELECT</span> name, COUNT(friend) <span class="k">AS</span> num_common_friends 
 <span class="k">FROM</span> <span class="k">GRAPH_TABLE</span>(my_graph 
@@ -5232,8 +5232,8 @@ ScalarSubquery ::= <Subquery>
 For example:
 
 <div class="tab">
-<button name="sql-button" class="tablinks active" onclick="openTab(event, 'sql')">SQL standard syntax</button>
-<button name="pgql-button" class="tablinks" onclick="openTab(event, 'pgql')">Legacy PGQL syntax</button>
+<button name="sql-button" class="tablinks active" onclick="openTab(event, 'sql')">PGQL with SQL Standard syntax</button>
+<button name="pgql-button" class="tablinks" onclick="openTab(event, 'pgql')">PGQL with custom syntax</button>
 </div><div name="sql" class="tab-content active"><div class="language-sql highlighter-rouge"><div class="highlight"><pre class="highlight">
 <span class="k">SELECT</span> name 
 <span class="k">FROM</span> <span class="k">GRAPH_TABLE</span>(my_graph 
@@ -5256,8 +5256,8 @@ Another example is:
 {% include image.html file="example_graphs/financial_transactions.png" %}
 
 <div class="tab">
-<button name="sql-button" class="tablinks active" onclick="openTab(event, 'sql')">SQL standard syntax</button>
-<button name="pgql-button" class="tablinks" onclick="openTab(event, 'pgql')">Legacy PGQL syntax</button>
+<button name="sql-button" class="tablinks active" onclick="openTab(event, 'sql')">PGQL with SQL Standard syntax</button>
+<button name="pgql-button" class="tablinks" onclick="openTab(event, 'pgql')">PGQL with custom syntax</button>
 </div><div name="sql" class="tab-content active"><div class="language-sql highlighter-rouge"><div class="highlight"><pre class="highlight">
 <span class="k">SELECT</span> name, 
       ( <span class="k">SELECT</span> <span class="k">SUM</span>(amount) 
@@ -5355,8 +5355,8 @@ For example, the following query finds the top two people that transacted the mo
 {% include image.html file="example_graphs/financial_transactions.png" %}
 
 <div class="tab">
-<button name="sql-button" class="tablinks active" onclick="openTab(event, 'sql')">SQL standard syntax</button>
-<button name="pgql-button" class="tablinks" onclick="openTab(event, 'pgql')">Legacy PGQL syntax</button>
+<button name="sql-button" class="tablinks active" onclick="openTab(event, 'sql')">PGQL with SQL Standard syntax</button>
+<button name="pgql-button" class="tablinks" onclick="openTab(event, 'pgql')">PGQL with custom syntax</button>
 </div><div name="sql" class="tab-content active"><div class="language-sql highlighter-rouge"><div class="highlight"><pre class="highlight">
 <span class="k">SELECT</span> name, total_transacted, top_transaction
 <span class="k">FROM</span> LATERAL ( <span class="k">SELECT</span> p1_id, name, <span class="k">SUM</span>(amount) <span class="k">AS</span> total_transacted
