@@ -125,7 +125,7 @@ The plan is to maintain the custom syntax over time and give users the choice to
 Property Graphs in Oracle Database
 ----------------------------
 
-PGQL has been part of the Oracle Database as a standalone language since Oracle Database 12c.
+PGQL has been part of the Oracle Database as a standalone language since Oracle Database 12.2.
 However, in Oracle Database 23ai, property graphs were added directly into SQL as a more integrated feature of the converged database.
 Nevertheless, PGQL remains available in Oracle Database 23ai and users can [choose](https://blogs.oracle.com/database/post/querying-graphs-with-sql-and-pgql-what-is-the-difference) the language that best suits their needs and can easily migrate between them.
 
