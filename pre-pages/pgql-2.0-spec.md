@@ -4190,11 +4190,16 @@ For example:
 {% include image.html file="example_graphs/financial_transactions.png" %}
 
 ```sql
+--PGQL
 SELECT n.name
 FROM MATCH (n:Person) ON financial_transactions
 ORDER BY n.name
 OFFSET 1
 LIMIT 1
+--SQL
+/*
+ * Use the FETCH FIRST clause instead of the LIMIT clause when using PGQL with SQL Standard syntax.
+ */
 ```
 
 ```

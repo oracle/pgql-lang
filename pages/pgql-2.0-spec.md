@@ -4507,13 +4507,21 @@ For example:
 
 {% include image.html file="example_graphs/financial_transactions.png" %}
 
-```sql
-SELECT n.name
-FROM MATCH (n:Person) ON financial_transactions
-ORDER BY n.name
-OFFSET 1
-LIMIT 1
-```
+<div class="tab">
+<button name="sql-button" class="tablinks active" onclick="openTab(event, 'sql')">PGQL with SQL Standard syntax</button>
+<button name="pgql-button" class="tablinks" onclick="openTab(event, 'pgql')">PGQL with custom syntax</button>
+</div><div name="sql" class="tab-content active"><div class="language-sql highlighter-rouge"><div class="highlight"><pre class="highlight">
+<span class="o">/</span><span class="o">*</span>
+ <span class="o">*</span> Use the FETCH FIRST clause instead of the LIMIT clause when using PGQL with SQL Standard syntax.
+ <span class="o">*</span><span class="o">/</span>
+</pre></div></div></div>
+<div name="pgql" class="tab-content"><div class="language-sql highlighter-rouge"><div class="highlight"><pre class="highlight">
+<span class="k">SELECT</span> n.name
+<span class="k">FROM</span> <span class="k">MATCH</span> (n:Person) <span class="k">ON</span> financial_transactions
+<span class="k">ORDER</span> <span class="k">BY</span> n.name
+<span class="k">OF</span>F<span class="k">SET</span> <span class="mi">1</span>
+LIMIT <span class="mi">1</span>
+</pre></div></div></div>
 
 ```
 +--------+
