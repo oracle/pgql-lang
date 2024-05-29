@@ -2006,11 +2006,20 @@ PGQL itself does not (yet) provide syntax for specifying a default graph, but Ja
 Note: graph names have to be explicitly provided for the GRAPH_TABLE operator.
 If a default graph is provided then the `ON` clause can be omitted:
 
-```sql
-SELECT p.first_name, p.last_name
-FROM MATCH (p:Person)
-ORDER BY p.first_name, p.last_name
-```
+<div class="tab">
+<button name="sql-button" class="tablinks active" onclick="openTab(event, 'sql')">PGQL with SQL Standard syntax</button>
+<button name="pgql-button" class="tablinks" onclick="openTab(event, 'pgql')">PGQL with custom syntax</button>
+</div><div name="sql" class="tab-content active"><div class="language-sql highlighter-rouge"><div class="highlight"><pre class="highlight">
+<span class="o">/</span><span class="o">*</span>
+ <span class="o">*</span> See PGQL with custom syntax. Note that in PGQL with SQL Standard syntax a
+ <span class="o">*</span> graph name always needs to be specified as part of the query.
+ <span class="o">*</span><span class="o">/</span>
+</pre></div></div></div>
+<div name="pgql" class="tab-content"><div class="language-sql highlighter-rouge"><div class="highlight"><pre class="highlight">
+<span class="k">SELECT</span> p.first_name, p.last_name
+<span class="k">FROM</span> <span class="k">MATCH</span> (p:Person)
+<span class="k">ORDER</span> <span class="k">BY</span> p.first_name, p.last_name
+</pre></div></div></div>
 
 #### Querying multiple graphs
 
@@ -3768,26 +3777,29 @@ Another example is:
 <button name="sql-button" class="tablinks active" onclick="openTab(event, 'sql')">PGQL with SQL Standard syntax</button>
 <button name="pgql-button" class="tablinks" onclick="openTab(event, 'pgql')">PGQL with custom syntax</button>
 </div><div name="sql" class="tab-content active"><div class="language-sql highlighter-rouge"><div class="highlight"><pre class="highlight">
-<span class="k">SELECT</span> v.number <span class="k">AS</span> account_nr, <span class="k">MATCH</span>NUM() <span class="k">AS</span> match_nr, ELEMENT_<span class="k">NUMBER</span>(v) <span class="k">AS</span> elem_nr
-     , <span class="k">LISTAGG</span>(t.amount, <span class="mi">' + '</span>) <span class="o">|</span><span class="o">|</span> <span class="mi">' = '</span>, <span class="k">SUM</span>(t.amount) <span class="k">AS</span> total_amount
+<span class="k">SELECT</span> account_nr, match_nr, elem_nr, amounts, total_amount
 <span class="k">FROM</span> <span class="k">GRAPH_TABLE</span>(financial_transactions
        <span class="k">MATCH</span> (p1 <span class="k">IS</span> Person) <span class="o"><</span><span class="o">-</span>[<span class="k">IS</span> owner]<span class="o">-</span> (a1 <span class="k">IS</span> Account),
              (p2 <span class="k">IS</span> Person) <span class="o"><</span><span class="o">-</span>[<span class="k">IS</span> owner]<span class="o">-</span> (a2 <span class="k">IS</span> Account)
        <span class="k">WHERE</span> p1.name <span class="o">=</span> <span class="mi">'Camille'</span> <span class="k">AND</span> p2.name <span class="o">=</span> <span class="mi">'Liam'</span>
        <span class="k">ONE</span> <span class="k">ROW</span> <span class="k">PER</span> <span class="k">MATCH</span>
-       <span class="k">COLUMNS</span>(a1.number <span class="k">AS</span> a1_number1, a2.number <span class="k">AS</span> a2_number1)),
+       <span class="k">COLUMNS</span>(a1.number <span class="k">AS</span> a1_number1, a2.number <span class="k">AS</span> a2_number1)
+     ),
      <span class="k">GRAPH_TABLE</span>(financial_transactions
        <span class="k">MATCH</span> (a1) <span class="o">-</span>[t <span class="k">IS</span> transaction]<span class="o">-</span><span class="o">></span>{,<span class="mi">4</span>} (a2)
        <span class="k">ONE</span> <span class="k">ROW</span> <span class="k">PER</span> <span class="k">VERTEX</span> (v)
-       <span class="k">COLUMNS</span>(v.number <span class="k">AS</span> account_nr, <span class="k">MATCH</span>NUM() <span class="k">AS</span> match_nr, ELEMENT_<span class="k">NUMBER</span>(v) <span class="k">AS</span> elem_nr
-            , <span class="k">LISTAGG</span>(t.amount, <span class="mi">' + '</span>) <span class="o">|</span><span class="o">|</span> <span class="mi">' = '</span>, <span class="k">SUM</span>(t.amount) <span class="k">AS</span> total_amount)
+       <span class="k">COLUMNS</span>(a1.number <span class="k">AS</span> a1_number2, a2.number <span class="k">AS</span> a2_number2,
+               v.number <span class="k">AS</span> account_nr, <span class="k">MATCH</span>NUM() <span class="k">AS</span> match_nr,
+               ELEMENT_<span class="k">NUMBER</span>(v) <span class="k">AS</span> elem_nr,
+               <span class="k">LISTAGG</span>(t.amount, <span class="mi">' + '</span>) <span class="o">|</span><span class="o">|</span> <span class="mi">' = '</span> <span class="k">AS</span> amounts,
+               <span class="k">SUM</span>(t.amount) <span class="k">AS</span> total_amount)
      )
 <span class="k">WHERE</span> a1_number1 <span class="o">=</span> a1_number2 <span class="k">AND</span> a2_number1 <span class="o">=</span> a2_number2
 <span class="k">ORDER</span> <span class="k">BY</span> match_nr, elem_nr
 </pre></div></div></div>
 <div name="pgql" class="tab-content"><div class="language-sql highlighter-rouge"><div class="highlight"><pre class="highlight">
 <span class="k">SELECT</span> v.number <span class="k">AS</span> account_nr, <span class="k">MATCH</span>NUM(v) <span class="k">AS</span> match_nr, ELEMENT_<span class="k">NUMBER</span>(v) <span class="k">AS</span> elem_nr
-     , <span class="k">LISTAGG</span>(t.amount, <span class="mi">' + '</span>) <span class="o">|</span><span class="o">|</span> <span class="mi">' = '</span>, <span class="k">SUM</span>(t.amount) <span class="k">AS</span> total_amount
+     , <span class="k">LISTAGG</span>(t.amount, <span class="mi">' + '</span>) <span class="o">|</span><span class="o">|</span> <span class="mi">' = '</span> <span class="k">AS</span> amounts, <span class="k">SUM</span>(t.amount) <span class="k">AS</span> total_amount
 <span class="k">FROM</span> <span class="k">MATCH</span> ( (p1:Person) <span class="o"><</span><span class="o">-</span>[:owner]<span class="o">-</span> (a1:Account),
              (p2:Person) <span class="o"><</span><span class="o">-</span>[:owner]<span class="o">-</span> (a2:Account) )
       <span class="k">ON</span> financial_transactions
@@ -3800,18 +3812,18 @@ Another example is:
 </pre></div></div></div>
 
 ```
-+------------------------------------------------------------------------------------+
-| account_nr | match_nr | elem_nr | LISTAGG(t.amount, ' + ') || ' = ' | total_amount |
-+------------------------------------------------------------------------------------+
-| 10039      | 4        | 1       | 1000.0 + 1500.3 + 9999.5 =        | 12499.8      |
-| 8021       | 4        | 3       | 1000.0 + 1500.3 + 9999.5 =        | 12499.8      |
-| 1001       | 4        | 5       | 1000.0 + 1500.3 + 9999.5 =        | 12499.8      |
-| 2090       | 4        | 7       | 1000.0 + 1500.3 + 9999.5 =        | 12499.8      |
-| 10039      | 5        | 1       | 1000.0 + 3000.7 + 9999.5 =        | 14000.2      |
-| 8021       | 5        | 3       | 1000.0 + 3000.7 + 9999.5 =        | 14000.2      |
-| 1001       | 5        | 5       | 1000.0 + 3000.7 + 9999.5 =        | 14000.2      |
-| 2090       | 5        | 7       | 1000.0 + 3000.7 + 9999.5 =        | 14000.2      |
-+------------------------------------------------------------------------------------+
++-----------------------------------------------------------------------------+
+| account_nr | match_nr | elem_nr | amounts                    | total_amount |
++-----------------------------------------------------------------------------+
+| 10039      | 4        | 1       | 1000.0 + 1500.3 + 9999.5 = | 12499.8      |
+| 8021       | 4        | 3       | 1000.0 + 1500.3 + 9999.5 = | 12499.8      |
+| 1001       | 4        | 5       | 1000.0 + 1500.3 + 9999.5 = | 12499.8      |
+| 2090       | 4        | 7       | 1000.0 + 1500.3 + 9999.5 = | 12499.8      |
+| 10039      | 5        | 1       | 1000.0 + 3000.7 + 9999.5 = | 14000.2      |
+| 8021       | 5        | 3       | 1000.0 + 3000.7 + 9999.5 = | 14000.2      |
+| 1001       | 5        | 5       | 1000.0 + 3000.7 + 9999.5 = | 14000.2      |
+| 2090       | 5        | 7       | 1000.0 + 3000.7 + 9999.5 = | 14000.2      |
++-----------------------------------------------------------------------------+
 ```
 
 There are a couple things to observe from this example:
@@ -3923,16 +3935,41 @@ Another example is:
 
 {% include image.html file="example_graphs/financial_transactions.png" %}
 
-```sql
-SELECT v1.number AS v1_account_nr, e.amount, v2.number AS v2_account_nr, MATCHNUM(e) AS match_nr
-     , ELEMENT_NUMBER(v1) AS v1_elem_nr, ELEMENT_NUMBER(e) AS e_elem_nr
-     , ELEMENT_NUMBER(v2) AS v2_elem_nr, SUM(t.amount) AS total_amount
-FROM MATCH (p1:Person) <-[:owner]- (a1:Account) ON financial_transactions ONE ROW PER MATCH
-   , MATCH (p2:Person) <-[:owner]- (a2:Account) ON financial_transactions ONE ROW PER MATCH
-   , MATCH ALL (a1) -[t:transaction]->{1,4} (a2) ON financial_transactions ONE ROW PER STEP (v1, e, v2)
-WHERE p1.name = 'Camille' AND p2.name = 'Liam'
-ORDER BY MATCHNUM(e), ELEMENT_NUMBER(e)
-```
+<div class="tab">
+<button name="sql-button" class="tablinks active" onclick="openTab(event, 'sql')">PGQL with SQL Standard syntax</button>
+<button name="pgql-button" class="tablinks" onclick="openTab(event, 'pgql')">PGQL with custom syntax</button>
+</div><div name="sql" class="tab-content active"><div class="language-sql highlighter-rouge"><div class="highlight"><pre class="highlight">
+<span class="k">SELECT</span> v1_account_nr, amount, v2_account_nr, match_nr, v1_elem_nr, e_elem_nr,
+       v2_elem_nr, total_amount
+<span class="k">FROM</span> <span class="k">GRAPH_TABLE</span>(financial_transactions
+       <span class="k">MATCH</span> (p1 <span class="k">IS</span> Person) <span class="o"><</span><span class="o">-</span>[<span class="k">IS</span> owner]<span class="o">-</span> (a1 <span class="k">IS</span> Account),
+             (p2 <span class="k">IS</span> Person) <span class="o"><</span><span class="o">-</span>[<span class="k">IS</span> owner]<span class="o">-</span> (a2 <span class="k">IS</span> Account)
+       <span class="k">WHERE</span> p1.name <span class="o">=</span> <span class="mi">'Camille'</span> <span class="k">AND</span> p2.name <span class="o">=</span> <span class="mi">'Liam'</span>
+       <span class="k">ONE</span> <span class="k">ROW</span> <span class="k">PER</span> <span class="k">MATCH</span>
+       <span class="k">COLUMNS</span>(a1.number <span class="k">AS</span> a1_number1, a2.number <span class="k">AS</span> a2_number1)
+     ),
+     <span class="k">GRAPH_TABLE</span>(financial_transactions
+       <span class="k">MATCH</span> (a1) <span class="o">-</span>[t <span class="k">IS</span> transaction]<span class="o">-</span><span class="o">></span>{<span class="mi">1</span>,<span class="mi">4</span>} (a2)
+       <span class="k">ONE</span> <span class="k">ROW</span> <span class="k">PER</span> <span class="k">STEP</span> (v1, e, v2)
+       <span class="k">COLUMNS</span>(a1.number <span class="k">AS</span> a1_number2, a2.number <span class="k">AS</span> a2_number2,
+               v1.number <span class="k">AS</span> v1_account_nr, e.amount, v2.number <span class="k">AS</span> v2_account_nr,
+               <span class="k">MATCH</span>NUM() <span class="k">AS</span> match_nr, ELEMENT_<span class="k">NUMBER</span>(v1) <span class="k">AS</span> v1_elem_nr,
+               ELEMENT_<span class="k">NUMBER</span>(e) <span class="k">AS</span> e_elem_nr, ELEMENT_<span class="k">NUMBER</span>(v2) <span class="k">AS</span> v2_elem_nr,
+               <span class="k">SUM</span>(t.amount) <span class="k">AS</span> total_amount)
+     )
+<span class="k">WHERE</span> a1_number1 <span class="o">=</span> a1_number2 <span class="k">AND</span> a2_number1 <span class="o">=</span> a2_number2
+<span class="k">ORDER</span> <span class="k">BY</span> match_nr, e_elem_nr
+</pre></div></div></div>
+<div name="pgql" class="tab-content"><div class="language-sql highlighter-rouge"><div class="highlight"><pre class="highlight">
+<span class="k">SELECT</span> v1.number <span class="k">AS</span> v1_account_nr, e.amount, v2.number <span class="k">AS</span> v2_account_nr, <span class="k">MATCH</span>NUM(e) <span class="k">AS</span> match_nr
+     , ELEMENT_<span class="k">NUMBER</span>(v1) <span class="k">AS</span> v1_elem_nr, ELEMENT_<span class="k">NUMBER</span>(e) <span class="k">AS</span> e_elem_nr
+     , ELEMENT_<span class="k">NUMBER</span>(v2) <span class="k">AS</span> v2_elem_nr, <span class="k">SUM</span>(t.amount) <span class="k">AS</span> total_amount
+<span class="k">FROM</span> <span class="k">MATCH</span> (p1:Person) <span class="o"><</span><span class="o">-</span>[:owner]<span class="o">-</span> (a1:Account) <span class="k">ON</span> financial_transactions <span class="k">ONE</span> <span class="k">ROW</span> <span class="k">PER</span> <span class="k">MATCH</span>
+   , <span class="k">MATCH</span> (p2:Person) <span class="o"><</span><span class="o">-</span>[:owner]<span class="o">-</span> (a2:Account) <span class="k">ON</span> financial_transactions <span class="k">ONE</span> <span class="k">ROW</span> <span class="k">PER</span> <span class="k">MATCH</span>
+   , <span class="k">MATCH</span> <span class="k">ALL</span> (a1) <span class="o">-</span>[t:transaction]<span class="o">-</span><span class="o">></span>{<span class="mi">1</span>,<span class="mi">4</span>} (a2) <span class="k">ON</span> financial_transactions <span class="k">ONE</span> <span class="k">ROW</span> <span class="k">PER</span> <span class="k">STEP</span> (v1, e, v2)
+<span class="k">WHERE</span> p1.name <span class="o">=</span> <span class="mi">'Camille'</span> <span class="k">AND</span> p2.name <span class="o">=</span> <span class="mi">'Liam'</span>
+<span class="k">ORDER</span> <span class="k">BY</span> <span class="k">MATCH</span>NUM(e), ELEMENT_<span class="k">NUMBER</span>(e)
+</pre></div></div></div>
 
 ```
 +--------------------------------------------------------------------------------------------------------+
@@ -5071,18 +5108,26 @@ For example:
 
 {% include image.html file="example_graphs/financial_transactions.png" %}
 
-```sql
-SELECT account_num, match_num, elem_num
-FROM GRAPH_TABLE ( financial_transactions
-       MATCH ALL (a1 IS Account) -[IS transaction]->{,4} (a2 IS Account)
-       WHERE a1.number = 10039 AND a2.number = 2090
-       ONE ROW PER VERTEX ( v )
-       COLUMNS ( v.number AS account_num,
-                 MATCHNUM() AS match_num,
-                 ELEMENT_NUMBER(v) AS elem_num )
+<div class="tab">
+<button name="sql-button" class="tablinks active" onclick="openTab(event, 'sql')">PGQL with SQL Standard syntax</button>
+<button name="pgql-button" class="tablinks" onclick="openTab(event, 'pgql')">PGQL with custom syntax</button>
+</div><div name="sql" class="tab-content active"><div class="language-sql highlighter-rouge"><div class="highlight"><pre class="highlight">
+<span class="k">SELECT</span> account_num, match_num, elem_num
+<span class="k">FROM</span> <span class="k">GRAPH_TABLE</span> ( financial_transactions
+       <span class="k">MATCH</span> <span class="k">ALL</span> (a1 <span class="k">IS</span> Account) <span class="o">-</span>[<span class="k">IS</span> transaction]<span class="o">-</span><span class="o">></span>{,<span class="mi">4</span>} (a2 <span class="k">IS</span> Account)
+       <span class="k">WHERE</span> a1.number <span class="o">=</span> <span class="mi">10039</span> <span class="k">AND</span> a2.number <span class="o">=</span> <span class="mi">2090</span>
+       <span class="k">ONE</span> <span class="k">ROW</span> <span class="k">PER</span> <span class="k">VERTEX</span> ( v )
+       <span class="k">COLUMNS</span> ( v.number <span class="k">AS</span> account_num,
+                 <span class="k">MATCH</span>NUM() <span class="k">AS</span> match_num,
+                 ELEMENT_<span class="k">NUMBER</span>(v) <span class="k">AS</span> elem_num )
      )
-ORDER BY match_num, elem_num
-```
+<span class="k">ORDER</span> <span class="k">BY</span> match_num, elem_num
+</pre></div></div></div>
+<div name="pgql" class="tab-content"><div class="language-sql highlighter-rouge"><div class="highlight"><pre class="highlight">
+<span class="o">/</span><span class="o">*</span>
+ <span class="o">*</span> See PGQL with SQL Standard syntax.
+ <span class="o">*</span><span class="o">/</span>
+</pre></div></div></div>
 
 ```
 +------------------------------------+
@@ -5099,14 +5144,22 @@ ORDER BY match_num, elem_num
 +------------------------------------+
 ```
 
-```sql
-SELECT v.number AS account_number, MATCHNUM(v), ELEMENT_NUMBER(v)
-FROM MATCH ALL (a1:Account) -[:transaction]->{,4} (a2:Account)
-       ON financial_transactions
-       ONE ROW PER VERTEX ( v )
-WHERE a1.number = 10039 AND a2.number = 2090
-ORDER BY MATCHNUM(v), ELEMENT_NUMBER(v)
-```
+<div class="tab">
+<button name="sql-button" class="tablinks active" onclick="openTab(event, 'sql')">PGQL with SQL Standard syntax</button>
+<button name="pgql-button" class="tablinks" onclick="openTab(event, 'pgql')">PGQL with custom syntax</button>
+</div><div name="sql" class="tab-content active"><div class="language-sql highlighter-rouge"><div class="highlight"><pre class="highlight">
+<span class="o">/</span><span class="o">*</span>
+ <span class="o">*</span> See PGQL with custom syntax.
+ <span class="o">*</span><span class="o">/</span>
+</pre></div></div></div>
+<div name="pgql" class="tab-content"><div class="language-sql highlighter-rouge"><div class="highlight"><pre class="highlight">
+<span class="k">SELECT</span> v.number <span class="k">AS</span> account_number, <span class="k">MATCH</span>NUM(v), ELEMENT_<span class="k">NUMBER</span>(v)
+<span class="k">FROM</span> <span class="k">MATCH</span> <span class="k">ALL</span> (a1:Account) <span class="o">-</span>[:transaction]<span class="o">-</span><span class="o">></span>{,<span class="mi">4</span>} (a2:Account)
+       <span class="k">ON</span> financial_transactions
+       <span class="k">ONE</span> <span class="k">ROW</span> <span class="k">PER</span> <span class="k">VERTEX</span> ( v )
+<span class="k">WHERE</span> a1.number <span class="o">=</span> <span class="mi">10039</span> <span class="k">AND</span> a2.number <span class="o">=</span> <span class="mi">2090</span>
+<span class="k">ORDER</span> <span class="k">BY</span> <span class="k">MATCH</span>NUM(v), ELEMENT_<span class="k">NUMBER</span>(v)
+</pre></div></div></div>
 
 ```
 +--------------------------------------------------+
@@ -5723,11 +5776,21 @@ Result: false
 
 Bind variables are also supported in the position of the list. For example:
 
-```sql
-SELECT n.date_of_birth
-FROM MATCH (n:Person) ON my_graph
-WHERE n.date_of_birth IN ? /* use PreparedStatement.setArray(int, java.util.List) */
-```
+<div class="tab">
+<button name="sql-button" class="tablinks active" onclick="openTab(event, 'sql')">PGQL with SQL Standard syntax</button>
+<button name="pgql-button" class="tablinks" onclick="openTab(event, 'pgql')">PGQL with custom syntax</button>
+</div><div name="sql" class="tab-content active"><div class="language-sql highlighter-rouge"><div class="highlight"><pre class="highlight">
+<span class="k">SELECT</span> <span class="o">*</span>
+<span class="k">FROM</span> <span class="k">GRAPH_TABLE</span>(my_graph
+  <span class="k">MATCH</span> (n <span class="k">IS</span> Person)
+  <span class="k">WHERE</span> n.date_of_birth <span class="k">IN</span> ? <span class="o">/</span><span class="o">*</span> use PreparedStatement.setArray(int, java.util.List) <span class="o">*</span><span class="o">/</span>
+  <span class="k">COLUMNS</span>(n.date_of_birth))
+</pre></div></div></div>
+<div name="pgql" class="tab-content"><div class="language-sql highlighter-rouge"><div class="highlight"><pre class="highlight">
+<span class="k">SELECT</span> n.date_of_birth
+<span class="k">FROM</span> <span class="k">MATCH</span> (n:Person) <span class="k">ON</span> my_graph
+<span class="k">WHERE</span> n.date_of_birth <span class="k">IN</span> ? <span class="o">/</span><span class="o">*</span> use PreparedStatement.setArray(int, java.util.List) <span class="o">*</span><span class="o">/</span>
+</pre></div></div></div>
 
 # Subqueries
 
@@ -5874,27 +5937,36 @@ Another example is:
 +-----------------------------------------------------------------------------------------------------+
 ```
 
-Note that in the query, the graph name `financial_transactions` is repeatedly specified. Such repetition can be avoided by using a [default graph](#default-graphs), which simplifies the query (Note: With `GRAPH_TABLE` operator, the graph name has to be specified explicitly inside each operator):
+Note that in the query, the graph name `financial_transactions` is repeatedly specified. Such repetition can be avoided by using a [default graph](#default-graphs), which simplifies the query:
 
 
-```sql
-  SELECT p.name AS name
-       , ( SELECT SUM(t.amount)
-             FROM MATCH (a) <-[t:transaction]- (:Account)
-         ) AS sum_incoming
-       , ( SELECT SUM(t.amount)
-             FROM MATCH (a) -[t:transaction]-> (:Account)
-         ) AS sum_outgoing
-       , ( SELECT COUNT(DISTINCT p2)
-             FROM MATCH (a) -[t:transaction]- (:Account) -[:owner]-> (p2:Person)
-            WHERE p2 <> p
-         ) AS num_persons_transacted_with
-       , ( SELECT COUNT(DISTINCT c)
-             FROM MATCH (a) -[t:transaction]- (:Account) -[:owner]-> (c:Company)
-         ) AS num_companies_transacted_with
-    FROM MATCH (p:Person) <-[:owner]- (a:Account)
-ORDER BY sum_outgoing + sum_incoming DESC
-```
+<div class="tab">
+<button name="sql-button" class="tablinks active" onclick="openTab(event, 'sql')">PGQL with SQL Standard syntax</button>
+<button name="pgql-button" class="tablinks" onclick="openTab(event, 'pgql')">PGQL with custom syntax</button>
+</div><div name="sql" class="tab-content active"><div class="language-sql highlighter-rouge"><div class="highlight"><pre class="highlight">
+<span class="o">/</span><span class="o">*</span>
+ <span class="o">*</span> See PGQL with custom syntax. Note that in PGQL with SQL Standard syntax a
+ <span class="o">*</span> graph name always needs to be specified as part of the query.
+ <span class="o">*</span><span class="o">/</span>
+</pre></div></div></div>
+<div name="pgql" class="tab-content"><div class="language-sql highlighter-rouge"><div class="highlight"><pre class="highlight">
+  <span class="k">SELECT</span> p.name <span class="k">AS</span> name
+       , ( <span class="k">SELECT</span> <span class="k">SUM</span>(t.amount)
+             <span class="k">FROM</span> <span class="k">MATCH</span> (a) <span class="o"><</span><span class="o">-</span>[t:transaction]<span class="o">-</span> (:Account)
+         ) <span class="k">AS</span> sum_incoming
+       , ( <span class="k">SELECT</span> <span class="k">SUM</span>(t.amount)
+             <span class="k">FROM</span> <span class="k">MATCH</span> (a) <span class="o">-</span>[t:transaction]<span class="o">-</span><span class="o">></span> (:Account)
+         ) <span class="k">AS</span> sum_outgoing
+       , ( <span class="k">SELECT</span> COUNT(<span class="k">DISTINCT</span> p2)
+             <span class="k">FROM</span> <span class="k">MATCH</span> (a) <span class="o">-</span>[t:transaction]<span class="o">-</span> (:Account) <span class="o">-</span>[:owner]<span class="o">-</span><span class="o">></span> (p2:Person)
+            <span class="k">WHERE</span> p2 <span class="o"><</span><span class="o">></span> p
+         ) <span class="k">AS</span> num_persons_transacted_with
+       , ( <span class="k">SELECT</span> COUNT(<span class="k">DISTINCT</span> c)
+             <span class="k">FROM</span> <span class="k">MATCH</span> (a) <span class="o">-</span>[t:transaction]<span class="o">-</span> (:Account) <span class="o">-</span>[:owner]<span class="o">-</span><span class="o">></span> (c:Company)
+         ) <span class="k">AS</span> num_companies_transacted_with
+    <span class="k">FROM</span> <span class="k">MATCH</span> (p:Person) <span class="o"><</span><span class="o">-</span>[:owner]<span class="o">-</span> (a:Account)
+<span class="k">ORDER</span> <span class="k">BY</span> sum_outgoing <span class="o">+</span> sum_incoming <span class="k">DESC</span>
+</pre></div></div></div>
 
 ## LATERAL Subqueries
 
@@ -5959,41 +6031,72 @@ For example, the following query finds the top two people that transacted the mo
 ```
 
 In the following query, the `LATERAL` subquery projects the two vertices `a` and `p`, while the outer accesses properties of those vertices.
-Note: Vertex and edge variables cannot be projected with `GRAPH_TABLE` operator
 
-```sql
-SELECT p.name, a.number
-FROM LATERAL ( SELECT a, p
-               FROM MATCH (a:Account) -> (p:Person) ON financial_transactions
+<div class="tab">
+<button name="sql-button" class="tablinks active" onclick="openTab(event, 'sql')">PGQL with SQL Standard syntax</button>
+<button name="pgql-button" class="tablinks" onclick="openTab(event, 'pgql')">PGQL with custom syntax</button>
+</div><div name="sql" class="tab-content active"><div class="language-sql highlighter-rouge"><div class="highlight"><pre class="highlight">
+<span class="o">/</span><span class="o">*</span>
+ <span class="o">*</span> See PGQL with custom syntax.
+ <span class="o">*</span><span class="o">/</span>
+</pre></div></div></div>
+<div name="pgql" class="tab-content"><div class="language-sql highlighter-rouge"><div class="highlight"><pre class="highlight">
+<span class="k">SELECT</span> p.name, a.number
+<span class="k">FROM</span> LATERAL ( <span class="k">SELECT</span> a, p
+               <span class="k">FROM</span> <span class="k">MATCH</span> (a:Account) <span class="o">-</span><span class="o">></span> (p:Person) <span class="k">ON</span> financial_transactions
              )
-```
+</pre></div></div></div>
 
 Alternatively, properties can also be projected by the `LATERAL` subquery and then be referenced by the outer query.
 
-```sql
-SELECT name, number
-FROM LATERAL ( SELECT p.name as name, a.number as number
-               FROM MATCH (a:Account) -> (p:Person) ON financial_transactions
+<div class="tab">
+<button name="sql-button" class="tablinks active" onclick="openTab(event, 'sql')">PGQL with SQL Standard syntax</button>
+<button name="pgql-button" class="tablinks" onclick="openTab(event, 'pgql')">PGQL with custom syntax</button>
+</div><div name="sql" class="tab-content active"><div class="language-sql highlighter-rouge"><div class="highlight"><pre class="highlight">
+<span class="o">/</span><span class="o">*</span>
+ <span class="o">*</span> See PGQL with custom syntax.
+ <span class="o">*</span><span class="o">/</span>   
+</pre></div></div></div>
+<div name="pgql" class="tab-content"><div class="language-sql highlighter-rouge"><div class="highlight"><pre class="highlight">
+<span class="k">SELECT</span> name, number
+<span class="k">FROM</span> LATERAL ( <span class="k">SELECT</span> p.name as name, a.number as number
+               <span class="k">FROM</span> <span class="k">MATCH</span> (a:Account) <span class="o">-</span><span class="o">></span> (p:Person) <span class="k">ON</span> financial_transactions
              )
-```
+</pre></div></div></div>
 
-```sql
-SELECT p.name, number
-FROM LATERAL ( SELECT p, a.number as number
-               FROM MATCH (a:Account) -> (p:Person) ON financial_transactions
+<div class="tab">
+<button name="sql-button" class="tablinks active" onclick="openTab(event, 'sql')">PGQL with SQL Standard syntax</button>
+<button name="pgql-button" class="tablinks" onclick="openTab(event, 'pgql')">PGQL with custom syntax</button>
+</div><div name="sql" class="tab-content active"><div class="language-sql highlighter-rouge"><div class="highlight"><pre class="highlight">
+<span class="o">/</span><span class="o">*</span>
+ <span class="o">*</span> See PGQL with custom syntax.
+ <span class="o">*</span><span class="o">/</span>
+</pre></div></div></div>
+<div name="pgql" class="tab-content"><div class="language-sql highlighter-rouge"><div class="highlight"><pre class="highlight">
+<span class="k">SELECT</span> p.name, number
+<span class="k">FROM</span> LATERAL ( <span class="k">SELECT</span> p, a.number as number
+               <span class="k">FROM</span> <span class="k">MATCH</span> (a:Account) <span class="o">-</span><span class="o">></span> (p:Person) <span class="k">ON</span> financial_transactions
              )
-```
+</pre></div></div></div>
 
 ### Variable Renaming
 
 Variables can be renamed in the projection of a `LATERAL` subquery. In this case, the new name has to be used to reference a variable.
 
-```sql
-SELECT account.name, person.number
-FROM LATERAL ( SELECT a as account, p as person
-               FROM MATCH (a:Account) -> (p:Person) ON financial_transactions
+<div class="tab">
+<button name="sql-button" class="tablinks active" onclick="openTab(event, 'sql')">PGQL with SQL Standard syntax</button>
+<button name="pgql-button" class="tablinks" onclick="openTab(event, 'pgql')">PGQL with custom syntax</button>
+</div><div name="sql" class="tab-content active"><div class="language-sql highlighter-rouge"><div class="highlight"><pre class="highlight">
+<span class="o">/</span><span class="o">*</span>
+ <span class="o">*</span> See PGQL with custom syntax.
+ <span class="o">*</span><span class="o">/</span>
+</pre></div></div></div>
+<div name="pgql" class="tab-content"><div class="language-sql highlighter-rouge"><div class="highlight"><pre class="highlight">
+<span class="k">SELECT</span> account.name, person.number
+<span class="k">FROM</span> LATERAL ( <span class="k">SELECT</span> a as account, p as person
+               <span class="k">FROM</span> <span class="k">MATCH</span> (a:Account) <span class="o">-</span><span class="o">></span> (p:Person) <span class="k">ON</span> financial_transactions
              )
-```
+</pre></div></div></div>
 
 ### Nesting Of LATERAL Subqueries
 
@@ -6001,38 +6104,62 @@ FROM LATERAL ( SELECT a as account, p as person
 
 For example:
 
-```sql
-SELECT name, number
-FROM LATERAL ( SELECT a.name, p.number
-               FROM LATERAL ( SELECT a,p
-                              FROM MATCH (a:Account) -> (p:Person) ON financial_transactions
+<div class="tab">
+<button name="sql-button" class="tablinks active" onclick="openTab(event, 'sql')">PGQL with SQL Standard syntax</button>
+<button name="pgql-button" class="tablinks" onclick="openTab(event, 'pgql')">PGQL with custom syntax</button>
+</div><div name="sql" class="tab-content active"><div class="language-sql highlighter-rouge"><div class="highlight"><pre class="highlight">
+<span class="o">/</span><span class="o">*</span>
+ <span class="o">*</span> See PGQL with custom syntax.
+ <span class="o">*</span><span class="o">/</span>
+</pre></div></div></div>
+<div name="pgql" class="tab-content"><div class="language-sql highlighter-rouge"><div class="highlight"><pre class="highlight">
+<span class="k">SELECT</span> name, number
+<span class="k">FROM</span> LATERAL ( <span class="k">SELECT</span> a.name, p.number
+               <span class="k">FROM</span> LATERAL ( <span class="k">SELECT</span> a,p
+                              <span class="k">FROM</span> <span class="k">MATCH</span> (a:Account) <span class="o">-</span><span class="o">></span> (p:Person) <span class="k">ON</span> financial_transactions
                             )
              )
-```
+</pre></div></div></div>
 
 ### LATERAL Followed By MATCH
 
 A `LATERAL` subquery can be followed by one or more `MATCH` clauses. Vertices projected by a `LATERAL` subquery can be used in subsequent `MATCH` clauses.
 
 In the example below `(a)` in the outer `MATCH` clause, is the same `(a)` projected in the `LATERAL` subquery.
-```sql
-SELECT p.name as pName, p1.name as p1Name
-FROM LATERAL ( SELECT a, p
-               FROM MATCH (a:Account) -> (p:Person) ON financial_transactions
+<div class="tab">
+<button name="sql-button" class="tablinks active" onclick="openTab(event, 'sql')">PGQL with SQL Standard syntax</button>
+<button name="pgql-button" class="tablinks" onclick="openTab(event, 'pgql')">PGQL with custom syntax</button>
+</div><div name="sql" class="tab-content active"><div class="language-sql highlighter-rouge"><div class="highlight"><pre class="highlight">
+<span class="o">/</span><span class="o">*</span>
+ <span class="o">*</span> See PGQL with custom syntax.
+ <span class="o">*</span><span class="o">/</span>
+</pre></div></div></div>
+<div name="pgql" class="tab-content"><div class="language-sql highlighter-rouge"><div class="highlight"><pre class="highlight">
+<span class="k">SELECT</span> p.name as pName, p1.name as p1Name
+<span class="k">FROM</span> LATERAL ( <span class="k">SELECT</span> a, p
+               <span class="k">FROM</span> <span class="k">MATCH</span> (a:Account) <span class="o">-</span><span class="o">></span> (p:Person) <span class="k">ON</span> financial_transactions
              ),
-     MATCH (a) -> (a1:Account) -> (p1:Person) ON financial_transactions
-```
+     <span class="k">MATCH</span> (a) <span class="o">-</span><span class="o">></span> (a1:Account) <span class="o">-</span><span class="o">></span> (p1:Person) <span class="k">ON</span> financial_transactions
+</pre></div></div></div>
 
 The `WHERE` clause of the outer query can reference variables projected in the `LATERAL` subquery and variables in the outer `MATCH` clause.
 
-```sql
-SELECT p.name as pName, p1.name as p1Name
-FROM LATERAL ( SELECT a, p
-               FROM MATCH (a:Account) -> (p:Person) ON financial_transactions
+<div class="tab">
+<button name="sql-button" class="tablinks active" onclick="openTab(event, 'sql')">PGQL with SQL Standard syntax</button>
+<button name="pgql-button" class="tablinks" onclick="openTab(event, 'pgql')">PGQL with custom syntax</button>
+</div><div name="sql" class="tab-content active"><div class="language-sql highlighter-rouge"><div class="highlight"><pre class="highlight">
+<span class="o">/</span><span class="o">*</span>
+ <span class="o">*</span> See PGQL with custom syntax.
+ <span class="o">*</span><span class="o">/</span>
+</pre></div></div></div>
+<div name="pgql" class="tab-content"><div class="language-sql highlighter-rouge"><div class="highlight"><pre class="highlight">
+<span class="k">SELECT</span> p.name as pName, p1.name as p1Name
+<span class="k">FROM</span> LATERAL ( <span class="k">SELECT</span> a, p
+               <span class="k">FROM</span> <span class="k">MATCH</span> (a:Account) <span class="o">-</span><span class="o">></span> (p:Person) <span class="k">ON</span> financial_transactions
              ),
-     MATCH (a) -> (a1:Account) -> (p1:Person) ON financial_transactions
-WHERE p <> p1
-```
+     <span class="k">MATCH</span> (a) <span class="o">-</span><span class="o">></span> (a1:Account) <span class="o">-</span><span class="o">></span> (p1:Person) <span class="k">ON</span> financial_transactions
+<span class="k">WHERE</span> p <span class="o"><</span><span class="o">></span> p1
+</pre></div></div></div>
 
 
 ### Reusing Of Variable Names
@@ -6041,43 +6168,67 @@ Variables not projected in the `LATERAL` subquery are not visible outside the `L
 Therefore, variables in the outer query with the same name are new variables and independent of the variable in the `LATERAL` subquery with the same name.
 
 
-```sql
-SELECT p.name
-FROM LATERAL ( SELECT a
-               FROM MATCH (a:Account) -> (p:Person) ON financial_transactions
+<div class="tab">
+<button name="sql-button" class="tablinks active" onclick="openTab(event, 'sql')">PGQL with SQL Standard syntax</button>
+<button name="pgql-button" class="tablinks" onclick="openTab(event, 'pgql')">PGQL with custom syntax</button>
+</div><div name="sql" class="tab-content active"><div class="language-sql highlighter-rouge"><div class="highlight"><pre class="highlight">
+<span class="o">/</span><span class="o">*</span>
+ <span class="o">*</span> See PGQL with custom syntax.
+ <span class="o">*</span><span class="o">/</span>
+</pre></div></div></div>
+<div name="pgql" class="tab-content"><div class="language-sql highlighter-rouge"><div class="highlight"><pre class="highlight">
+<span class="k">SELECT</span> p.name
+<span class="k">FROM</span> LATERAL ( <span class="k">SELECT</span> a
+               <span class="k">FROM</span> <span class="k">MATCH</span> (a:Account) <span class="o">-</span><span class="o">></span> (p:Person) <span class="k">ON</span> financial_transactions
              ),
-     MATCH (a) -> (a1:Account) -> (p:Person) ON financial_transactions
-```
+     <span class="k">MATCH</span> (a) <span class="o">-</span><span class="o">></span> (a1:Account) <span class="o">-</span><span class="o">></span> (p:Person) <span class="k">ON</span> financial_transactions
+</pre></div></div></div>
 
 #### GROUP BY in `LATERAL` subquery
 
 `GROUP BY` is (like every other function of PGQL SELECT queries) supported inside a `LATERAL` subquery.
 If a vertex is projected after a `LATERAL` subquery, it can be used in a subsequent `MATCH` clause.
 
-```sql
-SELECT p.name, ARRAY_AGG(a.number)
-FROM LATERAL ( SELECT p, SUM(t.amount) AS sum
-               FROM MATCH (a1:Account) -[t:transaction] - (a:Account) -> (p:Person)
-                 ON financial_transactions
-               GROUP BY p
-               HAVING sum > 5000
+<div class="tab">
+<button name="sql-button" class="tablinks active" onclick="openTab(event, 'sql')">PGQL with SQL Standard syntax</button>
+<button name="pgql-button" class="tablinks" onclick="openTab(event, 'pgql')">PGQL with custom syntax</button>
+</div><div name="sql" class="tab-content active"><div class="language-sql highlighter-rouge"><div class="highlight"><pre class="highlight">
+<span class="o">/</span><span class="o">*</span>
+ <span class="o">*</span> See PGQL with custom syntax.
+ <span class="o">*</span><span class="o">/</span>
+</pre></div></div></div>
+<div name="pgql" class="tab-content"><div class="language-sql highlighter-rouge"><div class="highlight"><pre class="highlight">
+<span class="k">SELECT</span> p.name, <span class="k">ARRAY_AGG</span>(a.number)
+<span class="k">FROM</span> LATERAL ( <span class="k">SELECT</span> p, <span class="k">SUM</span>(t.amount) <span class="k">AS</span> sum
+               <span class="k">FROM</span> <span class="k">MATCH</span> (a1:Account) <span class="o">-</span>[t:transaction] <span class="o">-</span> (a:Account) <span class="o">-</span><span class="o">></span> (p:Person)
+                 <span class="k">ON</span> financial_transactions
+               <span class="k">GROUP</span> <span class="k">BY</span> p
+               <span class="k">HAVING</span> sum <span class="o">></span> <span class="mi">5000</span>
              ),
-     MATCH (p) <- (a:Account) ON financial_transactions
-     GROUP BY p
-```
+     <span class="k">MATCH</span> (p) <span class="o"><</span><span class="o">-</span> (a:Account) <span class="k">ON</span> financial_transactions
+     <span class="k">GROUP</span> <span class="k">BY</span> p
+</pre></div></div></div>
 
 ### Unnesting In LATERAL Subquery
 Variables from path unnesting with `ONE ROW PER STEP` or `ONE ROW PER VERTEX` can be used like any other variable projected in a `LATERAL` subquery.
 This includes using unnested vertices being used in a subsquent `MATCH` clause
 
-```sql
-SELECT p.name as pName, p1.name as p1Name
-FROM LATERAL (SELECT p, v
-              FROM MATCH (p:Person) <- (a:Account) ON financial_transactions,
-                   MATCH ANY (a) ->* (a1:Account) ONE ROW PER VERTEX (v))
-                     ON financial_transactions,
-     MATCH (v) -> (p1:Person) ON financial_transactions
-```
+<div class="tab">
+<button name="sql-button" class="tablinks active" onclick="openTab(event, 'sql')">PGQL with SQL Standard syntax</button>
+<button name="pgql-button" class="tablinks" onclick="openTab(event, 'pgql')">PGQL with custom syntax</button>
+</div><div name="sql" class="tab-content active"><div class="language-sql highlighter-rouge"><div class="highlight"><pre class="highlight">
+<span class="o">/</span><span class="o">*</span>
+ <span class="o">*</span> See PGQL with custom syntax.
+ <span class="o">*</span><span class="o">/</span>
+</pre></div></div></div>
+<div name="pgql" class="tab-content"><div class="language-sql highlighter-rouge"><div class="highlight"><pre class="highlight">
+<span class="k">SELECT</span> p.name as pName, p1.name as p1Name
+<span class="k">FROM</span> LATERAL (<span class="k">SELECT</span> p, v
+              <span class="k">FROM</span> <span class="k">MATCH</span> (p:Person) <span class="o"><</span><span class="o">-</span> (a:Account) <span class="k">ON</span> financial_transactions,
+                   <span class="k">MATCH</span> <span class="k">ANY</span> (a) <span class="o">-</span><span class="o">></span><span class="o">*</span> (a1:Account) <span class="k">ONE</span> <span class="k">ROW</span> <span class="k">PER</span> <span class="k">VERTEX</span> (v))
+                     <span class="k">ON</span> financial_transactions,
+     <span class="k">MATCH</span> (v) <span class="o">-</span><span class="o">></span> (p1:Person) <span class="k">ON</span> financial_transactions
+</pre></div></div></div>
 
 # Graph Modification
 

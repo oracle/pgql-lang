@@ -1869,9 +1869,15 @@ Note: graph names have to be explicitly provided for the GRAPH_TABLE operator.
 If a default graph is provided then the `ON` clause can be omitted:
 
 ```sql
+--PGQL
 SELECT p.first_name, p.last_name
 FROM MATCH (p:Person)
 ORDER BY p.first_name, p.last_name
+--SQL
+/*
+ * See PGQL with custom syntax. Note that in PGQL with SQL Standard syntax a
+ * graph name always needs to be specified as part of the query.
+ */
 ```
 
 #### Querying multiple graphs
@@ -3503,7 +3509,7 @@ Another example is:
 ```sql
 --PGQL
 SELECT v.number AS account_nr, MATCHNUM(v) AS match_nr, ELEMENT_NUMBER(v) AS elem_nr
-     , LISTAGG(t.amount, ' + ') || ' = ', SUM(t.amount) AS total_amount
+     , LISTAGG(t.amount, ' + ') || ' = ' AS amounts, SUM(t.amount) AS total_amount
 FROM MATCH ( (p1:Person) <-[:owner]- (a1:Account),
              (p2:Person) <-[:owner]- (a2:Account) )
       ON financial_transactions
@@ -3514,37 +3520,40 @@ FROM MATCH ( (p1:Person) <-[:owner]- (a1:Account),
 WHERE p1.name = 'Camille' AND p2.name = 'Liam'
 ORDER BY MATCHNUM(v), ELEMENT_NUMBER(v)
 --SQL
-SELECT v.number AS account_nr, MATCHNUM() AS match_nr, ELEMENT_NUMBER(v) AS elem_nr
-     , LISTAGG(t.amount, ' + ') || ' = ', SUM(t.amount) AS total_amount
+SELECT account_nr, match_nr, elem_nr, amounts, total_amount
 FROM GRAPH_TABLE(financial_transactions
        MATCH (p1 IS Person) <-[IS owner]- (a1 IS Account),
              (p2 IS Person) <-[IS owner]- (a2 IS Account)
        WHERE p1.name = 'Camille' AND p2.name = 'Liam'
        ONE ROW PER MATCH
-       COLUMNS(a1.number AS a1_number1, a2.number AS a2_number1)),
+       COLUMNS(a1.number AS a1_number1, a2.number AS a2_number1)
+     ),
      GRAPH_TABLE(financial_transactions
        MATCH (a1) -[t IS transaction]->{,4} (a2)
        ONE ROW PER VERTEX (v)
-       COLUMNS(v.number AS account_nr, MATCHNUM() AS match_nr, ELEMENT_NUMBER(v) AS elem_nr
-            , LISTAGG(t.amount, ' + ') || ' = ', SUM(t.amount) AS total_amount)
+       COLUMNS(a1.number AS a1_number2, a2.number AS a2_number2,
+               v.number AS account_nr, MATCHNUM() AS match_nr,
+               ELEMENT_NUMBER(v) AS elem_nr,
+               LISTAGG(t.amount, ' + ') || ' = ' AS amounts,
+               SUM(t.amount) AS total_amount)
      )
 WHERE a1_number1 = a1_number2 AND a2_number1 = a2_number2
 ORDER BY match_nr, elem_nr
 ```
 
 ```
-+------------------------------------------------------------------------------------+
-| account_nr | match_nr | elem_nr | LISTAGG(t.amount, ' + ') || ' = ' | total_amount |
-+------------------------------------------------------------------------------------+
-| 10039      | 4        | 1       | 1000.0 + 1500.3 + 9999.5 =        | 12499.8      |
-| 8021       | 4        | 3       | 1000.0 + 1500.3 + 9999.5 =        | 12499.8      |
-| 1001       | 4        | 5       | 1000.0 + 1500.3 + 9999.5 =        | 12499.8      |
-| 2090       | 4        | 7       | 1000.0 + 1500.3 + 9999.5 =        | 12499.8      |
-| 10039      | 5        | 1       | 1000.0 + 3000.7 + 9999.5 =        | 14000.2      |
-| 8021       | 5        | 3       | 1000.0 + 3000.7 + 9999.5 =        | 14000.2      |
-| 1001       | 5        | 5       | 1000.0 + 3000.7 + 9999.5 =        | 14000.2      |
-| 2090       | 5        | 7       | 1000.0 + 3000.7 + 9999.5 =        | 14000.2      |
-+------------------------------------------------------------------------------------+
++-----------------------------------------------------------------------------+
+| account_nr | match_nr | elem_nr | amounts                    | total_amount |
++-----------------------------------------------------------------------------+
+| 10039      | 4        | 1       | 1000.0 + 1500.3 + 9999.5 = | 12499.8      |
+| 8021       | 4        | 3       | 1000.0 + 1500.3 + 9999.5 = | 12499.8      |
+| 1001       | 4        | 5       | 1000.0 + 1500.3 + 9999.5 = | 12499.8      |
+| 2090       | 4        | 7       | 1000.0 + 1500.3 + 9999.5 = | 12499.8      |
+| 10039      | 5        | 1       | 1000.0 + 3000.7 + 9999.5 = | 14000.2      |
+| 8021       | 5        | 3       | 1000.0 + 3000.7 + 9999.5 = | 14000.2      |
+| 1001       | 5        | 5       | 1000.0 + 3000.7 + 9999.5 = | 14000.2      |
+| 2090       | 5        | 7       | 1000.0 + 3000.7 + 9999.5 = | 14000.2      |
++-----------------------------------------------------------------------------+
 ```
 
 There are a couple things to observe from this example:
@@ -3651,6 +3660,7 @@ Another example is:
 {% include image.html file="example_graphs/financial_transactions.png" %}
 
 ```sql
+--PGQL
 SELECT v1.number AS v1_account_nr, e.amount, v2.number AS v2_account_nr, MATCHNUM(e) AS match_nr
      , ELEMENT_NUMBER(v1) AS v1_elem_nr, ELEMENT_NUMBER(e) AS e_elem_nr
      , ELEMENT_NUMBER(v2) AS v2_elem_nr, SUM(t.amount) AS total_amount
@@ -3659,6 +3669,27 @@ FROM MATCH (p1:Person) <-[:owner]- (a1:Account) ON financial_transactions ONE RO
    , MATCH ALL (a1) -[t:transaction]->{1,4} (a2) ON financial_transactions ONE ROW PER STEP (v1, e, v2)
 WHERE p1.name = 'Camille' AND p2.name = 'Liam'
 ORDER BY MATCHNUM(e), ELEMENT_NUMBER(e)
+--SQL
+SELECT v1_account_nr, amount, v2_account_nr, match_nr, v1_elem_nr, e_elem_nr,
+       v2_elem_nr, total_amount
+FROM GRAPH_TABLE(financial_transactions
+       MATCH (p1 IS Person) <-[IS owner]- (a1 IS Account),
+             (p2 IS Person) <-[IS owner]- (a2 IS Account)
+       WHERE p1.name = 'Camille' AND p2.name = 'Liam'
+       ONE ROW PER MATCH
+       COLUMNS(a1.number AS a1_number1, a2.number AS a2_number1)
+     ),
+     GRAPH_TABLE(financial_transactions
+       MATCH (a1) -[t IS transaction]->{1,4} (a2)
+       ONE ROW PER STEP (v1, e, v2)
+       COLUMNS(a1.number AS a1_number2, a2.number AS a2_number2,
+               v1.number AS v1_account_nr, e.amount, v2.number AS v2_account_nr,
+               MATCHNUM() AS match_nr, ELEMENT_NUMBER(v1) AS v1_elem_nr,
+               ELEMENT_NUMBER(e) AS e_elem_nr, ELEMENT_NUMBER(v2) AS v2_elem_nr,
+               SUM(t.amount) AS total_amount)
+     )
+WHERE a1_number1 = a1_number2 AND a2_number1 = a2_number2
+ORDER BY match_nr, e_elem_nr
 ```
 
 ```
@@ -4739,6 +4770,11 @@ For example:
 {% include image.html file="example_graphs/financial_transactions.png" %}
 
 ```sql
+--PGQL
+/*
+ * See PGQL with SQL Standard syntax.
+ */
+--SQL
 SELECT account_num, match_num, elem_num
 FROM GRAPH_TABLE ( financial_transactions
        MATCH ALL (a1 IS Account) -[IS transaction]->{,4} (a2 IS Account)
@@ -4767,12 +4803,17 @@ ORDER BY match_num, elem_num
 ```
 
 ```sql
+--PGQL
 SELECT v.number AS account_number, MATCHNUM(v), ELEMENT_NUMBER(v)
 FROM MATCH ALL (a1:Account) -[:transaction]->{,4} (a2:Account)
        ON financial_transactions
        ONE ROW PER VERTEX ( v )
 WHERE a1.number = 10039 AND a2.number = 2090
 ORDER BY MATCHNUM(v), ELEMENT_NUMBER(v)
+--SQL
+/*
+ * See PGQL with custom syntax.
+ */
 ```
 
 ```
@@ -5373,9 +5414,16 @@ Result: false
 Bind variables are also supported in the position of the list. For example:
 
 ```sql
+--PGQL
 SELECT n.date_of_birth
 FROM MATCH (n:Person) ON my_graph
 WHERE n.date_of_birth IN ? /* use PreparedStatement.setArray(int, java.util.List) */
+--SQL
+SELECT *
+FROM GRAPH_TABLE(my_graph
+  MATCH (n IS Person)
+  WHERE n.date_of_birth IN ? /* use PreparedStatement.setArray(int, java.util.List) */
+  COLUMNS(n.date_of_birth))
 ```
 
 # Subqueries
@@ -5514,10 +5562,11 @@ ORDER BY sum_outgoing + sum_incoming DESC
 +-----------------------------------------------------------------------------------------------------+
 ```
 
-Note that in the query, the graph name `financial_transactions` is repeatedly specified. Such repetition can be avoided by using a [default graph](#default-graphs), which simplifies the query (Note: With `GRAPH_TABLE` operator, the graph name has to be specified explicitly inside each operator):
+Note that in the query, the graph name `financial_transactions` is repeatedly specified. Such repetition can be avoided by using a [default graph](#default-graphs), which simplifies the query:
 
 
 ```sql
+--PGQL
   SELECT p.name AS name
        , ( SELECT SUM(t.amount)
              FROM MATCH (a) <-[t:transaction]- (:Account)
@@ -5534,6 +5583,11 @@ Note that in the query, the graph name `financial_transactions` is repeatedly sp
          ) AS num_companies_transacted_with
     FROM MATCH (p:Person) <-[:owner]- (a:Account)
 ORDER BY sum_outgoing + sum_incoming DESC
+--SQL
+/*
+ * See PGQL with custom syntax. Note that in PGQL with SQL Standard syntax a
+ * graph name always needs to be specified as part of the query.
+ */
 ```
 
 ## LATERAL Subqueries
@@ -5596,29 +5650,43 @@ ORDER BY total_transacted DESC, top_transaction DESC
 ```
 
 In the following query, the `LATERAL` subquery projects the two vertices `a` and `p`, while the outer accesses properties of those vertices.
-Note: Vertex and edge variables cannot be projected with `GRAPH_TABLE` operator
 
 ```sql
+--PGQL
 SELECT p.name, a.number
 FROM LATERAL ( SELECT a, p
                FROM MATCH (a:Account) -> (p:Person) ON financial_transactions
              )
+--SQL
+/*
+ * See PGQL with custom syntax.
+ */
 ```
 
 Alternatively, properties can also be projected by the `LATERAL` subquery and then be referenced by the outer query.
 
 ```sql
+--PGQL
 SELECT name, number
 FROM LATERAL ( SELECT p.name as name, a.number as number
                FROM MATCH (a:Account) -> (p:Person) ON financial_transactions
              )
+--SQL
+/*
+ * See PGQL with custom syntax.
+ */   
 ```
 
 ```sql
+--PGQL
 SELECT p.name, number
 FROM LATERAL ( SELECT p, a.number as number
                FROM MATCH (a:Account) -> (p:Person) ON financial_transactions
              )
+--SQL
+/*
+ * See PGQL with custom syntax.
+ */
 ```
 
 ### Variable Renaming
@@ -5626,10 +5694,15 @@ FROM LATERAL ( SELECT p, a.number as number
 Variables can be renamed in the projection of a `LATERAL` subquery. In this case, the new name has to be used to reference a variable.
 
 ```sql
+--PGQL
 SELECT account.name, person.number
 FROM LATERAL ( SELECT a as account, p as person
                FROM MATCH (a:Account) -> (p:Person) ON financial_transactions
              )
+--SQL
+/*
+ * See PGQL with custom syntax.
+ */
 ```
 
 ### Nesting Of LATERAL Subqueries
@@ -5639,12 +5712,17 @@ FROM LATERAL ( SELECT a as account, p as person
 For example:
 
 ```sql
+--PGQL
 SELECT name, number
 FROM LATERAL ( SELECT a.name, p.number
                FROM LATERAL ( SELECT a,p
                               FROM MATCH (a:Account) -> (p:Person) ON financial_transactions
                             )
              )
+--SQL
+/*
+ * See PGQL with custom syntax.
+ */
 ```
 
 ### LATERAL Followed By MATCH
@@ -5653,22 +5731,32 @@ A `LATERAL` subquery can be followed by one or more `MATCH` clauses. Vertices pr
 
 In the example below `(a)` in the outer `MATCH` clause, is the same `(a)` projected in the `LATERAL` subquery.
 ```sql
+--PGQL
 SELECT p.name as pName, p1.name as p1Name
 FROM LATERAL ( SELECT a, p
                FROM MATCH (a:Account) -> (p:Person) ON financial_transactions
              ),
      MATCH (a) -> (a1:Account) -> (p1:Person) ON financial_transactions
+--SQL
+/*
+ * See PGQL with custom syntax.
+ */
 ```
 
 The `WHERE` clause of the outer query can reference variables projected in the `LATERAL` subquery and variables in the outer `MATCH` clause.
 
 ```sql
+--PGQL
 SELECT p.name as pName, p1.name as p1Name
 FROM LATERAL ( SELECT a, p
                FROM MATCH (a:Account) -> (p:Person) ON financial_transactions
              ),
      MATCH (a) -> (a1:Account) -> (p1:Person) ON financial_transactions
 WHERE p <> p1
+--SQL
+/*
+ * See PGQL with custom syntax.
+ */
 ```
 
 
@@ -5679,11 +5767,16 @@ Therefore, variables in the outer query with the same name are new variables and
 
 
 ```sql
+--PGQL
 SELECT p.name
 FROM LATERAL ( SELECT a
                FROM MATCH (a:Account) -> (p:Person) ON financial_transactions
              ),
      MATCH (a) -> (a1:Account) -> (p:Person) ON financial_transactions
+--SQL
+/*
+ * See PGQL with custom syntax.
+ */
 ```
 
 #### GROUP BY in `LATERAL` subquery
@@ -5692,6 +5785,7 @@ FROM LATERAL ( SELECT a
 If a vertex is projected after a `LATERAL` subquery, it can be used in a subsequent `MATCH` clause.
 
 ```sql
+--PGQL
 SELECT p.name, ARRAY_AGG(a.number)
 FROM LATERAL ( SELECT p, SUM(t.amount) AS sum
                FROM MATCH (a1:Account) -[t:transaction] - (a:Account) -> (p:Person)
@@ -5701,6 +5795,10 @@ FROM LATERAL ( SELECT p, SUM(t.amount) AS sum
              ),
      MATCH (p) <- (a:Account) ON financial_transactions
      GROUP BY p
+--SQL
+/*
+ * See PGQL with custom syntax.
+ */
 ```
 
 ### Unnesting In LATERAL Subquery
@@ -5708,12 +5806,17 @@ Variables from path unnesting with `ONE ROW PER STEP` or `ONE ROW PER VERTEX` ca
 This includes using unnested vertices being used in a subsquent `MATCH` clause
 
 ```sql
+--PGQL
 SELECT p.name as pName, p1.name as p1Name
 FROM LATERAL (SELECT p, v
               FROM MATCH (p:Person) <- (a:Account) ON financial_transactions,
                    MATCH ANY (a) ->* (a1:Account) ONE ROW PER VERTEX (v))
                      ON financial_transactions,
      MATCH (v) -> (p1:Person) ON financial_transactions
+--SQL
+/*
+ * See PGQL with custom syntax.
+ */
 ```
 
 # Graph Modification
