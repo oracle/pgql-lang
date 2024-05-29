@@ -80,15 +80,13 @@ Or, using PGQL with SQL Standard syntax:
 
 ```sql
 SELECT account_holder, SUM(amount) AS total_transacted_with_Nikita
-FROM
-  GRAPH_TABLE ( financial_transactions
-    MATCH
-      (p IS Person) <-[IS owner]- (account1 IS Account),
-      (account1) -[t IS transaction]- (account2), /* match both incoming and outgoing transactions */
-      (account2 IS Account) -[IS owner]-> (owner IS Person|Company)
-    WHERE p.name = 'Nikita'
-    COLUMNS ( owner.name AS account_holder, t.amount )
-  )
+FROM GRAPH_TABLE ( financial_transactions
+  MATCH (p IS Person) <-[IS owner]- (account1 IS Account),
+        (account1) -[t IS transaction]- (account2), /* match both incoming and outgoing transactions */
+        (account2 IS Account) -[IS owner]-> (owner IS Person|Company)
+  WHERE p.name = 'Nikita'
+  COLUMNS (owner.name AS account_holder, t.amount)
+)
 GROUP BY account_holder
 ```
 
