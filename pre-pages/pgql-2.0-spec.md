@@ -119,6 +119,32 @@ The following example shows a schema with a set of tables. Each table has a name
 The following is a complete example of how a graph can be created from these tables:
 
 ```sql
+--PGQL
+CREATE PROPERTY GRAPH financial_transactions
+  VERTEX TABLES (
+    Persons LABEL Person PROPERTIES ( name ),
+    Companies LABEL Company PROPERTIES ( name ),
+    Accounts LABEL Account PROPERTIES ( number )
+  )
+  EDGE TABLES (
+    Transactions
+      SOURCE KEY ( from_account ) REFERENCES Accounts ( number )
+      DESTINATION KEY ( to_account ) REFERENCES Accounts ( number )
+      LABEL transaction PROPERTIES ( amount ),
+    Accounts AS PersonOwner
+      SOURCE KEY ( number ) REFERENCES Accounts ( number )
+      DESTINATION Persons
+      LABEL owner NO PROPERTIES,
+    Accounts AS CompanyOwner
+      SOURCE KEY ( number ) REFERENCES Accounts ( number )
+      DESTINATION Companies
+      LABEL owner NO PROPERTIES,
+    Persons AS worksFor
+      SOURCE KEY ( id ) REFERENCES Persons ( id )
+      DESTINATION Companies
+      NO PROPERTIES
+  )
+--SQL
 CREATE PROPERTY GRAPH financial_transactions
   VERTEX TABLES (
     Persons LABEL Person PROPERTIES ( name ),
@@ -213,6 +239,32 @@ Take the following example from before:
 {% include image.html file="example_graphs/financial_transactions_schema.png"  %}
 
 ```sql
+--PGQL
+CREATE PROPERTY GRAPH financial_transactions
+  VERTEX TABLES (
+    Persons LABEL Person PROPERTIES ( name ),
+    Companies LABEL Company PROPERTIES ( name ),
+    Accounts LABEL Account PROPERTIES ( number )
+  )
+  EDGE TABLES (
+    Transactions
+      SOURCE KEY ( from_account ) REFERENCES Accounts ( number )
+      DESTINATION KEY ( to_account ) REFERENCES Accounts ( number )
+      LABEL transaction PROPERTIES ( amount ),
+    Accounts AS PersonOwner
+      SOURCE KEY ( number ) REFERENCES Accounts ( number )
+      DESTINATION Persons
+      LABEL owner NO PROPERTIES,
+    Accounts AS CompanyOwner
+      SOURCE KEY ( number ) REFERENCES Accounts ( number )
+      DESTINATION Companies
+      LABEL owner NO PROPERTIES,
+    Persons AS worksFor
+      SOURCE KEY ( id ) REFERENCES Persons ( id )
+      DESTINATION Companies
+      NO PROPERTIES
+  )
+--SQL
 CREATE PROPERTY GRAPH financial_transactions
   VERTEX TABLES (
     Persons LABEL Person PROPERTIES ( name ),
@@ -277,6 +329,11 @@ TableAlias ::= ( 'AS' )? <Identifier>
 For example:
 
 ```sql
+--PGQL
+...
+  EDGE TABLES ( Persons AS worksFor ... )
+...
+--SQL
 ...
   EDGE TABLES ( Persons AS worksFor ... )
 ...
@@ -294,6 +351,11 @@ If the alias is not provided then it defaults to the name of the underlying tabl
 For example:
 
 ```sql
+--PGQL
+...
+  VERTEX TABLES ( Person )
+...
+--SQL
 ...
   VERTEX TABLES ( Person )
 ...
@@ -302,6 +364,11 @@ For example:
 Above is equivalent to:
 
 ```sql
+--PGQL
+...
+  VERTEX TABLES ( Person AS Person )
+...
+--SQL
 ...
   VERTEX TABLES ( Person AS Person )
 ...
@@ -333,6 +400,23 @@ Take the example from before:
 {% include image.html file="example_graphs/financial_transactions_schema.png"  %}
 
 ```sql
+--PGQL
+CREATE PROPERTY GRAPH financial_transactions
+  VERTEX TABLES (
+    ...
+  )
+  EDGE TABLES (
+    Transactions
+      SOURCE KEY ( from_account ) REFERENCES Accounts ( number )
+      DESTINATION KEY ( to_account ) REFERENCES Accounts ( number )
+      LABEL transaction PROPERTIES ( amount ),
+    Accounts AS PersonOwner
+      SOURCE KEY ( number ) REFERENCES Accounts ( number )
+      DESTINATION Persons
+      LABEL owner NO PROPERTIES,
+    ...
+  )
+--SQL
 CREATE PROPERTY GRAPH financial_transactions
   VERTEX TABLES (
     ...
@@ -364,6 +448,45 @@ Note that above, we have the same schema as before, but this time the primary an
 Even though primary and foreign keys are missing, the graph can still be created by specifying the necessary keys in the `CREATE PROPERTY GRAPH` statement itself:
 
 ```sql
+--PGQL
+CREATE PROPERTY GRAPH financial_transactions
+  VERTEX TABLES (
+    Persons
+      KEY ( id )
+      LABEL Person
+      PROPERTIES ( name ),
+    Companies
+      KEY ( id )
+      LABEL Company
+      PROPERTIES ( name ),
+    Accounts
+      KEY ( number )
+      LABEL Account
+      PROPERTIES ( number )
+  )
+  EDGE TABLES (
+    Transactions
+      KEY ( from_account, to_account, date )
+      SOURCE KEY ( from_account ) REFERENCES Accounts ( number )
+      DESTINATION KEY ( to_account ) REFERENCES Accounts ( number )
+      LABEL transaction PROPERTIES ( amount ),
+    Accounts AS PersonOwner
+      KEY ( number )
+      SOURCE KEY ( number ) REFERENCES Accounts ( number )
+      DESTINATION KEY ( person_id ) REFERENCES Persons ( id )
+      LABEL owner NO PROPERTIES,
+    Accounts AS CompanyOwner
+      KEY ( number )
+      SOURCE KEY ( number ) REFERENCES Accounts ( number )
+      DESTINATION KEY ( company_id ) REFERENCES Companies ( id )
+      LABEL owner NO PROPERTIES,
+  Persons AS worksFor
+      KEY ( id )
+      SOURCE KEY ( id ) REFERENCES Persons ( id )
+      DESTINATION KEY ( company_id ) REFERENCES Companies ( id )
+      NO PROPERTIES
+  )
+--SQL
 CREATE PROPERTY GRAPH financial_transactions
   VERTEX TABLES (
     Persons
@@ -427,6 +550,11 @@ Thus, if no label is specified and no table alias is specified, then both the ta
 For example:
 
 ```sql
+--PGQL
+...
+  VERTEX TABLES ( Person )
+...
+--SQL
 ...
   VERTEX TABLES ( Person )
 ...
@@ -435,6 +563,11 @@ For example:
 Above is equivalent to:
 
 ```sql
+--PGQL
+...
+  VERTEX TABLES ( Person AS Person )
+...
+--SQL
 ...
   VERTEX TABLES ( Person AS Person )
 ...
@@ -443,6 +576,11 @@ Above is equivalent to:
 Which is equivalent to:
 
 ```sql
+--PGQL
+...
+  VERTEX TABLES ( Person AS Person LABEL Person )
+...
+--SQL
 ...
   VERTEX TABLES ( Person AS Person LABEL Person )
 ...
@@ -478,6 +616,11 @@ AreKeyword              ::= 'ARE'
 An example is:
 
 ```sql
+--PGQL
+...
+  VERTEX TABLES ( Person PROPERTIES ARE ALL COLUMNS )
+...
+--SQL
 ...
   VERTEX TABLES ( Person PROPERTIES ARE ALL COLUMNS )
 ...
@@ -486,6 +629,11 @@ An example is:
 Because of the default, the above is equivalent to:
 
 ```sql
+--PGQL
+...
+  VERTEX TABLES ( Person )
+...
+--SQL
 ...
   VERTEX TABLES ( Person )
 ...
@@ -525,6 +673,14 @@ ColumnReference                    ::= <Identifier>
 For example:
 
 ```sql
+--PGQL
+...
+  VERTEX TABLES (
+    Employees
+      LABEL Employee
+      PROPERTIES ( first_name ),
+...
+--SQL
 ...
   VERTEX TABLES (
     Employees
@@ -538,6 +694,14 @@ Above, even though table `Employees` may have many columns, only the column `fir
 If a different property name is desired then an alias can be used:
 
 ```sql
+--PGQL
+...
+  VERTEX TABLES (
+    Employees
+      LABEL Employee
+      PROPERTIES ( first_name AS firstName ),
+...
+--SQL
 ...
   VERTEX TABLES (
     Employees
@@ -553,6 +717,14 @@ Property names may also be `CAST` expressions, which allows the values in the co
 For example:
 
 ```sql
+--PGQL
+...
+  VERTEX TABLES (
+    Employees
+      LABEL Employee
+      PROPERTIES ( CAST(salary AS INTEGER) AS salary ),
+...
+--SQL
 ...
   VERTEX TABLES (
     Employees
@@ -572,6 +744,16 @@ NoProperties ::= 'NO' 'PROPERTIES'
 An example of an edge table with no properties is:
 
 ```sql
+--PGQL
+...
+  EDGE TABLES (
+    ...
+    Accounts AS PersonOwner
+      SOURCE KEY ( number ) REFERENCES Accounts ( number )
+      DESTINATION Persons
+      LABEL owner NO PROPERTIES
+    ...
+--SQL
 ...
   EDGE TABLES (
     ...
@@ -590,6 +772,15 @@ Similarly, edge tables that have the same label are required to have the same pr
 Take the following example:
 
 ```sql
+--PGQL
+...
+  VERTEX TABLES (
+    /* ERROR: it is not allowed to have tables with the same labels but different properties */
+    Country LABEL Place PROPERTIES ( country_name ),
+    City LABEL Place PROPERTIES ( city_name )
+  )
+...
+--SQL
 ...
   VERTEX TABLES (
     /* ERROR: it is not allowed to have tables with the same labels but different properties */
@@ -602,6 +793,14 @@ Take the following example:
 The statement above is illegal because both `Country` and `City` have label `Place` but their properties are inconsistent. To make this example work, the same property names have to be assigned:
 
 ```sql
+--PGQL
+...
+  VERTEX TABLES (
+    Country LABEL Place PROPERTIES ( country_name AS name ),
+    City LABEL Place PROPERTIES ( city_name AS name )
+  )
+...
+--SQL
 ...
   VERTEX TABLES (
     Country LABEL Place PROPERTIES ( country_name AS name ),
@@ -627,6 +826,25 @@ These edge tables are in fact the `Employees` and `Departments` tables themselve
 The graph can be created as follows:
 
 ```sql
+--PGQL
+CREATE PROPERTY GRAPH hr_simplified
+  VERTEX TABLES (
+    employees LABEL employee
+      PROPERTIES ARE ALL COLUMNS EXCEPT ( job_id, manager_id, department_id ),
+    departments LABEL department
+      PROPERTIES ( department_id, department_name )
+  )
+  EDGE TABLES (
+    employees AS works_for
+      SOURCE KEY ( employee_id ) REFERENCES employees ( employee_id )
+      DESTINATION KEY ( manager_id ) REFERENCES employees ( employee_id )
+      NO PROPERTIES,
+    departments AS managed_by
+      SOURCE KEY ( department_id ) REFERENCES departments ( department_id )
+      DESTINATION employees
+      NO PROPERTIES
+  )
+--SQL
 CREATE PROPERTY GRAPH hr_simplified
   VERTEX TABLES (
     employees LABEL employee
@@ -670,6 +888,69 @@ A more complex example is the Human Resources (HR) schema:
 The following statement maps the schema into a graph:
 
 ```sql
+--PGQL
+CREATE PROPERTY GRAPH hr
+  VERTEX TABLES (
+    employees LABEL employee
+      PROPERTIES ARE ALL COLUMNS EXCEPT ( job_id, manager_id, department_id ),
+    departments LABEL department
+      PROPERTIES ( department_id, department_name ),
+    jobs LABEL job
+      PROPERTIES ARE ALL COLUMNS,
+    job_history
+      PROPERTIES ( start_date, end_date ),
+    locations LABEL location
+      PROPERTIES ARE ALL COLUMNS EXCEPT ( country_id ),
+    countries LABEL country
+      PROPERTIES ARE ALL COLUMNS EXCEPT ( region_id ),
+    regions LABEL region
+  )
+  EDGE TABLES (
+    employees AS works_for
+      SOURCE KEY ( employee_id ) REFERENCES employees ( employee_id )
+      DESTINATION KEY ( manager_id ) REFERENCES employees ( employee_id )
+      NO PROPERTIES,
+    employees AS works_at
+      SOURCE KEY ( employee_id ) REFERENCES employees ( employee_id )
+      DESTINATION departments
+      NO PROPERTIES,
+    employees AS works_as
+      SOURCE KEY ( employee_id ) REFERENCES employees ( employee_id )
+      DESTINATION jobs
+      NO PROPERTIES,
+    departments AS managed_by
+      SOURCE KEY ( department_id ) REFERENCES departments ( department_id )
+      DESTINATION employees
+      NO PROPERTIES,
+    job_history AS for_employee
+      SOURCE KEY ( employee_id, start_date ) REFERENCES job_history ( employee_id, start_date)
+      DESTINATION employees
+      NO PROPERTIES,
+    job_history AS for_department
+      SOURCE KEY ( employee_id, start_date ) REFERENCES job_history ( employee_id, start_date)
+      DESTINATION departments
+      NO PROPERTIES,
+    job_history AS for_job
+      SOURCE KEY ( employee_id, start_date ) REFERENCES job_history ( employee_id, start_date)
+      DESTINATION jobs
+      NO PROPERTIES,
+    departments AS department_located_in
+      SOURCE KEY ( department_id ) REFERENCES departments ( department_id )
+      DESTINATION locations
+      LABEL located_in
+      NO PROPERTIES,
+    locations AS location_located_in
+      SOURCE KEY ( location_id ) REFERENCES locations ( location_id )
+      DESTINATION countries
+      LABEL located_in
+      NO PROPERTIES,
+    countries AS country_located_in
+      SOURCE KEY ( country_id ) REFERENCES countries ( country_id )
+      DESTINATION regions
+      LABEL located_in
+      NO PROPERTIES
+  )
+--SQL
 CREATE PROPERTY GRAPH hr
   VERTEX TABLES (
     employees LABEL employee
@@ -742,10 +1023,13 @@ For example, we may want to see an overview of the vertex and edge labels and th
 Therefore, we first perform a `SELECT` query to create such an overview for the vertex labels:
 
 ```sql
+--PGQL
 SELECT label(n) AS lbl, COUNT(*)
 FROM MATCH (n) ON hr
 GROUP BY lbl
 ORDER BY COUNT(*) DESC
+--SQL
+/* Use PGQL with custom syntax */
 ```
 
 ```
@@ -768,10 +1052,13 @@ Like in SQL, [quoted identifiers](#quoted-identifiers) can be used if such impli
 Then, we create an overview of labels of edges and labels of their source and destination vertices, again with frequencies for each combination:
 
 ```sql
+--PGQL
 SELECT label(n) AS srcLbl, label(e) AS edgeLbl, label(m) AS dstLbl, COUNT(*)
 FROM MATCH (n) -[e]-> (m) ON hr
 GROUP BY srcLbl, edgeLbl, dstLbl
 ORDER BY COUNT(*) DESC
+--SQL
+/* Use PGQL with custom syntax */
 ```
 
 ```
@@ -799,6 +1086,18 @@ This can be achieved by qualifying the vertex and edge table names with a schema
 For example:
 
 ```sql
+--PGQL
+CREATE PROPERTY GRAPH
+  VERTEX TABLES (
+    SocialNetwork.Person,
+    HR.Employees LABEL Employee
+  )
+  EDGE TABLES (
+    MySchema.SameAs
+      SOURCE KEY ( firstName, lastName ) REFERENCES Person ( firstName, lastName )
+      DESTINATION KEY ( first_name, last_name ) REFERENCES Employee ( first_name, last_name )
+  )
+--SQL
 CREATE PROPERTY GRAPH
   VERTEX TABLES (
     SocialNetwork.Person,
@@ -831,6 +1130,9 @@ DropPropertyGraph ::= 'DROP' 'PROPERTY' 'GRAPH' <GraphReference>
 For example:
 
 ```sql
+--PGQL
+DROP PROPERTY GRAPH financial_transactions
+--SQL
 DROP PROPERTY GRAPH financial_transactions
 ```
 
@@ -851,9 +1153,9 @@ The following query matches all the vertices with the label `Person` and retriev
 SELECT n.name, n.dob
 FROM MATCH (n:Person) ON student_network
 --SQL
-SELECT name, dob 
-FROM GRAPH_TABLE(student_network 
-  MATCH (n IS Person) 
+SELECT name, dob
+FROM GRAPH_TABLE(student_network
+  MATCH (n IS Person)
   COLUMNS(n.name, n.dob))
 ```
 
@@ -888,8 +1190,8 @@ For example:
 SELECT a.name AS a, b.name AS b
 FROM MATCH (a:Person) -[e:knows]-> (b:Person) ON student_network
 --SQL
-SELECT a, b 
-FROM GRAPH_TABLE(student_network 
+SELECT a, b
+FROM GRAPH_TABLE(student_network
   MATCH (a IS Person)-[e is knows]->(b is Person)
   COLUMNS(a.name as a, b.name as b))
 ```
@@ -925,8 +1227,8 @@ For example:
 SELECT n.name, n.dob
 FROM MATCH (n:Person|University) ON student_network
 --SQL
-SELECT name, dob 
-FROM GRAPH_TABLE(student_network 
+SELECT name, dob
+FROM GRAPH_TABLE(student_network
   MATCH (n IS Person|university)
   COLUMNS(n.name, n.dob))
 ```
@@ -957,7 +1259,7 @@ For example:
 SELECT n.name, n.dob
 FROM MATCH (n) ON student_network
 --SQL
-SELECT name, dob 
+SELECT name, dob
 FROM GRAPH_TABLE(student_network
   MATCH (n)
   COLUMNS(n.name, n.dob))
@@ -991,9 +1293,9 @@ SELECT n.name, n.dob
 FROM MATCH (n) ON student_network
 WHERE n.dob > DATE '1995-01-01'
 --SQL
-SELECT name, dob 
-FROM GRAPH_TABLE(student_network 
-  MATCH (n) 
+SELECT name, dob
+FROM GRAPH_TABLE(student_network
+  MATCH (n)
   WHERE n.dob > DATE '1995-01-01'
   COLUMNS(n.name, n.dob))
 ```
@@ -1021,10 +1323,10 @@ SELECT m.name AS name, m.dob AS dob
 FROM MATCH (n) -[e]-> (m) ON student_network
 WHERE n.name = 'Kathrine' AND n.dob <= m.dob
 --SQL
-SELECT name, dob 
-FROM GRAPH_TABLE(student_network 
-  MATCH (n) -[e]-> (m) 
-  WHERE n.name = 'Kathrine' AND n.dob <= m.dob 
+SELECT name, dob
+FROM GRAPH_TABLE(student_network
+  MATCH (n) -[e]-> (m)
+  WHERE n.name = 'Kathrine' AND n.dob <= m.dob
   COLUMNS(m.name, m.dob))
 ```
 
@@ -1056,10 +1358,10 @@ FROM MATCH (u:University) <-[:studentOf]- (p1:Person) -[:knows]-> (p2:Person) -[
        ON student_network
 WHERE p1.name = 'Lee'
 --SQL
-SELECT friend, university 
-FROM GRAPH_TABLE(student_network 
-  MATCH (u IS university) <-[IS studentOf]- (p1 IS Person) -[IS knows]-> (p2 IS Person) -[IS studentOf]-> (u) 
-  WHERE p1.name = 'Lee' 
+SELECT friend, university
+FROM GRAPH_TABLE(student_network
+  MATCH (u IS university) <-[IS studentOf]- (p1 IS Person) -[IS knows]-> (p2 IS Person) -[IS studentOf]-> (u)
+  WHERE p1.name = 'Lee'
   COLUMNS(p2.name AS friend, u.name AS university))
 ```
 
@@ -1084,12 +1386,12 @@ FROM MATCH (p1:Person) -[:knows]-> (p2:Person) ON student_network
    , MATCH (p2) -[:studentOf]-> (u) ON student_network
 WHERE p1.name = 'Lee'
 --SQL
-SELECT friend, university 
-FROM GRAPH_TABLE(student_network 
-  MATCH (p1 IS Person) -[IS knows]-> (p2 IS Person), 
-        (p1) -[IS studentOf]-> (u IS University), 
-        (p2) -[IS studentOf]-> (u) 
-  WHERE p1.name = 'Lee' 
+SELECT friend, university
+FROM GRAPH_TABLE(student_network
+  MATCH (p1 IS Person) -[IS knows]-> (p2 IS Person),
+        (p1) -[IS studentOf]-> (u IS University),
+        (p2) -[IS studentOf]-> (u)
+  WHERE p1.name = 'Lee'
   COLUMNS(p2.name AS friend, u.name AS university))
 ```
 
@@ -1118,10 +1420,10 @@ FROM MATCH (p1:Person) -[:knows]-> (p2:Person) -[:knows]-> (p3:Person)
        ON student_network
 WHERE p1.name = 'Lee'
 --SQL
-SELECT p1, p2, p3 
-FROM GRAPH_TABLE(student_network 
-  MATCH (p1 IS Person) -[IS knows]-> (p2 IS Person) -[IS knows]-> (p3 IS Person) 
-  WHERE p1.name = 'Lee' 
+SELECT p1, p2, p3
+FROM GRAPH_TABLE(student_network
+  MATCH (p1 IS Person) -[IS knows]-> (p2 IS Person) -[IS knows]-> (p3 IS Person)
+  WHERE p1.name = 'Lee'
   COLUMNS(p1.name AS p1, p2.name AS p2, p3.name AS p3))
 ```
 
@@ -1147,10 +1449,10 @@ FROM MATCH (p1:Person) -[:knows]-> (p2:Person) -[:knows]-> (p3:Person)
        ON student_network
 WHERE p1.name = 'Lee' AND p1 <> p3
 --SQL
-SELECT p1, p2, p3 
-FROM GRAPH_TABLE(student_network 
-  MATCH (p1 IS Person) -[IS knows]-> (p2 IS Person) -[IS knows]-> (p3 IS Person) 
-  WHERE p1.name = 'Lee' AND NOT VERTEX_EQUAL(p1, p3) 
+SELECT p1, p2, p3
+FROM GRAPH_TABLE(student_network
+  MATCH (p1 IS Person) -[IS knows]-> (p2 IS Person) -[IS knows]-> (p3 IS Person)
+  WHERE p1.name = 'Lee' AND NOT VERTEX_EQUAL(p1, p3)
   COLUMNS(p1.name AS p1, p2.name AS p2, p3.name AS p3))
 ```
 
@@ -1171,10 +1473,10 @@ FROM MATCH (p1:Person) -[:knows]-> (p2:Person) -[:knows]-> (p3:Person)
        ON student_network
 WHERE p1.name = 'Lee' AND ALL_DIFFERENT(p1, p3)
 --SQL
-SELECT * 
-FROM GRAPH_TABLE(student_network 
-  MATCH (p1 IS Person) -[ IS knows]-> (p2 IS Person) -[ IS knows]-> (p3 IS Person) 
-  WHERE p1.name = 'Lee' AND ALL_DIFFERENT(p1, p3) 
+SELECT *
+FROM GRAPH_TABLE(student_network
+  MATCH (p1 IS Person) -[ IS knows]-> (p2 IS Person) -[ IS knows]-> (p3 IS Person)
+  WHERE p1.name = 'Lee' AND ALL_DIFFERENT(p1, p3)
   COLUMNS(p1.name AS p1, p2.name AS p2, p3.name AS p3))
 ```
 
@@ -1197,9 +1499,9 @@ FROM MATCH (p1:Person) -[e1:knows]-> (riya:Person) ON student_network
    , MATCH (p2:Person) -[e2:knows]-> (riya) ON student_network
 WHERE riya.name = 'Riya'
 --SQL
-SELECT p1, p2, e1_equals_e2 
-FROM GRAPH_TABLE(student_network 
-  MATCH (p1 IS Person) -[e1 IS knows]-> (riya IS Person), (p2 IS Person) -[e2 IS knows]-> (riya) 
+SELECT p1, p2, e1_equals_e2
+FROM GRAPH_TABLE(student_network
+  MATCH (p1 IS Person) -[e1 IS knows]-> (riya IS Person), (p2 IS Person) -[e2 IS knows]-> (riya)
   WHERE riya.name = 'Riya'  
   COLUMNS(p1.name AS p1, p2.name AS p2, EDGE_EQUAL(e1, e2) AS e1_equals_e2))
 ```
@@ -1227,9 +1529,9 @@ An example query with two any-directed edge patterns is:
 SELECT n.name AS n, m.name AS m, o.name AS o
 FROM MATCH (n) -[e1]- (m) -[e2]- (o) ON student_network
 --SQL
-SELECT * 
-FROM GRAPH_TABLE(student_network 
-  MATCH (n) -[e1]- (m) -[e2]- (o) 
+SELECT *
+FROM GRAPH_TABLE(student_network
+  MATCH (n) -[e1]- (m) -[e2]- (o)
   COLUMNS(n.name AS n, m.name AS m, o.name AS o))
 ```
 
@@ -1303,8 +1605,8 @@ SELECT ID(n) AS n, ID(m) AS m, n.age AS age
 FROM MATCH (n:Person) -[e:friend_of]-> (m:Person) ON my_graph
 --SQL
 SELECT n, m, age
-FROM GRAPH_TABLE(student_network 
-  MATCH (n) -[e1]- (m) -[e2]- (o) 
+FROM GRAPH_TABLE(student_network
+  MATCH (n) -[e1]- (m) -[e2]- (o)
   COLUMNS(VERTEX_ID(n) AS n, VERTEX_ID(m) AS m, n.age AS age))
 ```
 
@@ -1323,7 +1625,7 @@ FROM MATCH (n:Person) -> (m:Car) ON my_graph
 ORDER BY pivot
 --SQL
 SELECT age * 2 - 1 AS pivot, name
-FROM GRAPH_TABLE(my_graph 
+FROM GRAPH_TABLE(my_graph
   MATCH(n IS Person) -> (m IS Car)
   COLUMNS (n.age, n.name))
 ORDER BY pivot
@@ -1331,22 +1633,36 @@ ORDER BY pivot
 
 ### SELECT *
 
-`SELECT *` is a special `SELECT` clause. The semantic of `SELECT *` is to select all the variables in the graph pattern.
-Note that with the `GRAPH_TABLE` operator, it is not possible to select all variables in the `COLUMNS` clause. Instead, all needed properties has to be explicitly selected.
+`SELECT *` is a special `SELECT` clause. The semantic of `SELECT *` is to select all visible variables, including vertex and edge variables in graph patterns and variables projected from `LATERAL` or `GRAPH_TABLE` subqueries.
+
 Consider the following query:
 
 ```sql
+--PGQL
 SELECT *
 FROM MATCH (n:Person) -> (m) -> (w) ON my_graph,
      MATCH (n) -> (w) -> (m) ON my_graph
+--SQL
+/*
+ * Use PGQL with custom syntax for this particular SELECT * query since the SQL
+ * Standard syntax does not allow for returning entire vertex/edge objects from
+ * queries.
+ */
 ```
 
 This query is semantically equivalent to:
 
 ```sql
+--PGQL
 SELECT n, m, w
 FROM MATCH (n:Person) -> (m) -> (w) ON my_graph,
      MATCH (n) -> (w) -> (m) ON my_graph
+--SQL
+/*
+ * Use PGQL with custom syntax for this particular SELECT * query since the SQL
+ * Standard syntax does not allow for returning entire vertex/edge objects from
+ * queries.
+ */
 ```
 
 `SELECT *` is not allowed when the graph pattern has zero variables. This is the case when all the vertices and edges in the pattern are anonymous (e.g. `MATCH () -> (:Person)`).
@@ -1367,9 +1683,9 @@ FROM MATCH (n) ON financial_transactions
 ORDER BY "number", "name"
 --SQL
 SELECT *  
-FROM GRAPH_TABLE (financial_transactions 
-  MATCH(n) 
-  COLUMNS(n.*)) 
+FROM GRAPH_TABLE (financial_transactions
+  MATCH(n)
+  COLUMNS(n.*))
 ORDER BY "number", "name"
 ```
 
@@ -1400,9 +1716,9 @@ FROM MATCH (n:Person) ON financial_transactions
 ORDER BY "name"
 --SQL
 SELECT  *  
-FROM GRAPH_TABLE (financial_transactions 
-  MATCH(n IS Person) 
-  COLUMNS(n.*)) 
+FROM GRAPH_TABLE (financial_transactions
+  MATCH(n IS Person)
+  COLUMNS(n.*))
 ORDER BY "name"
 ```
 
@@ -1417,16 +1733,21 @@ ORDER BY "name"
 ```
 
 A `PREFIX` can be specified to avoid duplicate column names in case all properties of multiple vertex or edge variables are selected.
-Note: `PREFIX` cannot be used within the GRAPH_TABLE operator.
 
 For example:
 
 {% include image.html file="example_graphs/financial_transactions.png" %}
 
 ```sql
+--PGQL
 SELECT n.* PREFIX 'n_', e.* PREFIX 'e_', m.* PREFIX 'm_'
 FROM MATCH (n:Account) -[e:transaction]-> (m:Account) ON financial_transactions
 ORDER BY "e_amount"
+--SQL
+/*
+ * Use PGQL with custom syntax since the SQL Standard does not have a PREFIX
+ * construct.
+ */
 ```
 
 ```
@@ -1496,6 +1817,9 @@ A path pattern that describes a partial topology of the subgraph pattern. In oth
 A topology constraint is composed of one or more vertices and relations, where a relation is either an edge or a path. In a query, each vertex or edge is (optionally) associated with a variable, which is a symbolic name to reference the vertex or edge in other clauses. For example, consider the following topology constraint:
 
 ```sql
+--PGQL
+(n) -[e]-> (m)
+--SQL
 (n) -[e]-> (m)
 ```
 
@@ -1525,7 +1849,7 @@ SELECT p.first_name, p.last_name
 FROM MATCH (p:Person) ON my_graph
 ORDER BY p.first_name, p.last_name
 --SQL
-SELECT first_name, last_name 
+SELECT first_name, last_name
 FROM GRAPH_TABLE(my_graph
   MATCH(p IS Person)
   COLUMNS(p.first_name, p.last_name))
@@ -1586,7 +1910,7 @@ SELECT n1.*
 FROM MATCH (n1) -[e1]-> (n2) -[e2]-> (n3) -[e3]-> (n4) ON my_graph
 --SQL
 SELECT *
-FROM GRAPH_TABLE(my_graph 
+FROM GRAPH_TABLE(my_graph
   MATCH (n1) -[e1]-> (n2) -[e2]-> (n3) -[e3]-> (n4)
   COLUMNS(n1.*))
 ```
@@ -1600,7 +1924,7 @@ FROM MATCH (n1) -[e1]-> (n2) ON my_graph,
      MATCH (n2) -[e2]-> (n3) ON my_graph,
      MATCH (n3) -[e3]-> (n4) ON my_graph
 --SQL
-SELECT * 
+SELECT *
 FROM GRAPH_TABLE(my_graph
   MATCH (n1) -[e1]-> (n2),
       (n2) -[e2]-> (n3),
@@ -1615,7 +1939,7 @@ Second, it is allowed to reverse the direction of an edge in the pattern, i.e. r
 SELECT n1.*
 FROM MATCH (n1) -[e1]-> (n2) <-[e2]- (n3) ON my_graph
 --SQL
-SELECT * 
+SELECT *
 FROM GRAPH_TABLE(my_graph
   MATCH (n1) -[e1]-> (n2) <-[e2]- (n3)
   COLUMNS(n1.*))
@@ -1642,9 +1966,17 @@ omit variable name in edge | `(n) -> (m)`
 In the case the `MATCH` clause contains two or more disconnected graph patterns (i.e. groups of vertices and relations that are not connected to each other), the different groups are matched independently and the final result is produced by taking the Cartesian product of the result sets of the different groups. The following is an example:
 
 ```sql
-SELECT *
+--PGQL
+SELECT COUNT(*)
 FROM MATCH (n1) -> (m1) ON my_graph,
      MATCH (n2) -> (m2) ON my_graph
+--SQL
+SELECT COUNT(*)
+FROM GRAPH_TABLE(my_graph
+  MATCH (n1) -> (m1),
+        (n2) -> (m2)
+  COLUMNS(1 AS dummy)
+)
 ```
 
 Here, vertices `n2` and `m2` are not connected to vertices `n1` and `m1`, resulting in a Cartesian product.
@@ -1785,6 +2117,11 @@ For example:
 {% include image.html file="example_graphs/financial_transactions.png" %}
 
 ```sql
+--PGQL
+/*
+ * See PGQL with SQL Standard syntax.
+ */
+--SQL
 SELECT *
 FROM GRAPH_TABLE ( financial_transactions
        MATCH (n IS Person) <-[IS owner]- (a1 IS Account),
@@ -1814,6 +2151,11 @@ An example with [horizontal aggregation](#horizontal-aggregation) is:
 {% include image.html file="example_graphs/financial_transactions.png" %}
 
 ```sql
+--PGQL
+/*
+ * See PGQL with SQL Standard syntax.
+ */
+--SQL
 SELECT *
 FROM GRAPH_TABLE ( financial_transactions
        MATCH (a IS Account) -[e IS transaction]->+ (a)
@@ -1839,6 +2181,11 @@ An example with [ONE ROW PER STEP](#one-row-per-step) is:
 {% include image.html file="example_graphs/financial_transactions.png" %}
 
 ```sql
+--PGQL
+/*
+ * See PGQL with SQL Standard syntax.
+ */
+--SQL
 SELECT *
 FROM GRAPH_TABLE ( financial_transactions
        MATCH (a IS Account) -[IS transaction]->+ (a)
@@ -1956,14 +2303,14 @@ FROM MATCH ANY SHORTEST (a:Account) -[e:transaction]->* (b:Account)
        ON financial_transactions
 WHERE a.number = 10039 AND b.number = 2090
 --SQL
-SELECT  a, b, pathLength, amounts 
-FROM GRAPH_TABLE(financial_transactions 
-  MATCH (a IS Account) -[e IS transaction]->* (b IS Account) 
-  KEEP ANY SHORTEST 
-  WHERE a.number = 10039 
-    AND b.number = 2090 
+SELECT  a, b, pathLength, amounts
+FROM GRAPH_TABLE(financial_transactions
+  MATCH (a IS Account) -[e IS transaction]->* (b IS Account)
+  KEEP ANY SHORTEST
+  WHERE a.number = 10039
+    AND b.number = 2090
   COLUMNS(a.number AS a,
-          b.number AS b, 
+          b.number AS b,
           COUNT(EDGE_ID(e)) AS pathLength,
           ARRAY_AGG(e.amount) AS amounts))
 ```
@@ -1989,12 +2336,12 @@ FROM MATCH SHORTEST 4 PATHS (a:Account) ((x:Account) <-[e:transaction]-)+ (a)
 WHERE a.number = 10039
 ORDER BY SUM(e.amount)
 --SQL
-SELECT account_numbers, total_amount 
-FROM GRAPH_TABLE(financial_transactions 
-  MATCH (a IS Account) ((x IS Account) <-[e IS transaction]-)+ (a) 
-  KEEP SHORTEST 4 PATHS 
-  WHERE a.number = 10039 
-  COLUMNS(LISTAGG(x.number, ', ') AS account_numbers, SUM(e.amount) AS total_amount)) 
+SELECT account_numbers, total_amount
+FROM GRAPH_TABLE(financial_transactions
+  MATCH (a IS Account) ((x IS Account) <-[e IS transaction]-)+ (a)
+  KEEP SHORTEST 4 PATHS
+  WHERE a.number = 10039
+  COLUMNS(LISTAGG(x.number, ', ') AS account_numbers, SUM(e.amount) AS total_amount))
 ORDER BY total_amount
 ```
 
@@ -2042,12 +2389,12 @@ FROM MATCH ANY (src:Account) -[e]->+ (dst:Account)
 WHERE src.number = 8021
 ORDER BY dst.number
 --SQL
-SELECT number 
-FROM GRAPH_TABLE(financial_transactions 
-  MATCH (src IS Account) -[e]->+ (dst IS Account) 
-  KEEP ANY 
-  WHERE src.number = 8021 
-  COLUMNS(dst.number)) 
+SELECT number
+FROM GRAPH_TABLE(financial_transactions
+  MATCH (src IS Account) -[e]->+ (dst IS Account)
+  KEEP ANY
+  WHERE src.number = 8021
+  COLUMNS(dst.number))
 ORDER BY number
 ```
 
@@ -2073,12 +2420,12 @@ FROM MATCH ANY (src:Account) -[e]->+ (dst:Account) ON financial_transactions
 WHERE src.number = 8021
 ORDER BY dst.number
 --SQL
-SELECT * 
-FROM GRAPH_TABLE(financial_transactions 
-  MATCH (src IS Account) -[e]->+ (dst IS Account) 
-  KEEP ANY 
-  WHERE src.number = 8021 
-  COLUMNS(dst.number, LISTAGG(e.amount, ' + ') || ' = ', SUM(e.amount))) 
+SELECT *
+FROM GRAPH_TABLE(financial_transactions
+  MATCH (src IS Account) -[e]->+ (dst IS Account)
+  KEEP ANY
+  WHERE src.number = 8021
+  COLUMNS(dst.number, LISTAGG(e.amount, ' + ') || ' = ', SUM(e.amount)))
 ORDER BY number
 ```
 
@@ -2135,12 +2482,12 @@ FROM MATCH ALL SHORTEST (a:Account) -[e:transaction]->* (b:Account)
 WHERE a.number = 10039 AND b.number = 2090
 ORDER BY total_amount
 --SQL
-SELECT * 
-FROM GRAPH_TABLE(financial_transactions 
-  MATCH (a IS Account) -[e IS transaction]->* (b IS Account) 
-  KEEP ALL SHORTEST 
-  WHERE a.number = 10039 AND b.number = 2090 
-  COLUMNS(LISTAGG(e.amount, ' + ') || ' = ', SUM(e.amount) AS total_amount)) 
+SELECT *
+FROM GRAPH_TABLE(financial_transactions
+  MATCH (a IS Account) -[e IS transaction]->* (b IS Account)
+  KEEP ALL SHORTEST
+  WHERE a.number = 10039 AND b.number = 2090
+  COLUMNS(LISTAGG(e.amount, ' + ') || ' = ', SUM(e.amount) AS total_amount))
 ORDER BY total_amount
 ```
 
@@ -2172,7 +2519,7 @@ FROM MATCH ANY SHORTEST (src) -[e]->* (dst) ON financial_transactions
 WHERE src.age < dst.age
 --SQL
 SELECT *
-FROM GRAPH_TABLE(financial_transactions 
+FROM GRAPH_TABLE(financial_transactions
   MATCH ANY SHORTEST (src) -[e]->* (dst)
   WHERE src.age < dst.age
   COLUMNS(src, SUM(e.weight), dst))
@@ -2197,20 +2544,20 @@ FROM MATCH ANY SHORTEST (p1:Person) (-[e]- (dst))* (p2:Person)
 WHERE p1.name = 'Camille' AND p2.name = 'Liam'
 ORDER BY num_hops
 --SQL
-SELECT * 
-FROM GRAPH_TABLE(financial_transactions 
-  MATCH(p1 IS Person) (-[e]- (dst))* (p2 IS Person) 
-  KEEP ANY SHORTEST 
-  WHERE p1.name = 'Camille' 
-    AND p2.name = 'Liam' 
-  COLUMNS(COUNT(edge_id(e)) AS num_hops , 
-          p1.name AS start , 
-          ARRAY_AGG ( CASE 
-                        WHEN dst IS LABELED Account 
-                          THEN CAST(dst.number AS STRING) 
-                        ELSE dst.name 
-                      END 
-                    ) AS path)) 
+SELECT *
+FROM GRAPH_TABLE(financial_transactions
+  MATCH(p1 IS Person) (-[e]- (dst))* (p2 IS Person)
+  KEEP ANY SHORTEST
+  WHERE p1.name = 'Camille'
+    AND p2.name = 'Liam'
+  COLUMNS(COUNT(edge_id(e)) AS num_hops ,
+          p1.name AS start ,
+          ARRAY_AGG ( CASE
+                        WHEN dst IS LABELED Account
+                          THEN CAST(dst.number AS STRING)
+                        ELSE dst.name
+                      END
+                    ) AS path))
 ORDER BY num_hops
 ```
 
@@ -2232,9 +2579,9 @@ SELECT src.*, ARRAY_AGG(e.weight), dst.*
 FROM MATCH ANY SHORTEST (src) (-[e]-> WHERE e.weight > 10)* (dst) ON my_graph
 --SQL
 SELECT *
-FROM GRAPH_TABLE(my_graph 
-  MATCH (src) (-[e]-> WHERE e.weight > 10)* (dst) 
-  KEEP ANY SHORTEST 
+FROM GRAPH_TABLE(my_graph
+  MATCH (src) (-[e]-> WHERE e.weight > 10)* (dst)
+  KEEP ANY SHORTEST
   COLUMNS(src.*, ARRAY_AGG(e.weight), dst.*))
 ```
 
@@ -2247,8 +2594,8 @@ FROM MATCH ANY SHORTEST (src) -[e]->* (dst) ON my_graph
 WHERE SUM(e.cost) < 100
 --SQL
 SELECT *
-FROM GRAPH_TABLE(my_graph 
-  MATCH (src) -[e]->* (dst) 
+FROM GRAPH_TABLE(my_graph
+  MATCH (src) -[e]->* (dst)
   KEEP ANY SHORTEST
   WHERE e.weight > 10
   COLUMNS(src.*, ARRAY_AGG(e.weight), dst.*))
@@ -2278,7 +2625,7 @@ FROM MATCH SHORTEST 3 PATHS (src) -[e]->* (dst) ON my_graph
 WHERE src.age < dst.age
 --SQL
 SELECT *
-FROM GRAPH_TABLE(my_graph 
+FROM GRAPH_TABLE(my_graph
   MATCH (src) -[e]->* (dst)
   KEEP SHORTEST 3 PATHS
   WHERE src.age < dst.age
@@ -2297,11 +2644,11 @@ SELECT src.*, ARRAY_AGG(e.weight), ARRAY_AGG(v1.age), ARRAY_AGG(v2.age), dst.*
 FROM MATCH SHORTEST 3 PATHS (src) ((v1) -[e]-> (v2))* (dst) ON my_graph
 WHERE src.age < dst.age
 --SQL
-SELECT * 
-FROM GRAPH_TABLE(my_graph 
-  MATCH (src) ((v1) -[e]-> (v2))* (dst) 
-  KEEP SHORTEST 3 PATHS 
-  WHERE src.age < dst.age 
+SELECT *
+FROM GRAPH_TABLE(my_graph
+  MATCH (src) ((v1) -[e]-> (v2))* (dst)
+  KEEP SHORTEST 3 PATHS
+  WHERE src.age < dst.age
   COLUMNS(src.*, ARRAY_AGG(e.weight), ARRAY_AGG(v1.age), ARRAY_AGG(v2.age), dst.*))
 ```
 
@@ -2312,14 +2659,30 @@ the `ARRAY_AGG(v1.cost)` outputs a list containing the age property of all the v
 the `ARRAY_AGG(v2.cost)` outputs a list containing the age property of all the vertices along the path except the first one.
 
 
-Users can also compose shortest path constructs with other matching operators (Note that this behavior is not allowed with `GRAPH_TABLE` operator):
+Users can also mix shortest path searches with other search operators.
+In case of PGQL with SQL Standard syntax this requires placing the different
+path searches in different GRAPH_TABLE operators:
 
 ```sql
-SELECT ARRAY_AGG(e1.weight), ARRAY_AGG(e2.weight)
-FROM MATCH (start) -> (src) ON my_graph
-   , MATCH SHORTEST 3 PATHS (src) (-[e1]->)* (mid) ON my_graph
+--PGQL
+SELECT LISTAGG(e1.weight, ', ') AS e1_weights,
+       LISTAGG(e2.weight, ', ') AS e2_weights
+FROM MATCH SHORTEST 3 PATHS (src) (-[e1]->)* (mid) ON my_graph
    , MATCH ANY SHORTEST (mid) (-[e2]->)* (dst) ON my_graph
-   , MATCH (dst) -> (end) ON my_graph
+--SQL
+SELECT e1_weights, e2_weights
+FROM
+  GRAPH_TABLE(my_graph
+    MATCH (src) (-[e1]->)* (mid)
+    KEEP SHORTEST 3 PATHS
+    COLUMNS (vertex_id(mid) AS mid_vid1, LISTAGG(e1.weight, ', ') AS e1_weights)
+  ),
+  GRAPH_TABLE(my_graph
+    MATCH (mid) (-[e2]->)* (dst)
+    KEEP ANY SHORTEST PATH
+    COLUMNS (vertex_id(mid) AS mid_vid2, LISTAGG(e2.weight, ', ') AS e2_weights)
+  )
+WHERE mid_vid1 = mid_vid2
 ```
 
 Another example is:
@@ -2336,13 +2699,13 @@ FROM MATCH SHORTEST 7 PATHS (a:Account) -[e:transaction]->* (b:Account)
 WHERE a.number = 10039 AND a = b
 ORDER BY num_hops, total_amount
 --SQl
-SELECT * 
-FROM GRAPH_TABLE(financial_transactions 
-  MATCH (a IS Account) -[e IS transaction]->* (b IS Account) 
-  KEEP SHORTEST 7 PATHS 
-  WHERE a.number = 10039 AND VERTEX_EQUAL(a, b) 
-  COLUMNS(COUNT(EDGE_ID(e)) AS num_hops , 
-        SUM(e.amount) AS total_amount , 
+SELECT *
+FROM GRAPH_TABLE(financial_transactions
+  MATCH (a IS Account) -[e IS transaction]->* (b IS Account)
+  KEEP SHORTEST 7 PATHS
+  WHERE a.number = 10039 AND VERTEX_EQUAL(a, b)
+  COLUMNS(COUNT(EDGE_ID(e)) AS num_hops ,
+        SUM(e.amount) AS total_amount ,
         ARRAY_AGG(e.amount) AS amounts_along_path))
 ORDER BY num_hops, total_amount
 ```
@@ -2376,14 +2739,14 @@ FROM MATCH SHORTEST 7 PATHS (a:Account) -[e:transaction]->* (b:Account)
 WHERE a.number = 10039 AND a = b AND COUNT(DISTINCT e) = COUNT(e) AND COUNT(e) > 0
 ORDER BY num_hops, total_amount
 --SQL
-SELECT * 
-FROM GRAPH_TABLE(financial_transactions 
-  MATCH (a IS Account) -[e IS transaction]->* (b IS Account) 
-  KEEP SHORTEST 7 PATHS 
-  WHERE a.number = 10039 AND VERTEX_EQUAL(a, b) AND COUNT(DISTINCT EDGE_ID(e)) = COUNT(EDGE_ID(e)) AND COUNT(EDGE_ID(e)) > 0 
-  COLUMNS(COUNT(EDGE_ID(e)) AS num_hops , 
-          SUM(e.amount) AS total_amount , 
-          ARRAY_AGG(e.amount) AS amounts_along_path)) 
+SELECT *
+FROM GRAPH_TABLE(financial_transactions
+  MATCH (a IS Account) -[e IS transaction]->* (b IS Account)
+  KEEP SHORTEST 7 PATHS
+  WHERE a.number = 10039 AND VERTEX_EQUAL(a, b) AND COUNT(DISTINCT EDGE_ID(e)) = COUNT(EDGE_ID(e)) AND COUNT(EDGE_ID(e)) > 0
+  COLUMNS(COUNT(EDGE_ID(e)) AS num_hops ,
+          SUM(e.amount) AS total_amount ,
+          ARRAY_AGG(e.amount) AS amounts_along_path))
 ORDER BY num_hops, total_amount
 ```
 
@@ -2421,12 +2784,18 @@ For example:
 {% include image.html file="example_graphs/financial_transactions.png" %}
 
 ```sql
+--PGQL
 SELECT COUNT(e) AS num_hops
      , SUM(e.amount) AS total_amount
      , ARRAY_AGG(e.amount) AS amounts_along_path
 FROM MATCH ANY CHEAPEST (a:Account) (-[e:transaction]-> COST e.amount)* (b:Account)
        ON financial_transactions
 WHERE a.number = 10039 AND b.number = 2090
+--SQL
+/*
+ * Use PGQL with custom syntax since cheapest path finding support has not yet
+ * been added to the SQL Standard.
+ */
 ```
 
 ```
@@ -2442,12 +2811,18 @@ The following example with `CHEAPEST` contains an any-directed edge pattern (`-[
 {% include image.html file="example_graphs/financial_transactions.png" %}
 
 ```sql
+--PGQL
 SELECT COUNT(e) AS num_hops
      , SUM(e.amount) AS total_amount
      , ARRAY_AGG(e.amount) AS amounts_along_path
 FROM MATCH ANY CHEAPEST (a:Account) (-[e:transaction]- COST e.amount)* (b:Account)
        ON financial_transactions
 WHERE a.number = 10039 AND b.number = 2090
+--SQL
+/*
+ * Use PGQL with custom syntax since cheapest path finding support has not yet
+ * been added to the SQL Standard.
+ */
 ```
 
 ```
@@ -2466,6 +2841,7 @@ The following example has a `CASE` statement that defines a different cost for d
 {% include image.html file="example_graphs/financial_transactions.png" %}
 
 ```sql
+--PGQL
 SELECT COUNT(e) AS num_hops
      , SUM(e.amount) AS total_amount
      , ARRAY_AGG(e.amount) AS amounts_along_path
@@ -2476,6 +2852,11 @@ FROM MATCH ANY CHEAPEST (p1:Person) (-[e:owner|transaction]-
                                          END)* (p2:Person)
      ON financial_transactions
 WHERE p1.name = 'Nikita' AND p2.name = 'Liam'
+--SQL
+/*
+ * Use PGQL with custom syntax since cheapest path finding support has not yet
+ * been added to the SQL Standard.
+ */
 ```
 
 ```
@@ -2511,6 +2892,7 @@ For example, the following query returns the cheapest 3 paths from account 10039
 {% include image.html file="example_graphs/financial_transactions.png" %}
 
 ```sql
+--PGQL
 SELECT COUNT(e) AS num_hops
      , SUM(e.amount) AS total_amount
      , ARRAY_AGG(e.amount) AS amounts_along_path
@@ -2518,6 +2900,11 @@ FROM MATCH CHEAPEST 3 PATHS (a:Account) (-[e:transaction]-> COST e.amount)* (a)
        ON financial_transactions
 WHERE a.number = 10039
 ORDER BY total_amount
+--SQL
+/*
+ * Use PGQL with custom syntax since cheapest path finding support has not yet
+ * been added to the SQL Standard.
+ */
 ```
 
 ```
@@ -2537,6 +2924,7 @@ while `Account` or `Company` vertices contribute `1` to the total cost.
 {% include image.html file="example_graphs/financial_transactions.png" %}
 
 ```sql
+--PGQL
 SELECT COUNT(e) AS num_hops
      , ARRAY_AGG( CASE label(n_x)
                     WHEN 'Person' THEN n_x.name
@@ -2550,6 +2938,11 @@ FROM MATCH CHEAPEST 4 PATHS
           (c:Company) ON financial_transactions
 WHERE a.number = 10039 AND c.name = 'Oracle'
 ORDER BY total_cost
+--SQL
+/*
+ * Use PGQL with custom syntax since cheapest path finding support has not yet
+ * been added to the SQL Standard.
+ */
 ```
 
 ```
@@ -2602,11 +2995,11 @@ FROM MATCH ALL (a:Account) -[e:transaction]->{,7} (b:Account)
 WHERE a.number = 10039 AND b.number = 2090
 ORDER BY total_amount
 --SQL
-SELECT * 
-FROM GRAPH_TABLE(financial_transactions 
-  MATCH (a IS Account) -[e IS transaction]->{,7} (b IS Account) 
-  KEEP ALL WHERE a.number = 10039 AND b.number = 2090 
-  COLUMNS(LISTAGG(e.amount, ' + ') || ' = ', SUM(e.amount) AS total_amount)) 
+SELECT *
+FROM GRAPH_TABLE(financial_transactions
+  MATCH (a IS Account) -[e IS transaction]->{,7} (b IS Account)
+  KEEP ALL WHERE a.number = 10039 AND b.number = 2090
+  COLUMNS(LISTAGG(e.amount, ' + ') || ' = ', SUM(e.amount) AS total_amount))
 ORDER BY total_amount
 ```
 
@@ -2689,11 +3082,11 @@ FROM MATCH ANY SHORTEST (a:Account) -[e:transaction]->* (b:Account)
        ON financial_transactions
 WHERE a.number = 10039 AND (b.number = 1001 OR b.number = 2090)
 --SQL
-SELECT SUM(countOfPathLengths) AS sumOfPathLengths 
-FROM GRAPH_TABLE(financial_transactions 
-  MATCH (a IS Account) - [e IS transaction] -> * (b IS Account) 
-  KEEP ANY SHORTEST 
-  WHERE a.number = 10039 AND ( b.number = 1001 OR b.number = 2090 ) 
+SELECT SUM(countOfPathLengths) AS sumOfPathLengths
+FROM GRAPH_TABLE(financial_transactions
+  MATCH (a IS Account) - [e IS transaction] -> * (b IS Account)
+  KEEP ANY SHORTEST
+  WHERE a.number = 10039 AND ( b.number = 1001 OR b.number = 2090 )
   COLUMNS(COUNT(EDGE_ID(e)) AS countOfPathLengths))
 ```
 
@@ -2730,16 +3123,16 @@ WHERE a.number = 10039 AND
       COUNT(e) <= 2
 ORDER BY pathLength
 --SQL
-SELECT * 
-FROM GRAPH_TABLE(financial_transactions 
-  MATCH (a IS Account) -[e IS transaction]->* (b IS Account) 
-  KEEP ANY SHORTEST 
-  WHERE a.number = 10039 AND 
-        (b.number = 8021 OR b.number = 1001 OR b.number = 2090) AND 
-        COUNT(EDGE_ID(e)) <= 2 
+SELECT *
+FROM GRAPH_TABLE(financial_transactions
+  MATCH (a IS Account) -[e IS transaction]->* (b IS Account)
+  KEEP ANY SHORTEST
+  WHERE a.number = 10039 AND
+        (b.number = 8021 OR b.number = 1001 OR b.number = 2090) AND
+        COUNT(EDGE_ID(e)) <= 2
   COLUMNS(b.number AS b,
-          COUNT(EDGE_ID(e)) AS pathLength, 
-          ARRAY_AGG(e.amount) AS transactions)) 
+          COUNT(EDGE_ID(e)) AS pathLength,
+          ARRAY_AGG(e.amount) AS transactions))
 ORDER BY pathLength
 ```
 
@@ -2770,14 +3163,14 @@ WHERE (a.number = 10039 OR a.number = 8021) AND
 GROUP BY COUNT(e)
 ORDER BY pathLength
 --SQL
-SELECT pathLength, COUNT(*) AS cnt 
-FROM GRAPH_TABLE(financial_transactions 
-  MATCH (a IS Account) -[e IS transaction]->* (b IS Account) 
-  KEEP ANY SHORTEST 
-  WHERE (a.number = 10039 OR a.number = 8021) AND 
-        (b.number = 1001 OR b.number = 2090) 
-  COLUMNS(COUNT(EDGE_ID(e)) AS pathLength)) 
-GROUP BY pathLength 
+SELECT pathLength, COUNT(*) AS cnt
+FROM GRAPH_TABLE(financial_transactions
+  MATCH (a IS Account) -[e IS transaction]->* (b IS Account)
+  KEEP ANY SHORTEST
+  WHERE (a.number = 10039 OR a.number = 8021) AND
+        (b.number = 1001 OR b.number = 2090)
+  COLUMNS(COUNT(EDGE_ID(e)) AS pathLength))
+GROUP BY pathLength
 ORDER BY pathLength
 ```
 
@@ -2821,11 +3214,17 @@ An example with `WALK` is:
 {% include image.html file="example_graphs/financial_transactions.png" %}
 
 ```sql
+--PGQL
 SELECT LISTAGG(e.amount, ', ') AS amounts_along_path, SUM(e.amount) AS total_cost
 FROM MATCH CHEAPEST 4 WALK (a:account) (-[e:transaction]-> COST e.amount)* (a)
        ON financial_transactions
 WHERE a.number = 10039
 ORDER BY total_cost
+--SQL
+/*
+ * Use PGQL with custom syntax since cheapest path finding support has not yet
+ * been added to the SQL Standard.
+ */
 ```
 
 ```
@@ -2856,11 +3255,11 @@ FROM MATCH ALL TRAIL PATHS (a:account) (-[:transaction]-> (x)){2,} (b:Account)
        ON financial_transactions
 WHERE a.number = 8021 AND b.number = 1001
 --SQL
-SELECT * 
-FROM GRAPH_TABLE(financial_transactions 
-  MATCH (a IS account) (-[ IS transaction]-> (x)){2,} (b IS Account) 
-  KEEP ALL TRAIL PATHS 
-  WHERE a.number = 8021 AND b.number = 1001 
+SELECT *
+FROM GRAPH_TABLE(financial_transactions
+  MATCH (a IS account) (-[ IS transaction]-> (x)){2,} (b IS Account)
+  KEEP ALL TRAIL PATHS
+  WHERE a.number = 8021 AND b.number = 1001
   COLUMNS(CAST(a.number AS STRING) || ' -> ' || LISTAGG(x.number, ' -> ') AS accounts_along_path))
 ```
 
@@ -2886,11 +3285,11 @@ FROM MATCH SHORTEST 10 ACYCLIC PATHS (a:account) (-[:transaction]-> (x))+ (b)
        ON financial_transactions
 WHERE a.number = 10039 AND b.number = 1001
 --SQL
-SELECT * 
-FROM GRAPH_TABLE(financial_transactions 
-  MATCH (a IS account) (-[ IS transaction]-> (x))+ (b) 
-  KEEP SHORTEST 10 ACYCLIC PATHS 
-  WHERE a.number = 10039 AND b.number = 1001 
+SELECT *
+FROM GRAPH_TABLE(financial_transactions
+  MATCH (a IS account) (-[ IS transaction]-> (x))+ (b)
+  KEEP SHORTEST 10 ACYCLIC PATHS
+  WHERE a.number = 10039 AND b.number = 1001
   COLUMNS(CAST(a.number AS STRING) || ' -> ' || LISTAGG(x.number, ' -> ') AS accounts_along_path))
 ```
 
@@ -2916,11 +3315,11 @@ FROM MATCH ANY SIMPLE PATH (a:account) (-[:transaction]-> (x))+ (a)
        ON financial_transactions
 WHERE a.number = 10039
 --SQL
-SELECT * 
-FROM GRAPH_TABLE(financial_transactions 
-  MATCH (a IS account) (-[ IS transaction]-> (x))+ (a) 
-  KEEP ANY SIMPLE PATH 
-  WHERE a.number = 10039 
+SELECT *
+FROM GRAPH_TABLE(financial_transactions
+  MATCH (a IS account) (-[ IS transaction]-> (x))+ (a)
+  KEEP ANY SIMPLE PATH
+  WHERE a.number = 10039
   COLUMNS(CAST(a.number AS STRING) || ' -> ' || LISTAGG(x.number, ' -> ') AS accounts_along_path))
 ```
 
@@ -2986,11 +3385,11 @@ FROM MATCH (a:Account) -[:owner]-> (p:Person)
        ONE ROW PER MATCH
 ORDER BY a.number
 --SQL
-SELECT * 
-FROM GRAPH_TABLE(financial_transactions 
-  MATCH (a IS Account) -[ IS owner]-> (p IS Person) 
-  ONE ROW PER MATCH 
-  COLUMNS(a.number, p.name)) 
+SELECT *
+FROM GRAPH_TABLE(financial_transactions
+  MATCH (a IS Account) -[ IS owner]-> (p IS Person)
+  ONE ROW PER MATCH
+  COLUMNS(a.number, p.name))
 ORDER BY number
 ```
 
@@ -3016,12 +3415,26 @@ For example:
 {% include image.html file="example_graphs/financial_transactions.png" %}
 
 ```sql
+--PGQL
 SELECT a1.number AS account1, a2.number AS account2
      , LISTAGG(t.amount, ' + ') || ' = ', SUM(t.amount) AS total_amount
-FROM MATCH (p1:Person) <-[:owner]- (a1:Account) ON financial_transactions ONE ROW PER MATCH
-   , MATCH (p2:Person) <-[:owner]- (a2:Account) ON financial_transactions ONE ROW PER MATCH
-   , MATCH ALL (a1) -[t:transaction]->{,4} (a2) ON financial_transactions ONE ROW PER MATCH
+FROM MATCH ( (p1:Person) <-[:owner]- (a1:Account),
+             (p2:Person) <-[:owner]- (a2:Account),
+             (a1) -[t:transaction]->{,4} (a2) )
+      ON financial_transactions
+      ONE ROW PER MATCH
 WHERE p1.name = 'Camille' AND p2.name = 'Liam'
+ORDER BY total_amount
+--SQL
+SELECT *
+FROM GRAPH_TABLE(financial_transactions
+  MATCH (p1 IS Person) <-[IS owner]- (a1 IS Account),
+        (p2 IS Person) <-[IS owner]- (a2 IS Account),
+        (a1) -[t IS transaction]->{,4} (a2)
+  WHERE p1.name = 'Camille' AND p2.name = 'Liam'
+  ONE ROW PER MATCH
+  COLUMNS(a1.number AS account1, a2.number AS account2,
+          LISTAGG(t.amount, ' + ') || ' = ', SUM(t.amount) AS total_amount))
 ORDER BY total_amount
 ```
 
@@ -3088,13 +3501,35 @@ Another example is:
 {% include image.html file="example_graphs/financial_transactions.png" %}
 
 ```sql
+--PGQL
 SELECT v.number AS account_nr, MATCHNUM(v) AS match_nr, ELEMENT_NUMBER(v) AS elem_nr
      , LISTAGG(t.amount, ' + ') || ' = ', SUM(t.amount) AS total_amount
-FROM MATCH (p1:Person) <-[:owner]- (a1:Account) ON financial_transactions ONE ROW PER MATCH
-   , MATCH (p2:Person) <-[:owner]- (a2:Account) ON financial_transactions ONE ROW PER MATCH
-   , MATCH ALL (a1) -[t:transaction]->{,4} (a2) ON financial_transactions ONE ROW PER VERTEX (v)
+FROM MATCH ( (p1:Person) <-[:owner]- (a1:Account),
+             (p2:Person) <-[:owner]- (a2:Account) )
+      ON financial_transactions
+      ONE ROW PER MATCH
+   , MATCH (a1) -[t:transaction]->{,4} (a2)
+       ON financial_transactions
+       ONE ROW PER VERTEX (v)
 WHERE p1.name = 'Camille' AND p2.name = 'Liam'
 ORDER BY MATCHNUM(v), ELEMENT_NUMBER(v)
+--SQL
+SELECT v.number AS account_nr, MATCHNUM() AS match_nr, ELEMENT_NUMBER(v) AS elem_nr
+     , LISTAGG(t.amount, ' + ') || ' = ', SUM(t.amount) AS total_amount
+FROM GRAPH_TABLE(financial_transactions
+       MATCH (p1 IS Person) <-[IS owner]- (a1 IS Account),
+             (p2 IS Person) <-[IS owner]- (a2 IS Account)
+       WHERE p1.name = 'Camille' AND p2.name = 'Liam'
+       ONE ROW PER MATCH
+       COLUMNS(a1.number AS a1_number1, a2.number AS a2_number1)),
+     GRAPH_TABLE(financial_transactions
+       MATCH (a1) -[t IS transaction]->{,4} (a2)
+       ONE ROW PER VERTEX (v)
+       COLUMNS(v.number AS account_nr, MATCHNUM() AS match_nr, ELEMENT_NUMBER(v) AS elem_nr
+            , LISTAGG(t.amount, ' + ') || ' = ', SUM(t.amount) AS total_amount)
+     )
+WHERE a1_number1 = a1_number2 AND a2_number1 = a2_number2
+ORDER BY match_nr, elem_nr
 ```
 
 ```
@@ -3144,15 +3579,15 @@ FROM MATCH ANY (a1:Account) -[:transaction]->+ (a2:Account)
 WHERE a1.number = 1001 AND a2.number = 8021
 ORDER BY ELEMENT_NUMBER(e)
 --SQL
-SELECT * 
-FROM GRAPH_TABLE(financial_transactions 
-  MATCH  (a1 IS Account) -[ IS transaction]->+ (a2 IS Account) 
-  KEEP ANY 
-  WHERE a1.number = 1001 AND a2.number = 8021 
-  ONE ROW PER STEP ( v1, e, v2 ) 
-  COLUMNS(v1.number AS v1_account_nr, e.amount, v2.number AS v2_account_nr, 
+SELECT *
+FROM GRAPH_TABLE(financial_transactions
+  MATCH  (a1 IS Account) -[ IS transaction]->+ (a2 IS Account)
+  KEEP ANY
+  WHERE a1.number = 1001 AND a2.number = 8021
+  ONE ROW PER STEP ( v1, e, v2 )
+  COLUMNS(v1.number AS v1_account_nr, e.amount, v2.number AS v2_account_nr,
           ELEMENT_NUMBER(v1) AS v1_elem_nr, ELEMENT_NUMBER(e) AS e_elem_nr,
-          ELEMENT_NUMBER(v2) AS v2_elem_nr)) 
+          ELEMENT_NUMBER(v2) AS v2_elem_nr))
 ORDER BY e_elem_nr
 ```
 
@@ -3187,15 +3622,15 @@ FROM MATCH ANY (a2:Account) <-[:transaction]-+ (a1:Account)
 WHERE a1.number = 1001 AND a2.number = 8021
 ORDER BY ELEMENT_NUMBER(e)
 --SQL
-SELECT * 
-FROM GRAPH_TABLE(financial_transactions 
-  MATCH  (a2 IS Account) <-[ IS transaction]-+ (a1 IS Account) 
-  KEEP ANY 
-  WHERE a1.number = 1001 AND a2.number = 8021 
-  ONE ROW PER STEP ( v1, e, v2 ) 
-  COLUMNS(v1.number AS v1_account_nr, e.amount, v2.number AS v2_account_nr, 
+SELECT *
+FROM GRAPH_TABLE(financial_transactions
+  MATCH  (a2 IS Account) <-[ IS transaction]-+ (a1 IS Account)
+  KEEP ANY
+  WHERE a1.number = 1001 AND a2.number = 8021
+  ONE ROW PER STEP ( v1, e, v2 )
+  COLUMNS(v1.number AS v1_account_nr, e.amount, v2.number AS v2_account_nr,
           ELEMENT_NUMBER(v1) AS v1_elem_nr, ELEMENT_NUMBER(e) AS e_elem_nr,
-          ELEMENT_NUMBER(v2) AS v2_elem_nr)) 
+          ELEMENT_NUMBER(v2) AS v2_elem_nr))
 ORDER BY e_elem_nr
 ```
 
@@ -3269,10 +3704,10 @@ SELECT n.first_name, COUNT(*), AVG(n.age)
 FROM MATCH (n:Person) ON my_graph
 GROUP BY n.first_name
 --SQL
-SELECT first_name, COUNT(*), AVG(age) 
-FROM GRAPH_TABLE(my_graph 
+SELECT first_name, COUNT(*), AVG(age)
+FROM GRAPH_TABLE(my_graph
   MATCH (n IS Person)
-  COLUMNS(n.first_name, n.age)) 
+  COLUMNS(n.first_name, n.age))
 GROUP BY first_name
 ```
 
@@ -3290,10 +3725,10 @@ SELECT n.first_name, n.last_name, COUNT(*)
 FROM MATCH (n:Person) ON my_graph
 GROUP BY n.first_name, n.last_name
 --SQL
-SELECT first_name, last_name, COUNT(*) 
-FROM GRAPH_TABLE(my_graph 
-  MATCH (n IS Person) 
-  COLUMNS(n.first_name, n.last_name)) 
+SELECT first_name, last_name, COUNT(*)
+FROM GRAPH_TABLE(my_graph
+  MATCH (n IS Person)
+  COLUMNS(n.first_name, n.last_name))
 GROUP BY first_name, last_name
 ```
 
@@ -3319,11 +3754,11 @@ FROM MATCH (n) ON my_graph
 GROUP BY n.prop1, n.prop2
 HAVING n.prop1 IS NOT NULL AND n.prop2 IS NOT NULL
 --SQL
-SELECT prop1, prop2, COUNT(*) 
-FROM GRAPH_TABLE(my_graph 
-  MATCH (n) 
+SELECT prop1, prop2, COUNT(*)
+FROM GRAPH_TABLE(my_graph
+  MATCH (n)
   COLUMNS(n.prop1, n.prop2))
-GROUP BY prop1, prop2 
+GROUP BY prop1, prop2
 HAVING prop1 IS NOT NULL AND prop2 IS NOT NULL
 ```
 
@@ -3340,11 +3775,11 @@ FROM MATCH (n) ON my_graph
 GROUP BY n.age
 ORDER BY n.age
 --SQL
-SELECT age, COUNT(*) 
-FROM GRAPH_TABLE(my_graph 
-  MATCH (n) 
-  COLUMNS(n.age)) 
-GROUP BY age 
+SELECT age, COUNT(*)
+FROM GRAPH_TABLE(my_graph
+  MATCH (n)
+  COLUMNS(n.age))
+GROUP BY age
 ORDER BY age
 ```
 
@@ -3422,17 +3857,17 @@ FROM MATCH (a:Account) -[:owner]-> (owner:Person|Company) ON financial_transacti
 GROUP BY label(owner)
 ORDER BY label(owner)
 --SQL
-SELECT owner_lbl, 
-       COUNT(*) AS numTransactions, 
-       SUM(amount) AS totalOutgoing, 
-       LISTAGG(amount, ', ') AS amounts 
-FROM GRAPH_TABLE(financial_transactions 
+SELECT owner_lbl,
+       COUNT(*) AS numTransactions,
+       SUM(amount) AS totalOutgoing,
+       LISTAGG(amount, ', ') AS amounts
+FROM GRAPH_TABLE(financial_transactions
   MATCH (a IS Account) -[ IS owner]-> (owner IS Person|Company),
-        (a) -[out IS transaction]-> ( IS Account) 
-  COLUMNS(CASE WHEN owner IS LABELED Person THEN 'Person' 
-            ELSE 'Company' END AS owner_lbl, 
+        (a) -[out IS transaction]-> ( IS Account)
+  COLUMNS(CASE WHEN owner IS LABELED Person THEN 'Person'
+            ELSE 'Company' END AS owner_lbl,
           out.amount))
-GROUP BY owner_lbl 
+GROUP BY owner_lbl
 ORDER BY owner_lbl
 ```
 
@@ -3464,9 +3899,9 @@ FROM MATCH (a:Account) -[:owner]-> (owner:Person|Company) ON financial_transacti
    , MATCH (a) -[out:transaction]-> (:Account) ON financial_transactions
 --SQL
 SELECT COUNT(*) AS numTransactions,
-      SUM(amount) AS totalOutgoing, 
-      LISTAGG(amount, ', ') AS amounts 
-FROM GRAPH_TABLE(financial_transactions 
+      SUM(amount) AS totalOutgoing,
+      LISTAGG(amount, ', ') AS amounts
+FROM GRAPH_TABLE(financial_transactions
   MATCH (a IS Account) -[ IS owner]-> (owner IS Person|Company),
         (a) -[out IS transaction]-> ( IS Account)
   COLUMNS(out.amount))
@@ -3493,9 +3928,9 @@ For example:
 SELECT COUNT(*)
 FROM MATCH (m:Person) ON my_graph
 --SQL
-SELECT COUNT(*) 
-FROM GRAPH_TABLE(my_graph 
-  MATCH (m IS Person) 
+SELECT COUNT(*)
+FROM GRAPH_TABLE(my_graph
+  MATCH (m IS Person)
   COLUMNS(m.*))
 ```
 
@@ -3510,9 +3945,9 @@ For example:
 SELECT AVG(DISTINCT m.age)
 FROM MATCH (m:Person) ON my_graph
 --SQL
-SELECT AVG(DISTINCT age) 
-FROM GRAPH_TABLE(my_graph 
-  MATCH (m IS Person) 
+SELECT AVG(DISTINCT age)
+FROM GRAPH_TABLE(my_graph
+  MATCH (m IS Person)
   COLUMNS(m.age))
 ```
 
@@ -3539,11 +3974,11 @@ FROM MATCH (n) -[:has_friend]-> (m) ON my_graph
 GROUP BY id, name
 HAVING COUNT(m) > 10
 --SQL
-SELECT id, name 
-FROM GRAPH_TABLE(my_graph 
-  MATCH (n) -[IS has_friend]-> (m) 
-  COLUMNS(VERTEX_ID(n) AS id, n.name, VERTEX_ID(m) AS m)) 
-GROUP BY id, name 
+SELECT id, name
+FROM GRAPH_TABLE(my_graph
+  MATCH (n) -[IS has_friend]-> (m)
+  COLUMNS(VERTEX_ID(n) AS id, n.name, VERTEX_ID(m) AS m))
+GROUP BY id, name
 HAVING COUNT(m) > 10
 ```
 
@@ -3579,10 +4014,10 @@ SELECT n.name
 FROM MATCH (n:Person) ON my_graph
 ORDER BY n.age ASC
 --SQL
-SELECT name 
-FROM GRAPH_TABLE(my_graph 
+SELECT name
+FROM GRAPH_TABLE(my_graph
   MATCH (n IS Person)
-  COLUMNS(n.name, n.age)) 
+  COLUMNS(n.name, n.age))
 ORDER BY age ASC
 ```
 
@@ -3607,10 +4042,10 @@ SELECT f.name
 FROM MATCH (f:Person) ON my_graph
 ORDER BY f.age ASC, f.salary DESC
 --SQL
-SELECT name 
-FROM GRAPH_TABLE(my_graph 
-  MATCH (f IS Person) 
-  COLUMNS(f.name, f.age, f.salary)) 
+SELECT name
+FROM GRAPH_TABLE(my_graph
+  MATCH (f IS Person)
+  COLUMNS(f.name, f.age, f.salary))
 ORDER BY age ASC, salary DESC
 ```
 
@@ -3642,11 +4077,11 @@ FROM MATCH (n:Person) ON financial_transactions
 ORDER BY n.name
 OFFSET 1
 --SQL
-SELECT name 
-FROM GRAPH_TABLE(financial_transactions 
-  MATCH (n IS Person) 
-  COLUMNS(n.name)) 
-ORDER BY name 
+SELECT name
+FROM GRAPH_TABLE(financial_transactions
+  MATCH (n IS Person)
+  COLUMNS(n.name))
+ORDER BY name
 OFFSET 1
 ```
 
@@ -3688,12 +4123,12 @@ ORDER BY n.name
 OFFSET 1
 FETCH FIRST 1 ROWS ONLY
 --SQL
-SELECT name 
-FROM GRAPH_TABLE(financial_transactions 
-  MATCH (n IS Person) 
-  COLUMNS(n.name)) 
-ORDER BY name 
-OFFSET 1 
+SELECT name
+FROM GRAPH_TABLE(financial_transactions
+  MATCH (n IS Person)
+  COLUMNS(n.name))
+ORDER BY name
+OFFSET 1
 FETCH FIRST 1 ROWS ONLY
 ```
 
@@ -3886,11 +4321,11 @@ FROM MATCH (n) ON my_graph
 WHERE n.name = ?
    OR n.age > ?
 --SQL
-SELECT age 
-FROM GRAPH_TABLE(my_graph 
-  MATCH (n) 
-  WHERE n.name = ? 
-     OR n.age > ? 
+SELECT age
+FROM GRAPH_TABLE(my_graph
+  MATCH (n)
+  WHERE n.name = ?
+     OR n.age > ?
   COLUMNS(n.age))
 ```
 
@@ -3904,12 +4339,12 @@ ORDER BY n.age
 OFFSET ?
 FETCH FIRST ? ROWS ONLY
 --SQL
-SELECT name, age 
-FROM GRAPH_TABLE(my_graph 
-  MATCH (n) 
-  COLUMNS(n.name, n.age)) 
-ORDER BY age 
-OFFSET ? 
+SELECT name, age
+FROM GRAPH_TABLE(my_graph
+  MATCH (n)
+  COLUMNS(n.name, n.age))
+ORDER BY age
+OFFSET ?
 FETCH FIRST ? ROWS ONLY
 ```
 
@@ -3921,10 +4356,10 @@ SELECT n.name
 FROM MATCH (n) ON my_graph
 WHERE label(n) = ?
 --SQL
-SELECT name 
-FROM GRAPH_TABLE(my_graph 
-  MATCH (n) 
-  WHERE n IS LABELED ? 
+SELECT name
+FROM GRAPH_TABLE(my_graph
+  MATCH (n)
+  WHERE n IS LABELED ?
   COLUMNS(n.name))
 ```
 
@@ -4077,10 +4512,10 @@ SELECT n.name
 FROM MATCH (n) ON my_graph
 WHERE n.name IS NOT NULL
 --SQL
-SELECT name 
-FROM GRAPH_TABLE(my_graph 
-  MATCH (n) 
-  WHERE n.name IS NOT NULL 
+SELECT name
+FROM GRAPH_TABLE(my_graph
+  MATCH (n)
+  WHERE n.name IS NOT NULL
   COLUMNS(n.name))
 ```
 
@@ -4190,11 +4625,11 @@ SELECT a.number,
        CASE WHEN n IS LABELED Person THEN 'Personal Account' ELSE 'Business Account' END AS accountType
 FROM MATCH (n:Person|Company) <-[:owner]- (a:Account) ON financial_transactions
 --SQL
-SELECT * 
-FROM GRAPH_TABLE(financial_transactions 
+SELECT *
+FROM GRAPH_TABLE(financial_transactions
   MATCH (n IS Person|Company) <-[ IS owner]- (a IS Account)
-  COLUMNS(a.number, 
-        CASE WHEN n IS LABELED Person THEN 'Personal Account' ELSE 'Business Account' END AS accountType)) 
+  COLUMNS(a.number,
+        CASE WHEN n IS LABELED Person THEN 'Personal Account' ELSE 'Business Account' END AS accountType))
 ```
 
 ```
@@ -4233,11 +4668,11 @@ FROM MATCH (n:Account) -[e:transaction]- (m:Account) ON financial_transactions
 WHERE n.number = 8021
 ORDER BY transaction_type, e.amount
 --SQL
-SELECT amount, transaction_type 
-FROM GRAPH_TABLE(financial_transactions 
-  MATCH (n IS Account) -[e IS transaction]- (m IS Account) 
-  WHERE n.number = 8021 
-  COLUMNS(e.amount, CASE WHEN n IS SOURCE OF e THEN 'Outgoing transaction' ELSE 'Incoming transaction' END AS transaction_type)) 
+SELECT amount, transaction_type
+FROM GRAPH_TABLE(financial_transactions
+  MATCH (n IS Account) -[e IS transaction]- (m IS Account)
+  WHERE n.number = 8021
+  COLUMNS(e.amount, CASE WHEN n IS SOURCE OF e THEN 'Outgoing transaction' ELSE 'Incoming transaction' END AS transaction_type))
 ORDER BY transaction_type, amount
 ```
 
@@ -4262,15 +4697,15 @@ FROM MATCH (n) -[e]- (m) ON financial_transactions
 GROUP BY number, name
 ORDER BY num_incoming_edges + num_outgoing_edges DESC, number, name
 --SQL
-SELECT number, name, 
-      SUM(incoming_edges) AS num_incoming_edges, 
-      SUM(outgoing_edges) AS num_outgoing_edges 
-FROM GRAPH_TABLE(financial_transactions 
-  MATCH (n) -[e]- (m) 
-  COLUMNS(n.number, n.name, 
-          CASE WHEN n IS DESTINATION OF e THEN 1 ELSE 0 END AS incoming_edges, 
-          CASE WHEN n IS SOURCE OF e THEN 1 ELSE 0 END AS outgoing_edges)) 
-GROUP BY number, name 
+SELECT number, name,
+      SUM(incoming_edges) AS num_incoming_edges,
+      SUM(outgoing_edges) AS num_outgoing_edges
+FROM GRAPH_TABLE(financial_transactions
+  MATCH (n) -[e]- (m)
+  COLUMNS(n.number, n.name,
+          CASE WHEN n IS DESTINATION OF e THEN 1 ELSE 0 END AS incoming_edges,
+          CASE WHEN n IS SOURCE OF e THEN 1 ELSE 0 END AS outgoing_edges))
+GROUP BY number, name
 ORDER BY num_incoming_edges + num_outgoing_edges DESC, number, name
 ```
 
@@ -4379,15 +4814,15 @@ FROM MATCH ANY (a1:Account) -[:transaction]->+ (a2:Account)
 WHERE a1.number = 1001 AND a2.number = 8021
 ORDER BY e_elem_nr
 --SQL
-SELECT * 
-FROM GRAPH_TABLE(financial_transactions 
-  MATCH (a1 IS Account) -[ IS transaction]->+ (a2 IS Account) 
-  KEEP ANY 
-  WHERE a1.number = 1001 AND a2.number = 8021 
-  ONE ROW PER STEP ( v1, e, v2 ) 
-  COLUMNS(v1.number AS v1_account_nr, e.amount, v2.number AS v2_account_nr , 
-          ELEMENT_NUMBER(v1) AS v1_elem_nr, ELEMENT_NUMBER(e) AS e_elem_nr , 
-          ELEMENT_NUMBER(v2) AS v2_elem_nr)) 
+SELECT *
+FROM GRAPH_TABLE(financial_transactions
+  MATCH (a1 IS Account) -[ IS transaction]->+ (a2 IS Account)
+  KEEP ANY
+  WHERE a1.number = 1001 AND a2.number = 8021
+  ONE ROW PER STEP ( v1, e, v2 )
+  COLUMNS(v1.number AS v1_account_nr, e.amount, v2.number AS v2_account_nr ,
+          ELEMENT_NUMBER(v1) AS v1_elem_nr, ELEMENT_NUMBER(e) AS e_elem_nr ,
+          ELEMENT_NUMBER(v2) AS v2_elem_nr))
 ORDER BY e_elem_nr
 ```
 
@@ -4416,7 +4851,7 @@ FROM MATCH ANY (a2:Account) <-[:transaction]-+ (a1:Account)
 WHERE a1.number = 1001 AND a2.number = 8021
 ORDER BY e_elem_nr
 --SQL
-SELECT * 
+SELECT *
 FROM GRAPH_TABLE(financial_transactions
   MATCH (a2 IS Account) <-[ IS transaction]-+ (a1 IS Account)
   KEEP ANY
@@ -4459,10 +4894,10 @@ SELECT n.*, m.*, o.*
 FROM MATCH (n) -> (m) -> (o) ON my_graph
 WHERE ALL_DIFFERENT( n, m, o )
 --SQL
-SELECT * 
-FROM GRAPH_TABLE(my_graph 
-  MATCH (n) -> (m) -> (o) 
-  WHERE ALL_DIFFERENT( n, m, o ) 
+SELECT *
+FROM GRAPH_TABLE(my_graph
+  MATCH (n) -> (m) -> (o)
+  WHERE ALL_DIFFERENT( n, m, o )
   COLUMNS(n.*, m.*, o.*))
 ```
 
@@ -4474,10 +4909,10 @@ SELECT *
 FROM MATCH (n) -> (m) <- (o) -> (n) ON my_graph
 WHERE n <> m AND n <> o AND m <> o
 --SQL
-SELECT * 
-FROM GRAPH_TABLE(my_graph 
-  MATCH (n) -> (m) <- (o) -> (n) 
-  WHERE NOT VERTEX_EQUAL(n, m) AND NOT VERTEX_EQUAL(n, o) AND NOT VERTEX_EQUAL(m, o) 
+SELECT *
+FROM GRAPH_TABLE(my_graph
+  MATCH (n) -> (m) <- (o) -> (n)
+  WHERE NOT VERTEX_EQUAL(n, m) AND NOT VERTEX_EQUAL(n, o) AND NOT VERTEX_EQUAL(m, o)
   COLUMNS(n.*, m.*, o.*))
 ```
 
@@ -4765,9 +5200,9 @@ SELECT math.tan(n.angle) AS tangent
 FROM MATCH (n) ON my_graph
 ORDER BY tangent
 --SQL
-SELECT * 
-FROM GRAPH_TABLE(my_graph 
-  MATCH (n) 
+SELECT *
+FROM GRAPH_TABLE(my_graph
+  MATCH (n)
   COLUMNS(math.tan(n.angle) AS tangent))
 ORDER BY tangent
 ```
@@ -4822,9 +5257,9 @@ For example:
 SELECT CAST(n.age AS STRING), CAST('123' AS INTEGER), CAST('09:15:00+01:00' AS TIME WITH TIME ZONE)
 FROM MATCH (n:Person) ON my_graph
 --SQL
-SELECT * 
-FROM GRAPH_TABLE(my_graph 
-  MATCH (n IS Person) 
+SELECT *
+FROM GRAPH_TABLE(my_graph
+  MATCH (n IS Person)
   COLUMNS(CAST(n.age AS STRING), CAST('123' AS INTEGER), CAST('09:15:00+01:00' AS TIME WITH TIME ZONE)))
 ```
 
@@ -4974,14 +5409,14 @@ FROM MATCH (p:Person) -[:has_friend]-> (friend:Person) -[:has_friend]-> (fof:Per
 WHERE NOT EXISTS ( SELECT * FROM MATCH (p) -[:has_friend]-> (fof) ON my_graph )
 GROUP BY fof.name
 --SQL
-SELECT name, COUNT(friend) AS num_common_friends 
-FROM GRAPH_TABLE(my_graph 
-  MATCH (p IS Person) -[ IS has_friend]-> (friend IS Person) -[ IS has_friend]-> (fof IS Person) 
-  COLUMNS(fof.name, VERTEX_ID(friend) AS friend, VERTEX_ID(p) AS p_id, VERTEX_ID(fof) AS fof_id)) 
-WHERE NOT EXISTS (SELECT * 
-                  FROM GRAPH_TABLE(my_graph 
-                    MATCH (p IS Person) -[ IS has_friend]-> (fof IS Person) 
-                    COLUMNS(VERTEX_ID(p) AS id1, VERTEX_id(fof) AS id2)) 
+SELECT name, COUNT(friend) AS num_common_friends
+FROM GRAPH_TABLE(my_graph
+  MATCH (p IS Person) -[ IS has_friend]-> (friend IS Person) -[ IS has_friend]-> (fof IS Person)
+  COLUMNS(fof.name, VERTEX_ID(friend) AS friend, VERTEX_ID(p) AS p_id, VERTEX_ID(fof) AS fof_id))
+WHERE NOT EXISTS (SELECT *
+                  FROM GRAPH_TABLE(my_graph
+                    MATCH (p IS Person) -[ IS has_friend]-> (fof IS Person)
+                    COLUMNS(VERTEX_ID(p) AS id1, VERTEX_id(fof) AS id2))
                   WHERE id1 = p_id AND id2 = fof_id)
 GROUP BY name
 ```
@@ -5006,14 +5441,14 @@ SELECT a.name
 FROM MATCH (a) ON my_graph
 WHERE a.age > ( SELECT AVG(b.age) FROM MATCH (a) -[:friendOf]-> (b) ON my_graph )
 --SQL
-SELECT name 
-FROM GRAPH_TABLE(my_graph 
-  MATCH (a) 
-  COLUMNS(a.name, a.age, VERTEX_ID(a) AS a_id)) 
-WHERE age > ( SELECT AVG(b_age) 
-              FROM GRAPH_TABLE(my_graph 
-                MATCH (a) -[IS friendOf]-> (b) 
-                COLUMNS(VERTEX_ID(a) AS id, b.age AS b_age)) 
+SELECT name
+FROM GRAPH_TABLE(my_graph
+  MATCH (a)
+  COLUMNS(a.name, a.age, VERTEX_ID(a) AS a_id))
+WHERE age > ( SELECT AVG(b_age)
+              FROM GRAPH_TABLE(my_graph
+                MATCH (a) -[IS friendOf]-> (b)
+                COLUMNS(VERTEX_ID(a) AS id, b.age AS b_age))
               WHERE id = a_id)
 ```
 
@@ -5042,30 +5477,30 @@ SELECT p.name AS name
 FROM MATCH (p:Person) <-[:owner]- (a:Account) ON financial_transactions
 ORDER BY sum_outgoing + sum_incoming DESC
 --SQL
-SELECT name, 
-      ( SELECT SUM(amount) 
-        FROM GRAPH_TABLE(financial_transactions 
-          MATCH (a IS Account) <-[t IS transaction]- ( IS Account) 
-          COLUMNS(t.amount, VERTEX_ID(a) AS id)) 
-      WHERE id = a_id ) AS sum_incoming , 
-      ( SELECT SUM(amount) 
-        FROM GRAPH_TABLE(financial_transactions 
-          MATCH (a IS Account) -[t IS transaction]-> ( IS Account) 
-          COLUMNS(t.amount, VERTEX_ID(a) AS id)) 
-        WHERE id = a_id ) AS sum_outgoing , 
-      ( SELECT COUNT(DISTINCT p2) 
-        FROM GRAPH_TABLE(financial_transactions 
-          MATCH (a IS Account) -[t IS transaction]- ( IS Account) -[ IS owner]-> (p2 IS Person) 
-          COLUMNS(VERTEX_ID(p2) AS p2, VERTEX_id(a) AS id)) 
-        WHERE p2 <> p_id AND id = a_id ) AS num_persons_transacted_with , 
-      ( SELECT COUNT(DISTINCT c) 
-        FROM GRAPH_TABLE(financial_transactions 
-          MATCH (a IS Account) -[t IS transaction]- ( IS Account) -[ IS owner]-> (c IS Company) 
-          COLUMNS(VERTEX_ID(a) AS id, VERTEX_ID(c) AS c)) 
-        WHERE id = a_id ) AS num_companies_transacted_with 
-FROM GRAPH_TABLE(financial_transactions 
-  MATCH (p IS Person) <-[ IS owner]- (a IS Account) 
-  COLUMNS(p.name, VERTEX_ID(a) AS a_id, VERTEX_ID(p) AS p_id)) 
+SELECT name,
+      ( SELECT SUM(amount)
+        FROM GRAPH_TABLE(financial_transactions
+          MATCH (a IS Account) <-[t IS transaction]- ( IS Account)
+          COLUMNS(t.amount, VERTEX_ID(a) AS id))
+      WHERE id = a_id ) AS sum_incoming ,
+      ( SELECT SUM(amount)
+        FROM GRAPH_TABLE(financial_transactions
+          MATCH (a IS Account) -[t IS transaction]-> ( IS Account)
+          COLUMNS(t.amount, VERTEX_ID(a) AS id))
+        WHERE id = a_id ) AS sum_outgoing ,
+      ( SELECT COUNT(DISTINCT p2)
+        FROM GRAPH_TABLE(financial_transactions
+          MATCH (a IS Account) -[t IS transaction]- ( IS Account) -[ IS owner]-> (p2 IS Person)
+          COLUMNS(VERTEX_ID(p2) AS p2, VERTEX_id(a) AS id))
+        WHERE p2 <> p_id AND id = a_id ) AS num_persons_transacted_with ,
+      ( SELECT COUNT(DISTINCT c)
+        FROM GRAPH_TABLE(financial_transactions
+          MATCH (a IS Account) -[t IS transaction]- ( IS Account) -[ IS owner]-> (c IS Company)
+          COLUMNS(VERTEX_ID(a) AS id, VERTEX_ID(c) AS c))
+        WHERE id = a_id ) AS num_companies_transacted_with
+FROM GRAPH_TABLE(financial_transactions
+  MATCH (p IS Person) <-[ IS owner]- (a IS Account)
+  COLUMNS(p.name, VERTEX_ID(a) AS a_id, VERTEX_ID(p) AS p_id))
 ORDER BY sum_outgoing + sum_incoming DESC
 ```
 
@@ -5341,7 +5776,15 @@ For examle, since the following query has only one vertex insertion, it will ins
 The vertex will not be connected to any other vertices in the graph.
 
 ```sql
+--PGQL
 INSERT INTO my_graph VERTEX x LABELS ( Male ) PROPERTIES ( x.age = 22 )
+--SQL
+/*
+ * The SQL standard specifies that INSERT/UPDATE/DELETE of vertices and edges
+ * should be done by INSERT/UPDATE/DELETE on the base tables of the graph.
+ * The PGQL custom syntax can be used to INSERT/UPDATE/DELETE vertices and
+ * edges when using PGQL property graphs.
+ */
 ```
 
 In the presence of a `FROM` clause, per vertex insertion, as many vertices are inserted as there are rows returned from the query.
@@ -5349,19 +5792,35 @@ For example, the following query inserts a new vertex for every vertex in the gr
 
 
 ```sql
+--PGQL
 INSERT INTO my_graph
   VERTEX x LABELS ( Male ) PROPERTIES ( x.age = y.age )
 FROM MATCH (y:Male) ON my_graph
+--SQL
+/*
+ * The SQL standard specifies that INSERT/UPDATE/DELETE of vertices and edges
+ * should be done by INSERT/UPDATE/DELETE on the base tables of the graph.
+ * The PGQL custom syntax can be used to INSERT/UPDATE/DELETE vertices and
+ * edges when using PGQL property graphs.
+ */
 ```
 
 In the presence of a `GROUP BY` expression, as many vertices are inserted, as many groups are matched.
 For example the following query inserts a new vertex for every profession in the graph.
 
 ```sql
+--PGQL
 INSERT INTO my_graph
   VERTEX x LABELS ( Profession ) PROPERTIES ( x.name = y.profession )
 FROM MATCH (y:Person) ON my_graph
 GROUP BY y.profession
+--SQL
+/*
+ * The SQL standard specifies that INSERT/UPDATE/DELETE of vertices and edges
+ * should be done by INSERT/UPDATE/DELETE on the base tables of the graph.
+ * The PGQL custom syntax can be used to INSERT/UPDATE/DELETE vertices and
+ * edges when using PGQL property graphs.
+ */
 ```
 
 ### Inserting edges
@@ -5372,10 +5831,18 @@ Only the insertion of directed edges are supported.
 For example the following query inserts a vertex with source `x` and destination `y`:
 
 ```sql
+--PGQL
 INSERT INTO my_graph EDGE e BETWEEN x AND y
 FROM MATCH (x) ON my_graph
    , MATCH (y) ON my_graph
 WHERE id(x) = 1 AND id(y) = 2
+--SQL
+/*
+ * The SQL standard specifies that INSERT/UPDATE/DELETE of vertices and edges
+ * should be done by INSERT/UPDATE/DELETE on the base tables of the graph.
+ * The PGQL custom syntax can be used to INSERT/UPDATE/DELETE vertices and
+ * edges when using PGQL property graphs.
+ */
 ```
 
 ### Labels
@@ -5385,10 +5852,18 @@ Labels for the inserted entities can be specified between braces after the `LABE
 For example:
 
 ```sql
+--PGQL
 INSERT EDGE e BETWEEN x AND y LABELS ( knows )
 FROM MATCH (x:Person) ON my_graph
    , MATCH (y:Person) ON my_graph
 WHERE id(x) = 1 AND id(y) = 2
+--SQL
+/*
+ * The SQL standard specifies that INSERT/UPDATE/DELETE of vertices and edges
+ * should be done by INSERT/UPDATE/DELETE on the base tables of the graph.
+ * The PGQL custom syntax can be used to INSERT/UPDATE/DELETE vertices and
+ * edges when using PGQL property graphs.
+ */
 ```
 
 ### Properties
@@ -5401,17 +5876,33 @@ Property expressions cannot refer to other entities that are inserted at the sam
 For example, the following query inserts a new vertex with `age = 22`:
 
 ```sql
+--PGQL
 INSERT INTO my_graph VERTEX v PROPERTIES ( v.age = 22 )
+--SQL
+/*
+ * The SQL standard specifies that INSERT/UPDATE/DELETE of vertices and edges
+ * should be done by INSERT/UPDATE/DELETE on the base tables of the graph.
+ * The PGQL custom syntax can be used to INSERT/UPDATE/DELETE vertices and
+ * edges when using PGQL property graphs.
+ */
 ```
 
 Edge properties can be specified in the same manner:
 
 ```sql
+--PGQL
 INSERT INTO my_graph
   EDGE e BETWEEN x AND y LABELS ( knows ) PROPERTIES ( e.since = DATE '2017-09-21' )
 FROM MATCH (x:Person) ON my_graph
    , MATCH (y:Person) ON my_graph
 WHERE id(x) = 1 AND id(y) = 2
+--SQL
+/*
+ * The SQL standard specifies that INSERT/UPDATE/DELETE of vertices and edges
+ * should be done by INSERT/UPDATE/DELETE on the base tables of the graph.
+ * The PGQL custom syntax can be used to INSERT/UPDATE/DELETE vertices and
+ * edges when using PGQL property graphs.
+ */
 ```
 
 In case of partitioned schema, only those properties can be assigned that are defined for the type of the entity.
@@ -5424,9 +5915,17 @@ One insert clause can contain multiple inserts.
 For example, the query below inserts two vertices into the graph:
 
 ```sql
+--PGQL
 INSERT INTO my_graph
   VERTEX v LABELS ( Male ) PROPERTIES ( v.age = 23, v.name = 'John' ),
   VERTEX u LABELS ( Female ) PROPERTIES ( u.age = 24, u.name = 'Jane' )
+--SQL
+/*
+ * The SQL standard specifies that INSERT/UPDATE/DELETE of vertices and edges
+ * should be done by INSERT/UPDATE/DELETE on the base tables of the graph.
+ * The PGQL custom syntax can be used to INSERT/UPDATE/DELETE vertices and
+ * edges when using PGQL property graphs.
+ */
 ```
 
 Multiple insertions under the same `INSERT` can be used to set a newly inserted vertex as source or destination for a newly inserted edge.
@@ -5434,11 +5933,19 @@ Multiple insertions under the same `INSERT` can be used to set a newly inserted 
 For example, the following query inserts a vertex and an edge that connects it to the matched vertex `y`:
 
 ```sql
+--PGQL
 INSERT INTO my_graph
   VERTEX x LABELS ( Person ) PROPERTIES ( x.name = 'John' ),
   EDGE e BETWEEN x AND y LABELS ( knows ) PROPERTIES ( e.since = DATE '2017-09-21' )
 FROM MATCH (y) ON my_graph
 WHERE y.name = 'Jane'
+--SQL
+/*
+ * The SQL standard specifies that INSERT/UPDATE/DELETE of vertices and edges
+ * should be done by INSERT/UPDATE/DELETE on the base tables of the graph.
+ * The PGQL custom syntax can be used to INSERT/UPDATE/DELETE vertices and
+ * edges when using PGQL property graphs.
+ */
 ```
 
 Note that the properties of `x` cannot be accessed in the property assignments of `e`, only the variable itself is visible as source of the edge.
@@ -5450,10 +5957,18 @@ If a vertex pair is matched more than once, multiple edges will be inserted betw
 
 For example consider the following query:
 ```sql
+--PGQL
 INSERT INTO my_graph EDGE e BETWEEN x AND y
 FROM MATCH (x) ON my_graph
    , MATCH (y) -> (z) ON my_graph
  WHERE id(x) = 1
+--SQL
+/*
+ * The SQL standard specifies that INSERT/UPDATE/DELETE of vertices and edges
+ * should be done by INSERT/UPDATE/DELETE on the base tables of the graph.
+ * The PGQL custom syntax can be used to INSERT/UPDATE/DELETE vertices and
+ * edges when using PGQL property graphs.
+ */
 ```
 
 {% include image.html file="example_graphs/pgql_modify_example_before.png" %}
@@ -5486,19 +6001,35 @@ GraphElementUpdate ::= <ElementReference> 'SET' '(' <PropertyAssignment> ( ',' <
 For example, the following query sets the property `age` of every person named "John" to the value `42`:
 
 ```sql
+--PGQL
 UPDATE x SET ( x.age = 42 )
 FROM MATCH (x:Person) ON my_graph
 WHERE x.name = 'John'
+--SQL
+/*
+ * The SQL standard specifies that INSERT/UPDATE/DELETE of vertices and edges
+ * should be done by INSERT/UPDATE/DELETE on the base tables of the graph.
+ * The PGQL custom syntax can be used to INSERT/UPDATE/DELETE vertices and
+ * edges when using PGQL property graphs.
+ */
 ```
 
 An example in which properties of multiple vertices and edges are update is:
 
 ```sql
+--PGQL
 UPDATE v SET ( v.carOwner = true )
      , u SET ( u.weight = 3500 )
      , e SET ( e.since = DATE '2010-01-03' )
 FROM MATCH (v:Person) <-[e:belongs_to]- (u:Car) ON my_graph
 WHERE v.name = 'John'
+--SQL
+/*
+ * The SQL standard specifies that INSERT/UPDATE/DELETE of vertices and edges
+ * should be done by INSERT/UPDATE/DELETE on the base tables of the graph.
+ * The PGQL custom syntax can be used to INSERT/UPDATE/DELETE vertices and
+ * edges when using PGQL property graphs.
+ */
 ```
 
 Above, we match a person named John and the car that belongs to John. We then set the property `carOwner` of John to true, we set the property `weight` of the car to 3500, and we set the property `since` of the `belongs_to` edge to the date 2010-01-03.
@@ -5511,8 +6042,16 @@ before the beginning of the update. This aligns with the snapshot isolation sema
 For example consider the following update:
 
 ```sql
+--PGQL
 UPDATE x SET ( x.a = y.b, x.b = 12 )
 FROM MATCH (x) -> (y) ON my_graph
+--SQL
+/*
+ * The SQL standard specifies that INSERT/UPDATE/DELETE of vertices and edges
+ * should be done by INSERT/UPDATE/DELETE on the base tables of the graph.
+ * The PGQL custom syntax can be used to INSERT/UPDATE/DELETE vertices and
+ * edges when using PGQL property graphs.
+ */
 ```
 
 It is possible, that a vertex is matched by both `(x)` and `(y)` for example
@@ -5533,8 +6072,16 @@ an error.
 For example consider the following query:
 
 ```sql
+--PGQL
 UPDATE x SET ( x.a = y.a )
 FROM MATCH (x) -> (y) ON my_graph
+--SQL
+/*
+ * The SQL standard specifies that INSERT/UPDATE/DELETE of vertices and edges
+ * should be done by INSERT/UPDATE/DELETE on the base tables of the graph.
+ * The PGQL custom syntax can be used to INSERT/UPDATE/DELETE vertices and
+ * edges when using PGQL property graphs.
+ */
 ```
 
 If the following vertices are matched
@@ -5555,18 +6102,34 @@ For example, in the following case, multiple writes to `v.a` are allowed, becaus
 times `v.a` is written, it is always assigned the same value (65 minus its age property).
 
 ```sql
+--PGQL
 UPDATE v SET ( v.a = 65 - v.age )
 FROM MATCH (v:Person) -> (u:Person) ON my_graph
 WHERE v.name = 'John'
+--SQL
+/*
+ * The SQL standard specifies that INSERT/UPDATE/DELETE of vertices and edges
+ * should be done by INSERT/UPDATE/DELETE on the base tables of the graph.
+ * The PGQL custom syntax can be used to INSERT/UPDATE/DELETE vertices and
+ * edges when using PGQL property graphs.
+ */
 ```
 
 In the following case, however, multiple writes to `v.a` are not allowed, because the value of the property would be
 ambiguous, 65 minus the other vertex's age property, that can be different for different matched `u`'s.
 
 ```sql
+--PGQL
 UPDATE v SET ( v.a = 65 - u.age )
 FROM MATCH (v:Person) -> (u:Person) ON my_graph
 WHERE v.name = 'John'
+--SQL
+/*
+ * The SQL standard specifies that INSERT/UPDATE/DELETE of vertices and edges
+ * should be done by INSERT/UPDATE/DELETE on the base tables of the graph.
+ * The PGQL custom syntax can be used to INSERT/UPDATE/DELETE vertices and
+ * edges when using PGQL property graphs.
+ */
 ```
 
 ## DELETE
@@ -5581,15 +6144,31 @@ Entities can be deleted by enumerating them after the `DELETE` keyword. The orde
 For example, one can delete all edges from a graph using the following query
 
 ```sql
+--PGQL
 DELETE e
 FROM MATCH () -[e]-> () ON my_graph
+--SQL
+/*
+ * The SQL standard specifies that INSERT/UPDATE/DELETE of vertices and edges
+ * should be done by INSERT/UPDATE/DELETE on the base tables of the graph.
+ * The PGQL custom syntax can be used to INSERT/UPDATE/DELETE vertices and
+ * edges when using PGQL property graphs.
+ */
 ```
 
 Multiple deletes to the same entity are not considered conflicting. For example consider the following query:
 
 ```sql
+--PGQL
 DELETE x, y
 FROM MATCH (x) -> (y) ON my_graph
+--SQL
+/*
+ * The SQL standard specifies that INSERT/UPDATE/DELETE of vertices and edges
+ * should be done by INSERT/UPDATE/DELETE on the base tables of the graph.
+ * The PGQL custom syntax can be used to INSERT/UPDATE/DELETE vertices and
+ * edges when using PGQL property graphs.
+ */
 ```
 
 In that case, even if a vertex is matched multiple times by `(x)` or `(y)`, and deleted multiple times, the query will complete without an exception.
@@ -5599,16 +6178,32 @@ If a vertex is deleted, all its incoming and outgoing edges are deleted as well,
 So the following query not only deletes the vertex with id `11` but also all edges for which it is source or destination.
 
 ```sql
+--PGQL
 DELETE x
 FROM MATCH (x) ON my_graph
 WHERE id(x) = 11
+--SQL
+/*
+ * The SQL standard specifies that INSERT/UPDATE/DELETE of vertices and edges
+ * should be done by INSERT/UPDATE/DELETE on the base tables of the graph.
+ * The PGQL custom syntax can be used to INSERT/UPDATE/DELETE vertices and
+ * edges when using PGQL property graphs.
+ */
 ```
 
 Because of implicit deletion of edges, the following query can be used to delete all edges as well as all vertices from a graph:
 
 ```sql
+--PGQL
 DELETE x
 FROM MATCH (x) ON my_graph
+--SQL
+/*
+ * The SQL standard specifies that INSERT/UPDATE/DELETE of vertices and edges
+ * should be done by INSERT/UPDATE/DELETE on the base tables of the graph.
+ * The PGQL custom syntax can be used to INSERT/UPDATE/DELETE vertices and
+ * edges when using PGQL property graphs.
+ */
 ```
 
 ## Combining INSERT, UPDATE and DELETE
@@ -5617,10 +6212,18 @@ Multiple modifications can be executed in the same query.
 For example, to update a vertex and also insert an edge with the same vertex as source, the following query can be used:
 
 ```sql
+--PGQL
 INSERT INTO my_graph EDGE e BETWEEN x AND y
 UPDATE y SET ( y.a = 12 )
 FROM MATCH (x) ON my_graph, MATCH (y) ON my_graph
 WHERE id(x) = 1 AND id(y) = 2
+--SQL
+/*
+ * The SQL standard specifies that INSERT/UPDATE/DELETE of vertices and edges
+ * should be done by INSERT/UPDATE/DELETE on the base tables of the graph.
+ * The PGQL custom syntax can be used to INSERT/UPDATE/DELETE vertices and
+ * edges when using PGQL property graphs.
+ */
 ```
 
 ### Isolation semantics of modification queries
@@ -5631,18 +6234,34 @@ For this reason, property assignments can come from updated and deleted vertices
 For example, the query below succeeds, because `y.age` is evaluated based on the graph's status before the query.
 
 ```sql
+--PGQL
 INSERT INTO my_graph VERTEX x PROPERTIES ( x.age = y.age )
 DELETE y
 FROM MATCH (y) ON my_graph
+--SQL
+/*
+ * The SQL standard specifies that INSERT/UPDATE/DELETE of vertices and edges
+ * should be done by INSERT/UPDATE/DELETE on the base tables of the graph.
+ * The PGQL custom syntax can be used to INSERT/UPDATE/DELETE vertices and
+ * edges when using PGQL property graphs.
+ */
 ```
 
 Please note, that for the same reason, properties of newly inserted vertices cannot be referenced in the right-hand-side expressions.
 For example, the following query would fail as `x` is not yet in the graph, and `x.age` cannot be evaluated:
 
 ```sql
+--PGQL
 INSERT INTO my_graph
   VERTEX x PROPERTIES ( v.age = 24 ),
   VERTEX y PROPERTIES ( y.age = x.age )
+--SQL
+/*
+ * The SQL standard specifies that INSERT/UPDATE/DELETE of vertices and edges
+ * should be done by INSERT/UPDATE/DELETE on the base tables of the graph.
+ * The PGQL custom syntax can be used to INSERT/UPDATE/DELETE vertices and
+ * edges when using PGQL property graphs.
+ */
 ```
 
 ### Handling conflicting modifications
@@ -5657,9 +6276,17 @@ The same entity cannot be updated and deleted in the same query.
 For example, let us consider the following query:
 
 ```sql
+--PGQL
 UPDATE x SET ( x.a = 11 )
 DELETE x
 FROM MATCH (x) ON my_graph
+--SQL
+/*
+ * The SQL standard specifies that INSERT/UPDATE/DELETE of vertices and edges
+ * should be done by INSERT/UPDATE/DELETE on the base tables of the graph.
+ * The PGQL custom syntax can be used to INSERT/UPDATE/DELETE vertices and
+ * edges when using PGQL property graphs.
+ */
 ```
 
 There the conflict is trivial between the deleted and the updated vertex.
@@ -5667,9 +6294,17 @@ However, the conflict is not always straightforward, for example,
 the following query can also fail due to conflicting update and delete:
 
 ```sql
+--PGQL
 UPDATE x SET ( x.a = 11 )
 DELETE y
 FROM MATCH (x) -> (y) ON my_graph
+--SQL
+/*
+ * The SQL standard specifies that INSERT/UPDATE/DELETE of vertices and edges
+ * should be done by INSERT/UPDATE/DELETE on the base tables of the graph.
+ * The PGQL custom syntax can be used to INSERT/UPDATE/DELETE vertices and
+ * edges when using PGQL property graphs.
+ */
 ```
 
 If the vertices matched by `x` are distinct to the ones matched by `y` the query should pass, however, if there is a vertex that is matched by both `x` and `y` the query will fail with an exception.
@@ -5681,10 +6316,18 @@ Note that because of the snapshot semantics, this is only possible if an edge is
 For example, consider the following, not trivial case:
 
 ```sql
+--PGQL
 INSERT INTO my_graph EDGE e BETWEEN x AND y
 DELETE z
 FROM MATCH (x) -> (y) ON my_graph, MATCH (z) ON my_graph
 WHERE id(z) = 11
+--SQL
+/*
+ * The SQL standard specifies that INSERT/UPDATE/DELETE of vertices and edges
+ * should be done by INSERT/UPDATE/DELETE on the base tables of the graph.
+ * The PGQL custom syntax can be used to INSERT/UPDATE/DELETE vertices and
+ * edges when using PGQL property graphs.
+ */
 ```
 
 If any vertex is matched by `z` and either `x` or `z` then after executing the query the inserted edge would not have a source or destination.
@@ -5715,15 +6358,31 @@ Unquoted identifiers are automatically uppercased.
 For example, the following two queries are equivalent:
 
 ```sql
+--PGQL
 SELECT n.dob AS name
 FROM MATCH (n:Person) ON myGraph
 WHERE n.firstName = 'Nikita'
+--SQL
+/*
+ * The SQL standard specifies that INSERT/UPDATE/DELETE of vertices and edges
+ * should be done by INSERT/UPDATE/DELETE on the base tables of the graph.
+ * The PGQL custom syntax can be used to INSERT/UPDATE/DELETE vertices and
+ * edges when using PGQL property graphs.
+ */
 ```
 
 ```sql
+--PGQL
 SELECT "N"."DOB"
 FROM MATCH ("N":"PERSON") ON "MYGRAPH"
 WHERE "N"."FIRSTNAME" = 'Nikita'
+--SQL
+/*
+ * The SQL standard specifies that INSERT/UPDATE/DELETE of vertices and edges
+ * should be done by INSERT/UPDATE/DELETE on the base tables of the graph.
+ * The PGQL custom syntax can be used to INSERT/UPDATE/DELETE vertices and
+ * edges when using PGQL property graphs.
+ */
 ```
 
 Note that this is aligned to SQL, which also automatically uppercases unquoted identifiers.
@@ -5759,10 +6418,18 @@ new lines and tabs	.
 Here is an example of how to use such a string as a property name in PGQL:
 
 ```sql
+--PGQL
 SELECT *
 FROM MATCH (n) ON my_graph
 WHERE n."My string with single quotes ', double quotes "", backslashes \
 new lines and tabs	." = 123
+--SQL
+/*
+ * The SQL standard specifies that INSERT/UPDATE/DELETE of vertices and edges
+ * should be done by INSERT/UPDATE/DELETE on the base tables of the graph.
+ * The PGQL custom syntax can be used to INSERT/UPDATE/DELETE vertices and
+ * edges when using PGQL property graphs.
+ */
 ```
 
 As you can see, only the double quote (`"`) was escaped (`""`).
@@ -5796,10 +6463,19 @@ new lines and tabs	.
 Here is an example of how to use such a string as literal in PGQL:
 
 ```sql
-SELECT *
+--PGQL
+SELECT n.prop
 FROM MATCH (n) ON my_graph
 WHERE n.prop = 'My string with single quotes '', double quotes ", backslashes \
 new lines and tabs	.'
+--SQL
+SELECT *
+FROM GRAPH_TABLE(my_graph
+  MATCH (n)
+  WHERE n.prop = 'My string with single quotes '', double quotes ", backslashes \
+new lines and tabs	.'
+  COLUMNS(n.prop)
+)
 ```
 
 As you can see, only the single quote (`'`) was escaped (`''`).
@@ -5858,9 +6534,19 @@ COMMENT ::= '/*' ~[\*]* '*/'
 For example:
 
 ```sql
+--PGQL
 /* This is a
    multi-line
    comment. */
 SELECT n.name, n.age
 FROM MATCH (n:Person) ON my_graph /* this is a single-line comment */
+--SQL
+/* This is a
+   multi-line
+   comment. */
+SELECT *
+FROM GRAPH_TABLE(my_graph
+  MATCH (n IS Person) /* this is a single-line comment */
+  COLUMNS(n.name, n.age)
+)
 ```

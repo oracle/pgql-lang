@@ -118,32 +118,61 @@ The following example shows a schema with a set of tables. Each table has a name
 
 The following is a complete example of how a graph can be created from these tables:
 
-```sql
-CREATE PROPERTY GRAPH financial_transactions
-  VERTEX TABLES (
-    Persons LABEL Person PROPERTIES ( name ),
-    Companies LABEL Company PROPERTIES ( name ),
-    Accounts LABEL Account PROPERTIES ( number )
+<div class="tab">
+<button name="sql-button" class="tablinks active" onclick="openTab(event, 'sql')">PGQL with SQL Standard syntax</button>
+<button name="pgql-button" class="tablinks" onclick="openTab(event, 'pgql')">PGQL with custom syntax</button>
+</div><div name="sql" class="tab-content active"><div class="language-sql highlighter-rouge"><div class="highlight"><pre class="highlight">
+<span class="k">CREATE</span> <span class="k">PROPERTY</span> <span class="k">GRAPH</span> financial_transactions
+  <span class="k">VERTEX</span> <span class="k">TABLES</span> (
+    Persons <span class="k">LABEL</span> Person <span class="k">PROPERTIES</span> ( name ),
+    Companies <span class="k">LABEL</span> Company <span class="k">PROPERTIES</span> ( name ),
+    Accounts <span class="k">LABEL</span> Account <span class="k">PROPERTIES</span> ( number )
   )
-  EDGE TABLES (
+  <span class="k">EDGE</span> <span class="k">TABLES</span> (
     Transactions
       SOURCE KEY ( from_account ) REFERENCES Accounts ( number )
-      DESTINATION KEY ( to_account ) REFERENCES Accounts ( number )
-      LABEL transaction PROPERTIES ( amount ),
-    Accounts AS PersonOwner
+      <span class="k">DESTINATION</span> KEY ( to_account ) REFERENCES Accounts ( number )
+      <span class="k">LABEL</span> transaction <span class="k">PROPERTIES</span> ( amount ),
+    Accounts <span class="k">AS</span> PersonOwner
       SOURCE KEY ( number ) REFERENCES Accounts ( number )
-      DESTINATION Persons
-      LABEL owner NO PROPERTIES,
-    Accounts AS CompanyOwner
+      <span class="k">DESTINATION</span> Persons
+      <span class="k">LABEL</span> owner NO <span class="k">PROPERTIES</span>,
+    Accounts <span class="k">AS</span> CompanyOwner
       SOURCE KEY ( number ) REFERENCES Accounts ( number )
-      DESTINATION Companies
-      LABEL owner NO PROPERTIES,
-    Persons AS worksFor
+      <span class="k">DESTINATION</span> Companies
+      <span class="k">LABEL</span> owner NO <span class="k">PROPERTIES</span>,
+    Persons <span class="k">AS</span> worksFor
       SOURCE KEY ( id ) REFERENCES Persons ( id )
-      DESTINATION Companies
-      NO PROPERTIES
+      <span class="k">DESTINATION</span> Companies
+      NO <span class="k">PROPERTIES</span>
   )
-```
+</pre></div></div></div>
+<div name="pgql" class="tab-content"><div class="language-sql highlighter-rouge"><div class="highlight"><pre class="highlight">
+<span class="k">CREATE</span> <span class="k">PROPERTY</span> <span class="k">GRAPH</span> financial_transactions
+  <span class="k">VERTEX</span> <span class="k">TABLES</span> (
+    Persons <span class="k">LABEL</span> Person <span class="k">PROPERTIES</span> ( name ),
+    Companies <span class="k">LABEL</span> Company <span class="k">PROPERTIES</span> ( name ),
+    Accounts <span class="k">LABEL</span> Account <span class="k">PROPERTIES</span> ( number )
+  )
+  <span class="k">EDGE</span> <span class="k">TABLES</span> (
+    Transactions
+      SOURCE KEY ( from_account ) REFERENCES Accounts ( number )
+      <span class="k">DESTINATION</span> KEY ( to_account ) REFERENCES Accounts ( number )
+      <span class="k">LABEL</span> transaction <span class="k">PROPERTIES</span> ( amount ),
+    Accounts <span class="k">AS</span> PersonOwner
+      SOURCE KEY ( number ) REFERENCES Accounts ( number )
+      <span class="k">DESTINATION</span> Persons
+      <span class="k">LABEL</span> owner NO <span class="k">PROPERTIES</span>,
+    Accounts <span class="k">AS</span> CompanyOwner
+      SOURCE KEY ( number ) REFERENCES Accounts ( number )
+      <span class="k">DESTINATION</span> Companies
+      <span class="k">LABEL</span> owner NO <span class="k">PROPERTIES</span>,
+    Persons <span class="k">AS</span> worksFor
+      SOURCE KEY ( id ) REFERENCES Persons ( id )
+      <span class="k">DESTINATION</span> Companies
+      NO <span class="k">PROPERTIES</span>
+  )
+</pre></div></div></div>
 
 Above, `financial_transactions` is the name of the graph.
 The graph has three vertex tables: `Persons`, `Companies` and `Accounts`.
@@ -212,32 +241,61 @@ Take the following example from before:
 
 {% include image.html file="example_graphs/financial_transactions_schema.png"  %}
 
-```sql
-CREATE PROPERTY GRAPH financial_transactions
-  VERTEX TABLES (
-    Persons LABEL Person PROPERTIES ( name ),
-    Companies LABEL Company PROPERTIES ( name ),
-    Accounts LABEL Account PROPERTIES ( number )
+<div class="tab">
+<button name="sql-button" class="tablinks active" onclick="openTab(event, 'sql')">PGQL with SQL Standard syntax</button>
+<button name="pgql-button" class="tablinks" onclick="openTab(event, 'pgql')">PGQL with custom syntax</button>
+</div><div name="sql" class="tab-content active"><div class="language-sql highlighter-rouge"><div class="highlight"><pre class="highlight">
+<span class="k">CREATE</span> <span class="k">PROPERTY</span> <span class="k">GRAPH</span> financial_transactions
+  <span class="k">VERTEX</span> <span class="k">TABLES</span> (
+    Persons <span class="k">LABEL</span> Person <span class="k">PROPERTIES</span> ( name ),
+    Companies <span class="k">LABEL</span> Company <span class="k">PROPERTIES</span> ( name ),
+    Accounts <span class="k">LABEL</span> Account <span class="k">PROPERTIES</span> ( number )
   )
-  EDGE TABLES (
+  <span class="k">EDGE</span> <span class="k">TABLES</span> (
     Transactions
       SOURCE KEY ( from_account ) REFERENCES Accounts ( number )
-      DESTINATION KEY ( to_account ) REFERENCES Accounts ( number )
-      LABEL transaction PROPERTIES ( amount ),
-    Accounts AS PersonOwner
+      <span class="k">DESTINATION</span> KEY ( to_account ) REFERENCES Accounts ( number )
+      <span class="k">LABEL</span> transaction <span class="k">PROPERTIES</span> ( amount ),
+    Accounts <span class="k">AS</span> PersonOwner
       SOURCE KEY ( number ) REFERENCES Accounts ( number )
-      DESTINATION Persons
-      LABEL owner NO PROPERTIES,
-    Accounts AS CompanyOwner
+      <span class="k">DESTINATION</span> Persons
+      <span class="k">LABEL</span> owner NO <span class="k">PROPERTIES</span>,
+    Accounts <span class="k">AS</span> CompanyOwner
       SOURCE KEY ( number ) REFERENCES Accounts ( number )
-      DESTINATION Companies
-      LABEL owner NO PROPERTIES,
-    Persons AS worksFor
+      <span class="k">DESTINATION</span> Companies
+      <span class="k">LABEL</span> owner NO <span class="k">PROPERTIES</span>,
+    Persons <span class="k">AS</span> worksFor
       SOURCE KEY ( id ) REFERENCES Persons ( id )
-      DESTINATION Companies
-      NO PROPERTIES
+      <span class="k">DESTINATION</span> Companies
+      NO <span class="k">PROPERTIES</span>
   )
-```
+</pre></div></div></div>
+<div name="pgql" class="tab-content"><div class="language-sql highlighter-rouge"><div class="highlight"><pre class="highlight">
+<span class="k">CREATE</span> <span class="k">PROPERTY</span> <span class="k">GRAPH</span> financial_transactions
+  <span class="k">VERTEX</span> <span class="k">TABLES</span> (
+    Persons <span class="k">LABEL</span> Person <span class="k">PROPERTIES</span> ( name ),
+    Companies <span class="k">LABEL</span> Company <span class="k">PROPERTIES</span> ( name ),
+    Accounts <span class="k">LABEL</span> Account <span class="k">PROPERTIES</span> ( number )
+  )
+  <span class="k">EDGE</span> <span class="k">TABLES</span> (
+    Transactions
+      SOURCE KEY ( from_account ) REFERENCES Accounts ( number )
+      <span class="k">DESTINATION</span> KEY ( to_account ) REFERENCES Accounts ( number )
+      <span class="k">LABEL</span> transaction <span class="k">PROPERTIES</span> ( amount ),
+    Accounts <span class="k">AS</span> PersonOwner
+      SOURCE KEY ( number ) REFERENCES Accounts ( number )
+      <span class="k">DESTINATION</span> Persons
+      <span class="k">LABEL</span> owner NO <span class="k">PROPERTIES</span>,
+    Accounts <span class="k">AS</span> CompanyOwner
+      SOURCE KEY ( number ) REFERENCES Accounts ( number )
+      <span class="k">DESTINATION</span> Companies
+      <span class="k">LABEL</span> owner NO <span class="k">PROPERTIES</span>,
+    Persons <span class="k">AS</span> worksFor
+      SOURCE KEY ( id ) REFERENCES Persons ( id )
+      <span class="k">DESTINATION</span> Companies
+      NO <span class="k">PROPERTIES</span>
+  )
+</pre></div></div></div>
 
 The key of the edge table uniquely identifies a row in the table.
 If a key is not explicitly specified (in case of all four edge tables above) then it defaults to the primary key of the underlying table.
@@ -276,11 +334,19 @@ TableAlias ::= ( 'AS' )? <Identifier>
 
 For example:
 
-```sql
+<div class="tab">
+<button name="sql-button" class="tablinks active" onclick="openTab(event, 'sql')">PGQL with SQL Standard syntax</button>
+<button name="pgql-button" class="tablinks" onclick="openTab(event, 'pgql')">PGQL with custom syntax</button>
+</div><div name="sql" class="tab-content active"><div class="language-sql highlighter-rouge"><div class="highlight"><pre class="highlight">
 ...
-  EDGE TABLES ( Persons AS worksFor ... )
+  <span class="k">EDGE</span> <span class="k">TABLES</span> ( Persons <span class="k">AS</span> worksFor ... )
 ...
-```
+</pre></div></div></div>
+<div name="pgql" class="tab-content"><div class="language-sql highlighter-rouge"><div class="highlight"><pre class="highlight">
+...
+  <span class="k">EDGE</span> <span class="k">TABLES</span> ( Persons <span class="k">AS</span> worksFor ... )
+...
+</pre></div></div></div>
 
 Above, the underlying table of the edge table is `Persons`, while the alias is `worksFor`.
 
@@ -293,19 +359,35 @@ but there may not exist two vertex tables with the same name, or two edge tables
 If the alias is not provided then it defaults to the name of the underlying table.
 For example:
 
-```sql
+<div class="tab">
+<button name="sql-button" class="tablinks active" onclick="openTab(event, 'sql')">PGQL with SQL Standard syntax</button>
+<button name="pgql-button" class="tablinks" onclick="openTab(event, 'pgql')">PGQL with custom syntax</button>
+</div><div name="sql" class="tab-content active"><div class="language-sql highlighter-rouge"><div class="highlight"><pre class="highlight">
 ...
-  VERTEX TABLES ( Person )
+  <span class="k">VERTEX</span> <span class="k">TABLES</span> ( Person )
 ...
-```
+</pre></div></div></div>
+<div name="pgql" class="tab-content"><div class="language-sql highlighter-rouge"><div class="highlight"><pre class="highlight">
+...
+  <span class="k">VERTEX</span> <span class="k">TABLES</span> ( Person )
+...
+</pre></div></div></div>
 
 Above is equivalent to:
 
-```sql
+<div class="tab">
+<button name="sql-button" class="tablinks active" onclick="openTab(event, 'sql')">PGQL with SQL Standard syntax</button>
+<button name="pgql-button" class="tablinks" onclick="openTab(event, 'pgql')">PGQL with custom syntax</button>
+</div><div name="sql" class="tab-content active"><div class="language-sql highlighter-rouge"><div class="highlight"><pre class="highlight">
 ...
-  VERTEX TABLES ( Person AS Person )
+  <span class="k">VERTEX</span> <span class="k">TABLES</span> ( Person <span class="k">AS</span> Person )
 ...
-```
+</pre></div></div></div>
+<div name="pgql" class="tab-content"><div class="language-sql highlighter-rouge"><div class="highlight"><pre class="highlight">
+...
+  <span class="k">VERTEX</span> <span class="k">TABLES</span> ( Person <span class="k">AS</span> Person )
+...
+</pre></div></div></div>
 
 Finally, in addition to providing unique names for vertex and edge tables, the aliases can also serve as a means to provide [labels](#labels) for vertices and edges:
 if no label is defined then the label defaults to the table alias.
@@ -332,23 +414,43 @@ Take the example from before:
 
 {% include image.html file="example_graphs/financial_transactions_schema.png"  %}
 
-```sql
-CREATE PROPERTY GRAPH financial_transactions
-  VERTEX TABLES (
+<div class="tab">
+<button name="sql-button" class="tablinks active" onclick="openTab(event, 'sql')">PGQL with SQL Standard syntax</button>
+<button name="pgql-button" class="tablinks" onclick="openTab(event, 'pgql')">PGQL with custom syntax</button>
+</div><div name="sql" class="tab-content active"><div class="language-sql highlighter-rouge"><div class="highlight"><pre class="highlight">
+<span class="k">CREATE</span> <span class="k">PROPERTY</span> <span class="k">GRAPH</span> financial_transactions
+  <span class="k">VERTEX</span> <span class="k">TABLES</span> (
     ...
   )
-  EDGE TABLES (
+  <span class="k">EDGE</span> <span class="k">TABLES</span> (
     Transactions
       SOURCE KEY ( from_account ) REFERENCES Accounts ( number )
-      DESTINATION KEY ( to_account ) REFERENCES Accounts ( number )
-      LABEL transaction PROPERTIES ( amount ),
-    Accounts AS PersonOwner
+      <span class="k">DESTINATION</span> KEY ( to_account ) REFERENCES Accounts ( number )
+      <span class="k">LABEL</span> transaction <span class="k">PROPERTIES</span> ( amount ),
+    Accounts <span class="k">AS</span> PersonOwner
       SOURCE KEY ( number ) REFERENCES Accounts ( number )
-      DESTINATION Persons
-      LABEL owner NO PROPERTIES,
+      <span class="k">DESTINATION</span> Persons
+      <span class="k">LABEL</span> owner NO <span class="k">PROPERTIES</span>,
     ...
   )
-```
+</pre></div></div></div>
+<div name="pgql" class="tab-content"><div class="language-sql highlighter-rouge"><div class="highlight"><pre class="highlight">
+<span class="k">CREATE</span> <span class="k">PROPERTY</span> <span class="k">GRAPH</span> financial_transactions
+  <span class="k">VERTEX</span> <span class="k">TABLES</span> (
+    ...
+  )
+  <span class="k">EDGE</span> <span class="k">TABLES</span> (
+    Transactions
+      SOURCE KEY ( from_account ) REFERENCES Accounts ( number )
+      <span class="k">DESTINATION</span> KEY ( to_account ) REFERENCES Accounts ( number )
+      <span class="k">LABEL</span> transaction <span class="k">PROPERTIES</span> ( amount ),
+    Accounts <span class="k">AS</span> PersonOwner
+      SOURCE KEY ( number ) REFERENCES Accounts ( number )
+      <span class="k">DESTINATION</span> Persons
+      <span class="k">LABEL</span> owner NO <span class="k">PROPERTIES</span>,
+    ...
+  )
+</pre></div></div></div>
 
 Above, a key is defined for the source and destination of `Transactions` because two foreign keys exist between `Transactions` and `Accounts` so it would be ambiguous which one to use without explicit specification.
 In case of `PersonOwner`, no foreign key exists between `Accounts` and `Accounts` so a key for the source (`KEY ( number )`) has to be explicitly specified. However, for the destination it is possible to omit the key and default to the existing foreign key between `Accounts` and `Persons`.
@@ -363,45 +465,87 @@ Note that above, we have the same schema as before, but this time the primary an
 
 Even though primary and foreign keys are missing, the graph can still be created by specifying the necessary keys in the `CREATE PROPERTY GRAPH` statement itself:
 
-```sql
-CREATE PROPERTY GRAPH financial_transactions
-  VERTEX TABLES (
+<div class="tab">
+<button name="sql-button" class="tablinks active" onclick="openTab(event, 'sql')">PGQL with SQL Standard syntax</button>
+<button name="pgql-button" class="tablinks" onclick="openTab(event, 'pgql')">PGQL with custom syntax</button>
+</div><div name="sql" class="tab-content active"><div class="language-sql highlighter-rouge"><div class="highlight"><pre class="highlight">
+<span class="k">CREATE</span> <span class="k">PROPERTY</span> <span class="k">GRAPH</span> financial_transactions
+  <span class="k">VERTEX</span> <span class="k">TABLES</span> (
     Persons
       KEY ( id )
-      LABEL Person
-      PROPERTIES ( name ),
+      <span class="k">LABEL</span> Person
+      <span class="k">PROPERTIES</span> ( name ),
     Companies
       KEY ( id )
-      LABEL Company
-      PROPERTIES ( name ),
+      <span class="k">LABEL</span> Company
+      <span class="k">PROPERTIES</span> ( name ),
     Accounts
       KEY ( number )
-      LABEL Account
-      PROPERTIES ( number )
+      <span class="k">LABEL</span> Account
+      <span class="k">PROPERTIES</span> ( number )
   )
-  EDGE TABLES (
+  <span class="k">EDGE</span> <span class="k">TABLES</span> (
     Transactions
       KEY ( from_account, to_account, date )
       SOURCE KEY ( from_account ) REFERENCES Accounts ( number )
-      DESTINATION KEY ( to_account ) REFERENCES Accounts ( number )
-      LABEL transaction PROPERTIES ( amount ),
-    Accounts AS PersonOwner
+      <span class="k">DESTINATION</span> KEY ( to_account ) REFERENCES Accounts ( number )
+      <span class="k">LABEL</span> transaction <span class="k">PROPERTIES</span> ( amount ),
+    Accounts <span class="k">AS</span> PersonOwner
       KEY ( number )
       SOURCE KEY ( number ) REFERENCES Accounts ( number )
-      DESTINATION KEY ( person_id ) REFERENCES Persons ( id )
-      LABEL owner NO PROPERTIES,
-    Accounts AS CompanyOwner
+      <span class="k">DESTINATION</span> KEY ( person_id ) REFERENCES Persons ( id )
+      <span class="k">LABEL</span> owner NO <span class="k">PROPERTIES</span>,
+    Accounts <span class="k">AS</span> CompanyOwner
       KEY ( number )
       SOURCE KEY ( number ) REFERENCES Accounts ( number )
-      DESTINATION KEY ( company_id ) REFERENCES Companies ( id )
-      LABEL owner NO PROPERTIES,
-  Persons AS worksFor
+      <span class="k">DESTINATION</span> KEY ( company_id ) REFERENCES Companies ( id )
+      <span class="k">LABEL</span> owner NO <span class="k">PROPERTIES</span>,
+  Persons <span class="k">AS</span> worksFor
       KEY ( id )
       SOURCE KEY ( id ) REFERENCES Persons ( id )
-      DESTINATION KEY ( company_id ) REFERENCES Companies ( id )
-      NO PROPERTIES
+      <span class="k">DESTINATION</span> KEY ( company_id ) REFERENCES Companies ( id )
+      NO <span class="k">PROPERTIES</span>
   )
-```
+</pre></div></div></div>
+<div name="pgql" class="tab-content"><div class="language-sql highlighter-rouge"><div class="highlight"><pre class="highlight">
+<span class="k">CREATE</span> <span class="k">PROPERTY</span> <span class="k">GRAPH</span> financial_transactions
+  <span class="k">VERTEX</span> <span class="k">TABLES</span> (
+    Persons
+      KEY ( id )
+      <span class="k">LABEL</span> Person
+      <span class="k">PROPERTIES</span> ( name ),
+    Companies
+      KEY ( id )
+      <span class="k">LABEL</span> Company
+      <span class="k">PROPERTIES</span> ( name ),
+    Accounts
+      KEY ( number )
+      <span class="k">LABEL</span> Account
+      <span class="k">PROPERTIES</span> ( number )
+  )
+  <span class="k">EDGE</span> <span class="k">TABLES</span> (
+    Transactions
+      KEY ( from_account, to_account, date )
+      SOURCE KEY ( from_account ) REFERENCES Accounts ( number )
+      <span class="k">DESTINATION</span> KEY ( to_account ) REFERENCES Accounts ( number )
+      <span class="k">LABEL</span> transaction <span class="k">PROPERTIES</span> ( amount ),
+    Accounts <span class="k">AS</span> PersonOwner
+      KEY ( number )
+      SOURCE KEY ( number ) REFERENCES Accounts ( number )
+      <span class="k">DESTINATION</span> KEY ( person_id ) REFERENCES Persons ( id )
+      <span class="k">LABEL</span> owner NO <span class="k">PROPERTIES</span>,
+    Accounts <span class="k">AS</span> CompanyOwner
+      KEY ( number )
+      SOURCE KEY ( number ) REFERENCES Accounts ( number )
+      <span class="k">DESTINATION</span> KEY ( company_id ) REFERENCES Companies ( id )
+      <span class="k">LABEL</span> owner NO <span class="k">PROPERTIES</span>,
+  Persons <span class="k">AS</span> worksFor
+      KEY ( id )
+      SOURCE KEY ( id ) REFERENCES Persons ( id )
+      <span class="k">DESTINATION</span> KEY ( company_id ) REFERENCES Companies ( id )
+      NO <span class="k">PROPERTIES</span>
+  )
+</pre></div></div></div>
 
 Above, keys were defined for each vertex table (e.g. `KEY ( id )`), edge table (e.g. `KEY ( from_account, to_account, date )`), source vertex table reference (e.g. `KEY ( from_account )`) and destination table reference (e.g. `KEY ( to_account )`).
 
@@ -426,27 +570,51 @@ Thus, if no label is specified and no table alias is specified, then both the ta
 
 For example:
 
-```sql
+<div class="tab">
+<button name="sql-button" class="tablinks active" onclick="openTab(event, 'sql')">PGQL with SQL Standard syntax</button>
+<button name="pgql-button" class="tablinks" onclick="openTab(event, 'pgql')">PGQL with custom syntax</button>
+</div><div name="sql" class="tab-content active"><div class="language-sql highlighter-rouge"><div class="highlight"><pre class="highlight">
 ...
-  VERTEX TABLES ( Person )
+  <span class="k">VERTEX</span> <span class="k">TABLES</span> ( Person )
 ...
-```
+</pre></div></div></div>
+<div name="pgql" class="tab-content"><div class="language-sql highlighter-rouge"><div class="highlight"><pre class="highlight">
+...
+  <span class="k">VERTEX</span> <span class="k">TABLES</span> ( Person )
+...
+</pre></div></div></div>
 
 Above is equivalent to:
 
-```sql
+<div class="tab">
+<button name="sql-button" class="tablinks active" onclick="openTab(event, 'sql')">PGQL with SQL Standard syntax</button>
+<button name="pgql-button" class="tablinks" onclick="openTab(event, 'pgql')">PGQL with custom syntax</button>
+</div><div name="sql" class="tab-content active"><div class="language-sql highlighter-rouge"><div class="highlight"><pre class="highlight">
 ...
-  VERTEX TABLES ( Person AS Person )
+  <span class="k">VERTEX</span> <span class="k">TABLES</span> ( Person <span class="k">AS</span> Person )
 ...
-```
+</pre></div></div></div>
+<div name="pgql" class="tab-content"><div class="language-sql highlighter-rouge"><div class="highlight"><pre class="highlight">
+...
+  <span class="k">VERTEX</span> <span class="k">TABLES</span> ( Person <span class="k">AS</span> Person )
+...
+</pre></div></div></div>
 
 Which is equivalent to:
 
-```sql
+<div class="tab">
+<button name="sql-button" class="tablinks active" onclick="openTab(event, 'sql')">PGQL with SQL Standard syntax</button>
+<button name="pgql-button" class="tablinks" onclick="openTab(event, 'pgql')">PGQL with custom syntax</button>
+</div><div name="sql" class="tab-content active"><div class="language-sql highlighter-rouge"><div class="highlight"><pre class="highlight">
 ...
-  VERTEX TABLES ( Person AS Person LABEL Person )
+  <span class="k">VERTEX</span> <span class="k">TABLES</span> ( Person <span class="k">AS</span> Person <span class="k">LABEL</span> Person )
 ...
-```
+</pre></div></div></div>
+<div name="pgql" class="tab-content"><div class="language-sql highlighter-rouge"><div class="highlight"><pre class="highlight">
+...
+  <span class="k">VERTEX</span> <span class="k">TABLES</span> ( Person <span class="k">AS</span> Person <span class="k">LABEL</span> Person )
+...
+</pre></div></div></div>
 
 ### Properties
 
@@ -477,19 +645,35 @@ AreKeyword              ::= 'ARE'
 
 An example is:
 
-```sql
+<div class="tab">
+<button name="sql-button" class="tablinks active" onclick="openTab(event, 'sql')">PGQL with SQL Standard syntax</button>
+<button name="pgql-button" class="tablinks" onclick="openTab(event, 'pgql')">PGQL with custom syntax</button>
+</div><div name="sql" class="tab-content active"><div class="language-sql highlighter-rouge"><div class="highlight"><pre class="highlight">
 ...
-  VERTEX TABLES ( Person PROPERTIES ARE ALL COLUMNS )
+  <span class="k">VERTEX</span> <span class="k">TABLES</span> ( Person <span class="k">PROPERTIES</span> ARE <span class="k">ALL</span> <span class="k">COLUMNS</span> )
 ...
-```
+</pre></div></div></div>
+<div name="pgql" class="tab-content"><div class="language-sql highlighter-rouge"><div class="highlight"><pre class="highlight">
+...
+  <span class="k">VERTEX</span> <span class="k">TABLES</span> ( Person <span class="k">PROPERTIES</span> ARE <span class="k">ALL</span> <span class="k">COLUMNS</span> )
+...
+</pre></div></div></div>
 
 Because of the default, the above is equivalent to:
 
-```sql
+<div class="tab">
+<button name="sql-button" class="tablinks active" onclick="openTab(event, 'sql')">PGQL with SQL Standard syntax</button>
+<button name="pgql-button" class="tablinks" onclick="openTab(event, 'pgql')">PGQL with custom syntax</button>
+</div><div name="sql" class="tab-content active"><div class="language-sql highlighter-rouge"><div class="highlight"><pre class="highlight">
 ...
-  VERTEX TABLES ( Person )
+  <span class="k">VERTEX</span> <span class="k">TABLES</span> ( Person )
 ...
-```
+</pre></div></div></div>
+<div name="pgql" class="tab-content"><div class="language-sql highlighter-rouge"><div class="highlight"><pre class="highlight">
+...
+  <span class="k">VERTEX</span> <span class="k">TABLES</span> ( Person )
+...
+</pre></div></div></div>
 
 #### PROPERTIES ARE ALL COLUMNS EXCEPT ( .. )
 
@@ -524,27 +708,49 @@ ColumnReference                    ::= <Identifier>
 
 For example:
 
-```sql
+<div class="tab">
+<button name="sql-button" class="tablinks active" onclick="openTab(event, 'sql')">PGQL with SQL Standard syntax</button>
+<button name="pgql-button" class="tablinks" onclick="openTab(event, 'pgql')">PGQL with custom syntax</button>
+</div><div name="sql" class="tab-content active"><div class="language-sql highlighter-rouge"><div class="highlight"><pre class="highlight">
 ...
-  VERTEX TABLES (
+  <span class="k">VERTEX</span> <span class="k">TABLES</span> (
     Employees
-      LABEL Employee
-      PROPERTIES ( first_name ),
+      <span class="k">LABEL</span> Employee
+      <span class="k">PROPERTIES</span> ( first_name ),
 ...
-```
+</pre></div></div></div>
+<div name="pgql" class="tab-content"><div class="language-sql highlighter-rouge"><div class="highlight"><pre class="highlight">
+...
+  <span class="k">VERTEX</span> <span class="k">TABLES</span> (
+    Employees
+      <span class="k">LABEL</span> Employee
+      <span class="k">PROPERTIES</span> ( first_name ),
+...
+</pre></div></div></div>
 
 Above, even though table `Employees` may have many columns, only the column `first_name` is used as a property. The name of the property defaults to the name of the column: `first_name`.
 
 If a different property name is desired then an alias can be used:
 
-```sql
+<div class="tab">
+<button name="sql-button" class="tablinks active" onclick="openTab(event, 'sql')">PGQL with SQL Standard syntax</button>
+<button name="pgql-button" class="tablinks" onclick="openTab(event, 'pgql')">PGQL with custom syntax</button>
+</div><div name="sql" class="tab-content active"><div class="language-sql highlighter-rouge"><div class="highlight"><pre class="highlight">
 ...
-  VERTEX TABLES (
+  <span class="k">VERTEX</span> <span class="k">TABLES</span> (
     Employees
-      LABEL Employee
-      PROPERTIES ( first_name AS firstName ),
+      <span class="k">LABEL</span> Employee
+      <span class="k">PROPERTIES</span> ( first_name <span class="k">AS</span> firstName ),
 ...
-```
+</pre></div></div></div>
+<div name="pgql" class="tab-content"><div class="language-sql highlighter-rouge"><div class="highlight"><pre class="highlight">
+...
+  <span class="k">VERTEX</span> <span class="k">TABLES</span> (
+    Employees
+      <span class="k">LABEL</span> Employee
+      <span class="k">PROPERTIES</span> ( first_name <span class="k">AS</span> firstName ),
+...
+</pre></div></div></div>
 
 Above, the column name `first_name` becomes a property with name `firstName` (notice the missing underscore character in the property name).
 
@@ -552,14 +758,25 @@ Property names may also be `CAST` expressions, which allows the values in the co
 
 For example:
 
-```sql
+<div class="tab">
+<button name="sql-button" class="tablinks active" onclick="openTab(event, 'sql')">PGQL with SQL Standard syntax</button>
+<button name="pgql-button" class="tablinks" onclick="openTab(event, 'pgql')">PGQL with custom syntax</button>
+</div><div name="sql" class="tab-content active"><div class="language-sql highlighter-rouge"><div class="highlight"><pre class="highlight">
 ...
-  VERTEX TABLES (
+  <span class="k">VERTEX</span> <span class="k">TABLES</span> (
     Employees
-      LABEL Employee
-      PROPERTIES ( CAST(salary AS INTEGER) AS salary ),
+      <span class="k">LABEL</span> Employee
+      <span class="k">PROPERTIES</span> ( C<span class="k">AS</span>T(salary <span class="k">AS</span> <span class="k">INTEGER</span>) <span class="k">AS</span> salary ),
 ...
-```
+</pre></div></div></div>
+<div name="pgql" class="tab-content"><div class="language-sql highlighter-rouge"><div class="highlight"><pre class="highlight">
+...
+  <span class="k">VERTEX</span> <span class="k">TABLES</span> (
+    Employees
+      <span class="k">LABEL</span> Employee
+      <span class="k">PROPERTIES</span> ( C<span class="k">AS</span>T(salary <span class="k">AS</span> <span class="k">INTEGER</span>) <span class="k">AS</span> salary ),
+...
+</pre></div></div></div>
 
 #### NO PROPERTIES
 
@@ -571,16 +788,29 @@ NoProperties ::= 'NO' 'PROPERTIES'
 
 An example of an edge table with no properties is:
 
-```sql
+<div class="tab">
+<button name="sql-button" class="tablinks active" onclick="openTab(event, 'sql')">PGQL with SQL Standard syntax</button>
+<button name="pgql-button" class="tablinks" onclick="openTab(event, 'pgql')">PGQL with custom syntax</button>
+</div><div name="sql" class="tab-content active"><div class="language-sql highlighter-rouge"><div class="highlight"><pre class="highlight">
 ...
-  EDGE TABLES (
+  <span class="k">EDGE</span> <span class="k">TABLES</span> (
     ...
-    Accounts AS PersonOwner
+    Accounts <span class="k">AS</span> PersonOwner
       SOURCE KEY ( number ) REFERENCES Accounts ( number )
-      DESTINATION Persons
-      LABEL owner NO PROPERTIES
+      <span class="k">DESTINATION</span> Persons
+      <span class="k">LABEL</span> owner NO <span class="k">PROPERTIES</span>
     ...
-```
+</pre></div></div></div>
+<div name="pgql" class="tab-content"><div class="language-sql highlighter-rouge"><div class="highlight"><pre class="highlight">
+...
+  <span class="k">EDGE</span> <span class="k">TABLES</span> (
+    ...
+    Accounts <span class="k">AS</span> PersonOwner
+      SOURCE KEY ( number ) REFERENCES Accounts ( number )
+      <span class="k">DESTINATION</span> Persons
+      <span class="k">LABEL</span> owner NO <span class="k">PROPERTIES</span>
+    ...
+</pre></div></div></div>
 
 #### Relation between labels and properties
 
@@ -589,26 +819,49 @@ Similarly, edge tables that have the same label are required to have the same pr
 
 Take the following example:
 
-```sql
+<div class="tab">
+<button name="sql-button" class="tablinks active" onclick="openTab(event, 'sql')">PGQL with SQL Standard syntax</button>
+<button name="pgql-button" class="tablinks" onclick="openTab(event, 'pgql')">PGQL with custom syntax</button>
+</div><div name="sql" class="tab-content active"><div class="language-sql highlighter-rouge"><div class="highlight"><pre class="highlight">
 ...
-  VERTEX TABLES (
-    /* ERROR: it is not allowed to have tables with the same labels but different properties */
-    Country LABEL Place PROPERTIES ( country_name ),
-    City LABEL Place PROPERTIES ( city_name )
+  <span class="k">VERTEX</span> <span class="k">TABLES</span> (
+    <span class="o">/</span><span class="o">*</span> ERR<span class="k">OR</span>: it is not allowed to have tables with the same labels but different properties <span class="o">*</span><span class="o">/</span>
+    Country <span class="k">LABEL</span> Place <span class="k">PROPERTIES</span> ( country_name ),
+    City <span class="k">LABEL</span> Place <span class="k">PROPERTIES</span> ( city_name )
   )
 ...
-```
+</pre></div></div></div>
+<div name="pgql" class="tab-content"><div class="language-sql highlighter-rouge"><div class="highlight"><pre class="highlight">
+...
+  <span class="k">VERTEX</span> <span class="k">TABLES</span> (
+    <span class="o">/</span><span class="o">*</span> ERR<span class="k">OR</span>: it is not allowed to have tables with the same labels but different properties <span class="o">*</span><span class="o">/</span>
+    Country <span class="k">LABEL</span> Place <span class="k">PROPERTIES</span> ( country_name ),
+    City <span class="k">LABEL</span> Place <span class="k">PROPERTIES</span> ( city_name )
+  )
+...
+</pre></div></div></div>
 
 The statement above is illegal because both `Country` and `City` have label `Place` but their properties are inconsistent. To make this example work, the same property names have to be assigned:
 
-```sql
+<div class="tab">
+<button name="sql-button" class="tablinks active" onclick="openTab(event, 'sql')">PGQL with SQL Standard syntax</button>
+<button name="pgql-button" class="tablinks" onclick="openTab(event, 'pgql')">PGQL with custom syntax</button>
+</div><div name="sql" class="tab-content active"><div class="language-sql highlighter-rouge"><div class="highlight"><pre class="highlight">
 ...
-  VERTEX TABLES (
-    Country LABEL Place PROPERTIES ( country_name AS name ),
-    City LABEL Place PROPERTIES ( city_name AS name )
+  <span class="k">VERTEX</span> <span class="k">TABLES</span> (
+    Country <span class="k">LABEL</span> Place <span class="k">PROPERTIES</span> ( country_name <span class="k">AS</span> name ),
+    City <span class="k">LABEL</span> Place <span class="k">PROPERTIES</span> ( city_name <span class="k">AS</span> name )
   )
 ...
-```
+</pre></div></div></div>
+<div name="pgql" class="tab-content"><div class="language-sql highlighter-rouge"><div class="highlight"><pre class="highlight">
+...
+  <span class="k">VERTEX</span> <span class="k">TABLES</span> (
+    Country <span class="k">LABEL</span> Place <span class="k">PROPERTIES</span> ( country_name <span class="k">AS</span> name ),
+    City <span class="k">LABEL</span> Place <span class="k">PROPERTIES</span> ( city_name <span class="k">AS</span> name )
+  )
+...
+</pre></div></div></div>
 
 ### Source or destination is self
 
@@ -626,25 +879,47 @@ These edge tables are in fact the `Employees` and `Departments` tables themselve
 
 The graph can be created as follows:
 
-```sql
-CREATE PROPERTY GRAPH hr_simplified
-  VERTEX TABLES (
-    employees LABEL employee
-      PROPERTIES ARE ALL COLUMNS EXCEPT ( job_id, manager_id, department_id ),
-    departments LABEL department
-      PROPERTIES ( department_id, department_name )
+<div class="tab">
+<button name="sql-button" class="tablinks active" onclick="openTab(event, 'sql')">PGQL with SQL Standard syntax</button>
+<button name="pgql-button" class="tablinks" onclick="openTab(event, 'pgql')">PGQL with custom syntax</button>
+</div><div name="sql" class="tab-content active"><div class="language-sql highlighter-rouge"><div class="highlight"><pre class="highlight">
+<span class="k">CREATE</span> <span class="k">PROPERTY</span> <span class="k">GRAPH</span> hr_simplified
+  <span class="k">VERTEX</span> <span class="k">TABLES</span> (
+    employees <span class="k">LABEL</span> employee
+      <span class="k">PROPERTIES</span> ARE <span class="k">ALL</span> <span class="k">COLUMNS</span> EXCEPT ( job_id, manager_id, department_id ),
+    departments <span class="k">LABEL</span> department
+      <span class="k">PROPERTIES</span> ( department_id, department_name )
   )
-  EDGE TABLES (
-    employees AS works_for
+  <span class="k">EDGE</span> <span class="k">TABLES</span> (
+    employees <span class="k">AS</span> works_for
       SOURCE KEY ( employee_id ) REFERENCES employees ( employee_id )
-      DESTINATION KEY ( manager_id ) REFERENCES employees ( employee_id )
-      NO PROPERTIES,
-    departments AS managed_by
+      <span class="k">DESTINATION</span> KEY ( manager_id ) REFERENCES employees ( employee_id )
+      NO <span class="k">PROPERTIES</span>,
+    departments <span class="k">AS</span> managed_by
       SOURCE KEY ( department_id ) REFERENCES departments ( department_id )
-      DESTINATION employees
-      NO PROPERTIES
+      <span class="k">DESTINATION</span> employees
+      NO <span class="k">PROPERTIES</span>
   )
-```
+</pre></div></div></div>
+<div name="pgql" class="tab-content"><div class="language-sql highlighter-rouge"><div class="highlight"><pre class="highlight">
+<span class="k">CREATE</span> <span class="k">PROPERTY</span> <span class="k">GRAPH</span> hr_simplified
+  <span class="k">VERTEX</span> <span class="k">TABLES</span> (
+    employees <span class="k">LABEL</span> employee
+      <span class="k">PROPERTIES</span> ARE <span class="k">ALL</span> <span class="k">COLUMNS</span> EXCEPT ( job_id, manager_id, department_id ),
+    departments <span class="k">LABEL</span> department
+      <span class="k">PROPERTIES</span> ( department_id, department_name )
+  )
+  <span class="k">EDGE</span> <span class="k">TABLES</span> (
+    employees <span class="k">AS</span> works_for
+      SOURCE KEY ( employee_id ) REFERENCES employees ( employee_id )
+      <span class="k">DESTINATION</span> KEY ( manager_id ) REFERENCES employees ( employee_id )
+      NO <span class="k">PROPERTIES</span>,
+    departments <span class="k">AS</span> managed_by
+      SOURCE KEY ( department_id ) REFERENCES departments ( department_id )
+      <span class="k">DESTINATION</span> employees
+      NO <span class="k">PROPERTIES</span>
+  )
+</pre></div></div></div>
 
 As you can see, the `employee` vertices are created from the `employees` table, but so are the `works_for` edges that represent the managers of employees.
 The source key is the primary key of the table, while the destination key corresponds to the foreign key.
@@ -669,69 +944,135 @@ A more complex example is the Human Resources (HR) schema:
 
 The following statement maps the schema into a graph:
 
-```sql
-CREATE PROPERTY GRAPH hr
-  VERTEX TABLES (
-    employees LABEL employee
-      PROPERTIES ARE ALL COLUMNS EXCEPT ( job_id, manager_id, department_id ),
-    departments LABEL department
-      PROPERTIES ( department_id, department_name ),
-    jobs LABEL job
-      PROPERTIES ARE ALL COLUMNS,
+<div class="tab">
+<button name="sql-button" class="tablinks active" onclick="openTab(event, 'sql')">PGQL with SQL Standard syntax</button>
+<button name="pgql-button" class="tablinks" onclick="openTab(event, 'pgql')">PGQL with custom syntax</button>
+</div><div name="sql" class="tab-content active"><div class="language-sql highlighter-rouge"><div class="highlight"><pre class="highlight">
+<span class="k">CREATE</span> <span class="k">PROPERTY</span> <span class="k">GRAPH</span> hr
+  <span class="k">VERTEX</span> <span class="k">TABLES</span> (
+    employees <span class="k">LABEL</span> employee
+      <span class="k">PROPERTIES</span> ARE <span class="k">ALL</span> <span class="k">COLUMNS</span> EXCEPT ( job_id, manager_id, department_id ),
+    departments <span class="k">LABEL</span> department
+      <span class="k">PROPERTIES</span> ( department_id, department_name ),
+    jobs <span class="k">LABEL</span> job
+      <span class="k">PROPERTIES</span> ARE <span class="k">ALL</span> <span class="k">COLUMNS</span>,
     job_history
-      PROPERTIES ( start_date, end_date ),
-    locations LABEL location
-      PROPERTIES ARE ALL COLUMNS EXCEPT ( country_id ),
-    countries LABEL country
-      PROPERTIES ARE ALL COLUMNS EXCEPT ( region_id ),
-    regions LABEL region
+      <span class="k">PROPERTIES</span> ( start_date, end_date ),
+    locations <span class="k">LABEL</span> location
+      <span class="k">PROPERTIES</span> ARE <span class="k">ALL</span> <span class="k">COLUMNS</span> EXCEPT ( country_id ),
+    countries <span class="k">LABEL</span> country
+      <span class="k">PROPERTIES</span> ARE <span class="k">ALL</span> <span class="k">COLUMNS</span> EXCEPT ( region_id ),
+    regions <span class="k">LABEL</span> region
   )
-  EDGE TABLES (
-    employees AS works_for
+  <span class="k">EDGE</span> <span class="k">TABLES</span> (
+    employees <span class="k">AS</span> works_for
       SOURCE KEY ( employee_id ) REFERENCES employees ( employee_id )
-      DESTINATION KEY ( manager_id ) REFERENCES employees ( employee_id )
-      NO PROPERTIES,
-    employees AS works_at
+      <span class="k">DESTINATION</span> KEY ( manager_id ) REFERENCES employees ( employee_id )
+      NO <span class="k">PROPERTIES</span>,
+    employees <span class="k">AS</span> works_at
       SOURCE KEY ( employee_id ) REFERENCES employees ( employee_id )
-      DESTINATION departments
-      NO PROPERTIES,
-    employees AS works_as
+      <span class="k">DESTINATION</span> departments
+      NO <span class="k">PROPERTIES</span>,
+    employees <span class="k">AS</span> works_as
       SOURCE KEY ( employee_id ) REFERENCES employees ( employee_id )
-      DESTINATION jobs
-      NO PROPERTIES,
-    departments AS managed_by
+      <span class="k">DESTINATION</span> jobs
+      NO <span class="k">PROPERTIES</span>,
+    departments <span class="k">AS</span> managed_by
       SOURCE KEY ( department_id ) REFERENCES departments ( department_id )
-      DESTINATION employees
-      NO PROPERTIES,
-    job_history AS for_employee
+      <span class="k">DESTINATION</span> employees
+      NO <span class="k">PROPERTIES</span>,
+    job_history <span class="k">AS</span> for_employee
       SOURCE KEY ( employee_id, start_date ) REFERENCES job_history ( employee_id, start_date)
-      DESTINATION employees
-      NO PROPERTIES,
-    job_history AS for_department
+      <span class="k">DESTINATION</span> employees
+      NO <span class="k">PROPERTIES</span>,
+    job_history <span class="k">AS</span> for_department
       SOURCE KEY ( employee_id, start_date ) REFERENCES job_history ( employee_id, start_date)
-      DESTINATION departments
-      NO PROPERTIES,
-    job_history AS for_job
+      <span class="k">DESTINATION</span> departments
+      NO <span class="k">PROPERTIES</span>,
+    job_history <span class="k">AS</span> for_job
       SOURCE KEY ( employee_id, start_date ) REFERENCES job_history ( employee_id, start_date)
-      DESTINATION jobs
-      NO PROPERTIES,
-    departments AS department_located_in
+      <span class="k">DESTINATION</span> jobs
+      NO <span class="k">PROPERTIES</span>,
+    departments <span class="k">AS</span> department_located_in
       SOURCE KEY ( department_id ) REFERENCES departments ( department_id )
-      DESTINATION locations
-      LABEL located_in
-      NO PROPERTIES,
-    locations AS location_located_in
+      <span class="k">DESTINATION</span> locations
+      <span class="k">LABEL</span> located_in
+      NO <span class="k">PROPERTIES</span>,
+    locations <span class="k">AS</span> location_located_in
       SOURCE KEY ( location_id ) REFERENCES locations ( location_id )
-      DESTINATION countries
-      LABEL located_in
-      NO PROPERTIES,
-    countries AS country_located_in
+      <span class="k">DESTINATION</span> countries
+      <span class="k">LABEL</span> located_in
+      NO <span class="k">PROPERTIES</span>,
+    countries <span class="k">AS</span> country_located_in
       SOURCE KEY ( country_id ) REFERENCES countries ( country_id )
-      DESTINATION regions
-      LABEL located_in
-      NO PROPERTIES
+      <span class="k">DESTINATION</span> regions
+      <span class="k">LABEL</span> located_in
+      NO <span class="k">PROPERTIES</span>
   )
-```
+</pre></div></div></div>
+<div name="pgql" class="tab-content"><div class="language-sql highlighter-rouge"><div class="highlight"><pre class="highlight">
+<span class="k">CREATE</span> <span class="k">PROPERTY</span> <span class="k">GRAPH</span> hr
+  <span class="k">VERTEX</span> <span class="k">TABLES</span> (
+    employees <span class="k">LABEL</span> employee
+      <span class="k">PROPERTIES</span> ARE <span class="k">ALL</span> <span class="k">COLUMNS</span> EXCEPT ( job_id, manager_id, department_id ),
+    departments <span class="k">LABEL</span> department
+      <span class="k">PROPERTIES</span> ( department_id, department_name ),
+    jobs <span class="k">LABEL</span> job
+      <span class="k">PROPERTIES</span> ARE <span class="k">ALL</span> <span class="k">COLUMNS</span>,
+    job_history
+      <span class="k">PROPERTIES</span> ( start_date, end_date ),
+    locations <span class="k">LABEL</span> location
+      <span class="k">PROPERTIES</span> ARE <span class="k">ALL</span> <span class="k">COLUMNS</span> EXCEPT ( country_id ),
+    countries <span class="k">LABEL</span> country
+      <span class="k">PROPERTIES</span> ARE <span class="k">ALL</span> <span class="k">COLUMNS</span> EXCEPT ( region_id ),
+    regions <span class="k">LABEL</span> region
+  )
+  <span class="k">EDGE</span> <span class="k">TABLES</span> (
+    employees <span class="k">AS</span> works_for
+      SOURCE KEY ( employee_id ) REFERENCES employees ( employee_id )
+      <span class="k">DESTINATION</span> KEY ( manager_id ) REFERENCES employees ( employee_id )
+      NO <span class="k">PROPERTIES</span>,
+    employees <span class="k">AS</span> works_at
+      SOURCE KEY ( employee_id ) REFERENCES employees ( employee_id )
+      <span class="k">DESTINATION</span> departments
+      NO <span class="k">PROPERTIES</span>,
+    employees <span class="k">AS</span> works_as
+      SOURCE KEY ( employee_id ) REFERENCES employees ( employee_id )
+      <span class="k">DESTINATION</span> jobs
+      NO <span class="k">PROPERTIES</span>,
+    departments <span class="k">AS</span> managed_by
+      SOURCE KEY ( department_id ) REFERENCES departments ( department_id )
+      <span class="k">DESTINATION</span> employees
+      NO <span class="k">PROPERTIES</span>,
+    job_history <span class="k">AS</span> for_employee
+      SOURCE KEY ( employee_id, start_date ) REFERENCES job_history ( employee_id, start_date)
+      <span class="k">DESTINATION</span> employees
+      NO <span class="k">PROPERTIES</span>,
+    job_history <span class="k">AS</span> for_department
+      SOURCE KEY ( employee_id, start_date ) REFERENCES job_history ( employee_id, start_date)
+      <span class="k">DESTINATION</span> departments
+      NO <span class="k">PROPERTIES</span>,
+    job_history <span class="k">AS</span> for_job
+      SOURCE KEY ( employee_id, start_date ) REFERENCES job_history ( employee_id, start_date)
+      <span class="k">DESTINATION</span> jobs
+      NO <span class="k">PROPERTIES</span>,
+    departments <span class="k">AS</span> department_located_in
+      SOURCE KEY ( department_id ) REFERENCES departments ( department_id )
+      <span class="k">DESTINATION</span> locations
+      <span class="k">LABEL</span> located_in
+      NO <span class="k">PROPERTIES</span>,
+    locations <span class="k">AS</span> location_located_in
+      SOURCE KEY ( location_id ) REFERENCES locations ( location_id )
+      <span class="k">DESTINATION</span> countries
+      <span class="k">LABEL</span> located_in
+      NO <span class="k">PROPERTIES</span>,
+    countries <span class="k">AS</span> country_located_in
+      SOURCE KEY ( country_id ) REFERENCES countries ( country_id )
+      <span class="k">DESTINATION</span> regions
+      <span class="k">LABEL</span> located_in
+      NO <span class="k">PROPERTIES</span>
+  )
+</pre></div></div></div>
 
 In this example, all the edge tables have a source vertex table that is the edge table itself.
 This scenario was explained in more detail in [Source or destination is self](#source-or-destination-is-self).
@@ -741,12 +1082,18 @@ After the graph is created it can be queried.
 For example, we may want to see an overview of the vertex and edge labels and their frequencies.
 Therefore, we first perform a `SELECT` query to create such an overview for the vertex labels:
 
-```sql
-SELECT label(n) AS lbl, COUNT(*)
-FROM MATCH (n) ON hr
-GROUP BY lbl
-ORDER BY COUNT(*) DESC
-```
+<div class="tab">
+<button name="sql-button" class="tablinks active" onclick="openTab(event, 'sql')">PGQL with SQL Standard syntax</button>
+<button name="pgql-button" class="tablinks" onclick="openTab(event, 'pgql')">PGQL with custom syntax</button>
+</div><div name="sql" class="tab-content active"><div class="language-sql highlighter-rouge"><div class="highlight"><pre class="highlight">
+<span class="o">/</span><span class="o">*</span> Use PGQL with custom syntax <span class="o">*</span><span class="o">/</span>
+</pre></div></div></div>
+<div name="pgql" class="tab-content"><div class="language-sql highlighter-rouge"><div class="highlight"><pre class="highlight">
+<span class="k">SELECT</span> label(n) <span class="k">AS</span> lbl, COUNT(<span class="o">*</span>)
+<span class="k">FROM</span> <span class="k">MATCH</span> (n) <span class="k">ON</span> hr
+<span class="k">GROUP</span> <span class="k">BY</span> lbl
+<span class="k">ORDER</span> <span class="k">BY</span> COUNT(<span class="o">*</span>) <span class="k">DESC</span>
+</pre></div></div></div>
 
 ```
 +------------------------+
@@ -767,12 +1114,18 @@ Like in SQL, [quoted identifiers](#quoted-identifiers) can be used if such impli
 
 Then, we create an overview of labels of edges and labels of their source and destination vertices, again with frequencies for each combination:
 
-```sql
-SELECT label(n) AS srcLbl, label(e) AS edgeLbl, label(m) AS dstLbl, COUNT(*)
-FROM MATCH (n) -[e]-> (m) ON hr
-GROUP BY srcLbl, edgeLbl, dstLbl
-ORDER BY COUNT(*) DESC
-```
+<div class="tab">
+<button name="sql-button" class="tablinks active" onclick="openTab(event, 'sql')">PGQL with SQL Standard syntax</button>
+<button name="pgql-button" class="tablinks" onclick="openTab(event, 'pgql')">PGQL with custom syntax</button>
+</div><div name="sql" class="tab-content active"><div class="language-sql highlighter-rouge"><div class="highlight"><pre class="highlight">
+<span class="o">/</span><span class="o">*</span> Use PGQL with custom syntax <span class="o">*</span><span class="o">/</span>
+</pre></div></div></div>
+<div name="pgql" class="tab-content"><div class="language-sql highlighter-rouge"><div class="highlight"><pre class="highlight">
+<span class="k">SELECT</span> label(n) <span class="k">AS</span> srcLbl, label(e) <span class="k">AS</span> edgeLbl, label(m) <span class="k">AS</span> dstLbl, COUNT(<span class="o">*</span>)
+<span class="k">FROM</span> <span class="k">MATCH</span> (n) <span class="o">-</span>[e]<span class="o">-</span><span class="o">></span> (m) <span class="k">ON</span> hr
+<span class="k">GROUP</span> <span class="k">BY</span> srcLbl, edgeLbl, dstLbl
+<span class="k">ORDER</span> <span class="k">BY</span> COUNT(<span class="o">*</span>) <span class="k">DESC</span>
+</pre></div></div></div>
 
 ```
 +--------------------------------------------------+
@@ -798,18 +1151,33 @@ This can be achieved by qualifying the vertex and edge table names with a schema
 
 For example:
 
-```sql
-CREATE PROPERTY GRAPH
-  VERTEX TABLES (
+<div class="tab">
+<button name="sql-button" class="tablinks active" onclick="openTab(event, 'sql')">PGQL with SQL Standard syntax</button>
+<button name="pgql-button" class="tablinks" onclick="openTab(event, 'pgql')">PGQL with custom syntax</button>
+</div><div name="sql" class="tab-content active"><div class="language-sql highlighter-rouge"><div class="highlight"><pre class="highlight">
+<span class="k">CREATE</span> <span class="k">PROPERTY</span> <span class="k">GRAPH</span>
+  <span class="k">VERTEX</span> <span class="k">TABLES</span> (
     SocialNetwork.Person,
-    HR.Employees LABEL Employee
+    HR.Employees <span class="k">LABEL</span> Employee
   )
-  EDGE TABLES (
+  <span class="k">EDGE</span> <span class="k">TABLES</span> (
     MySchema.SameAs
       SOURCE KEY ( firstName, lastName ) REFERENCES Person ( firstName, lastName )
-      DESTINATION KEY ( first_name, last_name ) REFERENCES Employee ( first_name, last_name )
+      <span class="k">DESTINATION</span> KEY ( first_name, last_name ) REFERENCES Employee ( first_name, last_name )
   )
-```
+</pre></div></div></div>
+<div name="pgql" class="tab-content"><div class="language-sql highlighter-rouge"><div class="highlight"><pre class="highlight">
+<span class="k">CREATE</span> <span class="k">PROPERTY</span> <span class="k">GRAPH</span>
+  <span class="k">VERTEX</span> <span class="k">TABLES</span> (
+    SocialNetwork.Person,
+    HR.Employees <span class="k">LABEL</span> Employee
+  )
+  <span class="k">EDGE</span> <span class="k">TABLES</span> (
+    MySchema.SameAs
+      SOURCE KEY ( firstName, lastName ) REFERENCES Person ( firstName, lastName )
+      <span class="k">DESTINATION</span> KEY ( first_name, last_name ) REFERENCES Employee ( first_name, last_name )
+  )
+</pre></div></div></div>
 
 Above, the vertex table `Person` is part of schema `SocialNetwork`,
 the vertex table `Employee` is part of schema `HR`
@@ -830,9 +1198,15 @@ DropPropertyGraph ::= 'DROP' 'PROPERTY' 'GRAPH' <GraphReference>
 
 For example:
 
-```sql
-DROP PROPERTY GRAPH financial_transactions
-```
+<div class="tab">
+<button name="sql-button" class="tablinks active" onclick="openTab(event, 'sql')">PGQL with SQL Standard syntax</button>
+<button name="pgql-button" class="tablinks" onclick="openTab(event, 'pgql')">PGQL with custom syntax</button>
+</div><div name="sql" class="tab-content active"><div class="language-sql highlighter-rouge"><div class="highlight"><pre class="highlight">
+<span class="k">DROP</span> <span class="k">PROPERTY</span> <span class="k">GRAPH</span> financial_transactions
+</pre></div></div></div>
+<div name="pgql" class="tab-content"><div class="language-sql highlighter-rouge"><div class="highlight"><pre class="highlight">
+<span class="k">DROP</span> <span class="k">PROPERTY</span> <span class="k">GRAPH</span> financial_transactions
+</pre></div></div></div>
 
 # Graph Pattern Matching
 
@@ -850,9 +1224,9 @@ The following query matches all the vertices with the label `Person` and retriev
 <button name="sql-button" class="tablinks active" onclick="openTab(event, 'sql')">PGQL with SQL Standard syntax</button>
 <button name="pgql-button" class="tablinks" onclick="openTab(event, 'pgql')">PGQL with custom syntax</button>
 </div><div name="sql" class="tab-content active"><div class="language-sql highlighter-rouge"><div class="highlight"><pre class="highlight">
-<span class="k">SELECT</span> name, dob 
-<span class="k">FROM</span> <span class="k">GRAPH_TABLE</span>(student_network 
-  <span class="k">MATCH</span> (n <span class="k">IS</span> Person) 
+<span class="k">SELECT</span> name, dob
+<span class="k">FROM</span> <span class="k">GRAPH_TABLE</span>(student_network
+  <span class="k">MATCH</span> (n <span class="k">IS</span> Person)
   <span class="k">COLUMNS</span>(n.name, n.dob))
 </pre></div></div></div>
 <div name="pgql" class="tab-content"><div class="language-sql highlighter-rouge"><div class="highlight"><pre class="highlight">
@@ -890,8 +1264,8 @@ For example:
 <button name="sql-button" class="tablinks active" onclick="openTab(event, 'sql')">PGQL with SQL Standard syntax</button>
 <button name="pgql-button" class="tablinks" onclick="openTab(event, 'pgql')">PGQL with custom syntax</button>
 </div><div name="sql" class="tab-content active"><div class="language-sql highlighter-rouge"><div class="highlight"><pre class="highlight">
-<span class="k">SELECT</span> a, b 
-<span class="k">FROM</span> <span class="k">GRAPH_TABLE</span>(student_network 
+<span class="k">SELECT</span> a, b
+<span class="k">FROM</span> <span class="k">GRAPH_TABLE</span>(student_network
   <span class="k">MATCH</span> (a <span class="k">IS</span> Person)<span class="o">-</span>[e is knows]<span class="o">-</span><span class="o">></span>(b is Person)
   <span class="k">COLUMNS</span>(a.name as a, b.name as b))
 </pre></div></div></div>
@@ -930,8 +1304,8 @@ For example:
 <button name="sql-button" class="tablinks active" onclick="openTab(event, 'sql')">PGQL with SQL Standard syntax</button>
 <button name="pgql-button" class="tablinks" onclick="openTab(event, 'pgql')">PGQL with custom syntax</button>
 </div><div name="sql" class="tab-content active"><div class="language-sql highlighter-rouge"><div class="highlight"><pre class="highlight">
-<span class="k">SELECT</span> name, dob 
-<span class="k">FROM</span> <span class="k">GRAPH_TABLE</span>(student_network 
+<span class="k">SELECT</span> name, dob
+<span class="k">FROM</span> <span class="k">GRAPH_TABLE</span>(student_network
   <span class="k">MATCH</span> (n <span class="k">IS</span> Person<span class="o">|</span>university)
   <span class="k">COLUMNS</span>(n.name, n.dob))
 </pre></div></div></div>
@@ -965,7 +1339,7 @@ For example:
 <button name="sql-button" class="tablinks active" onclick="openTab(event, 'sql')">PGQL with SQL Standard syntax</button>
 <button name="pgql-button" class="tablinks" onclick="openTab(event, 'pgql')">PGQL with custom syntax</button>
 </div><div name="sql" class="tab-content active"><div class="language-sql highlighter-rouge"><div class="highlight"><pre class="highlight">
-<span class="k">SELECT</span> name, dob 
+<span class="k">SELECT</span> name, dob
 <span class="k">FROM</span> <span class="k">GRAPH_TABLE</span>(student_network
   <span class="k">MATCH</span> (n)
   <span class="k">COLUMNS</span>(n.name, n.dob))
@@ -1001,9 +1375,9 @@ For example, "find all persons that have a date of birth (dob) greater than 1995
 <button name="sql-button" class="tablinks active" onclick="openTab(event, 'sql')">PGQL with SQL Standard syntax</button>
 <button name="pgql-button" class="tablinks" onclick="openTab(event, 'pgql')">PGQL with custom syntax</button>
 </div><div name="sql" class="tab-content active"><div class="language-sql highlighter-rouge"><div class="highlight"><pre class="highlight">
-<span class="k">SELECT</span> name, dob 
-<span class="k">FROM</span> <span class="k">GRAPH_TABLE</span>(student_network 
-  <span class="k">MATCH</span> (n) 
+<span class="k">SELECT</span> name, dob
+<span class="k">FROM</span> <span class="k">GRAPH_TABLE</span>(student_network
+  <span class="k">MATCH</span> (n)
   <span class="k">WHERE</span> n.dob <span class="o">></span> <span class="k">DATE</span> <span class="mi">'1995-01-01'</span>
   <span class="k">COLUMNS</span>(n.name, n.dob))
 </pre></div></div></div>
@@ -1034,10 +1408,10 @@ Another example is to "find people that Kathrine knows and that are old than her
 <button name="sql-button" class="tablinks active" onclick="openTab(event, 'sql')">PGQL with SQL Standard syntax</button>
 <button name="pgql-button" class="tablinks" onclick="openTab(event, 'pgql')">PGQL with custom syntax</button>
 </div><div name="sql" class="tab-content active"><div class="language-sql highlighter-rouge"><div class="highlight"><pre class="highlight">
-<span class="k">SELECT</span> name, dob 
-<span class="k">FROM</span> <span class="k">GRAPH_TABLE</span>(student_network 
-  <span class="k">MATCH</span> (n) <span class="o">-</span>[e]<span class="o">-</span><span class="o">></span> (m) 
-  <span class="k">WHERE</span> n.name <span class="o">=</span> <span class="mi">'Kathrine'</span> <span class="k">AND</span> n.dob <span class="o"><</span><span class="o">=</span> m.dob 
+<span class="k">SELECT</span> name, dob
+<span class="k">FROM</span> <span class="k">GRAPH_TABLE</span>(student_network
+  <span class="k">MATCH</span> (n) <span class="o">-</span>[e]<span class="o">-</span><span class="o">></span> (m)
+  <span class="k">WHERE</span> n.name <span class="o">=</span> <span class="mi">'Kathrine'</span> <span class="k">AND</span> n.dob <span class="o"><</span><span class="o">=</span> m.dob
   <span class="k">COLUMNS</span>(m.name, m.dob))
 </pre></div></div></div>
 <div name="pgql" class="tab-content"><div class="language-sql highlighter-rouge"><div class="highlight"><pre class="highlight">
@@ -1071,10 +1445,10 @@ For example, "find people that Lee knows and that are a student at the same univ
 <button name="sql-button" class="tablinks active" onclick="openTab(event, 'sql')">PGQL with SQL Standard syntax</button>
 <button name="pgql-button" class="tablinks" onclick="openTab(event, 'pgql')">PGQL with custom syntax</button>
 </div><div name="sql" class="tab-content active"><div class="language-sql highlighter-rouge"><div class="highlight"><pre class="highlight">
-<span class="k">SELECT</span> friend, university 
-<span class="k">FROM</span> <span class="k">GRAPH_TABLE</span>(student_network 
-  <span class="k">MATCH</span> (u <span class="k">IS</span> university) <span class="o"><</span><span class="o">-</span>[<span class="k">IS</span> studentOf]<span class="o">-</span> (p1 <span class="k">IS</span> Person) <span class="o">-</span>[<span class="k">IS</span> knows]<span class="o">-</span><span class="o">></span> (p2 <span class="k">IS</span> Person) <span class="o">-</span>[<span class="k">IS</span> studentOf]<span class="o">-</span><span class="o">></span> (u) 
-  <span class="k">WHERE</span> p1.name <span class="o">=</span> <span class="mi">'Lee'</span> 
+<span class="k">SELECT</span> friend, university
+<span class="k">FROM</span> <span class="k">GRAPH_TABLE</span>(student_network
+  <span class="k">MATCH</span> (u <span class="k">IS</span> university) <span class="o"><</span><span class="o">-</span>[<span class="k">IS</span> studentOf]<span class="o">-</span> (p1 <span class="k">IS</span> Person) <span class="o">-</span>[<span class="k">IS</span> knows]<span class="o">-</span><span class="o">></span> (p2 <span class="k">IS</span> Person) <span class="o">-</span>[<span class="k">IS</span> studentOf]<span class="o">-</span><span class="o">></span> (u)
+  <span class="k">WHERE</span> p1.name <span class="o">=</span> <span class="mi">'Lee'</span>
   <span class="k">COLUMNS</span>(p2.name <span class="k">AS</span> friend, u.name <span class="k">AS</span> university))
 </pre></div></div></div>
 <div name="pgql" class="tab-content"><div class="language-sql highlighter-rouge"><div class="highlight"><pre class="highlight">
@@ -1101,12 +1475,12 @@ The same query as above may be expressed through multiple comma-separated path p
 <button name="sql-button" class="tablinks active" onclick="openTab(event, 'sql')">PGQL with SQL Standard syntax</button>
 <button name="pgql-button" class="tablinks" onclick="openTab(event, 'pgql')">PGQL with custom syntax</button>
 </div><div name="sql" class="tab-content active"><div class="language-sql highlighter-rouge"><div class="highlight"><pre class="highlight">
-<span class="k">SELECT</span> friend, university 
-<span class="k">FROM</span> <span class="k">GRAPH_TABLE</span>(student_network 
-  <span class="k">MATCH</span> (p1 <span class="k">IS</span> Person) <span class="o">-</span>[<span class="k">IS</span> knows]<span class="o">-</span><span class="o">></span> (p2 <span class="k">IS</span> Person), 
-        (p1) <span class="o">-</span>[<span class="k">IS</span> studentOf]<span class="o">-</span><span class="o">></span> (u <span class="k">IS</span> University), 
-        (p2) <span class="o">-</span>[<span class="k">IS</span> studentOf]<span class="o">-</span><span class="o">></span> (u) 
-  <span class="k">WHERE</span> p1.name <span class="o">=</span> <span class="mi">'Lee'</span> 
+<span class="k">SELECT</span> friend, university
+<span class="k">FROM</span> <span class="k">GRAPH_TABLE</span>(student_network
+  <span class="k">MATCH</span> (p1 <span class="k">IS</span> Person) <span class="o">-</span>[<span class="k">IS</span> knows]<span class="o">-</span><span class="o">></span> (p2 <span class="k">IS</span> Person),
+        (p1) <span class="o">-</span>[<span class="k">IS</span> studentOf]<span class="o">-</span><span class="o">></span> (u <span class="k">IS</span> University),
+        (p2) <span class="o">-</span>[<span class="k">IS</span> studentOf]<span class="o">-</span><span class="o">></span> (u)
+  <span class="k">WHERE</span> p1.name <span class="o">=</span> <span class="mi">'Lee'</span>
   <span class="k">COLUMNS</span>(p2.name <span class="k">AS</span> friend, u.name <span class="k">AS</span> university))
 </pre></div></div></div>
 <div name="pgql" class="tab-content"><div class="language-sql highlighter-rouge"><div class="highlight"><pre class="highlight">
@@ -1139,10 +1513,10 @@ For example, "find friends of friends of Lee" (friendship being defined by the p
 <button name="sql-button" class="tablinks active" onclick="openTab(event, 'sql')">PGQL with SQL Standard syntax</button>
 <button name="pgql-button" class="tablinks" onclick="openTab(event, 'pgql')">PGQL with custom syntax</button>
 </div><div name="sql" class="tab-content active"><div class="language-sql highlighter-rouge"><div class="highlight"><pre class="highlight">
-<span class="k">SELECT</span> p1, p2, p3 
-<span class="k">FROM</span> <span class="k">GRAPH_TABLE</span>(student_network 
-  <span class="k">MATCH</span> (p1 <span class="k">IS</span> Person) <span class="o">-</span>[<span class="k">IS</span> knows]<span class="o">-</span><span class="o">></span> (p2 <span class="k">IS</span> Person) <span class="o">-</span>[<span class="k">IS</span> knows]<span class="o">-</span><span class="o">></span> (p3 <span class="k">IS</span> Person) 
-  <span class="k">WHERE</span> p1.name <span class="o">=</span> <span class="mi">'Lee'</span> 
+<span class="k">SELECT</span> p1, p2, p3
+<span class="k">FROM</span> <span class="k">GRAPH_TABLE</span>(student_network
+  <span class="k">MATCH</span> (p1 <span class="k">IS</span> Person) <span class="o">-</span>[<span class="k">IS</span> knows]<span class="o">-</span><span class="o">></span> (p2 <span class="k">IS</span> Person) <span class="o">-</span>[<span class="k">IS</span> knows]<span class="o">-</span><span class="o">></span> (p3 <span class="k">IS</span> Person)
+  <span class="k">WHERE</span> p1.name <span class="o">=</span> <span class="mi">'Lee'</span>
   <span class="k">COLUMNS</span>(p1.name <span class="k">AS</span> p1, p2.name <span class="k">AS</span> p2, p3.name <span class="k">AS</span> p3))
 </pre></div></div></div>
 <div name="pgql" class="tab-content"><div class="language-sql highlighter-rouge"><div class="highlight"><pre class="highlight">
@@ -1171,10 +1545,10 @@ For example, the predicate `p1 <> p3` in the query below adds the restriction th
 <button name="sql-button" class="tablinks active" onclick="openTab(event, 'sql')">PGQL with SQL Standard syntax</button>
 <button name="pgql-button" class="tablinks" onclick="openTab(event, 'pgql')">PGQL with custom syntax</button>
 </div><div name="sql" class="tab-content active"><div class="language-sql highlighter-rouge"><div class="highlight"><pre class="highlight">
-<span class="k">SELECT</span> p1, p2, p3 
-<span class="k">FROM</span> <span class="k">GRAPH_TABLE</span>(student_network 
-  <span class="k">MATCH</span> (p1 <span class="k">IS</span> Person) <span class="o">-</span>[<span class="k">IS</span> knows]<span class="o">-</span><span class="o">></span> (p2 <span class="k">IS</span> Person) <span class="o">-</span>[<span class="k">IS</span> knows]<span class="o">-</span><span class="o">></span> (p3 <span class="k">IS</span> Person) 
-  <span class="k">WHERE</span> p1.name <span class="o">=</span> <span class="mi">'Lee'</span> <span class="k">AND</span> <span class="k">NOT</span> <span class="k">VERTEX</span>_EQUAL(p1, p3) 
+<span class="k">SELECT</span> p1, p2, p3
+<span class="k">FROM</span> <span class="k">GRAPH_TABLE</span>(student_network
+  <span class="k">MATCH</span> (p1 <span class="k">IS</span> Person) <span class="o">-</span>[<span class="k">IS</span> knows]<span class="o">-</span><span class="o">></span> (p2 <span class="k">IS</span> Person) <span class="o">-</span>[<span class="k">IS</span> knows]<span class="o">-</span><span class="o">></span> (p3 <span class="k">IS</span> Person)
+  <span class="k">WHERE</span> p1.name <span class="o">=</span> <span class="mi">'Lee'</span> <span class="k">AND</span> <span class="k">NOT</span> <span class="k">VERTEX</span>_EQUAL(p1, p3)
   <span class="k">COLUMNS</span>(p1.name <span class="k">AS</span> p1, p2.name <span class="k">AS</span> p2, p3.name <span class="k">AS</span> p3))
 </pre></div></div></div>
 <div name="pgql" class="tab-content"><div class="language-sql highlighter-rouge"><div class="highlight"><pre class="highlight">
@@ -1198,10 +1572,10 @@ An alternative is to use the [ALL_DIFFERENT predicate](#all_different-predicate)
 <button name="sql-button" class="tablinks active" onclick="openTab(event, 'sql')">PGQL with SQL Standard syntax</button>
 <button name="pgql-button" class="tablinks" onclick="openTab(event, 'pgql')">PGQL with custom syntax</button>
 </div><div name="sql" class="tab-content active"><div class="language-sql highlighter-rouge"><div class="highlight"><pre class="highlight">
-<span class="k">SELECT</span> <span class="o">*</span> 
-<span class="k">FROM</span> <span class="k">GRAPH_TABLE</span>(student_network 
-  <span class="k">MATCH</span> (p1 <span class="k">IS</span> Person) <span class="o">-</span>[ <span class="k">IS</span> knows]<span class="o">-</span><span class="o">></span> (p2 <span class="k">IS</span> Person) <span class="o">-</span>[ <span class="k">IS</span> knows]<span class="o">-</span><span class="o">></span> (p3 <span class="k">IS</span> Person) 
-  <span class="k">WHERE</span> p1.name <span class="o">=</span> <span class="mi">'Lee'</span> <span class="k">AND</span> <span class="k">ALL_DIFFERENT</span>(p1, p3) 
+<span class="k">SELECT</span> <span class="o">*</span>
+<span class="k">FROM</span> <span class="k">GRAPH_TABLE</span>(student_network
+  <span class="k">MATCH</span> (p1 <span class="k">IS</span> Person) <span class="o">-</span>[ <span class="k">IS</span> knows]<span class="o">-</span><span class="o">></span> (p2 <span class="k">IS</span> Person) <span class="o">-</span>[ <span class="k">IS</span> knows]<span class="o">-</span><span class="o">></span> (p3 <span class="k">IS</span> Person)
+  <span class="k">WHERE</span> p1.name <span class="o">=</span> <span class="mi">'Lee'</span> <span class="k">AND</span> <span class="k">ALL_DIFFERENT</span>(p1, p3)
   <span class="k">COLUMNS</span>(p1.name <span class="k">AS</span> p1, p2.name <span class="k">AS</span> p2, p3.name <span class="k">AS</span> p3))
 </pre></div></div></div>
 <div name="pgql" class="tab-content"><div class="language-sql highlighter-rouge"><div class="highlight"><pre class="highlight">
@@ -1227,9 +1601,9 @@ For example, "find two people that both know Riya":
 <button name="sql-button" class="tablinks active" onclick="openTab(event, 'sql')">PGQL with SQL Standard syntax</button>
 <button name="pgql-button" class="tablinks" onclick="openTab(event, 'pgql')">PGQL with custom syntax</button>
 </div><div name="sql" class="tab-content active"><div class="language-sql highlighter-rouge"><div class="highlight"><pre class="highlight">
-<span class="k">SELECT</span> p1, p2, e1_equals_e2 
-<span class="k">FROM</span> <span class="k">GRAPH_TABLE</span>(student_network 
-  <span class="k">MATCH</span> (p1 <span class="k">IS</span> Person) <span class="o">-</span>[e1 <span class="k">IS</span> knows]<span class="o">-</span><span class="o">></span> (riya <span class="k">IS</span> Person), (p2 <span class="k">IS</span> Person) <span class="o">-</span>[e2 <span class="k">IS</span> knows]<span class="o">-</span><span class="o">></span> (riya) 
+<span class="k">SELECT</span> p1, p2, e1_equals_e2
+<span class="k">FROM</span> <span class="k">GRAPH_TABLE</span>(student_network
+  <span class="k">MATCH</span> (p1 <span class="k">IS</span> Person) <span class="o">-</span>[e1 <span class="k">IS</span> knows]<span class="o">-</span><span class="o">></span> (riya <span class="k">IS</span> Person), (p2 <span class="k">IS</span> Person) <span class="o">-</span>[e2 <span class="k">IS</span> knows]<span class="o">-</span><span class="o">></span> (riya)
   <span class="k">WHERE</span> riya.name <span class="o">=</span> <span class="mi">'Riya'</span>  
   <span class="k">COLUMNS</span>(p1.name <span class="k">AS</span> p1, p2.name <span class="k">AS</span> p2, <span class="k">EDGE</span>_EQUAL(e1, e2) <span class="k">AS</span> e1_equals_e2))
 </pre></div></div></div>
@@ -1262,9 +1636,9 @@ An example query with two any-directed edge patterns is:
 <button name="sql-button" class="tablinks active" onclick="openTab(event, 'sql')">PGQL with SQL Standard syntax</button>
 <button name="pgql-button" class="tablinks" onclick="openTab(event, 'pgql')">PGQL with custom syntax</button>
 </div><div name="sql" class="tab-content active"><div class="language-sql highlighter-rouge"><div class="highlight"><pre class="highlight">
-<span class="k">SELECT</span> <span class="o">*</span> 
-<span class="k">FROM</span> <span class="k">GRAPH_TABLE</span>(student_network 
-  <span class="k">MATCH</span> (n) <span class="o">-</span>[e1]<span class="o">-</span> (m) <span class="o">-</span>[e2]<span class="o">-</span> (o) 
+<span class="k">SELECT</span> <span class="o">*</span>
+<span class="k">FROM</span> <span class="k">GRAPH_TABLE</span>(student_network
+  <span class="k">MATCH</span> (n) <span class="o">-</span>[e1]<span class="o">-</span> (m) <span class="o">-</span>[e2]<span class="o">-</span> (o)
   <span class="k">COLUMNS</span>(n.name <span class="k">AS</span> n, m.name <span class="k">AS</span> m, o.name <span class="k">AS</span> o))
 </pre></div></div></div>
 <div name="pgql" class="tab-content"><div class="language-sql highlighter-rouge"><div class="highlight"><pre class="highlight">
@@ -1341,8 +1715,8 @@ Consider the following example:
 <button name="pgql-button" class="tablinks" onclick="openTab(event, 'pgql')">PGQL with custom syntax</button>
 </div><div name="sql" class="tab-content active"><div class="language-sql highlighter-rouge"><div class="highlight"><pre class="highlight">
 <span class="k">SELECT</span> n, m, age
-<span class="k">FROM</span> <span class="k">GRAPH_TABLE</span>(student_network 
-  <span class="k">MATCH</span> (n) <span class="o">-</span>[e1]<span class="o">-</span> (m) <span class="o">-</span>[e2]<span class="o">-</span> (o) 
+<span class="k">FROM</span> <span class="k">GRAPH_TABLE</span>(student_network
+  <span class="k">MATCH</span> (n) <span class="o">-</span>[e1]<span class="o">-</span> (m) <span class="o">-</span>[e2]<span class="o">-</span> (o)
   <span class="k">COLUMNS</span>(<span class="k">VERTEX</span>_<span class="k">ID</span>(n) <span class="k">AS</span> n, <span class="k">VERTEX</span>_<span class="k">ID</span>(m) <span class="k">AS</span> m, n.age <span class="k">AS</span> age))
 </pre></div></div></div>
 <div name="pgql" class="tab-content"><div class="language-sql highlighter-rouge"><div class="highlight"><pre class="highlight">
@@ -1363,7 +1737,7 @@ It is possible to assign a variable name to any of the selection expression, by 
 <button name="pgql-button" class="tablinks" onclick="openTab(event, 'pgql')">PGQL with custom syntax</button>
 </div><div name="sql" class="tab-content active"><div class="language-sql highlighter-rouge"><div class="highlight"><pre class="highlight">
 <span class="k">SELECT</span> age <span class="o">*</span> <span class="mi">2</span> <span class="o">-</span> <span class="mi">1</span> <span class="k">AS</span> pivot, name
-<span class="k">FROM</span> <span class="k">GRAPH_TABLE</span>(my_graph 
+<span class="k">FROM</span> <span class="k">GRAPH_TABLE</span>(my_graph
   <span class="k">MATCH</span>(n <span class="k">IS</span> Person) <span class="o">-</span><span class="o">></span> (m <span class="k">IS</span> Car)
   <span class="k">COLUMNS</span> (n.age, n.name))
 <span class="k">ORDER</span> <span class="k">BY</span> pivot
@@ -1376,23 +1750,43 @@ It is possible to assign a variable name to any of the selection expression, by 
 
 ### SELECT *
 
-`SELECT *` is a special `SELECT` clause. The semantic of `SELECT *` is to select all the variables in the graph pattern.
-Note that with the `GRAPH_TABLE` operator, it is not possible to select all variables in the `COLUMNS` clause. Instead, all needed properties has to be explicitly selected.
+`SELECT *` is a special `SELECT` clause. The semantic of `SELECT *` is to select all visible variables, including vertex and edge variables in graph patterns and variables projected from `LATERAL` or `GRAPH_TABLE` subqueries.
+
 Consider the following query:
 
-```sql
-SELECT *
-FROM MATCH (n:Person) -> (m) -> (w) ON my_graph,
-     MATCH (n) -> (w) -> (m) ON my_graph
-```
+<div class="tab">
+<button name="sql-button" class="tablinks active" onclick="openTab(event, 'sql')">PGQL with SQL Standard syntax</button>
+<button name="pgql-button" class="tablinks" onclick="openTab(event, 'pgql')">PGQL with custom syntax</button>
+</div><div name="sql" class="tab-content active"><div class="language-sql highlighter-rouge"><div class="highlight"><pre class="highlight">
+<span class="o">/</span><span class="o">*</span>
+ <span class="o">*</span> Use PGQL with custom syntax for this particular <span class="k">SELECT</span> <span class="o">*</span> query since the SQL
+ <span class="o">*</span> Standard syntax does not allow for returning entire vertex<span class="o">/</span>edge objects from
+ <span class="o">*</span> queries.
+ <span class="o">*</span><span class="o">/</span>
+</pre></div></div></div>
+<div name="pgql" class="tab-content"><div class="language-sql highlighter-rouge"><div class="highlight"><pre class="highlight">
+<span class="k">SELECT</span> <span class="o">*</span>
+<span class="k">FROM</span> <span class="k">MATCH</span> (n:Person) <span class="o">-</span><span class="o">></span> (m) <span class="o">-</span><span class="o">></span> (w) <span class="k">ON</span> my_graph,
+     <span class="k">MATCH</span> (n) <span class="o">-</span><span class="o">></span> (w) <span class="o">-</span><span class="o">></span> (m) <span class="k">ON</span> my_graph
+</pre></div></div></div>
 
 This query is semantically equivalent to:
 
-```sql
-SELECT n, m, w
-FROM MATCH (n:Person) -> (m) -> (w) ON my_graph,
-     MATCH (n) -> (w) -> (m) ON my_graph
-```
+<div class="tab">
+<button name="sql-button" class="tablinks active" onclick="openTab(event, 'sql')">PGQL with SQL Standard syntax</button>
+<button name="pgql-button" class="tablinks" onclick="openTab(event, 'pgql')">PGQL with custom syntax</button>
+</div><div name="sql" class="tab-content active"><div class="language-sql highlighter-rouge"><div class="highlight"><pre class="highlight">
+<span class="o">/</span><span class="o">*</span>
+ <span class="o">*</span> Use PGQL with custom syntax for this particular <span class="k">SELECT</span> <span class="o">*</span> query since the SQL
+ <span class="o">*</span> Standard syntax does not allow for returning entire vertex<span class="o">/</span>edge objects from
+ <span class="o">*</span> queries.
+ <span class="o">*</span><span class="o">/</span>
+</pre></div></div></div>
+<div name="pgql" class="tab-content"><div class="language-sql highlighter-rouge"><div class="highlight"><pre class="highlight">
+<span class="k">SELECT</span> n, m, w
+<span class="k">FROM</span> <span class="k">MATCH</span> (n:Person) <span class="o">-</span><span class="o">></span> (m) <span class="o">-</span><span class="o">></span> (w) <span class="k">ON</span> my_graph,
+     <span class="k">MATCH</span> (n) <span class="o">-</span><span class="o">></span> (w) <span class="o">-</span><span class="o">></span> (m) <span class="k">ON</span> my_graph
+</pre></div></div></div>
 
 `SELECT *` is not allowed when the graph pattern has zero variables. This is the case when all the vertices and edges in the pattern are anonymous (e.g. `MATCH () -> (:Person)`).
 Furthermore, `SELECT *` in combination with `GROUP BY` is not allowed.
@@ -1410,9 +1804,9 @@ For example:
 <button name="pgql-button" class="tablinks" onclick="openTab(event, 'pgql')">PGQL with custom syntax</button>
 </div><div name="sql" class="tab-content active"><div class="language-sql highlighter-rouge"><div class="highlight"><pre class="highlight">
 <span class="k">SELECT</span> <span class="o">*</span>  
-<span class="k">FROM</span> <span class="k">GRAPH_TABLE</span> (financial_transactions 
-  <span class="k">MATCH</span>(n) 
-  <span class="k">COLUMNS</span>(n.<span class="o">*</span>)) 
+<span class="k">FROM</span> <span class="k">GRAPH_TABLE</span> (financial_transactions
+  <span class="k">MATCH</span>(n)
+  <span class="k">COLUMNS</span>(n.<span class="o">*</span>))
 <span class="k">ORDER</span> <span class="k">BY</span> "number", "name"
 </pre></div></div></div>
 <div name="pgql" class="tab-content"><div class="language-sql highlighter-rouge"><div class="highlight"><pre class="highlight">
@@ -1446,9 +1840,9 @@ edge labels:
 <button name="pgql-button" class="tablinks" onclick="openTab(event, 'pgql')">PGQL with custom syntax</button>
 </div><div name="sql" class="tab-content active"><div class="language-sql highlighter-rouge"><div class="highlight"><pre class="highlight">
 <span class="k">SELECT</span>  <span class="o">*</span>  
-<span class="k">FROM</span> <span class="k">GRAPH_TABLE</span> (financial_transactions 
-  <span class="k">MATCH</span>(n <span class="k">IS</span> Person) 
-  <span class="k">COLUMNS</span>(n.<span class="o">*</span>)) 
+<span class="k">FROM</span> <span class="k">GRAPH_TABLE</span> (financial_transactions
+  <span class="k">MATCH</span>(n <span class="k">IS</span> Person)
+  <span class="k">COLUMNS</span>(n.<span class="o">*</span>))
 <span class="k">ORDER</span> <span class="k">BY</span> "name"
 </pre></div></div></div>
 <div name="pgql" class="tab-content"><div class="language-sql highlighter-rouge"><div class="highlight"><pre class="highlight">
@@ -1468,17 +1862,25 @@ edge labels:
 ```
 
 A `PREFIX` can be specified to avoid duplicate column names in case all properties of multiple vertex or edge variables are selected.
-Note: `PREFIX` cannot be used within the GRAPH_TABLE operator.
 
 For example:
 
 {% include image.html file="example_graphs/financial_transactions.png" %}
 
-```sql
-SELECT n.* PREFIX 'n_', e.* PREFIX 'e_', m.* PREFIX 'm_'
-FROM MATCH (n:Account) -[e:transaction]-> (m:Account) ON financial_transactions
-ORDER BY "e_amount"
-```
+<div class="tab">
+<button name="sql-button" class="tablinks active" onclick="openTab(event, 'sql')">PGQL with SQL Standard syntax</button>
+<button name="pgql-button" class="tablinks" onclick="openTab(event, 'pgql')">PGQL with custom syntax</button>
+</div><div name="sql" class="tab-content active"><div class="language-sql highlighter-rouge"><div class="highlight"><pre class="highlight">
+<span class="o">/</span><span class="o">*</span>
+ <span class="o">*</span> Use PGQL with custom syntax since the SQL Standard does not have a <span class="k">PREFIX</span>
+ <span class="o">*</span> construct.
+ <span class="o">*</span><span class="o">/</span>
+</pre></div></div></div>
+<div name="pgql" class="tab-content"><div class="language-sql highlighter-rouge"><div class="highlight"><pre class="highlight">
+<span class="k">SELECT</span> n.<span class="o">*</span> <span class="k">PREFIX</span> <span class="mi">'n_'</span>, e.<span class="o">*</span> <span class="k">PREFIX</span> <span class="mi">'e_'</span>, m.<span class="o">*</span> <span class="k">PREFIX</span> <span class="mi">'m_'</span>
+<span class="k">FROM</span> <span class="k">MATCH</span> (n:Account) <span class="o">-</span>[e:transaction]<span class="o">-</span><span class="o">></span> (m:Account) <span class="k">ON</span> financial_transactions
+<span class="k">ORDER</span> <span class="k">BY</span> "e_amount"
+</pre></div></div></div>
 
 ```
 +--------------------------------+
@@ -1546,9 +1948,15 @@ A path pattern that describes a partial topology of the subgraph pattern. In oth
 
 A topology constraint is composed of one or more vertices and relations, where a relation is either an edge or a path. In a query, each vertex or edge is (optionally) associated with a variable, which is a symbolic name to reference the vertex or edge in other clauses. For example, consider the following topology constraint:
 
-```sql
-(n) -[e]-> (m)
-```
+<div class="tab">
+<button name="sql-button" class="tablinks active" onclick="openTab(event, 'sql')">PGQL with SQL Standard syntax</button>
+<button name="pgql-button" class="tablinks" onclick="openTab(event, 'pgql')">PGQL with custom syntax</button>
+</div><div name="sql" class="tab-content active"><div class="language-sql highlighter-rouge"><div class="highlight"><pre class="highlight">
+(n) <span class="o">-</span>[e]<span class="o">-</span><span class="o">></span> (m)
+</pre></div></div></div>
+<div name="pgql" class="tab-content"><div class="language-sql highlighter-rouge"><div class="highlight"><pre class="highlight">
+(n) <span class="o">-</span>[e]<span class="o">-</span><span class="o">></span> (m)
+</pre></div></div></div>
 
 The above example defines two vertices (with variable names `n` and `m`), and an edge (with variable name `e`) between them. Also the edge is directed such that the edge `e` is an outgoing edge from vertex `n`.
 
@@ -1574,7 +1982,7 @@ For example:
 <button name="sql-button" class="tablinks active" onclick="openTab(event, 'sql')">PGQL with SQL Standard syntax</button>
 <button name="pgql-button" class="tablinks" onclick="openTab(event, 'pgql')">PGQL with custom syntax</button>
 </div><div name="sql" class="tab-content active"><div class="language-sql highlighter-rouge"><div class="highlight"><pre class="highlight">
-<span class="k">SELECT</span> first_name, last_name 
+<span class="k">SELECT</span> first_name, last_name
 <span class="k">FROM</span> <span class="k">GRAPH_TABLE</span>(my_graph
   <span class="k">MATCH</span>(p <span class="k">IS</span> Person)
   <span class="k">COLUMNS</span>(p.first_name, p.last_name))
@@ -1642,7 +2050,7 @@ First, a single path pattern can be written as a chain of edge terms such that t
 <button name="pgql-button" class="tablinks" onclick="openTab(event, 'pgql')">PGQL with custom syntax</button>
 </div><div name="sql" class="tab-content active"><div class="language-sql highlighter-rouge"><div class="highlight"><pre class="highlight">
 <span class="k">SELECT</span> <span class="o">*</span>
-<span class="k">FROM</span> <span class="k">GRAPH_TABLE</span>(my_graph 
+<span class="k">FROM</span> <span class="k">GRAPH_TABLE</span>(my_graph
   <span class="k">MATCH</span> (n1) <span class="o">-</span>[e1]<span class="o">-</span><span class="o">></span> (n2) <span class="o">-</span>[e2]<span class="o">-</span><span class="o">></span> (n3) <span class="o">-</span>[e3]<span class="o">-</span><span class="o">></span> (n4)
   <span class="k">COLUMNS</span>(n1.<span class="o">*</span>))
 </pre></div></div></div>
@@ -1657,7 +2065,7 @@ The above graph pattern is equivalent to the graph pattern specified by the foll
 <button name="sql-button" class="tablinks active" onclick="openTab(event, 'sql')">PGQL with SQL Standard syntax</button>
 <button name="pgql-button" class="tablinks" onclick="openTab(event, 'pgql')">PGQL with custom syntax</button>
 </div><div name="sql" class="tab-content active"><div class="language-sql highlighter-rouge"><div class="highlight"><pre class="highlight">
-<span class="k">SELECT</span> <span class="o">*</span> 
+<span class="k">SELECT</span> <span class="o">*</span>
 <span class="k">FROM</span> <span class="k">GRAPH_TABLE</span>(my_graph
   <span class="k">MATCH</span> (n1) <span class="o">-</span>[e1]<span class="o">-</span><span class="o">></span> (n2),
       (n2) <span class="o">-</span>[e2]<span class="o">-</span><span class="o">></span> (n3),
@@ -1677,7 +2085,7 @@ Second, it is allowed to reverse the direction of an edge in the pattern, i.e. r
 <button name="sql-button" class="tablinks active" onclick="openTab(event, 'sql')">PGQL with SQL Standard syntax</button>
 <button name="pgql-button" class="tablinks" onclick="openTab(event, 'pgql')">PGQL with custom syntax</button>
 </div><div name="sql" class="tab-content active"><div class="language-sql highlighter-rouge"><div class="highlight"><pre class="highlight">
-<span class="k">SELECT</span> <span class="o">*</span> 
+<span class="k">SELECT</span> <span class="o">*</span>
 <span class="k">FROM</span> <span class="k">GRAPH_TABLE</span>(my_graph
   <span class="k">MATCH</span> (n1) <span class="o">-</span>[e1]<span class="o">-</span><span class="o">></span> (n2) <span class="o"><</span><span class="o">-</span>[e2]<span class="o">-</span> (n3)
   <span class="k">COLUMNS</span>(n1.<span class="o">*</span>))
@@ -1707,11 +2115,22 @@ omit variable name in edge | `(n) -> (m)`
 
 In the case the `MATCH` clause contains two or more disconnected graph patterns (i.e. groups of vertices and relations that are not connected to each other), the different groups are matched independently and the final result is produced by taking the Cartesian product of the result sets of the different groups. The following is an example:
 
-```sql
-SELECT *
-FROM MATCH (n1) -> (m1) ON my_graph,
-     MATCH (n2) -> (m2) ON my_graph
-```
+<div class="tab">
+<button name="sql-button" class="tablinks active" onclick="openTab(event, 'sql')">PGQL with SQL Standard syntax</button>
+<button name="pgql-button" class="tablinks" onclick="openTab(event, 'pgql')">PGQL with custom syntax</button>
+</div><div name="sql" class="tab-content active"><div class="language-sql highlighter-rouge"><div class="highlight"><pre class="highlight">
+<span class="k">SELECT</span> COUNT(<span class="o">*</span>)
+<span class="k">FROM</span> <span class="k">GRAPH_TABLE</span>(my_graph
+  <span class="k">MATCH</span> (n1) <span class="o">-</span><span class="o">></span> (m1),
+        (n2) <span class="o">-</span><span class="o">></span> (m2)
+  <span class="k">COLUMNS</span>(<span class="mi">1</span> <span class="k">AS</span> dummy)
+)
+</pre></div></div></div>
+<div name="pgql" class="tab-content"><div class="language-sql highlighter-rouge"><div class="highlight"><pre class="highlight">
+<span class="k">SELECT</span> COUNT(<span class="o">*</span>)
+<span class="k">FROM</span> <span class="k">MATCH</span> (n1) <span class="o">-</span><span class="o">></span> (m1) <span class="k">ON</span> my_graph,
+     <span class="k">MATCH</span> (n2) <span class="o">-</span><span class="o">></span> (m2) <span class="k">ON</span> my_graph
+</pre></div></div></div>
 
 Here, vertices `n2` and `m2` are not connected to vertices `n1` and `m1`, resulting in a Cartesian product.
 
@@ -1862,21 +2281,29 @@ For example:
 
 {% include image.html file="example_graphs/financial_transactions.png" %}
 
-```sql
-SELECT *
-FROM GRAPH_TABLE ( financial_transactions
-       MATCH (n IS Person) <-[IS owner]- (a1 IS Account),
-             (a1) -[e IS transaction]- (a2),
-             (a2) -[IS owner]-> (m IS person)
-       WHERE n.name = 'Camille'
-       COLUMNS ( m.name, e.amount,
-                 CASE
-                   WHEN a1 IS SOURCE OF e THEN 'Outgoing transaction'
-                   ELSE 'Incoming transaction'
-                 END AS transaction_type )
+<div class="tab">
+<button name="sql-button" class="tablinks active" onclick="openTab(event, 'sql')">PGQL with SQL Standard syntax</button>
+<button name="pgql-button" class="tablinks" onclick="openTab(event, 'pgql')">PGQL with custom syntax</button>
+</div><div name="sql" class="tab-content active"><div class="language-sql highlighter-rouge"><div class="highlight"><pre class="highlight">
+<span class="k">SELECT</span> <span class="o">*</span>
+<span class="k">FROM</span> <span class="k">GRAPH_TABLE</span> ( financial_transactions
+       <span class="k">MATCH</span> (n <span class="k">IS</span> Person) <span class="o"><</span><span class="o">-</span>[<span class="k">IS</span> owner]<span class="o">-</span> (a1 <span class="k">IS</span> Account),
+             (a1) <span class="o">-</span>[e <span class="k">IS</span> transaction]<span class="o">-</span> (a2),
+             (a2) <span class="o">-</span>[<span class="k">IS</span> owner]<span class="o">-</span><span class="o">></span> (m <span class="k">IS</span> person)
+       <span class="k">WHERE</span> n.name <span class="o">=</span> <span class="mi">'Camille'</span>
+       <span class="k">COLUMNS</span> ( m.name, e.amount,
+                 C<span class="k">AS</span>E
+                   WHEN a1 <span class="k">IS</span> SOURCE <span class="k">OF</span> e <span class="k">THEN</span> <span class="mi">'Outgoing transaction'</span>
+                   <span class="k">ELSE</span> <span class="mi">'Incoming transaction'</span>
+                 END <span class="k">AS</span> transaction_type )
      )
-ORDER BY amount DESC
-```
+<span class="k">ORDER</span> <span class="k">BY</span> amount <span class="k">DESC</span>
+</pre></div></div></div>
+<div name="pgql" class="tab-content"><div class="language-sql highlighter-rouge"><div class="highlight"><pre class="highlight">
+<span class="o">/</span><span class="o">*</span>
+ <span class="o">*</span> See PGQL with SQL Standard syntax.
+ <span class="o">*</span><span class="o">/</span>
+</pre></div></div></div>
 
 ```
 +----------------------------------------+
@@ -1891,17 +2318,25 @@ An example with [horizontal aggregation](#horizontal-aggregation) is:
 
 {% include image.html file="example_graphs/financial_transactions.png" %}
 
-```sql
-SELECT *
-FROM GRAPH_TABLE ( financial_transactions
-       MATCH (a IS Account) -[e IS transaction]->+ (a)
-       KEEP ALL SIMPLE PATHS
-       WHERE a.number = 10039
-       COLUMNS ( LISTAGG(e.amount, ', ') AS amounts_along_path,
-                 SUM(e.amount) AS total_amount )
+<div class="tab">
+<button name="sql-button" class="tablinks active" onclick="openTab(event, 'sql')">PGQL with SQL Standard syntax</button>
+<button name="pgql-button" class="tablinks" onclick="openTab(event, 'pgql')">PGQL with custom syntax</button>
+</div><div name="sql" class="tab-content active"><div class="language-sql highlighter-rouge"><div class="highlight"><pre class="highlight">
+<span class="k">SELECT</span> <span class="o">*</span>
+<span class="k">FROM</span> <span class="k">GRAPH_TABLE</span> ( financial_transactions
+       <span class="k">MATCH</span> (a <span class="k">IS</span> Account) <span class="o">-</span>[e <span class="k">IS</span> transaction]<span class="o">-</span><span class="o">></span><span class="o">+</span> (a)
+       <span class="k">KEEP</span> <span class="k">ALL</span> <span class="k">SIMPLE</span> <span class="k">PATHS</span>
+       <span class="k">WHERE</span> a.number <span class="o">=</span> <span class="mi">10039</span>
+       <span class="k">COLUMNS</span> ( <span class="k">LISTAGG</span>(e.amount, <span class="mi">', '</span>) <span class="k">AS</span> amounts_along_path,
+                 <span class="k">SUM</span>(e.amount) <span class="k">AS</span> total_amount )
      )
-ORDER BY total_amount DESC
-```
+<span class="k">ORDER</span> <span class="k">BY</span> total_amount <span class="k">DESC</span>
+</pre></div></div></div>
+<div name="pgql" class="tab-content"><div class="language-sql highlighter-rouge"><div class="highlight"><pre class="highlight">
+<span class="o">/</span><span class="o">*</span>
+ <span class="o">*</span> See PGQL with SQL Standard syntax.
+ <span class="o">*</span><span class="o">/</span>
+</pre></div></div></div>
 
 ```
 +-----------------------------------------------+
@@ -1916,18 +2351,26 @@ An example with [ONE ROW PER STEP](#one-row-per-step) is:
 
 {% include image.html file="example_graphs/financial_transactions.png" %}
 
-```sql
-SELECT *
-FROM GRAPH_TABLE ( financial_transactions
-       MATCH (a IS Account) -[IS transaction]->+ (a)
-       KEEP ALL SIMPLE PATHS
-       WHERE a.number = 10039
-       ONE ROW PER STEP ( v1, e, v2 )
-       COLUMNS ( MATCHNUM() AS match_num, ELEMENT_NUMBER(e) AS elem_num,
-                 v1.number AS account1, e.amount, v2.number AS account2 )
+<div class="tab">
+<button name="sql-button" class="tablinks active" onclick="openTab(event, 'sql')">PGQL with SQL Standard syntax</button>
+<button name="pgql-button" class="tablinks" onclick="openTab(event, 'pgql')">PGQL with custom syntax</button>
+</div><div name="sql" class="tab-content active"><div class="language-sql highlighter-rouge"><div class="highlight"><pre class="highlight">
+<span class="k">SELECT</span> <span class="o">*</span>
+<span class="k">FROM</span> <span class="k">GRAPH_TABLE</span> ( financial_transactions
+       <span class="k">MATCH</span> (a <span class="k">IS</span> Account) <span class="o">-</span>[<span class="k">IS</span> transaction]<span class="o">-</span><span class="o">></span><span class="o">+</span> (a)
+       <span class="k">KEEP</span> <span class="k">ALL</span> <span class="k">SIMPLE</span> <span class="k">PATHS</span>
+       <span class="k">WHERE</span> a.number <span class="o">=</span> <span class="mi">10039</span>
+       <span class="k">ONE</span> <span class="k">ROW</span> <span class="k">PER</span> <span class="k">STEP</span> ( v1, e, v2 )
+       <span class="k">COLUMNS</span> ( <span class="k">MATCH</span>NUM() <span class="k">AS</span> match_num, ELEMENT_<span class="k">NUMBER</span>(e) <span class="k">AS</span> elem_num,
+                 v1.number <span class="k">AS</span> account1, e.amount, v2.number <span class="k">AS</span> account2 )
      )
-ORDER BY match_num, elem_num
-```
+<span class="k">ORDER</span> <span class="k">BY</span> match_num, elem_num
+</pre></div></div></div>
+<div name="pgql" class="tab-content"><div class="language-sql highlighter-rouge"><div class="highlight"><pre class="highlight">
+<span class="o">/</span><span class="o">*</span>
+ <span class="o">*</span> See PGQL with SQL Standard syntax.
+ <span class="o">*</span><span class="o">/</span>
+</pre></div></div></div>
 
 ```
 +-----------------------------------------------------+
@@ -2028,14 +2471,14 @@ An example is:
 <button name="sql-button" class="tablinks active" onclick="openTab(event, 'sql')">PGQL with SQL Standard syntax</button>
 <button name="pgql-button" class="tablinks" onclick="openTab(event, 'pgql')">PGQL with custom syntax</button>
 </div><div name="sql" class="tab-content active"><div class="language-sql highlighter-rouge"><div class="highlight"><pre class="highlight">
-<span class="k">SELECT</span>  a, b, pathLength, amounts 
-<span class="k">FROM</span> <span class="k">GRAPH_TABLE</span>(financial_transactions 
-  <span class="k">MATCH</span> (a <span class="k">IS</span> Account) <span class="o">-</span>[e <span class="k">IS</span> transaction]<span class="o">-</span><span class="o">></span><span class="o">*</span> (b <span class="k">IS</span> Account) 
-  <span class="k">KEEP</span> <span class="k">ANY</span> <span class="k">SHORTEST</span> 
-  <span class="k">WHERE</span> a.number <span class="o">=</span> <span class="mi">10039</span> 
-    <span class="k">AND</span> b.number <span class="o">=</span> <span class="mi">2090</span> 
+<span class="k">SELECT</span>  a, b, pathLength, amounts
+<span class="k">FROM</span> <span class="k">GRAPH_TABLE</span>(financial_transactions
+  <span class="k">MATCH</span> (a <span class="k">IS</span> Account) <span class="o">-</span>[e <span class="k">IS</span> transaction]<span class="o">-</span><span class="o">></span><span class="o">*</span> (b <span class="k">IS</span> Account)
+  <span class="k">KEEP</span> <span class="k">ANY</span> <span class="k">SHORTEST</span>
+  <span class="k">WHERE</span> a.number <span class="o">=</span> <span class="mi">10039</span>
+    <span class="k">AND</span> b.number <span class="o">=</span> <span class="mi">2090</span>
   <span class="k">COLUMNS</span>(a.number <span class="k">AS</span> a,
-          b.number <span class="k">AS</span> b, 
+          b.number <span class="k">AS</span> b,
           COUNT(<span class="k">EDGE</span>_<span class="k">ID</span>(e)) <span class="k">AS</span> pathLength,
           <span class="k">ARRAY_AGG</span>(e.amount) <span class="k">AS</span> amounts))
 </pre></div></div></div>
@@ -2066,12 +2509,12 @@ Another example is:
 <button name="sql-button" class="tablinks active" onclick="openTab(event, 'sql')">PGQL with SQL Standard syntax</button>
 <button name="pgql-button" class="tablinks" onclick="openTab(event, 'pgql')">PGQL with custom syntax</button>
 </div><div name="sql" class="tab-content active"><div class="language-sql highlighter-rouge"><div class="highlight"><pre class="highlight">
-<span class="k">SELECT</span> account_numbers, total_amount 
-<span class="k">FROM</span> <span class="k">GRAPH_TABLE</span>(financial_transactions 
-  <span class="k">MATCH</span> (a <span class="k">IS</span> Account) ((x <span class="k">IS</span> Account) <span class="o"><</span><span class="o">-</span>[e <span class="k">IS</span> transaction]<span class="o">-</span>)<span class="o">+</span> (a) 
-  <span class="k">KEEP</span> <span class="k">SHORTEST</span> <span class="mi">4</span> <span class="k">PATHS</span> 
-  <span class="k">WHERE</span> a.number <span class="o">=</span> <span class="mi">10039</span> 
-  <span class="k">COLUMNS</span>(<span class="k">LISTAGG</span>(x.number, <span class="mi">', '</span>) <span class="k">AS</span> account_numbers, <span class="k">SUM</span>(e.amount) <span class="k">AS</span> total_amount)) 
+<span class="k">SELECT</span> account_numbers, total_amount
+<span class="k">FROM</span> <span class="k">GRAPH_TABLE</span>(financial_transactions
+  <span class="k">MATCH</span> (a <span class="k">IS</span> Account) ((x <span class="k">IS</span> Account) <span class="o"><</span><span class="o">-</span>[e <span class="k">IS</span> transaction]<span class="o">-</span>)<span class="o">+</span> (a)
+  <span class="k">KEEP</span> <span class="k">SHORTEST</span> <span class="mi">4</span> <span class="k">PATHS</span>
+  <span class="k">WHERE</span> a.number <span class="o">=</span> <span class="mi">10039</span>
+  <span class="k">COLUMNS</span>(<span class="k">LISTAGG</span>(x.number, <span class="mi">', '</span>) <span class="k">AS</span> account_numbers, <span class="k">SUM</span>(e.amount) <span class="k">AS</span> total_amount))
 <span class="k">ORDER</span> <span class="k">BY</span> total_amount
 </pre></div></div></div>
 <div name="pgql" class="tab-content"><div class="language-sql highlighter-rouge"><div class="highlight"><pre class="highlight">
@@ -2122,12 +2565,12 @@ An example where we test for path existence is:
 <button name="sql-button" class="tablinks active" onclick="openTab(event, 'sql')">PGQL with SQL Standard syntax</button>
 <button name="pgql-button" class="tablinks" onclick="openTab(event, 'pgql')">PGQL with custom syntax</button>
 </div><div name="sql" class="tab-content active"><div class="language-sql highlighter-rouge"><div class="highlight"><pre class="highlight">
-<span class="k">SELECT</span> number 
-<span class="k">FROM</span> <span class="k">GRAPH_TABLE</span>(financial_transactions 
-  <span class="k">MATCH</span> (src <span class="k">IS</span> Account) <span class="o">-</span>[e]<span class="o">-</span><span class="o">></span><span class="o">+</span> (dst <span class="k">IS</span> Account) 
-  <span class="k">KEEP</span> <span class="k">ANY</span> 
-  <span class="k">WHERE</span> src.number <span class="o">=</span> <span class="mi">8021</span> 
-  <span class="k">COLUMNS</span>(dst.number)) 
+<span class="k">SELECT</span> number
+<span class="k">FROM</span> <span class="k">GRAPH_TABLE</span>(financial_transactions
+  <span class="k">MATCH</span> (src <span class="k">IS</span> Account) <span class="o">-</span>[e]<span class="o">-</span><span class="o">></span><span class="o">+</span> (dst <span class="k">IS</span> Account)
+  <span class="k">KEEP</span> <span class="k">ANY</span>
+  <span class="k">WHERE</span> src.number <span class="o">=</span> <span class="mi">8021</span>
+  <span class="k">COLUMNS</span>(dst.number))
 <span class="k">ORDER</span> <span class="k">BY</span> number
 </pre></div></div></div>
 <div name="pgql" class="tab-content"><div class="language-sql highlighter-rouge"><div class="highlight"><pre class="highlight">
@@ -2157,12 +2600,12 @@ An example where we return data along the path is:
 <button name="sql-button" class="tablinks active" onclick="openTab(event, 'sql')">PGQL with SQL Standard syntax</button>
 <button name="pgql-button" class="tablinks" onclick="openTab(event, 'pgql')">PGQL with custom syntax</button>
 </div><div name="sql" class="tab-content active"><div class="language-sql highlighter-rouge"><div class="highlight"><pre class="highlight">
-<span class="k">SELECT</span> <span class="o">*</span> 
-<span class="k">FROM</span> <span class="k">GRAPH_TABLE</span>(financial_transactions 
-  <span class="k">MATCH</span> (src <span class="k">IS</span> Account) <span class="o">-</span>[e]<span class="o">-</span><span class="o">></span><span class="o">+</span> (dst <span class="k">IS</span> Account) 
-  <span class="k">KEEP</span> <span class="k">ANY</span> 
-  <span class="k">WHERE</span> src.number <span class="o">=</span> <span class="mi">8021</span> 
-  <span class="k">COLUMNS</span>(dst.number, <span class="k">LISTAGG</span>(e.amount, <span class="mi">' + '</span>) <span class="o">|</span><span class="o">|</span> <span class="mi">' = '</span>, <span class="k">SUM</span>(e.amount))) 
+<span class="k">SELECT</span> <span class="o">*</span>
+<span class="k">FROM</span> <span class="k">GRAPH_TABLE</span>(financial_transactions
+  <span class="k">MATCH</span> (src <span class="k">IS</span> Account) <span class="o">-</span>[e]<span class="o">-</span><span class="o">></span><span class="o">+</span> (dst <span class="k">IS</span> Account)
+  <span class="k">KEEP</span> <span class="k">ANY</span>
+  <span class="k">WHERE</span> src.number <span class="o">=</span> <span class="mi">8021</span>
+  <span class="k">COLUMNS</span>(dst.number, <span class="k">LISTAGG</span>(e.amount, <span class="mi">' + '</span>) <span class="o">|</span><span class="o">|</span> <span class="mi">' = '</span>, <span class="k">SUM</span>(e.amount)))
 <span class="k">ORDER</span> <span class="k">BY</span> number
 </pre></div></div></div>
 <div name="pgql" class="tab-content"><div class="language-sql highlighter-rouge"><div class="highlight"><pre class="highlight">
@@ -2221,12 +2664,12 @@ For example:
 <button name="sql-button" class="tablinks active" onclick="openTab(event, 'sql')">PGQL with SQL Standard syntax</button>
 <button name="pgql-button" class="tablinks" onclick="openTab(event, 'pgql')">PGQL with custom syntax</button>
 </div><div name="sql" class="tab-content active"><div class="language-sql highlighter-rouge"><div class="highlight"><pre class="highlight">
-<span class="k">SELECT</span> <span class="o">*</span> 
-<span class="k">FROM</span> <span class="k">GRAPH_TABLE</span>(financial_transactions 
-  <span class="k">MATCH</span> (a <span class="k">IS</span> Account) <span class="o">-</span>[e <span class="k">IS</span> transaction]<span class="o">-</span><span class="o">></span><span class="o">*</span> (b <span class="k">IS</span> Account) 
-  <span class="k">KEEP</span> <span class="k">ALL</span> <span class="k">SHORTEST</span> 
-  <span class="k">WHERE</span> a.number <span class="o">=</span> <span class="mi">10039</span> <span class="k">AND</span> b.number <span class="o">=</span> <span class="mi">2090</span> 
-  <span class="k">COLUMNS</span>(<span class="k">LISTAGG</span>(e.amount, <span class="mi">' + '</span>) <span class="o">|</span><span class="o">|</span> <span class="mi">' = '</span>, <span class="k">SUM</span>(e.amount) <span class="k">AS</span> total_amount)) 
+<span class="k">SELECT</span> <span class="o">*</span>
+<span class="k">FROM</span> <span class="k">GRAPH_TABLE</span>(financial_transactions
+  <span class="k">MATCH</span> (a <span class="k">IS</span> Account) <span class="o">-</span>[e <span class="k">IS</span> transaction]<span class="o">-</span><span class="o">></span><span class="o">*</span> (b <span class="k">IS</span> Account)
+  <span class="k">KEEP</span> <span class="k">ALL</span> <span class="k">SHORTEST</span>
+  <span class="k">WHERE</span> a.number <span class="o">=</span> <span class="mi">10039</span> <span class="k">AND</span> b.number <span class="o">=</span> <span class="mi">2090</span>
+  <span class="k">COLUMNS</span>(<span class="k">LISTAGG</span>(e.amount, <span class="mi">' + '</span>) <span class="o">|</span><span class="o">|</span> <span class="mi">' = '</span>, <span class="k">SUM</span>(e.amount) <span class="k">AS</span> total_amount))
 <span class="k">ORDER</span> <span class="k">BY</span> total_amount
 </pre></div></div></div>
 <div name="pgql" class="tab-content"><div class="language-sql highlighter-rouge"><div class="highlight"><pre class="highlight">
@@ -2263,7 +2706,7 @@ For example:
 <button name="pgql-button" class="tablinks" onclick="openTab(event, 'pgql')">PGQL with custom syntax</button>
 </div><div name="sql" class="tab-content active"><div class="language-sql highlighter-rouge"><div class="highlight"><pre class="highlight">
 <span class="k">SELECT</span> <span class="o">*</span>
-<span class="k">FROM</span> <span class="k">GRAPH_TABLE</span>(financial_transactions 
+<span class="k">FROM</span> <span class="k">GRAPH_TABLE</span>(financial_transactions
   <span class="k">MATCH</span> <span class="k">ANY</span> <span class="k">SHORTEST</span> (src) <span class="o">-</span>[e]<span class="o">-</span><span class="o">></span><span class="o">*</span> (dst)
   <span class="k">WHERE</span> src.age <span class="o"><</span> dst.age
   <span class="k">COLUMNS</span>(src, <span class="k">SUM</span>(e.weight), dst))
@@ -2282,20 +2725,20 @@ Another example is:
 <button name="sql-button" class="tablinks active" onclick="openTab(event, 'sql')">PGQL with SQL Standard syntax</button>
 <button name="pgql-button" class="tablinks" onclick="openTab(event, 'pgql')">PGQL with custom syntax</button>
 </div><div name="sql" class="tab-content active"><div class="language-sql highlighter-rouge"><div class="highlight"><pre class="highlight">
-<span class="k">SELECT</span> <span class="o">*</span> 
-<span class="k">FROM</span> <span class="k">GRAPH_TABLE</span>(financial_transactions 
-  <span class="k">MATCH</span>(p1 <span class="k">IS</span> Person) (<span class="o">-</span>[e]<span class="o">-</span> (dst))<span class="o">*</span> (p2 <span class="k">IS</span> Person) 
-  <span class="k">KEEP</span> <span class="k">ANY</span> <span class="k">SHORTEST</span> 
-  <span class="k">WHERE</span> p1.name <span class="o">=</span> <span class="mi">'Camille'</span> 
-    <span class="k">AND</span> p2.name <span class="o">=</span> <span class="mi">'Liam'</span> 
-  <span class="k">COLUMNS</span>(COUNT(edge_id(e)) <span class="k">AS</span> num_hops , 
-          p1.name <span class="k">AS</span> start , 
-          <span class="k">ARRAY_AGG</span> ( C<span class="k">AS</span>E 
-                        WHEN dst <span class="k">IS</span> <span class="k">LABELED</span> Account 
-                          <span class="k">THEN</span> C<span class="k">AS</span>T(dst.number <span class="k">AS</span> <span class="k">STRING</span>) 
-                        <span class="k">ELSE</span> dst.name 
-                      END 
-                    ) <span class="k">AS</span> path)) 
+<span class="k">SELECT</span> <span class="o">*</span>
+<span class="k">FROM</span> <span class="k">GRAPH_TABLE</span>(financial_transactions
+  <span class="k">MATCH</span>(p1 <span class="k">IS</span> Person) (<span class="o">-</span>[e]<span class="o">-</span> (dst))<span class="o">*</span> (p2 <span class="k">IS</span> Person)
+  <span class="k">KEEP</span> <span class="k">ANY</span> <span class="k">SHORTEST</span>
+  <span class="k">WHERE</span> p1.name <span class="o">=</span> <span class="mi">'Camille'</span>
+    <span class="k">AND</span> p2.name <span class="o">=</span> <span class="mi">'Liam'</span>
+  <span class="k">COLUMNS</span>(COUNT(edge_id(e)) <span class="k">AS</span> num_hops ,
+          p1.name <span class="k">AS</span> start ,
+          <span class="k">ARRAY_AGG</span> ( C<span class="k">AS</span>E
+                        WHEN dst <span class="k">IS</span> <span class="k">LABELED</span> Account
+                          <span class="k">THEN</span> C<span class="k">AS</span>T(dst.number <span class="k">AS</span> <span class="k">STRING</span>)
+                        <span class="k">ELSE</span> dst.name
+                      END
+                    ) <span class="k">AS</span> path))
 <span class="k">ORDER</span> <span class="k">BY</span> num_hops
 </pre></div></div></div>
 <div name="pgql" class="tab-content"><div class="language-sql highlighter-rouge"><div class="highlight"><pre class="highlight">
@@ -2330,9 +2773,9 @@ For example, the following query matches a shortest path (if one exists) such th
 <button name="pgql-button" class="tablinks" onclick="openTab(event, 'pgql')">PGQL with custom syntax</button>
 </div><div name="sql" class="tab-content active"><div class="language-sql highlighter-rouge"><div class="highlight"><pre class="highlight">
 <span class="k">SELECT</span> <span class="o">*</span>
-<span class="k">FROM</span> <span class="k">GRAPH_TABLE</span>(my_graph 
-  <span class="k">MATCH</span> (src) (<span class="o">-</span>[e]<span class="o">-</span><span class="o">></span> <span class="k">WHERE</span> e.weight <span class="o">></span> <span class="mi">10</span>)<span class="o">*</span> (dst) 
-  <span class="k">KEEP</span> <span class="k">ANY</span> <span class="k">SHORTEST</span> 
+<span class="k">FROM</span> <span class="k">GRAPH_TABLE</span>(my_graph
+  <span class="k">MATCH</span> (src) (<span class="o">-</span>[e]<span class="o">-</span><span class="o">></span> <span class="k">WHERE</span> e.weight <span class="o">></span> <span class="mi">10</span>)<span class="o">*</span> (dst)
+  <span class="k">KEEP</span> <span class="k">ANY</span> <span class="k">SHORTEST</span>
   <span class="k">COLUMNS</span>(src.<span class="o">*</span>, <span class="k">ARRAY_AGG</span>(e.weight), dst.<span class="o">*</span>))
 </pre></div></div></div>
 <div name="pgql" class="tab-content"><div class="language-sql highlighter-rouge"><div class="highlight"><pre class="highlight">
@@ -2347,8 +2790,8 @@ Note that this is different from a `WHERE` clause that is placed outside of the 
 <button name="pgql-button" class="tablinks" onclick="openTab(event, 'pgql')">PGQL with custom syntax</button>
 </div><div name="sql" class="tab-content active"><div class="language-sql highlighter-rouge"><div class="highlight"><pre class="highlight">
 <span class="k">SELECT</span> <span class="o">*</span>
-<span class="k">FROM</span> <span class="k">GRAPH_TABLE</span>(my_graph 
-  <span class="k">MATCH</span> (src) <span class="o">-</span>[e]<span class="o">-</span><span class="o">></span><span class="o">*</span> (dst) 
+<span class="k">FROM</span> <span class="k">GRAPH_TABLE</span>(my_graph
+  <span class="k">MATCH</span> (src) <span class="o">-</span>[e]<span class="o">-</span><span class="o">></span><span class="o">*</span> (dst)
   <span class="k">KEEP</span> <span class="k">ANY</span> <span class="k">SHORTEST</span>
   <span class="k">WHERE</span> e.weight <span class="o">></span> <span class="mi">10</span>
   <span class="k">COLUMNS</span>(src.<span class="o">*</span>, <span class="k">ARRAY_AGG</span>(e.weight), dst.<span class="o">*</span>))
@@ -2381,7 +2824,7 @@ each of the matched source and destination pairs:
 <button name="pgql-button" class="tablinks" onclick="openTab(event, 'pgql')">PGQL with custom syntax</button>
 </div><div name="sql" class="tab-content active"><div class="language-sql highlighter-rouge"><div class="highlight"><pre class="highlight">
 <span class="k">SELECT</span> <span class="o">*</span>
-<span class="k">FROM</span> <span class="k">GRAPH_TABLE</span>(my_graph 
+<span class="k">FROM</span> <span class="k">GRAPH_TABLE</span>(my_graph
   <span class="k">MATCH</span> (src) <span class="o">-</span>[e]<span class="o">-</span><span class="o">></span><span class="o">*</span> (dst)
   <span class="k">KEEP</span> <span class="k">SHORTEST</span> <span class="mi">3</span> <span class="k">PATHS</span>
   <span class="k">WHERE</span> src.age <span class="o"><</span> dst.age
@@ -2403,11 +2846,11 @@ The `ARRAY_AGG` construct allows users to output properties of edges/vertices al
 <button name="sql-button" class="tablinks active" onclick="openTab(event, 'sql')">PGQL with SQL Standard syntax</button>
 <button name="pgql-button" class="tablinks" onclick="openTab(event, 'pgql')">PGQL with custom syntax</button>
 </div><div name="sql" class="tab-content active"><div class="language-sql highlighter-rouge"><div class="highlight"><pre class="highlight">
-<span class="k">SELECT</span> <span class="o">*</span> 
-<span class="k">FROM</span> <span class="k">GRAPH_TABLE</span>(my_graph 
-  <span class="k">MATCH</span> (src) ((v1) <span class="o">-</span>[e]<span class="o">-</span><span class="o">></span> (v2))<span class="o">*</span> (dst) 
-  <span class="k">KEEP</span> <span class="k">SHORTEST</span> <span class="mi">3</span> <span class="k">PATHS</span> 
-  <span class="k">WHERE</span> src.age <span class="o"><</span> dst.age 
+<span class="k">SELECT</span> <span class="o">*</span>
+<span class="k">FROM</span> <span class="k">GRAPH_TABLE</span>(my_graph
+  <span class="k">MATCH</span> (src) ((v1) <span class="o">-</span>[e]<span class="o">-</span><span class="o">></span> (v2))<span class="o">*</span> (dst)
+  <span class="k">KEEP</span> <span class="k">SHORTEST</span> <span class="mi">3</span> <span class="k">PATHS</span>
+  <span class="k">WHERE</span> src.age <span class="o"><</span> dst.age
   <span class="k">COLUMNS</span>(src.<span class="o">*</span>, <span class="k">ARRAY_AGG</span>(e.weight), <span class="k">ARRAY_AGG</span>(v1.age), <span class="k">ARRAY_AGG</span>(v2.age), dst.<span class="o">*</span>))
 </pre></div></div></div>
 <div name="pgql" class="tab-content"><div class="language-sql highlighter-rouge"><div class="highlight"><pre class="highlight">
@@ -2423,15 +2866,34 @@ the `ARRAY_AGG(v1.cost)` outputs a list containing the age property of all the v
 the `ARRAY_AGG(v2.cost)` outputs a list containing the age property of all the vertices along the path except the first one.
 
 
-Users can also compose shortest path constructs with other matching operators (Note that this behavior is not allowed with `GRAPH_TABLE` operator):
+Users can also mix shortest path searches with other search operators.
+In case of PGQL with SQL Standard syntax this requires placing the different
+path searches in different GRAPH_TABLE operators:
 
-```sql
-SELECT ARRAY_AGG(e1.weight), ARRAY_AGG(e2.weight)
-FROM MATCH (start) -> (src) ON my_graph
-   , MATCH SHORTEST 3 PATHS (src) (-[e1]->)* (mid) ON my_graph
-   , MATCH ANY SHORTEST (mid) (-[e2]->)* (dst) ON my_graph
-   , MATCH (dst) -> (end) ON my_graph
-```
+<div class="tab">
+<button name="sql-button" class="tablinks active" onclick="openTab(event, 'sql')">PGQL with SQL Standard syntax</button>
+<button name="pgql-button" class="tablinks" onclick="openTab(event, 'pgql')">PGQL with custom syntax</button>
+</div><div name="sql" class="tab-content active"><div class="language-sql highlighter-rouge"><div class="highlight"><pre class="highlight">
+<span class="k">SELECT</span> e1_weights, e2_weights
+<span class="k">FROM</span>
+  <span class="k">GRAPH_TABLE</span>(my_graph
+    <span class="k">MATCH</span> (src) (<span class="o">-</span>[e1]<span class="o">-</span><span class="o">></span>)<span class="o">*</span> (mid)
+    <span class="k">KEEP</span> <span class="k">SHORTEST</span> <span class="mi">3</span> <span class="k">PATHS</span>
+    <span class="k">COLUMNS</span> (vertex_id(mid) <span class="k">AS</span> mid_vid1, <span class="k">LISTAGG</span>(e1.weight, <span class="mi">', '</span>) <span class="k">AS</span> e1_weights)
+  ),
+  <span class="k">GRAPH_TABLE</span>(my_graph
+    <span class="k">MATCH</span> (mid) (<span class="o">-</span>[e2]<span class="o">-</span><span class="o">></span>)<span class="o">*</span> (dst)
+    <span class="k">KEEP</span> <span class="k">ANY</span> <span class="k">SHORTEST</span> <span class="k">PATH</span>
+    <span class="k">COLUMNS</span> (vertex_id(mid) <span class="k">AS</span> mid_vid2, <span class="k">LISTAGG</span>(e2.weight, <span class="mi">', '</span>) <span class="k">AS</span> e2_weights)
+  )
+<span class="k">WHERE</span> mid_vid1 <span class="o">=</span> mid_vid2
+</pre></div></div></div>
+<div name="pgql" class="tab-content"><div class="language-sql highlighter-rouge"><div class="highlight"><pre class="highlight">
+<span class="k">SELECT</span> <span class="k">LISTAGG</span>(e1.weight, <span class="mi">', '</span>) <span class="k">AS</span> e1_weights,
+       <span class="k">LISTAGG</span>(e2.weight, <span class="mi">', '</span>) <span class="k">AS</span> e2_weights
+<span class="k">FROM</span> <span class="k">MATCH</span> <span class="k">SHORTEST</span> <span class="mi">3</span> <span class="k">PATHS</span> (src) (<span class="o">-</span>[e1]<span class="o">-</span><span class="o">></span>)<span class="o">*</span> (mid) <span class="k">ON</span> my_graph
+   , <span class="k">MATCH</span> <span class="k">ANY</span> <span class="k">SHORTEST</span> (mid) (<span class="o">-</span>[e2]<span class="o">-</span><span class="o">></span>)<span class="o">*</span> (dst) <span class="k">ON</span> my_graph
+</pre></div></div></div>
 
 Another example is:
 
@@ -2441,13 +2903,13 @@ Another example is:
 <button name="sql-button" class="tablinks active" onclick="openTab(event, 'sql')">PGQL with SQL Standard syntax</button>
 <button name="pgql-button" class="tablinks" onclick="openTab(event, 'pgql')">PGQL with custom syntax</button>
 </div><div name="sql" class="tab-content active"><div class="language-sql highlighter-rouge"><div class="highlight"><pre class="highlight">
-<span class="k">SELECT</span> <span class="o">*</span> 
-<span class="k">FROM</span> <span class="k">GRAPH_TABLE</span>(financial_transactions 
-  <span class="k">MATCH</span> (a <span class="k">IS</span> Account) <span class="o">-</span>[e <span class="k">IS</span> transaction]<span class="o">-</span><span class="o">></span><span class="o">*</span> (b <span class="k">IS</span> Account) 
-  <span class="k">KEEP</span> <span class="k">SHORTEST</span> <span class="mi">7</span> <span class="k">PATHS</span> 
-  <span class="k">WHERE</span> a.number <span class="o">=</span> <span class="mi">10039</span> <span class="k">AND</span> <span class="k">VERTEX</span>_EQUAL(a, b) 
-  <span class="k">COLUMNS</span>(COUNT(<span class="k">EDGE</span>_<span class="k">ID</span>(e)) <span class="k">AS</span> num_hops , 
-        <span class="k">SUM</span>(e.amount) <span class="k">AS</span> total_amount , 
+<span class="k">SELECT</span> <span class="o">*</span>
+<span class="k">FROM</span> <span class="k">GRAPH_TABLE</span>(financial_transactions
+  <span class="k">MATCH</span> (a <span class="k">IS</span> Account) <span class="o">-</span>[e <span class="k">IS</span> transaction]<span class="o">-</span><span class="o">></span><span class="o">*</span> (b <span class="k">IS</span> Account)
+  <span class="k">KEEP</span> <span class="k">SHORTEST</span> <span class="mi">7</span> <span class="k">PATHS</span>
+  <span class="k">WHERE</span> a.number <span class="o">=</span> <span class="mi">10039</span> <span class="k">AND</span> <span class="k">VERTEX</span>_EQUAL(a, b)
+  <span class="k">COLUMNS</span>(COUNT(<span class="k">EDGE</span>_<span class="k">ID</span>(e)) <span class="k">AS</span> num_hops ,
+        <span class="k">SUM</span>(e.amount) <span class="k">AS</span> total_amount ,
         <span class="k">ARRAY_AGG</span>(e.amount) <span class="k">AS</span> amounts_along_path))
 <span class="k">ORDER</span> <span class="k">BY</span> num_hops, total_amount
 </pre></div></div></div>
@@ -2484,14 +2946,14 @@ The following example shows how such paths could be filtered out, such that we o
 <button name="sql-button" class="tablinks active" onclick="openTab(event, 'sql')">PGQL with SQL Standard syntax</button>
 <button name="pgql-button" class="tablinks" onclick="openTab(event, 'pgql')">PGQL with custom syntax</button>
 </div><div name="sql" class="tab-content active"><div class="language-sql highlighter-rouge"><div class="highlight"><pre class="highlight">
-<span class="k">SELECT</span> <span class="o">*</span> 
-<span class="k">FROM</span> <span class="k">GRAPH_TABLE</span>(financial_transactions 
-  <span class="k">MATCH</span> (a <span class="k">IS</span> Account) <span class="o">-</span>[e <span class="k">IS</span> transaction]<span class="o">-</span><span class="o">></span><span class="o">*</span> (b <span class="k">IS</span> Account) 
-  <span class="k">KEEP</span> <span class="k">SHORTEST</span> <span class="mi">7</span> <span class="k">PATHS</span> 
-  <span class="k">WHERE</span> a.number <span class="o">=</span> <span class="mi">10039</span> <span class="k">AND</span> <span class="k">VERTEX</span>_EQUAL(a, b) <span class="k">AND</span> COUNT(<span class="k">DISTINCT</span> <span class="k">EDGE</span>_<span class="k">ID</span>(e)) <span class="o">=</span> COUNT(<span class="k">EDGE</span>_<span class="k">ID</span>(e)) <span class="k">AND</span> COUNT(<span class="k">EDGE</span>_<span class="k">ID</span>(e)) <span class="o">></span> <span class="mi">0</span> 
-  <span class="k">COLUMNS</span>(COUNT(<span class="k">EDGE</span>_<span class="k">ID</span>(e)) <span class="k">AS</span> num_hops , 
-          <span class="k">SUM</span>(e.amount) <span class="k">AS</span> total_amount , 
-          <span class="k">ARRAY_AGG</span>(e.amount) <span class="k">AS</span> amounts_along_path)) 
+<span class="k">SELECT</span> <span class="o">*</span>
+<span class="k">FROM</span> <span class="k">GRAPH_TABLE</span>(financial_transactions
+  <span class="k">MATCH</span> (a <span class="k">IS</span> Account) <span class="o">-</span>[e <span class="k">IS</span> transaction]<span class="o">-</span><span class="o">></span><span class="o">*</span> (b <span class="k">IS</span> Account)
+  <span class="k">KEEP</span> <span class="k">SHORTEST</span> <span class="mi">7</span> <span class="k">PATHS</span>
+  <span class="k">WHERE</span> a.number <span class="o">=</span> <span class="mi">10039</span> <span class="k">AND</span> <span class="k">VERTEX</span>_EQUAL(a, b) <span class="k">AND</span> COUNT(<span class="k">DISTINCT</span> <span class="k">EDGE</span>_<span class="k">ID</span>(e)) <span class="o">=</span> COUNT(<span class="k">EDGE</span>_<span class="k">ID</span>(e)) <span class="k">AND</span> COUNT(<span class="k">EDGE</span>_<span class="k">ID</span>(e)) <span class="o">></span> <span class="mi">0</span>
+  <span class="k">COLUMNS</span>(COUNT(<span class="k">EDGE</span>_<span class="k">ID</span>(e)) <span class="k">AS</span> num_hops ,
+          <span class="k">SUM</span>(e.amount) <span class="k">AS</span> total_amount ,
+          <span class="k">ARRAY_AGG</span>(e.amount) <span class="k">AS</span> amounts_along_path))
 <span class="k">ORDER</span> <span class="k">BY</span> num_hops, total_amount
 </pre></div></div></div>
 <div name="pgql" class="tab-content"><div class="language-sql highlighter-rouge"><div class="highlight"><pre class="highlight">
@@ -2537,14 +2999,23 @@ For example:
 
 {% include image.html file="example_graphs/financial_transactions.png" %}
 
-```sql
-SELECT COUNT(e) AS num_hops
-     , SUM(e.amount) AS total_amount
-     , ARRAY_AGG(e.amount) AS amounts_along_path
-FROM MATCH ANY CHEAPEST (a:Account) (-[e:transaction]-> COST e.amount)* (b:Account)
-       ON financial_transactions
-WHERE a.number = 10039 AND b.number = 2090
-```
+<div class="tab">
+<button name="sql-button" class="tablinks active" onclick="openTab(event, 'sql')">PGQL with SQL Standard syntax</button>
+<button name="pgql-button" class="tablinks" onclick="openTab(event, 'pgql')">PGQL with custom syntax</button>
+</div><div name="sql" class="tab-content active"><div class="language-sql highlighter-rouge"><div class="highlight"><pre class="highlight">
+<span class="o">/</span><span class="o">*</span>
+ <span class="o">*</span> Use PGQL with custom syntax since cheapest path finding support has not yet
+ <span class="o">*</span> been added to the SQL Standard.
+ <span class="o">*</span><span class="o">/</span>
+</pre></div></div></div>
+<div name="pgql" class="tab-content"><div class="language-sql highlighter-rouge"><div class="highlight"><pre class="highlight">
+<span class="k">SELECT</span> COUNT(e) <span class="k">AS</span> num_hops
+     , <span class="k">SUM</span>(e.amount) <span class="k">AS</span> total_amount
+     , <span class="k">ARRAY_AGG</span>(e.amount) <span class="k">AS</span> amounts_along_path
+<span class="k">FROM</span> <span class="k">MATCH</span> <span class="k">ANY</span> <span class="k">CHEAPEST</span> (a:Account) (<span class="o">-</span>[e:transaction]<span class="o">-</span><span class="o">></span> <span class="k">COST</span> e.amount)<span class="o">*</span> (b:Account)
+       <span class="k">ON</span> financial_transactions
+<span class="k">WHERE</span> a.number <span class="o">=</span> <span class="mi">10039</span> <span class="k">AND</span> b.number <span class="o">=</span> <span class="mi">2090</span>
+</pre></div></div></div>
 
 ```
 +----------------------------------------------------+
@@ -2558,14 +3029,23 @@ The following example with `CHEAPEST` contains an any-directed edge pattern (`-[
 
 {% include image.html file="example_graphs/financial_transactions.png" %}
 
-```sql
-SELECT COUNT(e) AS num_hops
-     , SUM(e.amount) AS total_amount
-     , ARRAY_AGG(e.amount) AS amounts_along_path
-FROM MATCH ANY CHEAPEST (a:Account) (-[e:transaction]- COST e.amount)* (b:Account)
-       ON financial_transactions
-WHERE a.number = 10039 AND b.number = 2090
-```
+<div class="tab">
+<button name="sql-button" class="tablinks active" onclick="openTab(event, 'sql')">PGQL with SQL Standard syntax</button>
+<button name="pgql-button" class="tablinks" onclick="openTab(event, 'pgql')">PGQL with custom syntax</button>
+</div><div name="sql" class="tab-content active"><div class="language-sql highlighter-rouge"><div class="highlight"><pre class="highlight">
+<span class="o">/</span><span class="o">*</span>
+ <span class="o">*</span> Use PGQL with custom syntax since cheapest path finding support has not yet
+ <span class="o">*</span> been added to the SQL Standard.
+ <span class="o">*</span><span class="o">/</span>
+</pre></div></div></div>
+<div name="pgql" class="tab-content"><div class="language-sql highlighter-rouge"><div class="highlight"><pre class="highlight">
+<span class="k">SELECT</span> COUNT(e) <span class="k">AS</span> num_hops
+     , <span class="k">SUM</span>(e.amount) <span class="k">AS</span> total_amount
+     , <span class="k">ARRAY_AGG</span>(e.amount) <span class="k">AS</span> amounts_along_path
+<span class="k">FROM</span> <span class="k">MATCH</span> <span class="k">ANY</span> <span class="k">CHEAPEST</span> (a:Account) (<span class="o">-</span>[e:transaction]<span class="o">-</span> <span class="k">COST</span> e.amount)<span class="o">*</span> (b:Account)
+       <span class="k">ON</span> financial_transactions
+<span class="k">WHERE</span> a.number <span class="o">=</span> <span class="mi">10039</span> <span class="k">AND</span> b.number <span class="o">=</span> <span class="mi">2090</span>
+</pre></div></div></div>
 
 ```
 +----------------------------------------------+
@@ -2582,18 +3062,27 @@ The following example has a `CASE` statement that defines a different cost for d
 
 {% include image.html file="example_graphs/financial_transactions.png" %}
 
-```sql
-SELECT COUNT(e) AS num_hops
-     , SUM(e.amount) AS total_amount
-     , ARRAY_AGG(e.amount) AS amounts_along_path
-FROM MATCH ANY CHEAPEST (p1:Person) (-[e:owner|transaction]-
-                                    COST CASE
-                                           WHEN e.amount IS NULL THEN 1
-                                           ELSE e.amount
-                                         END)* (p2:Person)
-     ON financial_transactions
-WHERE p1.name = 'Nikita' AND p2.name = 'Liam'
-```
+<div class="tab">
+<button name="sql-button" class="tablinks active" onclick="openTab(event, 'sql')">PGQL with SQL Standard syntax</button>
+<button name="pgql-button" class="tablinks" onclick="openTab(event, 'pgql')">PGQL with custom syntax</button>
+</div><div name="sql" class="tab-content active"><div class="language-sql highlighter-rouge"><div class="highlight"><pre class="highlight">
+<span class="o">/</span><span class="o">*</span>
+ <span class="o">*</span> Use PGQL with custom syntax since cheapest path finding support has not yet
+ <span class="o">*</span> been added to the SQL Standard.
+ <span class="o">*</span><span class="o">/</span>
+</pre></div></div></div>
+<div name="pgql" class="tab-content"><div class="language-sql highlighter-rouge"><div class="highlight"><pre class="highlight">
+<span class="k">SELECT</span> COUNT(e) <span class="k">AS</span> num_hops
+     , <span class="k">SUM</span>(e.amount) <span class="k">AS</span> total_amount
+     , <span class="k">ARRAY_AGG</span>(e.amount) <span class="k">AS</span> amounts_along_path
+<span class="k">FROM</span> <span class="k">MATCH</span> <span class="k">ANY</span> <span class="k">CHEAPEST</span> (p1:Person) (<span class="o">-</span>[e:owner<span class="o">|</span>transaction]<span class="o">-</span>
+                                    <span class="k">COST</span> C<span class="k">AS</span>E
+                                           WHEN e.amount <span class="k">IS</span> <span class="k">NULL</span> <span class="k">THEN</span> <span class="mi">1</span>
+                                           <span class="k">ELSE</span> e.amount
+                                         END)<span class="o">*</span> (p2:Person)
+     <span class="k">ON</span> financial_transactions
+<span class="k">WHERE</span> p1.name <span class="o">=</span> <span class="mi">'Nikita'</span> <span class="k">AND</span> p2.name <span class="o">=</span> <span class="mi">'Liam'</span>
+</pre></div></div></div>
 
 ```
 +----------------------------------------------+
@@ -2627,15 +3116,24 @@ For example, the following query returns the cheapest 3 paths from account 10039
 
 {% include image.html file="example_graphs/financial_transactions.png" %}
 
-```sql
-SELECT COUNT(e) AS num_hops
-     , SUM(e.amount) AS total_amount
-     , ARRAY_AGG(e.amount) AS amounts_along_path
-FROM MATCH CHEAPEST 3 PATHS (a:Account) (-[e:transaction]-> COST e.amount)* (a)
-       ON financial_transactions
-WHERE a.number = 10039
-ORDER BY total_amount
-```
+<div class="tab">
+<button name="sql-button" class="tablinks active" onclick="openTab(event, 'sql')">PGQL with SQL Standard syntax</button>
+<button name="pgql-button" class="tablinks" onclick="openTab(event, 'pgql')">PGQL with custom syntax</button>
+</div><div name="sql" class="tab-content active"><div class="language-sql highlighter-rouge"><div class="highlight"><pre class="highlight">
+<span class="o">/</span><span class="o">*</span>
+ <span class="o">*</span> Use PGQL with custom syntax since cheapest path finding support has not yet
+ <span class="o">*</span> been added to the SQL Standard.
+ <span class="o">*</span><span class="o">/</span>
+</pre></div></div></div>
+<div name="pgql" class="tab-content"><div class="language-sql highlighter-rouge"><div class="highlight"><pre class="highlight">
+<span class="k">SELECT</span> COUNT(e) <span class="k">AS</span> num_hops
+     , <span class="k">SUM</span>(e.amount) <span class="k">AS</span> total_amount
+     , <span class="k">ARRAY_AGG</span>(e.amount) <span class="k">AS</span> amounts_along_path
+<span class="k">FROM</span> <span class="k">MATCH</span> <span class="k">CHEAPEST</span> <span class="mi">3</span> <span class="k">PATHS</span> (a:Account) (<span class="o">-</span>[e:transaction]<span class="o">-</span><span class="o">></span> <span class="k">COST</span> e.amount)<span class="o">*</span> (a)
+       <span class="k">ON</span> financial_transactions
+<span class="k">WHERE</span> a.number <span class="o">=</span> <span class="mi">10039</span>
+<span class="k">ORDER</span> <span class="k">BY</span> total_amount
+</pre></div></div></div>
 
 ```
 +------------------------------------------------------------+
@@ -2653,21 +3151,30 @@ while `Account` or `Company` vertices contribute `1` to the total cost.
 
 {% include image.html file="example_graphs/financial_transactions.png" %}
 
-```sql
-SELECT COUNT(e) AS num_hops
-     , ARRAY_AGG( CASE label(n_x)
-                    WHEN 'Person' THEN n_x.name
-                    WHEN 'Company' THEN n_x.name
-                    WHEN 'Account' THEN CAST(n_x.number AS STRING)
-                  END ) AS names_or_numbers
-     , SUM( CASE label(n_x) WHEN 'Person' THEN 8 ELSE 1 END ) AS total_cost
-FROM MATCH CHEAPEST 4 PATHS
+<div class="tab">
+<button name="sql-button" class="tablinks active" onclick="openTab(event, 'sql')">PGQL with SQL Standard syntax</button>
+<button name="pgql-button" class="tablinks" onclick="openTab(event, 'pgql')">PGQL with custom syntax</button>
+</div><div name="sql" class="tab-content active"><div class="language-sql highlighter-rouge"><div class="highlight"><pre class="highlight">
+<span class="o">/</span><span class="o">*</span>
+ <span class="o">*</span> Use PGQL with custom syntax since cheapest path finding support has not yet
+ <span class="o">*</span> been added to the SQL Standard.
+ <span class="o">*</span><span class="o">/</span>
+</pre></div></div></div>
+<div name="pgql" class="tab-content"><div class="language-sql highlighter-rouge"><div class="highlight"><pre class="highlight">
+<span class="k">SELECT</span> COUNT(e) <span class="k">AS</span> num_hops
+     , <span class="k">ARRAY_AGG</span>( C<span class="k">AS</span>E label(n_x)
+                    WHEN <span class="mi">'Person'</span> <span class="k">THEN</span> n_x.name
+                    WHEN <span class="mi">'Company'</span> <span class="k">THEN</span> n_x.name
+                    WHEN <span class="mi">'Account'</span> <span class="k">THEN</span> C<span class="k">AS</span>T(n_x.number <span class="k">AS</span> <span class="k">STRING</span>)
+                  END ) <span class="k">AS</span> names_or_numbers
+     , <span class="k">SUM</span>( C<span class="k">AS</span>E label(n_x) WHEN <span class="mi">'Person'</span> <span class="k">THEN</span> <span class="mi">8</span> <span class="k">ELSE</span> <span class="mi">1</span> END ) <span class="k">AS</span> total_cost
+<span class="k">FROM</span> <span class="k">MATCH</span> <span class="k">CHEAPEST</span> <span class="mi">4</span> <span class="k">PATHS</span>
       (a:Account)
-        (-[e]- (n_x) COST CASE label(n_x) WHEN 'Person' THEN 3 ELSE 1 END)*
-          (c:Company) ON financial_transactions
-WHERE a.number = 10039 AND c.name = 'Oracle'
-ORDER BY total_cost
-```
+        (<span class="o">-</span>[e]<span class="o">-</span> (n_x) <span class="k">COST</span> C<span class="k">AS</span>E label(n_x) WHEN <span class="mi">'Person'</span> <span class="k">THEN</span> <span class="mi">3</span> <span class="k">ELSE</span> <span class="mi">1</span> END)<span class="o">*</span>
+          (c:Company) <span class="k">ON</span> financial_transactions
+<span class="k">WHERE</span> a.number <span class="o">=</span> <span class="mi">10039</span> <span class="k">AND</span> c.name <span class="o">=</span> <span class="mi">'Oracle'</span>
+<span class="k">ORDER</span> <span class="k">BY</span> total_cost
+</pre></div></div></div>
 
 ```
 +----------------------------------------------+
@@ -2715,11 +3222,11 @@ For example:
 <button name="sql-button" class="tablinks active" onclick="openTab(event, 'sql')">PGQL with SQL Standard syntax</button>
 <button name="pgql-button" class="tablinks" onclick="openTab(event, 'pgql')">PGQL with custom syntax</button>
 </div><div name="sql" class="tab-content active"><div class="language-sql highlighter-rouge"><div class="highlight"><pre class="highlight">
-<span class="k">SELECT</span> <span class="o">*</span> 
-<span class="k">FROM</span> <span class="k">GRAPH_TABLE</span>(financial_transactions 
-  <span class="k">MATCH</span> (a <span class="k">IS</span> Account) <span class="o">-</span>[e <span class="k">IS</span> transaction]<span class="o">-</span><span class="o">></span>{,<span class="mi">7</span>} (b <span class="k">IS</span> Account) 
-  <span class="k">KEEP</span> <span class="k">ALL</span> <span class="k">WHERE</span> a.number <span class="o">=</span> <span class="mi">10039</span> <span class="k">AND</span> b.number <span class="o">=</span> <span class="mi">2090</span> 
-  <span class="k">COLUMNS</span>(<span class="k">LISTAGG</span>(e.amount, <span class="mi">' + '</span>) <span class="o">|</span><span class="o">|</span> <span class="mi">' = '</span>, <span class="k">SUM</span>(e.amount) <span class="k">AS</span> total_amount)) 
+<span class="k">SELECT</span> <span class="o">*</span>
+<span class="k">FROM</span> <span class="k">GRAPH_TABLE</span>(financial_transactions
+  <span class="k">MATCH</span> (a <span class="k">IS</span> Account) <span class="o">-</span>[e <span class="k">IS</span> transaction]<span class="o">-</span><span class="o">></span>{,<span class="mi">7</span>} (b <span class="k">IS</span> Account)
+  <span class="k">KEEP</span> <span class="k">ALL</span> <span class="k">WHERE</span> a.number <span class="o">=</span> <span class="mi">10039</span> <span class="k">AND</span> b.number <span class="o">=</span> <span class="mi">2090</span>
+  <span class="k">COLUMNS</span>(<span class="k">LISTAGG</span>(e.amount, <span class="mi">' + '</span>) <span class="o">|</span><span class="o">|</span> <span class="mi">' = '</span>, <span class="k">SUM</span>(e.amount) <span class="k">AS</span> total_amount))
 <span class="k">ORDER</span> <span class="k">BY</span> total_amount
 </pre></div></div></div>
 <div name="pgql" class="tab-content"><div class="language-sql highlighter-rouge"><div class="highlight"><pre class="highlight">
@@ -2806,11 +3313,11 @@ It is possible to mix vertical and horizontal aggregation in a single query. For
 <button name="sql-button" class="tablinks active" onclick="openTab(event, 'sql')">PGQL with SQL Standard syntax</button>
 <button name="pgql-button" class="tablinks" onclick="openTab(event, 'pgql')">PGQL with custom syntax</button>
 </div><div name="sql" class="tab-content active"><div class="language-sql highlighter-rouge"><div class="highlight"><pre class="highlight">
-<span class="k">SELECT</span> <span class="k">SUM</span>(countOfPathLengths) <span class="k">AS</span> sumOfPathLengths 
-<span class="k">FROM</span> <span class="k">GRAPH_TABLE</span>(financial_transactions 
-  <span class="k">MATCH</span> (a <span class="k">IS</span> Account) <span class="o">-</span> [e <span class="k">IS</span> transaction] <span class="o">-</span><span class="o">></span> <span class="o">*</span> (b <span class="k">IS</span> Account) 
-  <span class="k">KEEP</span> <span class="k">ANY</span> <span class="k">SHORTEST</span> 
-  <span class="k">WHERE</span> a.number <span class="o">=</span> <span class="mi">10039</span> <span class="k">AND</span> ( b.number <span class="o">=</span> <span class="mi">1001</span> <span class="k">OR</span> b.number <span class="o">=</span> <span class="mi">2090</span> ) 
+<span class="k">SELECT</span> <span class="k">SUM</span>(countOfPathLengths) <span class="k">AS</span> sumOfPathLengths
+<span class="k">FROM</span> <span class="k">GRAPH_TABLE</span>(financial_transactions
+  <span class="k">MATCH</span> (a <span class="k">IS</span> Account) <span class="o">-</span> [e <span class="k">IS</span> transaction] <span class="o">-</span><span class="o">></span> <span class="o">*</span> (b <span class="k">IS</span> Account)
+  <span class="k">KEEP</span> <span class="k">ANY</span> <span class="k">SHORTEST</span>
+  <span class="k">WHERE</span> a.number <span class="o">=</span> <span class="mi">10039</span> <span class="k">AND</span> ( b.number <span class="o">=</span> <span class="mi">1001</span> <span class="k">OR</span> b.number <span class="o">=</span> <span class="mi">2090</span> )
   <span class="k">COLUMNS</span>(COUNT(<span class="k">EDGE</span>_<span class="k">ID</span>(e)) <span class="k">AS</span> countOfPathLengths))
 </pre></div></div></div>
 <div name="pgql" class="tab-content"><div class="language-sql highlighter-rouge"><div class="highlight"><pre class="highlight">
@@ -2845,16 +3352,16 @@ An example of a horizontal aggregation in `WHERE` is:
 <button name="sql-button" class="tablinks active" onclick="openTab(event, 'sql')">PGQL with SQL Standard syntax</button>
 <button name="pgql-button" class="tablinks" onclick="openTab(event, 'pgql')">PGQL with custom syntax</button>
 </div><div name="sql" class="tab-content active"><div class="language-sql highlighter-rouge"><div class="highlight"><pre class="highlight">
-<span class="k">SELECT</span> <span class="o">*</span> 
-<span class="k">FROM</span> <span class="k">GRAPH_TABLE</span>(financial_transactions 
-  <span class="k">MATCH</span> (a <span class="k">IS</span> Account) <span class="o">-</span>[e <span class="k">IS</span> transaction]<span class="o">-</span><span class="o">></span><span class="o">*</span> (b <span class="k">IS</span> Account) 
-  <span class="k">KEEP</span> <span class="k">ANY</span> <span class="k">SHORTEST</span> 
-  <span class="k">WHERE</span> a.number <span class="o">=</span> <span class="mi">10039</span> <span class="k">AND</span> 
-        (b.number <span class="o">=</span> <span class="mi">8021</span> <span class="k">OR</span> b.number <span class="o">=</span> <span class="mi">1001</span> <span class="k">OR</span> b.number <span class="o">=</span> <span class="mi">2090</span>) <span class="k">AND</span> 
-        COUNT(<span class="k">EDGE</span>_<span class="k">ID</span>(e)) <span class="o"><</span><span class="o">=</span> <span class="mi">2</span> 
+<span class="k">SELECT</span> <span class="o">*</span>
+<span class="k">FROM</span> <span class="k">GRAPH_TABLE</span>(financial_transactions
+  <span class="k">MATCH</span> (a <span class="k">IS</span> Account) <span class="o">-</span>[e <span class="k">IS</span> transaction]<span class="o">-</span><span class="o">></span><span class="o">*</span> (b <span class="k">IS</span> Account)
+  <span class="k">KEEP</span> <span class="k">ANY</span> <span class="k">SHORTEST</span>
+  <span class="k">WHERE</span> a.number <span class="o">=</span> <span class="mi">10039</span> <span class="k">AND</span>
+        (b.number <span class="o">=</span> <span class="mi">8021</span> <span class="k">OR</span> b.number <span class="o">=</span> <span class="mi">1001</span> <span class="k">OR</span> b.number <span class="o">=</span> <span class="mi">2090</span>) <span class="k">AND</span>
+        COUNT(<span class="k">EDGE</span>_<span class="k">ID</span>(e)) <span class="o"><</span><span class="o">=</span> <span class="mi">2</span>
   <span class="k">COLUMNS</span>(b.number <span class="k">AS</span> b,
-          COUNT(<span class="k">EDGE</span>_<span class="k">ID</span>(e)) <span class="k">AS</span> pathLength, 
-          <span class="k">ARRAY_AGG</span>(e.amount) <span class="k">AS</span> transactions)) 
+          COUNT(<span class="k">EDGE</span>_<span class="k">ID</span>(e)) <span class="k">AS</span> pathLength,
+          <span class="k">ARRAY_AGG</span>(e.amount) <span class="k">AS</span> transactions))
 <span class="k">ORDER</span> <span class="k">BY</span> pathLength
 </pre></div></div></div>
 <div name="pgql" class="tab-content"><div class="language-sql highlighter-rouge"><div class="highlight"><pre class="highlight">
@@ -2889,14 +3396,14 @@ An example of a horizontal aggregation in `GROUP BY` is:
 <button name="sql-button" class="tablinks active" onclick="openTab(event, 'sql')">PGQL with SQL Standard syntax</button>
 <button name="pgql-button" class="tablinks" onclick="openTab(event, 'pgql')">PGQL with custom syntax</button>
 </div><div name="sql" class="tab-content active"><div class="language-sql highlighter-rouge"><div class="highlight"><pre class="highlight">
-<span class="k">SELECT</span> pathLength, COUNT(<span class="o">*</span>) <span class="k">AS</span> cnt 
-<span class="k">FROM</span> <span class="k">GRAPH_TABLE</span>(financial_transactions 
-  <span class="k">MATCH</span> (a <span class="k">IS</span> Account) <span class="o">-</span>[e <span class="k">IS</span> transaction]<span class="o">-</span><span class="o">></span><span class="o">*</span> (b <span class="k">IS</span> Account) 
-  <span class="k">KEEP</span> <span class="k">ANY</span> <span class="k">SHORTEST</span> 
-  <span class="k">WHERE</span> (a.number <span class="o">=</span> <span class="mi">10039</span> <span class="k">OR</span> a.number <span class="o">=</span> <span class="mi">8021</span>) <span class="k">AND</span> 
-        (b.number <span class="o">=</span> <span class="mi">1001</span> <span class="k">OR</span> b.number <span class="o">=</span> <span class="mi">2090</span>) 
-  <span class="k">COLUMNS</span>(COUNT(<span class="k">EDGE</span>_<span class="k">ID</span>(e)) <span class="k">AS</span> pathLength)) 
-<span class="k">GROUP</span> <span class="k">BY</span> pathLength 
+<span class="k">SELECT</span> pathLength, COUNT(<span class="o">*</span>) <span class="k">AS</span> cnt
+<span class="k">FROM</span> <span class="k">GRAPH_TABLE</span>(financial_transactions
+  <span class="k">MATCH</span> (a <span class="k">IS</span> Account) <span class="o">-</span>[e <span class="k">IS</span> transaction]<span class="o">-</span><span class="o">></span><span class="o">*</span> (b <span class="k">IS</span> Account)
+  <span class="k">KEEP</span> <span class="k">ANY</span> <span class="k">SHORTEST</span>
+  <span class="k">WHERE</span> (a.number <span class="o">=</span> <span class="mi">10039</span> <span class="k">OR</span> a.number <span class="o">=</span> <span class="mi">8021</span>) <span class="k">AND</span>
+        (b.number <span class="o">=</span> <span class="mi">1001</span> <span class="k">OR</span> b.number <span class="o">=</span> <span class="mi">2090</span>)
+  <span class="k">COLUMNS</span>(COUNT(<span class="k">EDGE</span>_<span class="k">ID</span>(e)) <span class="k">AS</span> pathLength))
+<span class="k">GROUP</span> <span class="k">BY</span> pathLength
 <span class="k">ORDER</span> <span class="k">BY</span> pathLength
 </pre></div></div></div>
 <div name="pgql" class="tab-content"><div class="language-sql highlighter-rouge"><div class="highlight"><pre class="highlight">
@@ -2949,13 +3456,22 @@ An example with `WALK` is:
 
 {% include image.html file="example_graphs/financial_transactions.png" %}
 
-```sql
-SELECT LISTAGG(e.amount, ', ') AS amounts_along_path, SUM(e.amount) AS total_cost
-FROM MATCH CHEAPEST 4 WALK (a:account) (-[e:transaction]-> COST e.amount)* (a)
-       ON financial_transactions
-WHERE a.number = 10039
-ORDER BY total_cost
-```
+<div class="tab">
+<button name="sql-button" class="tablinks active" onclick="openTab(event, 'sql')">PGQL with SQL Standard syntax</button>
+<button name="pgql-button" class="tablinks" onclick="openTab(event, 'pgql')">PGQL with custom syntax</button>
+</div><div name="sql" class="tab-content active"><div class="language-sql highlighter-rouge"><div class="highlight"><pre class="highlight">
+<span class="o">/</span><span class="o">*</span>
+ <span class="o">*</span> Use PGQL with custom syntax since cheapest path finding support has not yet
+ <span class="o">*</span> been added to the SQL Standard.
+ <span class="o">*</span><span class="o">/</span>
+</pre></div></div></div>
+<div name="pgql" class="tab-content"><div class="language-sql highlighter-rouge"><div class="highlight"><pre class="highlight">
+<span class="k">SELECT</span> <span class="k">LISTAGG</span>(e.amount, <span class="mi">', '</span>) <span class="k">AS</span> amounts_along_path, <span class="k">SUM</span>(e.amount) <span class="k">AS</span> total_cost
+<span class="k">FROM</span> <span class="k">MATCH</span> <span class="k">CHEAPEST</span> <span class="mi">4</span> <span class="k">WALK</span> (a:account) (<span class="o">-</span>[e:transaction]<span class="o">-</span><span class="o">></span> <span class="k">COST</span> e.amount)<span class="o">*</span> (a)
+       <span class="k">ON</span> financial_transactions
+<span class="k">WHERE</span> a.number <span class="o">=</span> <span class="mi">10039</span>
+<span class="k">ORDER</span> <span class="k">BY</span> total_cost
+</pre></div></div></div>
 
 ```
 +-----------------------------------------------------------------------------+
@@ -2982,11 +3498,11 @@ An example with `TRAIL` is:
 <button name="sql-button" class="tablinks active" onclick="openTab(event, 'sql')">PGQL with SQL Standard syntax</button>
 <button name="pgql-button" class="tablinks" onclick="openTab(event, 'pgql')">PGQL with custom syntax</button>
 </div><div name="sql" class="tab-content active"><div class="language-sql highlighter-rouge"><div class="highlight"><pre class="highlight">
-<span class="k">SELECT</span> <span class="o">*</span> 
-<span class="k">FROM</span> <span class="k">GRAPH_TABLE</span>(financial_transactions 
-  <span class="k">MATCH</span> (a <span class="k">IS</span> account) (<span class="o">-</span>[ <span class="k">IS</span> transaction]<span class="o">-</span><span class="o">></span> (x)){<span class="mi">2</span>,} (b <span class="k">IS</span> Account) 
-  <span class="k">KEEP</span> <span class="k">ALL</span> <span class="k">TRAIL</span> <span class="k">PATHS</span> 
-  <span class="k">WHERE</span> a.number <span class="o">=</span> <span class="mi">8021</span> <span class="k">AND</span> b.number <span class="o">=</span> <span class="mi">1001</span> 
+<span class="k">SELECT</span> <span class="o">*</span>
+<span class="k">FROM</span> <span class="k">GRAPH_TABLE</span>(financial_transactions
+  <span class="k">MATCH</span> (a <span class="k">IS</span> account) (<span class="o">-</span>[ <span class="k">IS</span> transaction]<span class="o">-</span><span class="o">></span> (x)){<span class="mi">2</span>,} (b <span class="k">IS</span> Account)
+  <span class="k">KEEP</span> <span class="k">ALL</span> <span class="k">TRAIL</span> <span class="k">PATHS</span>
+  <span class="k">WHERE</span> a.number <span class="o">=</span> <span class="mi">8021</span> <span class="k">AND</span> b.number <span class="o">=</span> <span class="mi">1001</span>
   <span class="k">COLUMNS</span>(C<span class="k">AS</span>T(a.number <span class="k">AS</span> <span class="k">STRING</span>) <span class="o">|</span><span class="o">|</span> <span class="mi">' -> '</span> <span class="o">|</span><span class="o">|</span> <span class="k">LISTAGG</span>(x.number, <span class="mi">' -> '</span>) <span class="k">AS</span> accounts_along_path))
 </pre></div></div></div>
 <div name="pgql" class="tab-content"><div class="language-sql highlighter-rouge"><div class="highlight"><pre class="highlight">
@@ -3015,11 +3531,11 @@ An example with `ACYCLIC` is:
 <button name="sql-button" class="tablinks active" onclick="openTab(event, 'sql')">PGQL with SQL Standard syntax</button>
 <button name="pgql-button" class="tablinks" onclick="openTab(event, 'pgql')">PGQL with custom syntax</button>
 </div><div name="sql" class="tab-content active"><div class="language-sql highlighter-rouge"><div class="highlight"><pre class="highlight">
-<span class="k">SELECT</span> <span class="o">*</span> 
-<span class="k">FROM</span> <span class="k">GRAPH_TABLE</span>(financial_transactions 
-  <span class="k">MATCH</span> (a <span class="k">IS</span> account) (<span class="o">-</span>[ <span class="k">IS</span> transaction]<span class="o">-</span><span class="o">></span> (x))<span class="o">+</span> (b) 
-  <span class="k">KEEP</span> <span class="k">SHORTEST</span> <span class="mi">10</span> <span class="k">ACYCLIC</span> <span class="k">PATHS</span> 
-  <span class="k">WHERE</span> a.number <span class="o">=</span> <span class="mi">10039</span> <span class="k">AND</span> b.number <span class="o">=</span> <span class="mi">1001</span> 
+<span class="k">SELECT</span> <span class="o">*</span>
+<span class="k">FROM</span> <span class="k">GRAPH_TABLE</span>(financial_transactions
+  <span class="k">MATCH</span> (a <span class="k">IS</span> account) (<span class="o">-</span>[ <span class="k">IS</span> transaction]<span class="o">-</span><span class="o">></span> (x))<span class="o">+</span> (b)
+  <span class="k">KEEP</span> <span class="k">SHORTEST</span> <span class="mi">10</span> <span class="k">ACYCLIC</span> <span class="k">PATHS</span>
+  <span class="k">WHERE</span> a.number <span class="o">=</span> <span class="mi">10039</span> <span class="k">AND</span> b.number <span class="o">=</span> <span class="mi">1001</span>
   <span class="k">COLUMNS</span>(C<span class="k">AS</span>T(a.number <span class="k">AS</span> <span class="k">STRING</span>) <span class="o">|</span><span class="o">|</span> <span class="mi">' -> '</span> <span class="o">|</span><span class="o">|</span> <span class="k">LISTAGG</span>(x.number, <span class="mi">' -> '</span>) <span class="k">AS</span> accounts_along_path))
 </pre></div></div></div>
 <div name="pgql" class="tab-content"><div class="language-sql highlighter-rouge"><div class="highlight"><pre class="highlight">
@@ -3048,11 +3564,11 @@ An example with `SIMPLE` is:
 <button name="sql-button" class="tablinks active" onclick="openTab(event, 'sql')">PGQL with SQL Standard syntax</button>
 <button name="pgql-button" class="tablinks" onclick="openTab(event, 'pgql')">PGQL with custom syntax</button>
 </div><div name="sql" class="tab-content active"><div class="language-sql highlighter-rouge"><div class="highlight"><pre class="highlight">
-<span class="k">SELECT</span> <span class="o">*</span> 
-<span class="k">FROM</span> <span class="k">GRAPH_TABLE</span>(financial_transactions 
-  <span class="k">MATCH</span> (a <span class="k">IS</span> account) (<span class="o">-</span>[ <span class="k">IS</span> transaction]<span class="o">-</span><span class="o">></span> (x))<span class="o">+</span> (a) 
-  <span class="k">KEEP</span> <span class="k">ANY</span> <span class="k">SIMPLE</span> <span class="k">PATH</span> 
-  <span class="k">WHERE</span> a.number <span class="o">=</span> <span class="mi">10039</span> 
+<span class="k">SELECT</span> <span class="o">*</span>
+<span class="k">FROM</span> <span class="k">GRAPH_TABLE</span>(financial_transactions
+  <span class="k">MATCH</span> (a <span class="k">IS</span> account) (<span class="o">-</span>[ <span class="k">IS</span> transaction]<span class="o">-</span><span class="o">></span> (x))<span class="o">+</span> (a)
+  <span class="k">KEEP</span> <span class="k">ANY</span> <span class="k">SIMPLE</span> <span class="k">PATH</span>
+  <span class="k">WHERE</span> a.number <span class="o">=</span> <span class="mi">10039</span>
   <span class="k">COLUMNS</span>(C<span class="k">AS</span>T(a.number <span class="k">AS</span> <span class="k">STRING</span>) <span class="o">|</span><span class="o">|</span> <span class="mi">' -> '</span> <span class="o">|</span><span class="o">|</span> <span class="k">LISTAGG</span>(x.number, <span class="mi">' -> '</span>) <span class="k">AS</span> accounts_along_path))
 </pre></div></div></div>
 <div name="pgql" class="tab-content"><div class="language-sql highlighter-rouge"><div class="highlight"><pre class="highlight">
@@ -3120,11 +3636,11 @@ An example where the keywords `ONE ROW PER MATCH` are explicitly specified is:
 <button name="sql-button" class="tablinks active" onclick="openTab(event, 'sql')">PGQL with SQL Standard syntax</button>
 <button name="pgql-button" class="tablinks" onclick="openTab(event, 'pgql')">PGQL with custom syntax</button>
 </div><div name="sql" class="tab-content active"><div class="language-sql highlighter-rouge"><div class="highlight"><pre class="highlight">
-<span class="k">SELECT</span> <span class="o">*</span> 
-<span class="k">FROM</span> <span class="k">GRAPH_TABLE</span>(financial_transactions 
-  <span class="k">MATCH</span> (a <span class="k">IS</span> Account) <span class="o">-</span>[ <span class="k">IS</span> owner]<span class="o">-</span><span class="o">></span> (p <span class="k">IS</span> Person) 
-  <span class="k">ONE</span> <span class="k">ROW</span> <span class="k">PER</span> <span class="k">MATCH</span> 
-  <span class="k">COLUMNS</span>(a.number, p.name)) 
+<span class="k">SELECT</span> <span class="o">*</span>
+<span class="k">FROM</span> <span class="k">GRAPH_TABLE</span>(financial_transactions
+  <span class="k">MATCH</span> (a <span class="k">IS</span> Account) <span class="o">-</span>[ <span class="k">IS</span> owner]<span class="o">-</span><span class="o">></span> (p <span class="k">IS</span> Person)
+  <span class="k">ONE</span> <span class="k">ROW</span> <span class="k">PER</span> <span class="k">MATCH</span>
+  <span class="k">COLUMNS</span>(a.number, p.name))
 <span class="k">ORDER</span> <span class="k">BY</span> number
 </pre></div></div></div>
 <div name="pgql" class="tab-content"><div class="language-sql highlighter-rouge"><div class="highlight"><pre class="highlight">
@@ -3156,15 +3672,32 @@ For example:
 
 {% include image.html file="example_graphs/financial_transactions.png" %}
 
-```sql
-SELECT a1.number AS account1, a2.number AS account2
-     , LISTAGG(t.amount, ' + ') || ' = ', SUM(t.amount) AS total_amount
-FROM MATCH (p1:Person) <-[:owner]- (a1:Account) ON financial_transactions ONE ROW PER MATCH
-   , MATCH (p2:Person) <-[:owner]- (a2:Account) ON financial_transactions ONE ROW PER MATCH
-   , MATCH ALL (a1) -[t:transaction]->{,4} (a2) ON financial_transactions ONE ROW PER MATCH
-WHERE p1.name = 'Camille' AND p2.name = 'Liam'
-ORDER BY total_amount
-```
+<div class="tab">
+<button name="sql-button" class="tablinks active" onclick="openTab(event, 'sql')">PGQL with SQL Standard syntax</button>
+<button name="pgql-button" class="tablinks" onclick="openTab(event, 'pgql')">PGQL with custom syntax</button>
+</div><div name="sql" class="tab-content active"><div class="language-sql highlighter-rouge"><div class="highlight"><pre class="highlight">
+<span class="k">SELECT</span> <span class="o">*</span>
+<span class="k">FROM</span> <span class="k">GRAPH_TABLE</span>(financial_transactions
+  <span class="k">MATCH</span> (p1 <span class="k">IS</span> Person) <span class="o"><</span><span class="o">-</span>[<span class="k">IS</span> owner]<span class="o">-</span> (a1 <span class="k">IS</span> Account),
+        (p2 <span class="k">IS</span> Person) <span class="o"><</span><span class="o">-</span>[<span class="k">IS</span> owner]<span class="o">-</span> (a2 <span class="k">IS</span> Account),
+        (a1) <span class="o">-</span>[t <span class="k">IS</span> transaction]<span class="o">-</span><span class="o">></span>{,<span class="mi">4</span>} (a2)
+  <span class="k">WHERE</span> p1.name <span class="o">=</span> <span class="mi">'Camille'</span> <span class="k">AND</span> p2.name <span class="o">=</span> <span class="mi">'Liam'</span>
+  <span class="k">ONE</span> <span class="k">ROW</span> <span class="k">PER</span> <span class="k">MATCH</span>
+  <span class="k">COLUMNS</span>(a1.number <span class="k">AS</span> account1, a2.number <span class="k">AS</span> account2,
+          <span class="k">LISTAGG</span>(t.amount, <span class="mi">' + '</span>) <span class="o">|</span><span class="o">|</span> <span class="mi">' = '</span>, <span class="k">SUM</span>(t.amount) <span class="k">AS</span> total_amount))
+<span class="k">ORDER</span> <span class="k">BY</span> total_amount
+</pre></div></div></div>
+<div name="pgql" class="tab-content"><div class="language-sql highlighter-rouge"><div class="highlight"><pre class="highlight">
+<span class="k">SELECT</span> a1.number <span class="k">AS</span> account1, a2.number <span class="k">AS</span> account2
+     , <span class="k">LISTAGG</span>(t.amount, <span class="mi">' + '</span>) <span class="o">|</span><span class="o">|</span> <span class="mi">' = '</span>, <span class="k">SUM</span>(t.amount) <span class="k">AS</span> total_amount
+<span class="k">FROM</span> <span class="k">MATCH</span> ( (p1:Person) <span class="o"><</span><span class="o">-</span>[:owner]<span class="o">-</span> (a1:Account),
+             (p2:Person) <span class="o"><</span><span class="o">-</span>[:owner]<span class="o">-</span> (a2:Account),
+             (a1) <span class="o">-</span>[t:transaction]<span class="o">-</span><span class="o">></span>{,<span class="mi">4</span>} (a2) )
+      <span class="k">ON</span> financial_transactions
+      <span class="k">ONE</span> <span class="k">ROW</span> <span class="k">PER</span> <span class="k">MATCH</span>
+<span class="k">WHERE</span> p1.name <span class="o">=</span> <span class="mi">'Camille'</span> <span class="k">AND</span> p2.name <span class="o">=</span> <span class="mi">'Liam'</span>
+<span class="k">ORDER</span> <span class="k">BY</span> total_amount
+</pre></div></div></div>
 
 ```
 +------------------------------------------------------------------------+
@@ -3231,15 +3764,40 @@ Another example is:
 
 {% include image.html file="example_graphs/financial_transactions.png" %}
 
-```sql
-SELECT v.number AS account_nr, MATCHNUM(v) AS match_nr, ELEMENT_NUMBER(v) AS elem_nr
-     , LISTAGG(t.amount, ' + ') || ' = ', SUM(t.amount) AS total_amount
-FROM MATCH (p1:Person) <-[:owner]- (a1:Account) ON financial_transactions ONE ROW PER MATCH
-   , MATCH (p2:Person) <-[:owner]- (a2:Account) ON financial_transactions ONE ROW PER MATCH
-   , MATCH ALL (a1) -[t:transaction]->{,4} (a2) ON financial_transactions ONE ROW PER VERTEX (v)
-WHERE p1.name = 'Camille' AND p2.name = 'Liam'
-ORDER BY MATCHNUM(v), ELEMENT_NUMBER(v)
-```
+<div class="tab">
+<button name="sql-button" class="tablinks active" onclick="openTab(event, 'sql')">PGQL with SQL Standard syntax</button>
+<button name="pgql-button" class="tablinks" onclick="openTab(event, 'pgql')">PGQL with custom syntax</button>
+</div><div name="sql" class="tab-content active"><div class="language-sql highlighter-rouge"><div class="highlight"><pre class="highlight">
+<span class="k">SELECT</span> v.number <span class="k">AS</span> account_nr, <span class="k">MATCH</span>NUM() <span class="k">AS</span> match_nr, ELEMENT_<span class="k">NUMBER</span>(v) <span class="k">AS</span> elem_nr
+     , <span class="k">LISTAGG</span>(t.amount, <span class="mi">' + '</span>) <span class="o">|</span><span class="o">|</span> <span class="mi">' = '</span>, <span class="k">SUM</span>(t.amount) <span class="k">AS</span> total_amount
+<span class="k">FROM</span> <span class="k">GRAPH_TABLE</span>(financial_transactions
+       <span class="k">MATCH</span> (p1 <span class="k">IS</span> Person) <span class="o"><</span><span class="o">-</span>[<span class="k">IS</span> owner]<span class="o">-</span> (a1 <span class="k">IS</span> Account),
+             (p2 <span class="k">IS</span> Person) <span class="o"><</span><span class="o">-</span>[<span class="k">IS</span> owner]<span class="o">-</span> (a2 <span class="k">IS</span> Account)
+       <span class="k">WHERE</span> p1.name <span class="o">=</span> <span class="mi">'Camille'</span> <span class="k">AND</span> p2.name <span class="o">=</span> <span class="mi">'Liam'</span>
+       <span class="k">ONE</span> <span class="k">ROW</span> <span class="k">PER</span> <span class="k">MATCH</span>
+       <span class="k">COLUMNS</span>(a1.number <span class="k">AS</span> a1_number1, a2.number <span class="k">AS</span> a2_number1)),
+     <span class="k">GRAPH_TABLE</span>(financial_transactions
+       <span class="k">MATCH</span> (a1) <span class="o">-</span>[t <span class="k">IS</span> transaction]<span class="o">-</span><span class="o">></span>{,<span class="mi">4</span>} (a2)
+       <span class="k">ONE</span> <span class="k">ROW</span> <span class="k">PER</span> <span class="k">VERTEX</span> (v)
+       <span class="k">COLUMNS</span>(v.number <span class="k">AS</span> account_nr, <span class="k">MATCH</span>NUM() <span class="k">AS</span> match_nr, ELEMENT_<span class="k">NUMBER</span>(v) <span class="k">AS</span> elem_nr
+            , <span class="k">LISTAGG</span>(t.amount, <span class="mi">' + '</span>) <span class="o">|</span><span class="o">|</span> <span class="mi">' = '</span>, <span class="k">SUM</span>(t.amount) <span class="k">AS</span> total_amount)
+     )
+<span class="k">WHERE</span> a1_number1 <span class="o">=</span> a1_number2 <span class="k">AND</span> a2_number1 <span class="o">=</span> a2_number2
+<span class="k">ORDER</span> <span class="k">BY</span> match_nr, elem_nr
+</pre></div></div></div>
+<div name="pgql" class="tab-content"><div class="language-sql highlighter-rouge"><div class="highlight"><pre class="highlight">
+<span class="k">SELECT</span> v.number <span class="k">AS</span> account_nr, <span class="k">MATCH</span>NUM(v) <span class="k">AS</span> match_nr, ELEMENT_<span class="k">NUMBER</span>(v) <span class="k">AS</span> elem_nr
+     , <span class="k">LISTAGG</span>(t.amount, <span class="mi">' + '</span>) <span class="o">|</span><span class="o">|</span> <span class="mi">' = '</span>, <span class="k">SUM</span>(t.amount) <span class="k">AS</span> total_amount
+<span class="k">FROM</span> <span class="k">MATCH</span> ( (p1:Person) <span class="o"><</span><span class="o">-</span>[:owner]<span class="o">-</span> (a1:Account),
+             (p2:Person) <span class="o"><</span><span class="o">-</span>[:owner]<span class="o">-</span> (a2:Account) )
+      <span class="k">ON</span> financial_transactions
+      <span class="k">ONE</span> <span class="k">ROW</span> <span class="k">PER</span> <span class="k">MATCH</span>
+   , <span class="k">MATCH</span> (a1) <span class="o">-</span>[t:transaction]<span class="o">-</span><span class="o">></span>{,<span class="mi">4</span>} (a2)
+       <span class="k">ON</span> financial_transactions
+       <span class="k">ONE</span> <span class="k">ROW</span> <span class="k">PER</span> <span class="k">VERTEX</span> (v)
+<span class="k">WHERE</span> p1.name <span class="o">=</span> <span class="mi">'Camille'</span> <span class="k">AND</span> p2.name <span class="o">=</span> <span class="mi">'Liam'</span>
+<span class="k">ORDER</span> <span class="k">BY</span> <span class="k">MATCH</span>NUM(v), ELEMENT_<span class="k">NUMBER</span>(v)
+</pre></div></div></div>
 
 ```
 +------------------------------------------------------------------------------------+
@@ -3281,15 +3839,15 @@ For example:
 <button name="sql-button" class="tablinks active" onclick="openTab(event, 'sql')">PGQL with SQL Standard syntax</button>
 <button name="pgql-button" class="tablinks" onclick="openTab(event, 'pgql')">PGQL with custom syntax</button>
 </div><div name="sql" class="tab-content active"><div class="language-sql highlighter-rouge"><div class="highlight"><pre class="highlight">
-<span class="k">SELECT</span> <span class="o">*</span> 
-<span class="k">FROM</span> <span class="k">GRAPH_TABLE</span>(financial_transactions 
-  <span class="k">MATCH</span>  (a1 <span class="k">IS</span> Account) <span class="o">-</span>[ <span class="k">IS</span> transaction]<span class="o">-</span><span class="o">></span><span class="o">+</span> (a2 <span class="k">IS</span> Account) 
-  <span class="k">KEEP</span> <span class="k">ANY</span> 
-  <span class="k">WHERE</span> a1.number <span class="o">=</span> <span class="mi">1001</span> <span class="k">AND</span> a2.number <span class="o">=</span> <span class="mi">8021</span> 
-  <span class="k">ONE</span> <span class="k">ROW</span> <span class="k">PER</span> <span class="k">STEP</span> ( v1, e, v2 ) 
-  <span class="k">COLUMNS</span>(v1.number <span class="k">AS</span> v1_account_nr, e.amount, v2.number <span class="k">AS</span> v2_account_nr, 
+<span class="k">SELECT</span> <span class="o">*</span>
+<span class="k">FROM</span> <span class="k">GRAPH_TABLE</span>(financial_transactions
+  <span class="k">MATCH</span>  (a1 <span class="k">IS</span> Account) <span class="o">-</span>[ <span class="k">IS</span> transaction]<span class="o">-</span><span class="o">></span><span class="o">+</span> (a2 <span class="k">IS</span> Account)
+  <span class="k">KEEP</span> <span class="k">ANY</span>
+  <span class="k">WHERE</span> a1.number <span class="o">=</span> <span class="mi">1001</span> <span class="k">AND</span> a2.number <span class="o">=</span> <span class="mi">8021</span>
+  <span class="k">ONE</span> <span class="k">ROW</span> <span class="k">PER</span> <span class="k">STEP</span> ( v1, e, v2 )
+  <span class="k">COLUMNS</span>(v1.number <span class="k">AS</span> v1_account_nr, e.amount, v2.number <span class="k">AS</span> v2_account_nr,
           ELEMENT_<span class="k">NUMBER</span>(v1) <span class="k">AS</span> v1_elem_nr, ELEMENT_<span class="k">NUMBER</span>(e) <span class="k">AS</span> e_elem_nr,
-          ELEMENT_<span class="k">NUMBER</span>(v2) <span class="k">AS</span> v2_elem_nr)) 
+          ELEMENT_<span class="k">NUMBER</span>(v2) <span class="k">AS</span> v2_elem_nr))
 <span class="k">ORDER</span> <span class="k">BY</span> e_elem_nr
 </pre></div></div></div>
 <div name="pgql" class="tab-content"><div class="language-sql highlighter-rouge"><div class="highlight"><pre class="highlight">
@@ -3327,15 +3885,15 @@ The following example is the same as above but with the direction of the edge pa
 <button name="sql-button" class="tablinks active" onclick="openTab(event, 'sql')">PGQL with SQL Standard syntax</button>
 <button name="pgql-button" class="tablinks" onclick="openTab(event, 'pgql')">PGQL with custom syntax</button>
 </div><div name="sql" class="tab-content active"><div class="language-sql highlighter-rouge"><div class="highlight"><pre class="highlight">
-<span class="k">SELECT</span> <span class="o">*</span> 
-<span class="k">FROM</span> <span class="k">GRAPH_TABLE</span>(financial_transactions 
-  <span class="k">MATCH</span>  (a2 <span class="k">IS</span> Account) <span class="o"><</span><span class="o">-</span>[ <span class="k">IS</span> transaction]<span class="o">-</span><span class="o">+</span> (a1 <span class="k">IS</span> Account) 
-  <span class="k">KEEP</span> <span class="k">ANY</span> 
-  <span class="k">WHERE</span> a1.number <span class="o">=</span> <span class="mi">1001</span> <span class="k">AND</span> a2.number <span class="o">=</span> <span class="mi">8021</span> 
-  <span class="k">ONE</span> <span class="k">ROW</span> <span class="k">PER</span> <span class="k">STEP</span> ( v1, e, v2 ) 
-  <span class="k">COLUMNS</span>(v1.number <span class="k">AS</span> v1_account_nr, e.amount, v2.number <span class="k">AS</span> v2_account_nr, 
+<span class="k">SELECT</span> <span class="o">*</span>
+<span class="k">FROM</span> <span class="k">GRAPH_TABLE</span>(financial_transactions
+  <span class="k">MATCH</span>  (a2 <span class="k">IS</span> Account) <span class="o"><</span><span class="o">-</span>[ <span class="k">IS</span> transaction]<span class="o">-</span><span class="o">+</span> (a1 <span class="k">IS</span> Account)
+  <span class="k">KEEP</span> <span class="k">ANY</span>
+  <span class="k">WHERE</span> a1.number <span class="o">=</span> <span class="mi">1001</span> <span class="k">AND</span> a2.number <span class="o">=</span> <span class="mi">8021</span>
+  <span class="k">ONE</span> <span class="k">ROW</span> <span class="k">PER</span> <span class="k">STEP</span> ( v1, e, v2 )
+  <span class="k">COLUMNS</span>(v1.number <span class="k">AS</span> v1_account_nr, e.amount, v2.number <span class="k">AS</span> v2_account_nr,
           ELEMENT_<span class="k">NUMBER</span>(v1) <span class="k">AS</span> v1_elem_nr, ELEMENT_<span class="k">NUMBER</span>(e) <span class="k">AS</span> e_elem_nr,
-          ELEMENT_<span class="k">NUMBER</span>(v2) <span class="k">AS</span> v2_elem_nr)) 
+          ELEMENT_<span class="k">NUMBER</span>(v2) <span class="k">AS</span> v2_elem_nr))
 <span class="k">ORDER</span> <span class="k">BY</span> e_elem_nr
 </pre></div></div></div>
 <div name="pgql" class="tab-content"><div class="language-sql highlighter-rouge"><div class="highlight"><pre class="highlight">
@@ -3417,10 +3975,10 @@ Consider the following query:
 <button name="sql-button" class="tablinks active" onclick="openTab(event, 'sql')">PGQL with SQL Standard syntax</button>
 <button name="pgql-button" class="tablinks" onclick="openTab(event, 'pgql')">PGQL with custom syntax</button>
 </div><div name="sql" class="tab-content active"><div class="language-sql highlighter-rouge"><div class="highlight"><pre class="highlight">
-<span class="k">SELECT</span> first_name, COUNT(<span class="o">*</span>), AVG(age) 
-<span class="k">FROM</span> <span class="k">GRAPH_TABLE</span>(my_graph 
+<span class="k">SELECT</span> first_name, COUNT(<span class="o">*</span>), AVG(age)
+<span class="k">FROM</span> <span class="k">GRAPH_TABLE</span>(my_graph
   <span class="k">MATCH</span> (n <span class="k">IS</span> Person)
-  <span class="k">COLUMNS</span>(n.first_name, n.age)) 
+  <span class="k">COLUMNS</span>(n.first_name, n.age))
 <span class="k">GROUP</span> <span class="k">BY</span> first_name
 </pre></div></div></div>
 <div name="pgql" class="tab-content"><div class="language-sql highlighter-rouge"><div class="highlight"><pre class="highlight">
@@ -3441,10 +3999,10 @@ Consider the following query:
 <button name="sql-button" class="tablinks active" onclick="openTab(event, 'sql')">PGQL with SQL Standard syntax</button>
 <button name="pgql-button" class="tablinks" onclick="openTab(event, 'pgql')">PGQL with custom syntax</button>
 </div><div name="sql" class="tab-content active"><div class="language-sql highlighter-rouge"><div class="highlight"><pre class="highlight">
-<span class="k">SELECT</span> first_name, last_name, COUNT(<span class="o">*</span>) 
-<span class="k">FROM</span> <span class="k">GRAPH_TABLE</span>(my_graph 
-  <span class="k">MATCH</span> (n <span class="k">IS</span> Person) 
-  <span class="k">COLUMNS</span>(n.first_name, n.last_name)) 
+<span class="k">SELECT</span> first_name, last_name, COUNT(<span class="o">*</span>)
+<span class="k">FROM</span> <span class="k">GRAPH_TABLE</span>(my_graph
+  <span class="k">MATCH</span> (n <span class="k">IS</span> Person)
+  <span class="k">COLUMNS</span>(n.first_name, n.last_name))
 <span class="k">GROUP</span> <span class="k">BY</span> first_name, last_name
 </pre></div></div></div>
 <div name="pgql" class="tab-content"><div class="language-sql highlighter-rouge"><div class="highlight"><pre class="highlight">
@@ -3472,11 +4030,11 @@ Foror example:
 <button name="sql-button" class="tablinks active" onclick="openTab(event, 'sql')">PGQL with SQL Standard syntax</button>
 <button name="pgql-button" class="tablinks" onclick="openTab(event, 'pgql')">PGQL with custom syntax</button>
 </div><div name="sql" class="tab-content active"><div class="language-sql highlighter-rouge"><div class="highlight"><pre class="highlight">
-<span class="k">SELECT</span> prop1, prop2, COUNT(<span class="o">*</span>) 
-<span class="k">FROM</span> <span class="k">GRAPH_TABLE</span>(my_graph 
-  <span class="k">MATCH</span> (n) 
+<span class="k">SELECT</span> prop1, prop2, COUNT(<span class="o">*</span>)
+<span class="k">FROM</span> <span class="k">GRAPH_TABLE</span>(my_graph
+  <span class="k">MATCH</span> (n)
   <span class="k">COLUMNS</span>(n.prop1, n.prop2))
-<span class="k">GROUP</span> <span class="k">BY</span> prop1, prop2 
+<span class="k">GROUP</span> <span class="k">BY</span> prop1, prop2
 <span class="k">HAVING</span> prop1 <span class="k">IS</span> <span class="k">NOT</span> <span class="k">NULL</span> <span class="k">AND</span> prop2 <span class="k">IS</span> <span class="k">NOT</span> <span class="k">NULL</span>
 </pre></div></div></div>
 <div name="pgql" class="tab-content"><div class="language-sql highlighter-rouge"><div class="highlight"><pre class="highlight">
@@ -3496,11 +4054,11 @@ Consider the following query:
 <button name="sql-button" class="tablinks active" onclick="openTab(event, 'sql')">PGQL with SQL Standard syntax</button>
 <button name="pgql-button" class="tablinks" onclick="openTab(event, 'pgql')">PGQL with custom syntax</button>
 </div><div name="sql" class="tab-content active"><div class="language-sql highlighter-rouge"><div class="highlight"><pre class="highlight">
-<span class="k">SELECT</span> age, COUNT(<span class="o">*</span>) 
-<span class="k">FROM</span> <span class="k">GRAPH_TABLE</span>(my_graph 
-  <span class="k">MATCH</span> (n) 
-  <span class="k">COLUMNS</span>(n.age)) 
-<span class="k">GROUP</span> <span class="k">BY</span> age 
+<span class="k">SELECT</span> age, COUNT(<span class="o">*</span>)
+<span class="k">FROM</span> <span class="k">GRAPH_TABLE</span>(my_graph
+  <span class="k">MATCH</span> (n)
+  <span class="k">COLUMNS</span>(n.age))
+<span class="k">GROUP</span> <span class="k">BY</span> age
 <span class="k">ORDER</span> <span class="k">BY</span> age
 </pre></div></div></div>
 <div name="pgql" class="tab-content"><div class="language-sql highlighter-rouge"><div class="highlight"><pre class="highlight">
@@ -3577,17 +4135,17 @@ For example:
 <button name="sql-button" class="tablinks active" onclick="openTab(event, 'sql')">PGQL with SQL Standard syntax</button>
 <button name="pgql-button" class="tablinks" onclick="openTab(event, 'pgql')">PGQL with custom syntax</button>
 </div><div name="sql" class="tab-content active"><div class="language-sql highlighter-rouge"><div class="highlight"><pre class="highlight">
-<span class="k">SELECT</span> owner_lbl, 
-       COUNT(<span class="o">*</span>) <span class="k">AS</span> numTransactions, 
-       <span class="k">SUM</span>(amount) <span class="k">AS</span> totalOutgoing, 
-       <span class="k">LISTAGG</span>(amount, <span class="mi">', '</span>) <span class="k">AS</span> amounts 
-<span class="k">FROM</span> <span class="k">GRAPH_TABLE</span>(financial_transactions 
+<span class="k">SELECT</span> owner_lbl,
+       COUNT(<span class="o">*</span>) <span class="k">AS</span> numTransactions,
+       <span class="k">SUM</span>(amount) <span class="k">AS</span> totalOutgoing,
+       <span class="k">LISTAGG</span>(amount, <span class="mi">', '</span>) <span class="k">AS</span> amounts
+<span class="k">FROM</span> <span class="k">GRAPH_TABLE</span>(financial_transactions
   <span class="k">MATCH</span> (a <span class="k">IS</span> Account) <span class="o">-</span>[ <span class="k">IS</span> owner]<span class="o">-</span><span class="o">></span> (owner <span class="k">IS</span> Person<span class="o">|</span>Company),
-        (a) <span class="o">-</span>[out <span class="k">IS</span> transaction]<span class="o">-</span><span class="o">></span> ( <span class="k">IS</span> Account) 
-  <span class="k">COLUMNS</span>(C<span class="k">AS</span>E WHEN owner <span class="k">IS</span> <span class="k">LABELED</span> Person <span class="k">THEN</span> <span class="mi">'Person'</span> 
-            <span class="k">ELSE</span> <span class="mi">'Company'</span> END <span class="k">AS</span> owner_lbl, 
+        (a) <span class="o">-</span>[out <span class="k">IS</span> transaction]<span class="o">-</span><span class="o">></span> ( <span class="k">IS</span> Account)
+  <span class="k">COLUMNS</span>(C<span class="k">AS</span>E WHEN owner <span class="k">IS</span> <span class="k">LABELED</span> Person <span class="k">THEN</span> <span class="mi">'Person'</span>
+            <span class="k">ELSE</span> <span class="mi">'Company'</span> END <span class="k">AS</span> owner_lbl,
           out.amount))
-<span class="k">GROUP</span> <span class="k">BY</span> owner_lbl 
+<span class="k">GROUP</span> <span class="k">BY</span> owner_lbl
 <span class="k">ORDER</span> <span class="k">BY</span> owner_lbl
 </pre></div></div></div>
 <div name="pgql" class="tab-content"><div class="language-sql highlighter-rouge"><div class="highlight"><pre class="highlight">
@@ -3625,9 +4183,9 @@ If _no_ `GROUP BY` is specified, aggregations are applied to the entire set of s
 <button name="pgql-button" class="tablinks" onclick="openTab(event, 'pgql')">PGQL with custom syntax</button>
 </div><div name="sql" class="tab-content active"><div class="language-sql highlighter-rouge"><div class="highlight"><pre class="highlight">
 <span class="k">SELECT</span> COUNT(<span class="o">*</span>) <span class="k">AS</span> numTransactions,
-      <span class="k">SUM</span>(amount) <span class="k">AS</span> totalOutgoing, 
-      <span class="k">LISTAGG</span>(amount, <span class="mi">', '</span>) <span class="k">AS</span> amounts 
-<span class="k">FROM</span> <span class="k">GRAPH_TABLE</span>(financial_transactions 
+      <span class="k">SUM</span>(amount) <span class="k">AS</span> totalOutgoing,
+      <span class="k">LISTAGG</span>(amount, <span class="mi">', '</span>) <span class="k">AS</span> amounts
+<span class="k">FROM</span> <span class="k">GRAPH_TABLE</span>(financial_transactions
   <span class="k">MATCH</span> (a <span class="k">IS</span> Account) <span class="o">-</span>[ <span class="k">IS</span> owner]<span class="o">-</span><span class="o">></span> (owner <span class="k">IS</span> Person<span class="o">|</span>Company),
         (a) <span class="o">-</span>[out <span class="k">IS</span> transaction]<span class="o">-</span><span class="o">></span> ( <span class="k">IS</span> Account)
   <span class="k">COLUMNS</span>(out.amount))
@@ -3660,9 +4218,9 @@ For example:
 <button name="sql-button" class="tablinks active" onclick="openTab(event, 'sql')">PGQL with SQL Standard syntax</button>
 <button name="pgql-button" class="tablinks" onclick="openTab(event, 'pgql')">PGQL with custom syntax</button>
 </div><div name="sql" class="tab-content active"><div class="language-sql highlighter-rouge"><div class="highlight"><pre class="highlight">
-<span class="k">SELECT</span> COUNT(<span class="o">*</span>) 
-<span class="k">FROM</span> <span class="k">GRAPH_TABLE</span>(my_graph 
-  <span class="k">MATCH</span> (m <span class="k">IS</span> Person) 
+<span class="k">SELECT</span> COUNT(<span class="o">*</span>)
+<span class="k">FROM</span> <span class="k">GRAPH_TABLE</span>(my_graph
+  <span class="k">MATCH</span> (m <span class="k">IS</span> Person)
   <span class="k">COLUMNS</span>(m.<span class="o">*</span>))
 </pre></div></div></div>
 <div name="pgql" class="tab-content"><div class="language-sql highlighter-rouge"><div class="highlight"><pre class="highlight">
@@ -3680,9 +4238,9 @@ For example:
 <button name="sql-button" class="tablinks active" onclick="openTab(event, 'sql')">PGQL with SQL Standard syntax</button>
 <button name="pgql-button" class="tablinks" onclick="openTab(event, 'pgql')">PGQL with custom syntax</button>
 </div><div name="sql" class="tab-content active"><div class="language-sql highlighter-rouge"><div class="highlight"><pre class="highlight">
-<span class="k">SELECT</span> AVG(<span class="k">DISTINCT</span> age) 
-<span class="k">FROM</span> <span class="k">GRAPH_TABLE</span>(my_graph 
-  <span class="k">MATCH</span> (m <span class="k">IS</span> Person) 
+<span class="k">SELECT</span> AVG(<span class="k">DISTINCT</span> age)
+<span class="k">FROM</span> <span class="k">GRAPH_TABLE</span>(my_graph
+  <span class="k">MATCH</span> (m <span class="k">IS</span> Person)
   <span class="k">COLUMNS</span>(m.age))
 </pre></div></div></div>
 <div name="pgql" class="tab-content"><div class="language-sql highlighter-rouge"><div class="highlight"><pre class="highlight">
@@ -3710,11 +4268,11 @@ For example:
 <button name="sql-button" class="tablinks active" onclick="openTab(event, 'sql')">PGQL with SQL Standard syntax</button>
 <button name="pgql-button" class="tablinks" onclick="openTab(event, 'pgql')">PGQL with custom syntax</button>
 </div><div name="sql" class="tab-content active"><div class="language-sql highlighter-rouge"><div class="highlight"><pre class="highlight">
-<span class="k">SELECT</span> id, name 
-<span class="k">FROM</span> <span class="k">GRAPH_TABLE</span>(my_graph 
-  <span class="k">MATCH</span> (n) <span class="o">-</span>[<span class="k">IS</span> has_friend]<span class="o">-</span><span class="o">></span> (m) 
-  <span class="k">COLUMNS</span>(<span class="k">VERTEX</span>_<span class="k">ID</span>(n) <span class="k">AS</span> id, n.name, <span class="k">VERTEX</span>_<span class="k">ID</span>(m) <span class="k">AS</span> m)) 
-<span class="k">GROUP</span> <span class="k">BY</span> id, name 
+<span class="k">SELECT</span> id, name
+<span class="k">FROM</span> <span class="k">GRAPH_TABLE</span>(my_graph
+  <span class="k">MATCH</span> (n) <span class="o">-</span>[<span class="k">IS</span> has_friend]<span class="o">-</span><span class="o">></span> (m)
+  <span class="k">COLUMNS</span>(<span class="k">VERTEX</span>_<span class="k">ID</span>(n) <span class="k">AS</span> id, n.name, <span class="k">VERTEX</span>_<span class="k">ID</span>(m) <span class="k">AS</span> m))
+<span class="k">GROUP</span> <span class="k">BY</span> id, name
 <span class="k">HAVING</span> COUNT(m) <span class="o">></span> <span class="mi">10</span>
 </pre></div></div></div>
 <div name="pgql" class="tab-content"><div class="language-sql highlighter-rouge"><div class="highlight"><pre class="highlight">
@@ -3754,10 +4312,10 @@ The following is an example in which the results are ordered by property access 
 <button name="sql-button" class="tablinks active" onclick="openTab(event, 'sql')">PGQL with SQL Standard syntax</button>
 <button name="pgql-button" class="tablinks" onclick="openTab(event, 'pgql')">PGQL with custom syntax</button>
 </div><div name="sql" class="tab-content active"><div class="language-sql highlighter-rouge"><div class="highlight"><pre class="highlight">
-<span class="k">SELECT</span> name 
-<span class="k">FROM</span> <span class="k">GRAPH_TABLE</span>(my_graph 
+<span class="k">SELECT</span> name
+<span class="k">FROM</span> <span class="k">GRAPH_TABLE</span>(my_graph
   <span class="k">MATCH</span> (n <span class="k">IS</span> Person)
-  <span class="k">COLUMNS</span>(n.name, n.age)) 
+  <span class="k">COLUMNS</span>(n.name, n.age))
 <span class="k">ORDER</span> <span class="k">BY</span> age <span class="k">ASC</span>
 </pre></div></div></div>
 <div name="pgql" class="tab-content"><div class="language-sql highlighter-rouge"><div class="highlight"><pre class="highlight">
@@ -3785,10 +4343,10 @@ An `ORDER BY` may contain more than one expression, in which case the expresison
 <button name="sql-button" class="tablinks active" onclick="openTab(event, 'sql')">PGQL with SQL Standard syntax</button>
 <button name="pgql-button" class="tablinks" onclick="openTab(event, 'pgql')">PGQL with custom syntax</button>
 </div><div name="sql" class="tab-content active"><div class="language-sql highlighter-rouge"><div class="highlight"><pre class="highlight">
-<span class="k">SELECT</span> name 
-<span class="k">FROM</span> <span class="k">GRAPH_TABLE</span>(my_graph 
-  <span class="k">MATCH</span> (f <span class="k">IS</span> Person) 
-  <span class="k">COLUMNS</span>(f.name, f.age, f.salary)) 
+<span class="k">SELECT</span> name
+<span class="k">FROM</span> <span class="k">GRAPH_TABLE</span>(my_graph
+  <span class="k">MATCH</span> (f <span class="k">IS</span> Person)
+  <span class="k">COLUMNS</span>(f.name, f.age, f.salary))
 <span class="k">ORDER</span> <span class="k">BY</span> age <span class="k">ASC</span>, salary <span class="k">DESC</span>
 </pre></div></div></div>
 <div name="pgql" class="tab-content"><div class="language-sql highlighter-rouge"><div class="highlight"><pre class="highlight">
@@ -3822,11 +4380,11 @@ For example:
 <button name="sql-button" class="tablinks active" onclick="openTab(event, 'sql')">PGQL with SQL Standard syntax</button>
 <button name="pgql-button" class="tablinks" onclick="openTab(event, 'pgql')">PGQL with custom syntax</button>
 </div><div name="sql" class="tab-content active"><div class="language-sql highlighter-rouge"><div class="highlight"><pre class="highlight">
-<span class="k">SELECT</span> name 
-<span class="k">FROM</span> <span class="k">GRAPH_TABLE</span>(financial_transactions 
-  <span class="k">MATCH</span> (n <span class="k">IS</span> Person) 
-  <span class="k">COLUMNS</span>(n.name)) 
-<span class="k">ORDER</span> <span class="k">BY</span> name 
+<span class="k">SELECT</span> name
+<span class="k">FROM</span> <span class="k">GRAPH_TABLE</span>(financial_transactions
+  <span class="k">MATCH</span> (n <span class="k">IS</span> Person)
+  <span class="k">COLUMNS</span>(n.name))
+<span class="k">ORDER</span> <span class="k">BY</span> name
 <span class="k">OF</span>F<span class="k">SET</span> <span class="mi">1</span>
 </pre></div></div></div>
 <div name="pgql" class="tab-content"><div class="language-sql highlighter-rouge"><div class="highlight"><pre class="highlight">
@@ -3870,12 +4428,12 @@ For example, in the following query the first solution is pruned from the result
 <button name="sql-button" class="tablinks active" onclick="openTab(event, 'sql')">PGQL with SQL Standard syntax</button>
 <button name="pgql-button" class="tablinks" onclick="openTab(event, 'pgql')">PGQL with custom syntax</button>
 </div><div name="sql" class="tab-content active"><div class="language-sql highlighter-rouge"><div class="highlight"><pre class="highlight">
-<span class="k">SELECT</span> name 
-<span class="k">FROM</span> <span class="k">GRAPH_TABLE</span>(financial_transactions 
-  <span class="k">MATCH</span> (n <span class="k">IS</span> Person) 
-  <span class="k">COLUMNS</span>(n.name)) 
-<span class="k">ORDER</span> <span class="k">BY</span> name 
-<span class="k">OF</span>F<span class="k">SET</span> <span class="mi">1</span> 
+<span class="k">SELECT</span> name
+<span class="k">FROM</span> <span class="k">GRAPH_TABLE</span>(financial_transactions
+  <span class="k">MATCH</span> (n <span class="k">IS</span> Person)
+  <span class="k">COLUMNS</span>(n.name))
+<span class="k">ORDER</span> <span class="k">BY</span> name
+<span class="k">OF</span>F<span class="k">SET</span> <span class="mi">1</span>
 FETCH FIRST <span class="mi">1</span> <span class="k">ROWS</span> <span class="k">ON</span>LY
 </pre></div></div></div>
 <div name="pgql" class="tab-content"><div class="language-sql highlighter-rouge"><div class="highlight"><pre class="highlight">
@@ -4072,11 +4630,11 @@ An example query with two bind variables is as follows:
 <button name="sql-button" class="tablinks active" onclick="openTab(event, 'sql')">PGQL with SQL Standard syntax</button>
 <button name="pgql-button" class="tablinks" onclick="openTab(event, 'pgql')">PGQL with custom syntax</button>
 </div><div name="sql" class="tab-content active"><div class="language-sql highlighter-rouge"><div class="highlight"><pre class="highlight">
-<span class="k">SELECT</span> age 
-<span class="k">FROM</span> <span class="k">GRAPH_TABLE</span>(my_graph 
-  <span class="k">MATCH</span> (n) 
-  <span class="k">WHERE</span> n.name <span class="o">=</span> ? 
-     <span class="k">OR</span> n.age <span class="o">></span> ? 
+<span class="k">SELECT</span> age
+<span class="k">FROM</span> <span class="k">GRAPH_TABLE</span>(my_graph
+  <span class="k">MATCH</span> (n)
+  <span class="k">WHERE</span> n.name <span class="o">=</span> ?
+     <span class="k">OR</span> n.age <span class="o">></span> ?
   <span class="k">COLUMNS</span>(n.age))
 </pre></div></div></div>
 <div name="pgql" class="tab-content"><div class="language-sql highlighter-rouge"><div class="highlight"><pre class="highlight">
@@ -4092,12 +4650,12 @@ In the following query, bind variables are used in `OFFSET` and `FETCH FIRST`:
 <button name="sql-button" class="tablinks active" onclick="openTab(event, 'sql')">PGQL with SQL Standard syntax</button>
 <button name="pgql-button" class="tablinks" onclick="openTab(event, 'pgql')">PGQL with custom syntax</button>
 </div><div name="sql" class="tab-content active"><div class="language-sql highlighter-rouge"><div class="highlight"><pre class="highlight">
-<span class="k">SELECT</span> name, age 
-<span class="k">FROM</span> <span class="k">GRAPH_TABLE</span>(my_graph 
-  <span class="k">MATCH</span> (n) 
-  <span class="k">COLUMNS</span>(n.name, n.age)) 
-<span class="k">ORDER</span> <span class="k">BY</span> age 
-<span class="k">OF</span>F<span class="k">SET</span> ? 
+<span class="k">SELECT</span> name, age
+<span class="k">FROM</span> <span class="k">GRAPH_TABLE</span>(my_graph
+  <span class="k">MATCH</span> (n)
+  <span class="k">COLUMNS</span>(n.name, n.age))
+<span class="k">ORDER</span> <span class="k">BY</span> age
+<span class="k">OF</span>F<span class="k">SET</span> ?
 FETCH FIRST ? <span class="k">ROWS</span> <span class="k">ON</span>LY
 </pre></div></div></div>
 <div name="pgql" class="tab-content"><div class="language-sql highlighter-rouge"><div class="highlight"><pre class="highlight">
@@ -4114,10 +4672,10 @@ The following example shows a bind variable in the position of a label:
 <button name="sql-button" class="tablinks active" onclick="openTab(event, 'sql')">PGQL with SQL Standard syntax</button>
 <button name="pgql-button" class="tablinks" onclick="openTab(event, 'pgql')">PGQL with custom syntax</button>
 </div><div name="sql" class="tab-content active"><div class="language-sql highlighter-rouge"><div class="highlight"><pre class="highlight">
-<span class="k">SELECT</span> name 
-<span class="k">FROM</span> <span class="k">GRAPH_TABLE</span>(my_graph 
-  <span class="k">MATCH</span> (n) 
-  <span class="k">WHERE</span> n <span class="k">IS</span> <span class="k">LABELED</span> ? 
+<span class="k">SELECT</span> name
+<span class="k">FROM</span> <span class="k">GRAPH_TABLE</span>(my_graph
+  <span class="k">MATCH</span> (n)
+  <span class="k">WHERE</span> n <span class="k">IS</span> <span class="k">LABELED</span> ?
   <span class="k">COLUMNS</span>(n.name))
 </pre></div></div></div>
 <div name="pgql" class="tab-content"><div class="language-sql highlighter-rouge"><div class="highlight"><pre class="highlight">
@@ -4273,10 +4831,10 @@ For example:
 <button name="sql-button" class="tablinks active" onclick="openTab(event, 'sql')">PGQL with SQL Standard syntax</button>
 <button name="pgql-button" class="tablinks" onclick="openTab(event, 'pgql')">PGQL with custom syntax</button>
 </div><div name="sql" class="tab-content active"><div class="language-sql highlighter-rouge"><div class="highlight"><pre class="highlight">
-<span class="k">SELECT</span> name 
-<span class="k">FROM</span> <span class="k">GRAPH_TABLE</span>(my_graph 
-  <span class="k">MATCH</span> (n) 
-  <span class="k">WHERE</span> n.name <span class="k">IS</span> <span class="k">NOT</span> <span class="k">NULL</span> 
+<span class="k">SELECT</span> name
+<span class="k">FROM</span> <span class="k">GRAPH_TABLE</span>(my_graph
+  <span class="k">MATCH</span> (n)
+  <span class="k">WHERE</span> n.name <span class="k">IS</span> <span class="k">NOT</span> <span class="k">NULL</span>
   <span class="k">COLUMNS</span>(n.name))
 </pre></div></div></div>
 <div name="pgql" class="tab-content"><div class="language-sql highlighter-rouge"><div class="highlight"><pre class="highlight">
@@ -4389,11 +4947,11 @@ For example:
 <button name="sql-button" class="tablinks active" onclick="openTab(event, 'sql')">PGQL with SQL Standard syntax</button>
 <button name="pgql-button" class="tablinks" onclick="openTab(event, 'pgql')">PGQL with custom syntax</button>
 </div><div name="sql" class="tab-content active"><div class="language-sql highlighter-rouge"><div class="highlight"><pre class="highlight">
-<span class="k">SELECT</span> <span class="o">*</span> 
-<span class="k">FROM</span> <span class="k">GRAPH_TABLE</span>(financial_transactions 
+<span class="k">SELECT</span> <span class="o">*</span>
+<span class="k">FROM</span> <span class="k">GRAPH_TABLE</span>(financial_transactions
   <span class="k">MATCH</span> (n <span class="k">IS</span> Person<span class="o">|</span>Company) <span class="o"><</span><span class="o">-</span>[ <span class="k">IS</span> owner]<span class="o">-</span> (a <span class="k">IS</span> Account)
-  <span class="k">COLUMNS</span>(a.number, 
-        C<span class="k">AS</span>E WHEN n <span class="k">IS</span> <span class="k">LABELED</span> Person <span class="k">THEN</span> <span class="mi">'Personal Account'</span> <span class="k">ELSE</span> <span class="mi">'Business Account'</span> END <span class="k">AS</span> accountType)) 
+  <span class="k">COLUMNS</span>(a.number,
+        C<span class="k">AS</span>E WHEN n <span class="k">IS</span> <span class="k">LABELED</span> Person <span class="k">THEN</span> <span class="mi">'Personal Account'</span> <span class="k">ELSE</span> <span class="mi">'Business Account'</span> END <span class="k">AS</span> accountType))
 </pre></div></div></div>
 <div name="pgql" class="tab-content"><div class="language-sql highlighter-rouge"><div class="highlight"><pre class="highlight">
 <span class="k">SELECT</span> a.number,
@@ -4434,11 +4992,11 @@ For example:
 <button name="sql-button" class="tablinks active" onclick="openTab(event, 'sql')">PGQL with SQL Standard syntax</button>
 <button name="pgql-button" class="tablinks" onclick="openTab(event, 'pgql')">PGQL with custom syntax</button>
 </div><div name="sql" class="tab-content active"><div class="language-sql highlighter-rouge"><div class="highlight"><pre class="highlight">
-<span class="k">SELECT</span> amount, transaction_type 
-<span class="k">FROM</span> <span class="k">GRAPH_TABLE</span>(financial_transactions 
-  <span class="k">MATCH</span> (n <span class="k">IS</span> Account) <span class="o">-</span>[e <span class="k">IS</span> transaction]<span class="o">-</span> (m <span class="k">IS</span> Account) 
-  <span class="k">WHERE</span> n.number <span class="o">=</span> <span class="mi">8021</span> 
-  <span class="k">COLUMNS</span>(e.amount, C<span class="k">AS</span>E WHEN n <span class="k">IS</span> SOURCE <span class="k">OF</span> e <span class="k">THEN</span> <span class="mi">'Outgoing transaction'</span> <span class="k">ELSE</span> <span class="mi">'Incoming transaction'</span> END <span class="k">AS</span> transaction_type)) 
+<span class="k">SELECT</span> amount, transaction_type
+<span class="k">FROM</span> <span class="k">GRAPH_TABLE</span>(financial_transactions
+  <span class="k">MATCH</span> (n <span class="k">IS</span> Account) <span class="o">-</span>[e <span class="k">IS</span> transaction]<span class="o">-</span> (m <span class="k">IS</span> Account)
+  <span class="k">WHERE</span> n.number <span class="o">=</span> <span class="mi">8021</span>
+  <span class="k">COLUMNS</span>(e.amount, C<span class="k">AS</span>E WHEN n <span class="k">IS</span> SOURCE <span class="k">OF</span> e <span class="k">THEN</span> <span class="mi">'Outgoing transaction'</span> <span class="k">ELSE</span> <span class="mi">'Incoming transaction'</span> END <span class="k">AS</span> transaction_type))
 <span class="k">ORDER</span> <span class="k">BY</span> transaction_type, amount
 </pre></div></div></div>
 <div name="pgql" class="tab-content"><div class="language-sql highlighter-rouge"><div class="highlight"><pre class="highlight">
@@ -4464,15 +5022,15 @@ Another example is:
 <button name="sql-button" class="tablinks active" onclick="openTab(event, 'sql')">PGQL with SQL Standard syntax</button>
 <button name="pgql-button" class="tablinks" onclick="openTab(event, 'pgql')">PGQL with custom syntax</button>
 </div><div name="sql" class="tab-content active"><div class="language-sql highlighter-rouge"><div class="highlight"><pre class="highlight">
-<span class="k">SELECT</span> number, name, 
-      <span class="k">SUM</span>(incoming_edges) <span class="k">AS</span> num_incoming_edges, 
-      <span class="k">SUM</span>(outgoing_edges) <span class="k">AS</span> num_outgoing_edges 
-<span class="k">FROM</span> <span class="k">GRAPH_TABLE</span>(financial_transactions 
-  <span class="k">MATCH</span> (n) <span class="o">-</span>[e]<span class="o">-</span> (m) 
-  <span class="k">COLUMNS</span>(n.number, n.name, 
-          C<span class="k">AS</span>E WHEN n <span class="k">IS</span> <span class="k">DESTINATION</span> <span class="k">OF</span> e <span class="k">THEN</span> <span class="mi">1</span> <span class="k">ELSE</span> <span class="mi">0</span> END <span class="k">AS</span> incoming_edges, 
-          C<span class="k">AS</span>E WHEN n <span class="k">IS</span> SOURCE <span class="k">OF</span> e <span class="k">THEN</span> <span class="mi">1</span> <span class="k">ELSE</span> <span class="mi">0</span> END <span class="k">AS</span> outgoing_edges)) 
-<span class="k">GROUP</span> <span class="k">BY</span> number, name 
+<span class="k">SELECT</span> number, name,
+      <span class="k">SUM</span>(incoming_edges) <span class="k">AS</span> num_incoming_edges,
+      <span class="k">SUM</span>(outgoing_edges) <span class="k">AS</span> num_outgoing_edges
+<span class="k">FROM</span> <span class="k">GRAPH_TABLE</span>(financial_transactions
+  <span class="k">MATCH</span> (n) <span class="o">-</span>[e]<span class="o">-</span> (m)
+  <span class="k">COLUMNS</span>(n.number, n.name,
+          C<span class="k">AS</span>E WHEN n <span class="k">IS</span> <span class="k">DESTINATION</span> <span class="k">OF</span> e <span class="k">THEN</span> <span class="mi">1</span> <span class="k">ELSE</span> <span class="mi">0</span> END <span class="k">AS</span> incoming_edges,
+          C<span class="k">AS</span>E WHEN n <span class="k">IS</span> SOURCE <span class="k">OF</span> e <span class="k">THEN</span> <span class="mi">1</span> <span class="k">ELSE</span> <span class="mi">0</span> END <span class="k">AS</span> outgoing_edges))
+<span class="k">GROUP</span> <span class="k">BY</span> number, name
 <span class="k">ORDER</span> <span class="k">BY</span> num_incoming_edges <span class="o">+</span> num_outgoing_edges <span class="k">DESC</span>, number, name
 </pre></div></div></div>
 <div name="pgql" class="tab-content"><div class="language-sql highlighter-rouge"><div class="highlight"><pre class="highlight">
@@ -4582,15 +5140,15 @@ For example:
 <button name="sql-button" class="tablinks active" onclick="openTab(event, 'sql')">PGQL with SQL Standard syntax</button>
 <button name="pgql-button" class="tablinks" onclick="openTab(event, 'pgql')">PGQL with custom syntax</button>
 </div><div name="sql" class="tab-content active"><div class="language-sql highlighter-rouge"><div class="highlight"><pre class="highlight">
-<span class="k">SELECT</span> <span class="o">*</span> 
-<span class="k">FROM</span> <span class="k">GRAPH_TABLE</span>(financial_transactions 
-  <span class="k">MATCH</span> (a1 <span class="k">IS</span> Account) <span class="o">-</span>[ <span class="k">IS</span> transaction]<span class="o">-</span><span class="o">></span><span class="o">+</span> (a2 <span class="k">IS</span> Account) 
-  <span class="k">KEEP</span> <span class="k">ANY</span> 
-  <span class="k">WHERE</span> a1.number <span class="o">=</span> <span class="mi">1001</span> <span class="k">AND</span> a2.number <span class="o">=</span> <span class="mi">8021</span> 
-  <span class="k">ONE</span> <span class="k">ROW</span> <span class="k">PER</span> <span class="k">STEP</span> ( v1, e, v2 ) 
-  <span class="k">COLUMNS</span>(v1.number <span class="k">AS</span> v1_account_nr, e.amount, v2.number <span class="k">AS</span> v2_account_nr , 
-          ELEMENT_<span class="k">NUMBER</span>(v1) <span class="k">AS</span> v1_elem_nr, ELEMENT_<span class="k">NUMBER</span>(e) <span class="k">AS</span> e_elem_nr , 
-          ELEMENT_<span class="k">NUMBER</span>(v2) <span class="k">AS</span> v2_elem_nr)) 
+<span class="k">SELECT</span> <span class="o">*</span>
+<span class="k">FROM</span> <span class="k">GRAPH_TABLE</span>(financial_transactions
+  <span class="k">MATCH</span> (a1 <span class="k">IS</span> Account) <span class="o">-</span>[ <span class="k">IS</span> transaction]<span class="o">-</span><span class="o">></span><span class="o">+</span> (a2 <span class="k">IS</span> Account)
+  <span class="k">KEEP</span> <span class="k">ANY</span>
+  <span class="k">WHERE</span> a1.number <span class="o">=</span> <span class="mi">1001</span> <span class="k">AND</span> a2.number <span class="o">=</span> <span class="mi">8021</span>
+  <span class="k">ONE</span> <span class="k">ROW</span> <span class="k">PER</span> <span class="k">STEP</span> ( v1, e, v2 )
+  <span class="k">COLUMNS</span>(v1.number <span class="k">AS</span> v1_account_nr, e.amount, v2.number <span class="k">AS</span> v2_account_nr ,
+          ELEMENT_<span class="k">NUMBER</span>(v1) <span class="k">AS</span> v1_elem_nr, ELEMENT_<span class="k">NUMBER</span>(e) <span class="k">AS</span> e_elem_nr ,
+          ELEMENT_<span class="k">NUMBER</span>(v2) <span class="k">AS</span> v2_elem_nr))
 <span class="k">ORDER</span> <span class="k">BY</span> e_elem_nr
 </pre></div></div></div>
 <div name="pgql" class="tab-content"><div class="language-sql highlighter-rouge"><div class="highlight"><pre class="highlight">
@@ -4623,7 +5181,7 @@ For example:
 <button name="sql-button" class="tablinks active" onclick="openTab(event, 'sql')">PGQL with SQL Standard syntax</button>
 <button name="pgql-button" class="tablinks" onclick="openTab(event, 'pgql')">PGQL with custom syntax</button>
 </div><div name="sql" class="tab-content active"><div class="language-sql highlighter-rouge"><div class="highlight"><pre class="highlight">
-<span class="k">SELECT</span> <span class="o">*</span> 
+<span class="k">SELECT</span> <span class="o">*</span>
 <span class="k">FROM</span> <span class="k">GRAPH_TABLE</span>(financial_transactions
   <span class="k">MATCH</span> (a2 <span class="k">IS</span> Account) <span class="o"><</span><span class="o">-</span>[ <span class="k">IS</span> transaction]<span class="o">-</span><span class="o">+</span> (a1 <span class="k">IS</span> Account)
   <span class="k">KEEP</span> <span class="k">ANY</span>
@@ -4673,10 +5231,10 @@ For example:
 <button name="sql-button" class="tablinks active" onclick="openTab(event, 'sql')">PGQL with SQL Standard syntax</button>
 <button name="pgql-button" class="tablinks" onclick="openTab(event, 'pgql')">PGQL with custom syntax</button>
 </div><div name="sql" class="tab-content active"><div class="language-sql highlighter-rouge"><div class="highlight"><pre class="highlight">
-<span class="k">SELECT</span> <span class="o">*</span> 
-<span class="k">FROM</span> <span class="k">GRAPH_TABLE</span>(my_graph 
-  <span class="k">MATCH</span> (n) <span class="o">-</span><span class="o">></span> (m) <span class="o">-</span><span class="o">></span> (o) 
-  <span class="k">WHERE</span> <span class="k">ALL_DIFFERENT</span>( n, m, o ) 
+<span class="k">SELECT</span> <span class="o">*</span>
+<span class="k">FROM</span> <span class="k">GRAPH_TABLE</span>(my_graph
+  <span class="k">MATCH</span> (n) <span class="o">-</span><span class="o">></span> (m) <span class="o">-</span><span class="o">></span> (o)
+  <span class="k">WHERE</span> <span class="k">ALL_DIFFERENT</span>( n, m, o )
   <span class="k">COLUMNS</span>(n.<span class="o">*</span>, m.<span class="o">*</span>, o.<span class="o">*</span>))
 </pre></div></div></div>
 <div name="pgql" class="tab-content"><div class="language-sql highlighter-rouge"><div class="highlight"><pre class="highlight">
@@ -4691,10 +5249,10 @@ Note that the above query can be rewritten using non-equality constraints as fol
 <button name="sql-button" class="tablinks active" onclick="openTab(event, 'sql')">PGQL with SQL Standard syntax</button>
 <button name="pgql-button" class="tablinks" onclick="openTab(event, 'pgql')">PGQL with custom syntax</button>
 </div><div name="sql" class="tab-content active"><div class="language-sql highlighter-rouge"><div class="highlight"><pre class="highlight">
-<span class="k">SELECT</span> <span class="o">*</span> 
-<span class="k">FROM</span> <span class="k">GRAPH_TABLE</span>(my_graph 
-  <span class="k">MATCH</span> (n) <span class="o">-</span><span class="o">></span> (m) <span class="o"><</span><span class="o">-</span> (o) <span class="o">-</span><span class="o">></span> (n) 
-  <span class="k">WHERE</span> <span class="k">NOT</span> <span class="k">VERTEX</span>_EQUAL(n, m) <span class="k">AND</span> <span class="k">NOT</span> <span class="k">VERTEX</span>_EQUAL(n, o) <span class="k">AND</span> <span class="k">NOT</span> <span class="k">VERTEX</span>_EQUAL(m, o) 
+<span class="k">SELECT</span> <span class="o">*</span>
+<span class="k">FROM</span> <span class="k">GRAPH_TABLE</span>(my_graph
+  <span class="k">MATCH</span> (n) <span class="o">-</span><span class="o">></span> (m) <span class="o"><</span><span class="o">-</span> (o) <span class="o">-</span><span class="o">></span> (n)
+  <span class="k">WHERE</span> <span class="k">NOT</span> <span class="k">VERTEX</span>_EQUAL(n, m) <span class="k">AND</span> <span class="k">NOT</span> <span class="k">VERTEX</span>_EQUAL(n, o) <span class="k">AND</span> <span class="k">NOT</span> <span class="k">VERTEX</span>_EQUAL(m, o)
   <span class="k">COLUMNS</span>(n.<span class="o">*</span>, m.<span class="o">*</span>, o.<span class="o">*</span>))
 </pre></div></div></div>
 <div name="pgql" class="tab-content"><div class="language-sql highlighter-rouge"><div class="highlight"><pre class="highlight">
@@ -4985,9 +5543,9 @@ An example invocation of this function is then:
 <button name="sql-button" class="tablinks active" onclick="openTab(event, 'sql')">PGQL with SQL Standard syntax</button>
 <button name="pgql-button" class="tablinks" onclick="openTab(event, 'pgql')">PGQL with custom syntax</button>
 </div><div name="sql" class="tab-content active"><div class="language-sql highlighter-rouge"><div class="highlight"><pre class="highlight">
-<span class="k">SELECT</span> <span class="o">*</span> 
-<span class="k">FROM</span> <span class="k">GRAPH_TABLE</span>(my_graph 
-  <span class="k">MATCH</span> (n) 
+<span class="k">SELECT</span> <span class="o">*</span>
+<span class="k">FROM</span> <span class="k">GRAPH_TABLE</span>(my_graph
+  <span class="k">MATCH</span> (n)
   <span class="k">COLUMNS</span>(math.tan(n.angle) <span class="k">AS</span> tangent))
 <span class="k">ORDER</span> <span class="k">BY</span> tangent
 </pre></div></div></div>
@@ -5046,9 +5604,9 @@ For example:
 <button name="sql-button" class="tablinks active" onclick="openTab(event, 'sql')">PGQL with SQL Standard syntax</button>
 <button name="pgql-button" class="tablinks" onclick="openTab(event, 'pgql')">PGQL with custom syntax</button>
 </div><div name="sql" class="tab-content active"><div class="language-sql highlighter-rouge"><div class="highlight"><pre class="highlight">
-<span class="k">SELECT</span> <span class="o">*</span> 
-<span class="k">FROM</span> <span class="k">GRAPH_TABLE</span>(my_graph 
-  <span class="k">MATCH</span> (n <span class="k">IS</span> Person) 
+<span class="k">SELECT</span> <span class="o">*</span>
+<span class="k">FROM</span> <span class="k">GRAPH_TABLE</span>(my_graph
+  <span class="k">MATCH</span> (n <span class="k">IS</span> Person)
   <span class="k">COLUMNS</span>(C<span class="k">AS</span>T(n.age <span class="k">AS</span> <span class="k">STRING</span>), C<span class="k">AS</span>T(<span class="mi">'123'</span> <span class="k">AS</span> <span class="k">INTEGER</span>), C<span class="k">AS</span>T(<span class="mi">'09:15:00+01:00'</span> <span class="k">AS</span> <span class="k">TIME</span> <span class="k">WITH</span> <span class="k">TIME</span> Z<span class="k">ONE</span>)))
 </pre></div></div></div>
 <div name="pgql" class="tab-content"><div class="language-sql highlighter-rouge"><div class="highlight"><pre class="highlight">
@@ -5198,14 +5756,14 @@ An example is to find friend of friends, and, for each friend of friend, return 
 <button name="sql-button" class="tablinks active" onclick="openTab(event, 'sql')">PGQL with SQL Standard syntax</button>
 <button name="pgql-button" class="tablinks" onclick="openTab(event, 'pgql')">PGQL with custom syntax</button>
 </div><div name="sql" class="tab-content active"><div class="language-sql highlighter-rouge"><div class="highlight"><pre class="highlight">
-<span class="k">SELECT</span> name, COUNT(friend) <span class="k">AS</span> num_common_friends 
-<span class="k">FROM</span> <span class="k">GRAPH_TABLE</span>(my_graph 
-  <span class="k">MATCH</span> (p <span class="k">IS</span> Person) <span class="o">-</span>[ <span class="k">IS</span> has_friend]<span class="o">-</span><span class="o">></span> (friend <span class="k">IS</span> Person) <span class="o">-</span>[ <span class="k">IS</span> has_friend]<span class="o">-</span><span class="o">></span> (fof <span class="k">IS</span> Person) 
-  <span class="k">COLUMNS</span>(fof.name, <span class="k">VERTEX</span>_<span class="k">ID</span>(friend) <span class="k">AS</span> friend, <span class="k">VERTEX</span>_<span class="k">ID</span>(p) <span class="k">AS</span> p_id, <span class="k">VERTEX</span>_<span class="k">ID</span>(fof) <span class="k">AS</span> fof_id)) 
-<span class="k">WHERE</span> <span class="k">NOT</span> <span class="k">EXISTS</span> (<span class="k">SELECT</span> <span class="o">*</span> 
-                  <span class="k">FROM</span> <span class="k">GRAPH_TABLE</span>(my_graph 
-                    <span class="k">MATCH</span> (p <span class="k">IS</span> Person) <span class="o">-</span>[ <span class="k">IS</span> has_friend]<span class="o">-</span><span class="o">></span> (fof <span class="k">IS</span> Person) 
-                    <span class="k">COLUMNS</span>(<span class="k">VERTEX</span>_<span class="k">ID</span>(p) <span class="k">AS</span> id1, <span class="k">VERTEX</span>_id(fof) <span class="k">AS</span> id2)) 
+<span class="k">SELECT</span> name, COUNT(friend) <span class="k">AS</span> num_common_friends
+<span class="k">FROM</span> <span class="k">GRAPH_TABLE</span>(my_graph
+  <span class="k">MATCH</span> (p <span class="k">IS</span> Person) <span class="o">-</span>[ <span class="k">IS</span> has_friend]<span class="o">-</span><span class="o">></span> (friend <span class="k">IS</span> Person) <span class="o">-</span>[ <span class="k">IS</span> has_friend]<span class="o">-</span><span class="o">></span> (fof <span class="k">IS</span> Person)
+  <span class="k">COLUMNS</span>(fof.name, <span class="k">VERTEX</span>_<span class="k">ID</span>(friend) <span class="k">AS</span> friend, <span class="k">VERTEX</span>_<span class="k">ID</span>(p) <span class="k">AS</span> p_id, <span class="k">VERTEX</span>_<span class="k">ID</span>(fof) <span class="k">AS</span> fof_id))
+<span class="k">WHERE</span> <span class="k">NOT</span> <span class="k">EXISTS</span> (<span class="k">SELECT</span> <span class="o">*</span>
+                  <span class="k">FROM</span> <span class="k">GRAPH_TABLE</span>(my_graph
+                    <span class="k">MATCH</span> (p <span class="k">IS</span> Person) <span class="o">-</span>[ <span class="k">IS</span> has_friend]<span class="o">-</span><span class="o">></span> (fof <span class="k">IS</span> Person)
+                    <span class="k">COLUMNS</span>(<span class="k">VERTEX</span>_<span class="k">ID</span>(p) <span class="k">AS</span> id1, <span class="k">VERTEX</span>_id(fof) <span class="k">AS</span> id2))
                   <span class="k">WHERE</span> id1 <span class="o">=</span> p_id <span class="k">AND</span> id2 <span class="o">=</span> fof_id)
 <span class="k">GROUP</span> <span class="k">BY</span> name
 </pre></div></div></div>
@@ -5235,14 +5793,14 @@ For example:
 <button name="sql-button" class="tablinks active" onclick="openTab(event, 'sql')">PGQL with SQL Standard syntax</button>
 <button name="pgql-button" class="tablinks" onclick="openTab(event, 'pgql')">PGQL with custom syntax</button>
 </div><div name="sql" class="tab-content active"><div class="language-sql highlighter-rouge"><div class="highlight"><pre class="highlight">
-<span class="k">SELECT</span> name 
-<span class="k">FROM</span> <span class="k">GRAPH_TABLE</span>(my_graph 
-  <span class="k">MATCH</span> (a) 
-  <span class="k">COLUMNS</span>(a.name, a.age, <span class="k">VERTEX</span>_<span class="k">ID</span>(a) <span class="k">AS</span> a_id)) 
-<span class="k">WHERE</span> age <span class="o">></span> ( <span class="k">SELECT</span> AVG(b_age) 
-              <span class="k">FROM</span> <span class="k">GRAPH_TABLE</span>(my_graph 
-                <span class="k">MATCH</span> (a) <span class="o">-</span>[<span class="k">IS</span> friendOf]<span class="o">-</span><span class="o">></span> (b) 
-                <span class="k">COLUMNS</span>(<span class="k">VERTEX</span>_<span class="k">ID</span>(a) <span class="k">AS</span> id, b.age <span class="k">AS</span> b_age)) 
+<span class="k">SELECT</span> name
+<span class="k">FROM</span> <span class="k">GRAPH_TABLE</span>(my_graph
+  <span class="k">MATCH</span> (a)
+  <span class="k">COLUMNS</span>(a.name, a.age, <span class="k">VERTEX</span>_<span class="k">ID</span>(a) <span class="k">AS</span> a_id))
+<span class="k">WHERE</span> age <span class="o">></span> ( <span class="k">SELECT</span> AVG(b_age)
+              <span class="k">FROM</span> <span class="k">GRAPH_TABLE</span>(my_graph
+                <span class="k">MATCH</span> (a) <span class="o">-</span>[<span class="k">IS</span> friendOf]<span class="o">-</span><span class="o">></span> (b)
+                <span class="k">COLUMNS</span>(<span class="k">VERTEX</span>_<span class="k">ID</span>(a) <span class="k">AS</span> id, b.age <span class="k">AS</span> b_age))
               <span class="k">WHERE</span> id <span class="o">=</span> a_id)
 </pre></div></div></div>
 <div name="pgql" class="tab-content"><div class="language-sql highlighter-rouge"><div class="highlight"><pre class="highlight">
@@ -5259,30 +5817,30 @@ Another example is:
 <button name="sql-button" class="tablinks active" onclick="openTab(event, 'sql')">PGQL with SQL Standard syntax</button>
 <button name="pgql-button" class="tablinks" onclick="openTab(event, 'pgql')">PGQL with custom syntax</button>
 </div><div name="sql" class="tab-content active"><div class="language-sql highlighter-rouge"><div class="highlight"><pre class="highlight">
-<span class="k">SELECT</span> name, 
-      ( <span class="k">SELECT</span> <span class="k">SUM</span>(amount) 
-        <span class="k">FROM</span> <span class="k">GRAPH_TABLE</span>(financial_transactions 
-          <span class="k">MATCH</span> (a <span class="k">IS</span> Account) <span class="o"><</span><span class="o">-</span>[t <span class="k">IS</span> transaction]<span class="o">-</span> ( <span class="k">IS</span> Account) 
-          <span class="k">COLUMNS</span>(t.amount, <span class="k">VERTEX</span>_<span class="k">ID</span>(a) <span class="k">AS</span> id)) 
-      <span class="k">WHERE</span> id <span class="o">=</span> a_id ) <span class="k">AS</span> sum_incoming , 
-      ( <span class="k">SELECT</span> <span class="k">SUM</span>(amount) 
-        <span class="k">FROM</span> <span class="k">GRAPH_TABLE</span>(financial_transactions 
-          <span class="k">MATCH</span> (a <span class="k">IS</span> Account) <span class="o">-</span>[t <span class="k">IS</span> transaction]<span class="o">-</span><span class="o">></span> ( <span class="k">IS</span> Account) 
-          <span class="k">COLUMNS</span>(t.amount, <span class="k">VERTEX</span>_<span class="k">ID</span>(a) <span class="k">AS</span> id)) 
-        <span class="k">WHERE</span> id <span class="o">=</span> a_id ) <span class="k">AS</span> sum_outgoing , 
-      ( <span class="k">SELECT</span> COUNT(<span class="k">DISTINCT</span> p2) 
-        <span class="k">FROM</span> <span class="k">GRAPH_TABLE</span>(financial_transactions 
-          <span class="k">MATCH</span> (a <span class="k">IS</span> Account) <span class="o">-</span>[t <span class="k">IS</span> transaction]<span class="o">-</span> ( <span class="k">IS</span> Account) <span class="o">-</span>[ <span class="k">IS</span> owner]<span class="o">-</span><span class="o">></span> (p2 <span class="k">IS</span> Person) 
-          <span class="k">COLUMNS</span>(<span class="k">VERTEX</span>_<span class="k">ID</span>(p2) <span class="k">AS</span> p2, <span class="k">VERTEX</span>_id(a) <span class="k">AS</span> id)) 
-        <span class="k">WHERE</span> p2 <span class="o"><</span><span class="o">></span> p_id <span class="k">AND</span> id <span class="o">=</span> a_id ) <span class="k">AS</span> num_persons_transacted_with , 
-      ( <span class="k">SELECT</span> COUNT(<span class="k">DISTINCT</span> c) 
-        <span class="k">FROM</span> <span class="k">GRAPH_TABLE</span>(financial_transactions 
-          <span class="k">MATCH</span> (a <span class="k">IS</span> Account) <span class="o">-</span>[t <span class="k">IS</span> transaction]<span class="o">-</span> ( <span class="k">IS</span> Account) <span class="o">-</span>[ <span class="k">IS</span> owner]<span class="o">-</span><span class="o">></span> (c <span class="k">IS</span> Company) 
-          <span class="k">COLUMNS</span>(<span class="k">VERTEX</span>_<span class="k">ID</span>(a) <span class="k">AS</span> id, <span class="k">VERTEX</span>_<span class="k">ID</span>(c) <span class="k">AS</span> c)) 
-        <span class="k">WHERE</span> id <span class="o">=</span> a_id ) <span class="k">AS</span> num_companies_transacted_with 
-<span class="k">FROM</span> <span class="k">GRAPH_TABLE</span>(financial_transactions 
-  <span class="k">MATCH</span> (p <span class="k">IS</span> Person) <span class="o"><</span><span class="o">-</span>[ <span class="k">IS</span> owner]<span class="o">-</span> (a <span class="k">IS</span> Account) 
-  <span class="k">COLUMNS</span>(p.name, <span class="k">VERTEX</span>_<span class="k">ID</span>(a) <span class="k">AS</span> a_id, <span class="k">VERTEX</span>_<span class="k">ID</span>(p) <span class="k">AS</span> p_id)) 
+<span class="k">SELECT</span> name,
+      ( <span class="k">SELECT</span> <span class="k">SUM</span>(amount)
+        <span class="k">FROM</span> <span class="k">GRAPH_TABLE</span>(financial_transactions
+          <span class="k">MATCH</span> (a <span class="k">IS</span> Account) <span class="o"><</span><span class="o">-</span>[t <span class="k">IS</span> transaction]<span class="o">-</span> ( <span class="k">IS</span> Account)
+          <span class="k">COLUMNS</span>(t.amount, <span class="k">VERTEX</span>_<span class="k">ID</span>(a) <span class="k">AS</span> id))
+      <span class="k">WHERE</span> id <span class="o">=</span> a_id ) <span class="k">AS</span> sum_incoming ,
+      ( <span class="k">SELECT</span> <span class="k">SUM</span>(amount)
+        <span class="k">FROM</span> <span class="k">GRAPH_TABLE</span>(financial_transactions
+          <span class="k">MATCH</span> (a <span class="k">IS</span> Account) <span class="o">-</span>[t <span class="k">IS</span> transaction]<span class="o">-</span><span class="o">></span> ( <span class="k">IS</span> Account)
+          <span class="k">COLUMNS</span>(t.amount, <span class="k">VERTEX</span>_<span class="k">ID</span>(a) <span class="k">AS</span> id))
+        <span class="k">WHERE</span> id <span class="o">=</span> a_id ) <span class="k">AS</span> sum_outgoing ,
+      ( <span class="k">SELECT</span> COUNT(<span class="k">DISTINCT</span> p2)
+        <span class="k">FROM</span> <span class="k">GRAPH_TABLE</span>(financial_transactions
+          <span class="k">MATCH</span> (a <span class="k">IS</span> Account) <span class="o">-</span>[t <span class="k">IS</span> transaction]<span class="o">-</span> ( <span class="k">IS</span> Account) <span class="o">-</span>[ <span class="k">IS</span> owner]<span class="o">-</span><span class="o">></span> (p2 <span class="k">IS</span> Person)
+          <span class="k">COLUMNS</span>(<span class="k">VERTEX</span>_<span class="k">ID</span>(p2) <span class="k">AS</span> p2, <span class="k">VERTEX</span>_id(a) <span class="k">AS</span> id))
+        <span class="k">WHERE</span> p2 <span class="o"><</span><span class="o">></span> p_id <span class="k">AND</span> id <span class="o">=</span> a_id ) <span class="k">AS</span> num_persons_transacted_with ,
+      ( <span class="k">SELECT</span> COUNT(<span class="k">DISTINCT</span> c)
+        <span class="k">FROM</span> <span class="k">GRAPH_TABLE</span>(financial_transactions
+          <span class="k">MATCH</span> (a <span class="k">IS</span> Account) <span class="o">-</span>[t <span class="k">IS</span> transaction]<span class="o">-</span> ( <span class="k">IS</span> Account) <span class="o">-</span>[ <span class="k">IS</span> owner]<span class="o">-</span><span class="o">></span> (c <span class="k">IS</span> Company)
+          <span class="k">COLUMNS</span>(<span class="k">VERTEX</span>_<span class="k">ID</span>(a) <span class="k">AS</span> id, <span class="k">VERTEX</span>_<span class="k">ID</span>(c) <span class="k">AS</span> c))
+        <span class="k">WHERE</span> id <span class="o">=</span> a_id ) <span class="k">AS</span> num_companies_transacted_with
+<span class="k">FROM</span> <span class="k">GRAPH_TABLE</span>(financial_transactions
+  <span class="k">MATCH</span> (p <span class="k">IS</span> Person) <span class="o"><</span><span class="o">-</span>[ <span class="k">IS</span> owner]<span class="o">-</span> (a <span class="k">IS</span> Account)
+  <span class="k">COLUMNS</span>(p.name, <span class="k">VERTEX</span>_<span class="k">ID</span>(a) <span class="k">AS</span> a_id, <span class="k">VERTEX</span>_<span class="k">ID</span>(p) <span class="k">AS</span> p_id))
 <span class="k">ORDER</span> <span class="k">BY</span> sum_outgoing <span class="o">+</span> sum_incoming <span class="k">DESC</span>
 </pre></div></div></div>
 <div name="pgql" class="tab-content"><div class="language-sql highlighter-rouge"><div class="highlight"><pre class="highlight">
@@ -5580,29 +6138,62 @@ If the `FROM` clause is missing, exactly one vertex is inserted per vertex inser
 For examle, since the following query has only one vertex insertion, it will insert exactly one vertex in the graph.
 The vertex will not be connected to any other vertices in the graph.
 
-```sql
-INSERT INTO my_graph VERTEX x LABELS ( Male ) PROPERTIES ( x.age = 22 )
-```
+<div class="tab">
+<button name="sql-button" class="tablinks active" onclick="openTab(event, 'sql')">PGQL with SQL Standard syntax</button>
+<button name="pgql-button" class="tablinks" onclick="openTab(event, 'pgql')">PGQL with custom syntax</button>
+</div><div name="sql" class="tab-content active"><div class="language-sql highlighter-rouge"><div class="highlight"><pre class="highlight">
+<span class="o">/</span><span class="o">*</span>
+ <span class="o">*</span> The SQL standard specifies that <span class="k">INSERT</span><span class="o">/</span><span class="k">UPDATE</span><span class="o">/</span><span class="k">DELETE</span> of vertices and edges
+ <span class="o">*</span> should be done by <span class="k">INSERT</span><span class="o">/</span><span class="k">UPDATE</span><span class="o">/</span><span class="k">DELETE</span> on the base tables of the graph.
+ <span class="o">*</span> The PGQL custom syntax can be used to <span class="k">INSERT</span><span class="o">/</span><span class="k">UPDATE</span><span class="o">/</span><span class="k">DELETE</span> vertices and
+ <span class="o">*</span> edges when using PGQL property graphs.
+ <span class="o">*</span><span class="o">/</span>
+</pre></div></div></div>
+<div name="pgql" class="tab-content"><div class="language-sql highlighter-rouge"><div class="highlight"><pre class="highlight">
+<span class="k">INSERT</span> <span class="k">INTO</span> my_graph <span class="k">VERTEX</span> x <span class="k">LABELS</span> ( Male ) <span class="k">PROPERTIES</span> ( x.age <span class="o">=</span> <span class="mi">22</span> )
+</pre></div></div></div>
 
 In the presence of a `FROM` clause, per vertex insertion, as many vertices are inserted as there are rows returned from the query.
 For example, the following query inserts a new vertex for every vertex in the graph that is labelled `Male`.
 
 
-```sql
-INSERT INTO my_graph
-  VERTEX x LABELS ( Male ) PROPERTIES ( x.age = y.age )
-FROM MATCH (y:Male) ON my_graph
-```
+<div class="tab">
+<button name="sql-button" class="tablinks active" onclick="openTab(event, 'sql')">PGQL with SQL Standard syntax</button>
+<button name="pgql-button" class="tablinks" onclick="openTab(event, 'pgql')">PGQL with custom syntax</button>
+</div><div name="sql" class="tab-content active"><div class="language-sql highlighter-rouge"><div class="highlight"><pre class="highlight">
+<span class="o">/</span><span class="o">*</span>
+ <span class="o">*</span> The SQL standard specifies that <span class="k">INSERT</span><span class="o">/</span><span class="k">UPDATE</span><span class="o">/</span><span class="k">DELETE</span> of vertices and edges
+ <span class="o">*</span> should be done by <span class="k">INSERT</span><span class="o">/</span><span class="k">UPDATE</span><span class="o">/</span><span class="k">DELETE</span> on the base tables of the graph.
+ <span class="o">*</span> The PGQL custom syntax can be used to <span class="k">INSERT</span><span class="o">/</span><span class="k">UPDATE</span><span class="o">/</span><span class="k">DELETE</span> vertices and
+ <span class="o">*</span> edges when using PGQL property graphs.
+ <span class="o">*</span><span class="o">/</span>
+</pre></div></div></div>
+<div name="pgql" class="tab-content"><div class="language-sql highlighter-rouge"><div class="highlight"><pre class="highlight">
+<span class="k">INSERT</span> <span class="k">INTO</span> my_graph
+  <span class="k">VERTEX</span> x <span class="k">LABELS</span> ( Male ) <span class="k">PROPERTIES</span> ( x.age <span class="o">=</span> y.age )
+<span class="k">FROM</span> <span class="k">MATCH</span> (y:Male) <span class="k">ON</span> my_graph
+</pre></div></div></div>
 
 In the presence of a `GROUP BY` expression, as many vertices are inserted, as many groups are matched.
 For example the following query inserts a new vertex for every profession in the graph.
 
-```sql
-INSERT INTO my_graph
-  VERTEX x LABELS ( Profession ) PROPERTIES ( x.name = y.profession )
-FROM MATCH (y:Person) ON my_graph
-GROUP BY y.profession
-```
+<div class="tab">
+<button name="sql-button" class="tablinks active" onclick="openTab(event, 'sql')">PGQL with SQL Standard syntax</button>
+<button name="pgql-button" class="tablinks" onclick="openTab(event, 'pgql')">PGQL with custom syntax</button>
+</div><div name="sql" class="tab-content active"><div class="language-sql highlighter-rouge"><div class="highlight"><pre class="highlight">
+<span class="o">/</span><span class="o">*</span>
+ <span class="o">*</span> The SQL standard specifies that <span class="k">INSERT</span><span class="o">/</span><span class="k">UPDATE</span><span class="o">/</span><span class="k">DELETE</span> of vertices and edges
+ <span class="o">*</span> should be done by <span class="k">INSERT</span><span class="o">/</span><span class="k">UPDATE</span><span class="o">/</span><span class="k">DELETE</span> on the base tables of the graph.
+ <span class="o">*</span> The PGQL custom syntax can be used to <span class="k">INSERT</span><span class="o">/</span><span class="k">UPDATE</span><span class="o">/</span><span class="k">DELETE</span> vertices and
+ <span class="o">*</span> edges when using PGQL property graphs.
+ <span class="o">*</span><span class="o">/</span>
+</pre></div></div></div>
+<div name="pgql" class="tab-content"><div class="language-sql highlighter-rouge"><div class="highlight"><pre class="highlight">
+<span class="k">INSERT</span> <span class="k">INTO</span> my_graph
+  <span class="k">VERTEX</span> x <span class="k">LABELS</span> ( Profession ) <span class="k">PROPERTIES</span> ( x.name <span class="o">=</span> y.profession )
+<span class="k">FROM</span> <span class="k">MATCH</span> (y:Person) <span class="k">ON</span> my_graph
+<span class="k">GROUP</span> <span class="k">BY</span> y.profession
+</pre></div></div></div>
 
 ### Inserting edges
 
@@ -5611,12 +6202,23 @@ Only the insertion of directed edges are supported.
 
 For example the following query inserts a vertex with source `x` and destination `y`:
 
-```sql
-INSERT INTO my_graph EDGE e BETWEEN x AND y
-FROM MATCH (x) ON my_graph
-   , MATCH (y) ON my_graph
-WHERE id(x) = 1 AND id(y) = 2
-```
+<div class="tab">
+<button name="sql-button" class="tablinks active" onclick="openTab(event, 'sql')">PGQL with SQL Standard syntax</button>
+<button name="pgql-button" class="tablinks" onclick="openTab(event, 'pgql')">PGQL with custom syntax</button>
+</div><div name="sql" class="tab-content active"><div class="language-sql highlighter-rouge"><div class="highlight"><pre class="highlight">
+<span class="o">/</span><span class="o">*</span>
+ <span class="o">*</span> The SQL standard specifies that <span class="k">INSERT</span><span class="o">/</span><span class="k">UPDATE</span><span class="o">/</span><span class="k">DELETE</span> of vertices and edges
+ <span class="o">*</span> should be done by <span class="k">INSERT</span><span class="o">/</span><span class="k">UPDATE</span><span class="o">/</span><span class="k">DELETE</span> on the base tables of the graph.
+ <span class="o">*</span> The PGQL custom syntax can be used to <span class="k">INSERT</span><span class="o">/</span><span class="k">UPDATE</span><span class="o">/</span><span class="k">DELETE</span> vertices and
+ <span class="o">*</span> edges when using PGQL property graphs.
+ <span class="o">*</span><span class="o">/</span>
+</pre></div></div></div>
+<div name="pgql" class="tab-content"><div class="language-sql highlighter-rouge"><div class="highlight"><pre class="highlight">
+<span class="k">INSERT</span> <span class="k">INTO</span> my_graph <span class="k">EDGE</span> e <span class="k">BETWEEN</span> x <span class="k">AND</span> y
+<span class="k">FROM</span> <span class="k">MATCH</span> (x) <span class="k">ON</span> my_graph
+   , <span class="k">MATCH</span> (y) <span class="k">ON</span> my_graph
+<span class="k">WHERE</span> id(x) <span class="o">=</span> <span class="mi">1</span> <span class="k">AND</span> id(y) <span class="o">=</span> <span class="mi">2</span>
+</pre></div></div></div>
 
 ### Labels
 
@@ -5624,12 +6226,23 @@ Labels for the inserted entities can be specified between braces after the `LABE
 
 For example:
 
-```sql
-INSERT EDGE e BETWEEN x AND y LABELS ( knows )
-FROM MATCH (x:Person) ON my_graph
-   , MATCH (y:Person) ON my_graph
-WHERE id(x) = 1 AND id(y) = 2
-```
+<div class="tab">
+<button name="sql-button" class="tablinks active" onclick="openTab(event, 'sql')">PGQL with SQL Standard syntax</button>
+<button name="pgql-button" class="tablinks" onclick="openTab(event, 'pgql')">PGQL with custom syntax</button>
+</div><div name="sql" class="tab-content active"><div class="language-sql highlighter-rouge"><div class="highlight"><pre class="highlight">
+<span class="o">/</span><span class="o">*</span>
+ <span class="o">*</span> The SQL standard specifies that <span class="k">INSERT</span><span class="o">/</span><span class="k">UPDATE</span><span class="o">/</span><span class="k">DELETE</span> of vertices and edges
+ <span class="o">*</span> should be done by <span class="k">INSERT</span><span class="o">/</span><span class="k">UPDATE</span><span class="o">/</span><span class="k">DELETE</span> on the base tables of the graph.
+ <span class="o">*</span> The PGQL custom syntax can be used to <span class="k">INSERT</span><span class="o">/</span><span class="k">UPDATE</span><span class="o">/</span><span class="k">DELETE</span> vertices and
+ <span class="o">*</span> edges when using PGQL property graphs.
+ <span class="o">*</span><span class="o">/</span>
+</pre></div></div></div>
+<div name="pgql" class="tab-content"><div class="language-sql highlighter-rouge"><div class="highlight"><pre class="highlight">
+<span class="k">INSERT</span> <span class="k">EDGE</span> e <span class="k">BETWEEN</span> x <span class="k">AND</span> y <span class="k">LABELS</span> ( knows )
+<span class="k">FROM</span> <span class="k">MATCH</span> (x:Person) <span class="k">ON</span> my_graph
+   , <span class="k">MATCH</span> (y:Person) <span class="k">ON</span> my_graph
+<span class="k">WHERE</span> id(x) <span class="o">=</span> <span class="mi">1</span> <span class="k">AND</span> id(y) <span class="o">=</span> <span class="mi">2</span>
+</pre></div></div></div>
 
 ### Properties
 
@@ -5640,19 +6253,41 @@ Property expressions cannot refer to other entities that are inserted at the sam
 
 For example, the following query inserts a new vertex with `age = 22`:
 
-```sql
-INSERT INTO my_graph VERTEX v PROPERTIES ( v.age = 22 )
-```
+<div class="tab">
+<button name="sql-button" class="tablinks active" onclick="openTab(event, 'sql')">PGQL with SQL Standard syntax</button>
+<button name="pgql-button" class="tablinks" onclick="openTab(event, 'pgql')">PGQL with custom syntax</button>
+</div><div name="sql" class="tab-content active"><div class="language-sql highlighter-rouge"><div class="highlight"><pre class="highlight">
+<span class="o">/</span><span class="o">*</span>
+ <span class="o">*</span> The SQL standard specifies that <span class="k">INSERT</span><span class="o">/</span><span class="k">UPDATE</span><span class="o">/</span><span class="k">DELETE</span> of vertices and edges
+ <span class="o">*</span> should be done by <span class="k">INSERT</span><span class="o">/</span><span class="k">UPDATE</span><span class="o">/</span><span class="k">DELETE</span> on the base tables of the graph.
+ <span class="o">*</span> The PGQL custom syntax can be used to <span class="k">INSERT</span><span class="o">/</span><span class="k">UPDATE</span><span class="o">/</span><span class="k">DELETE</span> vertices and
+ <span class="o">*</span> edges when using PGQL property graphs.
+ <span class="o">*</span><span class="o">/</span>
+</pre></div></div></div>
+<div name="pgql" class="tab-content"><div class="language-sql highlighter-rouge"><div class="highlight"><pre class="highlight">
+<span class="k">INSERT</span> <span class="k">INTO</span> my_graph <span class="k">VERTEX</span> v <span class="k">PROPERTIES</span> ( v.age <span class="o">=</span> <span class="mi">22</span> )
+</pre></div></div></div>
 
 Edge properties can be specified in the same manner:
 
-```sql
-INSERT INTO my_graph
-  EDGE e BETWEEN x AND y LABELS ( knows ) PROPERTIES ( e.since = DATE '2017-09-21' )
-FROM MATCH (x:Person) ON my_graph
-   , MATCH (y:Person) ON my_graph
-WHERE id(x) = 1 AND id(y) = 2
-```
+<div class="tab">
+<button name="sql-button" class="tablinks active" onclick="openTab(event, 'sql')">PGQL with SQL Standard syntax</button>
+<button name="pgql-button" class="tablinks" onclick="openTab(event, 'pgql')">PGQL with custom syntax</button>
+</div><div name="sql" class="tab-content active"><div class="language-sql highlighter-rouge"><div class="highlight"><pre class="highlight">
+<span class="o">/</span><span class="o">*</span>
+ <span class="o">*</span> The SQL standard specifies that <span class="k">INSERT</span><span class="o">/</span><span class="k">UPDATE</span><span class="o">/</span><span class="k">DELETE</span> of vertices and edges
+ <span class="o">*</span> should be done by <span class="k">INSERT</span><span class="o">/</span><span class="k">UPDATE</span><span class="o">/</span><span class="k">DELETE</span> on the base tables of the graph.
+ <span class="o">*</span> The PGQL custom syntax can be used to <span class="k">INSERT</span><span class="o">/</span><span class="k">UPDATE</span><span class="o">/</span><span class="k">DELETE</span> vertices and
+ <span class="o">*</span> edges when using PGQL property graphs.
+ <span class="o">*</span><span class="o">/</span>
+</pre></div></div></div>
+<div name="pgql" class="tab-content"><div class="language-sql highlighter-rouge"><div class="highlight"><pre class="highlight">
+<span class="k">INSERT</span> <span class="k">INTO</span> my_graph
+  <span class="k">EDGE</span> e <span class="k">BETWEEN</span> x <span class="k">AND</span> y <span class="k">LABELS</span> ( knows ) <span class="k">PROPERTIES</span> ( e.since <span class="o">=</span> <span class="k">DATE</span> <span class="mi">'2017-09-21'</span> )
+<span class="k">FROM</span> <span class="k">MATCH</span> (x:Person) <span class="k">ON</span> my_graph
+   , <span class="k">MATCH</span> (y:Person) <span class="k">ON</span> my_graph
+<span class="k">WHERE</span> id(x) <span class="o">=</span> <span class="mi">1</span> <span class="k">AND</span> id(y) <span class="o">=</span> <span class="mi">2</span>
+</pre></div></div></div>
 
 In case of partitioned schema, only those properties can be assigned that are defined for the type of the entity.
 Note that the entity type is determined by the label(s).
@@ -5663,23 +6298,45 @@ One insert clause can contain multiple inserts.
 
 For example, the query below inserts two vertices into the graph:
 
-```sql
-INSERT INTO my_graph
-  VERTEX v LABELS ( Male ) PROPERTIES ( v.age = 23, v.name = 'John' ),
-  VERTEX u LABELS ( Female ) PROPERTIES ( u.age = 24, u.name = 'Jane' )
-```
+<div class="tab">
+<button name="sql-button" class="tablinks active" onclick="openTab(event, 'sql')">PGQL with SQL Standard syntax</button>
+<button name="pgql-button" class="tablinks" onclick="openTab(event, 'pgql')">PGQL with custom syntax</button>
+</div><div name="sql" class="tab-content active"><div class="language-sql highlighter-rouge"><div class="highlight"><pre class="highlight">
+<span class="o">/</span><span class="o">*</span>
+ <span class="o">*</span> The SQL standard specifies that <span class="k">INSERT</span><span class="o">/</span><span class="k">UPDATE</span><span class="o">/</span><span class="k">DELETE</span> of vertices and edges
+ <span class="o">*</span> should be done by <span class="k">INSERT</span><span class="o">/</span><span class="k">UPDATE</span><span class="o">/</span><span class="k">DELETE</span> on the base tables of the graph.
+ <span class="o">*</span> The PGQL custom syntax can be used to <span class="k">INSERT</span><span class="o">/</span><span class="k">UPDATE</span><span class="o">/</span><span class="k">DELETE</span> vertices and
+ <span class="o">*</span> edges when using PGQL property graphs.
+ <span class="o">*</span><span class="o">/</span>
+</pre></div></div></div>
+<div name="pgql" class="tab-content"><div class="language-sql highlighter-rouge"><div class="highlight"><pre class="highlight">
+<span class="k">INSERT</span> <span class="k">INTO</span> my_graph
+  <span class="k">VERTEX</span> v <span class="k">LABELS</span> ( Male ) <span class="k">PROPERTIES</span> ( v.age <span class="o">=</span> <span class="mi">23</span>, v.name <span class="o">=</span> <span class="mi">'John'</span> ),
+  <span class="k">VERTEX</span> u <span class="k">LABELS</span> ( Female ) <span class="k">PROPERTIES</span> ( u.age <span class="o">=</span> <span class="mi">24</span>, u.name <span class="o">=</span> <span class="mi">'Jane'</span> )
+</pre></div></div></div>
 
 Multiple insertions under the same `INSERT` can be used to set a newly inserted vertex as source or destination for a newly inserted edge.
 
 For example, the following query inserts a vertex and an edge that connects it to the matched vertex `y`:
 
-```sql
-INSERT INTO my_graph
-  VERTEX x LABELS ( Person ) PROPERTIES ( x.name = 'John' ),
-  EDGE e BETWEEN x AND y LABELS ( knows ) PROPERTIES ( e.since = DATE '2017-09-21' )
-FROM MATCH (y) ON my_graph
-WHERE y.name = 'Jane'
-```
+<div class="tab">
+<button name="sql-button" class="tablinks active" onclick="openTab(event, 'sql')">PGQL with SQL Standard syntax</button>
+<button name="pgql-button" class="tablinks" onclick="openTab(event, 'pgql')">PGQL with custom syntax</button>
+</div><div name="sql" class="tab-content active"><div class="language-sql highlighter-rouge"><div class="highlight"><pre class="highlight">
+<span class="o">/</span><span class="o">*</span>
+ <span class="o">*</span> The SQL standard specifies that <span class="k">INSERT</span><span class="o">/</span><span class="k">UPDATE</span><span class="o">/</span><span class="k">DELETE</span> of vertices and edges
+ <span class="o">*</span> should be done by <span class="k">INSERT</span><span class="o">/</span><span class="k">UPDATE</span><span class="o">/</span><span class="k">DELETE</span> on the base tables of the graph.
+ <span class="o">*</span> The PGQL custom syntax can be used to <span class="k">INSERT</span><span class="o">/</span><span class="k">UPDATE</span><span class="o">/</span><span class="k">DELETE</span> vertices and
+ <span class="o">*</span> edges when using PGQL property graphs.
+ <span class="o">*</span><span class="o">/</span>
+</pre></div></div></div>
+<div name="pgql" class="tab-content"><div class="language-sql highlighter-rouge"><div class="highlight"><pre class="highlight">
+<span class="k">INSERT</span> <span class="k">INTO</span> my_graph
+  <span class="k">VERTEX</span> x <span class="k">LABELS</span> ( Person ) <span class="k">PROPERTIES</span> ( x.name <span class="o">=</span> <span class="mi">'John'</span> ),
+  <span class="k">EDGE</span> e <span class="k">BETWEEN</span> x <span class="k">AND</span> y <span class="k">LABELS</span> ( knows ) <span class="k">PROPERTIES</span> ( e.since <span class="o">=</span> <span class="k">DATE</span> <span class="mi">'2017-09-21'</span> )
+<span class="k">FROM</span> <span class="k">MATCH</span> (y) <span class="k">ON</span> my_graph
+<span class="k">WHERE</span> y.name <span class="o">=</span> <span class="mi">'Jane'</span>
+</pre></div></div></div>
 
 Note that the properties of `x` cannot be accessed in the property assignments of `e`, only the variable itself is visible as source of the edge.
 For this reason setting `e.since` to `x.graduation_date` would cause the query to fail.
@@ -5689,12 +6346,23 @@ In the presence of a match, as many edges are inserted as many (not necessarily 
 If a vertex pair is matched more than once, multiple edges will be inserted between the vertices.
 
 For example consider the following query:
-```sql
-INSERT INTO my_graph EDGE e BETWEEN x AND y
-FROM MATCH (x) ON my_graph
-   , MATCH (y) -> (z) ON my_graph
- WHERE id(x) = 1
-```
+<div class="tab">
+<button name="sql-button" class="tablinks active" onclick="openTab(event, 'sql')">PGQL with SQL Standard syntax</button>
+<button name="pgql-button" class="tablinks" onclick="openTab(event, 'pgql')">PGQL with custom syntax</button>
+</div><div name="sql" class="tab-content active"><div class="language-sql highlighter-rouge"><div class="highlight"><pre class="highlight">
+<span class="o">/</span><span class="o">*</span>
+ <span class="o">*</span> The SQL standard specifies that <span class="k">INSERT</span><span class="o">/</span><span class="k">UPDATE</span><span class="o">/</span><span class="k">DELETE</span> of vertices and edges
+ <span class="o">*</span> should be done by <span class="k">INSERT</span><span class="o">/</span><span class="k">UPDATE</span><span class="o">/</span><span class="k">DELETE</span> on the base tables of the graph.
+ <span class="o">*</span> The PGQL custom syntax can be used to <span class="k">INSERT</span><span class="o">/</span><span class="k">UPDATE</span><span class="o">/</span><span class="k">DELETE</span> vertices and
+ <span class="o">*</span> edges when using PGQL property graphs.
+ <span class="o">*</span><span class="o">/</span>
+</pre></div></div></div>
+<div name="pgql" class="tab-content"><div class="language-sql highlighter-rouge"><div class="highlight"><pre class="highlight">
+<span class="k">INSERT</span> <span class="k">INTO</span> my_graph <span class="k">EDGE</span> e <span class="k">BETWEEN</span> x <span class="k">AND</span> y
+<span class="k">FROM</span> <span class="k">MATCH</span> (x) <span class="k">ON</span> my_graph
+   , <span class="k">MATCH</span> (y) <span class="o">-</span><span class="o">></span> (z) <span class="k">ON</span> my_graph
+ <span class="k">WHERE</span> id(x) <span class="o">=</span> <span class="mi">1</span>
+</pre></div></div></div>
 
 {% include image.html file="example_graphs/pgql_modify_example_before.png" %}
 
@@ -5725,21 +6393,43 @@ GraphElementUpdate ::= <ElementReference> 'SET' '(' <PropertyAssignment> ( ',' <
 
 For example, the following query sets the property `age` of every person named "John" to the value `42`:
 
-```sql
-UPDATE x SET ( x.age = 42 )
-FROM MATCH (x:Person) ON my_graph
-WHERE x.name = 'John'
-```
+<div class="tab">
+<button name="sql-button" class="tablinks active" onclick="openTab(event, 'sql')">PGQL with SQL Standard syntax</button>
+<button name="pgql-button" class="tablinks" onclick="openTab(event, 'pgql')">PGQL with custom syntax</button>
+</div><div name="sql" class="tab-content active"><div class="language-sql highlighter-rouge"><div class="highlight"><pre class="highlight">
+<span class="o">/</span><span class="o">*</span>
+ <span class="o">*</span> The SQL standard specifies that <span class="k">INSERT</span><span class="o">/</span><span class="k">UPDATE</span><span class="o">/</span><span class="k">DELETE</span> of vertices and edges
+ <span class="o">*</span> should be done by <span class="k">INSERT</span><span class="o">/</span><span class="k">UPDATE</span><span class="o">/</span><span class="k">DELETE</span> on the base tables of the graph.
+ <span class="o">*</span> The PGQL custom syntax can be used to <span class="k">INSERT</span><span class="o">/</span><span class="k">UPDATE</span><span class="o">/</span><span class="k">DELETE</span> vertices and
+ <span class="o">*</span> edges when using PGQL property graphs.
+ <span class="o">*</span><span class="o">/</span>
+</pre></div></div></div>
+<div name="pgql" class="tab-content"><div class="language-sql highlighter-rouge"><div class="highlight"><pre class="highlight">
+<span class="k">UPDATE</span> x <span class="k">SET</span> ( x.age <span class="o">=</span> <span class="mi">42</span> )
+<span class="k">FROM</span> <span class="k">MATCH</span> (x:Person) <span class="k">ON</span> my_graph
+<span class="k">WHERE</span> x.name <span class="o">=</span> <span class="mi">'John'</span>
+</pre></div></div></div>
 
 An example in which properties of multiple vertices and edges are update is:
 
-```sql
-UPDATE v SET ( v.carOwner = true )
-     , u SET ( u.weight = 3500 )
-     , e SET ( e.since = DATE '2010-01-03' )
-FROM MATCH (v:Person) <-[e:belongs_to]- (u:Car) ON my_graph
-WHERE v.name = 'John'
-```
+<div class="tab">
+<button name="sql-button" class="tablinks active" onclick="openTab(event, 'sql')">PGQL with SQL Standard syntax</button>
+<button name="pgql-button" class="tablinks" onclick="openTab(event, 'pgql')">PGQL with custom syntax</button>
+</div><div name="sql" class="tab-content active"><div class="language-sql highlighter-rouge"><div class="highlight"><pre class="highlight">
+<span class="o">/</span><span class="o">*</span>
+ <span class="o">*</span> The SQL standard specifies that <span class="k">INSERT</span><span class="o">/</span><span class="k">UPDATE</span><span class="o">/</span><span class="k">DELETE</span> of vertices and edges
+ <span class="o">*</span> should be done by <span class="k">INSERT</span><span class="o">/</span><span class="k">UPDATE</span><span class="o">/</span><span class="k">DELETE</span> on the base tables of the graph.
+ <span class="o">*</span> The PGQL custom syntax can be used to <span class="k">INSERT</span><span class="o">/</span><span class="k">UPDATE</span><span class="o">/</span><span class="k">DELETE</span> vertices and
+ <span class="o">*</span> edges when using PGQL property graphs.
+ <span class="o">*</span><span class="o">/</span>
+</pre></div></div></div>
+<div name="pgql" class="tab-content"><div class="language-sql highlighter-rouge"><div class="highlight"><pre class="highlight">
+<span class="k">UPDATE</span> v <span class="k">SET</span> ( v.carOwner <span class="o">=</span> true )
+     , u <span class="k">SET</span> ( u.weight <span class="o">=</span> <span class="mi">3500</span> )
+     , e <span class="k">SET</span> ( e.since <span class="o">=</span> <span class="k">DATE</span> <span class="mi">'2010-01-03'</span> )
+<span class="k">FROM</span> <span class="k">MATCH</span> (v:Person) <span class="o"><</span><span class="o">-</span>[e:belongs_to]<span class="o">-</span> (u:Car) <span class="k">ON</span> my_graph
+<span class="k">WHERE</span> v.name <span class="o">=</span> <span class="mi">'John'</span>
+</pre></div></div></div>
 
 Above, we match a person named John and the car that belongs to John. We then set the property `carOwner` of John to true, we set the property `weight` of the car to 3500, and we set the property `since` of the `belongs_to` edge to the date 2010-01-03.
 
@@ -5750,10 +6440,21 @@ before the beginning of the update. This aligns with the snapshot isolation sema
 
 For example consider the following update:
 
-```sql
-UPDATE x SET ( x.a = y.b, x.b = 12 )
-FROM MATCH (x) -> (y) ON my_graph
-```
+<div class="tab">
+<button name="sql-button" class="tablinks active" onclick="openTab(event, 'sql')">PGQL with SQL Standard syntax</button>
+<button name="pgql-button" class="tablinks" onclick="openTab(event, 'pgql')">PGQL with custom syntax</button>
+</div><div name="sql" class="tab-content active"><div class="language-sql highlighter-rouge"><div class="highlight"><pre class="highlight">
+<span class="o">/</span><span class="o">*</span>
+ <span class="o">*</span> The SQL standard specifies that <span class="k">INSERT</span><span class="o">/</span><span class="k">UPDATE</span><span class="o">/</span><span class="k">DELETE</span> of vertices and edges
+ <span class="o">*</span> should be done by <span class="k">INSERT</span><span class="o">/</span><span class="k">UPDATE</span><span class="o">/</span><span class="k">DELETE</span> on the base tables of the graph.
+ <span class="o">*</span> The PGQL custom syntax can be used to <span class="k">INSERT</span><span class="o">/</span><span class="k">UPDATE</span><span class="o">/</span><span class="k">DELETE</span> vertices and
+ <span class="o">*</span> edges when using PGQL property graphs.
+ <span class="o">*</span><span class="o">/</span>
+</pre></div></div></div>
+<div name="pgql" class="tab-content"><div class="language-sql highlighter-rouge"><div class="highlight"><pre class="highlight">
+<span class="k">UPDATE</span> x <span class="k">SET</span> ( x.a <span class="o">=</span> y.b, x.b <span class="o">=</span> <span class="mi">12</span> )
+<span class="k">FROM</span> <span class="k">MATCH</span> (x) <span class="o">-</span><span class="o">></span> (y) <span class="k">ON</span> my_graph
+</pre></div></div></div>
 
 It is possible, that a vertex is matched by both `(x)` and `(y)` for example
 
@@ -5772,10 +6473,21 @@ an error.
 
 For example consider the following query:
 
-```sql
-UPDATE x SET ( x.a = y.a )
-FROM MATCH (x) -> (y) ON my_graph
-```
+<div class="tab">
+<button name="sql-button" class="tablinks active" onclick="openTab(event, 'sql')">PGQL with SQL Standard syntax</button>
+<button name="pgql-button" class="tablinks" onclick="openTab(event, 'pgql')">PGQL with custom syntax</button>
+</div><div name="sql" class="tab-content active"><div class="language-sql highlighter-rouge"><div class="highlight"><pre class="highlight">
+<span class="o">/</span><span class="o">*</span>
+ <span class="o">*</span> The SQL standard specifies that <span class="k">INSERT</span><span class="o">/</span><span class="k">UPDATE</span><span class="o">/</span><span class="k">DELETE</span> of vertices and edges
+ <span class="o">*</span> should be done by <span class="k">INSERT</span><span class="o">/</span><span class="k">UPDATE</span><span class="o">/</span><span class="k">DELETE</span> on the base tables of the graph.
+ <span class="o">*</span> The PGQL custom syntax can be used to <span class="k">INSERT</span><span class="o">/</span><span class="k">UPDATE</span><span class="o">/</span><span class="k">DELETE</span> vertices and
+ <span class="o">*</span> edges when using PGQL property graphs.
+ <span class="o">*</span><span class="o">/</span>
+</pre></div></div></div>
+<div name="pgql" class="tab-content"><div class="language-sql highlighter-rouge"><div class="highlight"><pre class="highlight">
+<span class="k">UPDATE</span> x <span class="k">SET</span> ( x.a <span class="o">=</span> y.a )
+<span class="k">FROM</span> <span class="k">MATCH</span> (x) <span class="o">-</span><span class="o">></span> (y) <span class="k">ON</span> my_graph
+</pre></div></div></div>
 
 If the following vertices are matched
 
@@ -5794,20 +6506,42 @@ succeeds.
 For example, in the following case, multiple writes to `v.a` are allowed, because in this case no matter how many
 times `v.a` is written, it is always assigned the same value (65 minus its age property).
 
-```sql
-UPDATE v SET ( v.a = 65 - v.age )
-FROM MATCH (v:Person) -> (u:Person) ON my_graph
-WHERE v.name = 'John'
-```
+<div class="tab">
+<button name="sql-button" class="tablinks active" onclick="openTab(event, 'sql')">PGQL with SQL Standard syntax</button>
+<button name="pgql-button" class="tablinks" onclick="openTab(event, 'pgql')">PGQL with custom syntax</button>
+</div><div name="sql" class="tab-content active"><div class="language-sql highlighter-rouge"><div class="highlight"><pre class="highlight">
+<span class="o">/</span><span class="o">*</span>
+ <span class="o">*</span> The SQL standard specifies that <span class="k">INSERT</span><span class="o">/</span><span class="k">UPDATE</span><span class="o">/</span><span class="k">DELETE</span> of vertices and edges
+ <span class="o">*</span> should be done by <span class="k">INSERT</span><span class="o">/</span><span class="k">UPDATE</span><span class="o">/</span><span class="k">DELETE</span> on the base tables of the graph.
+ <span class="o">*</span> The PGQL custom syntax can be used to <span class="k">INSERT</span><span class="o">/</span><span class="k">UPDATE</span><span class="o">/</span><span class="k">DELETE</span> vertices and
+ <span class="o">*</span> edges when using PGQL property graphs.
+ <span class="o">*</span><span class="o">/</span>
+</pre></div></div></div>
+<div name="pgql" class="tab-content"><div class="language-sql highlighter-rouge"><div class="highlight"><pre class="highlight">
+<span class="k">UPDATE</span> v <span class="k">SET</span> ( v.a <span class="o">=</span> <span class="mi">65</span> <span class="o">-</span> v.age )
+<span class="k">FROM</span> <span class="k">MATCH</span> (v:Person) <span class="o">-</span><span class="o">></span> (u:Person) <span class="k">ON</span> my_graph
+<span class="k">WHERE</span> v.name <span class="o">=</span> <span class="mi">'John'</span>
+</pre></div></div></div>
 
 In the following case, however, multiple writes to `v.a` are not allowed, because the value of the property would be
 ambiguous, 65 minus the other vertex's age property, that can be different for different matched `u`'s.
 
-```sql
-UPDATE v SET ( v.a = 65 - u.age )
-FROM MATCH (v:Person) -> (u:Person) ON my_graph
-WHERE v.name = 'John'
-```
+<div class="tab">
+<button name="sql-button" class="tablinks active" onclick="openTab(event, 'sql')">PGQL with SQL Standard syntax</button>
+<button name="pgql-button" class="tablinks" onclick="openTab(event, 'pgql')">PGQL with custom syntax</button>
+</div><div name="sql" class="tab-content active"><div class="language-sql highlighter-rouge"><div class="highlight"><pre class="highlight">
+<span class="o">/</span><span class="o">*</span>
+ <span class="o">*</span> The SQL standard specifies that <span class="k">INSERT</span><span class="o">/</span><span class="k">UPDATE</span><span class="o">/</span><span class="k">DELETE</span> of vertices and edges
+ <span class="o">*</span> should be done by <span class="k">INSERT</span><span class="o">/</span><span class="k">UPDATE</span><span class="o">/</span><span class="k">DELETE</span> on the base tables of the graph.
+ <span class="o">*</span> The PGQL custom syntax can be used to <span class="k">INSERT</span><span class="o">/</span><span class="k">UPDATE</span><span class="o">/</span><span class="k">DELETE</span> vertices and
+ <span class="o">*</span> edges when using PGQL property graphs.
+ <span class="o">*</span><span class="o">/</span>
+</pre></div></div></div>
+<div name="pgql" class="tab-content"><div class="language-sql highlighter-rouge"><div class="highlight"><pre class="highlight">
+<span class="k">UPDATE</span> v <span class="k">SET</span> ( v.a <span class="o">=</span> <span class="mi">65</span> <span class="o">-</span> u.age )
+<span class="k">FROM</span> <span class="k">MATCH</span> (v:Person) <span class="o">-</span><span class="o">></span> (u:Person) <span class="k">ON</span> my_graph
+<span class="k">WHERE</span> v.name <span class="o">=</span> <span class="mi">'John'</span>
+</pre></div></div></div>
 
 ## DELETE
 
@@ -5820,17 +6554,39 @@ Entities can be deleted by enumerating them after the `DELETE` keyword. The orde
 
 For example, one can delete all edges from a graph using the following query
 
-```sql
-DELETE e
-FROM MATCH () -[e]-> () ON my_graph
-```
+<div class="tab">
+<button name="sql-button" class="tablinks active" onclick="openTab(event, 'sql')">PGQL with SQL Standard syntax</button>
+<button name="pgql-button" class="tablinks" onclick="openTab(event, 'pgql')">PGQL with custom syntax</button>
+</div><div name="sql" class="tab-content active"><div class="language-sql highlighter-rouge"><div class="highlight"><pre class="highlight">
+<span class="o">/</span><span class="o">*</span>
+ <span class="o">*</span> The SQL standard specifies that <span class="k">INSERT</span><span class="o">/</span><span class="k">UPDATE</span><span class="o">/</span><span class="k">DELETE</span> of vertices and edges
+ <span class="o">*</span> should be done by <span class="k">INSERT</span><span class="o">/</span><span class="k">UPDATE</span><span class="o">/</span><span class="k">DELETE</span> on the base tables of the graph.
+ <span class="o">*</span> The PGQL custom syntax can be used to <span class="k">INSERT</span><span class="o">/</span><span class="k">UPDATE</span><span class="o">/</span><span class="k">DELETE</span> vertices and
+ <span class="o">*</span> edges when using PGQL property graphs.
+ <span class="o">*</span><span class="o">/</span>
+</pre></div></div></div>
+<div name="pgql" class="tab-content"><div class="language-sql highlighter-rouge"><div class="highlight"><pre class="highlight">
+<span class="k">DELETE</span> e
+<span class="k">FROM</span> <span class="k">MATCH</span> () <span class="o">-</span>[e]<span class="o">-</span><span class="o">></span> () <span class="k">ON</span> my_graph
+</pre></div></div></div>
 
 Multiple deletes to the same entity are not considered conflicting. For example consider the following query:
 
-```sql
-DELETE x, y
-FROM MATCH (x) -> (y) ON my_graph
-```
+<div class="tab">
+<button name="sql-button" class="tablinks active" onclick="openTab(event, 'sql')">PGQL with SQL Standard syntax</button>
+<button name="pgql-button" class="tablinks" onclick="openTab(event, 'pgql')">PGQL with custom syntax</button>
+</div><div name="sql" class="tab-content active"><div class="language-sql highlighter-rouge"><div class="highlight"><pre class="highlight">
+<span class="o">/</span><span class="o">*</span>
+ <span class="o">*</span> The SQL standard specifies that <span class="k">INSERT</span><span class="o">/</span><span class="k">UPDATE</span><span class="o">/</span><span class="k">DELETE</span> of vertices and edges
+ <span class="o">*</span> should be done by <span class="k">INSERT</span><span class="o">/</span><span class="k">UPDATE</span><span class="o">/</span><span class="k">DELETE</span> on the base tables of the graph.
+ <span class="o">*</span> The PGQL custom syntax can be used to <span class="k">INSERT</span><span class="o">/</span><span class="k">UPDATE</span><span class="o">/</span><span class="k">DELETE</span> vertices and
+ <span class="o">*</span> edges when using PGQL property graphs.
+ <span class="o">*</span><span class="o">/</span>
+</pre></div></div></div>
+<div name="pgql" class="tab-content"><div class="language-sql highlighter-rouge"><div class="highlight"><pre class="highlight">
+<span class="k">DELETE</span> x, y
+<span class="k">FROM</span> <span class="k">MATCH</span> (x) <span class="o">-</span><span class="o">></span> (y) <span class="k">ON</span> my_graph
+</pre></div></div></div>
 
 In that case, even if a vertex is matched multiple times by `(x)` or `(y)`, and deleted multiple times, the query will complete without an exception.
 
@@ -5838,30 +6594,63 @@ In that case, even if a vertex is matched multiple times by `(x)` or `(y)`, and 
 If a vertex is deleted, all its incoming and outgoing edges are deleted as well, thus there are no dangling edges left after a query.
 So the following query not only deletes the vertex with id `11` but also all edges for which it is source or destination.
 
-```sql
-DELETE x
-FROM MATCH (x) ON my_graph
-WHERE id(x) = 11
-```
+<div class="tab">
+<button name="sql-button" class="tablinks active" onclick="openTab(event, 'sql')">PGQL with SQL Standard syntax</button>
+<button name="pgql-button" class="tablinks" onclick="openTab(event, 'pgql')">PGQL with custom syntax</button>
+</div><div name="sql" class="tab-content active"><div class="language-sql highlighter-rouge"><div class="highlight"><pre class="highlight">
+<span class="o">/</span><span class="o">*</span>
+ <span class="o">*</span> The SQL standard specifies that <span class="k">INSERT</span><span class="o">/</span><span class="k">UPDATE</span><span class="o">/</span><span class="k">DELETE</span> of vertices and edges
+ <span class="o">*</span> should be done by <span class="k">INSERT</span><span class="o">/</span><span class="k">UPDATE</span><span class="o">/</span><span class="k">DELETE</span> on the base tables of the graph.
+ <span class="o">*</span> The PGQL custom syntax can be used to <span class="k">INSERT</span><span class="o">/</span><span class="k">UPDATE</span><span class="o">/</span><span class="k">DELETE</span> vertices and
+ <span class="o">*</span> edges when using PGQL property graphs.
+ <span class="o">*</span><span class="o">/</span>
+</pre></div></div></div>
+<div name="pgql" class="tab-content"><div class="language-sql highlighter-rouge"><div class="highlight"><pre class="highlight">
+<span class="k">DELETE</span> x
+<span class="k">FROM</span> <span class="k">MATCH</span> (x) <span class="k">ON</span> my_graph
+<span class="k">WHERE</span> id(x) <span class="o">=</span> <span class="mi">11</span>
+</pre></div></div></div>
 
 Because of implicit deletion of edges, the following query can be used to delete all edges as well as all vertices from a graph:
 
-```sql
-DELETE x
-FROM MATCH (x) ON my_graph
-```
+<div class="tab">
+<button name="sql-button" class="tablinks active" onclick="openTab(event, 'sql')">PGQL with SQL Standard syntax</button>
+<button name="pgql-button" class="tablinks" onclick="openTab(event, 'pgql')">PGQL with custom syntax</button>
+</div><div name="sql" class="tab-content active"><div class="language-sql highlighter-rouge"><div class="highlight"><pre class="highlight">
+<span class="o">/</span><span class="o">*</span>
+ <span class="o">*</span> The SQL standard specifies that <span class="k">INSERT</span><span class="o">/</span><span class="k">UPDATE</span><span class="o">/</span><span class="k">DELETE</span> of vertices and edges
+ <span class="o">*</span> should be done by <span class="k">INSERT</span><span class="o">/</span><span class="k">UPDATE</span><span class="o">/</span><span class="k">DELETE</span> on the base tables of the graph.
+ <span class="o">*</span> The PGQL custom syntax can be used to <span class="k">INSERT</span><span class="o">/</span><span class="k">UPDATE</span><span class="o">/</span><span class="k">DELETE</span> vertices and
+ <span class="o">*</span> edges when using PGQL property graphs.
+ <span class="o">*</span><span class="o">/</span>
+</pre></div></div></div>
+<div name="pgql" class="tab-content"><div class="language-sql highlighter-rouge"><div class="highlight"><pre class="highlight">
+<span class="k">DELETE</span> x
+<span class="k">FROM</span> <span class="k">MATCH</span> (x) <span class="k">ON</span> my_graph
+</pre></div></div></div>
 
 ## Combining INSERT, UPDATE and DELETE
 
 Multiple modifications can be executed in the same query.
 For example, to update a vertex and also insert an edge with the same vertex as source, the following query can be used:
 
-```sql
-INSERT INTO my_graph EDGE e BETWEEN x AND y
-UPDATE y SET ( y.a = 12 )
-FROM MATCH (x) ON my_graph, MATCH (y) ON my_graph
-WHERE id(x) = 1 AND id(y) = 2
-```
+<div class="tab">
+<button name="sql-button" class="tablinks active" onclick="openTab(event, 'sql')">PGQL with SQL Standard syntax</button>
+<button name="pgql-button" class="tablinks" onclick="openTab(event, 'pgql')">PGQL with custom syntax</button>
+</div><div name="sql" class="tab-content active"><div class="language-sql highlighter-rouge"><div class="highlight"><pre class="highlight">
+<span class="o">/</span><span class="o">*</span>
+ <span class="o">*</span> The SQL standard specifies that <span class="k">INSERT</span><span class="o">/</span><span class="k">UPDATE</span><span class="o">/</span><span class="k">DELETE</span> of vertices and edges
+ <span class="o">*</span> should be done by <span class="k">INSERT</span><span class="o">/</span><span class="k">UPDATE</span><span class="o">/</span><span class="k">DELETE</span> on the base tables of the graph.
+ <span class="o">*</span> The PGQL custom syntax can be used to <span class="k">INSERT</span><span class="o">/</span><span class="k">UPDATE</span><span class="o">/</span><span class="k">DELETE</span> vertices and
+ <span class="o">*</span> edges when using PGQL property graphs.
+ <span class="o">*</span><span class="o">/</span>
+</pre></div></div></div>
+<div name="pgql" class="tab-content"><div class="language-sql highlighter-rouge"><div class="highlight"><pre class="highlight">
+<span class="k">INSERT</span> <span class="k">INTO</span> my_graph <span class="k">EDGE</span> e <span class="k">BETWEEN</span> x <span class="k">AND</span> y
+<span class="k">UPDATE</span> y <span class="k">SET</span> ( y.a <span class="o">=</span> <span class="mi">12</span> )
+<span class="k">FROM</span> <span class="k">MATCH</span> (x) <span class="k">ON</span> my_graph, <span class="k">MATCH</span> (y) <span class="k">ON</span> my_graph
+<span class="k">WHERE</span> id(x) <span class="o">=</span> <span class="mi">1</span> <span class="k">AND</span> id(y) <span class="o">=</span> <span class="mi">2</span>
+</pre></div></div></div>
 
 ### Isolation semantics of modification queries
 
@@ -5870,20 +6659,42 @@ For this reason, property assignments can come from updated and deleted vertices
 
 For example, the query below succeeds, because `y.age` is evaluated based on the graph's status before the query.
 
-```sql
-INSERT INTO my_graph VERTEX x PROPERTIES ( x.age = y.age )
-DELETE y
-FROM MATCH (y) ON my_graph
-```
+<div class="tab">
+<button name="sql-button" class="tablinks active" onclick="openTab(event, 'sql')">PGQL with SQL Standard syntax</button>
+<button name="pgql-button" class="tablinks" onclick="openTab(event, 'pgql')">PGQL with custom syntax</button>
+</div><div name="sql" class="tab-content active"><div class="language-sql highlighter-rouge"><div class="highlight"><pre class="highlight">
+<span class="o">/</span><span class="o">*</span>
+ <span class="o">*</span> The SQL standard specifies that <span class="k">INSERT</span><span class="o">/</span><span class="k">UPDATE</span><span class="o">/</span><span class="k">DELETE</span> of vertices and edges
+ <span class="o">*</span> should be done by <span class="k">INSERT</span><span class="o">/</span><span class="k">UPDATE</span><span class="o">/</span><span class="k">DELETE</span> on the base tables of the graph.
+ <span class="o">*</span> The PGQL custom syntax can be used to <span class="k">INSERT</span><span class="o">/</span><span class="k">UPDATE</span><span class="o">/</span><span class="k">DELETE</span> vertices and
+ <span class="o">*</span> edges when using PGQL property graphs.
+ <span class="o">*</span><span class="o">/</span>
+</pre></div></div></div>
+<div name="pgql" class="tab-content"><div class="language-sql highlighter-rouge"><div class="highlight"><pre class="highlight">
+<span class="k">INSERT</span> <span class="k">INTO</span> my_graph <span class="k">VERTEX</span> x <span class="k">PROPERTIES</span> ( x.age <span class="o">=</span> y.age )
+<span class="k">DELETE</span> y
+<span class="k">FROM</span> <span class="k">MATCH</span> (y) <span class="k">ON</span> my_graph
+</pre></div></div></div>
 
 Please note, that for the same reason, properties of newly inserted vertices cannot be referenced in the right-hand-side expressions.
 For example, the following query would fail as `x` is not yet in the graph, and `x.age` cannot be evaluated:
 
-```sql
-INSERT INTO my_graph
-  VERTEX x PROPERTIES ( v.age = 24 ),
-  VERTEX y PROPERTIES ( y.age = x.age )
-```
+<div class="tab">
+<button name="sql-button" class="tablinks active" onclick="openTab(event, 'sql')">PGQL with SQL Standard syntax</button>
+<button name="pgql-button" class="tablinks" onclick="openTab(event, 'pgql')">PGQL with custom syntax</button>
+</div><div name="sql" class="tab-content active"><div class="language-sql highlighter-rouge"><div class="highlight"><pre class="highlight">
+<span class="o">/</span><span class="o">*</span>
+ <span class="o">*</span> The SQL standard specifies that <span class="k">INSERT</span><span class="o">/</span><span class="k">UPDATE</span><span class="o">/</span><span class="k">DELETE</span> of vertices and edges
+ <span class="o">*</span> should be done by <span class="k">INSERT</span><span class="o">/</span><span class="k">UPDATE</span><span class="o">/</span><span class="k">DELETE</span> on the base tables of the graph.
+ <span class="o">*</span> The PGQL custom syntax can be used to <span class="k">INSERT</span><span class="o">/</span><span class="k">UPDATE</span><span class="o">/</span><span class="k">DELETE</span> vertices and
+ <span class="o">*</span> edges when using PGQL property graphs.
+ <span class="o">*</span><span class="o">/</span>
+</pre></div></div></div>
+<div name="pgql" class="tab-content"><div class="language-sql highlighter-rouge"><div class="highlight"><pre class="highlight">
+<span class="k">INSERT</span> <span class="k">INTO</span> my_graph
+  <span class="k">VERTEX</span> x <span class="k">PROPERTIES</span> ( v.age <span class="o">=</span> <span class="mi">24</span> ),
+  <span class="k">VERTEX</span> y <span class="k">PROPERTIES</span> ( y.age <span class="o">=</span> x.age )
+</pre></div></div></div>
 
 ### Handling conflicting modifications
 
@@ -5896,21 +6707,43 @@ The same entity cannot be updated and deleted in the same query.
 
 For example, let us consider the following query:
 
-```sql
-UPDATE x SET ( x.a = 11 )
-DELETE x
-FROM MATCH (x) ON my_graph
-```
+<div class="tab">
+<button name="sql-button" class="tablinks active" onclick="openTab(event, 'sql')">PGQL with SQL Standard syntax</button>
+<button name="pgql-button" class="tablinks" onclick="openTab(event, 'pgql')">PGQL with custom syntax</button>
+</div><div name="sql" class="tab-content active"><div class="language-sql highlighter-rouge"><div class="highlight"><pre class="highlight">
+<span class="o">/</span><span class="o">*</span>
+ <span class="o">*</span> The SQL standard specifies that <span class="k">INSERT</span><span class="o">/</span><span class="k">UPDATE</span><span class="o">/</span><span class="k">DELETE</span> of vertices and edges
+ <span class="o">*</span> should be done by <span class="k">INSERT</span><span class="o">/</span><span class="k">UPDATE</span><span class="o">/</span><span class="k">DELETE</span> on the base tables of the graph.
+ <span class="o">*</span> The PGQL custom syntax can be used to <span class="k">INSERT</span><span class="o">/</span><span class="k">UPDATE</span><span class="o">/</span><span class="k">DELETE</span> vertices and
+ <span class="o">*</span> edges when using PGQL property graphs.
+ <span class="o">*</span><span class="o">/</span>
+</pre></div></div></div>
+<div name="pgql" class="tab-content"><div class="language-sql highlighter-rouge"><div class="highlight"><pre class="highlight">
+<span class="k">UPDATE</span> x <span class="k">SET</span> ( x.a <span class="o">=</span> <span class="mi">11</span> )
+<span class="k">DELETE</span> x
+<span class="k">FROM</span> <span class="k">MATCH</span> (x) <span class="k">ON</span> my_graph
+</pre></div></div></div>
 
 There the conflict is trivial between the deleted and the updated vertex.
 However, the conflict is not always straightforward, for example,
 the following query can also fail due to conflicting update and delete:
 
-```sql
-UPDATE x SET ( x.a = 11 )
-DELETE y
-FROM MATCH (x) -> (y) ON my_graph
-```
+<div class="tab">
+<button name="sql-button" class="tablinks active" onclick="openTab(event, 'sql')">PGQL with SQL Standard syntax</button>
+<button name="pgql-button" class="tablinks" onclick="openTab(event, 'pgql')">PGQL with custom syntax</button>
+</div><div name="sql" class="tab-content active"><div class="language-sql highlighter-rouge"><div class="highlight"><pre class="highlight">
+<span class="o">/</span><span class="o">*</span>
+ <span class="o">*</span> The SQL standard specifies that <span class="k">INSERT</span><span class="o">/</span><span class="k">UPDATE</span><span class="o">/</span><span class="k">DELETE</span> of vertices and edges
+ <span class="o">*</span> should be done by <span class="k">INSERT</span><span class="o">/</span><span class="k">UPDATE</span><span class="o">/</span><span class="k">DELETE</span> on the base tables of the graph.
+ <span class="o">*</span> The PGQL custom syntax can be used to <span class="k">INSERT</span><span class="o">/</span><span class="k">UPDATE</span><span class="o">/</span><span class="k">DELETE</span> vertices and
+ <span class="o">*</span> edges when using PGQL property graphs.
+ <span class="o">*</span><span class="o">/</span>
+</pre></div></div></div>
+<div name="pgql" class="tab-content"><div class="language-sql highlighter-rouge"><div class="highlight"><pre class="highlight">
+<span class="k">UPDATE</span> x <span class="k">SET</span> ( x.a <span class="o">=</span> <span class="mi">11</span> )
+<span class="k">DELETE</span> y
+<span class="k">FROM</span> <span class="k">MATCH</span> (x) <span class="o">-</span><span class="o">></span> (y) <span class="k">ON</span> my_graph
+</pre></div></div></div>
 
 If the vertices matched by `x` are distinct to the ones matched by `y` the query should pass, however, if there is a vertex that is matched by both `x` and `y` the query will fail with an exception.
 Note that the order of modifications does not matter, the query will fail in any case.
@@ -5920,12 +6753,23 @@ Note that because of the snapshot semantics, this is only possible if an edge is
 
 For example, consider the following, not trivial case:
 
-```sql
-INSERT INTO my_graph EDGE e BETWEEN x AND y
-DELETE z
-FROM MATCH (x) -> (y) ON my_graph, MATCH (z) ON my_graph
-WHERE id(z) = 11
-```
+<div class="tab">
+<button name="sql-button" class="tablinks active" onclick="openTab(event, 'sql')">PGQL with SQL Standard syntax</button>
+<button name="pgql-button" class="tablinks" onclick="openTab(event, 'pgql')">PGQL with custom syntax</button>
+</div><div name="sql" class="tab-content active"><div class="language-sql highlighter-rouge"><div class="highlight"><pre class="highlight">
+<span class="o">/</span><span class="o">*</span>
+ <span class="o">*</span> The SQL standard specifies that <span class="k">INSERT</span><span class="o">/</span><span class="k">UPDATE</span><span class="o">/</span><span class="k">DELETE</span> of vertices and edges
+ <span class="o">*</span> should be done by <span class="k">INSERT</span><span class="o">/</span><span class="k">UPDATE</span><span class="o">/</span><span class="k">DELETE</span> on the base tables of the graph.
+ <span class="o">*</span> The PGQL custom syntax can be used to <span class="k">INSERT</span><span class="o">/</span><span class="k">UPDATE</span><span class="o">/</span><span class="k">DELETE</span> vertices and
+ <span class="o">*</span> edges when using PGQL property graphs.
+ <span class="o">*</span><span class="o">/</span>
+</pre></div></div></div>
+<div name="pgql" class="tab-content"><div class="language-sql highlighter-rouge"><div class="highlight"><pre class="highlight">
+<span class="k">INSERT</span> <span class="k">INTO</span> my_graph <span class="k">EDGE</span> e <span class="k">BETWEEN</span> x <span class="k">AND</span> y
+<span class="k">DELETE</span> z
+<span class="k">FROM</span> <span class="k">MATCH</span> (x) <span class="o">-</span><span class="o">></span> (y) <span class="k">ON</span> my_graph, <span class="k">MATCH</span> (z) <span class="k">ON</span> my_graph
+<span class="k">WHERE</span> id(z) <span class="o">=</span> <span class="mi">11</span>
+</pre></div></div></div>
 
 If any vertex is matched by `z` and either `x` or `z` then after executing the query the inserted edge would not have a source or destination.
 Thus in that case the execution fails.
@@ -5954,17 +6798,39 @@ Unquoted identifiers are automatically uppercased.
 
 For example, the following two queries are equivalent:
 
-```sql
-SELECT n.dob AS name
-FROM MATCH (n:Person) ON myGraph
-WHERE n.firstName = 'Nikita'
-```
+<div class="tab">
+<button name="sql-button" class="tablinks active" onclick="openTab(event, 'sql')">PGQL with SQL Standard syntax</button>
+<button name="pgql-button" class="tablinks" onclick="openTab(event, 'pgql')">PGQL with custom syntax</button>
+</div><div name="sql" class="tab-content active"><div class="language-sql highlighter-rouge"><div class="highlight"><pre class="highlight">
+<span class="o">/</span><span class="o">*</span>
+ <span class="o">*</span> The SQL standard specifies that <span class="k">INSERT</span><span class="o">/</span><span class="k">UPDATE</span><span class="o">/</span><span class="k">DELETE</span> of vertices and edges
+ <span class="o">*</span> should be done by <span class="k">INSERT</span><span class="o">/</span><span class="k">UPDATE</span><span class="o">/</span><span class="k">DELETE</span> on the base tables of the graph.
+ <span class="o">*</span> The PGQL custom syntax can be used to <span class="k">INSERT</span><span class="o">/</span><span class="k">UPDATE</span><span class="o">/</span><span class="k">DELETE</span> vertices and
+ <span class="o">*</span> edges when using PGQL property graphs.
+ <span class="o">*</span><span class="o">/</span>
+</pre></div></div></div>
+<div name="pgql" class="tab-content"><div class="language-sql highlighter-rouge"><div class="highlight"><pre class="highlight">
+<span class="k">SELECT</span> n.dob <span class="k">AS</span> name
+<span class="k">FROM</span> <span class="k">MATCH</span> (n:Person) <span class="k">ON</span> myGraph
+<span class="k">WHERE</span> n.firstName <span class="o">=</span> <span class="mi">'Nikita'</span>
+</pre></div></div></div>
 
-```sql
-SELECT "N"."DOB"
-FROM MATCH ("N":"PERSON") ON "MYGRAPH"
-WHERE "N"."FIRSTNAME" = 'Nikita'
-```
+<div class="tab">
+<button name="sql-button" class="tablinks active" onclick="openTab(event, 'sql')">PGQL with SQL Standard syntax</button>
+<button name="pgql-button" class="tablinks" onclick="openTab(event, 'pgql')">PGQL with custom syntax</button>
+</div><div name="sql" class="tab-content active"><div class="language-sql highlighter-rouge"><div class="highlight"><pre class="highlight">
+<span class="o">/</span><span class="o">*</span>
+ <span class="o">*</span> The SQL standard specifies that <span class="k">INSERT</span><span class="o">/</span><span class="k">UPDATE</span><span class="o">/</span><span class="k">DELETE</span> of vertices and edges
+ <span class="o">*</span> should be done by <span class="k">INSERT</span><span class="o">/</span><span class="k">UPDATE</span><span class="o">/</span><span class="k">DELETE</span> on the base tables of the graph.
+ <span class="o">*</span> The PGQL custom syntax can be used to <span class="k">INSERT</span><span class="o">/</span><span class="k">UPDATE</span><span class="o">/</span><span class="k">DELETE</span> vertices and
+ <span class="o">*</span> edges when using PGQL property graphs.
+ <span class="o">*</span><span class="o">/</span>
+</pre></div></div></div>
+<div name="pgql" class="tab-content"><div class="language-sql highlighter-rouge"><div class="highlight"><pre class="highlight">
+<span class="k">SELECT</span> "N"."DOB"
+<span class="k">FROM</span> <span class="k">MATCH</span> ("N":"<span class="k">PER</span>S<span class="k">ON</span>") <span class="k">ON</span> "MY<span class="k">GRAPH</span>"
+<span class="k">WHERE</span> "N"."FIRSTNAME" <span class="o">=</span> <span class="mi">'Nikita'</span>
+</pre></div></div></div>
 
 Note that this is aligned to SQL, which also automatically uppercases unquoted identifiers.
 However, as an extension to SQL — which matches uppercased references in exact manner — PGQL matches uppercased references to graphs, labels and properties in case-insensitive manner if no exact match exists.
@@ -5998,12 +6864,23 @@ new lines and tabs	.
 
 Here is an example of how to use such a string as a property name in PGQL:
 
-```sql
-SELECT *
-FROM MATCH (n) ON my_graph
-WHERE n."My string with single quotes ', double quotes "", backslashes \
-new lines and tabs	." = 123
-```
+<div class="tab">
+<button name="sql-button" class="tablinks active" onclick="openTab(event, 'sql')">PGQL with SQL Standard syntax</button>
+<button name="pgql-button" class="tablinks" onclick="openTab(event, 'pgql')">PGQL with custom syntax</button>
+</div><div name="sql" class="tab-content active"><div class="language-sql highlighter-rouge"><div class="highlight"><pre class="highlight">
+<span class="o">/</span><span class="o">*</span>
+ <span class="o">*</span> The SQL standard specifies that <span class="k">INSERT</span><span class="o">/</span><span class="k">UPDATE</span><span class="o">/</span><span class="k">DELETE</span> of vertices and edges
+ <span class="o">*</span> should be done by <span class="k">INSERT</span><span class="o">/</span><span class="k">UPDATE</span><span class="o">/</span><span class="k">DELETE</span> on the base tables of the graph.
+ <span class="o">*</span> The PGQL custom syntax can be used to <span class="k">INSERT</span><span class="o">/</span><span class="k">UPDATE</span><span class="o">/</span><span class="k">DELETE</span> vertices and
+ <span class="o">*</span> edges when using PGQL property graphs.
+ <span class="o">*</span><span class="o">/</span>
+</pre></div></div></div>
+<div name="pgql" class="tab-content"><div class="language-sql highlighter-rouge"><div class="highlight"><pre class="highlight">
+<span class="k">SELECT</span> <span class="o">*</span>
+<span class="k">FROM</span> <span class="k">MATCH</span> (n) <span class="k">ON</span> my_graph
+<span class="k">WHERE</span> n."My string with single quotes ', double quotes "", backslashes \
+new lines and tabs	." <span class="o">=</span> <span class="mi">123</span>
+</pre></div></div></div>
 
 As you can see, only the double quote (`"`) was escaped (`""`).
 
@@ -6035,12 +6912,24 @@ new lines and tabs	.
 
 Here is an example of how to use such a string as literal in PGQL:
 
-```sql
-SELECT *
-FROM MATCH (n) ON my_graph
-WHERE n.prop = 'My string with single quotes '', double quotes ", backslashes \
+<div class="tab">
+<button name="sql-button" class="tablinks active" onclick="openTab(event, 'sql')">PGQL with SQL Standard syntax</button>
+<button name="pgql-button" class="tablinks" onclick="openTab(event, 'pgql')">PGQL with custom syntax</button>
+</div><div name="sql" class="tab-content active"><div class="language-sql highlighter-rouge"><div class="highlight"><pre class="highlight">
+<span class="k">SELECT</span> <span class="o">*</span>
+<span class="k">FROM</span> <span class="k">GRAPH_TABLE</span>(my_graph
+  <span class="k">MATCH</span> (n)
+  <span class="k">WHERE</span> n.prop <span class="o">=</span> <span class="mi">'My string with single quotes '</span>', double quotes ", backslashes \
 new lines and tabs	.'
-```
+  <span class="k">COLUMNS</span>(n.prop)
+)
+</pre></div></div></div>
+<div name="pgql" class="tab-content"><div class="language-sql highlighter-rouge"><div class="highlight"><pre class="highlight">
+<span class="k">SELECT</span> n.prop
+<span class="k">FROM</span> <span class="k">MATCH</span> (n) <span class="k">ON</span> my_graph
+<span class="k">WHERE</span> n.prop <span class="o">=</span> <span class="mi">'My string with single quotes '</span>', double quotes ", backslashes \
+new lines and tabs	.'
+</pre></div></div></div>
 
 As you can see, only the single quote (`'`) was escaped (`''`).
 
@@ -6097,10 +6986,23 @@ COMMENT ::= '/*' ~[\*]* '*/'
 
 For example:
 
-```sql
-/* This is a
-   multi-line
-   comment. */
-SELECT n.name, n.age
-FROM MATCH (n:Person) ON my_graph /* this is a single-line comment */
-```
+<div class="tab">
+<button name="sql-button" class="tablinks active" onclick="openTab(event, 'sql')">PGQL with SQL Standard syntax</button>
+<button name="pgql-button" class="tablinks" onclick="openTab(event, 'pgql')">PGQL with custom syntax</button>
+</div><div name="sql" class="tab-content active"><div class="language-sql highlighter-rouge"><div class="highlight"><pre class="highlight">
+<span class="o">/</span><span class="o">*</span> This is a
+   multi<span class="o">-</span>line
+   comment. <span class="o">*</span><span class="o">/</span>
+<span class="k">SELECT</span> <span class="o">*</span>
+<span class="k">FROM</span> <span class="k">GRAPH_TABLE</span>(my_graph
+  <span class="k">MATCH</span> (n <span class="k">IS</span> Person) <span class="o">/</span><span class="o">*</span> this is a single<span class="o">-</span>line comment <span class="o">*</span><span class="o">/</span>
+  <span class="k">COLUMNS</span>(n.name, n.age)
+)
+</pre></div></div></div>
+<div name="pgql" class="tab-content"><div class="language-sql highlighter-rouge"><div class="highlight"><pre class="highlight">
+<span class="o">/</span><span class="o">*</span> This is a
+   multi<span class="o">-</span>line
+   comment. <span class="o">*</span><span class="o">/</span>
+<span class="k">SELECT</span> n.name, n.age
+<span class="k">FROM</span> <span class="k">MATCH</span> (n:Person) <span class="k">ON</span> my_graph <span class="o">/</span><span class="o">*</span> this is a single<span class="o">-</span>line comment <span class="o">*</span><span class="o">/</span>
+</pre></div></div></div>
