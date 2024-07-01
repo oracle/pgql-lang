@@ -1,0 +1,12 @@
+module optional-match
+
+language pgql-lang
+
+test OPTIONAL MATCH as first table expression [[
+
+  SELECT *
+  FROM [[OPTIONAL]] MATCH (a IS Account) -[IS transaction]->{0,5} (a)
+     , OPTIONAL MATCH (a) -> (c)
+  WHERE a.number = 10039
+
+]] error like "First table expression in FROM clause cannot be an OPTIONAL MATCH" at #1

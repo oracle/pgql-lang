@@ -306,7 +306,8 @@ public class PgqlUtils {
     Set<QueryVertex> uncoveredVertices = new LinkedHashSet<>(graphPattern.getVertices());
     List<String> graphPatternMatches = new ArrayList<String>();
 
-    boolean parenthesizeMatch = !graphPattern.getConstraints().isEmpty() && !isLastTableExpression;
+    boolean parenthesizeMatch = !graphPattern.getConstraints().isEmpty()
+        && (!isLastTableExpression || graphPattern instanceof OptionalGraphPattern);
 
     Iterator<VertexPairConnection> connectionIt = graphPattern.getConnections().iterator();
     while (connectionIt.hasNext()) {

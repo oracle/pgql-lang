@@ -912,3 +912,9 @@ rules // GRAPH_TABLE
     DerivedTable(Some(GraphTable()), Subquery(NormalizedQuery(_, selectClause, _, _, _, CreateOneGroup(), _, _, _, _)), None()) -> <fail>
     with aggregations := <collect(is-aggregate)> selectClause
        ; <batch-generate-error(|ctx, "COLUMNS clause allows only aggregations that access at least one group variable")> aggregations
+
+rules // OPTIONAL MATCH
+
+  nabl-constraint(|ctx):
+    NormalizedQuery(_, _, _, [GraphPattern(_, _, _, Some(e@OptionalMatchKeyword()))|_], _, _, _, _, _, _) -> <fail>
+    with <generate-error(|ctx, "First table expression in FROM clause cannot be an OPTIONAL MATCH")> e

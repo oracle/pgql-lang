@@ -26,6 +26,7 @@ import oracle.pgql.lang.ir.ExpAsVar;
 import oracle.pgql.lang.ir.GraphPattern;
 import oracle.pgql.lang.ir.GraphQuery;
 import oracle.pgql.lang.ir.GroupBy;
+import oracle.pgql.lang.ir.OptionalGraphPattern;
 import oracle.pgql.lang.ir.OrderBy;
 import oracle.pgql.lang.ir.PathFindingGoal;
 import oracle.pgql.lang.ir.PathMode;
@@ -137,6 +138,7 @@ public class SpoofaxAstToGraphQuery {
   private static final int POS_VERTICES = 0;
   private static final int POS_CONNECTIONS = 1;
   private static final int POS_CONSTRAINTS = 2;
+  private static final int POS_OPTIONAL_MATCH_KEYWORD = 3;
 
   private static final int POS_VERTEX_NAME = 0;
   private static final int POS_VERTEX_ORIGIN_OFFSET = 1;
@@ -330,8 +332,12 @@ public class SpoofaxAstToGraphQuery {
     IStrategoTerm constraintsT = getList(graphPatternT.getSubterm(POS_CONSTRAINTS));
     LinkedHashSet<QueryExpression> constraints = getQueryExpressions(constraintsT, ctx);
 
+    // OPTIONAL match keyword
+    boolean optionalMatch = isSome(graphPatternT.getSubterm(POS_OPTIONAL_MATCH_KEYWORD));
+
     // graph pattern
-    graphPattern = new GraphPattern(vertices, connections, constraints);
+    graphPattern = optionalMatch ? new OptionalGraphPattern(vertices, connections, constraints)
+        : new GraphPattern(vertices, connections, constraints);
     return graphPattern;
   }
 

@@ -58,7 +58,7 @@ rules
        ; orderBy' := <alltd(add-type(|metadata, variablesPlusTypes''', constraints))> orderBy
 
   add-types-to-table-expression(|metadata, constraints):
-    (graphPattern@GraphPattern(Vertices(vertices), connections, _), (result, variablesPlusTypes)) -> (result', variablesPlusTypes')
+    (graphPattern@GraphPattern(Vertices(vertices), connections, _, _), (result, variablesPlusTypes)) -> (result', variablesPlusTypes')
     with verticesWithTypes := <conc> ( <collect-vertices-with-types(?Vertex(_, <id>, _))> (vertices, connections)
                                      , <collect-vertices-with-types(?RowsPerMatchVariable(_, <id>, _, Type("VERTEX")))> connections )
        ; edgesWithTypes := <collect-edges-with-types(?Edge(_, _, _, _, <id>, _) + ?RowsPerMatchVariable(_, <id>, _, Type("EDGE")))> connections
