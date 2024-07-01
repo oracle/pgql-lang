@@ -845,13 +845,13 @@ public class SpoofaxAstToGraphQuery {
         return new OneRowPerVertex(vertex);
       }
       case "OneRowPerEdge": {
-        QueryEdge edge = getRowsPerMatchEdge(rowsPerMatchT, POS_ONE_ROW_PER_EDGE_EDGE, ctx);
+        QueryEdge edge = getRowsPerMatchEdge(rowsPerMatchT, POS_ONE_ROW_PER_EDGE_EDGE, ctx, null, null);
         return new OneRowPerEdge(edge);
       }
       case "OneRowPerStep": {
         QueryVertex vertex1 = getRowsPerMatchVertex(rowsPerMatchT, POS_ONE_ROW_PER_STEP_VERTEX_1, ctx);
-        QueryEdge edge = getRowsPerMatchEdge(rowsPerMatchT, POS_ONE_ROW_PER_STEP_EDGE, ctx);
         QueryVertex vertex2 = getRowsPerMatchVertex(rowsPerMatchT, POS_ONE_ROW_PER_STEP_VERTEX_2, ctx);
+        QueryEdge edge = getRowsPerMatchEdge(rowsPerMatchT, POS_ONE_ROW_PER_STEP_EDGE, ctx, vertex1, vertex2);
         return new OneRowPerStep(vertex1, edge, vertex2);
       }
       default:
@@ -872,13 +872,13 @@ public class SpoofaxAstToGraphQuery {
   }
 
   private static QueryEdge getRowsPerMatchEdge(IStrategoAppl rowsPerMatchT, int variablePosition,
-      TranslationContext ctx) {
+      TranslationContext ctx, QueryVertex vertex1, QueryVertex vertex2) {
     IStrategoTerm edgeVariableT = rowsPerMatchT.getSubterm(variablePosition);
     String edgeName = getString(edgeVariableT.getSubterm(POS_ROWS_PER_MATCH_VARIABLE_NAME));
     IStrategoTerm originOffset = edgeVariableT.getSubterm(POS_ROWS_PER_MATCH_VARIABLE_ORIGIN_OFFSET);
     String uniqueName = createUniqueName(edgeName, originOffset);
     QueryEdge correlationEdgeInOuterQuery = null;
-    QueryEdge edge = new QueryEdge(null, null, edgeName, uniqueName, false, null, correlationEdgeInOuterQuery);
+    QueryEdge edge = new QueryEdge(vertex1, vertex2, edgeName, uniqueName, false, null, correlationEdgeInOuterQuery);
     ctx.addVar(edge, edgeName, originOffset);
     return edge;
   }
