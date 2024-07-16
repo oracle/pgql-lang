@@ -53,7 +53,7 @@ public class PgqlUtils {
 
   // make sure to keep in sync with list of reserved words in pgql-spoofax/syntax/Names.sdf3
   private final static Set<String> RESERVED_WORDS = new HashSet<>(
-      Arrays.asList("true", "false", "null", "not", "distinct"));
+      Arrays.asList("true", "false", "null", "not", "distinct", "optional"));
 
   static DecimalFormat DECIMAL_FORMAT = new DecimalFormat("#.#");
 
