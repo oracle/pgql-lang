@@ -481,25 +481,27 @@ public class BugFixTest extends AbstractPgqlTest {
   @Test
   public void ambiguityForOptionalMatch() throws Exception {
     /*
-     * Unless OPTIONAL is a reserved keyword, the below query is a valid PGQL 1.2 query in which OPTIONAL is the name of
-     * the input graph.
+     * Previously, the below query was a valid PGQL 1.1/1.2 query in which "OPTIONAL" is the name of the graph. This
+     * caused an ambiguity because the query is now also seen as a PGQL 2.0 query with OPTIONAL MATCH pattern. The fix
+     * was to disallow "OPTIONAL" as graph name in PGQL 1.1/1.2.
      */
     PgqlResult result = pgql
         .parse("SELECT n FROM OPTIONAL MATCH (n IS Person) -[e IS likes]-> (m IS Person) WHERE n.name = 'Dave'");
     assertTrue(result.isQueryValid());
 
     /*
-     * You can still use OPTIONAL as graph name in PGQL 1.2, but it requires double quoting.
+     * You can still use OPTIONAL as graph name in PGQL 1.2, but it requires double quoting. Also, you can still use
+     * OPTIONAL as property name or variable name.
      */
-    result = pgql
-        .parse("SELECT n FROM \"OPTIONAL\" MATCH (n IS Person) -[e IS likes]-> (m IS Person) WHERE n.name = 'Dave'");
+    result = pgql.parse(
+        "SELECT n FROM \"OPTIONAL\" MATCH (n IS Person) -[e IS likes]-> (optional IS Person) WHERE optional.optional = true");
     assertTrue(result.isQueryValid());
 
     /*
-     * And you can also use OPTIONAL as graph name in newer PGQL versions, but it again requires double quoting.
+     * And you can also use OPTIONAL as graph name in newer PGQL versions, without requiring double quoting.
      */
     result = pgql
-        .parse("SELECT n FROM MATCH (n IS Person) -[e IS likes]-> (m IS Person) ON \"OPTIONAL\" WHERE n.name = 'Dave'");
+        .parse("SELECT n FROM MATCH (n IS Person) -[e IS likes]-> (m IS Person) ON optional WHERE n.name = 'Dave'");
     assertTrue(result.isQueryValid());
   }
 }
