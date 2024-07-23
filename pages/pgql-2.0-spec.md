@@ -6648,22 +6648,20 @@ For example consider the following query:
 <span class="k">FROM</span> <span class="k">MATCH</span> (x) <span class="o">-</span><span class="o">></span> (y) <span class="k">ON</span> my_graph
 </pre></div></div></div>
 
-If the following vertices are matched
+Assume that the pattern matches the following vertices:
 
 x | y
 --- | ---
 V1 | V2
 V1 | V3
 
-a runtime exception will be thrown, because the value assigned to `V1.a` could be ambiguous.
+In such case the UPDATE raises an error because it is ambigous what value to assign to `V1.a` since two values exist.
 
-As an extension to this semantics, PGX implements a more relaxed version for conflicting write checks.
-If the assigned value can be statically guaranteed to be only depending on property values of the entity it is
-assigned to, then even in case of multiple assignments, (since the assigned value is always the same) the update
-succeeds.
+An update only succeeds if it can statically be determined that there is always a unique value for each property assignment.
+In other words, multiple writes are allowed as long as the values are the same and this uniqueness can be statically determined.
 
-For example, in the following case, multiple writes to `v.a` are allowed, because in this case no matter how many
-times `v.a` is written, it is always assigned the same value (65 minus its age property).
+For example, in the following query, multiple writes to `v.a` are allowed because no matter how many
+times `v.a` is written, it is always the same value: 65 minus its age property, which is constant for a particular `v`.
 
 <div class="tab">
 <button name="sql-button" class="tablinks active" onclick="openTab(event, 'sql')">PGQL with SQL Standard syntax</button>
@@ -6682,8 +6680,8 @@ times `v.a` is written, it is always assigned the same value (65 minus its age p
 <span class="k">WHERE</span> v.name <span class="o">=</span> <span class="mi">'John'</span>
 </pre></div></div></div>
 
-In the following case, however, multiple writes to `v.a` are not allowed, because the value of the property would be
-ambiguous, 65 minus the other vertex's age property, that can be different for different matched `u`'s.
+In the following query, however, multiple writes to `v.a` are not allowed because the value of the property is
+ambiguous since 65 minus the other vertex's age property may give different results for different `u`'s.
 
 <div class="tab">
 <button name="sql-button" class="tablinks active" onclick="openTab(event, 'sql')">PGQL with SQL Standard syntax</button>
