@@ -12,6 +12,7 @@ import oracle.pgql.lang.ir.ExpAsVar;
 import oracle.pgql.lang.ir.GraphPattern;
 import oracle.pgql.lang.ir.GraphQuery;
 import oracle.pgql.lang.ir.GroupBy;
+import oracle.pgql.lang.ir.OptionalGraphPattern;
 import oracle.pgql.lang.ir.OrderBy;
 import oracle.pgql.lang.ir.OrderByElem;
 import oracle.pgql.lang.ir.Projection;
@@ -402,6 +403,11 @@ public abstract class ReplaceExpressions implements QueryExpressionVisitor {
   @Override
   public void visit(GraphPattern graphPattern) {
     graphPattern.setConstraints(replaceInSet(graphPattern.getConstraints()));
+  }
+
+  @Override
+  public void visit(OptionalGraphPattern optionalGraphPattern) {
+    optionalGraphPattern.setConstraints(replaceInSet(optionalGraphPattern.getConstraints()));
   }
 
   @Override

@@ -106,7 +106,7 @@ rules
        ; offsets := <diff> (varRefs, varDefs)
 
   try-push-down-predicates(|variablesOuterQuery):
-    (t@GraphPattern(vertices, connections, Constraints(valueExpression)), (remaining-expressions-plus-varRefs, tableExpressions, allVariablesExceptFromOuterQuery))
+    (t@GraphPattern(vertices, connections, Constraints(valueExpression), None()), (remaining-expressions-plus-varRefs, tableExpressions, allVariablesExceptFromOuterQuery))
       -> (remaining-expressions-plus-varRefs', tableExpressions', allVariablesExceptFromOuterQuery')
     with new-variables := <collect-var-def-offsets-from-graph-pattern> t
        ; visible-variables := <conc; make-set> (variablesOuterQuery, allVariablesExceptFromOuterQuery, new-variables)
@@ -114,7 +114,16 @@ rules
        ; valueExpression' := <conc> (valueExpression, pushed-down-predicates)
        ; connections' := <alltd(push-down-predicates(|visible-variables))> connections // for quantified path patterns that contain subqueries
        ; constraints' := <alltd(push-down-predicates(|visible-variables))> Constraints(valueExpression')
-       ; graphPattern' := GraphPattern(vertices, connections', constraints')
+       ; graphPattern' := GraphPattern(vertices, connections', constraints', None())
+       ; tableExpressions' := <conc> (tableExpressions, [graphPattern'])
+       ; allVariablesExceptFromOuterQuery' := <conc; make-set> (allVariablesExceptFromOuterQuery, new-variables)
+
+  // We do not push down predicates into OPTIONAL MATCH clauses as that would change the semantic
+  try-push-down-predicates(|variablesOuterQuery):
+    (t@GraphPattern(_, _, _, Some(OptionalMatchKeyword())), (remaining-expressions-plus-varRefs, tableExpressions, allVariablesExceptFromOuterQuery))
+      -> (remaining-expressions-plus-varRefs, tableExpressions', allVariablesExceptFromOuterQuery')
+    with new-variables := <collect-var-def-offsets-from-graph-pattern> t
+       ; graphPattern' := t
        ; tableExpressions' := <conc> (tableExpressions, [graphPattern'])
        ; allVariablesExceptFromOuterQuery' := <conc; make-set> (allVariablesExceptFromOuterQuery, new-variables)
 

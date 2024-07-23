@@ -263,7 +263,7 @@ rules
   get-vertex-labels(|metadata) = !metadata; fetch-elem(?VertexLabels(<id>)); map(?Label(<id>, _)) <+ !None()
   get-edge-labels(|metadata) = !metadata; fetch-elem(?EdgeLabels(<id>)); map(?Label(<id>, _)) <+ !None()
 
-  collect-vars-from-table-expression = ?GraphPattern(vertices, connections, _); !(vertices, connections)
+  collect-vars-from-table-expression = ?GraphPattern(vertices, connections, _, _); !(vertices, connections)
                                      ; collect(?Vertex(_, _, None()) + ?Edge(_, _, _, _, _, None()) + ?RowsPerMatchVariable(_, _, None(), _))
                                      ; collect-om(?Edge(_, Identifier(<id>, _), _, _, _, _) <+ ?Identifier(<id>, _), conc)
 
@@ -274,7 +274,7 @@ rules
          else vars := [] // will generate an error elsewhere since INSERT/UPDATE/DELETE inside LATERAL is not allowed
          end
 
-  collect-var-def-offsets-from-graph-pattern = ?GraphPattern(vertices, connections, _); !(vertices, connections)
+  collect-var-def-offsets-from-graph-pattern = ?GraphPattern(vertices, connections, _, _); !(vertices, connections)
                                              ; collect-var-def-offsets
 
   collect-var-def-offsets = collect(?Vertex(_, <id>, _) + ?Edge(_, _, _, _, <id>, _) + ?RowsPerMatchVariable(_, <id>, _, _) + ?ExpAsVar(_, _, _, <id>))
