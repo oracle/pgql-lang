@@ -1,0 +1,163 @@
+module optional-match
+
+language pgql-lang
+
+test MATCH sharing optional variable from prior OPTIONAL MATCH (1) [[
+
+  SELECT 1
+  FROM OPTIONAL MATCH (n)
+     , MATCH ([[n]])
+
+]] error like "Variable is optionally bound; use OPTIONAL MATCH" at #1
+
+test MATCH sharing optional variable from prior OPTIONAL MATCH (2) [[
+
+  SELECT 1
+  FROM MATCH (n)
+     , OPTIONAL MATCH (n) -> (m)
+     , MATCH (n) <- ([[m]])
+
+]] error like "Variable is optionally bound; use OPTIONAL MATCH" at #1
+
+test MATCH sharing non-optional variable from prior MATCH and OPTIONAL MATCH [[
+
+  SELECT 1
+  FROM MATCH (n)
+     , OPTIONAL MATCH (n) -> (m)
+     , MATCH (n) -> (o)
+
+]] analysis succeeds
+
+test ONE ROW PER STEP in MATCH: use v1 in other MATCH [[
+
+  SELECT 1
+  FROM MATCH ANY SHORTEST (n) ->* (m) ONE ROW PER STEP (v1, e, v2)
+  WHERE EXISTS ( SELECT * FROM MATCH (v1) -> (o) )
+
+]] analysis succeeds
+
+test ONE ROW PER STEP in MATCH: use v2 in other MATCH [[
+
+  SELECT 1
+  FROM MATCH ANY SHORTEST (n) ->* (m) ONE ROW PER STEP (v1, e, v2)
+  WHERE EXISTS ( SELECT * FROM MATCH ([[v2]]) -> (o) )
+
+]] error like "Variable is optionally bound; use OPTIONAL MATCH" at #1
+
+test ONE ROW PER STEP in OPTIONAL MATCH: use v1 in other MATCH [[
+
+  SELECT 1
+  FROM OPTIONAL MATCH ANY SHORTEST (n) ->* (m) ONE ROW PER STEP (v1, e, v2)
+  WHERE EXISTS ( SELECT * FROM MATCH ([[v1]]) -> (o) )
+
+]] error like "Variable is optionally bound; use OPTIONAL MATCH" at #1
+
+test ONE ROW PER STEP in OPTIONAL MATCH: use v2 in other MATCH [[
+
+  SELECT 1
+  FROM MATCH ANY SHORTEST (n) ->* (m) ONE ROW PER STEP (v1, e, v2)
+  WHERE EXISTS ( SELECT * FROM MATCH ([[v2]]) -> (o) )
+
+]] error like "Variable is optionally bound; use OPTIONAL MATCH" at #1
+
+test ONE ROW PER STEP in MATCH lower bound 1: use v2 in other MATCH [[
+
+  SELECT 1
+  FROM MATCH ANY SHORTEST (n) ->+ (m) ONE ROW PER STEP (v1, e, v2)
+  WHERE EXISTS ( SELECT * FROM MATCH (v2) -> (o) )
+
+]] analysis succeeds
+
+test ONE ROW PER STEP in OPTIONAL MATCH lower bound 1: use v2 in other MATCH [[
+
+  SELECT 1
+  FROM OPTIONAL MATCH ANY SHORTEST (n) ->+ (m) ONE ROW PER STEP (v1, e, v2)
+  WHERE EXISTS ( SELECT * FROM MATCH ([[v2]]) -> (o) )
+
+]] error like "Variable is optionally bound; use OPTIONAL MATCH" at #1
+
+test ONE ROW PER STEP in MATCH lower bound 2: use v2 in other MATCH [[
+
+  SELECT 1
+  FROM MATCH ANY SHORTEST (n) ->{2,4} (m) ONE ROW PER STEP (v1, e, v2)
+  WHERE EXISTS ( SELECT * FROM MATCH (v2) -> (o) )
+
+]] analysis succeeds
+
+test ONE ROW PER STEP in OPTIONAL MATCH lower bound 2: use v2 in other MATCH [[
+
+  SELECT 1
+  FROM OPTIONAL MATCH ANY SHORTEST (n) ->{2,4} (m) ONE ROW PER STEP (v1, e, v2)
+  WHERE EXISTS ( SELECT * FROM MATCH ([[v2]]) -> (o) )
+
+]] error like "Variable is optionally bound; use OPTIONAL MATCH" at #1
+
+test Variable renaming in GROUP BY and SELECT (1) [[
+
+  SELECT m2 AS m3
+  FROM MATCH (n)
+     , OPTIONAL MATCH (n) -> (m)
+  GROUP BY m AS m2
+  ORDER BY EXISTS ( SELECT * FROM MATCH ([[m3]]) )
+
+]] error like "Variable is optionally bound; use OPTIONAL MATCH" at #1
+
+test Variable renaming in GROUP BY and SELECT (2) [[
+
+  SELECT v3 AS v4
+  FROM MATCH (n)
+     , OPTIONAL MATCH ANY SHORTEST (n) ->* (m) ONE ROW PER STEP (v1, e, v2)
+  GROUP BY v1 AS v3
+  ORDER BY EXISTS ( SELECT * FROM MATCH ([[v4]]) )
+
+]] error like "Variable is optionally bound; use OPTIONAL MATCH" at #1
+
+test ONE ROW PER VERTEX in MATCH: use v in other MATCH [[
+
+  SELECT 1
+  FROM MATCH ANY SHORTEST (n) ->* (m) ONE ROW PER VERTEX (v)
+  WHERE EXISTS ( SELECT * FROM MATCH (v1) -> (o) )
+
+]] analysis succeeds
+
+test ONE ROW PER VERTEX in OPTIONAL MATCH: use v in other MATCH [[
+
+  SELECT 1
+  FROM OPTIONAL MATCH ANY SHORTEST (n) ->* (m) ONE ROW PER VERTEX (v)
+  WHERE EXISTS ( SELECT * FROM MATCH ([[v]]) -> (o) )
+
+]] error like "Variable is optionally bound; use OPTIONAL MATCH" at #1
+
+test ONE ROW PER EDGE in MATCH: use e in other MATCH [[
+
+  SELECT 1
+  FROM MATCH ANY SHORTEST (n) ->* (m) ONE ROW PER EDGE (e)
+  WHERE EXISTS ( SELECT * FROM MATCH (n) -[ [[e]] ]-> (o) )
+
+]] error like "Duplicate variable (variable with same name is passed from an outer query)" at #1
+
+test ONE ROW PER EDGE in OPTIONAL MATCH: use e in other MATCH [[
+
+  SELECT 1
+  FROM OPTIONAL MATCH ANY SHORTEST (n) ->* (m) ONE ROW PER EDGE (e)
+  WHERE EXISTS ( SELECT * FROM MATCH (x) -[ [[e]] ]-> (y) )
+
+]] error like "Duplicate variable (variable with same name is passed from an outer query)" at #1
+
+test OPTIONAL MATCH with optionally bound variable from prior OPTIONAL MATCH [[
+
+  SELECT 1
+  FROM MATCH (n)
+     , OPTIONAL MATCH (n) -[e1]-> (m)
+     , OPTIONAL MATCH (m) -[e2]-> (n)
+
+]] analysis succeeds
+
+test OPTIONAL MATCH with optionally bound variable from prior OPTIONAL MATCH in outer query [[
+
+  SELECT 1
+  FROM MATCH (n)
+     , OPTIONAL MATCH (n) -[e1]-> (m)
+  WHERE EXISTS ( SELECT * FROM OPTIONAL MATCH (m) -[e2]-> (n) )
+
+]] analysis succeeds

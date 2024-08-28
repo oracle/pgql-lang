@@ -912,3 +912,10 @@ rules // GRAPH_TABLE
     DerivedTable(Some(GraphTable()), Subquery(NormalizedQuery(_, selectClause, _, _, _, CreateOneGroup(), _, _, _, _)), None()) -> <fail>
     with aggregations := <collect(is-aggregate)> selectClause
        ; <batch-generate-error(|ctx, "COLUMNS clause allows only aggregations that access at least one group variable")> aggregations
+
+rules // OPTIONAL MATCH
+
+  nabl-constraint(|ctx):
+    GraphPattern(vertices, edges, _, None() /* Match without OPTIONAL keyword */) -> <fail>
+    with optionallyBoundVertices := <collect(?Vertex(<id>, _, Correlation(ExpressionPlusType(_, Type("VERTEX", [OptionallyBound()]))), _))> (vertices, edges)
+       ; <batch-generate-error(|ctx, "Variable is optionally bound; use OPTIONAL MATCH")> optionallyBoundVertices

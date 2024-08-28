@@ -153,11 +153,11 @@ rules
         ; rowsPerMatch' := <?None() + Some(origin-track-forced(translate-rows-per-match(|variables, boundednessVertex1, boundednessRemainder)))> rowsPerMatch
 
   translate-rows-per-match(|variables, boundednessVertex1, boundednessRemainder) =
-    ?OneRowPerVertex(iden@Identifier(v, _)); !OneRowPerVertex(RowsPerMatchVariable(iden, <origin-track-forced(origin-offset)> iden, <to-Correlation(|variables)> v, Type("VERTEX", boundednessVertex1))) +
-    ?OneRowPerEdge(iden@Identifier(e, _)); !OneRowPerEdge(RowsPerMatchVariable(iden, <origin-track-forced(origin-offset)> iden, <to-Correlation(|variables)> e, Type("EDGE", boundednessRemainder))) +
-    ?OneRowPerStep(iden1@Identifier(v1, _), iden2@Identifier(e, _), iden3@Identifier(v2, _)); !OneRowPerStep(RowsPerMatchVariable(iden1, <origin-track-forced(origin-offset)> iden1, <to-Correlation(|variables)> v1, Type("VERTEX", boundednessVertex1)),
-                                                                                                             RowsPerMatchVariable(iden2, <origin-track-forced(origin-offset)> iden2, <to-Correlation(|variables)> e, Type("EDGE", boundednessRemainder)),
-                                                                                                             RowsPerMatchVariable(iden3, <origin-track-forced(origin-offset)> iden3, <to-Correlation(|variables)> v2, Type("VERTEX", boundednessRemainder)))
+    ?OneRowPerVertex(iden@Identifier(v, _)); !OneRowPerVertex(RowsPerMatchVariable(iden, <origin-track-forced(origin-offset)> iden, <to-Correlation(|variables)> v, Type("VERTEX", [boundednessVertex1]))) +
+    ?OneRowPerEdge(iden@Identifier(e, _)); !OneRowPerEdge(RowsPerMatchVariable(iden, <origin-track-forced(origin-offset)> iden, <to-Correlation(|variables)> e, Type("EDGE", [boundednessRemainder]))) +
+    ?OneRowPerStep(iden1@Identifier(v1, _), iden2@Identifier(e, _), iden3@Identifier(v2, _)); !OneRowPerStep(RowsPerMatchVariable(iden1, <origin-track-forced(origin-offset)> iden1, <to-Correlation(|variables)> v1, Type("VERTEX", [boundednessVertex1])),
+                                                                                                             RowsPerMatchVariable(iden2, <origin-track-forced(origin-offset)> iden2, <to-Correlation(|variables)> e, Type("EDGE", [boundednessRemainder])),
+                                                                                                             RowsPerMatchVariable(iden3, <origin-track-forced(origin-offset)> iden3, <to-Correlation(|variables)> v2, Type("VERTEX", [boundednessRemainder])))
 
   rows-per-match-to-varDef = ?RowsPerMatchVariable(iden, origin-offset, _, type); !VarDef(iden, origin-offset, None(), None(), None(), ThisQuery(), type)
 
