@@ -42,7 +42,7 @@ rules
     where <?ExpressionPlusType(exp1, type1)> expPlusType1
         ; <?ExpressionPlusType(exp2, type2)> expPlusType2
         ; exp' := <origin-track-forced(!Eq(expPlusType1, expPlusType2))> origin-term
-        ; if <?Type(t1)> type1; <?Type(t2)> type2
+        ; if <?Type(t1, _)> type1; <?Type(t2, _)> type2
           then type' := <get-binary-operation-return-type(|metadata); not(?Undefined()) /* if equality operation is not supported between these types then we don't want to normalize */> ("Eq", t1, t2)
           else type' := UnknownType()
           end
@@ -67,7 +67,7 @@ rules
     RowsPerMatchVariable(identifier, origin-position, _, _) -> VarRef(identifier, origin-position)
 
   vertex-to-varRef:
-    Vertex(identifier, origin-position, _) -> VarRef(identifier, origin-position)
+    Vertex(identifier, origin-position, _, _) -> VarRef(identifier, origin-position)
 
 rules
 
@@ -187,12 +187,12 @@ rules
     where exp := <fetch-elem(?ExpAsVar(ExpressionPlusType(<id>, _), _, _, v))> expAsVars
 
   vertex-correlates-to-vertex-projected-by-lateral-subquery(|vertices-projected-by-laterals):
-    t@Vertex(_, _, Correlation(ExpressionPlusType(VarRef(_, v), _))) -> t
+    t@Vertex(_, _, Correlation(ExpressionPlusType(VarRef(_, v), _)), _) -> t
     where <oncetd(?v)> vertices-projected-by-laterals
 
   dereference-vertex-correlation(|vertexCorrelations):
     VarRef(identifier, v) -> VarRef(identifier, v')
-    where <oncetd(?Vertex(_, v, Correlation(ExpressionPlusType(VarRef(_, v'), _))))> vertexCorrelations
+    where <oncetd(?Vertex(_, v, Correlation(ExpressionPlusType(VarRef(_, v'), _)), _))> vertexCorrelations
 
 rules
 

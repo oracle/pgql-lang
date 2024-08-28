@@ -339,7 +339,8 @@ test Restriction: ONE ROW PER EDGE [[
 
   SELECT 1
   FROM GRAPH_TABLE ( g
-         MATCH ANY SHORTEST (n) -[e1]->* (m)
+         MATCH (n) -[e1]->* (m)
+         KEEP ANY SHORTEST
          [[ONE ROW PER EDGE ( v1 )]]
          COLUMNS ( 1 )
        )

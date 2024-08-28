@@ -78,13 +78,13 @@ rules
 
   trans-table-expression(|metadata, variable-counter, expAsVars):
     (GraphPattern(vertices, connections, Constraints(valueExpression), optionalMatchKeyword), (result, variables, valueExpressionPriorLateralQueries)) -> (result', variables', valueExpression'')
-      with  // MATCH
-           (vertices', connections') := <alltd(trans-elem(|variables))> (vertices, <alltd(trans-rows-per-match(|variables))> connections)
-          ; edges := <filter(?Edge(_, _, _, _, _, _) + path-with-at-most-one-binding)> connections'
-          ; paths := <filter(path-with-two-or-more-bindings)> connections'
+      with // MATCH
+           (vertices', connections') := <alltd(trans-elem(|variables, optionalMatchKeyword))> (vertices, <map(try(trans-rows-per-match-in-path(|variables, optionalMatchKeyword)))> connections)
+          ; edges := <filter(?Edge(_, _, _, _, _, _, _) + path-with-singleton-variables)> connections'
+          ; paths := <filter(path-with-group-variables)> connections'
 
-          ; new-vars := <conc> (<collect(to-varDef)> (vertices', edges), <collect(rows-per-match-to-varDef); flatten-list> connections')
-          ; new-groupVars := <collect(to-varDef)> paths
+          ; new-vars := <conc> (<collect(to-varDef(|variables))> (vertices', edges), <collect(rows-per-match-to-varDef); flatten-list> connections')
+          ; new-groupVars := <collect(to-varDef(|variables))> paths
           ; <?[x|[y|ys]]> variables
           ; visible-vars := <replace-or-add-all> (new-vars, x)
           ; visible-groupVars := <replace-or-add-all> (new-groupVars, y)
@@ -110,25 +110,27 @@ rules
        ; variables' := [<conc> (x, variables-in-projection')|xs]
        ; valueExpression' := <collect(?Constraints(<id>)); concat> derivedTable' // for SELECT n.* we need to have all the label expression
 
-  path-with-at-most-one-binding:
+  path-with-singleton-variables:
     t@Path(_, _, _, quantifier, _, _, _, _, _, _) -> t
-    where <has-at-most-one-binding> quantifier
+    where <is-singleton> quantifier
 
-  path-with-two-or-more-bindings:
+  path-with-group-variables:
     t@Path(_, _, _, quantifier, _, _, _, _, _, _) -> t
-    where not( <has-at-most-one-binding> quantifier )
+    where not( <is-singleton> quantifier )
 
   guarantee-size-two-or-more = ?[]; ![[], []] <+ ?[x]; ![x, []] <+ id
 
-  trans-elem(|variables):
-    Vertex(iden@Identifier(v, _)) -> Vertex(iden, origin-offset, correlation)
+  trans-elem(|variables, optionalMatchKeyword):
+    Vertex(iden@Identifier(v, _)) -> Vertex(iden, origin-offset, correlation, boundedness)
     with origin-offset := <origin-offset> v
        ; correlation := <to-Correlation(|variables)> v
+       ; boundedness := <get-boundedness(|variables, optionalMatchKeyword)> iden
 
-  trans-elem(|variables):
-    NormalizedEdge(src, iden@Identifier(e, _), dst, direction, _, _) -> Edge(src, iden, dst, direction, origin-offset, correlation)
+  trans-elem(|variables, optionalMatchKeyword):
+    NormalizedEdge(src, iden@Identifier(e, _), dst, direction, _, _) -> Edge(src, iden, dst, direction, origin-offset, correlation, boundedness)
     with origin-offset := <origin-offset> e
        ; correlation := <to-Correlation(|variables)> e
+       ; boundedness := <get-boundedness(|variables, optionalMatchKeyword)> iden
 
   to-Correlation(|variables):
     v -> correlation
@@ -137,17 +139,44 @@ rules
          else correlation := None()
          end
 
-  trans-rows-per-match(|variables) =
-    ?OneRowPerVertex(iden@Identifier(v, _)); !OneRowPerVertex(RowsPerMatchVariable(iden, <origin-track-forced(origin-offset)> iden, <to-Correlation(|variables)> v, Type("VERTEX"))) +
-    ?OneRowPerEdge(iden@Identifier(e, _)); !OneRowPerEdge(RowsPerMatchVariable(iden, <origin-track-forced(origin-offset)> iden, <to-Correlation(|variables)> e, Type("EDGE"))) +
-    ?OneRowPerStep(iden1@Identifier(v1, _), iden2@Identifier(e, _), iden3@Identifier(v2, _)); !OneRowPerStep(RowsPerMatchVariable(iden1, <origin-track-forced(origin-offset)> iden1, <to-Correlation(|variables)> v1, Type("VERTEX")),
-                                                                                                             RowsPerMatchVariable(iden2, <origin-track-forced(origin-offset)> iden2, <to-Correlation(|variables)> e, Type("EDGE")),
-                                                                                                             RowsPerMatchVariable(iden3, <origin-track-forced(origin-offset)> iden3, <to-Correlation(|variables)> v2, Type("VERTEX")))
+  trans-rows-per-match-in-path(|variables, optionalMatchKeyword):
+    Path(t1, t2, t3, quantifier, t5, t6, t7, t8, t9, rowsPerMatch) -> Path(t1, t2, t3, quantifier, t5, t6, t7, t8, t9, rowsPerMatch')
+    with if <?Some(OptionalMatchKeyword())> optionalMatchKeyword
+          then boundednessVertex1 := OptionallyBound()
+             ; boundednessRemainder := OptionallyBound()
+          else boundednessVertex1 := AlwaysBound()
+             ; if <is-optionally-bound> quantifier
+               then boundednessRemainder := OptionallyBound()
+               else boundednessRemainder := AlwaysBound()
+               end
+          end
+        ; rowsPerMatch' := <?None() + Some(origin-track-forced(translate-rows-per-match(|variables, boundednessVertex1, boundednessRemainder)))> rowsPerMatch
+
+  translate-rows-per-match(|variables, boundednessVertex1, boundednessRemainder) =
+    ?OneRowPerVertex(iden@Identifier(v, _)); !OneRowPerVertex(RowsPerMatchVariable(iden, <origin-track-forced(origin-offset)> iden, <to-Correlation(|variables)> v, Type("VERTEX", boundednessVertex1))) +
+    ?OneRowPerEdge(iden@Identifier(e, _)); !OneRowPerEdge(RowsPerMatchVariable(iden, <origin-track-forced(origin-offset)> iden, <to-Correlation(|variables)> e, Type("EDGE", boundednessRemainder))) +
+    ?OneRowPerStep(iden1@Identifier(v1, _), iden2@Identifier(e, _), iden3@Identifier(v2, _)); !OneRowPerStep(RowsPerMatchVariable(iden1, <origin-track-forced(origin-offset)> iden1, <to-Correlation(|variables)> v1, Type("VERTEX", boundednessVertex1)),
+                                                                                                             RowsPerMatchVariable(iden2, <origin-track-forced(origin-offset)> iden2, <to-Correlation(|variables)> e, Type("EDGE", boundednessRemainder)),
+                                                                                                             RowsPerMatchVariable(iden3, <origin-track-forced(origin-offset)> iden3, <to-Correlation(|variables)> v2, Type("VERTEX", boundednessRemainder)))
 
   rows-per-match-to-varDef = ?RowsPerMatchVariable(iden, origin-offset, _, type); !VarDef(iden, origin-offset, None(), None(), None(), ThisQuery(), type)
 
-  to-varDef = ?Vertex(iden, origin-offset, _); !VarDef(iden, origin-offset, None(), None(), None(), ThisQuery(), Type("VERTEX"))
-  to-varDef = ?Edge(_, identifier, _, _, origin-offset, _); !VarDef(identifier, origin-offset, None(), None(), None(), ThisQuery(), Type("EDGE"))
+  to-varDef(|variables):
+    Vertex(iden, origin-offset, _, boundedness) -> VarDef(iden, origin-offset, None(), None(), None(), ThisQuery(), Type("VERTEX", [boundedness]))
+
+  to-varDef(|variables):
+    Edge(_, iden, _, _, origin-offset, _, boundedness) -> VarDef(iden, origin-offset, None(), None(), None(), ThisQuery(), Type("EDGE", [boundedness]))
+
+  get-boundedness(|variables, optionalMatchKeyword):
+    Identifier(iden, _) -> boundedness
+    with if <Hd; fetch-elem(?VarDef(Identifier(iden, _), _, _, _, _, _, Type(_, [existingBoundedness])))> variables
+            then // variable was previously declared; take the existing boundedness
+                 boundedness := existingBoundedness
+            else if <?Some(OptionalMatchKeyword())> optionalMatchKeyword
+                 then boundedness := OptionallyBound()
+                 else boundedness := AlwaysBound()
+                 end
+            end
 
   replace-or-add-all = foldl(replace-or-add)
 
@@ -201,7 +230,7 @@ rules
 
   extract-variables-for-select-star(|star, variable-counter) =
       ?GraphPattern(_, _, _, _)
-    ; collect-in-outer-query(?Vertex(<id>, _, _) + ?Edge(_, <id>, _, _, _, _))
+    ; collect-in-outer-query(?Vertex(<id>, _, _, _) + ?Edge(_, <id>, _, _, _, _, _))
     ; filter(is-anonymous-variable)
     ; map(generate-ExpAsVar(|star))
 
@@ -260,11 +289,11 @@ rules
        ; properties' := <resolve-set-properties(|v, originOffset, original-variables, metadata, variable-counter)> properties
        ; if <?VertexInsertion(_, _, _)> t
          then insertion := <origin-track-forced(!VertexInsertion(iden, originOffset, labels, properties'))> t
-            ; type := Type("VERTEX")
+            ; type := Type("VERTEX", [AlwaysBound()])
          else src' := <resolve-var-refs(|variables, metadata, variable-counter)> src
             ; dst' := <resolve-var-refs(|variables, metadata, variable-counter)> dst
             ; insertion := <origin-track-forced(!DirectedEdgeInsertion(iden, originOffset, src', dst', labels, properties'))> t
-            ; type := Type("EDGE")
+            ; type := Type("EDGE", [AlwaysBound()])
          end
        ; [vars-in-scope|xs] := variables
        ; vars-in-scope' := <replace-or-add> (VarDef(iden, originOffset, None(), None(), None(), ThisQuery(), type), vars-in-scope)
@@ -322,7 +351,7 @@ rules
             ; vars' := vars
          else if <has-label-metadata> metadata
               then elementType := <get-type-from-varRef-as-var(|variables) <+ !None()> varRef'
-                 ; allLabels := <?Type("VERTEX"); !metadata; fetch-elem(?VertexLabels(<id>)) <+ ?Type("EDGE"); !metadata; fetch-elem(?EdgeLabels(<id>)) <+ !None()> elementType
+                 ; allLabels := <?Type("VERTEX", _); !metadata; fetch-elem(?VertexLabels(<id>)) <+ ?Type("EDGE", _); !metadata; fetch-elem(?EdgeLabels(<id>)) <+ !None()> elementType
               else allLabels := None()
               end
             ; if <?None()> allLabels
@@ -330,7 +359,7 @@ rules
                  ; vars' := vars
               else originOffset := <get-base-variable(|tableExpressions, groupBy)> varRef'
                  ; labelExpression := <filter(simplify-label-expression(|originOffset)); (?[]; !All() <+ to-label-conjunction)> valueExpression
-                 ; allLabelNames := <(?Type("VERTEX"); get-vertex-labels(|metadata) + ?Type("EDGE"); get-edge-labels(|metadata)); try(?None(); ![])> elementType
+                 ; allLabelNames := <(?Type("VERTEX", _); get-vertex-labels(|metadata) + ?Type("EDGE", _); get-edge-labels(|metadata)); try(?None(); ![])> elementType
                  ; labelReferences := <get-labels-from-label-expression(|allLabelNames)> labelExpression
                  ; properties := <try(?None(); ![]); filter(fetch-properties-via-label-reference(|labelReferences)); concat> allLabels
                  ; propertyNames := <map(?Property(<id>, _))> properties
@@ -343,7 +372,7 @@ rules
 
   get-base-variable(|tableExpressions, groupBy):
     VarRef(_, originOffset) -> originOffset'
-    with if <collect-one(?Vertex(_, originOffset, _) + ?Edge(_, _, _, _, originOffset, _) + ?RowsPerMatchVariable(_, originOffset, _, _))> (tableExpressions, groupBy)
+    with if <collect-one(?Vertex(_, originOffset, _, _) + ?Edge(_, _, _, _, originOffset, _, _) + ?RowsPerMatchVariable(_, originOffset, _, _))> (tableExpressions, groupBy)
          then originOffset' := originOffset
          else varRef := <collect-one(?ExpAsVar(<id>, _, _, originOffset))> (tableExpressions, groupBy)
             ; originOffset' := <get-base-variable(|tableExpressions, groupBy)> varRef
@@ -421,7 +450,7 @@ rules
   resolve-var-refs-in-path-expression(|variables, metadata, variable-counter):
     t@Path(_, _, _, quantifier, _, _, _, _, _, _) -> t'
     with [_|variables'] := variables
-       ; if <has-at-most-one-binding> quantifier
+       ; if <is-singleton> quantifier
        then t' := <alltd(resolve-var-ref(|variables, metadata, variable-counter))> t // resolve only to singleton variables
        else t' := <alltd(resolve-var-ref(|variables', metadata, variable-counter) + resolve-var-ref(|variables, metadata, variable-counter))> t // resolve to either group variables or singleton variables
         end
@@ -541,8 +570,8 @@ rules
     CommonPathExpression(name, vertices, edges, valueExpression, costClause) -> CommonPathExpression(name, vertices', edges', valueExpression', costClause')
     with
        // pattern
-        (vertices', edges') := <alltd(trans-elem(|variables))> (vertices, edges)
-       ; new-vars := <collect(to-varDef)> (vertices', edges')
+        (vertices', edges') := <alltd(trans-elem(|variables, None()))> (vertices, edges)
+       ; new-vars := <collect(to-varDef(|variables))> (vertices', edges')
        ; <?[x|xs]> variables
        ; visible-vars := <replace-or-add-all> (new-vars, x)
 
@@ -561,7 +590,7 @@ rules
   normalize-ANY-path(|variables):
     Path(src, dst, t@CommonPathExpression(_, Vertices(vertices), Edges(edges), _, _), quantifier, edge, direction, Any(), topKAnyAll, pathMode, rowsPerMatch)
       -> Path(src, dst, t, quantifier, edge, direction, pathFindingGoal, topKAnyAll, pathMode, rowsPerMatch)
-    with groupVariables := <conc> (<map(?Vertex(_, <id>, _))> vertices, <map(?Edge(_, _, _, _, <id>, _))> edges)
+    with groupVariables := <conc> (<map(?Vertex(_, <id>, _, _))> vertices, <map(?Edge(_, _, _, _, <id>, _, _))> edges)
        ; references := <Hd; collect(?VarRef(_, <id>))> variables
        ; referencedGroupVariables := <isect> (groupVariables, references)
        ; if <?[]; !rowsPerMatch; (?None() + ?Some(OneRowPerMatch())); !pathMode; ?Walk()> referencedGroupVariables

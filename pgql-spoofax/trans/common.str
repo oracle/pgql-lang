@@ -204,7 +204,8 @@ rules
   origin-text = fail
   origin-offset = fail
 
-  has-at-most-one-binding = ?None() + ?Some(BetweenNAndM("0", "1")); origin-text; ?"?"
+  is-singleton = ?None() + ?Some(BetweenNAndM("0", "1")); origin-text; ?"?"
+  is-optionally-bound = ?Some(BetweenNAndM("0", _))
 
   is-ddl-statement = is-CreatePropertyGraph + is-DropPropertyGraph + is-CallStatement
   is-CreatePropertyGraph = ?CreatePropertyGraph(_, _, _, _, _)
@@ -233,7 +234,7 @@ rules
   to-OR = ?(exp1, exp2); !Or(exp1, exp2)
 
   to-disjunction-with-types = reverse; !(<Tl>, <Hd>); foldl(to-OR)
-  to-OR = ?(exp1, exp2); !ExpressionPlusType(Or(exp1, exp2), Type("BOOLEAN"))
+  to-OR = ?(exp1, exp2); !ExpressionPlusType(Or(exp1, exp2), Type("BOOLEAN", []))
 
   conjunction-to-list:
     t@ExpressionPlusType(exp, _) -> result
@@ -264,8 +265,8 @@ rules
   get-edge-labels(|metadata) = !metadata; fetch-elem(?EdgeLabels(<id>)); map(?Label(<id>, _)) <+ !None()
 
   collect-vars-from-table-expression = ?GraphPattern(vertices, connections, _, _); !(vertices, connections)
-                                     ; collect(?Vertex(_, _, None()) + ?Edge(_, _, _, _, _, None()) + ?RowsPerMatchVariable(_, _, None(), _))
-                                     ; collect-om(?Edge(_, Identifier(<id>, _), _, _, _, _) <+ ?Identifier(<id>, _), conc)
+                                     ; collect(?Vertex(_, _, None(), _) + ?Edge(_, _, _, _, _, None(), _) + ?RowsPerMatchVariable(_, _, None(), _))
+                                     ; collect-om(?Edge(_, Identifier(<id>, _), _, _, _, _, _) <+ ?Identifier(<id>, _), conc)
 
   collect-vars-from-table-expression:
     DerivedTable(_, Subquery(NormalizedQuery(_, selectOrModifyClause, _, _, _, _, _, _, _, _)), _) -> vars
@@ -277,11 +278,11 @@ rules
   collect-var-def-offsets-from-graph-pattern = ?GraphPattern(vertices, connections, _, _); !(vertices, connections)
                                              ; collect-var-def-offsets
 
-  collect-var-def-offsets = collect(?Vertex(_, <id>, _) + ?Edge(_, _, _, _, <id>, _) + ?RowsPerMatchVariable(_, <id>, _, _) + ?ExpAsVar(_, _, _, <id>))
+  collect-var-def-offsets = collect(?Vertex(_, <id>, _, _) + ?Edge(_, _, _, _, <id>, _, _) + ?RowsPerMatchVariable(_, <id>, _, _) + ?ExpAsVar(_, _, _, <id>))
 
   collect-offsets-from-table-expression:
     DerivedTable(_, Subquery(NormalizedQuery(_, SelectClause(_, SelectList(expAsVars)), _, _, _, _, _, _, _, _)), _) -> vars
-    with vars := <filter(?ExpAsVar(ExpressionPlusType(VarRef(_, <id>), Type("VERTEX")), _, _, _) +
-                         ?ExpAsVar(ExpressionPlusType(VarRef(_, <id>), Type("EDGE")), _, _, _))> expAsVars
+    with vars := <filter(?ExpAsVar(ExpressionPlusType(VarRef(_, <id>), Type("VERTEX", _)), _, _, _) +
+                         ?ExpAsVar(ExpressionPlusType(VarRef(_, <id>), Type("EDGE", _)), _, _, _))> expAsVars
 
-  is-vertex-or-edge-type = ?Type("VERTEX") + ?Type("EDGE")
+  is-vertex-or-edge-type = ?Type("VERTEX", _) + ?Type("EDGE", _)

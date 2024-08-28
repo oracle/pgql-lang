@@ -623,7 +623,7 @@ rules
       switch !edgeOrPath'
         case ?ElemContents(Some(e'), _, _, _):
           constraints := <get-inlined-constraints> edgeOrPath'
-        ; if <has-at-most-one-binding> quantifier
+        ; if <is-singleton> quantifier
           then connection := <origin-track-forced(!NormalizedEdge(src, e', dst, dir, quantifier, Constraints(constraints)))> edgeOrPath
           else srcVertex := <unique-name(|variable-counter, edgeOrPath)>
              ; dstVertex := <unique-name(|variable-counter, edgeOrPath)>
@@ -638,7 +638,7 @@ rules
 
   to-connection(|variable-counter, pathFindingGoal, topKAnyAll, pathMode, rowsPerMatch):
     (n1, t@ParenthesizedPath(RelaxedPathPattern(v1, [RelaxedEdgeVertex(edge, v2)|otherEdges]), whereClause, costClause, quantifier), n2) -> path
-    with if <has-at-most-one-binding> quantifier
+    with if <is-singleton> quantifier
          then srcVertex := <?Some(Vertex(<id>)) <+ ?None(); !n1> v1
             ; dstVertex := <?Some(Vertex(<id>)) <+ ?None(); !n2> v2
          else srcVertex := <?Some(Vertex(<id>)) <+ ?None(); unique-name(|variable-counter, edge)> v1

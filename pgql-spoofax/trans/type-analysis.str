@@ -45,8 +45,8 @@ rules
          then selectOrModifyClause' := <alltd(add-type(|metadata, variablesPlusTypes'', constraints))> selectOrModifyClause
             ; variablesPlusTypes''' := <conc> (variablesPlusTypes'', <?SelectClause(_, SelectList(<id>)); map(expAsVar-to-variablePlusType(|variablesPlusTypes''))> selectOrModifyClause')
          else <?ModifyClause(modifications)> selectOrModifyClause // INSERT / UPDATE / DELETE
-            ; verticesWithTypes' := <collect-vertices-with-types(?VertexInsertion(_, <id>, _, _))> modifications
-            ; edgesWithTypes' := <collect-edges-with-types(?DirectedEdgeInsertion(_, <id>, _, _, _, _))> modifications
+            ; verticesWithTypes' := <collect-in-outer-query(?VertexInsertion(_, <id>, _, _); !VariablePlusType(<id>, <id>, Type("VERTEX", [AlwaysBound()])))> modifications
+            ; edgesWithTypes' := <collect-in-outer-query(?DirectedEdgeInsertion(_, <id>, _, _, _, _); !VariablePlusType(<id>, <id>, Type("EDGE", [AlwaysBound()])))> modifications
             ; variablesPlusTypes''' := <conc> (variablesPlusTypes'', verticesWithTypes', edgesWithTypes')
             ; selectOrModifyClause' := <alltd(add-type(|metadata, variablesPlusTypes''', constraints))> selectOrModifyClause
          end
@@ -59,9 +59,8 @@ rules
 
   add-types-to-table-expression(|metadata, constraints):
     (graphPattern@GraphPattern(Vertices(vertices), connections, _, _), (result, variablesPlusTypes)) -> (result', variablesPlusTypes')
-    with verticesWithTypes := <conc> ( <collect-vertices-with-types(?Vertex(_, <id>, _))> (vertices, connections)
-                                     , <collect-vertices-with-types(?RowsPerMatchVariable(_, <id>, _, Type("VERTEX")))> connections )
-       ; edgesWithTypes := <collect-edges-with-types(?Edge(_, _, _, _, <id>, _) + ?RowsPerMatchVariable(_, <id>, _, Type("EDGE")))> connections
+    with verticesWithTypes := <collect-in-outer-query(get-vertex-and-type)> (vertices, connections)
+       ; edgesWithTypes := <collect-in-outer-query(get-edge-and-type)> connections
        ; variablesPlusTypes' := <conc> (variablesPlusTypes, verticesWithTypes, edgesWithTypes)
        ; graphPattern' := <alltd(add-type(|metadata, variablesPlusTypes', constraints))> graphPattern
        ; result' := <conc> (result, [graphPattern'])
@@ -71,21 +70,22 @@ rules
     with (normalizedQuery', variablesPlusTypes') := <add-types-to-query(|metadata, variablesPlusTypes, constraints)> normalizedQuery
        ; subquery' := <origin-track-forced(!Subquery(normalizedQuery'))> subquery
        ; derivedTable' := <origin-track-forced(!DerivedTable(lateral, subquery', correlation))> derivedTable
-       ; result' := <conc> (result, [derivedTable'])
+       ; result' := <conc> (result, [derivedTable']) 
        ; if <?NormalizedQuery(_, SelectClause(_, SelectList(selectElements)), _, _, _, _, _, _, _, _)> normalizedQuery'
          then variablesPlusTypes'' := <map(expAsVar-to-variablePlusType(|variablesPlusTypes'))> selectElements
             ; variablesPlusTypes''' := <conc> (variablesPlusTypes, variablesPlusTypes'')
          else variablesPlusTypes''' := variablesPlusTypes
          end
 
-  collect-vertices-with-types(s) = collect-in-outer-query(s; !VariablePlusType(<id>, <id>, Type("VERTEX")))
-
-  collect-edges-with-types(s) = collect-in-outer-query(s; !VariablePlusType(<id>, <id>, Type("EDGE")))
+  get-vertex-and-type = ?Vertex(_, origin-offset, _, boundedness); !VariablePlusType(origin-offset, origin-offset, Type("VERTEX", [boundedness]))
+  get-vertex-and-type = ?RowsPerMatchVariable(_, origin-offset, _, t@Type("VERTEX", _)); !VariablePlusType(origin-offset, origin-offset, t)
+  get-edge-and-type = ?Edge(_, _, _, _, origin-offset, _, boundedness); !VariablePlusType(origin-offset, origin-offset, Type("EDGE", [boundedness]))
+  get-edge-and-type = ?RowsPerMatchVariable(_, origin-offset, _, t@Type("EDGE", _)); !VariablePlusType(origin-offset, origin-offset, t)
 
   add-types-to-path-expression(|metadata):
     pathExpression@CommonPathExpression(_, Vertices(vertices), Edges(edges), Constraints(constraints), _) -> pathExpression'
-    with verticesWithTypes := <collect-vertices-with-types(?Vertex(_, <id>, _))> vertices
-       ; edgesWithTypes := <collect-edges-with-types(?Edge(_, _, _, _, <id>, _))> edges
+    with verticesWithTypes := <collect-in-outer-query(get-vertex-and-type)> vertices
+       ; edgesWithTypes := <collect-in-outer-query(get-edge-and-type)> edges
        ; variablesPlusTypes := <conc> (verticesWithTypes, edgesWithTypes)
        ; pathExpression' := <alltd(add-type(|metadata, variablesPlusTypes, constraints))> pathExpression
 
@@ -147,7 +147,7 @@ rules // property references
 
   get-property-type-from-label-expression(|elementType, propName, metadata):
     All() -> result
-    with labels := <?Type("VERTEX"); get-vertex-labels(|metadata) <+ get-edge-labels(|metadata)> elementType
+    with labels := <?Type("VERTEX", _); get-vertex-labels(|metadata) <+ get-edge-labels(|metadata)> elementType
        ; if <?None()> labels
          then result := UnknownType()
          else types := <map(!(<id>, propName); get-property-type(|elementType, metadata))> labels
@@ -156,7 +156,7 @@ rules // property references
 
   get-property-type(|elementType, metadata):
     labelPlusPropName -> type
-    with if <?Type("VERTEX")> elementType
+    with if <?Type("VERTEX", _)> elementType
          then type := <get-vertex-property-type(|metadata)> labelPlusPropName
          else type := <get-edge-property-type(|metadata)> labelPlusPropName
          end
@@ -165,7 +165,7 @@ rules // literals
 
   add-type(|metadata, variablesPlusTypes, constraints) = ?Null(); !ExpressionPlusType(<id>, UnknownType())
 
-  add-type(|metadata, variablesPlusTypes, constraints) = (?True() + ?False()); !ExpressionPlusType(<id>, Type("BOOLEAN"))
+  add-type(|metadata, variablesPlusTypes, constraints) = (?True() + ?False()); !ExpressionPlusType(<id>, Type("BOOLEAN", []))
 
   add-type(|metadata, variablesPlusTypes, constraints) = ?Integer(_); !ExpressionPlusType(<id>, <get-default-long-integer-type(|metadata)>)
 
@@ -173,15 +173,15 @@ rules // literals
 
   add-type(|metadata, variablesPlusTypes, constraints) = ?String(_); !ExpressionPlusType(<id>, <get-default-string-type(|metadata)>)
 
-  add-type(|metadata, variablesPlusTypes, constraints) = ?Date(_); !ExpressionPlusType(<id>, Type("DATE"))
+  add-type(|metadata, variablesPlusTypes, constraints) = ?Date(_); !ExpressionPlusType(<id>, Type("DATE", []))
 
-  add-type(|metadata, variablesPlusTypes, constraints) = ?Time(_); !ExpressionPlusType(<id>, Type(<has-timezone; !"TIME WITH TIME ZONE" <+ !"TIME">))
+  add-type(|metadata, variablesPlusTypes, constraints) = ?Time(_); !ExpressionPlusType(<id>, Type(<has-timezone; !"TIME WITH TIME ZONE" <+ !"TIME">, []))
 
-  add-type(|metadata, variablesPlusTypes, constraints) = ?Timestamp(_); !ExpressionPlusType(<id>, Type(<has-timezone; !"TIMESTAMP WITH TIME ZONE" <+ !"TIMESTAMP">))
+  add-type(|metadata, variablesPlusTypes, constraints) = ?Timestamp(_); !ExpressionPlusType(<id>, Type(<has-timezone; !"TIMESTAMP WITH TIME ZONE" <+ !"TIMESTAMP">, []))
 
   external has-timezone(|)
 
-  add-type(|metadata, variablesPlusTypes, constraints) = ?Interval(_, _); !ExpressionPlusType(<id>, Type("INTERVAL"))
+  add-type(|metadata, variablesPlusTypes, constraints) = ?Interval(_, _); !ExpressionPlusType(<id>, Type("INTERVAL", []))
 
 rules // functions
 
@@ -193,10 +193,10 @@ rules // functions
          then schema' := <?None() <+ ?Some(PackageName(Some(SchemaName(Identifier(<id>, _))), _)); !Some(<id>) <+ !None()> package
             ; package' := <?None() + ?Some(PackageName(_, Identifier(<id>, _))); !Some(<id>)> package
             ; name' := <?Identifier(<id>, _)> name
-            ; if argumentTypes := <map(?ExpressionPlusType(_, Type(<id>)))> args' // make sure all arguments are typed
+            ; if argumentTypes := <map(?ExpressionPlusType(_, Type(<id>, _)))> args' // make sure all arguments are typed
               then if <is-all-different-function> func
                    then [x|xs] := args'
-                      ; type := <map(is-compatible-type(|x, metadata)); !Type("BOOLEAN") <+ !Undefined()> xs // all_different function requires all input types to be compatible with each other
+                      ; type := <map(is-compatible-type(|x, metadata)); !Type("BOOLEAN", []) <+ !Undefined()> xs // all_different function requires all input types to be compatible with each other
                    else signaturesForSchema := <filter(?FunctionSignature(schema', _, _, _, _)); not(?[]) <+ map(FunctionSignature(?None() <+ Some(upper-case), id, id, id, id)); filter(?FunctionSignature(schema', _, _, _, _))> allSignatures
                       ; signaturesForPackage := <filter(?FunctionSignature(_, package', _, _, _)); not(?[]) <+ map(FunctionSignature(id, ?None() <+ Some(upper-case), id, id, id)); filter(?FunctionSignature(_, package', _, _, _))> signaturesForSchema
                       ; signaturesForFunction := <filter(?FunctionSignature(_, _, name', _, _)); not(?[]) <+ map(FunctionSignature(id, id, upper-case, id, id)); filter(?FunctionSignature(_, _, name', _, _))> signaturesForPackage
@@ -204,7 +204,7 @@ rules // functions
                                         get-function-return-types-compatible-argument-types(|metadata, argumentTypes)> signaturesForFunction // union-compatible match of argument types
                       ; numFunctionsFound := <length> returnTypes
                       ; type := <?0; !Undefined() <+ // function not found
-                                 ?1; !Type(<?[<id>]> returnTypes) <+ // exactly one function found
+                                 ?1; !Type(<?[<id>]> returnTypes, []) <+ // exactly one function found
                                  !AmbiguousType()> numFunctionsFound // multiple functions found
                    end
               else type := UnknownType() // one or more arguments are untyped
@@ -218,16 +218,16 @@ rules // functions
 
   get-function-return-type-compatible-argument-types(|metadata, argumentTypes2):
     t@FunctionSignature(_, _, _, argumentTypes1, returnType) -> returnType
-    with argumentTypes1' := <map(!Type(<id>))> argumentTypes1
-       ; argumentTypes2' := <map(!Type(<id>))> argumentTypes2
-    where <zip(get-union-type(|metadata); ?Type(_))> (argumentTypes1', argumentTypes2') // this fails if one of the arguments (when paired-up with the ones from the signature) is not union compatible
+    with argumentTypes1' := <map(!Type(<id>, []))> argumentTypes1
+       ; argumentTypes2' := <map(!Type(<id>, []))> argumentTypes2
+    where <zip(get-union-type(|metadata); ?Type(_, _))> (argumentTypes1', argumentTypes2') // this fails if one of the arguments (when paired-up with the ones from the signature) is not union compatible
 
   is-all-different-function:
     func@FunctionCall(None(), Identifier(name, _), args) -> func
     where <upper-case; ?"ALL_DIFFERENT"> name
         ; <not(length; ?0)> args
 
-  add-type(|metadata, variablesPlusTypes, constraints) = ?BetweenPredicate(_, _, _); !ExpressionPlusType(<id>, Type("BOOLEAN"))
+  add-type(|metadata, variablesPlusTypes, constraints) = ?BetweenPredicate(_, _, _); !ExpressionPlusType(<id>, Type("BOOLEAN", []))
 
 rules // subqueries
 
@@ -236,14 +236,14 @@ rules // subqueries
     with (query', type) := <add-types-to-subquery(|metadata, variablesPlusTypes, constraints)> query
 
   add-type(|metadata, variablesPlusTypes, constraints):
-    Exists(Subquery(query)) -> ExpressionPlusType(Exists(Subquery(query')), Type("BOOLEAN"))
+    Exists(Subquery(query)) -> ExpressionPlusType(Exists(Subquery(query')), Type("BOOLEAN", []))
     with (query', type) := <add-types-to-subquery(|metadata, variablesPlusTypes, constraints)> query
 
   add-types-to-subquery(|metadata, variablesPlusTypes, constraints):
     query -> (query', type)
     with (query', _) := <add-types-to-query(|metadata, variablesPlusTypes, constraints)> query
-       ; if <?NormalizedQuery(_, SelectClause(_, SelectList([ExpAsVar(ExpressionPlusType(_, Type(t)), _, _, _)])), _, _, _, _, _, _, _, _)> query'
-         then type := Type(t)
+       ; if <?NormalizedQuery(_, SelectClause(_, SelectList([ExpAsVar(ExpressionPlusType(_, t), _, _, _)])), _, _, _, _, _, _, _, _)> query'
+         then type := t
          else type := UnknownType()
          end
 
@@ -262,7 +262,7 @@ rules // binary expressions
     exp -> ExpressionPlusType(exp', type')
     with operation := <get-constructor> exp
        ; args@[ExpressionPlusType(_, type1), ExpressionPlusType(_, type2)] := <get-arguments; alltd(add-type(|metadata, variablesPlusTypes, constraints))> exp
-       ; if <?Type(t1)> type1; <?Type(t2)> type2
+       ; if <?Type(t1, _)> type1; <?Type(t2, _)> type2
          then type' := <get-binary-operation-return-type(|metadata)> (operation, t1, t2)
          else type' := UnknownType()
          end
@@ -274,7 +274,7 @@ rules // unary expressions and aggregates
     n@Not(exp) -> ExpressionPlusType(n', type')
     with exp'@ExpressionPlusType(_, type) := <add-type(|metadata, variablesPlusTypes, constraints)> exp
        ; n' := <origin-track-forced(!Not(exp'))> n
-       ; if <?Type(t)> type
+       ; if <?Type(t, _)> type
          then type' := <get-unary-operation-return-type(|metadata)> ("Not", t)
          else type' := UnknownType()
          end
@@ -283,7 +283,7 @@ rules // unary expressions and aggregates
     umin@UMin(exp) -> ExpressionPlusType(umin', type')
     with exp'@ExpressionPlusType(_, type) := <add-type(|metadata, variablesPlusTypes, constraints)> exp
        ; umin' := <origin-track-forced(!UMin(exp'))> umin
-       ; if <?Type(t)> type
+       ; if <?Type(t, _)> type
          then type' := <get-unary-operation-return-type(|metadata)> ("UMin", t)
          else type' := UnknownType()
          end
@@ -300,7 +300,7 @@ rules // unary expressions and aggregates
        ; exp'@ExpressionPlusType(_, type) := <add-type(|metadata, variablesPlusTypes, constraints)> exp
        ; if <?AmbiguousType()> type
          then type' := UnknownType()
-         else if <?Type(t)> type
+         else if <?Type(t, _)> type
               then if <?"VERTEX" + ?"EDGE"> t
                    then type' := Undefined() // there are no aggregrations that support vertex/edge inputs
                    else type' := <get-unary-operation-return-type(|metadata)> (operation, t)
@@ -325,11 +325,11 @@ rules // other expressions
       ?InPredicate(_, _, _) +
       ?IsNull(_)
     )
-    ; add-types-to-subterms(|metadata, variablesPlusTypes, constraints); !ExpressionPlusType(<id>, Type("BOOLEAN"))
+    ; add-types-to-subterms(|metadata, variablesPlusTypes, constraints); !ExpressionPlusType(<id>, Type("BOOLEAN", []))
 
   add-type(|metadata, variablesPlusTypes, constraints) = ?BindVariable(_); !ExpressionPlusType(<id>, UnknownType())
 
-  add-type(|metadata, variablesPlusTypes, constraints) = ?Cast(_, type); add-types-to-subterms(|metadata, variablesPlusTypes, constraints); !ExpressionPlusType(<id>, Type(type))
+  add-type(|metadata, variablesPlusTypes, constraints) = ?Cast(_, type); add-types-to-subterms(|metadata, variablesPlusTypes, constraints); !ExpressionPlusType(<id>, Type(type, []))
 
   add-type(|metadata, variablesPlusTypes, constraints) = ?CharacterSubstring(_, _, _); add-types-to-subterms(|metadata, variablesPlusTypes, constraints); !ExpressionPlusType(<id>, <get-default-string-type(|metadata)>)
 
@@ -348,7 +348,7 @@ rules // other expressions
   add-type(|metadata, variablesPlusTypes, constraints):
     ifElse@IfElse(_, _, _) -> ExpressionPlusType(ifElse', type')
     with ifElse' := <add-types-to-subterms(|metadata, variablesPlusTypes, constraints)> ifElse
-       ; if <?IfElse(_, ExpressionPlusType(_, type1@Type(_)), elseExp)> ifElse'
+       ; if <?IfElse(_, ExpressionPlusType(_, type1@Type(_, _)), elseExp)> ifElse'
          then if <?ExpressionPlusType(Null(), _)> elseExp
               then type' := type1
               else type' := <?ExpressionPlusType(_, type2); !(type1, type2); get-union-type(|metadata) <+ !UnknownType()> elseExp
@@ -362,7 +362,7 @@ rules // other expressions
       ; <?SimpleCase(_, _, _, ExpressionPlusType(_, type'))> simpleCase'
 
   add-type(|metadata, variablesPlusTypes, constraints):
-    predicate@SourceDestinationPredicate(_, _, _) -> ExpressionPlusType(predicate', Type("BOOLEAN"))
+    predicate@SourceDestinationPredicate(_, _, _) -> ExpressionPlusType(predicate', Type("BOOLEAN", []))
     with predicate' := <add-types-to-subterms(|metadata, variablesPlusTypes, constraints)> predicate
 
   get-vertex-property-type(|metadata) = get-property-type(?VertexLabels(<id>)|metadata)
@@ -373,28 +373,28 @@ rules // other expressions
     (labelReference, propName) -> type
     with if labels := <fetch-elem(labelsMatcher)> metadata
          then if properties := <fetch-elem(?Label(labelReference, <id>)) <+ map(Label(upper-case, id)); fetch-elem(?Label(labelReference, <id>))> labels
-              then type := <(fetch-elem(?Property(propName, <id>)) <+ map(Property(upper-case, id)); fetch-elem(?Property(propName, <id>))); !Type(<id>) <+ !Undefined()> properties
+              then type := <(fetch-elem(?Property(propName, <id>)) <+ map(Property(upper-case, id)); fetch-elem(?Property(propName, <id>))); !Type(<id>, []) <+ !Undefined()> properties
               else type := UnknownType() // label doesn't exist
               end
          else type := UnknownType() // no schema info known
          end
 
-  get-default-string-type(|metadata) = !metadata; fetch-elem(?DefaultStringType(<id>); !Type(<id>)) <+ !UnknownType()
-  get-default-short-integer-type(|metadata) = !metadata; fetch-elem(?DefaultShortIntegerType(<id>); !Type(<id>)) <+ !UnknownType()
-  get-default-long-integer-type(|metadata) = !metadata; fetch-elem(?DefaultLongIntegerType(<id>); !Type(<id>)) <+ !UnknownType()
-  get-default-decimal-type(|metadata) = !metadata; fetch-elem(?DefaultDecimalType(<id>); !Type(<id>)) <+ !UnknownType()
+  get-default-string-type(|metadata) = !metadata; fetch-elem(?DefaultStringType(<id>); !Type(<id>, [])) <+ !UnknownType()
+  get-default-short-integer-type(|metadata) = !metadata; fetch-elem(?DefaultShortIntegerType(<id>); !Type(<id>, [])) <+ !UnknownType()
+  get-default-long-integer-type(|metadata) = !metadata; fetch-elem(?DefaultLongIntegerType(<id>); !Type(<id>, [])) <+ !UnknownType()
+  get-default-decimal-type(|metadata) = !metadata; fetch-elem(?DefaultDecimalType(<id>); !Type(<id>, [])) <+ !UnknownType()
 
 
   get-union-type(|metadata) = (?(AmbiguousType(), _) + ?(_, AmbiguousType())); !AmbiguousType()
                            <+ (?(UnknownType(), _) + ?(_, UnknownType())); !UnknownType()
                            <+ ?(Undefined(), <id>) + ?(<id>, Undefined()) // for properties (when some label doesn't have the property)
-                           <+ ?(Type(t1), Type(t2));
+                           <+ ?(Type(t1, _), Type(t2, _));
                               !metadata; get-union-type-from-metadata(|t1, t2)
 
   get-union-type-from-metadata(|t1, t2):
     metadata -> type
     with if <fetch-elem(?UnionTypes(unionTypes))> metadata
-         then type := <fetch-elem(?UnionType(t1, t2, <id>)); !Type(<id>) <+ !AmbiguousType()> unionTypes
+         then type := <fetch-elem(?UnionType(t1, t2, <id>)); !Type(<id>, []) <+ !AmbiguousType()> unionTypes
          else type := UnknownType()
          end
 
@@ -406,16 +406,16 @@ rules // other expressions
   get-unary-operation-return-type(|metadata):
     (operation, t) -> type
     with if <fetch-elem(?UnaryOperations(unaryOperations))> metadata
-         then type := <fetch-elem(?UnaryOperation(operation, t, <id>)); !Type(<id>) <+ !Undefined()> unaryOperations
+         then type := <fetch-elem(?UnaryOperation(operation, t, <id>)); !Type(<id>, []) <+ !Undefined()> unaryOperations
          else type := UnknownType()
          end
 
   get-binary-operation-return-type(|metadata):
     (operation, t1, t2) -> type
     with if <eq> (t1, t2); <?"Eq" + ?"Neq"> operation; <string-starts-with(|"ARRAY<")> t1
-         then type := Type("BOOLEAN") // we assume that if arrays are supported, equality and non-equality between arrays are too
+         then type := Type("BOOLEAN", []) // we assume that if arrays are supported, equality and non-equality between arrays are too
          else if <fetch-elem(?BinaryOperations(binaryOperations))> metadata
-              then type := <fetch-elem(?BinaryOperation(operation, t1, t2, <id>)); !Type(<id>) <+ !Undefined()> binaryOperations
+              then type := <fetch-elem(?BinaryOperation(operation, t1, t2, <id>)); !Type(<id>, []) <+ !Undefined()> binaryOperations
               else type := UnknownType()
               end
          end
