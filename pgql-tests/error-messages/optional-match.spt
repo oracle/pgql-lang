@@ -161,3 +161,42 @@ test OPTIONAL MATCH with optionally bound variable from prior OPTIONAL MATCH in 
   WHERE EXISTS ( SELECT * FROM OPTIONAL MATCH (m) -[e2]-> (n) )
 
 ]] analysis succeeds
+
+test OPTIONAL MATCH after LATERAL [[
+
+  SELECT 1
+  FROM LATERAL ( SELECT n FROM MATCH (n) )
+     , OPTIONAL MATCH (n) -[e1]-> (m)
+
+]] analysis succeeds
+
+test MATCH after OPTIONAL MATCH in LATERAL [[
+
+  SELECT 1
+  FROM LATERAL ( SELECT n FROM OPTIONAL MATCH (n) )
+     , MATCH ([[n]]) -[e1]-> (m)
+
+]] error like "Variable is optionally bound; use OPTIONAL MATCH" at #1
+
+test OPTIONAL MATCH after OPTIONAL MATCH in LATERAL [[
+
+  SELECT 1
+  FROM LATERAL ( SELECT n FROM OPTIONAL MATCH (n) )
+     , OPTIONAL MATCH (n) -[e1]-> (m)
+
+]] analysis succeeds
+
+test MATCH in LATERAL after OPTIONAL MATCH and GROUP BY in LATERAL [[
+
+  SELECT 1
+  FROM LATERAL ( SELECT n FROM OPTIONAL MATCH (n) GROUP BY n )
+     , LATERAL ( SELECT * FROM MATCH ([[n]]) -[e1]-> (m) )
+
+]] error like "Variable is optionally bound; use OPTIONAL MATCH" at #1
+
+test EXISTS after OPTIONAL MATCH in LATERAL [[
+
+  SELECT EXISTS ( SELECT * FROM MATCH ([[n]]) -> (m) ) AS x
+  FROM LATERAL ( SELECT n FROM OPTIONAL MATCH (n) GROUP BY n )
+
+]] error like "Variable is optionally bound; use OPTIONAL MATCH" at #1
