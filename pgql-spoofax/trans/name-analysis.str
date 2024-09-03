@@ -150,7 +150,7 @@ rules
                else boundednessRemainder := AlwaysBound()
                end
           end
-        ; rowsPerMatch' := <?None() + Some(origin-track-forced(translate-rows-per-match(|variables, boundednessVertex1, boundednessRemainder)))> rowsPerMatch
+        ; rowsPerMatch' := <?None() + ?Some(OneRowPerMatch()) + Some(origin-track-forced(translate-rows-per-match(|variables, boundednessVertex1, boundednessRemainder)))> rowsPerMatch
 
   translate-rows-per-match(|variables, boundednessVertex1, boundednessRemainder) =
     ?OneRowPerVertex(iden@Identifier(v, _)); !OneRowPerVertex(RowsPerMatchVariable(iden, <origin-track-forced(origin-offset)> iden, <to-Correlation(|variables)> v, Type("VERTEX", [boundednessVertex1]))) +

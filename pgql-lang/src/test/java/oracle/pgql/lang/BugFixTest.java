@@ -504,4 +504,11 @@ public class BugFixTest extends AbstractPgqlTest {
         .parse("SELECT n FROM MATCH (n IS Person) -[e IS likes]-> (m IS Person) ON optional WHERE n.name = 'Dave'");
     assertTrue(result.isQueryValid());
   }
+
+  @Test
+  public void explicitOneRowPerMAtch() throws Exception {
+    PgqlResult result = pgql.parse(
+        "SELECT sum FROM LATERAL (SELECT sum(v2.integerprop) as sum FROM MATCH ANY SHORTEST (v)  ->* (v2) ONE ROW PER MATCH)");
+    assertTrue(result.isQueryValid());
+  }
 }
