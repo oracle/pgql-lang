@@ -506,7 +506,7 @@ public class BugFixTest extends AbstractPgqlTest {
   }
 
   @Test
-  public void explicitOneRowPerMAtch() throws Exception {
+  public void explicitOneRowPerMatch() throws Exception {
     PgqlResult result = pgql.parse(
         "SELECT sum FROM LATERAL (SELECT sum(v2.integerprop) as sum FROM MATCH ANY SHORTEST (v)  ->* (v2) ONE ROW PER MATCH)");
     assertTrue(result.isQueryValid());
