@@ -8,6 +8,7 @@ import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
 
+import java.util.Iterator;
 import java.util.List;
 
 import org.junit.Ignore;
@@ -16,11 +17,14 @@ import org.junit.Test;
 import oracle.pgql.lang.ddl.propertygraph.CreateSuperPropertyGraph;
 import oracle.pgql.lang.ir.ExpAsVar;
 import oracle.pgql.lang.ir.GraphQuery;
+import oracle.pgql.lang.ir.PathFindingGoal;
 import oracle.pgql.lang.ir.QueryExpression.AllProperties;
 import oracle.pgql.lang.ir.QueryExpression.FunctionCall;
 import oracle.pgql.lang.ir.QueryExpression.PropertyAccess;
+import oracle.pgql.lang.ir.QueryPath;
 import oracle.pgql.lang.ir.QueryExpression.Aggregation.AggrJsonArrayagg;
 import oracle.pgql.lang.ir.SelectQuery;
+import oracle.pgql.lang.ir.VertexPairConnection;
 
 public class BugFixTest extends AbstractPgqlTest {
 
@@ -510,5 +514,27 @@ public class BugFixTest extends AbstractPgqlTest {
     PgqlResult result = pgql.parse(
         "SELECT sum FROM LATERAL (SELECT sum(v2.integerprop) as sum FROM MATCH ANY SHORTEST (v)  ->* (v2) ONE ROW PER MATCH)");
     assertTrue(result.isQueryValid());
+  }
+
+  @Test
+  public void parsePathSelectorInParenthesizedMatch() throws Exception {
+    String query = "SELECT SUM(e.amount) as sum " //
+        + "FROM MATCH ( ANY CHEAPEST (y)(-[e:transaction]-> COST e.amount)* (x)) ";
+    PgqlResult result = pgql.parse(query);
+    assertTrue(result.isQueryValid());
+    Iterator<VertexPairConnection> it = result.getGraphQuery().getGraphPattern().getConnections().iterator();
+    QueryPath path = (QueryPath) it.next();
+    assertEquals(PathFindingGoal.CHEAPEST, path.getPathFindingGoal());
+
+    query = "SELECT SUM(e.amount) as sum " //
+        + "FROM MATCH ( ANY CHEAPEST (y)(-[e:transaction]-> COST e.amount)* (x), " //
+        + "ANY CHEAPEST (y)(-[e2:transaction]-> COST e.amount)* (x) WHERE sum < 2000) ";
+    result = pgql.parse(query);
+    assertTrue(result.isQueryValid());
+    it = result.getGraphQuery().getGraphPattern().getConnections().iterator();
+    path = (QueryPath) it.next();
+    assertEquals(PathFindingGoal.CHEAPEST, path.getPathFindingGoal());
+    path = (QueryPath) it.next();
+    assertEquals(PathFindingGoal.CHEAPEST, path.getPathFindingGoal());
   }
 }

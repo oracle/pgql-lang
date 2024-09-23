@@ -828,5 +828,10 @@ public class PrettyPrintingTest extends AbstractPgqlTest {
         "FROM OPTIONAL MATCH ((y) -> (z) WHERE y.number = 1001), " + //
         "     OPTIONAL MATCH ((y)->(x)<-(z))";
     checkRoundTrip(query);
+
+    query = "SELECT SUM(e.amount) as sum, id(x), id(z) " + //
+        "FROM MATCH ANY CHEAPEST ((y)(-[e:transaction]-> COST e.amount)* (x) WHERE sum < 2000) " + //
+        "   , OPTIONAL MATCH ((x)->(z) WHERE id(z)='Person(1)')";
+    checkRoundTrip(query);
   }
 }

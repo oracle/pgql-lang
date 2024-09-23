@@ -486,10 +486,11 @@ rules
 
   // first path pattern has more than one vertex
   get-connections-from-paths(|variable-counter, rowsPerMatch, keepClause):
-    [PathPattern2(pathPatternPrefix, pathPattern)|otherPaths] -> result
-    where pathPattern' := <try(?ParenthesizedPathPattern(PathPattern2(_, <id>), _))> pathPattern
+    [PathPattern2(pathPatternPrefix1, pathPattern)|otherPaths] -> result
+    with pathPattern' := <try(?ParenthesizedPathPattern(PathPattern2(_, <id>), _))> pathPattern
+       ; pathPatternPrefix2 := <?ParenthesizedPathPattern(PathPattern2(<id>, _), _) <+ !None()> pathPattern
     where <not(?PathPattern(_, []))> pathPattern'
-    with pathPatternPrefix' := <?Some(KeepClause(<id>)); !Some(<id>) <+ !pathPatternPrefix> keepClause
+    with pathPatternPrefix' := <?Some(KeepClause(<id>)); !Some(<id>) <+ !pathPatternPrefix1; ?Some(_) <+ !pathPatternPrefix2> keepClause
        ; if <contains-edge-pattern-with-quantifier + !rowsPerMatch; ?Some(<id>); is-not-one-row-per-match + !pathPatternPrefix'; not(?None() + ?Some(AllPathSearch(_, _)))> pathPattern' // path pattern has a quantifier or it has a search prefix other than ALL or it has a graph table rows clause other than ONE ROW PER MATCH
          then pathFindingGoal := <to-pathFindingGoal> pathPatternPrefix'
             ; topKAnyAll := <to-topKAnyAll> pathPatternPrefix'
