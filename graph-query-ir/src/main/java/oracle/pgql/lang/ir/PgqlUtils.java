@@ -53,7 +53,7 @@ public class PgqlUtils {
 
   // make sure to keep in sync with list of reserved words in pgql-spoofax/syntax/Names.sdf3
   private final static Set<String> RESERVED_WORDS = new HashSet<>(
-      Arrays.asList("true", "false", "null", "not", "distinct"));
+      Arrays.asList("true", "false", "null", "not", "distinct", "optional"));
 
   static DecimalFormat DECIMAL_FORMAT = new DecimalFormat("#.#");
 
@@ -306,7 +306,8 @@ public class PgqlUtils {
     Set<QueryVertex> uncoveredVertices = new LinkedHashSet<>(graphPattern.getVertices());
     List<String> graphPatternMatches = new ArrayList<String>();
 
-    boolean parenthesizeMatch = !graphPattern.getConstraints().isEmpty() && !isLastTableExpression;
+    boolean parenthesizeMatch = !graphPattern.getConstraints().isEmpty()
+        && !isLastTableExpression || graphPattern instanceof OptionalGraphPattern;
 
     Iterator<VertexPairConnection> connectionIt = graphPattern.getConnections().iterator();
     while (connectionIt.hasNext()) {

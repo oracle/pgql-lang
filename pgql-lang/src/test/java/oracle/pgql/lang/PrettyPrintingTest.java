@@ -801,4 +801,37 @@ public class PrettyPrintingTest extends AbstractPgqlTest {
         "WHERE n.number = 1001 AND p.number > 8020";
     checkRoundTrip(query);
   }
+
+  @Test
+  public void testOptionalMatch() throws Exception {
+    String query = "SELECT n.name AS n_name, m.name AS m_name " + //
+        "FROM MATCH (n IS Person), " + //
+        "     OPTIONAL MATCH (n) -[e IS likes]-> (m IS Person) " + //
+        "WHERE n.name = 'Dave'";
+    checkRoundTrip(query);
+
+    query = "SELECT n.name AS n_name, m.name AS m_name " + //
+        "FROM MATCH (n IS Person), " + //
+        "     OPTIONAL MATCH ( (n) -[e IS likes]-> (m IS Person) WHERE n.dob > m.dob ) " + //
+        "WHERE n.name = 'Dave'";
+    checkRoundTrip(query);
+
+    query = "SELECT n.name AS n_name, m.name AS m_name " + //
+        "FROM MATCH (n IS Person), " + //
+        "    OPTIONAL MATCH ( (n) -[e1 IS likes]-> (m IS Person), " + //
+        "                     (n) <-[e2 IS likes]- (m) " + //
+        "                     WHERE n.dob > m.dob ) " + //
+        "WHERE n.name = 'Dave'";
+    checkRoundTrip(query);
+
+    query = "SELECT id(y), x, id(z) " + //
+        "FROM OPTIONAL MATCH ((y) -> (z) WHERE y.number = 1001), " + //
+        "     OPTIONAL MATCH ((y)->(x)<-(z))";
+    checkRoundTrip(query);
+
+    query = "SELECT SUM(e.amount) as sum, id(x), id(z) " + //
+        "FROM MATCH ANY CHEAPEST ((y)(-[e:transaction]-> COST e.amount)* (x) WHERE sum < 2000) " + //
+        "   , OPTIONAL MATCH ((x)->(z) WHERE id(z)='Person(1)')";
+    checkRoundTrip(query);
+  }
 }

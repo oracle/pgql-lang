@@ -673,10 +673,18 @@ test Duplicate variables in ONE ROW PER STEP (3) [[
 
 ]] error like "Duplicate variable" at #1, #2
 
-test Nested path pattern prefix [[
+test Nested path pattern prefix (1) [[
 
   SELECT 1
     FROM MATCH ANY ( [[ANY (]]n) ->* (m) )
+
+]] error like "Nested path pattern prefix not allowed" at #1
+
+test Nested path pattern prefix (2) [[
+
+  SELECT SUM(e.amount) as sum, id(x), id(z)
+  FROM MATCH ANY CHEAPEST ( [[ANY CHEAPEST (]]y)(-[e:transaction]-> COST e.amount)* (x) WHERE sum < 2000)
+     , OPTIONAL MATCH ((x)->(z) WHERE id(z)='Person(1)')
 
 ]] error like "Nested path pattern prefix not allowed" at #1
 

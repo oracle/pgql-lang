@@ -27,9 +27,20 @@ context-free syntax // PGQL 1.1/1.2
       <LimitOffsetClauses?>
     >
 
-  Pgql11FromClause.Pgql11FromClause = <FROM <GraphName>> {case-insensitive}
+  Pgql11FromClause.Pgql11FromClause = <FROM <Pgql11GraphName>> {case-insensitive}
+
+  Pgql11GraphName.Name = <<SchemaNameDot?><Pgql11GraphNameIdentifier>>
+
+  /* PGQL 1.1 graph name has the additional restriciton that the OPTIONAL keyword is reserved */
+  Pgql11GraphNameIdentifier.RegularIdentifier = PGQL11-GRAPH-NAME-REGULAR-IDENTIFIER
+  Pgql11GraphNameIdentifier.DelimitedIdentifier = DELIMITED-IDENTIFIER
 
   MatchWhereClauses.MatchWhereClauses = <MATCH <{PathPattern ","}+> <WhereClause?>> {case-insensitive}
+
+lexical syntax
+
+  PGQL11-GRAPH-NAME-REGULAR-IDENTIFIER = REGULAR-IDENTIFIER
+  PGQL11-GRAPH-NAME-REGULAR-IDENTIFIER = 'optional' {reject}
 
 context-free syntax // pgql-lang.sdf3 for PGQL 1.0
 

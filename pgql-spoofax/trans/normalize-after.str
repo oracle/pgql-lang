@@ -42,7 +42,7 @@ rules
     where <?ExpressionPlusType(exp1, type1)> expPlusType1
         ; <?ExpressionPlusType(exp2, type2)> expPlusType2
         ; exp' := <origin-track-forced(!Eq(expPlusType1, expPlusType2))> origin-term
-        ; if <?Type(t1)> type1; <?Type(t2)> type2
+        ; if <?Type(t1, _)> type1; <?Type(t2, _)> type2
           then type' := <get-binary-operation-return-type(|metadata); not(?Undefined()) /* if equality operation is not supported between these types then we don't want to normalize */> ("Eq", t1, t2)
           else type' := UnknownType()
           end
@@ -67,7 +67,7 @@ rules
     RowsPerMatchVariable(identifier, origin-position, _, _) -> VarRef(identifier, origin-position)
 
   vertex-to-varRef:
-    Vertex(identifier, origin-position, _) -> VarRef(identifier, origin-position)
+    Vertex(identifier, origin-position, _, _) -> VarRef(identifier, origin-position)
 
 rules
 
@@ -87,10 +87,16 @@ rules
          // references to vertices that correlate with vertices in SELECT of prior LATERAL subquery are replaced with references to those prior vertices
          // this allows for pushing down even more predicates
        ; vertices-projected-by-laterals := <filter(?DerivedTable(Some(Lateral()), Subquery(NormalizedQuery(_, SelectClause(_, SelectList(<id>)), _, _, _, _, _, _, _, _)), _)); flatten-list; filter(?ExpAsVar(_, _, _, <id>))> tableExpressions
-       ; lateralVertexCorrelations := <collect(vertex-correlates-to-vertex-projected-by-lateral-subquery(|vertices-projected-by-laterals))> tableExpressions
+       ; lateralVertexCorrelations := <collect(vertex-correlates-to-prior-vertex(|vertices-projected-by-laterals))> tableExpressions
        ; expressions'' := <alltd(dereference-vertex-correlation(|lateralVertexCorrelations))> expressions'
 
-       ; expressions-plus-varRefs := <map(make-expressions-varRefs-tuple)> expressions''
+         // references to vertices in OPTIONAL MATCH that correlate with vertices in prior (non-optional) MATCH are replaced with references to those prior vertices
+         // this allows for pushing down even more predicates
+       ; vertices-in-match-clauses := <filter(?GraphPattern(Vertices(<id>), _, _, None())); flatten-list; map(?Vertex(_, <id>, _, _))> tableExpressions
+       ; matchClauseVertexCorrelations := <collect(vertex-correlates-to-prior-vertex(|vertices-in-match-clauses))> tableExpressions
+       ; expressions''' := <alltd(dereference-vertex-correlation(|matchClauseVertexCorrelations))> expressions''
+
+       ; expressions-plus-varRefs := <map(make-expressions-varRefs-tuple)> expressions'''
        ; (non-pushed-down-predicates-plus-varRefs, tableExpressions', allNewVariables) := <foldl(try-push-down-predicates(|variablesOuterQuery))> (tableExpressions, (expressions-plus-varRefs, [], []))
        ; non-pushed-down-predicates := <map(?(<id>, _))> non-pushed-down-predicates-plus-varRefs
        ; variablesOuterQuery' := <conc; make-set> (variablesOuterQuery, allNewVariables)
@@ -106,7 +112,7 @@ rules
        ; offsets := <diff> (varRefs, varDefs)
 
   try-push-down-predicates(|variablesOuterQuery):
-    (t@GraphPattern(vertices, connections, Constraints(valueExpression)), (remaining-expressions-plus-varRefs, tableExpressions, allVariablesExceptFromOuterQuery))
+    (t@GraphPattern(vertices, connections, Constraints(valueExpression), None()), (remaining-expressions-plus-varRefs, tableExpressions, allVariablesExceptFromOuterQuery))
       -> (remaining-expressions-plus-varRefs', tableExpressions', allVariablesExceptFromOuterQuery')
     with new-variables := <collect-var-def-offsets-from-graph-pattern> t
        ; visible-variables := <conc; make-set> (variablesOuterQuery, allVariablesExceptFromOuterQuery, new-variables)
@@ -114,7 +120,16 @@ rules
        ; valueExpression' := <conc> (valueExpression, pushed-down-predicates)
        ; connections' := <alltd(push-down-predicates(|visible-variables))> connections // for quantified path patterns that contain subqueries
        ; constraints' := <alltd(push-down-predicates(|visible-variables))> Constraints(valueExpression')
-       ; graphPattern' := GraphPattern(vertices, connections', constraints')
+       ; graphPattern' := GraphPattern(vertices, connections', constraints', None())
+       ; tableExpressions' := <conc> (tableExpressions, [graphPattern'])
+       ; allVariablesExceptFromOuterQuery' := <conc; make-set> (allVariablesExceptFromOuterQuery, new-variables)
+
+  // We do not push down predicates into OPTIONAL MATCH clauses as that would change the semantic
+  try-push-down-predicates(|variablesOuterQuery):
+    (t@GraphPattern(_, _, _, Some(OptionalMatchKeyword())), (remaining-expressions-plus-varRefs, tableExpressions, allVariablesExceptFromOuterQuery))
+      -> (remaining-expressions-plus-varRefs, tableExpressions', allVariablesExceptFromOuterQuery')
+    with new-variables := <collect-var-def-offsets-from-graph-pattern> t
+       ; graphPattern' := t
        ; tableExpressions' := <conc> (tableExpressions, [graphPattern'])
        ; allVariablesExceptFromOuterQuery' := <conc; make-set> (allVariablesExceptFromOuterQuery, new-variables)
 
@@ -177,13 +192,13 @@ rules
     VarRef(_, v) -> exp
     where exp := <fetch-elem(?ExpAsVar(ExpressionPlusType(<id>, _), _, _, v))> expAsVars
 
-  vertex-correlates-to-vertex-projected-by-lateral-subquery(|vertices-projected-by-laterals):
-    t@Vertex(_, _, Correlation(ExpressionPlusType(VarRef(_, v), _))) -> t
-    where <oncetd(?v)> vertices-projected-by-laterals
+  vertex-correlates-to-prior-vertex(|prior-vertices):
+    t@Vertex(_, _, Correlation(ExpressionPlusType(VarRef(_, v), _)), _) -> t
+    where <oncetd(?v)> prior-vertices
 
   dereference-vertex-correlation(|vertexCorrelations):
     VarRef(identifier, v) -> VarRef(identifier, v')
-    where <oncetd(?Vertex(_, v, Correlation(ExpressionPlusType(VarRef(_, v'), _))))> vertexCorrelations
+    where <oncetd(?Vertex(_, v, Correlation(ExpressionPlusType(VarRef(_, v'), _)), _))> vertexCorrelations
 
 rules
 
