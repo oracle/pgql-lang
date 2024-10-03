@@ -290,6 +290,26 @@ public class StaticOptimizationsTest extends AbstractPgqlTest {
   }
 
   @Test
+  public void testPredicatePushDownIntoMatchBeforeOptionalMAtch() throws Exception {
+    String query = "SELECT 1 FROM MATCH (x), OPTIONAL MATCH (x) -> (y)" + //
+        "WHERE x.prop < 20 AND y.prop IS NULL";
+
+    // outer query has predicate y.prop IS NULL
+    SelectQuery outerQuery = (SelectQuery) pgql.parse(query).getGraphQuery();
+    assertEquals(1L, outerQuery.getConstraints().size());
+    assertEquals(ExpressionType.IS_NULL, outerQuery.getConstraints().iterator().next().getExpType());
+
+    // MATCH (x) has predicate x.prop < 20
+    GraphPattern graphPattern1 = (GraphPattern) outerQuery.getTableExpressions().get(0);
+    assertEquals(1L, graphPattern1.getConstraints().size());
+    assertEquals(ExpressionType.LESS, graphPattern1.getConstraints().iterator().next().getExpType());
+
+    // OPTIONAL MATCH (x) -> (y) has no constraints
+    GraphPattern graphPattern2 = (GraphPattern) outerQuery.getTableExpressions().get(1);
+    assertEquals(0L, graphPattern2.getConstraints().size());
+  }
+
+  @Test
   public void testSelectStarWithLateral() throws Exception {
     String query = "SELECT * " + //
         "FROM MATCH (n) " + //
