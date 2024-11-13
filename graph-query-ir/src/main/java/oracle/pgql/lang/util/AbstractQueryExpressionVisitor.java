@@ -370,6 +370,7 @@ public abstract class AbstractQueryExpressionVisitor implements QueryExpressionV
 
   private void visitQuery(GraphQuery query) {
     query.getTableExpressions().stream().forEach(e -> e.accept(this));
+    query.getConstraints().stream().forEach(e -> e.accept(this));
     if (query.getGroupBy() != null) {
       query.getGroupBy().accept(this);
     }
