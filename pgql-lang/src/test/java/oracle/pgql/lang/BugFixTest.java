@@ -545,5 +545,14 @@ public class BugFixTest extends AbstractPgqlTest {
     assertTrue(result.isQueryValid());
     result = pgql.parse(result.getGraphQuery().toString());
     assertTrue(result.isQueryValid());
+
+    query = "SELECT id(z) " + //
+        "FROM MATCH ANY SHORTEST (v) ->{,1} (v2) ONE ROW PER STEP (x, y, z)" + //
+        "WHERE all_different(x, z) " + //
+        "ORDER BY id(z)";
+    result = pgql.parse(query);
+    assertTrue(result.isQueryValid());
+    result = pgql.parse(result.getGraphQuery().toString());
+    assertTrue(result.isQueryValid());
   }
 }

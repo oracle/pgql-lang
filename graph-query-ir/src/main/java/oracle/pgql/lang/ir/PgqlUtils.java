@@ -334,20 +334,15 @@ public class PgqlUtils {
     String result;
     if (parenthesizeMatch) {
       result = "MATCH ( " + graphPatternMatches.stream().collect(Collectors.joining("\n     , "));
+      result += printWhereClause(graphPattern.getConstraints());
+      result += ")" + printOnClause(graphName);
+      result += printRowsClause(rowsPerMatch);
     } else {
       result = "MATCH "
           + graphPatternMatches.stream().collect(Collectors.joining(printOnClause(graphName) + "\n   , MATCH "))
           + printOnClause(graphName);
-    }
-
-    result += printWhereClause(graphPattern.getConstraints());
-
-    if (parenthesizeMatch) {
-      result += ")" + printOnClause(graphName);
-    }
-
-    if (rowsPerMatch != null && rowsPerMatch.getRowsPerMatchType() != RowsPerMatchType.ONE_ROW_PER_MATCH) {
-      result += " " + rowsPerMatch;
+      result += printRowsClause(rowsPerMatch);
+      result += printWhereClause(graphPattern.getConstraints());
     }
 
     return result;
@@ -360,6 +355,14 @@ public class PgqlUtils {
       return "\nWHERE " + constraints.stream() //
           .map(x -> x.toString()) //
           .collect(Collectors.joining("\n  AND "));
+    }
+  }
+
+  private static String printRowsClause(RowsPerMatch rowsPerMatch) {
+    if (rowsPerMatch == null || rowsPerMatch.getRowsPerMatchType() == RowsPerMatchType.ONE_ROW_PER_MATCH) {
+      return "";
+    } else {
+      return " " + rowsPerMatch;
     }
   }
 
