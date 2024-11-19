@@ -16,6 +16,7 @@ import org.junit.Test;
 
 import oracle.pgql.lang.ddl.propertygraph.CreateSuperPropertyGraph;
 import oracle.pgql.lang.ir.ExpAsVar;
+import oracle.pgql.lang.ir.GraphPattern;
 import oracle.pgql.lang.ir.GraphQuery;
 import oracle.pgql.lang.ir.PathFindingGoal;
 import oracle.pgql.lang.ir.QueryExpression.AllProperties;
@@ -23,6 +24,7 @@ import oracle.pgql.lang.ir.QueryExpression.FunctionCall;
 import oracle.pgql.lang.ir.QueryExpression.PropertyAccess;
 import oracle.pgql.lang.ir.QueryPath;
 import oracle.pgql.lang.ir.QueryExpression.Aggregation.AggrJsonArrayagg;
+import oracle.pgql.lang.ir.unnest.RowsPerMatchType;
 import oracle.pgql.lang.ir.SelectQuery;
 import oracle.pgql.lang.ir.VertexPairConnection;
 
@@ -541,18 +543,39 @@ public class BugFixTest extends AbstractPgqlTest {
   @Test
   public void oneRowPerStepAfterOptionalMatch() throws Exception {
     String query = "SELECT w.number,id(v) FROM MATCH ANY (v)->{1,2}(v2) ONE ROW PER STEP (w,y,z), OPTIONAL MATCH(w)->(z)";
-    PgqlResult result = pgql.parse(query);
-    assertTrue(result.isQueryValid());
-    result = pgql.parse(result.getGraphQuery().toString());
-    assertTrue(result.isQueryValid());
+    PgqlResult result1 = pgql.parse(query);
+    assertTrue(result1.isQueryValid());
+    PgqlResult result2 = pgql.parse(result1.getGraphQuery().toString());
+    assertTrue(result2.isQueryValid());
+    GraphPattern graphPattern = (GraphPattern) result2.getGraphQuery().getTableExpressions().get(0);
+    QueryPath path = (QueryPath) graphPattern.getConnections().iterator().next();
+    assertEquals(RowsPerMatchType.ONE_ROW_PER_STEP, path.getRowsPerMatch().getRowsPerMatchType());
 
     query = "SELECT id(z) " + //
         "FROM MATCH ANY SHORTEST (v) ->{,1} (v2) ONE ROW PER STEP (x, y, z)" + //
         "WHERE all_different(x, z) " + //
         "ORDER BY id(z)";
-    result = pgql.parse(query);
-    assertTrue(result.isQueryValid());
-    result = pgql.parse(result.getGraphQuery().toString());
-    assertTrue(result.isQueryValid());
+    result1 = pgql.parse(query);
+    assertTrue(result1.isQueryValid());
+    result2 = pgql.parse(result1.getGraphQuery().toString());
+    assertTrue(result2.isQueryValid());
+    graphPattern = (GraphPattern) result2.getGraphQuery().getTableExpressions().get(0);
+    path = (QueryPath) graphPattern.getConnections().iterator().next();
+    assertEquals(RowsPerMatchType.ONE_ROW_PER_STEP, path.getRowsPerMatch().getRowsPerMatchType());
+
+    query = "SELECT ELEMENT_NUMBER(v1), v1.number AS v1_number, " //
+        + "LISTAGG(e.amount, ', ') AS path2 " //
+        + "FROM MATCH ALL ACYCLIC PATHS (n IS Account) -[IS transaction]->* (m IS Account) " //
+        + "       ONE ROW PER VERTEX ( v1 ) " //
+        + "   , MATCH SHORTEST 10 TRAIL (m) -[e IS transaction]->+ (m) " //
+        + "WHERE n.number = 10039 AND m.number = 2090 " //
+        + "ORDER BY MATCH_NUMBER(v1), path2, ELEMENT_NUMBER(v1), v1_number";
+    result1 = pgql.parse(query);
+    assertTrue(result1.isQueryValid());
+    result2 = pgql.parse(result1.getGraphQuery().toString());
+    assertTrue(result2.isQueryValid());
+    graphPattern = (GraphPattern) result2.getGraphQuery().getTableExpressions().get(0);
+    path = (QueryPath) graphPattern.getConnections().iterator().next();
+    assertEquals(RowsPerMatchType.ONE_ROW_PER_VERTEX, path.getRowsPerMatch().getRowsPerMatchType());
   }
 }

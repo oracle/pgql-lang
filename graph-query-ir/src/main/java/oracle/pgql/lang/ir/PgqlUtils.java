@@ -311,15 +311,19 @@ public class PgqlUtils {
         && !isLastTableExpression || graphPattern instanceof OptionalGraphPattern;
 
     Iterator<VertexPairConnection> connectionIt = graphPattern.getConnections().iterator();
-    RowsPerMatch rowsPerMatch = null;
+    RowsPerMatch rowsPerMatchForParenthesizedPath = null;
     while (connectionIt.hasNext()) {
       VertexPairConnection connection = connectionIt.next();
       uncoveredVertices.remove(connection.getSrc());
       uncoveredVertices.remove(connection.getDst());
       if (isVariableLengthPathPatternNotReaches(connection)) {
         QueryPath path = (QueryPath) connection;
-        graphPatternMatches.add(path.toString());
-        rowsPerMatch = path.getRowsPerMatch();
+        if (parenthesizeMatch) {
+          graphPatternMatches.add(path.toString());
+          rowsPerMatchForParenthesizedPath = path.getRowsPerMatch();
+        } else {
+          graphPatternMatches.add(path.toString() + printRowsClause(path.getRowsPerMatch()));
+        }
       } else {
         graphPatternMatches.add(connection.getSrc() + " " + connection + " " + connection.getDst());
       }
@@ -336,12 +340,11 @@ public class PgqlUtils {
       result = "MATCH ( " + graphPatternMatches.stream().collect(Collectors.joining("\n     , "));
       result += printWhereClause(graphPattern.getConstraints());
       result += ")" + printOnClause(graphName);
-      result += printRowsClause(rowsPerMatch);
+      result += printRowsClause(rowsPerMatchForParenthesizedPath);
     } else {
       result = "MATCH "
           + graphPatternMatches.stream().collect(Collectors.joining(printOnClause(graphName) + "\n   , MATCH "))
           + printOnClause(graphName);
-      result += printRowsClause(rowsPerMatch);
       result += printWhereClause(graphPattern.getConstraints());
     }
 
