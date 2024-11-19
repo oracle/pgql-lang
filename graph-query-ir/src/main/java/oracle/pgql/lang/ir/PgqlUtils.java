@@ -44,6 +44,7 @@ import oracle.pgql.lang.ir.unnest.OneRowPerEdge;
 import oracle.pgql.lang.ir.unnest.OneRowPerStep;
 import oracle.pgql.lang.ir.unnest.OneRowPerVertex;
 import oracle.pgql.lang.ir.unnest.RowsPerMatch;
+import oracle.pgql.lang.ir.unnest.RowsPerMatchType;
 
 public class PgqlUtils {
 
@@ -310,12 +311,15 @@ public class PgqlUtils {
         && !isLastTableExpression || graphPattern instanceof OptionalGraphPattern;
 
     Iterator<VertexPairConnection> connectionIt = graphPattern.getConnections().iterator();
+    RowsPerMatch rowsPerMatch = null;
     while (connectionIt.hasNext()) {
       VertexPairConnection connection = connectionIt.next();
       uncoveredVertices.remove(connection.getSrc());
       uncoveredVertices.remove(connection.getDst());
       if (isVariableLengthPathPatternNotReaches(connection)) {
-        graphPatternMatches.add(connection.toString());
+        QueryPath path = (QueryPath) connection;
+        graphPatternMatches.add(path.toString());
+        rowsPerMatch = path.getRowsPerMatch();
       } else {
         graphPatternMatches.add(connection.getSrc() + " " + connection + " " + connection.getDst());
       }
@@ -340,6 +344,10 @@ public class PgqlUtils {
 
     if (parenthesizeMatch) {
       result += ")" + printOnClause(graphName);
+    }
+
+    if (rowsPerMatch != null && rowsPerMatch.getRowsPerMatchType() != RowsPerMatchType.ONE_ROW_PER_MATCH) {
+      result += " " + rowsPerMatch;
     }
 
     return result;

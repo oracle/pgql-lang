@@ -537,4 +537,13 @@ public class BugFixTest extends AbstractPgqlTest {
     path = (QueryPath) it.next();
     assertEquals(PathFindingGoal.CHEAPEST, path.getPathFindingGoal());
   }
+
+  @Test
+  public void oneRowPerStepAfterOptionalMatch() throws Exception {
+    String query = "SELECT w.number,id(v) FROM MATCH ANY (v)->{1,2}(v2) ONE ROW PER STEP (w,y,z), OPTIONAL MATCH(w)->(z)";
+    PgqlResult result = pgql.parse(query);
+    assertTrue(result.isQueryValid());
+    result = pgql.parse(result.getGraphQuery().toString());
+    assertTrue(result.isQueryValid());
+  }
 }

@@ -224,9 +224,7 @@ public class QueryPath extends VertexPairConnection {
     }
 
     result += printHops(this) + " " + getDst();
-    if (rowsPerMatch != null && rowsPerMatch.getRowsPerMatchType() != RowsPerMatchType.ONE_ROW_PER_MATCH) {
-      result += " " + rowsPerMatch;
-    }
+
     return result;
   }
 
