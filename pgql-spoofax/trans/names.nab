@@ -23,12 +23,12 @@ binding rules // variable definition
   CommonPathExpression(Identifier(p, _), _, _, _, _):
     defines unique CommonPathExpression p
 
-  Vertex(Identifier(n, _), origin-offset, _):
+  Vertex(Identifier(n, _), origin-offset, _, _):
     defines non-unique Var n
       of OriginOffset origin-offset
       of type VertexTy()
 
-  Edge(_, Identifier(e, _), _, _, origin-offset, _):
+  Edge(_, Identifier(e, _), _, _, origin-offset, _, _):
     defines unique Var e
       of OriginOffset origin-offset
       of type EdgeTy()
@@ -51,12 +51,12 @@ binding rules // variable definition
       of OriginOffset origin-offset
       of type EdgeTy()
 
-  RowsPerMatchVariable(Identifier(v, _), origin-offset, _, Type("VERTEX")):
+  RowsPerMatchVariable(Identifier(v, _), origin-offset, _, Type("VERTEX", _)):
     defines unique Var v
       of OriginOffset origin-offset
       of type VertexTy()
 
-  RowsPerMatchVariable(Identifier(v, _), origin-offset, _, Type("EDGE")):
+  RowsPerMatchVariable(Identifier(v, _), origin-offset, _, Type("EDGE", _)):
     defines unique Var v
       of OriginOffset origin-offset
       of type EdgeTy()

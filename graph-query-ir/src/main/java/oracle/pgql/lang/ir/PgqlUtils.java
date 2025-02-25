@@ -44,6 +44,7 @@ import oracle.pgql.lang.ir.unnest.OneRowPerEdge;
 import oracle.pgql.lang.ir.unnest.OneRowPerStep;
 import oracle.pgql.lang.ir.unnest.OneRowPerVertex;
 import oracle.pgql.lang.ir.unnest.RowsPerMatch;
+import oracle.pgql.lang.ir.unnest.RowsPerMatchType;
 
 public class PgqlUtils {
 
@@ -53,7 +54,7 @@ public class PgqlUtils {
 
   // make sure to keep in sync with list of reserved words in pgql-spoofax/syntax/Names.sdf3
   private final static Set<String> RESERVED_WORDS = new HashSet<>(
-      Arrays.asList("true", "false", "null", "not", "distinct"));
+      Arrays.asList("true", "false", "null", "not", "distinct", "optional"));
 
   static DecimalFormat DECIMAL_FORMAT = new DecimalFormat("#.#");
 
@@ -306,15 +307,23 @@ public class PgqlUtils {
     Set<QueryVertex> uncoveredVertices = new LinkedHashSet<>(graphPattern.getVertices());
     List<String> graphPatternMatches = new ArrayList<String>();
 
-    boolean parenthesizeMatch = !graphPattern.getConstraints().isEmpty() && !isLastTableExpression;
+    boolean parenthesizeMatch = !graphPattern.getConstraints().isEmpty()
+        && !isLastTableExpression || graphPattern instanceof OptionalGraphPattern;
 
     Iterator<VertexPairConnection> connectionIt = graphPattern.getConnections().iterator();
+    RowsPerMatch rowsPerMatchForParenthesizedPath = null;
     while (connectionIt.hasNext()) {
       VertexPairConnection connection = connectionIt.next();
       uncoveredVertices.remove(connection.getSrc());
       uncoveredVertices.remove(connection.getDst());
       if (isVariableLengthPathPatternNotReaches(connection)) {
-        graphPatternMatches.add(connection.toString());
+        QueryPath path = (QueryPath) connection;
+        if (parenthesizeMatch) {
+          graphPatternMatches.add(path.toString());
+          rowsPerMatchForParenthesizedPath = path.getRowsPerMatch();
+        } else {
+          graphPatternMatches.add(path.toString() + printRowsClause(path.getRowsPerMatch()));
+        }
       } else {
         graphPatternMatches.add(connection.getSrc() + " " + connection + " " + connection.getDst());
       }
@@ -329,16 +338,14 @@ public class PgqlUtils {
     String result;
     if (parenthesizeMatch) {
       result = "MATCH ( " + graphPatternMatches.stream().collect(Collectors.joining("\n     , "));
+      result += printWhereClause(graphPattern.getConstraints());
+      result += ")" + printOnClause(graphName);
+      result += printRowsClause(rowsPerMatchForParenthesizedPath);
     } else {
       result = "MATCH "
           + graphPatternMatches.stream().collect(Collectors.joining(printOnClause(graphName) + "\n   , MATCH "))
           + printOnClause(graphName);
-    }
-
-    result += printWhereClause(graphPattern.getConstraints());
-
-    if (parenthesizeMatch) {
-      result += ")" + printOnClause(graphName);
+      result += printWhereClause(graphPattern.getConstraints());
     }
 
     return result;
@@ -351,6 +358,14 @@ public class PgqlUtils {
       return "\nWHERE " + constraints.stream() //
           .map(x -> x.toString()) //
           .collect(Collectors.joining("\n  AND "));
+    }
+  }
+
+  private static String printRowsClause(RowsPerMatch rowsPerMatch) {
+    if (rowsPerMatch == null || rowsPerMatch.getRowsPerMatchType() == RowsPerMatchType.ONE_ROW_PER_MATCH) {
+      return "";
+    } else {
+      return " " + rowsPerMatch;
     }
   }
 

@@ -8,6 +8,7 @@ import oracle.pgql.lang.ir.ExpAsVar;
 import oracle.pgql.lang.ir.GraphPattern;
 import oracle.pgql.lang.ir.GraphQuery;
 import oracle.pgql.lang.ir.GroupBy;
+import oracle.pgql.lang.ir.OptionalGraphPattern;
 import oracle.pgql.lang.ir.OrderBy;
 import oracle.pgql.lang.ir.OrderByElem;
 import oracle.pgql.lang.ir.Projection;
@@ -369,6 +370,7 @@ public abstract class AbstractQueryExpressionVisitor implements QueryExpressionV
 
   private void visitQuery(GraphQuery query) {
     query.getTableExpressions().stream().forEach(e -> e.accept(this));
+    query.getConstraints().stream().forEach(e -> e.accept(this));
     if (query.getGroupBy() != null) {
       query.getGroupBy().accept(this);
     }
@@ -389,6 +391,11 @@ public abstract class AbstractQueryExpressionVisitor implements QueryExpressionV
     graphPattern.getVertices().stream().forEach(e -> e.accept(this));
     graphPattern.getConnections().stream().forEach(e -> e.accept(this));
     graphPattern.getConstraints().stream().forEach(e -> e.accept(this));
+  }
+
+  @Override
+  public void visit(OptionalGraphPattern optionalGraphPattern) {
+    visit((GraphPattern) optionalGraphPattern);
   }
 
   @Override

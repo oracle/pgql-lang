@@ -8,6 +8,7 @@ import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
 
+import java.util.Iterator;
 import java.util.List;
 
 import org.junit.Ignore;
@@ -15,12 +16,17 @@ import org.junit.Test;
 
 import oracle.pgql.lang.ddl.propertygraph.CreateSuperPropertyGraph;
 import oracle.pgql.lang.ir.ExpAsVar;
+import oracle.pgql.lang.ir.GraphPattern;
 import oracle.pgql.lang.ir.GraphQuery;
+import oracle.pgql.lang.ir.PathFindingGoal;
 import oracle.pgql.lang.ir.QueryExpression.AllProperties;
 import oracle.pgql.lang.ir.QueryExpression.FunctionCall;
 import oracle.pgql.lang.ir.QueryExpression.PropertyAccess;
+import oracle.pgql.lang.ir.QueryPath;
 import oracle.pgql.lang.ir.QueryExpression.Aggregation.AggrJsonArrayagg;
+import oracle.pgql.lang.ir.unnest.RowsPerMatchType;
 import oracle.pgql.lang.ir.SelectQuery;
+import oracle.pgql.lang.ir.VertexPairConnection;
 
 public class BugFixTest extends AbstractPgqlTest {
 
@@ -474,8 +480,102 @@ public class BugFixTest extends AbstractPgqlTest {
     assertTrue(agg.isFormatJson());
 
     result = pgql.parse("SELECT JSON_ARRAYAGG(v.prop) FROM MATCH (v)");
-    agg = (AggrJsonArrayagg) ((SelectQuery) result.getGraphQuery()).getProjection().getElements()
-        .get(0).getExp();
+    agg = (AggrJsonArrayagg) ((SelectQuery) result.getGraphQuery()).getProjection().getElements().get(0).getExp();
     assertFalse(agg.isFormatJson());
+  }
+
+  @Test
+  public void ambiguityForOptionalMatch() throws Exception {
+    /*
+     * Previously, the below query was a valid PGQL 1.1/1.2 query in which "OPTIONAL" is the name of the graph. This
+     * caused an ambiguity because the query is now also seen as a PGQL 2.0 query with OPTIONAL MATCH pattern. The fix
+     * was to disallow "OPTIONAL" as graph name in PGQL 1.1/1.2.
+     */
+    PgqlResult result = pgql
+        .parse("SELECT n FROM OPTIONAL MATCH (n IS Person) -[e IS likes]-> (m IS Person) WHERE n.name = 'Dave'");
+    assertTrue(result.isQueryValid());
+
+    /*
+     * You can still use OPTIONAL as graph name in PGQL 1.2, but it requires double quoting. Also, you can still use
+     * OPTIONAL as property name or variable name.
+     */
+    result = pgql.parse(
+        "SELECT n FROM \"OPTIONAL\" MATCH (n IS Person) -[e IS likes]-> (optional IS Person) WHERE optional.optional = true");
+    assertTrue(result.isQueryValid());
+
+    /*
+     * And you can also use OPTIONAL as graph name in newer PGQL versions, without requiring double quoting.
+     */
+    result = pgql
+        .parse("SELECT n FROM MATCH (n IS Person) -[e IS likes]-> (m IS Person) ON optional WHERE n.name = 'Dave'");
+    assertTrue(result.isQueryValid());
+  }
+
+  @Test
+  public void explicitOneRowPerMatch() throws Exception {
+    PgqlResult result = pgql.parse(
+        "SELECT sum FROM LATERAL (SELECT sum(v2.integerprop) as sum FROM MATCH ANY SHORTEST (v)  ->* (v2) ONE ROW PER MATCH)");
+    assertTrue(result.isQueryValid());
+  }
+
+  @Test
+  public void parsePathSelectorInParenthesizedMatch() throws Exception {
+    String query = "SELECT SUM(e.amount) as sum " //
+        + "FROM MATCH ( ANY CHEAPEST (y)(-[e:transaction]-> COST e.amount)* (x)) ";
+    PgqlResult result = pgql.parse(query);
+    assertTrue(result.isQueryValid());
+    Iterator<VertexPairConnection> it = result.getGraphQuery().getGraphPattern().getConnections().iterator();
+    QueryPath path = (QueryPath) it.next();
+    assertEquals(PathFindingGoal.CHEAPEST, path.getPathFindingGoal());
+
+    query = "SELECT SUM(e.amount) as sum " //
+        + "FROM MATCH ( ANY CHEAPEST (y)(-[e:transaction]-> COST e.amount)* (x), " //
+        + "ANY CHEAPEST (y)(-[e2:transaction]-> COST e.amount)* (x) WHERE sum < 2000) ";
+    result = pgql.parse(query);
+    assertTrue(result.isQueryValid());
+    it = result.getGraphQuery().getGraphPattern().getConnections().iterator();
+    path = (QueryPath) it.next();
+    assertEquals(PathFindingGoal.CHEAPEST, path.getPathFindingGoal());
+    path = (QueryPath) it.next();
+    assertEquals(PathFindingGoal.CHEAPEST, path.getPathFindingGoal());
+  }
+
+  @Test
+  public void oneRowPerStepAfterOptionalMatch() throws Exception {
+    String query = "SELECT w.number,id(v) FROM MATCH ANY (v)->{1,2}(v2) ONE ROW PER STEP (w,y,z), OPTIONAL MATCH(w)->(z)";
+    PgqlResult result1 = pgql.parse(query);
+    assertTrue(result1.isQueryValid());
+    PgqlResult result2 = pgql.parse(result1.getGraphQuery().toString());
+    assertTrue(result2.isQueryValid());
+    GraphPattern graphPattern = (GraphPattern) result2.getGraphQuery().getTableExpressions().get(0);
+    QueryPath path = (QueryPath) graphPattern.getConnections().iterator().next();
+    assertEquals(RowsPerMatchType.ONE_ROW_PER_STEP, path.getRowsPerMatch().getRowsPerMatchType());
+
+    query = "SELECT id(z) " + //
+        "FROM MATCH ANY SHORTEST (v) ->{,1} (v2) ONE ROW PER STEP (x, y, z)" + //
+        "WHERE all_different(x, z) " + //
+        "ORDER BY id(z)";
+    result1 = pgql.parse(query);
+    assertTrue(result1.isQueryValid());
+    result2 = pgql.parse(result1.getGraphQuery().toString());
+    assertTrue(result2.isQueryValid());
+    graphPattern = (GraphPattern) result2.getGraphQuery().getTableExpressions().get(0);
+    path = (QueryPath) graphPattern.getConnections().iterator().next();
+    assertEquals(RowsPerMatchType.ONE_ROW_PER_STEP, path.getRowsPerMatch().getRowsPerMatchType());
+
+    query = "SELECT ELEMENT_NUMBER(v1), v1.number AS v1_number, " //
+        + "LISTAGG(e.amount, ', ') AS path2 " //
+        + "FROM MATCH ALL ACYCLIC PATHS (n IS Account) -[IS transaction]->* (m IS Account) " //
+        + "       ONE ROW PER VERTEX ( v1 ) " //
+        + "   , MATCH SHORTEST 10 TRAIL (m) -[e IS transaction]->+ (m) " //
+        + "WHERE n.number = 10039 AND m.number = 2090 " //
+        + "ORDER BY MATCH_NUMBER(v1), path2, ELEMENT_NUMBER(v1), v1_number";
+    result1 = pgql.parse(query);
+    assertTrue(result1.isQueryValid());
+    result2 = pgql.parse(result1.getGraphQuery().toString());
+    assertTrue(result2.isQueryValid());
+    graphPattern = (GraphPattern) result2.getGraphQuery().getTableExpressions().get(0);
+    path = (QueryPath) graphPattern.getConnections().iterator().next();
+    assertEquals(RowsPerMatchType.ONE_ROW_PER_VERTEX, path.getRowsPerMatch().getRowsPerMatchType());
   }
 }

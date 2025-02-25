@@ -175,6 +175,8 @@ public interface QueryExpressionVisitor {
 
   public void visit(GraphPattern graphPattern);
 
+  public void visit(OptionalGraphPattern optionalGraphPattern);
+
   public void visit(Projection projection);
 
   public void visit(ExpAsVar expAsVar);

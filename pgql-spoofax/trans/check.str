@@ -126,8 +126,8 @@ rules // Unresolved/duplicate variables
 
   get-origin-positions-of-variables:
     CommonPathExpression(_, Vertices(vertices), Edges(edges), _, _) -> <conc; make-set> (origins-of-vertices, origins-of-edges)
-    with origins-of-vertices := <map(?Vertex(_, <id>, _))> vertices
-       ; origins-of-edges := <filter(?Edge(_, _, _, _, <id>, _))> edges
+    with origins-of-vertices := <map(?Vertex(_, <id>, _, _))> vertices
+       ; origins-of-edges := <filter(?Edge(_, _, _, _, <id>, _, _))> edges
 
   has-multiple-groupVarRefs(|group-variables):
     t@Some(varRefs-in-aggregation) -> t
@@ -166,7 +166,7 @@ rules // in-lined constraints
 rules // vertex in WHERE without rounded brackets
 
   nabl-constraint(|ctx):
-    Vertex(v, _, _) -> <fail>
+    Vertex(v, _, _, _) -> <fail>
     where
       <string-ends-with(|<VERTEX_WITHOUT_BRACKETS>)> v
     with
@@ -249,7 +249,7 @@ rules // subqueries
   get-select-clause = ?NormalizedQuery(_, <id>, _, _, _, _, _, _, _, _)
 
   nabl-constraint(|ctx):
-    ScalarSubquery(Subquery(NormalizedQuery(_, SelectClause(_, SelectList([ExpAsVar(ExpressionPlusType(exp, Type(t)), _, _, _)])), _, _, _, _, _, _, _, _))) -> <fail>
+    ScalarSubquery(Subquery(NormalizedQuery(_, SelectClause(_, SelectList([ExpAsVar(ExpressionPlusType(exp, Type(t, _)), _, _, _)])), _, _, _, _, _, _, _, _))) -> <fail>
     where <?"VERTEX" + ?"EDGE"> t
     with <generate-error(|ctx, "Scalar subquery not allowed to return a vertex or an edge")> exp
 
@@ -303,7 +303,7 @@ rules // temporary limitation
     Path(_, _, pathExpression, quantifier, _, _, goal, _, _, _) -> <fail>
     where <?Shortest() + ?Cheapest() + ?Any() + ?All()> goal
         ; <?None() + ?Some(BetweenNAndM("0", "1")); origin-text; ?"?"> quantifier
-    with error-term := <?Some(_) <+ !pathExpression; collect-one(?Edge(_, _, _, _, _, _))> quantifier 
+    with error-term := <?Some(_) <+ !pathExpression; collect-one(?Edge(_, _, _, _, _, _, _))> quantifier 
        ; if <?All()> goal
          then <generate-error(|ctx, "Quantifier of the form {1,4} expected")> error-term
          else <generate-error(|ctx, "Quantifier of the form * or + or {1,4} expected")> error-term
@@ -343,8 +343,8 @@ rules // CHEAPEST
 
   nabl-constraint(|ctx):
     t@Path(_, _, CommonPathExpression(_, vertices, edges, _, Some(CostClause(costExpression))), _, _, _, Cheapest(), _, _, _) -> <fail>
-    where <?Vertices([Vertex(v1, _, _), Vertex(v2, _, _)])> vertices
-        ; <?Edges([Edge(_, e, _, _, _, _)])> edges
+    where <?Vertices([Vertex(v1, _, _, _), Vertex(v2, _, _, _)])> vertices
+        ; <?Edges([Edge(_, e, _, _, _, _, _)])> edges
     with variablesDefs := [v1, v2, e]
        ; <generate-error-on-cross-constraint(|ctx, variablesDefs)> costExpression
 
@@ -356,7 +356,7 @@ rules // CHEAPEST
   generate-error-on-cross-constraint(|ctx, variablesDefs):
     t -> t
     where <not(?And(_, _))> t
-    with variables := <collect(?VarRef(<id>, _) + ?Vertex(<id>, _, _) + ?Edge(_, <id>, _, _, _, _) + ?Path(_, _, _, _, <id>, _, _, _, _, _))> t
+    with variables := <collect(?VarRef(<id>, _) + ?Vertex(<id>, _, _, _) + ?Edge(_, <id>, _, _, _, _, _) + ?Path(_, _, _, _, <id>, _, _, _, _, _))> t
        ; variableRefs := <strip-annos; isect> (variablesDefs, variables)
        ; <try(!(<length> variableRefs, 1); gt; !t; generate-error(|ctx, "Not yet supported: expressions with multiple variables"))> t
 
@@ -366,7 +366,7 @@ rules // CHEAPEST
     with <generate-error(|ctx, "COST clause only allowed in combination with CHEAPEST")> t
 
   nabl-constraint(|ctx, metadata):
-    CostClause(ExpressionPlusType(exp, type@Type(t))) -> <fail>
+    CostClause(ExpressionPlusType(exp, type@Type(t, _))) -> <fail>
     where <get-union-type(|metadata); ?AmbiguousType()> (type, <get-default-decimal-type(|metadata)>)
     with  <generate-error(|ctx, $<COST clause expects a numeric but a <t> was given>)> exp
 rules // literals
@@ -418,9 +418,9 @@ rules // IN predicate and CASE expression
   nabl-constraint(|ctx, metadata):
     inPredicate@InPredicate(exp, Array(valueExpressions)) -> <fail>
     where [x|xs] := valueExpressions
-        ; <?ExpressionPlusType(_, Type(t2))> := x
+        ; <?ExpressionPlusType(_, Type(t2, _))> := x
     with // check that type of expression on left-hand of IN is compatible with expression of list elements
-         if <?ExpressionPlusType(_, Type(t1)); not(is-compatible-type(|x, metadata))> exp
+         if <?ExpressionPlusType(_, Type(t1, _)); not(is-compatible-type(|x, metadata))> exp
          then <generate-error(|ctx, $[The IN predicate is undefined for left-hand operand type [t1] and list value type [t2]])> inPredicate
          end
 
@@ -429,30 +429,30 @@ rules // IN predicate and CASE expression
        ; <map(generate-compatible-type-exepected-error(|ctx, t2))> incompatible-expressions
 
   generate-compatible-type-exepected-error(|ctx, expectedType) =
-    ?ExpressionPlusType(<id>, Type(t));
+    ?ExpressionPlusType(<id>, Type(t, _));
     generate-error(|ctx, $<Expression of a type compatible with <expectedType> expected but a <t> was given>)
 
   nabl-constraint(|ctx):
-    IfElse(ExpressionPlusType(exp, Type(t)), _, _) -> <fail>
+    IfElse(ExpressionPlusType(exp, Type(t, _)), _, _) -> <fail>
     where <not(?"BOOLEAN")> t
     with <generate-error(|ctx, $<BOOLEAN expected but a <t> was given>)> exp
 
   nabl-constraint(|ctx, metadata):
-   ExpressionPlusType(IfElse(_, ExpressionPlusType(_, type1@Type(t1)), elseExpPlusType@ExpressionPlusType(_, Type(_))), AmbiguousType()) -> <fail>
+   ExpressionPlusType(IfElse(_, ExpressionPlusType(_, type1@Type(t1, _)), elseExpPlusType@ExpressionPlusType(_, Type(_, _))), AmbiguousType()) -> <fail>
    with <generate-compatible-type-exepected-error(|ctx, t1)> elseExpPlusType
 
   nabl-constraint(|ctx):
-    SimpleCase(ExpressionPlusType(exp, Type(t)), _, _, _) -> <fail>
+    SimpleCase(ExpressionPlusType(exp, Type(t, _)), _, _, _) -> <fail>
     with if <is-unsupported-CASE-type> t
          then <generate-error(|ctx, $[CASE does not allow [t] input])> exp
          end
 
   nabl-constraint(|ctx):
     IfElse(if, then, else) -> <fail>
-    with if <?ExpressionPlusType(thenExp, Type(<id>)); ?thenType; is-unsupported-CASE-type> then
+    with if <?ExpressionPlusType(thenExp, Type(<id>, _)); ?thenType; is-unsupported-CASE-type> then
          then <generate-error(|ctx, $[CASE does not allow [thenType] output])> thenExp
          end
-       ; if <?ExpressionPlusType(elseExp, Type(<id>)); ?elseType; is-unsupported-CASE-type> else
+       ; if <?ExpressionPlusType(elseExp, Type(<id>, _)); ?elseType; is-unsupported-CASE-type> else
          then <generate-error(|ctx, $[CASE does not allow [elseType] output])> elseExp
          end
 
@@ -461,7 +461,7 @@ rules // IN predicate and CASE expression
 rules // IS SOURCE OF and IS DESTINATION OF
 
   nabl-constraint(|ctx):
-    SourceDestinationPredicate(ExpressionPlusType(exp1, Type(t1)), ExpressionPlusType(exp2, Type(t2)), _) -> <fail>
+    SourceDestinationPredicate(ExpressionPlusType(exp1, Type(t1, _)), ExpressionPlusType(exp2, Type(t2, _)), _) -> <fail>
     with if <not(?"VERTEX")> t1
          then <generate-error(|ctx, "Vertex reference expected")> exp1
          end
@@ -530,7 +530,7 @@ rules // MODIFY
        ; <batch-generate-error(|ctx, "Only a single DELETE clause is allowed per query; use commas to delete multiple elements in a single DELETE clause")> additionalDeleteClauses
 
   nabl-constraint(|ctx):
-    SetProperty(_, ExpressionPlusType(exp, Type(t))) -> <fail>
+    SetProperty(_, ExpressionPlusType(exp, Type(t, _))) -> <fail>
     where <?"VERTEX" + ?"EDGE"> t
     with <generate-error(|ctx, "Cannot set the value of a property to a vertex or an edge")> exp
 
@@ -588,13 +588,13 @@ rules // MODIFY
 
   nabl-constraint(|ctx):
     AstPlusMetadata(ast, metadata) -> <fail>
-    with vertexDefinititions := <collect(?Vertex(_, <id>, _))> ast
+    with vertexDefinititions := <collect(?Vertex(_, <id>, _, _))> ast
        ; vertexLabels := <get-vertex-labels(|metadata)>
        ; if <not(?None())> vertexLabels
          then unresolvedVertexLabels := <collect(get-unresolved-label(|vertexDefinititions, vertexLabels))> ast
             ; <batch-generate-error(|ctx, "Vertex label does not exist")> unresolvedVertexLabels
          end
-       ; edgeDefinititions := <collect(?Edge(_, _, _, _, <id>, _))> ast
+       ; edgeDefinititions := <collect(?Edge(_, _, _, _, <id>, _, _))> ast
        ; edgeLabels := <get-edge-labels(|metadata)>
        ; if <not(?None())> edgeLabels
          then unresolvedEdgeLabels := <collect(get-unresolved-label(|edgeDefinititions, edgeLabels))> ast
@@ -635,96 +635,96 @@ rules // MODIFY
     with <generate-error(|ctx, $[Property has incompatible types for different labels])> propName
 
   nabl-constraint(|ctx):
-    ExpressionPlusType(e@UMin(ExpressionPlusType(_, Type(t))), Undefined()) -> <fail>
+    ExpressionPlusType(e@UMin(ExpressionPlusType(_, Type(t, _))), Undefined()) -> <fail>
     with <generate-error(|ctx, $[The operator - (unary minus) is undefined for the argument type [t]])> e
 
   nabl-constraint(|ctx):
-    ExpressionPlusType(e@Not(ExpressionPlusType(_, Type(t))), Undefined()) -> <fail>
+    ExpressionPlusType(e@Not(ExpressionPlusType(_, Type(t, _))), Undefined()) -> <fail>
     with <generate-error(|ctx, $[The operator NOT is undefined for the argument type [t]])> e
 
   nabl-constraint(|ctx):
-    ExpressionPlusType(e@And(ExpressionPlusType(_, Type(t1)), ExpressionPlusType(_, Type(t2))), Undefined()) -> <fail>
+    ExpressionPlusType(e@And(ExpressionPlusType(_, Type(t1, _)), ExpressionPlusType(_, Type(t2, _))), Undefined()) -> <fail>
     with <generate-error(|ctx, $[The operator AND is undefined for the argument types [t1], [t2]])> e
 
   nabl-constraint(|ctx):
-    ExpressionPlusType(e@Or(ExpressionPlusType(_, Type(t1)), ExpressionPlusType(_, Type(t2))), Undefined()) -> <fail>
+    ExpressionPlusType(e@Or(ExpressionPlusType(_, Type(t1, _)), ExpressionPlusType(_, Type(t2, _))), Undefined()) -> <fail>
     with <generate-error(|ctx, $[The operator OR is undefined for the argument types [t1], [t2]])> e
 
   nabl-constraint(|ctx):
-    ExpressionPlusType(e@Mul(ExpressionPlusType(_, Type(t1)), ExpressionPlusType(_, Type(t2))), Undefined()) -> <fail>
+    ExpressionPlusType(e@Mul(ExpressionPlusType(_, Type(t1, _)), ExpressionPlusType(_, Type(t2, _))), Undefined()) -> <fail>
     with <generate-error(|ctx, $[The operator * is undefined for the argument types [t1], [t2]])> e
 
   nabl-constraint(|ctx):
-    ExpressionPlusType(e@Add(ExpressionPlusType(_, Type(t1)), ExpressionPlusType(_, Type(t2))), Undefined()) -> <fail>
+    ExpressionPlusType(e@Add(ExpressionPlusType(_, Type(t1, _)), ExpressionPlusType(_, Type(t2, _))), Undefined()) -> <fail>
     with <generate-error(|ctx, $[The operator + is undefined for the argument types [t1], [t2]])> e
 
   nabl-constraint(|ctx):
-    ExpressionPlusType(e@Div(ExpressionPlusType(_, Type(t1)), ExpressionPlusType(_, Type(t2))), Undefined()) -> <fail>
+    ExpressionPlusType(e@Div(ExpressionPlusType(_, Type(t1, _)), ExpressionPlusType(_, Type(t2, _))), Undefined()) -> <fail>
     with <generate-error(|ctx, $[The operator / is undefined for the argument types [t1], [t2]])> e
 
   nabl-constraint(|ctx):
-    ExpressionPlusType(e@Mod(ExpressionPlusType(_, Type(t1)), ExpressionPlusType(_, Type(t2))), Undefined()) -> <fail>
+    ExpressionPlusType(e@Mod(ExpressionPlusType(_, Type(t1, _)), ExpressionPlusType(_, Type(t2, _))), Undefined()) -> <fail>
     with <generate-error(|ctx, $[The operator % is undefined for the argument types [t1], [t2]])> e
 
   nabl-constraint(|ctx):
-    ExpressionPlusType(e@Sub(ExpressionPlusType(_, Type(t1)), ExpressionPlusType(_, Type(t2))), Undefined()) -> <fail>
+    ExpressionPlusType(e@Sub(ExpressionPlusType(_, Type(t1, _)), ExpressionPlusType(_, Type(t2, _))), Undefined()) -> <fail>
     with <generate-error(|ctx, $[The operator - is undefined for the argument types [t1], [t2]])> e
 
   nabl-constraint(|ctx):
-    ExpressionPlusType(e@Eq(ExpressionPlusType(_, Type(t1)), ExpressionPlusType(_, Type(t2))), Undefined()) -> <fail>
+    ExpressionPlusType(e@Eq(ExpressionPlusType(_, Type(t1, _)), ExpressionPlusType(_, Type(t2, _))), Undefined()) -> <fail>
     with <generate-error(|ctx, $[The operator = is undefined for the argument types [t1], [t2]])> e
 
   nabl-constraint(|ctx):
-    ExpressionPlusType(e@Neq(ExpressionPlusType(_, Type(t1)), ExpressionPlusType(_, Type(t2))), Undefined()) -> <fail>
+    ExpressionPlusType(e@Neq(ExpressionPlusType(_, Type(t1, _)), ExpressionPlusType(_, Type(t2, _))), Undefined()) -> <fail>
     with <generate-error(|ctx, $[The operator <> (or !=) is undefined for the argument types [t1], [t2]])> e
 
   nabl-constraint(|ctx):
-    ExpressionPlusType(e@Gt(ExpressionPlusType(_, Type(t1)), ExpressionPlusType(_, Type(t2))), Undefined()) -> <fail>
+    ExpressionPlusType(e@Gt(ExpressionPlusType(_, Type(t1, _)), ExpressionPlusType(_, Type(t2, _))), Undefined()) -> <fail>
     with <generate-error(|ctx, $[The operator > is undefined for the argument types [t1], [t2]])> e
 
   nabl-constraint(|ctx):
-    ExpressionPlusType(e@Lt(ExpressionPlusType(_, Type(t1)), ExpressionPlusType(_, Type(t2))), Undefined()) -> <fail>
+    ExpressionPlusType(e@Lt(ExpressionPlusType(_, Type(t1, _)), ExpressionPlusType(_, Type(t2, _))), Undefined()) -> <fail>
     with <generate-error(|ctx, $[The operator < is undefined for the argument types [t1], [t2]])> e
 
   nabl-constraint(|ctx):
-    ExpressionPlusType(e@Gte(ExpressionPlusType(_, Type(t1)), ExpressionPlusType(_, Type(t2))), Undefined()) -> <fail>
+    ExpressionPlusType(e@Gte(ExpressionPlusType(_, Type(t1, _)), ExpressionPlusType(_, Type(t2, _))), Undefined()) -> <fail>
     with <generate-error(|ctx, $[The operator >= is undefined for the argument types [t1], [t2]])> e
 
   nabl-constraint(|ctx):
-    ExpressionPlusType(e@Lte(ExpressionPlusType(_, Type(t1)), ExpressionPlusType(_, Type(t2))), Undefined()) -> <fail>
+    ExpressionPlusType(e@Lte(ExpressionPlusType(_, Type(t1, _)), ExpressionPlusType(_, Type(t2, _))), Undefined()) -> <fail>
     with <generate-error(|ctx, $[The operator <= is undefined for the argument types [t1], [t2]])> e
 
   nabl-constraint(|ctx):
-    ExpressionPlusType(e@Cct(ExpressionPlusType(_, Type(t1)), ExpressionPlusType(_, Type(t2))), Undefined()) -> <fail>
+    ExpressionPlusType(e@Cct(ExpressionPlusType(_, Type(t1, _)), ExpressionPlusType(_, Type(t2, _))), Undefined()) -> <fail>
     with <generate-error(|ctx, $[The operator || is undefined for the argument types [t1], [t2]])> e
 
   nabl-constraint(|ctx):
     ExpressionPlusType(aggregation, Undefined()) -> <fail>
-    where <?SUM(_, ExpressionPlusType(_, Type(t))) +
-           ?MIN(_, ExpressionPlusType(_, Type(t))) +
-           ?MAX(_, ExpressionPlusType(_, Type(t))) +
-           ?AVG(_, ExpressionPlusType(_, Type(t))) +
-           ?ARRAY-AGG(_, ExpressionPlusType(_, Type(t))) +
-           ?JSON-ARRAYAGG(ExpressionPlusType(_, Type(t)), _, _, _, _) +
-           ?LISTAGG(_, ExpressionPlusType(_, Type(t)), _)> aggregation
+    where <?SUM(_, ExpressionPlusType(_, Type(t, _))) +
+           ?MIN(_, ExpressionPlusType(_, Type(t, _))) +
+           ?MAX(_, ExpressionPlusType(_, Type(t, _))) +
+           ?AVG(_, ExpressionPlusType(_, Type(t, _))) +
+           ?ARRAY-AGG(_, ExpressionPlusType(_, Type(t, _))) +
+           ?JSON-ARRAYAGG(ExpressionPlusType(_, Type(t, _)), _, _, _, _) +
+           ?LISTAGG(_, ExpressionPlusType(_, Type(t, _)), _)> aggregation
     with operation := <get-constructor; try(?"ARRAY-AGG"; !"ARRAY_AGG" + ?"JSON-ARRAYAGG"; !"JSON_ARRAYAGG")> aggregation
        ; <generate-error(|ctx, $[The aggregate [operation] is undefined for the argument type [t]])> aggregation
 
   // check that WHERE clauses contains boolean expressions
   nabl-constraint(|ctx):
     Constraints(constraints) -> <fail>
-    where ExpressionPlusType(exp, Type(t)) := <remove-all(?ExpressionPlusType(_, Type("BOOLEAN"))); Hd> constraints
+    where ExpressionPlusType(exp, Type(t, _)) := <remove-all(?ExpressionPlusType(_, Type("BOOLEAN", _))); Hd> constraints
     with <generate-error(|ctx, $<WHERE clause expects a BOOLEAN but a <t> was given>)> exp
 
   // check that HAVING clauses contains boolean expressions
   nabl-constraint(|ctx):
-    HavingClause(ExpressionPlusType(exp, Type(t))) -> <fail>
+    HavingClause(ExpressionPlusType(exp, Type(t, _))) -> <fail>
     where <not(?"BOOLEAN")> t
     with <generate-error(|ctx, $<HAVING clause expects a BOOLEAN but a <t> was given>)> exp
 
   // check that ORDER BY does not contain vertex/edge/array terms
   nabl-constraint(|ctx):
-    OrderByElem(ExpressionPlusType(exp, Type(t)), _, version) -> <fail>
+    OrderByElem(ExpressionPlusType(exp, Type(t, _)), _, version) -> <fail>
     where <not(?"v1.0")> version
         ; <?"VERTEX" + ?"EDGE" + string-starts-with(|"ARRAY<") + string-starts-with(|"SET<")> t
     with <generate-error(|ctx, $[Cannot order by [t]])> exp
@@ -732,12 +732,12 @@ rules // MODIFY
   error-duplicate-var-outer-query = !"Duplicate variable (variable with same name is passed from an outer query)"
 
   nabl-constraint(|ctx):
-    Vertex(Identifier(v, _), _, Correlation(ExpressionPlusType(VarRef(Identifier(outer-var, _), _), type))) -> <fail>
-    where <not(?Type("VERTEX"))> type
+    Vertex(Identifier(v, _), _, Correlation(ExpressionPlusType(VarRef(Identifier(outer-var, _), _), type)), _) -> <fail>
+    where <not(?Type("VERTEX", _))> type
     with <generate-error(|ctx, <error-duplicate-var-outer-query>)> v
 
   nabl-constraint(|ctx):
-    Edge(_, Identifier(e, _), _, _, _, Correlation(ExpressionPlusType(VarRef(Identifier(outer-var, _), _), type))) -> <fail>
+    Edge(_, Identifier(e, _), _, _, _, Correlation(ExpressionPlusType(VarRef(Identifier(outer-var, _), _), type)), _) -> <fail>
     with <generate-error(|ctx, <error-duplicate-var-outer-query>)> e
 
   nabl-constraint(|ctx):
@@ -762,17 +762,17 @@ rules // MODIFY
 
   // SUBSTRING
   nabl-constraint(|ctx, metadata):
-    CharacterSubstring(ExpressionPlusType(exp, type@Type(t)), _, _) -> <fail>
+    CharacterSubstring(ExpressionPlusType(exp, type@Type(t, _)), _, _) -> <fail>
     where <get-union-type(|metadata); ?AmbiguousType()> (type, <get-default-string-type(|metadata)>)
     with  <generate-error(|ctx, $<Character string expected but a <t> was given>)> exp
 
   nabl-constraint(|ctx, metadata):
-    CharacterSubstring(_, ExpressionPlusType(exp, type@Type(t)), _) -> <fail>
+    CharacterSubstring(_, ExpressionPlusType(exp, type@Type(t, _)), _) -> <fail>
     where <get-union-type(|metadata); ?AmbiguousType()> (type, <get-default-long-integer-type(|metadata)>)
     with  <generate-error(|ctx, $<Numeric expected but a <t> was given>)> exp
 
   nabl-constraint(|ctx, metadata):
-    CharacterSubstring(_, _, Some(StringLength(ExpressionPlusType(exp, type@Type(t))))) -> <fail>
+    CharacterSubstring(_, _, Some(StringLength(ExpressionPlusType(exp, type@Type(t, _))))) -> <fail>
     where <get-union-type(|metadata); ?AmbiguousType()> (type, <get-default-long-integer-type(|metadata)>)
     with  <generate-error(|ctx, $<Numeric expected but a <t> was given>)> exp
 
@@ -787,31 +787,31 @@ rules // MODIFY
 
   nabl-constraint(|ctx, metadata):
     FunctionCall(None(), Identifier("VERTEX_EQUAL", _), [ExpressionPlusType(exp1, t1), ExpressionPlusType(exp2, t2)]) -> <fail>
-    with if <not(?Type("VERTEX"))> t1
+    with if <not(?Type("VERTEX", _))> t1
          then <generate-error(|ctx, "Vertex expected")> exp1
          end
-       ; if <not(?Type("VERTEX"))> t2
+       ; if <not(?Type("VERTEX", _))> t2
          then <generate-error(|ctx, "Vertex expected")> exp2
          end
 
   nabl-constraint(|ctx, metadata):
     FunctionCall(None(), Identifier("EDGE_EQUAL", _), [ExpressionPlusType(exp1, t1), ExpressionPlusType(exp2, t2)]) -> <fail>
-    with if <not(?Type("EDGE"))> t1
+    with if <not(?Type("EDGE", _))> t1
          then <generate-error(|ctx, "Edge expected")> exp1
          end
-       ; if <not(?Type("EDGE"))> t2
+       ; if <not(?Type("EDGE", _))> t2
          then <generate-error(|ctx, "Edge expected")> exp2
          end
 
   nabl-constraint(|ctx, metadata):
     FunctionCall(None(), Identifier("VERTEX_ID", _), [ExpressionPlusType(exp, t)]) -> <fail>
-    with if <not(?Type("VERTEX"))> t
+    with if <not(?Type("VERTEX", _))> t
          then <generate-error(|ctx, "Vertex expected")> exp
          end
 
   nabl-constraint(|ctx, metadata):
     FunctionCall(None(), Identifier("EDGE_ID", _), [ExpressionPlusType(exp, t)]) -> <fail>
-    with if <not(?Type("EDGE"))> t
+    with if <not(?Type("EDGE", _))> t
          then <generate-error(|ctx, "Edge expected")> exp
          end
 
@@ -833,12 +833,12 @@ rules // GRAPH_TABLE
         end
 
   check-GraphTable-restriction(|ctx):
-    Vertex(e@Identifier(_, v), _, Correlation(_)) -> <fail>
+    Vertex(e@Identifier(_, v), _, Correlation(_), _) -> <fail>
     with <generate-error(|ctx, $<GRAPH_TABLE restriction: vertex sharing between inner and outer query is not allowed, introduce a new variable name like <v>_new and use WHERE vertex_equal(<v>, <v>_new)>)> e
 
   check-GraphTable-restriction(|ctx):
     SelectList(elems) -> <fail>
-    with <filter(?ExpAsVar(ExpressionPlusType(_, Type("VERTEX")), _, _, _) + ?ExpAsVar(ExpressionPlusType(_, Type("EDGE")), _, _, _)); batch-generate-error(|ctx, "GRAPH_TABLE restriction: cannot project vertex or edge objects")> elems
+    with <filter(?ExpAsVar(ExpressionPlusType(_, Type("VERTEX", _)), _, _, _) + ?ExpAsVar(ExpressionPlusType(_, Type("EDGE", _)), _, _, _)); batch-generate-error(|ctx, "GRAPH_TABLE restriction: cannot project vertex or edge objects")> elems
 
   check-GraphTable-restriction(|ctx):
     e@FunctionCall(None(), Identifier(functionName, _), [_]) -> <fail>
@@ -847,7 +847,7 @@ rules // GRAPH_TABLE
 
   check-GraphTable-restriction(|ctx):
     FunctionCall(None(), Identifier("ALL_DIFFERENT", _), expressionsPlusType) -> <fail>
-    with nonGraphElements := <filter(not(?ExpressionPlusType(_, Type("VERTEX")) + ?ExpressionPlusType(_, Type("EDGE"))))> expressionsPlusType
+    with nonGraphElements := <filter(not(?ExpressionPlusType(_, Type("VERTEX", _)) + ?ExpressionPlusType(_, Type("EDGE", _))))> expressionsPlusType
        ; <batch-generate-error(|ctx, "GRAPH_TABLE restriction: ALL_DIFFERENT predicate allows vertex and edge inputs only")> nonGraphElements
 
   check-GraphTable-restriction(|ctx):
@@ -855,11 +855,11 @@ rules // GRAPH_TABLE
     with <generate-error(|ctx, "GRAPH_TABLE restriction: JAVA_REGEXP_LIKE is unsupported, please try to use another regexp function if one is available or implement a UDF otherwise")> e
 
   check-GraphTable-restriction(|ctx):
-    e@FunctionCall(None(), Identifier("IN_DEGREE", _), [ExpressionPlusType(_, Type("VERTEX"))]) -> <fail>
+    e@FunctionCall(None(), Identifier("IN_DEGREE", _), [ExpressionPlusType(_, Type("VERTEX", _))]) -> <fail>
     with <generate-error(|ctx, "GRAPH_TABLE restriction: IN_DEGREE not supported, use a subquery instead")> e
 
   check-GraphTable-restriction(|ctx):
-    e@FunctionCall(None(), Identifier("OUT_DEGREE", _), [ExpressionPlusType(_, Type("VERTEX"))]) -> <fail>
+    e@FunctionCall(None(), Identifier("OUT_DEGREE", _), [ExpressionPlusType(_, Type("VERTEX", _))]) -> <fail>
     with <generate-error(|ctx, "GRAPH_TABLE restriction: OUT_DEGREE not supported, use a subquery instead")> e
 
   check-GraphTable-restriction(|ctx):
@@ -873,7 +873,7 @@ rules // GRAPH_TABLE
   check-GraphTable-restriction(|ctx):
     e@Eq(ExpressionPlusType(exp1, t1), ExpressionPlusType(exp2, _)) -> <fail>
     where <is-vertex-or-edge-type> t1
-    with if <?Type("VERTEX")> t1
+    with if <?Type("VERTEX", _)> t1
          then <generate-error(|ctx, $<GRAPH_TABLE restriction: use VERTEX_EQUAL(<<origin-text> exp1>, <<origin-text> exp2>)>)> e
          else <generate-error(|ctx, $<GRAPH_TABLE restriction: use EDGE_EQUAL(<<origin-text> exp1>, <<origin-text> exp2>)>)> e
          end
@@ -881,7 +881,7 @@ rules // GRAPH_TABLE
   check-GraphTable-restriction(|ctx):
     e@Neq(ExpressionPlusType(exp1, t1), ExpressionPlusType(exp2, _)) -> <fail>
     where <is-vertex-or-edge-type> t1
-    with if <?Type("VERTEX")> t1
+    with if <?Type("VERTEX", _)> t1
          then <generate-error(|ctx, $<GRAPH_TABLE restriction: use NOT VERTEX_EQUAL(<<origin-text> exp1>, <<origin-text> exp2>)>)> e
          else <generate-error(|ctx, $<GRAPH_TABLE restriction: use NOT EDGE_EQUAL(<<origin-text> exp1>, <<origin-text> exp2>)>)> e
          end
@@ -905,10 +905,17 @@ rules // GRAPH_TABLE
 
   check-GraphTable-restriction(|ctx):
     t -> <fail>
-    where exp := <get-exp-from-aggregation; (?ExpressionPlusType(_, Type("VERTEX")) + ?ExpressionPlusType(_, Type("EDGE")))> t
+    where exp := <get-exp-from-aggregation; (?ExpressionPlusType(_, Type("VERTEX", _)) + ?ExpressionPlusType(_, Type("EDGE", _)))> t
     with <generate-error(|ctx, "GRAPH_TABLE restriction: aggregation does not allow vertex or edge input; use the vertex/edge identifier or a property instead")> exp
 
   nabl-constraint(|ctx):
     DerivedTable(Some(GraphTable()), Subquery(NormalizedQuery(_, selectClause, _, _, _, CreateOneGroup(), _, _, _, _)), None()) -> <fail>
     with aggregations := <collect(is-aggregate)> selectClause
        ; <batch-generate-error(|ctx, "COLUMNS clause allows only aggregations that access at least one group variable")> aggregations
+
+rules // OPTIONAL MATCH
+
+  nabl-constraint(|ctx):
+    GraphPattern(vertices, edges, _, None() /* Match without OPTIONAL keyword */) -> <fail>
+    with optionallyBoundVertices := <collect(?Vertex(<id>, _, Correlation(ExpressionPlusType(_, Type("VERTEX", [OptionallyBound()]))), _))> (vertices, edges)
+       ; <batch-generate-error(|ctx, "Variable is optionally bound; use OPTIONAL MATCH")> optionallyBoundVertices
