@@ -3,6 +3,8 @@ package oracle.pgql.lang.parse;
 import org.metaborg.parsetable.IParseTable;
 import org.metaborg.parsetable.ParseTableReadException;
 import org.metaborg.parsetable.ParseTableVariant;
+import org.spoofax.interpreter.terms.IStrategoInt;
+import org.spoofax.interpreter.terms.IStrategoString;
 import org.spoofax.interpreter.terms.IStrategoTerm;
 import org.spoofax.jsglr.client.imploder.ImploderOriginTermFactory;
 import org.spoofax.jsglr2.*;
@@ -22,12 +24,12 @@ import org.spoofax.terms.TermFactory;
 import org.strategoxt.lang.Context;
 import pgqllang.trans.trans;
 import pgqllang.trans.pgql_trans_0_0;
+import pgqllang.trans.get_errors_and_offsets_0_0;
 
 import java.io.*;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.util.stream.Stream;
-
+import java.util.stream.Collectors;
 
 public class Main {
 
@@ -39,11 +41,43 @@ public class Main {
       System.exit(1);
     }
 
-    IStrategoTerm ast = parseAndImplode(Files.readString(Path.of(args[0])), getParser(getParseTable()));
+    String queryText = Files.readString(Path.of(args[0]));
+    IStrategoTerm ast = parseAndImplode(queryText, getParser(getParseTable()));
 
-    final Context c = trans.init(new Context(new ImploderOriginTermFactory(new TermFactory())));
-    final IStrategoTerm result = pgql_trans_0_0.instance.invoke(c, ast);
-    System.out.println(result);
+    Context c = trans.init(new Context(new ImploderOriginTermFactory(new TermFactory())));
+    IStrategoTerm analysisResult = pgql_trans_0_0.instance.invoke(c, ast);
+    System.out.println(analysisResult);
+    System.out.println();
+
+    IStrategoTerm errorMessagesT = get_errors_and_offsets_0_0.instance.invoke(c, analysisResult);
+    String errorMessages = "";
+    for (IStrategoTerm error : errorMessagesT.getSubterms()) {
+      if (!errorMessages.isEmpty()) {
+        errorMessages += "\n\n";
+      }
+
+      IStrategoTerm offset = error.getSubterm(0);
+      int startOffset = ((IStrategoInt) offset.getSubterm(0)).intValue();
+      int endOffset = ((IStrategoInt) offset.getSubterm(1)).intValue();
+      int lineNumber = 1;
+      int currentOffset = 0;
+      int columnNumber = -1;
+      int length = -1;
+      for (String line : queryText.lines().collect(Collectors.toList())) {
+        if (currentOffset + line.length() < startOffset) {
+          currentOffset += line.length() + 1;
+          lineNumber++;
+        } else {
+          columnNumber = startOffset - currentOffset;
+          length = Math.min(endOffset - startOffset, line.length() - columnNumber);
+          break;
+        }
+      }
+
+      String message = ((IStrategoString) error.getSubterm(1)).stringValue();
+      errorMessages += toErrorMessage(queryText, lineNumber, columnNumber, length, false, message);
+    }
+    System.out.println(errorMessages);
   }
 
   private static JSGLR2Implementation<IParseForest, ?, ?, IStrategoTerm, ?, ?> getParser(IParseTable parseTable) {
@@ -68,23 +102,39 @@ public class Main {
     if (result.isSuccess()) {
       return ((JSGLR2Success<IStrategoTerm>) result).ast;
     } else {
-      System.out.println(toErrorMessage(query, ((JSGLR2Failure<IStrategoTerm>) result).parseFailure.failureCause.position));
+      Position pos = ((JSGLR2Failure<IStrategoTerm>) result).parseFailure.failureCause.position;
+      System.out.println(toErrorMessage(query, pos.line, pos.column - 1, -1, true, null));
       System.exit(1);
       return null;
     }
   }
-  
-  private static String toErrorMessage(String query, Position position) {
+
+  private static String toErrorMessage(String query, int lineNumber, int columnNumber, int length, boolean parseError,
+      String message) {
     if (query.isBlank()) {
       return "Query text is empty";
     }
 
-    String result = "Error(s) in line " + position.line + ":\n\n";
-    String line = query.lines().skip(position.line - 1).findFirst().get();
+    String result = "Error(s) in line " + lineNumber + ":\n\n";
+    String line = query.lines().skip(lineNumber - 1).findFirst().get();
     result += ERROR_MESSSAGE_INDENTATION + line + "\n";
-    String token = line.substring(position.column - 1).split("\\s+")[0];
-    result += ERROR_MESSSAGE_INDENTATION + " ".repeat(position.column - 1) + "^".repeat(token.length()) + "\n";
-    result += ERROR_MESSSAGE_INDENTATION + "Syntax error, '" + token + "' not expected";
+
+    String originText;
+    if (parseError) {
+      // parse errors are always 1 character in length, which we improve to include the entire next token
+      originText = line.substring(columnNumber).split("\\s+")[0];
+      length = originText.length();
+    } else {
+      originText = line.substring(columnNumber, columnNumber + length);
+    }
+
+    result += ERROR_MESSSAGE_INDENTATION + " ".repeat(columnNumber) + "^".repeat(length) + "\n";
+
+    if (parseError)
+      result += ERROR_MESSSAGE_INDENTATION + "Syntax error, '" + originText + "' not expected";
+    else
+      result += message;
+
     return result;
   }
 }

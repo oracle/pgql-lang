@@ -44,6 +44,10 @@ rules
     with failtask := <task-create-fail(|ctx)>
        ; <task-create-error-on-failure(|ctx, failtask, message)> term
 
+  get-errors-and-offsets = get-pgql-errors; map(replace-term-by-offset) // invoked from Java only
+
+  replace-term-by-offset = ErrorMessage(origin-offset, id)
+
 rules // Aggregation, unresolved variables, duplicate variables
 
   pgql-error:
