@@ -213,7 +213,7 @@ public class SyntaxErrorsTest extends AbstractPgqlTest {
 
   @Test
   public void testUnsupportedSubqueryInFromClause() throws Exception {
-    String query = "SELECT 1 FROM MATCH LATERAL ( SELECT * FROM MATCH (n) )";
+    String query = "SELECT 1 FROM LATERAL ( SELECT * FROM MATCH (n) )";
     GraphQuery result = pgql.parse(query).getGraphQuery();
     result.getTableExpressions(); // make sure this doesn't fail
 

@@ -36,7 +36,7 @@ rules
   nabl-check-disable-duplicate(|uri, ns) = id
 
   nabl-constraint(|ctx):
-    t@AstPlusMetadata(_, _) -> <fail>
+    t -> <fail>
     where <?AstPlusMetadata(_, _) + is-ddl-statement> t
     with <get-pgql-errors; map(to-spoofax-error(|ctx))> t
 
@@ -47,7 +47,7 @@ rules
 
   get-errors-and-offsets = get-pgql-errors; map(replace-term-by-offset) // invoked from Java only
 
-  replace-term-by-offset = ErrorMessage(origin-offset, id)
+  replace-term-by-offset = ErrorMessage(origin-offset <+ !(0, 1) /* no origin */, id)
 
 rules // Aggregation, unresolved variables, duplicate variables
 
