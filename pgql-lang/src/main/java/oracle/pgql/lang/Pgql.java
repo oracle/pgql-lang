@@ -73,7 +73,7 @@ public class Pgql implements Closeable {
 
   private static final Logger LOG = LoggerFactory.getLogger(Pgql.class);
 
-  private static final String NON_BREAKING_WHITE_SPACE_ERROR = "Illegal character '\u00a0' (non-breaking white space)"
+  public static final String NON_BREAKING_WHITE_SPACE_ERROR = "Illegal character '\u00a0' (non-breaking white space)"
       + "; use a normal space instead";
 
   private static final String ERROR_MESSSAGE_INDENTATION = "\t";

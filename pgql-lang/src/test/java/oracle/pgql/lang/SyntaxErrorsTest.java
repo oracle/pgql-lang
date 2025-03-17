@@ -278,4 +278,11 @@ public class SyntaxErrorsTest extends AbstractPgqlTest {
         "           ^^^^\n" + //
         "Aggregation in ORDER BY only allowed if SELECT has aggregations", result.getErrorMessages());
   }
+
+  @Test
+  public void testNonBreakingWhiteSpace() throws Exception {
+    String query = "SELECT x, y FROM MATCH \u00a0(n) -[e]-> (m)";
+    PgqlResult result = pgql.parse(query);
+    assertTrue(result.getErrorMessages().contains(Pgql.NON_BREAKING_WHITE_SPACE_ERROR));
+  }
 }
