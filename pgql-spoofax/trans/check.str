@@ -15,27 +15,86 @@ imports
   runtime/task/-
   type-analysis
 
-rules // Unresolved/duplicate variables
+rules
+
+  get-pgql-errors:
+    AstPlusMetadata(ast, metadata) -> <flatten-list> [errors1, errors2, errors3, errors4]
+    with errors1 := <collect(pgql-error)> ast
+       ; errors2 := <collect(pgql-error(|metadata); not(?[]))> ast
+       ; errors3 := <check-all-GraphTable-restrictions> ast
+       ; errors4 := <check-all-restrictions-outside-GraphTable> ast
+
+  generate-error(|m) = !ErrorMessage(<id>, m)
+
+  batch-generate-error(|m) = map(!ErrorMessage(<id>, m))
+
+  pgql-error = ?ErrorMessage(term, message) // for error messages previously generated during normalization
 
   nabl-check-disable-unresolved = id
   nabl-check-disable-duplicate(|uri, ns) = id
 
   nabl-constraint(|ctx):
-    query@NormalizedQuery(_, selectClause, _, _, _, group-by, having, order-by, _, _) -> <fail>
-    with unresolved-vars := <collect-in-outer-query(?VarRef(<id>))> query
-        ; if None() := group-by
-          then <batch-generate-error(|ctx, "Unresolved variable")> unresolved-vars
-          else unresolved-vars-after-grouping := <collect-in-outer-query-outside-aggregation(?VarRef(<id>))> (selectClause, having, order-by)
-             ; other-unresolved-vars := <diff> (unresolved-vars, unresolved-vars-after-grouping)
-             ; <batch-generate-error(|ctx, "Unresolved variable")> other-unresolved-vars
-             ; if CreateOneGroup() := group-by // aggregation without GROUP BY
-               then <batch-generate-error(|ctx, "Unresolved variable (did you mean to use an aggregation?)")> unresolved-vars-after-grouping
-               else <batch-generate-error(|ctx, "Unresolved variable (did you mean to use a group key?)")> unresolved-vars-after-grouping
-               end
-          end
+    t@AstPlusMetadata(_, _) -> <fail>
+    with <get-pgql-errors; map(to-spoofax-error(|ctx))> t
 
-  nabl-constraint(|ctx):
-    NormalizedQuery(_, selectOrModifyClauseWithAnnos, _, tableExpressionsWithAnnos, _, groupClauseWithAnnos, _, _, _, _) -> <fail>
+  nabl-constraint(|ctx) = is-ddl-statement; collect(pgql-error); flatten-list; map(to-spoofax-error(|ctx)); fail
+
+  to-spoofax-error(|ctx):
+    ErrorMessage(term, message) -> <id>
+    with failtask := <task-create-fail(|ctx)>
+       ; <task-create-error-on-failure(|ctx, failtask, message)> term
+
+rules // Aggregation, unresolved variables, duplicate variables
+
+  pgql-error:
+    t@NormalizedQuery(_, _, _, _, _, _, _, _, _, _) -> <not(?[])> errors
+    with selectStarElems := <collect(?SelectClause(Star(), SelectList(<id>))); concat> t
+       ; group-variables := <filter(get-group-variable-from-select-star)> selectStarElems
+       ; errors := <map(generate-error(|$[Cannot select all variables since [<id>] is a group variable but group variables cannot be selected]))> group-variables
+
+  get-group-variable-from-select-star = ?ExpAsVar(ExpressionPlusType(VarRef(Identifier(<id>, _)), _), _, _, _); ?v; origin-text; ?"*"; !v
+
+  pgql-error:
+    query@NormalizedQuery(_, selectOrModifyClause, _, _, _, _, _, _, _, _) -> <concat; not(?[])> [errors1, errors2, errors3]
+    with group-variables := <collect-in-outer-query(?CommonPathExpression(_, _, _, _, _); get-origin-positions-of-variables); concat> query
+       ; aggregations := <get-aggregations> query
+       ; varRefs-per-aggregation := <map(origin-track-forced(collect-in-outer-query(?VarRef(_, <id>)); !Some(<id>)))> aggregations
+       ; varRefs-per-aggregation-when-multiple := <filter(has-multiple-groupVarRefs(|group-variables))> varRefs-per-aggregation
+       ; errors1 := <batch-generate-error(|"Accessing multiple group variables in a single aggregation is not yet supported")> varRefs-per-aggregation-when-multiple
+
+       ; aggregations-contents := <map(get-exp-from-aggregation)> aggregations
+       ; nested-aggregations := <map(get-aggregations); concat> aggregations-contents
+       ; varRefs-per-nested-aggregation := <map(origin-track-forced(collect-in-outer-query(?VarRef(_, <id>)); !Some(<id>)))> nested-aggregations
+       ; varRef-per-nested-aggregation-no-groupVar := <filter(has-no-groupVarRefs(|group-variables))> varRefs-per-nested-aggregation
+       ; errors2 := <batch-generate-error(|"Nested aggregation not allowed here")> varRef-per-nested-aggregation-no-groupVar
+
+       ; if <?SelectClause(_, SelectList(expAsVars))> selectOrModifyClause
+         then aggregations-contents-in-select := <filter(?ExpAsVar(ExpressionPlusType(<get-exp-from-aggregation>, _), _, _, _))> expAsVars
+            ; varRefs-per-aggregation-in-select := <map(origin-track-forced(collect-in-outer-query-outside-aggregation(?VarRef(_, <id>)); !Some(<id>)))> aggregations-contents-in-select
+            ; varRef-per-aggregation-no-groupVar-in-select := <filter(has-no-groupVarRefs(|group-variables))> varRefs-per-aggregation-in-select
+            ; if <gt> (<length> varRefs-per-aggregation-in-select, <length> varRef-per-aggregation-no-groupVar-in-select)
+              then errors3 := <batch-generate-error(|"Aggregation with group variables expected since SELECT clause has another aggregation with group variables")> varRef-per-aggregation-no-groupVar-in-select
+              else errors3 := []
+              end
+         else errors3 := []
+         end
+
+   pgql-error:
+    t@Constraints(_) -> <not(?[])> errors
+    with
+      aggregations := <get-aggregations-without-group-variables> t;
+      errors := <batch-generate-error(|"Aggregation without group variables not allowed in WHERE")> aggregations
+
+  pgql-error:
+   t@GroupByClause(_) -> <not(?[])> errors
+    with
+      aggregations := <get-aggregations-without-group-variables> t;
+      errors := <batch-generate-error(|"Aggregation without group variables not allowed in GROUP BY")> aggregations
+
+  get-aggregations-without-group-variables = get-aggregations; filter(not(contains-varRef + contains-nested-aggregation))
+
+  pgql-error:
+    NormalizedQuery(_, selectOrModifyClauseWithAnnos, _, tableExpressionsWithAnnos, _, groupClauseWithAnnos, _, _, _, _) -> <concat; not(?[])> [errors1, errors2, errors3, errors4, errors5, errors6, errors7]
     with selectOrModifyClause := <strip-annos> selectOrModifyClauseWithAnnos
        ; tableExpressions := <strip-annos> tableExpressionsWithAnnos
        ; groupClause := <strip-annos> groupClauseWithAnnos
@@ -44,27 +103,28 @@ rules // Unresolved/duplicate variables
          then groupVars := <?Some(GroupByClause(<id>)); map(?ExpAsVar(_, Identifier(<id>, _), _, _))> groupClause
          else groupVars := []
          end
-       ; <generate-error-on-duplicates(|ctx, "Duplicate variable")> vars
-       ; <generate-error-on-duplicates(|ctx, "Duplicate column name in GROUP BY")> groupVars
+       ; errors1 := <generate-error-on-duplicates(|"Duplicate variable")> vars
+       ; errors2 := <generate-error-on-duplicates(|"Duplicate column name in GROUP BY")> groupVars
        ; if <?SelectClause(_, _)> selectOrModifyClause
          then selectVars := <collect-om(?ExpAsVar(_, Identifier(<id>, _), _, _), conc)> selectOrModifyClause // for e.g. SELECT n.age, n.AgE
             ; duplicateSelectVarError := "Duplicate column name in SELECT"
-            ; <generate-error-on-duplicates(|ctx, duplicateSelectVarError)> selectVars
+            ; errors3 := <generate-error-on-duplicates(|duplicateSelectVarError)> selectVars
             ; selectVarsOriginText := <collect-om(?ExpAsVar(_, Identifier(_, <id>), _, _), conc)> selectOrModifyClause // for e.g. SELECT n.age, n."age"
-            ; <generate-error-on-duplicates(|ctx, duplicateSelectVarError)> selectVarsOriginText
+            ; errors4 := <generate-error-on-duplicates(|duplicateSelectVarError)> selectVarsOriginText
             ; insertVars := []
+            ; errors5 := []
          else // MODIFY query
               insertVars := <collect-om(?VertexInsertion(Identifier(<id>, _), _, _, _) + ?DirectedEdgeInsertion(Identifier(<id>, _), _, _, _, _, _), conc)> selectOrModifyClause
-            ; <generate-error-on-duplicates(|ctx, "Duplicate variable in INSERT")> insertVars
+            ; errors3 := <generate-error-on-duplicates(|"Duplicate variable in INSERT")> insertVars
             ; updateVars := <collect-om(?Update(ExpressionPlusType(VarRef(Identifier(<id>, _)), _), _) + ?Update(ExpressionPlusType(VarRef(Identifier(<id>, _), _), _), _), conc)> selectOrModifyClause
             ; updates-of-inserts := <isect> (updateVars, insertVars)
-            ; <batch-generate-error(|ctx, "Cannot update an element that is being inserted")> updates-of-inserts
+            ; errors4 := <batch-generate-error(|"Cannot update an element that is being inserted")> updates-of-inserts
             ; deleteVars := <(collect-one(?DeleteClause(<id>)) <+ ![]); filter(?ExpressionPlusType(VarRef(Identifier(<id>, _), _), _))> selectOrModifyClause
             ; sourceVertices := <collect-om(?DirectedEdgeInsertion(_, _, ExpressionPlusType(VarRef(Identifier(<id>, _), _), _), _, _, _), conc)> selectOrModifyClause
             ; destinationVertices := <collect-om(?DirectedEdgeInsertion(_, _, _, ExpressionPlusType(VarRef(Identifier(<id>, _), _), _), _, _), conc)> selectOrModifyClause
             ; all-updateVars := <conc> (updateVars, sourceVertices, destinationVertices)
             ; deletes-of-updates := <isect> (all-updateVars, deleteVars)
-            ; <batch-generate-error(|ctx, "Element is deleted in DELETE clause")> deletes-of-updates
+            ; errors5 := <batch-generate-error(|"Element is deleted in DELETE clause")> deletes-of-updates
          end
 
        ; if <?Some(_)> groupClause
@@ -72,53 +132,32 @@ rules // Unresolved/duplicate variables
          else nonAnonymousGroupVars := []
          end
        ; redefinitions-in-groupBy := <isect> (nonAnonymousGroupVars, vars)
-       ; <batch-generate-error(|ctx, "Duplicate variable: variable already defined in the FROM clause")> redefinitions-in-groupBy
+       ; errors6 := <batch-generate-error(|"Duplicate variable: variable already defined in the FROM clause")> redefinitions-in-groupBy
 
        ; if <?None()> groupClause
          then redefinition-in-modify := <isect> (insertVars, vars)
-            ; <batch-generate-error(|ctx, "Duplicate variable: variable already defined in the FROM clause")> redefinition-in-modify
+            ; errors7 := <batch-generate-error(|"Duplicate variable: variable already defined in the FROM clause")> redefinition-in-modify
          else if <?ModifyClause(_)> selectOrModifyClause
               then redefinitions-in-modify := <isect> (insertVars, nonAnonymousGroupVars)
-                 ; <batch-generate-error(|ctx, "Duplicate variable: variable already defined in the GROUP BY clause")> redefinitions-in-modify
+                 ; errors7 := <batch-generate-error(|"Duplicate variable: variable already defined in the GROUP BY clause")> redefinitions-in-modify
+              else errors7 := []
               end
          end
 
-  nabl-constraint(|ctx):
-    query@NormalizedQuery(_, selectOrModifyClause, _, _, _, _, _, _, _, _) -> <fail>
-    with group-variables := <collect-in-outer-query(?CommonPathExpression(_, _, _, _, _); get-origin-positions-of-variables); concat> query
-       ; aggregations := <get-aggregations> query
-       ; varRefs-per-aggregation := <map(origin-track-forced(collect-in-outer-query(?VarRef(_, <id>)); !Some(<id>)))> aggregations
-       ; varRefs-per-aggregation-when-multiple := <filter(has-multiple-groupVarRefs(|group-variables))> varRefs-per-aggregation
-       ; <batch-generate-error(|ctx, "Accessing multiple group variables in a single aggregation is not yet supported")> varRefs-per-aggregation-when-multiple
-
-       ; aggregations-contents := <map(get-exp-from-aggregation)> aggregations
-       ; nested-aggregations := <map(get-aggregations); concat> aggregations-contents
-       ; varRefs-per-nested-aggregation := <map(origin-track-forced(collect-in-outer-query(?VarRef(_, <id>)); !Some(<id>)))> nested-aggregations
-       ; varRef-per-nested-aggregation-no-groupVar := <filter(has-no-groupVarRefs(|group-variables))> varRefs-per-nested-aggregation
-       ; <batch-generate-error(|ctx, "Nested aggregation not allowed here")> varRef-per-nested-aggregation-no-groupVar
-
-       ; if <?SelectClause(_, SelectList(expAsVars))> selectOrModifyClause
-         then aggregations-contents-in-select := <filter(?ExpAsVar(ExpressionPlusType(<get-exp-from-aggregation>, _), _, _, _))> expAsVars
-            ; varRefs-per-aggregation-in-select := <map(origin-track-forced(collect-in-outer-query-outside-aggregation(?VarRef(_, <id>)); !Some(<id>)))> aggregations-contents-in-select
-            ; varRef-per-aggregation-no-groupVar-in-select := <filter(has-no-groupVarRefs(|group-variables))> varRefs-per-aggregation-in-select
-            ; if <gt> (<length> varRefs-per-aggregation-in-select, <length> varRef-per-aggregation-no-groupVar-in-select)
-              then <batch-generate-error(|ctx, "Aggregation with group variables expected since SELECT clause has another aggregation with group variables")> varRef-per-aggregation-no-groupVar-in-select
-              end
-         end
-
-   nabl-constraint(|ctx):
-    t@Constraints(_) -> <fail>
-    with
-      aggregations := <get-aggregations-without-group-variables> t;
-      <batch-generate-error(|ctx, "Aggregation without group variables not allowed in WHERE")> aggregations
-
-  nabl-constraint(|ctx):
-   t@GroupByClause(_) -> <fail>
-    with
-      aggregations := <get-aggregations-without-group-variables> t;
-      <batch-generate-error(|ctx, "Aggregation without group variables not allowed in GROUP BY")> aggregations
-
-  get-aggregations-without-group-variables = get-aggregations; filter(not(contains-varRef + contains-nested-aggregation))
+  pgql-error:
+    query@NormalizedQuery(_, selectClause, _, _, _, group-by, having, order-by, _, _) -> <concat; not(?[])> [errors1, errors2]
+    with unresolved-vars := <collect-in-outer-query(?VarRef(<id>))> query
+        ; if None() := group-by
+          then errors1 := <batch-generate-error(|"Unresolved variable")> unresolved-vars
+             ; errors2 := []
+          else unresolved-vars-after-grouping := <collect-in-outer-query-outside-aggregation(?VarRef(<id>))> (selectClause, having, order-by)
+             ; other-unresolved-vars := <diff> (unresolved-vars, unresolved-vars-after-grouping)
+             ; errors1 := <batch-generate-error(|"Unresolved variable")> other-unresolved-vars
+             ; if CreateOneGroup() := group-by // aggregation without GROUP BY
+               then errors2 := <batch-generate-error(|"Unresolved variable (did you mean to use an aggregation?)")> unresolved-vars-after-grouping
+               else errors2 := <batch-generate-error(|"Unresolved variable (did you mean to use a group key?)")> unresolved-vars-after-grouping
+               end
+          end
 
   contains-varRef = oncetd(?VarRef(_, _))
 
@@ -137,88 +176,80 @@ rules // Unresolved/duplicate variables
     t@Some(varRefs-in-aggregation) -> <id>
     where group-varRefs := <isect; ?[]> (group-variables, varRefs-in-aggregation)
 
-  generate-error-on-duplicates(|ctx, message) = ?vars; map(generate-error-on-duplicate(|ctx, vars, message))
+  generate-error-on-duplicates(|message) = ?vars; filter(generate-error-on-duplicate(|vars, message))
 
-  generate-error-on-duplicate(|ctx, vars, message):
-    var -> <id>
+  generate-error-on-duplicate(|vars, message):
+    var -> error
     with vars' := <filter(?var)> vars
-       ; <try(gt; !var; generate-error(|ctx, message))> (<length> vars', 1)
-
-  nabl-constraint(|ctx):
-    SelectClause(Star(), SelectList(selectElements)) -> <fail>
-    with group-variables := <filter(get-group-variable-from-select-star)> selectElements
-       ; <map(generate-error(|ctx, $[Cannot select all variables since [<id>] is a group variable but group variables cannot be selected]))> group-variables
-
-  get-group-variable-from-select-star = ?ExpAsVar(ExpressionPlusType(VarRef(Identifier(<id>, _)), _), _, _, _); ?v; origin-text; ?"*"; !v
+    where error := <gt; !var; generate-error(|message)> (<length> vars', 1)
 
 rules // in-lined constraints
 
-  nabl-constraint(|ctx):
-    ReferenceInInlinedConstraint(v) -> <fail>
+  pgql-error:
+    ReferenceInInlinedConstraint(v) -> error
     with
-      <generate-error(|ctx, $['[v]' should be omitted here])> v
+      error := <generate-error(|$['[v]' should be omitted here])> v
 
-  nabl-constraint(|ctx):
-    CrossReferenceInInlinedConstraint(v) -> <fail>
+  pgql-error:
+    CrossReferenceInInlinedConstraint(v) -> error
     with
-      <generate-error(|ctx, $['[v]' is not visible here])> v
+      error := <generate-error(|$['[v]' is not visible here])> v
 
 rules // vertex in WHERE without rounded brackets
 
-  nabl-constraint(|ctx):
-    Vertex(v, _, _, _) -> <fail>
+  pgql-error:
+    Vertex(v, _, _, _) -> error
     where
       <string-ends-with(|<VERTEX_WITHOUT_BRACKETS>)> v
     with
-      <generate-error(|ctx, $<Vertices need to be surrounded by brackets: (<<origin-text> v>)>)> v
+      error := <generate-error(|$<Vertices need to be surrounded by brackets: (<<origin-text> v>)>)> v
 
 rules
 
-  nabl-constraint(|ctx):
-    NormalizedQuery(_, SelectClause(_, SelectList(selectElements)), _, _, _, groupClause, havingClause, orderByClause, _, _) -> <fail>
+  pgql-error:
+    NormalizedQuery(_, SelectClause(_, SelectList(selectElements)), _, _, _, groupClause, havingClause, orderByClause, _, _) -> <not(?[])> errors
     where
       None() := groupClause
     ; [] := <get-aggregations> selectElements // there are no aggregations in the SELECT
     with
       aggregations-in-orderByclause := <get-aggregations> orderByClause
-    ; <batch-generate-error(|ctx, "Aggregation in ORDER BY only allowed if SELECT has aggregations")> aggregations-in-orderByclause
+    ; errors := <batch-generate-error(|"Aggregation in ORDER BY only allowed if SELECT has aggregations")> aggregations-in-orderByclause
 
   // if SELECT DISTINCT then ORDER BY expressions may only be repetitions of expressions in SELECT
-  nabl-constraint(|ctx):
-    NormalizedQuery(_, SelectClause(Some(Distinct()), SelectList(selectElements)), _, _, _, _, _, Some(OrderByClause(order-by-elems)), _, _) -> <fail>
+  pgql-error:
+    NormalizedQuery(_, SelectClause(Some(Distinct()), SelectList(selectElements)), _, _, _, _, _, Some(OrderByClause(order-by-elems)), _, _) -> <not(?[])> errors
     with
       select-vars := <map(?ExpAsVar(_, Identifier(<id>, _), _, _)); strip-annos> selectElements
     ; order-by-expressions := <map(?OrderByElem(<id>, _, _)); strip-annos> order-by-elems
     ; order-by-expressions-not-in-select := <remove-all(?ExpressionPlusType(VarRef(Identifier(<id>, _), _), _); !(<id>, select-vars); elem)> order-by-expressions
-    ; <batch-generate-error(|ctx, "Because of DISTINCT projection, the expression in ORDER BY should be one of the expressions in the SELECT")> order-by-expressions-not-in-select
+    ; errors := <batch-generate-error(|"Because of DISTINCT projection, the expression in ORDER BY should be one of the expressions in the SELECT")> order-by-expressions-not-in-select
 
-  nabl-constraint(|ctx):
-    e@IllegalNull() -> <fail>
-    with <generate-error(|ctx, "Use IS NULL or IS NOT NULL")> e
+  pgql-error:
+    e@IllegalNull() -> error
+    with error := <generate-error(|"Use IS NULL or IS NOT NULL")> e
 
-  nabl-constraint(|ctx):
-    SelectClause(GroupBySelectStar(), e) -> <fail>
-    with <generate-error(|ctx, "SELECT * not allowed in combination with GROUP BY")> e
+  pgql-error:
+    SelectClause(GroupBySelectStar(), e) -> error
+    with error := <generate-error(|"SELECT * not allowed in combination with GROUP BY")> e
 
-  nabl-constraint(|ctx):
-    NormalizedQuery(_, SelectClause(Star(), e@SelectList([])), _, tableExpressions, _, _, _, _, _, _) -> <fail>
-    with if <not(oncetd(?AllProperties(_, _)))> tableExpressions // to allow for parsing and pretty printing when no metadata is available, we only generate the error if no lateral derived table contains an n.* because then we don't know how many elements the SELECT * would have
-         then <generate-error(|ctx, "SELECT * not allowed if there are no variables in the graph pattern")> e
-         end
+  pgql-error:
+    NormalizedQuery(_, SelectClause(Star(), e@SelectList([])), _, tableExpressions, _, _, _, _, _, _) -> error
+    where <not(oncetd(?AllProperties(_, _)))> tableExpressions // to allow for parsing and pretty printing when no metadata is available, we only generate the error if no lateral derived table contains an n.* because then we don't know how many elements the SELECT * would have
+    with error := <generate-error(|"SELECT * not allowed if there are no variables in the graph pattern")> e
 
-  nabl-constraint(|ctx):
-    COUNT(Some(Distinct()), e@Star()) -> <fail>
-    with <generate-error(|ctx, "* not allowed in combination with DISTINCT")> e
+  pgql-error:
+    COUNT(Some(Distinct()), e@Star()) -> error
+    with error := <generate-error(|"* not allowed in combination with DISTINCT")> e
 
 rules // subqueries
 
-  nabl-constraint(|ctx):
-    q@NormalizedQuery(_, _, _, _, _, _, _, _, _, _) -> <fail>
+  pgql-error:
+    q@NormalizedQuery(_, _, _, _, _, _, _, _, _, _) -> <concat; not(?[])> [errors1, errors2]
     with scalarSubqueries := <collect(?Exists(_) + ?DerivedTable(_, _, _) + ?Subquery(_)); remove-all(?Exists(_) + ?DerivedTable(_, _, _))> q
        ; multiColumnScalarSubqueries := <filter(is-multi-column-subquery)> scalarSubqueries
        ; zeroColumnScalarSubqueries := <filter(is-zero-column-subquery)> scalarSubqueries
-       ; <batch-generate-error(|ctx, "Scalar subquery is expected to return a single column, but multiple columns were returned")> multiColumnScalarSubqueries
-       ; <batch-generate-error(|ctx, "Scalar subquery is expected to return a single column, but zero columns were returned")> zeroColumnScalarSubqueries
+       ; errors1 := <batch-generate-error(|"Scalar subquery is expected to return a single column, but multiple columns were returned")> multiColumnScalarSubqueries
+       ; errors2 := <batch-generate-error(|"Scalar subquery is expected to return a single column, but zero columns were returned")> zeroColumnScalarSubqueries
 
   is-multi-column-subquery = ?Subquery(NormalizedQuery(_, SelectClause(_, e@SelectList(selectElements)), _, _, _, _, _, _, _, _))
                            ; where( <gt> (<length> selectElements, 1) ); !e
@@ -226,21 +257,21 @@ rules // subqueries
   is-zero-column-subquery = ?Subquery(NormalizedQuery(_, SelectClause(_, e@SelectList(selectElements)), _, _, _, _, _, _, _, _))
                            ; where( <eq> (<length> selectElements, 0) ); !e
 
-  nabl-constraint(|ctx):
-    Subquery(NormalizedQuery(_, t@selectOrUpdateClause, _, _, _, _, _, _, _, _)) -> <fail>
+  pgql-error:
+    Subquery(NormalizedQuery(_, t@selectOrUpdateClause, _, _, _, _, _, _, _, _)) -> error
     where not ( <?SelectClause(_, _)> selectOrUpdateClause )
-    with <generate-error(|ctx, "SELECT clause expected here")> t
+    with error := <generate-error(|"SELECT clause expected here")> t
 
-  nabl-constraint(|ctx):
-    t@NormalizedQuery(_, _, _, _, _, _, _, _, _, QueryAnnotations(_, "v1.3", _, _, _)) -> <fail>
+  pgql-error:
+    t@NormalizedQuery(_, _, _, _, _, _, _, _, _, QueryAnnotations(_, "v1.3", _, _, _)) -> <not(?[])> errors
     with nonPgql13Subqueries := <collect(is-non-pgql13-query)> t
-       ; <map(get-select-clause); batch-generate-error(|ctx, "Subquery uses older version of PGQL syntax; please make sure that both inner and outer query use the same PGQL version")> nonPgql13Subqueries
+       ; errors := <map(get-select-clause); batch-generate-error(|"Subquery uses older version of PGQL syntax; please make sure that both inner and outer query use the same PGQL version")> nonPgql13Subqueries
 
-  nabl-constraint(|ctx):
-    t -> <fail>
+  pgql-error:
+    t -> <not(?[])> errors
     where <is-non-pgql13-query> t
     with pgql13Subqueries := <collect(is-pgql13-query)> t
-       ; <map(get-select-clause); batch-generate-error(|ctx, "Subquery uses PGQL 1.3 syntax but outer query does not")> pgql13Subqueries
+       ; errors := <map(get-select-clause); batch-generate-error(|"Subquery uses PGQL 1.3 syntax but outer query does not")> pgql13Subqueries
 
   is-pgql13-query = ?NormalizedQuery(_, _, _, _, _, _, _, _, _, QueryAnnotations(_, "v1.3", _, _, _))
 
@@ -248,267 +279,248 @@ rules // subqueries
 
   get-select-clause = ?NormalizedQuery(_, <id>, _, _, _, _, _, _, _, _)
 
-  nabl-constraint(|ctx):
-    ScalarSubquery(Subquery(NormalizedQuery(_, SelectClause(_, SelectList([ExpAsVar(ExpressionPlusType(exp, Type(t, _)), _, _, _)])), _, _, _, _, _, _, _, _))) -> <fail>
+  pgql-error:
+    ScalarSubquery(Subquery(NormalizedQuery(_, SelectClause(_, SelectList([ExpAsVar(ExpressionPlusType(exp, Type(t, _)), _, _, _)])), _, _, _, _, _, _, _, _))) -> error
     where <?"VERTEX" + ?"EDGE"> t
-    with <generate-error(|ctx, "Scalar subquery not allowed to return a vertex or an edge")> exp
+    with error := <generate-error(|"Scalar subquery not allowed to return a vertex or an edge")> exp
 
-  nabl-constraint(|ctx):
-    t@DerivedTable(None(), _, _) -> <fail>
-    with <generate-error(|ctx, "LATERAL keyword expected at start of derived table expression")> t
+  pgql-error:
+    t@DerivedTable(None(), _, _) -> error
+    with error := <generate-error(|"LATERAL keyword expected at start of derived table expression")> t
 
-  nabl-constraint(|ctx):
-    DerivedTable(_, _, t@Some(_)) -> <fail>
-    with <generate-error(|ctx, "Unsupported correlation name for derived table")> t
-
-rules // helper rules
-
-  batch-generate-error(|ctx, m) = map(generate-error(|ctx, m))
-    
-  generate-error(|ctx, m):
-    t -> <id>
-    with
-      failtask := <task-create-fail(|ctx)>
-    ; <task-create-error-on-failure(|ctx, failtask, m)> t
-
-  nabl-constraint(|ctx):
-    ErrorMessage(term, m) -> <fail>
-    where
-      <generate-error(|ctx, m)> term
+  pgql-error:
+    DerivedTable(_, _, t@Some(_)) -> error
+    with error := <generate-error(|"Unsupported correlation name for derived table")> t
 
 rules // temporary limitation
 
-  nabl-constraint(|ctx):
-    ComplexRegularExpressionNotSupported(edgesOrPaths, pathFindingGoal) -> <fail>
+  pgql-error:
+    ComplexRegularExpressionNotSupported(edgesOrPaths, pathFindingGoal) -> error
     with [_|[secondEdgeOrPath|_]] := edgesOrPaths
-       ; <generate-error-for-multiple-edge-patterns(|ctx, pathFindingGoal)> edgesOrPaths
+       ; error := <generate-error-for-multiple-edge-patterns(|pathFindingGoal)> edgesOrPaths
 
-  nabl-constraint(|ctx):
-    ComplexParenthesizedRegularExpressionNotSupported(edges, pathFindingGoal) -> <fail>
-    with <generate-error-for-multiple-edge-patterns(|ctx, pathFindingGoal)> edges
+  pgql-error:
+    ComplexParenthesizedRegularExpressionNotSupported(edges, pathFindingGoal) -> error
+    with error := <generate-error-for-multiple-edge-patterns(|pathFindingGoal)> edges
 
-  generate-error-for-multiple-edge-patterns(|ctx, pathFindingGoal):
-    edgesOrPaths -> <id>
+  generate-error-for-multiple-edge-patterns(|pathFindingGoal):
+    edgesOrPaths -> error
     with if <?All()> pathFindingGoal
-         then <generate-error(|ctx, "Not supported: path pattern containing multiple edge patterns in combination with quantifier(s); please split up the pattern into multiple path patterns")> edgesOrPaths
-         else <generate-error(|ctx, "Not supported: path pattern containing multiple edge patterns in combination with ANY, SHORTEST or CHEAPEST; try splitting up the pattern into multiple path patterns")> edgesOrPaths
+         then error := <generate-error(|"Not supported: path pattern containing multiple edge patterns in combination with quantifier(s); please split up the pattern into multiple path patterns")> edgesOrPaths
+         else error := <generate-error(|"Not supported: path pattern containing multiple edge patterns in combination with ANY, SHORTEST or CHEAPEST; try splitting up the pattern into multiple path patterns")> edgesOrPaths
          end
 
-  nabl-constraint(|ctx):
-    Path(_, _, _, _, _, _, _, Some(TopK(kValue)), _, _) -> <fail>
+  pgql-error:
+    Path(_, _, _, _, _, _, _, Some(TopK(kValue)), _, _) -> error
     where <?"0"> kValue
-    with <generate-error(|ctx, "Value should be greater than 0")> kValue
+    with error := <generate-error(|"Value should be greater than 0")> kValue
 
-  nabl-constraint(|ctx):
-    Path(_, _, pathExpression, quantifier, _, _, goal, _, _, _) -> <fail>
+  pgql-error:
+    Path(_, _, pathExpression, quantifier, _, _, goal, _, _, _) -> error
     where <?Shortest() + ?Cheapest() + ?Any() + ?All()> goal
         ; <?None() + ?Some(BetweenNAndM("0", "1")); origin-text; ?"?"> quantifier
     with error-term := <?Some(_) <+ !pathExpression; collect-one(?Edge(_, _, _, _, _, _, _))> quantifier 
        ; if <?All()> goal
-         then <generate-error(|ctx, "Quantifier of the form {1,4} expected")> error-term
-         else <generate-error(|ctx, "Quantifier of the form * or + or {1,4} expected")> error-term
+         then error := <generate-error(|"Quantifier of the form {1,4} expected")> error-term
+         else error := <generate-error(|"Quantifier of the form * or + or {1,4} expected")> error-term
          end
 
-  nabl-constraint(|ctx):
-    Path(_, _, pathExpression, quantifier, _, _, goal, _, Walk(), _) -> <fail>
+  pgql-error:
+    Path(_, _, pathExpression, quantifier, _, _, goal, _, Walk(), _) -> error
     where <?All()> goal
         ; <?Some(BetweenNAndM(_, "-1"))> quantifier
-    with <generate-error(|ctx, "Potentially infinite solutions; specify a selective path-finding goal or a quantifier with upper bound")> quantifier
+    with error := <generate-error(|"Potentially infinite solutions; specify a selective path-finding goal or a quantifier with upper bound")> quantifier
 
-  nabl-constraint(|ctx):
-    t@CommonPathExpression(_, _, connections, _, _) -> <fail>
+  pgql-error:
+    t@CommonPathExpression(_, _, connections, _, _) -> error
     where <collect-in-outer-query(?Path(_, _, _, _, _, _, _, _, _, _)); not(?[])> connections
-    with <generate-error(|ctx, "Nested regular expressions not supported")> t
+    with error := <generate-error(|"Nested regular expressions not supported")> t
 
-  nabl-constraint(|ctx):
-    t@LabelDisjunction(_, _) -> <fail>
-    with <generate-error(|ctx, "Label disjunction not supported here")> t
+  pgql-error:
+    t@LabelDisjunction(_, _) -> error
+    with error := <generate-error(|"Label disjunction not supported here")> t
 
 rules
 
-  nabl-constraint(|ctx):
-    Path(_, _, _, _, Identifier(i, _), _, _, _, _, _) -> <fail>
+  pgql-error:
+    Path(_, _, _, _, Identifier(i, _), _, _, _, _, _) -> error
     where <not(is-substring(GENERATED))> i
-    with <generate-error(|ctx, "Path variables not supported")> i
+    with error := <generate-error(|"Path variables not supported")> i
 
 rules // CHEAPEST
 
-  nabl-constraint(|ctx):
-    t@Path(_, _, CommonPathExpression(_, _, _, Constraints(constraints), costClause), _, _, _, Cheapest(), _, _, _) -> <fail>
+  pgql-error:
+    t@Path(_, _, CommonPathExpression(_, _, _, Constraints(constraints), costClause), _, _, _, Cheapest(), _, _, _) -> error
     where <?None()> costClause
     with if <?[]> constraints
-    then <generate-error(|ctx, "COST clause expected after pattern")> t
-    else <?[<id>]; generate-error(|ctx, "COST clause expected after WHERE clause")> constraints
+    then error := <generate-error(|"COST clause expected after pattern")> t
+    else error := <?[<id>]; generate-error(|"COST clause expected after WHERE clause")> constraints
     end
 
-  nabl-constraint(|ctx):
-    t@Path(_, _, CommonPathExpression(_, vertices, edges, _, Some(CostClause(costExpression))), _, _, _, Cheapest(), _, _, _) -> <fail>
+  pgql-error:
+    t@Path(_, _, CommonPathExpression(_, vertices, edges, _, Some(CostClause(costExpression))), _, _, _, Cheapest(), _, _, _) -> errors
     where <?Vertices([Vertex(v1, _, _, _), Vertex(v2, _, _, _)])> vertices
         ; <?Edges([Edge(_, e, _, _, _, _, _)])> edges
     with variablesDefs := [v1, v2, e]
-       ; <generate-error-on-cross-constraint(|ctx, variablesDefs)> costExpression
+       ; errors := <generate-error-on-cross-constraint(|variablesDefs); flatten-list> costExpression
+    where <not(?[])> errors
 
-  generate-error-on-cross-constraint(|ctx, variablesDefs):
-    t@And(lhs, rhs) -> t
-    with <generate-error-on-cross-constraint(|ctx, variablesDefs)> lhs
-       ; <generate-error-on-cross-constraint(|ctx, variablesDefs)> rhs
+  generate-error-on-cross-constraint(|variablesDefs):
+    t@And(lhs, rhs) -> [errors1, errors2]
+    with errors1 := <generate-error-on-cross-constraint(|variablesDefs)> lhs
+       ; errors2 := <generate-error-on-cross-constraint(|variablesDefs)> rhs
 
-  generate-error-on-cross-constraint(|ctx, variablesDefs):
-    t -> t
+  generate-error-on-cross-constraint(|variablesDefs):
+    t -> errors
     where <not(?And(_, _))> t
     with variables := <collect(?VarRef(<id>, _) + ?Vertex(<id>, _, _, _) + ?Edge(_, <id>, _, _, _, _, _) + ?Path(_, _, _, _, <id>, _, _, _, _, _))> t
        ; variableRefs := <strip-annos; isect> (variablesDefs, variables)
-       ; <try(!(<length> variableRefs, 1); gt; !t; generate-error(|ctx, "Not yet supported: expressions with multiple variables"))> t
+       ; errors := <!(<length> variableRefs, 1); gt; !t; generate-error(|"Not yet supported: expressions with multiple variables"); ![<id>] <+ ![]> t
 
-  nabl-constraint(|ctx):
-    Path(_, _, CommonPathExpression(_, _, _, _, Some(t@CostClause(_))), _, _, _, pathFindingGoal, _, _, _) -> <fail>
+  pgql-error:
+    Path(_, _, CommonPathExpression(_, _, _, _, Some(t@CostClause(_))), _, _, _, pathFindingGoal, _, _, _) -> error
     where not ( <?Cheapest()> pathFindingGoal )
-    with <generate-error(|ctx, "COST clause only allowed in combination with CHEAPEST")> t
+    with error := <generate-error(|"COST clause only allowed in combination with CHEAPEST")> t
 
-  nabl-constraint(|ctx, metadata):
-    CostClause(ExpressionPlusType(exp, type@Type(t, _))) -> <fail>
+  pgql-error(|metadata):
+    CostClause(ExpressionPlusType(exp, type@Type(t, _))) -> error
     where <get-union-type(|metadata); ?AmbiguousType()> (type, <get-default-decimal-type(|metadata)>)
-    with  <generate-error(|ctx, $<COST clause expects a numeric but a <t> was given>)> exp
+    with error := <generate-error(|$<COST clause expects a numeric but a <t> was given>)> exp
+
 rules // literals
 
   external is-invalid-datetime(|)
 
-  nabl-constraint(|ctx):
-    datetime-> <fail>
+  pgql-error:
+    datetime-> error
     where <(?Date(_) + ?Time(_) + ?Timestamp(_)); is-invalid-datetime; ?ErrorMessage(_, m)> datetime
-    with <generate-error(|ctx, m)> datetime
+    with error := <generate-error(|m)> datetime
 
-  nabl-constraint(|ctx):
-    t@NormalizedQuery(_, _, _, _, _, _, _, _, _, QueryAnnotations(_, pgqlVersion, _, _, _)) -> <fail>
+  pgql-error:
+    t@NormalizedQuery(_, _, _, _, _, _, _, _, _, QueryAnnotations(_, pgqlVersion, _, _, _)) -> <not(?[])> errors
     where not ( <?"v1.0" + ?"v1.1"> pgqlVersion )
-    with <alltd-in-outer-query(check-illegal-java-escaping(|ctx))> t
+    with errors := <collect-in-outer-query(check-illegal-java-escaping)> t
 
-  check-illegal-java-escaping(|ctx):
-    t@String(s) -> <fail>
+  check-illegal-java-escaping:
+    t@String(s) -> error
     where <is-substring(!"\\'")> s
-    with <generate-error(|ctx, "Use '' instead of \\' to escape a single quote")> t
+    with error := <generate-error(|"Use '' instead of \\' to escape a single quote")> t
 
-  check-illegal-java-escaping(|ctx):
-    t@Identifier(identifier, _) -> <fail>
+  check-illegal-java-escaping:
+    t@Identifier(identifier, _) -> error
     where <is-substring(!"\\\"")> identifier
-    with <generate-error(|ctx, "Use \"\" instead of \\\" to escape a double quote")> t
+    with error := <generate-error(|"Use \"\" instead of \\\" to escape a double quote")> t
 
-  nabl-constraint(|ctx):
-    DateTimeField(field) -> <fail>
+  pgql-error:
+    DateTimeField(field) -> error
     where <not(?"YEAR" + ?"MONTH" + ?"DAY" + ?"HOUR" + ?"MINUTE" + ?"SECOND")> field
-    with <generate-error(|ctx, "Expecting one of YEAR, MONTH, DAY, HOUR, MINUTE, SECOND")> field
+    with error := <generate-error(|"Expecting one of YEAR, MONTH, DAY, HOUR, MINUTE, SECOND")> field
 
-  nabl-constraint(|ctx):
-    Interval(t@String(value), DateTimeField(field))-> <fail>
+  pgql-error:
+    Interval(t@String(value), DateTimeField(field))-> error
     where <is-invalid-datetime-field; ?ErrorMessage(_, m)> (value, field)
-    with <generate-error(|ctx, m)> t
+    with error := <generate-error(|m)> t
 
   external is-invalid-datetime-field(|)
 
-rules
-
-  nabl-constraint(|ctx) = ?AstPlusMetadata(<id>, metadata)
-                        ; alltd(nabl-constraint(|ctx, metadata))
-                        ; check-all-GraphTable-restrictions(|ctx)
-                        ; check-all-restrictions-outside-GraphTable(|ctx)
-                        ; fail
-
 rules // IN predicate and CASE expression
 
-  nabl-constraint(|ctx, metadata):
-    inPredicate@InPredicate(exp, Array(valueExpressions)) -> <fail>
+  pgql-error(|metadata):
+    inPredicate@InPredicate(exp, Array(valueExpressions)) -> <not(?[])> [error1|errors2]
     where [x|xs] := valueExpressions
         ; <?ExpressionPlusType(_, Type(t2, _))> := x
     with // check that type of expression on left-hand of IN is compatible with expression of list elements
          if <?ExpressionPlusType(_, Type(t1, _)); not(is-compatible-type(|x, metadata))> exp
-         then <generate-error(|ctx, $[The IN predicate is undefined for left-hand operand type [t1] and list value type [t2]])> inPredicate
+         then error1 := <generate-error(|$[The IN predicate is undefined for left-hand operand type [t1] and list value type [t2]])> inPredicate
+         else error1 := []
          end
 
          // check that values in the list are of compatible type
        ; incompatible-expressions := <remove-all(is-compatible-type(|x, metadata))> xs
-       ; <map(generate-compatible-type-exepected-error(|ctx, t2))> incompatible-expressions
+       ; errors2 := <map(generate-compatible-type-expected-error(|t2))> incompatible-expressions
 
-  generate-compatible-type-exepected-error(|ctx, expectedType) =
+  generate-compatible-type-expected-error(|expectedType) =
     ?ExpressionPlusType(<id>, Type(t, _));
-    generate-error(|ctx, $<Expression of a type compatible with <expectedType> expected but a <t> was given>)
+    generate-error(|$<Expression of a type compatible with <expectedType> expected but a <t> was given>)
 
-  nabl-constraint(|ctx):
-    IfElse(ExpressionPlusType(exp, Type(t, _)), _, _) -> <fail>
+  pgql-error:
+    IfElse(ExpressionPlusType(exp, Type(t, _)), _, _) -> error
     where <not(?"BOOLEAN")> t
-    with <generate-error(|ctx, $<BOOLEAN expected but a <t> was given>)> exp
+    with error := <generate-error(|$<BOOLEAN expected but a <t> was given>)> exp
 
-  nabl-constraint(|ctx, metadata):
-   ExpressionPlusType(IfElse(_, ExpressionPlusType(_, type1@Type(t1, _)), elseExpPlusType@ExpressionPlusType(_, Type(_, _))), AmbiguousType()) -> <fail>
-   with <generate-compatible-type-exepected-error(|ctx, t1)> elseExpPlusType
+  pgql-error(|metadata):
+   ExpressionPlusType(IfElse(_, ExpressionPlusType(_, type1@Type(t1, _)), elseExpPlusType@ExpressionPlusType(_, Type(_, _))), AmbiguousType()) -> error
+   with error := <generate-compatible-type-expected-error(|t1)> elseExpPlusType
 
-  nabl-constraint(|ctx):
-    SimpleCase(ExpressionPlusType(exp, Type(t, _)), _, _, _) -> <fail>
-    with if <is-unsupported-CASE-type> t
-         then <generate-error(|ctx, $[CASE does not allow [t] input])> exp
-         end
+  pgql-error:
+    SimpleCase(ExpressionPlusType(exp, Type(t, _)), _, _, _) -> error
+    where <is-unsupported-CASE-type> t
+    with error := <generate-error(|$[CASE does not allow [t] input])> exp
 
-  nabl-constraint(|ctx):
-    IfElse(if, then, else) -> <fail>
-    with if <?ExpressionPlusType(thenExp, Type(<id>, _)); ?thenType; is-unsupported-CASE-type> then
-         then <generate-error(|ctx, $[CASE does not allow [thenType] output])> thenExp
-         end
-       ; if <?ExpressionPlusType(elseExp, Type(<id>, _)); ?elseType; is-unsupported-CASE-type> else
-         then <generate-error(|ctx, $[CASE does not allow [elseType] output])> elseExp
-         end
+  pgql-error:
+    IfElse(if, then, else) ->error
+    where <?ExpressionPlusType(thenExp, Type(<id>, _)); ?thenType; is-unsupported-CASE-type> then
+    with error := <generate-error(|$[CASE does not allow [thenType] output])> thenExp
+
+  pgql-error:
+    IfElse(if, then, else) -> error
+    where <?ExpressionPlusType(elseExp, Type(<id>, _)); ?elseType; is-unsupported-CASE-type> else
+    with error := <generate-error(|$[CASE does not allow [elseType] output])> elseExp
 
   is-unsupported-CASE-type = ?"VERTEX" + ?"EDGE" + string-starts-with(|"ARRAY<") + string-starts-with(|"SET<")
 
 rules // IS SOURCE OF and IS DESTINATION OF
 
-  nabl-constraint(|ctx):
-    SourceDestinationPredicate(ExpressionPlusType(exp1, Type(t1, _)), ExpressionPlusType(exp2, Type(t2, _)), _) -> <fail>
-    with if <not(?"VERTEX")> t1
-         then <generate-error(|ctx, "Vertex reference expected")> exp1
-         end
-       ; if <not(?"EDGE")> t2
-         then <generate-error(|ctx, "Edge reference expected")> exp2
-         end
+  pgql-error:
+    SourceDestinationPredicate(ExpressionPlusType(exp1, Type(t1, _)), _, _) -> error
+    where <not(?"VERTEX")> t1
+    with error := <generate-error(|"Vertex reference expected")> exp1
+
+  pgql-error:
+    SourceDestinationPredicate(_, ExpressionPlusType(exp2, Type(t2, _)), _) -> error
+    where <not(?"EDGE")> t2
+    with error := <generate-error(|"Edge reference expected")> exp2
 
 rules // SELECT
 
-  nabl-constraint(|ctx):
-    NormalizedQuery(_, t@SelectClause(_, _), _, [], _, _, _, _, _, _) -> <fail>
-    with <generate-error(|ctx, "SELECT query without FROM clause not supported")> t
+  pgql-error:
+    NormalizedQuery(_, t@SelectClause(_, _), _, [], _, _, _, _, _, _) -> error
+    with error := <generate-error(|"SELECT query without FROM clause not supported")> t
 
 rules // MODIFY
 
   // e.g. UPDATE x.prop = 123 ... GROUP BY x.prop
-  nabl-constraint(|ctx):
-    SetProperty(ExpressionPlusType(t@VarRef(_, _), _), _) -> <fail>
-    with <generate-error(|ctx, "Cannot set a property that is grouped by")> t
+  pgql-error:
+    SetProperty(ExpressionPlusType(t@VarRef(_, _), _), _) -> error
+    with error := <generate-error(|"Cannot set a property that is grouped by")> t
 
   // setting a property twice, in either UPDATE or INSERT
-  nabl-constraint(|ctx):
-    properties -> <fail>
+  pgql-error:
+    properties -> <not(?[])> errors
     where <?SetProperties(setPropertyExps) + ?Properties(setPropertyExps)> properties
     with propertyRefs := <filter(?SetProperty(ExpressionPlusType(PropRef(_, Identifier(<id>, _)), _), _))> setPropertyExps
        ; duplicatePropertyRefs := <filter(is-elem-contained-more-than-once(|propertyRefs))> propertyRefs
-       ; <batch-generate-error(|ctx, "Property is set multiple times")> duplicatePropertyRefs
+       ; errors := <batch-generate-error(|"Property is set multiple times")> duplicatePropertyRefs
 
   is-elem-contained-more-than-once(|elems):
     elem -> <id>
     where duplicates := <filter(?elem)> elems
         ; <gt> (<length>, 1)
 
-  nabl-constraint(|ctx):
-    UpdateClause(updates) -> <fail>
+  pgql-error:
+    UpdateClause(updates) -> <not(?[])> errors
     with updateElements := <filter(?Update(ExpressionPlusType(VarRef(Identifier(<id>, _), _), _), _))> updates
        ; duplicateUpdateElements := <filter(is-elem-contained-more-than-once(|updateElements))> updateElements
-       ; <batch-generate-error(|ctx, "Element is updated multiple times (merge the two updates together)")> duplicateUpdateElements
+       ; errors := <batch-generate-error(|"Element is updated multiple times (merge the two updates together)")> duplicateUpdateElements
 
-  nabl-constraint(|ctx):
-    DeleteClause(deletions) -> <fail>
+  pgql-error:
+    DeleteClause(deletions) -> <not(?[])> errors
     with deleteElements := <filter(?ExpressionPlusType(VarRef(Identifier(<id>, _), _), _))> deletions
        ; duplicateDeleteElements := <filter(is-elem-contained-more-than-once(|deleteElements))> deleteElements
-       ; <batch-generate-error(|ctx, "Element is deleted multiple times")> duplicateDeleteElements
+       ; errors := <batch-generate-error(|"Element is deleted multiple times")> duplicateDeleteElements
 
-  nabl-constraint(|ctx):
-    t -> <fail>
+  pgql-error:
+    t -> <not(?[])> errors
     where <?VertexInsertion(Identifier(v, originText), _, _, Some(Properties(setProperties))) +
            ?DirectedEdgeInsertion(Identifier(v, originText), _, _, _, _, Some(Properties(setProperties))) +
            ?Update(ExpressionPlusType(VarRef(Identifier(v, originText), _), _), SetProperties(setProperties))> t
@@ -518,33 +530,33 @@ rules // MODIFY
          then varNameAsString := <origin-text> v
          else varNameAsString := originText // using <origin-text> like above fails SPT tests, thus we avoid using it for unquoted identifier so that we at least can still use unquoted identifiers in INSERT/UPDATE queries in SPT
          end
-       ; <batch-generate-error(|ctx, $<Did you mean <varNameAsString>?>)> otherVariablesThanV
+       ; errors := <batch-generate-error(|$<Did you mean <varNameAsString>?>)> otherVariablesThanV
 
-  nabl-constraint(|ctx):
-    ModifyClause(insertUpdateDeleteClauses) -> <fail>
+  pgql-error:
+    ModifyClause(insertUpdateDeleteClauses) -> <concat; not(?[])> [errors1, errors2, errors3]
     with additionalInsertClauses := <filter(?InsertClause(_, _)); try(Tl)> insertUpdateDeleteClauses
        ; additionalUpdateClauses := <filter(?UpdateClause(_)); try(Tl)> insertUpdateDeleteClauses
        ; additionalDeleteClauses := <filter(?DeleteClause(_)); try(Tl)> insertUpdateDeleteClauses
-       ; <batch-generate-error(|ctx, "Only a single INSERT clause is allowed per query; use commas to insert multiple elements in a single INSERT clause")> additionalInsertClauses
-       ; <batch-generate-error(|ctx, "Only a single UPDATE clause is allowed per query; use commas to update multiple elements in a single UPDATE clause")> additionalUpdateClauses
-       ; <batch-generate-error(|ctx, "Only a single DELETE clause is allowed per query; use commas to delete multiple elements in a single DELETE clause")> additionalDeleteClauses
+       ; errors1 := <batch-generate-error(|"Only a single INSERT clause is allowed per query; use commas to insert multiple elements in a single INSERT clause")> additionalInsertClauses
+       ; errors2 := <batch-generate-error(|"Only a single UPDATE clause is allowed per query; use commas to update multiple elements in a single UPDATE clause")> additionalUpdateClauses
+       ; errors3 := <batch-generate-error(|"Only a single DELETE clause is allowed per query; use commas to delete multiple elements in a single DELETE clause")> additionalDeleteClauses
 
-  nabl-constraint(|ctx):
-    SetProperty(_, ExpressionPlusType(exp, Type(t, _))) -> <fail>
+  pgql-error:
+    SetProperty(_, ExpressionPlusType(exp, Type(t, _))) -> error
     where <?"VERTEX" + ?"EDGE"> t
-    with <generate-error(|ctx, "Cannot set the value of a property to a vertex or an edge")> exp
+    with error := <generate-error(|"Cannot set the value of a property to a vertex or an edge")> exp
 
 // CREATE PROPERTY GRAPH
 
-  nabl-constraint(|ctx):
-    CreatePropertyGraph(_, baseGraphs, VertexTables(vertexTables), EdgeTables(edgeTables), _) -> <fail>
+  pgql-error:
+    CreatePropertyGraph(_, baseGraphs, VertexTables(vertexTables), EdgeTables(edgeTables), _) -> <concat; not(?[])> [errors1, errors2, errors3, errors4]
     with elementTableNamesFromBaseGraphs := <collect-om(?BaseElementTable(_, <id>); to-identifier-without-origin-info, conc)> baseGraphs
        ; vertexTableNames := <map(?VertexTable(_, <id>, _, _); to-identifier-without-origin-info)> vertexTables
-       ; <generate-error-on-duplicates(|ctx, "Duplicate vertex table name; use an alias to make the vertex table name unique (table AS alias)")> vertexTableNames
+       ; errors1 := <generate-error-on-duplicates(|"Duplicate vertex table name; use an alias to make the vertex table name unique (table AS alias)")> vertexTableNames
        ; edgeTableNames := <map(?EdgeTable(_, <id>, _, _, _, _); to-identifier-without-origin-info)> edgeTables
-       ; <generate-error-on-duplicates(|ctx, "Duplicate edge table name; use an alias to make the edge table name unique (table AS alias)")> edgeTableNames
+       ; errors2 := <generate-error-on-duplicates(|"Duplicate edge table name; use an alias to make the edge table name unique (table AS alias)")> edgeTableNames
        ; elementTableNames := <conc> (elementTableNamesFromBaseGraphs, <conc; make-set> (vertexTableNames, edgeTableNames))
-       ; <generate-error-on-duplicates(|ctx, "Duplicate element table name; use an alias to make the element table name unique (table AS alias)")> elementTableNames
+       ; errors3 := <generate-error-on-duplicates(|"Duplicate element table name; use an alias to make the element table name unique (table AS alias)")> elementTableNames
 
        ; if <?None()> baseGraphs
          then // check for unresolved references from edge tables to vertex tables
@@ -553,52 +565,54 @@ rules // MODIFY
                                                   ?DestinationVertexTable(_, ReferencedVertexTable(Name(_, <id>), _))
                                                 ); to-identifier-without-origin-info)> edgeTables
             ; unresolvedVertexTableReferences := <diff> (vertexTableReferences, vertexTableNames)
-            ; <batch-generate-error(|ctx, "Undefined vertex table")> unresolvedVertexTableReferences
+            ; errors4 := <batch-generate-error(|"Undefined vertex table")> unresolvedVertexTableReferences
          else // check for duplicate base graphs
               baseGraphNames := <?Some(BaseGraphs(<id>)); map(?BaseGraph(<id>, _)); alltd(to-identifier-without-origin-info)> baseGraphs
-             ; <generate-error-on-duplicates(|ctx, "Duplicate base graph reference")> baseGraphNames
+            ; errors4 := <generate-error-on-duplicates(|"Duplicate base graph reference")> baseGraphNames
          end
 
   to-identifier-without-origin-info = origin-track-forced(?Identifier(localName, _); !localName)
 
-  nabl-constraint(|ctx):
-    PropertyExpressions(expAsVars) -> <fail>
+  pgql-error:
+    PropertyExpressions(expAsVars) -> <concat; not(?[])> [errors1, errors2]
     with complexExpressionsWithoutAlias := <remove-all(?ExpAsVar(VarRef(_), _) + ?ExpAsVar(_, Identifier(_, _)))> expAsVars
-       ; <batch-generate-error(|ctx, "Alias required (.. AS name)")> complexExpressionsWithoutAlias
+       ; errors1 := <batch-generate-error(|"Alias required (.. AS name)")> complexExpressionsWithoutAlias
        ; propertyNames := <filter(?ExpAsVar(_, Identifier(<id>, _)))> expAsVars
-       ; <generate-error-on-duplicates(|ctx, "Duplicate property name")> propertyNames
+       ; errors2 := <generate-error-on-duplicates(|"Duplicate property name")> propertyNames
 
-  nabl-constraint(|ctx):
-    ReferencedVertexTable(Name(Some(schemaName), _), _) -> <fail>
-    with <generate-error(|ctx, "Schema name not allowed here")> schemaName
+  pgql-error:
+    ReferencedVertexTable(Name(Some(schemaName), _), _) -> error
+    with error := <generate-error(|"Schema name not allowed here")> schemaName
 
-  nabl-constraint(|ctx):
-    t -> <fail>
+  pgql-error:
+    t -> error
     where <?SourceVertexTable(None(), ReferencedVertexTable(_, Some(_))) + ?DestinationVertexTable(None(), ReferencedVertexTable(_, Some(_)))> t
-    with <generate-error(|ctx, "Referenced column list provided but no KEY clause specified")> t
+    with error := <generate-error(|"Referenced column list provided but no KEY clause specified")> t
 
 // LISTAGG
 
-  nabl-constraint(|ctx):
-    LISTAGG(_, _, Some(Separator(separator))) -> <fail>
+  pgql-error:
+    LISTAGG(_, _, Some(Separator(separator))) -> error
     where not ( <?String(_)> separator )
-    with <generate-error(|ctx, "Only string literals are allowed as separator")> separator
+    with error := <generate-error(|"Only string literals are allowed as separator")> separator
 
 // schema
 
-  nabl-constraint(|ctx):
-    AstPlusMetadata(ast, metadata) -> <fail>
+  pgql-error(|metadata):
+    ast -> <concat; not(?[])> [errors1, errors2]
     with vertexDefinititions := <collect(?Vertex(_, <id>, _, _))> ast
        ; vertexLabels := <get-vertex-labels(|metadata)>
        ; if <not(?None())> vertexLabels
          then unresolvedVertexLabels := <collect(get-unresolved-label(|vertexDefinititions, vertexLabels))> ast
-            ; <batch-generate-error(|ctx, "Vertex label does not exist")> unresolvedVertexLabels
+            ; errors1 := <batch-generate-error(|"Vertex label does not exist")> unresolvedVertexLabels
+         else errors1 := []
          end
        ; edgeDefinititions := <collect(?Edge(_, _, _, _, <id>, _, _))> ast
        ; edgeLabels := <get-edge-labels(|metadata)>
        ; if <not(?None())> edgeLabels
          then unresolvedEdgeLabels := <collect(get-unresolved-label(|edgeDefinititions, edgeLabels))> ast
-            ; <batch-generate-error(|ctx, "Edge label does not exist")> unresolvedEdgeLabels
+            ; errors2 := <batch-generate-error(|"Edge label does not exist")> unresolvedEdgeLabels
+         else errors2 := []
          end
 
   get-unresolved-label(|varDefinitionOriginOffsets, labels):
@@ -608,17 +622,17 @@ rules // MODIFY
         ; <elem> (originOffset, varDefinitionOriginOffsets)
         ; <not(label-exists(|labels))> labelReference
 
-  nabl-constraint(|ctx, metadata):
-    VertexInsertion(_, _, Some(Labels(labels)), _) -> <fail>
+  pgql-error(|metadata):
+    VertexInsertion(_, _, Some(Labels(labels)), _) -> <not(?[])> errors
     where vertexLabels := <get-vertex-labels(|metadata); not(?None())>
     with unresolvedVertexLabels := <map(?Identifier(<id>, _)); remove-all(label-exists(|vertexLabels))> labels
-       ; <batch-generate-error(|ctx, "Vertex label does not exist")> unresolvedVertexLabels
+       ; errors := <batch-generate-error(|"Vertex label does not exist")> unresolvedVertexLabels
 
-  nabl-constraint(|ctx, metadata):
-     DirectedEdgeInsertion(_, _, _, _, Some(Labels(labels)), _) -> <fail>
+  pgql-error(|metadata):
+     DirectedEdgeInsertion(_, _, _, _, Some(Labels(labels)), _) -> <not(?[])> errors
      where edgeLabels := <get-edge-labels(|metadata); not(?None())>
      with unresolvedEdgeLabels := <map(?Identifier(<id>, _)); remove-all(label-exists(|edgeLabels))> labels
-        ; <batch-generate-error(|ctx, "Edge label does not exist")> unresolvedEdgeLabels
+        ; errors := <batch-generate-error(|"Edge label does not exist")> unresolvedEdgeLabels
 
   label-exists(|labels):
     labelReference -> <id>
@@ -626,80 +640,80 @@ rules // MODIFY
 
   elem-when-upper-cased = (id, map(upper-case)); elem
 
-  nabl-constraint(|ctx):
-    ExpressionPlusType(PropRef(_, Identifier(propName, _)), Undefined()) -> <fail>
-    with <generate-error(|ctx, $[Property does not exist for any of the labels])> propName
+  pgql-error:
+    ExpressionPlusType(PropRef(_, Identifier(propName, _)), Undefined()) -> error
+    with error := <generate-error(|$[Property does not exist for any of the labels])> propName
 
-  nabl-constraint(|ctx):
-    ExpressionPlusType(PropRef(_, Identifier(propName, _)), AmbiguousType()) -> <fail>
-    with <generate-error(|ctx, $[Property has incompatible types for different labels])> propName
+  pgql-error:
+    ExpressionPlusType(PropRef(_, Identifier(propName, _)), AmbiguousType()) -> error
+    with error := <generate-error(|$[Property has incompatible types for different labels])> propName
 
-  nabl-constraint(|ctx):
-    ExpressionPlusType(e@UMin(ExpressionPlusType(_, Type(t, _))), Undefined()) -> <fail>
-    with <generate-error(|ctx, $[The operator - (unary minus) is undefined for the argument type [t]])> e
+  pgql-error:
+    ExpressionPlusType(e@UMin(ExpressionPlusType(_, Type(t, _))), Undefined()) -> error
+    with error := <generate-error(|$[The operator - (unary minus) is undefined for the argument type [t]])> e
 
-  nabl-constraint(|ctx):
-    ExpressionPlusType(e@Not(ExpressionPlusType(_, Type(t, _))), Undefined()) -> <fail>
-    with <generate-error(|ctx, $[The operator NOT is undefined for the argument type [t]])> e
+  pgql-error:
+    ExpressionPlusType(e@Not(ExpressionPlusType(_, Type(t, _))), Undefined()) -> error
+    with error := <generate-error(|$[The operator NOT is undefined for the argument type [t]])> e
 
-  nabl-constraint(|ctx):
-    ExpressionPlusType(e@And(ExpressionPlusType(_, Type(t1, _)), ExpressionPlusType(_, Type(t2, _))), Undefined()) -> <fail>
-    with <generate-error(|ctx, $[The operator AND is undefined for the argument types [t1], [t2]])> e
+  pgql-error:
+    ExpressionPlusType(e@And(ExpressionPlusType(_, Type(t1, _)), ExpressionPlusType(_, Type(t2, _))), Undefined()) -> error
+    with error := <generate-error(|$[The operator AND is undefined for the argument types [t1], [t2]])> e
 
-  nabl-constraint(|ctx):
-    ExpressionPlusType(e@Or(ExpressionPlusType(_, Type(t1, _)), ExpressionPlusType(_, Type(t2, _))), Undefined()) -> <fail>
-    with <generate-error(|ctx, $[The operator OR is undefined for the argument types [t1], [t2]])> e
+  pgql-error:
+    ExpressionPlusType(e@Or(ExpressionPlusType(_, Type(t1, _)), ExpressionPlusType(_, Type(t2, _))), Undefined()) -> error
+    with error := <generate-error(|$[The operator OR is undefined for the argument types [t1], [t2]])> e
 
-  nabl-constraint(|ctx):
-    ExpressionPlusType(e@Mul(ExpressionPlusType(_, Type(t1, _)), ExpressionPlusType(_, Type(t2, _))), Undefined()) -> <fail>
-    with <generate-error(|ctx, $[The operator * is undefined for the argument types [t1], [t2]])> e
+  pgql-error:
+    ExpressionPlusType(e@Mul(ExpressionPlusType(_, Type(t1, _)), ExpressionPlusType(_, Type(t2, _))), Undefined()) -> error
+    with error := <generate-error(|$[The operator * is undefined for the argument types [t1], [t2]])> e
 
-  nabl-constraint(|ctx):
-    ExpressionPlusType(e@Add(ExpressionPlusType(_, Type(t1, _)), ExpressionPlusType(_, Type(t2, _))), Undefined()) -> <fail>
-    with <generate-error(|ctx, $[The operator + is undefined for the argument types [t1], [t2]])> e
+  pgql-error:
+    ExpressionPlusType(e@Add(ExpressionPlusType(_, Type(t1, _)), ExpressionPlusType(_, Type(t2, _))), Undefined()) -> error
+    with error := <generate-error(|$[The operator + is undefined for the argument types [t1], [t2]])> e
 
-  nabl-constraint(|ctx):
-    ExpressionPlusType(e@Div(ExpressionPlusType(_, Type(t1, _)), ExpressionPlusType(_, Type(t2, _))), Undefined()) -> <fail>
-    with <generate-error(|ctx, $[The operator / is undefined for the argument types [t1], [t2]])> e
+  pgql-error:
+    ExpressionPlusType(e@Div(ExpressionPlusType(_, Type(t1, _)), ExpressionPlusType(_, Type(t2, _))), Undefined()) -> error
+    with error := <generate-error(|$[The operator / is undefined for the argument types [t1], [t2]])> e
 
-  nabl-constraint(|ctx):
-    ExpressionPlusType(e@Mod(ExpressionPlusType(_, Type(t1, _)), ExpressionPlusType(_, Type(t2, _))), Undefined()) -> <fail>
-    with <generate-error(|ctx, $[The operator % is undefined for the argument types [t1], [t2]])> e
+  pgql-error:
+    ExpressionPlusType(e@Mod(ExpressionPlusType(_, Type(t1, _)), ExpressionPlusType(_, Type(t2, _))), Undefined()) -> error
+    with error := <generate-error(|$[The operator % is undefined for the argument types [t1], [t2]])> e
 
-  nabl-constraint(|ctx):
-    ExpressionPlusType(e@Sub(ExpressionPlusType(_, Type(t1, _)), ExpressionPlusType(_, Type(t2, _))), Undefined()) -> <fail>
-    with <generate-error(|ctx, $[The operator - is undefined for the argument types [t1], [t2]])> e
+  pgql-error:
+    ExpressionPlusType(e@Sub(ExpressionPlusType(_, Type(t1, _)), ExpressionPlusType(_, Type(t2, _))), Undefined()) -> error
+    with error := <generate-error(|$[The operator - is undefined for the argument types [t1], [t2]])> e
 
-  nabl-constraint(|ctx):
-    ExpressionPlusType(e@Eq(ExpressionPlusType(_, Type(t1, _)), ExpressionPlusType(_, Type(t2, _))), Undefined()) -> <fail>
-    with <generate-error(|ctx, $[The operator = is undefined for the argument types [t1], [t2]])> e
+  pgql-error:
+    ExpressionPlusType(e@Eq(ExpressionPlusType(_, Type(t1, _)), ExpressionPlusType(_, Type(t2, _))), Undefined()) -> error
+    with error := <generate-error(|$[The operator = is undefined for the argument types [t1], [t2]])> e
 
-  nabl-constraint(|ctx):
-    ExpressionPlusType(e@Neq(ExpressionPlusType(_, Type(t1, _)), ExpressionPlusType(_, Type(t2, _))), Undefined()) -> <fail>
-    with <generate-error(|ctx, $[The operator <> (or !=) is undefined for the argument types [t1], [t2]])> e
+  pgql-error:
+    ExpressionPlusType(e@Neq(ExpressionPlusType(_, Type(t1, _)), ExpressionPlusType(_, Type(t2, _))), Undefined()) -> error
+    with error := <generate-error(|$[The operator <> (or !=) is undefined for the argument types [t1], [t2]])> e
 
-  nabl-constraint(|ctx):
-    ExpressionPlusType(e@Gt(ExpressionPlusType(_, Type(t1, _)), ExpressionPlusType(_, Type(t2, _))), Undefined()) -> <fail>
-    with <generate-error(|ctx, $[The operator > is undefined for the argument types [t1], [t2]])> e
+  pgql-error:
+    ExpressionPlusType(e@Gt(ExpressionPlusType(_, Type(t1, _)), ExpressionPlusType(_, Type(t2, _))), Undefined()) -> error
+    with error := <generate-error(|$[The operator > is undefined for the argument types [t1], [t2]])> e
 
-  nabl-constraint(|ctx):
-    ExpressionPlusType(e@Lt(ExpressionPlusType(_, Type(t1, _)), ExpressionPlusType(_, Type(t2, _))), Undefined()) -> <fail>
-    with <generate-error(|ctx, $[The operator < is undefined for the argument types [t1], [t2]])> e
+  pgql-error:
+    ExpressionPlusType(e@Lt(ExpressionPlusType(_, Type(t1, _)), ExpressionPlusType(_, Type(t2, _))), Undefined()) -> error
+    with error := <generate-error(|$[The operator < is undefined for the argument types [t1], [t2]])> e
 
-  nabl-constraint(|ctx):
-    ExpressionPlusType(e@Gte(ExpressionPlusType(_, Type(t1, _)), ExpressionPlusType(_, Type(t2, _))), Undefined()) -> <fail>
-    with <generate-error(|ctx, $[The operator >= is undefined for the argument types [t1], [t2]])> e
+  pgql-error:
+    ExpressionPlusType(e@Gte(ExpressionPlusType(_, Type(t1, _)), ExpressionPlusType(_, Type(t2, _))), Undefined()) -> error
+    with error := <generate-error(|$[The operator >= is undefined for the argument types [t1], [t2]])> e
 
-  nabl-constraint(|ctx):
-    ExpressionPlusType(e@Lte(ExpressionPlusType(_, Type(t1, _)), ExpressionPlusType(_, Type(t2, _))), Undefined()) -> <fail>
-    with <generate-error(|ctx, $[The operator <= is undefined for the argument types [t1], [t2]])> e
+  pgql-error:
+    ExpressionPlusType(e@Lte(ExpressionPlusType(_, Type(t1, _)), ExpressionPlusType(_, Type(t2, _))), Undefined()) -> error
+    with error := <generate-error(|$[The operator <= is undefined for the argument types [t1], [t2]])> e
 
-  nabl-constraint(|ctx):
-    ExpressionPlusType(e@Cct(ExpressionPlusType(_, Type(t1, _)), ExpressionPlusType(_, Type(t2, _))), Undefined()) -> <fail>
-    with <generate-error(|ctx, $[The operator || is undefined for the argument types [t1], [t2]])> e
+  pgql-error:
+    ExpressionPlusType(e@Cct(ExpressionPlusType(_, Type(t1, _)), ExpressionPlusType(_, Type(t2, _))), Undefined()) -> error
+    with error := <generate-error(|$[The operator || is undefined for the argument types [t1], [t2]])> e
 
-  nabl-constraint(|ctx):
-    ExpressionPlusType(aggregation, Undefined()) -> <fail>
+  pgql-error:
+    ExpressionPlusType(aggregation, Undefined()) -> error
     where <?SUM(_, ExpressionPlusType(_, Type(t, _))) +
            ?MIN(_, ExpressionPlusType(_, Type(t, _))) +
            ?MAX(_, ExpressionPlusType(_, Type(t, _))) +
@@ -708,45 +722,45 @@ rules // MODIFY
            ?JSON-ARRAYAGG(ExpressionPlusType(_, Type(t, _)), _, _, _, _) +
            ?LISTAGG(_, ExpressionPlusType(_, Type(t, _)), _)> aggregation
     with operation := <get-constructor; try(?"ARRAY-AGG"; !"ARRAY_AGG" + ?"JSON-ARRAYAGG"; !"JSON_ARRAYAGG")> aggregation
-       ; <generate-error(|ctx, $[The aggregate [operation] is undefined for the argument type [t]])> aggregation
+       ; error := <generate-error(|$[The aggregate [operation] is undefined for the argument type [t]])> aggregation
 
   // check that WHERE clauses contains boolean expressions
-  nabl-constraint(|ctx):
-    Constraints(constraints) -> <fail>
+  pgql-error:
+    Constraints(constraints) -> error
     where ExpressionPlusType(exp, Type(t, _)) := <remove-all(?ExpressionPlusType(_, Type("BOOLEAN", _))); Hd> constraints
-    with <generate-error(|ctx, $<WHERE clause expects a BOOLEAN but a <t> was given>)> exp
+    with error := <generate-error(|$<WHERE clause expects a BOOLEAN but a <t> was given>)> exp
 
   // check that HAVING clauses contains boolean expressions
-  nabl-constraint(|ctx):
-    HavingClause(ExpressionPlusType(exp, Type(t, _))) -> <fail>
+  pgql-error:
+    HavingClause(ExpressionPlusType(exp, Type(t, _))) -> error
     where <not(?"BOOLEAN")> t
-    with <generate-error(|ctx, $<HAVING clause expects a BOOLEAN but a <t> was given>)> exp
+    with error := <generate-error(|$<HAVING clause expects a BOOLEAN but a <t> was given>)> exp
 
   // check that ORDER BY does not contain vertex/edge/array terms
-  nabl-constraint(|ctx):
-    OrderByElem(ExpressionPlusType(exp, Type(t, _)), _, version) -> <fail>
+  pgql-error:
+    OrderByElem(ExpressionPlusType(exp, Type(t, _)), _, version) -> error
     where <not(?"v1.0")> version
         ; <?"VERTEX" + ?"EDGE" + string-starts-with(|"ARRAY<") + string-starts-with(|"SET<")> t
-    with <generate-error(|ctx, $[Cannot order by [t]])> exp
+    with error := <generate-error(|$[Cannot order by [t]])> exp
 
   error-duplicate-var-outer-query = !"Duplicate variable (variable with same name is passed from an outer query)"
 
-  nabl-constraint(|ctx):
-    Vertex(Identifier(v, _), _, Correlation(ExpressionPlusType(VarRef(Identifier(outer-var, _), _), type)), _) -> <fail>
+  pgql-error:
+    Vertex(Identifier(v, _), _, Correlation(ExpressionPlusType(VarRef(Identifier(outer-var, _), _), type)), _) -> error
     where <not(?Type("VERTEX", _))> type
-    with <generate-error(|ctx, <error-duplicate-var-outer-query>)> v
+    with error := <generate-error(|<error-duplicate-var-outer-query>)> v
 
-  nabl-constraint(|ctx):
-    Edge(_, Identifier(e, _), _, _, _, Correlation(ExpressionPlusType(VarRef(Identifier(outer-var, _), _), type)), _) -> <fail>
-    with <generate-error(|ctx, <error-duplicate-var-outer-query>)> e
+  pgql-error:
+    Edge(_, Identifier(e, _), _, _, _, Correlation(ExpressionPlusType(VarRef(Identifier(outer-var, _), _), type)), _) -> error
+    with error := <generate-error(|<error-duplicate-var-outer-query>)> e
 
-  nabl-constraint(|ctx):
-    RowsPerMatchVariable(Identifier(v, _), _, Correlation(_), _) -> <fail>
-    with <generate-error(|ctx, <error-duplicate-var-outer-query>)> v
+  pgql-error:
+    RowsPerMatchVariable(Identifier(v, _), _, Correlation(_), _) -> error
+    with error := <generate-error(|<error-duplicate-var-outer-query>)> v
 
   // check SELECT/COLUMNS clause is not empty (may happen in case of SELECT n.*, COLUMNS ( n.* ) or omitting COLUMNS clause)
-  nabl-constraint(|ctx):
-    t@SelectClause(distinctOrStar, e@SelectList([])) -> <fail>
+  pgql-error:
+    t@SelectClause(distinctOrStar, e@SelectList([])) -> error
     where <not(?Star() + ?GroupBySelectStar())> distinctOrStar // for SELECT * (instead of SELECT n.*) with zero columns we already have a different error
     with origin-text := <origin-text; upper-case> t
        ; if <string-starts-with(|"SELECT")> origin-text
@@ -758,164 +772,165 @@ rules // MODIFY
                    end
               end
          end
-       ; <generate-error(|ctx, messsage)> e
+       ; error := <generate-error(|messsage)> e
 
   // SUBSTRING
-  nabl-constraint(|ctx, metadata):
-    CharacterSubstring(ExpressionPlusType(exp, type@Type(t, _)), _, _) -> <fail>
+  pgql-error(|metadata):
+    CharacterSubstring(ExpressionPlusType(exp, type@Type(t, _)), _, _) -> error
     where <get-union-type(|metadata); ?AmbiguousType()> (type, <get-default-string-type(|metadata)>)
-    with  <generate-error(|ctx, $<Character string expected but a <t> was given>)> exp
+    with error := <generate-error(|$<Character string expected but a <t> was given>)> exp
 
-  nabl-constraint(|ctx, metadata):
-    CharacterSubstring(_, ExpressionPlusType(exp, type@Type(t, _)), _) -> <fail>
+  pgql-error(|metadata):
+    CharacterSubstring(_, ExpressionPlusType(exp, type@Type(t, _)), _) -> error
     where <get-union-type(|metadata); ?AmbiguousType()> (type, <get-default-long-integer-type(|metadata)>)
-    with  <generate-error(|ctx, $<Numeric expected but a <t> was given>)> exp
+    with error := <generate-error(|$<Numeric expected but a <t> was given>)> exp
 
-  nabl-constraint(|ctx, metadata):
-    CharacterSubstring(_, _, Some(StringLength(ExpressionPlusType(exp, type@Type(t, _))))) -> <fail>
+  pgql-error(|metadata):
+    CharacterSubstring(_, _, Some(StringLength(ExpressionPlusType(exp, type@Type(t, _))))) -> error
     where <get-union-type(|metadata); ?AmbiguousType()> (type, <get-default-long-integer-type(|metadata)>)
-    with  <generate-error(|ctx, $<Numeric expected but a <t> was given>)> exp
+    with error := <generate-error(|$<Numeric expected but a <t> was given>)> exp
 
   // function calls
-  nabl-constraint(|ctx, metadata):
-    ExpressionPlusType(exp@FunctionCall(_, _, _), Undefined()) -> <fail>
-    with <generate-error(|ctx, "Function does not exist or argument types do not match")> exp
+  pgql-error(|metadata):
+    ExpressionPlusType(exp@FunctionCall(_, _, _), Undefined()) -> error
+    with error := <generate-error(|"Function does not exist or argument types do not match")> exp
 
-  nabl-constraint(|ctx, metadata):
-    ExpressionPlusType(exp@FunctionCall(_, _, _), AmbiguousType()) -> <fail>
-    with <generate-error(|ctx, "Multiple functions exist that match the specified function name and argument types")> exp
+  pgql-error(|metadata):
+    ExpressionPlusType(exp@FunctionCall(_, _, _), AmbiguousType()) -> error
+    with error := <generate-error(|"Multiple functions exist that match the specified function name and argument types")> exp
 
-  nabl-constraint(|ctx, metadata):
-    FunctionCall(None(), Identifier("VERTEX_EQUAL", _), [ExpressionPlusType(exp1, t1), ExpressionPlusType(exp2, t2)]) -> <fail>
-    with if <not(?Type("VERTEX", _))> t1
-         then <generate-error(|ctx, "Vertex expected")> exp1
-         end
-       ; if <not(?Type("VERTEX", _))> t2
-         then <generate-error(|ctx, "Vertex expected")> exp2
-         end
+  pgql-error(|metadata):
+    FunctionCall(None(), Identifier("VERTEX_EQUAL", _), [ExpressionPlusType(exp1, t1), _]) -> error
+    where <not(?Type("VERTEX", _))> t1
+    with error := <generate-error(|"Vertex expected")> exp1
 
-  nabl-constraint(|ctx, metadata):
-    FunctionCall(None(), Identifier("EDGE_EQUAL", _), [ExpressionPlusType(exp1, t1), ExpressionPlusType(exp2, t2)]) -> <fail>
-    with if <not(?Type("EDGE", _))> t1
-         then <generate-error(|ctx, "Edge expected")> exp1
-         end
-       ; if <not(?Type("EDGE", _))> t2
-         then <generate-error(|ctx, "Edge expected")> exp2
-         end
+  pgql-error(|metadata):
+    FunctionCall(None(), Identifier("VERTEX_EQUAL", _), [_, ExpressionPlusType(exp2, t2)]) -> error
+    where <not(?Type("VERTEX", _))> t2
+    with error := <generate-error(|"Vertex expected")> exp2
 
-  nabl-constraint(|ctx, metadata):
-    FunctionCall(None(), Identifier("VERTEX_ID", _), [ExpressionPlusType(exp, t)]) -> <fail>
-    with if <not(?Type("VERTEX", _))> t
-         then <generate-error(|ctx, "Vertex expected")> exp
-         end
+  pgql-error(|metadata):
+    FunctionCall(None(), Identifier("EDGE_EQUAL", _), [ExpressionPlusType(exp1, t1), _]) -> error
+    where <not(?Type("EDGE", _))> t1
+    with error := <generate-error(|"Edge expected")> exp1
 
-  nabl-constraint(|ctx, metadata):
-    FunctionCall(None(), Identifier("EDGE_ID", _), [ExpressionPlusType(exp, t)]) -> <fail>
-    with if <not(?Type("EDGE", _))> t
-         then <generate-error(|ctx, "Edge expected")> exp
-         end
+  pgql-error(|metadata):
+    FunctionCall(None(), Identifier("EDGE_EQUAL", _), [_, ExpressionPlusType(exp2, t2)]) -> error
+    where <not(?Type("EDGE", _))> t2
+    with error :=<generate-error(|"Edge expected")> exp2
+
+  pgql-error(|metadata):
+    FunctionCall(None(), Identifier("VERTEX_ID", _), [ExpressionPlusType(exp, t)]) -> error
+    where <not(?Type("VERTEX", _))> t
+    with error := <generate-error(|"Vertex expected")> exp
+
+  pgql-error(|metadata):
+    FunctionCall(None(), Identifier("EDGE_ID", _), [ExpressionPlusType(exp, t)]) -> error
+    where <not(?Type("EDGE", _))> t
+    with error := <generate-error(|"Edge expected")> exp
 
 rules
 
-  check-all-restrictions-outside-GraphTable(|ctx) = alltd(?DerivedTable(Some(GraphTable()), _, _) <+ check-restriction-outside-GraphTable(|ctx))
+  check-all-restrictions-outside-GraphTable = collect-om(?DerivedTable(Some(GraphTable()), _, _); ![] <+ check-restriction-outside-GraphTable)
 
   // MATCHNUM outside of GRAPH_TABLE
-  check-restriction-outside-GraphTable(|ctx):
-    e@FunctionCall(None(), Identifier("MATCHNUM", _), []) -> <fail>
-    with <generate-error(|ctx, "MATCHNUM without argument not supported unless used inside GRAPH_TABLE")> e
+  check-restriction-outside-GraphTable:
+    e@FunctionCall(None(), Identifier("MATCHNUM", _), []) -> error
+    with error := <generate-error(|"MATCHNUM without argument not supported unless used inside GRAPH_TABLE")> e
 
 rules // GRAPH_TABLE
 
-  check-all-GraphTable-restrictions(|ctx):
-   ast -> ast
+  check-all-GraphTable-restrictions:
+   ast -> errors
    with if <oncetd(?GraphTable())> ast
-        then <alltd(check-GraphTable-restriction(|ctx))> ast
+        then errors := <collect(check-GraphTable-restriction)> ast
+        else errors := []
         end
 
-  check-GraphTable-restriction(|ctx):
-    Vertex(e@Identifier(_, v), _, Correlation(_), _) -> <fail>
-    with <generate-error(|ctx, $<GRAPH_TABLE restriction: vertex sharing between inner and outer query is not allowed, introduce a new variable name like <v>_new and use WHERE vertex_equal(<v>, <v>_new)>)> e
+  check-GraphTable-restriction:
+    Vertex(e@Identifier(_, v), _, Correlation(_), _) -> error
+    with error := <generate-error(|$<GRAPH_TABLE restriction: vertex sharing between inner and outer query is not allowed, introduce a new variable name like <v>_new and use WHERE vertex_equal(<v>, <v>_new)>)> e
 
-  check-GraphTable-restriction(|ctx):
-    SelectList(elems) -> <fail>
-    with <filter(?ExpAsVar(ExpressionPlusType(_, Type("VERTEX", _)), _, _, _) + ?ExpAsVar(ExpressionPlusType(_, Type("EDGE", _)), _, _, _)); batch-generate-error(|ctx, "GRAPH_TABLE restriction: cannot project vertex or edge objects")> elems
+  check-GraphTable-restriction:
+    SelectList(elems) -> <not(?[])> errors
+    with errors := <filter(?ExpAsVar(ExpressionPlusType(_, Type("VERTEX", _)), _, _, _) + ?ExpAsVar(ExpressionPlusType(_, Type("EDGE", _)), _, _, _)); batch-generate-error(|"GRAPH_TABLE restriction: cannot project vertex or edge objects")> elems
 
-  check-GraphTable-restriction(|ctx):
-    e@FunctionCall(None(), Identifier(functionName, _), [_]) -> <fail>
+  check-GraphTable-restriction:
+    e@FunctionCall(None(), Identifier(functionName, _), [_]) -> error
     where <?"LABEL" + ?"LABELS"> functionName
-    with <generate-error(|ctx, "GRAPH_TABLE restriction: cannot use label(..) or labels(..), try using the IS LABELED predicate")> e
+    with error := <generate-error(|"GRAPH_TABLE restriction: cannot use label(..) or labels(..), try using the IS LABELED predicate")> e
 
-  check-GraphTable-restriction(|ctx):
-    FunctionCall(None(), Identifier("ALL_DIFFERENT", _), expressionsPlusType) -> <fail>
+  check-GraphTable-restriction:
+    FunctionCall(None(), Identifier("ALL_DIFFERENT", _), expressionsPlusType) -> <not(?[])> errors
     with nonGraphElements := <filter(not(?ExpressionPlusType(_, Type("VERTEX", _)) + ?ExpressionPlusType(_, Type("EDGE", _))))> expressionsPlusType
-       ; <batch-generate-error(|ctx, "GRAPH_TABLE restriction: ALL_DIFFERENT predicate allows vertex and edge inputs only")> nonGraphElements
+       ; errors := <batch-generate-error(|"GRAPH_TABLE restriction: ALL_DIFFERENT predicate allows vertex and edge inputs only")> nonGraphElements
 
-  check-GraphTable-restriction(|ctx):
-    e@FunctionCall(None(), Identifier("JAVA_REGEXP_LIKE", _), [_, ExpressionPlusType(String(_), _)]) -> <fail>
-    with <generate-error(|ctx, "GRAPH_TABLE restriction: JAVA_REGEXP_LIKE is unsupported, please try to use another regexp function if one is available or implement a UDF otherwise")> e
+  check-GraphTable-restriction:
+    e@FunctionCall(None(), Identifier("JAVA_REGEXP_LIKE", _), [_, ExpressionPlusType(String(_), _)]) -> error
+    with error := <generate-error(|"GRAPH_TABLE restriction: JAVA_REGEXP_LIKE is unsupported, please try to use another regexp function if one is available or implement a UDF otherwise")> e
 
-  check-GraphTable-restriction(|ctx):
-    e@FunctionCall(None(), Identifier("IN_DEGREE", _), [ExpressionPlusType(_, Type("VERTEX", _))]) -> <fail>
-    with <generate-error(|ctx, "GRAPH_TABLE restriction: IN_DEGREE not supported, use a subquery instead")> e
+  check-GraphTable-restriction:
+    e@FunctionCall(None(), Identifier("IN_DEGREE", _), [ExpressionPlusType(_, Type("VERTEX", _))]) -> error
+    with error := <generate-error(|"GRAPH_TABLE restriction: IN_DEGREE not supported, use a subquery instead")> e
 
-  check-GraphTable-restriction(|ctx):
-    e@FunctionCall(None(), Identifier("OUT_DEGREE", _), [ExpressionPlusType(_, Type("VERTEX", _))]) -> <fail>
-    with <generate-error(|ctx, "GRAPH_TABLE restriction: OUT_DEGREE not supported, use a subquery instead")> e
+  check-GraphTable-restriction:
+    e@FunctionCall(None(), Identifier("OUT_DEGREE", _), [ExpressionPlusType(_, Type("VERTEX", _))]) -> error
+    with error := <generate-error(|"GRAPH_TABLE restriction: OUT_DEGREE not supported, use a subquery instead")> e
 
-  check-GraphTable-restriction(|ctx):
-    e@FunctionCall(None(), Identifier("ID", _), [_]) -> <fail>
-    with <generate-error(|ctx, "GRAPH_TABLE restriction: ID not supported, use VERTEX_ID or EDGE_ID instead")> e
+  check-GraphTable-restriction:
+    e@FunctionCall(None(), Identifier("ID", _), [_]) -> error
+    with error := <generate-error(|"GRAPH_TABLE restriction: ID not supported, use VERTEX_ID or EDGE_ID instead")> e
 
-  check-GraphTable-restriction(|ctx):
-    e@FunctionCall(None(), Identifier("MATCH_NUMBER", _), [_]) -> <fail>
-    with <generate-error(|ctx, "GRAPH_TABLE restriction: MATCH_NUMBER not supported, use MATCHNUM instead")> e
+  check-GraphTable-restriction:
+    e@FunctionCall(None(), Identifier("MATCH_NUMBER", _), [_]) -> error
+    with error := <generate-error(|"GRAPH_TABLE restriction: MATCH_NUMBER not supported, use MATCHNUM instead")> e
 
-  check-GraphTable-restriction(|ctx):
-    e@Eq(ExpressionPlusType(exp1, t1), ExpressionPlusType(exp2, _)) -> <fail>
+  check-GraphTable-restriction:
+    e@Eq(ExpressionPlusType(exp1, t1), ExpressionPlusType(exp2, _)) -> error
     where <is-vertex-or-edge-type> t1
     with if <?Type("VERTEX", _)> t1
-         then <generate-error(|ctx, $<GRAPH_TABLE restriction: use VERTEX_EQUAL(<<origin-text> exp1>, <<origin-text> exp2>)>)> e
-         else <generate-error(|ctx, $<GRAPH_TABLE restriction: use EDGE_EQUAL(<<origin-text> exp1>, <<origin-text> exp2>)>)> e
+         then error := <generate-error(|$<GRAPH_TABLE restriction: use VERTEX_EQUAL(<<origin-text> exp1>, <<origin-text> exp2>)>)> e
+         else error := <generate-error(|$<GRAPH_TABLE restriction: use EDGE_EQUAL(<<origin-text> exp1>, <<origin-text> exp2>)>)> e
          end
 
-  check-GraphTable-restriction(|ctx):
-    e@Neq(ExpressionPlusType(exp1, t1), ExpressionPlusType(exp2, _)) -> <fail>
+  check-GraphTable-restriction:
+    e@Neq(ExpressionPlusType(exp1, t1), ExpressionPlusType(exp2, _)) -> error
     where <is-vertex-or-edge-type> t1
     with if <?Type("VERTEX", _)> t1
-         then <generate-error(|ctx, $<GRAPH_TABLE restriction: use NOT VERTEX_EQUAL(<<origin-text> exp1>, <<origin-text> exp2>)>)> e
-         else <generate-error(|ctx, $<GRAPH_TABLE restriction: use NOT EDGE_EQUAL(<<origin-text> exp1>, <<origin-text> exp2>)>)> e
+         then error := <generate-error(|$<GRAPH_TABLE restriction: use NOT VERTEX_EQUAL(<<origin-text> exp1>, <<origin-text> exp2>)>)> e
+         else error := <generate-error(|$<GRAPH_TABLE restriction: use NOT EDGE_EQUAL(<<origin-text> exp1>, <<origin-text> exp2>)>)> e
          end
 
-  check-GraphTable-restriction(|ctx):
-    CommonPathExpressions(pathMacros) -> <fail>
-    with <map(?CommonPathExpression(<id>, _, _, _, _); generate-error(|ctx, "GRAPH_TABLE restriction: path macros not supported"))> pathMacros
+  check-GraphTable-restriction:
+    CommonPathExpressions(pathMacros) -> <not(?[])> errors
+    with errors := <map(?CommonPathExpression(<id>, _, _, _, _); generate-error(|"GRAPH_TABLE restriction: path macros not supported"))> pathMacros
 
-  check-GraphTable-restriction(|ctx):
-    e@OneRowPerEdge(_) -> <fail>
-    with <generate-error(|ctx, "GRAPH_TABLE restriction: ONE ROW PER EDGE not supported, use ONE ROW PER STEP")> e
+  check-GraphTable-restriction:
+    e@OneRowPerEdge(_) -> error
+    with error := <generate-error(|"GRAPH_TABLE restriction: ONE ROW PER EDGE not supported, use ONE ROW PER STEP")> e
 
   // note: UPDATE and DELETE do not need a check since GRAPH_TABLE does not allow for projecting vertex and edges objects (to be updated/deleted) anyway
-  check-GraphTable-restriction(|ctx):
-    e@InsertClause(_, _) -> <fail>
-    with <generate-error(|ctx, "GRAPH_TABLE restriction: INSERT not supported")> e
+  check-GraphTable-restriction:
+    e@InsertClause(_, _) -> error
+    with error := <generate-error(|"GRAPH_TABLE restriction: INSERT not supported")> e
 
-  check-GraphTable-restriction(|ctx):
-    e@ColumnNamePrefix(_) -> <fail>
-    with <generate-error(|ctx, "GRAPH_TABLE restriction: PREFIX not supported")> e
+  check-GraphTable-restriction:
+    e@ColumnNamePrefix(_) -> error
+    with error := <generate-error(|"GRAPH_TABLE restriction: PREFIX not supported")> e
 
-  check-GraphTable-restriction(|ctx):
-    t -> <fail>
+  check-GraphTable-restriction:
+    t -> error
     where exp := <get-exp-from-aggregation; (?ExpressionPlusType(_, Type("VERTEX", _)) + ?ExpressionPlusType(_, Type("EDGE", _)))> t
-    with <generate-error(|ctx, "GRAPH_TABLE restriction: aggregation does not allow vertex or edge input; use the vertex/edge identifier or a property instead")> exp
+    with error := <generate-error(|"GRAPH_TABLE restriction: aggregation does not allow vertex or edge input; use the vertex/edge identifier or a property instead")> exp
 
-  nabl-constraint(|ctx):
-    DerivedTable(Some(GraphTable()), Subquery(NormalizedQuery(_, selectClause, _, _, _, CreateOneGroup(), _, _, _, _)), None()) -> <fail>
+  pgql-error:
+    DerivedTable(Some(GraphTable()), Subquery(NormalizedQuery(_, selectClause, _, _, _, CreateOneGroup(), _, _, _, _)), None()) -> <not(?[])> errors
     with aggregations := <collect(is-aggregate)> selectClause
-       ; <batch-generate-error(|ctx, "COLUMNS clause allows only aggregations that access at least one group variable")> aggregations
+       ; errors := <batch-generate-error(|"COLUMNS clause allows only aggregations that access at least one group variable")> aggregations
 
 rules // OPTIONAL MATCH
 
-  nabl-constraint(|ctx):
-    GraphPattern(vertices, edges, _, None() /* Match without OPTIONAL keyword */) -> <fail>
+  pgql-error:
+    GraphPattern(vertices, edges, _, None() /* Match without OPTIONAL keyword */) -> <not(?[])> errors
     with optionallyBoundVertices := <collect(?Vertex(<id>, _, Correlation(ExpressionPlusType(_, Type("VERTEX", [OptionallyBound()]))), _))> (vertices, edges)
-       ; <batch-generate-error(|ctx, "Variable is optionally bound; use OPTIONAL MATCH")> optionallyBoundVertices
+       ; errors := <batch-generate-error(|"Variable is optionally bound; use OPTIONAL MATCH")> optionallyBoundVertices

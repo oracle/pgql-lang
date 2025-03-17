@@ -40,7 +40,7 @@ test Order by vertex (5) [[
       FROM g MATCH (n)
   ORDER BY [[( SELECT m AS c1 FROM g MATCH (m) LIMIT 1 )]]
 
-]] error like "Scalar subquery not allowed to return a vertex or an edge" at #1
+]] error like "Cannot order by VERTEX" at #1
 
 test Order by vertex (6) [[
 
@@ -48,7 +48,7 @@ test Order by vertex (6) [[
      MATCH (n)
   ORDER BY [[( SELECT m AS c1 FROM g MATCH (m) LIMIT 1 )]]
 
-]] error like "Scalar subquery not allowed to return a vertex or an edge" at #1
+]] error like "Cannot order by VERTEX" at #1
 
 test Order by vertex (7) [[
 
@@ -108,7 +108,7 @@ test DISTINCT projection with ORDER BY in GROUP BY [[
   SELECT DISTINCT nAge AS age
     FROM g MATCH (n)
 GROUP BY n.Age AS nAge
-ORDER BY [[n.name]], age, nAge, [[1+2]]
+ORDER BY [[n.Age]], age, nAge, [[1+2]]
 
 ]] error like "Because of DISTINCT projection, the expression in ORDER BY should be one of the expressions in the SELECT" at #1, #2
 

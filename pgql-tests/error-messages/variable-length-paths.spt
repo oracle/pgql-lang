@@ -116,7 +116,6 @@ test Potentially infinite solutions (1) [[
     FROM g MATCH
            (n) ->[[*]] (m)
          , (n) ->[[+]] (m)
-         , (n) ->? (m)
          , (n) ->{2} (m)
          , (n) ->{,2} (m)
          , (n) ->[[{2,}]] (m)
@@ -126,28 +125,28 @@ test Potentially infinite solutions (1) [[
 
 test Potentially infinite solutions (2) [[
 
-  SELECT *
+  SELECT 1
     FROM MATCH ALL (n) -[e1]->[[{1,}]] (m)
 
 ]] error like "Potentially infinite solutions; specify a selective path-finding goal or a quantifier with upper bound" at #1
 
 test Potentially infinite solutions (3) [[
 
-  SELECT *
+  SELECT 1
     FROM MATCH ALL (n) -[e1]->[[+]] (m)
 
 ]] error like "Potentially infinite solutions; specify a selective path-finding goal or a quantifier with upper bound" at #1
 
 test Potentially infinite solutions (4) [[
 
-  SELECT *
+  SELECT 1
     FROM MATCH ALL (n) -[e1]->[[+]] (m)
 
 ]] error like "Potentially infinite solutions; specify a selective path-finding goal or a quantifier with upper bound" at #1
 
 test Potentially infinite solutions (5) [[
 
-  SELECT *
+  SELECT 1
     FROM MATCH WALK (n) -[e1]->[[{2,}]] (m)
 
 ]] error like "Potentially infinite solutions; specify a selective path-finding goal or a quantifier with upper bound" at #1
@@ -227,19 +226,19 @@ test Duplicate variables (9) [[
 
 test Nested regex (1) [[
 
-    PATH p AS ANY SHORTEST ( (n) -[e]->* (m) )
-  SELECT n AS c1
+    [[PATH p AS ANY SHORTEST ( (n) -[e]->* (m) )
+  SELECT]] n AS c1
     FROM g MATCH (n)
 
-]] error like "Nested regular expressions not supported"
+]] error like "Nested regular expressions not supported" at #1
 
 test Nested regex (2) [[
 
-    PATH p AS (n) -/:likes/-> (m)
-  SELECT n AS c1
+    [[PATH p AS (n) -/:likes/-> (m)
+  SELECT]] n AS c1
     FROM g MATCH (n)
 
-]] error like "Nested regular expressions not supported"
+]] error like "Nested regular expressions not supported" at #1
 
 test Reachability in combination with path-finding goal (1) [[
 
@@ -397,7 +396,7 @@ test ONE ROW PER STEP no quantifier (2) [[
 test ONE ROW PER STEP no quantifier (3) [[
 
   SELECT 1
-    FROM MATCH ( any (n) -> (m), (m) -> (o) ) [[ONE ROW PER STEP (v1, e, v2)]]
+    FROM MATCH ( any (n) -> (m), (m2) -> (o) ) [[ONE ROW PER STEP (v1, e, v2)]]
 
 ]] error like "ONE ROW PER VERTEX or STEP is only permitted if the MATCH clause contains a single path pattern" at #1
 

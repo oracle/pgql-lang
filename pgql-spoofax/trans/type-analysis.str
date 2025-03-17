@@ -232,8 +232,10 @@ rules // functions
 rules // subqueries
 
   add-type(|metadata, variablesPlusTypes, constraints):
-    ScalarSubquery(Subquery(query)) -> ExpressionPlusType(ScalarSubquery(Subquery(query')), type)
+    t1@ScalarSubquery(t2@Subquery(query)) -> ExpressionPlusType(scalarSubquery, type)
     with (query', type) := <add-types-to-subquery(|metadata, variablesPlusTypes, constraints)> query
+       ; subquery := <origin-track-forced(!Subquery(query'))> t2
+       ; scalarSubquery := <origin-track-forced(!ScalarSubquery(subquery))> t1
 
   add-type(|metadata, variablesPlusTypes, constraints):
     Exists(Subquery(query)) -> ExpressionPlusType(Exists(Subquery(query')), Type("BOOLEAN", []))

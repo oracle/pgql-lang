@@ -29,11 +29,11 @@ test HAVING not having an aggregation (2) [[
 
 test HAVING not having an aggregation (3) [[
 
-  SELECT n.age AS nAge
+  SELECT [[n]].age AS nAge
     FROM g MATCH (n)
   HAVING n.age > 20
 
-]] error like "Unresolved variable (did you mean to use an aggregation?)"
+]] error like "Unresolved variable (did you mean to use an aggregation?)" at #1
 
 test HAVING not having an aggregation (4) [[
 
