@@ -24,6 +24,8 @@ rules
        ; errors3 := <check-all-GraphTable-restrictions> ast
        ; errors4 := <check-all-restrictions-outside-GraphTable> ast
 
+  get-pgql-errors = is-ddl-statement; collect(pgql-error); flatten-list
+
   generate-error(|m) = !ErrorMessage(<id>, m)
 
   batch-generate-error(|m) = map(!ErrorMessage(<id>, m))
@@ -35,9 +37,8 @@ rules
 
   nabl-constraint(|ctx):
     t@AstPlusMetadata(_, _) -> <fail>
+    where <?AstPlusMetadata(_, _) + is-ddl-statement> t
     with <get-pgql-errors; map(to-spoofax-error(|ctx))> t
-
-  nabl-constraint(|ctx) = is-ddl-statement; collect(pgql-error); flatten-list; map(to-spoofax-error(|ctx)); fail
 
   to-spoofax-error(|ctx):
     ErrorMessage(term, message) -> <id>

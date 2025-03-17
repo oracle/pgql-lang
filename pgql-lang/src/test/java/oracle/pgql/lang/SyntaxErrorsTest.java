@@ -208,7 +208,7 @@ public class SyntaxErrorsTest extends AbstractPgqlTest {
   public void testNegativeLowerBound() throws Exception {
     String query = "SELECT 1 FROM MATCH ANY SHORTEST () ->{-1, 2} ()";
     PgqlResult result = pgql.parse(query);
-    assertTrue(result.getErrorMessages().contains("Syntax error, not expected here: '-'"));
+    assertTrue(result.getErrorMessages().contains("Syntax error, '-1,' not expected"));
   }
 
   @Test
@@ -240,25 +240,25 @@ public class SyntaxErrorsTest extends AbstractPgqlTest {
         "\n" + //
         "  v23\n" + //
         "  ^^^\n" + //
-        "Unresolved variable\n" + //
+        "  Unresolved variable\n" + //
         "\n" + //
         "Error(s) in line 9:\n" + //
         "\n" + //
         "  .number AS account1, e2\n" + //
         "                       ^^\n" + //
-        "Unresolved variable\n" + //
+        "  Unresolved variable\n" + //
         "\n" + //
         "Error(s) in line 10:\n" + //
         "\n" + //
         "  .amount, v21.number AS account2 )\n" + //
         "           ^^^\n" + //
-        "Unresolved variable\n" + //
+        "  Unresolved variable\n" + //
         "\n" + //
         "Error(s) in line 12:\n" + //
         "\n" + //
         "  ORDER BY match_num, elem_num, x\n" + //
         "                                ^\n" + //
-        "Unresolved variable", result.getErrorMessages());
+        "  Unresolved variable", result.getErrorMessages());
 
     query = "SELECT 1\n" + //
         "FROM GRAPH_TABLE ( financial_transactions\n" + //
@@ -276,7 +276,7 @@ public class SyntaxErrorsTest extends AbstractPgqlTest {
         "\n" + //
         "  ORDER BY AVG(\n" + //
         "           ^^^^\n" + //
-        "Aggregation in ORDER BY only allowed if SELECT has aggregations", result.getErrorMessages());
+        "  Aggregation in ORDER BY only allowed if SELECT has aggregations", result.getErrorMessages());
   }
 
   @Test

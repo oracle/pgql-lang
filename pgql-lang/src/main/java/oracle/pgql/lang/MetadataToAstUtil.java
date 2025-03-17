@@ -19,8 +19,6 @@ import org.apache.commons.text.translate.AggregateTranslator;
 import org.apache.commons.text.translate.CharSequenceTranslator;
 import org.apache.commons.text.translate.EntityArrays;
 import org.apache.commons.text.translate.LookupTranslator;
-import org.metaborg.spoofax.core.unit.ISpoofaxAnalyzeUnit;
-import org.metaborg.spoofax.core.unit.ISpoofaxParseUnit;
 import org.spoofax.interpreter.terms.IStrategoAppl;
 import org.spoofax.interpreter.terms.IStrategoString;
 import org.spoofax.interpreter.terms.IStrategoTerm;
@@ -58,10 +56,10 @@ public class MetadataToAstUtil {
         new LookupTranslator(Collections.unmodifiableMap(unescapeJavaMap)));
   }
 
-  static ISpoofaxParseUnit addMetadata(ISpoofaxParseUnit parseResult, AbstractMetadataProvider metadataProvider,
-      ITermFactory f, boolean allowReferencingAnyProperty) {
+  static IStrategoTerm addMetadata(IStrategoTerm parseAst, AbstractMetadataProvider metadataProvider, ITermFactory f,
+      boolean allowReferencingAnyProperty) {
     PgqlVersion pgqlVersion;
-    switch (((IStrategoAppl) parseResult.ast()).getConstructor().getName()) {
+    switch (((IStrategoAppl) parseAst).getConstructor().getName()) {
       case "Query":
         pgqlVersion = PgqlVersion.V_1_3_OR_UP;
         break;
@@ -73,19 +71,19 @@ public class MetadataToAstUtil {
         break;
       default:
         // for DDL statements and other non-query statement, we don't add metadata
-        return parseResult;
+        return parseAst;
     }
 
     if (metadataProvider == null) {
-      return parseResult;
+      return parseAst;
     }
 
-    Set<SchemaQualifiedName> graphNames = extractGraphNames(parseResult.ast(), pgqlVersion);
+    Set<SchemaQualifiedName> graphNames = extractGraphNames(parseAst, pgqlVersion);
     Optional<GraphSchema> graphSchema;
     if (graphNames.size() > 1) {
       // multiple graph references in single query are currently not supported
       // we already generate an error for that during analysis so we can just return here
-      return parseResult;
+      return parseAst;
     } else if (graphNames.size() == 1) {
       SchemaQualifiedName graphName = graphNames.iterator().next();
       graphSchema = metadataProvider.getGraphSchema(graphName);
@@ -96,7 +94,7 @@ public class MetadataToAstUtil {
     Set<String> allTypes = new HashSet<>();
 
     Optional<List<DataTypeSynonym>> dataTypeSynonyms = metadataProvider.getDataTypeSynonyms();
-    allTypes.addAll(extractDataTypesFromCastStatements(parseResult.ast(), dataTypeSynonyms));
+    allTypes.addAll(extractDataTypesFromCastStatements(parseAst, dataTypeSynonyms));
     Optional<List<FunctionSignature>> functionSignatures = metadataProvider.getFunctionSignatures();
     allTypes.addAll(extractDataTypesFromUdfs(functionSignatures));
 
@@ -183,11 +181,10 @@ public class MetadataToAstUtil {
       metadataTerm.add(f.makeAppl("AllowReferencingAnyProperty"));
     }
 
-    IStrategoAppl metadataExtendedAst = f.makeAppl(AST_PLUS_METADATA_CONSTRUCTOR_NAME, parseResult.ast(),
+    IStrategoAppl metadataExtendedAst = f.makeAppl(AST_PLUS_METADATA_CONSTRUCTOR_NAME, parseAst,
         f.makeList(metadataTerm));
-    ISpoofaxParseUnit extendedParseUnit = new ModifiedParseUnit(parseResult, metadataExtendedAst);
 
-    return extendedParseUnit;
+    return metadataExtendedAst;
   }
 
   static IStrategoTerm translateLabel(Label label, ITermFactory f, Set<String> allTypes) {
@@ -200,14 +197,12 @@ public class MetadataToAstUtil {
     return f.makeAppl("Label", f.makeString(label.getLabel()), f.makeList(propertyTerms));
   }
 
-  static IStrategoTerm removeMetadata(ISpoofaxAnalyzeUnit analysisResult) {
-    IStrategoTerm analyizedAst;
-    if (((IStrategoAppl) analysisResult.ast()).getConstructor().getName().equals(AST_PLUS_METADATA_CONSTRUCTOR_NAME)) {
-      analyizedAst = analysisResult.ast().getSubterm(POS_AST_PLUS_METADATA_AST_EXPRESSIONS);
+  static IStrategoTerm removeMetadata(IStrategoTerm analysisAst) {
+    if (((IStrategoAppl) analysisAst).getConstructor().getName().equals(AST_PLUS_METADATA_CONSTRUCTOR_NAME)) {
+      return analysisAst.getSubterm(POS_AST_PLUS_METADATA_AST_EXPRESSIONS);
     } else {
-      analyizedAst = analysisResult.ast();
+      return analysisAst;
     }
-    return analyizedAst;
   }
 
   static Set<SchemaQualifiedName> extractGraphNames(IStrategoTerm ast, PgqlVersion pgqlVersion) {

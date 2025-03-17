@@ -4,3 +4,5 @@
 /.settings
 /pgql-lang.iml
 /src/main/resources/
+/repo/
+pgql-lang-trans.jar

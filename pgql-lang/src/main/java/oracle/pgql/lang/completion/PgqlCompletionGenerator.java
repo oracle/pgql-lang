@@ -15,7 +15,6 @@ import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
 import org.apache.commons.lang3.StringUtils;
-import org.metaborg.core.completion.ICompletion;
 
 import oracle.pgql.lang.PgqlException;
 import oracle.pgql.lang.PgqlResult;
@@ -74,8 +73,8 @@ public class PgqlCompletionGenerator {
 
   private static final Pattern IDENTIFIER_AT_END_PATTERN = Pattern.compile(IDENTIFIER + "$");
 
-  public static List<PgqlCompletion> generate(PgqlResult pgqlResult, Iterable<ICompletion> spoofaxCompletions,
-      String queryString, int cursor, PgqlCompletionContext ctx)
+  public static List<PgqlCompletion> generate(PgqlResult pgqlResult, String queryString, int cursor,
+      PgqlCompletionContext ctx)
       throws PgqlException {
 
     List<PgqlCompletion> result = new ArrayList<>();

@@ -14,6 +14,11 @@
       <scope>compile</scope>
     </dependency>
     <dependency>
+      <groupId>oracle.pg</groupId>
+      <artifactId>pgql-lang-trans</artifactId>
+      <version>0.0.0-SNAPSHOT</version>
+    </dependency>
+    <dependency>
       <groupId>org.metaborg</groupId>
       <artifactId>org.metaborg.spoofax.core.uber</artifactId>
       <version>2.5.18</version>
@@ -104,10 +109,95 @@
     </dependency>
   </dependencies>
 
+<!-- if you rather depend on individual Spoofax libraries rather than Uber jar
+    <properties>
+        <metaborg-version>2.5.22</metaborg-version>
+    </properties>
+
+    <dependencies>
+	    <dependency>
+	      <groupId>oracle.pg</groupId>
+	      <artifactId>graph-query-ir</artifactId>
+	      <version>0.0.0-SNAPSHOT</version>
+	      <scope>compile</scope>
+	    </dependency>
+	    <dependency>
+	      <groupId>oracle.pg</groupId>
+	      <artifactId>pgql-lang-trans</artifactId>
+	      <version>0.0.0-SNAPSHOT</version>
+	    </dependency>
+        <dependency>
+            <groupId>org.metaborg</groupId>
+            <artifactId>org.spoofax.jsglr2</artifactId>
+            <version>${metaborg-version}</version>
+		    <exclusions>
+		      <exclusion>
+		        <groupId>org.metaborg</groupId>
+		        <artifactId>jsglr.shared</artifactId>
+		      </exclusion>
+		      <exclusion>
+		        <groupId>org.metaborg</groupId>
+		        <artifactId>sdf2table</artifactId>
+		      </exclusion>
+		      <exclusion>
+		        <groupId>jakarta.annotation</groupId>
+		        <artifactId>jakarta.annotation-api</artifactId>
+		      </exclusion>
+		    </exclusions>
+        </dependency>
+        <dependency>
+            <groupId>org.metaborg</groupId>
+            <artifactId>org.metaborg.parsetable</artifactId>
+            <version>${metaborg-version}</version>
+		    <exclusions>
+		      <exclusion>
+		        <groupId>org.metaborg</groupId>
+		        <artifactId>jsglr.shared</artifactId>
+		      </exclusion>
+		      <exclusion>
+		        <groupId>org.slf4j</groupId>
+		        <artifactId>slf4j-api</artifactId>
+		      </exclusion>
+		      <exclusion>
+		        <groupId>jakarta.annotation</groupId>
+		        <artifactId>jakarta.annotation-api</artifactId>
+		      </exclusion>
+		    </exclusions>
+        </dependency>
+        <dependency>
+            <groupId>org.metaborg</groupId>
+            <artifactId>org.strategoxt.strj</artifactId>
+            <version>${metaborg-version}</version>
+		    <exclusions>
+		      <exclusion>
+		        <groupId>jakarta.annotation</groupId>
+		        <artifactId>jakarta.annotation-api</artifactId>
+		      </exclusion>
+		      <exclusion>
+		        <groupId>org.metaborg</groupId>
+		        <artifactId>org.spoofax.interpreter.library.index</artifactId>
+		      </exclusion>
+		      <exclusion>
+		        <groupId>org.metaborg</groupId>
+		        <artifactId>jsglr.shared</artifactId>
+		      </exclusion>
+		      <exclusion>
+		        <groupId>org.apache.commons</groupId>
+		        <artifactId>commons-vfs2</artifactId>
+		      </exclusion>
+		    </exclusions>
+        </dependency>
+    </dependencies>
+-->
+
   <repositories>
     <repository>
       <id>metaborgRepo</id>
       <url>https://artifacts.metaborg.org/content/repositories/releases/</url>
+    </repository>
+    <repository>
+      <id>Local Repository with Stratego code from PGQL</id>
+      <url>file://${basedir}/repo</url>
     </repository>
   </repositories>
 
