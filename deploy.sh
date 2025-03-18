@@ -12,7 +12,7 @@ if [ $# -eq 0 ]
     exit
 fi
 
-if [ -f pgql-lang/src/main/resources/pgql.spoofax-language ]
+if [ -f pgql-lang/src/main/resources/sdf.tbl ]
 then
   echo "INFO: Using the parser that was previously built via 'bash install.sh'"
 else
@@ -24,9 +24,11 @@ STAGE=false
 if [[ "$1" =~ ^[0-9.]+$ ]]
 then
   echo "Deploying to release repo"
+  REPO="https://artifacthub-iad.oci.oraclecorp.com/graph-onprem-release-local"
 else
   echo "Deploying to staging repo"
   STAGE=true
+  REPO="https://artifacthub-iad.oci.oraclecorp.com/graph-onprem-stage-local"
 fi
 
 VERSION_A="0.0.0-SNAPSHOT"
@@ -40,6 +42,21 @@ do
   fi
 done
 
+mvn deploy:deploy-file \
+   -DgroupId=oracle.pg \
+   -DartifactId=pgql-lang-trans \
+   -Dversion=$VERSION_B \
+   -Dpackaging=jar \
+   -Dfile=pgql-lang/pgql-lang-trans.jar \
+   -Durl=$REPO \
+   -DrepositoryId=graph-onprem
+mvn org.apache.maven.plugins:maven-install-plugin:2.3.1:install-file
+   -Dfile=pgql-lang/pgql-lang-trans.jar
+   -DgroupId=oracle.pg
+   -DartifactId=pgql-lang-trans
+   -Dversion=$VERSION_B
+   -Dpackaging=jar
+   -DlocalRepositoryPath="$(pwd)/pgql-lang/repo/"
 cd graph-query-ir/; mvn deploy; cd ../
 cd pgql-lang/; mvn deploy; cd ../
 

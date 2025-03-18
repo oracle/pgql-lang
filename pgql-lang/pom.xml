@@ -193,12 +193,12 @@
 
   <repositories>
     <repository>
-      <id>metaborgRepo</id>
-      <url>https://artifacts.metaborg.org/content/repositories/releases/</url>
-    </repository>
-    <repository>
       <id>Local Repository with Stratego code from PGQL</id>
       <url>file://${basedir}/repo</url>
+    </repository>
+    <repository>
+      <id>metaborgRepo</id>
+      <url>https://artifacts.metaborg.org/content/repositories/releases/</url>
     </repository>
   </repositories>
 
