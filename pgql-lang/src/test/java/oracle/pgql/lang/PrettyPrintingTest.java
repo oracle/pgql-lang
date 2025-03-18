@@ -168,8 +168,6 @@ public class PrettyPrintingTest extends AbstractPgqlTest {
     SelectQuery selectQuery = (SelectQuery) pgql.parse(query).getPgqlStatement();
 
     PropertyAccess propertyAccess = (PropertyAccess) selectQuery.getProjection().getElements().get(0).getExp();
-    System.out.println(identifier);
-    System.out.println(propertyAccess.getPropertyName());
     assertEquals(identifier, propertyAccess.getPropertyName());
 
     assertEquals(identifier, selectQuery.getGraphName().getName());

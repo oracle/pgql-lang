@@ -43,18 +43,18 @@
           <groupId>com.fasterxml.jackson.dataformat</groupId>
           <artifactId>jackson-dataformat-yaml</artifactId>
         </exclusion>
-	    <exclusion>
-	      <groupId>org.apache.commons</groupId>
+      <exclusion>
+        <groupId>org.apache.commons</groupId>
           <artifactId>*</artifactId>
-	    </exclusion>
-	    <exclusion>
-	      <groupId>com.fasterxml.jackson.core</groupId>
+      </exclusion>
+      <exclusion>
+        <groupId>com.fasterxml.jackson.core</groupId>
           <artifactId>*</artifactId>
-	    </exclusion>
-	    <exclusion>
-	      <groupId>com.virtlink.commons</groupId>
+      </exclusion>
+      <exclusion>
+        <groupId>com.virtlink.commons</groupId>
           <artifactId>commons-configuration2-jackson</artifactId>
-	    </exclusion>
+      </exclusion>
         <exclusion>
           <groupId>org.slf4j</groupId>
           <artifactId>slf4j-api</artifactId>
@@ -65,7 +65,7 @@
         </exclusion>
         <exclusion>
           <groupId>com.google.guava</groupId>
-          <artifactId>guava</artifactId>
+          <artifactId>*</artifactId>
         </exclusion>
         <exclusion>
           <groupId>com.google.inject</groupId>
@@ -91,6 +91,14 @@
           <groupId>org.reactivestreams</groupId>
           <artifactId>reactive-streams</artifactId>
         </exclusion>
+        <exclusion>
+          <groupId>jakarta.annotation</groupId>
+          <artifactId>jakarta.annotation-api</artifactId>
+        </exclusion>
+        <exclusion>
+          <groupId>jakarta.inject</groupId>
+          <artifactId>jakarta.inject-api</artifactId>
+        </exclusion>
       </exclusions>
     </dependency>
     <dependency>
@@ -103,83 +111,83 @@
 
 <!-- If you rather depend on individual Spoofax libraries rather than the Uber jar:
     <dependencies>
-	    <dependency>
-	      <groupId>oracle.pg</groupId>
-	      <artifactId>graph-query-ir</artifactId>
-	      <version>0.0.0-SNAPSHOT</version>
-	      <scope>compile</scope>
-	    </dependency>
-	    <dependency>
-	      <groupId>oracle.pg</groupId>
-	      <artifactId>pgql-lang-trans</artifactId>
-	      <version>0.0.0-SNAPSHOT</version>
-	    </dependency>
+      <dependency>
+        <groupId>oracle.pg</groupId>
+        <artifactId>graph-query-ir</artifactId>
+        <version>0.0.0-SNAPSHOT</version>
+        <scope>compile</scope>
+      </dependency>
+      <dependency>
+        <groupId>oracle.pg</groupId>
+        <artifactId>pgql-lang-trans</artifactId>
+        <version>0.0.0-SNAPSHOT</version>
+      </dependency>
         <dependency>
           <groupId>junit</groupId>
           <artifactId>junit</artifactId>
           <version>4.13.1</version>
           <scope>test</scope>
-	    </dependency>
+      </dependency>
         <dependency>
             <groupId>org.metaborg</groupId>
             <artifactId>org.spoofax.jsglr2</artifactId>
             <version>${metaborg-version}</version>
-		    <exclusions>
-		      <exclusion>
-		        <groupId>org.metaborg</groupId>
-		        <artifactId>jsglr.shared</artifactId>
-		      </exclusion>
-		      <exclusion>
-		        <groupId>org.metaborg</groupId>
-		        <artifactId>sdf2table</artifactId>
-		      </exclusion>
-		      <exclusion>
-		        <groupId>jakarta.annotation</groupId>
-		        <artifactId>jakarta.annotation-api</artifactId>
-		      </exclusion>
-		    </exclusions>
+        <exclusions>
+          <exclusion>
+            <groupId>org.metaborg</groupId>
+            <artifactId>jsglr.shared</artifactId>
+          </exclusion>
+          <exclusion>
+            <groupId>org.metaborg</groupId>
+            <artifactId>sdf2table</artifactId>
+          </exclusion>
+          <exclusion>
+            <groupId>jakarta.annotation</groupId>
+            <artifactId>jakarta.annotation-api</artifactId>
+          </exclusion>
+        </exclusions>
         </dependency>
         <dependency>
             <groupId>org.metaborg</groupId>
             <artifactId>org.metaborg.parsetable</artifactId>
             <version>${metaborg-version}</version>
-		    <exclusions>
-		      <exclusion>
-		        <groupId>org.metaborg</groupId>
-		        <artifactId>jsglr.shared</artifactId>
-		      </exclusion>
-		      <exclusion>
-		        <groupId>org.slf4j</groupId>
-		        <artifactId>slf4j-api</artifactId>
-		      </exclusion>
-		      <exclusion>
-		        <groupId>jakarta.annotation</groupId>
-		        <artifactId>jakarta.annotation-api</artifactId>
-		      </exclusion>
-		    </exclusions>
+        <exclusions>
+          <exclusion>
+            <groupId>org.metaborg</groupId>
+            <artifactId>jsglr.shared</artifactId>
+          </exclusion>
+          <exclusion>
+            <groupId>org.slf4j</groupId>
+            <artifactId>slf4j-api</artifactId>
+          </exclusion>
+          <exclusion>
+            <groupId>jakarta.annotation</groupId>
+            <artifactId>jakarta.annotation-api</artifactId>
+          </exclusion>
+        </exclusions>
         </dependency>
         <dependency>
             <groupId>org.metaborg</groupId>
             <artifactId>org.strategoxt.strj</artifactId>
             <version>${metaborg-version}</version>
-		    <exclusions>
-		      <exclusion>
-		        <groupId>jakarta.annotation</groupId>
-		        <artifactId>jakarta.annotation-api</artifactId>
-		      </exclusion>
-		      <exclusion>
-		        <groupId>org.metaborg</groupId>
-		        <artifactId>org.spoofax.interpreter.library.index</artifactId>
-		      </exclusion>
-		      <exclusion>
-		        <groupId>org.metaborg</groupId>
-		        <artifactId>jsglr.shared</artifactId>
-		      </exclusion>
-		      <exclusion>
-		        <groupId>org.apache.commons</groupId>
-		        <artifactId>commons-vfs2</artifactId>
-		      </exclusion>
-		    </exclusions>
+        <exclusions>
+          <exclusion>
+            <groupId>jakarta.annotation</groupId>
+            <artifactId>jakarta.annotation-api</artifactId>
+          </exclusion>
+          <exclusion>
+            <groupId>org.metaborg</groupId>
+            <artifactId>org.spoofax.interpreter.library.index</artifactId>
+          </exclusion>
+          <exclusion>
+            <groupId>org.metaborg</groupId>
+            <artifactId>jsglr.shared</artifactId>
+          </exclusion>
+          <exclusion>
+            <groupId>org.apache.commons</groupId>
+            <artifactId>commons-vfs2</artifactId>
+          </exclusion>
+        </exclusions>
         </dependency>
     </dependencies>-->
 
