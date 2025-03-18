@@ -3,10 +3,10 @@
  */
 package pgqllang.strategies;
 
-import org.apache.commons.lang3.text.translate.AggregateTranslator;
-import org.apache.commons.lang3.text.translate.CharSequenceTranslator;
-import org.apache.commons.lang3.text.translate.EntityArrays;
-import org.apache.commons.lang3.text.translate.LookupTranslator;
+import java.io.IOException;
+import java.io.StringReader;
+import java.util.Properties;
+
 import org.spoofax.interpreter.terms.IStrategoString;
 import org.spoofax.interpreter.terms.IStrategoTerm;
 import org.strategoxt.lang.Context;
@@ -14,18 +14,22 @@ import org.strategoxt.lang.Strategy;
 
 public class unescape_legacy_string_literal_0_0 extends Strategy {
 
-	public static unescape_legacy_string_literal_0_0 instance = new unescape_legacy_string_literal_0_0();
+  public static unescape_legacy_string_literal_0_0 instance = new unescape_legacy_string_literal_0_0();
 
-	public static final CharSequenceTranslator UNESCAPE_PGQL_STRING_LITERAL = new AggregateTranslator(
-			new CharSequenceTranslator[] { //
-					new LookupTranslator(EntityArrays.JAVA_CTRL_CHARS_UNESCAPE()), //
-					new LookupTranslator(new String[][] { { "\\\\", "\\" }, { "\\\"", "\"" }, { "\\'", "'" },
-							{ "\\", "" }, { "''", "'" } }) });
+  @Override
+  public IStrategoTerm invoke(Context context, IStrategoTerm current) {
+    String escaped = ((IStrategoString) current).stringValue();
 
-	@Override
-	public IStrategoTerm invoke(Context context, IStrategoTerm current) {
-		String escaped = ((IStrategoString) current).stringValue();
-		String unescaped = UNESCAPE_PGQL_STRING_LITERAL.translate(escaped);
-		return context.getFactory().makeString(unescaped);
-	}
+    // first replace '' by '
+    String prepared = escaped.replaceAll("\\'", "'").replaceAll("''", "'");
+
+    Properties props = new Properties();
+    try {
+      props.load(new StringReader("key=" + prepared));
+    } catch (IOException e) {
+      e.printStackTrace();
+    }
+    String unescaped = props.getProperty("key");
+    return context.getFactory().makeString(unescaped);
+  }
 }

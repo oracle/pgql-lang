@@ -3,22 +3,17 @@ package oracle.pgql.lang;
 import static oracle.pgql.lang.CommonTranslationUtil.getString;
 import static oracle.pgql.lang.CommonTranslationUtil.isSome;
 
+import java.io.IOException;
+import java.io.StringReader;
 import java.util.ArrayList;
 import java.util.Collection;
-import java.util.Collections;
-import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
-import java.util.Map;
 import java.util.Optional;
+import java.util.Properties;
 import java.util.Set;
 
-import org.apache.commons.lang3.StringUtils;
-import org.apache.commons.lang3.tuple.Pair;
-import org.apache.commons.text.translate.AggregateTranslator;
-import org.apache.commons.text.translate.CharSequenceTranslator;
-import org.apache.commons.text.translate.EntityArrays;
-import org.apache.commons.text.translate.LookupTranslator;
+import org.spoofax.interpreter.core.Pair;
 import org.spoofax.interpreter.terms.IStrategoAppl;
 import org.spoofax.interpreter.terms.IStrategoString;
 import org.spoofax.interpreter.terms.IStrategoTerm;
@@ -43,18 +38,6 @@ public class MetadataToAstUtil {
   private static final int POS_AST_PLUS_METADATA_AST_EXPRESSIONS = 0;
 
   private static final String AST_PLUS_METADATA_CONSTRUCTOR_NAME = "AstPlusMetadata";
-
-  public static final CharSequenceTranslator UNESCAPE_LEGACY_IDENTIFIER;
-  static {
-    final Map<CharSequence, CharSequence> unescapeJavaMap = new HashMap<>();
-    unescapeJavaMap.put("\\\\", "\\");
-    unescapeJavaMap.put("\\\"", "\"");
-    unescapeJavaMap.put("\\'", "'");
-    unescapeJavaMap.put("\\", StringUtils.EMPTY);
-    unescapeJavaMap.put("\"\"", "\"");
-    UNESCAPE_LEGACY_IDENTIFIER = new AggregateTranslator(new LookupTranslator(EntityArrays.JAVA_CTRL_CHARS_UNESCAPE),
-        new LookupTranslator(Collections.unmodifiableMap(unescapeJavaMap)));
-  }
 
   static IStrategoTerm addMetadata(IStrategoTerm parseAst, AbstractMetadataProvider metadataProvider, ITermFactory f,
       boolean allowReferencingAnyProperty) {
@@ -300,9 +283,17 @@ public class MetadataToAstUtil {
         }
       case "DelimitedIdentifier":
         String unquotedPart = identifier.substring(1, identifier.length() - 1);
+        String prepared = unquotedPart.replaceAll("\\\"", "\"").replaceAll("\"\"", "\"").replaceAll("\"", "\\\"");
         if (pgqlVersion == PgqlVersion.V_1_0 || pgqlVersion == PgqlVersion.V_1_1_OR_V_1_2) {
           // Java-like escaping rules
-          return UNESCAPE_LEGACY_IDENTIFIER.translate(unquotedPart);
+          Properties props = new Properties();
+          try {
+            props.load(new StringReader("key=" + prepared));
+          } catch (IOException e) {
+            e.printStackTrace();
+          }
+          String unescaped = props.getProperty("key");
+          return unescaped;
         } else {
           // SQL escaping rules
           return unquotedPart.replaceAll("\"\"", "\"");
@@ -316,7 +307,7 @@ public class MetadataToAstUtil {
     List<Pair<String, String>> result = new ArrayList<>();
     for (String type1 : allTypes) {
       for (String type2 : allTypes) {
-        result.add(Pair.of(type1, type2));
+        result.add(new Pair<String, String>(type1, type2));
       }
     }
     return result;
@@ -326,11 +317,11 @@ public class MetadataToAstUtil {
       AbstractMetadataProvider metadataProvider, ITermFactory f) {
     List<IStrategoTerm> unionTypes = new ArrayList<>();
     for (Pair<String, String> pair : allPairsOfTypes) {
-      Optional<String> optionalUnionType = metadataProvider.getUnionType(pair.getLeft(), pair.getRight());
+      Optional<String> optionalUnionType = metadataProvider.getUnionType(pair.first, pair.second);
       if (optionalUnionType.isPresent()) {
         String unionType = optionalUnionType.get();
-        unionTypes.add(f.makeAppl("UnionType", f.makeString(pair.getLeft()), f.makeString(pair.getRight()),
-            f.makeString(unionType)));
+        unionTypes
+            .add(f.makeAppl("UnionType", f.makeString(pair.first), f.makeString(pair.second), f.makeString(unionType)));
       }
     }
     return unionTypes;
@@ -383,8 +374,8 @@ public class MetadataToAstUtil {
       BinaryOperation[] binaryOperations = BinaryOperation.values();
       for (int i = 0; i < binaryOperations.length; i++) {
         BinaryOperation operation = binaryOperations[i];
-        Optional<String> optionalReturnType = metadataProvider.getOperationReturnType(operation, pair.getLeft(),
-            pair.getRight());
+        Optional<String> optionalReturnType = metadataProvider.getOperationReturnType(operation, pair.first,
+            pair.second);
         if (optionalReturnType.isPresent()) {
           String returnType = optionalReturnType.get();
           String constructorName;
@@ -435,7 +426,7 @@ public class MetadataToAstUtil {
               throw new UnsupportedOperationException("Unsupported operation: " + operation);
           }
           binaryOperationsWithTypes.add(f.makeAppl("BinaryOperation", f.makeString(constructorName),
-              f.makeString(pair.getLeft()), f.makeString(pair.getRight()), f.makeString(returnType)));
+              f.makeString(pair.first), f.makeString(pair.second), f.makeString(returnType)));
         }
       }
     }

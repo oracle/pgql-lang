@@ -10,9 +10,6 @@ import java.util.List;
 import org.metaborg.parsetable.IParseTable;
 import org.metaborg.parsetable.ParseTableReadException;
 import org.metaborg.parsetable.ParseTableVariant;
-import org.metaborg.spoofax.core.SpoofaxModule;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.spoofax.interpreter.terms.IStrategoAppl;
 import org.spoofax.interpreter.terms.IStrategoInt;
 import org.spoofax.interpreter.terms.IStrategoString;
@@ -57,8 +54,6 @@ public class Pgql implements Closeable {
 
   private static final String NON_BREAKING_WHITE_SPACE = "\u00a0";
 
-  private static final Logger LOG = LoggerFactory.getLogger(Pgql.class);
-
   private static final String ERROR_MESSSAGE_INDENTATION = "  ";
 
   private static final int POS_QUERY_ANNOTATIONS = 9;
@@ -89,14 +84,6 @@ public class Pgql implements Closeable {
       throw new PgqlException(e);
     }
     parse("SELECT 'dummy' FROM MATCH (n)"); // make it initialize things
-  }
-
-  /**
-   * @deprecated use the constructor without arguments instead
-   */
-  @Deprecated
-  public Pgql(SpoofaxModule module, String tmpDir) throws PgqlException {
-    this();
   }
 
   /**
@@ -205,7 +192,6 @@ public class Pgql implements Closeable {
             metadataProvider);
       } else {
         e.printStackTrace();
-        LOG.debug("Translation of PGQL failed because of semantically invalid AST");
       }
     }
 
