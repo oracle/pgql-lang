@@ -3,14 +3,11 @@ package oracle.pgql.lang;
 import static oracle.pgql.lang.CommonTranslationUtil.getString;
 import static oracle.pgql.lang.CommonTranslationUtil.isSome;
 
-import java.io.IOException;
-import java.io.StringReader;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Optional;
-import java.util.Properties;
 import java.util.Set;
 
 import org.spoofax.interpreter.core.Pair;
@@ -21,6 +18,7 @@ import org.spoofax.interpreter.terms.ITermFactory;
 import org.spoofax.interpreter.terms.TermType;
 import org.spoofax.terms.TermVisitor;
 
+import oracle.pgql.lang.ir.PgqlUtils;
 import oracle.pgql.lang.ir.SchemaQualifiedName;
 import oracle.pgql.lang.metadata.AbstractMetadataProvider;
 import oracle.pgql.lang.metadata.BinaryOperation;
@@ -283,17 +281,9 @@ public class MetadataToAstUtil {
         }
       case "DelimitedIdentifier":
         String unquotedPart = identifier.substring(1, identifier.length() - 1);
-        String prepared = unquotedPart.replaceAll("\\\"", "\"").replaceAll("\"\"", "\"").replaceAll("\"", "\\\"");
         if (pgqlVersion == PgqlVersion.V_1_0 || pgqlVersion == PgqlVersion.V_1_1_OR_V_1_2) {
           // Java-like escaping rules
-          Properties props = new Properties();
-          try {
-            props.load(new StringReader("key=" + prepared));
-          } catch (IOException e) {
-            e.printStackTrace();
-          }
-          String unescaped = props.getProperty("key");
-          return unescaped;
+          return PgqlUtils.unescapeLegacyPgqlString(unquotedPart, true);
         } else {
           // SQL escaping rules
           return unquotedPart.replaceAll("\"\"", "\"");

@@ -19,7 +19,9 @@ import oracle.pgql.lang.ir.ExpAsVar;
 import oracle.pgql.lang.ir.GraphPattern;
 import oracle.pgql.lang.ir.GraphQuery;
 import oracle.pgql.lang.ir.PathFindingGoal;
+import oracle.pgql.lang.ir.Projection;
 import oracle.pgql.lang.ir.QueryExpression.AllProperties;
+import oracle.pgql.lang.ir.QueryExpression.Constant.ConstString;
 import oracle.pgql.lang.ir.QueryExpression.FunctionCall;
 import oracle.pgql.lang.ir.QueryExpression.PropertyAccess;
 import oracle.pgql.lang.ir.QueryPath;
@@ -578,4 +580,28 @@ public class BugFixTest extends AbstractPgqlTest {
     path = (QueryPath) graphPattern.getConnections().iterator().next();
     assertEquals(RowsPerMatchType.ONE_ROW_PER_VERTEX, path.getRowsPerMatch().getRowsPerMatchType());
   }
+
+  @Test
+  public void testUnescapeIssues() throws Exception {
+    String specialIdentifier = "'\"\"!@#$%^&*()æ‹›å¼Ÿ\t\n\r\b\f";
+    String escapedSpecialIdentifier = "'\\\"\"\"!@#$%^&*()æ‹›å¼Ÿ\\t\\n\\r\\b\\f";
+
+    String query = "SELECT n.\"" + escapedSpecialIdentifier + "\" MATCH (n)";
+    PgqlResult result = pgql.parse(query);
+    assertTrue(result.isQueryValid());
+    Projection projection = ((SelectQuery) result.getGraphQuery()).getProjection();
+    PropertyAccess prop = ((PropertyAccess) projection.getElements().get(0).getExp());
+    assertEquals(specialIdentifier, prop.getPropertyName());
+
+    String specialStringLiteral = "''\"!@#$%^&*()æ‹›å¼Ÿ\t\n\r\b\f";
+    String escapedSpecialStringLiteral = "\\'''\\\"!@#$%^&*()æ‹›å¼Ÿ\\t\\n\\r\\b\\f";
+
+    query = "SELECT '" + escapedSpecialStringLiteral + "' MATCH (n)";
+    result = pgql.parse(query);
+    assertTrue(result.isQueryValid());
+    projection = ((SelectQuery) result.getGraphQuery()).getProjection();
+    ConstString s = ((ConstString) projection.getElements().get(0).getExp());
+    assertEquals(specialStringLiteral, s.getValue());
+  }
+
 }

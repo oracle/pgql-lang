@@ -50,12 +50,12 @@ mvn deploy:deploy-file \
    -Dfile=pgql-lang/pgql-lang-trans.jar \
    -Durl=$REPO \
    -DrepositoryId=graph-onprem
-mvn org.apache.maven.plugins:maven-install-plugin:2.3.1:install-file
-   -Dfile=pgql-lang/pgql-lang-trans.jar
-   -DgroupId=oracle.pg
-   -DartifactId=pgql-lang-trans
-   -Dversion=$VERSION_B
-   -Dpackaging=jar
+mvn org.apache.maven.plugins:maven-install-plugin:2.3.1:install-file \
+   -Dfile=pgql-lang/pgql-lang-trans.jar \
+   -DgroupId=oracle.pg \
+   -DartifactId=pgql-lang-trans \
+   -Dversion=$VERSION_B \
+   -Dpackaging=jar \
    -DlocalRepositoryPath="$(pwd)/pgql-lang/repo/"
 cd graph-query-ir/; mvn deploy; cd ../
 cd pgql-lang/; mvn deploy; cd ../

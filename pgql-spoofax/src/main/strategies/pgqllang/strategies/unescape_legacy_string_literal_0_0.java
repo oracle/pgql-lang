@@ -3,10 +3,6 @@
  */
 package pgqllang.strategies;
 
-import java.io.IOException;
-import java.io.StringReader;
-import java.util.Properties;
-
 import org.spoofax.interpreter.terms.IStrategoString;
 import org.spoofax.interpreter.terms.IStrategoTerm;
 import org.strategoxt.lang.Context;
@@ -19,17 +15,6 @@ public class unescape_legacy_string_literal_0_0 extends Strategy {
   @Override
   public IStrategoTerm invoke(Context context, IStrategoTerm current) {
     String escaped = ((IStrategoString) current).stringValue();
-
-    // first replace '' by '
-    String prepared = escaped.replaceAll("\\'", "'").replaceAll("''", "'");
-
-    Properties props = new Properties();
-    try {
-      props.load(new StringReader("key=" + prepared));
-    } catch (IOException e) {
-      e.printStackTrace();
-    }
-    String unescaped = props.getProperty("key");
-    return context.getFactory().makeString(unescaped);
+    return context.getFactory().makeString(Main.unescapeLegacyPgqlString(escaped, false));
   }
 }
