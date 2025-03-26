@@ -19,12 +19,14 @@ rules
 
   get-pgql-errors:
     AstPlusMetadata(ast, metadata) -> <flatten-list> [errors1, errors2, errors3, errors4]
-    with errors1 := <collect(pgql-error)> ast
+    with errors1 := <collect-errors> ast
        ; errors2 := <collect(pgql-error(|metadata); not(?[]))> ast
        ; errors3 := <check-all-GraphTable-restrictions> ast
        ; errors4 := <check-all-restrictions-outside-GraphTable> ast
 
-  get-pgql-errors = is-ddl-statement; collect(pgql-error); flatten-list
+  get-pgql-errors = is-ddl-statement; collect-errors; flatten-list
+
+  collect-errors = collect(pgql-error-priority1); not(?[]) <+ collect(pgql-error)
 
   generate-error(|m) = !ErrorMessage(<id>, m)
 
@@ -293,7 +295,7 @@ rules // subqueries
     t@DerivedTable(None(), _, _) -> error
     with error := <generate-error(|"LATERAL keyword expected at start of derived table expression")> t
 
-  pgql-error:
+  pgql-error-priority1:
     DerivedTable(_, _, t@Some(_)) -> error
     with error := <generate-error(|"Unsupported correlation name for derived table")> t
 

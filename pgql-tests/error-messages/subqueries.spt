@@ -279,13 +279,20 @@ test Derived table without LATERAL keyword not supported [[
 
 ]] error like "LATERAL keyword expected at start of derived table expression" at #1
 
-test Unsupported correlation name for derived table [[
+test Unsupported correlation name for derived table (1) [[
 
   SELECT 1
   FROM LATERAL ( SELECT n FROM MATCH (n) ) [[t1]]
      , LATERAL ( SELECT m FROM MATCH (m) ) [[AS t2]]
 
 ]] error like "Unsupported correlation name for derived table" at #1, #2
+
+test Unsupported correlation name for derived table (2) [[
+
+  SELECT t.name
+  FROM LATERAL ( SELECT n.name FROM MATCH (n:Person) ) [[t]]
+
+]] error like "Unsupported correlation name for derived table" at #1
 
 test SELECT * with LATERAL and GROUP BY (1) [[
 
