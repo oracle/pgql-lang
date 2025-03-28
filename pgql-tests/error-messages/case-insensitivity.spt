@@ -96,7 +96,6 @@ test Duplicate variable passed from outer query (6) [[
 
     SELECT 1 AS n
       FROM MATCH (n) ON g
-    HAVING n.age > 3
   ORDER BY ( SELECT 1 AS c1
                FROM MATCH ( [[N]] ) ON g /* here, "n" from the SELECT of the outer query is visible; rather than overriding it we generate an error */
               WHERE n.age >= 21
@@ -169,7 +168,7 @@ test Duplicate variables (8) [[
 
 test Duplicate variables (9) [[
 
-  SELECT e AS c1
+  SELECT 1 AS c1
     FROM MATCH SHORTEST ( (n) (-> (DST))* (m) )
    GROUP BY n AS [[dst]]
 

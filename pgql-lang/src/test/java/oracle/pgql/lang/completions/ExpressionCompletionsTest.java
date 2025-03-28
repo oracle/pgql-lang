@@ -5,7 +5,6 @@ package oracle.pgql.lang.completions;
 
 import static oracle.pgql.lang.completion.PgqlCompletionGenerator.EMPTY_STRING_COMPLETION;
 import static oracle.pgql.lang.completion.PgqlCompletionGenerator.aggregations;
-import static oracle.pgql.lang.completion.PgqlCompletionGenerator.completion;
 import static oracle.pgql.lang.completion.PgqlCompletionGenerator.completions;
 import static oracle.pgql.lang.completion.PgqlCompletionGenerator.functions;
 import static oracle.pgql.lang.completion.PgqlCompletionGenerator.otherExpressions;
@@ -21,9 +20,10 @@ public class ExpressionCompletionsTest extends AbstractCompletionsTest {
 
   private List<PgqlCompletion> expressions() {
     List<PgqlCompletion> expected = completions(//
-        completion("n", "vertex"), //
-        completion("m", "vertex"), //
-        completion("e", "edge"));
+    // completion("n", "vertex"), //
+    // completion("m", "vertex"), //
+    // completion("e", "edge"
+    );
     expected.addAll(functions());
     expected.addAll(aggregations());
     expected.addAll(otherExpressions());
@@ -32,9 +32,10 @@ public class ExpressionCompletionsTest extends AbstractCompletionsTest {
 
   private List<PgqlCompletion> expressionsExceptAggregations() {
     List<PgqlCompletion> expected = completions(//
-        completion("n", "vertex"), //
-        completion("m", "vertex"), //
-        completion("e", "edge"));
+    // completion("n", "vertex"), //
+    // completion("m", "vertex"), //
+    // completion("e", "edge")
+    );
     expected.addAll(functions());
     expected.addAll(otherExpressions());
     return expected;

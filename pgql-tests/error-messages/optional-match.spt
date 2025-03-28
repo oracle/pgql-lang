@@ -190,7 +190,7 @@ test MATCH in LATERAL after OPTIONAL MATCH and GROUP BY in LATERAL [[
 
   SELECT 1
   FROM LATERAL ( SELECT n FROM OPTIONAL MATCH (n) GROUP BY n )
-     , LATERAL ( SELECT * FROM MATCH ([[n]]) -[e1]-> (m) )
+     , LATERAL ( SELECT 1 FROM MATCH ([[n]]) -[e1]-> (m) )
 
 ]] error like "Variable is optionally bound; use OPTIONAL MATCH" at #1
 

@@ -4,13 +4,13 @@ language pgql-lang
 
 test SELECT query without FROM (1) [[
 
-  [[SELECT n AS c1]]
+  [[SELECT 1 AS c1]]
 
 ]] error like "SELECT query without FROM clause not supported" at #1
 
 test SELECT query without FROM (2) [[
 
-  [[SELECT *]]
+  [[SELECT 1]]
 
 ]] error like "SELECT query without FROM clause not supported" at #1
 

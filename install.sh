@@ -18,8 +18,12 @@ cd graph-query-ir/; mvn clean install; cd ../
 
 cd pgql-lang/
 mkdir -p src/main/resources/
-rm -f src/main/resources/*.spoofax-language # remove any spoofax binaries from previous builds
-cp ../pgql-spoofax/target/pgqllang-0.0.0-SNAPSHOT.spoofax-language src/main/resources/pgql.spoofax-language
+# copy parse table
+cp ../pgql-spoofax/target/metaborg/sdf.tbl src/main/resources/sdf.tbl
+# copy and install transformations
+cp ../pgql-spoofax/target/metaborg/stratego.jar pgql-lang-trans.jar
+mvn org.apache.maven.plugins:maven-install-plugin:2.3.1:install-file -Dfile=pgql-lang-trans.jar -DgroupId=oracle.pg -DartifactId=pgql-lang-trans -Dversion=0.0.0-SNAPSHOT -Dpackaging=jar -DlocalRepositoryPath="$(pwd)/repo/"
+rm -rf ~/.m2/repository/oracle/pg/pgql-lang-trans/
 mvn clean install
 cd ../
 

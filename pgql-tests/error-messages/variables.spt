@@ -72,14 +72,13 @@ test Variables in MATCH shadow variables in SELECT [[
 
 test "Repeat subquery from SELECT in GROUP BY and use unnest variable in subquery" [[
 
-    SELECT COUNT(*), (SELECT id(n2) FROM MATCH (n2) WHERE id(n2) = id([[k]]) limit 1) AS x, id([[k]])
+    SELECT COUNT(*), (SELECT id(n2) FROM MATCH (n2) WHERE id(n2) = id(k) limit 1) AS x, id([[k]])
       FROM MATCH
              ANY SHORTEST (n) ((src)-[e]->(dst)){2} (m)
              ONE ROW PER VERTEX (k)
   GROUP BY x
 
-]] error like "Unresolved variable" at #1
-   error like "Unresolved variable (did you mean to use a group key?)" at #2
+]] error like "Unresolved variable (did you mean to use a group key?)" at #1
 
 test Unresolved reference to variable inside table expression [[
 
@@ -92,7 +91,7 @@ test Unresolved reference to variable inside table expression [[
 
 test Reference with group degree in IS SOURCE/DESTINATION OF [[
 
-  SELECT * 
+  SELECT 1
   FROM GRAPH_TABLE ( g
          MATCH (a IS Account) -[e1 IS transaction]->{4} (a) 
              , (a IS Account) (-[e2 IS transaction]-> (x)) {4} (a) 

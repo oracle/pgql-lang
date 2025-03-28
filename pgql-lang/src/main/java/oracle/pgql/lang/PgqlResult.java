@@ -8,8 +8,6 @@ import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.stream.Collectors;
 
-import org.metaborg.spoofax.core.unit.ISpoofaxParseUnit;
-
 import oracle.pgql.lang.ir.GraphQuery;
 import oracle.pgql.lang.ir.PgqlStatement;
 import oracle.pgql.lang.ir.QueryExpression;
@@ -36,8 +34,6 @@ public class PgqlResult {
 
   private final PgqlStatement pgqlStatement;
 
-  private final ISpoofaxParseUnit spoofaxParseUnit;
-
   private final PgqlVersion pgqlVersion;
 
   private final int bindVariableCount;
@@ -47,13 +43,12 @@ public class PgqlResult {
   private final AbstractMetadataProvider metadataProvider;
 
   public PgqlResult(String queryString, boolean queryValid, String messages, PgqlStatement pgqlStatement,
-      ISpoofaxParseUnit spoofaxParseUnit, PgqlVersion pgqlVersion, int bindVariableCount,
-      boolean querySelectsAllProperties, AbstractMetadataProvider metadataProvider) {
+      PgqlVersion pgqlVersion, int bindVariableCount, boolean querySelectsAllProperties,
+      AbstractMetadataProvider metadataProvider) {
     this.queryString = queryString;
     this.errorMessages = messages;
     this.queryValid = queryValid;
     this.pgqlStatement = pgqlStatement;
-    this.spoofaxParseUnit = spoofaxParseUnit;
     this.pgqlVersion = pgqlVersion;
     this.bindVariableCount = bindVariableCount;
     this.querySelectsAllProperties = querySelectsAllProperties;
@@ -206,9 +201,5 @@ public class PgqlResult {
         : metadataProvider.getGraphSchema(graphName).get();
     List<? extends Label> labels = isVertex ? graphSchema.getVertexLabels() : graphSchema.getEdgeLabels();
     return labels;
-  }
-
-  protected ISpoofaxParseUnit getSpoofaxParseUnit() {
-    return spoofaxParseUnit;
   }
 }

@@ -14,9 +14,6 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
-import org.apache.commons.lang3.StringUtils;
-import org.metaborg.core.completion.ICompletion;
-
 import oracle.pgql.lang.PgqlException;
 import oracle.pgql.lang.PgqlResult;
 import oracle.pgql.lang.editor.completion.PgqlCompletion;
@@ -74,8 +71,8 @@ public class PgqlCompletionGenerator {
 
   private static final Pattern IDENTIFIER_AT_END_PATTERN = Pattern.compile(IDENTIFIER + "$");
 
-  public static List<PgqlCompletion> generate(PgqlResult pgqlResult, Iterable<ICompletion> spoofaxCompletions,
-      String queryString, int cursor, PgqlCompletionContext ctx)
+  public static List<PgqlCompletion> generate(PgqlResult pgqlResult, String queryString, int cursor,
+      PgqlCompletionContext ctx)
       throws PgqlException {
 
     List<PgqlCompletion> result = new ArrayList<>();
@@ -402,8 +399,8 @@ public class PgqlCompletionGenerator {
     if (afterQuery.contains(keywordExpression)) {
       return null;
     }
-    String[] keywordParts = StringUtils.split(keywordExpression);
-    String[] words = StringUtils.split(beforeQuery.toUpperCase());
+    String[] keywordParts = keywordExpression.split("\\s+");
+    String[] words = beforeQuery.toUpperCase().split("\\s+");
     int idxLastWord = words.length - 1;
     boolean isKeyword = false;
     int partsIdx;

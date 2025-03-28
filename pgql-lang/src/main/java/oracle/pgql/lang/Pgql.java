@@ -4,52 +4,35 @@
 package oracle.pgql.lang;
 
 import java.io.Closeable;
-import java.io.File;
 import java.io.IOException;
-import java.io.OutputStream;
-import java.io.UnsupportedEncodingException;
-import java.net.URL;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.HashSet;
-import java.util.Iterator;
+import java.io.InputStream;
 import java.util.List;
-import java.util.Set;
-import java.util.UUID;
-
-import org.apache.commons.io.FileUtils;
-import org.apache.commons.io.IOUtils;
-import org.apache.commons.vfs2.FileObject;
-import org.metaborg.core.MetaborgException;
-import org.metaborg.core.analysis.AnalysisException;
-import org.metaborg.core.completion.ICompletion;
-import org.metaborg.core.config.IProjectConfig;
-import org.metaborg.core.config.ISourceConfig;
-import org.metaborg.core.context.ContextException;
-import org.metaborg.core.context.ITemporaryContext;
-import org.metaborg.core.language.ILanguageComponent;
-import org.metaborg.core.language.ILanguageImpl;
-import org.metaborg.core.language.LanguageIdentifier;
-import org.metaborg.core.language.LanguageUtils;
-import org.metaborg.core.messages.IMessage;
-import org.metaborg.core.project.IProject;
-import org.metaborg.core.project.Project;
-import org.metaborg.core.source.AffectedSourceHelper;
-import org.metaborg.core.syntax.ParseException;
-import org.metaborg.spoofax.core.Spoofax;
-import org.metaborg.spoofax.core.SpoofaxModule;
-import org.metaborg.spoofax.core.unit.ISpoofaxAnalyzeUnit;
-import org.metaborg.spoofax.core.unit.ISpoofaxInputUnit;
-import org.metaborg.spoofax.core.unit.ISpoofaxParseUnit;
-import org.metaborg.util.concurrent.IClosableLock;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import org.metaborg.parsetable.IParseTable;
+import org.metaborg.parsetable.ParseTableReadException;
+import org.metaborg.parsetable.ParseTableVariant;
 import org.spoofax.interpreter.terms.IStrategoAppl;
 import org.spoofax.interpreter.terms.IStrategoInt;
 import org.spoofax.interpreter.terms.IStrategoString;
 import org.spoofax.interpreter.terms.IStrategoTerm;
-
-import com.google.common.collect.Lists;
+import org.spoofax.jsglr.client.imploder.ImploderOriginTermFactory;
+import org.spoofax.jsglr2.JSGLR2Failure;
+import org.spoofax.jsglr2.JSGLR2Implementation;
+import org.spoofax.jsglr2.JSGLR2Result;
+import org.spoofax.jsglr2.JSGLR2Success;
+import org.spoofax.jsglr2.JSGLR2Variant;
+import org.spoofax.jsglr2.imploder.ImploderVariant;
+import org.spoofax.jsglr2.parseforest.IParseForest;
+import org.spoofax.jsglr2.parseforest.ParseForestConstruction;
+import org.spoofax.jsglr2.parseforest.ParseForestRepresentation;
+import org.spoofax.jsglr2.parser.ParserVariant;
+import org.spoofax.jsglr2.parser.Position;
+import org.spoofax.jsglr2.reducing.Reducing;
+import org.spoofax.jsglr2.stack.StackRepresentation;
+import org.spoofax.jsglr2.stack.collections.ActiveStacksRepresentation;
+import org.spoofax.jsglr2.stack.collections.ForActorStacksRepresentation;
+import org.spoofax.jsglr2.tokens.TokenizerVariant;
+import org.spoofax.terms.TermFactory;
+import org.strategoxt.lang.Context;
 
 import oracle.pgql.lang.completion.PgqlCompletionGenerator;
 import oracle.pgql.lang.editor.completion.PgqlCompletion;
@@ -57,28 +40,21 @@ import oracle.pgql.lang.editor.completion.PgqlCompletionContext;
 import oracle.pgql.lang.ir.PgqlStatement;
 import oracle.pgql.lang.ir.StatementType;
 import oracle.pgql.lang.metadata.AbstractMetadataProvider;
+import pgqllang.trans.get_errors_and_offsets_0_0;
+import pgqllang.trans.pgql_trans_0_0;
+import pgqllang.trans.trans;
 
 import static oracle.pgql.lang.CheckInvalidJavaComment.checkInvalidJavaComment;
 import static oracle.pgql.lang.MetadataToAstUtil.addMetadata;
-import static oracle.pgql.lang.MetadataToAstUtil.removeMetadata;
 
 public class Pgql implements Closeable {
 
-  /**
-   * Spoofax is not thread safe, so any method that uses Spoofax should use the lock.
-   */
-  private static final Object lock = new Object();
-
-  private static final Set<Pgql> instances = new HashSet<>();
-
-  private static final Logger LOG = LoggerFactory.getLogger(Pgql.class);
-
-  private static final String NON_BREAKING_WHITE_SPACE_ERROR = "Illegal character '\u00a0' (non-breaking white space)"
+  public static final String NON_BREAKING_WHITE_SPACE_ERROR = "Illegal character '\u00a0' (non-breaking white space)"
       + "; use a normal space instead";
 
-  private static final String ERROR_MESSSAGE_INDENTATION = "\t";
+  private static final String NON_BREAKING_WHITE_SPACE = "\u00a0";
 
-  private static final String SPOOFAX_BINARIES = "pgql.spoofax-language";
+  private static final String ERROR_MESSSAGE_INDENTATION = "  ";
 
   private static final int POS_QUERY_ANNOTATIONS = 9;
 
@@ -90,21 +66,11 @@ public class Pgql implements Closeable {
 
   private static final PgqlVersion LATEST_VERSION = PgqlVersion.V_1_3_OR_UP;
 
-  private static String ALLOW_REFERENCING_ANY_PROPERTY_FLAG = "/*ALLOW_REFERENCING_ANY_PROPERTY*/";
+  private static final String ALLOW_REFERENCING_ANY_PROPERTY_FLAG = "/*ALLOW_REFERENCING_ANY_PROPERTY*/";
 
-  private static boolean isGloballyInitialized = false;
+  private final JSGLR2Implementation<IParseForest, ?, ?, IStrategoTerm, ?, ?> jsglr2;
 
-  private static Spoofax spoofax;
-
-  private static ILanguageImpl pgqlLang;
-
-  private static FileObject dummyProjectDir;
-
-  private static IProject dummyProject;
-
-  private static File spoofaxBinaryFile;
-
-  private boolean isInitialized;
+  private boolean closed = false;
 
   /**
    * Loads PGQL Spoofax binaries if not done already.
@@ -112,90 +78,12 @@ public class Pgql implements Closeable {
    * @throws IOException
    */
   public Pgql() throws PgqlException {
-    this(new PgqlConfig(), null);
-  }
-
-  public Pgql(SpoofaxModule module, String tmpDir) throws PgqlException {
-    synchronized (lock) {
-      if (!isGloballyInitialized) {
-        initializeGlobalInstance(module, tmpDir);
-      }
-      instances.add(this);
-      isInitialized = true;
-    }
-  }
-
-  private void initializeGlobalInstance(SpoofaxModule spoofaxModule, String tmpDir) throws PgqlException {
     try {
-      Runtime.getRuntime().addShutdownHook(new Thread(() -> {
-        // clean up temporary files in case the process gets stopped or in case the PGQL instances cannot be closed for
-        // other reasons
-        synchronized (lock) {
-          if (isGloballyInitialized) {
-            instances.clear();
-            cleanUp();
-          }
-        }
-      }));
-
-      // initialize a new Spoofax
-      spoofax = new Spoofax(spoofaxModule);
-      spoofax.configureAsHeadlessApplication(); // prevents the class loader from getting stuck for certain versions of
-                                                // macOS
-
-      // copy the PGQL Spoofax binary to the local file system.
-      // IMPORTANT: don't replace this with resolveFile("res:...") or resolve("res:...") because VFS will fail to
-      // replicate the resource when it's nested inside multiple JAR or WAR files.
-      URL inputUrl = getClass().getResource("/" + SPOOFAX_BINARIES);
-      spoofaxBinaryFile = tmpDir == null ? File.createTempFile(SPOOFAX_BINARIES, UUID.randomUUID().toString())
-          : new File(tmpDir, SPOOFAX_BINARIES + UUID.randomUUID());
-      FileUtils.copyURLToFile(inputUrl, spoofaxBinaryFile);
-      FileObject fileObject = spoofax.resourceService.resolve(spoofaxBinaryFile.getAbsolutePath());
-
-      Iterable<ILanguageImpl> languages = spoofax.languageDiscoveryService.languagesFromArchive(fileObject);
-      Set<ILanguageComponent> components = LanguageUtils.toComponents(languages);
-      Set<ILanguageImpl> implementations = LanguageUtils.toImpls(components);
-      pgqlLang = LanguageUtils.active(implementations);
-      assert (pgqlLang != null);
-      dummyProjectDir = spoofax.resourceService.resolve("ram://pgql/");
-
-      final LanguageIdentifier id = pgqlLang.id();
-      dummyProject = new Project(dummyProjectDir, new IProjectConfig() {
-
-        @Override
-        public Collection<LanguageIdentifier> sourceDeps() {
-          Set<LanguageIdentifier> sourceDeps = new HashSet<>();
-          sourceDeps.add(id);
-          return sourceDeps;
-        }
-
-        @Override
-        public Collection<LanguageIdentifier> javaDeps() {
-          return Collections.emptySet();
-        }
-
-        @Override
-        public Collection<LanguageIdentifier> compileDeps() {
-          return Collections.emptySet();
-        }
-
-        @Override
-        public String metaborgVersion() {
-          return null;
-        }
-
-        @Override
-        public Collection<ISourceConfig> sources() {
-          return Collections.emptySet();
-        }
-      });
-
-      parseInternal("SELECT * FROM MATCH (initQuery)", null); // make Spoofax initialize the language
-    } catch (MetaborgException | IOException e) {
-      throw new PgqlException("Failed to initialize PGQL", e);
+      jsglr2 = getParser(getParseTable());
+    } catch (ParseTableReadException | IOException e) {
+      throw new PgqlException(e);
     }
-
-    isGloballyInitialized = true;
+    parse("SELECT 'dummy' FROM MATCH (n)"); // make it initialize things
   }
 
   /**
@@ -223,108 +111,166 @@ public class Pgql implements Closeable {
    *           if the query contains errors
    */
   public PgqlResult parse(String queryString, AbstractMetadataProvider metadataProvider) throws PgqlException {
-    synchronized (lock) {
-      checkInitialized();
-      return parseInternal(queryString, metadataProvider);
-    }
-  }
-
-  private void checkInitialized() throws PgqlException {
-    if (!isInitialized) {
+    if (closed) {
       throw new PgqlException("Pgql instance was closed");
     }
-  }
 
-  private PgqlResult parseInternal(String queryString, AbstractMetadataProvider metadataProvider) throws PgqlException {
-    if (queryString.equals("")) {
+    if (queryString.trim().equals("")) {
       String error = "Empty query string";
-      return new PgqlResult(queryString, false, error, null, null, LATEST_VERSION, 0, false, metadataProvider);
+      return new PgqlResult(queryString, false, error, null, LATEST_VERSION, 0, false, metadataProvider);
     }
 
-    ITemporaryContext context = null;
-    FileObject dummyFile = null;
-    try {
-      dummyFile = getFileObject(queryString);
-      ISpoofaxParseUnit parseResult = parseHelper(queryString, dummyFile);
-
-      String prettyMessages = null;
-      boolean queryValid = parseResult.success();
+    /* Parse */
+    JSGLR2Result<IStrategoTerm> parseResult = jsglr2.parseResult(queryString);
+    if (!parseResult.isSuccess()) {
+      /* Parse error */
       PgqlStatement statement = null;
-      if (queryValid) {
-        checkNoMessages(parseResult.messages(), queryString);
-      } else {
-        prettyMessages = getMessages(parseResult.messages(), queryString);
-      }
-      if (!parseResult.valid()) {
-        return new PgqlResult(queryString, parseResult.valid(), prettyMessages, statement, parseResult, LATEST_VERSION,
-            0, false, metadataProvider);
-      }
-
-      context = spoofax.contextService.getTemporary(dummyFile, dummyProject, pgqlLang);
-
-      boolean allowReferencingAnyProperty = queryString.contains(ALLOW_REFERENCING_ANY_PROPERTY_FLAG);
-      ISpoofaxParseUnit extendedParseUnit = addMetadata(parseResult, metadataProvider, spoofax.termFactory,
-          allowReferencingAnyProperty);
-
-      ISpoofaxAnalyzeUnit analysisResult = null;
-      try (IClosableLock lock = context.write()) {
-        analysisResult = spoofax.analysisService.analyze(extendedParseUnit, context).result();
-      }
-
-      if (queryValid) {
-        queryValid = analysisResult.success();
-        if (queryValid) {
-          checkNoMessages(analysisResult.messages(), queryString);
-        } else {
-          prettyMessages = getMessages(analysisResult.messages(), queryString);
-        }
-      }
-
-      IStrategoTerm analyizedAst = removeMetadata(analysisResult);
-
-      try {
-        statement = SpoofaxAstToGraphQuery.translate(analyizedAst);
-      } catch (Exception e) {
-        if (e instanceof PgqlException) {
-          prettyMessages = e.getMessage();
-          queryValid = false;
-          return new PgqlResult(queryString, queryValid, prettyMessages, statement, parseResult, LATEST_VERSION, 0,
-              false, metadataProvider);
-        } else {
-          e.printStackTrace();
-          LOG.debug("Translation of PGQL failed because of semantically invalid AST");
-        }
-      }
-
-      IStrategoTerm queryAnnotations = analyizedAst.getSubtermCount() > POS_QUERY_ANNOTATIONS
-          ? analyizedAst.getSubterm(POS_QUERY_ANNOTATIONS)
-          : null;
-      PgqlVersion pgqlVersion = getPgqlVersion(queryAnnotations, statement);
-
-      if (queryValid) {
-        checkInvalidJavaComment(queryString, pgqlVersion);
-      }
-
-      int bindVariableCount = getBindVariableCount(queryAnnotations, statement);
-      boolean querySelectsAllProperties = querySelectsAllProperties(queryAnnotations, statement);
-
-      return new PgqlResult(queryString, queryValid, prettyMessages, statement, parseResult, pgqlVersion,
-          bindVariableCount, querySelectsAllProperties, metadataProvider);
-    } catch (IOException | ParseException | AnalysisException | ContextException e) {
-      throw new PgqlException("Failed to parse PGQL query", e);
-    } finally {
-      if (context != null) {
-        context.close();
-      }
-      quietlyDelete(dummyFile);
+      Position pos = ((JSGLR2Failure<IStrategoTerm>) parseResult).parseFailure.failureCause.position;
+      StringBuilder sb = new StringBuilder();
+      toErrorMessage(queryString, pos.line, pos.column - 1, -1, true, null, sb);
+      return new PgqlResult(queryString, false, sb.toString(), statement, LATEST_VERSION, 0, false, metadataProvider);
     }
+    IStrategoTerm parseAst = ((JSGLR2Success<IStrategoTerm>) parseResult).ast;
+
+    /* Add graph metadata */
+    Context c = trans.init(new Context(new ImploderOriginTermFactory(new TermFactory())));
+    boolean allowReferencingAnyProperty = queryString.contains(ALLOW_REFERENCING_ANY_PROPERTY_FLAG);
+    IStrategoTerm parseAstPlusMetadata = addMetadata(parseAst, metadataProvider, c.getFactory(),
+        allowReferencingAnyProperty);
+
+    /* Semantic analysis */
+    IStrategoTerm analyzedAstPlusMetadata = pgql_trans_0_0.instance.invoke(c, parseAstPlusMetadata);
+
+    IStrategoTerm errorMessagesT = get_errors_and_offsets_0_0.instance.invoke(c, analyzedAstPlusMetadata);
+    String prettyMessages = null;
+    boolean queryValid = true;
+    if (errorMessagesT.getSubtermCount() > 0) {
+      /* Semantic analysis error */
+      queryValid = false;
+      StringBuilder sb = new StringBuilder();
+      int errorNumber = 1;
+      for (IStrategoTerm error : errorMessagesT.getSubterms()) {
+        if (errorNumber > 1) {
+          sb.append("\n\n");
+        }
+        errorNumber++;
+
+        IStrategoTerm offset = error.getSubterm(0);
+        int startOffset = ((IStrategoInt) offset.getSubterm(0)).intValue();
+        int endOffset = ((IStrategoInt) offset.getSubterm(1)).intValue();
+        int lineNumber = 1;
+        int currentOffset = 0;
+        int columnNumber = -1;
+        int length = -1;
+        for (String line : queryString.split("\\n|\\r")) {
+          if (currentOffset + line.length() < startOffset) {
+            currentOffset += line.length() + 1;
+            lineNumber++;
+          } else {
+            columnNumber = startOffset - currentOffset;
+            length = Math.min(endOffset - startOffset, line.length() - columnNumber);
+            break;
+          }
+        }
+
+        String message = ((IStrategoString) error.getSubterm(1)).stringValue();
+        toErrorMessage(queryString, lineNumber, columnNumber, length, false, message, sb);
+      }
+
+      prettyMessages = sb.toString();
+    }
+    IStrategoTerm analyzedAst = MetadataToAstUtil.removeMetadata(analyzedAstPlusMetadata);
+
+    PgqlStatement statement = null;
+    try {
+      statement = SpoofaxAstToGraphQuery.translate(analyzedAst);
+    } catch (Exception e) {
+      if (e instanceof PgqlException) {
+        prettyMessages = e.getMessage();
+        queryValid = false;
+        return new PgqlResult(queryString, queryValid, prettyMessages, statement, LATEST_VERSION, 0, false,
+            metadataProvider);
+      } else {
+        e.printStackTrace();
+      }
+    }
+
+    IStrategoTerm queryAnnotations = analyzedAst.getSubtermCount() > POS_QUERY_ANNOTATIONS
+        ? analyzedAst.getSubterm(POS_QUERY_ANNOTATIONS)
+        : null;
+    PgqlVersion pgqlVersion = getPgqlVersion(queryAnnotations, statement);
+
+    if (queryValid) {
+      checkInvalidJavaComment(queryString, pgqlVersion);
+    }
+
+    int bindVariableCount = getBindVariableCount(queryAnnotations, statement);
+    boolean querySelectsAllProperties = querySelectsAllProperties(queryAnnotations, statement);
+
+    return new PgqlResult(queryString, queryValid, prettyMessages, statement, pgqlVersion, bindVariableCount,
+        querySelectsAllProperties, metadataProvider);
   }
 
-  private void checkNoMessages(Iterable<IMessage> messages, String queryString) {
-    if (messages.iterator().hasNext()) {
-      String prettyMessages = getMessages(messages, queryString);
-      throw new IllegalStateException("Error messages not expected: " + prettyMessages);
+  @SuppressWarnings("unchecked")
+  private JSGLR2Implementation<IParseForest, ?, ?, IStrategoTerm, ?, ?> getParser(IParseTable parseTable) {
+    final ParserVariant parserVariant = new ParserVariant(ActiveStacksRepresentation.standard(),
+        ForActorStacksRepresentation.standard(), ParseForestRepresentation.standard(),
+        ParseForestConstruction.standard(), StackRepresentation.standard(), Reducing.standard(), false);
+    final JSGLR2Variant jsglr2Variant = new JSGLR2Variant(parserVariant, ImploderVariant.standard(),
+        TokenizerVariant.standard());
+    return (JSGLR2Implementation<IParseForest, ?, ?, IStrategoTerm, ?, ?>) jsglr2Variant.getJSGLR2(parseTable);
+  }
+
+  private IParseTable getParseTable() throws ParseTableReadException, IOException {
+    final InputStream parseTableInputStream = Pgql.class.getClassLoader().getResourceAsStream("sdf.tbl");
+    final ParseTableVariant tableVariant = new ParseTableVariant();
+    return tableVariant.parseTableReader().read(parseTableInputStream);
+  }
+
+  private void toErrorMessage(String queryString, int lineNumber, int columnNumber, int length, boolean parseError,
+      String message, StringBuilder sb) {
+    sb.append("Error(s) in line " + lineNumber + ":\n\n");
+    String line = queryString.split("\\n|\\r")[lineNumber - 1];
+    sb.append(ERROR_MESSSAGE_INDENTATION + line + "\n");
+
+    String originText;
+    if (parseError) {
+      if (line.contains(NON_BREAKING_WHITE_SPACE)
+          && line.substring(columnNumber - 1, columnNumber).equals(NON_BREAKING_WHITE_SPACE)) {
+        columnNumber--;
+        originText = NON_BREAKING_WHITE_SPACE;
+        length = 1;
+        message = NON_BREAKING_WHITE_SPACE_ERROR;
+      } else {
+        // parse errors are always 1 character in length, which we improve to include the entire next token
+        String[] tokens = line.substring(columnNumber).split("\\s+");
+        if (tokens.length > 0) {
+          originText = tokens[0];
+          message = "Syntax error, '" + originText + "' not expected";
+        }
+        else {
+          originText = line.substring(columnNumber);
+          message = "Unexpected end of query";
+        }
+
+        length = originText.length();
+      }
+    } else {
+      originText = line.substring(columnNumber, columnNumber + length);
     }
+
+    sb.append(ERROR_MESSSAGE_INDENTATION);
+    repeatString(" ", columnNumber, sb);
+    repeatString("^", length, sb);
+    sb.append("\n");
+    sb.append(ERROR_MESSSAGE_INDENTATION + message);
+  }
+
+  private static String repeatString(String s, int times, StringBuilder sb) {
+    for (int i = 0; i < times; i++) {
+      sb.append(s);
+    }
+    return sb.toString();
   }
 
   private PgqlVersion getPgqlVersion(IStrategoTerm queryAnnotations, PgqlStatement statement) {
@@ -379,93 +325,6 @@ public class Pgql implements Closeable {
     return false;
   }
 
-  private FileObject getFileObject(String queryString) throws UnsupportedEncodingException, IOException {
-    String randomFileName = UUID.randomUUID().toString() + ".pgql";
-    FileObject dummyFile = spoofax.resourceService.resolve(dummyProjectDir, randomFileName);
-    try (OutputStream out = dummyFile.getContent().getOutputStream()) {
-      IOUtils.write(queryString.getBytes("UTF-8"), out);
-    }
-    return dummyFile;
-  }
-
-  private ISpoofaxParseUnit parseHelper(String queryString, FileObject fileObject) throws ParseException {
-
-    ISpoofaxInputUnit input = spoofax.unitService.inputUnit(fileObject, queryString, pgqlLang, null);
-    return spoofax.syntaxService.parse(input);
-  }
-
-  private static void quietlyDelete(FileObject fo) {
-    try {
-      if (fo != null && fo.exists()) {
-        if (fo.delete() == false) {
-          LOG.warn("failed to delete temporary query file: " + fo.getURL().toString());
-        }
-      }
-    } catch (IOException e) {
-      LOG.warn("got error while trying to delete temporary query file", e);
-    }
-  }
-
-  private Iterable<ICompletion> spoofaxComplete(ISpoofaxParseUnit parseResult, int cursor) {
-    try {
-      return spoofax.completionService.get(cursor, parseResult, false);
-    } catch (MetaborgException e) {
-      // swallow any exceptions; worst case we don't suggest any completions
-      LOG.debug("spoofax completion failed: " + e.getMessage());
-    }
-    return Collections.emptyList();
-  }
-
-  /**
-   * Pretty-prints messages (i.e. compiler errors/warnings/notes) into an output stream.
-   */
-  private static String getMessages(final Iterable<IMessage> messages, String sourceText) {
-    StringBuilder sb = new StringBuilder();
-    int lineNumber = -1;
-
-    // Reverse the messages to have them in the right order (top to bottom)
-    Iterator<IMessage> it = Lists.reverse(Lists.newArrayList(messages.iterator())).iterator();
-    while (it.hasNext()) {
-      IMessage message = it.next();
-      if (message.region() != null) { // null when query string is empty (e.g. "")
-        int startRow = message.region().startRow() + 1;
-        if (lineNumber != startRow) {
-          if (lineNumber != -1) {
-            sb.append("\n");
-          }
-          lineNumber = startRow;
-          sb.append("Error(s) in line " + startRow + ":");
-        }
-      }
-
-      String affectedSourceText;
-      try {
-        affectedSourceText = AffectedSourceHelper.affectedSourceText(message.region(), sourceText,
-            ERROR_MESSSAGE_INDENTATION);
-      } catch (NullPointerException e) {
-        // workaround for Spoofax bug, see GM-5111
-        affectedSourceText = null;
-      }
-
-      sb.append("\n\n");
-
-      if (affectedSourceText != null) {
-        sb.append(affectedSourceText);
-      }
-
-      String m = message.message();
-      if (m.contains(" ")) {
-        m = NON_BREAKING_WHITE_SPACE_ERROR;
-      }
-      sb.append(ERROR_MESSSAGE_INDENTATION + m);
-
-      if (it.hasNext()) {
-        sb.append("\n");
-      }
-    }
-    return sb.toString();
-  }
-
   /**
    * Generate code completions, given a (partial) query and cursor location.
    */
@@ -476,38 +335,15 @@ public class Pgql implements Closeable {
     } catch (PgqlException e) {
       // spoofax e.g. throws exception for query "SELECT * FROM g MATCH "
     }
-    Iterable<ICompletion> spoofaxCompletions = null;
+    // Iterable<ICompletion> spoofaxCompletions = null;
     // synchronized (lock) { spoofaxCompletions = spoofaxComplete(pgqlResult.getSpoofaxParseUnit(), cursor); } // not
     // used yet
 
-    return PgqlCompletionGenerator.generate(pgqlResult, spoofaxCompletions, queryString, cursor, ctx);
+    return PgqlCompletionGenerator.generate(pgqlResult, queryString, cursor, ctx);
   }
 
   @Override
   public void close() {
-    synchronized (lock) {
-      isInitialized = false;
-      instances.remove(this);
-      if (instances.isEmpty()) {
-        cleanUp();
-      }
-    }
-  }
-
-  private void cleanUp() {
-    LOG.info("closing the global PGQL instance");
-    isGloballyInitialized = false;
-    if (System.getProperty("os.name").startsWith("Windows")) {
-      return; // Windows issue, also see http://yellowgrass.org/issue/Spoofax/88
-    }
-
-    if (spoofax != null) {
-      spoofax.close();
-    }
-    if (spoofaxBinaryFile != null) {
-      if (!spoofaxBinaryFile.delete()) {
-        LOG.warn("failed to delete Spoofax binary file: " + spoofaxBinaryFile.getAbsolutePath());
-      }
-    }
+    closed = true;
   }
 }

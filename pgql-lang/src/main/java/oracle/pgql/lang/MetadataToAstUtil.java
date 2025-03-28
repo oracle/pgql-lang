@@ -5,22 +5,12 @@ import static oracle.pgql.lang.CommonTranslationUtil.isSome;
 
 import java.util.ArrayList;
 import java.util.Collection;
-import java.util.Collections;
-import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
-import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
 
-import org.apache.commons.lang3.StringUtils;
-import org.apache.commons.lang3.tuple.Pair;
-import org.apache.commons.text.translate.AggregateTranslator;
-import org.apache.commons.text.translate.CharSequenceTranslator;
-import org.apache.commons.text.translate.EntityArrays;
-import org.apache.commons.text.translate.LookupTranslator;
-import org.metaborg.spoofax.core.unit.ISpoofaxAnalyzeUnit;
-import org.metaborg.spoofax.core.unit.ISpoofaxParseUnit;
+import org.spoofax.interpreter.core.Pair;
 import org.spoofax.interpreter.terms.IStrategoAppl;
 import org.spoofax.interpreter.terms.IStrategoString;
 import org.spoofax.interpreter.terms.IStrategoTerm;
@@ -28,6 +18,7 @@ import org.spoofax.interpreter.terms.ITermFactory;
 import org.spoofax.interpreter.terms.TermType;
 import org.spoofax.terms.TermVisitor;
 
+import oracle.pgql.lang.ir.PgqlUtils;
 import oracle.pgql.lang.ir.SchemaQualifiedName;
 import oracle.pgql.lang.metadata.AbstractMetadataProvider;
 import oracle.pgql.lang.metadata.BinaryOperation;
@@ -46,22 +37,10 @@ public class MetadataToAstUtil {
 
   private static final String AST_PLUS_METADATA_CONSTRUCTOR_NAME = "AstPlusMetadata";
 
-  public static final CharSequenceTranslator UNESCAPE_LEGACY_IDENTIFIER;
-  static {
-    final Map<CharSequence, CharSequence> unescapeJavaMap = new HashMap<>();
-    unescapeJavaMap.put("\\\\", "\\");
-    unescapeJavaMap.put("\\\"", "\"");
-    unescapeJavaMap.put("\\'", "'");
-    unescapeJavaMap.put("\\", StringUtils.EMPTY);
-    unescapeJavaMap.put("\"\"", "\"");
-    UNESCAPE_LEGACY_IDENTIFIER = new AggregateTranslator(new LookupTranslator(EntityArrays.JAVA_CTRL_CHARS_UNESCAPE),
-        new LookupTranslator(Collections.unmodifiableMap(unescapeJavaMap)));
-  }
-
-  static ISpoofaxParseUnit addMetadata(ISpoofaxParseUnit parseResult, AbstractMetadataProvider metadataProvider,
-      ITermFactory f, boolean allowReferencingAnyProperty) {
+  static IStrategoTerm addMetadata(IStrategoTerm parseAst, AbstractMetadataProvider metadataProvider, ITermFactory f,
+      boolean allowReferencingAnyProperty) {
     PgqlVersion pgqlVersion;
-    switch (((IStrategoAppl) parseResult.ast()).getConstructor().getName()) {
+    switch (((IStrategoAppl) parseAst).getConstructor().getName()) {
       case "Query":
         pgqlVersion = PgqlVersion.V_1_3_OR_UP;
         break;
@@ -73,19 +52,19 @@ public class MetadataToAstUtil {
         break;
       default:
         // for DDL statements and other non-query statement, we don't add metadata
-        return parseResult;
+        return parseAst;
     }
 
     if (metadataProvider == null) {
-      return parseResult;
+      return parseAst;
     }
 
-    Set<SchemaQualifiedName> graphNames = extractGraphNames(parseResult.ast(), pgqlVersion);
+    Set<SchemaQualifiedName> graphNames = extractGraphNames(parseAst, pgqlVersion);
     Optional<GraphSchema> graphSchema;
     if (graphNames.size() > 1) {
       // multiple graph references in single query are currently not supported
       // we already generate an error for that during analysis so we can just return here
-      return parseResult;
+      return parseAst;
     } else if (graphNames.size() == 1) {
       SchemaQualifiedName graphName = graphNames.iterator().next();
       graphSchema = metadataProvider.getGraphSchema(graphName);
@@ -96,7 +75,7 @@ public class MetadataToAstUtil {
     Set<String> allTypes = new HashSet<>();
 
     Optional<List<DataTypeSynonym>> dataTypeSynonyms = metadataProvider.getDataTypeSynonyms();
-    allTypes.addAll(extractDataTypesFromCastStatements(parseResult.ast(), dataTypeSynonyms));
+    allTypes.addAll(extractDataTypesFromCastStatements(parseAst, dataTypeSynonyms));
     Optional<List<FunctionSignature>> functionSignatures = metadataProvider.getFunctionSignatures();
     allTypes.addAll(extractDataTypesFromUdfs(functionSignatures));
 
@@ -183,11 +162,10 @@ public class MetadataToAstUtil {
       metadataTerm.add(f.makeAppl("AllowReferencingAnyProperty"));
     }
 
-    IStrategoAppl metadataExtendedAst = f.makeAppl(AST_PLUS_METADATA_CONSTRUCTOR_NAME, parseResult.ast(),
+    IStrategoAppl metadataExtendedAst = f.makeAppl(AST_PLUS_METADATA_CONSTRUCTOR_NAME, parseAst,
         f.makeList(metadataTerm));
-    ISpoofaxParseUnit extendedParseUnit = new ModifiedParseUnit(parseResult, metadataExtendedAst);
 
-    return extendedParseUnit;
+    return metadataExtendedAst;
   }
 
   static IStrategoTerm translateLabel(Label label, ITermFactory f, Set<String> allTypes) {
@@ -200,14 +178,12 @@ public class MetadataToAstUtil {
     return f.makeAppl("Label", f.makeString(label.getLabel()), f.makeList(propertyTerms));
   }
 
-  static IStrategoTerm removeMetadata(ISpoofaxAnalyzeUnit analysisResult) {
-    IStrategoTerm analyizedAst;
-    if (((IStrategoAppl) analysisResult.ast()).getConstructor().getName().equals(AST_PLUS_METADATA_CONSTRUCTOR_NAME)) {
-      analyizedAst = analysisResult.ast().getSubterm(POS_AST_PLUS_METADATA_AST_EXPRESSIONS);
+  static IStrategoTerm removeMetadata(IStrategoTerm analysisAst) {
+    if (((IStrategoAppl) analysisAst).getConstructor().getName().equals(AST_PLUS_METADATA_CONSTRUCTOR_NAME)) {
+      return analysisAst.getSubterm(POS_AST_PLUS_METADATA_AST_EXPRESSIONS);
     } else {
-      analyizedAst = analysisResult.ast();
+      return analysisAst;
     }
-    return analyizedAst;
   }
 
   static Set<SchemaQualifiedName> extractGraphNames(IStrategoTerm ast, PgqlVersion pgqlVersion) {
@@ -307,7 +283,7 @@ public class MetadataToAstUtil {
         String unquotedPart = identifier.substring(1, identifier.length() - 1);
         if (pgqlVersion == PgqlVersion.V_1_0 || pgqlVersion == PgqlVersion.V_1_1_OR_V_1_2) {
           // Java-like escaping rules
-          return UNESCAPE_LEGACY_IDENTIFIER.translate(unquotedPart);
+          return PgqlUtils.unescapeLegacyPgqlString(unquotedPart, true);
         } else {
           // SQL escaping rules
           return unquotedPart.replaceAll("\"\"", "\"");
@@ -321,7 +297,7 @@ public class MetadataToAstUtil {
     List<Pair<String, String>> result = new ArrayList<>();
     for (String type1 : allTypes) {
       for (String type2 : allTypes) {
-        result.add(Pair.of(type1, type2));
+        result.add(new Pair<String, String>(type1, type2));
       }
     }
     return result;
@@ -331,11 +307,11 @@ public class MetadataToAstUtil {
       AbstractMetadataProvider metadataProvider, ITermFactory f) {
     List<IStrategoTerm> unionTypes = new ArrayList<>();
     for (Pair<String, String> pair : allPairsOfTypes) {
-      Optional<String> optionalUnionType = metadataProvider.getUnionType(pair.getLeft(), pair.getRight());
+      Optional<String> optionalUnionType = metadataProvider.getUnionType(pair.first, pair.second);
       if (optionalUnionType.isPresent()) {
         String unionType = optionalUnionType.get();
-        unionTypes.add(f.makeAppl("UnionType", f.makeString(pair.getLeft()), f.makeString(pair.getRight()),
-            f.makeString(unionType)));
+        unionTypes
+            .add(f.makeAppl("UnionType", f.makeString(pair.first), f.makeString(pair.second), f.makeString(unionType)));
       }
     }
     return unionTypes;
@@ -388,8 +364,8 @@ public class MetadataToAstUtil {
       BinaryOperation[] binaryOperations = BinaryOperation.values();
       for (int i = 0; i < binaryOperations.length; i++) {
         BinaryOperation operation = binaryOperations[i];
-        Optional<String> optionalReturnType = metadataProvider.getOperationReturnType(operation, pair.getLeft(),
-            pair.getRight());
+        Optional<String> optionalReturnType = metadataProvider.getOperationReturnType(operation, pair.first,
+            pair.second);
         if (optionalReturnType.isPresent()) {
           String returnType = optionalReturnType.get();
           String constructorName;
@@ -440,7 +416,7 @@ public class MetadataToAstUtil {
               throw new UnsupportedOperationException("Unsupported operation: " + operation);
           }
           binaryOperationsWithTypes.add(f.makeAppl("BinaryOperation", f.makeString(constructorName),
-              f.makeString(pair.getLeft()), f.makeString(pair.getRight()), f.makeString(returnType)));
+              f.makeString(pair.first), f.makeString(pair.second), f.makeString(returnType)));
         }
       }
     }

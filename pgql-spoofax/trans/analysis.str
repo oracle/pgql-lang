@@ -25,6 +25,14 @@ imports
 
 rules // Analysis
 
+  pgql-trans:
+    ast -> result
+    with variable-counter := <new-counter>
+       ; result := <normalize-before(|variable-counter)
+                  ; add-names(|variable-counter)
+                  ; add-types
+                  ; normalize-after> ast
+
   editor-analyze:
     ast -> result
     with variable-counter := <new-counter>

@@ -3,6 +3,7 @@
  */
 package oracle.pgql.lang;
 
+import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
 
@@ -207,16 +208,81 @@ public class SyntaxErrorsTest extends AbstractPgqlTest {
   public void testNegativeLowerBound() throws Exception {
     String query = "SELECT 1 FROM MATCH ANY SHORTEST () ->{-1, 2} ()";
     PgqlResult result = pgql.parse(query);
-    assertTrue(result.getErrorMessages().contains("Syntax error, not expected here: '-'"));
+    assertTrue(result.getErrorMessages().contains("Syntax error, '-1,' not expected"));
   }
 
   @Test
   public void testUnsupportedSubqueryInFromClause() throws Exception {
-    String query = "SELECT 1 FROM MATCH LATERAL ( SELECT * FROM MATCH (n) )";
+    String query = "SELECT 1 FROM LATERAL ( SELECT * FROM MATCH (n) )";
     GraphQuery result = pgql.parse(query).getGraphQuery();
     result.getTableExpressions(); // make sure this doesn't fail
 
     thrown.expectMessage("Subqueries in FROM clause not supported");
     result.getGraphPattern();
+  }
+
+  @Test
+  public void testOriginOffsetLineBoundaries() throws Exception {
+    String query = "SELECT *\n" + //
+        "FROM GRAPH_TABLE ( financial_transactions\n" + //
+        "       MATCH (a IS Account) -[IS transaction]->+ (a)\n" + //
+        "       KEEP ALL SIMPLE PATHS\n" + //
+        "       ONE ROW PER STEP ( v1, e, v2 )\n" + //
+        "       COLUMNS ( MATCHNUM() AS match_num, ELEMENT_NUMBER(e) AS elem_num,\n" + //
+        "\n" + //
+        "v23\n" + //
+        ".number AS account1, e2\n" + //
+        ".amount, v21.number AS account2 )\n" + //
+        "     )\n" + //
+        "ORDER BY match_num, elem_num, x";
+    PgqlResult result = pgql.parse(query);
+    assertEquals("Error(s) in line 8:\n" + //
+        "\n" + //
+        "  v23\n" + //
+        "  ^^^\n" + //
+        "  Unresolved variable\n" + //
+        "\n" + //
+        "Error(s) in line 9:\n" + //
+        "\n" + //
+        "  .number AS account1, e2\n" + //
+        "                       ^^\n" + //
+        "  Unresolved variable\n" + //
+        "\n" + //
+        "Error(s) in line 10:\n" + //
+        "\n" + //
+        "  .amount, v21.number AS account2 )\n" + //
+        "           ^^^\n" + //
+        "  Unresolved variable\n" + //
+        "\n" + //
+        "Error(s) in line 12:\n" + //
+        "\n" + //
+        "  ORDER BY match_num, elem_num, x\n" + //
+        "                                ^\n" + //
+        "  Unresolved variable", result.getErrorMessages());
+
+    query = "SELECT 1\n" + //
+        "FROM GRAPH_TABLE ( financial_transactions\n" + //
+        "       MATCH (a IS Account) -[IS transaction]->+ (a)\n" + //
+        "       KEEP ALL SIMPLE PATHS\n" + //
+        "       WHERE a.number = 10039\n" + //
+        "       ONE ROW PER STEP ( v1, e, v2 )\n" + //
+        "       COLUMNS ( MATCHNUM() AS match_num, ELEMENT_NUMBER(e) AS elem_num,\n" + //
+        "                 v1.number AS account1, e.amount, v2.number AS account2 )\n" + //
+        "     )\n" + //
+        "ORDER BY AVG(\n" + //
+        "1)";
+    result = pgql.parse(query);
+    assertEquals("Error(s) in line 10:\n" + //
+        "\n" + //
+        "  ORDER BY AVG(\n" + //
+        "           ^^^^\n" + //
+        "  Aggregation in ORDER BY only allowed if SELECT has aggregations", result.getErrorMessages());
+  }
+
+  @Test
+  public void testNonBreakingWhiteSpace() throws Exception {
+    String query = "SELECT x, y FROM MATCH \u00a0(n) -[e]-> (m)";
+    PgqlResult result = pgql.parse(query);
+    assertTrue(result.getErrorMessages().contains(Pgql.NON_BREAKING_WHITE_SPACE_ERROR));
   }
 }

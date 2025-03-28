@@ -114,10 +114,10 @@ test Subquery with non-group key variable in SELECT (3) [[
 
 test Aggregate group variable and non-group variable simultaneously [[
 
-  SELECT AVG([[n]].age) AS avg1, AVG(e.age) AS avg2
+  SELECT [[AVG(n.age)]] AS avg1, AVG(e.age) AS avg2
     FROM g MATCH TOP 10 SHORTEST ( (n) -[e]->* (m) )
 
-]] error like "Unresolved variable" at #1
+]] error like "Aggregation with group variables expected since SELECT clause has another aggregation with group variable" at #1
 
 test Duplicate variable in GROUP BY 1 [[
 
@@ -153,18 +153,18 @@ test Redefine variable from WHERE in GROUP BY [[
 
 test Nested aggregation (1) [[
 
-  SELECT AVG(MIN([[n]].age)) AS nestedAggr
+  SELECT AVG([[MIN(n.age)]]) AS nestedAggr
     FROM g MATCH (n)
 
-]] error like "Unresolved variable" at #1
+]] error like "Nested aggregation not allowed here" at #1
 
 test Nested aggregation (2) [[
 
     SELECT MIN(n.age) AS min
       FROM g MATCH (n)
-  ORDER BY AVG(MIN([[n]].age))
+  ORDER BY AVG([[MIN(n.age)]])
 
-]] error like "Unresolved variable" at #1
+]] error like "Nested aggregation not allowed here" at #1
 
 test Nested aggregation (3) [[
 
@@ -178,7 +178,7 @@ test Aggregation in WHERE (1) [[
 
   SELECT COUNT(n) AS cnt
     FROM g MATCH (n)
-   WHERE [[COUNT(n)]]
+   WHERE [[COUNT(1)]]
 
 ]] error like "Aggregation without group variables not allowed in WHERE" at #1
 
@@ -186,7 +186,7 @@ test Aggregation in WHERE (2) [[
 
   SELECT 3 AS three
     FROM g MATCH (n)
-   WHERE [[COUNT(n)]]
+   WHERE [[COUNT(1)]]
 
 ]] error like "Aggregation without group variables not allowed in WHERE" at #1
 
@@ -202,7 +202,7 @@ test Aggregation in GROUP BY (1) [[
 
     SELECT avgAge AS c1
       FROM g MATCH (n)
-  GROUP BY [[AVG(n.age)]] AS avgAge
+  GROUP BY [[AVG(1)]] AS avgAge
 
 ]] error like "Aggregation without group variables not allowed in GROUP BY" at #1
 
@@ -244,7 +244,7 @@ test Illegal nested aggregation 2 [[
 
 test Reference alias from SELECT in GROUP BY, not allowed when aggregation [[
 
-    SELECT [[COUNT(n.prop)]] AS v
+    SELECT [[COUNT(1)]] AS v
       FROM MATCH (n)
   GROUP BY v
 

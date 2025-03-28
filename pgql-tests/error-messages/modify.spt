@@ -26,11 +26,11 @@ test INSERT/UPDATE/DELETE subquery not allowed (3) [[
 
 test Set a property that is grouped by [[
 
-    UPDATE n SET ( [[n.prop]] = 123 )
+    UPDATE [[n]] SET ( n.prop = 123 )
       FROM MATCH (n)
   GROUP BY n.prop AS nProp
 
-]] error like "Cannot set a property that is grouped by" at #1
+]] error like "Unresolved variable (did you mean to use a group key?)" at #1
 
 test Update property value to vertex or edge (1) [[
 
@@ -43,10 +43,10 @@ test Update property value to vertex or edge (1) [[
 
 test Update property value to vertex or edge (2) [[
 
-  UPDATE n SET ( n.prop = ( SELECT [[x AS x]] FROM MATCH (x) LIMIT 1 ) )
+  UPDATE n SET ( n.prop = [[( SELECT x AS x FROM MATCH (x) LIMIT 1 )]] )
     FROM MATCH (n) -[e]-> (m)
 
-]] error like "Scalar subquery not allowed to return a vertex or an edge" at #1
+]] error like "Cannot set the value of a property to a vertex or an edge" at #1
 
 test Update property value to vertex or edge (3) [[
 
@@ -58,19 +58,19 @@ test Update property value to vertex or edge (3) [[
 
 test Insert element with property value of type vertex or edge (1) [[
 
-  INSERT VERTEX m PROPERTIES ( n.prop1 = [[n]]
-                             , n.prop2 = [[m]]
-                             , n.prop3 = [[e]] )
+  INSERT VERTEX m2 PROPERTIES ( m2.prop1 = [[n]]
+                              , m2.prop2 = [[m]]
+                              , m2.prop3 = [[e]] )
     FROM MATCH (n) -[e]-> (m)
 
 ]] error like "Cannot set the value of a property to a vertex or an edge" at #1, #2, #3
 
 test Insert element with property value of type vertex or edge (2) [[
 
-  INSERT VERTEX m PROPERTIES ( m.prop = ( SELECT [[x AS x]] FROM MATCH (x) LIMIT 1 ) )
+  INSERT VERTEX m2 PROPERTIES ( m2.prop = [[( SELECT x AS x FROM MATCH (x) LIMIT 1 )]] )
     FROM MATCH (n) -[e]-> (m)
 
-]] error like "Scalar subquery not allowed to return a vertex or an edge" at #1
+]] error like "Cannot set the value of a property to a vertex or an edge" at #1
 
 test Insert element with property value of type vertex or edge (3) [[
 

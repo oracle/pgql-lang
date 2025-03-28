@@ -38,7 +38,7 @@ test Single-quoted labels [[
   SELECT x AS y
     FROM g MATCH (x:[['lbl']])
 
-]] error like "Use double quotes to delimit labels"
+]] error like "Use double quotes to delimit labels" at #1
 
 test Invalid date [[
 
@@ -98,10 +98,24 @@ test Invalid escaping in string literal [[
 
 ]] error like "Use '' instead of \' to escape a single quote" at #1
 
-test Invalid escaping in identifier [[
+test Invalid escaping in identifier (1) [[
 
   SELECT n AS c1
-    FROM MATCH (n:[["double\"quote"]]) ON [["double\"quote"]]
+    FROM MATCH (n:[["double\"quote"]])
+
+]] error like "instead of \" to escape a double quote" at #1
+
+test Invalid escaping in identifier (2) [[
+
+  SELECT n AS c1
+    FROM MATCH (n) ON [["double\"quote"]]
+
+]] error like "instead of \" to escape a double quote" at #1
+
+test Invalid escaping in identifier (3) [[
+
+  SELECT n AS c1
+    FROM MATCH (n)
    WHERE n.[["double\"quote"]]
 
-]] error like "instead of \" to escape a double quote" at #1, #2, #3
+]] error like "instead of \" to escape a double quote" at #1

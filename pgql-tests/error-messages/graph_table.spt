@@ -9,22 +9,36 @@ test Restriction: colon (1) [[
          MATCH (n[[:]]person)
          WHERE EXISTS ( SELECT * 
                         FROM GRAPH_TABLE (
-                               g MATCH (m IS person) -> (o[[:]]person)
+                               g MATCH (m IS person) -> (o IS person)
                                WHERE element_id(n) = element_id(m)
                                COLUMNS ( m.prop ) ) )
          COLUMNS ( n.prop ) )
 
-]] error like "GRAPH_TABLE restriction: use IS instead of :" at #1, #2
+]] error like "GRAPH_TABLE restriction: use IS instead of :" at #1
 
 test Restriction: colon (2) [[
 
   SELECT *
   FROM GRAPH_TABLE ( g
          MATCH (n IS person)
+         WHERE EXISTS ( SELECT * 
+                        FROM GRAPH_TABLE (
+                               g MATCH (m IS person) -> (o[[:]]person)
+                               WHERE element_id(n) = element_id(m)
+                               COLUMNS ( m.prop ) ) )
          COLUMNS ( n.prop ) )
-     , MATCH (n2[[:]]person) -[e[[:]]knows]-> (n3 IS person)
 
-]] error like "GRAPH_TABLE restriction: use IS instead of :" at #1, #2
+]] error like "GRAPH_TABLE restriction: use IS instead of :" at #1
+
+test Restriction: colon (3) [[
+
+  SELECT *
+  FROM GRAPH_TABLE ( g
+         MATCH (n IS person)
+         COLUMNS ( n.prop ) )
+     , MATCH (n2 IS person) -[e[[:]]knows]-> (n3 IS person)
+
+]] error like "GRAPH_TABLE restriction: use IS instead of :" at #1
 
 test Restriction: graph name [[
 
@@ -40,15 +54,23 @@ test Restriction: subquery without GRAPH_TABLE [[
   SELECT *
   FROM GRAPH_TABLE ( g
          MATCH (person IS person)
-         WHERE EXISTS ( SELECT 1
-                        FROM [[MATCH (n) ON g,]]
-                             [[MATCH ( (n) ) ON g )]]
-            OR EXISTS ( [[SELECT 1 FROM g MATCH (n)]] )
+         WHERE EXISTS ( [[SELECT 1 FROM g MATCH (n)]] )
             OR EXISTS ( [[SELECT 1 WHERE (n)]] )
          COLUMNS ( person.prop ) )
 
+]] error like "Subquery uses older version of PGQL syntax; please make sure that both inner and outer query use the same PGQL version" at #1, #2
+
+test Restriction: subquery without GRAPH_TABLE [[
+
+  SELECT *
+  FROM GRAPH_TABLE ( g
+         MATCH (person IS person)
+         WHERE EXISTS ( SELECT 1
+                        FROM [[MATCH (n) ON g,]]
+                             [[MATCH ( (n) ) ON g )]]
+         COLUMNS ( person.prop ) )
+
 ]] error like "GRAPH_TABLE restriction: wrap top-level MATCH in GRAPH_TABLE" at #1, #2
-   error like "Subquery uses older version of PGQL syntax; please make sure that both inner and outer query use the same PGQL version" at #3, #4
 
 test Restriction: vertex sharing with outer query (1) [[
 
@@ -305,15 +327,25 @@ test Restriction: PATH [[
 
 ]] error like "GRAPH_TABLE restriction: path macros not supported" at #1
 
-test Restriction: -/.../-> [[
+test Restriction: -/.../-> (1) [[
 
   SELECT 1
   FROM GRAPH_TABLE ( g
-         MATCH (n) [[<-/IS knows*/-]] (m) [[-/IS knows*/->]] (o)
+         MATCH (n) [[<-/IS knows*/-]] (m) - (o)
          COLUMNS ( 1 )
        )
 
-]] error like "GRAPH_TABLE restriction: -/../-> not supported" at #1, #2
+]] error like "GRAPH_TABLE restriction: -/../-> not supported" at #1
+
+test Restriction: -/.../-> (2) [[
+
+  SELECT 1
+  FROM GRAPH_TABLE ( g
+         MATCH (n) - (m) [[-/IS knows*/->]] (o)
+         COLUMNS ( 1 )
+       )
+
+]] error like "GRAPH_TABLE restriction: -/../-> not supported" at #1
 
 test Restriction: MATCH_NUMBER, MATCHNUM [[
 
