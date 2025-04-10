@@ -1,0 +1,651 @@
+entries:
+- title: Sidebar
+  product: PGQL 2.1 Specification
+  folders:
+
+  - title: 'Introduction'
+    url: /spec/2.1/#introduction
+    output: web
+    folderitems:
+
+    - title: 'Changelog'
+      url: /spec/2.1/#changelog
+      output: web
+      subfolderitems:
+
+      - title: 'New features in PGQL 2.1'
+        url: /spec/2.1/#new-features-in-pgql-21
+        output: web
+
+    - title: 'A note on the Grammar'
+      url: /spec/2.1/#a-note-on-the-grammar
+      output: web
+
+    - title: 'Document Outline'
+      url: /spec/2.1/#document-outline
+      output: web
+
+    - title: 'Property graph data model'
+      url: /spec/2.1/#property-graph-data-model
+      output: web
+      subfolderitems:
+
+      - title: 'Example 1: Student Network'
+        url: /spec/2.1/#example-1-student-network
+        output: web
+
+      - title: 'Example 2: Financial Transactions'
+        url: /spec/2.1/#example-2-financial-transactions
+        output: web
+
+  - title: 'Creating a Property Graph'
+    url: /spec/2.1/#creating-a-property-graph
+    output: web
+    folderitems:
+
+    - title: 'CREATE PROPERTY GRAPH'
+      url: /spec/2.1/#create-property-graph
+      output: web
+      subfolderitems:
+
+      - title: 'Vertex tables'
+        url: /spec/2.1/#vertex-tables
+        output: web
+
+      - title: 'Edge tables'
+        url: /spec/2.1/#edge-tables
+        output: web
+
+      - title: 'Table aliases'
+        url: /spec/2.1/#table-aliases
+        output: web
+
+      - title: 'Keys'
+        url: /spec/2.1/#keys
+        output: web
+
+      - title: 'Labels'
+        url: /spec/2.1/#labels
+        output: web
+
+      - title: 'Properties'
+        url: /spec/2.1/#properties
+        output: web
+
+      - title: 'Source or destination is self'
+        url: /spec/2.1/#source-or-destination-is-self
+        output: web
+
+      - title: 'Example: HR schema'
+        url: /spec/2.1/#example-hr-schema
+        output: web
+
+      - title: 'Multiple schemas'
+        url: /spec/2.1/#multiple-schemas
+        output: web
+
+    - title: 'DROP PROPERTY GRAPH'
+      url: /spec/2.1/#drop-property-graph
+      output: web
+
+  - title: 'Graph Pattern Matching'
+    url: /spec/2.1/#graph-pattern-matching
+    output: web
+    folderitems:
+
+    - title: 'Writing simple queries'
+      url: /spec/2.1/#writing-simple-queries
+      output: web
+      subfolderitems:
+
+      - title: 'Vertex patterns'
+        url: /spec/2.1/#vertex-patterns
+        output: web
+
+      - title: 'Edge patterns'
+        url: /spec/2.1/#edge-patterns
+        output: web
+
+      - title: 'Label expressions'
+        url: /spec/2.1/#label-expressions
+        output: web
+
+      - title: 'Filter predicates'
+        url: /spec/2.1/#filter-predicates
+        output: web
+
+      - title: 'More complex patterns'
+        url: /spec/2.1/#more-complex-patterns
+        output: web
+
+      - title: 'Binding an element multiple times'
+        url: /spec/2.1/#binding-an-element-multiple-times
+        output: web
+
+      - title: 'Matching edges in any direction'
+        url: /spec/2.1/#matching-edges-in-any-direction
+        output: web
+
+    - title: 'Main query structure'
+      url: /spec/2.1/#main-query-structure
+      output: web
+
+    - title: 'SELECT Clause'
+      url: /spec/2.1/#select-clause
+      output: web
+      subfolderitems:
+
+      - title: 'Assigning variable name to Select Expression'
+        url: /spec/2.1/#assigning-variable-name-to-select-expression
+        output: web
+
+      - title: 'SELECT *'
+        url: /spec/2.1/#select-
+        output: web
+
+      - title: 'Selecting All Properties'
+        url: /spec/2.1/#selecting-all-properties
+        output: web
+
+    - title: 'FROM Clause'
+      url: /spec/2.1/#from-clause
+      output: web
+
+    - title: 'MATCH Clause'
+      url: /spec/2.1/#match-clause
+      output: web
+      subfolderitems:
+
+      - title: 'ON clause'
+        url: /spec/2.1/#on-clause
+        output: web
+
+      - title: 'Repeated variables'
+        url: /spec/2.1/#repeated-variables
+        output: web
+
+      - title: 'Alternatives for specifying graph patterns'
+        url: /spec/2.1/#alternatives-for-specifying-graph-patterns
+        output: web
+
+      - title: 'Disconnected graph patterns'
+        url: /spec/2.1/#disconnected-graph-patterns
+        output: web
+
+      - title: 'Label expression'
+        url: /spec/2.1/#label-expression
+        output: web
+
+    - title: 'OPTIONAL MATCH'
+      url: /spec/2.1/#optional-match
+      output: web
+
+    - title: 'WHERE Clause'
+      url: /spec/2.1/#where-clause
+      output: web
+
+    - title: 'GRAPH_TABLE Operator'
+      url: /spec/2.1/#graph_table-operator
+      output: web
+
+  - title: 'Variable-Length Paths'
+    url: /spec/2.1/#variable-length-paths
+    output: web
+    folderitems:
+
+    - title: 'Overview of Path Finding Goals'
+      url: /spec/2.1/#overview-of-path-finding-goals
+      output: web
+
+    - title: 'Quantifiers'
+      url: /spec/2.1/#quantifiers
+      output: web
+
+    - title: 'Any Path'
+      url: /spec/2.1/#any-path
+      output: web
+
+    - title: 'Shortest Path'
+      url: /spec/2.1/#shortest-path
+      output: web
+      subfolderitems:
+
+      - title: 'All Shortest Path'
+        url: /spec/2.1/#all-shortest-path
+        output: web
+
+      - title: 'Any Shortest Path'
+        url: /spec/2.1/#any-shortest-path
+        output: web
+
+      - title: 'Counted Shortest Path'
+        url: /spec/2.1/#counted-shortest-path
+        output: web
+
+    - title: 'Cheapest Path'
+      url: /spec/2.1/#cheapest-path
+      output: web
+      subfolderitems:
+
+      - title: 'Any Cheapest Path'
+        url: /spec/2.1/#any-cheapest-path
+        output: web
+
+      - title: 'Counted Cheapest Path'
+        url: /spec/2.1/#counted-cheapest-path
+        output: web
+
+    - title: 'All Path'
+      url: /spec/2.1/#all-path
+      output: web
+
+    - title: 'Horizontal Aggregation'
+      url: /spec/2.1/#horizontal-aggregation
+      output: web
+      subfolderitems:
+
+      - title: 'Recap of vertical aggregation'
+        url: /spec/2.1/#recap-of-vertical-aggregation
+        output: web
+
+      - title: 'Group Variables'
+        url: /spec/2.1/#group-variables
+        output: web
+
+      - title: 'Horizontal aggregation using group variables'
+        url: /spec/2.1/#horizontal-aggregation-using-group-variables
+        output: web
+
+      - title: 'Horizontal aggregation in WHERE and GROUP BY'
+        url: /spec/2.1/#horizontal-aggregation-in-where-and-group-by
+        output: web
+
+    - title: 'Path modes'
+      url: /spec/2.1/#path-modes
+      output: web
+
+  - title: 'Number of Rows Per Match'
+    url: /spec/2.1/#number-of-rows-per-match
+    output: web
+    folderitems:
+
+    - title: 'ONE ROW PER MATCH'
+      url: /spec/2.1/#one-row-per-match
+      output: web
+
+    - title: 'ONE ROW PER VERTEX'
+      url: /spec/2.1/#one-row-per-vertex
+      output: web
+
+    - title: 'ONE ROW PER STEP'
+      url: /spec/2.1/#one-row-per-step
+      output: web
+
+  - title: 'Grouping and Aggregation'
+    url: /spec/2.1/#grouping-and-aggregation
+    output: web
+    folderitems:
+
+    - title: 'GROUP BY Clause'
+      url: /spec/2.1/#group-by-clause
+      output: web
+      subfolderitems:
+
+      - title: 'Multiple Terms in GROUP BY'
+        url: /spec/2.1/#multiple-terms-in-group-by
+        output: web
+
+      - title: 'Aliases in GROUP BY'
+        url: /spec/2.1/#aliases-in-group-by
+        output: web
+
+      - title: 'GROUP BY and NULL values'
+        url: /spec/2.1/#group-by-and-null-values
+        output: web
+
+      - title: 'Repetition of Group Expression in Select or Order Expression'
+        url: /spec/2.1/#repetition-of-group-expression-in-select-or-order-expression
+        output: web
+
+    - title: 'Aggregation'
+      url: /spec/2.1/#aggregation
+      output: web
+      subfolderitems:
+
+      - title: 'Aggregation with GROUP BY'
+        url: /spec/2.1/#aggregation-with-group-by
+        output: web
+
+      - title: 'Aggregation without GROUP BY'
+        url: /spec/2.1/#aggregation-without-group-by
+        output: web
+
+      - title: 'COUNT(*)'
+        url: /spec/2.1/#count
+        output: web
+
+      - title: 'DISTINCT in aggregation'
+        url: /spec/2.1/#distinct-in-aggregation
+        output: web
+
+    - title: 'HAVING Clause'
+      url: /spec/2.1/#having-clause
+      output: web
+
+  - title: 'Sorting and Row Limiting'
+    url: /spec/2.1/#sorting-and-row-limiting
+    output: web
+    folderitems:
+
+    - title: 'ORDER BY Clause'
+      url: /spec/2.1/#order-by-clause
+      output: web
+      subfolderitems:
+
+      - title: 'Data types for ORDER BY'
+        url: /spec/2.1/#data-types-for-order-by
+        output: web
+
+      - title: 'Multiple expressions in ORDER BY'
+        url: /spec/2.1/#multiple-expressions-in-order-by
+        output: web
+
+    - title: 'OFFSET Clause'
+      url: /spec/2.1/#offset-clause
+      output: web
+
+    - title: 'FETCH FIRST Clause'
+      url: /spec/2.1/#fetch-first-clause
+      output: web
+
+    - title: 'LIMIT Clause'
+      url: /spec/2.1/#limit-clause
+      output: web
+
+  - title: 'Functions and Expressions'
+    url: /spec/2.1/#functions-and-expressions
+    output: web
+    folderitems:
+
+    - title: 'Data Types and Literals'
+      url: /spec/2.1/#data-types-and-literals
+      output: web
+      subfolderitems:
+
+      - title: 'Data Types'
+        url: /spec/2.1/#data-types
+        output: web
+
+      - title: 'Literals'
+        url: /spec/2.1/#literals
+        output: web
+
+      - title: 'Bind Variables'
+        url: /spec/2.1/#bind-variables
+        output: web
+
+    - title: 'Operators'
+      url: /spec/2.1/#operators
+      output: web
+      subfolderitems:
+
+      - title: 'Overview of Operators'
+        url: /spec/2.1/#overview-of-operators
+        output: web
+
+      - title: 'Operator Precedence'
+        url: /spec/2.1/#operator-precedence
+        output: web
+
+      - title: 'Implicit Type Conversion'
+        url: /spec/2.1/#implicit-type-conversion
+        output: web
+
+    - title: 'Null values'
+      url: /spec/2.1/#null-values
+      output: web
+      subfolderitems:
+
+      - title: 'Three-Valued Logic'
+        url: /spec/2.1/#three-valued-logic
+        output: web
+
+      - title: 'NULL Predicate'
+        url: /spec/2.1/#null-predicate
+        output: web
+
+    - title: 'Vertex and Edge functions'
+      url: /spec/2.1/#vertex-and-edge-functions
+      output: web
+      subfolderitems:
+
+      - title: 'VERTEX_ID/EDGE_ID Function'
+        url: /spec/2.1/#vertex_idedge_id-function
+        output: web
+
+      - title: 'LABEL Function'
+        url: /spec/2.1/#label-function
+        output: web
+
+      - title: 'LABELS Function'
+        url: /spec/2.1/#labels-function
+        output: web
+
+      - title: 'LABELED Predicate'
+        url: /spec/2.1/#labeled-predicate
+        output: web
+
+      - title: 'SOURCE / DESTINATION Predicate'
+        url: /spec/2.1/#source--destination-predicate
+        output: web
+
+      - title: 'MATCHNUM Function'
+        url: /spec/2.1/#matchnum-function
+        output: web
+
+      - title: 'ELEMENT_NUMBER Function'
+        url: /spec/2.1/#element_number-function
+        output: web
+
+      - title: 'ALL_DIFFERENT Predicate'
+        url: /spec/2.1/#all_different-predicate
+        output: web
+
+    - title: 'String functions'
+      url: /spec/2.1/#string-functions
+      output: web
+      subfolderitems:
+
+      - title: 'JAVA_REGEXP_LIKE Function'
+        url: /spec/2.1/#java_regexp_like-function
+        output: web
+
+      - title: 'LOWER'
+        url: /spec/2.1/#lower
+        output: web
+
+      - title: 'SUBSTRING'
+        url: /spec/2.1/#substring
+        output: web
+
+      - title: 'UPPER'
+        url: /spec/2.1/#upper
+        output: web
+
+    - title: 'Numeric functions'
+      url: /spec/2.1/#numeric-functions
+      output: web
+      subfolderitems:
+
+      - title: 'ABS'
+        url: /spec/2.1/#abs
+        output: web
+
+      - title: 'CEIL or CEILING'
+        url: /spec/2.1/#ceil-or-ceiling
+        output: web
+
+      - title: 'FLOOR'
+        url: /spec/2.1/#floor
+        output: web
+
+      - title: 'ROUND'
+        url: /spec/2.1/#round
+        output: web
+
+    - title: 'Datetime functions'
+      url: /spec/2.1/#datetime-functions
+      output: web
+      subfolderitems:
+
+      - title: 'EXTRACT'
+        url: /spec/2.1/#extract
+        output: web
+
+    - title: 'User-Defined functions'
+      url: /spec/2.1/#user-defined-functions
+      output: web
+
+    - title: 'CAST'
+      url: /spec/2.1/#cast
+      output: web
+
+    - title: 'CASE'
+      url: /spec/2.1/#case
+      output: web
+
+    - title: 'IN Predicate'
+      url: /spec/2.1/#in-predicate
+      output: web
+
+  - title: 'Subqueries'
+    url: /spec/2.1/#subqueries
+    output: web
+    folderitems:
+
+    - title: 'EXISTS and NOT EXISTS Subqueries'
+      url: /spec/2.1/#exists-and-not-exists-subqueries
+      output: web
+
+    - title: 'Scalar Subqueries'
+      url: /spec/2.1/#scalar-subqueries
+      output: web
+
+    - title: 'LATERAL Subqueries'
+      url: /spec/2.1/#lateral-subqueries
+      output: web
+      subfolderitems:
+
+      - title: 'Variable Renaming'
+        url: /spec/2.1/#variable-renaming
+        output: web
+
+      - title: 'Nesting Of LATERAL Subqueries'
+        url: /spec/2.1/#nesting-of-lateral-subqueries
+        output: web
+
+      - title: 'LATERAL Followed By MATCH'
+        url: /spec/2.1/#lateral-followed-by-match
+        output: web
+
+      - title: 'Reusing Of Variable Names'
+        url: /spec/2.1/#reusing-of-variable-names
+        output: web
+
+      - title: 'Unnesting In LATERAL Subquery'
+        url: /spec/2.1/#unnesting-in-lateral-subquery
+        output: web
+
+  - title: 'Graph Modification'
+    url: /spec/2.1/#graph-modification
+    output: web
+    folderitems:
+
+    - title: 'INSERT'
+      url: /spec/2.1/#insert
+      output: web
+      subfolderitems:
+
+      - title: 'Inserting vertices'
+        url: /spec/2.1/#inserting-vertices
+        output: web
+
+      - title: 'Inserting edges'
+        url: /spec/2.1/#inserting-edges
+        output: web
+
+      - title: 'Labels'
+        url: /spec/2.1/#labels
+        output: web
+
+      - title: 'Properties'
+        url: /spec/2.1/#properties
+        output: web
+
+      - title: 'Multiple inserts in the same INSERT clause'
+        url: /spec/2.1/#multiple-inserts-in-the-same-insert-clause
+        output: web
+
+    - title: 'UPDATE'
+      url: /spec/2.1/#update
+      output: web
+      subfolderitems:
+
+      - title: 'Handling read after write conflicts'
+        url: /spec/2.1/#handling-read-after-write-conflicts
+        output: web
+
+      - title: 'Handling write after write conflicts'
+        url: /spec/2.1/#handling-write-after-write-conflicts
+        output: web
+
+    - title: 'DELETE'
+      url: /spec/2.1/#delete
+      output: web
+
+    - title: 'Combining INSERT, UPDATE and DELETE'
+      url: /spec/2.1/#combining-insert-update-and-delete
+      output: web
+      subfolderitems:
+
+      - title: 'Isolation semantics of modification queries'
+        url: /spec/2.1/#isolation-semantics-of-modification-queries
+        output: web
+
+      - title: 'Handling conflicting modifications'
+        url: /spec/2.1/#handling-conflicting-modifications
+        output: web
+
+  - title: 'Other Syntactic rules'
+    url: /spec/2.1/#other-syntactic-rules
+    output: web
+    folderitems:
+
+    - title: 'Identifiers'
+      url: /spec/2.1/#identifiers
+      output: web
+      subfolderitems:
+
+      - title: 'Unquoted identifiers'
+        url: /spec/2.1/#unquoted-identifiers
+        output: web
+
+      - title: 'Quoted identifiers'
+        url: /spec/2.1/#quoted-identifiers
+        output: web
+
+    - title: 'String literals'
+      url: /spec/2.1/#string-literals
+      output: web
+
+    - title: 'Keywords'
+      url: /spec/2.1/#keywords
+      output: web
+
+    - title: 'Integers and Decimals'
+      url: /spec/2.1/#integers-and-decimals
+      output: web
+
+    - title: 'Comments'
+      url: /spec/2.1/#comments
+      output: web

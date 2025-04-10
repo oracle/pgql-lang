@@ -24,7 +24,7 @@ public class GenerateCodeBlocks {
             "GROUP", "HAVING", "IDENTIFIED", "IN", "INDEX", "INITIAL",
             "INSERT", "INTEGER", "INTERSECT", "INTO", "IS", "LEVEL", "LIKE", "LOCK", "LONG",
             "MINUS", "MODE", "MODIFY",
-            "NOT", "NULL", "NUMBER", "OF", "OFFLINE", "ONLINE", "OPTION",
+            "NOT", "NULL", "NUMBER", "OF", "OFFLINE", "ONLINE", "OPTION", "OPTIONAL",
             "ORDER", "OR", "PRIVILEGES", "PUBLIC", "RAW", "RENAME",
             "RESOURCE", "REVOKE", "ROWID", "ROWNUM", "ROWS", "ROW", "SELECT", "SESSION",
             "SET", "SHARE", "SIZE", "SMALLINT", "START", "SUCCESSFUL", "SYNONYM", "SYSDATE",
@@ -156,12 +156,18 @@ public class GenerateCodeBlocks {
     }
 
     public static void main(String[] args) {
+        Arrays.sort(KEYWORDS, new StringLengthComparator()); 
+        regex =  "('.*?'|\\b\\d+\\b)|(?=([^'\"]|'[^']*'|\"[^\"]*\")*$)([\\+\\-\\*\\/=%><\\|])|(?:" + String.join("|", KEYWORDS) + ")";
+
         // Provide input and output file paths
         String inputFilePath = "./pre-pages/pgql-2.0-spec.md";
         String outputFilePath = "./pages/pgql-2.0-spec.md";
+        // Call the convertMarkdownToHTML method
+        convertMarkdownToHTML(inputFilePath, outputFilePath);
 
-        Arrays.sort(KEYWORDS, new StringLengthComparator()); 
-        regex =  "('.*?'|\\b\\d+\\b)|(?=([^'\"]|'[^']*'|\"[^\"]*\")*$)([\\+\\-\\*\\/=%><\\|])|(?:" + String.join("|", KEYWORDS) + ")";
+        // Provide input and output file paths
+        inputFilePath = "./pre-pages/pgql-2.1-spec.md";
+        outputFilePath = "./pages/pgql-2.1-spec.md";
         // Call the convertMarkdownToHTML method
         convertMarkdownToHTML(inputFilePath, outputFilePath);
     }
