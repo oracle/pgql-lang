@@ -176,8 +176,8 @@ entries:
         url: /spec/2.1/#label-expression
         output: web
 
-    - title: 'OPTIONAL MATCH'
-      url: /spec/2.1/#optional-match
+    - title: 'OPTIONAL MATCH Clause'
+      url: /spec/2.1/#optional-match-clause
       output: web
 
     - title: 'WHERE Clause'

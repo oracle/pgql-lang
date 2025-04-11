@@ -1,6 +1,9 @@
 #!/bin/bash
 set -e
 
+# regenerate code blocks:
+java GenerateCodeBlocks.java
+
 # regenerate menus for specifications:
 javac GenerateMenuFromMarkdown.java
 java GenerateMenuFromMarkdown 1.1

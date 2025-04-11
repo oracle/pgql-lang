@@ -1,6 +1,6 @@
 ---
 title: "PGQL 2.1 Specification"
-date: "15 April 2024"
+date: "11 April 2025"
 #permalink: /spec/2.1/
 summary: "PGQL is an SQL-based query language for the property graph data model that allows
 you to specify high-level graph patterns which are matched against vertices and edges in a graph.
@@ -21,9 +21,9 @@ The following are the changes since PGQL 2.0:
 
 ### New features in PGQL 2.1
 
-The new features are:
+The new feature is:
 
- - [OPTIONAL MATCH](#optional-match)
+ - [OPTIONAL MATCH Clause](#optional-match-clause)
 
 ## A note on the Grammar
 
@@ -2034,9 +2034,151 @@ There are also built-in functions and predicates available for labels:
  - [labels(element)](#labels-function) returns the set of labels of a vertex or edge in the case the vertex/edge has multiple labels.
  - [element IS [NOT] LABELED label)](#labeled-predicate) returns `true` or `false` depending on if the vertex or edge has the specified label.
 
-## OPTIONAL MATCH
+## OPTIONAL MATCH Clause
 
-TODO
+`OPTIONAL MATCH` is similar to a left outer join in SQL.
+It tries to match a pattern in the graph but if there are no matches then it will not exclude the main result.
+Instead, any newly declared vertices and edges in the optional match pattern will be unbound and accessing their properties result in `null` values. Similarly, any function or predicate that takes a vertex or edge as input (VERTEX_ID, IS SOURCE OF, ELEMENT_NUMBER, etc.) returns `null` when an input is unbound.
+
+The syntax is:
+
+```bash
+OptionalMatchClause ::= 'OPTIONAL' <MatchClause>
+```
+
+The following example finds all persons and the companies they work for.
+Because of the optional match, it includes results for persons who do not work for any company,
+which would not have been the case for a regular match.
+
+{% include image.html file="example_graphs/financial_transactions.png" %}
+
+```sql
+--PGQL
+SELECT p.name AS person, c.name AS company
+FROM MATCH (p:person),
+     OPTIONAL MATCH (p) -[:worksFor]-> (c:company)
+ORDER BY p.name
+--SQL
+/*
+ * See PGQL with custom syntax.
+ */
+```
+
+```
++-------------------+
+| person  | company |
++-------------------+
+| Camille | Oracle  |
+| Liam    | <null>  |
+| Nikita  | <null>  |
++-------------------+
+```
+
+A variation of the query above is the following query that counts the number of companies that each person works for.
+
+{% include image.html file="example_graphs/financial_transactions.png" %}
+
+```sql
+--PGQL
+SELECT p.name AS person, COUNT(c.name) AS num_companies
+FROM MATCH (p:person),
+     OPTIONAL MATCH (p) -[:worksFor]-> (c:company)
+GROUP BY p.name
+ORDER BY p.name
+--SQL
+/*
+ * See PGQL with custom syntax.
+ */
+```
+
+```
++-------------------------+
+| person  | num_companies |
++-------------------------+
+| Camille | 1             |
+| Liam    | 0             |
+| Nikita  | 0             |
++-------------------------+\
+```
+
+Again, if the optional match would have been a regular match, there would have only be a result for Camille but not for Liam or Nikita.
+
+`WHERE` clauses can be placed inside or outside the optional pattern.
+When a filter needs to be evaluated as part of the optional match then it has to be placed _inside_ the parentheses.
+
+For example:
+
+{% include image.html file="example_graphs/financial_transactions.png" %}
+
+```sql
+--PGQL
+SELECT a1.number AS a1, a2.number AS a2, t.amount
+FROM MATCH (a1:account),
+     OPTIONAL MATCH ( (a1) -[t:transaction]- (a2:account)
+                      WHERE a2.number = 1001 )
+ORDER BY a1.number, t.amount
+--SQL
+/*
+ * See PGQL with custom syntax.
+ */
+```
+
+```
++-------------------------+
+| a1    | a2     | amount |
++-------------------------+
+| 1001  | <null> | <null> |
+| 2090  | 1001   | 9999.5 |
+| 8021  | 1001   | 1500.3 |
+| 8021  | 1001   | 3000.7 |
+| 10039 | <null> | <null> |
++-------------------------+
+```
+
+Otherwise, if the filter should be evaluated _after_ evaluation of the optional match,
+then the `WHERE` clause should be placed _outside_ of the parentheses.
+
+For example:
+
+{% include image.html file="example_graphs/financial_transactions.png" %}
+
+```sql
+--PGQL
+SELECT a1.number AS a1, a2.number AS a2, t.amount
+FROM MATCH (a1:account),
+     OPTIONAL MATCH ( (a1) -[t:transaction]- (a2:account) )
+WHERE a2.number = 1001
+ORDER BY a1.number, t.amount
+--SQL
+/*
+ * See PGQL with custom syntax.
+ */
+```
+
+Note that the above is the same as:
+
+```sql
+--PGQL
+SELECT a1.number AS a1, a2.number AS a2, t.amount
+FROM MATCH (a1:account),
+     OPTIONAL MATCH (a1) -[t:transaction]- (a2:account) /* without extra parentheses */
+WHERE a2.number = 1001
+ORDER BY a1.number, t.amount
+--SQL
+/*
+ * See PGQL with custom syntax.
+ */
+```
+
+```
++----------------------+
+| a1   | a2   | amount |
++----------------------+
+| 2090 | 1001 | 9999.5 |
+| 8021 | 1001 | 1500.3 |
+| 8021 | 1001 | 3000.7 |
++----------------------+
+```
 
 ## WHERE Clause
 

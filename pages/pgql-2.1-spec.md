@@ -1,6 +1,6 @@
 ---
 title: "PGQL 2.1 Specification"
-date: "15 April 2024"
+date: "11 April 2025"
 permalink: /spec/2.1/
 summary: "PGQL is an SQL-based query language for the property graph data model that allows
 you to specify high-level graph patterns which are matched against vertices and edges in a graph.
@@ -21,9 +21,9 @@ The following are the changes since PGQL 2.0:
 
 ### New features in PGQL 2.1
 
-The new features are:
+The new feature is:
 
- - [OPTIONAL MATCH](#optional-match)
+ - [OPTIONAL MATCH Clause](#optional-match-clause)
 
 ## A note on the Grammar
 
@@ -2196,9 +2196,166 @@ There are also built-in functions and predicates available for labels:
  - [labels(element)](#labels-function) returns the set of labels of a vertex or edge in the case the vertex/edge has multiple labels.
  - [element IS [NOT] LABELED label)](#labeled-predicate) returns `true` or `false` depending on if the vertex or edge has the specified label.
 
-## OPTIONAL MATCH
+## OPTIONAL MATCH Clause
 
-TODO
+`OPTIONAL MATCH` is similar to a left outer join in SQL.
+It tries to match a pattern in the graph but if there are no matches then it will not exclude the main result.
+Instead, any newly declared vertices and edges in the optional match pattern will be unbound and accessing their properties result in `null` values. Similarly, any function or predicate that takes a vertex or edge as input (VERTEX_ID, IS SOURCE OF, ELEMENT_NUMBER, etc.) returns `null` when an input is unbound.
+
+The syntax is:
+
+```bash
+OptionalMatchClause ::= 'OPTIONAL' <MatchClause>
+```
+
+The following example finds all persons and the companies they work for.
+Because of the optional match, it includes results for persons who do not work for any company,
+which would not have been the case for a regular match.
+
+{% include image.html file="example_graphs/financial_transactions.png" %}
+
+<div class="tab">
+<button name="sql-button" class="tablinks active" onclick="openTab(event, 'sql')">PGQL with SQL Standard syntax</button>
+<button name="pgql-button" class="tablinks" onclick="openTab(event, 'pgql')">PGQL with custom syntax</button>
+</div><div name="sql" class="tab-content active"><div class="language-sql highlighter-rouge"><div class="highlight"><pre class="highlight">
+<span class="o">/</span><span class="o">*</span>
+ <span class="o">*</span> See PGQL with custom syntax.
+ <span class="o">*</span><span class="o">/</span>
+</pre></div></div></div>
+<div name="pgql" class="tab-content"><div class="language-sql highlighter-rouge"><div class="highlight"><pre class="highlight">
+<span class="k">SELECT</span> p.name <span class="k">AS</span> person, c.name <span class="k">AS</span> company
+<span class="k">FROM</span> <span class="k">MATCH</span> (p:person),
+     <span class="k">OPTIONAL</span> <span class="k">MATCH</span> (p) <span class="o">-</span>[:worksFor]<span class="o">-</span><span class="o">></span> (c:company)
+<span class="k">ORDER</span> <span class="k">BY</span> p.name
+</pre></div></div></div>
+
+```
++-------------------+
+| person  | company |
++-------------------+
+| Camille | Oracle  |
+| Liam    | <null>  |
+| Nikita  | <null>  |
++-------------------+
+```
+
+A variation of the query above is the following query that counts the number of companies that each person works for.
+
+{% include image.html file="example_graphs/financial_transactions.png" %}
+
+<div class="tab">
+<button name="sql-button" class="tablinks active" onclick="openTab(event, 'sql')">PGQL with SQL Standard syntax</button>
+<button name="pgql-button" class="tablinks" onclick="openTab(event, 'pgql')">PGQL with custom syntax</button>
+</div><div name="sql" class="tab-content active"><div class="language-sql highlighter-rouge"><div class="highlight"><pre class="highlight">
+<span class="o">/</span><span class="o">*</span>
+ <span class="o">*</span> See PGQL with custom syntax.
+ <span class="o">*</span><span class="o">/</span>
+</pre></div></div></div>
+<div name="pgql" class="tab-content"><div class="language-sql highlighter-rouge"><div class="highlight"><pre class="highlight">
+<span class="k">SELECT</span> p.name <span class="k">AS</span> person, COUNT(c.name) <span class="k">AS</span> num_companies
+<span class="k">FROM</span> <span class="k">MATCH</span> (p:person),
+     <span class="k">OPTIONAL</span> <span class="k">MATCH</span> (p) <span class="o">-</span>[:worksFor]<span class="o">-</span><span class="o">></span> (c:company)
+<span class="k">GROUP</span> <span class="k">BY</span> p.name
+<span class="k">ORDER</span> <span class="k">BY</span> p.name
+</pre></div></div></div>
+
+```
++-------------------------+
+| person  | num_companies |
++-------------------------+
+| Camille | 1             |
+| Liam    | 0             |
+| Nikita  | 0             |
++-------------------------+\
+```
+
+Again, if the optional match would have been a regular match, there would have only be a result for Camille but not for Liam or Nikita.
+
+`WHERE` clauses can be placed inside or outside the optional pattern.
+When a filter needs to be evaluated as part of the optional match then it has to be placed _inside_ the parentheses.
+
+For example:
+
+{% include image.html file="example_graphs/financial_transactions.png" %}
+
+<div class="tab">
+<button name="sql-button" class="tablinks active" onclick="openTab(event, 'sql')">PGQL with SQL Standard syntax</button>
+<button name="pgql-button" class="tablinks" onclick="openTab(event, 'pgql')">PGQL with custom syntax</button>
+</div><div name="sql" class="tab-content active"><div class="language-sql highlighter-rouge"><div class="highlight"><pre class="highlight">
+<span class="o">/</span><span class="o">*</span>
+ <span class="o">*</span> See PGQL with custom syntax.
+ <span class="o">*</span><span class="o">/</span>
+</pre></div></div></div>
+<div name="pgql" class="tab-content"><div class="language-sql highlighter-rouge"><div class="highlight"><pre class="highlight">
+<span class="k">SELECT</span> a1.number <span class="k">AS</span> a1, a2.number <span class="k">AS</span> a2, t.amount
+<span class="k">FROM</span> <span class="k">MATCH</span> (a1:account),
+     <span class="k">OPTIONAL</span> <span class="k">MATCH</span> ( (a1) <span class="o">-</span>[t:transaction]<span class="o">-</span> (a2:account)
+                      <span class="k">WHERE</span> a2.number <span class="o">=</span> <span class="mi">1001</span> )
+<span class="k">ORDER</span> <span class="k">BY</span> a1.number, t.amount
+</pre></div></div></div>
+
+```
++-------------------------+
+| a1    | a2     | amount |
++-------------------------+
+| 1001  | <null> | <null> |
+| 2090  | 1001   | 9999.5 |
+| 8021  | 1001   | 1500.3 |
+| 8021  | 1001   | 3000.7 |
+| 10039 | <null> | <null> |
++-------------------------+
+```
+
+Otherwise, if the filter should be evaluated _after_ evaluation of the optional match,
+then the `WHERE` clause should be placed _outside_ of the parentheses.
+
+For example:
+
+{% include image.html file="example_graphs/financial_transactions.png" %}
+
+<div class="tab">
+<button name="sql-button" class="tablinks active" onclick="openTab(event, 'sql')">PGQL with SQL Standard syntax</button>
+<button name="pgql-button" class="tablinks" onclick="openTab(event, 'pgql')">PGQL with custom syntax</button>
+</div><div name="sql" class="tab-content active"><div class="language-sql highlighter-rouge"><div class="highlight"><pre class="highlight">
+<span class="o">/</span><span class="o">*</span>
+ <span class="o">*</span> See PGQL with custom syntax.
+ <span class="o">*</span><span class="o">/</span>
+</pre></div></div></div>
+<div name="pgql" class="tab-content"><div class="language-sql highlighter-rouge"><div class="highlight"><pre class="highlight">
+<span class="k">SELECT</span> a1.number <span class="k">AS</span> a1, a2.number <span class="k">AS</span> a2, t.amount
+<span class="k">FROM</span> <span class="k">MATCH</span> (a1:account),
+     <span class="k">OPTIONAL</span> <span class="k">MATCH</span> ( (a1) <span class="o">-</span>[t:transaction]<span class="o">-</span> (a2:account) )
+<span class="k">WHERE</span> a2.number <span class="o">=</span> <span class="mi">1001</span>
+<span class="k">ORDER</span> <span class="k">BY</span> a1.number, t.amount
+</pre></div></div></div>
+
+Note that the above is the same as:
+
+<div class="tab">
+<button name="sql-button" class="tablinks active" onclick="openTab(event, 'sql')">PGQL with SQL Standard syntax</button>
+<button name="pgql-button" class="tablinks" onclick="openTab(event, 'pgql')">PGQL with custom syntax</button>
+</div><div name="sql" class="tab-content active"><div class="language-sql highlighter-rouge"><div class="highlight"><pre class="highlight">
+<span class="o">/</span><span class="o">*</span>
+ <span class="o">*</span> See PGQL with custom syntax.
+ <span class="o">*</span><span class="o">/</span>
+</pre></div></div></div>
+<div name="pgql" class="tab-content"><div class="language-sql highlighter-rouge"><div class="highlight"><pre class="highlight">
+<span class="k">SELECT</span> a1.number <span class="k">AS</span> a1, a2.number <span class="k">AS</span> a2, t.amount
+<span class="k">FROM</span> <span class="k">MATCH</span> (a1:account),
+     <span class="k">OPTIONAL</span> <span class="k">MATCH</span> (a1) <span class="o">-</span>[t:transaction]<span class="o">-</span> (a2:account) <span class="o">/</span><span class="o">*</span> without extra parentheses <span class="o">*</span><span class="o">/</span>
+<span class="k">WHERE</span> a2.number <span class="o">=</span> <span class="mi">1001</span>
+<span class="k">ORDER</span> <span class="k">BY</span> a1.number, t.amount
+</pre></div></div></div>
+
+```
++----------------------+
+| a1   | a2   | amount |
++----------------------+
+| 2090 | 1001 | 9999.5 |
+| 8021 | 1001 | 1500.3 |
+| 8021 | 1001 | 3000.7 |
++----------------------+
+```
 
 ## WHERE Clause
 
