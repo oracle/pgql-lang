@@ -2180,6 +2180,36 @@ ORDER BY a1.number, t.amount
 +----------------------+
 ```
 
+A syntax restriction is that any optionally bound variable cannot have a shared declaration with a subsequent `MATCH` pattern, only with subsequent `OPTIONAL MATCH` patterns.
+In the following example, variable `p` is always bound since it is first declared in a regular `MATCH`,
+while variable `c` and `a` are optionally bound since they are first declared in an `OPTIONAL MATCH`.
+Given that variable `c` is optionally bound, the last `OPTIONAL MATCH` cannot be changed into a regular `MATCH`.
+
+{% include image.html file="example_graphs/financial_transactions.png" %}
+
+```sql
+--PGQL
+SELECT p.name AS person, c.name AS company, a.number AS account
+FROM MATCH (p:person),
+     OPTIONAL MATCH (p) -[:worksFor]-> (c:company),
+     OPTIONAL MATCH (c) <-[:owner]- (a:account)
+ORDER BY p.name
+--SQL
+/*
+ * See PGQL with custom syntax.
+ */
+```
+
+```
++-----------------------------+
+| person  | company | account |
++-----------------------------+
+| Camille | Oracle  | 1001    |
+| Liam    | <null>  | <null>  |
+| Nikita  | <null>  | <null>  |
++-----------------------------+
+```
+
 ## WHERE Clause
 
 Filters are applied after pattern matching to remove certain solutions. A filter takes the form of a boolean value expression which typically involves certain property values of the vertices and edges in the graph pattern.
@@ -3852,8 +3882,48 @@ There are a couple things to observe from this example:
  - Even though we specified `ONE ROW PER STEP` for the third pattern, the variable `t` is still available for [horizontal aggregations](#horizontal-aggregation) like the the `SUM` aggregation in the `SELECT`.
  - If there are multiple matches (here there are two matches to the pattern), then the [MATCHNUM function](#matchnum_function) can be used to identify them.
 
-Finally, it is worth noting that if a path is empty (i.e. has length zero) then it has a single step such that the first vertex variable is bound but the edge variable and the second vertex variable are unbound.
+It is also worth noting that if a path is empty (i.e. has length zero) then it has a single step such that the first vertex variable is bound but the edge variable and the second vertex variable are unbound.
 Therefore, the number of steps does not always equal the number of edges on a path.
+
+Finally, a syntax restriction is that any optionally bound variable cannot have a shared declaration with a subsequent `MATCH` pattern, only with subsequent `OPTIONAL MATCH` patterns. Iterator variables declared in `ONE ROW PER STEP` are optionally bound in the following cases:
+ - If the `ONE ROW PER STEP` is part of an `OPTIONAL MATCH` then all three iterator variables are optionally bound.
+ - If the `ONE ROW PER STEP` is part of a regular `MATCH` that contains a quantifier with lower bound 0 (zero), then the iterator edge variable and second iterator vertex variable are optionally bound, while the first iterator vertex variable is always bound.
+
+In the following example, iterator vertex variable `v1` is always bound while iterator edge variable `e` and iterator vertex variable `v2` are optionally bound since quantifier `*` has lower bound 0 (zero). Therefore, in the outermost `SELECT` clause, the first subquery that shares a declaration of always bound variable `v1` can use either `MATCH` or `OPTIONAL MATCH`, while the second subquery that shares a declaration of optionally bound variable `v2` must use `OPTIONAL MATCH`.
+
+{% include image.html file="example_graphs/financial_transactions.png" %}
+
+```sql
+--PGQL
+SELECT MATCHNUM(e) AS match_num,
+       ELEMENT_NUMBER(e) AS elem_num,
+       v1.number AS v1_number,
+       (SELECT p.name FROM MATCH (v1) -[:owner]-> (p:person)) AS v1_owner,
+       e.amount, v2.number AS v2_number,
+       (SELECT p.name FROM OPTIONAL MATCH (v2) -[:owner]-> (p:person)) AS v2_owner
+FROM MATCH ANY SHORTEST ( (a1:account) -[:transaction]->* (a2:account)
+                          WHERE a1.number = 10039 )
+       ONE ROW PER STEP (v1, e, v2)
+ORDER BY match_num, elem_num
+--SQL
+/*
+ * See PGQL with custom syntax.
+ */
+```
+
+```
++-----------------------------------------------------------------------------+
+| match_num | elem_num | v1_number | v1_owner | amount | v2_number | v2_owner |
++-----------------------------------------------------------------------------+
+| 11        | 2        | 10039     | Camille  | 1000.0 | 8021      | Nikita   |
+| 21        | 2        | 10039     | Camille  | 1000.0 | 8021      | Nikita   |
+| 21        | 4        | 8021      | Nikita   | 1500.3 | 1001      | <null>   |
+| 31        | 2        | 10039     | Camille  | 1000.0 | 8021      | Nikita   |
+| 31        | 4        | 8021      | Nikita   | 1500.3 | 1001      | <null>   |
+| 31        | 6        | 1001      | <null>   | 9999.5 | 2090      | Liam     |
+| <null>    | <null>   | 10039     | Camille  | <null> | <null>    | <null>   |
++-----------------------------------------------------------------------------+
+```
 
 # Grouping and Aggregation
 

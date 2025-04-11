@@ -2357,6 +2357,39 @@ Note that the above is the same as:
 +----------------------+
 ```
 
+A syntax restriction is that any optionally bound variable cannot have a shared declaration with a subsequent `MATCH` pattern, only with subsequent `OPTIONAL MATCH` patterns.
+In the following example, variable `p` is always bound since it is first declared in a regular `MATCH`,
+while variable `c` and `a` are optionally bound since they are first declared in an `OPTIONAL MATCH`.
+Given that variable `c` is optionally bound, the last `OPTIONAL MATCH` cannot be changed into a regular `MATCH`.
+
+{% include image.html file="example_graphs/financial_transactions.png" %}
+
+<div class="tab">
+<button name="sql-button" class="tablinks active" onclick="openTab(event, 'sql')">PGQL with SQL Standard syntax</button>
+<button name="pgql-button" class="tablinks" onclick="openTab(event, 'pgql')">PGQL with custom syntax</button>
+</div><div name="sql" class="tab-content active"><div class="language-sql highlighter-rouge"><div class="highlight"><pre class="highlight">
+<span class="o">/</span><span class="o">*</span>
+ <span class="o">*</span> See PGQL with custom syntax.
+ <span class="o">*</span><span class="o">/</span>
+</pre></div></div></div>
+<div name="pgql" class="tab-content"><div class="language-sql highlighter-rouge"><div class="highlight"><pre class="highlight">
+<span class="k">SELECT</span> p.name <span class="k">AS</span> person, c.name <span class="k">AS</span> company, a.number <span class="k">AS</span> account
+<span class="k">FROM</span> <span class="k">MATCH</span> (p:person),
+     <span class="k">OPTIONAL</span> <span class="k">MATCH</span> (p) <span class="o">-</span>[:worksFor]<span class="o">-</span><span class="o">></span> (c:company),
+     <span class="k">OPTIONAL</span> <span class="k">MATCH</span> (c) <span class="o"><</span><span class="o">-</span>[:owner]<span class="o">-</span> (a:account)
+<span class="k">ORDER</span> <span class="k">BY</span> p.name
+</pre></div></div></div>
+
+```
++-----------------------------+
+| person  | company | account |
++-----------------------------+
+| Camille | Oracle  | 1001    |
+| Liam    | <null>  | <null>  |
+| Nikita  | <null>  | <null>  |
++-----------------------------+
+```
+
 ## WHERE Clause
 
 Filters are applied after pattern matching to remove certain solutions. A filter takes the form of a boolean value expression which typically involves certain property values of the vertices and edges in the graph pattern.
@@ -4146,8 +4179,51 @@ There are a couple things to observe from this example:
  - Even though we specified `ONE ROW PER STEP` for the third pattern, the variable `t` is still available for [horizontal aggregations](#horizontal-aggregation) like the the `SUM` aggregation in the `SELECT`.
  - If there are multiple matches (here there are two matches to the pattern), then the [MATCHNUM function](#matchnum_function) can be used to identify them.
 
-Finally, it is worth noting that if a path is empty (i.e. has length zero) then it has a single step such that the first vertex variable is bound but the edge variable and the second vertex variable are unbound.
+It is also worth noting that if a path is empty (i.e. has length zero) then it has a single step such that the first vertex variable is bound but the edge variable and the second vertex variable are unbound.
 Therefore, the number of steps does not always equal the number of edges on a path.
+
+Finally, a syntax restriction is that any optionally bound variable cannot have a shared declaration with a subsequent `MATCH` pattern, only with subsequent `OPTIONAL MATCH` patterns. Iterator variables declared in `ONE ROW PER STEP` are optionally bound in the following cases:
+ - If the `ONE ROW PER STEP` is part of an `OPTIONAL MATCH` then all three iterator variables are optionally bound.
+ - If the `ONE ROW PER STEP` is part of a regular `MATCH` that contains a quantifier with lower bound 0 (zero), then the iterator edge variable and second iterator vertex variable are optionally bound, while the first iterator vertex variable is always bound.
+
+In the following example, iterator vertex variable `v1` is always bound while iterator edge variable `e` and iterator vertex variable `v2` are optionally bound since quantifier `*` has lower bound 0 (zero). Therefore, in the outermost `SELECT` clause, the first subquery that shares a declaration of always bound variable `v1` can use either `MATCH` or `OPTIONAL MATCH`, while the second subquery that shares a declaration of optionally bound variable `v2` must use `OPTIONAL MATCH`.
+
+{% include image.html file="example_graphs/financial_transactions.png" %}
+
+<div class="tab">
+<button name="sql-button" class="tablinks active" onclick="openTab(event, 'sql')">PGQL with SQL Standard syntax</button>
+<button name="pgql-button" class="tablinks" onclick="openTab(event, 'pgql')">PGQL with custom syntax</button>
+</div><div name="sql" class="tab-content active"><div class="language-sql highlighter-rouge"><div class="highlight"><pre class="highlight">
+<span class="o">/</span><span class="o">*</span>
+ <span class="o">*</span> See PGQL with custom syntax.
+ <span class="o">*</span><span class="o">/</span>
+</pre></div></div></div>
+<div name="pgql" class="tab-content"><div class="language-sql highlighter-rouge"><div class="highlight"><pre class="highlight">
+<span class="k">SELECT</span> <span class="k">MATCH</span>NUM(e) <span class="k">AS</span> match_num,
+       ELEMENT_<span class="k">NUMBER</span>(e) <span class="k">AS</span> elem_num,
+       v1.number <span class="k">AS</span> v1_number,
+       (<span class="k">SELECT</span> p.name <span class="k">FROM</span> <span class="k">MATCH</span> (v1) <span class="o">-</span>[:owner]<span class="o">-</span><span class="o">></span> (p:person)) <span class="k">AS</span> v1_owner,
+       e.amount, v2.number <span class="k">AS</span> v2_number,
+       (<span class="k">SELECT</span> p.name <span class="k">FROM</span> <span class="k">OPTIONAL</span> <span class="k">MATCH</span> (v2) <span class="o">-</span>[:owner]<span class="o">-</span><span class="o">></span> (p:person)) <span class="k">AS</span> v2_owner
+<span class="k">FROM</span> <span class="k">MATCH</span> <span class="k">ANY</span> <span class="k">SHORTEST</span> ( (a1:account) <span class="o">-</span>[:transaction]<span class="o">-</span><span class="o">></span><span class="o">*</span> (a2:account)
+                          <span class="k">WHERE</span> a1.number <span class="o">=</span> <span class="mi">10039</span> )
+       <span class="k">ONE</span> <span class="k">ROW</span> <span class="k">PER</span> <span class="k">STEP</span> (v1, e, v2)
+<span class="k">ORDER</span> <span class="k">BY</span> match_num, elem_num
+</pre></div></div></div>
+
+```
++-----------------------------------------------------------------------------+
+| match_num | elem_num | v1_number | v1_owner | amount | v2_number | v2_owner |
++-----------------------------------------------------------------------------+
+| 11        | 2        | 10039     | Camille  | 1000.0 | 8021      | Nikita   |
+| 21        | 2        | 10039     | Camille  | 1000.0 | 8021      | Nikita   |
+| 21        | 4        | 8021      | Nikita   | 1500.3 | 1001      | <null>   |
+| 31        | 2        | 10039     | Camille  | 1000.0 | 8021      | Nikita   |
+| 31        | 4        | 8021      | Nikita   | 1500.3 | 1001      | <null>   |
+| 31        | 6        | 1001      | <null>   | 9999.5 | 2090      | Liam     |
+| <null>    | <null>   | 10039     | Camille  | <null> | <null>    | <null>   |
++-----------------------------------------------------------------------------+
+```
 
 # Grouping and Aggregation
 
