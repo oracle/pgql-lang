@@ -2038,7 +2038,7 @@ There are also built-in functions and predicates available for labels:
 
 `OPTIONAL MATCH` is similar to a left outer join in SQL.
 It tries to match a pattern in the graph but if there are no matches then it will not exclude the main result.
-Instead, any newly declared vertices and edges in the optional match pattern will be unbound and accessing their properties result in `null` values. Similarly, any function or predicate that takes a vertex or edge as input (VERTEX_ID, IS SOURCE OF, ELEMENT_NUMBER, etc.) returns `null` when an input is unbound.
+Instead, any newly declared vertices and edges in the optional match pattern will be unbound and accessing their properties result in `null` values. Similarly, any function or predicate that takes a vertex or edge as input (`VERTEX_ID`, `IS SOURCE OF`, `ELEMENT_NUMBER`, etc.) returns `null` when an input is unbound.
 
 The syntax is:
 
@@ -2098,7 +2098,7 @@ ORDER BY p.name
 | Camille | 1             |
 | Liam    | 0             |
 | Nikita  | 0             |
-+-------------------------+\
++-------------------------+
 ```
 
 Again, if the optional match would have been a regular match, then there would have only been a result for Camille but not for Liam or Nikita.
