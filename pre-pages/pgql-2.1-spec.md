@@ -2101,7 +2101,7 @@ ORDER BY p.name
 +-------------------------+\
 ```
 
-Again, if the optional match would have been a regular match, there would have only be a result for Camille but not for Liam or Nikita.
+Again, if the optional match would have been a regular match, then there would have only been a result for Camille but not for Liam or Nikita.
 
 `WHERE` clauses can be placed inside or outside the optional pattern.
 When a filter needs to be evaluated as part of the optional match then it has to be placed _inside_ the parentheses.
