@@ -2182,7 +2182,7 @@ ORDER BY a1.number, t.amount
 
 A syntax restriction is that any optionally bound variable cannot have a shared declaration with a subsequent `MATCH` pattern, only with subsequent `OPTIONAL MATCH` patterns.
 In the following example, variable `p` is always bound since it is first declared in a regular `MATCH`,
-while variable `c` and `a` are optionally bound since they are first declared in an `OPTIONAL MATCH`.
+while variables `c` and `a` are optionally bound since they are first declared in an `OPTIONAL MATCH`.
 Given that variable `c` is optionally bound, the last `OPTIONAL MATCH` cannot be changed into a regular `MATCH`.
 
 {% include image.html file="example_graphs/financial_transactions.png" %}
