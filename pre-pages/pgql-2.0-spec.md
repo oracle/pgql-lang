@@ -4952,12 +4952,12 @@ Note that the above query can be rewritten using non-equality constraints as fol
 ```sql
 --PGQL
 SELECT *
-FROM MATCH (n) -> (m) <- (o) -> (n) ON my_graph
+FROM MATCH (n) -> (m) -> (o) ON my_graph
 WHERE n <> m AND n <> o AND m <> o
 --SQL
 SELECT *
 FROM GRAPH_TABLE(my_graph
-  MATCH (n) -> (m) <- (o) -> (n)
+  MATCH (n) -> (m) -> (o)
   WHERE NOT VERTEX_EQUAL(n, m) AND NOT VERTEX_EQUAL(n, o) AND NOT VERTEX_EQUAL(m, o)
   COLUMNS(n.*, m.*, o.*))
 ```

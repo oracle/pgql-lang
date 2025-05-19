@@ -5545,13 +5545,13 @@ Note that the above query can be rewritten using non-equality constraints as fol
 </div><div name="sql" class="tab-content active"><div class="language-sql highlighter-rouge"><div class="highlight"><pre class="highlight">
 <span class="k">SELECT</span> <span class="o">*</span>
 <span class="k">FROM</span> <span class="k">GRAPH_TABLE</span>(my_graph
-  <span class="k">MATCH</span> (n) <span class="o">-</span><span class="o">></span> (m) <span class="o"><</span><span class="o">-</span> (o) <span class="o">-</span><span class="o">></span> (n)
+  <span class="k">MATCH</span> (n) <span class="o">-</span><span class="o">></span> (m) <span class="o">-</span><span class="o">></span> (o)
   <span class="k">WHERE</span> <span class="k">NOT</span> <span class="k">VERTEX</span>_EQUAL(n, m) <span class="k">AND</span> <span class="k">NOT</span> <span class="k">VERTEX</span>_EQUAL(n, o) <span class="k">AND</span> <span class="k">NOT</span> <span class="k">VERTEX</span>_EQUAL(m, o)
   <span class="k">COLUMNS</span>(n.<span class="o">*</span>, m.<span class="o">*</span>, o.<span class="o">*</span>))
 </pre></div></div></div>
 <div name="pgql" class="tab-content"><div class="language-sql highlighter-rouge"><div class="highlight"><pre class="highlight">
 <span class="k">SELECT</span> <span class="o">*</span>
-<span class="k">FROM</span> <span class="k">MATCH</span> (n) <span class="o">-</span><span class="o">></span> (m) <span class="o"><</span><span class="o">-</span> (o) <span class="o">-</span><span class="o">></span> (n) <span class="k">ON</span> my_graph
+<span class="k">FROM</span> <span class="k">MATCH</span> (n) <span class="o">-</span><span class="o">></span> (m) <span class="o">-</span><span class="o">></span> (o) <span class="k">ON</span> my_graph
 <span class="k">WHERE</span> n <span class="o"><</span><span class="o">></span> m <span class="k">AND</span> n <span class="o"><</span><span class="o">></span> o <span class="k">AND</span> m <span class="o"><</span><span class="o">></span> o
 </pre></div></div></div>
 
