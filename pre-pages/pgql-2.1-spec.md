@@ -215,11 +215,13 @@ EdgeTable                      ::= <TableName> <TableAlias>? <KeyClause>?
                                    <SourceVertexTable> <DestinationVertexTable>
                                    <LabelAndPropertiesClause>?
 
-SourceVertexTable              ::= 'SOURCE' <ReferencedVertexTableKeyClause>? <TableName>
+SourceVertexTable              ::=    'SOURCE' <TableName>
+                                   || 'SOURCE' <KeyClause>
+                                        'REFERENCES' <TableName> '(' <ColumnName> ( ',' <ColumnName> )* ')'
 
-DestinationVertexTable         ::= 'DESTINATION' <ReferencedVertexTableKeyClause>? <TableName>
-
-ReferencedVertexTableKeyClause ::= <KeyClause> 'REFERENCES'
+DestinationVertexTable         ::=    'DESTINATION' <TableName>
+                                   || 'DESTINATION' <KeyClause>
+                                        'REFERENCES' <TableName> '(' <ColumnName> ( ',' <ColumnName> )* ')'
 ```
 
 The [table alias](#table-aliases) is required only if the underlying table is used as edge table more than once, to provide a unique name for each table.
@@ -385,7 +387,7 @@ require manual specification of keys:
 The syntax for keys is:
 
 ```bash
-KeyClause  ::= '(' <ColumnName> ( ',' <ColumnName> )* ')'
+KeyClause  ::= 'KEY' '(' <ColumnName> ( ',' <ColumnName> )* ')'
 
 ColumnName ::= <Identifier>
 ```
